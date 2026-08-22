@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Apply docs/DISCOVERY.md to GitHub About. Requires gh, authenticated to
-# ryanduguid/JohnKenley with repo metadata write access.
+# ryanduguid/au-tax-mcp-server with repo metadata write access.
 set -euo pipefail
 
-REPO="ryanduguid/JohnKenley"
-DESCRIPTION="Local MCP server for Australian computational accounting: ATO small-business benchmarks, Payday Super 2026 review, refused Division 7A, and synthetic SBR fixtures. Citations and refusals, not advice."
-HOMEPAGE="https://github.com/ryanduguid/JohnKenley#install"
+REPO="ryanduguid/au-tax-mcp-server"
+DESCRIPTION="Local MCP server for ATO small-business benchmarks, Payday Super 2026 review, refused Division 7A, and synthetic SBR fixtures. Not advice."
+HOMEPAGE="https://github.com/ryanduguid/au-tax-mcp-server#install"
 TOPICS=(
   accounting-ai
   agent-skills

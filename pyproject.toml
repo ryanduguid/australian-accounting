@@ -22,8 +22,8 @@ keywords = [
 ]
 dependencies = [
     "mcp>=2.0.0,<3",
-    "payday-super-checker @ git+https://github.com/ryanduguid/CharlesHenryWickens.git@4e60756de85cb0d06aa9c5ca2c4193b72a5802a3",
-    "ato-benchmark-compare @ git+https://github.com/ryanduguid/RaymondChambers.git@64e165378d1cebb55d611f3675894c0630120f34",
+    "payday-super-checker @ git+https://github.com/ryanduguid/payday-super-checker.git@4e60756de85cb0d06aa9c5ca2c4193b72a5802a3",
+    "ato-benchmark-compare @ git+https://github.com/ryanduguid/ato-benchmark-compare.git@64e165378d1cebb55d611f3675894c0630120f34",
 ]
 
 [project.optional-dependencies]
@@ -37,8 +37,8 @@ dev = [
 aus-accounting-mcp = "aus_accounting_mcp.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/ryanduguid/JohnKenley"
-Repository = "https://github.com/ryanduguid/JohnKenley.git"
+Homepage = "https://github.com/ryanduguid/au-tax-mcp-server"
+Repository = "https://github.com/ryanduguid/au-tax-mcp-server.git"
 
 [tool.hatch.metadata]
 allow-direct-references = true

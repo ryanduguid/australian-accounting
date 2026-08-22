@@ -3,12 +3,12 @@ message: If you cite this software, use the metadata below.
 authors:
   - family-names: Duguid
     given-names: Ryan
-title: "JohnKenley (aus-accounting-mcp)"
+title: "au-tax-mcp-server (aus-accounting-mcp)"
 abstract: Local MCP facade over reviewed Australian computational accounting engines. Citations and refusals, not advice.
 version: 0.1.0
 date-released: 2026-08-21
-url: "https://github.com/ryanduguid/JohnKenley"
-repository-code: "https://github.com/ryanduguid/JohnKenley"
+url: "https://github.com/ryanduguid/au-tax-mcp-server"
+repository-code: "https://github.com/ryanduguid/au-tax-mcp-server"
 license: MIT
 keywords:
   - mcp
