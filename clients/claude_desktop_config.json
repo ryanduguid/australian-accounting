@@ -4,7 +4,7 @@
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/ryanduguid/au-tax-mcp-server.git@38943a21ed8a73d844b5113164de2a9fa010f96e",
+        "git+https://github.com/ryanduguid/au-tax-mcp-server",
         "aus-accounting-mcp"
       ]
     }

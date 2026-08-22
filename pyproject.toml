@@ -22,8 +22,8 @@ keywords = [
 ]
 dependencies = [
     "mcp>=2.0.0,<3",
-    "payday-super-checker @ git+https://github.com/ryanduguid/payday-super-checker.git@4e60756de85cb0d06aa9c5ca2c4193b72a5802a3",
-    "ato-benchmark-compare @ git+https://github.com/ryanduguid/ato-benchmark-compare.git@64e165378d1cebb55d611f3675894c0630120f34",
+    "payday-super-checker @ git+https://github.com/ryanduguid/payday-super-checker.git@32ff20e381e749dd8a3e851a859bc3885ddfed9c",
+    "ato-benchmark-compare @ git+https://github.com/ryanduguid/ato-benchmark-compare.git@b734c426cf5728a69894009ec104db88d4b3e842",
 ]
 
 [project.optional-dependencies]

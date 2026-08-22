@@ -131,6 +131,16 @@ def compare_figures(
     for row in payload["ratios"]:
         if row["ratio"] == "total_expenses_to_turnover":
             evidenced = all(name in supplied for name in EXPENSE_FIELDS)
+        elif row["ratio"] == "labour_to_turnover":
+            # Labour sums several buckets, and an omitted bucket is not evidenced
+            # as zero, so a partial labour picture must not present as a definite
+            # ratio. W1 substitutes for salary and wages under the ATO rule.
+            evidenced = (
+                "salary_wages" in supplied or w1_amount is not None
+            ) and all(
+                name in supplied
+                for name in ("contractor_commission", "cost_of_sales_labour")
+            )
         else:
             sources = RATIO_SOURCES.get(row["ratio"], ())
             evidenced = any(

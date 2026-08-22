@@ -99,7 +99,7 @@ wheels = [
 [[package]]
 name = "ato-benchmark-compare"
 version = "0.1.1"
-source = { git = "https://github.com/ryanduguid/ato-benchmark-compare.git?rev=64e165378d1cebb55d611f3675894c0630120f34#64e165378d1cebb55d611f3675894c0630120f34" }
+source = { git = "https://github.com/ryanduguid/ato-benchmark-compare.git?rev=b734c426cf5728a69894009ec104db88d4b3e842#b734c426cf5728a69894009ec104db88d4b3e842" }
 
 [[package]]
 name = "attrs"
@@ -130,10 +130,10 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ato-benchmark-compare", git = "https://github.com/ryanduguid/ato-benchmark-compare.git?rev=64e165378d1cebb55d611f3675894c0630120f34" },
+    { name = "ato-benchmark-compare", git = "https://github.com/ryanduguid/ato-benchmark-compare.git?rev=b734c426cf5728a69894009ec104db88d4b3e842" },
     { name = "mcp", specifier = ">=2.0.0,<3" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.14" },
-    { name = "payday-super-checker", git = "https://github.com/ryanduguid/payday-super-checker.git?rev=4e60756de85cb0d06aa9c5ca2c4193b72a5802a3" },
+    { name = "payday-super-checker", git = "https://github.com/ryanduguid/payday-super-checker.git?rev=32ff20e381e749dd8a3e851a859bc3885ddfed9c" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11" },
@@ -844,7 +844,7 @@ wheels = [
 [[package]]
 name = "payday-super-checker"
 version = "0.1.1"
-source = { git = "https://github.com/ryanduguid/payday-super-checker.git?rev=4e60756de85cb0d06aa9c5ca2c4193b72a5802a3#4e60756de85cb0d06aa9c5ca2c4193b72a5802a3" }
+source = { git = "https://github.com/ryanduguid/payday-super-checker.git?rev=32ff20e381e749dd8a3e851a859bc3885ddfed9c#32ff20e381e749dd8a3e851a859bc3885ddfed9c" }
 
 [[package]]
 name = "pluggy"

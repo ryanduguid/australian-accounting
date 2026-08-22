@@ -121,6 +121,29 @@ def test_ato_omitted_buckets_are_not_treated_as_zero() -> None:
     assert payload["complete_buckets"] is False
 
 
+def test_ato_partial_labour_picture_is_not_supplied() -> None:
+    payload = get_ato_benchmarks(
+        industry="Bakeries and hot bread shops",
+        turnover="850000.00",
+        salary_wages="120000.00",
+    )
+    statuses = {row["ratio"]: row["status"] for row in payload["ratios"]}
+    assert statuses["labour_to_turnover"] == "not_supplied"
+
+
+def test_ato_complete_labour_picture_is_evidenced() -> None:
+    payload = get_ato_benchmarks(
+        industry="Bakeries and hot bread shops",
+        turnover="850000.00",
+        salary_wages="120000.00",
+        contractor_commission="0",
+        cost_of_sales_labour="0",
+    )
+    rows = {row["ratio"]: row for row in payload["ratios"]}
+    assert rows["labour_to_turnover"]["status"] != "not_supplied"
+    assert rows["labour_to_turnover"]["value"] is not None
+
+
 def test_ato_refuses_turnover_only() -> None:
     with pytest.raises(ValueError, match="no expense figures"):
         get_ato_benchmarks(industry="Bakeries and hot bread shops", turnover="850000.00")
@@ -157,7 +180,7 @@ def test_client_snippets_use_uvx_from_github() -> None:
     root = Path(__file__).resolve().parents[1]
     expected_args = [
         "--from",
-        "git+https://github.com/ryanduguid/au-tax-mcp-server.git@38943a21ed8a73d844b5113164de2a9fa010f96e",
+        "git+https://github.com/ryanduguid/au-tax-mcp-server",
         "aus-accounting-mcp",
     ]
     for name in ("cursor_mcp.json", "claude_desktop_config.json", "antigravity_config.json"):
