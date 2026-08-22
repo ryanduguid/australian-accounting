@@ -157,7 +157,7 @@ def test_client_snippets_use_uvx_from_github() -> None:
     root = Path(__file__).resolve().parents[1]
     expected_args = [
         "--from",
-        "git+https://github.com/ryanduguid/JohnKenley.git@38943a21ed8a73d844b5113164de2a9fa010f96e",
+        "git+https://github.com/ryanduguid/au-tax-mcp-server.git@38943a21ed8a73d844b5113164de2a9fa010f96e",
         "aus-accounting-mcp",
     ]
     for name in ("cursor_mcp.json", "claude_desktop_config.json", "antigravity_config.json"):
@@ -167,14 +167,14 @@ def test_client_snippets_use_uvx_from_github() -> None:
         assert server["args"] == expected_args
     readme = (root / "README.md").read_text(encoding="utf-8")
     disclaimer = (root / "DISCLAIMER.md").read_text(encoding="utf-8")
-    assert "uvx --from git+https://github.com/ryanduguid/JohnKenley" in readme
+    assert "uvx --from git+https://github.com/ryanduguid/au-tax-mcp-server" in readme
     assert "DISCLAIMER.md" in readme
     assert "glama.ai/mcp/servers/ryanduguid/JohnKenley" in readme
     assert "not tax" in disclaimer.lower()
     assert "synthetic: true" in disclaimer
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
-    assert "https://github.com/ryanduguid/JohnKenley" in citation
+    assert "https://github.com/ryanduguid/au-tax-mcp-server" in citation
     glama = json.loads((root / "glama.json").read_text(encoding="utf-8"))
     assert glama["maintainers"] == ["ryanduguid"]
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
-    assert "git+https://github.com/ryanduguid/CharlesHenryWickens.git@" in pyproject
+    assert "git+https://github.com/ryanduguid/payday-super-checker.git@" in pyproject

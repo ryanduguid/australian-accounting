@@ -9,13 +9,13 @@ About, repository topics, README, `pyproject.toml`, `glama.json`, and
 Description:
 
 ```text
-Local MCP server for Australian computational accounting: ATO small-business benchmarks, Payday Super 2026 review, refused Division 7A, and synthetic SBR fixtures. Citations and refusals, not advice.
+Local MCP server for ATO small-business benchmarks, Payday Super 2026 review, refused Division 7A, and synthetic SBR fixtures. Not advice.
 ```
 
 Website:
 
 ```text
-https://github.com/ryanduguid/JohnKenley#install
+https://github.com/ryanduguid/au-tax-mcp-server#install
 ```
 
 Topics:

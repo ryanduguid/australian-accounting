@@ -1,4 +1,4 @@
-"""Adapter over ato-benchmark-compare (RaymondChambers).
+"""Adapter over ato-benchmark-compare.
 
 No ATO ratios are hardcoded here. Figures are bucket totals; the engine
 applies QC 37143 turnover and labour rules and the shipped dataset.
