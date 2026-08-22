@@ -7,19 +7,21 @@ REPO="ryanduguid/au-tax-mcp-server"
 DESCRIPTION="Local MCP server for ATO small-business benchmarks, Payday Super 2026 review, refused Division 7A, and synthetic SBR fixtures. Not advice."
 HOMEPAGE="https://github.com/ryanduguid/au-tax-mcp-server#install"
 TOPICS=(
+  accounting
   accounting-ai
   agent-skills
   ato
   ato-benchmarks
   australian-tax
+  australian-taxation
   claude-code
   codex
   cursor
-  division-7a
   mcp
   mcp-server
   model-context-protocol
   payday-super
+  python
   tax-prep
 )
 

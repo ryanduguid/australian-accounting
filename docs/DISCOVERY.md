@@ -21,11 +21,13 @@ https://github.com/ryanduguid/au-tax-mcp-server#install
 Topics:
 
 ```text
+accounting
 accounting-ai
 agent-skills
 ato
 ato-benchmarks
 australian-tax
+australian-taxation
 claude-code
 codex
 cursor
@@ -33,6 +35,7 @@ mcp
 mcp-server
 model-context-protocol
 payday-super
+python
 tax-prep
 ```
 
