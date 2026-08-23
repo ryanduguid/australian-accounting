@@ -3,7 +3,7 @@
 [![tests](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-Standard%20Protocol-5C2D91?labelColor=04001F)](https://modelcontextprotocol.io/)
-[![Glama](https://glama.ai/mcp/servers/ryanduguid/JohnKenley/badge)](https://glama.ai/mcp/servers/ryanduguid/JohnKenley)
+[![Glama](https://img.shields.io/badge/Glama-MCP%20Directory-5C2D91?labelColor=04001F)](https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
 
 MCP facade over reviewed Australian computational accounting engines. Compatible with Claude Desktop, Claude Code, Cursor, Codex and Antigravity.
