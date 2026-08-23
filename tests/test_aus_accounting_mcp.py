@@ -192,7 +192,7 @@ def test_client_snippets_use_uvx_from_github() -> None:
     disclaimer = (root / "DISCLAIMER.md").read_text(encoding="utf-8")
     assert "uvx --from git+https://github.com/ryanduguid/au-tax-mcp-server" in readme
     assert "DISCLAIMER.md" in readme
-    assert "glama.ai/mcp/servers/ryanduguid/JohnKenley" in readme
+    assert "glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server" in readme
     assert "not tax" in disclaimer.lower()
     assert "synthetic: true" in disclaimer
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")

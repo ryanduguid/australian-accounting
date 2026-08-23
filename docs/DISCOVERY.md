@@ -57,5 +57,8 @@ GitHub. Pin this repository from the profile **Customize your pins** dialog.
 - Keep refusals visible (Division 7A unwired; SBR synthetic).
 - Do not imply ATO, CA ANZ, or vendor endorsement.
 - Do not claim a hosted corpus, a PyPI package, or a Smithery listing until those exist.
-- The Glama listing is https://glama.ai/mcp/servers/ryanduguid/JohnKenley.
+- The Glama listing is https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server.
+  Glama's record still stores the repository URL under the old `JohnKenley` name,
+  so its generated badge image only resolves on that slug. Ask Glama to reindex
+  before putting the generated badge back in the README.
 - Do not copy AGPL or proprietary-corpus language from other ATO MCP products.
