@@ -26,7 +26,7 @@ dependencies = [
     # distribution whose metadata carries a direct URL reference, so a git pin
     # here makes the package unpublishable.
     "payday-super-checker==0.1.2",
-    "ato-benchmark-compare==0.1.3",
+    "ato-benchmark-compare==0.1.4",
 ]
 
 [project.optional-dependencies]
