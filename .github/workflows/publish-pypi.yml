@@ -1,0 +1,66 @@
+name: Publish to PyPI
+
+# The `release: published` trigger below never actually fires: releases in this
+# repository are created by release.yml through the shared release-policy
+# workflow using the workflow's own GITHUB_TOKEN, and events raised by
+# GITHUB_TOKEN do not trigger other workflows. That is a documented GitHub
+# Actions limitation, not a bug in release.yml. It is kept as a statement of
+# intent in case the limitation is ever worked around with a PAT or a GitHub
+# App token. The workflow_dispatch trigger is the path that runs today: after
+# release.yml publishes a release, dispatch this workflow with the same tag.
+#
+# This gates nothing else. If it fails, for example before the PyPI trusted
+# publisher is registered, the GitHub release itself is unaffected.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Exact existing release tag to publish (for example v0.1.4)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pypi-publish-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    timeout-minutes: 15
+    name: publish the exact release assets to PyPI
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read # Download the published release assets.
+      id-token: write # Mint the OIDC token for PyPI trusted publishing.
+    steps:
+      - name: Download the wheel and sdist from the published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir assets dist
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir assets
+          (cd assets && sha256sum --check SHA256SUMS)
+          # The release also carries a GitHub source archive whose name is not a
+          # Python distribution name, and twine rejects it for having no
+          # PKG-INFO. Select the sdist and wheel by their exact PEP 625 and
+          # PEP 427 names rather than globbing every .tar.gz.
+          version="${TAG#v}"
+          mv "assets/aus_accounting_mcp-${version}.tar.gz" dist/
+          mv "assets/aus_accounting_mcp-${version}-py3-none-any.whl" dist/
+          test "$(find dist -name '*.whl' | wc -l)" = "1"
+          test "$(find dist -name '*.tar.gz' | wc -l)" = "1"
+          ls -l dist
+
+      - name: Publish to PyPI via trusted publishing
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          packages-dir: dist

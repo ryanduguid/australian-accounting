@@ -200,4 +200,12 @@ def test_client_snippets_use_uvx_from_github() -> None:
     glama = json.loads((root / "glama.json").read_text(encoding="utf-8"))
     assert glama["maintainers"] == ["ryanduguid"]
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
-    assert "git+https://github.com/ryanduguid/payday-super-checker.git@" in pyproject
+    # The engines stay pinned to an exact version, which is what the commit pins
+    # used to buy. They cannot be pinned by URL: PyPI rejects a distribution
+    # whose metadata carries a direct reference, so a git pin here would make
+    # this package unpublishable and silently undo its own release process.
+    assert "payday-super-checker==" in pyproject
+    assert "ato-benchmark-compare==" in pyproject
+    dependencies = pyproject.split("dependencies = [", 1)[1].split("]", 1)[0]
+    assert "git+" not in dependencies
+    assert "allow-direct-references" not in pyproject

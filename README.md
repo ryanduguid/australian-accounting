@@ -22,7 +22,7 @@ Division 7A is **refused** until a reviewed engine exists. SBR payloads are **sy
 
 ## Install
 
-Python 3.10+ and [uv](https://docs.astral.sh/uv/). The engines install from GitHub because they are not on PyPI, so the one-command path is `uvx` from this repository:
+Python 3.10+ and [uv](https://docs.astral.sh/uv/). The engines come from PyPI at exact versions; this server itself installs from the repository until its own first PyPI release:
 
 ```bash
 uvx --from git+https://github.com/ryanduguid/au-tax-mcp-server aus-accounting-mcp
