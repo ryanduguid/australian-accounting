@@ -1,5 +1,19 @@
 # au-tax-mcp-server
 
+```
++----------------------------------------------------------------------+
+|                          au-tax-mcp-server                           |
++----------------------------------------------------------------------+
+|                 MCP server for AU tax review engines                 |
++----------------------------------+-----------------------------------+
+| DR  what it gives you            | CR  what it needs                 |
++----------------------------------+-----------------------------------+
+| MCP tools for AU tax review      | an MCP capable host client        |
+| delegates to reviewed engines    | uv or uvx to install it           |
+| synthetic SBR test fixtures      | -                                 |
++----------------------------------+-----------------------------------+
+```
+
 [![tests](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-Standard%20Protocol-5C2D91?labelColor=04001F)](https://modelcontextprotocol.io/)
