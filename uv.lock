@@ -98,8 +98,12 @@ wheels = [
 
 [[package]]
 name = "ato-benchmark-compare"
-version = "0.1.1"
-source = { git = "https://github.com/ryanduguid/ato-benchmark-compare.git?rev=b734c426cf5728a69894009ec104db88d4b3e842#b734c426cf5728a69894009ec104db88d4b3e842" }
+version = "0.1.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/31/01/a247c32bf8fbe05f3dd4fc6e255e777e05e386942e4ffb0448243eb2aa63/ato_benchmark_compare-0.1.3.tar.gz", hash = "sha256:9e3634df73c60aab7a5a728dbbb660c2a591a6b2ccaee6710287420955a1a258", size = 62554, upload-time = "2026-08-24T05:53:39.751Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/92/c4/d413560d36fdb75be180f47c96f9476e427c1c49264491c4eca8d577d573/ato_benchmark_compare-0.1.3-py3-none-any.whl", hash = "sha256:af806b0ccdc58d1558bea04551cf58e0f01b79219836a8692b55c6962a137c1e", size = 45966, upload-time = "2026-08-24T05:53:38.634Z" },
+]
 
 [[package]]
 name = "attrs"
@@ -112,7 +116,7 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.1.3"
+version = "0.1.4"
 source = { editable = "." }
 dependencies = [
     { name = "ato-benchmark-compare" },
@@ -131,11 +135,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ato-benchmark-compare", git = "https://github.com/ryanduguid/ato-benchmark-compare.git?rev=b734c426cf5728a69894009ec104db88d4b3e842" },
+    { name = "ato-benchmark-compare", specifier = "==0.1.3" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2" },
     { name = "mcp", specifier = ">=2.0.0,<3" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.14" },
-    { name = "payday-super-checker", git = "https://github.com/ryanduguid/payday-super-checker.git?rev=32ff20e381e749dd8a3e851a859bc3885ddfed9c" },
+    { name = "payday-super-checker", specifier = "==0.1.2" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11" },
@@ -873,8 +877,12 @@ wheels = [
 
 [[package]]
 name = "payday-super-checker"
-version = "0.1.1"
-source = { git = "https://github.com/ryanduguid/payday-super-checker.git?rev=32ff20e381e749dd8a3e851a859bc3885ddfed9c#32ff20e381e749dd8a3e851a859bc3885ddfed9c" }
+version = "0.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/8f/725a755952daa5706de1734504a7d475d098763c3cbfc931d849fa2c9036/payday_super_checker-0.1.2.tar.gz", hash = "sha256:5a7d3a5e9e91384c85ac23a161d40f215d733455ed4083fef828af38f994276a", size = 316870, upload-time = "2026-08-24T09:12:47.729Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/24/af/63f16e5227874b754e11902e3ed8f30d2d593b275f5bddf12bd0127c13d6/payday_super_checker-0.1.2-py3-none-any.whl", hash = "sha256:ffbc426af47efbb497a02594cdb58a4ba65c1e34b4827b387aa68f91e1c55f31", size = 104689, upload-time = "2026-08-24T09:12:46.167Z" },
+]
 
 [[package]]
 name = "pluggy"
