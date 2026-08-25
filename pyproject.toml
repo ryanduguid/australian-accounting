@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aus-accounting-mcp"
-version = "0.1.4"
-description = "MCP facade over payday-super-checker and ato-benchmark-compare. uvx from GitHub; citations and refusals, not advice."
+version = "0.1.5"
+description = "MCP facade over payday-super-checker and ato-benchmark-compare. uvx from PyPI; citations and refusals, not advice."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"

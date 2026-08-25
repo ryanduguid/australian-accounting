@@ -1,6 +1,9 @@
+import base64
 import importlib
 import json
+import re
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 
@@ -178,13 +181,9 @@ def test_synthetic_sbr_fixtures_are_labelled() -> None:
     assert bas["gst_labels"]["1A_gst_on_sales"] == "10000.00"
 
 
-def test_client_snippets_use_uvx_from_github() -> None:
+def test_client_snippets_use_uvx_from_pypi() -> None:
     root = Path(__file__).resolve().parents[1]
-    expected_args = [
-        "--from",
-        "git+https://github.com/ryanduguid/au-tax-mcp-server",
-        "aus-accounting-mcp",
-    ]
+    expected_args = ["aus-accounting-mcp"]
     for name in ("cursor_mcp.json", "claude_desktop_config.json", "antigravity_config.json"):
         payload = json.loads((root / "clients" / name).read_text(encoding="utf-8"))
         server = payload["mcpServers"]["aus-accounting"]
@@ -192,7 +191,17 @@ def test_client_snippets_use_uvx_from_github() -> None:
         assert server["args"] == expected_args
     readme = (root / "README.md").read_text(encoding="utf-8")
     disclaimer = (root / "DISCLAIMER.md").read_text(encoding="utf-8")
-    assert "uvx --from git+https://github.com/ryanduguid/au-tax-mcp-server" in readme
+    assert "uvx aus-accounting-mcp" in readme
+    assert "git+https://github.com/ryanduguid/au-tax-mcp-server" not in readme
+    cursor_link = re.search(r"https://cursor\.com/en/install-mcp\?[^)]+", readme)
+    assert cursor_link is not None
+    cursor_config = parse_qs(urlparse(cursor_link.group(0)).query)["config"]
+    assert len(cursor_config) == 1
+    assert json.loads(base64.urlsafe_b64decode(cursor_config[0]).decode("utf-8")) == {
+        "command": "uvx",
+        "args": expected_args,
+    }
+    assert "<!-- mcp-name: io.github.ryanduguid/aus-accounting -->" in readme
     assert "DISCLAIMER.md" in readme
     assert "glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server" in readme
     assert "not tax" in disclaimer.lower()
@@ -202,6 +211,8 @@ def test_client_snippets_use_uvx_from_github() -> None:
     glama = json.loads((root / "glama.json").read_text(encoding="utf-8"))
     assert glama["maintainers"] == ["ryanduguid"]
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    assert 'version = "0.1.5"' in pyproject
+    assert "uvx from PyPI" in pyproject
     # The engines stay pinned to an exact version, which is what the commit pins
     # used to buy. They cannot be pinned by URL: PyPI rejects a distribution
     # whose metadata carries a direct reference, so a git pin here would make
@@ -211,3 +222,16 @@ def test_client_snippets_use_uvx_from_github() -> None:
     dependencies = pyproject.split("dependencies = [", 1)[1].split("]", 1)[0]
     assert "git+" not in dependencies
     assert "allow-direct-references" not in pyproject
+
+
+def test_release_metadata_matches_project_version() -> None:
+    root = Path(__file__).resolve().parents[1]
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    version_match = re.search(r'(?m)^version = "([^"]+)"$', pyproject)
+    assert version_match is not None
+    version = version_match.group(1)
+    release_notes = (root / "RELEASE_NOTES.md").read_text(encoding="utf-8")
+    citation = (root / "CITATION.cff").read_text(encoding="utf-8")
+
+    assert release_notes.startswith(f"# v{version}\n")
+    assert re.search(rf"(?m)^version: {re.escape(version)}$", citation)
