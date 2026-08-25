@@ -27,6 +27,8 @@ Payday Super is an experimental review (not a compliance determination). Divisio
 > [!WARNING]
 > **Not tax advice.** This server returns structured results, refusals, and citations. It does not lodge, and it does not replace a registered agent. See [DISCLAIMER.md](DISCLAIMER.md).
 
+This is a **computational** MCP, not a hosted ATO document store. It applies statutory tests to figures the operator supplies (Payday Super timing, ATO small-business benchmark ratios) and refuses Division 7A. For looking up rulings, use a document-retrieval MCP. Comparison: [Australian tax tools for AI agents](https://ryanduguid.github.io/tools/australian-tax-ai-agents/).
+
 This server does **not** reimplement tax law. Payday Super and ATO small-business benchmarks are delegated to:
 
 - [payday-super-checker](https://github.com/ryanduguid/payday-super-checker) (`payday-super-checker`)

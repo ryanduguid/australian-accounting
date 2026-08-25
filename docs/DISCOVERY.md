@@ -15,7 +15,7 @@ Local MCP server for ATO small-business benchmarks, Payday Super 2026 review, re
 Website:
 
 ```text
-https://github.com/ryanduguid/au-tax-mcp-server#install
+https://ryanduguid.github.io/tools/australian-tax-ai-agents/
 ```
 
 Topics:
@@ -57,8 +57,13 @@ GitHub. Pin this repository from the profile **Customize your pins** dialog.
 - Keep refusals visible (Division 7A unwired; SBR synthetic).
 - Do not imply ATO, CA ANZ, or vendor endorsement.
 - Do not claim a hosted corpus, a PyPI package, or a Smithery listing until those exist.
+- Point agents at the comparison page: https://ryanduguid.github.io/tools/australian-tax-ai-agents/
 - The Glama listing is https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server.
   Glama's record still stores the repository URL under the old `JohnKenley` name,
-  so its generated badge image only resolves on that slug. Ask Glama to reindex
-  before putting the generated badge back in the README.
+  so its generated badge image only resolves on that slug. Claim the listing as
+  maintainer `ryanduguid` and ask Glama to reindex before putting the generated
+  badge back in the README.
+- Official MCP registry: keep `server.json` in the repo root. Publish with
+  `mcp-publisher` after authenticating the `io.github.ryanduguid` namespace.
+  Do not set `packages.registryType` to `pypi` until the package is on PyPI.
 - Do not copy AGPL or proprietary-corpus language from other ATO MCP products.
