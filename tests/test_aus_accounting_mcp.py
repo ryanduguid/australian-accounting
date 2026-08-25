@@ -160,8 +160,10 @@ def test_ato_unknown_industry_is_refused() -> None:
 
 def test_div7a_is_refused() -> None:
     payload = refuse_div7a("Alice", "HoldingCo Pty Ltd", "50000.00")
+    assert payload["ok"] is False
     assert payload["available"] is False
     assert payload["reviewed_engine"] is False
+    assert payload["code"] == "ERR_POLICY_DIV7A_REFUSED"
     assert "payday-super-checker" in payload["reason"]
 
 

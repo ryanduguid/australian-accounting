@@ -137,6 +137,7 @@ def refuse_div7a(
         "ok": False,
         "available": False,
         "reviewed_engine": False,
+        "code": "ERR_POLICY_DIV7A_REFUSED",
         "reason": DIV7A_REFUSAL,
     }
 
