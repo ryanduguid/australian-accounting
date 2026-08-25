@@ -8,5 +8,15 @@
     "url": "https://github.com/ryanduguid/au-tax-mcp-server",
     "source": "github"
   },
-  "version": "0.1.4"
+  "version": "0.1.5",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "aus-accounting-mcp",
+      "version": "0.1.5",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
 }

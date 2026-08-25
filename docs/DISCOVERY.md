@@ -73,7 +73,11 @@ Pin this repository from the profile **Customize your pins** dialog.
   Keep `server.json` in the repo root. The [MCP Registry PyPI package
   guidance](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/package-types.mdx)
   requires the published package README to contain its matching `mcp-name`
-  marker. Release and publish v0.1.5 first, verify it on PyPI, then add the
-  PyPI package entry for that exact version to `server.json`. GitHub Actions
-  OIDC republishes the registry record when `server.json` changes.
+  marker. Version 0.1.5 is published and verified on PyPI, and `server.json`
+  names that exact package version. GitHub Actions OIDC republishes the registry
+  record when `server.json` changes.
+- For future releases, push the version tag to create and attest the GitHub
+  release, then dispatch **Publish to PyPI** with the same tag. PyPI's trusted
+  publisher is bound to `publish-pypi.yml`; do not add a publisher job to
+  `release.yml` unless the PyPI publisher configuration is changed with it.
 - Do not copy AGPL or proprietary-corpus language from other ATO MCP products.
