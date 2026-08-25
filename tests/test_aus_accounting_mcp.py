@@ -235,3 +235,50 @@ def test_release_metadata_matches_project_version() -> None:
 
     assert release_notes.startswith(f"# v{version}\n")
     assert re.search(rf"(?m)^version: {re.escape(version)}$", citation)
+
+
+def test_server_metadata_publishes_exact_pypi_release() -> None:
+    root = Path(__file__).resolve().parents[1]
+    server = json.loads((root / "server.json").read_text(encoding="utf-8"))
+
+    assert server["version"] == "0.1.5"
+    assert server["packages"] == [
+        {
+            "registryType": "pypi",
+            "identifier": "aus-accounting-mcp",
+            "version": "0.1.5",
+            "transport": {"type": "stdio"},
+        }
+    ]
+
+
+def test_release_workflows_use_registered_pypi_publisher() -> None:
+    root = Path(__file__).resolve().parents[1]
+    release = (root / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+    publisher = (root / ".github" / "workflows" / "publish-pypi.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "workflow_dispatch:" not in release
+    assert "gh-action-pypi-publish" not in release
+    assert "workflow_dispatch:" in publisher
+    assert "gh-action-pypi-publish" in publisher
+
+
+def test_registry_publisher_is_pinned_and_checksum_verified() -> None:
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "publish-mcp.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "releases/latest" not in workflow
+    assert "/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz" in workflow
+    assert "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc" in workflow
+    assert "sha256sum --check" in workflow
+    assert (
+        workflow.index("sha256sum --check")
+        < workflow.index("tar --extract")
+        < workflow.index("./mcp-publisher login")
+    )
