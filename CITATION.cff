@@ -5,9 +5,9 @@ authors:
     given-names: Ryan
 title: "au-tax-mcp-server (aus-accounting-mcp)"
 abstract: Local MCP facade over reviewed Australian computational accounting engines. Citations and refusals, not advice.
-version: 0.1.3
+version: 0.1.4
 date-released: 2026-08-22
-url: "https://github.com/ryanduguid/au-tax-mcp-server"
+url: "https://ryanduguid.github.io/tools/australian-tax-ai-agents/"
 repository-code: "https://github.com/ryanduguid/au-tax-mcp-server"
 license: MIT
 keywords:

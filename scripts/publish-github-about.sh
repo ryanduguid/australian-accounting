@@ -5,7 +5,7 @@ set -euo pipefail
 
 REPO="ryanduguid/au-tax-mcp-server"
 DESCRIPTION="Local MCP server for ATO small-business benchmarks, Payday Super 2026 review, refused Division 7A, and synthetic SBR fixtures. Not advice."
-HOMEPAGE="https://github.com/ryanduguid/au-tax-mcp-server#install"
+HOMEPAGE="https://ryanduguid.github.io/tools/australian-tax-ai-agents/"
 TOPICS=(
   accounting
   accounting-ai
