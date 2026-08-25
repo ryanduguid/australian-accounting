@@ -17,6 +17,7 @@
 [![tests](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-Standard%20Protocol-5C2D91?labelColor=04001F)](https://modelcontextprotocol.io/)
+[![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.ryanduguid%2Faus--accounting-5C2D91?labelColor=04001F)](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/latest)
 [![Glama](https://img.shields.io/badge/Glama-MCP%20Directory-5C2D91?labelColor=04001F)](https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
 
