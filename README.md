@@ -116,3 +116,5 @@ Review this Payday Super contribution. QE day, remitted date, and fund-receipt d
 ## Licence
 
 MIT License. Created by Ryan Duguid. Boundary statement: [DISCLAIMER.md](DISCLAIMER.md). Discovery copy: [docs/DISCOVERY.md](docs/DISCOVERY.md). Cite: [CITATION.cff](CITATION.cff).
+
+<!-- mcp-name: io.github.ryanduguid/aus-accounting -->
