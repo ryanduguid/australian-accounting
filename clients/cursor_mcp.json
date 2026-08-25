@@ -2,11 +2,7 @@
   "mcpServers": {
     "aus-accounting": {
       "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/ryanduguid/au-tax-mcp-server",
-        "aus-accounting-mcp"
-      ]
+      "args": ["aus-accounting-mcp"]
     }
   }
 }

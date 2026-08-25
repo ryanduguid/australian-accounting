@@ -39,10 +39,11 @@ Division 7A is **refused** until a reviewed engine exists. SBR payloads are **sy
 
 ## Install
 
-Python 3.10+ and [uv](https://docs.astral.sh/uv/). The engines come from PyPI at exact versions; this server itself installs from the repository until its own first PyPI release:
+Python 3.10+ and [uv](https://docs.astral.sh/uv/). This server and its engines
+are published to PyPI; the server pins its reviewed engines to exact versions:
 
 ```bash
-uvx --from git+https://github.com/ryanduguid/au-tax-mcp-server aus-accounting-mcp
+uvx aus-accounting-mcp
 ```
 
 Clone and `pip install .` still works when you want a local editable tree.
@@ -57,8 +58,6 @@ Clone and `pip install .` still works when you want a local editable tree.
     "aus-accounting": {
       "command": "uvx",
       "args": [
-        "--from",
-        "git+https://github.com/ryanduguid/au-tax-mcp-server",
         "aus-accounting-mcp"
       ]
     }
@@ -70,7 +69,7 @@ Ready-made copies live in [`clients/`](clients/).
 
 ### Cursor
 
-[![Add to Cursor](https://img.shields.io/badge/Cursor-Add%20MCP-black)](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJnaXQraHR0cHM6Ly9naXRodWIuY29tL3J5YW5kdWd1aWQvYXUtdGF4LW1jcC1zZXJ2ZXIiLCJhdXMtYWNjb3VudGluZy1tY3AiXX0=)
+[![Add to Cursor](https://img.shields.io/badge/Cursor-Add%20MCP-black)](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyJhdXMtYWNjb3VudGluZy1tY3AiXX0=)
 
 Or drop the standard config into `~/.cursor/mcp.json`.
 
@@ -81,13 +80,13 @@ Paste the standard config into `claude_desktop_config.json` (`%APPDATA%\Claude\`
 ### Claude Code
 
 ```bash
-claude mcp add aus-accounting -- uvx --from git+https://github.com/ryanduguid/au-tax-mcp-server aus-accounting-mcp
+claude mcp add aus-accounting -- uvx aus-accounting-mcp
 ```
 
 ### Codex
 
 ```bash
-codex mcp add aus-accounting -- uvx --from git+https://github.com/ryanduguid/au-tax-mcp-server aus-accounting-mcp
+codex mcp add aus-accounting -- uvx aus-accounting-mcp
 ```
 
 ## Tools
