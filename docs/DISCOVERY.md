@@ -42,7 +42,9 @@ tax-prep
 Do not add `division-7a`. The only Div 7A tool is `refuse_div7a`.
 
 Apply with `scripts/publish-github-about.sh` from a session authenticated to
-GitHub. Pin this repository from the profile **Customize your pins** dialog.
+GitHub. The Actions `GITHUB_TOKEN` cannot PATCH homepage (needs repository
+admin), so the `github-about` workflow warns and continues rather than failing.
+Pin this repository from the profile **Customize your pins** dialog.
 
 ## Keyword map
 
@@ -63,7 +65,10 @@ GitHub. Pin this repository from the profile **Customize your pins** dialog.
   so its generated badge image only resolves on that slug. Claim the listing as
   maintainer `ryanduguid` and ask Glama to reindex before putting the generated
   badge back in the README.
-- Official MCP registry: keep `server.json` in the repo root. Publish with
-  `mcp-publisher` after authenticating the `io.github.ryanduguid` namespace.
-  Do not set `packages.registryType` to `pypi` until the package is on PyPI.
+- Official MCP registry: listed as `io.github.ryanduguid/aus-accounting` since
+  25 August 2026 (metadata-only until PyPI). Record:
+  https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/latest
+  Keep `server.json` in the repo root. GitHub Actions OIDC republishes it on
+  `server.json` changes. Do not set `packages.registryType` to `pypi` until the
+  package is on PyPI.
 - Do not copy AGPL or proprietary-corpus language from other ATO MCP products.
