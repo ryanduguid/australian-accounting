@@ -42,6 +42,8 @@ Division 7A is **refused** until a reviewed engine exists. SBR payloads are **sy
 Python 3.10+ and [uv](https://docs.astral.sh/uv/). This server and its engines
 are published to PyPI; the server pins its reviewed engines to exact versions:
 
+Use [CITATION.cff](CITATION.cff) to cite the current tagged release, [v0.1.5](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5).
+
 ```bash
 uvx aus-accounting-mcp
 ```

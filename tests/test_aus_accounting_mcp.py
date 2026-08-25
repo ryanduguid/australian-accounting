@@ -16,6 +16,253 @@ from aus_accounting_mcp.server import (
 )
 
 
+def _workflow_sources(root: Path) -> dict[str, str]:
+    workflow_dir = root / ".github" / "workflows"
+    return {
+        path.name: path.read_text(encoding="utf-8")
+        for path in sorted(workflow_dir.iterdir())
+        if path.is_file() and path.suffix in {".yml", ".yaml"}
+    }
+
+
+def _yaml_mapping_lines(source: str) -> list[str]:
+    mapping_lines: list[str] = []
+    block_scalar_indent: int | None = None
+    block_scalar = re.compile(
+        r"^\s*(?:-\s+)?[^:#][^:]*:\s*[|>][+-]?\s*(?:#.*)?$"
+    )
+
+    for line in source.splitlines():
+        stripped = line.strip()
+        indent = len(line) - len(line.lstrip(" "))
+        if block_scalar_indent is not None:
+            if not stripped or indent > block_scalar_indent:
+                continue
+            block_scalar_indent = None
+
+        if not stripped or stripped.startswith("#"):
+            continue
+        mapping_line = line.split(" #", 1)[0].rstrip()
+        mapping_lines.append(mapping_line)
+        if block_scalar.fullmatch(line):
+            block_scalar_indent = indent
+
+    return mapping_lines
+
+
+def _workflow_jobs(source: str) -> dict[str, str]:
+    jobs: dict[str, str] = {}
+    current_name: str | None = None
+    current_lines: list[str] = []
+    in_jobs = False
+
+    for line in source.splitlines():
+        if not in_jobs:
+            if re.fullmatch(r"jobs:\s*(?:#.*)?", line):
+                in_jobs = True
+            continue
+
+        stripped = line.strip()
+        indent = len(line) - len(line.lstrip(" "))
+        if stripped and not stripped.startswith("#") and indent == 0:
+            break
+
+        job_header = re.fullmatch(r"  ([A-Za-z0-9_-]+):\s*(?:#.*)?", line)
+        if job_header:
+            if current_name is not None:
+                jobs[current_name] = "\n".join(current_lines)
+            current_name = job_header.group(1)
+            current_lines = [line]
+        elif current_name is not None:
+            current_lines.append(line)
+
+    if current_name is not None:
+        jobs[current_name] = "\n".join(current_lines)
+    return jobs
+
+
+def _yaml_block(source: str, key: str, indent: int) -> str | None:
+    lines = source.splitlines()
+    spaces = " " * indent
+    header = re.compile(rf"^{spaces}{re.escape(key)}:\s*(?:#.*)?$")
+    start = next(
+        (index for index, line in enumerate(lines) if header.fullmatch(line)), None
+    )
+    if start is None:
+        return None
+
+    end = len(lines)
+    for index in range(start + 1, len(lines)):
+        line = lines[index]
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        line_indent = len(line) - len(line.lstrip(" "))
+        if line_indent <= indent:
+            end = index
+            break
+    return "\n".join(lines[start:end])
+
+
+def _job_run_scripts(job: str) -> list[str]:
+    lines = job.splitlines()
+    scripts: list[str] = []
+    run_line = re.compile(r"^(?P<indent>\s*)(?:-\s+)?run:\s*(?P<body>.*)$")
+    index = 0
+
+    while index < len(lines):
+        match = run_line.fullmatch(lines[index])
+        if match is None:
+            index += 1
+            continue
+
+        indent = len(match.group("indent"))
+        body = match.group("body").strip()
+        if re.fullmatch(r"[|>][+-]?", body):
+            script_lines: list[str] = []
+            index += 1
+            while index < len(lines):
+                line = lines[index]
+                stripped = line.strip()
+                line_indent = len(line) - len(line.lstrip(" "))
+                if stripped and line_indent <= indent:
+                    break
+                if stripped and not stripped.startswith("#"):
+                    script_lines.append(stripped)
+                index += 1
+            scripts.append("\n".join(script_lines))
+            continue
+
+        scripts.append(body.split(" #", 1)[0].rstrip())
+        index += 1
+
+    return scripts
+
+
+def _pypi_publisher_uses(workflows: dict[str, str]) -> list[tuple[str, str]]:
+    action = re.compile(
+        r"^\s*(?:-\s+)?uses:\s*['\"]?"
+        r"pypa/gh-action-pypi-publish@[^'\"\s#]+['\"]?$",
+        re.IGNORECASE,
+    )
+    uses: list[tuple[str, str]] = []
+    for filename, source in sorted(workflows.items()):
+        for job_name, job in _workflow_jobs(source).items():
+            uses.extend(
+                (filename, job_name)
+                for line in _yaml_mapping_lines(job)
+                if action.fullmatch(line)
+            )
+    return uses
+
+
+def _assert_registered_pypi_publisher(workflows: dict[str, str]) -> None:
+    release = workflows["release.yml"]
+    release_jobs = _workflow_jobs(release)
+
+    assert "workflow_dispatch:" not in release
+    assert not any(
+        re.search(r"pypi|backfill", job_name, re.IGNORECASE)
+        for job_name in release_jobs
+    ), "release workflow must not contain a PyPI or backfill job"
+    assert not any(
+        re.fullmatch(r"\s*environment:\s*pypi", line, re.IGNORECASE)
+        for line in _yaml_mapping_lines(release)
+    ), "release workflow must not select the pypi environment"
+    assert '  push:\n    tags:\n      - "v*"' in release
+    release_job = release_jobs.get("release")
+    assert release_job is not None
+    assert (
+        re.search(
+            r"(?m)^    uses:\s*"
+            r"ryanduguid/release-policy/\.github/workflows/release-python\.yml@",
+            "\n".join(_yaml_mapping_lines(release_job)),
+        )
+        is not None
+    )
+
+    publisher_uses = _pypi_publisher_uses(workflows)
+    assert len(publisher_uses) == 1, (
+        "expected exactly one pypa/gh-action-pypi-publish use across every workflow, "
+        f"found {publisher_uses}"
+    )
+    publisher_file, publisher_job_name = publisher_uses[0]
+    assert publisher_file == "publish-pypi.yml", (
+        "the trusted publisher use must be in publish-pypi.yml"
+    )
+
+    publisher = workflows[publisher_file]
+    publisher_job = _workflow_jobs(publisher)[publisher_job_name]
+    publisher_mapping = "\n".join(_yaml_mapping_lines(publisher_job))
+    assert re.search(
+        r"(?m)^    environment:\s*pypi\s*$", publisher_mapping, re.IGNORECASE
+    ), "publishing job must select environment: pypi"
+
+    permissions = _yaml_block(publisher_job, "permissions", 4)
+    assert permissions is not None, "publishing job must declare job permissions"
+    assert re.search(
+        r"(?m)^      id-token:\s*write\s*(?:#.*)?$", permissions
+    ), "publishing job permissions must grant id-token: write"
+    assert any(
+        "sha256sum --check SHA256SUMS" in script
+        for script in _job_run_scripts(publisher_job)
+    ), "publishing job must verify SHA256SUMS"
+    assert re.search(
+        r"\$\{\{[^}\n]*\binputs\.tag\b[^}\n]*\}\}", publisher_mapping
+    ), "publishing job must consume inputs.tag"
+
+    dispatch = _yaml_block(publisher, "workflow_dispatch", 2)
+    assert dispatch is not None, "publish workflow must allow manual dispatch"
+    inputs = _yaml_block(dispatch, "inputs", 4)
+    assert inputs is not None, "workflow_dispatch must declare inputs"
+    tag = _yaml_block(inputs, "tag", 6)
+    assert tag is not None, "workflow_dispatch must declare a tag input"
+    assert re.search(
+        r"(?m)^        required:\s*true\s*(?:#.*)?$", tag, re.IGNORECASE
+    ), "workflow_dispatch tag input must be required"
+    assert re.search(
+        r"(?m)^        type:\s*string\s*(?:#.*)?$", tag, re.IGNORECASE
+    ), "workflow_dispatch tag input must be a string"
+
+
+def _valid_pypi_workflow_fixture() -> dict[str, str]:
+    return {
+        "release.yml": """\
+name: Release
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  release:
+    uses: ryanduguid/release-policy/.github/workflows/release-python.yml@abc123
+""",
+        "publish-pypi.yml": """\
+name: Publish to PyPI
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        type: string
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Verify the release assets
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          sha256sum --check SHA256SUMS
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@abc123
+""",
+    }
+
+
 def test_inlined_simulators_are_gone() -> None:
     for name in (
         "aus_accounting_mcp.engines.paydaysuper_sim",
@@ -252,19 +499,73 @@ def test_server_metadata_publishes_exact_pypi_release() -> None:
     ]
 
 
-def test_release_workflows_use_registered_pypi_publisher() -> None:
-    root = Path(__file__).resolve().parents[1]
-    release = (root / ".github" / "workflows" / "release.yml").read_text(
-        encoding="utf-8"
-    )
-    publisher = (root / ".github" / "workflows" / "publish-pypi.yml").read_text(
-        encoding="utf-8"
+def test_pypi_route_rejects_a_second_publisher_workflow() -> None:
+    workflows = _valid_pypi_workflow_fixture()
+    workflows["backfill.yaml"] = """\
+name: Backfill PyPI
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: pypa/gh-action-pypi-publish@def456
+"""
+
+    with pytest.raises(AssertionError, match="exactly one"):
+        _assert_registered_pypi_publisher(workflows)
+
+
+def test_pypi_route_rejects_controls_parked_in_a_dummy_job() -> None:
+    workflows = _valid_pypi_workflow_fixture()
+    workflows["publish-pypi.yml"] = """\
+name: Publish to PyPI
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        type: string
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: pypa/gh-action-pypi-publish@abc123
+  dummy:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          sha256sum --check SHA256SUMS
+"""
+
+    with pytest.raises(AssertionError, match="publishing job"):
+        _assert_registered_pypi_publisher(workflows)
+
+
+def test_pypi_route_rejects_an_unused_manual_tag() -> None:
+    workflows = _valid_pypi_workflow_fixture()
+    workflows["publish-pypi.yml"] = workflows["publish-pypi.yml"].replace(
+        "${{ inputs.tag }}", "${{ github.ref_name }}"
     )
 
-    assert "workflow_dispatch:" not in release
-    assert "gh-action-pypi-publish" not in release
-    assert "workflow_dispatch:" in publisher
-    assert "gh-action-pypi-publish" in publisher
+    with pytest.raises(AssertionError, match="inputs.tag"):
+        _assert_registered_pypi_publisher(workflows)
+
+
+def test_release_workflows_use_registered_pypi_publisher() -> None:
+    root = Path(__file__).resolve().parents[1]
+    readme = (root / "README.md").read_text(encoding="utf-8")
+
+    _assert_registered_pypi_publisher(_workflow_sources(root))
+
+    assert "[CITATION.cff](CITATION.cff)" in readme
+    assert (
+        "[v0.1.5](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5)"
+        in readme
+    )
 
 
 def test_registry_publisher_is_pinned_and_checksum_verified() -> None:
