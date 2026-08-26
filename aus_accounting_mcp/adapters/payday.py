@@ -29,14 +29,6 @@ DISCLAIMER = (
 )
 
 
-def _calendar():
-    return load_calendar()
-
-
-def _gic():
-    return load_gic()
-
-
 def _required_date(value: str, field: str) -> date:
     text = str(value).strip()
     if not text:
@@ -54,10 +46,6 @@ def _optional_date(value: str | None, field: str) -> date | None:
     if not text:
         return None
     return _required_date(text, field)
-
-
-def _required_amount(value: str, field: str) -> Decimal:
-    return parse_amount(value, field)
 
 
 def _money(value: Decimal | None) -> str | None:
@@ -116,7 +104,7 @@ def review_contribution(
     line = ContribLine(
         employee_id=employee_id,
         qe_day=_required_date(qe_day, "qe_day"),
-        sg_amount=_required_amount(sg_amount, "sg_amount"),
+        sg_amount=parse_amount(sg_amount, "sg_amount"),
         remitted=_optional_date(remitted, "remitted"),
         received=_optional_date(received, "received"),
         first_to_fund=first_to_fund,
@@ -129,8 +117,8 @@ def review_contribution(
     try:
         results = assess(
             [line],
-            _calendar(),
-            _gic(),
+            load_calendar(),
+            load_gic(),
             as_at_day,
             transition_allocation_confirmed=False,
         )

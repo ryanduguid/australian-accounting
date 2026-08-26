@@ -43,14 +43,6 @@ RATIO_SOURCES: dict[str, tuple[str, ...]] = {
 }
 
 
-def _optional_amount(value: str | None, field: str) -> Decimal | None:
-    return parse_optional_amount(value, field)
-
-
-def _required_amount(value: str, field: str) -> Decimal:
-    return parse_amount(value, field)
-
-
 def list_industries(search: str | None = None, year: str | None = None) -> dict[str, Any]:
     data = load(year)
     matches = data.search(search) if search else list(data.business_types)
@@ -83,7 +75,7 @@ def compare_figures(
     w1: str | None = None,
 ) -> dict[str, Any]:
     """Compare operator-supplied bucket totals against the ATO dataset."""
-    supplied: dict[str, Decimal] = {"turnover": _required_amount(turnover, "turnover")}
+    supplied: dict[str, Decimal] = {"turnover": parse_amount(turnover, "turnover")}
     optional = {
         "other_income": other_income,
         "cost_of_sales": cost_of_sales,
@@ -96,10 +88,10 @@ def compare_figures(
         "other_expense": other_expense,
     }
     for field, raw in optional.items():
-        amount = _optional_amount(raw, field)
+        amount = parse_optional_amount(raw, field)
         if amount is not None:
             supplied[field] = amount
-    w1_amount = _optional_amount(w1, "w1")
+    w1_amount = parse_optional_amount(w1, "w1")
 
     if not any(field in supplied for field in EXPENSE_FIELDS):
         raise ValueError(
