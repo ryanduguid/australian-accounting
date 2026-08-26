@@ -1,14 +1,14 @@
-# v0.1.5
+# v0.1.6
 
-Changes since `v0.1.4`:
+- add `aus-accounting-mcp-demo`, which makes real registered MCP calls for a
+  synthetic BAS fixture and an intentional Division 7A refusal;
+- check the text transcript and animated GIF proof, with the transcript as the
+  accessible source of truth;
+- record the repository, distribution, executable and MCP Registry identity
+  mapping plus the compatibility boundary; and
+- retain the stdio server, synthetic-fixture, Division 7A refusal, no-advice
+  and human-review boundaries unchanged.
 
-- make `uvx aus-accounting-mcp` the standard installation path now that the
-  project is published on PyPI;
-- update the README, ready-made client configurations and Cursor installation
-  link to use the PyPI package instead of a Git repository URL; and
-- ship the exact `mcp-name: io.github.ryanduguid/aus-accounting` marker required
-  to associate the PyPI package with its official MCP Registry record.
-
-No tool behaviour, statutory logic or refusal changed. Division 7A is still refused and SBR payloads are still synthetic.
+This source commit performs no publication. Publication remains approval-gated.
 
 Not advice. Outputs are preparation aids for a qualified professional, not compliance determinations.

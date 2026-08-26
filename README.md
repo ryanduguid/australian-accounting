@@ -37,12 +37,47 @@ This server does **not** reimplement tax law. Payday Super and ATO small-busines
 
 Division 7A is **refused** until a reviewed engine exists. SBR payloads are **synthetic fixtures**, not lodgments.
 
+## 30-second proof
+
+![Animated terminal proof of synthetic BAS output and Division 7A refusal](docs/quick-proof.gif)
+
+Run the fabricated demonstration without starting the stdio server:
+
+```bash
+uvx --from aus-accounting-mcp aus-accounting-mcp-demo
+```
+
+The [checked text transcript](docs/quick-proof.txt) is the accessible source of truth for the animation. Its registered MCP calls return a synthetic BAS fixture with synthetic true and not_a_lodgment true, then an intentional Division 7A refusal with ERR_POLICY_DIV7A_REFUSED.
+
+Expected structured success:
+
+```text
+synthetic: true
+not_a_lodgment: true
+form_type: BAS_AU_ACTIVITY_STATEMENT
+summary.total_payable_to_ato: "42500.00"
+```
+
+Expected structured refusal:
+
+```text
+code: ERR_POLICY_DIV7A_REFUSED
+available: false
+reviewed_engine: false
+```
+
+The example is fabricated, is not a lodgment, is not tax advice, and requires human review before any consequential accounting action. It neither uses client data nor contacts external services.
+
+Name mapping: repository au-tax-mcp-server; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
+
+Canonical release and compatibility references: [CI](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml), [v0.1.6 release](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.6), [PyPI 0.1.6](https://pypi.org/project/aus-accounting-mcp/0.1.6/), [MCP Registry 0.1.6](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6), and [compatibility.json](compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
+
 ## Install
 
 Python 3.10+ and [uv](https://docs.astral.sh/uv/). This server and its engines
 are published to PyPI; the server pins its reviewed engines to exact versions:
 
-Use [CITATION.cff](CITATION.cff) to cite the current tagged release, [v0.1.5](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5).
+Use [CITATION.cff](CITATION.cff) and the [v0.1.6 release record](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.6) for versioned provenance; verify the target before relying on it.
 
 ```bash
 uvx aus-accounting-mcp

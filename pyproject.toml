@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.29.0"]
 build-backend = "hatchling.build"
 
 [project]
 name = "aus-accounting-mcp"
-version = "0.1.5"
+version = "0.1.6"
 description = "MCP facade over payday-super-checker and ato-benchmark-compare. uvx from PyPI; citations and refusals, not advice."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -35,10 +35,14 @@ dev = [
     "build>=1.2",
     "pytest>=8.0.0",
     "pytest-cov>=4.0.0",
+    "Pillow==12.3.0",
+    "twine==6.2.0",
+    'tomli>=2.0.1; python_version < "3.11"',
 ]
 
 [project.scripts]
 aus-accounting-mcp = "aus_accounting_mcp.cli:main"
+aus-accounting-mcp-demo = "aus_accounting_mcp.demo:main"
 
 [project.urls]
 Homepage = "https://ryanduguid.github.io/tools/australian-tax-ai-agents/"

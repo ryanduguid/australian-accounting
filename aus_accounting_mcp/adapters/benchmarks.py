@@ -61,9 +61,7 @@ def list_industries(search: str | None = None, year: str | None = None) -> dict[
         "benchmark_year": data.year,
         "count": len(matches),
         "total_business_types": len(data.business_types),
-        "industries": [
-            {"name": bt.name, "key_ratio": bt.key_ratio} for bt in matches
-        ],
+        "industries": [{"name": bt.name, "key_ratio": bt.key_ratio} for bt in matches],
         "source": dict(data.source),
     }
 
@@ -135,11 +133,8 @@ def compare_figures(
             # Labour sums several buckets, and an omitted bucket is not evidenced
             # as zero, so a partial labour picture must not present as a definite
             # ratio. W1 substitutes for salary and wages under the ATO rule.
-            evidenced = (
-                "salary_wages" in supplied or w1_amount is not None
-            ) and all(
-                name in supplied
-                for name in ("contractor_commission", "cost_of_sales_labour")
+            evidenced = ("salary_wages" in supplied or w1_amount is not None) and all(
+                name in supplied for name in ("contractor_commission", "cost_of_sales_labour")
             )
         else:
             sources = RATIO_SOURCES.get(row["ratio"], ())

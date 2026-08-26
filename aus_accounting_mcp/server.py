@@ -156,9 +156,7 @@ def generate_synthetic_sbr_fixture(
             company_name=entity_name,
             gross_revenue=amount,
             cost_of_sales=(amount * Decimal("0.4")).quantize(Decimal("0.01")),
-            deductible_operating_expenses=(amount * Decimal("0.3")).quantize(
-                Decimal("0.01")
-            ),
+            deductible_operating_expenses=(amount * Decimal("0.3")).quantize(Decimal("0.01")),
         )
     if kind == "BAS":
         return generate_synthetic_bas_payload(

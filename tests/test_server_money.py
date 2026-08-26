@@ -89,9 +89,11 @@ def test_every_monetary_mcp_schema_is_a_decimal_string(tool_name, field_name):
     tools = asyncio.run(mcp.list_tools())
     tool = next(candidate for candidate in tools if candidate.name == tool_name)
     field_schema = tool.input_schema["properties"][field_name]
-    types = {field_schema.get("type")} if "type" in field_schema else {
-        entry["type"] for entry in field_schema["anyOf"]
-    }
+    types = (
+        {field_schema.get("type")}
+        if "type" in field_schema
+        else {entry["type"] for entry in field_schema["anyOf"]}
+    )
     assert "string" in types
     assert "number" not in types
 
