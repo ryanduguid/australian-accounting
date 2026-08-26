@@ -1,4 +1,4 @@
-$ uvx --from aus-accounting-mcp aus-accounting-mcp-demo
+$ uv run --locked aus-accounting-mcp-demo
 {
   "calls": [
     {

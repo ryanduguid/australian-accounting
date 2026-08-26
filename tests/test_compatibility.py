@@ -17,21 +17,23 @@ def _call(name: str, arguments: dict[str, str]) -> dict[str, object]:
     return result.structured_content
 
 
-def test_compatibility_record_matches_metadata_and_engine_owned_fields() -> None:
+def test_compatibility_record_matches_published_server_and_engine_owned_fields() -> None:
     root = Path(__file__).resolve().parents[1]
     record = json.loads((root / "compatibility.json").read_text(encoding="utf-8"))
+    server_metadata = json.loads((root / "server.json").read_text(encoding="utf-8"))
     assert record["schema_version"] == 1
+    assert server_metadata["version"] == server_metadata["packages"][0]["version"]
     assert record["server"] == {
         "distribution": "aus-accounting-mcp",
-        "version": "0.1.6",
+        "version": server_metadata["version"],
         "repository": "https://github.com/ryanduguid/au-tax-mcp-server",
-        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.1.6/",
+        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.1.5/",
         "registry_identity": "io.github.ryanduguid/aus-accounting",
         "registry": (
             "https://registry.modelcontextprotocol.io/v0.1/servers/"
-            "io.github.ryanduguid%2Faus-accounting/versions/0.1.6"
+            "io.github.ryanduguid%2Faus-accounting/versions/0.1.5"
         ),
-        "release": "https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.6",
+        "release": "https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5",
     }
     assert record["engines"] == [
         {

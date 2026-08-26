@@ -10,7 +10,7 @@ from mcp.types import CallToolResult
 
 from aus_accounting_mcp.server import mcp
 
-DEMO_COMMAND = "uvx --from aus-accounting-mcp aus-accounting-mcp-demo"
+DEMO_COMMAND = "uv run --locked aus-accounting-mcp-demo"
 
 
 async def _call_structured(
