@@ -43,10 +43,11 @@ Division 7A is **refused** until a reviewed engine exists. SBR payloads are **sy
 
 ![Animated terminal proof of synthetic BAS output and Division 7A refusal](docs/quick-proof.gif)
 
-Run the fabricated demonstration without starting the stdio server:
+**Unreleased source:** from a repository checkout, run the fabricated
+demonstration without starting the stdio server:
 
 ```bash
-uvx --from aus-accounting-mcp aus-accounting-mcp-demo
+uv run --locked aus-accounting-mcp-demo
 ```
 
 The [checked text transcript](docs/quick-proof.txt) is the accessible source of truth for the animation. Its registered MCP calls return a synthetic BAS fixture with synthetic true and not_a_lodgment true, then an intentional Division 7A refusal with ERR_POLICY_DIV7A_REFUSED.
@@ -72,14 +73,15 @@ The example is fabricated, is not a lodgment, is not tax advice, and requires hu
 
 Name mapping: public name Aus Accounting MCP; repository au-tax-mcp-server; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Canonical release and compatibility references: [CI](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml), [v0.1.6 release](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.6), [PyPI 0.1.6](https://pypi.org/project/aus-accounting-mcp/0.1.6/), [MCP Registry 0.1.6](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6), and [compatibility.json](compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
+Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml), [v0.1.5 release](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5), [PyPI 0.1.5](https://pypi.org/project/aus-accounting-mcp/0.1.5/), [MCP Registry 0.1.5](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.5), and [compatibility.json](compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
 
 ## Install
 
 Python 3.10+ and [uv](https://docs.astral.sh/uv/). This server and its engines
 are published to PyPI; the server pins its reviewed engines to exact versions:
 
-Use [CITATION.cff](CITATION.cff) and the [v0.1.6 release record](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.6) for versioned provenance; verify the target before relying on it.
+Use [CITATION.cff](CITATION.cff) for the unreleased source version. The latest
+published provenance is the [v0.1.5 release record](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5).
 
 ```bash
 uvx aus-accounting-mcp

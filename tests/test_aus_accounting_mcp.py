@@ -495,14 +495,20 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     assert "allow-direct-references" not in pyproject
 
 
-def test_current_release_metadata_matches_local_source_release() -> None:
+def test_unreleased_source_metadata_stays_separate_from_published_metadata() -> None:
     root = Path(__file__).resolve().parents[1]
-    release_notes = (root / "RELEASE_NOTES.md").read_text(encoding="utf-8")
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
+    release_notes = (root / "RELEASE_NOTES.md").read_text(encoding="utf-8")
+    server = json.loads((root / "server.json").read_text(encoding="utf-8"))
+    published_version = server["version"]
 
-    assert release_notes.startswith("# v0.1.6\n")
+    assert project["version"] == "0.1.6"
     assert re.search(r"(?m)^version: 0\.1\.6$", citation)
     assert not re.search(r"(?m)^date-released:", citation)
+    assert release_notes.startswith("# v0.1.6\n")
+    assert published_version == server["packages"][0]["version"] == "0.1.5"
+    assert project["version"] != published_version
 
 
 def test_readme_has_stable_proof_anchor_and_mapping() -> None:
@@ -512,7 +518,7 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
     assert readme.index("## 30-second proof") < readme.index("## Install")
     for text in (
         "![Animated terminal proof of synthetic BAS output and Division 7A refusal](docs/quick-proof.gif)",
-        "uvx --from aus-accounting-mcp aus-accounting-mcp-demo",
+        "uv run --locked aus-accounting-mcp-demo",
         "[checked text transcript](docs/quick-proof.txt)",
         "Expected structured success:",
         "synthetic: true",
@@ -525,8 +531,8 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
         "aus-accounting-mcp",
         "aus-accounting-mcp-demo",
         "io.github.ryanduguid/aus-accounting",
-        "https://pypi.org/project/aus-accounting-mcp/0.1.6/",
-        "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6",
+        "https://pypi.org/project/aus-accounting-mcp/0.1.5/",
+        "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.5",
         "[compatibility.json](compatibility.json)",
     ):
         assert text in readme
@@ -611,7 +617,7 @@ def test_release_workflows_use_registered_pypi_publisher() -> None:
 
     assert "[CITATION.cff](CITATION.cff)" in readme
     assert (
-        "[v0.1.6 release record](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.6)"
+        "[v0.1.5 release record](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5)"
         in readme
     )
 

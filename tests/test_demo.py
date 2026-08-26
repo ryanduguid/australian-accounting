@@ -85,6 +85,12 @@ def test_demo_json_is_sorted_and_finite() -> None:
     )
 
 
+def test_demo_transcript_runs_the_locked_checkout_entry_point() -> None:
+    transcript = demo.render_transcript(EXPECTED_PAYLOAD)
+
+    assert transcript.startswith("$ uv run --locked aus-accounting-mcp-demo\n")
+
+
 def test_checked_quick_proof_transcript_is_current_real_demo() -> None:
     root = Path(__file__).resolve().parents[1]
     transcript = root / "docs" / "quick-proof.txt"
