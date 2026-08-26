@@ -1,8 +1,8 @@
-# au-tax-mcp-server
+# Aus Accounting MCP
 
 ```
 +----------------------------------------------------------------------+
-|                          au-tax-mcp-server                           |
+|                         Aus Accounting MCP                           |
 +----------------------------------------------------------------------+
 |                 MCP server for AU tax review engines                 |
 +----------------------------------+-----------------------------------+
@@ -21,7 +21,9 @@
 [![Glama](https://img.shields.io/badge/Glama-MCP%20Directory-5C2D91?labelColor=04001F)](https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
 
-MCP facade over reviewed Australian computational accounting engines. Compatible with Claude Desktop, Claude Code, Cursor, Codex and Antigravity.
+[30-second proof](#30-second-proof) · [Install](#install) · [Client setup](#client-integration) · [Tool reference](#tools) · [Release notes](RELEASE_NOTES.md)
+
+**Aus Accounting MCP** is a local MCP facade over reviewed Australian computational accounting engines. Compatible with Claude Desktop, Claude Code, Cursor, Codex and Antigravity.
 
 Payday Super is an experimental review (not a compliance determination). Division 7A is **refused** - there is no repayment calculator. SBR payloads are synthetic fixtures.
 
@@ -68,7 +70,7 @@ reviewed_engine: false
 
 The example is fabricated, is not a lodgment, is not tax advice, and requires human review before any consequential accounting action. It neither uses client data nor contacts external services.
 
-Name mapping: repository au-tax-mcp-server; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
+Name mapping: public name Aus Accounting MCP; repository au-tax-mcp-server; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
 Canonical release and compatibility references: [CI](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml), [v0.1.6 release](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.6), [PyPI 0.1.6](https://pypi.org/project/aus-accounting-mcp/0.1.6/), [MCP Registry 0.1.6](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6), and [compatibility.json](compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
 
