@@ -81,9 +81,7 @@ def generate_synthetic_bas_payload(
     )
 
     gst_collected_1a = (total_sales_g1 / Decimal("11.0")).quantize(Decimal("0.01"))
-    gst_purchases_1b = ((capital_purchases_g10 + g11) / Decimal("11.0")).quantize(
-        Decimal("0.01")
-    )
+    gst_purchases_1b = ((capital_purchases_g10 + g11) / Decimal("11.0")).quantize(Decimal("0.01"))
     net_gst = gst_collected_1a - gst_purchases_1b
     net_bas_payable = net_gst + payg_withheld_w2
 

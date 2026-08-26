@@ -5,6 +5,11 @@ import re
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
 import pytest
 
 from aus_accounting_mcp.server import (
@@ -14,6 +19,33 @@ from aus_accounting_mcp.server import (
     get_ato_benchmarks,
     list_ato_benchmark_industries,
 )
+
+
+def test_proof_package_surface_is_versioned_and_keeps_stdio_separate() -> None:
+    root = Path(__file__).resolve().parents[1]
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    assert project["name"] == "aus-accounting-mcp"
+    assert project["version"] == "0.1.6"
+    assert project["scripts"] == {
+        "aus-accounting-mcp": "aus_accounting_mcp.cli:main",
+        "aus-accounting-mcp-demo": "aus_accounting_mcp.demo:main",
+    }
+    dev_dependencies = project["optional-dependencies"]["dev"]
+    assert "Pillow==12.3.0" in dev_dependencies
+    assert "twine==6.2.0" in dev_dependencies
+    assert 'tomli>=2.0.1; python_version < "3.11"' in dev_dependencies
+
+
+def test_build_backend_is_exactly_pinned_for_reproducible_wheels() -> None:
+    root = Path(__file__).resolve().parents[1]
+    build_system = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))[
+        "build-system"
+    ]
+
+    assert build_system == {
+        "build-backend": "hatchling.build",
+        "requires": ["hatchling==1.29.0"],
+    }
 
 
 def _workflow_sources(root: Path) -> dict[str, str]:
@@ -28,9 +60,7 @@ def _workflow_sources(root: Path) -> dict[str, str]:
 def _yaml_mapping_lines(source: str) -> list[str]:
     mapping_lines: list[str] = []
     block_scalar_indent: int | None = None
-    block_scalar = re.compile(
-        r"^\s*(?:-\s+)?[^:#][^:]*:\s*[|>][+-]?\s*(?:#.*)?$"
-    )
+    block_scalar = re.compile(r"^\s*(?:-\s+)?[^:#][^:]*:\s*[|>][+-]?\s*(?:#.*)?$")
 
     for line in source.splitlines():
         stripped = line.strip()
@@ -85,9 +115,7 @@ def _yaml_block(source: str, key: str, indent: int) -> str | None:
     lines = source.splitlines()
     spaces = " " * indent
     header = re.compile(rf"^{spaces}{re.escape(key)}:\s*(?:#.*)?$")
-    start = next(
-        (index for index, line in enumerate(lines) if header.fullmatch(line)), None
-    )
+    start = next((index for index, line in enumerate(lines) if header.fullmatch(line)), None)
     if start is None:
         return None
 
@@ -149,9 +177,7 @@ def _pypi_publisher_uses(workflows: dict[str, str]) -> list[tuple[str, str]]:
     for filename, source in sorted(workflows.items()):
         for job_name, job in _workflow_jobs(source).items():
             uses.extend(
-                (filename, job_name)
-                for line in _yaml_mapping_lines(job)
-                if action.fullmatch(line)
+                (filename, job_name) for line in _yaml_mapping_lines(job) if action.fullmatch(line)
             )
     return uses
 
@@ -162,8 +188,7 @@ def _assert_registered_pypi_publisher(workflows: dict[str, str]) -> None:
 
     assert "workflow_dispatch:" not in release
     assert not any(
-        re.search(r"pypi|backfill", job_name, re.IGNORECASE)
-        for job_name in release_jobs
+        re.search(r"pypi|backfill", job_name, re.IGNORECASE) for job_name in release_jobs
     ), "release workflow must not contain a PyPI or backfill job"
     assert not any(
         re.fullmatch(r"\s*environment:\s*pypi", line, re.IGNORECASE)
@@ -194,22 +219,21 @@ def _assert_registered_pypi_publisher(workflows: dict[str, str]) -> None:
     publisher = workflows[publisher_file]
     publisher_job = _workflow_jobs(publisher)[publisher_job_name]
     publisher_mapping = "\n".join(_yaml_mapping_lines(publisher_job))
-    assert re.search(
-        r"(?m)^    environment:\s*pypi\s*$", publisher_mapping, re.IGNORECASE
-    ), "publishing job must select environment: pypi"
+    assert re.search(r"(?m)^    environment:\s*pypi\s*$", publisher_mapping, re.IGNORECASE), (
+        "publishing job must select environment: pypi"
+    )
 
     permissions = _yaml_block(publisher_job, "permissions", 4)
     assert permissions is not None, "publishing job must declare job permissions"
-    assert re.search(
-        r"(?m)^      id-token:\s*write\s*(?:#.*)?$", permissions
-    ), "publishing job permissions must grant id-token: write"
+    assert re.search(r"(?m)^      id-token:\s*write\s*(?:#.*)?$", permissions), (
+        "publishing job permissions must grant id-token: write"
+    )
     assert any(
-        "sha256sum --check SHA256SUMS" in script
-        for script in _job_run_scripts(publisher_job)
+        "sha256sum --check SHA256SUMS" in script for script in _job_run_scripts(publisher_job)
     ), "publishing job must verify SHA256SUMS"
-    assert re.search(
-        r"\$\{\{[^}\n]*\binputs\.tag\b[^}\n]*\}\}", publisher_mapping
-    ), "publishing job must consume inputs.tag"
+    assert re.search(r"\$\{\{[^}\n]*\binputs\.tag\b[^}\n]*\}\}", publisher_mapping), (
+        "publishing job must consume inputs.tag"
+    )
 
     dispatch = _yaml_block(publisher, "workflow_dispatch", 2)
     assert dispatch is not None, "publish workflow must allow manual dispatch"
@@ -217,12 +241,12 @@ def _assert_registered_pypi_publisher(workflows: dict[str, str]) -> None:
     assert inputs is not None, "workflow_dispatch must declare inputs"
     tag = _yaml_block(inputs, "tag", 6)
     assert tag is not None, "workflow_dispatch must declare a tag input"
-    assert re.search(
-        r"(?m)^        required:\s*true\s*(?:#.*)?$", tag, re.IGNORECASE
-    ), "workflow_dispatch tag input must be required"
-    assert re.search(
-        r"(?m)^        type:\s*string\s*(?:#.*)?$", tag, re.IGNORECASE
-    ), "workflow_dispatch tag input must be a string"
+    assert re.search(r"(?m)^        required:\s*true\s*(?:#.*)?$", tag, re.IGNORECASE), (
+        "workflow_dispatch tag input must be required"
+    )
+    assert re.search(r"(?m)^        type:\s*string\s*(?:#.*)?$", tag, re.IGNORECASE), (
+        "workflow_dispatch tag input must be a string"
+    )
 
 
 def _valid_pypi_workflow_fixture() -> dict[str, str]:
@@ -458,7 +482,7 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     glama = json.loads((root / "glama.json").read_text(encoding="utf-8"))
     assert glama["maintainers"] == ["ryanduguid"]
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
-    assert 'version = "0.1.5"' in pyproject
+    assert 'version = "0.1.6"' in pyproject
     assert "uvx from PyPI" in pyproject
     # The engines stay pinned to an exact version, which is what the commit pins
     # used to buy. They cannot be pinned by URL: PyPI rejects a distribution
@@ -471,17 +495,41 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     assert "allow-direct-references" not in pyproject
 
 
-def test_release_metadata_matches_project_version() -> None:
+def test_current_release_metadata_matches_local_source_release() -> None:
     root = Path(__file__).resolve().parents[1]
-    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
-    version_match = re.search(r'(?m)^version = "([^"]+)"$', pyproject)
-    assert version_match is not None
-    version = version_match.group(1)
     release_notes = (root / "RELEASE_NOTES.md").read_text(encoding="utf-8")
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
 
-    assert release_notes.startswith(f"# v{version}\n")
-    assert re.search(rf"(?m)^version: {re.escape(version)}$", citation)
+    assert release_notes.startswith("# v0.1.6\n")
+    assert re.search(r"(?m)^version: 0\.1\.6$", citation)
+    assert not re.search(r"(?m)^date-released:", citation)
+
+
+def test_readme_has_stable_proof_anchor_and_mapping() -> None:
+    root = Path(__file__).resolve().parents[1]
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    assert "## 30-second proof\n" in readme
+    assert readme.index("## 30-second proof") < readme.index("## Install")
+    for text in (
+        "![Animated terminal proof of synthetic BAS output and Division 7A refusal](docs/quick-proof.gif)",
+        "uvx --from aus-accounting-mcp aus-accounting-mcp-demo",
+        "[checked text transcript](docs/quick-proof.txt)",
+        "Expected structured success:",
+        "synthetic: true",
+        "not_a_lodgment: true",
+        "Expected structured refusal:",
+        "ERR_POLICY_DIV7A_REFUSED",
+        "not a lodgment",
+        "human review",
+        "au-tax-mcp-server",
+        "aus-accounting-mcp",
+        "aus-accounting-mcp-demo",
+        "io.github.ryanduguid/aus-accounting",
+        "https://pypi.org/project/aus-accounting-mcp/0.1.6/",
+        "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6",
+        "[compatibility.json](compatibility.json)",
+    ):
+        assert text in readme
 
 
 def test_server_metadata_publishes_exact_pypi_release() -> None:
@@ -563,16 +611,14 @@ def test_release_workflows_use_registered_pypi_publisher() -> None:
 
     assert "[CITATION.cff](CITATION.cff)" in readme
     assert (
-        "[v0.1.5](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5)"
+        "[v0.1.6 release record](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.6)"
         in readme
     )
 
 
 def test_registry_publisher_is_pinned_and_checksum_verified() -> None:
     root = Path(__file__).resolve().parents[1]
-    workflow = (root / ".github" / "workflows" / "publish-mcp.yml").read_text(
-        encoding="utf-8"
-    )
+    workflow = (root / ".github" / "workflows" / "publish-mcp.yml").read_text(encoding="utf-8")
 
     assert "releases/latest" not in workflow
     assert "/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz" in workflow

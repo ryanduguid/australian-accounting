@@ -28,6 +28,7 @@ DISCLAIMER = (
     "before a contribution can be ON_TIME."
 )
 
+
 def _calendar():
     return load_calendar()
 

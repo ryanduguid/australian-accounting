@@ -20,9 +20,7 @@ def parse_amount(value: str, field: str) -> Decimal:
     if not amount.is_finite():
         raise ValueError(f"{field}: {value!r} is not a finite amount")
     if amount.copy_abs() > MAX_MONEY_MAGNITUDE:
-        raise ValueError(
-            f"{field} absolute value must not exceed AUD {MAX_MONEY_MAGNITUDE}"
-        )
+        raise ValueError(f"{field} absolute value must not exceed AUD {MAX_MONEY_MAGNITUDE}")
     exponent = amount.as_tuple().exponent
     if isinstance(exponent, int) and exponent < -MAX_MONEY_DECIMAL_PLACES:
         raise ValueError(
