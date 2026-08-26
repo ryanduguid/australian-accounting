@@ -1,17 +1,17 @@
 # Aus Accounting MCP
 
 ```
-+----------------------------------------------------------------------+
-|                         Aus Accounting MCP                           |
-+----------------------------------------------------------------------+
-|                 MCP server for AU tax review engines                 |
-+----------------------------------+-----------------------------------+
-| DR  what it gives you            | CR  what it needs                 |
-+----------------------------------+-----------------------------------+
-| MCP tools for AU tax review      | an MCP capable host client        |
-| delegates to reviewed engines    | uv or uvx to install it           |
-| synthetic SBR test fixtures      | -                                 |
-+----------------------------------+-----------------------------------+
++--------------------------------------------------------+
+|                   Aus Accounting MCP                   |
++--------------------------------------------------------+
+|          MCP server for AU tax review engines          |
++---------------------------+----------------------------+
+| DR  what it gives you     | CR  what it needs          |
++---------------------------+----------------------------+
+| AU tax review MCP tools   | MCP-capable host client    |
+| uses reviewed engines     | uv or uvx to install it    |
+| synthetic SBR fixtures    | -                          |
++---------------------------+----------------------------+
 ```
 
 [![tests](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml)
