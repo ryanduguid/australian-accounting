@@ -62,11 +62,9 @@ Pin this repository from the profile **Customize your pins** dialog.
   `aus-accounting-mcp` project is published on PyPI; its current public release
   is the source of truth for the standard install command.
 - Point agents at the comparison page: https://ryanduguid.github.io/tools/australian-tax-ai-agents/
-- The Glama listing is https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server.
-  Glama's record still stores the repository URL under the old `JohnKenley` name,
-  so its generated badge image only resolves on that slug. Claim the listing as
-  maintainer `ryanduguid` and ask Glama to reindex before putting the generated
-  badge back in the README.
+- The Glama listing is https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server,
+  claimed as maintainer `ryanduguid`. The generated badge is
+  https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server/badge.
 - Official MCP registry: listed as `io.github.ryanduguid/aus-accounting` since
   25 August 2026. Record:
   https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/latest
