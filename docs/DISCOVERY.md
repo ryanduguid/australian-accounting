@@ -9,7 +9,7 @@ About, repository topics, README, `pyproject.toml`, `glama.json`, and
 Description:
 
 ```text
-Local MCP server for ATO small-business benchmarks, Payday Super 2026 review, refused Division 7A, and synthetic SBR fixtures. Not advice.
+Local MCP server for Australian accounting review: ATO small-business benchmarks, Payday Super 2026, refused Division 7A and synthetic SBR fixtures. Not advice.
 ```
 
 Website:
@@ -26,6 +26,7 @@ accounting-ai
 agent-skills
 ato
 ato-benchmarks
+australian-accounting
 australian-tax
 australian-taxation
 claude-code
@@ -44,7 +45,6 @@ Do not add `division-7a`. The only Div 7A tool is `refuse_div7a`.
 Apply with `scripts/publish-github-about.sh` from a session authenticated to
 GitHub. The Actions `GITHUB_TOKEN` cannot PATCH homepage (needs repository
 admin), so the `github-about` workflow warns and continues rather than failing.
-Pin this repository from the profile **Customize your pins** dialog.
 
 ## Keyword map
 
@@ -72,8 +72,8 @@ Pin this repository from the profile **Customize your pins** dialog.
   guidance](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/package-types.mdx)
   requires the published package README to contain its matching `mcp-name`
   marker. Version 0.1.5 is published and verified on PyPI, and `server.json`
-  names that exact package version. GitHub Actions OIDC republishes the registry
-  record when `server.json` changes.
+  names that exact package version. GitHub Actions OIDC publishes the registry
+  record only after an explicit manual dispatch.
 - For future releases, push the version tag to create and attest the GitHub
   release, then dispatch **Publish to PyPI** with the same tag. PyPI's trusted
   publisher is bound to `publish-pypi.yml`; do not add a publisher job to

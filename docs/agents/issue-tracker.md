@@ -1,6 +1,6 @@
 # Issue tracker
 
-GitHub Issues in `ryanduguid/au-tax-mcp-server` are the repository's work-request
+GitHub Issues in `ryanduguid/aus-accounting-mcp` are the repository's work-request
 surface. Use the `gh` CLI for issue discovery and, when explicitly authorised,
 for GitHub changes.
 

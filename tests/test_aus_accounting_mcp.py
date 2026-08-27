@@ -20,6 +20,8 @@ from aus_accounting_mcp.server import (
     list_ato_benchmark_industries,
 )
 
+CANONICAL_REPOSITORY = "https://github.com/ryanduguid/aus-accounting-mcp"
+
 
 def test_proof_package_surface_is_versioned_and_keeps_stdio_separate() -> None:
     root = Path(__file__).resolve().parents[1]
@@ -463,7 +465,7 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     readme = (root / "README.md").read_text(encoding="utf-8")
     disclaimer = (root / "DISCLAIMER.md").read_text(encoding="utf-8")
     assert "uvx aus-accounting-mcp" in readme
-    assert "git+https://github.com/ryanduguid/au-tax-mcp-server" not in readme
+    assert f"git+{CANONICAL_REPOSITORY}" not in readme
     cursor_link = re.search(r"https://cursor\.com/en/install-mcp\?[^)]+", readme)
     assert cursor_link is not None
     cursor_config = parse_qs(urlparse(cursor_link.group(0)).query)["config"]
@@ -478,7 +480,7 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     assert "not tax" in disclaimer.lower()
     assert "synthetic: true" in disclaimer
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
-    assert "https://github.com/ryanduguid/au-tax-mcp-server" in citation
+    assert CANONICAL_REPOSITORY in citation
     glama = json.loads((root / "glama.json").read_text(encoding="utf-8"))
     assert glama["maintainers"] == ["ryanduguid"]
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
@@ -511,6 +513,19 @@ def test_unreleased_source_metadata_stays_separate_from_published_metadata() -> 
     assert project["version"] != published_version
 
 
+def test_active_repository_metadata_uses_canonical_identity() -> None:
+    root = Path(__file__).resolve().parents[1]
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    server = json.loads((root / "server.json").read_text(encoding="utf-8"))
+    citation = (root / "CITATION.cff").read_text(encoding="utf-8")
+    readme = (root / "README.md").read_text(encoding="utf-8")
+
+    assert project["urls"]["Repository"] == f"{CANONICAL_REPOSITORY}.git"
+    assert server["repository"]["url"] == CANONICAL_REPOSITORY
+    assert CANONICAL_REPOSITORY in citation
+    assert "repository aus-accounting-mcp" in readme
+
+
 def test_readme_has_stable_proof_anchor_and_mapping() -> None:
     root = Path(__file__).resolve().parents[1]
     readme = (root / "README.md").read_text(encoding="utf-8")
@@ -527,7 +542,7 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
         "ERR_POLICY_DIV7A_REFUSED",
         "not a lodgment",
         "human review",
-        "au-tax-mcp-server",
+        "repository aus-accounting-mcp",
         "aus-accounting-mcp",
         "aus-accounting-mcp-demo",
         "io.github.ryanduguid/aus-accounting",
@@ -617,7 +632,7 @@ def test_release_workflows_use_registered_pypi_publisher() -> None:
 
     assert "[CITATION.cff](CITATION.cff)" in readme
     assert (
-        "[v0.1.5 release record](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5)"
+        f"[v0.1.5 release record]({CANONICAL_REPOSITORY}/releases/tag/v0.1.5)"
         in readme
     )
 
@@ -630,6 +645,8 @@ def test_registry_publisher_is_pinned_and_checksum_verified() -> None:
     assert "/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz" in workflow
     assert "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc" in workflow
     assert "sha256sum --check" in workflow
+    assert "workflow_dispatch:" in workflow
+    assert not re.search(r"(?m)^  push:\s*$", workflow)
     assert (
         workflow.index("sha256sum --check")
         < workflow.index("tar --extract")
