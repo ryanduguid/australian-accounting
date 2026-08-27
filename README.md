@@ -14,7 +14,7 @@
 +---------------------------+----------------------------+
 ```
 
-[![tests](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml)
+[![tests](https://github.com/ryanduguid/aus-accounting-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/aus-accounting-mcp/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-Standard%20Protocol-5C2D91?labelColor=04001F)](https://modelcontextprotocol.io/)
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.ryanduguid%2Faus--accounting-5C2D91?labelColor=04001F)](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/latest)
@@ -71,9 +71,9 @@ reviewed_engine: false
 
 The example is fabricated, is not a lodgment, is not tax advice, and requires human review before any consequential accounting action. It neither uses client data nor contacts external services.
 
-Name mapping: public name Aus Accounting MCP; repository au-tax-mcp-server; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
+Name mapping: public name Aus Accounting MCP; repository aus-accounting-mcp; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/au-tax-mcp-server/actions/workflows/ci.yml), [v0.1.5 release](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5), [PyPI 0.1.5](https://pypi.org/project/aus-accounting-mcp/0.1.5/), [MCP Registry 0.1.5](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.5), and [compatibility.json](compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
+Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/aus-accounting-mcp/actions/workflows/ci.yml), [v0.1.5 release](https://github.com/ryanduguid/aus-accounting-mcp/releases/tag/v0.1.5), [PyPI 0.1.5](https://pypi.org/project/aus-accounting-mcp/0.1.5/), [MCP Registry 0.1.5](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.5), and [compatibility.json](compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
 
 ## Install
 
@@ -81,7 +81,7 @@ Python 3.10+ and [uv](https://docs.astral.sh/uv/). This server and its engines
 are published to PyPI; the server pins its reviewed engines to exact versions:
 
 Use [CITATION.cff](CITATION.cff) for the unreleased source version. The latest
-published provenance is the [v0.1.5 release record](https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5).
+published provenance is the [v0.1.5 release record](https://github.com/ryanduguid/aus-accounting-mcp/releases/tag/v0.1.5).
 
 ```bash
 uvx aus-accounting-mcp

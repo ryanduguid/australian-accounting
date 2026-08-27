@@ -1,16 +1,12 @@
 name: Publish to MCP Registry
 
 # Official registry listing for io.github.ryanduguid/aus-accounting.
-# OIDC maps this repository to that GitHub namespace. server.json names only an
-# exact PyPI version that has already been published and independently verified.
+# OIDC maps this repository to that GitHub namespace. Registry publication
+# requires explicit manual dispatch after the exact PyPI version in server.json
+# has already been published and independently verified.
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - server.json
-      - .github/workflows/publish-mcp.yml
 
 concurrency:
   group: mcp-registry

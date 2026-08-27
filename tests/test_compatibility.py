@@ -10,6 +10,8 @@ from paydaysuper import LAW_CONTENT_DATE
 
 from aus_accounting_mcp.server import mcp
 
+CANONICAL_REPOSITORY = "https://github.com/ryanduguid/aus-accounting-mcp"
+
 
 def _call(name: str, arguments: dict[str, str]) -> dict[str, object]:
     result = asyncio.run(mcp.call_tool(name, arguments))
@@ -26,14 +28,14 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
     assert record["server"] == {
         "distribution": "aus-accounting-mcp",
         "version": server_metadata["version"],
-        "repository": "https://github.com/ryanduguid/au-tax-mcp-server",
+        "repository": CANONICAL_REPOSITORY,
         "pypi": "https://pypi.org/project/aus-accounting-mcp/0.1.5/",
         "registry_identity": "io.github.ryanduguid/aus-accounting",
         "registry": (
             "https://registry.modelcontextprotocol.io/v0.1/servers/"
             "io.github.ryanduguid%2Faus-accounting/versions/0.1.5"
         ),
-        "release": "https://github.com/ryanduguid/au-tax-mcp-server/releases/tag/v0.1.5",
+        "release": f"{CANONICAL_REPOSITORY}/releases/tag/v0.1.5",
     }
     assert record["engines"] == [
         {
