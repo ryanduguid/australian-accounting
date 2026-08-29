@@ -1,4 +1,0 @@
-{
-  "name": "aus-accounting-mcp",
-  "install": "python3 -m pip install --user uv==0.12.0\npython3 -m uv sync --locked --extra dev"
-}
