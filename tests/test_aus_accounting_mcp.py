@@ -1043,6 +1043,26 @@ def test_release_workflows_use_registered_pypi_publisher() -> None:
     )
 
 
+def test_release_uses_the_hardened_shared_policy_contract() -> None:
+    root = Path(__file__).resolve().parents[1]
+    release = (root / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+    release_job = _workflow_jobs(release)["release"]
+    release_mapping = "\n".join(_yaml_mapping_lines(release_job))
+
+    assert (
+        "uses: ryanduguid/release-policy/.github/workflows/release-python.yml@"
+        "8b4de1ed339f1358b5f3e850b63412d8717d01da"
+    ) in release_mapping
+    permissions = _yaml_block(release_job, "permissions", 4)
+    assert permissions is not None
+    assert re.search(r"(?m)^      actions:\s*read\s*(?:#.*)?$", permissions)
+    assert "version-command:" not in release_job
+    assert "version-parser:" not in release_job
+    assert "version-file:" not in release_job
+
+
 def test_registry_publisher_is_pinned_and_checksum_verified() -> None:
     root = Path(__file__).resolve().parents[1]
     workflow = (root / ".github" / "workflows" / "publish-mcp.yml").read_text(encoding="utf-8")
