@@ -49,10 +49,13 @@ def test_build_backend_is_exactly_pinned_for_reproducible_wheels() -> None:
         "build-system"
     ]
 
-    assert build_system == {
-        "build-backend": "hatchling.build",
-        "requires": ["hatchling==1.29.0"],
-    }
+    # An exact pin is what makes the wheel reproducible. Which version it names
+    # is reviewed in the pyproject diff of the bump that changes it, so freezing
+    # the number here only fails every upgrade against a stale literal.
+    assert set(build_system) == {"build-backend", "requires"}
+    assert build_system["build-backend"] == "hatchling.build"
+    assert len(build_system["requires"]) == 1
+    assert re.fullmatch(r"hatchling==\d+(?:\.\d+)+", build_system["requires"][0])
 
 
 def _workflow_sources(root: Path) -> dict[str, str]:
