@@ -67,7 +67,10 @@ def get_ato_benchmarks(
     """Compare bucket totals against ATO small-business benchmarks.
 
     Amounts are decimal strings. industry is an ATO business-type name
-    (see list_ato_benchmark_industries). This is a comparison, not a finding
+    (see list_ato_benchmark_industries). other_income is needed for any ratio:
+    the ATO turnover rule reads it to choose the denominator, so without it
+    every ratio is not_supplied. Pass 0 only where the operator established
+    the business has no other income. This is a comparison, not a finding
     that anything is wrong. Uses ato-benchmark-compare.
     """
     return compare_figures(
