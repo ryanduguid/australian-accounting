@@ -87,7 +87,7 @@ published provenance is the [v0.1.5 release record](https://github.com/ryandugui
 uvx aus-accounting-mcp
 ```
 
-Clone and `pip install .` still works when you want a local editable tree.
+Clone and `pip install -e .` still works when you want a local editable tree.
 
 ## Client integration
 
