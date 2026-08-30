@@ -395,6 +395,54 @@ def test_ato_omitted_buckets_are_not_treated_as_zero() -> None:
     assert statuses["total_expenses_to_turnover"] == "not_supplied"
     assert "rent" in payload["omitted_buckets"]
     assert payload["complete_buckets"] is False
+    # An omitted bucket reached the engine as a zero, so its total and the
+    # figures asserted below are reported as unknown rather than as amounts.
+    # The turnover basis is out of scope here. It also depends on an omitted
+    # other_income and is still published as definite.
+    assert payload["bucket_totals"]["rent"] is None
+    assert payload["figures"]["total_expenses"] is None
+    assert payload["figures"]["total_expenses_for_ratio"] is None
+    assert payload["figures"]["labour"] is None
+    assert payload["figures"]["payments_to_associated_persons"] is None
+    assert payload["figures"]["total_business_income"] is None
+    assert payload["figures"]["other_business_income"] is None
+    # A supplied bucket is still evidenced.
+    assert payload["bucket_totals"]["cost_of_sales"] == "270000.00"
+    assert payload["figures"]["cost_of_sales_for_ratio"] == "270000.00"
+
+
+def test_ato_w1_without_associated_persons_is_not_supplied() -> None:
+    # The engine computes labour as W1 less payments to associated persons plus
+    # contractor commission, so an omitted associates bucket taints the ratio.
+    payload = get_ato_benchmarks(
+        industry="Bakeries and hot bread shops",
+        turnover="850000.00",
+        salary_wages="120000.00",
+        contractor_commission="0",
+        cost_of_sales_labour="0",
+        w1="200000.00",
+    )
+    statuses = {row["ratio"]: row["status"] for row in payload["ratios"]}
+    assert statuses["labour_to_turnover"] == "not_supplied"
+
+
+def test_ato_w1_does_not_substitute_for_salary_wages() -> None:
+    # The engine takes the greater of W1 and the rebuilt salary and wages label,
+    # so with salary_wages omitted nobody knows which side wins and the labour it
+    # returns is only a lower bound. Publishing that as an amount would contradict
+    # the same payload, which reports the salary_wages bucket as unknown.
+    payload = get_ato_benchmarks(
+        industry="Bakeries and hot bread shops",
+        turnover="850000.00",
+        contractor_commission="0",
+        cost_of_sales_labour="0",
+        associated_persons="0",
+        w1="200000.00",
+    )
+    assert payload["bucket_totals"]["salary_wages"] is None
+    assert payload["figures"]["labour"] is None
+    statuses = {row["ratio"]: row["status"] for row in payload["ratios"]}
+    assert statuses["labour_to_turnover"] == "not_supplied"
 
 
 def test_ato_partial_labour_picture_is_not_supplied() -> None:
