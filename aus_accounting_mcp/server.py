@@ -23,6 +23,7 @@ from .fixtures.synthetic_sbr import (
     generate_synthetic_bas_payload,
     generate_synthetic_ctr_payload,
 )
+from .errors import InputError
 from .money import parse_amount
 
 mcp = MCPServer("aus-accounting-mcp", version=_VERSION)
@@ -168,7 +169,7 @@ def generate_synthetic_sbr_fixture(
             capital_purchases_g10=Decimal("11000.00"),
             non_capital_purchases_g11=(amount * Decimal("0.4")).quantize(Decimal("0.01")),
         )
-    raise ValueError(f"Unknown form_type {form_type!r}. Supported: CTR, BAS.")
+    raise InputError(f"Unknown form_type {form_type!r}. Supported: CTR, BAS.")
 
 
 def run_stdio() -> None:

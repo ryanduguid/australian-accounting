@@ -1,9 +1,8 @@
 from pathlib import Path
 
-from PIL import Image, ImageSequence
+from PIL import Image
 
-from scripts.extract_demo_frames import extract_frames
-from scripts.render_demo_gif import (
+from scripts.render_demo_image import (
     BACKGROUND,
     BOTTOM_MARGIN,
     FONT_SIZE,
@@ -12,69 +11,63 @@ from scripts.render_demo_gif import (
     LEFT_MARGIN,
     LINE_HEIGHT,
     PROMPT,
-    TOTAL_DURATION_MS,
     TOP_MARGIN,
     WIDTH,
-    render_gif,
+    proof_lines,
+    render_image,
 )
 
 
-def _decode(path: Path) -> tuple[tuple[int, int], list[int], list[bytes]]:
+def _decode(path: Path) -> tuple[str | None, tuple[int, int], int, bytes]:
     with Image.open(path) as image:
-        size = image.size
-        durations: list[int] = []
-        pixels: list[bytes] = []
-        for frame in ImageSequence.Iterator(image):
-            durations.append(frame.info["duration"])
-            pixels.append(frame.convert("RGB").tobytes())
-    return size, durations, pixels
+        return (
+            image.format,
+            image.size,
+            getattr(image, "n_frames", 1),
+            image.convert("RGB").tobytes(),
+        )
 
 
-def test_regenerated_gif_matches_committed_decoded_frames(
+def test_regenerated_static_proof_matches_committed_image(
     tmp_path: Path,
 ) -> None:
     root = Path(__file__).resolve().parents[1]
-    generated = tmp_path / "quick-proof.gif"
+    generated = tmp_path / "quick-proof.webp"
     transcript = root / "docs" / "quick-proof.txt"
 
-    render_gif(transcript, generated)
-    committed = _decode(root / "docs" / "quick-proof.gif")
+    render_image(transcript, generated)
+    committed_path = root / "docs" / "quick-proof.webp"
+    committed = _decode(committed_path)
 
     assert committed == _decode(generated)
-    size, durations, pixels = committed
+    image_format, size, frame_count, pixels = committed
+    assert image_format == "WEBP"
     assert size == (WIDTH, HEIGHT) == (1200, 720)
+    assert frame_count == 1
     assert BACKGROUND == (4, 0, 31)
     assert FOREGROUND == (244, 239, 255)
     assert PROMPT == (192, 132, 252)
     assert LEFT_MARGIN == 40
     assert TOP_MARGIN == 32
     assert BOTTOM_MARGIN == 32
-    assert LINE_HEIGHT == 30
+    assert LINE_HEIGHT == 40
     assert FONT_SIZE == 24
-    assert len(durations) == len(transcript.read_text(encoding="utf-8").splitlines())
-    assert sum(durations) == TOTAL_DURATION_MS == 30_000
-    assert all(duration > 0 and duration % 10 == 0 for duration in durations)
-    assert pixels[0][0:3] == bytes(BACKGROUND)
-    with Image.open(root / "docs" / "quick-proof.gif") as image:
-        assert image.info["loop"] == 0
+    assert pixels[0:3] == bytes(BACKGROUND)
+    assert committed_path.stat().st_size < 100_000
+    assert committed_path.read_bytes() == generated.read_bytes()
 
 
-def test_extracted_key_frames_match_the_gif(tmp_path: Path) -> None:
+def test_static_proof_selects_both_checked_outcomes() -> None:
     root = Path(__file__).resolve().parents[1]
-    gif = root / "docs" / "quick-proof.gif"
-    output_directory = tmp_path / "frames"
+    lines = proof_lines(root / "docs" / "quick-proof.txt")
 
-    extract_frames(gif, output_directory)
-
-    with Image.open(gif) as image:
-        targets = (
-            (0, "first.png"),
-            (image.n_frames // 2, "middle.png"),
-            (image.n_frames - 1, "final.png"),
-        )
-        for index, filename in targets:
-            image.seek(index)
-            expected = image.convert("RGB").tobytes()
-            with Image.open(output_directory / filename) as extracted:
-                assert extracted.size == image.size
-                assert extracted.convert("RGB").tobytes() == expected
+    assert lines[0] == "$ uv run --locked aus-accounting-mcp-demo"
+    assert "generate_synthetic_sbr_fixture" in lines
+    assert "  synthetic: true" in lines
+    assert "  not_a_lodgment: true" in lines
+    assert '  form_type: "BAS_AU_ACTIVITY_STATEMENT"' in lines
+    assert '  summary.total_payable_to_ato: "42500.00"' in lines
+    assert "refuse_div7a" in lines
+    assert '  code: "ERR_POLICY_DIV7A_REFUSED"' in lines
+    assert "  available: false" in lines
+    assert "  reviewed_engine: false" in lines

@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import importlib
 import json
 import re
@@ -38,7 +39,7 @@ def test_proof_package_surface_is_versioned_and_keeps_stdio_separate() -> None:
     }
     dev_dependencies = project["optional-dependencies"]["dev"]
     assert "Pillow==12.3.0" in dev_dependencies
-    assert "twine==6.2.0" in dev_dependencies
+    assert "twine==7.0.0" in dev_dependencies
     assert 'tomli>=2.0.1; python_version < "3.11"' in dev_dependencies
 
 
@@ -920,7 +921,7 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
     assert "## 30-second proof\n" in readme
     assert readme.index("## 30-second proof") < readme.index("## Install")
     for text in (
-        "![Animated terminal proof of synthetic BAS output and Division 7A refusal](docs/quick-proof.gif)",
+        "![Static terminal proof of synthetic BAS output and Division 7A refusal](docs/quick-proof.webp)",
         "uv run --locked aus-accounting-mcp-demo",
         "[checked text transcript](docs/quick-proof.txt)",
         "Expected structured success:",
@@ -939,6 +940,23 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
         "[compatibility.json](compatibility.json)",
     ):
         assert text in readme
+
+
+def test_committed_binary_assets_have_current_provenance() -> None:
+    root = Path(__file__).resolve().parents[1]
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    release_notes = (root / "RELEASE_NOTES.md").read_text(encoding="utf-8")
+    proof = root / "docs" / "quick-proof.webp"
+
+    assert proof.exists()
+    assert hashlib.sha256(proof.read_bytes()).hexdigest() in readme
+    assert "scripts/render_demo_image.py" in readme
+    assert "docs/quick-proof.txt" in readme
+    assert "MIT" in readme
+    assert "static WebP proof" in release_notes
+    assert "animated GIF" not in release_notes
+    assert not (root / "docs" / "quick-proof.gif").exists()
+    assert not (root / ".github" / "social-preview.png").exists()
 
 
 def test_server_metadata_publishes_exact_pypi_release() -> None:

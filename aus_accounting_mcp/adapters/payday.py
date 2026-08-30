@@ -18,6 +18,7 @@ from paydaysuper.deadlines import ContribLine, PreRegimeError
 from paydaysuper.rates import load_gic
 from paydaysuper.report import Result, assess
 
+from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.money import parse_amount
 
 DISCLAIMER = (
@@ -32,11 +33,11 @@ DISCLAIMER = (
 def _required_date(value: str, field: str) -> date:
     text = str(value).strip()
     if not text:
-        raise ValueError(f"{field} is required (YYYY-MM-DD)")
+        raise InputError(f"{field} is required (YYYY-MM-DD)")
     try:
         return date.fromisoformat(text)
     except ValueError as exc:
-        raise ValueError(f"{field}: {value!r} is not an ISO date") from exc
+        raise InputError(f"{field}: {value!r} is not an ISO date") from exc
 
 
 def _optional_date(value: str | None, field: str) -> date | None:
@@ -123,13 +124,13 @@ def review_contribution(
             transition_allocation_confirmed=False,
         )
     except PreRegimeError as exc:
-        raise ValueError(str(exc)) from exc
+        raise InputError(str(exc)) from exc
     except ValueError as exc:
         message = str(exc).replace(
             "--confirm-transition-allocation",
             "a human reconciliation of June-quarter balances; this MCP cannot confirm that",
         )
-        raise ValueError(message) from exc
+        raise InputError(message) from exc
     result = results[0]
     return {
         "ok": True,

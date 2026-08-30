@@ -53,6 +53,47 @@ def _call_tool_with_monetary_value(tool_name, field_name, value):
     return _call_tool(tool_name, arguments)
 
 
+@pytest.mark.parametrize(
+    ("tool_name", "arguments", "message"),
+    [
+        (
+            "list_ato_benchmark_industries",
+            {"year": "1900-01"},
+            "no dataset for benchmark year",
+        ),
+        (
+            "get_ato_benchmarks",
+            {
+                "industry": "Bakeries and hot bread shops",
+                "turnover": "850000.00",
+            },
+            "no expense figures were supplied",
+        ),
+        (
+            "calc_payday_super_deadline",
+            {
+                "qe_day": "not-a-date",
+                "sg_amount": "800.00",
+                "as_at": "2026-08-21",
+            },
+            "qe_day: 'not-a-date' is not an ISO date",
+        ),
+        (
+            "generate_synthetic_sbr_fixture",
+            {"form_type": "GST"},
+            "Unknown form_type 'GST'. Supported: CTR, BAS.",
+        ),
+    ],
+)
+def test_expected_input_errors_remain_visible_to_mcp_clients(
+    tool_name,
+    arguments,
+    message,
+):
+    with pytest.raises(ToolError, match=message):
+        _call_tool(tool_name, arguments)
+
+
 def test_payday_mcp_tool_keeps_exact_decimal_strings_from_the_engine():
     result = _call_tool(
         "calc_payday_super_deadline",

@@ -41,7 +41,7 @@ Division 7A is **refused** until a reviewed engine exists. SBR payloads are **sy
 
 ## 30-second proof
 
-![Animated terminal proof of synthetic BAS output and Division 7A refusal](docs/quick-proof.gif)
+![Static terminal proof of synthetic BAS output and Division 7A refusal](docs/quick-proof.webp)
 
 **Unreleased source:** from a repository checkout, run the fabricated
 demonstration without starting the stdio server:
@@ -50,7 +50,7 @@ demonstration without starting the stdio server:
 uv run --locked aus-accounting-mcp-demo
 ```
 
-The [checked text transcript](docs/quick-proof.txt) is the accessible source of truth for the animation. Its registered MCP calls return a synthetic BAS fixture with synthetic true and not_a_lodgment true, then an intentional Division 7A refusal with ERR_POLICY_DIV7A_REFUSED.
+The [checked text transcript](docs/quick-proof.txt) is the accessible source of truth for the image. Its registered MCP calls return a synthetic BAS fixture with synthetic true and not_a_lodgment true, then an intentional Division 7A refusal with ERR_POLICY_DIV7A_REFUSED.
 
 Expected structured success:
 
@@ -70,6 +70,12 @@ reviewed_engine: false
 ```
 
 The example is fabricated, is not a lodgment, is not tax advice, and requires human review before any consequential accounting action. It neither uses client data nor contacts external services.
+
+### Asset provenance
+
+| Asset | Purpose | Source | Licence | Creation | SHA-256 | Refresh trigger |
+|---|---|---|---|---|---|---|
+| `docs/quick-proof.webp` | Static terminal summary of the two checked demonstration outcomes | `docs/quick-proof.txt`, emitted by `aus-accounting-mcp-demo` | MIT | `uv run --locked python scripts/render_demo_image.py docs/quick-proof.txt docs/quick-proof.webp` with Pillow 12.3.0 | `1b551c09f59bd5ac236e11debd22de96fe2edc98d2ce9b6c9b1e721810829077` | Regenerate when the transcript, demo output, render constants or pinned Pillow version changes |
 
 Name mapping: public name Aus Accounting MCP; repository aus-accounting-mcp; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 

@@ -20,6 +20,7 @@ from atobenchmark.money import money
 from atobenchmark.ratios import RatioError, compute
 from atobenchmark.report import DISCLAIMER, compare, to_dict
 
+from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.money import parse_amount, parse_optional_amount
 
 EXPENSE_FIELDS = (
@@ -65,7 +66,10 @@ def _quotes_amount(text: str, amount: str) -> bool:
 
 
 def list_industries(search: str | None = None, year: str | None = None) -> dict[str, Any]:
-    data = load(year)
+    try:
+        data = load(year)
+    except DatasetError as exc:
+        raise InputError(str(exc)) from exc
     matches = data.search(search) if search else list(data.business_types)
     return {
         "ok": True,
@@ -115,7 +119,7 @@ def compare_figures(
     w1_amount = parse_optional_amount(w1, "w1")
 
     if not any(field in supplied for field in EXPENSE_FIELDS):
-        raise ValueError(
+        raise InputError(
             "no expense figures were supplied, so no ATO ratio can be compared. "
             "Pass at least one expense bucket as a decimal string; use 0 only when "
             "the operator established that the amount is zero."
@@ -130,7 +134,7 @@ def compare_figures(
         figures = compute(totals, w1_amount)
         comparison = compare(data, business_type, figures)
     except (DatasetError, RatioError) as exc:
-        raise ValueError(str(exc)) from exc
+        raise InputError(str(exc)) from exc
 
     payload = to_dict(comparison)
     omitted = [name for name in optional if name not in supplied]
