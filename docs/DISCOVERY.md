@@ -79,3 +79,55 @@ admin), so the `github-about` workflow warns and continues rather than failing.
   publisher is bound to `publish-pypi.yml`; do not add a publisher job to
   `release.yml` unless the PyPI publisher configuration is changed with it.
 - Do not copy AGPL or proprietary-corpus language from other ATO MCP products.
+
+## Release provenance
+
+Release `v0.1.5` predates the repository rename. Its certificate therefore
+retains the historical `au-tax-mcp-server` source identity. Verify it with an
+owner-scoped lookup that is then bound to the exact source and signer:
+
+```bash
+tag=v0.1.5
+repo=ryanduguid/aus-accounting-mcp
+wheel="aus_accounting_mcp-${tag#v}-py3-none-any.whl"
+release_commit="$(git ls-remote "https://github.com/$repo.git" "refs/tags/$tag^{}" | cut -f1)"
+test -n "$release_commit"
+gh release download "$tag" -R "$repo" --dir "release-$tag"
+cd "release-$tag"
+sha256sum --check SHA256SUMS
+gh attestation verify "$wheel" --owner ryanduguid \
+  --source-digest "$release_commit" \
+  --source-ref "refs/tags/$tag" \
+  --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
+  --signer-digest 3b8a377207cab2c7c808fcc96b66578f4695beea
+gh attestation verify "$wheel" --owner ryanduguid \
+  --predicate-type https://spdx.dev/Document/v2.3 \
+  --source-digest "$release_commit" \
+  --source-ref "refs/tags/$tag" \
+  --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
+  --signer-digest 3b8a377207cab2c7c808fcc96b66578f4695beea
+```
+
+Releases cut after the rename and shared Python-policy migration use the
+current repository identity and hardened policy digest. For the next release,
+update `tag` if the intended version changes and run these checks after
+downloading the assets and checking `SHA256SUMS`:
+
+```bash
+tag=v0.1.6
+repo=ryanduguid/aus-accounting-mcp
+wheel="aus_accounting_mcp-${tag#v}-py3-none-any.whl"
+release_commit="$(git ls-remote "https://github.com/$repo.git" "refs/tags/$tag^{}" | cut -f1)"
+test -n "$release_commit"
+gh attestation verify "$wheel" -R "$repo" \
+  --source-digest "$release_commit" \
+  --source-ref "refs/tags/$tag" \
+  --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
+  --signer-digest 8b4de1ed339f1358b5f3e850b63412d8717d01da
+gh attestation verify "$wheel" -R "$repo" \
+  --predicate-type https://spdx.dev/Document/v2.3 \
+  --source-digest "$release_commit" \
+  --source-ref "refs/tags/$tag" \
+  --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
+  --signer-digest 8b4de1ed339f1358b5f3e850b63412d8717d01da
+```
