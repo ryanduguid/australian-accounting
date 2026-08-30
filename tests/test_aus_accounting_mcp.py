@@ -2,6 +2,7 @@ import base64
 import importlib
 import json
 import re
+from decimal import Decimal
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
@@ -11,6 +12,9 @@ except ModuleNotFoundError:
     import tomli as tomllib
 
 import pytest
+
+from atobenchmark.mapping import BUCKETS
+from atobenchmark.ratios import compute
 
 from aus_accounting_mcp.server import (
     refuse_div7a,
@@ -562,6 +566,179 @@ def test_ato_w1_does_not_substitute_for_salary_wages() -> None:
     assert payload["figures"]["labour"] is None
     statuses = {row["ratio"]: row["status"] for row in payload["ratios"]}
     assert statuses["labour_to_turnover"] == "not_supplied"
+
+
+def _bakery_with_w1(**buckets: str) -> dict:
+    """W1 of $200,000 against a salary and wages label built from the buckets passed.
+
+    other_income is an evidenced zero so the denominator is settled and these
+    tests isolate the labour buckets, which are their subject.
+    """
+    figures = {
+        "industry": "Bakeries and hot bread shops",
+        "turnover": "850000.00",
+        "other_income": "0",
+        "w1": "200000.00",
+    }
+    figures.update(buckets)
+    return get_ato_benchmarks(**figures)
+
+
+def test_ato_omitted_salary_wages_withholds_checks_that_quote_the_label() -> None:
+    # The engine's checks quote the figures it was handed. Where W1 beats the
+    # rebuilt salary and wages label it states that label as a definite amount
+    # and concludes from it that W1 is the figure used in the labour ratio. That
+    # is the same unevidenced bucket the payload reports as unknown two keys
+    # away, carried in prose, so it is withheld with the figures.
+    omitted = _bakery_with_w1(
+        contractor_commission="0", cost_of_sales_labour="0", associated_persons="0"
+    )
+    assert omitted["bucket_totals"]["salary_wages"] is None
+    assert omitted["figures"]["labour"] is None
+    assert not any("salary and wages label" in check for check in omitted["checks_to_make"])
+    assert not any("is used in the labour ratio" in check for check in omitted["checks_to_make"])
+    # Withheld rather than silently dropped.
+    assert any("check(s) to make were withheld" in note for note in omitted["notes"])
+
+    # The omission reverses the check rather than moving the amount it quotes.
+    # $500,000 of salary and wages puts the label above W1 and the engine does
+    # not raise it at all, so publishing it above was not a shifted figure.
+    supplied = _bakery_with_w1(
+        contractor_commission="0",
+        cost_of_sales_labour="0",
+        associated_persons="0",
+        salary_wages="500000.00",
+    )
+    assert supplied["bucket_totals"]["salary_wages"] == "500000.00"
+    assert not any("salary and wages label" in check for check in supplied["checks_to_make"])
+
+    # With every bucket behind the label evidenced, the check is the engine's to
+    # make and is published. Withholding here would withhold a check the figures
+    # support, and the other buckets this payload omits do not bear on it.
+    evidenced = _bakery_with_w1(
+        contractor_commission="0",
+        cost_of_sales_labour="0",
+        associated_persons="0",
+        salary_wages="0",
+    )
+    assert evidenced["figures"]["labour"] == "200000.00"
+    assert any("is used in the labour ratio" in check for check in evidenced["checks_to_make"])
+    assert not any("check(s) to make were withheld" in note for note in evidenced["notes"])
+
+
+def test_ato_withheld_check_is_matched_on_the_quoted_amount() -> None:
+    # The label is the mapped salary and wages plus cost of sales labour plus
+    # associates, so an omitted salary_wages leaves the engine quoting the other
+    # two rather than a zero. Matching the rendered figure catches that; matching
+    # the omitted bucket's own total, which is always a zero, would not.
+    #
+    # The supplied rent is the negative of that same label, and the engine raises
+    # a check of its own quoting it. A figure runs left through a leading minus,
+    # so -500.00 is not a quotation of 500.00 and that check is the operator's to
+    # read: withholding is on the amount, not on there being an omitted bucket
+    # somewhere in the payload.
+    payload = _bakery_with_w1(
+        contractor_commission="0",
+        cost_of_sales_labour="500.00",
+        associated_persons="0",
+        rent="-500.00",
+    )
+    assert payload["bucket_totals"]["salary_wages"] is None
+    assert payload["bucket_totals"]["rent"] == "-500.00"
+    assert not any("salary and wages label" in check for check in payload["checks_to_make"])
+    assert not any("is used in the labour ratio" in check for check in payload["checks_to_make"])
+    assert any(
+        "The rent total is negative (-500.00)" in check
+        for check in payload["checks_to_make"]
+    )
+    assert any(
+        "No payments to associated persons were mapped" in check
+        for check in payload["checks_to_make"]
+    )
+
+
+def test_ato_a_collision_with_the_label_does_not_withhold_an_evidenced_check() -> None:
+    # A sign-flipped export makes the label negative, and it can land on the same
+    # amount as a bucket the operator supplied. Here an omitted salary_wages
+    # leaves a label of -500.00, which is also the rent total and the cost of
+    # sales labour total, both published. The engine raises a negative-bucket
+    # check for each, quoting an amount this payload states, so both are the
+    # operator's to read. Withholding on the label amount alone would eat them
+    # and then report a reason that was not true of either.
+    figures = {
+        "industry": "Bakeries and hot bread shops",
+        "turnover": "850000.00",
+        "other_income": "0",
+        "cost_of_sales_labour": "-500.00",
+        "associated_persons": "0",
+        "rent": "-500.00",
+    }
+
+    # Without W1 the engine never renders the label at all, so there is nothing
+    # for a check to be resting on and nothing to withhold.
+    without_w1 = get_ato_benchmarks(**figures)
+    assert without_w1["bucket_totals"]["rent"] == "-500.00"
+    assert without_w1["bucket_totals"]["cost_of_sales_labour"] == "-500.00"
+    assert any(
+        "The rent total is negative (-500.00)" in check
+        for check in without_w1["checks_to_make"]
+    )
+    assert any(
+        "The cost_of_sales_labour total is negative (-500.00)" in check
+        for check in without_w1["checks_to_make"]
+    )
+    assert not any("check(s) to make were withheld" in note for note in without_w1["notes"])
+
+    # With W1 the label check does appear and is withheld, and the two checks
+    # that merely share its amount are not: the label check quotes W1 as well.
+    with_w1 = get_ato_benchmarks(**figures, w1="0")
+    assert not any("salary and wages label" in check for check in with_w1["checks_to_make"])
+    assert any(
+        "The rent total is negative (-500.00)" in check
+        for check in with_w1["checks_to_make"]
+    )
+    assert any(
+        "The cost_of_sales_labour total is negative (-500.00)" in check
+        for check in with_w1["checks_to_make"]
+    )
+    assert any("1 check(s) to make were withheld" in note for note in with_w1["notes"])
+
+
+def test_ato_labour_gate_declines_a_ratio_the_engine_computes_correctly() -> None:
+    # The gate is on W1 being supplied, not on W1 winning. Where W1 loses to the
+    # label, associates cancel out of the labour figure exactly as they do with
+    # no W1 at all, and the engine returns the same amount either way.
+    def labour(associated_persons: str) -> str:
+        totals = {bucket: Decimal("0") for bucket in BUCKETS}
+        totals.update(
+            {
+                "turnover": Decimal("850000.00"),
+                "salary_wages": Decimal("80000"),
+                "cost_of_sales_labour": Decimal("50000"),
+                "contractor_commission": Decimal("0"),
+                "associated_persons": Decimal(associated_persons),
+            }
+        )
+        return str(compute(totals, Decimal("50000")).labour)
+
+    assert labour("0") == labour("50000") == "130000"
+
+    # So this is a ratio the engine computes correctly without the bucket, and
+    # the adapter declines it anyway. Which of the two figures wins is decided by
+    # the label, and the label cannot be built without associates, so the
+    # harmless case is not distinguishable from the tainted one without it.
+    payload = get_ato_benchmarks(
+        industry="Bakeries and hot bread shops",
+        turnover="850000.00",
+        other_income="0",
+        salary_wages="80000.00",
+        cost_of_sales_labour="50000.00",
+        contractor_commission="0",
+        w1="50000.00",
+    )
+    statuses = {row["ratio"]: row["status"] for row in payload["ratios"]}
+    assert statuses["labour_to_turnover"] == "not_supplied"
+    assert payload["figures"]["labour"] is None
 
 
 def test_ato_partial_labour_picture_is_not_supplied() -> None:

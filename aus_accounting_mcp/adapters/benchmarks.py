@@ -2,12 +2,14 @@
 
 No ATO ratios are hardcoded here. Figures are bucket totals; the engine
 applies QC 37143 turnover and labour rules and the shipped dataset.
-Omitted buckets are not treated as evidenced zeros. The turnover rule reads
-other_income to choose the ratio denominator, so no ratio is reported without it.
+Omitted buckets are not treated as evidenced zeros, in the structured figures
+or in the engine's own notes and checks. The turnover rule reads other_income to
+choose the ratio denominator, so no ratio is reported without it.
 """
 
 from __future__ import annotations
 
+import re
 from decimal import Decimal
 from typing import Any
 
@@ -43,6 +45,23 @@ RATIO_SOURCES: dict[str, tuple[str, ...]] = {
     ),
     "total_expenses_to_turnover": EXPENSE_FIELDS,
 }
+
+
+def _quotes_amount(text: str, amount: str) -> bool:
+    """Whether text states amount as a figure of its own.
+
+    The engine renders the amounts inside its checks with str() on the Decimal
+    rather than money(), so a plain substring test would find "0" inside
+    "200000.00". Requiring a character that is not part of a figure on each side
+    matches the amount only where it is quoted in its own right, and leaves
+    "W1" alone where the amount happens to be 1.
+
+    A figure runs left through digits, a decimal point or a leading minus, so
+    "500.00" is not quoted by a check reporting "-500.00". It runs right through
+    digits and a decimal point only, a trailing "-" being punctuation rather
+    than part of the amount.
+    """
+    return re.search(rf"(?<![\w.-]){re.escape(amount)}(?![\w.])", text) is not None
 
 
 def list_industries(search: str | None = None, year: str | None = None) -> dict[str, Any]:
@@ -125,12 +144,19 @@ def compare_figures(
     # associated_persons is required only when W1 is supplied, and that
     # asymmetry is deliberate rather than an oversight. The engine rebuilds the
     # return's salary and wages label by adding associates back, then deducts
-    # them once at the end, so on the salary path the bucket cancels out of the
-    # labour figure and an omitted one cannot move the ratio. When W1 is greater
-    # it replaces that rebuilt label, which leaves the deduction without its
-    # matching addition, and there an omitted bucket does reach the engine as a
-    # definite zero. Requiring it on both paths would decline a ratio the engine
-    # computes correctly without it.
+    # them once at the end, so wherever that label is the figure used the bucket
+    # cancels out of the labour figure and an omitted one cannot move the ratio.
+    # Where W1 is greater it replaces the rebuilt label, which leaves the
+    # deduction without its matching addition, and there an omitted bucket does
+    # reach the engine as a definite zero.
+    #
+    # The gate is on W1 being supplied, not on W1 winning, and that is broader
+    # than the taint: where W1 is supplied but loses to the label, associates
+    # cancel exactly as they do with no W1 at all, so this declines a ratio the
+    # engine computes correctly. That is the deliberate part. Which of the two
+    # figures wins is itself decided by the label, and the label cannot be built
+    # without the associates bucket, so nobody can tell the harmless case from
+    # the tainted one without the very figure that is missing.
     #
     # W1 does not stand in for salary_wages either, which is why the first clause
     # is an "and" rather than an "or". The engine takes the greater of W1 and the
@@ -247,6 +273,58 @@ def compare_figures(
             "no other income."
         )
 
+    # The engine's checks quote the figures it built from the totals it was
+    # handed, so a check can carry an omitted bucket in prose exactly as the
+    # notes carried the unevidenced turnover. One does. Where activity statement
+    # W1 beats the return's salary and wages label, the engine states that label
+    # as a definite amount and concludes from it that W1 is the figure used in
+    # the labour ratio. With a component bucket omitted, that amount is a lower
+    # bound and the same payload reports the bucket as unknown. Supplying the
+    # bucket can put the label above W1 and stop the engine raising the check at
+    # all, so the omission reverses it rather than merely moving its figure.
+    #
+    # The label is the mapped salary and wages plus cost of sales labour plus
+    # associates, reconstructed the way the engine reconstructs it, so it is only
+    # as established as those three buckets. That is a narrower condition than
+    # labour_evidenced, which also wants contractor_commission: the label does not
+    # use that bucket, and a check whose every figure is evidenced is the
+    # engine's to make even where the labour ratio it mentions is withheld.
+    #
+    # Matching the rendered amount rather than the wording means the engine can
+    # reword the check without reopening the hole. The match is on the pair of
+    # amounts rather than the label alone, because the label alone is a number
+    # like any other and an evidenced check can carry the same one. The engine
+    # quotes the label only where it compares W1 against it, so a check resting
+    # on the label quotes both figures; the negative-bucket check quotes one
+    # amount, the operator's own bucket total, and survives a collision with the
+    # label rather than being withheld with a false reason. For the same reason
+    # nothing is withheld where no W1 was supplied: the engine cannot reach the
+    # line that renders the label, so no check can be resting on it.
+    salary_label_evidenced = all(
+        name in supplied
+        for name in ("salary_wages", "cost_of_sales_labour", "associated_persons")
+    )
+    checks_to_make = list(payload["checks_to_make"])
+    if w1_amount is not None and not salary_label_evidenced:
+        salary_and_wages_label = (
+            figures.totals["salary_wages"] + figures.totals["cost_of_sales_labour"]
+        ) + figures.totals["associated_persons"]
+        compared = (str(w1_amount), str(salary_and_wages_label))
+        checks_to_make = [
+            check
+            for check in checks_to_make
+            if not all(_quotes_amount(check, amount) for amount in compared)
+        ]
+    withheld_checks = len(payload["checks_to_make"]) - len(checks_to_make)
+    if withheld_checks:
+        notes.append(
+            f"{withheld_checks} check(s) to make were withheld because they quote the "
+            "salary and wages label, which is the mapped salary and wages plus cost of "
+            "sales labour plus payments to associates. At least one of those buckets was "
+            "omitted rather than evidenced as zero, so the label is not a figure this "
+            "payload can state."
+        )
+
     payload.update(
         {
             "ok": True,
@@ -255,6 +333,7 @@ def compare_figures(
             "disclaimer": DISCLAIMER,
             "ratios": ratios,
             "notes": notes,
+            "checks_to_make": checks_to_make,
             "supplied_buckets": sorted(supplied),
             "omitted_buckets": omitted,
             "complete_buckets": expense_complete,
