@@ -4,7 +4,7 @@
 set -euo pipefail
 
 REPO="ryanduguid/aus-accounting-mcp"
-DESCRIPTION="Local MCP server for Australian accounting review: ATO small-business benchmarks, Payday Super 2026, refused Division 7A and synthetic SBR fixtures. Not advice."
+DESCRIPTION="Local MCP server for Australian accounting review: ATO benchmarks, Payday Super 2026, limited Division 7A loan reviews and synthetic SBR fixtures. Not advice."
 HOMEPAGE="https://ryanduguid.github.io/tools/australian-tax-ai-agents/"
 TOPICS=(
   accounting
@@ -18,6 +18,7 @@ TOPICS=(
   claude-code
   codex
   cursor
+  division-7a
   mcp
   mcp-server
   model-context-protocol

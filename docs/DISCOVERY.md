@@ -9,7 +9,7 @@ About, repository topics, README, `pyproject.toml`, `glama.json`, and
 Description:
 
 ```text
-Local MCP server for Australian accounting review: ATO small-business benchmarks, Payday Super 2026, refused Division 7A and synthetic SBR fixtures. Not advice.
+Local MCP server for Australian accounting review: ATO benchmarks, Payday Super 2026, limited Division 7A loan reviews and synthetic SBR fixtures. Not advice.
 ```
 
 Website:
@@ -32,6 +32,7 @@ australian-taxation
 claude-code
 codex
 cursor
+division-7a
 mcp
 mcp-server
 model-context-protocol
@@ -40,7 +41,8 @@ python
 tax-prep
 ```
 
-Do not add `division-7a`. The only Div 7A tool is `refuse_div7a`.
+Division 7A discovery copy must describe the reviewed s 109N/s 109E scope and
+must not imply that the server handles every Division 7A question.
 
 Apply with `scripts/publish-github-about.sh` from a session authenticated to
 GitHub. The Actions `GITHUB_TOKEN` cannot PATCH homepage (needs repository
@@ -49,14 +51,14 @@ admin), so the `github-about` workflow warns and continues rather than failing.
 ## Keyword map
 
 - Primary: Australian computational accounting MCP, Payday Super review, ATO
-  small-business benchmarks.
+  small-business benchmarks, limited Division 7A loan review.
 - Agent/platform terms: MCP, Cursor, Claude Code, Claude Desktop, Codex, uvx.
 
 ## Copy rules
 
 - Lead with the one-command install (`uvx aus-accounting-mcp`).
 - Name tools as jobs, not as the historical engine repositories.
-- Keep refusals visible (Division 7A unwired; SBR synthetic).
+- Keep unsupported Division 7A refusals visible and label SBR fixtures synthetic.
 - Do not imply ATO, CA ANZ, or vendor endorsement.
 - Do not claim a hosted corpus or a Smithery listing until it exists. The
   `aus-accounting-mcp` project is published on PyPI; its current public release
@@ -71,7 +73,7 @@ admin), so the `github-about` workflow warns and continues rather than failing.
   Keep `server.json` in the repo root. The [MCP Registry PyPI package
   guidance](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/package-types.mdx)
   requires the published package README to contain its matching `mcp-name`
-  marker. Version 0.1.5 is published and verified on PyPI, and `server.json`
+  marker. Version 0.1.6 is published and verified on PyPI, and `server.json`
   names that exact package version. GitHub Actions OIDC publishes the registry
   record only after an explicit manual dispatch.
 - For future releases, push the version tag to create and attest the GitHub

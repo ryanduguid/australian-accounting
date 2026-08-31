@@ -6,6 +6,7 @@ authors:
 title: "Aus Accounting MCP (aus-accounting-mcp)"
 abstract: Local MCP facade over reviewed Australian computational accounting engines. Citations and refusals, not advice.
 version: 0.1.6
+date-released: 2026-08-31
 url: "https://ryanduguid.github.io/tools/australian-tax-ai-agents/"
 repository-code: "https://github.com/ryanduguid/aus-accounting-mcp"
 license: MIT
@@ -14,3 +15,4 @@ keywords:
   - australian-tax
   - ato-benchmarks
   - payday-super
+  - division-7a

@@ -1,10 +1,12 @@
 # Agent instructions
 
 This package is an MCP facade. Keep statutory calculations in the delegated
-`payday-super-checker` and `ato-benchmark-compare` engines; adapters may validate,
-translate and serialise, but must not reimplement their law or datasets.
+`payday-super-checker`, `ato-benchmark-compare` and `div7a-loan-review` engines;
+adapters may validate, translate and serialise, but must not reimplement their law
+or datasets.
 
-- Keep Division 7A refused until a reviewed delegated engine exists.
+- Keep Division 7A limited to the delegated engine's reviewed s 109N and s 109E scope;
+  refuse unsupported matters.
 - Keep repository fixtures and demonstrations synthetic-only; never add client data or
   present a fixture as a lodgment.
 - Route all MCP-boundary money parsing through `aus_accounting_mcp.money`; preserve

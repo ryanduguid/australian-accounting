@@ -830,9 +830,9 @@ def test_div7a_is_refused() -> None:
     payload = refuse_div7a("Alice", "HoldingCo Pty Ltd", "50000.00")
     assert payload["ok"] is False
     assert payload["available"] is False
-    assert payload["reviewed_engine"] is False
-    assert payload["code"] == "ERR_POLICY_DIV7A_REFUSED"
-    assert "payday-super-checker" in payload["reason"]
+    assert payload["reviewed_engine"] is True
+    assert payload["code"] == "ERR_POLICY_DIV7A_SCOPE_REFUSED"
+    assert "unpaid present entitlements" in payload["reason"]
 
 
 def test_synthetic_sbr_fixtures_are_labelled() -> None:
@@ -884,12 +884,13 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     # this package unpublishable and silently undo its own release process.
     assert "payday-super-checker==" in pyproject
     assert "ato-benchmark-compare==" in pyproject
+    assert "div7a-loan-review==0.1.0" in pyproject
     dependencies = pyproject.split("dependencies = [", 1)[1].split("]", 1)[0]
     assert "git+" not in dependencies
     assert "allow-direct-references" not in pyproject
 
 
-def test_unreleased_source_metadata_stays_separate_from_published_metadata() -> None:
+def test_release_metadata_is_aligned_for_0_1_6() -> None:
     root = Path(__file__).resolve().parents[1]
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
@@ -899,10 +900,10 @@ def test_unreleased_source_metadata_stays_separate_from_published_metadata() -> 
 
     assert project["version"] == "0.1.6"
     assert re.search(r"(?m)^version: 0\.1\.6$", citation)
-    assert not re.search(r"(?m)^date-released:", citation)
+    assert re.search(r"(?m)^date-released: 2026-08-31$", citation)
     assert release_notes.startswith("# v0.1.6\n")
-    assert published_version == server["packages"][0]["version"] == "0.1.5"
-    assert project["version"] != published_version
+    assert published_version == server["packages"][0]["version"] == "0.1.6"
+    assert project["version"] == published_version
 
 
 def test_active_repository_metadata_uses_canonical_identity() -> None:
@@ -924,22 +925,22 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
     assert "## 30-second proof\n" in readme
     assert readme.index("## 30-second proof") < readme.index("## Install")
     for text in (
-        "![Static terminal proof of synthetic BAS output and Division 7A refusal](docs/quick-proof.webp)",
+        "![Static terminal proof of synthetic BAS output and Division 7A loan review](docs/quick-proof.webp)",
         "uv run --locked aus-accounting-mcp-demo",
         "[checked text transcript](docs/quick-proof.txt)",
         "Expected structured success:",
         "synthetic: true",
         "not_a_lodgment: true",
-        "Expected structured refusal:",
-        "ERR_POLICY_DIV7A_REFUSED",
+        "Expected structured Division 7A review:",
+        "minimum_yearly_repayment.verdict: MYR_MET",
         "not a lodgment",
         "human review",
         "repository aus-accounting-mcp",
         "aus-accounting-mcp",
         "aus-accounting-mcp-demo",
         "io.github.ryanduguid/aus-accounting",
-        "https://pypi.org/project/aus-accounting-mcp/0.1.5/",
-        "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.5",
+        "https://pypi.org/project/aus-accounting-mcp/0.1.6/",
+        "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6",
         "[compatibility.json](compatibility.json)",
     ):
         assert text in readme
@@ -966,12 +967,12 @@ def test_server_metadata_publishes_exact_pypi_release() -> None:
     root = Path(__file__).resolve().parents[1]
     server = json.loads((root / "server.json").read_text(encoding="utf-8"))
 
-    assert server["version"] == "0.1.5"
+    assert server["version"] == "0.1.6"
     assert server["packages"] == [
         {
             "registryType": "pypi",
             "identifier": "aus-accounting-mcp",
-            "version": "0.1.5",
+            "version": "0.1.6",
             "transport": {"type": "stdio"},
         }
     ]
@@ -1041,7 +1042,7 @@ def test_release_workflows_use_registered_pypi_publisher() -> None:
 
     assert "[CITATION.cff](CITATION.cff)" in readme
     assert (
-        f"[v0.1.5 release record]({CANONICAL_REPOSITORY}/releases/tag/v0.1.5)"
+        f"[v0.1.6 release record]({CANONICAL_REPOSITORY}/releases/tag/v0.1.6)"
         in readme
     )
 

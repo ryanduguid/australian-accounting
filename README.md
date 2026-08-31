@@ -25,32 +25,33 @@
 
 **Aus Accounting MCP** is a local MCP facade over reviewed Australian computational accounting engines. Compatible with Claude Desktop, Claude Code, Cursor, Codex and Antigravity.
 
-Payday Super is an experimental review (not a compliance determination). Division 7A is **refused** - there is no repayment calculator. SBR payloads are synthetic fixtures.
+Payday Super and Division 7A are experimental reviews, not compliance or tax determinations. SBR payloads are synthetic fixtures.
 
 > [!WARNING]
 > **Not tax advice.** This server returns structured results, refusals, and citations. It does not lodge, and it does not replace a registered agent. See [DISCLAIMER.md](DISCLAIMER.md).
 
-This is a **computational** MCP, not a hosted ATO document store. It applies statutory tests to figures the operator supplies (Payday Super timing, ATO small-business benchmark ratios) and refuses Division 7A. For looking up rulings, use a document-retrieval MCP. Comparison: [Australian tax tools for AI agents](https://ryanduguid.github.io/tools/australian-tax-ai-agents/).
+This is a **computational** MCP, not a hosted ATO document store. It applies defined tests to figures the operator supplies: Payday Super timing, ATO small-business benchmark ratios, and a limited Division 7A loan review. For looking up rulings, use a document-retrieval MCP. Comparison: [Australian tax tools for AI agents](https://ryanduguid.github.io/tools/australian-tax-ai-agents/).
 
 This server does **not** reimplement tax law. Payday Super and ATO small-business benchmarks are delegated to:
 
 - [payday-super-checker](https://github.com/ryanduguid/payday-super-checker) (`payday-super-checker`)
 - [ato-benchmark-compare](https://github.com/ryanduguid/ato-benchmark-compare) (`ato-benchmark-compare`)
+- [div7a-loan-review](https://github.com/ryanduguid/div7a-loan-review) (`div7a-loan-review`)
 
-Division 7A is **refused** until a reviewed engine exists. SBR payloads are **synthetic fixtures**, not lodgments.
+The Division 7A adapter covers reviewed s 109N loan terms and benchmark rates plus s 109E minimum yearly repayments for one operator-supplied amalgamated loan. It fails closed on unknown facts and refuses unsupported matters such as forming amalgamated loans, s 109R repayment classification, unpaid present entitlements, distributable surplus, interposed entities, debt forgiveness, and Commissioner discretion. SBR payloads are **synthetic fixtures**, not lodgments.
 
 ## 30-second proof
 
-![Static terminal proof of synthetic BAS output and Division 7A refusal](docs/quick-proof.webp)
+![Static terminal proof of synthetic BAS output and Division 7A loan review](docs/quick-proof.webp)
 
-**Unreleased source:** from a repository checkout, run the fabricated
+**Release proof:** from a repository checkout, run the fabricated
 demonstration without starting the stdio server:
 
 ```bash
 uv run --locked aus-accounting-mcp-demo
 ```
 
-The [checked text transcript](docs/quick-proof.txt) is the accessible source of truth for the image. Its registered MCP calls return a synthetic BAS fixture with synthetic true and not_a_lodgment true, then an intentional Division 7A refusal with ERR_POLICY_DIV7A_REFUSED.
+The [checked text transcript](docs/quick-proof.txt) is the accessible source of truth for the image. Its registered MCP calls return a synthetic BAS fixture with `synthetic: true` and `not_a_lodgment: true`, then review fabricated Division 7A loan facts through the delegated engine.
 
 Expected structured success:
 
@@ -61,33 +62,35 @@ form_type: BAS_AU_ACTIVITY_STATEMENT
 summary.total_payable_to_ato: "42500.00"
 ```
 
-Expected structured refusal:
+Expected structured Division 7A review:
 
 ```text
-code: ERR_POLICY_DIV7A_REFUSED
-available: false
-reviewed_engine: false
+engine: div7a-loan-review
+gate.verdict: COMPLYING
+minimum_yearly_repayment.verdict: MYR_MET
+minimum_yearly_repayment.myr_required: "108770.00"
+minimum_yearly_repayment.shortfall: "0.00"
 ```
 
-The example is fabricated, is not a lodgment, is not tax advice, and requires human review before any consequential accounting action. It neither uses client data nor contacts external services.
+The example is fabricated, is not a lodgment or Division 7A determination, is not tax advice, and requires human review before any consequential accounting action. It does not model s 109R, distributable surplus, unpaid present entitlements or the other refused areas. It neither uses client data nor contacts external services.
 
 ### Asset provenance
 
 | Asset | Purpose | Source | Licence | Creation | SHA-256 | Refresh trigger |
 |---|---|---|---|---|---|---|
-| `docs/quick-proof.webp` | Static terminal summary of the two checked demonstration outcomes | `docs/quick-proof.txt`, emitted by `aus-accounting-mcp-demo` | MIT | `uv run --locked --extra dev python scripts/render_demo_image.py docs/quick-proof.txt docs/quick-proof.webp` with Pillow 12.3.0 | `1b551c09f59bd5ac236e11debd22de96fe2edc98d2ce9b6c9b1e721810829077` | Regenerate when the transcript, demo output, render constants or pinned Pillow version changes |
+| `docs/quick-proof.webp` | Static terminal summary of the two checked demonstration outcomes | `docs/quick-proof.txt`, emitted by `aus-accounting-mcp-demo` | MIT | `uv run --locked --extra dev python scripts/render_demo_image.py docs/quick-proof.txt docs/quick-proof.webp` with Pillow 12.3.0 | `90f983a9b8f76455e9f473330c8b999f9929870731f0c9fbc70e87cd790a43df` | Regenerate when the transcript, demo output, render constants or pinned Pillow version changes |
 
 Name mapping: public name Aus Accounting MCP; repository aus-accounting-mcp; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/aus-accounting-mcp/actions/workflows/ci.yml), [v0.1.5 release](https://github.com/ryanduguid/aus-accounting-mcp/releases/tag/v0.1.5), [PyPI 0.1.5](https://pypi.org/project/aus-accounting-mcp/0.1.5/), [MCP Registry 0.1.5](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.5), and [compatibility.json](compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
+Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/aus-accounting-mcp/actions/workflows/ci.yml), [v0.1.6 release](https://github.com/ryanduguid/aus-accounting-mcp/releases/tag/v0.1.6), [PyPI 0.1.6](https://pypi.org/project/aus-accounting-mcp/0.1.6/), [MCP Registry 0.1.6](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6), and [compatibility.json](compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
 
 ## Install
 
 Python 3.10+ and [uv](https://docs.astral.sh/uv/). This server and its engines
 are published to PyPI; the server pins its reviewed engines to exact versions:
 
-Use [CITATION.cff](CITATION.cff) for the unreleased source version. The latest
-published provenance is the [v0.1.5 release record](https://github.com/ryanduguid/aus-accounting-mcp/releases/tag/v0.1.5).
+Use [CITATION.cff](CITATION.cff) for this source version. The latest
+published provenance is the [v0.1.6 release record](https://github.com/ryanduguid/aus-accounting-mcp/releases/tag/v0.1.6).
 
 ```bash
 uvx aus-accounting-mcp
@@ -143,12 +146,19 @@ codex mcp add aus-accounting -- uvx aus-accounting-mcp
 | `list_ato_benchmark_industries` | List or search the shipped ATO business types | ato-benchmark-compare |
 | `get_ato_benchmarks` | Compare operator-supplied bucket totals to ATO ranges | ato-benchmark-compare |
 | `calc_payday_super_deadline` | Review one contribution against Payday Super timing | payday-super-checker |
-| `refuse_div7a` | Returns a refusal. No reviewed Div 7A engine is wired | none |
+| `get_div7a_benchmark_rate` | Return the reviewed s 109N(2) rate for a year, or `UNKNOWN` | div7a-loan-review |
+| `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayment for one operator-supplied amalgamated loan | div7a-loan-review |
+| `refuse_div7a` | Refuse Division 7A matters outside the reviewed engine scope | MCP policy |
 | `generate_synthetic_sbr_fixture` | Synthetic CTR/BAS for agent tests (`synthetic: true`) | local fixture |
+
+The Division 7A tools default to `response_detail="summary"`, retaining outcomes,
+amounts, caveats, versions and a verification link while reducing tool-result size.
+Pass `response_detail="full"` when the complete provenance, statutory trace and
+per-limb audit material are required.
 
 `calc_payday_super_deadline` requires `as_at`. It does not invent clearing-house latency and cannot confirm LCR 2026/1 transition allocation. A remittance date alone cannot produce `ON_TIME`. Omitted ATO expense buckets are `not_supplied`, not zero. Every ATO ratio divides by turnover, which the ATO rule takes from sales or from total business income, so omitting `other_income` leaves every ratio `not_supplied` until you establish that figure; pass `0` where you have established there is none. Withholding covers the engine's prose as well as the structured fields: a `notes` or `checks_to_make` entry that states an amount resting on an omitted bucket is withheld with the fields it belongs to, and `notes` says so.
 
-Amounts are decimal strings, finite, at most two decimal places, and no greater than AUD 1,000,000,000,000.00. Dates are ISO-8601. Payday Super uses payday-super-checker's national SGAA 1992 s 6(1) calendar.
+Amounts, including Division 7A loan balances and payments, are decimal strings, finite, at most two decimal places, and no greater than AUD 1,000,000,000,000.00. Dates are ISO-8601. Payday Super uses payday-super-checker's national SGAA 1992 s 6(1) calendar.
 
 Ask the agent:
 
@@ -158,6 +168,10 @@ Compare these P&L buckets to the ATO small-business benchmarks for this industry
 
 ```text
 Review this Payday Super contribution. QE day, remitted date, and fund-receipt date are in the CSV. as_at is today. Do not invent an SGC charge.
+```
+
+```text
+Review this operator-supplied Division 7A amalgamated loan for s 109N terms and the s 109E minimum yearly repayment. Leave unknown facts unknown and refuse questions outside the reviewed scope.
 ```
 
 ## Licence
