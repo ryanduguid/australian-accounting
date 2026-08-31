@@ -33,7 +33,8 @@ def proof_lines(transcript_path: Path) -> list[str]:
     payload = json.loads("\n".join(lines[1:]))
     calls = {call["tool"]: call for call in payload["calls"]}
     fixture = calls["generate_synthetic_sbr_fixture"]["result"]
-    refusal = calls["refuse_div7a"]["result"]
+    div7a = calls["review_div7a_loan"]["result"]
+    myr = div7a["minimum_yearly_repayment"]
 
     return [
         lines[0],
@@ -45,10 +46,12 @@ def proof_lines(transcript_path: Path) -> list[str]:
         "  summary.total_payable_to_ato: "
         f"{_json_value(fixture['summary']['total_payable_to_ato'])}",
         "",
-        "refuse_div7a",
-        f"  code: {_json_value(refusal['code'])}",
-        f"  available: {_json_value(refusal['available'])}",
-        f"  reviewed_engine: {_json_value(refusal['reviewed_engine'])}",
+        "review_div7a_loan",
+        f"  gate.verdict: {_json_value(div7a['gate']['verdict'])}",
+        f"  minimum_yearly_repayment.verdict: {_json_value(myr['verdict'])}",
+        "  minimum_yearly_repayment.myr_required: "
+        f"{_json_value(myr['myr_required'])}",
+        f"  minimum_yearly_repayment.shortfall: {_json_value(myr['shortfall'])}",
     ]
 
 

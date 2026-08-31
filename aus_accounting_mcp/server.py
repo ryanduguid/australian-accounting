@@ -1,14 +1,13 @@
 """Australian accounting MCP server.
 
-Statutory tools are facades over payday-super-checker and ato-benchmark-compare.
-Division 7A is refused until a reviewed engine exists. SBR payloads are synthetic.
+Statutory tools are facades over reviewed delegated engines. SBR payloads are synthetic.
 """
 
 from __future__ import annotations
 
 from decimal import Decimal
 from importlib.metadata import PackageNotFoundError, version
-from typing import Any
+from typing import Any, Literal
 
 from mcp.server.mcpserver import MCPServer
 
@@ -18,6 +17,7 @@ except PackageNotFoundError:  # running from a source tree without installation
     _VERSION = "0.0.0.dev0"
 
 from .adapters.benchmarks import compare_figures, list_industries
+from .adapters.div7a import get_benchmark_rate, review_loan
 from .adapters.payday import review_contribution
 from .fixtures.synthetic_sbr import (
     generate_synthetic_bas_payload,
@@ -28,11 +28,13 @@ from .money import parse_amount
 
 mcp = MCPServer("aus-accounting-mcp", version=_VERSION)
 
-DIV7A_REFUSAL = (
-    "Division 7A MYR, benchmark interest and franking-offset journals are not "
-    "backed by a reviewed computational engine in this server. The previous "
-    "MCP-local simulator has been removed so agents cannot treat it as statutory "
-    "output. Wired engines: payday-super-checker and ato-benchmark-compare."
+DIV7A_SCOPE_REFUSAL = (
+    "The reviewed div7a-loan-review engine covers s 109N loan terms, s 109N(2) "
+    "benchmark rates and s 109E minimum yearly repayments for an operator-supplied "
+    "amalgamated loan. It does not form amalgamated loans, classify repayments under "
+    "s 109R, model unpaid present entitlements, distributable surplus, interposed "
+    "entities, debt forgiveness or the Commissioner's discretion. Those matters "
+    "remain refused."
 )
 
 
@@ -127,6 +129,67 @@ def calc_payday_super_deadline(
 
 
 @mcp.tool()
+def get_div7a_benchmark_rate(
+    year_of_income: str,
+    response_detail: Literal["summary", "full"] = "summary",
+) -> dict[str, Any]:
+    """Return the reviewed s 109N(2) rate for a year, or UNKNOWN.
+
+    Years use the YYYY-YY form, such as 2026-27. The delegated engine fails
+    closed outside its reviewed frozen table and does not read the network.
+    response_detail defaults to summary; pass full for the complete provenance
+    and statutory trace.
+    """
+    return get_benchmark_rate(year_of_income, response_detail=response_detail)
+
+
+@mcp.tool()
+def review_div7a_loan(
+    year_of_income: str,
+    year_loan_made: str | None = None,
+    written_agreement: bool | None = None,
+    terms_in_place_before_lodgment_day: bool | None = None,
+    maximum_term_years: str | None = None,
+    secured_by_registered_mortgage_over_real_property: bool | None = None,
+    security_coverage_at_first_made: str | None = None,
+    interest_rate_for_years_after_year_loan_made: str | None = None,
+    amalgamated_loan_unpaid_at_end_of_previous_year: str | None = None,
+    remaining_term_years: str | None = None,
+    payments_applied_during_the_year: str | None = None,
+    loan_id: str = "mcp-div7a-1",
+    response_detail: Literal["summary", "full"] = "summary",
+) -> dict[str, Any]:
+    """Review one operator-supplied amalgamated Division 7A loan.
+
+    The tool runs the s 109N gate and then the s 109E minimum yearly repayment.
+    Unknown facts may be omitted or passed as null; they remain UNKNOWN and are
+    never coerced to false or zero. Amounts and rates are decimal strings.
+    response_detail defaults to summary; pass full for the complete engine audit.
+    """
+    return review_loan(
+        year_of_income=year_of_income,
+        year_loan_made=year_loan_made,
+        written_agreement=written_agreement,
+        terms_in_place_before_lodgment_day=terms_in_place_before_lodgment_day,
+        maximum_term_years=maximum_term_years,
+        secured_by_registered_mortgage_over_real_property=(
+            secured_by_registered_mortgage_over_real_property
+        ),
+        security_coverage_at_first_made=security_coverage_at_first_made,
+        interest_rate_for_years_after_year_loan_made=(
+            interest_rate_for_years_after_year_loan_made
+        ),
+        amalgamated_loan_unpaid_at_end_of_previous_year=(
+            amalgamated_loan_unpaid_at_end_of_previous_year
+        ),
+        remaining_term_years=remaining_term_years,
+        payments_applied_during_the_year=payments_applied_during_the_year,
+        loan_id=loan_id,
+        response_detail=response_detail,
+    )
+
+
+@mcp.tool()
 def refuse_div7a(
     borrower_name: str,
     lender_entity_name: str,
@@ -134,15 +197,15 @@ def refuse_div7a(
     start_fy: int = 2025,
     is_secured_25_year: bool = False,
 ) -> dict[str, Any]:
-    """Refuse Division 7A calculations. No reviewed engine is wired."""
+    """Refuse Division 7A matters outside the reviewed loan/MYR scope."""
     parse_amount(loan_principal, "loan_principal")
     del borrower_name, lender_entity_name, start_fy, is_secured_25_year
     return {
         "ok": False,
         "available": False,
-        "reviewed_engine": False,
-        "code": "ERR_POLICY_DIV7A_REFUSED",
-        "reason": DIV7A_REFUSAL,
+        "reviewed_engine": True,
+        "code": "ERR_POLICY_DIV7A_SCOPE_REFUSED",
+        "reason": DIV7A_SCOPE_REFUSAL,
     }
 
 

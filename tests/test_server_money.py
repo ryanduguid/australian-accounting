@@ -11,6 +11,8 @@ _MONETARY_ENDPOINT_FIELDS = [
     ("get_ato_benchmarks", "turnover"),
     ("get_ato_benchmarks", "cost_of_sales"),
     ("calc_payday_super_deadline", "sg_amount"),
+    ("review_div7a_loan", "amalgamated_loan_unpaid_at_end_of_previous_year"),
+    ("review_div7a_loan", "payments_applied_during_the_year"),
     ("refuse_div7a", "loan_principal"),
     ("generate_synthetic_sbr_fixture", "revenue_or_sales"),
 ]
@@ -42,6 +44,19 @@ def _call_tool_with_monetary_value(tool_name, field_name, value):
             "borrower_name": "Alice",
             "lender_entity_name": "HoldingCo Pty Ltd",
             "loan_principal": "100000.00",
+        }
+    elif tool_name == "review_div7a_loan":
+        arguments = {
+            "year_of_income": "2026-27",
+            "year_loan_made": "2025-26",
+            "written_agreement": True,
+            "terms_in_place_before_lodgment_day": True,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": False,
+            "interest_rate_for_years_after_year_loan_made": "0.0837",
+            "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
+            "remaining_term_years": "1",
+            "payments_applied_during_the_year": "108770.00",
         }
     else:
         arguments = {
@@ -122,7 +137,7 @@ def test_div7a_mcp_tool_validates_money_then_refuses():
         },
     )
     assert result["available"] is False
-    assert result["reviewed_engine"] is False
+    assert result["reviewed_engine"] is True
 
 
 @pytest.mark.parametrize(("tool_name", "field_name"), _MONETARY_ENDPOINT_FIELDS)

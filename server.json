@@ -2,18 +2,18 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ryanduguid/aus-accounting",
   "title": "aus-accounting-mcp",
-  "description": "Local MCP for ATO benchmarks and Payday Super review. Refuses Division 7A. Not advice.",
+  "description": "Local MCP for ATO benchmarks, Payday Super and limited Division 7A loan review. Not advice.",
   "websiteUrl": "https://ryanduguid.github.io/tools/australian-tax-ai-agents/",
   "repository": {
     "url": "https://github.com/ryanduguid/aus-accounting-mcp",
     "source": "github"
   },
-  "version": "0.1.5",
+  "version": "0.1.6",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "aus-accounting-mcp",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "transport": {
         "type": "stdio"
       }

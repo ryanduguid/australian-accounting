@@ -24,7 +24,8 @@ does not lodge, approve, pay, or make compliance determinations.
   applicable warnings; refusals and synthetic fixtures use their own explicit
   schemas.
 - **Refusal**: an explicit response that a requested calculation is not
-  supported. Division 7A is refused until a reviewed engine exists.
+  supported. Division 7A requests outside the delegated engine's reviewed
+  s 109N and s 109E scope remain refused.
 - **Synthetic SBR fixture**: deliberately artificial CTR or BAS-shaped data
   for tests and examples. It is never a lodgment or a real client payload.
 

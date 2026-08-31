@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.metadata
 
 from aus_accounting_mcp.adapters.benchmarks import BENCHMARK_VERSION
+from aus_accounting_mcp.adapters.div7a import DIV7A_VERSION
 from aus_accounting_mcp.adapters.payday import PAYDAY_VERSION
 
 
@@ -14,4 +15,5 @@ def test_quoted_engine_versions_match_the_installed_engines() -> None:
     # __version__ = "0.1.2", so the citation trail understated the engine while
     # that pin stood. This fails if a pinned engine ever does that again.
     assert BENCHMARK_VERSION == importlib.metadata.version("ato-benchmark-compare")
+    assert DIV7A_VERSION == importlib.metadata.version("div7a-loan-review")
     assert PAYDAY_VERSION == importlib.metadata.version("payday-super-checker")

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from atobenchmark.dataset import load
+from div7aloan import __version__ as DIV7A_VERSION
 from paydaysuper import LAW_CONTENT_DATE
 
 from aus_accounting_mcp.server import mcp
@@ -29,13 +30,13 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         "distribution": "aus-accounting-mcp",
         "version": server_metadata["version"],
         "repository": CANONICAL_REPOSITORY,
-        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.1.5/",
+        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.1.6/",
         "registry_identity": "io.github.ryanduguid/aus-accounting",
         "registry": (
             "https://registry.modelcontextprotocol.io/v0.1/servers/"
-            "io.github.ryanduguid%2Faus-accounting/versions/0.1.5"
+            "io.github.ryanduguid%2Faus-accounting/versions/0.1.6"
         ),
-        "release": f"{CANONICAL_REPOSITORY}/releases/tag/v0.1.5",
+        "release": f"{CANONICAL_REPOSITORY}/releases/tag/v0.1.6",
     }
     assert record["engines"] == [
         {
@@ -43,6 +44,12 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
             "version": "0.1.4",
             "repository": "https://github.com/ryanduguid/ato-benchmark-compare",
             "release": "https://github.com/ryanduguid/ato-benchmark-compare/releases/tag/v0.1.4",
+        },
+        {
+            "distribution": "div7a-loan-review",
+            "version": "0.1.0",
+            "repository": "https://github.com/ryanduguid/div7a-loan-review",
+            "release": "https://github.com/ryanduguid/div7a-loan-review/releases/tag/v0.1.0",
         },
         {
             "distribution": "payday-super-checker",
@@ -70,11 +77,14 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
             "as_at": "2026-08-21",
         },
     )
+    div7a = _call("get_div7a_benchmark_rate", {"year_of_income": "2025-26"})
     assert benchmark["engine"] == "ato-benchmark-compare"
     assert benchmark["engine_version"] == record["engines"][0]["version"]
     assert benchmark["source"] == dict(load().source)
     assert payday["engine"] == "payday-super-checker"
-    assert payday["engine_version"] == record["engines"][1]["version"]
+    assert payday["engine_version"] == record["engines"][2]["version"]
     assert payday["law_content_date"] == LAW_CONTENT_DATE
+    assert div7a["engine"] == "div7a-loan-review"
+    assert div7a["engine_version"] == DIV7A_VERSION == record["engines"][1]["version"]
     assert "law_content_date" not in json.dumps(record)
     assert '"source"' not in json.dumps(record)

@@ -19,9 +19,13 @@ relying on an output.
 
 This server does not lodge tax returns, BAS, FBT returns, TPAR, STP reports, or
 any other official form. It does not post journals, execute payments, or send
-correspondence. Division 7A repayment calculations are refused until a reviewed
-engine is wired. SBR payloads from this server are synthetic fixtures marked
-`synthetic: true`; they are not lodgments.
+correspondence. Division 7A outputs are experimental reviews of s 109N loan
+terms and rates and s 109E minimum yearly repayments for operator-supplied
+amalgamated loans; they are not ATO assessments or Division 7A determinations.
+Unsupported matters, including s 109R repayment classification, unpaid present
+entitlements, distributable surplus, interposed entities, debt forgiveness and
+Commissioner discretion, remain refused. SBR payloads from this server are
+synthetic fixtures marked `synthetic: true`; they are not lodgments.
 
 Payday Super reviews can mark `UNKNOWN` or refuse where the facts do not
 establish the statutory test. A remittance date alone cannot produce `ON_TIME`.

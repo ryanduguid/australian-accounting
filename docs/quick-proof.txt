@@ -36,18 +36,61 @@ $ uv run --locked aus-accounting-mcp-demo
     },
     {
       "arguments": {
-        "borrower_name": "Example Borrower",
-        "lender_entity_name": "Example Company Pty Ltd",
-        "loan_principal": "50000.00"
+        "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
+        "interest_rate_for_years_after_year_loan_made": "0.0837",
+        "loan_id": "synthetic-loan-1",
+        "maximum_term_years": "7",
+        "payments_applied_during_the_year": "108770.00",
+        "remaining_term_years": "1",
+        "secured_by_registered_mortgage_over_real_property": false,
+        "terms_in_place_before_lodgment_day": true,
+        "written_agreement": true,
+        "year_loan_made": "2025-26",
+        "year_of_income": "2026-27"
       },
       "result": {
-        "available": false,
-        "code": "ERR_POLICY_DIV7A_REFUSED",
-        "ok": false,
-        "reason": "Division 7A MYR, benchmark interest and franking-offset journals are not backed by a reviewed computational engine in this server. The previous MCP-local simulator has been removed so agents cannot treat it as statutory output. Wired engines: payday-super-checker and ato-benchmark-compare.",
-        "reviewed_engine": false
+        "disclaimer": "Experimental review aid. Not a Division 7A determination, an ATO assessment or professional advice. The operator supplies the statutory facts. Verify the result against the compiled Act and obtain human review before acting.",
+        "engine": "div7a-loan-review",
+        "engine_version": "0.1.0",
+        "gate": {
+          "benchmark_rate": "0.0837",
+          "benchmark_year_used": "2025-26",
+          "caveats": [
+            "COMPLYING here means the four limbs of s 109N(1) are established on the facts supplied. It is not a finding that no dividend arises: Subdivision D holds other exclusions, s 109T to s 109X reach interposed entities, and s 109XA reaches unpaid present entitlements. None of those is modelled."
+          ],
+          "loan_id": "synthetic-loan-1",
+          "maximum_term_years_allowed": "7",
+          "reasons": [],
+          "verdict": "COMPLYING"
+        },
+        "law_compilation": "C1936A00027, compilation in force 1 July 2026",
+        "law_content_date": "2026-08-31",
+        "minimum_yearly_repayment": {
+          "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
+          "benchmark_rate": "0.0877",
+          "caveats": [
+            "s 109R: this engine did not decide whether the payments applied are genuine repayments. A payment made where the borrower intended to draw a similar or larger loan is left out of the reckoning by s 109R(2), and that turns on what a reasonable person would conclude. The figure used is the operator's assertion.",
+            "Any shortfall shown is an experimental review aid, not an ATO assessment and not a s 109E(1) determination. s 109E(2) makes the dividend the shortfall subject to s 109Y, which caps Division 7A dividends at the company's distributable surplus, and s 109E(1)(d) removes the dividend where s 109Q applies. Neither is modelled here, and neither is s 109RB."
+          ],
+          "experimental_deemed_dividend_exposure": null,
+          "gate_verdict": "COMPLYING",
+          "loan_id": "synthetic-loan-1",
+          "myr_required": "108770.00",
+          "payments_applied": "108770.00",
+          "reasons": [],
+          "remaining_term_years_used": "1",
+          "rounding": "ROUND_HALF_UP",
+          "shortfall": "0.00",
+          "verdict": "MYR_MET",
+          "year_of_income": "2026-27"
+        },
+        "ok": true,
+        "response_detail": "summary",
+        "source": {
+          "verify_at": "https://duguid.com.au/rates/div7a-benchmark-rate/"
+        }
       },
-      "tool": "refuse_div7a"
+      "tool": "review_div7a_loan"
     }
   ]
 }

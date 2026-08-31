@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "aus-accounting-mcp"
 version = "0.1.6"
-description = "MCP facade over payday-super-checker and ato-benchmark-compare. uvx from PyPI; citations and refusals, not advice."
+description = "MCP facade for ATO benchmarks, Payday Super and limited Division 7A loan review. uvx from PyPI; not advice."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -18,6 +18,7 @@ keywords = [
     "australian-tax",
     "ato-benchmarks",
     "payday-super",
+    "division-7a",
     "accounting-ai",
 ]
 dependencies = [
@@ -27,6 +28,7 @@ dependencies = [
     # here makes the package unpublishable.
     "payday-super-checker==0.1.2",
     "ato-benchmark-compare==0.1.4",
+    "div7a-loan-review==0.1.0",
 ]
 
 [project.optional-dependencies]

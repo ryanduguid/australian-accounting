@@ -67,7 +67,8 @@ def test_static_proof_selects_both_checked_outcomes() -> None:
     assert "  not_a_lodgment: true" in lines
     assert '  form_type: "BAS_AU_ACTIVITY_STATEMENT"' in lines
     assert '  summary.total_payable_to_ato: "42500.00"' in lines
-    assert "refuse_div7a" in lines
-    assert '  code: "ERR_POLICY_DIV7A_REFUSED"' in lines
-    assert "  available: false" in lines
-    assert "  reviewed_engine: false" in lines
+    assert "review_div7a_loan" in lines
+    assert '  gate.verdict: "COMPLYING"' in lines
+    assert '  minimum_yearly_repayment.verdict: "MYR_MET"' in lines
+    assert '  minimum_yearly_repayment.myr_required: "108770.00"' in lines
+    assert '  minimum_yearly_repayment.shortfall: "0.00"' in lines
