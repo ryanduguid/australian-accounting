@@ -15,7 +15,7 @@ Local MCP server for Australian accounting review: ATO benchmarks, Payday Super 
 Website:
 
 ```text
-https://ryanduguid.github.io/tools/australian-tax-ai-agents/
+https://duguid.com.au/tools/australian-tax-ai-agents/
 ```
 
 Topics:
@@ -63,7 +63,7 @@ admin), so the `github-about` workflow warns and continues rather than failing.
 - Do not claim a hosted corpus or a Smithery listing until it exists. The
   `aus-accounting-mcp` project is published on PyPI; its current public release
   is the source of truth for the standard install command.
-- Point agents at the comparison page: https://ryanduguid.github.io/tools/australian-tax-ai-agents/
+- Point agents at the comparison page: https://duguid.com.au/tools/australian-tax-ai-agents/
 - The Glama listing is https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server,
   claimed as maintainer `ryanduguid`. The generated badge is
   https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server/badge.

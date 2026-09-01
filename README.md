@@ -30,7 +30,7 @@ Payday Super and Division 7A are experimental reviews, not compliance or tax det
 > [!WARNING]
 > **Not tax advice.** This server returns structured results, refusals, and citations. It does not lodge, and it does not replace a registered agent. See [DISCLAIMER.md](DISCLAIMER.md).
 
-This is a **computational** MCP, not a hosted ATO document store. It applies defined tests to figures the operator supplies: Payday Super timing, ATO small-business benchmark ratios, and a limited Division 7A loan review. For looking up rulings, use a document-retrieval MCP. Comparison: [Australian tax tools for AI agents](https://ryanduguid.github.io/tools/australian-tax-ai-agents/).
+This is a **computational** MCP, not a hosted ATO document store. It applies defined tests to figures the operator supplies: Payday Super timing, ATO small-business benchmark ratios, and a limited Division 7A loan review. For looking up rulings, use a document-retrieval MCP. Comparison: [Australian tax tools for AI agents](https://duguid.com.au/tools/australian-tax-ai-agents/).
 
 This server does **not** reimplement tax law. Payday Super and ATO small-business benchmarks are delegated to:
 

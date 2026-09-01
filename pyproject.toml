@@ -47,7 +47,7 @@ aus-accounting-mcp = "aus_accounting_mcp.cli:main"
 aus-accounting-mcp-demo = "aus_accounting_mcp.demo:main"
 
 [project.urls]
-Homepage = "https://ryanduguid.github.io/tools/australian-tax-ai-agents/"
+Homepage = "https://duguid.com.au/tools/australian-tax-ai-agents/"
 Repository = "https://github.com/ryanduguid/aus-accounting-mcp.git"
 
 [tool.hatch.build.targets.wheel]
