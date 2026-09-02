@@ -4,7 +4,7 @@ Educational tool. Not legal, tax or financial advice. Verify outcomes
 against the ATO's own materials before acting.
 """
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 LAW_CONTENT_DATE = "2026-08-15"
 

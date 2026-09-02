@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "payday-super-checker"
-version = "0.1.2"
+version = "0.1.3"
 description = "Experimental review aid for Australian payday-super deadlines and SG charge estimates"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -20,8 +20,8 @@ classifiers = [
 ]
 [project.urls]
 Homepage = "https://duguid.com.au/tools/payday-super/"
-Repository = "https://github.com/ryanduguid/payday-super-checker.git"
-Issues = "https://github.com/ryanduguid/payday-super-checker/issues"
+Repository = "https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker"
+Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 
 [project.optional-dependencies]
 dev = [

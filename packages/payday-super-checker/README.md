@@ -16,7 +16,7 @@
 
 ![payday-super-checker](assets/banner.svg)
 
-[![tests](https://github.com/ryanduguid/payday-super-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/payday-super-checker/actions/workflows/ci.yml) [![PyPI](https://img.shields.io/pypi/v/payday-super-checker.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/payday-super-checker/) [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE) [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
+[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-payday-super-checker.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-payday-super-checker.yml) [![PyPI](https://img.shields.io/pypi/v/payday-super-checker.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/payday-super-checker/) [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE) [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
 
 **Experimental review aid. Not a compliance determination.** Check Australian
 super contributions against the payday-super deadlines and produce an
@@ -29,13 +29,13 @@ earnings and administrative uplift; the ATO makes the assessment. This tool
 reviews a CSV from payroll, clearing-house and fund records. It refuses or marks
 `UNKNOWN` where those records do not establish the statutory facts.
 
-The repository name is the public project identity; the `payday-super-checker` distribution, `payday-super-check` command and `paydaysuper` import package remain compatibility identifiers.
+The `australian-accounting` repository contains the maintained source. The `payday-super-checker` distribution, `payday-super-check` command and `paydaysuper` import package remain compatibility identifiers.
 
 Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written independently, in his own time and on his own equipment.
 
 No-install explainer: [When is payday super actually due](https://duguid.com.au/tools/payday-super/). From an AI coding agent, run the same engine through [aus-accounting-mcp](https://duguid.com.au/tools/australian-tax-ai-agents/).
 
-Citation: [`CITATION.cff`](CITATION.cff); release: [`v0.1.2`](https://github.com/ryanduguid/payday-super-checker/releases/tag/v0.1.2).
+Citation: [`CITATION.cff`](CITATION.cff); release: [`v0.1.3`](https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.1.3).
 
 ## Quick proof
 
@@ -52,11 +52,11 @@ python tools/render_quick_proof.py --check
 Python 3.10 or later. No runtime dependencies.
 
 ```bash
-git clone https://github.com/ryanduguid/payday-super-checker.git
+git clone https://github.com/ryanduguid/australian-accounting.git
 ```
 
 ```bash
-cd payday-super-checker && pip install .
+cd australian-accounting/packages/payday-super-checker && pip install .
 ```
 
 Cloning first means you have the sample file the next command uses. To skip

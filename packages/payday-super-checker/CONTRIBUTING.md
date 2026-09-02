@@ -35,13 +35,11 @@ When you change a rule, search for everything else that states or enforces it. A
 
 For a potential security vulnerability, follow [SECURITY.md](SECURITY.md) rather than opening an issue.
 
-## Experimental prereleases
+## Releases
 
-Do not create or move a release tag from a pull-request branch. The owned-repo
-procedure in [docs/releases/PROCESS.md](docs/releases/PROCESS.md) requires the
-exact tag, current `main` commit, package versions and reviewed release notes to
-agree. It also requires an administrator to enable and re-check GitHub release
-immutability before tagging. The manual workflow publishes a non-latest GitHub
-prerelease with reproducible artefacts, checksums, an SPDX runtime SBOM and
-GitHub attestations; it does not publish to PyPI. A release remains an
-experimental review aid, not a compliance determination.
+Follow [RELEASING.md](RELEASING.md) from the monorepo root. Tag the exact
+current `main` commit with the namespaced component tag after the release pull
+request passes its checks and an administrator verifies release immutability.
+The root workflow publishes the checked distribution to GitHub and PyPI with
+checksums and attestations. The product remains an experimental review aid, not
+a compliance determination.

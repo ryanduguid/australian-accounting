@@ -76,10 +76,9 @@ records the wider source trail and residual limits.
 
 ## Product and fixture version
 
-`v0.1.2` is the latest published product prerelease. That release tag does not
-contain this new evaluation directory. After this pull request is merged, the
-evaluation will be protected by the permanent link to its merge commit. The
-fixture version is `1`, and the results use an as-at date of 20 August 2026.
+`v0.1.3` is the first release from the `australian-accounting` monorepo and
+contains this evaluation directory. Fixture version `1` uses an as-at date of
+20 August 2026.
 
 ## Human decision
 

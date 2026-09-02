@@ -16,19 +16,19 @@ release = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = release
 SPEC.loader.exec_module(release)
 
-TAG = "v0.1.2"
+TAG = "v0.1.3"
 SHA = "1" * 40
 
 
-def test_release_metadata_is_exactly_v011_and_explicitly_experimental():
+def test_release_metadata_is_exactly_v013_and_explicitly_experimental():
     metadata = release.load_metadata(ROOT)
 
-    assert metadata.version == "0.1.2"
+    assert metadata.version == "0.1.3"
     assert metadata.tag == TAG
     assert metadata.prerelease is True
     notes = metadata.notes_path.read_text(encoding="utf-8")
     release.validate_release_notes(notes, metadata)
-    assert notes.startswith("# v0.1.2 - experimental prerelease\n")
+    assert notes.startswith("# v0.1.3 - experimental prerelease\n")
     assert "not a compliance determination" in notes.lower()
     assert "same locked release job" in notes
     assert "not a cross-platform" in notes
@@ -38,7 +38,7 @@ def test_release_metadata_is_exactly_v011_and_explicitly_experimental():
 @pytest.mark.parametrize(
     ("changed", "message"),
     [
-        ({"tag": "v0.1.3"}, "tag"),
+        ({"tag": "v0.1.4"}, "tag"),
         ({"tag_sha": "2" * 40}, "default branch"),
         ({"workflow_sha": "3" * 40}, "workflow"),
         ({"immutable_confirmed": False}, "immutable"),

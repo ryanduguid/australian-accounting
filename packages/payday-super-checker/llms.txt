@@ -4,7 +4,7 @@
 ## Package Overview
 - **Explainer**: https://duguid.com.au/tools/payday-super/
 - **MCP facade**: https://duguid.com.au/tools/australian-tax-ai-agents/
-- **Repository**: https://github.com/ryanduguid/payday-super-checker
+- **Repository**: https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker
 - **Evidence Evaluation**: evaluation/payday_super_evidence/README.md
 - **Distribution**: `payday-super-checker`
 - **Import Package**: `paydaysuper`

@@ -1,4 +1,7 @@
-# Experimental prerelease process
+# Historical standalone prerelease process
+
+This procedure covers v0.1.2 and earlier in the standalone repository. Use
+[RELEASING.md](../../RELEASING.md) for current monorepo releases.
 
 The repository's [GitHub Releases](https://github.com/ryanduguid/payday-super-checker/releases) page is the canonical release history. A separate changelog is intentionally not maintained.
 

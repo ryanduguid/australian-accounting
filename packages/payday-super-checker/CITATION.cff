@@ -4,10 +4,10 @@ authors:
   - family-names: Duguid
     given-names: Ryan
 title: "payday-super-checker: experimental Payday Super review CLI. Not a compliance determination."
-version: 0.1.2
-date-released: 2026-08-24
+version: 0.1.3
+date-released: 2026-09-02
 url: "https://duguid.com.au/tools/payday-super/"
-repository-code: "https://github.com/ryanduguid/payday-super-checker"
+repository-code: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker"
 license: MIT
 keywords:
   - superannuation
