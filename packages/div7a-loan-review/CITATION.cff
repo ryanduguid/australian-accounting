@@ -4,10 +4,10 @@ authors:
   - family-names: Duguid
     given-names: Ryan
 title: "div7a-loan-review: experimental ITAA 1936 Division 7A loan-terms and minimum-yearly-repayment review CLI. Not a Division 7A determination."
-version: 0.1.0
-date-released: 2026-08-31
+version: 0.1.1
+date-released: 2026-09-02
 url: "https://duguid.com.au/rates/div7a-benchmark-rate/"
-repository-code: "https://github.com/ryanduguid/div7a-loan-review"
+repository-code: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/div7a-loan-review"
 license: MIT
 keywords:
   - division-7a

@@ -5,11 +5,11 @@ Not tax, legal or financial advice, and not a Division 7A determination.
 Verify every output against the compiled Act and the ATO's own materials
 before acting on it.
 
-The four functions below are the surface the aus-accounting-mcp adapter will
-import. They are stable; the modules behind them are not.
+The four functions below are the stable surface imported by the
+aus-accounting-mcp adapter. The modules behind them are not stable.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 #: The date the compiled Act and the benchmark rate table were last read.
 LAW_CONTENT_DATE = "2026-08-31"

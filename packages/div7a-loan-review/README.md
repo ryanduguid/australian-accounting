@@ -16,6 +16,8 @@
 +----------------------------------+-----------------------------------+
 ```
 
+[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-div7a-loan-review.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-div7a-loan-review.yml)
+[![PyPI](https://img.shields.io/pypi/v/div7a-loan-review.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/div7a-loan-review/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
 
@@ -25,6 +27,10 @@ v1 reviews the s 109N terms of a private-company loan and the s 109E minimum
 yearly repayment for an **operator-supplied amalgamated loan**. It does not
 form amalgamated loans, does not classify payments, does not do unpaid present
 entitlements, and does not apply s 109RB.
+
+The `australian-accounting` repository contains the maintained source. The
+`div7a-loan-review` distribution, command and `div7aloan` import package remain
+compatibility identifiers.
 
 **A rising benchmark rate raises the minimum yearly repayment on existing
 complying loans, not just on new ones.** s 109E(6) uses the *current* year's
@@ -36,6 +42,9 @@ for four years can fall short in the fifth on unchanged terms.
 
 No install, just the rates and the reasoning:
 <https://duguid.com.au/rates/div7a-benchmark-rate/>
+
+Citation: [`CITATION.cff`](CITATION.cff); release:
+[`v0.1.1`](https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.1.1).
 
 ---
 
@@ -97,10 +106,17 @@ $X", and neither should anything built on it.
 ## Install
 
 ```bash
-pip install .
+pip install div7a-loan-review
 ```
 
-Python 3.10 or later. No runtime dependencies.
+Python 3.10 or later. No runtime dependencies. To run the examples from a
+source checkout:
+
+```bash
+git clone https://github.com/ryanduguid/australian-accounting.git
+cd australian-accounting/packages/div7a-loan-review
+pip install .
+```
 
 ## Use
 
@@ -356,11 +372,9 @@ engine deliberately does not establish.
 - Benchmark rate explainer: <https://duguid.com.au/rates/div7a-benchmark-rate/>
 - Australian tax AI agents: <https://duguid.com.au/tools/australian-tax-ai-agents/>
 
-Later, from an AI coding agent, the same engine should run through
-`aus-accounting-mcp`, which currently refuses Division 7A until a reviewed
-repayment engine exists. **That adapter is not implemented here.** Pinning
-this engine in place of `refuse_div7a` is a separate reviewed change in that
-repository.
+From an AI coding agent, the same engine runs through `aus-accounting-mcp`.
+The adapter and engine now share this monorepo but remain separately versioned
+Python distributions.
 
 ## Author and licence
 

@@ -183,8 +183,9 @@ def test_the_readme_avoids_the_names_this_engine_must_not_go_by(banned):
     assert banned not in FLAT_README.lower()
 
 
-def test_the_readme_does_not_implement_the_mcp_adapter_here():
-    assert "That adapter is not implemented here." in FLAT_README
+def test_the_readme_records_the_mcp_adapter_boundary():
+    assert "same engine runs through `aus-accounting-mcp`" in FLAT_README
+    assert "separately versioned Python distributions" in FLAT_README
 
 
 # --- house files -------------------------------------------------------
@@ -228,6 +229,20 @@ def test_the_citation_and_pyproject_agree_on_the_version():
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
     assert f"version: {__version__}" in citation
     assert f'version = "{__version__}"' in pyproject
+
+
+def test_v011_release_metadata_points_to_the_canonical_monorepo():
+    from div7aloan import __version__
+
+    citation = Path("CITATION.cff").read_text(encoding="utf-8")
+    pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
+    notes = Path("RELEASE_NOTES.md").read_text(encoding="utf-8")
+
+    assert __version__ == "0.1.1"
+    assert notes.startswith("# v0.1.1\n")
+    assert "https://github.com/ryanduguid/australian-accounting" in citation
+    assert "https://github.com/ryanduguid/australian-accounting" in pyproject
+    assert "div7a-loan-review/v0.1.1" in README
 
 
 def test_the_package_records_the_compilation_it_was_written_against():
