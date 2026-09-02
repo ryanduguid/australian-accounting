@@ -1,0 +1,25 @@
+# payday-super-checker
+> High-density context for LLM agents. Experimental Payday Super review aid: not a compliance determination.
+
+## Package Overview
+- **Explainer**: https://duguid.com.au/tools/payday-super/
+- **MCP facade**: https://duguid.com.au/tools/australian-tax-ai-agents/
+- **Repository**: https://github.com/ryanduguid/payday-super-checker
+- **Evidence Evaluation**: evaluation/payday_super_evidence/README.md
+- **Distribution**: `payday-super-checker`
+- **Import Package**: `paydaysuper`
+- **CLI Command**: `payday-super-check`
+- **Domain**: Experimental evaluation of Australian superannuation contribution timelines against Payday Super 2026 deadlines and estimation of potential Superannuation Guarantee (SG) charge exposure.
+- **Primary Legislation**: *Superannuation Guarantee (Administration) Act 1992 (Cth)* (*SGAA 1992*), Treasury Laws Amendment (Payday Superannuation) reforms.
+
+## Core Modules & APIs
+- `paydaysuper.deadlines`: Calculates the usual seven-business-day window and supported statutory extensions.
+- `paydaysuper.calendar`: Applies a curated national non-business-day calendar and reviewed holiday overrides.
+- `paydaysuper.rates`: Loads dated General Interest Charge (GIC) tables and financial-year SG parameters.
+- `paydaysuper.sgc`: Deterministic Superannuation Guarantee Charge exposure calculator (nominal interest + administration component).
+- `paydaysuper.csv_io`: Strict CSV schema parsing with atomic IO validation.
+
+## Architectural Boundaries
+1. **National Business-Day Rule**: One calendar applies to every employer. It excludes weekends and the union of public holidays applying throughout any one State, the ACT, or the NT; regional, part-day, and locally substitutable holidays do not stop the clock.
+2. **No Location Selector**: The rule does not choose a calendar from an employer's, employee's, or payroll location. A whole-of-jurisdiction holiday in any covered jurisdiction is a non-business day nationally.
+3. **Review Aid Policy**: The software is an experimental review tool, not tax advice, a binding ATO assessment, or a legal determination.

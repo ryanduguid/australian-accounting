@@ -1,0 +1,83 @@
+[build-system]
+requires = ["hatchling==1.32.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "the-wip-tally"
+dynamic = ["version"]
+description = "Deterministic AASB 15 construction WIP schedule. Review aid, not a determination."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Ryan Duguid" }]
+keywords = [
+  "aasb-15",
+  "australia",
+  "construction",
+  "accounting",
+  "wip",
+  "contract-asset",
+  "mining",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Financial and Insurance Industry",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Office/Business :: Financial :: Accounting",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/ryanduguid/TheWIPTally"
+Issues = "https://github.com/ryanduguid/TheWIPTally/issues"
+
+[project.scripts]
+wip-tally = "wiptally.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.11", "mypy>=1.14", "pytest>=8", "build>=1.2"]
+
+[tool.hatch.version]
+path = "wiptally/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["wiptally"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/wiptally",
+  "/tests",
+  "/examples",
+  "/docs",
+  "/README.md",
+  "/LICENSE",
+  "/CONTRIBUTING.md",
+  "/SECURITY.md",
+  "/DISCLAIMER.md",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+src = ["wiptally", "tests"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["wiptally"]
+ignore_missing_imports = true
+pretty = true

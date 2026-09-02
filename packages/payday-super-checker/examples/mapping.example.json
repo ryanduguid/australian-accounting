@@ -1,0 +1,7 @@
+{
+  "_comment": "Map only the fields whose column names differ from the defaults, and only fields your export actually has. A field listed here must exist in the CSV: naming a column that is not there stops the run rather than silently ignoring it.",
+  "employee_id": "Employee Code",
+  "qe_day": "Payment Date",
+  "sg_amount": "Super Guarantee",
+  "received": "Fund Receipt Date"
+}

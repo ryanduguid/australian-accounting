@@ -1,0 +1,25 @@
+# TheWIPTally
+> High-density context for LLM agents. AASB 15 construction WIP schedule: review aid, not a determination.
+
+## Package Overview
+- **Repository**: https://github.com/ryanduguid/TheWIPTally
+- **Distribution**: `the-wip-tally`
+- **Import Package**: `wiptally`
+- **CLI Command**: `wip-tally`
+- **Domain**: Deterministic work-in-progress schedule for Australian construction, civil, mining-services and power-station packages.
+- **Primary standards**: AASB 15 (arithmetic for progress, constrained variable consideration, contract asset/liability). AASB 137 is flagged, not measured.
+
+## Core Modules & APIs
+- `wiptally.schedule.measure`: one contract to one position.
+- `wiptally.csv_io.read_contracts`: strict CSV schema, Decimal amounts.
+- `wiptally.cli`: `schedule` and `review-pack` commands.
+- `wiptally.report`: atomic CSV, console summary, SHA-256 review pack.
+
+## Architectural Boundaries
+1. **One row is one unit of account.** Combine contracts under AASB 15 para 17 before the CSV. Never offset one contract against another.
+2. **B19 exclusions change progress, not whether the cost exists.** Wasted cost stays in EAC/margin. Uninstalled materials earn zero margin.
+3. **Judgement stays human.** Over-time vs point in time, enforceability of claims, retention classification and onerous-contract provisions are flags, not postings.
+4. **Review aid policy.** Not accounting, tax or legal advice. Tax does not follow this schedule.
+
+## Companion
+- [hardhat-ledger](https://github.com/ryanduguid/hardhat-ledger) owns the WIP *workflow*. This engine owns the arithmetic that workflow consumes.

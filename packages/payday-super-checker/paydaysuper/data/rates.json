@@ -1,0 +1,14 @@
+{
+  "_comment": "Financial-year super parameters. charge_percentage is SGAA s 17A(2). max_contributions_base is annual per employer from 1 Jul 2026 (s 10A(5): concessional cap x 100 / charge percentage, rounded down to the nearest $10), where it was quarterly under the old law.",
+  "financial_years": {
+    "2026-27": {
+      "charge_percentage": "12",
+      "concessional_cap": "32500",
+      "max_contributions_base": "270830",
+      "source": "ATO, Maximum contribution base (updated 10 Aug 2026), read directly: $270,830 annual per employer for 2026-27. The page states the statutory formula of the $32,500 concessional cap multiplied by 100/12 and rounded down to the nearest $10. Cross-checked against the ATO Super guarantee rates and thresholds table.",
+      "verify_at": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/what-payments-are-qualifying-earnings/maximum-contributions-base",
+      "cross_check": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+      "seen": "2026-08-15"
+    }
+  }
+}

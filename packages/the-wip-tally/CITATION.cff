@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software in research or industry applications, please cite it as below."
+authors:
+  - family-names: Duguid
+    given-names: Ryan
+title: "TheWIPTally: deterministic AASB 15 construction WIP schedule. Review aid, not a determination."
+version: 0.1.0
+date-released: 2026-08-25
+url: "https://github.com/ryanduguid/TheWIPTally"
+repository-code: "https://github.com/ryanduguid/TheWIPTally"
+license: MIT
+keywords:
+  - aasb-15
+  - construction-accounting
+  - wip
+  - contract-asset
+  - australia

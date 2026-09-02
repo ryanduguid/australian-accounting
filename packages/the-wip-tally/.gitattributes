@@ -1,0 +1,2 @@
+# Keep the language bar showing the Python tool, not the sample ledger.
+examples/*.csv linguist-generated

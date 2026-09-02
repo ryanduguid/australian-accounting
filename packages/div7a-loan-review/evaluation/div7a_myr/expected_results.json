@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "product_version": "0.1.0",
+  "fixture_version": "1",
+  "law_content_date": "2026-08-31",
+  "law_compilation": "C1936A00027, compilation in force 1 July 2026",
+  "rounding": "ROUND_HALF_UP to cents; the Act prescribes no rounding for the s 109E(6) amount",
+  "sources": [
+    {
+      "publisher": "Federal Register of Legislation",
+      "title": "Income Tax Assessment Act 1936, Part III Division 7A",
+      "url": "https://www.legislation.gov.au/C1936A00027/latest/text"
+    },
+    {
+      "publisher": "Reserve Bank of Australia",
+      "title": "Statistical table F5 Indicator Lending Rates, series FILRHLBVS",
+      "url": "https://www.rba.gov.au/statistics/tables/"
+    },
+    {
+      "publisher": "duguid.com.au",
+      "title": "Division 7A benchmark interest rates",
+      "url": "https://duguid.com.au/rates/div7a-benchmark-rate/"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "myr_met_exact",
+      "fixture": "myr_met_exact.csv",
+      "year_of_income": "2026-27",
+      "hand_worked": true,
+      "inputs": {
+        "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
+        "benchmark_rate": "0.0877",
+        "remaining_term_years": "5"
+      },
+      "expected_gate_verdict": "COMPLYING",
+      "expected_myr_verdict": "MYR_MET",
+      "expected_myr_required": "25556.00",
+      "expected_payments_applied": "25556.00",
+      "expected_shortfall": "0.00",
+      "expected_exposure": null,
+      "expected_exit": 0
+    },
+    {
+      "id": "myr_short_by_1000",
+      "fixture": "myr_short_by_1000.csv",
+      "year_of_income": "2023-24",
+      "hand_worked": true,
+      "inputs": {
+        "amalgamated_loan_unpaid_at_end_of_previous_year": "250000.00",
+        "benchmark_rate": "0.0827",
+        "remaining_term_years": "7"
+      },
+      "expected_gate_verdict": "COMPLYING",
+      "expected_myr_verdict": "MYR_SHORT",
+      "expected_myr_required": "48462.41",
+      "expected_payments_applied": "47462.41",
+      "expected_shortfall": "1000.00",
+      "expected_exposure": "1000.00",
+      "expected_exit": 2
+    },
+    {
+      "id": "rising_benchmark",
+      "fixture": "rising_benchmark.csv",
+      "year_of_income": "2026-27",
+      "hand_worked": true,
+      "inputs": {
+        "amalgamated_loan_unpaid_at_end_of_previous_year": "48500.00",
+        "benchmark_rate": "0.0877",
+        "remaining_term_years": "3"
+      },
+      "expected_gate_verdict": "COMPLYING",
+      "expected_myr_verdict": "MYR_SHORT",
+      "expected_myr_required": "19081.67",
+      "expected_payments_applied": "17649.66",
+      "expected_shortfall": "1432.01",
+      "expected_exposure": "1432.01",
+      "expected_exit": 2,
+      "note": "The loan is on complying terms written at the 2021-22 benchmark of 0.0452. Repaying the amount that formula produced at that rate, 17649.66, falls 1432.01 short of the 2026-27 requirement because the benchmark rate has risen to 0.0877."
+    },
+    {
+      "id": "refused_year_of_loan",
+      "fixture": "refused_year_of_loan.csv",
+      "year_of_income": "2026-27",
+      "hand_worked": false,
+      "expected_gate_verdict": "COMPLYING",
+      "expected_myr_verdict": "REFUSED",
+      "expected_myr_required": null,
+      "expected_shortfall": null,
+      "expected_exposure": null,
+      "expected_exit": 2,
+      "note": "s 109E(1)(a) applies only to an amalgamated loan made in an earlier year of income, and s 109P puts an amalgamated loan outside s 109D in the year it is made."
+    },
+    {
+      "id": "refused_not_complying",
+      "fixture": "refused_not_complying.csv",
+      "year_of_income": "2026-27",
+      "hand_worked": false,
+      "expected_gate_verdict": "NOT_COMPLYING",
+      "expected_myr_verdict": "REFUSED",
+      "expected_myr_required": null,
+      "expected_shortfall": null,
+      "expected_exposure": null,
+      "expected_exit": 2,
+      "note": "The interest rate 0.0400 is below the 2022-23 benchmark 0.0477, so s 109N(1)(b) fails and no minimum yearly repayment is emitted."
+    },
+    {
+      "id": "unknown_missing_payments",
+      "fixture": "unknown_missing_payments.csv",
+      "year_of_income": "2026-27",
+      "hand_worked": false,
+      "expected_gate_verdict": "COMPLYING",
+      "expected_myr_verdict": "UNKNOWN",
+      "expected_myr_required": null,
+      "expected_shortfall": null,
+      "expected_exposure": null,
+      "expected_exit": 2,
+      "note": "s 109R decides which payments count. The operator did not assert an amount applied, and bank credits are not a substitute."
+    }
+  ],
+  "human_decision": "Whether a payment is a genuine repayment under s 109R, whether the terms were in place before the lodgment day under s 109D(6), whether the company has a distributable surplus under s 109Y, and whether s 109Q or s 109RB applies are all decisions for a human. This engine reports what the supplied facts establish and refuses the rest."
+}

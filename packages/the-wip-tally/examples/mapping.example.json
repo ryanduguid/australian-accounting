@@ -1,0 +1,7 @@
+{
+  "contract_id": "Job",
+  "original_contract_sum": "Contract sum",
+  "costs_incurred": "Cost to date",
+  "estimated_cost_to_complete": "ETC",
+  "certified_billings": "Certified to date"
+}

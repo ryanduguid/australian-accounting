@@ -1,0 +1,22 @@
+include LICENSE
+include README.md
+include SECURITY.md
+include llms.txt
+include .gitignore
+include uv.lock
+include .github/workflows/release.yml
+include .github/workflows/verify.yml
+recursive-include paydaysuper/data *.json
+recursive-include tests *.py
+# The importer fixtures are test data, not sample data: without them the
+# shipped suite fails 15 tests with FileNotFoundError, which is exactly
+# what CI's package job runs from inside the sdist.
+recursive-include tests/fixtures *.csv
+recursive-include examples *.json *.csv
+recursive-include evaluation/payday_super_evidence *.md *.json *.csv
+recursive-include tools *.py
+recursive-include docs *.md
+include assets/quick-proof.md
+include assets/quick-proof.svg
+global-exclude __pycache__/*
+global-exclude *.py[cod]

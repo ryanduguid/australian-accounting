@@ -1,0 +1,29 @@
+name: Release aus-accounting-mcp
+
+# Component release for apps/aus-accounting-mcp. The namespaced tag
+# aus-accounting-mcp/vX.Y.Z selects exactly this component: the reusable
+# release-policy workflow binds the tag, the component directory, the
+# distribution identity, the RELEASE_NOTES.md header, the lockfile and the
+# main commit before it builds, attests and publishes the GitHub release.
+# PyPI publication keeps the existing publish-pypi.yml mechanism (manual
+# dispatch with the same tag under the existing pypi environment), so this
+# caller creates the attested GitHub release only.
+
+on:
+  push:
+    tags: ["aus-accounting-mcp/v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    permissions:
+      actions: read # Inspect and download only the exact bound release candidate.
+      attestations: write # Record provenance and SBOM attestations for release assets.
+      contents: write # Create the draft release, upload assets and publish it.
+      id-token: write # Obtain the OIDC identity required to sign attestations.
+    uses: ryanduguid/release-policy/.github/workflows/release-python.yml@3ff09b654a17b9a3b55548e25e6108ee582b00c4
+    with:
+      source-directory: apps/aus-accounting-mcp
+      tag-prefix: aus-accounting-mcp

@@ -9,8 +9,8 @@ on:
   push:
     branches: [main]
     paths:
-      - docs/DISCOVERY.md
-      - scripts/publish-github-about.sh
+      - apps/aus-accounting-mcp/docs/DISCOVERY.md
+      - apps/aus-accounting-mcp/scripts/publish-github-about.sh
       - .github/workflows/github-about.yml
 
 concurrency:
@@ -37,5 +37,5 @@ jobs:
           if gh api -X PATCH "repos/${GITHUB_REPOSITORY}" -f "homepage=${homepage}"; then
             echo "Set homepage to ${homepage}"
           else
-            echo "::warning::GITHUB_TOKEN cannot set the About homepage (needs repository admin). Run scripts/publish-github-about.sh from a logged-in gh session."
+            echo "::warning::GITHUB_TOKEN cannot set the About homepage (needs repository admin). Run apps/aus-accounting-mcp/scripts/publish-github-about.sh from a logged-in gh session."
           fi

@@ -1,7 +1,7 @@
 name: Publish to PyPI
 
 # The `release: published` trigger below never actually fires: releases in this
-# repository are created by release.yml through the shared release-policy
+# repository are created by release-aus-accounting-mcp.yml through the shared release-policy
 # workflow using the workflow's own GITHUB_TOKEN, and events raised by
 # GITHUB_TOKEN do not trigger other workflows. That is a documented GitHub
 # Actions limitation, not a bug in release.yml. It is kept as a statement of
@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Exact existing release tag to publish (for example v0.1.4)
+        description: Exact existing release tag to publish (for example aus-accounting-mcp/v0.1.7)
         required: true
         type: string
 
@@ -53,7 +53,7 @@ jobs:
           # Python distribution name, and twine rejects it for having no
           # PKG-INFO. Select the sdist and wheel by their exact PEP 625 and
           # PEP 427 names rather than globbing every .tar.gz.
-          version="${TAG#v}"
+          version="${TAG#aus-accounting-mcp/v}"
           mv "assets/aus_accounting_mcp-${version}.tar.gz" dist/
           mv "assets/aus_accounting_mcp-${version}-py3-none-any.whl" dist/
           test "$(find dist -name '*.whl' | wc -l)" = "1"

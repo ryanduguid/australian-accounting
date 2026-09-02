@@ -1,0 +1,28 @@
+# Division 7A benchmark interest rates, ITAA 1936 s 109N(2).
+#
+# s 109N(2): "The benchmark interest rate for the year of income is the
+# Indicator Lending Rates-Bank variable housing loans interest rate last
+# published by the Reserve Bank of Australia before the start of the year of
+# income."
+#
+# A year of income starts on 1 July. The RBA publishes statistical table F5
+# monthly, in arrears, in the first week of the following month. The last
+# figure published BEFORE 1 July is therefore the MAY figure. The June figure
+# is published in early July, after the year of income has started, and is the
+# usual wrong rate. For 2025-26: May 2025 was 8.37 per cent and June 2025 was
+# 8.27 per cent; 8.37 is the benchmark rate.
+#
+# rate is the annual rate as a decimal fraction, not a percentage.
+#
+# reviewed_until: 2026-27
+# reviewed_on: 2026-08-28
+#
+year_of_income,rate,rba_table,rba_series,rba_month,source,verify_at,seen
+2019-20,0.0537,F5,FILRHLBVS,2019-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2019; cross-checked against the published Division 7A benchmark rate table.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28
+2020-21,0.0452,F5,FILRHLBVS,2020-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2020; cross-checked against the published Division 7A benchmark rate table.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28
+2021-22,0.0452,F5,FILRHLBVS,2021-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2021; cross-checked against the published Division 7A benchmark rate table.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28
+2022-23,0.0477,F5,FILRHLBVS,2022-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2022; cross-checked against the published Division 7A benchmark rate table.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28
+2023-24,0.0827,F5,FILRHLBVS,2023-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2023; cross-checked against the published Division 7A benchmark rate table.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28
+2024-25,0.0877,F5,FILRHLBVS,2024-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2024; cross-checked against the published Division 7A benchmark rate table.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28
+2025-26,0.0837,F5,FILRHLBVS,2025-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2025 (8.37 per cent). June 2025 was 8.27 per cent and is not the benchmark rate: it was published after the year of income began.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28
+2026-27,0.0877,F5,FILRHLBVS,2026-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2026; cross-checked against the published Division 7A benchmark rate table.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28

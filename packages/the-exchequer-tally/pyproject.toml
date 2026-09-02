@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "the-exchequer-tally"
+version = "0.1.2"
+description = "Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian companies."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "Ryan Duguid", email = "ryan@duguid.com.au" }
+]
+dependencies = []
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Accounting",
+]
+
+[project.urls]
+Homepage = "https://github.com/ryanduguid/TheExchequerTally"
+Repository = "https://github.com/ryanduguid/TheExchequerTally.git"
+Issues = "https://github.com/ryanduguid/TheExchequerTally/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.11",
+    "mypy>=1.14",
+    "build>=1.2",
+]
+
+[project.scripts]
+the-exchequer-tally = "edwinnixon.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["edwinnixon"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "--cov=edwinnixon --cov-report=term-missing"
+
+[tool.ruff]
+line-length = 100
+src = ["edwinnixon", "tests"]
+
+[tool.ruff.lint]
+# First-enablement set: syntax and undefined-name errors only (E9, F82).
+# Keep Decimal("10.00") money literals and existing import layout.
+select = ["E9", "F82"]
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["edwinnixon"]
+pretty = true

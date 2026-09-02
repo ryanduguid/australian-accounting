@@ -3,7 +3,29 @@ name: tests
 on:
   push:
     branches: [main]
+    paths:
+      - "apps/aus-accounting-mcp/**"
+      - ".github/**"
+      - "AGENTS.md"
+      - "CONTRIBUTING.md"
+      - "README.md"
+      - "SECURITY.md"
+      - "IMPORTS.md"
+      - ".editorconfig"
+      - ".gitignore"
+      - ".mailmap"
   pull_request:
+    paths:
+      - "apps/aus-accounting-mcp/**"
+      - ".github/**"
+      - "AGENTS.md"
+      - "CONTRIBUTING.md"
+      - "README.md"
+      - "SECURITY.md"
+      - "IMPORTS.md"
+      - ".editorconfig"
+      - ".gitignore"
+      - ".mailmap"
 
 concurrency:
   group: tests-${{ github.ref }}
@@ -41,6 +63,7 @@ jobs:
           version: "0.12.0"
           enable-cache: true
       - run: uv run --locked --extra dev pytest -q
+        working-directory: apps/aus-accounting-mcp
         env:
           UV_PYTHON: ${{ matrix.python }}
 
@@ -62,4 +85,6 @@ jobs:
           version: "0.12.0"
           enable-cache: true
       - run: uv run --locked --extra dev ruff check aus_accounting_mcp tests
+        working-directory: apps/aus-accounting-mcp
       - run: uv run --locked --extra dev mypy aus_accounting_mcp
+        working-directory: apps/aus-accounting-mcp

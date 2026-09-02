@@ -22,6 +22,11 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    defaults:
+      run:
+        # mcp-publisher reads server.json from its current directory, so every
+        # step runs inside the application directory that owns that file.
+        working-directory: apps/aus-accounting-mcp
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

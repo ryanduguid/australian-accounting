@@ -1,0 +1,201 @@
+name: ato-benchmark-compare
+
+# Component CI for packages/ato-benchmark-compare. The jobs, commands and
+# Python matrix are the ones the source repository's ci.yml defined, run from
+# the component directory. The mcp-integration job also runs the application
+# tests because apps/aus-accounting-mcp consumes this engine's published
+# distribution. Root policy files and .github changes run every component.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "packages/ato-benchmark-compare/**"
+      - ".github/**"
+      - "AGENTS.md"
+      - "CONTRIBUTING.md"
+      - "README.md"
+      - "SECURITY.md"
+      - "IMPORTS.md"
+      - ".editorconfig"
+      - ".gitignore"
+      - ".mailmap"
+  pull_request:
+    paths:
+      - "packages/ato-benchmark-compare/**"
+      - ".github/**"
+      - "AGENTS.md"
+      - "CONTRIBUTING.md"
+      - "README.md"
+      - "SECURITY.md"
+      - "IMPORTS.md"
+      - ".editorconfig"
+      - ".gitignore"
+      - ".mailmap"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: packages/ato-benchmark-compare
+
+jobs:
+  test:
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.10"   # the declared floor
+          - os: ubuntu-latest
+            python: "3.13"
+          - os: windows-latest
+            python: "3.12"   # where path handling and the ANSI codepage diverge
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - name: run tests
+        if: matrix.os != 'ubuntu-latest' || matrix.python != '3.13'
+        run: uv run --locked --extra dev pytest -q
+        env:
+          UV_PYTHON: ${{ matrix.python }}
+      - name: run tests with scoped branch coverage
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        run: >-
+          uv run --locked --extra dev coverage run --branch
+          --source=atobenchmark.mapping -m pytest -q
+        env:
+          UV_PYTHON: ${{ matrix.python }}
+      - name: require complete changed-line coverage in identity mapping
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        run: |
+          uv run --locked --extra dev coverage xml --include="atobenchmark/mapping.py" -o coverage.xml
+          if git cat-file -e "origin/main:packages/ato-benchmark-compare/atobenchmark/mapping.py"; then
+            uv run --locked --extra dev diff-cover coverage.xml --compare-branch=origin/main --branch-coverage --fail-under=100
+          else
+            echo "::notice::Changed-line coverage starts after the imported package has a mainline baseline."
+          fi
+        env:
+          UV_PYTHON: ${{ matrix.python }}
+
+  dependency-audit:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - name: audit the locked project environment
+        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+
+  package:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - run: uv run --locked --extra dev --python 3.12 python -m build
+      - name: install the wheel and run it
+        # The benchmark data ships as package data. A wheel that cannot find it
+        # produces a CLI that starts and then has nothing to compare against, so the
+        # check has to run a command that reads the dataset and one that runs the
+        # whole comparison path.
+        run: |
+          python -m venv /tmp/venv
+          # --no-index, or pip is free to resolve the name from PyPI and test a
+          # release nobody built in this job.
+          /tmp/venv/bin/pip install --no-index --find-links dist ato-benchmark-compare
+          /tmp/venv/bin/ato-benchmark-compare show "Bakeries and hot bread shops" \
+            | grep -q "31% to 38%"
+          printf 'account,amount\nSales,1000000\nPurchases,320000\n' > /tmp/pnl.csv
+          printf 'account,bucket\nSales,turnover\nPurchases,cost_of_sales\n' > /tmp/map.csv
+          /tmp/venv/bin/ato-benchmark-compare compare \
+            --profit-and-loss /tmp/pnl.csv --mapping /tmp/map.csv \
+            --industry "Bakeries and hot bread shops" | grep -q "32.00%"
+      - name: the shipped tests must pass from the sdist
+        run: |
+          mkdir /tmp/sdist && tar -xzf dist/*.tar.gz -C /tmp/sdist --strip-components=1
+          cd /tmp/sdist && pip install -e ".[dev]" && pytest -q
+
+  lint:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - run: uv run --locked --extra dev ruff check atobenchmark tests
+      - run: uv run --locked --extra dev mypy atobenchmark
+
+  mcp-integration:
+    # The MCP application consumes this engine's published distribution, so an
+    # engine change also runs the application's integration tests.
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/aus-accounting-mcp
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - run: uv run --locked --extra dev pytest -q
+        env:
+          UV_PYTHON: "3.12"

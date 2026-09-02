@@ -19,8 +19,11 @@ updates:
       # and sit red forever. Pin drift is tracked by release-policy's canary
       # audit instead.
       - dependency-name: "ryanduguid/release-policy/.github/workflows/*"
+
+  # Python dependency updates stay scoped to one component directory so that
+  # no component's lockfile changes because of another component.
   - package-ecosystem: uv
-    directory: /
+    directory: /apps/aus-accounting-mcp
     schedule:
       interval: weekly
     cooldown:
@@ -30,3 +33,65 @@ updates:
       python:
         patterns:
           - "*"
+  - package-ecosystem: uv
+    directory: /packages/ato-benchmark-compare
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      python:
+        patterns:
+          - "*"
+  - package-ecosystem: uv
+    directory: /packages/payday-super-checker
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      python:
+        patterns:
+          - "*"
+  - package-ecosystem: uv
+    directory: /packages/the-exchequer-tally
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      python:
+        patterns:
+          - "*"
+  - package-ecosystem: uv
+    directory: /packages/solomons-sword
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      python:
+        patterns:
+          - "*"
+  - package-ecosystem: uv
+    directory: /packages/the-wip-tally
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      python:
+        patterns:
+          - "*"
+  - package-ecosystem: pip
+    directory: /packages/div7a-loan-review
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2

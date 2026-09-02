@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "div7a-loan-review"
+version = "0.1.0"
+description = "Experimental review aid for ITAA 1936 Division 7A complying loan terms and minimum yearly repayments"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Ryan Duguid" }]
+keywords = ["australia", "division-7a", "itaa-1936", "accounting", "ato", "tax"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Financial and Insurance Industry",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Office/Business :: Financial :: Accounting",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://duguid.com.au/rates/div7a-benchmark-rate/"
+Repository = "https://github.com/ryanduguid/div7a-loan-review"
+Issues = "https://github.com/ryanduguid/div7a-loan-review/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.11", "mypy>=1.14", "build>=1.2"]
+
+[project.scripts]
+div7a-loan-review = "div7aloan.cli:main"
+
+[tool.setuptools]
+packages = ["div7aloan"]
+include-package-data = false
+
+[tool.setuptools.package-data]
+div7aloan = ["data/*.csv", "py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["div7aloan", "tests"]
+
+[tool.ruff.lint]
+# First-enablement set: syntax and undefined-name errors only (E9, F82).
+# Decimal("0.00") money literals and the existing import layout stay as they are.
+select = ["E9", "F82"]
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["div7aloan"]
+ignore_missing_imports = true
+pretty = true

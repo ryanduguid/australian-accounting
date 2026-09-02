@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software in research or industry applications, please cite it as below."
+authors:
+  - family-names: Duguid
+    given-names: Ryan
+title: "div7a-loan-review: experimental ITAA 1936 Division 7A loan-terms and minimum-yearly-repayment review CLI. Not a Division 7A determination."
+version: 0.1.0
+date-released: 2026-08-31
+url: "https://duguid.com.au/rates/div7a-benchmark-rate/"
+repository-code: "https://github.com/ryanduguid/div7a-loan-review"
+license: MIT
+keywords:
+  - division-7a
+  - itaa-1936
+  - australian-tax
+  - private-company-loans
+  - minimum-yearly-repayment

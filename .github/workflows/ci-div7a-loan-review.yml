@@ -1,0 +1,125 @@
+name: div7a-loan-review
+
+# Component CI for packages/div7a-loan-review. The jobs, commands and Python
+# matrix are the ones the source repository's ci.yml defined, run from the
+# component directory. The mcp-integration job also runs the application
+# tests because apps/aus-accounting-mcp consumes this engine's published
+# distribution. Root policy files and .github changes run every component.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "packages/div7a-loan-review/**"
+      - ".github/**"
+      - "AGENTS.md"
+      - "CONTRIBUTING.md"
+      - "README.md"
+      - "SECURITY.md"
+      - "IMPORTS.md"
+      - ".editorconfig"
+      - ".gitignore"
+      - ".mailmap"
+  pull_request:
+    paths:
+      - "packages/div7a-loan-review/**"
+      - ".github/**"
+      - "AGENTS.md"
+      - "CONTRIBUTING.md"
+      - "README.md"
+      - "SECURITY.md"
+      - "IMPORTS.md"
+      - ".editorconfig"
+      - ".gitignore"
+      - ".mailmap"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: packages/div7a-loan-review
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ".[dev]"
+
+      - name: Lint
+        run: python -m ruff check div7aloan tests
+
+      - name: Types
+        run: python -m mypy
+
+      - name: Tests
+        run: python -m pytest -q
+
+      - name: Sample registers behave as documented
+        run: |
+          div7a-loan-review review --input examples/sample_loans_myr_met.csv --year 2026-27
+          div7a-loan-review review --input examples/sample_loans_mixed.csv --year 2026-27 || [ $? -eq 2 ]
+
+      - name: No network access in the rate table
+        run: |
+          ! grep -rniE 'requests\.|urllib|http://|urlopen|socket\.' div7aloan/*.py
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Build the distribution
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+      - name: Install the wheel and run the CLI from it
+        run: |
+          python -m pip install dist/*.whl
+          div7a-loan-review rate --year 2026-27 --format json
+
+  mcp-integration:
+    # The MCP application consumes this engine's published distribution, so an
+    # engine change also runs the application's integration tests.
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/aus-accounting-mcp
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - run: uv run --locked --extra dev pytest -q
+        env:
+          UV_PYTHON: "3.12"

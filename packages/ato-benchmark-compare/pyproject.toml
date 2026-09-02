@@ -1,0 +1,90 @@
+[build-system]
+requires = ["hatchling==1.32.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ato-benchmark-compare"
+dynamic = ["version"]
+description = "Compare profit and loss figures against the ATO small business benchmarks"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Ryan Duguid" }]
+keywords = ["ato", "australia", "accounting", "benchmarks", "tax", "small business"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Financial and Insurance Industry",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Office/Business :: Financial :: Accounting",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/ryanduguid/ato-benchmark-compare"
+Issues = "https://github.com/ryanduguid/ato-benchmark-compare/issues"
+
+[project.scripts]
+ato-benchmark-compare = "atobenchmark.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.11",
+    "mypy>=1.14",
+    "pytest>=8",
+    "openpyxl>=3.1",
+    "build>=1.2",
+    "hypothesis==6.165.10",
+    "coverage==7.15.4",
+    "diff-cover==10.5.1",
+]
+
+[tool.hatch.version]
+# One version string for the project, read from the module the runtime and the
+# release gate both import. A duplicate in this file drifted from the module
+# once already and shipped 0.1.3 announcing itself as 0.1.2.
+path = "atobenchmark/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["atobenchmark"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/atobenchmark",
+  "/tests",
+  "/tools",
+  "/examples",
+  "/docs",
+  "/README.md",
+  "/LICENSE",
+  "/NOTICE",
+  "/CONTRIBUTING.md",
+  "/SECURITY.md",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+src = ["atobenchmark", "tests"]
+
+[tool.ruff.lint]
+# First-enablement set: syntax/undefined-name errors only. Keep Decimal("10.00")
+# money literals; do not import-sort the existing test corpus in this change.
+select = ["E4", "E7", "E9", "F"]
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["atobenchmark"]
+ignore_missing_imports = true
+pretty = true
+

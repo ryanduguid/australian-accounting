@@ -1,0 +1,58 @@
+# Client and taxpayer data never belongs in this repository.
+# Working files that could carry a real job cost are blocked by name and by folder.
+wip*.csv
+!examples/**
+!tests/fixtures/**
+job-cost*.csv
+jobcost*.csv
+cvr*.csv
+commitments*.csv
+client-data/
+clients/
+ledgers/
+exports/
+*.aba
+*.qbo
+*.ofx
+*.xlsx
+*.xls
+*.xlsm
+
+# Credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+token.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Agent scratch
+.superpowers/
+.claude/settings.local.json
+
+# Default CLI outputs sitting in the repo root
+wip-schedule.csv
+practitioner-review.md
+report.csv

@@ -1,0 +1,46 @@
+# Client and payroll data never belongs in this repo. Character classes
+# because git only folds extension case when core.ignorecase is set, which
+# is false on Linux: Payrun.CSV would otherwise slip through.
+*.[aA][bB][aA]
+*.[xX][lL][sS]
+*.[xX][lL][sS][xX]
+*.[qQ][iI][fF]
+*.[oO][fF][xX]
+*.[pP][dD][fF]
+*.[cC][sS][vV]
+/practitioner-review.md
+# The only CSV exceptions are examples, importer test fixtures, and the four
+# fabricated Payday Super evaluation fixtures below.
+!examples/*.csv
+!tests/fixtures/importers/*.csv
+!evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv
+!evaluation/payday_super_evidence/fixtures/late_remittance_no_receipt.csv
+!evaluation/payday_super_evidence/fixtures/receipt_on_due_date.csv
+!evaluation/payday_super_evidence/fixtures/receipt_after_due_date.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Claude Code local state
+.claude/settings.local.json
+
+# Agent working notes, never part of the shipped tool
+.superpowers/
