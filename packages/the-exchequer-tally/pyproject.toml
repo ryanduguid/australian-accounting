@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "the-exchequer-tally"
-version = "0.1.2"
+version = "0.1.3"
 description = "Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian companies."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -25,9 +25,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ryanduguid/TheExchequerTally"
-Repository = "https://github.com/ryanduguid/TheExchequerTally.git"
-Issues = "https://github.com/ryanduguid/TheExchequerTally/issues"
+Homepage = "https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-exchequer-tally"
+Repository = "https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-exchequer-tally"
+Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 
 [project.optional-dependencies]
 dev = [

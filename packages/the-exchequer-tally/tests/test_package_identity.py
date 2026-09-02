@@ -9,7 +9,7 @@ import edwinnixon
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_unpublished_distribution_uses_the_project_identity() -> None:
+def test_published_distribution_uses_the_project_identity() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     lockfile = (ROOT / "uv.lock").read_text(encoding="utf-8")
     readme = " ".join((ROOT / "README.md").read_text(encoding="utf-8").split())
@@ -23,17 +23,18 @@ def test_unpublished_distribution_uses_the_project_identity() -> None:
     assert 'name = "edwinnixon"' not in lockfile
     assert '_dist_version("the-exchequer-tally")' in package_init
     assert 'prog="the-exchequer-tally"' in cli
-    assert version("the-exchequer-tally") == edwinnixon.__version__
+    assert version("the-exchequer-tally") == edwinnixon.__version__ == "0.1.3"
     assert not (ROOT / ".github" / "workflows" / "release.yml").exists()
-    assert "**Package lifecycle:** source-only." in readme
-    assert "not published to PyPI" in readme
+    assert "**Package lifecycle:** published." in readme
+    assert "pip install the-exchequer-tally" in readme
+    assert "github.com/ryanduguid/australian-accounting" in readme
     assert "`the-exchequer-tally` distribution and command" in readme
     assert "`edwinnixon` import package" in readme
     assert "the-exchequer-tally bre-test" in readme
     assert "edwinnixon bre-test" not in readme
-    assert "First published release" not in release_notes
-    assert "No PyPI distribution has been published" in release_notes
-    assert "fresh index-name availability check" in release_notes
+    assert release_notes.startswith("# v0.1.3\n")
+    assert "first PyPI release" in release_notes
+    assert "release-the-exchequer-tally.yml" in release_notes
 
     help_result = subprocess.run(
         [sys.executable, "-m", "edwinnixon.cli", "--help"],

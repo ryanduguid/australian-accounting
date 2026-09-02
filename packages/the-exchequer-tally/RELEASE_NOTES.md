@@ -1,3 +1,13 @@
+# v0.1.3
+
+This is the first PyPI release of `the-exchequer-tally`.
+
+- Move the maintained source to `packages/the-exchequer-tally` in the
+  `australian-accounting` monorepo.
+- Publish through `release-the-exchequer-tally.yml`, using the monorepo's
+  namespaced, attested release workflow.
+- Preserve the v0.1.2 corporate-tax, franking-ledger and Division 203 behavior.
+
 # v0.1.2
 
 The repository's [GitHub Releases](https://github.com/ryanduguid/TheExchequerTally/releases) page is the canonical release history. A separate changelog is intentionally not maintained.
@@ -15,8 +25,8 @@ text on legislation.gov.au:
 
 Also: one version source (pyproject) with `__version__` read from package
 metadata, project URLs and classifiers, mypy enforced in CI (was advisory) with
-Python 3.13 added, CodeQL and deduplicated Dependabot config. The package release
-workflow is intentionally absent until publication has a named user and a
-fresh index-name availability check and an explicit compatibility contract.
+Python 3.13 added, CodeQL and deduplicated Dependabot config. The source project
+did not yet have the named publisher and compatibility contract required for a
+release workflow; v0.1.3 supplies them from the monorepo.
 
 Not advice. Outputs are review aids for a qualified professional, not determinations.

@@ -15,18 +15,21 @@
 ```
 
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
-[![tests](https://github.com/ryanduguid/TheExchequerTally/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/TheExchequerTally/actions/workflows/ci.yml)
+[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-the-exchequer-tally.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-the-exchequer-tally.yml)
+[![PyPI](https://img.shields.io/pypi/v/the-exchequer-tally.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/the-exchequer-tally/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
 [![ITAA 1997](https://img.shields.io/badge/Legislation-ITAA%201997%20Part%203--6-5C2D91?labelColor=04001F)](https://www.legislation.gov.au/C2004A05138/latest/text)
 
 **Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian private and public companies.**
 
-**Package lifecycle:** source-only. Install from this repository; it is not
-published to PyPI.
+**Package lifecycle:** published. Install `the-exchequer-tally` from PyPI.
 
-The `the-exchequer-tally` distribution and command match the project identity.
-The `edwinnixon` import package remains unchanged, so internal Python imports do
-not need a rename.
+The `australian-accounting` repository contains the maintained source. The
+`the-exchequer-tally` distribution and command match the project identity. The
+`edwinnixon` import package remains unchanged, so internal Python imports do not
+need a rename.
+
+Release: [`v0.1.3`](https://github.com/ryanduguid/australian-accounting/releases/tag/the-exchequer-tally/v0.1.3).
 
 ---
 
@@ -53,9 +56,7 @@ Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 
 ### Installation
 ```bash
-git clone https://github.com/ryanduguid/TheExchequerTally.git
-cd TheExchequerTally
-python -m pip install .
+pip install the-exchequer-tally
 ```
 
 ### CLI Usage
