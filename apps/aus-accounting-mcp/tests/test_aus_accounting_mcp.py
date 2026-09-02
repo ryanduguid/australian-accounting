@@ -35,14 +35,14 @@ def _repository_root() -> Path:
     for candidate in (package_root, *package_root.parents):
         if (candidate / ".github" / "workflows").is_dir():
             return candidate
-    raise AssertionError("no .github/workflows directory found above the package")
+    pytest.skip("repository-root policy is not shipped in the Python source distribution")
 
 
 def test_proof_package_surface_is_versioned_and_keeps_stdio_separate() -> None:
     root = Path(__file__).resolve().parents[1]
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     assert project["name"] == "aus-accounting-mcp"
-    assert project["version"] == "0.1.6"
+    assert project["version"] == "0.1.7"
     assert project["scripts"] == {
         "aus-accounting-mcp": "aus_accounting_mcp.cli:main",
         "aus-accounting-mcp-demo": "aus_accounting_mcp.demo:main",
@@ -896,21 +896,21 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     glama = json.loads((root / "glama.json").read_text(encoding="utf-8"))
     assert glama["maintainers"] == ["ryanduguid"]
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
-    assert 'version = "0.1.6"' in pyproject
+    assert 'version = "0.1.7"' in pyproject
     assert "uvx from PyPI" in pyproject
     # The engines stay pinned to an exact version, which is what the commit pins
     # used to buy. They cannot be pinned by URL: PyPI rejects a distribution
     # whose metadata carries a direct reference, so a git pin here would make
     # this package unpublishable and silently undo its own release process.
-    assert "payday-super-checker==" in pyproject
-    assert "ato-benchmark-compare==" in pyproject
-    assert "div7a-loan-review==0.1.0" in pyproject
+    assert "payday-super-checker==0.1.3" in pyproject
+    assert "ato-benchmark-compare==0.1.6" in pyproject
+    assert "div7a-loan-review==0.1.1" in pyproject
     dependencies = pyproject.split("dependencies = [", 1)[1].split("]", 1)[0]
     assert "git+" not in dependencies
     assert "allow-direct-references" not in pyproject
 
 
-def test_release_metadata_is_aligned_for_0_1_6() -> None:
+def test_release_metadata_is_aligned_for_0_1_7() -> None:
     root = Path(__file__).resolve().parents[1]
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
@@ -918,11 +918,14 @@ def test_release_metadata_is_aligned_for_0_1_6() -> None:
     server = json.loads((root / "server.json").read_text(encoding="utf-8"))
     published_version = server["version"]
 
-    assert project["version"] == "0.1.6"
-    assert re.search(r"(?m)^version: 0\.1\.6$", citation)
-    assert re.search(r"(?m)^date-released: 2026-08-31$", citation)
-    assert release_notes.startswith("# v0.1.6\n")
-    assert published_version == server["packages"][0]["version"] == "0.1.6"
+    assert project["version"] == "0.1.7"
+    assert re.search(r"(?m)^version: 0\.1\.7$", citation)
+    assert re.search(r"(?m)^date-released: 2026-09-02$", citation)
+    assert release_notes.startswith("# v0.1.7\n")
+    assert "ato-benchmark-compare` 0.1.6" in release_notes
+    assert "payday-super-checker` 0.1.3" in release_notes
+    assert "div7a-loan-review` 0.1.1" in release_notes
+    assert published_version == server["packages"][0]["version"] == "0.1.7"
     assert project["version"] == published_version
 
 
@@ -950,9 +953,9 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
     assert "## 30-second proof\n" in readme
     assert readme.index("## 30-second proof") < readme.index("## Install")
     for text in (
-        "![Static terminal proof of synthetic BAS output and Division 7A loan review](docs/quick-proof.webp)",
+        "![Static terminal proof of synthetic BAS output and Division 7A loan review](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/apps/aus-accounting-mcp/docs/quick-proof.webp)",
         "uv run --locked aus-accounting-mcp-demo",
-        "[checked text transcript](docs/quick-proof.txt)",
+        "[checked text transcript](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/quick-proof.txt)",
         "Expected structured success:",
         "synthetic: true",
         "not_a_lodgment: true",
@@ -964,9 +967,9 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
         "aus-accounting-mcp",
         "aus-accounting-mcp-demo",
         "io.github.ryanduguid/aus-accounting",
-        "https://pypi.org/project/aus-accounting-mcp/0.1.6/",
-        "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6",
-        "[compatibility.json](compatibility.json)",
+        "https://pypi.org/project/aus-accounting-mcp/0.1.7/",
+        "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.7",
+        "[compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json)",
     ):
         assert text in readme
 
@@ -985,6 +988,9 @@ def test_committed_binary_assets_have_current_provenance() -> None:
     assert "static WebP proof" in release_notes
     assert "animated GIF" not in release_notes
     assert not (root / "docs" / "quick-proof.gif").exists()
+
+
+def test_repository_has_no_committed_social_preview() -> None:
     assert not (_repository_root() / ".github" / "social-preview.png").exists()
 
 
@@ -992,12 +998,12 @@ def test_server_metadata_publishes_exact_pypi_release() -> None:
     root = Path(__file__).resolve().parents[1]
     server = json.loads((root / "server.json").read_text(encoding="utf-8"))
 
-    assert server["version"] == "0.1.6"
+    assert server["version"] == "0.1.7"
     assert server["packages"] == [
         {
             "registryType": "pypi",
             "identifier": "aus-accounting-mcp",
-            "version": "0.1.6",
+            "version": "0.1.7",
             "transport": {"type": "stdio"},
         }
     ]
@@ -1059,15 +1065,21 @@ def test_pypi_route_rejects_an_unused_manual_tag() -> None:
         _assert_registered_pypi_publisher(workflows)
 
 
-def test_release_workflows_use_registered_pypi_publisher() -> None:
+def test_release_workflow_uses_registered_pypi_publisher() -> None:
+    _assert_registered_pypi_publisher(_workflow_sources(_repository_root()))
+
+
+def test_readme_links_to_release_records() -> None:
     root = Path(__file__).resolve().parents[1]
     readme = (root / "README.md").read_text(encoding="utf-8")
 
-    _assert_registered_pypi_publisher(_workflow_sources(_repository_root()))
-
-    assert "[CITATION.cff](CITATION.cff)" in readme
     assert (
-        f"[v0.1.6 release record]({CANONICAL_REPOSITORY}/releases/tag/v0.1.6)"
+        "[CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/"
+        "main/apps/aus-accounting-mcp/CITATION.cff)" in readme
+    )
+    assert (
+        f"[v0.1.7 release record]({CANONICAL_REPOSITORY}/releases/tag/"
+        "aus-accounting-mcp/v0.1.7)"
         in readme
     )
 

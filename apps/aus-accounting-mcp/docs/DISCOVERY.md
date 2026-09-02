@@ -74,7 +74,8 @@ admin), so the `github-about` workflow warns and continues rather than failing.
   `publish-mcp.yml` runs. The [MCP Registry PyPI package
   guidance](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/package-types.mdx)
   requires the published package README to contain its matching `mcp-name`
-  marker. Version 0.1.6 is published and verified on PyPI, and `server.json`
+  marker. Version 0.1.7 is the release represented by `server.json`; publish it
+  to PyPI and verify it before dispatching the registry workflow. `server.json`
   names that exact package version. GitHub Actions OIDC publishes the registry
   record only after an explicit manual dispatch.
 - For future releases, push the namespaced tag `aus-accounting-mcp/vX.Y.Z` to create
@@ -118,20 +119,20 @@ update `tag` if the intended version changes and run these checks after
 downloading the assets and checking `SHA256SUMS`:
 
 ```bash
-tag=v0.1.6
-repo=ryanduguid/aus-accounting-mcp
-wheel="aus_accounting_mcp-${tag#v}-py3-none-any.whl"
+tag=aus-accounting-mcp/v0.1.7
+repo=ryanduguid/australian-accounting
+wheel="aus_accounting_mcp-${tag#aus-accounting-mcp/v}-py3-none-any.whl"
 release_commit="$(git ls-remote "https://github.com/$repo.git" "refs/tags/$tag^{}" | cut -f1)"
 test -n "$release_commit"
 gh attestation verify "$wheel" -R "$repo" \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest 8b4de1ed339f1358b5f3e850b63412d8717d01da
+  --signer-digest 3ff09b654a17b9a3b55548e25e6108ee582b00c4
 gh attestation verify "$wheel" -R "$repo" \
-  --predicate-type https://spdx.dev/Document/v2.3 \
+  --predicate-type https://spdx.dev/Document \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest 8b4de1ed339f1358b5f3e850b63412d8717d01da
+  --signer-digest 3ff09b654a17b9a3b55548e25e6108ee582b00c4
 ```

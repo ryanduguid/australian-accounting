@@ -15,34 +15,35 @@
 ```
 
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/aus-accounting-mcp.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/aus-accounting-mcp/)
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-Standard%20Protocol-5C2D91?labelColor=04001F)](https://modelcontextprotocol.io/)
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.ryanduguid%2Faus--accounting-5C2D91?labelColor=04001F)](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/latest)
 [![Glama](https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server/badge)](https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
 
-[30-second proof](#30-second-proof) · [Install](#install) · [Client setup](#client-integration) · [Tool reference](#tools) · [Release notes](RELEASE_NOTES.md)
+[30-second proof](#30-second-proof) · [Install](#install) · [Client setup](#client-integration) · [Tool reference](#tools) · [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md)
 
 **Aus Accounting MCP** is a local MCP facade over reviewed Australian computational accounting engines. Compatible with Claude Desktop, Claude Code, Cursor, Codex and Antigravity.
 
 Payday Super and Division 7A are experimental reviews, not compliance or tax determinations. SBR payloads are synthetic fixtures.
 
 > [!WARNING]
-> **Not tax advice.** This server returns structured results, refusals, and citations. It does not lodge, and it does not replace a registered agent. See [DISCLAIMER.md](DISCLAIMER.md).
+> **Not tax advice.** This server returns structured results, refusals, and citations. It does not lodge, and it does not replace a registered agent. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).
 
 This is a **computational** MCP, not a hosted ATO document store. It applies defined tests to figures the operator supplies: Payday Super timing, ATO small-business benchmark ratios, and a limited Division 7A loan review. For looking up rulings, use a document-retrieval MCP. Comparison: [Australian tax tools for AI agents](https://duguid.com.au/tools/australian-tax-ai-agents/).
 
 This server does **not** reimplement tax law. Payday Super and ATO small-business benchmarks are delegated to:
 
-- [payday-super-checker](https://github.com/ryanduguid/payday-super-checker) (`payday-super-checker`)
-- [ato-benchmark-compare](https://github.com/ryanduguid/ato-benchmark-compare) (`ato-benchmark-compare`)
-- [div7a-loan-review](https://github.com/ryanduguid/div7a-loan-review) (`div7a-loan-review`)
+- [payday-super-checker](https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker) (`payday-super-checker`)
+- [ato-benchmark-compare](https://github.com/ryanduguid/australian-accounting/tree/main/packages/ato-benchmark-compare) (`ato-benchmark-compare`)
+- [div7a-loan-review](https://github.com/ryanduguid/australian-accounting/tree/main/packages/div7a-loan-review) (`div7a-loan-review`)
 
 The Division 7A adapter covers reviewed s 109N loan terms and benchmark rates plus s 109E minimum yearly repayments for one operator-supplied amalgamated loan. It fails closed on unknown facts and refuses unsupported matters such as forming amalgamated loans, s 109R repayment classification, unpaid present entitlements, distributable surplus, interposed entities, debt forgiveness, and Commissioner discretion. SBR payloads are **synthetic fixtures**, not lodgments.
 
 ## 30-second proof
 
-![Static terminal proof of synthetic BAS output and Division 7A loan review](docs/quick-proof.webp)
+![Static terminal proof of synthetic BAS output and Division 7A loan review](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/apps/aus-accounting-mcp/docs/quick-proof.webp)
 
 **Release proof:** from a repository checkout, run the fabricated
 demonstration without starting the stdio server:
@@ -51,7 +52,7 @@ demonstration without starting the stdio server:
 uv run --locked aus-accounting-mcp-demo
 ```
 
-The [checked text transcript](docs/quick-proof.txt) is the accessible source of truth for the image. Its registered MCP calls return a synthetic BAS fixture with `synthetic: true` and `not_a_lodgment: true`, then review fabricated Division 7A loan facts through the delegated engine.
+The [checked text transcript](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/quick-proof.txt) is the accessible source of truth for the image. Its registered MCP calls return a synthetic BAS fixture with `synthetic: true` and `not_a_lodgment: true`, then review fabricated Division 7A loan facts through the delegated engine.
 
 Expected structured success:
 
@@ -82,15 +83,15 @@ The example is fabricated, is not a lodgment or Division 7A determination, is no
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.1.6 release](https://github.com/ryanduguid/australian-accounting/releases/tag/v0.1.6), [PyPI 0.1.6](https://pypi.org/project/aus-accounting-mcp/0.1.6/), [MCP Registry 0.1.6](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6), and [compatibility.json](compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
+Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.1.7 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.7), [PyPI 0.1.7](https://pypi.org/project/aus-accounting-mcp/0.1.7/), [MCP Registry 0.1.7](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.7), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
 
 ## Install
 
 Python 3.10+ and [uv](https://docs.astral.sh/uv/). This server and its engines
 are published to PyPI; the server pins its reviewed engines to exact versions:
 
-Use [CITATION.cff](CITATION.cff) for this source version. The latest
-published provenance is the [v0.1.6 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/v0.1.6).
+Use [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff) for this source version. The latest
+published provenance is the [v0.1.7 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.7).
 
 ```bash
 uvx aus-accounting-mcp
@@ -115,7 +116,7 @@ Clone and `pip install -e .` still works when you want a local editable tree.
 }
 ```
 
-Ready-made copies live in [`clients/`](clients/).
+Ready-made copies live in [`clients/`](https://github.com/ryanduguid/australian-accounting/tree/main/apps/aus-accounting-mcp/clients).
 
 ### Cursor
 
@@ -176,6 +177,6 @@ Review this operator-supplied Division 7A amalgamated loan for s 109N terms and 
 
 ## Licence
 
-MIT License. Created by Ryan Duguid. Boundary statement: [DISCLAIMER.md](DISCLAIMER.md). Discovery copy: [docs/DISCOVERY.md](docs/DISCOVERY.md). Cite: [CITATION.cff](CITATION.cff).
+MIT License. Created by Ryan Duguid. Boundary statement: [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md). Discovery copy: [docs/DISCOVERY.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/DISCOVERY.md). Cite: [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <!-- mcp-name: io.github.ryanduguid/aus-accounting -->

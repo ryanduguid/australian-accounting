@@ -36,7 +36,7 @@ def test_known_benchmark_rate_keeps_engine_provenance() -> None:
 
     assert payload["ok"] is True
     assert payload["engine"] == "div7a-loan-review"
-    assert payload["engine_version"] == "0.1.0"
+    assert payload["engine_version"] == "0.1.1"
     assert payload["verdict"] == "KNOWN"
     assert payload["benchmark_rate"] == "0.0837"
     assert payload["provenance"]["rba_month"] == "2025-05"

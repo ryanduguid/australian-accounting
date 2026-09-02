@@ -1,3 +1,21 @@
+# v0.1.7
+
+- update the exactly pinned delegated engines to `ato-benchmark-compare` 0.1.6,
+  `payday-super-checker` 0.1.3 and `div7a-loan-review` 0.1.1 after independent
+  public-install verification;
+- point the compatibility record and public documentation at the maintained
+  monorepo source and namespaced component releases;
+- preserve the existing MCP tool surface, fail-closed boundaries, synthetic
+  demonstration and compact Division 7A responses; and
+- publish the attested GitHub release through `release-aus-accounting-mcp.yml`,
+  then its exact distributions and registry record through the approval-gated
+  `publish-pypi.yml` and `publish-mcp.yml` workflows.
+
+All six leaf packages were installed and checked from PyPI before this release.
+Only the three engines used by registered MCP tools are runtime dependencies.
+
+Not advice. Outputs are preparation aids for a qualified professional, not compliance determinations.
+
 # v0.1.6
 
 The repository's [GitHub Releases](https://github.com/ryanduguid/australian-accounting/releases) page is the canonical release history. A separate changelog is intentionally not maintained.

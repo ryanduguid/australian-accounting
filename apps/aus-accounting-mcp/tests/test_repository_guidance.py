@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 import re
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -14,7 +16,7 @@ def _repository_root() -> Path:
     for candidate in (package_root, *package_root.parents):
         if (candidate / ".github" / "workflows").is_dir():
             return candidate
-    raise AssertionError("no .github/workflows directory found above the package")
+    pytest.skip("repository-root policy is not shipped in the Python source distribution")
 
 EXPECTED_POLICY = """\
 # Agent instructions

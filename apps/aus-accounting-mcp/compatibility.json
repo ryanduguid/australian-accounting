@@ -2,16 +2,16 @@
   "schema_version": 1,
   "server": {
     "distribution": "aus-accounting-mcp",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "repository": "https://github.com/ryanduguid/australian-accounting",
-    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.1.6/",
+    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.1.7/",
     "registry_identity": "io.github.ryanduguid/aus-accounting",
-    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6",
-    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/v0.1.6"
+    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.7",
+    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.7"
   },
   "engines": [
-    {"distribution": "ato-benchmark-compare", "version": "0.1.4", "repository": "https://github.com/ryanduguid/ato-benchmark-compare", "release": "https://github.com/ryanduguid/ato-benchmark-compare/releases/tag/v0.1.4"},
-    {"distribution": "div7a-loan-review", "version": "0.1.0", "repository": "https://github.com/ryanduguid/div7a-loan-review", "release": "https://github.com/ryanduguid/div7a-loan-review/releases/tag/v0.1.0"},
-    {"distribution": "payday-super-checker", "version": "0.1.2", "repository": "https://github.com/ryanduguid/payday-super-checker", "release": "https://github.com/ryanduguid/payday-super-checker/releases/tag/v0.1.2"}
+    {"distribution": "ato-benchmark-compare", "version": "0.1.6", "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/ato-benchmark-compare", "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/ato-benchmark-compare/v0.1.6"},
+    {"distribution": "div7a-loan-review", "version": "0.1.1", "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/div7a-loan-review", "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.1.1"},
+    {"distribution": "payday-super-checker", "version": "0.1.3", "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker", "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.1.3"}
   ]
 }

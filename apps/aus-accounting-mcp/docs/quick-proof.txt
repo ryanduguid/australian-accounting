@@ -51,7 +51,7 @@ $ uv run --locked aus-accounting-mcp-demo
       "result": {
         "disclaimer": "Experimental review aid. Not a Division 7A determination, an ATO assessment or professional advice. The operator supplies the statutory facts. Verify the result against the compiled Act and obtain human review before acting.",
         "engine": "div7a-loan-review",
-        "engine_version": "0.1.0",
+        "engine_version": "0.1.1",
         "gate": {
           "benchmark_rate": "0.0837",
           "benchmark_year_used": "2025-26",

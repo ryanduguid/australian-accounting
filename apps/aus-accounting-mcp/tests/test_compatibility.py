@@ -30,36 +30,36 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         "distribution": "aus-accounting-mcp",
         "version": server_metadata["version"],
         "repository": CANONICAL_REPOSITORY,
-        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.1.6/",
+        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.1.7/",
         "registry_identity": "io.github.ryanduguid/aus-accounting",
         "registry": (
             "https://registry.modelcontextprotocol.io/v0.1/servers/"
-            "io.github.ryanduguid%2Faus-accounting/versions/0.1.6"
+            "io.github.ryanduguid%2Faus-accounting/versions/0.1.7"
         ),
-        "release": f"{CANONICAL_REPOSITORY}/releases/tag/v0.1.6",
+        "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v0.1.7",
     }
     assert record["engines"] == [
         {
             "distribution": "ato-benchmark-compare",
-            "version": "0.1.4",
-            "repository": "https://github.com/ryanduguid/ato-benchmark-compare",
-            "release": "https://github.com/ryanduguid/ato-benchmark-compare/releases/tag/v0.1.4",
+            "version": "0.1.6",
+            "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/ato-benchmark-compare",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/ato-benchmark-compare/v0.1.6",
         },
         {
             "distribution": "div7a-loan-review",
-            "version": "0.1.0",
-            "repository": "https://github.com/ryanduguid/div7a-loan-review",
-            "release": "https://github.com/ryanduguid/div7a-loan-review/releases/tag/v0.1.0",
+            "version": "0.1.1",
+            "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/div7a-loan-review",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/div7a-loan-review/v0.1.1",
         },
         {
             "distribution": "payday-super-checker",
-            "version": "0.1.2",
-            "repository": "https://github.com/ryanduguid/payday-super-checker",
-            "release": "https://github.com/ryanduguid/payday-super-checker/releases/tag/v0.1.2",
+            "version": "0.1.3",
+            "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/payday-super-checker",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/payday-super-checker/v0.1.3",
         },
     ]
     distribution = record["server"]["distribution"]
-    assert importlib.metadata.version(distribution) == "0.1.6"
+    assert importlib.metadata.version(distribution) == "0.1.7"
     requirements = set(importlib.metadata.requires(record["server"]["distribution"]) or [])
     for engine in record["engines"]:
         assert importlib.metadata.version(engine["distribution"]) == engine["version"]
