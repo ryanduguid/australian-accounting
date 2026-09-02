@@ -1,3 +1,10 @@
+# v0.1.6
+
+- move the maintained source into the `australian-accounting` monorepo under
+  `packages/ato-benchmark-compare`;
+- publish from the monorepo's hardened, attested release workflow; and
+- preserve the v0.1.5 calculation and serialization behaviour unchanged.
+
 # v0.1.5
 
 - add structured dependency metadata for calculation warnings and comparison notes;
