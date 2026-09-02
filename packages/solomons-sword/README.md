@@ -15,18 +15,21 @@
 ```
 
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
-[![tests](https://github.com/ryanduguid/SolomonsSword/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/SolomonsSword/actions/workflows/ci.yml)
+[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-solomons-sword.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-solomons-sword.yml)
+[![PyPI](https://img.shields.io/pypi/v/solomons-sword.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/solomons-sword/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
 [![ITAA 1936](https://img.shields.io/badge/Legislation-ITAA%201936%20Division%206-5C2D91?labelColor=04001F)](https://www.legislation.gov.au/C1936A00027/latest/text)
 
 **Trust distribution allocation, Section 100A / 99B risk evaluation, and Division 6 ITAA 1936 review helpers for Australian trusts.**
 
-**Package lifecycle:** source-only. Install from this repository; it is not
-published to PyPI.
+**Package lifecycle:** published. Install `solomons-sword` from PyPI.
 
-The `solomons-sword` distribution and command match the project identity. The
+The `australian-accounting` repository contains the maintained source. The
+`solomons-sword` distribution and command match the project identity. The
 `louisgoldberg` import package remains unchanged, so internal Python imports do
 not need a rename.
+
+Release: [`v0.1.3`](https://github.com/ryanduguid/australian-accounting/releases/tag/solomons-sword/v0.1.3).
 
 Named for the judgement of Solomon, where the threat of dividing the child in proportion is what reveals who the true claimant is. Division 6 allocates trust income by proportionate entitlement following *Bamford*; Section 100A asks who actually ended up with the benefit. The name is a tribute only.
 
@@ -44,7 +47,7 @@ Command output carries the beneficiary name you supply, because a workpaper line
 item is unusable without it. Treat that output as client data: write it to the
 firm's approved secure location, never to a path inside a repository.
 
-Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
+Full boundary statement: [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/solomons-sword/DISCLAIMER.md).
 
 ---
 
@@ -61,9 +64,7 @@ Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 
 ### Installation
 ```bash
-git clone https://github.com/ryanduguid/SolomonsSword.git
-cd SolomonsSword
-python -m pip install .
+pip install solomons-sword
 ```
 
 ### CLI Usage
