@@ -14,7 +14,7 @@
 +---------------------------+----------------------------+
 ```
 
-[![tests](https://github.com/ryanduguid/aus-accounting-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/aus-accounting-mcp/actions/workflows/ci.yml)
+[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-Standard%20Protocol-5C2D91?labelColor=04001F)](https://modelcontextprotocol.io/)
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.ryanduguid%2Faus--accounting-5C2D91?labelColor=04001F)](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/latest)
@@ -80,9 +80,9 @@ The example is fabricated, is not a lodgment or Division 7A determination, is no
 |---|---|---|---|---|---|---|
 | `docs/quick-proof.webp` | Static terminal summary of the two checked demonstration outcomes | `docs/quick-proof.txt`, emitted by `aus-accounting-mcp-demo` | MIT | `uv run --locked --extra dev python scripts/render_demo_image.py docs/quick-proof.txt docs/quick-proof.webp` with Pillow 12.3.0 | `90f983a9b8f76455e9f473330c8b999f9929870731f0c9fbc70e87cd790a43df` | Regenerate when the transcript, demo output, render constants or pinned Pillow version changes |
 
-Name mapping: public name Aus Accounting MCP; repository aus-accounting-mcp; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
+Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/aus-accounting-mcp/actions/workflows/ci.yml), [v0.1.6 release](https://github.com/ryanduguid/aus-accounting-mcp/releases/tag/v0.1.6), [PyPI 0.1.6](https://pypi.org/project/aus-accounting-mcp/0.1.6/), [MCP Registry 0.1.6](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6), and [compatibility.json](compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
+Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.1.6 release](https://github.com/ryanduguid/australian-accounting/releases/tag/v0.1.6), [PyPI 0.1.6](https://pypi.org/project/aus-accounting-mcp/0.1.6/), [MCP Registry 0.1.6](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.6), and [compatibility.json](compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
 
 ## Install
 
@@ -90,7 +90,7 @@ Python 3.10+ and [uv](https://docs.astral.sh/uv/). This server and its engines
 are published to PyPI; the server pins its reviewed engines to exact versions:
 
 Use [CITATION.cff](CITATION.cff) for this source version. The latest
-published provenance is the [v0.1.6 release record](https://github.com/ryanduguid/aus-accounting-mcp/releases/tag/v0.1.6).
+published provenance is the [v0.1.6 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/v0.1.6).
 
 ```bash
 uvx aus-accounting-mcp

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Apply docs/DISCOVERY.md to GitHub About. Requires gh, authenticated to
-# ryanduguid/aus-accounting-mcp with repo metadata write access.
+# ryanduguid/australian-accounting with repo metadata write access.
 set -euo pipefail
 
-REPO="ryanduguid/aus-accounting-mcp"
+REPO="ryanduguid/australian-accounting"
 DESCRIPTION="Local MCP server for Australian accounting review: ATO benchmarks, Payday Super 2026, limited Division 7A loan reviews and synthetic SBR fixtures. Not advice."
 HOMEPAGE="https://duguid.com.au/tools/australian-tax-ai-agents/"
 TOPICS=(

@@ -11,7 +11,7 @@ from paydaysuper import LAW_CONTENT_DATE
 
 from aus_accounting_mcp.server import mcp
 
-CANONICAL_REPOSITORY = "https://github.com/ryanduguid/aus-accounting-mcp"
+CANONICAL_REPOSITORY = "https://github.com/ryanduguid/australian-accounting"
 
 
 def _call(name: str, arguments: dict[str, str]) -> dict[str, object]:

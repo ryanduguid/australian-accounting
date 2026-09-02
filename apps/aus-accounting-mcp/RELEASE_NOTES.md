@@ -1,6 +1,6 @@
 # v0.1.6
 
-The repository's [GitHub Releases](https://github.com/ryanduguid/aus-accounting-mcp/releases) page is the canonical release history. A separate changelog is intentionally not maintained.
+The repository's [GitHub Releases](https://github.com/ryanduguid/australian-accounting/releases) page is the canonical release history. A separate changelog is intentionally not maintained.
 
 - add the exactly pinned `div7a-loan-review` 0.1.0 engine and registered tools
   for reviewed s 109N benchmark rates and a fail-closed s 109N/s 109E loan review;
