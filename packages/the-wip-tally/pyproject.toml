@@ -36,8 +36,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/ryanduguid/TheWIPTally"
-Issues = "https://github.com/ryanduguid/TheWIPTally/issues"
+Homepage = "https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally"
+Repository = "https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally"
+Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 
 [project.scripts]
 wip-tally = "wiptally.cli:main"
@@ -59,6 +60,11 @@ include = [
   "/examples",
   "/docs",
   "/README.md",
+  "/RELEASE_NOTES.md",
+  "/RELEASING.md",
+  "/CITATION.cff",
+  "/llms.txt",
+  "/uv.lock",
   "/LICENSE",
   "/CONTRIBUTING.md",
   "/SECURITY.md",

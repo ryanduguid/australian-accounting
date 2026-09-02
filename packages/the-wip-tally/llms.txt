@@ -2,7 +2,7 @@
 > High-density context for LLM agents. AASB 15 construction WIP schedule: review aid, not a determination.
 
 ## Package Overview
-- **Repository**: https://github.com/ryanduguid/TheWIPTally
+- **Repository**: https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally
 - **Distribution**: `the-wip-tally`
 - **Import Package**: `wiptally`
 - **CLI Command**: `wip-tally`

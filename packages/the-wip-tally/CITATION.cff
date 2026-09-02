@@ -5,9 +5,9 @@ authors:
     given-names: Ryan
 title: "TheWIPTally: deterministic AASB 15 construction WIP schedule. Review aid, not a determination."
 version: 0.1.0
-date-released: 2026-08-25
-url: "https://github.com/ryanduguid/TheWIPTally"
-repository-code: "https://github.com/ryanduguid/TheWIPTally"
+date-released: 2026-09-02
+url: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally"
+repository-code: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally"
 license: MIT
 keywords:
   - aasb-15

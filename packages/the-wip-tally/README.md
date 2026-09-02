@@ -14,19 +14,24 @@
 +----------------------------------+-----------------------------------+
 ```
 
-[![tests](https://github.com/ryanduguid/TheWIPTally/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/TheWIPTally/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE) [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
+[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-the-wip-tally.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-the-wip-tally.yml)
+[![PyPI](https://img.shields.io/pypi/v/the-wip-tally.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/the-wip-tally/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
 
 **Deterministic work-in-progress schedule for Australian construction, civil, mining-services and power-station packages.** Review aid. Not a determination.
 
 **Status: incubating.** It is an evolving review aid, not a substitute for professional judgement.
 
-**Package lifecycle:** source-installable candidate only. A public package will
-be considered after demonstrated user demand, a fresh name-availability check
-and compatibility tests.
+**Package lifecycle:** published. Install `the-wip-tally` from PyPI.
 
 `hardhat-ledger` already encodes the WIP *workflow*. This engine does the arithmetic that workflow consumes: cost-to-cost progress after AASB 15 para B19 exclusions, constrained variable consideration, per-contract contract assets and contract liabilities, and month-on-month profit fade.
 
-The repository name is the public project identity; the `the-wip-tally` distribution, `wip-tally` command and `wiptally` import package are the install identifiers.
+The `australian-accounting` repository contains the maintained source. The
+`the-wip-tally` distribution, `wip-tally` command and `wiptally` import package
+are the install identifiers.
+
+Release: [`v0.1.0`](https://github.com/ryanduguid/australian-accounting/releases/tag/the-wip-tally/v0.1.0).
 
 Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written independently, in his own time and on his own equipment.
 
@@ -38,23 +43,23 @@ enforceable, or that a contract is onerous. Those stay with a person. Confirm
 the operative AASB 15 compilation at standards.aasb.gov.au before relying on a
 paragraph number.
 
-Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
+Full boundary statement: [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/DISCLAIMER.md).
 
 ## Install
 
 Python 3.10 or later. No runtime dependencies.
 
 ```bash
-git clone https://github.com/ryanduguid/TheWIPTally.git
-cd TheWIPTally && pip install .
+pip install the-wip-tally
 ```
 
-Cloning first means you have the sample file the next command uses.
+Download the [fabricated sample contract CSV](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/packages/the-wip-tally/examples/sample_contracts.csv)
+as `sample_contracts.csv` to follow the example below.
 
 ## Use
 
 ```bash
-wip-tally schedule examples/sample_contracts.csv --as-at 2026-08-31
+wip-tally schedule sample_contracts.csv --as-at 2026-08-31
 ```
 
 ```
@@ -77,7 +82,7 @@ requires practitioner sign-off. Exit code 1 is a data or file error.
 Full detail goes to `wip-schedule.csv`. Then:
 
 ```bash
-wip-tally review-pack wip-schedule.csv --source examples/sample_contracts.csv --as-at 2026-08-31 -o practitioner-review.md
+wip-tally review-pack wip-schedule.csv --source sample_contracts.csv --as-at 2026-08-31 -o practitioner-review.md
 ```
 
 The pack binds itself to the source and schedule bytes with SHA-256, lists
@@ -133,15 +138,16 @@ and read as absent.
 
 Dates are not required. This is a position schedule, not a cash-flow forecast.
 
-A `--mapping-file` JSON object maps canonical names to your headings. See
-`examples/mapping.example.json`.
+A `--mapping-file` JSON object maps canonical names to your headings. Download
+the [mapping example](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/packages/the-wip-tally/examples/mapping.example.json)
+from the maintained source.
 
 ## The rules it applies
 
 Paragraph numbers below are from the compilation current when this engine was
 written. Confirm the operative compilation at standards.aasb.gov.au before
 citing them. The source notes are in
-[docs/aasb-15-source-notes-2026-08-25.md](docs/aasb-15-source-notes-2026-08-25.md).
+[docs/aasb-15-source-notes-2026-08-25.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/docs/aasb-15-source-notes-2026-08-25.md).
 
 **Transaction price.** Original sum plus approved variations plus the
 constrained slice of unapproved estimates. The excluded slice is flagged, not
