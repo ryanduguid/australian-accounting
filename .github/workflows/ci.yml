@@ -3,29 +3,7 @@ name: tests
 on:
   push:
     branches: [main]
-    paths:
-      - "apps/aus-accounting-mcp/**"
-      - ".github/**"
-      - "AGENTS.md"
-      - "CONTRIBUTING.md"
-      - "README.md"
-      - "SECURITY.md"
-      - "IMPORTS.md"
-      - ".editorconfig"
-      - ".gitignore"
-      - ".mailmap"
   pull_request:
-    paths:
-      - "apps/aus-accounting-mcp/**"
-      - ".github/**"
-      - "AGENTS.md"
-      - "CONTRIBUTING.md"
-      - "README.md"
-      - "SECURITY.md"
-      - "IMPORTS.md"
-      - ".editorconfig"
-      - ".gitignore"
-      - ".mailmap"
 
 concurrency:
   group: tests-${{ github.ref }}

@@ -16,6 +16,7 @@ nothing cannot pass. Run from the repository root:
 from __future__ import annotations
 
 import ast
+import re
 import unittest
 from pathlib import Path
 
@@ -42,6 +43,26 @@ ENGINES = {
 }
 APPLICATION = {"apps/aus-accounting-mcp": "aus_accounting_mcp"}
 FORBIDDEN_FOR_ENGINES = frozenset({"aus_accounting_mcp", *ENGINES.values()})
+PATH_FILTER_KEY = re.compile(
+    r"(?<![\w-])['\"]?(paths(?:-ignore)?)['\"]?\s*:"
+)
+
+
+def trigger_path_filters(workflow: str) -> list[str]:
+    """Find path-filter keys in either block or flow-style ``on`` mappings."""
+    lines = workflow.splitlines()
+    trigger_lines: list[str] = []
+    for index, line in enumerate(lines):
+        match = re.match(r"^on\s*:(.*)$", line)
+        if match is None:
+            continue
+        trigger_lines.append(match.group(1))
+        for following in lines[index + 1 :]:
+            if following and not following[0].isspace() and not following.startswith("#"):
+                break
+            trigger_lines.append(following)
+        break
+    return PATH_FILTER_KEY.findall("\n".join(trigger_lines))
 
 
 def imported_top_levels(tree: ast.AST) -> set[str]:
@@ -92,6 +113,22 @@ class BoundaryTests(unittest.TestCase):
             ).read_text(encoding="utf-8")
             with self.subTest(workflow=workflow_name):
                 self.assertIn(f'git cat-file -e "origin/main:{sentinel}"', workflow)
+
+    def test_anchor_required_checks_are_not_suppressed_by_path_filters(self) -> None:
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertEqual(trigger_path_filters(workflow), [])
+
+        positive_controls = (
+            "on:\n  push:\n    paths: [packages/**]\njobs: {}\n",
+            "on:\n  pull_request:\n    paths-ignore:\n      - docs/**\njobs: {}\n",
+            "on: {push: {paths: [packages/**]}}\njobs: {}\n",
+            "on: {pull_request: {paths-ignore: [docs/**]}}\njobs: {}\n",
+        )
+        for control in positive_controls:
+            with self.subTest(control=control):
+                self.assertTrue(trigger_path_filters(control))
 
     def test_release_callers_pin_the_landed_policy_and_matching_identity(self) -> None:
         for component, source_directory in RELEASE_CALLERS.items():
