@@ -54,3 +54,4 @@ Thumbs.db
 # Agent scratch
 .superpowers/
 .claude/settings.local.json
+!workbooks/*.xlsx

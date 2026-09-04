@@ -60,6 +60,14 @@ Source: Australian Taxation Office, [How we calculate benchmark
 ratios](https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/small-business-benchmarks-methodology-and-ratio-calculations/how-we-calculate-benchmark-ratios)
 (QC 37143).
 
+## Excel workbook
+
+No Python? [`workbooks/ato-benchmark-compare.xlsx`](workbooks/ato-benchmark-compare.xlsx)
+is the same comparison in ordinary worksheet formulas: paste the profit and loss,
+review the mapping, pick the industry and read the result. It is macro-free, needs
+desktop Excel for Microsoft 365 or Excel 2024, and is held to this engine's answer
+by `tests/test_workbook.py`. See [workbooks/README.md](workbooks/README.md).
+
 ## Install
 
 ```bash
