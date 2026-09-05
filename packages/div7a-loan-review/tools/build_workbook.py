@@ -261,6 +261,11 @@ def formulas():
             '&IF(OR(' + ",".join(bool_bad(cn) for cn in BOOL_COLUMNS) + '),"true/false/unknown ","")'
             '&IF(OR(' + ",".join(number_bad(cn) for cn in NUMBER_COLUMNS) + '),"number ",""))'
         ),
+        # A fabricated loan left in the register would count in the summary; flag the
+        # loan_id and year pairs the shipped sample carries (filled in by build()).
+        "Sample_row": (
+            f'=IF(SUMPRODUCT(({T("loan_id")}&""={{SAMPLE_IDS}})*({T("year_loan_made")}&""={{SAMPLE_YEARS}}))>0,1,0)'
+        ),
     }
 
 
@@ -268,7 +273,7 @@ CALC_ORDER = [
     "Status", "Floor_year", "Floor_rate", "Limb_a_written", "Limb_lodgment", "Limb_b_rate",
     "Limb_secured", "Allowed_term_raw", "Limb_c_term", "Gate_verdict", "Max_term_allowed",
     "Term_used", "MYR_raw", "MYR_verdict", "MYR_reason", "MYR_required", "Shortfall",
-    "Exposure", "Undecided", "Guard", "Input_problem",
+    "Exposure", "Undecided", "Guard", "Input_problem", "Sample_row",
 ]
 
 
@@ -276,6 +281,10 @@ def build() -> None:
     rows = read_sample()
     rates, meta = read_rates()
     calc = formulas()
+    sample_ids = ",".join(f'"{r["loan_id"]}"' for r in rows)
+    sample_years = ",".join(f'"{r["year_loan_made"]}"' for r in rows)
+    calc["Sample_row"] = (calc["Sample_row"].replace("{SAMPLE_IDS}", "{" + sample_ids + "}")
+                          .replace("{SAMPLE_YEARS}", "{" + sample_years + "}"))
     assert set(calc) == set(CALC_ORDER), set(calc) ^ set(CALC_ORDER)
     wb = Workbook()
 
@@ -421,6 +430,9 @@ def build() -> None:
         ("Rows refused a repayment figure (read the reason; not a breach by itself)",
          '=IF(C8=0,"PASS","NOTE")', '=COUNTIF(tblLoans[MYR_verdict],"REFUSED")',
          '=IF(C8=0,"",' + offender('(tblLoans[MYR_verdict]="REFUSED")') + ")"),
+        ("No fabricated example loan from the shipped sample remains in the register",
+         '=IF(C9=0,"PASS","REVIEW")', "=SUM(tblLoans[Sample_row])",
+         '=IF(C9=0,"",' + offender("(tblLoans[Sample_row]=1)") + ")"),
     ]
     for r, (label, result, detail, example) in enumerate(checks, 2):
         ws.cell(row=r, column=1, value=label)

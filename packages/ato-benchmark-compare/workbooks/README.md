@@ -10,6 +10,9 @@ Nothing leaves the workbook.
 1. **P&L Import.** Paste account names and amounts over the example rows. The
    Account column is formatted as Text, so anything pasted there stays inert, and a
    formula or a non-numeric amount trips the Guard column and blocks the result.
+   Delete any example rows you did not overwrite: Review Checks flags a fabricated
+   bakery line that is still in the P&L, because it would otherwise count in the
+   ratios.
 2. **Mapping.** Give every account a bucket from the drop-down and set Source to
    `reviewed`. The buckets are the same eleven the engine uses, and a `suggested` or
    missing mapping blocks the result, exactly as the CLI refuses unreviewed mappings.

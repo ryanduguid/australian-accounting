@@ -17,7 +17,9 @@ printed on Review Checks.
    `true`, `false` or `unknown`; a blank is unknown. Rates are fractions, so
    8.77 per cent is `0.0877`. Years of income are written `2026-27` in Text cells,
    so Excel does not turn them into dates. Rows pasted below the example pick up the
-   calculated columns on their own.
+   calculated columns on their own. Delete any example rows you did not overwrite:
+   Review Checks flags a fabricated example loan that is still in the register,
+   because it would otherwise count in the summary.
 2. **Summary.** Choose the year of income. The s 109N gate reads each loan's
    benchmark rate from the year the loan was made (or `year_of_income_being_tested`
    where you nominate one); the s 109E repayment uses the chosen year's rate.

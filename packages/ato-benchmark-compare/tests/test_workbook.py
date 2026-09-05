@@ -69,8 +69,12 @@ def test_cached_values_were_calculated_by_desktop_excel(cached):
     sources = cached["Sources & Version"]
     assert sources["B2"].value == __version__
     assert str(sources["B3"].value).startswith("Excel ")
-    assert cached["Review Checks"]["B13"].value == "PASS"
-    assert cached["Start Here"]["A11"].value == "PASS"
+    # The shipped bakery lines are fabricated, so the guard holds the sample at REVIEW
+    # until they are overwritten; every other check on the sample is PASS.
+    assert cached["Review Checks"]["B12"].value == "REVIEW"
+    assert [cached["Review Checks"].cell(row=r, column=2).value for r in range(2, 12)] == ["PASS"] * 10
+    assert cached["Review Checks"]["B13"].value == "REVIEW"
+    assert cached["Start Here"]["A11"].value == "REVIEW"
 
 
 def test_bakery_results_match_the_engine(cached):

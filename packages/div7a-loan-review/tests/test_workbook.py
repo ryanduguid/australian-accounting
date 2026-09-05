@@ -63,6 +63,8 @@ def test_cached_values_were_calculated_by_desktop_excel(cached):
     assert sources["B2"].value == __version__
     assert str(sources["B3"].value).startswith("Excel ")
     assert cached["Summary"]["B2"].value == YEAR
+    assert cached["Review Checks"]["B9"].value == "REVIEW", "shipped sample loans are flagged"
+    assert cached["Review Checks"]["C9"].value == 8
     assert cached["Review Checks"]["B10"].value == "REVIEW"
     assert cached["Start Here"]["A11"].value == "REVIEW"
 

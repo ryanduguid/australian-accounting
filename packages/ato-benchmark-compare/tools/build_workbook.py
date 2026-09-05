@@ -170,7 +170,15 @@ def build() -> None:
 
     # 2. P&L Import: tblPnl = Account, Amount, Bucket, Guard
     ws = wb.create_sheet("P&L Import")
-    header(ws, 1, ["Account", "Amount", "Bucket", "Guard"])
+    header(ws, 1, ["Account", "Amount", "Bucket", "Guard", "Sample"])
+    # A fabricated bakery line left in the P&L would count in the ratios; flag the
+    # exact account-and-amount pairs the shipped sample carries.
+    sample_names = ",".join(f'"{account.strip().lower()}"' for account, _ in pnl)
+    sample_amounts = ",".join(str(float(amount)) for _, amount in pnl)
+    sample_formula = (
+        "=IF(SUMPRODUCT((LOWER(TRIM(tblPnl[[#This Row],[Account]]))={" + sample_names + "})"
+        "*(tblPnl[[#This Row],[Amount]]={" + sample_amounts + "}))>0,1,0)"
+    )
     bucket_formula = (
         "=IFERROR(INDEX(tblMapping[Bucket],MATCH(TRIM(LOWER(tblPnl[[#This Row],[Account]])),"
         'tblMapping[Key],0)),"")'
@@ -186,11 +194,12 @@ def build() -> None:
         style(ws.cell(row=r, column=2, value=float(amount)), number_format=MONEY, **INPUT)
         style(ws.cell(row=r, column=3, value=bucket_formula), **CALC)
         style(ws.cell(row=r, column=4, value=guard_formula), **CALC)
+        style(ws.cell(row=r, column=5, value=sample_formula), **CALC)
     add_table(
         ws,
         "tblPnl",
-        f"A1:D{len(pnl) + 1}",
-        {"Bucket": bucket_formula[1:], "Guard": guard_formula[1:]},
+        f"A1:E{len(pnl) + 1}",
+        {"Bucket": bucket_formula[1:], "Guard": guard_formula[1:], "Sample": sample_formula[1:]},
     )
     ws.column_dimensions["A"].width = 34
     ws.column_dimensions["B"].width = 16
@@ -408,6 +417,9 @@ def build() -> None:
         ("Key ratio is within its range", '=IF(C11="within","PASS","REVIEW")',
          '=IFERROR(INDEX(Results!F2:F6,MATCH(Calculation!B37,Results!A2:A6,0)),"not calculated")',
          None),
+        ("No fabricated example account from the shipped bakery sample remains in the P&L",
+         '=IF(C12=0,"PASS","REVIEW")', "=SUM(tblPnl[Sample])",
+         '=IF(C12=0,"",' + offender("tblPnl", "(tblPnl[Sample]=1)") + ")"),
     ]
     for r, (label, result, detail, example) in enumerate(checks, 2):
         ws.cell(row=r, column=1, value=label)
