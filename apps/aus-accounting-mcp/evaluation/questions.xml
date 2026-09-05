@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evaluation>
+  <qa_pair id="catalogue-pages">
+    <question>Using the shipped 2023-24 ATO catalogue, retrieve the first two pages matching shop, with two industries per page. How many distinct industry names do those two pages contain? Return only the integer.</question>
+    <answer>4</answer>
+  </qa_pair>
+  <qa_pair id="missing-income">
+    <question>Find Bakeries and hot bread shops in the shipped 2023-24 catalogue. For fabricated turnover 850000.00 and cost of sales 270000.00, with all other figures unknown, run a comparison. Which status does cost_of_sales_to_turnover have? Return only the status.</question>
+    <answer>not_supplied</answer>
+  </qa_pair>
+  <qa_pair id="established-zero-income">
+    <question>Find Bakeries and hot bread shops in the shipped 2023-24 catalogue and compare fabricated turnover 850000.00 and cost of sales 270000.00. First leave other income unknown, then repeat with an operator-established other income of 0.00. What is the second cost_of_sales_to_turnover status? Return only the status.</question>
+    <answer>within</answer>
+  </qa_pair>
+  <qa_pair id="missing-rent">
+    <question>For fabricated Bakeries and hot bread shops figures in 2023-24, turnover is 850000.00, cost of sales is 270000.00 and established other income is 0.00. Compare once with rent unknown and again with established rent of 40000.00. What was the first rent_to_turnover status? Return only the status.</question>
+    <answer>not_supplied</answer>
+  </qa_pair>
+  <qa_pair id="receipt-evidence">
+    <question>Review a fabricated 120.00 contribution with payday 2027-07-01, remitted 2027-07-02 and as_at 2027-08-01, first without fund receipt and then with established receipt 2027-07-02. What verdict applies to the first review? Return only the verdict.</question>
+    <answer>AT_RISK</answer>
+  </qa_pair>
+  <qa_pair id="unknown-rate">
+    <question>With the locked div7a-loan-review 0.1.1 engine, retrieve the 2027-28 benchmark rate in both summary and full detail. What verdict do both responses give? Return only the verdict, without extrapolating a rate.</question>
+    <answer>UNKNOWN</answer>
+  </qa_pair>
+  <qa_pair id="missing-loan-facts">
+    <question>Using the locked engine, retrieve the reviewed 2025-26 Division 7A benchmark rate. Then review a fabricated loan for 2025-26 supplying only that rate, with every other loan fact unknown. What is the gate verdict? Return only the verdict.</question>
+    <answer>UNKNOWN</answer>
+  </qa_pair>
+  <qa_pair id="audit-consistency">
+    <question>Retrieve the reviewed 2025-26 Division 7A benchmark rate using both summary and full detail. With div7a-loan-review 0.1.1, what exact decimal benchmark_rate string appears in both? Return only that decimal string.</question>
+    <answer>0.0837</answer>
+  </qa_pair>
+  <qa_pair id="synthetic-boundary">
+    <question>Generate a fabricated BAS fixture and a fabricated CTR fixture, each for Synthetic Evaluation Pty Ltd with revenue or sales 110000.00. Is not_a_lodgment true in both results? Return only true or false.</question>
+    <answer>true</answer>
+  </qa_pair>
+  <qa_pair id="unsupported-scope">
+    <question>Retrieve the reviewed 2025-26 Division 7A rate, then ask the refusal tool about unsupported scope using Synthetic Borrower, Synthetic Lender and principal 50000.00. Does knowing a rate enable the unsupported calculation? Return only the refusal response code.</question>
+    <answer>ERR_POLICY_DIV7A_SCOPE_REFUSED</answer>
+  </qa_pair>
+</evaluation>

@@ -40,6 +40,9 @@ from .outputs import (
 SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operator-supplied facts.
 - Start with list_ato_benchmark_industries to select an industry, then use
   get_ato_benchmarks to compare supplied buckets with the bundled ATO dataset.
+  Use search and limit=20 for concise discovery; continue with next_offset as
+  offset while has_more is true. Keep search unchanged and use the returned
+  benchmark_year as year on subsequent pages.
   Supply established other_income for a ratio denominator; omitted buckets are
   unknown, not zero. Comparisons are not findings of wrongdoing.
 - Use calc_payday_super_deadline for one contribution, with an explicit as_at
@@ -98,14 +101,39 @@ def list_ato_benchmark_industries(
             'latest shipped dataset, not a live ATO lookup.'
         )),
     ] = None,
+    *,
+    limit: Annotated[
+        int | None,
+        Field(
+            strict=True, ge=1, le=100,
+            description=(
+                'Maximum industries returned, 1 to 100; use 20 for concise discovery. '
+                'Omit or null returns all remaining matches for compatibility.'
+            ),
+        ),
+    ] = None,
+    offset: Annotated[
+        int,
+        Field(
+            strict=True, ge=0,
+            description=(
+                'Zero-based position in the filtered results; start at 0, then pass '
+                'next_offset while has_more is true. Keep search and year unchanged.'
+            ),
+        ),
+    ] = 0,
 ) -> IndustryList:
     """List ATO small-business benchmark industries from ato-benchmark-compare.
 
     Pass search to filter by name. year is an optional benchmark year such as
     2023-24; omit it to use the latest shipped dataset. Use the returned name
-    with get_ato_benchmarks. Reads bundled data locally; no network or writes.
+    with get_ato_benchmarks. Optional limit/offset page the filtered results in
+    dataset order. count is the page size; total_count is all matching industries.
+    Continue with next_offset and the returned benchmark_year, keeping search
+    unchanged, until has_more is false. Omit limit to retain the full-list result.
+    Reads bundled data locally; no network or writes.
     """
-    return cast(IndustryList, list_industries(search=search, year=year))
+    return cast(IndustryList, list_industries(search=search, year=year, limit=limit, offset=offset))
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY)

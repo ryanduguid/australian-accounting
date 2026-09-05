@@ -260,3 +260,26 @@ async def _inspect_stdio():
 
 def test_stdio_initialization_publishes_guidance_and_preserves_full_unknown_results():
     asyncio.run(_inspect_stdio())
+
+
+@pytest.mark.parametrize("detail", ["summary", "full"])
+def test_missing_loan_year_preserves_engine_unknown_marker(detail):
+    arguments = {"year_of_income": "2025-26", "response_detail": detail}
+    expected = server.review_div7a_loan(**arguments)
+    result = asyncio.run(server.mcp.call_tool("review_div7a_loan", arguments))
+    assert result.structured_content == expected
+    assert result.structured_content["gate"]["verdict"] == "UNKNOWN"
+    assert result.structured_content["gate"]["benchmark_year_used"] == ""
+    Draft202012Validator(SCHEMAS["review_div7a_loan"]).validate(result.structured_content)
+
+
+@pytest.mark.parametrize("detail", ["summary", "full"])
+def test_unknown_loan_year_does_not_allow_malformed_nonempty_years(detail):
+    from aus_accounting_mcp.outputs import Div7aReview
+
+    payload = server.review_div7a_loan(year_of_income="2025-26", response_detail=detail)
+    payload["gate"]["benchmark_year_used"] = "not-a-year"
+    with pytest.raises(ValidationError):
+        Draft202012Validator(SCHEMAS["review_div7a_loan"]).validate(payload)
+    with pytest.raises(ModelValidationError):
+        TypeAdapter(Div7aReview).validate_python(payload)

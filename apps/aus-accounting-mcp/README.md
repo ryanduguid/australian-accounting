@@ -164,11 +164,31 @@ including verdicts, decimal strings, warnings and source information. `ok: true`
 means the tool ran, not that the review passed; retain `UNKNOWN`, `REFUSED`,
 `not_supplied` and `null` results when presenting findings. Engine audit fields are
 preserved, and clients receive the same payload in structured content and JSON text.
+An unavailable Division 7A `benchmark_year_used` may be the engine's empty string
+or null; neither is evidence of a reviewed year.
 
 The Division 7A tools default to `response_detail="summary"`, retaining outcomes,
 amounts, caveats, versions and a verification link while reducing tool-result size.
 Pass `response_detail="full"` when the complete provenance, statutory trace and
 per-limb audit material are required.
+
+For concise industry discovery, call `list_ato_benchmark_industries` with
+`{"search":"shop","year":"2023-24","limit":20}`. `count` is the number returned;
+`total_count` is the number matching the search, while `total_business_types` covers
+the whole dataset. If `has_more` is true, pass `next_offset` as `offset` with the
+same search, limit and returned `benchmark_year` as `year`. `next_offset` is null
+at the end. Limits must be integers from 1 to 100 and offsets non-negative integers.
+Omitting `limit` or setting it to null preserves full-list calls; an offset still
+skips that many matching entries. Source metadata accompanies every page.
+
+Ten fabricated, read-only agent evaluation questions and exact expected answers
+are in [evaluation/questions.xml](evaluation/questions.xml). The normal pytest
+suite verifies their answers through a real stdio MCP session using the locked
+engines. This checks answer reproducibility; it does not measure whether a model
+can independently select the right tools. Evaluate that separately by presenting
+the questions without the answer elements to an MCP-capable client. The fixed
+dataset years and engine versions define the evaluation baseline; review expected
+answers when upgrading an engine.
 
 `calc_payday_super_deadline` requires `as_at`. It does not invent clearing-house latency and cannot confirm LCR 2026/1 transition allocation. A remittance date alone cannot produce `ON_TIME`.
 
