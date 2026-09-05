@@ -1,8 +1,8 @@
-# div7a-loan-review
+# Division 7A loan review
 
 ```
 +----------------------------------------------------------------------+
-|                          div7a-loan-review                           |
+|                       Division 7A loan review                        |
 +----------------------------------------------------------------------+
 |          ITAA 1936 Div 7A: s 109N terms, s 109E repayments           |
 +----------------------------------+-----------------------------------+
@@ -20,6 +20,8 @@
 [![PyPI](https://img.shields.io/pypi/v/div7a-loan-review.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/div7a-loan-review/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
+
+Distribution `div7a-loan-review`, import package `div7aloan`, command `div7a-loan-review`.
 
 **Experimental review aid. Not a Division 7A determination.**
 
