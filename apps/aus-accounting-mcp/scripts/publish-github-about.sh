@@ -4,7 +4,7 @@
 set -euo pipefail
 
 REPO="ryanduguid/australian-accounting"
-DESCRIPTION="Local MCP server for Australian accounting review: ATO benchmarks, Payday Super 2026, limited Division 7A loan reviews and synthetic SBR fixtures. Not advice."
+DESCRIPTION="Aus Accounting MCP, a local MCP server for Australian accounting review: ATO benchmarks, Payday Super 2026, limited Division 7A loan reviews and synthetic SBR fixtures. Not advice."
 HOMEPAGE="https://duguid.com.au/tools/australian-tax-ai-agents/"
 TOPICS=(
   accounting

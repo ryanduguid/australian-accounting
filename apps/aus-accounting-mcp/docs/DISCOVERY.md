@@ -9,7 +9,7 @@ About, repository topics, README, `pyproject.toml`, `glama.json`, and
 Description:
 
 ```text
-Local MCP server for Australian accounting review: ATO benchmarks, Payday Super 2026, limited Division 7A loan reviews and synthetic SBR fixtures. Not advice.
+Aus Accounting MCP, a local MCP server for Australian accounting review: ATO benchmarks, Payday Super 2026, limited Division 7A loan reviews and synthetic SBR fixtures. Not advice.
 ```
 
 Website:
