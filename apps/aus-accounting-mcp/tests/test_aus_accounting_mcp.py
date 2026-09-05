@@ -218,23 +218,20 @@ def _assert_registered_pypi_publisher(workflows: dict[str, str]) -> None:
     release_jobs = _workflow_jobs(release)
 
     assert "workflow_dispatch:" not in release
-    assert not any(
-        re.search(r"pypi|backfill", job_name, re.IGNORECASE) for job_name in release_jobs
-    ), "release workflow must not contain a PyPI or backfill job"
-    assert not any(
-        re.fullmatch(r"\s*environment:\s*pypi", line, re.IGNORECASE)
-        for line in _yaml_mapping_lines(release)
-    ), "release workflow must not select the pypi environment"
     assert '  push:\n    tags: ["aus-accounting-mcp/v*"]' in release
     release_job = release_jobs.get("release")
     assert release_job is not None
+    release_mapping = "\n".join(_yaml_mapping_lines(release_job))
     assert (
         re.search(
             r"(?m)^    uses:\s*"
             r"ryanduguid/release-policy/\.github/workflows/release-python\.yml@",
-            "\n".join(_yaml_mapping_lines(release_job)),
+            release_mapping,
         )
         is not None
+    )
+    assert re.search(r"(?m)^      upload-dist-artifact:\s*true\s*$", release_mapping), (
+        "release job must upload the attested distribution for the pypi job"
     )
 
     publisher_uses = _pypi_publisher_uses(workflows)
@@ -243,40 +240,31 @@ def _assert_registered_pypi_publisher(workflows: dict[str, str]) -> None:
         f"found {publisher_uses}"
     )
     publisher_file, publisher_job_name = publisher_uses[0]
-    assert publisher_file == "publish-pypi.yml", (
-        "the trusted publisher use must be in publish-pypi.yml"
+    assert (publisher_file, publisher_job_name) == ("release-aus-accounting-mcp.yml", "pypi"), (
+        "publishing job must be the release workflow's pypi job"
     )
 
-    publisher = workflows[publisher_file]
-    publisher_job = _workflow_jobs(publisher)[publisher_job_name]
+    publisher_job = release_jobs[publisher_job_name]
     publisher_mapping = "\n".join(_yaml_mapping_lines(publisher_job))
-    assert re.search(r"(?m)^    environment:\s*pypi\s*$", publisher_mapping, re.IGNORECASE), (
-        "publishing job must select environment: pypi"
+    assert re.search(r"(?m)^    needs:\s*release\s*$", publisher_mapping), (
+        "publishing job must run after the attested release"
     )
+    environment = _yaml_block(publisher_job, "environment", 4)
+    assert environment is not None and re.search(
+        r"(?m)^      name:\s*pypi-aus-accounting-mcp\s*$", environment
+    ), "publishing job must select the pypi-aus-accounting-mcp environment"
 
     permissions = _yaml_block(publisher_job, "permissions", 4)
     assert permissions is not None, "publishing job must declare job permissions"
     assert re.search(r"(?m)^      id-token:\s*write\s*(?:#.*)?$", permissions), (
         "publishing job permissions must grant id-token: write"
     )
-    assert any(
-        "sha256sum --check SHA256SUMS" in script for script in _job_run_scripts(publisher_job)
-    ), "publishing job must verify SHA256SUMS"
-    assert re.search(r"\$\{\{[^}\n]*\binputs\.tag\b[^}\n]*\}\}", publisher_mapping), (
-        "publishing job must consume inputs.tag"
-    )
-
-    dispatch = _yaml_block(publisher, "workflow_dispatch", 2)
-    assert dispatch is not None, "publish workflow must allow manual dispatch"
-    inputs = _yaml_block(dispatch, "inputs", 4)
-    assert inputs is not None, "workflow_dispatch must declare inputs"
-    tag = _yaml_block(inputs, "tag", 6)
-    assert tag is not None, "workflow_dispatch must declare a tag input"
-    assert re.search(r"(?m)^        required:\s*true\s*(?:#.*)?$", tag, re.IGNORECASE), (
-        "workflow_dispatch tag input must be required"
-    )
-    assert re.search(r"(?m)^        type:\s*string\s*(?:#.*)?$", tag, re.IGNORECASE), (
-        "workflow_dispatch tag input must be a string"
+    assert (
+        "name: dist-${{ needs.release.outputs.stem }}-${{ needs.release.outputs.version }}"
+        in publisher_mapping
+    ), "publishing job must download only the distribution the release job attested"
+    assert "python -m build" not in publisher_job, (
+        "publishing job must not rebuild the distribution"
     )
 
 
@@ -290,27 +278,21 @@ on:
 jobs:
   release:
     uses: ryanduguid/release-policy/.github/workflows/release-python.yml@abc123
-""",
-        "publish-pypi.yml": """\
-name: Publish to PyPI
-on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        required: true
-        type: string
-jobs:
-  publish:
+    with:
+      source-directory: apps/aus-accounting-mcp
+      upload-dist-artifact: true
+  pypi:
+    needs: release
     runs-on: ubuntu-latest
-    environment: pypi
+    environment:
+      name: pypi-aus-accounting-mcp
     permissions:
       id-token: write
     steps:
-      - name: Verify the release assets
-        env:
-          TAG: ${{ inputs.tag }}
-        run: |
-          sha256sum --check SHA256SUMS
+      - uses: actions/download-artifact@abc123
+        with:
+          name: dist-${{ needs.release.outputs.stem }}-${{ needs.release.outputs.version }}
+          path: dist
       - name: Publish
         uses: pypa/gh-action-pypi-publish@abc123
 """,
@@ -1026,42 +1008,43 @@ jobs:
 
 def test_pypi_route_rejects_controls_parked_in_a_dummy_job() -> None:
     workflows = _valid_pypi_workflow_fixture()
-    workflows["publish-pypi.yml"] = """\
-name: Publish to PyPI
-on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        required: true
-        type: string
-jobs:
-  publish:
+    workflows["release-aus-accounting-mcp.yml"] = workflows[
+        "release-aus-accounting-mcp.yml"
+    ].replace(
+        """  pypi:
+    needs: release
     runs-on: ubuntu-latest
-    steps:
-      - uses: pypa/gh-action-pypi-publish@abc123
-  dummy:
-    runs-on: ubuntu-latest
-    environment: pypi
+    environment:
+      name: pypi-aus-accounting-mcp
     permissions:
       id-token: write
-    steps:
-      - env:
-          TAG: ${{ inputs.tag }}
-        run: |
-          sha256sum --check SHA256SUMS
-"""
+""",
+        """  pypi:
+    needs: release
+    runs-on: ubuntu-latest
+  dummy:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi-aus-accounting-mcp
+    permissions:
+      id-token: write
+""",
+    )
 
     with pytest.raises(AssertionError, match="publishing job"):
         _assert_registered_pypi_publisher(workflows)
 
 
-def test_pypi_route_rejects_an_unused_manual_tag() -> None:
+def test_pypi_route_rejects_a_rebuilt_distribution() -> None:
     workflows = _valid_pypi_workflow_fixture()
-    workflows["publish-pypi.yml"] = workflows["publish-pypi.yml"].replace(
-        "${{ inputs.tag }}", "${{ github.ref_name }}"
+    workflows["release-aus-accounting-mcp.yml"] = workflows[
+        "release-aus-accounting-mcp.yml"
+    ].replace(
+        "      - name: Publish\n",
+        "      - run: python -m build\n      - name: Publish\n",
     )
 
-    with pytest.raises(AssertionError, match="inputs.tag"):
+    with pytest.raises(AssertionError, match="rebuild"):
         _assert_registered_pypi_publisher(workflows)
 
 

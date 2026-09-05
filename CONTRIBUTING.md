@@ -54,15 +54,14 @@ directory and the normalised distribution name. The tag triggers only
 reusable workflow with that component's `source-directory` and `tag-prefix`. The policy
 checks the tag, the `main` commit, the clean tree, the component's `RELEASE_NOTES.md`
 header (`# vX.Y.Z` on the first line), the lockfile and the distribution identity, then
-builds, attests and publishes the GitHub release. Engine workflows then publish the exact
-attested distribution to PyPI under the component's own `pypi-<component>` environment and
-trusted publisher. The MCP application publishes to PyPI through `publish-pypi.yml`
-(manual dispatch with the same tag, existing `pypi` environment) and to the MCP Registry
-through `publish-mcp.yml`.
+builds, attests and publishes the GitHub release. Every component workflow then publishes the
+exact attested distribution to PyPI under the component's own `pypi-<component>`
+environment and trusted publisher. The MCP application additionally publishes to the MCP
+Registry through `publish-mcp.yml`.
 
 | Component | Tag | Workflow | Version source | PyPI environment |
 |---|---|---|---|---|
-| aus-accounting-mcp | `aus-accounting-mcp/vX.Y.Z` | `release-aus-accounting-mcp.yml` | `pyproject.toml` | `pypi`, through `publish-pypi.yml` |
+| aus-accounting-mcp | `aus-accounting-mcp/vX.Y.Z` | `release-aus-accounting-mcp.yml` | `pyproject.toml` | `pypi-aus-accounting-mcp` |
 | ato-benchmark-compare | `ato-benchmark-compare/vX.Y.Z` | `release-ato-benchmark-compare.yml` | `atobenchmark/__init__.py` | `pypi-ato-benchmark-compare` |
 | payday-super-checker | `payday-super-checker/vX.Y.Z` | `release-payday-super-checker.yml` | `pyproject.toml` | `pypi-payday-super-checker` |
 | div7a-loan-review | `div7a-loan-review/vX.Y.Z` | `release-div7a-loan-review.yml` | `pyproject.toml` | `pypi-div7a-loan-review` |

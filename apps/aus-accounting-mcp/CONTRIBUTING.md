@@ -28,6 +28,7 @@ demo output changes, then run the supplementary demo and media checks in `AGENTS
 
 Do not publish from a contribution branch. After the CI gates and relevant supplementary
 checks pass, hand the reviewed commit to the existing release workflow. A version tag
-creates the GitHub release; dispatch **Publish to PyPI** with that same tag, verify the
-published package, then dispatch **Publish to MCP Registry** for the exact version in
-`server.json`. Each publication remains an explicit, approval-gated action.
+creates the attested GitHub release, and the same workflow's **Publish to PyPI** job then
+publishes that exact distribution through the `pypi-aus-accounting-mcp` environment. Verify
+the published package, then dispatch **Publish to MCP Registry** for the exact version in
+`server.json`. The registry publication remains an explicit, approval-gated action.

@@ -89,11 +89,12 @@ admin), so the `github-about` workflow warns and continues rather than failing.
   to PyPI and verify it before dispatching the registry workflow. `server.json`
   names that exact package version. GitHub Actions OIDC publishes the registry
   record only after an explicit manual dispatch.
-- For future releases, push the namespaced tag `aus-accounting-mcp/vX.Y.Z` to create
-  and attest the GitHub release, then dispatch **Publish to PyPI** with the same tag. PyPI's trusted
-  publisher is bound to `publish-pypi.yml`; do not add a publisher job to
-  `release-aus-accounting-mcp.yml` unless the PyPI publisher configuration is changed
-  with it.
+- For future releases, push the namespaced tag `aus-accounting-mcp/vX.Y.Z`.
+  `release-aus-accounting-mcp.yml` creates and attests the GitHub release, then its
+  `pypi` job publishes the exact attested distribution through the
+  `pypi-aus-accounting-mcp` environment, the same shape as the six engine workflows.
+  PyPI's trusted publisher must name that workflow file and environment; change the
+  publisher configuration together with the workflow, never one without the other.
 - Do not copy AGPL or proprietary-corpus language from other ATO MCP products.
 
 ## Release provenance
