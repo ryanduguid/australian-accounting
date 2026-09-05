@@ -20,6 +20,7 @@ on:
       - "IMPORTS.md"
       - ".editorconfig"
       - ".gitignore"
+      - ".gitattributes"
       - ".mailmap"
   pull_request:
     paths:
@@ -32,6 +33,7 @@ on:
       - "IMPORTS.md"
       - ".editorconfig"
       - ".gitignore"
+      - ".gitattributes"
       - ".mailmap"
 
 permissions:
