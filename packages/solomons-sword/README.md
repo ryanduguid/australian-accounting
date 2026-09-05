@@ -1,8 +1,8 @@
-# Solomon's Sword
+# Trust distribution checks
 
 ```
 +----------------------------------------------------------------------+
-|                            SolomonsSword                             |
+|                      Trust distribution checks                       |
 +----------------------------------------------------------------------+
 |            Division 6, s100A and s99B trust review tools             |
 +----------------------------------+-----------------------------------+
@@ -19,6 +19,8 @@
 [![PyPI](https://img.shields.io/pypi/v/solomons-sword.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/solomons-sword/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
 [![ITAA 1936](https://img.shields.io/badge/Legislation-ITAA%201936%20Division%206-5C2D91?labelColor=04001F)](https://www.legislation.gov.au/C1936A00027/latest/text)
+
+Project name Solomon's Sword. Distribution `solomons-sword`, import package `louisgoldberg`, command `solomons-sword`.
 
 **Trust distribution allocation, Section 100A / 99B risk evaluation, and Division 6 ITAA 1936 review helpers for Australian trusts.**
 
