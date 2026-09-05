@@ -20,6 +20,7 @@ on:
       - "IMPORTS.md"
       - ".editorconfig"
       - ".gitignore"
+      - ".gitattributes"
       - ".mailmap"
   pull_request:
     paths:
@@ -32,6 +33,7 @@ on:
       - "IMPORTS.md"
       - ".editorconfig"
       - ".gitignore"
+      - ".gitattributes"
       - ".mailmap"
 
 permissions:
@@ -47,6 +49,7 @@ defaults:
 
 jobs:
   test:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -83,6 +86,7 @@ jobs:
           ! grep -rniE 'requests\.|urllib|http://|urlopen|socket\.' div7aloan/*.py
 
   build:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

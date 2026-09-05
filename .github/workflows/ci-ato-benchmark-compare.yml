@@ -20,6 +20,7 @@ on:
       - "IMPORTS.md"
       - ".editorconfig"
       - ".gitignore"
+      - ".gitattributes"
       - ".mailmap"
   pull_request:
     paths:
@@ -32,6 +33,7 @@ on:
       - "IMPORTS.md"
       - ".editorconfig"
       - ".gitignore"
+      - ".gitattributes"
       - ".mailmap"
 
 permissions:
@@ -59,6 +61,7 @@ jobs:
             python: "3.13"
           - os: windows-latest
             python: "3.12"   # where path handling and the ANSI codepage diverge
+    timeout-minutes: 30
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -100,6 +103,7 @@ jobs:
   dependency-audit:
     permissions:
       contents: read
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -119,6 +123,7 @@ jobs:
   package:
     permissions:
       contents: read
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -158,6 +163,7 @@ jobs:
   lint:
     permissions:
       contents: read
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -98,6 +98,27 @@ def production_modules(component: str, package: str) -> list[tuple[Path, int]]:
 
 
 class BoundaryTests(unittest.TestCase):
+    def test_root_policy_changes_run_every_engine(self) -> None:
+        shared_paths = {
+            "AGENTS.md", "CONTRIBUTING.md", "README.md", "SECURITY.md",
+            "IMPORTS.md", ".editorconfig", ".gitignore", ".mailmap",
+            ".gitattributes", ".github/**",
+        }
+        for component in ENGINES:
+            workflow_name = f"ci-{Path(component).name}.yml"
+            workflow = (ROOT / ".github" / "workflows" / workflow_name).read_text(
+                encoding="utf-8"
+            )
+            filters = re.findall(r"(?m)^    paths:\n((?:      .*\n)+)", workflow)
+            with self.subTest(workflow=workflow_name):
+                self.assertEqual(len(filters), 2)
+                for paths in filters:
+                    entries = {
+                        line.strip().removeprefix("- ").strip("\"'")
+                        for line in paths.splitlines()
+                    }
+                    self.assertEqual(shared_paths - entries, set())
+
     def test_imported_diff_coverage_waits_for_a_mainline_baseline(self) -> None:
         sentinels = {
             "ci-ato-benchmark-compare.yml": (
