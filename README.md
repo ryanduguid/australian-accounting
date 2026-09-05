@@ -5,6 +5,34 @@ Australian accounting engines. Each component keeps its own distribution name, v
 lockfile, tests, release notes, commands and licence. There is no root package, root
 lockfile, shared runtime library or combined version.
 
+## Use Aus Accounting MCP
+
+For the MCP server, install Python 3.10+ and [uv](https://docs.astral.sh/uv/), then
+configure your MCP client to run:
+
+```bash
+uvx aus-accounting-mcp
+```
+
+This starts a **local stdio server**; it waits for an MCP client rather than opening
+a web page. It requires no API key. Package installation downloads dependencies;
+the tools then use bundled data without network requests or record writes.
+
+[Client setup and examples](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#client-integration)
+· [Tool reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#tools)
+· [PyPI](https://pypi.org/project/aus-accounting-mcp/)
+· [Glama listing](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
+
+The seven tools list ATO benchmark industries, compare supplied expense buckets,
+review Payday Super timing, look up reviewed Division 7A rates, review an
+operator-supplied Division 7A loan, refuse unsupported Division 7A matters, and
+generate synthetic CTR/BAS fixtures. Division 7A review is limited to the delegated
+engine's s 109N/s 109E scope; it does not form amalgamated loans or classify
+repayments under s 109R. Outputs are review aids, not advice or lodgments.
+
+For an editable source installation, run `pip install -e .` from
+`apps/aus-accounting-mcp/`. The repository root is not an installable Python package.
+
 ## Components
 
 | Path | Distribution | Import package | Commands |

@@ -64,9 +64,20 @@ admin), so the `github-about` workflow warns and continues rather than failing.
   `aus-accounting-mcp` project is published on PyPI; its current public release
   is the source of truth for the standard install command.
 - Point agents at the comparison page: https://duguid.com.au/tools/australian-tax-ai-agents/
-- The Glama listing is https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server,
-  claimed as maintainer `ryanduguid`. The generated badge is
-  https://glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server/badge.
+- The current Glama listing is
+  https://glama.ai/mcp/servers/ryanduguid/australian-accounting,
+  claimed as maintainer `ryanduguid`. The historical `au-tax-mcp-server` URL is
+  retained by the existing README badge. Keep the root `glama.json` maintainer
+  declaration aligned with the application copy: Glama discovers repository-root
+  metadata, while the application lives in `apps/aus-accounting-mcp/`.
+  In Glama **Admin → Repository**, set **GitHub Project URL** to
+  https://github.com/ryanduguid/australian-accounting/tree/main/apps/aus-accounting-mcp
+  so the listing renders the application's README instead of the monorepo index.
+  Use **Sync Server** after a source change lands. Profile name and description
+  are separate fields under **Admin → Profile**. Review generated FAQs and TDQS
+  explanations after syncing: cached text may still describe the old five-tool
+  server even when the schema lists seven tools. Do not claim a new grade until
+  Glama actually recomputes it.
 - Official MCP registry: listed as `io.github.ryanduguid/aus-accounting` since
   25 August 2026. Record:
   https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/latest

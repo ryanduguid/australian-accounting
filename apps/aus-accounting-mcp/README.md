@@ -45,7 +45,7 @@ The Division 7A adapter covers reviewed s 109N loan terms and benchmark rates pl
 
 ![Static terminal proof of synthetic BAS output and Division 7A loan review](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/apps/aus-accounting-mcp/docs/quick-proof.webp)
 
-**Release proof:** from a repository checkout, run the fabricated
+**Release proof:** from `apps/aus-accounting-mcp/` in a repository checkout, run the fabricated
 demonstration without starting the stdio server:
 
 ```bash
@@ -97,7 +97,13 @@ published provenance is the [v0.1.7 release record](https://github.com/ryandugui
 uvx aus-accounting-mcp
 ```
 
-Clone and `pip install -e .` still works when you want a local editable tree.
+For a local editable tree, clone the repository, change into
+`apps/aus-accounting-mcp/`, then run `pip install -e .`. The repository root is not
+an installable package.
+
+The executable waits for a client over stdio; it does not open a web page or start
+an HTTP service. No API key is required. Installation downloads packages; tool
+calls use bundled data locally without writing records or contacting services.
 
 ## Client integration
 
