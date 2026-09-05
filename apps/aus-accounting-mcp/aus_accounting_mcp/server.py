@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 from importlib.metadata import PackageNotFoundError, version
-from typing import Annotated, Any, Literal
+from typing import Annotated, Literal, cast
 
 from mcp.server.mcpserver import MCPServer
 from mcp_types import ToolAnnotations
@@ -27,8 +27,41 @@ from .fixtures.synthetic_sbr import (
 )
 from .errors import InputError
 from .money import parse_amount
+from .outputs import (
+    BenchmarkComparison,
+    Div7aRate,
+    Div7aReview,
+    IndustryList,
+    PaydayReview,
+    ScopeRefusal,
+    SyntheticFixture,
+)
 
-mcp = MCPServer("aus-accounting-mcp", version=_VERSION)
+SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operator-supplied facts.
+- Start with list_ato_benchmark_industries to select an industry, then use
+  get_ato_benchmarks to compare supplied buckets with the bundled ATO dataset.
+  Supply established other_income for a ratio denominator; omitted buckets are
+  unknown, not zero. Comparisons are not findings of wrongdoing.
+- Use calc_payday_super_deadline for one contribution, with an explicit as_at
+  date. Remittance does not establish fund receipt. Do not infer receipt dates
+  or clearing-house latency, or report ON_TIME without evidence of receipt.
+- Use get_div7a_benchmark_rate for rate-only queries and review_div7a_loan for
+  the reviewed s 109N/s 109E facts of one operator-supplied amalgamated loan.
+  Use refuse_div7a for unsupported matters. Do not form amalgamated loans,
+  classify s 109R payments, or invent eligibility, rates or missing facts.
+- generate_synthetic_sbr_fixture is only for fabricated integration tests.
+  Never use its CTR/BAS output as a real calculation or lodgment.
+Money and rates use decimal strings; dates use YYYY-MM-DD and income years
+YYYY-YY. Preserve UNKNOWN, REFUSED, not_supplied and null outcomes. ok=true means
+execution succeeded, not that a review passed. For Division 7A, summary is the
+default; request response_detail="full" when the full audit trail is needed.
+Retain engine versions, source/review dates, citations, warnings and caveats.
+Bundled data is not a live lookup. These tools do not access the network, write
+records or lodge. Results are review aids, not advice or determinations; obtain
+human review before consequential accounting action.
+"""
+
+mcp = MCPServer("aus-accounting-mcp", version=_VERSION, instructions=SERVER_INSTRUCTIONS)
 
 # These tools read bundled data and return results in memory. They never lodge,
 # write records or contact external services; installation is a separate step.
@@ -65,14 +98,14 @@ def list_ato_benchmark_industries(
             'latest shipped dataset, not a live ATO lookup.'
         )),
     ] = None,
-) -> dict[str, Any]:
+) -> IndustryList:
     """List ATO small-business benchmark industries from ato-benchmark-compare.
 
     Pass search to filter by name. year is an optional benchmark year such as
     2023-24; omit it to use the latest shipped dataset. Use the returned name
     with get_ato_benchmarks. Reads bundled data locally; no network or writes.
     """
-    return list_industries(search=search, year=year)
+    return cast(IndustryList, list_industries(search=search, year=year))
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY)
@@ -191,7 +224,7 @@ def get_ato_benchmarks(
             'latest shipped dataset, not a live ATO lookup.'
         )),
     ] = None,
-) -> dict[str, Any]:
+) -> BenchmarkComparison:
     """Compare bucket totals against ATO small-business benchmarks.
 
     Amounts are decimal strings. industry is an ATO business-type name
@@ -204,20 +237,23 @@ def get_ato_benchmarks(
     ranges, source citations and warnings from ato-benchmark-compare.
     Runs locally with no network, writes or lodgments. Not tax advice.
     """
-    return compare_figures(
-        industry=industry,
-        turnover=turnover,
-        year=year,
-        other_income=other_income,
-        cost_of_sales=cost_of_sales,
-        cost_of_sales_labour=cost_of_sales_labour,
-        salary_wages=salary_wages,
-        contractor_commission=contractor_commission,
-        associated_persons=associated_persons,
-        rent=rent,
-        motor_vehicle=motor_vehicle,
-        other_expense=other_expense,
-        w1=w1,
+    return cast(
+        BenchmarkComparison,
+        compare_figures(
+            industry=industry,
+            turnover=turnover,
+            year=year,
+            other_income=other_income,
+            cost_of_sales=cost_of_sales,
+            cost_of_sales_labour=cost_of_sales_labour,
+            salary_wages=salary_wages,
+            contractor_commission=contractor_commission,
+            associated_persons=associated_persons,
+            rent=rent,
+            motor_vehicle=motor_vehicle,
+            other_expense=other_expense,
+            w1=w1,
+        ),
     )
 
 
@@ -295,7 +331,7 @@ def calc_payday_super_deadline(
             'engine pathway that skips lateness testing.'
         )),
     ] = False,
-) -> dict[str, Any]:
+) -> PaydayReview:
     """Review one contribution against payday-super-checker.
 
     qe_day is the qualifying-earnings (payday) date. as_at is required.
@@ -306,17 +342,20 @@ def calc_payday_super_deadline(
     experimental review only, not a compliance determination. Runs locally
     without network access, remitting contributions or changing records.
     """
-    return review_contribution(
-        qe_day=qe_day,
-        sg_amount=sg_amount,
-        as_at=as_at,
-        remitted=remitted,
-        received=received,
-        employee_id=employee_id,
-        first_to_fund=first_to_fund,
-        out_of_cycle=out_of_cycle,
-        next_standard_qe_day=next_standard_qe_day,
-        db_interest=db_interest,
+    return cast(
+        PaydayReview,
+        review_contribution(
+            qe_day=qe_day,
+            sg_amount=sg_amount,
+            as_at=as_at,
+            remitted=remitted,
+            received=received,
+            employee_id=employee_id,
+            first_to_fund=first_to_fund,
+            out_of_cycle=out_of_cycle,
+            next_standard_qe_day=next_standard_qe_day,
+            db_interest=db_interest,
+        ),
     )
 
 
@@ -336,7 +375,7 @@ def get_div7a_benchmark_rate(
             'engine audit and provenance.'
         )),
     ] = "summary",
-) -> dict[str, Any]:
+) -> Div7aRate:
     """Return the reviewed s 109N(2) rate for a year, or UNKNOWN.
 
     Years use the YYYY-YY form, such as 2026-27. The delegated engine fails
@@ -345,7 +384,7 @@ def get_div7a_benchmark_rate(
     and statutory trace. Use review_div7a_loan to review supplied loan facts.
     Returns cited data without writes; not advice or a live rate lookup.
     """
-    return get_benchmark_rate(year_of_income, response_detail=response_detail)
+    return cast(Div7aRate, get_benchmark_rate(year_of_income, response_detail=response_detail))
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY)
@@ -445,7 +484,7 @@ def review_div7a_loan(
             'engine audit and provenance.'
         )),
     ] = "summary",
-) -> dict[str, Any]:
+) -> Div7aReview:
     """Review one operator-supplied amalgamated Division 7A loan.
 
     The tool runs the s 109N gate and then the s 109E minimum yearly repayment.
@@ -458,26 +497,29 @@ def review_div7a_loan(
     classify payments under s 109R. Runs locally with no network, writes or
     lodgments. Experimental review aid, not a tax determination or advice.
     """
-    return review_loan(
-        year_of_income=year_of_income,
-        year_loan_made=year_loan_made,
-        written_agreement=written_agreement,
-        terms_in_place_before_lodgment_day=terms_in_place_before_lodgment_day,
-        maximum_term_years=maximum_term_years,
-        secured_by_registered_mortgage_over_real_property=(
-            secured_by_registered_mortgage_over_real_property
+    return cast(
+        Div7aReview,
+        review_loan(
+            year_of_income=year_of_income,
+            year_loan_made=year_loan_made,
+            written_agreement=written_agreement,
+            terms_in_place_before_lodgment_day=terms_in_place_before_lodgment_day,
+            maximum_term_years=maximum_term_years,
+            secured_by_registered_mortgage_over_real_property=(
+                secured_by_registered_mortgage_over_real_property
+            ),
+            security_coverage_at_first_made=security_coverage_at_first_made,
+            interest_rate_for_years_after_year_loan_made=(
+                interest_rate_for_years_after_year_loan_made
+            ),
+            amalgamated_loan_unpaid_at_end_of_previous_year=(
+                amalgamated_loan_unpaid_at_end_of_previous_year
+            ),
+            remaining_term_years=remaining_term_years,
+            payments_applied_during_the_year=payments_applied_during_the_year,
+            loan_id=loan_id,
+            response_detail=response_detail,
         ),
-        security_coverage_at_first_made=security_coverage_at_first_made,
-        interest_rate_for_years_after_year_loan_made=(
-            interest_rate_for_years_after_year_loan_made
-        ),
-        amalgamated_loan_unpaid_at_end_of_previous_year=(
-            amalgamated_loan_unpaid_at_end_of_previous_year
-        ),
-        remaining_term_years=remaining_term_years,
-        payments_applied_during_the_year=payments_applied_during_the_year,
-        loan_id=loan_id,
-        response_detail=response_detail,
     )
 
 
@@ -518,7 +560,7 @@ def refuse_div7a(
             'eligibility or enable a calculation.'
         )),
     ] = False,
-) -> dict[str, Any]:
+) -> ScopeRefusal:
     """Return an explicit refusal for unsupported Division 7A matters.
 
     Use review_div7a_loan for reviewed s 109N/s 109E loan facts, or
@@ -563,7 +605,7 @@ def generate_synthetic_sbr_fixture(
             '1000000000000.00.'
         )),
     ] = "1000000.00",
-) -> dict[str, Any]:
+) -> SyntheticFixture:
     """Generate fabricated CTR/BAS payloads for testing an agent integration.
 
     Use only with synthetic inputs. Fixed demonstration assumptions produce
@@ -574,18 +616,24 @@ def generate_synthetic_sbr_fixture(
     amount = parse_amount(revenue_or_sales, "revenue_or_sales")
     kind = form_type.strip().upper()
     if kind == "CTR":
-        return generate_synthetic_ctr_payload(
-            company_name=entity_name,
-            gross_revenue=amount,
-            cost_of_sales=(amount * Decimal("0.4")).quantize(Decimal("0.01")),
-            deductible_operating_expenses=(amount * Decimal("0.3")).quantize(Decimal("0.01")),
+        return cast(
+            SyntheticFixture,
+            generate_synthetic_ctr_payload(
+                company_name=entity_name,
+                gross_revenue=amount,
+                cost_of_sales=(amount * Decimal("0.4")).quantize(Decimal("0.01")),
+                deductible_operating_expenses=(amount * Decimal("0.3")).quantize(Decimal("0.01")),
+            ),
         )
     if kind == "BAS":
-        return generate_synthetic_bas_payload(
-            entity_name=entity_name,
-            total_sales_g1=amount,
-            capital_purchases_g10=Decimal("11000.00"),
-            non_capital_purchases_g11=(amount * Decimal("0.4")).quantize(Decimal("0.01")),
+        return cast(
+            SyntheticFixture,
+            generate_synthetic_bas_payload(
+                entity_name=entity_name,
+                total_sales_g1=amount,
+                capital_purchases_g10=Decimal("11000.00"),
+                non_capital_purchases_g11=(amount * Decimal("0.4")).quantize(Decimal("0.01")),
+            ),
         )
     raise InputError(f"Unknown form_type {form_type!r}. Supported: CTR, BAS.")
 
