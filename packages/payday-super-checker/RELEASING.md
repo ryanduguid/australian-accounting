@@ -1,5 +1,7 @@
 # Releasing
 
+The monorepo's [GitHub Releases](https://github.com/ryanduguid/australian-accounting/releases) page is the canonical release history from `payday-super-checker/v0.1.3` onward. Releases through v0.1.2 remain in the archived [source repository](https://github.com/ryanduguid/payday-super-checker/releases). A separate changelog is intentionally not maintained.
+
 The root workflow `.github/workflows/release-payday-super-checker.yml` builds
 and publishes this component. GitHub treats the package's nested workflow files
 as source-repository history.

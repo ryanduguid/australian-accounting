@@ -3,7 +3,7 @@
 This procedure covers v0.1.2 and earlier in the standalone repository. Use
 [RELEASING.md](../../RELEASING.md) for current monorepo releases.
 
-The repository's [GitHub Releases](https://github.com/ryanduguid/payday-super-checker/releases) page is the canonical release history. A separate changelog is intentionally not maintained.
+The monorepo's [GitHub Releases](https://github.com/ryanduguid/australian-accounting/releases) page is the canonical release history from `payday-super-checker/v0.1.3` onward. Releases through v0.1.2 remain in the archived [source repository](https://github.com/ryanduguid/payday-super-checker/releases). A separate changelog is intentionally not maintained.
 
 This process publishes a GitHub prerelease only. It does not publish to PyPI,
 make an accounting entry or lodge anything. Output is not a compliance determination.
