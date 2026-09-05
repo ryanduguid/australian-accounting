@@ -65,20 +65,38 @@ def _quotes_amount(text: str, amount: str) -> bool:
     return re.search(rf"(?<![\w.-]){re.escape(amount)}(?![\w.])", text) is not None
 
 
-def list_industries(search: str | None = None, year: str | None = None) -> dict[str, Any]:
+def list_industries(
+    search: str | None = None,
+    year: str | None = None,
+    *,
+    limit: int | None = None,
+    offset: int = 0,
+) -> dict[str, Any]:
+    # Direct Python callers receive the same validation as MCP callers.
+    if limit is not None and (type(limit) is not int or not 1 <= limit <= 100):
+        raise InputError("limit must be an integer from 1 to 100, or null for all matches.")
+    if type(offset) is not int or offset < 0:
+        raise InputError("offset must be a non-negative integer; start at 0.")
     try:
         data = load(year)
     except DatasetError as exc:
         raise InputError(str(exc)) from exc
     matches = data.search(search) if search else list(data.business_types)
+    page = matches[offset : None if limit is None else offset + limit]
+    next_offset = offset + len(page)
+    has_more = next_offset < len(matches)
     return {
         "ok": True,
         "engine": "ato-benchmark-compare",
         "engine_version": BENCHMARK_VERSION,
         "benchmark_year": data.year,
-        "count": len(matches),
+        "count": len(page),
+        "total_count": len(matches),
+        "offset": offset,
+        "has_more": has_more,
+        "next_offset": next_offset if has_more else None,
         "total_business_types": len(data.business_types),
-        "industries": [{"name": bt.name, "key_ratio": bt.key_ratio} for bt in matches],
+        "industries": [{"name": bt.name, "key_ratio": bt.key_ratio} for bt in page],
         "source": dict(data.source),
     }
 

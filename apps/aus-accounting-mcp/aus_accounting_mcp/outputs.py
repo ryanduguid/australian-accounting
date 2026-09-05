@@ -88,12 +88,19 @@ class Industry(ResultObject):
 
 class IndustryList(EngineResult):
     benchmark_year: YearText
-    count: Annotated[int, Field(description="Number of industries matching the search.")]
+    count: Annotated[int, Field(ge=0, description="Number of industries returned in this page.")]
+    total_count: Annotated[int, Field(ge=0, description="Matching industries before pagination.")]
+    offset: Annotated[int, Field(ge=0, description="Requested position in the filtered results.")]
+    has_more: Annotated[bool, Field(description="Whether another page of matching industries exists.")]
+    next_offset: Annotated[
+        int | None,
+        Field(ge=0, description="Pass as offset for the next page; null when no matches remain."),
+    ]
     total_business_types: Annotated[
         int, Field(description="Total industries in the selected dataset.")
     ]
     industries: Annotated[
-        list[Industry], Field(description="Matching industries; empty if no match.")
+        list[Industry], Field(description="This page of matching industries; empty if none remain.")
     ]
     source: Provenance
 
@@ -285,7 +292,8 @@ class Div7aGate(ResultObject):
     ]
     loan_id: Annotated[str, Field(description="Operator loan reference.")]
     benchmark_year_used: Annotated[
-        YearText | None, Field(description="Engine benchmark year, YYYY-YY, if known.")
+        YearText | Literal[""] | None,
+        Field(description="Engine benchmark year, YYYY-YY, or empty/null when unknown."),
     ]
     benchmark_rate: MaybeDecimal
     maximum_term_years_allowed: MaybeDecimal
