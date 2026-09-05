@@ -1,8 +1,8 @@
-# The Exchequer Tally
+# Company tax and franking checks
 
 ```
 +----------------------------------------------------------------------+
-|                          TheExchequerTally                           |
+|                   Company tax and franking checks                    |
 +----------------------------------------------------------------------+
 |           Corporate tax rate, franking and Div 203 checks            |
 +----------------------------------+-----------------------------------+
@@ -19,6 +19,8 @@
 [![PyPI](https://img.shields.io/pypi/v/the-exchequer-tally.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/the-exchequer-tally/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
 [![ITAA 1997](https://img.shields.io/badge/Legislation-ITAA%201997%20Part%203--6-5C2D91?labelColor=04001F)](https://www.legislation.gov.au/C2004A05138/latest/text)
+
+Project name The Exchequer Tally. Distribution `the-exchequer-tally`, import package `edwinnixon`, command `the-exchequer-tally`.
 
 **Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian private and public companies.**
 
