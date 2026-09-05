@@ -47,6 +47,16 @@ The card comes from the fabricated sample and links to the complete console tran
 python tools/render_quick_proof.py --check
 ```
 
+## Excel workbook
+
+No Python? [`workbooks/payday-super-checker.xlsx`](workbooks/payday-super-checker.xlsx)
+runs the same review in ordinary worksheet formulas: paste the canonical
+contributions register, set the as-at date, and read the deadline, verdict,
+shortfall, notional earnings and SG charge estimate range per line, with the
+checker's UNKNOWN outcomes preserved. It is macro-free, needs desktop Excel for
+Microsoft 365 or Excel 2024, and is held to this engine's answer by
+`tests/test_workbook.py`. See [workbooks/README.md](workbooks/README.md).
+
 ## Install
 
 Python 3.10 or later. No runtime dependencies.
