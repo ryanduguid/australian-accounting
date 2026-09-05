@@ -26,20 +26,20 @@
 
 **Aus Accounting MCP** provides Australian accounting review tools for ATO benchmarks, Payday Super timing and limited Division 7A loan reviews, plus synthetic CTR/BAS fixtures for integration tests. Compatible with Claude Desktop, Claude Code, Cursor, Codex and Antigravity.
 
-Payday Super and Division 7A are experimental reviews, not compliance or tax determinations. SBR payloads are synthetic fixtures.
+Payday Super and Division 7A are experimental reviews, not compliance or tax determinations. SBR payloads are synthetic fixtures, not lodgments.
 
 > [!WARNING]
 > **Not tax advice.** This server returns structured results, refusals, and citations. It does not lodge, and it does not replace a registered agent. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).
 
-This is a **computational** MCP, not a hosted ATO document store. It applies defined tests to figures the operator supplies: Payday Super timing, ATO small-business benchmark ratios, and a limited Division 7A loan review. For looking up rulings, use a document-retrieval MCP. Comparison: [Australian tax tools for AI agents](https://duguid.com.au/tools/australian-tax-ai-agents/).
+This MCP applies defined tests to figures the operator supplies: Payday Super timing, ATO small-business benchmark ratios, and a limited Division 7A loan review. It holds no ATO documents. For looking up rulings, use a document-retrieval MCP. Comparison: [Australian tax tools for AI agents](https://duguid.com.au/tools/australian-tax-ai-agents/).
 
-This server does **not** reimplement tax law. Payday Super and ATO small-business benchmarks are delegated to:
+This server does not reimplement tax law. Payday Super, ATO benchmark and Division 7A computations are delegated to:
 
 - [payday-super-checker](https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker) (`payday-super-checker`)
 - [ato-benchmark-compare](https://github.com/ryanduguid/australian-accounting/tree/main/packages/ato-benchmark-compare) (`ato-benchmark-compare`)
 - [div7a-loan-review](https://github.com/ryanduguid/australian-accounting/tree/main/packages/div7a-loan-review) (`div7a-loan-review`)
 
-The Division 7A adapter covers reviewed s 109N loan terms and benchmark rates plus s 109E minimum yearly repayments for one operator-supplied amalgamated loan. It fails closed on unknown facts and refuses unsupported matters such as forming amalgamated loans, s 109R repayment classification, unpaid present entitlements, distributable surplus, interposed entities, debt forgiveness, and Commissioner discretion. SBR payloads are **synthetic fixtures**, not lodgments.
+The Division 7A adapter covers reviewed s 109N loan terms and benchmark rates plus s 109E minimum yearly repayments for one operator-supplied amalgamated loan. It fails closed on unknown facts and refuses unsupported matters such as forming amalgamated loans, s 109R repayment classification, unpaid present entitlements, distributable surplus, interposed entities, debt forgiveness, and Commissioner discretion.
 
 ## 30-second proof
 
@@ -83,19 +83,19 @@ The example is fabricated, is not a lodgment or Division 7A determination, is no
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.1.7 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.7), [PyPI 0.1.7](https://pypi.org/project/aus-accounting-mcp/0.1.7/), [MCP Registry 0.1.7](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.7), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links engine maintained source and release; runtime law_content_date and source remain engine-owned.
+Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.1.7 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.7), [PyPI 0.1.7](https://pypi.org/project/aus-accounting-mcp/0.1.7/), [MCP Registry 0.1.7](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.7), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
 
 ## Install
 
 Python 3.10+ and [uv](https://docs.astral.sh/uv/). This server and its engines
-are published to PyPI; the server pins its reviewed engines to exact versions:
-
-Use [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff) for this source version. The latest
-published provenance is the [v0.1.7 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.7).
+are published to PyPI, and the server pins its reviewed engines to exact versions.
 
 ```bash
 uvx aus-accounting-mcp
 ```
+
+Use [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff) for this source version. The latest
+published provenance is the [v0.1.7 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.7).
 
 For a local editable tree, clone the repository, change into
 `apps/aus-accounting-mcp/`, then run `pip install -e .`. The repository root is not
@@ -170,7 +170,9 @@ amounts, caveats, versions and a verification link while reducing tool-result si
 Pass `response_detail="full"` when the complete provenance, statutory trace and
 per-limb audit material are required.
 
-`calc_payday_super_deadline` requires `as_at`. It does not invent clearing-house latency and cannot confirm LCR 2026/1 transition allocation. A remittance date alone cannot produce `ON_TIME`. Omitted ATO expense buckets are `not_supplied`, not zero. Every ATO ratio divides by turnover, which the ATO rule takes from sales or from total business income, so omitting `other_income` leaves every ratio `not_supplied` until you establish that figure; pass `0` where you have established there is none. Withholding covers the engine's prose as well as the structured fields: a `notes` or `checks_to_make` entry that states an amount resting on an omitted bucket is withheld with the fields it belongs to, and `notes` says so.
+`calc_payday_super_deadline` requires `as_at`. It does not invent clearing-house latency and cannot confirm LCR 2026/1 transition allocation. A remittance date alone cannot produce `ON_TIME`.
+
+Omitted ATO expense buckets are `not_supplied`, not zero. Every ATO ratio divides by turnover, which the ATO rule takes from sales or from total business income, so omitting `other_income` leaves every ratio `not_supplied` until you establish that figure. Pass `0` where you have established there is none. Withholding covers the engine's prose as well as the structured fields. A `notes` or `checks_to_make` entry that states an amount resting on an omitted bucket is withheld with those fields, and `notes` says so.
 
 Amounts, including Division 7A loan balances and payments, are decimal strings, finite, at most two decimal places, and no greater than AUD 1,000,000,000,000.00. Dates are ISO-8601. Payday Super uses payday-super-checker's national SGAA 1992 s 6(1) calendar.
 
