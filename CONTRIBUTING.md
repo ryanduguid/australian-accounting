@@ -27,7 +27,8 @@ runs the same commands in CI.
   `mcp-integration` job (the MCP application's tests), because the MCP application consumes
   published engines.
 - A change to a root policy file (`AGENTS.md`, `CONTRIBUTING.md`, `README.md`,
-  `SECURITY.md`, `IMPORTS.md`, `.editorconfig`, `.gitignore`, `.mailmap`) or to anything
+  `SECURITY.md`, `IMPORTS.md`, `.editorconfig`, `.gitignore`, `.mailmap`,
+  `.gitattributes`) or to anything
   under `.github/` runs every component.
 - `boundaries.yml` and `codeql.yml` run on every change.
 - Workflow files inside component directories are inert historical records of the source
