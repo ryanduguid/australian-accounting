@@ -22,4 +22,4 @@
 4. **Review aid policy.** Not accounting, tax or legal advice. Tax does not follow this schedule.
 
 ## Companion
-- [hardhat-ledger](https://github.com/ryanduguid/hardhat-ledger) owns the WIP *workflow*. This engine owns the arithmetic that workflow consumes.
+- The [`wip-over-under-billing` skill](https://github.com/ryanduguid/australian-accounting-skills/blob/main/.claude/skills/wip-over-under-billing/SKILL.md) in Australian Accounting Skills owns the WIP *workflow*. This engine owns the arithmetic that workflow consumes.

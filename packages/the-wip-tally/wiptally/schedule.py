@@ -2,7 +2,7 @@
 
 This module computes. It does not decide whether a performance obligation
 transfers over time, whether a claim is enforceable, or whether a contract is
-onerous. Those stay with the person running hardhat-ledger's WIP skill.
+onerous. Those stay with the person running the wip-over-under-billing skill.
 """
 
 from __future__ import annotations

@@ -25,7 +25,7 @@
 
 **Package lifecycle:** published. Install `the-wip-tally` from PyPI.
 
-`hardhat-ledger` already encodes the WIP *workflow*. This engine does the arithmetic that workflow consumes: cost-to-cost progress after AASB 15 para B19 exclusions, constrained variable consideration, per-contract contract assets and contract liabilities, and month-on-month profit fade.
+The [`wip-over-under-billing` skill](https://github.com/ryanduguid/australian-accounting-skills/blob/main/.claude/skills/wip-over-under-billing/SKILL.md) in Australian Accounting Skills (formerly `hardhat-ledger`) already encodes the WIP *workflow*. This engine does the arithmetic that workflow consumes: cost-to-cost progress after AASB 15 para B19 exclusions, constrained variable consideration, per-contract contract assets and contract liabilities, and month-on-month profit fade.
 
 The `australian-accounting` repository contains the maintained source. The
 `the-wip-tally` distribution, `wip-tally` command and `wiptally` import package
@@ -190,10 +190,10 @@ ATO position on long-term construction contracts at ato.gov.au for the year.
 - Measure an onerous-contract provision under AASB 137
 - Prepare a Security of Payment payment claim
 - Lodge a BAS, compute fuel tax credits, or run TPAR
-- Replace `hardhat-ledger`, which still owns the workflow around this file
+- Replace the `wip-over-under-billing` skill, which still owns the workflow around this file
 
-Use [hardhat-ledger](https://github.com/ryanduguid/hardhat-ledger) for the
-review steps. Use this engine for the numbers those steps consume.
+Use the [`wip-over-under-billing` skill](https://github.com/ryanduguid/australian-accounting-skills/blob/main/.claude/skills/wip-over-under-billing/SKILL.md)
+in Australian Accounting Skills for the review steps. Use this engine for the numbers those steps consume.
 
 ## Local file boundary
 

@@ -6,10 +6,9 @@ paragraph number. Compilations are remade and renumbered. This file records
 which paragraphs the engine *implements as arithmetic*, and which it only
 *flags for a person*.
 
-Checked against the public AASB 15 text as cited in
-[hardhat-ledger](https://github.com/ryanduguid/hardhat-ledger)
-`.claude/skills/wip-over-under-billing/SKILL.md` (source review dated
-15 August 2026). This engine does not replace that skill.
+Checked against the public AASB 15 text as cited in the
+[`wip-over-under-billing` skill](https://github.com/ryanduguid/australian-accounting-skills/blob/1bde4cc049382d51574f3ae3652b871d9f8e6fd6/.claude/skills/wip-over-under-billing/SKILL.md)
+(formerly in hardhat-ledger, transferred byte-for-byte; source review dated 15 August 2026). This engine does not replace that skill.
 
 ## Implemented as arithmetic
 
@@ -30,7 +29,7 @@ Checked against the public AASB 15 text as cited in
 | Topic | Paragraphs | Why it is a flag |
 | --- | --- | --- |
 | Combining contracts | 17 | Unit of account is an operator fact. Combine before the CSV. |
-| Over time vs point in time | 35-38, B9-B13 | Legal characterisation. hardhat-ledger puts it to the engagement lead. |
+| Over time vs point in time | 35-38, B9-B13 | Legal characterisation. The wip-over-under-billing skill puts it to the engagement lead. |
 | Whether a modification is a separate contract | 18-21 | Legal characterisation. |
 | Whether variable consideration will reverse | 56-57 | Judgement. The ratio is an input, not a conclusion. |
 | Retention as receivable vs contract balance | 105-108 | AASB 15 has no retention-specific rule. Classification is an interpretation. |
