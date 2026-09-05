@@ -44,7 +44,7 @@ def test_release_uses_the_hardened_shared_policy_contract() -> None:
 
     assert (
         "uses: ryanduguid/release-policy/.github/workflows/release-python.yml@"
-        "8b4de1ed339f1358b5f3e850b63412d8717d01da"
+        "2fe690d8dbb90c9b680c43822b7819f6aa1408ff"
     ) in release_job
     assert "actions: read" in release_job
     assert "version-command:" not in release_job

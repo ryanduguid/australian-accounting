@@ -51,7 +51,7 @@ gh attestation verify payday_super_checker-0.1.3-py3-none-any.whl \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest 3ff09b654a17b9a3b55548e25e6108ee582b00c4
+  --signer-digest 787db4590e725cfd37104c8a9dd9e75f7fd4c018
 ```
 
 Inspect a failed gate before changing remote state. Published tags stay fixed.

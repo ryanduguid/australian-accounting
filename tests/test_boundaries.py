@@ -21,7 +21,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE_POLICY_SHA = "3ff09b654a17b9a3b55548e25e6108ee582b00c4"
+RELEASE_POLICY_SHA = "787db4590e725cfd37104c8a9dd9e75f7fd4c018"
 
 RELEASE_CALLERS = {
     "aus-accounting-mcp": "apps/aus-accounting-mcp",
