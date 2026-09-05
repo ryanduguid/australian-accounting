@@ -27,7 +27,7 @@ Repository = "https://github.com/ryanduguid/australian-accounting/tree/main/pack
 Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.11", "mypy>=1.14", "build>=1.2"]
+dev = ["pytest>=8", "ruff>=0.11", "mypy>=1.14", "build>=1.2", "openpyxl>=3.1"]
 
 [project.scripts]
 div7a-loan-review = "div7aloan.cli:main"

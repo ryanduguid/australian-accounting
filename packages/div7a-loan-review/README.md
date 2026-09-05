@@ -103,6 +103,16 @@ removes the dividend entirely where s 109Q applies. Neither is modelled here,
 and neither is s 109RB. This repository does not write "the ATO will assess
 $X", and neither should anything built on it.
 
+## Excel workbook
+
+No Python? [`workbooks/div7a-loan-review.xlsx`](workbooks/div7a-loan-review.xlsx)
+runs the same review in ordinary worksheet formulas: paste the register, pick
+the year of income, read each s 109N(1) limb, the gate verdict, the s 109E(6)
+repayment and the shortfall per loan. REFUSED and UNKNOWN stay REFUSED and
+UNKNOWN. It is macro-free, needs desktop Excel for Microsoft 365 or Excel
+2024, and is held to this engine's answer by `tests/test_workbook.py`. See
+[workbooks/README.md](workbooks/README.md).
+
 ## Install
 
 ```bash
