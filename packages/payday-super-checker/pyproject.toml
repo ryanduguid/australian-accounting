@@ -27,12 +27,12 @@ Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 dev = [
     "ruff>=0.11",
     "mypy>=1.14",
-    "build==1.5.0",
+    "build==1.6.0",
     "pytest>=8",
     "hypothesis==6.165.10",
     "holidays==0.103",
     "setuptools==84.0.0",
-    "coverage==7.15.4",
+    "coverage==7.16.0",
     "diff-cover==10.5.1",
     "openpyxl>=3.1",
 ]

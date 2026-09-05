@@ -17,7 +17,7 @@ def test_changed_line_coverage_is_scoped_and_fail_closed() -> None:
         pytest.skip("verification workflow is not included in the source distribution")
     workflow = workflow_path.read_text(encoding="utf-8")
 
-    assert '"coverage==7.15.4"' in pyproject
+    assert '"coverage==7.16.0"' in pyproject
     assert '"diff-cover==10.5.1"' in pyproject
     assert "fetch-depth: 0" in workflow
     assert "--source=paydaysuper.assess,paydaysuper.report" in workflow
