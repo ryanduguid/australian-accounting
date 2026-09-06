@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | `the-exchequer-tally` | `edwinnixon` | `the-exchequer-tally` |
 
-These published identities remain supported. The functional title describes the accounting task; no package rename or import migration is required.
+Compatibility: install `the-exchequer-tally`, import `edwinnixon`, and run `the-exchequer-tally`. These remain the supported names; no migration is required.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-the-exchequer-tally.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-the-exchequer-tally.yml)
