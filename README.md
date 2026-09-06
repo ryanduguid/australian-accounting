@@ -1,4 +1,29 @@
-# australian-accounting
+# Australian accounting: inspect the evidence behind the result
+
+Synthetic examples. Review aid, not professional advice; accounting decisions stay with the reviewer.
+
+**Input:** $120 super contribution for payday 6 August 2026, remitted 14 August, with no fund receipt evidence as at 20 August.
+
+From a clone, with [uv](https://docs.astral.sh/uv/) installed:
+
+```bash
+cd packages/payday-super-checker
+uv run --locked --extra dev --python 3.12 payday-super-check evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only
+```
+
+The confirmation acknowledges the missing receipt; it does not establish payment.
+
+**Output:** `AT_RISK`, due 17 August 2026; exit 0 acknowledges the remittance-only evidence, without proving timely receipt.
+
+| Evidence | Result | Human decision |
+| --- | --- | --- |
+| Remitted before the deadline; receipt missing | `AT_RISK` | Obtain fund receipt evidence before concluding it was on time. |
+| Fund receipt recorded on 17 August | `ON_TIME` on supplied facts | Confirm the evidence and any applicable timing exception. |
+
+[Read the five-minute Payday Super case](packages/payday-super-checker/docs/manager-case-study.md) · [Division 7A repayment case](packages/div7a-loan-review/docs/manager-case-study.md) · [MCP setup](apps/aus-accounting-mcp/README.md#client-integration)
+
+<details>
+<summary>Installation, component identities, integration and reference</summary>
 
 Development home for the Aus Accounting MCP application and six independently released
 Australian accounting engines. Each component keeps its own distribution name, version,
@@ -74,3 +99,5 @@ reusable workflow for that component directory only. `CONTRIBUTING.md` has the t
 Each component's `LICENSE` applies to that component, and
 `packages/ato-benchmark-compare/NOTICE` covers its bundled ATO data. Outputs are review
 aids, not advice.
+
+</details>

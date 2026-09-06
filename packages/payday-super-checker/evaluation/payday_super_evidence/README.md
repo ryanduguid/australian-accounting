@@ -31,16 +31,17 @@ No client, employee or live payroll data is included.
 
 ## Reproduce the result
 
-Run these commands from the repository root. Exit code 2 is the expected
-attention result for the `AT_RISK` and `LATE` scenarios.
+Run these commands from `packages/payday-super-checker` in the monorepo. Exit code 2 signals a late result or an unacknowledged receipt-evidence gap.
 
 ```bash
-uv run --locked --extra dev --python 3.12 payday-super-check evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 -o timely-report.csv
-uv run --locked --extra dev --python 3.12 payday-super-check evaluation/payday_super_evidence/fixtures/late_remittance_no_receipt.csv --as-at 2026-08-20 -o late-remittance-report.csv
+uv run --locked --extra dev --python 3.12 payday-super-check evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o timely-report.csv
+uv run --locked --extra dev --python 3.12 payday-super-check evaluation/payday_super_evidence/fixtures/late_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o late-remittance-report.csv
 uv run --locked --extra dev --python 3.12 payday-super-check evaluation/payday_super_evidence/fixtures/receipt_on_due_date.csv --as-at 2026-08-20 -o on-time-report.csv
 uv run --locked --extra dev --python 3.12 payday-super-check evaluation/payday_super_evidence/fixtures/receipt_after_due_date.csv --as-at 2026-08-20 -o late-receipt-report.csv
 uv run --locked --extra dev --python 3.12 pytest tests/test_evaluation_pack.py -q
 ```
+
+The remittance-only confirmation acknowledges missing fund receipt evidence; it does not establish payment. The AT_RISK example exits 0 with confirmation and 2 without it. A LATE result exits 2 either way.
 
 The generated CSV reports include the contribution row followed by the
 checker's terminal `NOTE` provenance row. The machine-readable expectations
