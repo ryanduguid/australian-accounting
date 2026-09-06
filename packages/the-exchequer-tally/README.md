@@ -1,18 +1,10 @@
 # Company tax and franking checks
 
-```
-+----------------------------------------------------------------------+
-|                   Company tax and franking checks                    |
-+----------------------------------------------------------------------+
-|           Corporate tax rate, franking and Div 203 checks            |
-+----------------------------------+-----------------------------------+
-| DR  what it gives you            | CR  what it needs                 |
-+----------------------------------+-----------------------------------+
-| Base Rate Entity FY testing      | turnover and passive income       |
-| franking account ledger          | entity ACN and dividend data      |
-| dividend distribution statements | -                                 |
-+----------------------------------+-----------------------------------+
-```
+| Install distribution | Python import | Command |
+| --- | --- | --- |
+| `the-exchequer-tally` | `edwinnixon` | `the-exchequer-tally` |
+
+These published identities remain supported. The functional title describes the accounting task; no package rename or import migration is required.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-the-exchequer-tally.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-the-exchequer-tally.yml)
