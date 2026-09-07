@@ -1,6 +1,39 @@
 # Contributing
 
-Each component is developed, tested and released from its own directory.
+Each component is developed, tested and released from its own directory. The root
+holds a development entrypoint so a fresh clone can be set up and verified in one
+command; it does not change where a component is developed or released from.
+
+## Quick start
+
+From a fresh clone:
+
+```
+uv sync        # install every component and the shared toolchain
+just test      # every component's suite, plus the repository boundary checks
+```
+
+`uv sync` creates one `.venv` at the root and installs all seven components into it
+as editable workspace members. `apps/aus-accounting-mcp` therefore imports
+`atobenchmark`, `paydaysuper` and `div7aloan` from the checked-out tree rather than
+from their last PyPI release, with no per-component install step.
+
+`just` is optional tooling; install it with `uv tool install rust-just`. The recipes
+are `setup`, `lint`, `typecheck`, `test` and `check` (all three), and each is a loop
+over the per-component commands in the table below. Those commands remain the
+authority and are what CI runs — `just` runs them from one place, it does not
+replace them.
+
+Two consequences of the workspace are worth knowing before you run a component's
+own commands:
+
+- `uv run --locked` from a component directory now validates the root `uv.lock`,
+  not the component's. Regenerate it with `uv lock` at the root after changing any
+  component's dependencies, and commit it.
+- `ato-benchmark-compare` pins `coverage==7.15.4` and `payday-super-checker` pins
+  `coverage==7.16.0`. One workspace cannot hold both, so the root overrides
+  coverage to `7.16.0` for workspace installs. Both pins are untouched and still
+  apply when a component is built or installed on its own, as a release does.
 
 ## Command routing
 
@@ -28,8 +61,11 @@ runs the same commands in CI.
   published engines.
 - A change to a root policy file (`AGENTS.md`, `CONTRIBUTING.md`, `README.md`,
   `SECURITY.md`, `IMPORTS.md`, `.editorconfig`, `.gitignore`, `.mailmap`,
-  `.gitattributes`) or to anything
-  under `.github/` runs every component.
+  `.gitattributes`), to a root workspace file (`pyproject.toml`, `uv.lock`,
+  `justfile`) or to anything
+  under `.github/` runs every component. The root workspace files are in that list
+  because the root `uv.lock` is what `uv run --locked` validates from inside every
+  component directory.
 - `boundaries.yml` and `codeql.yml` run on every change.
 - Workflow files inside component directories are inert historical records of the source
   repositories; only root workflows run.
@@ -39,10 +75,19 @@ runs the same commands in CI.
 - Keep a change inside one component unless it is a root policy or workflow change.
 - Do not move, rename or refactor a component in the same change that alters its
   behaviour.
-- Never add a root package manager, root lockfile, shared runtime library, unified
-  version or code generator.
+- The root `pyproject.toml`, `uv.lock` and `justfile` are a development entrypoint
+  only. The root is a virtual uv workspace: no root distribution, no root version, no
+  root runtime dependency, nothing published from the root. Never add a root package,
+  a shared runtime library, a unified version or a code generator.
+- The workspace redirects the MCP application's three engine dependencies to the
+  checked-out sources for development. It does not change the dependency direction.
+  The exact pins in `apps/aus-accounting-mcp/pyproject.toml` stay authoritative, uv
+  sources are development metadata and are never written into a built distribution,
+  and engines still depend on nothing in this repository.
 - Engines must not import the MCP application or each other, and production code must
-  not use relative imports that leave the component directory.
+  not use relative imports that leave the component directory. One shared `.venv` makes
+  every component importable from every other; `tests/test_boundaries.py` is what keeps
+  that from becoming a dependency, and it runs on every change.
 - Use fabricated data only, and follow the component's own `CONTRIBUTING.md` and
   `SECURITY.md`.
 

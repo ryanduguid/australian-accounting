@@ -1,0 +1,65 @@
+# Workspace root. This file is a development entrypoint only: it is not a
+# distributable package, carries no version, and ships nothing to PyPI. Each
+# component under packages/ and apps/ keeps its own pyproject.toml, version,
+# release notes and licence, and is still released on its own from its own
+# directory.
+#
+# The root exists so a fresh clone can install every component and the shared
+# toolchain in one command and run the whole suite from the top. See the
+# justfile for the setup, lint, typecheck and test entrypoints.
+
+[tool.uv.workspace]
+members = ["packages/*", "apps/*"]
+
+# ato-benchmark-compare pins coverage==7.15.4 and payday-super-checker pins
+# coverage==7.16.0 in their own `dev` extras, and a workspace resolves every
+# member together, so the two pins cannot both hold here. Both pins are
+# deliberate — each component has a test asserting its pyproject carries an
+# exact coverage pin — so neither component is edited. The workspace resolution
+# takes the newer of the two instead.
+#
+# This is the one place where a workspace install differs from a standalone
+# component install: inside the workspace, ato-benchmark-compare's coverage and
+# diff-cover runs use 7.16.0 rather than its own 7.15.4. Building or installing
+# that component on its own, as a release does, still honours its own pin.
+#
+# Declaring the two extras as conflicting instead does not work: uv matches
+# extras by name across the workspace, and apps/aus-accounting-mcp depends on
+# both engines, so `uv run --extra dev` there is refused as ambiguous.
+[tool.uv]
+override-dependencies = ["coverage==7.16.0"]
+
+# apps/aus-accounting-mcp declares exact pins on the three engines it consumes,
+# because a published distribution cannot depend on a path. Inside the
+# workspace those three names resolve to the checked-out sources instead, so
+# the application's tests import atobenchmark, paydaysuper and div7aloan from
+# the tree under review rather than from the last PyPI release. The pins stay
+# authoritative for the published wheel; uv sources are development metadata
+# and are not written into built distributions.
+[tool.uv.sources]
+ato-benchmark-compare = { workspace = true }
+payday-super-checker = { workspace = true }
+div7a-loan-review = { workspace = true }
+
+# The shared toolchain for running every component's checks from one
+# environment. Components keep their own `dev` extras, which remain the
+# authority for their own CI; this group is the union needed to run the whole
+# suite from the root and deliberately avoids exact pins, which differ between
+# components and cannot co-exist in a single resolution.
+[dependency-groups]
+dev = [
+    "build>=1.2",
+    # No direct `coverage` entry: the override above already fixes the version,
+    # and pytest-cov pulls coverage in for the two components whose pytest
+    # addopts enable it. A second opinion here would only contradict the override.
+    "holidays>=0.103",
+    "hypothesis>=6.165",
+    "jsonschema>=4.0",
+    "mypy>=1.14",
+    "openpyxl>=3.1",
+    "Pillow>=12.3",
+    "pytest>=8",
+    "pytest-cov>=4",
+    "ruff>=0.11",
+    'tomli>=2.0.1; python_version < "3.11"',
+]
