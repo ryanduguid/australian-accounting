@@ -27,6 +27,11 @@ from .fixtures.synthetic_sbr import (
 )
 from .errors import InputError
 from .money import parse_amount
+from .resources import (
+    benchmark_dataset_years,
+    component_versions,
+    disclaimer as boundary_disclaimer,
+)
 from .outputs import (
     BenchmarkComparison,
     Div7aRate,
@@ -54,6 +59,12 @@ SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operato
   classify s 109R payments, or invent eligibility, rates or missing facts.
 - generate_synthetic_sbr_fixture is only for fabricated integration tests.
   Never use its CTR/BAS output as a real calculation or lodgment.
+Resources carry context without a tool call: aus-accounting://disclaimer for the
+boundary and no-advice statement, aus-accounting://div7a-scope for what Division
+7A this server reviews and what it refuses, aus-accounting://benchmark-dataset-years
+for the ATO years shipped with the installed engine, and
+aus-accounting://component-versions for the engine versions producing results
+here. Prompts cover the three documented workflows.
 Money and rates use decimal strings; dates use YYYY-MM-DD and income years
 YYYY-YY. Preserve UNKNOWN, REFUSED, not_supplied and null outcomes. ok=true means
 execution succeeded, not that a review passed. For Division 7A, summary is the
@@ -85,7 +96,7 @@ DIV7A_SCOPE_REFUSAL = (
 )
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="List ATO benchmark industries")
 def list_ato_benchmark_industries(
     search: Annotated[
         str | None,
@@ -136,7 +147,7 @@ def list_ato_benchmark_industries(
     return cast(IndustryList, list_industries(search=search, year=year, limit=limit, offset=offset))
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Compare figures to ATO benchmarks")
 def get_ato_benchmarks(
     industry: Annotated[
         str,
@@ -285,7 +296,7 @@ def get_ato_benchmarks(
     )
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Review a Payday Super contribution")
 def calc_payday_super_deadline(
     qe_day: Annotated[
         str,
@@ -392,7 +403,7 @@ def calc_payday_super_deadline(
     )
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Get the Division 7A benchmark rate")
 def get_div7a_benchmark_rate(
     year_of_income: Annotated[
         str,
@@ -420,7 +431,7 @@ def get_div7a_benchmark_rate(
     return cast(Div7aRate, get_benchmark_rate(year_of_income, response_detail=response_detail))
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Review a Division 7A loan")
 def review_div7a_loan(
     year_of_income: Annotated[
         str,
@@ -556,53 +567,60 @@ def review_div7a_loan(
     )
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Refuse an unsupported Division 7A matter")
 def refuse_div7a(
     borrower_name: Annotated[
-        str,
+        str | None,
         Field(description=(
-            'Legacy borrower label; ignored. This refusal tool does not look up a borrower or '
-            'calculate a repayment.'
+            'Legacy borrower label; ignored. Omit it. This refusal tool does not look up a '
+            'borrower or calculate a repayment.'
         )),
-    ],
+    ] = None,
     lender_entity_name: Annotated[
-        str,
+        str | None,
         Field(description=(
-            'Legacy lender label; ignored. No entity record is looked up or written.'
+            'Legacy lender label; ignored. Omit it. No entity record is looked up or written.'
         )),
-    ],
+    ] = None,
     loan_principal: Annotated[
-        str,
+        str | None,
         Field(description=(
-            'Legacy principal, validated then discarded; this tool always refuses unsupported '
-            'scope. AUD decimal string, e.g. "1000.00"; finite, at most 2 decimal places, '
-            'absolute value at most 1000000000000.00.'
+            'Legacy principal; ignored beyond validation, and this tool always refuses '
+            'unsupported scope. Omit it rather than inventing a figure. When supplied: AUD '
+            'decimal string, e.g. "1000.00"; finite, at most 2 decimal places, absolute value '
+            'at most 1000000000000.00.'
         )),
-    ],
+    ] = None,
     start_fy: Annotated[
-        int,
+        int | None,
         Field(description=(
-            'Legacy financial-year value; defaults to 2025 and is ignored. Use '
-            'review_div7a_loan with explicit income years for supported reviews.'
+            'Legacy financial-year value; ignored. Omit it. Use review_div7a_loan with explicit '
+            'income years for supported reviews.'
         )),
-    ] = 2025,
+    ] = None,
     is_secured_25_year: Annotated[
-        bool,
+        bool | None,
         Field(description=(
-            'Legacy secured-loan flag; defaults to false and is ignored. Does not establish '
-            'eligibility or enable a calculation.'
+            'Legacy secured-loan flag; ignored. Omit it. Does not establish eligibility or '
+            'enable a calculation.'
         )),
-    ] = False,
+    ] = None,
 ) -> ScopeRefusal:
     """Return an explicit refusal for unsupported Division 7A matters.
 
+    Call this with no arguments. The refusal is the same whatever is passed, so
+    do not invent a borrower, a lender or a principal to reach it; every input
+    is a retained legacy field and is ignored. A supplied loan_principal is
+    still validated as an amount, so a malformed one is an input error rather
+    than a silent pass.
+
     Use review_div7a_loan for reviewed s 109N/s 109E loan facts, or
-    get_div7a_benchmark_rate for a reviewed rate. This compatibility tool
-    always returns ERR_POLICY_DIV7A_SCOPE_REFUSED with the scope explanation;
-    it never calculates a repayment. Legacy inputs are ignored except for
-    principal validation. No network, writes or lodgments.
+    get_div7a_benchmark_rate for a reviewed rate. This tool always returns
+    ERR_POLICY_DIV7A_SCOPE_REFUSED with the scope explanation; it never
+    calculates a repayment. No network, writes or lodgments.
     """
-    parse_amount(loan_principal, "loan_principal")
+    if loan_principal is not None:
+        parse_amount(loan_principal, "loan_principal")
     del borrower_name, lender_entity_name, start_fy, is_secured_25_year
     return {
         "ok": False,
@@ -613,7 +631,7 @@ def refuse_div7a(
     }
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Generate a synthetic CTR or BAS fixture")
 def generate_synthetic_sbr_fixture(
     form_type: Annotated[
         str,
@@ -669,6 +687,166 @@ def generate_synthetic_sbr_fixture(
             ),
         )
     raise InputError(f"Unknown form_type {form_type!r}. Supported: CTR, BAS.")
+
+
+@mcp.resource(
+    "aus-accounting://disclaimer",
+    name="disclaimer",
+    title="Boundary and no-advice statement",
+    description=(
+        "What this server is not, what it refuses, and what a caller must retain when "
+        "presenting a result. Includes each delegated engine's own disclaimer."
+    ),
+    mime_type="text/markdown",
+)
+def disclaimer_resource() -> str:
+    """Serve the facade boundary and the engines' own disclaimers."""
+    return boundary_disclaimer()
+
+
+@mcp.resource(
+    "aus-accounting://div7a-scope",
+    name="div7a-scope",
+    title="Division 7A reviewed scope",
+    description=(
+        "The Division 7A matters the delegated engine reviews, and the matters that "
+        "remain refused. Read this before choosing a Division 7A tool."
+    ),
+    mime_type="text/markdown",
+)
+def div7a_scope_resource() -> str:
+    """Serve the reviewed Division 7A scope and the standing refusal."""
+    return DIV7A_SCOPE_REFUSAL
+
+
+@mcp.resource(
+    "aus-accounting://benchmark-dataset-years",
+    name="benchmark-dataset-years",
+    title="Shipped ATO benchmark years",
+    description=(
+        "Which ATO small-business benchmark years the installed engine ships, with "
+        "the published source, retrieval date and checksum for each. Bundled data, "
+        "not a live ATO lookup; a year outside this list is refused, not estimated."
+    ),
+    mime_type="application/json",
+)
+def benchmark_dataset_years_resource() -> dict[str, object]:
+    """Serve the shipped benchmark years and their provenance."""
+    return benchmark_dataset_years()
+
+
+@mcp.resource(
+    "aus-accounting://component-versions",
+    name="component-versions",
+    title="Installed server and engine versions",
+    description=(
+        "The server and delegated engine versions installed in this environment, "
+        "which are the versions that produce results here and are reported beside "
+        "them as engine_version."
+    ),
+    mime_type="application/json",
+)
+def component_versions_resource() -> dict[str, object]:
+    """Serve the installed component versions."""
+    return component_versions()
+
+
+@mcp.prompt(
+    name="compare_ato_benchmarks",
+    title="Compare P&L buckets to ATO benchmarks",
+    description=(
+        "Compare operator-supplied profit and loss bucket totals to the ATO "
+        "small-business benchmarks without treating an omitted bucket as zero."
+    ),
+)
+def compare_ato_benchmarks_prompt(industry: str | None = None) -> str:
+    """Build the documented ATO benchmark comparison request."""
+    selected = (
+        f"The industry is {industry}."
+        if industry
+        else "Select the industry with list_ato_benchmark_industries first."
+    )
+    return (
+        "Compare these P&L buckets to the ATO small-business benchmarks for this "
+        "industry. Omit buckets I have not supplied. Do not treat missing as zero.\n\n"
+        f"{selected} Then call get_ato_benchmarks with only the buckets I gave you, as "
+        "decimal strings. Leave every other bucket out rather than passing 0.\n\n"
+        "Two things are needed before the call can run at all: turnover, which is sales "
+        "of goods and services, and at least one expense bucket. If I have not given you "
+        "both, ask me for them rather than calling the tool, and rather than supplying a "
+        "0 I did not establish. Everything else is optional and stays omitted.\n\n"
+        "Pass other_income only if I established it, including an established nil as "
+        '"0". Without it the ATO turnover rule cannot pick a denominator and every '
+        "ratio is returned as not_supplied, which is the correct answer rather than a "
+        "problem to work around.\n\n"
+        "Report not_supplied ratios and null figures as unknown. Do not infer a figure "
+        "from the others, and do not describe a comparison outside a published range "
+        "as a finding that anything is wrong. Ask me for any bucket you need."
+    )
+
+
+@mcp.prompt(
+    name="review_payday_super_contribution",
+    title="Review one Payday Super contribution",
+    description=(
+        "Review a single superannuation contribution against the Payday Super timing "
+        "rules, without inventing a fund-receipt date or an SG charge."
+    ),
+)
+def review_payday_super_contribution_prompt(as_at: str | None = None) -> str:
+    """Build the documented Payday Super review request."""
+    assessment = (
+        f"Use {as_at} as as_at."
+        if as_at
+        else "Ask me for today's date and pass it as as_at; do not assume one."
+    )
+    return (
+        "Review this Payday Super contribution. QE day, remitted date, and fund-receipt "
+        "date are in the CSV. Do not invent an SGC charge.\n\n"
+        f"{assessment} Call calc_payday_super_deadline once for the contribution, with "
+        "qe_day as the day the wages were actually paid.\n\n"
+        "Pass received only where the clearing house or the fund evidences the date the "
+        "fund received the contribution. A remitted date is not that date, and a "
+        "contribution with no fund receipt is AT_RISK rather than ON_TIME. Leave "
+        "received out if the CSV does not carry it.\n\n"
+        "Report the verdict, the deadline and the pathway with the caveats attached, "
+        "and treat the experimental SG-charge figures as exposure flags, not an ATO "
+        "assessment. Say so if the facts leave the verdict UNKNOWN."
+    )
+
+
+@mcp.prompt(
+    name="review_div7a_loan_terms",
+    title="Review a Division 7A amalgamated loan",
+    description=(
+        "Review one operator-supplied amalgamated loan for s 109N terms and the "
+        "s 109E minimum yearly repayment, refusing matters outside that scope."
+    ),
+)
+def review_div7a_loan_terms_prompt(year_of_income: str | None = None) -> str:
+    """Build the documented Division 7A loan review request."""
+    reviewed = (
+        f"The year of income under review is {year_of_income}."
+        if year_of_income
+        else "Ask me which year of income to review, written like 2026-27."
+    )
+    return (
+        "Review this operator-supplied Division 7A amalgamated loan for s 109N terms "
+        "and the s 109E minimum yearly repayment. Leave unknown facts unknown and "
+        "refuse questions outside the reviewed scope.\n\n"
+        f"{reviewed} Call review_div7a_loan with the facts I supply. Omit any fact I "
+        "have not established rather than passing false or 0: an omitted fact stays "
+        "UNKNOWN, and UNKNOWN is not a failed limb.\n\n"
+        "Interest rates are decimal fractions, so 8.37 per cent is 0.0837. Do not "
+        "substitute the benchmark rate for the agreed rate; use "
+        "get_div7a_benchmark_rate if I ask what the benchmark is.\n\n"
+        "This engine does not form amalgamated loans, classify payments under s 109R, "
+        "or reach unpaid present entitlements, distributable surplus, interposed "
+        "entities, debt forgiveness or the Commissioner's discretion. Read the "
+        "aus-accounting://div7a-scope resource and refuse those, with refuse_div7a, "
+        "rather than answering them. Any shortfall is an experimental review aid, not "
+        "an assessed dividend."
+    )
 
 
 def run_stdio() -> None:
