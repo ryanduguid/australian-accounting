@@ -99,10 +99,14 @@ def production_modules(component: str, package: str) -> list[tuple[Path, int]]:
 
 class BoundaryTests(unittest.TestCase):
     def test_root_policy_changes_run_every_engine(self) -> None:
+        # The root workspace files belong here with the policy files: the root
+        # uv.lock is what `uv run --locked` validates from inside every component
+        # directory, so a change to it changes what every component resolves.
         shared_paths = {
             "AGENTS.md", "CONTRIBUTING.md", "README.md", "SECURITY.md",
             "IMPORTS.md", ".editorconfig", ".gitignore", ".mailmap",
             ".gitattributes", ".github/**",
+            "pyproject.toml", "uv.lock", "justfile",
         }
         for component in ENGINES:
             workflow_name = f"ci-{Path(component).name}.yml"
