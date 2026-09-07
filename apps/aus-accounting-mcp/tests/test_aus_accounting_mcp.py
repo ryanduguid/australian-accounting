@@ -837,6 +837,35 @@ def test_div7a_is_refused() -> None:
     assert "unpaid present entitlements" in payload["reason"]
 
 
+def test_div7a_refusal_is_reachable_without_inventing_loan_facts() -> None:
+    # A question this server refuses, such as an unpaid present entitlement or
+    # a debt forgiveness, usually comes with no loan facts at all. While the
+    # three legacy inputs were required, reaching the refusal meant fabricating
+    # a borrower, a lender and a principal, which is the one thing every other
+    # tool here is built to stop. The refusal takes no facts now.
+    assert refuse_div7a() == refuse_div7a("Alice", "HoldingCo Pty Ltd", "50000.00")
+    assert refuse_div7a()["code"] == "ERR_POLICY_DIV7A_SCOPE_REFUSED"
+
+    # Every retained input is ignored, so none of them can change the outcome.
+    assert refuse_div7a(
+        borrower_name="Bob",
+        lender_entity_name="Other Pty Ltd",
+        loan_principal="1.00",
+        start_fy=1999,
+        is_secured_25_year=True,
+    ) == refuse_div7a()
+
+
+def test_div7a_refusal_still_validates_a_principal_that_is_supplied() -> None:
+    # Ignored is not unchecked. A caller that does pass an amount gets the same
+    # money boundary as everywhere else, so a malformed figure is an input
+    # error rather than passing silently into a payload that looks considered.
+    with pytest.raises(ValueError, match="loan_principal"):
+        refuse_div7a(loan_principal="not-an-amount")
+    with pytest.raises(ValueError, match="loan_principal"):
+        refuse_div7a(loan_principal="1000000000000.01")
+
+
 def test_synthetic_sbr_fixtures_are_labelled() -> None:
     ctr = generate_synthetic_sbr_fixture("CTR", revenue_or_sales="1000000.00")
     assert ctr["synthetic"] is True
