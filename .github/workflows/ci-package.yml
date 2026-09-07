@@ -1,0 +1,318 @@
+name: package
+
+# Reusable component CI for one engine under packages/. Every engine runs the
+# same gates from its own directory against its own lockfile: ruff, mypy, pytest
+# under branch coverage on the supported Python versions, a dependency audit and
+# a build of the distribution. ci.yml calls this once per engine.
+#
+# The path filter lives in the changes job rather than on the trigger, so every
+# gate keeps a stable check name whether or not this engine changed. A change
+# under packages/<name>/ runs that engine; a change to a root policy file or to
+# anything under .github/ runs every engine.
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: The directory leaf under packages/, which is also the distribution name.
+        required: true
+        type: string
+      import-name:
+        description: The engine's top-level import package, linted, typechecked and measured.
+        required: true
+        type: string
+      windows-python:
+        description: >-
+          Python version for a Windows leg of the test job. Set for the engines
+          whose path handling and codepage behaviour are already proved there.
+          Empty runs no Windows leg.
+        type: string
+        default: ""
+      changed-line-coverage:
+        description: >-
+          Comma-separated files, relative to the package directory, held to
+          complete changed-line branch coverage against origin/main. Empty
+          disables the gate. The coverage sources and the baseline sentinel are
+          derived from this list.
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: select
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.select.outputs.run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The comparison point has to be in the checkout for the diff below.
+          fetch-depth: 0
+          persist-credentials: false
+      - name: decide whether this package's gates run
+        id: select
+        env:
+          PACKAGE: ${{ inputs.package }}
+          EVENT: ${{ github.event_name }}
+          BASE: >-
+            ${{ github.event_name == 'pull_request'
+                && github.event.pull_request.base.sha
+                || github.event.before }}
+          HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # A dispatch, a new branch and a force push have no usable comparison
+          # point. Empty input makes the selector run every gate rather than
+          # skip one by accident.
+          if [ "$EVENT" = "workflow_dispatch" ] || [ -z "$BASE" ] \
+             || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+            : | python3 .github/ci/select_package.py "$PACKAGE" >> "$GITHUB_OUTPUT"
+          else
+            # --no-renames, or a file moved between packages is reported as its
+            # destination alone and the package that lost it never runs.
+            git diff --name-only --no-renames "$BASE" "$HEAD" \
+              | python3 .github/ci/select_package.py "$PACKAGE" >> "$GITHUB_OUTPUT"
+          fi
+
+  lint:
+    name: ruff and mypy
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: packages/${{ inputs.package }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - name: Ruff
+        run: uv run --locked --extra dev ruff check ${{ inputs.import-name }} tests
+      - name: Typecheck
+        run: uv run --locked --extra dev mypy ${{ inputs.import-name }}
+      - name: run the package's own source guards
+        env:
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          guards="$GITHUB_WORKSPACE/.github/ci/$PACKAGE/checks.sh"
+          if [ -f "$guards" ]; then
+            bash "$guards"
+          else
+            echo "::notice::packages/$PACKAGE declares no extra source guards."
+          fi
+
+  test:
+    name: pytest
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor and the ceiling of the declared requires-python, plus the
+        # version the rest of the gates run on.
+        python: ["3.10", "3.12", "3.13"]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: packages/${{ inputs.package }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - name: run tests under branch coverage
+        run: >-
+          uv run --locked --extra dev coverage run --branch
+          --source=${{ inputs.import-name }} -m pytest
+        env:
+          UV_PYTHON: ${{ matrix.python }}
+      - name: report coverage
+        run: uv run --locked --extra dev coverage report --show-missing
+        env:
+          UV_PYTHON: ${{ matrix.python }}
+
+  test-windows:
+    name: pytest (windows)
+    needs: changes
+    if: needs.changes.outputs.run == 'true' && inputs.windows-python != ''
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: packages/${{ inputs.package }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ inputs.windows-python }}
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - name: run tests under branch coverage
+        run: >-
+          uv run --locked --extra dev coverage run --branch
+          --source=${{ inputs.import-name }} -m pytest
+        env:
+          UV_PYTHON: ${{ inputs.windows-python }}
+      - name: report coverage
+        run: uv run --locked --extra dev coverage report --show-missing
+        env:
+          UV_PYTHON: ${{ inputs.windows-python }}
+
+  changed-line-coverage:
+    name: changed-line coverage
+    needs: changes
+    if: needs.changes.outputs.run == 'true' && inputs.changed-line-coverage != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: packages/${{ inputs.package }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # diff-cover compares against origin/main, which needs the history.
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - name: run tests with scoped branch coverage
+        env:
+          INCLUDE: ${{ inputs.changed-line-coverage }}
+        run: |
+          set -euo pipefail
+          # The measured modules are the held files: drop the suffix, and a
+          # package path separator becomes a module separator.
+          sources=$(printf '%s' "$INCLUDE" | sed 's/\.py//g; s#/#.#g')
+          uv run --locked --extra dev --python 3.12 coverage run --branch \
+            --source="$sources" -m pytest
+      - name: require complete changed-line coverage in the held modules
+        env:
+          INCLUDE: ${{ inputs.changed-line-coverage }}
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          uv run --locked --extra dev --python 3.12 coverage xml \
+            --include="$INCLUDE" -o coverage.xml
+          sentinel="packages/$PACKAGE/${INCLUDE%%,*}"
+          if git cat-file -e "origin/main:$sentinel"; then
+            uv run --locked --extra dev --python 3.12 diff-cover coverage.xml \
+              --compare-branch=origin/main --branch-coverage --fail-under=100
+          else
+            echo "::notice::Changed-line coverage starts after the imported package has a mainline baseline."
+          fi
+
+  dependency-audit:
+    name: dependency audit
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: packages/${{ inputs.package }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - name: audit the locked project environment
+        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+
+  package:
+    name: build and install
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: packages/${{ inputs.package }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - name: build the distribution
+        run: uv run --locked --extra dev --python 3.12 python -m build
+      - name: install the wheel into a clean environment
+        env:
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          python -m venv "$RUNNER_TEMP/wheel"
+          # --no-index, or pip is free to resolve the name from PyPI and test a
+          # release nobody built in this job.
+          "$RUNNER_TEMP/wheel/bin/pip" install --no-index --find-links dist "$PACKAGE"
+      - name: run the package's wheel smoke checks
+        env:
+          PACKAGE: ${{ inputs.package }}
+          WHEEL_BIN: ${{ runner.temp }}/wheel/bin
+        run: |
+          set -euo pipefail
+          smoke="$GITHUB_WORKSPACE/.github/ci/$PACKAGE/smoke.sh"
+          if [ -f "$smoke" ]; then
+            bash "$smoke"
+          else
+            echo "::notice::packages/$PACKAGE declares no wheel smoke checks."
+          fi
