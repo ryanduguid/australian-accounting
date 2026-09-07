@@ -1,14 +1,23 @@
 name: package
 
-# Reusable component CI for one engine under packages/. Every engine runs the
-# same gates from its own directory against its own lockfile: ruff, mypy, pytest
-# under branch coverage on the supported Python versions, a dependency audit and
-# a build of the distribution. ci.yml calls this once per engine.
+# Reusable component CI for one engine under packages/. ci.yml calls this once
+# per engine, so every engine runs the same gates from the same definition, from
+# its own directory: the engine's own lockfile check, ruff, mypy, pytest with
+# branch coverage on the supported Python versions, a dependency audit over the
+# locked environment, and a build of the distribution with an installed-wheel
+# import smoke plus the engine's own wheel smoke script. Engines that already
+# prove their Windows behaviour add a Windows test leg, and engines with a
+# risk-scoped file list add a changed-line coverage gate against main.
+#
+# ruff, mypy and coverage read their scope from the engine's own configuration
+# ([tool.ruff], [tool.mypy] and [tool.coverage.run] in its pyproject.toml), so
+# every engine runs the same commands.
 #
 # The path filter lives in the changes job rather than on the trigger, so every
 # gate keeps a stable check name whether or not this engine changed. A change
-# under packages/<name>/ runs that engine; a change to a root policy file or to
-# anything under .github/ runs every engine.
+# under packages/<name>/ runs that engine; a change to a root policy file, a root
+# workspace file or anything under .github/ runs every engine, because the root
+# uv.lock is what `uv run --locked` validates from inside every engine directory.
 
 on:
   workflow_call:
@@ -18,7 +27,7 @@ on:
         required: true
         type: string
       import-name:
-        description: The engine's top-level import package, linted, typechecked and measured.
+        description: The engine's top-level import package, which the built wheel must provide.
         required: true
         type: string
       windows-python:
@@ -40,13 +49,15 @@ on:
 permissions:
   contents: read
 
+env:
+  UV_VERSION: "0.12.0"
+
 jobs:
   changes:
-    name: select
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
     permissions:
       contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       run: ${{ steps.select.outputs.run }}
     steps:
@@ -80,49 +91,11 @@ jobs:
               | python3 .github/ci/select_package.py "$PACKAGE" >> "$GITHUB_OUTPUT"
           fi
 
-  lint:
-    name: ruff and mypy
+  test:
     needs: changes
     if: needs.changes.outputs.run == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
     permissions:
       contents: read
-    defaults:
-      run:
-        working-directory: packages/${{ inputs.package }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.12"
-      - name: install the locked toolchain
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-        with:
-          version: "0.12.0"
-          enable-cache: true
-      - name: Ruff
-        run: uv run --locked --extra dev ruff check ${{ inputs.import-name }} tests
-      - name: Typecheck
-        run: uv run --locked --extra dev mypy ${{ inputs.import-name }}
-      - name: run the package's own source guards
-        env:
-          PACKAGE: ${{ inputs.package }}
-        run: |
-          set -euo pipefail
-          guards="$GITHUB_WORKSPACE/.github/ci/$PACKAGE/checks.sh"
-          if [ -f "$guards" ]; then
-            bash "$guards"
-          else
-            echo "::notice::packages/$PACKAGE declares no extra source guards."
-          fi
-
-  test:
-    name: pytest
-    needs: changes
-    if: needs.changes.outputs.run == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -131,8 +104,6 @@ jobs:
         python: ["3.10", "3.12", "3.13"]
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions:
-      contents: read
     defaults:
       run:
         working-directory: packages/${{ inputs.package }}
@@ -146,27 +117,26 @@ jobs:
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: "0.12.0"
+          version: ${{ env.UV_VERSION }}
           enable-cache: true
-      - name: run tests under branch coverage
+      # No -q here: several engines already set it in their pytest addopts, and
+      # a second one is -qq, which drops the "N passed" count from the log.
+      # Without the count a test file that stops being collected leaves every
+      # leg green. --cov takes its source from the engine's [tool.coverage.run].
+      - name: run tests with branch coverage
         run: >-
-          uv run --locked --extra dev coverage run --branch
-          --source=${{ inputs.import-name }} -m pytest
-        env:
-          UV_PYTHON: ${{ matrix.python }}
-      - name: report coverage
-        run: uv run --locked --extra dev coverage report --show-missing
+          uv run --locked --extra dev pytest
+          --cov --cov-branch --cov-report=term-missing --cov-report=xml
         env:
           UV_PYTHON: ${{ matrix.python }}
 
   test-windows:
-    name: pytest (windows)
     needs: changes
     if: needs.changes.outputs.run == 'true' && inputs.windows-python != ''
-    runs-on: windows-latest
-    timeout-minutes: 30
     permissions:
       contents: read
+    runs-on: windows-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: packages/${{ inputs.package }}
@@ -180,27 +150,22 @@ jobs:
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: "0.12.0"
+          version: ${{ env.UV_VERSION }}
           enable-cache: true
-      - name: run tests under branch coverage
+      - name: run tests with branch coverage
         run: >-
-          uv run --locked --extra dev coverage run --branch
-          --source=${{ inputs.import-name }} -m pytest
-        env:
-          UV_PYTHON: ${{ inputs.windows-python }}
-      - name: report coverage
-        run: uv run --locked --extra dev coverage report --show-missing
+          uv run --locked --extra dev pytest
+          --cov --cov-branch --cov-report=term-missing --cov-report=xml
         env:
           UV_PYTHON: ${{ inputs.windows-python }}
 
   changed-line-coverage:
-    name: changed-line coverage
     needs: changes
     if: needs.changes.outputs.run == 'true' && inputs.changed-line-coverage != ''
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
     permissions:
       contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: packages/${{ inputs.package }}
@@ -216,26 +181,29 @@ jobs:
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: "0.12.0"
+          version: ${{ env.UV_VERSION }}
           enable-cache: true
-      - name: run tests with scoped branch coverage
+      - name: run tests with branch coverage scoped to the held modules
         env:
           INCLUDE: ${{ inputs.changed-line-coverage }}
         run: |
           set -euo pipefail
-          # The measured modules are the held files: drop the suffix, and a
+          # Each held file is measured as a module: drop the suffix, and a
           # package path separator becomes a module separator.
-          sources=$(printf '%s' "$INCLUDE" | sed 's/\.py//g; s#/#.#g')
-          uv run --locked --extra dev --python 3.12 coverage run --branch \
-            --source="$sources" -m pytest
+          cov_args=()
+          IFS=, read -ra held <<< "$INCLUDE"
+          for file in "${held[@]}"; do
+            module="${file%.py}"
+            cov_args+=("--cov=${module//\//.}")
+          done
+          uv run --locked --extra dev --python 3.12 pytest "${cov_args[@]}" \
+            --cov-branch --cov-report=xml:coverage.xml
       - name: require complete changed-line coverage in the held modules
         env:
           INCLUDE: ${{ inputs.changed-line-coverage }}
           PACKAGE: ${{ inputs.package }}
         run: |
           set -euo pipefail
-          uv run --locked --extra dev --python 3.12 coverage xml \
-            --include="$INCLUDE" -o coverage.xml
           sentinel="packages/$PACKAGE/${INCLUDE%%,*}"
           if git cat-file -e "origin/main:$sentinel"; then
             uv run --locked --extra dev --python 3.12 diff-cover coverage.xml \
@@ -244,14 +212,13 @@ jobs:
             echo "::notice::Changed-line coverage starts after the imported package has a mainline baseline."
           fi
 
-  dependency-audit:
-    name: dependency audit
+  lint:
     needs: changes
     if: needs.changes.outputs.run == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
     permissions:
       contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: packages/${{ inputs.package }}
@@ -265,19 +232,68 @@ jobs:
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: "0.12.0"
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - name: the engine's own lockfile resolves on its own
+        # uv discovers the workspace root from inside a member, so a plain
+        # `uv lock --check` here would validate the root lock. The engine's own
+        # uv.lock is the authority for building and releasing it alone, so it is
+        # checked from a copy outside the workspace.
+        run: |
+          set -euo pipefail
+          standalone="$(mktemp -d)"
+          trap 'rm -rf "${standalone}"' EXIT
+          cp -R . "${standalone}/"
+          rm -rf "${standalone}/.venv"
+          (cd "${standalone}" && uv lock --check)
+      - name: ruff
+        run: uv run --locked --extra dev ruff check .
+      - name: mypy
+        run: uv run --locked --extra dev mypy
+      - name: run the package's own source guards
+        env:
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          guards="$GITHUB_WORKSPACE/.github/ci/$PACKAGE/checks.sh"
+          if [ -f "$guards" ]; then
+            bash "$guards"
+          else
+            echo "::notice::packages/$PACKAGE declares no extra source guards."
+          fi
+
+  dependency-audit:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: packages/${{ inputs.package }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: ${{ env.UV_VERSION }}
           enable-cache: true
       - name: audit the locked project environment
         run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 
-  package:
-    name: build and install
+  build:
     needs: changes
     if: needs.changes.outputs.run == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
     permissions:
       contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: packages/${{ inputs.package }}
@@ -291,28 +307,42 @@ jobs:
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: "0.12.0"
+          version: ${{ env.UV_VERSION }}
           enable-cache: true
       - name: build the distribution
         run: uv run --locked --extra dev --python 3.12 python -m build
-      - name: install the wheel into a clean environment
+      - name: install the wheel into a clean environment, import it and run the smoke checks
+        # Exactly one wheel, installed by path with --no-index, or pip is free
+        # to resolve the name from PyPI and test a release nobody built in this
+        # job. The wheel's own runtime dependencies come from the lock, the same
+        # closed set the audit job checks: `uv export` from a member directory
+        # exports that member. The import runs from an empty directory so it can
+        # only see what the wheel installed; the engine's smoke script then runs
+        # from the package directory with WHEEL_BIN pointing at the same
+        # environment, so its example inputs resolve and its commands exercise
+        # the wheel rather than the source tree.
         env:
           PACKAGE: ${{ inputs.package }}
+          IMPORT_NAME: ${{ inputs.import-name }}
         run: |
           set -euo pipefail
-          python -m venv "$RUNNER_TEMP/wheel"
-          # --no-index, or pip is free to resolve the name from PyPI and test a
-          # release nobody built in this job.
-          "$RUNNER_TEMP/wheel/bin/pip" install --no-index --find-links dist "$PACKAGE"
-      - name: run the package's wheel smoke checks
-        env:
-          PACKAGE: ${{ inputs.package }}
-          WHEEL_BIN: ${{ runner.temp }}/wheel/bin
-        run: |
-          set -euo pipefail
+          package_dir="$(pwd)"
+          smoke_dir="$(mktemp -d)"
+          trap 'cd "${package_dir}"; rm -rf "${smoke_dir}"' EXIT
+          wheels=(dist/*.whl)
+          if [ "${#wheels[@]}" -ne 1 ] || [ ! -f "${wheels[0]}" ]; then
+            echo "expected exactly one wheel in dist/, found: ${wheels[*]}"
+            exit 1
+          fi
+          python -m venv "${smoke_dir}/venv"
+          uv export --locked --no-dev --no-emit-project --no-hashes --format requirements-txt \
+            --output-file "${smoke_dir}/runtime.txt"
+          "${smoke_dir}/venv/bin/pip" install -r "${smoke_dir}/runtime.txt"
+          "${smoke_dir}/venv/bin/pip" install --no-index "${wheels[0]}"
+          (cd "${smoke_dir}" && "${smoke_dir}/venv/bin/python" -c "import importlib, os; importlib.import_module(os.environ['IMPORT_NAME']); print(os.environ['IMPORT_NAME'], 'imports from the wheel')")
           smoke="$GITHUB_WORKSPACE/.github/ci/$PACKAGE/smoke.sh"
           if [ -f "$smoke" ]; then
-            bash "$smoke"
+            WHEEL_BIN="${smoke_dir}/venv/bin" bash "$smoke"
           else
             echo "::notice::packages/$PACKAGE declares no wheel smoke checks."
           fi
