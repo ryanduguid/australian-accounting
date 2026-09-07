@@ -4,8 +4,6 @@
 | --- | --- | --- |
 | `solomons-sword` | `louisgoldberg` | `solomons-sword` |
 
-Compatibility: install `solomons-sword`, import `louisgoldberg`, and run `solomons-sword`. These remain the supported names; no migration is required.
-
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/solomons-sword.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/solomons-sword/)
@@ -45,7 +43,7 @@ Full boundary statement: [DISCLAIMER.md](https://github.com/ryanduguid/australia
 
 ---
 
-## Core Features
+## What it checks
 
 - **Division 6 Proportionate Allocation (*Commissioner of Taxation v Bamford* [2010] HCA 10)**: Calculates present entitlement proportions and allocates *s 95(1) ITAA 1936* taxable net income and the franking credits that ride with it. Specifically streamed capital gains and franked dividends are **refused**, not allocated: the Division 6E carve-out with *Subdivision 115-C* (including s 115-220) and *Subdivision 207-B* is not implemented, so a proportionate answer would be wrong. Non-resident beneficiaries (*s 98(2A)/(3)*), nil income of the trust estate and no presently entitled beneficiary (*s 99 / s 99A*) are refused for the same reason.
 - **Section 100A Reimbursement Agreement Matrix**: Classifies supplied facts against **ATO PCG 2022/2** as Green, Red, or outside those zones. The final guideline has white, green and red; the draft blue zone did not survive. White zone (income years ending before 1 July 2014) is out of scope because the function does not take an income year.
@@ -72,7 +70,7 @@ solomons-sword s99b-check --beneficiary "Jane Doe" --gross 150000 --corpus 50000
 
 ---
 
-## Statutory Ground Truth & Test Harness
+## Statutory sources and tests
 
 All allocation and threshold algorithms use exact `decimal.Decimal` calculations to prevent rounding discrepancies in trust tax schedules.
 
