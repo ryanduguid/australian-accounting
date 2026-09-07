@@ -1,7 +1,9 @@
 name: tests
 
 # The repository's anchor workflow. It carries no path filter, so the required
-# checks always report, and it runs two things: the MCP application's own gates,
+# checks always report, and it runs two things: the MCP application's own gates
+# (ruff, mypy, pytest under branch coverage on 3.10, 3.12 and 3.13 plus a Windows
+# leg, and a dependency audit, the same set ci-package.yml gives the engines),
 # and one call of the reusable ci-package.yml for each engine under packages/.
 # Each call applies its own package's path filter, so a change to one engine
 # runs that engine's gates and skips the rest.
@@ -75,6 +77,8 @@ jobs:
             python: "3.10"
           - os: ubuntu-latest
             python: "3.12"
+          - os: ubuntu-latest
+            python: "3.13"
           - os: windows-latest
             python: "3.12"
     runs-on: ${{ matrix.os }}
@@ -90,10 +94,34 @@ jobs:
         with:
           version: "0.12.0"
           enable-cache: true
-      - run: uv run --locked --extra dev pytest -q
+      # The same branch-coverage gate ci-package.yml runs for the engines, through
+      # the pytest-cov the application already pins in its dev extra.
+      - name: run tests with branch coverage
+        run: uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing
         working-directory: apps/aus-accounting-mcp
         env:
           UV_PYTHON: ${{ matrix.python }}
+
+  dependency-audit:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - name: audit the locked project environment
+        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+        working-directory: apps/aus-accounting-mcp
 
   lint:
     permissions:
