@@ -53,6 +53,53 @@ def test_proof_package_surface_is_versioned_and_keeps_stdio_separate() -> None:
     assert 'tomli>=2.0.1; python_version < "3.11"' in dev_dependencies
 
 
+def test_pypi_facets_are_declared_without_contradicting_the_licence_field() -> None:
+    root = Path(__file__).resolve().parents[1]
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    classifiers = project["classifiers"]
+
+    # Every Python this package declares support for is a facet a searcher can
+    # filter on, so the floor in requires-python has to appear among them.
+    assert "Programming Language :: Python :: 3.10" in classifiers
+    assert project["requires-python"] == ">=3.10"
+    assert "Intended Audience :: Financial and Insurance Industry" in classifiers
+    assert "Topic :: Office/Business :: Financial :: Accounting" in classifiers
+
+    # PEP 639: the SPDX license expression replaces the licence classifier, and
+    # a distribution carrying both is rejected at build or upload.
+    assert project["license"] == "MIT"
+    assert not [entry for entry in classifiers if entry.startswith("License ::")]
+
+    # "Typed" is a claim about a shipped py.typed marker, and this distribution
+    # ships none. It is a server to run, not a library to import against.
+    assert "Typing :: Typed" not in classifiers
+    assert not list(root.joinpath("aus_accounting_mcp").glob("py.typed"))
+
+
+def test_github_about_copy_matches_the_script_that_applies_it() -> None:
+    # docs/DISCOVERY.md is the source of truth and the script is what writes it
+    # to GitHub, so the two drifting apart would leave the documented copy
+    # unreachable. The live About is checked by hand and its drift is recorded
+    # in DISCOVERY.md; nothing here reads or sets it.
+    root = Path(__file__).resolve().parents[1]
+    discovery = (root / "docs" / "DISCOVERY.md").read_text(encoding="utf-8")
+    script = (root / "scripts" / "publish-github-about.sh").read_text(encoding="utf-8")
+
+    description = re.search(r'^DESCRIPTION="(.+)"$', script, flags=re.MULTILINE)
+    assert description is not None
+    assert description.group(1) in discovery
+
+    # The one wording rule this copy carries: Division 7A is limited, and saying
+    # otherwise claims a scope the engine refuses.
+    assert "limited Division 7A loan reviews" in description.group(1)
+
+    topics = re.search(r"^TOPICS=\(\n(.*?)^\)$", script, flags=re.MULTILINE | re.DOTALL)
+    assert topics is not None
+    for topic in topics.group(1).split():
+        assert topic in discovery, topic
+    assert "division-7a" in topics.group(1).split()
+
+
 def test_build_backend_is_exactly_pinned_for_reproducible_wheels() -> None:
     root = Path(__file__).resolve().parents[1]
     build_system = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))[

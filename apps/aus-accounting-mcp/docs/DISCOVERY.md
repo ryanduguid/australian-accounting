@@ -46,7 +46,25 @@ must not imply that the server handles every Division 7A question.
 
 Apply with `scripts/publish-github-about.sh` from a session authenticated to
 GitHub; the Actions `GITHUB_TOKEN` cannot PATCH homepage (needs repository
-admin).
+admin). That script carries the description and topics above verbatim, so
+running it is what reconciles the live About with this file.
+
+### Live About drift, read 7 September 2026
+
+The live About has been edited away from this file and the script, in two ways.
+Neither is fixed here: applying it is a repository-admin action.
+
+- The description reads "Division 7A loan review" where this file and the script
+  read "limited Division 7A loan reviews". Dropping "limited" is the one wording
+  change the rule above forbids, because it implies the server handles every
+  Division 7A question when it reviews s 109N terms and s 109E repayments only.
+  The live text also leads with the engines rather than the server, which is a
+  fair description of a monorepo and is not the problem.
+- The `division-7a` topic is absent from the live repository. The other 17 topics
+  above are all set.
+
+Re-running the script restores both. It only adds topics, so it will not remove
+anything a later edit added.
 
 ## Keyword map
 
@@ -67,7 +85,12 @@ admin).
 - The current Glama listing is
   https://glama.ai/mcp/servers/ryanduguid/australian-accounting,
   claimed as maintainer `ryanduguid`. The historical `au-tax-mcp-server` URL is
-  retained by the existing README badge. The root `glama.json` carries the
+  retained by the existing README badge. Confirmed 7 September 2026: the badge
+  and its link both still name the retired `au-tax-mcp-server` slug, and the
+  slug they should name is `australian-accounting`. The badge is deliberately
+  left alone. Glama mints the badge URL against the listing it holds, so the
+  correction is a Glama support ticket rather than a repository edit, and
+  editing the markdown first would only point at an image Glama does not serve. The root `glama.json` carries the
   maintainer declaration: Glama discovers repository-root metadata, while the
   application lives in `apps/aus-accounting-mcp/`.
   In Glama **Admin → Repository**, set **GitHub Project URL** to
