@@ -155,8 +155,16 @@ codex mcp add aus-accounting -- uvx aus-accounting-mcp
 | `calc_payday_super_deadline` | Review one contribution against Payday Super timing | payday-super-checker |
 | `get_div7a_benchmark_rate` | Return the reviewed s 109N(2) rate for a year, or `UNKNOWN` | div7a-loan-review |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayment for one operator-supplied amalgamated loan | div7a-loan-review |
-| `refuse_div7a` | Refuse Division 7A matters outside the reviewed engine scope | MCP policy |
+| `refuse_div7a` | Refuse Division 7A matters outside the reviewed engine scope. Takes no arguments | MCP policy |
 | `generate_synthetic_sbr_fixture` | Synthetic CTR/BAS for agent tests (`synthetic: true`) | local fixture |
+
+`refuse_div7a` answers the questions this server does not review, and those arrive
+with no loan facts, so it requires none. Call it with no arguments: the refusal is
+the same whatever is passed, and every input it still accepts is a retained legacy
+field that is ignored. Do not invent a borrower, a lender or a principal to reach
+it. A `loan_principal` that is supplied is still validated as an amount.
+
+Every tool also publishes a human-readable title for host menus.
 
 MCP initialization supplies server-wide instructions for choosing tools and handling
 missing facts. Every tool publishes an output schema describing its returned fields,
