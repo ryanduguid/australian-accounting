@@ -24,17 +24,19 @@ Repository = "https://github.com/ryanduguid/australian-accounting/tree/main/pack
 Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 
 [project.optional-dependencies]
+# Shared toolchain first, pinned to the same versions in every component so a
+# gate behaves the same wherever it runs. Package-specific test libraries follow.
 dev = [
-    "ruff>=0.11",
-    "mypy>=1.14",
+    "ruff==0.16.5",
+    "mypy==2.3.1",
+    "pytest==9.1.1",
+    "coverage==7.16.0",
     "build==1.6.0",
-    "pytest>=8",
+    "diff-cover==10.5.1",
     "hypothesis==6.165.10",
     "holidays==0.103",
+    "openpyxl==3.1.5",
     "setuptools==84.0.0",
-    "coverage==7.16.0",
-    "diff-cover==10.5.1",
-    "openpyxl>=3.1",
 ]
 
 [project.scripts]

@@ -8,7 +8,9 @@ Two properties are proved with the ast module over every production module:
    climbs out of its own top-level package directory.
 
 Each property has an in-memory positive control so a scan that silently finds
-nothing cannot pass. Run from the repository root:
+nothing cannot pass. The remaining tests hold the CI routing: every engine is
+called with the same gates, and the package path filter still routes a change to
+the engine that owns it. Run from the repository root:
 
     python -m unittest -v tests/test_boundaries.py
 """
@@ -16,12 +18,26 @@ nothing cannot pass. Run from the repository root:
 from __future__ import annotations
 
 import ast
+import importlib.util
 import re
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE_POLICY_SHA = "787db4590e725cfd37104c8a9dd9e75f7fd4c018"
+
+
+def _load_select_package():
+    """Import the CI package selector, which lives outside any import path."""
+    path = ROOT / ".github" / "ci" / "select_package.py"
+    spec = importlib.util.spec_from_file_location("select_package", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+select_package = _load_select_package()
 
 RELEASE_CALLERS = {
     "aus-accounting-mcp": "apps/aus-accounting-mcp",
@@ -42,6 +58,13 @@ ENGINES = {
     "packages/the-wip-tally": "wiptally",
 }
 APPLICATION = {"apps/aus-accounting-mcp": "aus_accounting_mcp"}
+
+# The files the changed-line coverage gate holds to complete branch coverage,
+# and the engine that owns each set.
+CHANGED_LINE_COVERAGE = {
+    "ato-benchmark-compare": "atobenchmark/mapping.py",
+    "payday-super-checker": "paydaysuper/assess.py,paydaysuper/report.py",
+}
 FORBIDDEN_FOR_ENGINES = frozenset({"aus_accounting_mcp", *ENGINES.values()})
 PATH_FILTER_KEY = re.compile(
     r"(?<![\w-])['\"]?(paths(?:-ignore)?)['\"]?\s*:"
@@ -105,39 +128,106 @@ class BoundaryTests(unittest.TestCase):
         shared_paths = {
             "AGENTS.md", "CONTRIBUTING.md", "README.md", "SECURITY.md",
             "IMPORTS.md", ".editorconfig", ".gitignore", ".mailmap",
-            ".gitattributes", ".github/**",
+            ".gitattributes", ".github/workflows/ci.yml",
             "pyproject.toml", "uv.lock", "justfile",
         }
         for component in ENGINES:
-            workflow_name = f"ci-{Path(component).name}.yml"
-            workflow = (ROOT / ".github" / "workflows" / workflow_name).read_text(
-                encoding="utf-8"
-            )
-            filters = re.findall(r"(?m)^    paths:\n((?:      .*\n)+)", workflow)
-            with self.subTest(workflow=workflow_name):
-                self.assertEqual(len(filters), 2)
-                for paths in filters:
-                    entries = {
-                        line.strip().removeprefix("- ").strip("\"'")
-                        for line in paths.splitlines()
-                    }
-                    self.assertEqual(shared_paths - entries, set())
+            package = Path(component).name
+            for path in shared_paths:
+                with self.subTest(package=package, path=path):
+                    self.assertTrue(select_package.should_run(package, [path]))
+
+    def test_a_change_to_one_engine_does_not_run_another(self) -> None:
+        for component in ENGINES:
+            package = Path(component).name
+            siblings = [
+                f"{other}/engine.py" for other in ENGINES if other != component
+            ]
+            with self.subTest(package=package):
+                self.assertTrue(
+                    select_package.should_run(package, [f"{component}/engine.py"])
+                )
+                self.assertFalse(select_package.should_run(package, siblings))
+                # The application is not an engine dependency, so an application
+                # change alone does not run an engine's gates.
+                self.assertFalse(
+                    select_package.should_run(
+                        package, ["apps/aus-accounting-mcp/server.py"]
+                    )
+                )
+
+    def test_a_cross_package_move_runs_both_packages(self) -> None:
+        # git reports a detected rename as its destination alone, so a file moved
+        # out of one package would leave that package's gates unrun even though
+        # it lost source. The diff has to name both sides.
+        reusable = (ROOT / ".github" / "workflows" / "ci-package.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("git diff --name-only --no-renames", reusable)
+
+        moved = ["packages/the-wip-tally/moved.py", "packages/solomons-sword/moved.py"]
+        for package in ("the-wip-tally", "solomons-sword"):
+            with self.subTest(package=package):
+                self.assertTrue(select_package.should_run(package, moved))
+
+    def test_an_unknown_comparison_point_runs_every_gate(self) -> None:
+        # A dispatch, a new branch and a force push give the workflow no list of
+        # changed paths. Selection must fail open rather than skip a gate.
+        for component in ENGINES:
+            with self.subTest(package=Path(component).name):
+                self.assertTrue(select_package.should_run(Path(component).name, []))
+
+    def test_every_engine_is_called_with_the_same_gates(self) -> None:
+        caller = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+        reusable = (ROOT / ".github" / "workflows" / "ci-package.yml").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("uses: ./.github/workflows/ci-package.yml", caller)
+        called = set(re.findall(r"(?m)^          - package: (\S+)$", caller))
+        self.assertEqual(called, {Path(component).name for component in ENGINES})
+        for component, import_name in ENGINES.items():
+            with self.subTest(component=component):
+                self.assertIn(
+                    f"- package: {Path(component).name}\n"
+                    f"            import-name: {import_name}\n",
+                    caller,
+                )
+
+        # The gate set every engine gets, and the declared Python floor and ceiling.
+        for gate in (
+            "ruff check ${{ inputs.import-name }} tests",
+            "mypy ${{ inputs.import-name }}",
+            "coverage run --branch",
+            "--source=${{ inputs.import-name }} -m pytest",
+            'pip-audit --local --strict',
+            'python: ["3.10", "3.12", "3.13"]',
+        ):
+            with self.subTest(gate=gate):
+                self.assertIn(gate, reusable)
 
     def test_imported_diff_coverage_waits_for_a_mainline_baseline(self) -> None:
-        sentinels = {
-            "ci-ato-benchmark-compare.yml": (
-                "packages/ato-benchmark-compare/atobenchmark/mapping.py"
-            ),
-            "ci-payday-super-checker.yml": (
-                "packages/payday-super-checker/paydaysuper/assess.py"
-            ),
-        }
-        for workflow_name, sentinel in sentinels.items():
-            workflow = (
-                ROOT / ".github" / "workflows" / workflow_name
-            ).read_text(encoding="utf-8")
-            with self.subTest(workflow=workflow_name):
-                self.assertIn(f'git cat-file -e "origin/main:{sentinel}"', workflow)
+        caller = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+        reusable = (ROOT / ".github" / "workflows" / "ci-package.yml").read_text(
+            encoding="utf-8"
+        )
+
+        for package, held in CHANGED_LINE_COVERAGE.items():
+            with self.subTest(package=package):
+                self.assertIn(f"changed-line-coverage: {held}\n", caller)
+                self.assertTrue((ROOT / "packages" / package / held.split(",")[0]).is_file())
+
+        # The gate is fail-closed on changed lines, and the sentinel it waits for
+        # is the first held file of whichever engine is running.
+        self.assertIn('sentinel="packages/$PACKAGE/${INCLUDE%%,*}"', reusable)
+        self.assertIn('git cat-file -e "origin/main:$sentinel"', reusable)
+        self.assertIn("--compare-branch=origin/main", reusable)
+        self.assertIn("--branch-coverage", reusable)
+        self.assertIn("--fail-under=100", reusable)
 
     def test_anchor_required_checks_are_not_suppressed_by_path_filters(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
