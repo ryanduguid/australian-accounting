@@ -45,7 +45,7 @@ Determination 2026](https://www.legislation.gov.au/F2026L00784/asmade/text),
 Federal Register identifier **F2026L00784**, made 22 June, registered 24 June
 and commencing 1 July 2026. The earlier review called it “LI 2026/20”, but the
 Federal Register's as-made page does not display that shorthand. No current
-primary source found in this review was used to elevate the shorthand into an
+primary source found in this review was used to promote the shorthand into an
 identifier. The registered identifier and text control and are used throughout
 the runtime and current guidance.
 

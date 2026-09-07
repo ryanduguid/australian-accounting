@@ -23,8 +23,6 @@ Project name The WIP Tally. Distribution `the-wip-tally`, import package `wiptal
 
 **Deterministic work-in-progress schedule for Australian construction, civil, mining-services and power-station packages.** Review aid. Not a determination.
 
-**Status: incubating.** It is an evolving review aid, not a substitute for professional judgement.
-
 **Package lifecycle:** published. Install `the-wip-tally` from PyPI.
 
 The [`wip-over-under-billing` skill](https://github.com/ryanduguid/australian-accounting-skills/blob/main/.claude/skills/wip-over-under-billing/SKILL.md) in Australian Accounting Skills (formerly `hardhat-ledger`) already encodes the WIP *workflow*. This engine does the arithmetic that workflow consumes: cost-to-cost progress after AASB 15 para B19 exclusions, constrained variable consideration, per-contract contract assets and contract liabilities, and month-on-month profit fade.

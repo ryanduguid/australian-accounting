@@ -4,8 +4,6 @@
 | --- | --- | --- |
 | `the-exchequer-tally` | `edwinnixon` | `the-exchequer-tally` |
 
-Compatibility: install `the-exchequer-tally`, import `edwinnixon`, and run `the-exchequer-tally`. These remain the supported names; no migration is required.
-
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/the-exchequer-tally.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/the-exchequer-tally/)
@@ -27,7 +25,7 @@ Release: [`v0.1.3`](https://github.com/ryanduguid/australian-accounting/releases
 
 ---
 
-## Core Features
+## What it checks
 
 - **Base Rate Entity (BRE) Testing**: Deterministic assessment under *s 23AA & s 23AB Income Tax Rates Act 1986* (evaluating aggregated turnover thresholds and Base Rate Entity Passive Income ratios).
 - **Franking Account Ledger (FAB)**: Complete balance management under *Part 3-6 ITAA 1997*, tracking PAYG instalments, company tax payments, dividends paid/received, and tax refunds.
@@ -64,7 +62,7 @@ the-exchequer-tally dist-statement --entity "Acme Pty Ltd" --acn "123456789" --r
 
 ---
 
-## Statutory Ground Truth & Test Harness
+## Statutory sources and tests
 
 All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic to guarantee zero floating-point drift across corporate tax and franking schedules.
 

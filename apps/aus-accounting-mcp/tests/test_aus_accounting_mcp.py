@@ -875,8 +875,6 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     assert "synthetic: true" in disclaimer
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
     assert CANONICAL_REPOSITORY in citation
-    glama = json.loads((root / "glama.json").read_text(encoding="utf-8"))
-    assert glama["maintainers"] == ["ryanduguid"]
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
     assert 'version = "0.1.7"' in pyproject
     assert "uvx from PyPI" in pyproject

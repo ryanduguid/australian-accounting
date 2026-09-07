@@ -27,8 +27,8 @@ The confirmation acknowledges the missing receipt; it does not establish payment
 
 Development home for the Aus Accounting MCP application and six independently released
 Australian accounting engines. Each component keeps its own distribution name, version,
-lockfile, tests, release notes, commands and licence. There is no root package, root
-lockfile, shared runtime library or combined version.
+lockfile, tests, release notes, commands and licence. There is no root distribution,
+shared runtime library or combined version.
 
 ## Use Aus Accounting MCP
 
