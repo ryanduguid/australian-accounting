@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import json
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
+import pytest
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from mcp.types import InputRequiredResult
-import pytest
 
 from aus_accounting_mcp import demo
 

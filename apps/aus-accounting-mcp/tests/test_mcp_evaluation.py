@@ -1,14 +1,13 @@
 """Verify the evaluation answer key through real MCP calls, without a model."""
 
 import asyncio
-from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
+import pytest
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-import pytest
-
 
 QUESTIONS = ET.parse(Path(__file__).resolve().parents[1] / "evaluation" / "questions.xml")
 CASES = [(pair.attrib["id"], pair.findtext("answer")) for pair in QUESTIONS.findall("qa_pair")]
@@ -33,7 +32,9 @@ async def _answer(session, case):
         return str(len({item["name"] for item in first["industries"] + second["industries"]}))
 
     if case in {"missing-income", "established-zero-income", "missing-rent"}:
-        found = await call("list_ato_benchmark_industries", search="baker", year="2023-24", limit=20)
+        found = await call(
+            "list_ato_benchmark_industries", search="baker", year="2023-24", limit=20
+        )
         industry = next(
             item["name"] for item in found["industries"]
             if item["name"] == "Bakeries and hot bread shops"
@@ -107,7 +108,9 @@ async def _answer(session, case):
 
 
 async def _evaluate(case):
-    parameters = StdioServerParameters(command=sys.executable, args=["-m", "aus_accounting_mcp.cli"])
+    parameters = StdioServerParameters(
+        command=sys.executable, args=["-m", "aus_accounting_mcp.cli"]
+    )
     async with stdio_client(parameters) as (reader, writer):
         async with ClientSession(reader, writer) as session:
             await session.initialize()

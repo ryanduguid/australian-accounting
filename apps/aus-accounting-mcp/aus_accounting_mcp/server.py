@@ -21,11 +21,11 @@ except PackageNotFoundError:  # running from a source tree without installation
 from .adapters.benchmarks import compare_figures, list_industries
 from .adapters.div7a import get_benchmark_rate, review_loan
 from .adapters.payday import review_contribution
+from .errors import InputError
 from .fixtures.synthetic_sbr import (
     generate_synthetic_bas_payload,
     generate_synthetic_ctr_payload,
 )
-from .errors import InputError
 from .money import parse_amount
 from .outputs import (
     BenchmarkComparison,

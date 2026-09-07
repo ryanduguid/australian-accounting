@@ -74,7 +74,9 @@ def test_direct_calls_reject_invalid_pagination(field, value):
 
 
 async def _inspect_pagination_over_stdio():
-    parameters = StdioServerParameters(command=sys.executable, args=["-m", "aus_accounting_mcp.cli"])
+    parameters = StdioServerParameters(
+        command=sys.executable, args=["-m", "aus_accounting_mcp.cli"]
+    )
     async with stdio_client(parameters) as (reader, writer):
         async with ClientSession(reader, writer) as session:
             await session.initialize()

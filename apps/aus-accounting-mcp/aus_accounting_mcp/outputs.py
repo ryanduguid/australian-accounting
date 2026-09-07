@@ -19,11 +19,12 @@ from pydantic import (
 )
 from typing_extensions import TypedDict
 
-
 DecimalText = Annotated[
     str,
     Field(
-        description="Finite engine decimal string, including exponent notation; retain its precision.",
+        description=(
+            "Finite engine decimal string, including exponent notation; retain its precision."
+        ),
         pattern=r"^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
     ),
 ]
@@ -91,7 +92,9 @@ class IndustryList(EngineResult):
     count: Annotated[int, Field(ge=0, description="Number of industries returned in this page.")]
     total_count: Annotated[int, Field(ge=0, description="Matching industries before pagination.")]
     offset: Annotated[int, Field(ge=0, description="Requested position in the filtered results.")]
-    has_more: Annotated[bool, Field(description="Whether another page of matching industries exists.")]
+    has_more: Annotated[
+        bool, Field(description="Whether another page of matching industries exists.")
+    ]
     next_offset: Annotated[
         int | None,
         Field(ge=0, description="Pass as offset for the next page; null when no matches remain."),
@@ -117,7 +120,9 @@ class BenchmarkRatio(ResultObject):
     status: Annotated[
         str,
         Field(
-            description="Engine comparison status; not_supplied means facts do not establish the ratio."
+            description=(
+                "Engine comparison status; not_supplied means facts do not establish the ratio."
+            )
         ),
     ]
     is_key_ratio: Annotated[bool, Field(description="Whether this is the selected ATO key ratio.")]

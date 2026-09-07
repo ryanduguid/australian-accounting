@@ -6,7 +6,6 @@ import pytest
 
 from aus_accounting_mcp.server import mcp
 
-
 TOOLS = asyncio.run(mcp.list_tools())
 
 
