@@ -4,32 +4,61 @@ Each component is developed, tested and released from its own directory.
 
 ## Command routing
 
-Run the checks from the component directory. The root workflow named in the last column
-runs the same commands in CI.
+Run the checks from the component directory against its own lockfile.
 
-| Component | Directory | Checks | Root workflow |
-|---|---|---|---|
-| Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev mypy aus_accounting_mcp` | `ci.yml` |
-| ato-benchmark-compare | `packages/ato-benchmark-compare/` | `uv run --locked --extra dev pytest -q`; `uv run --locked --extra dev ruff check atobenchmark tests`; `uv run --locked --extra dev mypy atobenchmark`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev --python 3.12 python -m build` | `ci-ato-benchmark-compare.yml` |
-| payday-super-checker | `packages/payday-super-checker/` | `uv run --locked --extra dev pytest -q`; `uv run --locked --extra dev ruff check paydaysuper tests`; `uv run --locked --extra dev mypy paydaysuper`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev --python 3.12 python -m build` | `ci-payday-super-checker.yml` |
-| div7a-loan-review | `packages/div7a-loan-review/` | `python -m pip install ".[dev]"`; `python -m ruff check div7aloan tests`; `python -m mypy`; `python -m pytest -q`; `python -m build` | `ci-div7a-loan-review.yml` |
-| the-exchequer-tally | `packages/the-exchequer-tally/` | `uv run --locked --extra dev ruff check edwinnixon tests`; `uv run --locked --extra dev mypy edwinnixon`; `uv run --locked --extra dev pytest -q` | `ci-the-exchequer-tally.yml` |
-| solomons-sword | `packages/solomons-sword/` | `uv run --locked --extra dev ruff check louisgoldberg tests`; `uv run --locked --extra dev mypy louisgoldberg`; `uv run --locked --extra dev pytest -q` | `ci-solomons-sword.yml` |
-| the-wip-tally | `packages/the-wip-tally/` | `uv run --locked --extra dev pytest -q`; `uv run --locked --extra dev ruff check wiptally tests`; `uv run --locked --extra dev mypy wiptally`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev --python 3.12 python -m build` | `ci-the-wip-tally.yml` |
-| Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py` | `boundaries.yml` |
+Every engine under `packages/` runs the same gates, so the commands differ only in the
+engine's import package. Substitute the import package from the table below:
+
+```bash
+uv run --locked --extra dev ruff check <import-package> tests
+uv run --locked --extra dev mypy <import-package>
+uv run --locked --extra dev coverage run --branch --source=<import-package> -m pytest
+uv run --locked --extra dev coverage report --show-missing
+uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+uv run --locked --extra dev --python 3.12 python -m build
+```
+
+| Component | Directory | Import package |
+|---|---|---|
+| ato-benchmark-compare | `packages/ato-benchmark-compare/` | `atobenchmark` |
+| payday-super-checker | `packages/payday-super-checker/` | `paydaysuper` |
+| div7a-loan-review | `packages/div7a-loan-review/` | `div7aloan` |
+| the-exchequer-tally | `packages/the-exchequer-tally/` | `edwinnixon` |
+| solomons-sword | `packages/solomons-sword/` | `louisgoldberg` |
+| the-wip-tally | `packages/the-wip-tally/` | `wiptally` |
+
+The other two components keep their own commands:
+
+| Component | Directory | Checks |
+|---|---|---|
+| Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev mypy aus_accounting_mcp` |
+| Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py` |
+
+The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,
+so a gate behaves the same wherever it runs. Changing a pin means changing all six and
+relocking each component with `uv lock`.
 
 ## CI routing
 
-- A change under `apps/aus-accounting-mcp/` runs `ci.yml`, which produces the required
-  checks `lint`, `test (ubuntu-latest, 3.10)`, `test (ubuntu-latest, 3.12)` and
-  `test (windows-latest, 3.12)`.
-- A change under `packages/<engine>/` runs that engine's workflow, including its
-  `mcp-integration` job (the MCP application's tests), because the MCP application consumes
-  published engines.
-- A change to a root policy file (`AGENTS.md`, `CONTRIBUTING.md`, `README.md`,
-  `SECURITY.md`, `IMPORTS.md`, `.editorconfig`, `.gitignore`, `.mailmap`,
-  `.gitattributes`) or to anything
-  under `.github/` runs every component.
+`ci.yml` is the anchor workflow. It carries no path filter, so its required checks always
+report, and it runs two things: the MCP application's own gates, and one call of the
+reusable `ci-package.yml` for each engine, from a package-name matrix.
+
+- `ci-package.yml` gives every engine the same gates from the engine's own directory:
+  `ruff`, `mypy`, `pytest` under branch coverage on Python 3.10, 3.12 and 3.13 (the floor
+  and ceiling of the declared `requires-python`), a `pip-audit` dependency audit, and a
+  build of the distribution followed by a clean install of the wheel. `ato-benchmark-compare`,
+  `payday-super-checker` and `the-wip-tally` add a Windows leg on 3.12.
+- The path filter is applied inside each call, by `.github/ci/select_package.py`, rather
+  than on the trigger. A change under `packages/<engine>/` runs that engine and skips the
+  rest; a change to a root policy file (`AGENTS.md`, `CONTRIBUTING.md`, `README.md`,
+  `SECURITY.md`, `IMPORTS.md`, `.editorconfig`, `.gitignore`, `.mailmap`, `.gitattributes`)
+  or to anything under `.github/` runs every engine. A run with no usable comparison
+  point, such as a dispatch or a new branch, runs every engine.
+- The MCP application's tests run on every change, because `ci.yml` has no path filter, so
+  an engine change still proves the application that consumes it.
+- `.github/ci/<engine>/checks.sh` holds an engine's own source guards, and
+  `.github/ci/<engine>/smoke.sh` its checks against the built wheel. Both are optional.
 - `boundaries.yml` and `codeql.yml` run on every change.
 - Workflow files inside component directories are inert historical records of the source
   repositories; only root workflows run.

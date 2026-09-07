@@ -16,7 +16,7 @@
 +----------------------------------+-----------------------------------+
 ```
 
-[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-div7a-loan-review.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci-div7a-loan-review.yml)
+[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/div7a-loan-review.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/div7a-loan-review/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
