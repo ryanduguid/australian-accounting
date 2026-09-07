@@ -247,6 +247,42 @@ def test_evidenced_dict_withholds_unknown_denominator_and_dependent_prose() -> N
     assert "other_income" in payload["omitted_buckets"]
 
 
+def test_evidenced_dict_key_ratio_and_row_flag_name_the_same_ratio() -> None:
+    # The ATO's fallback to total expenses is triggered by a nil cost of sales,
+    # and an omitted bucket arrives as exactly that nil. So where the bucket was
+    # not supplied the fallback rests on a figure nobody established, and the key
+    # ratio reverts to the one the ATO publishes for this industry.
+    #
+    # is_key_ratio marks that same choice per row. Reverting key_ratio without it
+    # left the payload naming one ratio and flagging another, so a caller reading
+    # either field alone got a different answer depending on which it read.
+    data = ds.load("2023-24")
+    bakery = data.get("Bakeries and hot bread shops")
+    assert bakery.key_ratio == "cost_of_sales_to_turnover"
+
+    def key_fields(supplied: dict[str, str]) -> tuple[str, list[str]]:
+        comparison = compare(data, bakery, compute(totals(**supplied)))
+        payload = to_evidenced_dict(comparison, set(supplied))
+        flagged = [row["ratio"] for row in payload["ratios"] if row["is_key_ratio"]]
+        return payload["key_ratio"], flagged
+
+    omitted = key_fields({"turnover": "850000", "other_income": "0", "rent": "40000"})
+    assert omitted == ("cost_of_sales_to_turnover", ["cost_of_sales_to_turnover"])
+
+    # An established nil is evidence, so the ATO fallback is the engine's to
+    # make and both fields move to it together.
+    evidenced_nil = key_fields(
+        {"turnover": "850000", "other_income": "0", "rent": "40000", "cost_of_sales": "0"}
+    )
+    assert evidenced_nil == ("total_expenses_to_turnover", ["total_expenses_to_turnover"])
+
+    # A supplied positive cost of sales keeps the published key ratio.
+    supplied = key_fields(
+        {"turnover": "850000", "other_income": "0", "rent": "40000", "cost_of_sales": "270000"}
+    )
+    assert supplied == ("cost_of_sales_to_turnover", ["cost_of_sales_to_turnover"])
+
+
 def test_evidenced_dict_keeps_only_ratios_with_complete_inputs() -> None:
     data = ds.load("2023-24")
     bakery = data.get("Bakeries and hot bread shops")
