@@ -219,3 +219,29 @@ def test_the_selection_harness_rejects_a_question_it_does_not_know(tmp_path):
     recorded.write_text(json.dumps({"no-such-question": ["get_ato_benchmarks"]}), encoding="utf-8")
 
     assert tool_selection.main(["score", str(recorded)]) == 2
+
+
+def test_the_selection_harness_context_is_the_whole_tool_definition():
+    # A host hands a model the tool definition as it stands. Most of what
+    # decides both the selection and the arguments lives inside the schemas, so
+    # printing a summary of them would score a model against a server that is
+    # not this one.
+    context = asyncio.run(tool_selection._describe())
+    tools = asyncio.run(mcp.list_tools())
+
+    assert "# Server instructions" in context
+    for tool in tools:
+        assert tool.name in context
+        assert (tool.description or "").strip().splitlines()[0] in context
+        # The schemas verbatim. Asserting the serialised block covers every
+        # argument's type, description, constraint and default at once, and a
+        # summary of any of them would fail here.
+        assert json.dumps(tool.input_schema, indent=2, sort_keys=True) in context
+        assert json.dumps(tool.output_schema, indent=2, sort_keys=True) in context
+        for argument in tool.input_schema["properties"]:
+            assert argument in context
+
+    # Two distinctions a name-only summary drops, and both change the answer:
+    # an omitted bucket is not an established zero, and amounts have a ceiling.
+    assert "only for an established zero" in context
+    assert "1000000000000.00" in context

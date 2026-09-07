@@ -12,8 +12,11 @@ Run it in three steps, none of which contacts a network or a model:
 
 `context` prints exactly what an MCP host puts in front of a model before it
 chooses: the server instructions from initialization, and every tool's name,
-title, description and inputs. `questions` prints the questions with the answer
-and tool elements stripped, so nothing in the prompt hints at the selection.
+title, description and complete input and output schemas. The schemas are
+printed whole rather than summarised, because most of what decides both the
+selection and the arguments lives inside them. `questions` prints the questions
+with the answer and tool elements stripped, so nothing in the prompt hints at
+the selection.
 
 Put those in front of the client under test, record which tools it called, and
 write a JSON object mapping each question id to the tool names it selected, in
@@ -73,16 +76,24 @@ async def _describe() -> str:
 
     lines = ["# Server instructions", "", initialized.instructions or "", "", "# Tools", ""]
     for tool in tools:
-        required = tool.input_schema.get("required") or []
-        optional = [
-            name for name in tool.input_schema.get("properties", {}) if name not in required
-        ]
+        # The whole schema, not a summary of it. A host hands the model the
+        # tool definition as it stands, and most of what decides both the
+        # selection and the arguments lives inside the schemas: which inputs
+        # are required, that amounts are decimal strings within a documented
+        # ceiling, that an omitted bucket is not an established zero, how the
+        # pages of a listing continue. A run scored against a trimmed
+        # definition would measure a server that is not this one.
         lines.append(f"## {tool.name}" + (f" ({tool.title})" if tool.title else ""))
         lines.append("")
         lines.append((tool.description or "").strip())
         lines.append("")
-        lines.append(f"required: {', '.join(required) or 'none'}")
-        lines.append(f"optional: {', '.join(optional) or 'none'}")
+        lines.append("Input schema:")
+        lines.append("")
+        lines.append(json.dumps(tool.input_schema, indent=2, sort_keys=True))
+        lines.append("")
+        lines.append("Output schema:")
+        lines.append("")
+        lines.append(json.dumps(tool.output_schema, indent=2, sort_keys=True))
         lines.append("")
     return "\n".join(lines)
 
