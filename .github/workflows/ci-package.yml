@@ -74,7 +74,9 @@ jobs:
              || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
             : | python3 .github/ci/select_package.py "$PACKAGE" >> "$GITHUB_OUTPUT"
           else
-            git diff --name-only "$BASE" "$HEAD" \
+            # --no-renames, or a file moved between packages is reported as its
+            # destination alone and the package that lost it never runs.
+            git diff --name-only --no-renames "$BASE" "$HEAD" \
               | python3 .github/ci/select_package.py "$PACKAGE" >> "$GITHUB_OUTPUT"
           fi
 

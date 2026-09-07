@@ -152,6 +152,20 @@ class BoundaryTests(unittest.TestCase):
                     )
                 )
 
+    def test_a_cross_package_move_runs_both_packages(self) -> None:
+        # git reports a detected rename as its destination alone, so a file moved
+        # out of one package would leave that package's gates unrun even though
+        # it lost source. The diff has to name both sides.
+        reusable = (ROOT / ".github" / "workflows" / "ci-package.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("git diff --name-only --no-renames", reusable)
+
+        moved = ["packages/the-wip-tally/moved.py", "packages/solomons-sword/moved.py"]
+        for package in ("the-wip-tally", "solomons-sword"):
+            with self.subTest(package=package):
+                self.assertTrue(select_package.should_run(package, moved))
+
     def test_an_unknown_comparison_point_runs_every_gate(self) -> None:
         # A dispatch, a new branch and a force push give the workflow no list of
         # changed paths. Selection must fail open rather than skip a gate.
