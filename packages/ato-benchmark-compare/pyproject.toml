@@ -36,13 +36,14 @@ ato-benchmark-compare = "atobenchmark.cli:main"
 
 [project.optional-dependencies]
 dev = [
-    "ruff>=0.11",
-    "mypy>=1.14",
-    "pytest>=8",
+    "ruff==0.16.6",
+    "mypy==2.3.1",
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "coverage==7.16.0",
     "openpyxl>=3.1",
     "build>=1.2",
     "hypothesis==6.165.10",
-    "coverage==7.15.4",
     "diff-cover==10.5.1",
 ]
 

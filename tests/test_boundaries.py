@@ -98,46 +98,53 @@ def production_modules(component: str, package: str) -> list[tuple[Path, int]]:
 
 
 class BoundaryTests(unittest.TestCase):
+    def test_every_engine_runs_the_shared_package_gates(self) -> None:
+        # ci.yml calls the reusable ci-package.yml once per engine, with the
+        # engine's directory and the import package it owns, so every engine runs
+        # the same gates from one definition.
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("uses: ./.github/workflows/ci-package.yml", workflow)
+        calls = dict(
+            re.findall(
+                r"(?m)^          - package_dir: (\S+)\n            import_name: (\S+)$",
+                workflow,
+            )
+        )
+        self.assertEqual(calls, ENGINES)
+
     def test_root_policy_changes_run_every_engine(self) -> None:
-        # The root workspace files belong here with the policy files: the root
-        # uv.lock is what `uv run --locked` validates from inside every component
-        # directory, so a change to it changes what every component resolves.
+        # The reusable workflow filters itself on the engine directory plus the
+        # shared root files. The root workspace files belong there with the policy
+        # files: the root uv.lock is what `uv run --locked` validates from inside
+        # every component directory, so a change to it changes what every
+        # component resolves.
         shared_paths = {
             "AGENTS.md", "CONTRIBUTING.md", "README.md", "SECURITY.md",
             "IMPORTS.md", ".editorconfig", ".gitignore", ".mailmap",
-            ".gitattributes", ".github/**",
+            ".gitattributes", ".github/",
             "pyproject.toml", "uv.lock", "justfile",
         }
-        for component in ENGINES:
-            workflow_name = f"ci-{Path(component).name}.yml"
-            workflow = (ROOT / ".github" / "workflows" / workflow_name).read_text(
-                encoding="utf-8"
-            )
-            filters = re.findall(r"(?m)^    paths:\n((?:      .*\n)+)", workflow)
-            with self.subTest(workflow=workflow_name):
-                self.assertEqual(len(filters), 2)
-                for paths in filters:
-                    entries = {
-                        line.strip().removeprefix("- ").strip("\"'")
-                        for line in paths.splitlines()
-                    }
-                    self.assertEqual(shared_paths - entries, set())
-
-    def test_imported_diff_coverage_waits_for_a_mainline_baseline(self) -> None:
-        sentinels = {
-            "ci-ato-benchmark-compare.yml": (
-                "packages/ato-benchmark-compare/atobenchmark/mapping.py"
-            ),
-            "ci-payday-super-checker.yml": (
-                "packages/payday-super-checker/paydaysuper/assess.py"
-            ),
+        workflow = (ROOT / ".github" / "workflows" / "ci-package.yml").read_text(
+            encoding="utf-8"
+        )
+        match = re.search(r"(?m)^\s+shared='\^\((.*)\)'$", workflow)
+        self.assertIsNotNone(match)
+        assert match is not None
+        entries = {
+            alternative.removesuffix("$").replace("\\", "")
+            for alternative in match.group(1).split("|")
         }
-        for workflow_name, sentinel in sentinels.items():
-            workflow = (
-                ROOT / ".github" / "workflows" / workflow_name
-            ).read_text(encoding="utf-8")
-            with self.subTest(workflow=workflow_name):
-                self.assertIn(f'git cat-file -e "origin/main:{sentinel}"', workflow)
+        self.assertEqual(entries, shared_paths)
+        self.assertIn('grep -Eq "^${PACKAGE_DIR}/|${shared}"', workflow)
+        for gate in ("test", "lint", "dependency-audit", "build"):
+            with self.subTest(gate=gate):
+                self.assertRegex(
+                    workflow,
+                    rf"(?m)^  {gate}:\n    needs: changes\n"
+                    r"    if: needs\.changes\.outputs\.run == 'true'$",
+                )
 
     def test_anchor_required_checks_are_not_suppressed_by_path_filters(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(

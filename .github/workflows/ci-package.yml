@@ -1,0 +1,209 @@
+name: ci-package
+
+# Reusable component CI. ci.yml calls this once per package with the component
+# directory and the import package it owns, so every component runs the same
+# gates from the same definition: ruff, mypy, pytest with coverage on the
+# Python matrix, pip-audit over the locked environment, and a distribution
+# build with an installed-wheel import smoke.
+#
+# The workflow filters itself. The `changes` job compares the pushed or
+# proposed commits against their base and only runs the gates when the
+# component directory or a shared root file changed, so a change to one
+# package runs that package alone while the caller stays free of path filters
+# (a required check that is suppressed by a path filter never reports). Root
+# policy files, the root workspace files and .github changes run every
+# component, because the root uv.lock is what `uv run --locked` validates from
+# inside every component directory.
+
+on:
+  workflow_call:
+    inputs:
+      package_dir:
+        description: Component directory, for example packages/the-wip-tally.
+        required: true
+        type: string
+      import_name:
+        description: The import package the component owns, for example wiptally.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  UV_VERSION: "0.12.0"
+
+jobs:
+  changes:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.filter.outputs.run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: decide whether this component's gates run
+        id: filter
+        shell: bash
+        env:
+          PACKAGE_DIR: ${{ inputs.package_dir }}
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          # Everything outside the component directory that still changes what
+          # the component resolves or how it is checked. Keep this list in step
+          # with tests/test_boundaries.py.
+          shared='^(\.github/|AGENTS\.md$|CONTRIBUTING\.md$|README\.md$|SECURITY\.md$|IMPORTS\.md$|\.editorconfig$|\.gitignore$|\.gitattributes$|\.mailmap$|pyproject\.toml$|uv\.lock$|justfile$)'
+          case "${EVENT_NAME}" in
+            pull_request)
+              # HEAD is the synthetic merge of the proposal into its base, so its
+              # first parent is the base tip and the diff is exactly the proposal.
+              changed=$(git diff --name-only HEAD^1 HEAD)
+              ;;
+            push)
+              if [ -n "${PUSH_BEFORE}" ] && ! printf '%s' "${PUSH_BEFORE}" | grep -Eq '^0+$' \
+                && git cat-file -e "${PUSH_BEFORE}^{commit}" 2>/dev/null; then
+                changed=$(git diff --name-only "${PUSH_BEFORE}" HEAD)
+              else
+                echo "::notice::No reachable base for this push; running every gate."
+                changed="${PACKAGE_DIR}/"
+              fi
+              ;;
+            *)
+              echo "::notice::${EVENT_NAME} has no diff to filter on; running every gate."
+              changed="${PACKAGE_DIR}/"
+              ;;
+          esac
+          if printf '%s\n' "${changed}" | grep -Eq "^${PACKAGE_DIR}/|${shared}"; then
+            echo "run=true" >> "${GITHUB_OUTPUT}"
+            echo "${PACKAGE_DIR}: changed, gates run"
+          else
+            echo "run=false" >> "${GITHUB_OUTPUT}"
+            echo "${PACKAGE_DIR}: unchanged, gates skipped"
+          fi
+
+  test:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12", "3.13"]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: ${{ inputs.package_dir }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - name: run tests with branch coverage
+        run: >-
+          uv run --locked --extra dev pytest -q
+          --cov=${{ inputs.import_name }} --cov-branch
+          --cov-report=term-missing --cov-report=xml
+        env:
+          UV_PYTHON: ${{ matrix.python }}
+
+  lint:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ${{ inputs.package_dir }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - name: ruff
+        run: uv run --locked --extra dev ruff check ${{ inputs.import_name }} tests
+      - name: mypy
+        run: uv run --locked --extra dev mypy ${{ inputs.import_name }}
+
+  dependency-audit:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ${{ inputs.package_dir }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - name: audit the locked project environment
+        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+
+  build:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ${{ inputs.package_dir }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - name: build the distribution
+        run: uv run --locked --extra dev --python 3.12 python -m build
+      - name: install the wheel into a clean environment and import it
+        # --no-index, or pip is free to resolve the name from PyPI and test a
+        # release nobody built in this job.
+        env:
+          IMPORT_NAME: ${{ inputs.import_name }}
+        run: |
+          python -m venv "${RUNNER_TEMP}/wheel-smoke"
+          "${RUNNER_TEMP}/wheel-smoke/bin/pip" install --no-index dist/*.whl
+          cd "${RUNNER_TEMP}"
+          "${RUNNER_TEMP}/wheel-smoke/bin/python" -c "import importlib, os; importlib.import_module(os.environ['IMPORT_NAME']); print(os.environ['IMPORT_NAME'], 'imports from the wheel')"

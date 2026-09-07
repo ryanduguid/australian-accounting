@@ -1,6 +1,17 @@
 name: tests
 
+# Repository CI. The `package` matrix calls the reusable ci-package.yml once per
+# engine so every engine runs the same gates; each call filters itself to the
+# engine's own directory and the shared root files, so a change to one package
+# runs that package alone. The `test` and `lint` jobs are the MCP application's
+# own checks and the anchor required checks, so this workflow carries no path
+# filter (a required check that is suppressed by a path filter never reports).
+# `mcp-integration` runs the application's tests after every engine gate has
+# passed, because apps/aus-accounting-mcp consumes the engines and, inside the
+# root workspace, imports the checked-out sources under review.
+
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
@@ -13,6 +24,30 @@ permissions:
   contents: read
 
 jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package_dir: packages/ato-benchmark-compare
+            import_name: atobenchmark
+          - package_dir: packages/payday-super-checker
+            import_name: paydaysuper
+          - package_dir: packages/div7a-loan-review
+            import_name: div7aloan
+          - package_dir: packages/solomons-sword
+            import_name: louisgoldberg
+          - package_dir: packages/the-exchequer-tally
+            import_name: edwinnixon
+          - package_dir: packages/the-wip-tally
+            import_name: wiptally
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci-package.yml
+    with:
+      package_dir: ${{ matrix.package_dir }}
+      import_name: ${{ matrix.import_name }}
+
   test:
     permissions:
       contents: read
@@ -25,6 +60,8 @@ jobs:
             python: "3.10"
           - os: ubuntu-latest
             python: "3.12"
+          - os: ubuntu-latest
+            python: "3.13"
           - os: windows-latest
             python: "3.12"
     runs-on: ${{ matrix.os }}
@@ -66,3 +103,30 @@ jobs:
         working-directory: apps/aus-accounting-mcp
       - run: uv run --locked --extra dev mypy aus_accounting_mcp
         working-directory: apps/aus-accounting-mcp
+
+  mcp-integration:
+    # The MCP application consumes the engines, so an engine change also runs
+    # the application's integration tests, after the engine gates themselves.
+    # Inside the root workspace those tests import the checked-out engines, so
+    # a break is caught before the engine is published.
+    needs: package
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - run: uv run --locked --extra dev pytest -q
+        working-directory: apps/aus-accounting-mcp
+        env:
+          UV_PYTHON: "3.12"
