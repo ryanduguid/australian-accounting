@@ -22,6 +22,9 @@ on:
       - ".gitignore"
       - ".gitattributes"
       - ".mailmap"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "justfile"
   pull_request:
     paths:
       - "packages/the-wip-tally/**"
@@ -35,6 +38,9 @@ on:
       - ".gitignore"
       - ".gitattributes"
       - ".mailmap"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "justfile"
 
 permissions:
   contents: read

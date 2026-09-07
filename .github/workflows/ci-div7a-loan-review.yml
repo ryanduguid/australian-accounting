@@ -3,8 +3,9 @@ name: div7a-loan-review
 # Component CI for packages/div7a-loan-review. The jobs, commands and Python
 # matrix are the ones the source repository's ci.yml defined, run from the
 # component directory. The mcp-integration job also runs the application
-# tests because apps/aus-accounting-mcp consumes this engine's published
-# distribution. Root policy files and .github changes run every component.
+# tests because apps/aus-accounting-mcp consumes this engine, as the checked-out
+# source inside the root workspace. Root policy files, the root workspace files
+# and .github changes run every component.
 
 on:
   workflow_dispatch:
@@ -22,6 +23,9 @@ on:
       - ".gitignore"
       - ".gitattributes"
       - ".mailmap"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "justfile"
   pull_request:
     paths:
       - "packages/div7a-loan-review/**"
@@ -35,6 +39,9 @@ on:
       - ".gitignore"
       - ".gitattributes"
       - ".mailmap"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "justfile"
 
 permissions:
   contents: read
@@ -103,8 +110,9 @@ jobs:
           div7a-loan-review rate --year 2026-27 --format json
 
   mcp-integration:
-    # The MCP application consumes this engine's published distribution, so an
-    # engine change also runs the application's integration tests.
+    # The MCP application consumes this engine, so an engine change also runs the
+    # application's integration tests. Inside the root workspace those tests import
+    # the checked-out engine, so a break is caught before the engine is published.
     permissions:
       contents: read
     runs-on: ubuntu-latest
