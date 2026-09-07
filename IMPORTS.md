@@ -170,33 +170,23 @@ commit. The imported subtree must have the same tree id as the source commit.
   design, output contains `221,000.00`); `ruff check wiptally tests`; `mypy wiptally`;
   `uv lock --check`. All passed.
 
-## Release Policy prerequisites at the imported snapshots
+## Release Policy prerequisites
 
 Every root release caller calls
-`ryanduguid/release-policy/.github/workflows/release-python.yml` at commit
-`6ad53a7b030da22fc299cee704c37ba7550ea1d7`. That workflow requires, inside the component
-directory, a `RELEASE_NOTES.md` whose first line is `# vX.Y.Z` for the tag, a committed
-`uv.lock` (it runs `uv run --locked`), a `dev` extra providing `pytest` and `build`, a
-pure-Python wheel, and a version source that is either a static `[project] version` in
+`ryanduguid/release-policy/.github/workflows/release-python.yml` at the commit
+`tests/test_boundaries.py` pins (`787db4590e725cfd37104c8a9dd9e75f7fd4c018` as at
+7 September 2026). That workflow requires, inside the component directory, a
+`RELEASE_NOTES.md` whose first line is `# vX.Y.Z` for the tag, a committed `uv.lock` (it
+runs `uv run --locked`), a `dev` extra providing `pytest` and `build`, a pure-Python
+wheel, and a version source that is either a static `[project] version` in
 `pyproject.toml` or a single-literal `__version__` file selected with
 `version-parser: python-literal`. It also requires an annotated tag on the `main` commit,
 a clean tree and no existing release for the tag.
 
-| Component | Notes header | Lockfile | dev extra | Pure wheel | Version source | Status at the imported snapshot |
-|---|---|---|---|---|---|---|
-| aus-accounting-mcp | `# v0.1.6` | `uv.lock` | pytest, build | yes | `pyproject.toml` 0.1.6 | satisfied |
-| ato-benchmark-compare | `# v0.1.5` | `uv.lock` | pytest, build | yes | `atobenchmark/__init__.py` 0.1.5 (python-literal) | satisfied |
-| payday-super-checker | absent | `uv.lock` | pytest, build | yes | `pyproject.toml` 0.1.2 | fail-closed: no `RELEASE_NOTES.md` (its notes live under `docs/releases/`) |
-| div7a-loan-review | absent | absent | pytest, build | yes | `pyproject.toml` 0.1.0 | fail-closed: no `RELEASE_NOTES.md` and no `uv.lock` |
-| the-exchequer-tally | `# v0.1.2` | `uv.lock` | pytest, build | yes | `pyproject.toml` 0.1.2 | satisfied |
-| solomons-sword | `# v0.1.2` | `uv.lock` | pytest, build | yes | `pyproject.toml` 0.1.2 | satisfied |
-| the-wip-tally | absent | `uv.lock` | pytest, build | yes | `wiptally/__init__.py` 0.1.0 (python-literal) | fail-closed: no `RELEASE_NOTES.md` |
-
-"Satisfied" means the file-level prerequisites exist at the imported snapshot; a release
-still needs the pinned Release Policy commit to be reachable on GitHub, a bumped version,
-an annotated tag on `main`, and the component's environment and trusted publisher. A
-fail-closed component cannot release until a later reviewed component change adds the
-missing file or files; its caller refuses the tag until then and nothing else changes.
+At the 2 September import, payday-super-checker, div7a-loan-review and the-wip-tally had
+no `RELEASE_NOTES.md` and div7a-loan-review had no `uv.lock`, so their callers refused
+any tag. Each added the missing files in a later reviewed change, and every component now
+satisfies the file-level prerequisites.
 
 The payday-super-checker bespoke experimental prerelease workflow and every other workflow
 under a component directory were inert after import (GitHub runs workflows only from the
