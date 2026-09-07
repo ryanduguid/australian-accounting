@@ -31,6 +31,12 @@ SHARED_PATHS = frozenset(
         ".gitignore",
         ".gitattributes",
         ".mailmap",
+        # The root workspace files: the root uv.lock is what `uv run --locked`
+        # validates from inside every component directory, so a change to it
+        # changes what every engine resolves.
+        "pyproject.toml",
+        "uv.lock",
+        "justfile",
     }
 )
 SHARED_PREFIXES = (".github/",)

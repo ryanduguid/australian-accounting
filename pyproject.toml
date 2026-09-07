@@ -1,0 +1,50 @@
+# Workspace root. This file is a development entrypoint only: it is not a
+# distributable package, carries no version, and ships nothing to PyPI. Each
+# component under packages/ and apps/ keeps its own pyproject.toml, version,
+# release notes and licence, and is still released on its own from its own
+# directory.
+#
+# The root exists so a fresh clone can install every component and the shared
+# toolchain in one command and run the whole suite from the top. See the
+# justfile for the setup, lint, typecheck and test entrypoints.
+
+[tool.uv.workspace]
+members = ["packages/*", "apps/*"]
+
+# The six engines pin the shared toolchain to one exact version each, so the
+# workspace resolves it without an override. Keep those pins identical: a
+# workspace resolves every member together, and cannot hold two exact pins of
+# the same tool.
+
+# apps/aus-accounting-mcp declares exact pins on the three engines it consumes,
+# because a published distribution cannot depend on a path. Inside the
+# workspace those three names resolve to the checked-out sources instead, so
+# the application's tests import atobenchmark, paydaysuper and div7aloan from
+# the tree under review rather than from the last PyPI release. The pins stay
+# authoritative for the published wheel; uv sources are development metadata
+# and are not written into built distributions.
+[tool.uv.sources]
+ato-benchmark-compare = { workspace = true }
+payday-super-checker = { workspace = true }
+div7a-loan-review = { workspace = true }
+
+# The shared toolchain for running every component's checks from one
+# environment. Components keep their own `dev` extras, which remain the
+# authority for their own CI; this group is the union needed to run the whole
+# suite from the root. It avoids exact pins: the engines' own extras carry those,
+# and the workspace resolution takes the same versions from there.
+[dependency-groups]
+dev = [
+    "build>=1.2",
+    # No `coverage` entry: `just test` runs pytest uninstrumented, and the
+    # engines' coverage gates run through their own `dev` extras, which pin it.
+    "holidays>=0.103",
+    "hypothesis>=6.165",
+    "jsonschema>=4.0",
+    "mypy>=1.14",
+    "openpyxl>=3.1",
+    "Pillow>=12.3",
+    "pytest>=8",
+    "ruff>=0.11",
+    'tomli>=2.0.1; python_version < "3.11"',
+]
