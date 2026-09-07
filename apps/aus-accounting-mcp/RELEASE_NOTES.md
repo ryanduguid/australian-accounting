@@ -1,3 +1,15 @@
+# v0.1.8
+
+- Use the benchmark engine's evidenced serialiser so omitted expense buckets
+  cannot become definite zeroes in notes, checks or the selected key ratio.
+- Expose structured MCP output schemas and bundled reference resources, add
+  industry pagination, and preserve unknown Division 7A results.
+- Keep the published engine pins unchanged: `ato-benchmark-compare` 0.1.6,
+  `payday-super-checker` 0.1.3 and `div7a-loan-review` 0.1.1.
+
+Outputs remain preparation aids for human review, not advice or compliance
+certification. This release makes no change to statutory calculations.
+
 # v0.1.7
 
 - update the exactly pinned delegated engines to `ato-benchmark-compare` 0.1.6,
