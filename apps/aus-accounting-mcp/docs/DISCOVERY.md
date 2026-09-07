@@ -67,9 +67,9 @@ admin).
 - The current Glama listing is
   https://glama.ai/mcp/servers/ryanduguid/australian-accounting,
   claimed as maintainer `ryanduguid`. The historical `au-tax-mcp-server` URL is
-  retained by the existing README badge. Keep the root `glama.json` maintainer
-  declaration aligned with the application copy: Glama discovers repository-root
-  metadata, while the application lives in `apps/aus-accounting-mcp/`.
+  retained by the existing README badge. The root `glama.json` carries the
+  maintainer declaration: Glama discovers repository-root metadata, while the
+  application lives in `apps/aus-accounting-mcp/`.
   In Glama **Admin → Repository**, set **GitHub Project URL** to
   https://github.com/ryanduguid/australian-accounting/tree/main/apps/aus-accounting-mcp
   so the listing renders the application's README instead of the monorepo index.
