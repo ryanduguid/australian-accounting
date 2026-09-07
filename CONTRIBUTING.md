@@ -19,10 +19,14 @@ as editable workspace members. `apps/aus-accounting-mcp` therefore imports
 from their last PyPI release, with no per-component install step.
 
 `just` is optional tooling; install it with `uv tool install rust-just`. The recipes
-are `setup`, `lint`, `typecheck`, `test` and `check` (all three), and each is a loop
-over the per-component commands in the table below. Those commands remain the
-authority and are what CI runs — `just` runs them from one place, it does not
-replace them.
+are `setup`, `lint`, `typecheck`, `test` and `check` (the last three together). Each
+loops over the per-component commands in the table below, which remain the authority;
+`just` runs them from one place, it does not replace them.
+
+`just check` is the fast local pass, not a CI equivalent. It runs ruff, mypy and
+pytest. CI additionally runs, per component, the dependency audit, the distribution
+build, the installed-wheel and sdist smoke tests and changed-line coverage listed in
+that table and in the component workflows. A green `just check` is not a green CI.
 
 Two consequences of the workspace are worth knowing before you run a component's
 own commands:

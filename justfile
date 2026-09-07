@@ -62,5 +62,9 @@ typecheck: setup
         (cd "${directory}" && uv run --no-sync mypy "${package}")
     done
 
-# Everything CI checks, in CI's order.
+# Not a CI equivalent. The component workflows also run a dependency audit, a
+# distribution build, installed-wheel and sdist smoke tests, and changed-line
+# coverage, and none of those run here. A green `just check` is not a green CI.
+
+# The fast local pass: lint, type-check and test every component.
 check: lint typecheck test
