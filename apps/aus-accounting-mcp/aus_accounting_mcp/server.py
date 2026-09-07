@@ -290,8 +290,10 @@ def calc_payday_super_deadline(
     qe_day: Annotated[
         str,
         Field(description=(
-            'Qualifying-earnings payment date (payday), YYYY-MM-DD. This engine rejects dates '
-            'before its Payday Super regime.'
+            'Qualifying-earnings payment date (payday). YYYY-MM-DD; a payroll export shape '
+            'such as 13/07/2027 or "9 Jul 2027" is also read, and a numeric date that could be '
+            'read either way round is refused. This engine rejects dates before its Payday '
+            'Super regime.'
         )),
     ],
     sg_amount: Annotated[
@@ -306,21 +308,23 @@ def calc_payday_super_deadline(
         str,
         Field(description=(
             'Required assessment date, YYYY-MM-DD. Supply explicitly; the tool does not assume '
-            'today.'
+            'today. Reads the same date shapes as qe_day.'
         )),
     ],
     remitted: Annotated[
         str | None,
         Field(description=(
             'Date money was sent, YYYY-MM-DD. Optional; does not prove receipt by the fund or '
-            'establish ON_TIME.'
+            'establish ON_TIME. Reads the same date shapes as qe_day.'
         )),
     ] = None,
     received: Annotated[
         str | None,
         Field(description=(
             'Actual fund-receipt date, YYYY-MM-DD. Omit or null if unknown; required before the '
-            'statutory test can return ON_TIME.'
+            'statutory test can return ON_TIME. Reads the same date shapes as qe_day; a stamp '
+            'carrying Z or a UTC offset is refused, so convert it to the Australian calendar '
+            'date first.'
         )),
     ] = None,
     employee_id: Annotated[
@@ -349,7 +353,8 @@ def calc_payday_super_deadline(
         str | None,
         Field(description=(
             'Subsequent schedule-consistent non-out-of-cycle QE payment date, YYYY-MM-DD; must '
-            'be after qe_day when out_of_cycle is true. Not an assumed future payday.'
+            'be after qe_day when out_of_cycle is true. Not an assumed future payday. Reads the '
+            'same date shapes as qe_day.'
         )),
     ] = None,
     db_interest: Annotated[

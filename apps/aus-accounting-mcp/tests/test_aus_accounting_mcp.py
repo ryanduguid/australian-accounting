@@ -1102,3 +1102,66 @@ def test_registry_publisher_is_pinned_and_checksum_verified() -> None:
         < workflow.index("tar --extract")
         < workflow.index("./mcp-publisher login")
     )
+
+
+PAYDAY_FACTS = {"qe_day": "2027-07-01", "sg_amount": "120.00", "as_at": "2027-08-01"}
+
+
+@pytest.mark.parametrize(
+    "supplied,expected",
+    [
+        ("2027-07-13", "2027-07-13"),
+        # The shapes a payroll or clearing-house export actually holds. The
+        # engine's own CSV path reads each of these, so the tool does too.
+        ("13/07/2027", "2027-07-13"),
+        ("13-07-2027", "2027-07-13"),
+        ("13 Jul 2027", "2027-07-13"),
+        # The law tests whole days, so a zone-less time component is dropped.
+        ("2027-07-13T14:30:00", "2027-07-13"),
+        ("2027-07-13 14:30", "2027-07-13"),
+    ],
+)
+def test_payday_reads_the_date_shapes_the_engine_reads(supplied, expected) -> None:
+    payload = calc_payday_super_deadline(**PAYDAY_FACTS, received=supplied)
+    assert payload["result"]["received"] == expected
+
+
+@pytest.mark.parametrize("supplied", ["01/07/2027", "07/01/2027", "1-7-2027", "12/12/2027"])
+def test_payday_refuses_a_numeric_date_that_could_be_read_either_way(supplied) -> None:
+    # The engine reads these day first, which is right for the Australian export
+    # it was written for. Reaching the same engine through an MCP tool, the text
+    # can as easily be a caller writing the month first, and the difference is a
+    # month in a date that decides the verdict. It fails closed instead.
+    with pytest.raises(ValueError, match="ambiguous"):
+        calc_payday_super_deadline(**PAYDAY_FACTS, received=supplied)
+
+    # A component above 12 settles the reading, so it is accepted.
+    unambiguous = calc_payday_super_deadline(**PAYDAY_FACTS, received="13/07/2027")
+    assert unambiguous["result"]["received"] == "2027-07-13"
+
+
+def test_payday_refuses_a_zone_bearing_stamp_with_the_engine_reason() -> None:
+    # A UTC evening is already the next day in Australia, so keeping the written
+    # day could pass a receipt that was really a day later. The engine owns that
+    # refusal and its wording; the adapter surfaces it rather than restating it.
+    with pytest.raises(ValueError, match="timezone offset marker"):
+        calc_payday_super_deadline(**PAYDAY_FACTS, received="2027-07-02T10:00:00Z")
+    with pytest.raises(ValueError, match="Australian local"):
+        calc_payday_super_deadline(**PAYDAY_FACTS, received="2027-07-02T10:00:00+10:00")
+
+
+def test_payday_still_names_the_field_that_could_not_be_read() -> None:
+    for field in ("qe_day", "as_at", "received", "remitted", "next_standard_qe_day"):
+        with pytest.raises(ValueError, match=field):
+            calc_payday_super_deadline(**{**PAYDAY_FACTS, field: "not-a-date"})
+
+
+def test_payday_date_shapes_do_not_change_a_verdict() -> None:
+    # The same day written four ways is the same day, so the deadline, the
+    # pathway and the verdict have to be identical. A shape that quietly moved
+    # any of them would be a parsing difference presented as a review outcome.
+    outcomes = {
+        calc_payday_super_deadline(**PAYDAY_FACTS, received=supplied)["result"]["verdict"]
+        for supplied in ("2027-07-13", "13/07/2027", "13 Jul 2027", "2027-07-13T09:00:00")
+    }
+    assert outcomes == {"LATE"}

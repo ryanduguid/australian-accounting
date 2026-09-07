@@ -8,18 +8,25 @@ allocation cannot be confirmed through this facade.
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from decimal import Decimal
 from typing import Any
 
 from paydaysuper import LAW_CONTENT_DATE, __version__ as PAYDAY_VERSION
 from paydaysuper.calendar import load_calendar
+from paydaysuper.csv_io import CsvError, parse_date_text
 from paydaysuper.deadlines import ContribLine, PreRegimeError
 from paydaysuper.rates import load_gic
 from paydaysuper.report import Result, assess
 
 from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.money import parse_amount
+
+#: A purely numeric slash or dash date, captured to its first two components.
+#: The engine reads these day first, as the Australian calendar is written, and
+#: the guard below refuses the ones where that reading cannot be checked.
+NUMERIC_DATE = re.compile(r"^(\d{1,2})[/-](\d{1,2})[/-]\d{2,4}$")
 
 DISCLAIMER = (
     "Experimental review aid. Not a compliance determination, an ATO assessment "
@@ -30,14 +37,58 @@ DISCLAIMER = (
 )
 
 
+def _read_date(text: str, field: str) -> date:
+    """Read a date the way the engine reads one from a contributions CSV.
+
+    The dates an operator holds come out of a payroll or clearing-house export,
+    and payday-super-checker already accepts the shapes those arrive in: ISO,
+    day-first numeric, "9 Jul 2026", and a zone-less date-time whose time
+    component the law ignores. Parsing is the engine's, through its own public
+    parse_date_text, so this adapter adds no date format of its own and cannot
+    drift from what the CSV path accepts.
+
+    Two refusals sit at this boundary rather than in the engine.
+
+    A stamp carrying Z or a UTC offset is the engine's refusal, raised as a
+    CsvError and re-raised here: its written day belongs to that zone, and a
+    UTC evening is already the next day in Australia, so keeping the written day
+    could pass a receipt that was really a day later.
+
+    A purely numeric date whose first two components are both 12 or less is
+    refused here. The engine reads 01/02/2027 day first, as 1 February, which is
+    right for the Australian export it was written for. Through an MCP tool the
+    same text can as easily be a caller writing 2 January, and nothing in the
+    string says which. That is a month-sized error in a date that decides a
+    lateness verdict, so it fails closed and asks for ISO rather than guessing.
+    A component above 12 settles the reading, and those are accepted.
+    """
+    ambiguous = NUMERIC_DATE.match(text)
+    if ambiguous and int(ambiguous.group(1)) <= 12 and int(ambiguous.group(2)) <= 12:
+        raise InputError(
+            f"{field}: {text!r} is ambiguous. A numeric date like this is read day first, "
+            "so it means day "
+            f"{int(ambiguous.group(1))} of month {int(ambiguous.group(2))}, but nothing in "
+            "the text rules out the other reading, and the difference decides the verdict. "
+            "Supply it as YYYY-MM-DD."
+        )
+    try:
+        parsed = parse_date_text(text)
+    except CsvError as exc:
+        raise InputError(f"{field}: {exc}") from exc
+    if parsed is None:
+        raise InputError(
+            f"{field}: {text!r} is not a date this tool reads. Use YYYY-MM-DD; "
+            "a day-first numeric date, a form like '9 Jul 2026', and a date-time "
+            "with no timezone marker are also read."
+        )
+    return parsed
+
+
 def _required_date(value: str, field: str) -> date:
     text = str(value).strip()
     if not text:
         raise InputError(f"{field} is required (YYYY-MM-DD)")
-    try:
-        return date.fromisoformat(text)
-    except ValueError as exc:
-        raise InputError(f"{field}: {value!r} is not an ISO date") from exc
+    return _read_date(text, field)
 
 
 def _optional_date(value: str | None, field: str) -> date | None:
@@ -46,7 +97,7 @@ def _optional_date(value: str | None, field: str) -> date | None:
     text = str(value).strip()
     if not text:
         return None
-    return _required_date(text, field)
+    return _read_date(text, field)
 
 
 def _money(value: Decimal | None) -> str | None:
