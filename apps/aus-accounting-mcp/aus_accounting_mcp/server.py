@@ -96,7 +96,7 @@ DIV7A_SCOPE_REFUSAL = (
 )
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="List ATO benchmark industries")
 def list_ato_benchmark_industries(
     search: Annotated[
         str | None,
@@ -147,7 +147,7 @@ def list_ato_benchmark_industries(
     return cast(IndustryList, list_industries(search=search, year=year, limit=limit, offset=offset))
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Compare figures to ATO benchmarks")
 def get_ato_benchmarks(
     industry: Annotated[
         str,
@@ -296,7 +296,7 @@ def get_ato_benchmarks(
     )
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Review a Payday Super contribution")
 def calc_payday_super_deadline(
     qe_day: Annotated[
         str,
@@ -398,7 +398,7 @@ def calc_payday_super_deadline(
     )
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Get the Division 7A benchmark rate")
 def get_div7a_benchmark_rate(
     year_of_income: Annotated[
         str,
@@ -426,7 +426,7 @@ def get_div7a_benchmark_rate(
     return cast(Div7aRate, get_benchmark_rate(year_of_income, response_detail=response_detail))
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Review a Division 7A loan")
 def review_div7a_loan(
     year_of_income: Annotated[
         str,
@@ -562,53 +562,60 @@ def review_div7a_loan(
     )
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Refuse an unsupported Division 7A matter")
 def refuse_div7a(
     borrower_name: Annotated[
-        str,
+        str | None,
         Field(description=(
-            'Legacy borrower label; ignored. This refusal tool does not look up a borrower or '
-            'calculate a repayment.'
+            'Legacy borrower label; ignored. Omit it. This refusal tool does not look up a '
+            'borrower or calculate a repayment.'
         )),
-    ],
+    ] = None,
     lender_entity_name: Annotated[
-        str,
+        str | None,
         Field(description=(
-            'Legacy lender label; ignored. No entity record is looked up or written.'
+            'Legacy lender label; ignored. Omit it. No entity record is looked up or written.'
         )),
-    ],
+    ] = None,
     loan_principal: Annotated[
-        str,
+        str | None,
         Field(description=(
-            'Legacy principal, validated then discarded; this tool always refuses unsupported '
-            'scope. AUD decimal string, e.g. "1000.00"; finite, at most 2 decimal places, '
-            'absolute value at most 1000000000000.00.'
+            'Legacy principal; ignored beyond validation, and this tool always refuses '
+            'unsupported scope. Omit it rather than inventing a figure. When supplied: AUD '
+            'decimal string, e.g. "1000.00"; finite, at most 2 decimal places, absolute value '
+            'at most 1000000000000.00.'
         )),
-    ],
+    ] = None,
     start_fy: Annotated[
-        int,
+        int | None,
         Field(description=(
-            'Legacy financial-year value; defaults to 2025 and is ignored. Use '
-            'review_div7a_loan with explicit income years for supported reviews.'
+            'Legacy financial-year value; ignored. Omit it. Use review_div7a_loan with explicit '
+            'income years for supported reviews.'
         )),
-    ] = 2025,
+    ] = None,
     is_secured_25_year: Annotated[
-        bool,
+        bool | None,
         Field(description=(
-            'Legacy secured-loan flag; defaults to false and is ignored. Does not establish '
-            'eligibility or enable a calculation.'
+            'Legacy secured-loan flag; ignored. Omit it. Does not establish eligibility or '
+            'enable a calculation.'
         )),
-    ] = False,
+    ] = None,
 ) -> ScopeRefusal:
     """Return an explicit refusal for unsupported Division 7A matters.
 
+    Call this with no arguments. The refusal is the same whatever is passed, so
+    do not invent a borrower, a lender or a principal to reach it; every input
+    is a retained legacy field and is ignored. A supplied loan_principal is
+    still validated as an amount, so a malformed one is an input error rather
+    than a silent pass.
+
     Use review_div7a_loan for reviewed s 109N/s 109E loan facts, or
-    get_div7a_benchmark_rate for a reviewed rate. This compatibility tool
-    always returns ERR_POLICY_DIV7A_SCOPE_REFUSED with the scope explanation;
-    it never calculates a repayment. Legacy inputs are ignored except for
-    principal validation. No network, writes or lodgments.
+    get_div7a_benchmark_rate for a reviewed rate. This tool always returns
+    ERR_POLICY_DIV7A_SCOPE_REFUSED with the scope explanation; it never
+    calculates a repayment. No network, writes or lodgments.
     """
-    parse_amount(loan_principal, "loan_principal")
+    if loan_principal is not None:
+        parse_amount(loan_principal, "loan_principal")
     del borrower_name, lender_entity_name, start_fy, is_secured_25_year
     return {
         "ok": False,
@@ -619,7 +626,7 @@ def refuse_div7a(
     }
 
 
-@mcp.tool(annotations=LOCAL_READ_ONLY)
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Generate a synthetic CTR or BAS fixture")
 def generate_synthetic_sbr_fixture(
     form_type: Annotated[
         str,
