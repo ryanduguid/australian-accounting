@@ -113,9 +113,13 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
+      # No -q here: several engines already set it in their pytest addopts, and
+      # a second one is -qq, which drops the "N passed" count from the log.
+      # Without the count a test file that stops being collected leaves every
+      # leg green.
       - name: run tests with branch coverage
         run: >-
-          uv run --locked --extra dev pytest -q
+          uv run --locked --extra dev pytest
           --cov=${{ inputs.import_name }} --cov-branch
           --cov-report=term-missing --cov-report=xml
         env:

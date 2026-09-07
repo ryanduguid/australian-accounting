@@ -64,7 +64,7 @@ The engine gates, run from the engine directory:
 ```
 uv run --locked --extra dev ruff check <pkg> tests
 uv run --locked --extra dev mypy <pkg>
-uv run --locked --extra dev pytest -q --cov=<pkg> --cov-branch --cov-report=term-missing --cov-report=xml
+uv run --locked --extra dev pytest --cov=<pkg> --cov-branch --cov-report=term-missing --cov-report=xml
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 uv run --locked --extra dev --python 3.12 python -m build
 ```
