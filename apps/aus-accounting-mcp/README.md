@@ -189,14 +189,32 @@ at the end. Limits must be integers from 1 to 100 and offsets non-negative integ
 Omitting `limit` or setting it to null preserves full-list calls; an offset still
 skips that many matching entries. Source metadata accompanies every page.
 
-Ten fabricated, read-only agent evaluation questions and exact expected answers
-are in [evaluation/questions.xml](evaluation/questions.xml). The normal pytest
-suite verifies their answers through a real stdio MCP session using the locked
-engines. This checks answer reproducibility; it does not measure whether a model
-can independently select the right tools. Evaluate that separately by presenting
-the questions without the answer elements to an MCP-capable client. The fixed
-dataset years and engine versions define the evaluation baseline; review expected
-answers when upgrading an engine.
+Ten fabricated, read-only agent evaluation questions are in
+[evaluation/questions.xml](evaluation/questions.xml), each with its exact expected
+answer and the tools a correct answer needs. The normal pytest suite replays them
+through a real stdio MCP session using the locked engines, checking both the
+answer and that reaching it called exactly the published tools, so that list
+cannot drift from what the server actually requires. The fixed dataset years and
+engine versions define the evaluation baseline; review expected answers when
+upgrading an engine.
+
+Answer reproducibility is not tool-selection quality: the replay is told which
+tool to call. To measure the other half, `evaluation/tool_selection.py` prints
+the context a host puts in front of a model and the questions with the answer and
+tool elements stripped, then scores a recorded run against the published
+selection:
+
+```bash
+python evaluation/tool_selection.py context
+python evaluation/tool_selection.py questions
+python evaluation/tool_selection.py score runs/recorded.json
+```
+
+The recorded file maps each question id to the tool names the client called, in
+any order. Scoring reports the tools each answer missed and the ones it called
+that the answer does not need. This is a supplementary check, not a CI gate: the
+step in the middle is a model, and a gate whose result depends on one would fail
+for reasons that are not this repository's.
 
 `calc_payday_super_deadline` requires `as_at`. It does not invent clearing-house latency and cannot confirm LCR 2026/1 transition allocation. A remittance date alone cannot produce `ON_TIME`.
 
