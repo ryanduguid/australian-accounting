@@ -204,7 +204,20 @@ Omitted ATO expense buckets are `not_supplied`, not zero. Every ATO ratio divide
 
 Amounts, including Division 7A loan balances and payments, are decimal strings, finite, at most two decimal places, and no greater than AUD 1,000,000,000,000.00. Dates are ISO-8601. Payday Super uses payday-super-checker's national SGAA 1992 s 6(1) calendar.
 
-Ask the agent:
+## Prompts
+
+The three documented workflows are registered as MCP prompts, so a host can offer
+them from its prompt menu rather than having you paste the text. Each argument is
+optional: supply it and the prompt names it, omit it and the prompt asks you for it
+instead of assuming one.
+
+| Prompt | Argument | Job |
+| :--- | :--- | :--- |
+| `compare_ato_benchmarks` | `industry` | Compare supplied P&L buckets, leaving omitted buckets out rather than passing zero |
+| `review_payday_super_contribution` | `as_at` | Review one contribution, without inventing a fund-receipt date or an SG charge |
+| `review_div7a_loan_terms` | `year_of_income` | Review one amalgamated loan for s 109N and s 109E, refusing matters outside that scope |
+
+The same texts, to paste by hand:
 
 ```text
 Compare these P&L buckets to the ATO small-business benchmarks for this industry. Omit buckets I have not supplied. Do not treat missing as zero.
@@ -217,6 +230,19 @@ Review this Payday Super contribution. QE day, remitted date, and fund-receipt d
 ```text
 Review this operator-supplied Division 7A amalgamated loan for s 109N terms and the s 109E minimum yearly repayment. Leave unknown facts unknown and refuse questions outside the reviewed scope.
 ```
+
+## Resources
+
+Four read-only resources carry context a host can show without spending a tool call.
+Each is built from the installed engines rather than from a repository file, so it
+describes the server that is actually running.
+
+| Resource | Contents |
+| :--- | :--- |
+| `aus-accounting://disclaimer` | The boundary and no-advice statement, plus each delegated engine's own disclaimer |
+| `aus-accounting://div7a-scope` | What Division 7A this server reviews, and the matters that stay refused. The same text `refuse_div7a` returns |
+| `aus-accounting://benchmark-dataset-years` | The shipped ATO benchmark years with publisher, resource URL, retrieval date and SHA-256. Bundled data, not a live lookup |
+| `aus-accounting://component-versions` | The server and engine versions installed here, which are the versions reported beside results as `engine_version` |
 
 ## Licence
 
