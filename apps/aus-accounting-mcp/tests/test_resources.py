@@ -5,15 +5,15 @@ from __future__ import annotations
 import asyncio
 import importlib.metadata
 import json
-from pathlib import Path
 import re
 import sys
+from pathlib import Path
 
+import pytest
+from atobenchmark.dataset import available_years
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-import pytest
 
-from atobenchmark.dataset import available_years
 from aus_accounting_mcp import resources
 from aus_accounting_mcp.server import DIV7A_SCOPE_REFUSAL, mcp
 
@@ -225,7 +225,8 @@ async def _inspect_stdio() -> None:
 
             listed = {str(resource.uri) for resource in (await session.list_resources()).resources}
             assert listed == RESOURCE_URIS
-            assert {prompt.name for prompt in (await session.list_prompts()).prompts} == PROMPT_NAMES
+            prompts = (await session.list_prompts()).prompts
+            assert {prompt.name for prompt in prompts} == PROMPT_NAMES
 
             # Every resource is named in the instructions, so a host that only
             # reads those still knows they exist.

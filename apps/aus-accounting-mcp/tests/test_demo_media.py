@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from PIL import Image
-
 from scripts.render_demo_image import (
     BACKGROUND,
     BOTTOM_MARGIN,
