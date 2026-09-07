@@ -27,6 +27,11 @@ from .fixtures.synthetic_sbr import (
 )
 from .errors import InputError
 from .money import parse_amount
+from .resources import (
+    benchmark_dataset_years,
+    component_versions,
+    disclaimer as boundary_disclaimer,
+)
 from .outputs import (
     BenchmarkComparison,
     Div7aRate,
@@ -54,6 +59,12 @@ SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operato
   classify s 109R payments, or invent eligibility, rates or missing facts.
 - generate_synthetic_sbr_fixture is only for fabricated integration tests.
   Never use its CTR/BAS output as a real calculation or lodgment.
+Resources carry context without a tool call: aus-accounting://disclaimer for the
+boundary and no-advice statement, aus-accounting://div7a-scope for what Division
+7A this server reviews and what it refuses, aus-accounting://benchmark-dataset-years
+for the ATO years shipped with the installed engine, and
+aus-accounting://component-versions for the engine versions producing results
+here. Prompts cover the three documented workflows.
 Money and rates use decimal strings; dates use YYYY-MM-DD and income years
 YYYY-YY. Preserve UNKNOWN, REFUSED, not_supplied and null outcomes. ok=true means
 execution succeeded, not that a review passed. For Division 7A, summary is the
@@ -664,6 +675,162 @@ def generate_synthetic_sbr_fixture(
             ),
         )
     raise InputError(f"Unknown form_type {form_type!r}. Supported: CTR, BAS.")
+
+
+@mcp.resource(
+    "aus-accounting://disclaimer",
+    name="disclaimer",
+    title="Boundary and no-advice statement",
+    description=(
+        "What this server is not, what it refuses, and what a caller must retain when "
+        "presenting a result. Includes each delegated engine's own disclaimer."
+    ),
+    mime_type="text/markdown",
+)
+def disclaimer_resource() -> str:
+    """Serve the facade boundary and the engines' own disclaimers."""
+    return boundary_disclaimer()
+
+
+@mcp.resource(
+    "aus-accounting://div7a-scope",
+    name="div7a-scope",
+    title="Division 7A reviewed scope",
+    description=(
+        "The Division 7A matters the delegated engine reviews, and the matters that "
+        "remain refused. Read this before choosing a Division 7A tool."
+    ),
+    mime_type="text/markdown",
+)
+def div7a_scope_resource() -> str:
+    """Serve the reviewed Division 7A scope and the standing refusal."""
+    return DIV7A_SCOPE_REFUSAL
+
+
+@mcp.resource(
+    "aus-accounting://benchmark-dataset-years",
+    name="benchmark-dataset-years",
+    title="Shipped ATO benchmark years",
+    description=(
+        "Which ATO small-business benchmark years the installed engine ships, with "
+        "the published source, retrieval date and checksum for each. Bundled data, "
+        "not a live ATO lookup; a year outside this list is refused, not estimated."
+    ),
+    mime_type="application/json",
+)
+def benchmark_dataset_years_resource() -> dict[str, object]:
+    """Serve the shipped benchmark years and their provenance."""
+    return benchmark_dataset_years()
+
+
+@mcp.resource(
+    "aus-accounting://component-versions",
+    name="component-versions",
+    title="Installed server and engine versions",
+    description=(
+        "The server and delegated engine versions installed in this environment, "
+        "which are the versions that produce results here and are reported beside "
+        "them as engine_version."
+    ),
+    mime_type="application/json",
+)
+def component_versions_resource() -> dict[str, object]:
+    """Serve the installed component versions."""
+    return component_versions()
+
+
+@mcp.prompt(
+    name="compare_ato_benchmarks",
+    title="Compare P&L buckets to ATO benchmarks",
+    description=(
+        "Compare operator-supplied profit and loss bucket totals to the ATO "
+        "small-business benchmarks without treating an omitted bucket as zero."
+    ),
+)
+def compare_ato_benchmarks_prompt(industry: str | None = None) -> str:
+    """Build the documented ATO benchmark comparison request."""
+    selected = (
+        f"The industry is {industry}."
+        if industry
+        else "Select the industry with list_ato_benchmark_industries first."
+    )
+    return (
+        "Compare these P&L buckets to the ATO small-business benchmarks for this "
+        "industry. Omit buckets I have not supplied. Do not treat missing as zero.\n\n"
+        f"{selected} Then call get_ato_benchmarks with only the buckets I gave you, as "
+        "decimal strings. Leave every other bucket out rather than passing 0.\n\n"
+        "Pass other_income only if I established it, including an established nil as "
+        '"0". Without it the ATO turnover rule cannot pick a denominator and every '
+        "ratio is returned as not_supplied, which is the correct answer rather than a "
+        "problem to work around.\n\n"
+        "Report not_supplied ratios and null figures as unknown. Do not infer a figure "
+        "from the others, and do not describe a comparison outside a published range "
+        "as a finding that anything is wrong. Ask me for any bucket you need."
+    )
+
+
+@mcp.prompt(
+    name="review_payday_super_contribution",
+    title="Review one Payday Super contribution",
+    description=(
+        "Review a single superannuation contribution against the Payday Super timing "
+        "rules, without inventing a fund-receipt date or an SG charge."
+    ),
+)
+def review_payday_super_contribution_prompt(as_at: str | None = None) -> str:
+    """Build the documented Payday Super review request."""
+    assessment = (
+        f"Use {as_at} as as_at."
+        if as_at
+        else "Ask me for today's date and pass it as as_at; do not assume one."
+    )
+    return (
+        "Review this Payday Super contribution. QE day, remitted date, and fund-receipt "
+        "date are in the CSV. Do not invent an SGC charge.\n\n"
+        f"{assessment} Call calc_payday_super_deadline once for the contribution, with "
+        "qe_day as the day the wages were actually paid.\n\n"
+        "Pass received only where the clearing house or the fund evidences the date the "
+        "fund received the contribution. A remitted date is not that date, and a "
+        "contribution with no fund receipt is AT_RISK rather than ON_TIME. Leave "
+        "received out if the CSV does not carry it.\n\n"
+        "Report the verdict, the deadline and the pathway with the caveats attached, "
+        "and treat the experimental SG-charge figures as exposure flags, not an ATO "
+        "assessment. Say so if the facts leave the verdict UNKNOWN."
+    )
+
+
+@mcp.prompt(
+    name="review_div7a_loan_terms",
+    title="Review a Division 7A amalgamated loan",
+    description=(
+        "Review one operator-supplied amalgamated loan for s 109N terms and the "
+        "s 109E minimum yearly repayment, refusing matters outside that scope."
+    ),
+)
+def review_div7a_loan_terms_prompt(year_of_income: str | None = None) -> str:
+    """Build the documented Division 7A loan review request."""
+    reviewed = (
+        f"The year of income under review is {year_of_income}."
+        if year_of_income
+        else "Ask me which year of income to review, written like 2026-27."
+    )
+    return (
+        "Review this operator-supplied Division 7A amalgamated loan for s 109N terms "
+        "and the s 109E minimum yearly repayment. Leave unknown facts unknown and "
+        "refuse questions outside the reviewed scope.\n\n"
+        f"{reviewed} Call review_div7a_loan with the facts I supply. Omit any fact I "
+        "have not established rather than passing false or 0: an omitted fact stays "
+        "UNKNOWN, and UNKNOWN is not a failed limb.\n\n"
+        "Interest rates are decimal fractions, so 8.37 per cent is 0.0837. Do not "
+        "substitute the benchmark rate for the agreed rate; use "
+        "get_div7a_benchmark_rate if I ask what the benchmark is.\n\n"
+        "This engine does not form amalgamated loans, classify payments under s 109R, "
+        "or reach unpaid present entitlements, distributable surplus, interposed "
+        "entities, debt forgiveness or the Commissioner's discretion. Read the "
+        "aus-accounting://div7a-scope resource and refuse those, with refuse_div7a, "
+        "rather than answering them. Any shortfall is an experimental review aid, not "
+        "an assessed dividend."
+    )
 
 
 def run_stdio() -> None:
