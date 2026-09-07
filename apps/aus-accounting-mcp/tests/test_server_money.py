@@ -91,7 +91,9 @@ def _call_tool_with_monetary_value(tool_name, field_name, value):
                 "sg_amount": "800.00",
                 "as_at": "2026-08-21",
             },
-            "qe_day: 'not-a-date' is not an ISO date",
+            # The message names the field and what would be read instead, so a
+            # caller holding a payroll export knows which shapes are accepted.
+            "qe_day: 'not-a-date' is not a date this tool reads",
         ),
         (
             "generate_synthetic_sbr_fixture",
