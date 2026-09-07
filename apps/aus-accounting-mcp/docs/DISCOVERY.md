@@ -45,8 +45,8 @@ Division 7A discovery copy must describe the reviewed s 109N/s 109E scope and
 must not imply that the server handles every Division 7A question.
 
 Apply with `scripts/publish-github-about.sh` from a session authenticated to
-GitHub. The Actions `GITHUB_TOKEN` cannot PATCH homepage (needs repository
-admin), so the `github-about` workflow warns and continues rather than failing.
+GitHub; the Actions `GITHUB_TOKEN` cannot PATCH homepage (needs repository
+admin).
 
 ## Keyword map
 

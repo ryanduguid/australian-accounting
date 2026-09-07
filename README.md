@@ -86,8 +86,8 @@ common commands and names the root workflow that runs them.
 - The MCP application depends on engines only through their published distributions.
 - Engines never import `aus_accounting_mcp` or another engine, and no production module
   uses a relative import that leaves its package; `tests/test_boundaries.py` proves both.
-- Only the workflows under the root `.github/workflows/` are active. Workflow files inside
-  component directories are historical records of the source repositories.
+- Only the workflows under the root `.github/workflows/` are active; component directories
+  carry none.
 - No client data, credentials or generated client reports enter this repository.
 
 ## Releases

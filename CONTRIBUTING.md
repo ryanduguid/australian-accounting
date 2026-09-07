@@ -118,8 +118,7 @@ reusable `ci-package.yml` for each engine, from a package-name matrix.
 - `.github/ci/<engine>/checks.sh` holds an engine's own source guards, and
   `.github/ci/<engine>/smoke.sh` its checks against the built wheel. Both are optional.
 - `boundaries.yml` and `codeql.yml` run on every change.
-- Workflow files inside component directories are inert historical records of the source
-  repositories; only root workflows run.
+- Only root workflows run; component directories carry no workflow files.
 
 ## Rules
 
