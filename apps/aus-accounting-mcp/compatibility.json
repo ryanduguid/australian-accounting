@@ -2,12 +2,12 @@
   "schema_version": 1,
   "server": {
     "distribution": "aus-accounting-mcp",
-    "version": "0.1.7",
+    "version": "0.1.8",
     "repository": "https://github.com/ryanduguid/australian-accounting",
-    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.1.7/",
+    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.1.8/",
     "registry_identity": "io.github.ryanduguid/aus-accounting",
-    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.7",
-    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.7"
+    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.8",
+    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.8"
   },
   "engines": [
     {"distribution": "ato-benchmark-compare", "version": "0.1.6", "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/ato-benchmark-compare", "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/ato-benchmark-compare/v0.1.6"},
