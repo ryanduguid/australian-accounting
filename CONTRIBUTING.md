@@ -75,7 +75,7 @@ The other two components keep their own commands:
 
 | Component | Directory | Checks |
 |---|---|---|
-| Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev mypy aus_accounting_mcp` |
+| Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev mypy aus_accounting_mcp` |
 | Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py` |
 
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,

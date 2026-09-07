@@ -21,7 +21,8 @@ or datasets.
 These are the current commands in `.github/workflows/ci.yml`:
 
 ```bash
-uv run --locked --extra dev pytest -q
+uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing
+uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 uv run --locked --extra dev ruff check aus_accounting_mcp tests
 uv run --locked --extra dev mypy aus_accounting_mcp
 ```
