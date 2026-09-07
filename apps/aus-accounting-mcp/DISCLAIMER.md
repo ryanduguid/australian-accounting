@@ -31,6 +31,10 @@ Payday Super reviews can mark `UNKNOWN` or refuse where the facts do not
 establish the statutory test. A remittance date alone cannot produce `ON_TIME`.
 Experimental SG-charge figures are exposure flags, not an ATO assessment.
 
+`ok: true` means a tool ran, not that a review passed. Retain `UNKNOWN`,
+`REFUSED`, `not_supplied` and `null` outcomes as they are returned, and obtain
+human review before any consequential accounting action.
+
 Do not publish private tax records, TFNs, Medicare numbers, bank details,
 identity documents, client files, or other sensitive personal information in
 issues, pull requests, examples, tests, or repository content.

@@ -289,6 +289,21 @@ def to_evidenced_dict(
         and (not w1_supplied or "associated_persons" in supplied)
     )
 
+    # The ATO's fallback to total expenses is triggered by a nil cost of sales,
+    # and an omitted bucket reaches the comparison as exactly that nil. Where the
+    # bucket was not supplied the fallback rests on a figure nobody established,
+    # so the key ratio reverts to the one the ATO publishes for this industry.
+    #
+    # is_key_ratio marks that same choice per row, so it reverts with it. A
+    # payload naming one ratio at key_ratio while flagging a different row as the
+    # key one contradicts itself, and a caller reading either field alone is
+    # given a different answer depending on which it happened to read.
+    key_ratio = (
+        comparison.key_ratio
+        if "cost_of_sales" in supplied
+        else comparison.business_type.key_ratio
+    )
+
     ratio_fields = {
         "cost_of_sales_to_turnover": {"cost_of_sales"},
         "rent_to_turnover": {"rent"},
@@ -296,6 +311,7 @@ def to_evidenced_dict(
     }
     ratios = []
     for row in payload["ratios"]:
+        is_key_ratio = row["ratio"] == key_ratio
         if row["ratio"] == "total_expenses_to_turnover":
             evidenced = expense_complete
         elif row["ratio"] == "labour_to_turnover":
@@ -303,7 +319,7 @@ def to_evidenced_dict(
         else:
             evidenced = ratio_fields.get(row["ratio"], set()) <= supplied
         if evidenced and income_evidenced:
-            ratios.append(row)
+            ratios.append({**row, "is_key_ratio": is_key_ratio})
             continue
         ratios.append(
             {
@@ -314,7 +330,7 @@ def to_evidenced_dict(
                 "benchmark_min": row["benchmark_min"] if income_evidenced else None,
                 "benchmark_max": row["benchmark_max"] if income_evidenced else None,
                 "status": "not_supplied",
-                "is_key_ratio": row["is_key_ratio"],
+                "is_key_ratio": is_key_ratio,
             }
         )
 
@@ -338,7 +354,7 @@ def to_evidenced_dict(
         payload["figures"]["payments_to_associated_persons"] = None
     if "cost_of_sales" not in supplied:
         payload["figures"]["cost_of_sales_for_ratio"] = None
-        payload["key_ratio"] = comparison.business_type.key_ratio
+    payload["key_ratio"] = key_ratio
     if not labour_evidenced:
         payload["figures"]["labour"] = None
 

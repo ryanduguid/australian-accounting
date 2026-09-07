@@ -73,10 +73,11 @@ select = ["E", "F", "W", "I"]
 # splits `__version__ as PAYDAY_VERSION` out into a second statement from the
 # same module, which is more lines saying less.
 combine-as-imports = true
-# This package is the first-party one. `src` names source roots, and the
-# package directory is not the project root, so without this the local
-# imports sort in among mcp, pydantic and pytest.
-known-first-party = ["aus_accounting_mcp"]
+# These are the first-party ones. `src` names source roots, and neither
+# directory is the project root, so without this the local imports sort in
+# among mcp, pydantic and pytest. `evaluation` is the harness the suite
+# imports, and it is this repository's, not a dependency.
+known-first-party = ["aus_accounting_mcp", "evaluation"]
 
 [tool.mypy]
 python_version = "3.10"
