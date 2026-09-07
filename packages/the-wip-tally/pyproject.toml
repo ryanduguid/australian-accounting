@@ -47,10 +47,11 @@ wip-tally = "wiptally.cli:main"
 # Shared toolchain, pinned to the same versions in every component so a gate
 # behaves the same wherever it runs.
 dev = [
-    "ruff==0.16.5",
+    "ruff==0.16.6",
     "mypy==2.3.1",
     "pytest==9.1.1",
     "coverage==7.16.0",
+    "pytest-cov==7.1.0",
     "build==1.6.0",
 ]
 
@@ -94,3 +95,7 @@ python_version = "3.10"
 packages = ["wiptally"]
 ignore_missing_imports = true
 pretty = true
+
+[tool.coverage.run]
+# The source pytest --cov measures; CI adds --cov-branch and the reports.
+source = ["wiptally"]
