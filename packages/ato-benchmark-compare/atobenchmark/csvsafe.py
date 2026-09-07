@@ -23,13 +23,16 @@ def guard(value: object) -> str:
     text = "" if value is None else str(value)
     if not text:
         return text
-    first = text[0]
+    # Spreadsheets ignore leading whitespace when recognising a formula.
+    # Inspect the stripped value but preserve the original cell text.
+    stripped = text.lstrip()
+    first = stripped[:1]
     if first in ALWAYS:
         return "'" + text
-    if first in CONDITIONAL and not _NUMBER_RE.match(text[1:]):
+    if first in CONDITIONAL and not _NUMBER_RE.match(stripped[1:]):
         return "'" + text
     # A leading tab, carriage return or newline can push the rest of the value onto a
     # line Excel then reads as a formula, so treat those as unsafe too.
-    if first in "\t\r\n":
+    if text[0] in "\t\r\n":
         return "'" + text
     return text
