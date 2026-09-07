@@ -204,6 +204,29 @@ Omitted ATO expense buckets are `not_supplied`, not zero. Every ATO ratio divide
 
 Amounts, including Division 7A loan balances and payments, are decimal strings, finite, at most two decimal places, and no greater than AUD 1,000,000,000,000.00. Dates are ISO-8601. Payday Super uses payday-super-checker's national SGAA 1992 s 6(1) calendar.
 
+Payday Super dates come out of a payroll or clearing-house export, so
+`calc_payday_super_deadline` reads the shapes those exports hold, through the
+engine's own parser rather than one of its own: `2027-07-13`, day-first
+`13/07/2027` or `13-07-2027`, `13 Jul 2027`, and a date-time with no timezone
+marker, whose time the law ignores. Two are refused. A stamp carrying `Z` or a
+UTC offset is the engine's refusal, because a UTC evening is already the next day
+in Australia and keeping the written day could pass a receipt that was really a
+day later; convert it to the Australian calendar date first. A numeric date is refused at this
+boundary only where the two readings give different days, such as `01/07/2027`: it
+is read day first, nothing in the text rules out the other reading, and the
+difference is a month in a date that decides the verdict. Send those as
+`YYYY-MM-DD`. Two things settle the reading and are accepted: a component above 12
+can only be the day, so `13/07/2027` is the 13th, and equal components land on the
+same date either way, so `12/12/2027` is the 12th of December. Results are always
+ISO-8601.
+
+Division 7A already takes a loan in the shape a register row holds: every
+`review_div7a_loan` argument is one column of the engine's register CSV, passed
+through the engine's own `GateFacts` and `MyrFacts` readers. Whole files and
+multi-loan registers stay out of scope, because the engines expose those only
+behind a file path and reading one here would mean this facade owning input
+handling the engines do not.
+
 ## Prompts
 
 The three documented workflows are registered as MCP prompts, so a host can offer
