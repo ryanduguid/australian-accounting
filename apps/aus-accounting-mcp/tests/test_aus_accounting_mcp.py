@@ -1126,7 +1126,7 @@ def test_payday_reads_the_date_shapes_the_engine_reads(supplied, expected) -> No
     assert payload["result"]["received"] == expected
 
 
-@pytest.mark.parametrize("supplied", ["01/07/2027", "07/01/2027", "1-7-2027", "12/12/2027"])
+@pytest.mark.parametrize("supplied", ["01/07/2027", "07/01/2027", "1-7-2027", "11/12/2027"])
 def test_payday_refuses_a_numeric_date_that_could_be_read_either_way(supplied) -> None:
     # The engine reads these day first, which is right for the Australian export
     # it was written for. Reaching the same engine through an MCP tool, the text
@@ -1135,9 +1135,24 @@ def test_payday_refuses_a_numeric_date_that_could_be_read_either_way(supplied) -
     with pytest.raises(ValueError, match="ambiguous"):
         calc_payday_super_deadline(**PAYDAY_FACTS, received=supplied)
 
-    # A component above 12 settles the reading, so it is accepted.
-    unambiguous = calc_payday_super_deadline(**PAYDAY_FACTS, received="13/07/2027")
-    assert unambiguous["result"]["received"] == "2027-07-13"
+
+@pytest.mark.parametrize(
+    "supplied,expected",
+    [
+        # A component above 12 can only be the day.
+        ("13/07/2027", "2027-07-13"),
+        ("31/12/2027", "2027-12-31"),
+        # Equal components land on the same date whichever way they are read, so
+        # there is nothing to be ambiguous about and refusing them would refuse a
+        # date nobody could misread.
+        ("12/12/2027", "2027-12-12"),
+        ("07/07/2027", "2027-07-07"),
+        ("1-1-2027", "2027-01-01"),
+    ],
+)
+def test_payday_accepts_a_numeric_date_whose_reading_is_settled(supplied, expected) -> None:
+    payload = calc_payday_super_deadline(**PAYDAY_FACTS, received=supplied)
+    assert payload["result"]["received"] == expected
 
 
 def test_payday_refuses_a_zone_bearing_stamp_with_the_engine_reason() -> None:

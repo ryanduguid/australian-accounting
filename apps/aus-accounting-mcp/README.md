@@ -203,11 +203,14 @@ engine's own parser rather than one of its own: `2027-07-13`, day-first
 marker, whose time the law ignores. Two are refused. A stamp carrying `Z` or a
 UTC offset is the engine's refusal, because a UTC evening is already the next day
 in Australia and keeping the written day could pass a receipt that was really a
-day later; convert it to the Australian calendar date first. A numeric date whose
-first two components are both 12 or less, such as `01/07/2027`, is refused at this
-boundary: it is read day first, nothing in the text rules out the other reading,
-and the difference is a month in a date that decides the verdict. Send those as
-`YYYY-MM-DD`. Results are always ISO-8601.
+day later; convert it to the Australian calendar date first. A numeric date is refused at this
+boundary only where the two readings give different days, such as `01/07/2027`: it
+is read day first, nothing in the text rules out the other reading, and the
+difference is a month in a date that decides the verdict. Send those as
+`YYYY-MM-DD`. Two things settle the reading and are accepted: a component above 12
+can only be the day, so `13/07/2027` is the 13th, and equal components land on the
+same date either way, so `12/12/2027` is the 12th of December. Results are always
+ISO-8601.
 
 Division 7A already takes a loan in the shape a register row holds: every
 `review_div7a_loan` argument is one column of the engine's register CSV, passed
