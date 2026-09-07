@@ -590,6 +590,31 @@ def _bakery_with_w1(**buckets: str) -> dict:
     return get_ato_benchmarks(**figures)
 
 
+def test_engine_declares_every_fact_its_labour_check_quotes() -> None:
+    # The guard the facade rests on. It withholds nothing of its own now: it
+    # hands the engine the fields the operator supplied and the engine withholds
+    # each note and check whose declared facts are not among them. That is only
+    # as good as the declarations, and w1_used_for_labour is the check that
+    # carried the known defect. It states the reconstructed salary and wages
+    # label as a definite amount and concludes that W1 is the figure used in the
+    # labour ratio. The label is the mapped salary and wages plus cost of sales
+    # labour plus payments to associates, so a declaration missing any of those
+    # three, or W1 itself, would put that sentence back beside a bucket the same
+    # payload reports as unknown. This fails if the engine ever narrows it.
+    totals = {bucket: Decimal("0") for bucket in BUCKETS}
+    totals.update({"turnover": Decimal("850000"), "salary_wages": Decimal("1")})
+    labour_checks = [
+        detail
+        for detail in compute(totals, Decimal("200000")).warning_details
+        if detail.code == "w1_used_for_labour"
+    ]
+
+    assert len(labour_checks) == 1
+    assert labour_checks[0].required_fields == frozenset(
+        {"w1", "salary_wages", "cost_of_sales_labour", "associated_persons"}
+    )
+
+
 def test_ato_omitted_salary_wages_withholds_checks_that_quote_the_label() -> None:
     # The engine's checks quote the figures it was handed. Where W1 beats the
     # rebuilt salary and wages label it states that label as a definite amount
@@ -632,29 +657,40 @@ def test_ato_omitted_salary_wages_withholds_checks_that_quote_the_label() -> Non
     assert not any("check(s) to make were withheld" in note for note in evidenced["notes"])
 
 
-def test_ato_withheld_check_is_matched_on_the_quoted_amount() -> None:
-    # The label is the mapped salary and wages plus cost of sales labour plus
-    # associates, so an omitted salary_wages leaves the engine quoting the other
-    # two rather than a zero. Matching the rendered figure catches that; matching
-    # the omitted bucket's own total, which is always a zero, would not.
+def test_ato_a_check_resting_only_on_supplied_buckets_survives_the_withholding() -> None:
+    # Withholding is decided per check, on the facts that check declares, not on
+    # there being an omitted bucket somewhere in the payload. Three of the checks
+    # here rest only on buckets the operator supplied and are the operator's to
+    # read; two rest on the omitted salary and wages and are withheld.
     #
-    # The supplied rent is the negative of that same label, and the engine raises
-    # a check of its own quoting it. A figure runs left through a leading minus,
-    # so -500.00 is not a quotation of 500.00 and that check is the operator's to
-    # read: withholding is on the amount, not on there being an omitted bucket
-    # somewhere in the payload.
-    payload = _bakery_with_w1(
-        contractor_commission="0",
-        cost_of_sales_labour="500.00",
+    # A sign-flipped export is what separates the two rules that could produce
+    # this. Every amount in play is -500.00: the rent total, the cost of sales
+    # labour total, and the salary and wages label the engine rebuilds from the
+    # omitted bucket. Withholding a check because it renders the label's amount
+    # would eat the two negative-bucket checks as well, and then report a reason
+    # that was untrue of either.
+    payload = get_ato_benchmarks(
+        industry="Bakeries and hot bread shops",
+        turnover="850000.00",
+        other_income="0",
+        cost_of_sales_labour="-500.00",
         associated_persons="0",
+        contractor_commission="0",
         rent="-500.00",
+        w1="0",
     )
+
     assert payload["bucket_totals"]["salary_wages"] is None
     assert payload["bucket_totals"]["rent"] == "-500.00"
-    assert not any("salary and wages label" in check for check in payload["checks_to_make"])
-    assert not any("is used in the labour ratio" in check for check in payload["checks_to_make"])
+    assert payload["bucket_totals"]["cost_of_sales_labour"] == "-500.00"
+
+    # Published: each rests only on a bucket this payload states.
     assert any(
         "The rent total is negative (-500.00)" in check
+        for check in payload["checks_to_make"]
+    )
+    assert any(
+        "The cost_of_sales_labour total is negative (-500.00)" in check
         for check in payload["checks_to_make"]
     )
     assert any(
@@ -662,52 +698,85 @@ def test_ato_withheld_check_is_matched_on_the_quoted_amount() -> None:
         for check in payload["checks_to_make"]
     )
 
+    # Withheld: only the label check, which is the one resting on the bucket
+    # this payload cannot state.
+    assert not any("salary and wages label" in check for check in payload["checks_to_make"])
+    assert any("1 check(s) to make were withheld" in note for note in payload["notes"])
 
-def test_ato_a_collision_with_the_label_does_not_withhold_an_evidenced_check() -> None:
-    # A sign-flipped export makes the label negative, and it can land on the same
-    # amount as a bucket the operator supplied. Here an omitted salary_wages
-    # leaves a label of -500.00, which is also the rent total and the cost of
-    # sales labour total, both published. The engine raises a negative-bucket
-    # check for each, quoting an amount this payload states, so both are the
-    # operator's to read. Withholding on the label amount alone would eat them
-    # and then report a reason that was not true of either.
-    figures = {
-        "industry": "Bakeries and hot bread shops",
-        "turnover": "850000.00",
-        "other_income": "0",
-        "cost_of_sales_labour": "-500.00",
-        "associated_persons": "0",
-        "rent": "-500.00",
-    }
 
-    # Without W1 the engine never renders the label at all, so there is nothing
-    # for a check to be resting on and nothing to withhold.
-    without_w1 = get_ato_benchmarks(**figures)
-    assert without_w1["bucket_totals"]["rent"] == "-500.00"
-    assert without_w1["bucket_totals"]["cost_of_sales_labour"] == "-500.00"
-    assert any(
-        "The rent total is negative (-500.00)" in check
-        for check in without_w1["checks_to_make"]
+def test_ato_withholds_every_check_that_states_an_omitted_bucket_as_a_zero() -> None:
+    # The labour check was the one the facade knew about. It was not the only
+    # one. Both checks here read an omitted bucket's zero as a mapped nil and
+    # tell the operator to act on it: one concludes that no wages sit inside
+    # cost of sales, the other that no payments to associates were mapped and
+    # that the total expenses ratio is raised as a result. Each is stated from
+    # the bucket the same payload reports as unknown.
+    payload = get_ato_benchmarks(
+        industry="Bakeries and hot bread shops",
+        turnover="850000.00",
+        other_income="0",
+        cost_of_sales="1000.00",
     )
-    assert any(
-        "The cost_of_sales_labour total is negative (-500.00)" in check
-        for check in without_w1["checks_to_make"]
+    assert payload["bucket_totals"]["cost_of_sales_labour"] is None
+    assert payload["bucket_totals"]["associated_persons"] is None
+    assert not any(
+        "No salary and wages were mapped inside cost of sales" in check
+        for check in payload["checks_to_make"]
     )
-    assert not any("check(s) to make were withheld" in note for note in without_w1["notes"])
+    assert not any(
+        "No payments to associated persons were mapped" in check
+        for check in payload["checks_to_make"]
+    )
+    assert any("check(s) to make were withheld" in note for note in payload["notes"])
 
-    # With W1 the label check does appear and is withheld, and the two checks
-    # that merely share its amount are not: the label check quotes W1 as well.
-    with_w1 = get_ato_benchmarks(**figures, w1="0")
-    assert not any("salary and wages label" in check for check in with_w1["checks_to_make"])
-    assert any(
-        "The rent total is negative (-500.00)" in check
-        for check in with_w1["checks_to_make"]
+    # Establishing both buckets as nil is evidence, and both checks are then the
+    # engine's to make.
+    evidenced = get_ato_benchmarks(
+        industry="Bakeries and hot bread shops",
+        turnover="850000.00",
+        other_income="0",
+        cost_of_sales="1000.00",
+        cost_of_sales_labour="0",
+        associated_persons="0",
     )
     assert any(
-        "The cost_of_sales_labour total is negative (-500.00)" in check
-        for check in with_w1["checks_to_make"]
+        "No salary and wages were mapped inside cost of sales" in check
+        for check in evidenced["checks_to_make"]
     )
-    assert any("1 check(s) to make were withheld" in note for note in with_w1["notes"])
+    assert any(
+        "No payments to associated persons were mapped" in check
+        for check in evidenced["checks_to_make"]
+    )
+
+
+def test_ato_omitted_cost_of_sales_does_not_pick_the_key_ratio() -> None:
+    # The ATO's fallback rule reads a nil cost of sales as a reason to judge the
+    # business on total expenses instead. An omitted bucket reaches the engine as
+    # that same nil, so the fallback fires on a figure nobody established, moves
+    # which published range the business is measured against, and says so in a
+    # note. Both are withheld, and the key ratio stays the one the ATO publishes
+    # for this industry.
+    payload = get_ato_benchmarks(
+        industry="Bakeries and hot bread shops",
+        turnover="850000.00",
+        other_income="0",
+        rent="40000.00",
+    )
+    assert payload["bucket_totals"]["cost_of_sales"] is None
+    assert payload["key_ratio"] == "cost_of_sales_to_turnover"
+    assert not any("no cost of sales was mapped" in note for note in payload["notes"])
+
+    # An established nil is evidence, so the fallback and its note are the
+    # engine's to make.
+    evidenced = get_ato_benchmarks(
+        industry="Bakeries and hot bread shops",
+        turnover="850000.00",
+        other_income="0",
+        cost_of_sales="0",
+        rent="40000.00",
+    )
+    assert evidenced["key_ratio"] == "total_expenses_to_turnover"
+    assert any("no cost of sales was mapped" in note for note in evidenced["notes"])
 
 
 def test_ato_labour_gate_declines_a_ratio_the_engine_computes_correctly() -> None:
@@ -835,6 +904,35 @@ def test_div7a_is_refused() -> None:
     assert payload["reviewed_engine"] is True
     assert payload["code"] == "ERR_POLICY_DIV7A_SCOPE_REFUSED"
     assert "unpaid present entitlements" in payload["reason"]
+
+
+def test_div7a_refusal_is_reachable_without_inventing_loan_facts() -> None:
+    # A question this server refuses, such as an unpaid present entitlement or
+    # a debt forgiveness, usually comes with no loan facts at all. While the
+    # three legacy inputs were required, reaching the refusal meant fabricating
+    # a borrower, a lender and a principal, which is the one thing every other
+    # tool here is built to stop. The refusal takes no facts now.
+    assert refuse_div7a() == refuse_div7a("Alice", "HoldingCo Pty Ltd", "50000.00")
+    assert refuse_div7a()["code"] == "ERR_POLICY_DIV7A_SCOPE_REFUSED"
+
+    # Every retained input is ignored, so none of them can change the outcome.
+    assert refuse_div7a(
+        borrower_name="Bob",
+        lender_entity_name="Other Pty Ltd",
+        loan_principal="1.00",
+        start_fy=1999,
+        is_secured_25_year=True,
+    ) == refuse_div7a()
+
+
+def test_div7a_refusal_still_validates_a_principal_that_is_supplied() -> None:
+    # Ignored is not unchecked. A caller that does pass an amount gets the same
+    # money boundary as everywhere else, so a malformed figure is an input
+    # error rather than passing silently into a payload that looks considered.
+    with pytest.raises(ValueError, match="loan_principal"):
+        refuse_div7a(loan_principal="not-an-amount")
+    with pytest.raises(ValueError, match="loan_principal"):
+        refuse_div7a(loan_principal="1000000000000.01")
 
 
 def test_synthetic_sbr_fixtures_are_labelled() -> None:
@@ -1102,3 +1200,81 @@ def test_registry_publisher_is_pinned_and_checksum_verified() -> None:
         < workflow.index("tar --extract")
         < workflow.index("./mcp-publisher login")
     )
+
+
+PAYDAY_FACTS = {"qe_day": "2027-07-01", "sg_amount": "120.00", "as_at": "2027-08-01"}
+
+
+@pytest.mark.parametrize(
+    "supplied,expected",
+    [
+        ("2027-07-13", "2027-07-13"),
+        # The shapes a payroll or clearing-house export actually holds. The
+        # engine's own CSV path reads each of these, so the tool does too.
+        ("13/07/2027", "2027-07-13"),
+        ("13-07-2027", "2027-07-13"),
+        ("13 Jul 2027", "2027-07-13"),
+        # The law tests whole days, so a zone-less time component is dropped.
+        ("2027-07-13T14:30:00", "2027-07-13"),
+        ("2027-07-13 14:30", "2027-07-13"),
+    ],
+)
+def test_payday_reads_the_date_shapes_the_engine_reads(supplied, expected) -> None:
+    payload = calc_payday_super_deadline(**PAYDAY_FACTS, received=supplied)
+    assert payload["result"]["received"] == expected
+
+
+@pytest.mark.parametrize("supplied", ["01/07/2027", "07/01/2027", "1-7-2027", "11/12/2027"])
+def test_payday_refuses_a_numeric_date_that_could_be_read_either_way(supplied) -> None:
+    # The engine reads these day first, which is right for the Australian export
+    # it was written for. Reaching the same engine through an MCP tool, the text
+    # can as easily be a caller writing the month first, and the difference is a
+    # month in a date that decides the verdict. It fails closed instead.
+    with pytest.raises(ValueError, match="ambiguous"):
+        calc_payday_super_deadline(**PAYDAY_FACTS, received=supplied)
+
+
+@pytest.mark.parametrize(
+    "supplied,expected",
+    [
+        # A component above 12 can only be the day.
+        ("13/07/2027", "2027-07-13"),
+        ("31/12/2027", "2027-12-31"),
+        # Equal components land on the same date whichever way they are read, so
+        # there is nothing to be ambiguous about and refusing them would refuse a
+        # date nobody could misread.
+        ("12/12/2027", "2027-12-12"),
+        ("07/07/2027", "2027-07-07"),
+        ("1-1-2027", "2027-01-01"),
+    ],
+)
+def test_payday_accepts_a_numeric_date_whose_reading_is_settled(supplied, expected) -> None:
+    payload = calc_payday_super_deadline(**PAYDAY_FACTS, received=supplied)
+    assert payload["result"]["received"] == expected
+
+
+def test_payday_refuses_a_zone_bearing_stamp_with_the_engine_reason() -> None:
+    # A UTC evening is already the next day in Australia, so keeping the written
+    # day could pass a receipt that was really a day later. The engine owns that
+    # refusal and its wording; the adapter surfaces it rather than restating it.
+    with pytest.raises(ValueError, match="timezone offset marker"):
+        calc_payday_super_deadline(**PAYDAY_FACTS, received="2027-07-02T10:00:00Z")
+    with pytest.raises(ValueError, match="Australian local"):
+        calc_payday_super_deadline(**PAYDAY_FACTS, received="2027-07-02T10:00:00+10:00")
+
+
+def test_payday_still_names_the_field_that_could_not_be_read() -> None:
+    for field in ("qe_day", "as_at", "received", "remitted", "next_standard_qe_day"):
+        with pytest.raises(ValueError, match=field):
+            calc_payday_super_deadline(**{**PAYDAY_FACTS, field: "not-a-date"})
+
+
+def test_payday_date_shapes_do_not_change_a_verdict() -> None:
+    # The same day written four ways is the same day, so the deadline, the
+    # pathway and the verdict have to be identical. A shape that quietly moved
+    # any of them would be a parsing difference presented as a review outcome.
+    outcomes = {
+        calc_payday_super_deadline(**PAYDAY_FACTS, received=supplied)["result"]["verdict"]
+        for supplied in ("2027-07-13", "13/07/2027", "13 Jul 2027", "2027-07-13T09:00:00")
+    }
+    assert outcomes == {"LATE"}
