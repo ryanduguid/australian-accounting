@@ -1,6 +1,7 @@
 """Verify the evaluation answer key through real MCP calls, without a model."""
 
 import asyncio
+import json
 from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
@@ -9,9 +10,36 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 import pytest
 
+from aus_accounting_mcp.server import mcp
+from evaluation import tool_selection
+
 
 QUESTIONS = ET.parse(Path(__file__).resolve().parents[1] / "evaluation" / "questions.xml")
-CASES = [(pair.attrib["id"], pair.findtext("answer")) for pair in QUESTIONS.findall("qa_pair")]
+CASES = [
+    (
+        pair.attrib["id"],
+        pair.findtext("answer"),
+        sorted({tool.text for tool in pair.findall("tools/tool")}),
+    )
+    for pair in QUESTIONS.findall("qa_pair")
+]
+
+
+class _RecordingSession:
+    """A client session that records which tool each question actually needed.
+
+    The answer key says what a correct reply is. This records what reaching it
+    costs in tool calls, so the tool selection published in questions.xml is held
+    to the replay rather than being a second, unchecked description of it.
+    """
+
+    def __init__(self, session):
+        self._session = session
+        self.selected: list[str] = []
+
+    async def call_tool(self, name, arguments):
+        self.selected.append(name)
+        return await self._session.call_tool(name, arguments)
 
 
 async def _answer(session, case):
@@ -111,9 +139,83 @@ async def _evaluate(case):
     async with stdio_client(parameters) as (reader, writer):
         async with ClientSession(reader, writer) as session:
             await session.initialize()
-            return await _answer(session, case)
+            recorder = _RecordingSession(session)
+            return await _answer(recorder, case), recorder.selected
 
 
-@pytest.mark.parametrize("case,expected", CASES, ids=[case for case, _ in CASES])
-def test_evaluation_answer_is_reproducible(case, expected):
-    assert asyncio.run(_evaluate(case)) == expected
+@pytest.mark.parametrize(
+    "case,expected,tools", CASES, ids=[case for case, _, _ in CASES]
+)
+def test_evaluation_answer_is_reproducible(case, expected, tools):
+    answer, selected = asyncio.run(_evaluate(case))
+
+    assert answer == expected
+    # questions.xml publishes the tools a correct answer needs, and the
+    # tool-selection harness scores a model against that list. A list nobody
+    # checks is a list that drifts, so the replay has to have called exactly it.
+    assert sorted(set(selected)) == tools
+
+
+def test_every_published_tool_selection_names_a_registered_tool():
+    registered = {tool.name for tool in asyncio.run(mcp.list_tools())}
+    published = {tool for _, _, tools in CASES for tool in tools}
+
+    assert published <= registered, published - registered
+    # Every tool the server offers is exercised by at least one question, so a
+    # new tool cannot ship with no question covering it.
+    assert registered == published
+
+
+def test_the_selection_harness_publishes_questions_without_their_answers(capsys):
+    # The harness exists to measure whether a model picks the right tool, so the
+    # prompt it prints must not carry the tool names or the answers. A leak here
+    # would quietly turn the measurement into a lookup.
+    assert tool_selection.main(["questions"]) == 0
+    printed = capsys.readouterr().out.splitlines()
+
+    # Exact, rather than a substring hunt for each answer: several answers are
+    # short enough to occur inside a question by coincidence ("4" sits inside
+    # "2023-24"), and a test that reads those as leaks fails for the wrong
+    # reason. Each line has to be the question and nothing else.
+    questions = tool_selection._questions()
+    assert printed == [f"{case}: {text}" for case, text in questions.items()]
+    assert set(questions) == {case for case, _, _ in CASES}
+
+    body = "\n".join(printed)
+    for case, _, tools in CASES:
+        for name in tools:
+            assert name not in body, f"{case} leaked its tool selection"
+
+
+def test_the_selection_harness_scores_a_recorded_run(tmp_path, capsys):
+    published = tool_selection._published()
+    assert published == {case: tools for case, _, tools in CASES}
+
+    perfect = tmp_path / "perfect.json"
+    perfect.write_text(json.dumps(published), encoding="utf-8")
+    assert tool_selection.main(["score", str(perfect)]) == 0
+    assert f"{len(CASES)} of {len(CASES)} questions selected exactly" in capsys.readouterr().out
+
+    wrong = tmp_path / "wrong.json"
+    wrong.write_text(
+        json.dumps(
+            {
+                "catalogue-pages": ["get_ato_benchmarks"],
+                "unsupported-scope": [*published["unsupported-scope"], "review_div7a_loan"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    assert tool_selection.main(["score", str(wrong)]) == 0
+    report = capsys.readouterr().out
+    assert "missed list_ato_benchmark_industries" in report
+    assert "also called review_div7a_loan" in report
+    assert "NOT ANSWERED" in report
+    assert f"0 of {len(CASES)} questions selected exactly" in report
+
+
+def test_the_selection_harness_rejects_a_question_it_does_not_know(tmp_path):
+    recorded = tmp_path / "unknown.json"
+    recorded.write_text(json.dumps({"no-such-question": ["get_ato_benchmarks"]}), encoding="utf-8")
+
+    assert tool_selection.main(["score", str(recorded)]) == 2
