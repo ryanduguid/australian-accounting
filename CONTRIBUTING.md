@@ -34,8 +34,9 @@ own commands:
 - `uv run --locked` from a component directory now validates the root `uv.lock`,
   not the component's. Regenerate it with `uv lock` at the root after changing any
   component's dependencies, and commit it.
-- The six engines pin the shared toolchain (`ruff`, `mypy`, `pytest`, `coverage`, `build`)
-  to one exact version each, so the workspace resolves them without an override. One
+- The six engines pin the shared toolchain (`ruff`, `mypy`, `pytest`, `pytest-cov`,
+  `coverage`, `build`) to one exact version each, so the workspace resolves them without
+  an override. One
   workspace cannot hold two exact pins of the same tool, so keep the six identical when
   changing one.
 
@@ -45,17 +46,21 @@ Run the checks from the component directory. Inside the workspace, `uv run --loc
 validates the root `uv.lock`; the component's own lockfile is what builds and releases it
 on its own.
 
-Every engine under `packages/` runs the same gates, so the commands differ only in the
-engine's import package. Substitute the import package from the table below:
+Every engine under `packages/` runs the same gates with the same commands. `ruff`, `mypy`
+and `pytest --cov` read their scope from the engine's own `pyproject.toml` (`[tool.ruff]`,
+`[tool.mypy]` and `[tool.coverage.run]`), so nothing in the commands names the engine:
 
 ```bash
-uv run --locked --extra dev ruff check <import-package> tests
-uv run --locked --extra dev mypy <import-package>
-uv run --locked --extra dev coverage run --branch --source=<import-package> -m pytest
-uv run --locked --extra dev coverage report --show-missing
+uv run --locked --extra dev ruff check .
+uv run --locked --extra dev mypy
+uv run --locked --extra dev pytest --cov --cov-branch --cov-report=term-missing --cov-report=xml
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 uv run --locked --extra dev --python 3.12 python -m build
 ```
+
+CI also checks that the engine's own `uv.lock` still resolves on its own. Inside the
+workspace `uv lock --check` validates the root lock, so run it from a copy of the engine
+outside the checkout, the same way the lockfile is regenerated below.
 
 | Component | Directory | Import package |
 |---|---|---|
@@ -91,10 +96,13 @@ tmp=$(mktemp -d) && cp -r packages/<engine>/. "$tmp" && (cd "$tmp" && uv lock) \
 report, and it runs two things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
 
-- `ci-package.yml` gives every engine the same gates from the engine's own directory:
-  `ruff`, `mypy`, `pytest` under branch coverage on Python 3.10, 3.12 and 3.13 (the floor
-  and ceiling of the declared `requires-python`), a `pip-audit` dependency audit, and a
-  build of the distribution followed by a clean install of the wheel. `ato-benchmark-compare`,
+- `ci-package.yml` gives every engine the same gates from the engine's own directory,
+  the same definition `ryanduguid/accounting-review-pipeline` uses for its components: a
+  check that the engine's own `uv.lock` resolves on its own, `ruff`, `mypy`, `pytest` with
+  branch coverage on Python 3.10, 3.12 and 3.13 (the floor and ceiling of the declared
+  `requires-python`), a `pip-audit` dependency audit, and a build of the distribution
+  followed by an install of the one built wheel into a clean environment, an import of
+  the engine from it, and the engine's own wheel smoke script. `ato-benchmark-compare`,
   `payday-super-checker` and `the-wip-tally` add a Windows leg on 3.12.
 - The path filter is applied inside each call, by `.github/ci/select_package.py`, rather
   than on the trigger. A change under `packages/<engine>/` runs that engine and skips the

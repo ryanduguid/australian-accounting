@@ -46,9 +46,8 @@ lint: setup
     set -euo pipefail
     for entry in {{ components }}; do
         directory="${entry%%:*}"
-        package="${entry##*:}"
         echo "==> ${directory}"
-        (cd "${directory}" && uv run --no-sync ruff check "${package}" tests)
+        (cd "${directory}" && uv run --no-sync ruff check .)
     done
 
 # Type-check every component.
@@ -57,14 +56,14 @@ typecheck: setup
     set -euo pipefail
     for entry in {{ components }}; do
         directory="${entry%%:*}"
-        package="${entry##*:}"
         echo "==> ${directory}"
-        (cd "${directory}" && uv run --no-sync mypy "${package}")
+        (cd "${directory}" && uv run --no-sync mypy)
     done
 
-# Not a CI equivalent. The component workflows also run a dependency audit, a
-# distribution build, installed-wheel and sdist smoke tests, and changed-line
-# coverage, and none of those run here. A green `just check` is not a green CI.
+# Not a CI equivalent. The component workflows also check each engine's own
+# lockfile, run a dependency audit, a distribution build, installed-wheel and
+# sdist smoke tests, and changed-line coverage, and none of those run here. A
+# green `just check` is not a green CI.
 
 # The fast local pass: lint, type-check and test every component.
 check: lint typecheck test
