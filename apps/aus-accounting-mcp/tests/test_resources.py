@@ -200,6 +200,12 @@ def test_prompts_preserve_the_unknown_and_refusal_language() -> None:
 
     assert "not_supplied" in texts["compare_ato_benchmarks"]
     assert "Do not treat missing as zero" in texts["compare_ato_benchmarks"]
+    # The two inputs without which the tool cannot run at all. Naming them stops
+    # a host following this prompt into a tool error, and the prompt has to ask
+    # for them rather than supplying a zero the operator never established.
+    assert "at least one expense bucket" in texts["compare_ato_benchmarks"]
+    assert "turnover" in texts["compare_ato_benchmarks"]
+    assert "rather than supplying a" in texts["compare_ato_benchmarks"]
     assert "AT_RISK" in texts["review_payday_super_contribution"]
     assert "Do not invent an SGC charge" in texts["review_payday_super_contribution"]
     assert "UNKNOWN" in texts["review_div7a_loan_terms"]
@@ -242,3 +248,27 @@ async def _inspect_stdio() -> None:
 
 def test_stdio_clients_can_list_and_read_every_prompt_and_resource() -> None:
     asyncio.run(_inspect_stdio())
+
+
+def test_the_benchmark_prompt_names_every_input_the_tool_cannot_run_without():
+    # Reproduces what a host following this prompt would otherwise hit: the
+    # adapter refuses a call carrying income figures alone, so a prompt that
+    # does not name the prerequisites walks a model into a tool error.
+    from aus_accounting_mcp.server import get_ato_benchmarks
+
+    with pytest.raises(ValueError, match="no expense figures were supplied"):
+        get_ato_benchmarks(
+            industry="Bakeries and hot bread shops", turnover="850000.00", other_income="0"
+        )
+
+    rendered = asyncio.run(mcp.get_prompt("compare_ato_benchmarks", {})).messages[0].content.text
+    required = mcp_tool_input_requirements("get_ato_benchmarks")
+
+    for argument in required:
+        assert argument in rendered, argument
+    assert "at least one expense bucket" in rendered
+
+
+def mcp_tool_input_requirements(name: str) -> list[str]:
+    tool = next(tool for tool in asyncio.run(mcp.list_tools()) if tool.name == name)
+    return list(tool.input_schema.get("required") or [])

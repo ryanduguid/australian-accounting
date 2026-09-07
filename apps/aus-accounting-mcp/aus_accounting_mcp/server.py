@@ -759,6 +759,10 @@ def compare_ato_benchmarks_prompt(industry: str | None = None) -> str:
         "industry. Omit buckets I have not supplied. Do not treat missing as zero.\n\n"
         f"{selected} Then call get_ato_benchmarks with only the buckets I gave you, as "
         "decimal strings. Leave every other bucket out rather than passing 0.\n\n"
+        "Two things are needed before the call can run at all: turnover, which is sales "
+        "of goods and services, and at least one expense bucket. If I have not given you "
+        "both, ask me for them rather than calling the tool, and rather than supplying a "
+        "0 I did not establish. Everything else is optional and stays omitted.\n\n"
         "Pass other_income only if I established it, including an established nil as "
         '"0". Without it the ATO turnover rule cannot pick a denominator and every '
         "ratio is returned as not_supplied, which is the correct answer rather than a "
