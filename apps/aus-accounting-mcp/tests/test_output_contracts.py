@@ -1,18 +1,17 @@
 """Check the schemas and lossless JSON that MCP clients actually receive."""
 
 import asyncio
-from copy import deepcopy
 import json
 import sys
+from copy import deepcopy
 
+import pytest
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError
-from pydantic import TypeAdapter, ValidationError as ModelValidationError
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-import pytest
+from pydantic import TypeAdapter, ValidationError as ModelValidationError
 
 from aus_accounting_mcp import server
-
 
 LOAN = {
     "year_of_income": "2026-27",

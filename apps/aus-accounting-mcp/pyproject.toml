@@ -83,9 +83,21 @@ line-length = 100
 src = ["aus_accounting_mcp", "tests"]
 
 [tool.ruff.lint]
-# First-enablement set: syntax and undefined-name errors only (E9, F82).
-# Keep Decimal("10.00") money literals and existing import layout.
-select = ["E9", "F82"]
+# pycodestyle errors and warnings, pyflakes, and import sorting. Wider than the
+# first-enablement E9/F82 set, and the same shape as the engines' own gates.
+# Decimal("10.00") money literals stay: no rule here rewrites a literal.
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.isort]
+# Keep an aliased engine import beside its siblings. Without this, sorting
+# splits `__version__ as PAYDAY_VERSION` out into a second statement from the
+# same module, which is more lines saying less.
+combine-as-imports = true
+# These are the first-party ones. `src` names source roots, and neither
+# directory is the project root, so without this the local imports sort in
+# among mcp, pydantic and pytest. `evaluation` is the harness the suite
+# imports, and it is this repository's, not a dependency.
+known-first-party = ["aus_accounting_mcp", "evaluation"]
 
 [tool.mypy]
 python_version = "3.10"

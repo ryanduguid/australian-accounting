@@ -13,16 +13,15 @@ except ModuleNotFoundError:
     import tomli as tomllib
 
 import pytest
-
 from atobenchmark.mapping import BUCKETS
 from atobenchmark.ratios import compute
 
 from aus_accounting_mcp.server import (
-    refuse_div7a,
     calc_payday_super_deadline,
     generate_synthetic_sbr_fixture,
     get_ato_benchmarks,
     list_ato_benchmark_industries,
+    refuse_div7a,
 )
 
 CANONICAL_REPOSITORY = "https://github.com/ryanduguid/australian-accounting"
