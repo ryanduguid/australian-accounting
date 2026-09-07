@@ -6,8 +6,7 @@ name: Release payday-super-checker
 # distribution identity, the RELEASE_NOTES.md header, the lockfile and the
 # main commit before it builds, attests and publishes the GitHub release.
 # The pypi job then publishes the exact attested distribution through this
-# component's own trusted publisher and environment. The component's own
-# bespoke prerelease workflow stays inside its directory as an inert record.
+# component's own trusted publisher and environment.
 
 on:
   push:

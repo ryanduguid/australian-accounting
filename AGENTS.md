@@ -28,9 +28,9 @@ checks from its own directory.
 - `uv run --locked` inside a component directory validates the root `uv.lock`, not the
   component's. After changing any component's dependencies, run `uv lock` at the root
   and commit the result.
-- Only the workflows under the root `.github/workflows/` are active. Workflow files,
-  scripts and instructions inside an imported component directory are historical
-  records of the source repository and are never run from here.
+- Only the workflows under the root `.github/workflows/` are active. Scripts and
+  instructions inside an imported component directory are historical records of the
+  source repository and are never run from here.
 - Fixtures and demonstrations are fabricated. No client data, credentials, workpapers
   or generated client reports enter this repository.
 - Movement, import and behaviour changes are separate changes. Do not refactor a

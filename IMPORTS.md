@@ -198,10 +198,11 @@ an annotated tag on `main`, and the component's environment and trusted publishe
 fail-closed component cannot release until a later reviewed component change adds the
 missing file or files; its caller refuses the tag until then and nothing else changes.
 
-The payday-super-checker bespoke experimental prerelease workflow
-(`packages/payday-super-checker/.github/workflows/release.yml`) and every other workflow
-under a component directory remain nested and inert: GitHub runs workflows only from the
-root `.github/workflows/`, and nothing references the nested files.
+The payday-super-checker bespoke experimental prerelease workflow and every other workflow
+under a component directory were inert after import (GitHub runs workflows only from the
+root `.github/workflows/`) and were removed on 7 September 2026, together with the
+payday-super-checker release tool, its test and the release process notes that only that
+workflow used. The subtree merge commits above still hold them.
 
 the-exchequer-tally, solomons-sword and the-wip-tally have no PyPI project today. Their
 root callers are complete, but their `pypi-<component>` environments and trusted
