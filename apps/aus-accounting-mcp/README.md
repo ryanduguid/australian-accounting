@@ -192,7 +192,7 @@ answers when upgrading an engine.
 
 `calc_payday_super_deadline` requires `as_at`. It does not invent clearing-house latency and cannot confirm LCR 2026/1 transition allocation. A remittance date alone cannot produce `ON_TIME`.
 
-Omitted ATO expense buckets are `not_supplied`, not zero. Every ATO ratio divides by turnover, which the ATO rule takes from sales or from total business income, so omitting `other_income` leaves every ratio `not_supplied` until you establish that figure. Pass `0` where you have established there is none. Withholding covers the engine's prose as well as the structured fields. A `notes` or `checks_to_make` entry that states an amount resting on an omitted bucket is withheld with those fields, and `notes` says so.
+Omitted ATO expense buckets are `not_supplied`, not zero. Every ATO ratio divides by turnover, which the ATO rule takes from sales or from total business income, so omitting `other_income` leaves every ratio `not_supplied` until you establish that figure. Pass `0` where you have established there is none. Withholding covers the engine's prose as well as the structured fields: each engine `notes` and `checks_to_make` entry declares the figures needed to state it, and an entry resting on a bucket you omitted is withheld rather than published beside that bucket's `null`. `notes` records how many were withheld. `key_ratio` is withheld the same way, so an omitted `cost_of_sales` does not trigger the ATO's total-expenses fallback.
 
 Amounts, including Division 7A loan balances and payments, are decimal strings, finite, at most two decimal places, and no greater than AUD 1,000,000,000,000.00. Dates are ISO-8601. Payday Super uses payday-super-checker's national SGAA 1992 s 6(1) calendar.
 
