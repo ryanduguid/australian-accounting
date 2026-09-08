@@ -1,3 +1,10 @@
+# v0.1.9
+
+- Publish the benchmark evidence corrections and MCP improvements prepared for
+  0.1.8, using a release-policy commit GitHub Actions can resolve.
+- The 0.1.8 tag failed before any release job ran. No 0.1.8 package was published;
+  the original tag is preserved.
+
 # v0.1.8
 
 - Use the benchmark engine's evidenced serialiser so omitted expense buckets

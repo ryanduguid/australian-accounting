@@ -275,9 +275,14 @@ class BoundaryTests(unittest.TestCase):
                 ROOT / ".github" / "workflows" / f"release-{component}.yml"
             ).read_text(encoding="utf-8")
             with self.subTest(component=component):
+                policy_sha = (
+                    "d487b1a854bc7a6f97cc114fc68cf3fe3989ce7e"
+                    if component == "aus-accounting-mcp"
+                    else RELEASE_POLICY_SHA
+                )
                 self.assertIn(
                     "uses: ryanduguid/release-policy/.github/workflows/"
-                    f"release-python.yml@{RELEASE_POLICY_SHA}",
+                    f"release-python.yml@{policy_sha}",
                     workflow,
                 )
                 self.assertIn(f"source-directory: {source_directory}", workflow)
