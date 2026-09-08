@@ -8,12 +8,12 @@
     "url": "https://github.com/ryanduguid/australian-accounting",
     "source": "github"
   },
-  "version": "0.1.8",
+  "version": "0.1.9",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "aus-accounting-mcp",
-      "version": "0.1.8",
+      "version": "0.1.9",
       "transport": {
         "type": "stdio"
       }

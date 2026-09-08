@@ -83,7 +83,7 @@ The example is fabricated, is not a lodgment or Division 7A determination, is no
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.1.8 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.8), [PyPI 0.1.8](https://pypi.org/project/aus-accounting-mcp/0.1.8/), [MCP Registry 0.1.8](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.8), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
+Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.1.9 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.9), [PyPI 0.1.9](https://pypi.org/project/aus-accounting-mcp/0.1.9/), [MCP Registry 0.1.9](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.9), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
 
 ## Install
 
@@ -95,7 +95,7 @@ uvx aus-accounting-mcp
 ```
 
 Use [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff) for this source version. The latest
-published provenance is the [v0.1.8 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.8).
+published provenance is the [v0.1.9 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.9).
 
 For a local editable tree, clone the repository, change into
 `apps/aus-accounting-mcp/`, then run `pip install -e .`. The repository root is not
