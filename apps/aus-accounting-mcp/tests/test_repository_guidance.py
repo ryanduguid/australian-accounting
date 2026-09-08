@@ -108,6 +108,7 @@ def test_agents_pins_repository_backed_supplementary_commands_as_non_ci() -> Non
     supplementary = _section(guidance, "Supplementary local and release-readiness checks")
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    reference = (ROOT / "docs" / "REFERENCE.md").read_text(encoding="utf-8")
 
     assert (ROOT / "uv.lock").is_file()
     assert 'dev = [' in pyproject
@@ -116,7 +117,8 @@ def test_agents_pins_repository_backed_supplementary_commands_as_non_ci() -> Non
     assert '"Pillow==12.3.0"' in pyproject
     assert 'aus-accounting-mcp-demo = "aus_accounting_mcp.demo:main"' in pyproject
     assert "uv run --locked aus-accounting-mcp-demo" in readme
-    assert f"`{MEDIA_COMMAND}`" in readme
+    assert "docs/REFERENCE.md#demonstration-and-provenance" in readme
+    assert f"`{MEDIA_COMMAND}`" in reference
     for path in (
         "docs/quick-proof.webp",
         "tests/test_demo.py",

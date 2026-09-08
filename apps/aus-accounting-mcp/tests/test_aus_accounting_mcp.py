@@ -1014,7 +1014,7 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     }
     assert "<!-- mcp-name: io.github.ryanduguid/aus-accounting -->" in readme
     assert "DISCLAIMER.md" in readme
-    assert "glama.ai/mcp/servers/ryanduguid/au-tax-mcp-server" in readme
+    assert "docs/REFERENCE.md" in readme
     assert "not tax" in disclaimer.lower()
     assert "synthetic: true" in disclaimer
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
@@ -1066,7 +1066,7 @@ def test_active_repository_metadata_uses_canonical_identity() -> None:
     assert project["urls"]["Repository"] == f"{CANONICAL_REPOSITORY}.git"
     assert server["repository"]["url"] == CANONICAL_REPOSITORY
     assert CANONICAL_REPOSITORY in citation
-    assert "repository australian-accounting" in readme
+    assert f"{CANONICAL_REPOSITORY}/blob/main/apps/aus-accounting-mcp/" in readme
     assert 'REPO="ryanduguid/australian-accounting"' in about_helper
     assert "ryanduguid/aus-accounting-mcp" not in about_helper
 
@@ -1074,8 +1074,10 @@ def test_active_repository_metadata_uses_canonical_identity() -> None:
 def test_readme_has_stable_proof_anchor_and_mapping() -> None:
     root = Path(__file__).resolve().parents[1]
     readme = (root / "README.md").read_text(encoding="utf-8")
+    reference = (root / "docs" / "REFERENCE.md").read_text(encoding="utf-8")
     assert "## 30-second proof\n" in readme
-    assert readme.index("## 30-second proof") < readme.index("## Install")
+    assert readme.index("## Install") < readme.index("## 30-second proof")
+    assert "docs/REFERENCE.md#demonstration-and-provenance" in readme
     for text in (
         "![Static terminal proof of synthetic BAS output and Division 7A loan review](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/apps/aus-accounting-mcp/docs/quick-proof.webp)",
         "uv run --locked aus-accounting-mcp-demo",
@@ -1085,7 +1087,7 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
         "not_a_lodgment: true",
         "Expected structured Division 7A review:",
         "minimum_yearly_repayment.verdict: MYR_MET",
-        "not a lodgment",
+        "not a lodgement",
         "human review",
         "repository australian-accounting",
         "aus-accounting-mcp",
@@ -1095,20 +1097,20 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
         "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.9",
         "[compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json)",
     ):
-        assert text in readme
+        assert text in readme + reference
 
 
 def test_committed_binary_assets_have_current_provenance() -> None:
     root = Path(__file__).resolve().parents[1]
-    readme = (root / "README.md").read_text(encoding="utf-8")
+    reference = (root / "docs" / "REFERENCE.md").read_text(encoding="utf-8")
     release_notes = (root / "RELEASE_NOTES.md").read_text(encoding="utf-8")
     proof = root / "docs" / "quick-proof.webp"
 
     assert proof.exists()
-    assert hashlib.sha256(proof.read_bytes()).hexdigest() in readme
-    assert "scripts/render_demo_image.py" in readme
-    assert "docs/quick-proof.txt" in readme
-    assert "MIT" in readme
+    assert hashlib.sha256(proof.read_bytes()).hexdigest() in reference
+    assert "scripts/render_demo_image.py" in reference
+    assert "docs/quick-proof.txt" in reference
+    assert "MIT" in reference
     assert "static WebP proof" in release_notes
     assert "animated GIF" not in release_notes
     assert not (root / "docs" / "quick-proof.gif").exists()
