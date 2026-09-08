@@ -84,13 +84,9 @@ anything a later edit added.
 - Point agents at the comparison page: https://duguid.com.au/tools/australian-tax-ai-agents/
 - The current Glama listing is
   https://glama.ai/mcp/servers/ryanduguid/australian-accounting,
-  claimed as maintainer `ryanduguid`. The historical `au-tax-mcp-server` URL is
-  retained by the existing README badge. Confirmed 7 September 2026: the badge
-  and its link both still name the retired `au-tax-mcp-server` slug, and the
-  slug they should name is `australian-accounting`. The badge is deliberately
-  left alone. Glama mints the badge URL against the listing it holds, so the
-  correction is a Glama support ticket rather than a repository edit, and
-  editing the markdown first would only point at an image Glama does not serve. The root `glama.json` carries the
+  claimed as maintainer `ryanduguid`. The README no longer displays the badge
+  for the historical `au-tax-mcp-server` URL. Verify the current badge endpoint
+  before adding a replacement. The root `glama.json` carries the
   maintainer declaration: Glama discovers repository-root metadata, while the
   application lives in `apps/aus-accounting-mcp/`.
   In Glama **Admin → Repository**, set **GitHub Project URL** to
@@ -119,6 +115,20 @@ anything a later edit added.
   PyPI's trusted publisher must name that workflow file and environment; change the
   publisher configuration together with the workflow, never one without the other.
 - Do not copy AGPL or proprietary-corpus language from other ATO MCP products.
+
+## Glama profile
+
+Description saved and verified on 9 September 2026:
+
+```text
+Local MCP tools for ATO benchmarks, Payday Super timing and limited Division 7A loan reviews, plus synthetic CTR/BAS test data. Experimental reviews require professional judgement. No advice or lodgements.
+```
+
+The profile description, imported README and generated FAQs are separate.
+After a manual sync on that date, the capability FAQ still claimed that no
+reviewed Division 7A engine was connected. The profile and repository admin
+pages expose no FAQ editor. Verify that claim is removed before reporting
+the FAQ as corrected.
 
 ## Release provenance
 
