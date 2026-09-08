@@ -1,3 +1,14 @@
+# Unreleased
+
+- Preserve explicit partial contribution amounts in Payday Super reviews and
+  reject unknown arguments on every MCP tool.
+- Refuse ambiguous numeric dates even when they carry a time suffix.
+- Score recorded arguments, call order and count, and final answers alongside
+  tool selection. Legacy recordings remain selection-only.
+- Expose bundled Payday rate and calendar coverage through a read-only resource.
+
+Engine pins and statutory calculations are unchanged. Not yet released.
+
 # v0.1.9
 
 - Publish the benchmark evidence corrections and MCP improvements prepared for

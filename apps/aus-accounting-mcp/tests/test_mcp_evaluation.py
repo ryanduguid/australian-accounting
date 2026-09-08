@@ -4,6 +4,7 @@ import asyncio
 import json
 import sys
 import xml.etree.ElementTree as ET
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -35,9 +36,11 @@ class _RecordingSession:
     def __init__(self, session):
         self._session = session
         self.selected: list[str] = []
+        self.calls: list[dict] = []
 
     async def call_tool(self, name, arguments):
         self.selected.append(name)
+        self.calls.append({"name": name, "arguments": deepcopy(arguments)})
         return await self._session.call_tool(name, arguments)
 
 
@@ -143,20 +146,22 @@ async def _evaluate(case):
         async with ClientSession(reader, writer) as session:
             await session.initialize()
             recorder = _RecordingSession(session)
-            return await _answer(recorder, case), recorder.selected
+            return await _answer(recorder, case), recorder.selected, recorder.calls
 
 
 @pytest.mark.parametrize(
     "case,expected,tools", CASES, ids=[case for case, _, _ in CASES]
 )
 def test_evaluation_answer_is_reproducible(case, expected, tools):
-    answer, selected = asyncio.run(_evaluate(case))
+    answer, selected, calls = asyncio.run(_evaluate(case))
 
     assert answer == expected
     # questions.xml publishes the tools a correct answer needs, and the
     # tool-selection harness scores a model against that list. A list nobody
     # checks is a list that drifts, so the replay has to have called exactly it.
     assert sorted(set(selected)) == tools
+    reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
+    assert calls == json.loads(reference.text)
 
 
 def test_every_published_tool_selection_names_a_registered_tool():
@@ -248,3 +253,85 @@ def test_the_selection_harness_context_is_the_whole_tool_definition():
     # an omitted bucket is not an established zero, and amounts have a ceiling.
     assert "only for an established zero" in context
     assert "1000000000000.00" in context
+
+
+UNKNOWN_RATE_RUN = {
+    "unknown-rate": {
+        "calls": [
+            {"name": "get_div7a_benchmark_rate", "arguments": {"year_of_income": "2027-28"}},
+            {"name": "get_div7a_benchmark_rate", "arguments": {
+                "year_of_income": "2027-28", "response_detail": "full",
+            }},
+        ],
+        "answer": "UNKNOWN",
+    },
+}
+
+
+def test_recorded_calls_and_answer_are_scored_together(tmp_path, capsys):
+    recorded = tmp_path / "run.json"
+    recorded.write_text(json.dumps(UNKNOWN_RATE_RUN), encoding="utf-8")
+    assert tool_selection.main(["score", str(recorded)]) == 0
+    report = capsys.readouterr().out
+    assert "1 of 10 recorded calls and answers match the reference" in report
+
+
+@pytest.mark.parametrize("change", ["answer", "argument", "repetition", "order"])
+def test_correct_tool_names_cannot_hide_wrong_calls_or_answer(change, tmp_path, capsys):
+    run = deepcopy(UNKNOWN_RATE_RUN)
+    record = run["unknown-rate"]
+    if change == "answer":
+        record["answer"] = "0.0837"
+    elif change == "argument":
+        record["calls"][0]["arguments"]["year_of_income"] = "2025-26"
+    elif change == "repetition":
+        record["calls"].append(deepcopy(record["calls"][0]))
+    else:
+        record["calls"].reverse()
+    recorded = tmp_path / "run.json"
+    recorded.write_text(json.dumps(run), encoding="utf-8")
+    assert tool_selection.main(["score", str(recorded)]) == 0
+    report = capsys.readouterr().out
+    assert "0 of 10 recorded calls and answers match the reference" in report
+    difference = "answer differs" if change == "answer" else "calls differ"
+    assert difference in report
+
+
+def test_invented_zero_fails_even_when_the_answer_and_tools_are_right(tmp_path, capsys):
+    run = {"missing-income": {
+        "calls": [
+            {"name": "list_ato_benchmark_industries", "arguments": {
+                "search": "baker", "year": "2023-24", "limit": 20,
+            }},
+            {"name": "get_ato_benchmarks", "arguments": {
+                "industry": "Bakeries and hot bread shops", "year": "2023-24",
+                "turnover": "850000.00", "cost_of_sales": "270000.00", "other_income": "0.00",
+            }},
+        ],
+        "answer": "not_supplied",
+    }}
+    recorded = tmp_path / "run.json"
+    recorded.write_text(json.dumps(run), encoding="utf-8")
+    assert tool_selection.main(["score", str(recorded)]) == 0
+    report = capsys.readouterr().out
+    assert "0 of 10 recorded calls and answers match the reference" in report
+    assert "calls differ" in report
+
+
+def test_legacy_tool_names_do_not_claim_argument_or_answer_verification(tmp_path, capsys):
+    recorded = tmp_path / "legacy.json"
+    recorded.write_text(json.dumps({"unknown-rate": ["get_div7a_benchmark_rate"]}))
+    assert tool_selection.main(["score", str(recorded)]) == 0
+    assert "arguments and answer NOT EVALUATED" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("bad", [
+    [], {"unknown-rate": None}, {"unknown-rate": {"calls": [], "answer": 0}},
+    {"unknown-rate": {"calls": [{"name": "get_div7a_benchmark_rate"}], "answer": "UNKNOWN"}},
+    {"unknown-rate": [123]},
+])
+def test_malformed_recordings_return_an_input_error(bad, tmp_path, capsys):
+    recorded = tmp_path / "bad.json"
+    recorded.write_text(json.dumps(bad), encoding="utf-8")
+    assert tool_selection.main(["score", str(recorded)]) == 2
+    assert capsys.readouterr().err

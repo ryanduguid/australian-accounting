@@ -7,10 +7,12 @@ from __future__ import annotations
 
 from decimal import Decimal
 from importlib.metadata import PackageNotFoundError, version
-from typing import Annotated, Literal, cast
+from typing import Annotated, Any, Literal, cast
 
 from mcp.server.mcpserver import MCPServer
-from mcp_types import ToolAnnotations
+from mcp.server.mcpserver.context import Context
+from mcp.server.mcpserver.exceptions import ToolError
+from mcp_types import CallToolResult, InputRequiredResult, Tool, ToolAnnotations
 from pydantic import Field
 
 try:
@@ -40,6 +42,7 @@ from .resources import (
     benchmark_dataset_years,
     component_versions,
     disclaimer as boundary_disclaimer,
+    payday_coverage,
 )
 
 SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operator-supplied facts.
@@ -53,6 +56,9 @@ SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operato
 - Use calc_payday_super_deadline for one contribution, with an explicit as_at
   date. Remittance does not establish fund receipt. Do not infer receipt dates
   or clearing-house latency, or report ON_TIME without evidence of receipt.
+  Supply matched_amount or remitted_amount for partial contributions. Omitting
+  both retains the engine's convention that received means full receipt.
+  Read aus-accounting://payday-coverage for bundled rate and calendar coverage.
 - Use get_div7a_benchmark_rate for rate-only queries and review_div7a_loan for
   the reviewed s 109N/s 109E facts of one operator-supplied amalgamated loan.
   Use refuse_div7a for unsupported matters. Do not form amalgamated loans,
@@ -75,7 +81,28 @@ records or lodge. Results are review aids, not advice or determinations; obtain
 human review before consequential accounting action.
 """
 
-mcp = MCPServer("aus-accounting-mcp", version=_VERSION, instructions=SERVER_INSTRUCTIONS)
+class AccountingServer(MCPServer):
+    """Reject facts the SDK would otherwise discard before calling an adapter."""
+
+    async def list_tools(self) -> list[Tool]:
+        tools = await super().list_tools()
+        for tool in tools:
+            tool.input_schema = {**tool.input_schema, "additionalProperties": False}
+        return tools
+
+    async def call_tool(
+        self, name: str, arguments: dict[str, Any], context: Context | None = None,
+    ) -> CallToolResult | InputRequiredResult:
+        for tool in await self.list_tools():
+            if tool.name == name:
+                unknown = arguments.keys() - tool.input_schema["properties"].keys()
+                if unknown:
+                    raise ToolError(f"{name}: unsupported arguments: {', '.join(sorted(unknown))}")
+                break
+        return await super().call_tool(name, arguments, context)
+
+
+mcp = AccountingServer("aus-accounting-mcp", version=_VERSION, instructions=SERVER_INSTRUCTIONS)
 
 # These tools read bundled data and return results in memory. They never lodge,
 # write records or contact external services; installation is a separate step.
@@ -375,6 +402,23 @@ def calc_payday_super_deadline(
             'engine pathway that skips lateness testing.'
         )),
     ] = False,
+    remitted_amount: Annotated[
+        str | None,
+        Field(description=(
+            'Amount sent for this contribution, as an AUD decimal string with at most '
+            '2 decimal places. Requires remitted; cannot exceed sg_amount. Omit or null '
+            'preserves the engine full-remittance convention when remitted is supplied.'
+        )),
+    ] = None,
+    matched_amount: Annotated[
+        str | None,
+        Field(description=(
+            'Amount associated with this payday, as an AUD decimal string with at most '
+            '2 decimal places; cannot exceed sg_amount. Supply partial amounts even without '
+            'a remittance date. Caps evidenced receipt and takes precedence over '
+            'remitted_amount. If both amounts are omitted, received means full receipt.'
+        )),
+    ] = None,
 ) -> PaydayReview:
     """Review one contribution against payday-super-checker.
 
@@ -399,6 +443,8 @@ def calc_payday_super_deadline(
             out_of_cycle=out_of_cycle,
             next_standard_qe_day=next_standard_qe_day,
             db_interest=db_interest,
+            remitted_amount=remitted_amount,
+            matched_amount=matched_amount,
         ),
     )
 
@@ -751,6 +797,22 @@ def component_versions_resource() -> dict[str, object]:
     return component_versions()
 
 
+@mcp.resource(
+    "aus-accounting://payday-coverage",
+    name="payday-coverage",
+    title="Payday Super rate and calendar coverage",
+    description=(
+        "Bundled GIC rate coverage, calendar verification span and coverage end, "
+        "read from the installed engine. Read before choosing assessment dates; "
+        "coverage does not establish a contribution verdict. No live lookup."
+    ),
+    mime_type="application/json",
+)
+def payday_coverage_resource() -> dict[str, object]:
+    """Serve the contribution engine's bundled table coverage."""
+    return payday_coverage()
+
+
 @mcp.prompt(
     name="compare_ato_benchmarks",
     title="Compare P&L buckets to ATO benchmarks",
@@ -809,6 +871,9 @@ def review_payday_super_contribution_prompt(as_at: str | None = None) -> str:
         "fund received the contribution. A remitted date is not that date, and a "
         "contribution with no fund receipt is AT_RISK rather than ON_TIME. Leave "
         "received out if the CSV does not carry it.\n\n"
+        "Pass matched_amount or remitted_amount for a partial contribution; do not "
+        "drop the amount and imply full receipt. Read aus-accounting://payday-coverage "
+        "for the bundled rate and calendar limits.\n\n"
         "Report the verdict, the deadline and the pathway with the caveats attached, "
         "and treat the experimental SG-charge figures as exposure flags, not an ATO "
         "assessment. Say so if the facts leave the verdict UNKNOWN."
