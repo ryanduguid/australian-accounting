@@ -1045,7 +1045,7 @@ def test_release_metadata_is_aligned_for_0_1_9() -> None:
     assert project["version"] == "0.1.9"
     assert re.search(r"(?m)^version: 0\.1\.9$", citation)
     assert re.search(r"(?m)^date-released: 2026-09-08$", citation)
-    assert release_notes.startswith("# v0.1.9\n")
+    assert re.findall(r"(?m)^# (v\S+)$", release_notes)[0] == "v0.1.9"
     assert "ato-benchmark-compare` 0.1.6" in release_notes
     assert "payday-super-checker` 0.1.3" in release_notes
     assert "div7a-loan-review` 0.1.1" in release_notes

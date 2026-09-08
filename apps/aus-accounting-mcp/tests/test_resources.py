@@ -7,12 +7,16 @@ import importlib.metadata
 import json
 import re
 import sys
+from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
 from atobenchmark.dataset import available_years
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from paydaysuper.calendar import BusinessCalendar
+from paydaysuper.rates import GicQuarter, GicTable
 
 from aus_accounting_mcp import resources
 from aus_accounting_mcp.server import DIV7A_SCOPE_REFUSAL, mcp
@@ -24,6 +28,7 @@ RESOURCE_URIS = {
     "aus-accounting://div7a-scope",
     "aus-accounting://benchmark-dataset-years",
     "aus-accounting://component-versions",
+    "aus-accounting://payday-coverage",
 }
 PROMPT_NAMES = {
     "compare_ato_benchmarks",
@@ -111,6 +116,32 @@ def test_component_versions_resource_matches_the_installed_distributions() -> No
     assert served["server"]["transport"] == "stdio"
     for engine in served["engines"]:
         assert engine["version"] == importlib.metadata.version(engine["distribution"])
+
+
+def test_payday_coverage_resource_uses_the_loaded_engine_tables(monkeypatch) -> None:
+    calendar = BusinessCalendar([], date(2030, 1, 1), date(2030, 12, 31))
+    rates = GicTable([
+        GicQuarter(date(2030, 1, 1), date(2030, 3, 31), Decimal("10"), "2030-01-02")
+    ])
+    # Table loading is the boundary: fabricated engine objects make a hardcoded
+    # date or a date taken from package metadata fail this consumer check.
+    monkeypatch.setattr(resources, "load_calendar", lambda: calendar)
+    monkeypatch.setattr(resources, "load_gic", lambda: rates)
+    served = json.loads(_read("aus-accounting://payday-coverage"))
+
+    assert served["engine"] == "payday-super-checker"
+    assert served["engine_version"] == importlib.metadata.version("payday-super-checker")
+    assert served["bundled_data"] is True
+    assert served["live_lookup"] is False
+    assert served["calendar"] == {
+        "verified_from": "2030-01-01", "verified_until": "2030-12-31",
+        "coverage_until": "2030-12-31",
+    }
+    assert served["gic"]["known_until"] == "2030-03-31"
+    assert "2030-01-02" in served["gic"]["provenance"]
+    assert "2030-03-31" in served["gic"]["provenance"]
+    assert "last known rate" in served["gic"]["beyond_coverage"]
+    assert served["disclaimer"]
 
 
 def test_component_versions_resource_agrees_with_the_compatibility_record() -> None:

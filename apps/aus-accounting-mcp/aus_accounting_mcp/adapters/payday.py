@@ -21,12 +21,12 @@ from paydaysuper.rates import load_gic
 from paydaysuper.report import Result, assess
 
 from aus_accounting_mcp.errors import InputError
-from aus_accounting_mcp.money import parse_amount
+from aus_accounting_mcp.money import parse_amount, parse_optional_amount
 
 #: A purely numeric slash or dash date, captured to its first two components.
 #: The engine reads these day first, as the Australian calendar is written, and
 #: the guard below refuses the ones where that reading cannot be checked.
-NUMERIC_DATE = re.compile(r"^(\d{1,2})[/-](\d{1,2})[/-]\d{2,4}$")
+NUMERIC_DATE = re.compile(r"^(\d{1,2})[/-](\d{1,2})[/-]\d{2,4}(?=\s|$)")
 
 DISCLAIMER = (
     "Experimental review aid. Not a compliance determination, an ATO assessment "
@@ -124,6 +124,8 @@ def _serialise(result: Result) -> dict[str, Any]:
         "employee_id": result.line.employee_id,
         "qe_day": result.line.qe_day.isoformat(),
         "sg_amount": str(result.line.sg_amount),
+        "remitted_amount": _money(result.line.remitted_amount),
+        "matched_amount": _money(result.line.matched_amount),
         "remitted": None if result.line.remitted is None else result.line.remitted.isoformat(),
         "received": None if result.line.received is None else result.line.received.isoformat(),
         "due": None if due is None else due.isoformat(),
@@ -157,6 +159,8 @@ def review_contribution(
     out_of_cycle: bool = False,
     next_standard_qe_day: str | None = None,
     db_interest: bool = False,
+    remitted_amount: str | None = None,
+    matched_amount: str | None = None,
 ) -> dict[str, Any]:
     """Review one contribution against payday-super-checker."""
     line = ContribLine(
@@ -164,6 +168,8 @@ def review_contribution(
         qe_day=_required_date(qe_day, "qe_day"),
         sg_amount=parse_amount(sg_amount, "sg_amount"),
         remitted=_optional_date(remitted, "remitted"),
+        remitted_amount=parse_optional_amount(remitted_amount, "remitted_amount"),
+        matched_amount=parse_optional_amount(matched_amount, "matched_amount"),
         received=_optional_date(received, "received"),
         first_to_fund=first_to_fund,
         out_of_cycle=out_of_cycle,

@@ -1,4 +1,4 @@
-"""Score whether a model picks the right tool, not just whether it gets the answer.
+"""Score recorded tool calls, supplied arguments and final answers.
 
 The pytest suite replays `questions.xml` through a real stdio session and checks
 the answers reproduce. That measures the server, not the model: the replay is
@@ -18,15 +18,18 @@ selection and the arguments lives inside them. `questions` prints the questions
 with the answer and tool elements stripped, so nothing in the prompt hints at
 the selection.
 
-Put those in front of the client under test, record which tools it called, and
-write a JSON object mapping each question id to the tool names it selected, in
-any order:
+Put those in front of the client under test and record each question's ordered
+calls (name and arguments) and final answer:
 
-    {"catalogue-pages": ["list_ato_benchmark_industries"], ...}
+    {"question-id": {"calls": [{"name": "tool", "arguments": {}}], "answer": "text"}}
 
-`score` compares that against the selection published in `questions.xml`, which
-the test suite holds to what the replay actually calls. It reports, per question,
-the tools that were missed and the ones called that the answer does not need.
+`score` compares these with the reference calls and answers in `questions.xml`.
+The stdio replay verifies the reference. Comparison is exact, including decimal
+strings, omitted fields, call order and repetitions; only surrounding answer
+whitespace is ignored. Equivalent alternative workflows may differ from this
+reference, so a mismatch needs human review and is not proof of a bad answer.
+Legacy lists of tool names remain accepted, with arguments and answers explicitly
+marked NOT EVALUATED. No recording is executed by the scorer.
 
 This is a supplementary check and deliberately not a CI gate. Steps one and two
 are deterministic; the step in the middle is a model, and a gate whose result
@@ -41,6 +44,7 @@ import json
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Any
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -98,34 +102,76 @@ async def _describe() -> str:
     return "\n".join(lines)
 
 
-def _score(recorded: dict[str, list[str]]) -> int:
+def _validate_recording(recorded: Any) -> None:
+    if not isinstance(recorded, dict):
+        raise ValueError("recording must be an object keyed by question id")
+    for case, entry in recorded.items():
+        if isinstance(entry, list) and all(isinstance(name, str) for name in entry):
+            continue
+        if (
+            not isinstance(entry, dict) or set(entry) != {"calls", "answer"}
+            or not isinstance(entry["calls"], list) or not isinstance(entry["answer"], str)
+        ):
+            raise ValueError(
+                f"{case}: supply calls and a string answer, or a legacy tool-name list"
+            )
+        for call in entry["calls"]:
+            if (
+                not isinstance(call, dict) or set(call) != {"name", "arguments"}
+                or not isinstance(call["name"], str) or not isinstance(call["arguments"], dict)
+            ):
+                raise ValueError(
+                    f"{case}: each call requires a string name and an arguments object"
+                )
+
+
+def _score(recorded: dict[str, Any]) -> int:
+    _validate_recording(recorded)
     published = _published()
+    references = {
+        pair.attrib["id"]: {
+            "calls": json.loads(pair.findtext("calls") or "[]"),
+            "answer": pair.findtext("answer") or "",
+        }
+        for pair in ET.parse(QUESTIONS).getroot().findall("qa_pair")
+    }
     unknown = sorted(set(recorded) - set(published))
     if unknown:
         print(f"not questions in this evaluation: {', '.join(unknown)}", file=sys.stderr)
         return 2
 
     exact = 0
+    verified = 0
     width = max(len(case) for case in published)
     for case, expected in published.items():
         if case not in recorded:
             print(f"{case.ljust(width)}  NOT ANSWERED")
             continue
-        selected = sorted(set(recorded[case]))
+        entry = recorded[case]
+        detailed = isinstance(entry, dict)
+        selected = sorted(set(call["name"] for call in entry["calls"]) if detailed else set(entry))
         missed = [name for name in expected if name not in selected]
         extra = [name for name in selected if name not in expected]
         if not missed and not extra:
             exact += 1
-            print(f"{case.ljust(width)}  exact")
-            continue
         detail = []
         if missed:
             detail.append(f"missed {', '.join(missed)}")
         if extra:
             detail.append(f"also called {', '.join(extra)}")
-        print(f"{case.ljust(width)}  {'; '.join(detail)}")
+        if detailed:
+            if entry["calls"] != references[case]["calls"]:
+                detail.append("calls differ (arguments, order or count)")
+            if entry["answer"].strip() != references[case]["answer"]:
+                detail.append("answer differs")
+            if not detail:
+                verified += 1
+        else:
+            detail.append("arguments and answer NOT EVALUATED")
+        print(f"{case.ljust(width)}  {'; '.join(detail) if detail else 'calls and answer match'}")
 
     print(f"\n{exact} of {len(published)} questions selected exactly the published tools.")
+    print(f"{verified} of {len(published)} recorded calls and answers match the reference.")
     # A reported score is the whole output. Exiting non-zero on an imperfect run
     # would turn a measurement into a gate, which is what this deliberately is not.
     return 0
@@ -136,8 +182,10 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("context", help="print the instructions and tools a model is given")
     sub.add_parser("questions", help="print the questions with answers and tools stripped")
-    scorer = sub.add_parser("score", help="score recorded tool selections")
-    scorer.add_argument("recorded", type=Path, help="JSON of {question id: [tool names]}")
+    scorer = sub.add_parser("score", help="score recorded calls and answers")
+    scorer.add_argument(
+        "recorded", type=Path, help="JSON keyed by question id, with calls and answer"
+    )
     args = parser.parse_args(argv)
 
     if args.command == "context":
@@ -147,7 +195,11 @@ def main(argv: list[str] | None = None) -> int:
         for case, question in _questions().items():
             print(f"{case}: {question}")
         return 0
-    return _score(json.loads(args.recorded.read_text(encoding="utf-8")))
+    try:
+        return _score(json.loads(args.recorded.read_text(encoding="utf-8")))
+    except (ValueError, OSError) as exc:
+        print(f"invalid recording: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":
