@@ -175,6 +175,14 @@ class PaydayAssessment(ResultObject):
     employee_id: Annotated[str, Field(description="Operator reference echoed from the input.")]
     qe_day: DateText
     sg_amount: DecimalText
+    remitted_amount: Annotated[
+        MaybeDecimal,
+        Field(description="Explicit remitted amount; null preserves legacy semantics."),
+    ]
+    matched_amount: Annotated[
+        MaybeDecimal,
+        Field(description="Amount associated with this payday; null means not supplied."),
+    ]
     remitted: Annotated[
         DateText | None, Field(description="Remittance date, YYYY-MM-DD, or null if unknown.")
     ]

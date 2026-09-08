@@ -23,6 +23,9 @@ from typing import Any
 
 from atobenchmark.dataset import available_years, load
 from atobenchmark.report import DISCLAIMER as BENCHMARK_DISCLAIMER
+from paydaysuper import LAW_CONTENT_DATE
+from paydaysuper.calendar import load_calendar
+from paydaysuper.rates import load_gic
 
 from .adapters.div7a import DISCLAIMER as DIV7A_DISCLAIMER
 from .adapters.payday import DISCLAIMER as PAYDAY_DISCLAIMER
@@ -135,4 +138,34 @@ def component_versions() -> dict[str, Any]:
             {"distribution": name, "version": _installed(name)}
             for name in ENGINE_DISTRIBUTIONS
         ],
+    }
+
+
+def payday_coverage() -> dict[str, Any]:
+    """Describe the bundled tables used by the contribution adapter."""
+    calendar = load_calendar()
+    gic = load_gic()
+    return {
+        "engine": "payday-super-checker",
+        "engine_version": _installed("payday-super-checker"),
+        "law_content_date": LAW_CONTENT_DATE,
+        "bundled_data": True,
+        "live_lookup": False,
+        "calendar": {
+            "verified_from": calendar.verified_from.isoformat(),
+            "verified_until": calendar.verified_until.isoformat(),
+            "coverage_until": calendar.coverage_until.isoformat(),
+        },
+        "gic": {
+            "known_until": gic.last_known.isoformat(),
+            "provenance": gic.provenance(),
+            "beyond_coverage": (
+                "The engine estimates using the last known rate and flags staleness."
+            ),
+        },
+        "notes": [
+            "Coverage is not a compliance verdict. Retain the assessment's caveats and "
+            "horizon_verdicts, including uncertainty beyond the calendar coverage.",
+        ],
+        "disclaimer": PAYDAY_DISCLAIMER,
     }

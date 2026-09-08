@@ -210,13 +210,47 @@ python evaluation/tool_selection.py questions
 python evaluation/tool_selection.py score runs/recorded.json
 ```
 
-The recorded file maps each question id to the tool names the client called, in
-any order. Scoring reports the tools each answer missed and the ones it called
-that the answer does not need. This is a supplementary check, not a CI gate: the
-step in the middle is a model, and a gate whose result depends on one would fail
-for reasons that are not this repository's.
+Record each question's calls in order, including the arguments, and its final
+answer. For example, a fabricated recording for the unknown-rate question is:
+
+```json
+{
+  "unknown-rate": {
+    "calls": [
+      {"name": "get_div7a_benchmark_rate", "arguments": {"year_of_income": "2027-28"}},
+      {"name": "get_div7a_benchmark_rate", "arguments": {"year_of_income": "2027-28", "response_detail": "full"}}
+    ],
+    "answer": "UNKNOWN"
+  }
+}
+```
+
+The scorer compares calls and answers with the checked reference in
+`questions.xml`. It detects changed arguments, invented zeroes, extra calls,
+changed call order and answers that replace `UNKNOWN`. Matching is exact,
+including decimal strings and omitted fields; surrounding answer whitespace is
+ignored. An equivalent alternative workflow can differ from the reference, so
+review mismatches before judging a model's answer. Unrecorded questions remain
+`NOT ANSWERED`. Old lists of tool names still receive a selection score, with
+arguments and answers marked `NOT EVALUATED`.
+
+Scoring reads the recording without executing its calls or contacting a model.
+Malformed recordings exit with code 2; valid recordings report their score and
+exit with code 0. Live model trials remain supplementary to deterministic CI.
 
 `calc_payday_super_deadline` requires `as_at`. It does not invent clearing-house latency and cannot confirm LCR 2026/1 transition allocation. A remittance date alone cannot produce `ON_TIME`.
+
+For partial contributions, pass `matched_amount` for the amount associated with
+the payday, including when no remittance date is known. `remitted_amount` records
+the amount sent and requires `remitted`. Both use the shared money limits and
+the engine's validation. `matched_amount` takes precedence when determining how
+much a receipt evidences; otherwise the engine uses `remitted_amount`. If both
+are omitted, the existing full-receipt convention applies. A fabricated $120
+liability with $50 matched and received leaves a $70 base shortfall. The result
+echoes both amounts, with null for an omitted amount.
+
+All tools reject unknown argument names instead of silently discarding facts.
+The input schemas also declare `additionalProperties: false`.
 
 Omitted ATO expense buckets are `not_supplied`, not zero. Every ATO ratio divides by turnover, which the ATO rule takes from sales or from total business income, so omitting `other_income` leaves every ratio `not_supplied` until you establish that figure. Pass `0` where you have established there is none. Withholding covers the engine's prose as well as the structured fields: each engine `notes` and `checks_to_make` entry declares the figures needed to state it, and an entry resting on a bucket you omitted is withheld rather than published beside that bucket's `null`. `notes` records how many were withheld. `key_ratio` is withheld the same way, so an omitted `cost_of_sales` does not trigger the ATO's total-expenses fallback.
 
@@ -233,7 +267,8 @@ day later; convert it to the Australian calendar date first. A numeric date is r
 boundary only where the two readings give different days, such as `01/07/2027`: it
 is read day first, nothing in the text rules out the other reading, and the
 difference is a month in a date that decides the verdict. Send those as
-`YYYY-MM-DD`. Two things settle the reading and are accepted: a component above 12
+`YYYY-MM-DD`. This refusal also applies when a numeric date has a time suffix,
+such as `01/07/2027 00:00`. Two things settle the reading and are accepted: a component above 12
 can only be the day, so `13/07/2027` is the 13th, and equal components land on the
 same date either way, so `12/12/2027` is the 12th of December. Results are always
 ISO-8601.
@@ -274,7 +309,7 @@ Review this operator-supplied Division 7A amalgamated loan for s 109N terms and 
 
 ## Resources
 
-Four read-only resources carry context a host can show without spending a tool call.
+Five read-only resources carry context a host can show without spending a tool call.
 Each is built from the installed engines rather than from a repository file, so it
 describes the server that is actually running.
 
@@ -284,6 +319,12 @@ describes the server that is actually running.
 | `aus-accounting://div7a-scope` | What Division 7A this server reviews, and the matters that stay refused. The same text `refuse_div7a` returns |
 | `aus-accounting://benchmark-dataset-years` | The shipped ATO benchmark years with publisher, resource URL, retrieval date and SHA-256. Bundled data, not a live lookup |
 | `aus-accounting://component-versions` | The server and engine versions installed here, which are the versions reported beside results as `engine_version` |
+| `aus-accounting://payday-coverage` | Installed Payday engine version, law-content date, calendar verification and coverage dates, and the GIC table's last known date and provenance |
+
+Read `payday-coverage` before reviewing a contribution. It describes bundled
+tables and performs no live lookup. Beyond GIC coverage the engine estimates
+using its last known rate and flags staleness. Calendar coverage alone cannot
+establish a verdict; retain the assessment's caveats and `horizon_verdicts`.
 
 ## Licence
 
