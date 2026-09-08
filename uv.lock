@@ -163,7 +163,7 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.1.8"
+version = "0.1.9"
 source = { editable = "apps/aus-accounting-mcp" }
 dependencies = [
     { name = "ato-benchmark-compare" },
