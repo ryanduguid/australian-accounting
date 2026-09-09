@@ -40,6 +40,7 @@ def _load_select_package():
 select_package = _load_select_package()
 
 RELEASE_CALLERS = {
+    "australian-tax-calculators": "packages/australian-tax-calculators",
     "aus-accounting-mcp": "apps/aus-accounting-mcp",
     "ato-benchmark-compare": "packages/ato-benchmark-compare",
     "payday-super-checker": "packages/payday-super-checker",
@@ -50,6 +51,7 @@ RELEASE_CALLERS = {
 }
 
 ENGINES = {
+    "packages/australian-tax-calculators": "austaxcalc",
     "packages/ato-benchmark-compare": "atobenchmark",
     "packages/payday-super-checker": "paydaysuper",
     "packages/div7a-loan-review": "div7aloan",

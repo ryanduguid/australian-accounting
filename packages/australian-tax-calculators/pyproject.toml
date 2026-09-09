@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling==1.32.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "australian-tax-calculators"
+version = "0.1.0"
+description = "Bounded Australian tax calculation worksheets with explicit scope and sources."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{name = "Ryan Duguid"}]
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators"
+
+[project.optional-dependencies]
+dev = ["ruff==0.16.6", "mypy==2.3.1", "pytest==9.1.1", "coverage==7.16.0",
+       "pytest-cov==7.1.0", "build==1.6.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["austaxcalc"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+src = ["austaxcalc", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["austaxcalc"]
+
+[tool.coverage.run]
+# The source pytest --cov measures; CI adds --cov-branch and the reports.
+source = ["austaxcalc"]

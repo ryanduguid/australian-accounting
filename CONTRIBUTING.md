@@ -64,6 +64,7 @@ outside the checkout, the same way the lockfile is regenerated below.
 
 | Component | Directory | Import package |
 |---|---|---|
+| australian-tax-calculators | `packages/australian-tax-calculators/` | `austaxcalc` |
 | ato-benchmark-compare | `packages/ato-benchmark-compare/` | `atobenchmark` |
 | payday-super-checker | `packages/payday-super-checker/` | `paydaysuper` |
 | div7a-loan-review | `packages/div7a-loan-review/` | `div7aloan` |

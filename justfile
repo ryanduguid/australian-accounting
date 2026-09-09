@@ -11,6 +11,7 @@
 # Component directory : the import package it owns. Adding a component means
 # adding it here and to tests/test_boundaries.py.
 components := trim(replace('''
+packages/australian-tax-calculators:austaxcalc
 packages/ato-benchmark-compare:atobenchmark
 packages/payday-super-checker:paydaysuper
 packages/div7a-loan-review:div7aloan

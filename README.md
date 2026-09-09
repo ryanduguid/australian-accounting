@@ -25,7 +25,7 @@ The confirmation acknowledges the missing receipt; it does not establish payment
 <details>
 <summary>Installation, component identities, integration and reference</summary>
 
-Development home for the Aus Accounting MCP application and six independently released
+Development home for the Aus Accounting MCP application and seven independently released
 Australian accounting engines. Each component keeps its own distribution name, version,
 lockfile, tests, release notes, commands and licence. There is no root distribution,
 shared runtime library or combined version.
@@ -62,6 +62,7 @@ For an editable source installation, run `pip install -e .` from
 
 | Path | Distribution | Import package | Commands |
 |---|---|---|---|
+| `packages/australian-tax-calculators/` | `australian-tax-calculators` | `austaxcalc` | Python worksheet functions |
 | `apps/aus-accounting-mcp/` | `aus-accounting-mcp` | `aus_accounting_mcp` | `aus-accounting-mcp`, `aus-accounting-mcp-demo` |
 | `packages/ato-benchmark-compare/` | `ato-benchmark-compare` | `atobenchmark` | `ato-benchmark-compare` |
 | `packages/payday-super-checker/` | `payday-super-checker` | `paydaysuper` | `payday-super-check` |
