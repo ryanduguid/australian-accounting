@@ -26,7 +26,7 @@ jobs:
       attestations: write # Record provenance and SBOM attestations for release assets.
       contents: write # Create the draft release, upload assets and publish it.
       id-token: write # Obtain the OIDC identity required to sign attestations.
-    uses: ryanduguid/release-policy/.github/workflows/release-python.yml@787db4590e725cfd37104c8a9dd9e75f7fd4c018
+    uses: ryanduguid/release-policy/.github/workflows/release-python.yml@d487b1a854bc7a6f97cc114fc68cf3fe3989ce7e
     with:
       source-directory: packages/australian-tax-calculators
       tag-prefix: australian-tax-calculators
