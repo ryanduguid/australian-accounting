@@ -128,3 +128,14 @@ def test_library_pagination_unicode_and_external_link(tmp_path, monkeypatch):
         pytest.skip("Creating symlinks requires OS permission; path guards remain tested.")
     with pytest.raises(ToolError, match="links"):
         call("read_accounting_library", path="link.md")
+
+
+def test_library_scan_budget_counts_invalid_utf8(tmp_path, monkeypatch):
+    from aus_accounting_mcp import library
+
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    monkeypatch.setattr(library, "MAX_LIBRARY_BYTES", 6)
+    for name in ("a.md", "b.md"):
+        (tmp_path / name).write_bytes(b"\xffabc")
+    with pytest.raises(ToolError, match="64 MB"):
+        call("search_accounting_library", query="GST")

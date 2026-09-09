@@ -48,12 +48,15 @@ def _path(root: Path, name: str) -> Path:
     return candidate
 
 
-def _document(path: Path) -> tuple[list[str], str, int]:
+def _document(path: Path, byte_limit: int = MAX_FILE_BYTES) -> bytes:
     with path.open("rb") as stream:
-        raw = stream.read(MAX_FILE_BYTES + 1)
+        return stream.read(min(MAX_FILE_BYTES, byte_limit) + 1)
+
+
+def _decode(raw: bytes) -> tuple[list[str], str]:
     if len(raw) > MAX_FILE_BYTES:
         raise InputError("Markdown file exceeds the 8 MB retrieval limit.")
-    return raw.decode("utf-8-sig").splitlines(), hashlib.sha256(raw).hexdigest(), len(raw)
+    return raw.decode("utf-8-sig").splitlines(), hashlib.sha256(raw).hexdigest()
 
 
 def _excerpt(name: str, lines: list[str], digest: str, start: int, count: int) -> dict[str, Any]:
@@ -83,7 +86,7 @@ def _excerpt(name: str, lines: list[str], digest: str, start: int, count: int) -
 
 def read_reference(path: str, start_line: int, line_count: int) -> dict[str, Any]:
     try:
-        lines, digest, _ = _document(_path(_root(), path))
+        lines, digest = _decode(_document(_path(_root(), path)))
         return _excerpt(path, lines, digest, start_line, line_count)
     except (OSError, UnicodeError) as exc:
         raise InputError("Cannot read that UTF-8 Markdown file in the configured library.") from exc
@@ -113,13 +116,18 @@ def search_references(query: str, limit: int, offset: int) -> dict[str, Any]:
                 raise InputError("Library exceeds 1000 Markdown files; configure a smaller folder.")
             name = (Path(directory) / filename).relative_to(root).as_posix()
             try:
-                lines, digest, length = _document(_path(root, name))
+                raw = _document(_path(root, name), MAX_LIBRARY_BYTES - size)
             except (InputError, OSError, UnicodeError):
                 skipped += 1
                 continue
-            size += length
+            size += len(raw)
             if size > MAX_LIBRARY_BYTES:
                 raise InputError("Library exceeds 64 MB; configure a smaller folder.")
+            try:
+                lines, digest = _decode(raw)
+            except (InputError, UnicodeError):
+                skipped += 1
+                continue
             for index, line in enumerate(lines):
                 if all(term in line.casefold() for term in terms):
                     if seen < offset:

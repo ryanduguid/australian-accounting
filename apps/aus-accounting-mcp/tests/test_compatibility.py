@@ -59,9 +59,9 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         },
         {
             "distribution": "australian-tax-calculators",
-            "version": "0.1.1",
+            "version": "0.1.2",
             "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/australian-tax-calculators",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/australian-tax-calculators/v0.1.1",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/australian-tax-calculators/v0.1.2",
         },
     ]
     distribution = record["server"]["distribution"]

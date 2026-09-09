@@ -12,7 +12,7 @@
   tool selection. Legacy recordings remain selection-only.
 - Expose bundled Payday rate and calendar coverage through a read-only resource.
 
-Add `australian-tax-calculators` 0.1.1. Existing engine pins remain unchanged.
+Add `australian-tax-calculators` 0.1.2. Existing engine pins remain unchanged.
 
 # v0.1.9
 
