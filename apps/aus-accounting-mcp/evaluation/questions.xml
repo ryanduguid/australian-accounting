@@ -117,4 +117,72 @@
       <tool>refuse_div7a</tool>
     </tools>
   </qa_pair>
+  <qa_pair id="scope-gst_bas">
+    <question>A fabricated business has mixed taxable and input-taxed supplies. Can this server calculate its actual GST input tax credits and BAS liability? Inspect the server's scope and return SUPPORTED or UNSUPPORTED. Do not generate test data.</question>
+    <answer>UNSUPPORTED</answer>
+    <calls>[]</calls><tools />
+  </qa_pair>
+  <qa_pair id="scope-income_tax">
+    <question>A fabricated company has trading income and passive income. Can this server determine its company tax rate and franking rate for 2025-26? Inspect the server's scope and return SUPPORTED or UNSUPPORTED.</question>
+    <answer>UNSUPPORTED</answer>
+    <calls>[]</calls><tools />
+  </qa_pair>
+  <qa_pair id="scope-cgt">
+    <question>A fabricated individual sold an asset that was partly used to earn income. Can this server determine CGT exemptions and calculate the discounted capital gain? Inspect the server's scope and return SUPPORTED or UNSUPPORTED.</question>
+    <answer>UNSUPPORTED</answer>
+    <calls>[]</calls><tools />
+  </qa_pair>
+  <qa_pair id="scope-fbt">
+    <question>A fabricated employer supplies a car for private use. Can this server calculate its FBT taxable value and liability? Inspect the server's scope and return SUPPORTED or UNSUPPORTED.</question>
+    <answer>UNSUPPORTED</answer>
+    <calls>[]</calls><tools />
+  </qa_pair>
+  <qa_pair id="scope-depreciation">
+    <question>An operator has an effective-life determination for a fabricated depreciating asset. Can this server select its effective life and calculate its decline in value? Inspect the server's scope and return SUPPORTED or UNSUPPORTED.</question>
+    <answer>UNSUPPORTED</answer>
+    <calls>[]</calls><tools />
+  </qa_pair>
+  <qa_pair id="scope-trusts_partnerships">
+    <question>A fabricated trust distributes income to beneficiaries, including a company. Can this server calculate trust net income and beneficiary tax liabilities? Inspect the server's scope and return SUPPORTED or UNSUPPORTED.</question>
+    <answer>UNSUPPORTED</answer>
+    <calls>[]</calls><tools />
+  </qa_pair>
+  <qa_pair id="scope-smsf">
+    <question>A fabricated SMSF has pension and accumulation interests. Can this server calculate exempt current pension income and fund tax? Inspect the server's scope and return SUPPORTED or UNSUPPORTED.</question>
+    <answer>UNSUPPORTED</answer>
+    <calls>[]</calls><tools />
+  </qa_pair>
+  <qa_pair id="scope-super_contribution_caps">
+    <question>A fabricated member has unused prior-year concessional cap amounts. Can this server determine available carry-forward amounts and excess contributions tax? Inspect the server's scope and return SUPPORTED or UNSUPPORTED.</question>
+    <answer>UNSUPPORTED</answer>
+    <calls>[]</calls><tools />
+  </qa_pair>
+  <qa_pair id="scope-sg_entitlement">
+    <question>A fabricated worker is engaged as a contractor and has several pay components. Can this server determine employee status, qualifying earnings and the required SG contribution amount? Inspect the server's scope and return SUPPORTED or UNSUPPORTED.</question>
+    <answer>UNSUPPORTED</answer>
+    <calls>[]</calls><tools />
+  </qa_pair>
+  <qa_pair id="scope-payroll_tax">
+    <question>A fabricated employer operates in two Australian states. Can this server calculate grouped payroll tax liabilities and apply the relevant thresholds? Inspect the server's scope and return SUPPORTED or UNSUPPORTED.</question>
+    <answer>UNSUPPORTED</answer>
+    <calls>[]</calls><tools />
+  </qa_pair>
+  <qa_pair id="grouped-payday">
+    <question>For one fabricated employer, employee synthetic has two related contributions of AUD 120.00. QE days are 2027-07-01 and 2027-07-08, received 2027-07-05 and 2027-07-20 respectively. The first is first-to-fund, the second is not. Both are standard cycle and neither is defined benefit. As at 2027-08-01, review these together and return the second deadline only.</question>
+    <answer>2027-07-29</answer>
+    <calls>[{"name": "review_payday_super_contributions", "arguments": {"contributions": [{"employee_id": "synthetic", "qe_day": "2027-07-01", "received": "2027-07-05", "sg_amount": "120.00", "first_to_fund": true, "out_of_cycle": false, "db_interest": false}, {"employee_id": "synthetic", "qe_day": "2027-07-08", "received": "2027-07-20", "sg_amount": "120.00", "first_to_fund": false, "out_of_cycle": false, "db_interest": false}], "as_at": "2027-08-01"}}]</calls>
+    <tools><tool>review_payday_super_contributions</tool></tools>
+  </qa_pair>
+  <qa_pair id="worksheet-gst">
+    <question>For a fabricated ordinary taxable supply in 2025-26, the GST-inclusive price is AUD 1100. All worksheet scope conditions are established by the operator. Calculate the GST component and return its decimal amount.</question>
+    <answer>100.00</answer>
+    <calls>[{"name": "calculate_tax_worksheet", "arguments": {"facts": {"kind": "gst", "year": "2025-26", "amount": "1100", "gst_inclusive": true, "scope_confirmed": true}}}]</calls>
+    <tools><tool>calculate_tax_worksheet</tool></tools>
+  </qa_pair>
+  <qa_pair id="library-reference">
+    <question>The configured synthetic library has example.md. Search for synthetic credit, then read line 2 of example.md with one line requested. Return that line exactly.</question>
+    <answer>synthetic credit example</answer>
+    <calls>[{"name": "search_accounting_library", "arguments": {"query": "synthetic credit"}}, {"name": "read_accounting_library", "arguments": {"path": "example.md", "start_line": 2, "line_count": 1}}]</calls>
+    <tools><tool>read_accounting_library</tool><tool>search_accounting_library</tool></tools>
+  </qa_pair>
 </evaluation>

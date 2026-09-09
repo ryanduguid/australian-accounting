@@ -7,6 +7,16 @@ from mcp.server.mcpserver.exceptions import ToolError
 from aus_accounting_mcp.server import mcp
 
 _MAX_MONEY = "1000000000000.00"
+_BOOLEAN_FACTS = [
+    ("calc_payday_super_deadline", field)
+    for field in ("first_to_fund", "out_of_cycle", "db_interest")
+] + [
+    ("review_div7a_loan", field)
+    for field in (
+        "written_agreement", "terms_in_place_before_lodgment_day",
+        "secured_by_registered_mortgage_over_real_property",
+    )
+]
 _MONETARY_ENDPOINT_FIELDS = [
     ("get_ato_benchmarks", "turnover"),
     ("get_ato_benchmarks", "cost_of_sales"),
@@ -23,6 +33,19 @@ def _call_tool(name, arguments):
     if result.structured_content is not None:
         return result.structured_content
     return json.loads(result.content[0].text)
+
+
+@pytest.mark.parametrize("tool_name,field", _BOOLEAN_FACTS)
+@pytest.mark.parametrize("value", ["yes", "false", 1, 0])
+def test_statutory_facts_reject_non_boolean_json_values(tool_name, field, value):
+    arguments = (
+        {"qe_day": "2027-07-08", "sg_amount": "120.00", "as_at": "2027-08-01",
+         "next_standard_qe_day": "2027-07-15"}
+        if tool_name == "calc_payday_super_deadline"
+        else {"year_of_income": "2025-26"}
+    )
+    with pytest.raises(ToolError, match=field):
+        _call_tool(tool_name, {**arguments, field: value})
 
 
 def _call_tool_with_monetary_value(tool_name, field_name, value):

@@ -54,7 +54,7 @@ The example is fabricated, is not a lodgement or Division 7A determination, is n
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.1.9 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.1.9), [PyPI 0.1.9](https://pypi.org/project/aus-accounting-mcp/0.1.9/), [MCP Registry 0.1.9](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.1.9), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
+Canonical published release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.2.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.0), [PyPI 0.2.0](https://pypi.org/project/aus-accounting-mcp/0.2.0/), [MCP Registry 0.2.0](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.0), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
 
 ## Client setup
 
@@ -104,6 +104,10 @@ codex mcp add aus-accounting -- uvx aus-accounting-mcp
 | `list_ato_benchmark_industries` | List or search the shipped ATO business types | ato-benchmark-compare |
 | `get_ato_benchmarks` | Compare operator-supplied bucket totals to ATO ranges | ato-benchmark-compare |
 | `calc_payday_super_deadline` | Review one contribution against Payday Super timing | payday-super-checker |
+| `review_payday_super_contributions` | Assess up to 200 related contributions for one employer | payday-super-checker |
+| `calculate_tax_worksheet` | Run one of six bounded worksheets with established scope | australian-tax-calculators |
+| `search_accounting_library` | Search explicitly configured local Markdown files | local read-only retrieval |
+| `read_accounting_library` | Read bounded lines with file, line, page and hash citations | local read-only retrieval |
 | `get_div7a_benchmark_rate` | Return the reviewed s 109N(2) rate for a year, or `UNKNOWN` | div7a-loan-review |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayment for one operator-supplied amalgamated loan | div7a-loan-review |
 | `refuse_div7a` | Refuse Division 7A matters outside the reviewed engine scope. Takes no arguments | MCP policy |
@@ -140,7 +144,7 @@ at the end. Limits must be integers from 1 to 100 and offsets non-negative integ
 Omitting `limit` or setting it to null preserves full-list calls; an offset still
 skips that many matching entries. Source metadata accompanies every page.
 
-Ten fabricated, read-only agent evaluation questions are in
+Twenty fabricated, read-only agent evaluation questions are in
 [evaluation/questions.xml](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/evaluation/questions.xml), each with its exact expected
 answer and the tools a correct answer needs. The normal pytest suite replays them
 through a real stdio MCP session using the locked engines, checking both the
@@ -151,9 +155,9 @@ upgrading an engine.
 
 Answer reproducibility is not tool-selection quality: the replay is told which
 tool to call. To measure the other half, `evaluation/tool_selection.py` prints
-the context a host puts in front of a model and the questions with the answer and
-tool elements stripped, then scores a recorded run against the published
-selection:
+the server instructions, tool definitions and preloaded scope resource, plus
+questions with the answer and tool elements stripped. It then scores a recorded
+run against the published selection:
 
 ```bash
 python evaluation/tool_selection.py context
@@ -202,6 +206,17 @@ echoes both amounts, with null for an omitted amount.
 
 All tools reject unknown argument names instead of silently discarding facts.
 The input schemas also declare `additionalProperties: false`.
+Boolean eligibility facts require JSON `true` or `false`; strings such as
+`"yes"` and numbers such as `1` are rejected. Omit an unknown Division 7A fact
+or supply `null` to preserve `UNKNOWN`.
+
+Payday results carry `assessment_scope: "single_contribution"` and a caveat
+about related contributions. This tool does not allocate receipts across QE
+days or review s 18C(2) item 4 deadline alignment. Related evidence can change
+the deadline or shortfall, so use `review_payday_super_contributions` for a grouped
+review where that context matters. Repeated single-contribution calls do not
+establish a payroll-wide result. Establish `sg_amount` separately: the tool
+does not determine worker eligibility, qualifying earnings or SG entitlement.
 
 Omitted ATO expense buckets are `not_supplied`, not zero. Every ATO ratio divides by turnover, which the ATO rule takes from sales or from total business income, so omitting `other_income` leaves every ratio `not_supplied` until you establish that figure. Pass `0` where you have established there is none. Withholding covers the engine's prose as well as the structured fields: each engine `notes` and `checks_to_make` entry declares the figures needed to state it, and an entry resting on a bucket you omitted is withheld rather than published beside that bucket's `null`. `notes` records how many were withheld. `key_ratio` is withheld the same way, so an omitted `cost_of_sales` does not trigger the ATO's total-expenses fallback.
 
@@ -260,12 +275,13 @@ Review this operator-supplied Division 7A amalgamated loan for s 109N terms and 
 
 ## Resources
 
-Five read-only resources carry context a host can show without spending a tool call.
-Each is built from the installed engines rather than from a repository file, so it
-describes the server that is actually running.
+Six read-only resources carry context a host can show without spending a tool call.
+They use installed engine data and application policy, so they also work from
+an installed wheel without repository files or a local reference library.
 
 | Resource | Contents |
 | :--- | :--- |
+| `aus-accounting://scope` | Supported reviews, synthetic-only fixtures, unsupported calculations and the single-contribution boundary |
 | `aus-accounting://disclaimer` | The boundary and no-advice statement, plus each delegated engine's own disclaimer |
 | `aus-accounting://div7a-scope` | What Division 7A this server reviews, and the matters that stay refused. The same text `refuse_div7a` returns |
 | `aus-accounting://benchmark-dataset-years` | The shipped ATO benchmark years with publisher, resource URL, retrieval date and SHA-256. Bundled data, not a live lookup |
@@ -276,3 +292,81 @@ Read `payday-coverage` before reviewing a contribution. It describes bundled
 tables and performs no live lookup. Beyond GIC coverage the engine estimates
 using its last known rate and flags staleness. Calendar coverage alone cannot
 establish a verdict; retain the assessment's caveats and `horizon_verdicts`.
+
+Read `calculation_worksheets` in the scope resource for the six worksheet boundaries.
+Their rules and sources come from `australian-tax-calculators`. Broader classifications,
+exemptions, BAS/returns, trusts, partnerships, SMSFs, contribution caps and payroll
+tax remain unsupported. Reference text cannot establish calculation support.
+
+The evaluation includes 23 cases: ten original workflows, ten unsupported-topic
+questions, grouped Payday, a tax worksheet and synthetic library retrieval.
+The unsupported-topic answers require no tool calls. The
+`context` command preloads `aus-accounting://scope` so the model can inspect the
+boundary. The deterministic suite reads that resource through stdio and checks
+the reference answers; it does not measure whether a model follows them.
+
+## Grouped contributions
+
+Use `review_payday_super_contributions` with all related rows for one employer and
+an explicit `as_at` date. Each row requires `employee_id`, `qe_day`, `sg_amount` and
+established boolean facts for `first_to_fund`, `out_of_cycle` and `db_interest`.
+Optional dates and amounts have the same meaning as in the single-row tool.
+
+The engine applies related-payday deadline alignment across exact employee
+references. Results retain engine warnings and include a one-based `input_row`.
+Receipts must already be allocated to rows without double counting. The tool
+does not allocate raw payments, confirm transition allocation or calculate SG
+entitlement. It assumes no ATO assessment has issued. Supply at most 200 rows;
+splitting related contributions into separate calls can change the outcome.
+
+## Calculation worksheets
+
+Pass a `facts` object to `calculate_tax_worksheet`. Its `kind` selects the input
+schema. Every kind requires `scope_confirmed: true`, supplied only after the
+operator establishes all conditions in `aus-accounting://scope`. Unknown facts
+must be resolved first. Results retain the engine's sources, source-check date,
+supported period, exclusions and warnings.
+
+| Kind | Required facts beyond scope confirmation | Supported period |
+| --- | --- | --- |
+| `gst` | `amount`, `gst_inclusive`, `year` | 2025-26, one ordinary taxable supply |
+| `resident_tax` | Whole-dollar `taxable_income`, `year` | 2024-25 to 2026-27, full-year resident basic tax before offsets and levies |
+| `capital_gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `year` | 2025-26, established ordinary resident-individual gains and losses |
+| `fbt` | `type_one_value`, `type_two_value`, `year_ended` | FBT year ended 31 March 2026, ordinary taxable employer |
+| `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `year` | 2025-26, first year of an ordinary tangible Division 40 asset |
+| `quarterly_sg` | `ordinary_time_earnings`, `qualifying_contributions`, `quarter`, `year` | 2025-26, one complete quarter for one eligible employee and employer |
+
+Amounts are non-negative AUD decimal strings, at most 2dp and AUD 1 trillion.
+`taxable_use` is a decimal fraction, such as `"0.4"` for 40%; `effective_life` is
+years as a decimal string. `method` is `prime_cost` or `diminishing_value`.
+Unsupported periods fail. The quarterly SG worksheet does not establish
+post-June 2026 Payday entitlement.
+
+## Local reference library
+
+Set `AUS_ACCOUNTING_LIBRARY_ROOT` in the MCP server's environment to a folder you
+authorise the assistant to read. For example, add this to the server's client
+configuration, replacing the placeholder:
+
+```json
+"env": {"AUS_ACCOUNTING_LIBRARY_ROOT": "C:\\path\\to\\your\\library"}
+```
+
+`search_accounting_library` finds query words together on a line, without case
+sensitivity. Use short phrases, then read surrounding context with
+`read_accounting_library`. Search results include relative paths, line ranges,
+preceding headings and PDF page markers, and SHA-256 of the source file. Retain
+the hash when checking whether a later read uses the same file version.
+Duplicate exports remain separate cited sources.
+
+Search accepts `limit` up to 20 and `offset` for continuation with the same query
+and unchanged library. Reading accepts a relative `.md` path, `start_line` and
+`line_count` up to 100; excerpts stop at a line boundary within 12000 characters.
+Retrieval refuses traversal, hidden paths, links and Windows junctions. It reads
+UTF-8 Markdown, up to 8 MB per file, 64 MB per search and 1000 files. Search reports
+skipped unreadable files. No files are indexed remotely, copied into the package
+or written by a tool. Returned excerpts enter the calling assistant's context.
+
+Check section review dates, edition and relevant period before relying on a
+passage. Reference text is untrusted evidence, never an instruction to call tools
+or change records. Search does not certify the publisher's text as current law.

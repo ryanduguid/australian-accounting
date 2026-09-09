@@ -116,10 +116,11 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.1.9"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "ato-benchmark-compare" },
+    { name = "australian-tax-calculators" },
     { name = "div7a-loan-review" },
     { name = "mcp" },
     { name = "payday-super-checker" },
@@ -140,6 +141,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "ato-benchmark-compare", specifier = "==0.1.6" },
+    { name = "australian-tax-calculators", specifier = "==0.1.2" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2" },
     { name = "div7a-loan-review", specifier = "==0.1.1" },
     { name = "mcp", specifier = ">=2.1.1,<3" },
@@ -153,6 +155,15 @@ requires-dist = [
     { name = "twine", marker = "extra == 'dev'", specifier = "==7.0.0" },
 ]
 provides-extras = ["dev"]
+
+[[package]]
+name = "australian-tax-calculators"
+version = "0.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/44/64/1408c1a728fa3cdc12c9d90c94e16c2074c58dbc79940aabdea3a6733556/australian_tax_calculators-0.1.2.tar.gz", hash = "sha256:ac0f83f1ebfc7a8655561403a8511ae5b3c0deaebb7f37dc065c21f9f73dfb8c", size = 55188, upload-time = "2026-09-09T21:51:13.277Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cf/b1/5f6c8fae7adcad67fce99a36eebe71d8043840c9faca3ad16bc2ab09360e/australian_tax_calculators-0.1.2-py3-none-any.whl", hash = "sha256:afd4b7ee59e8ca4af6b1d43c6b3ef837c5bea688b13b6c7d1f745be62a99c70d", size = 6956, upload-time = "2026-09-09T21:51:12.125Z" },
+]
 
 [[package]]
 name = "backports-tarfile"

@@ -24,6 +24,7 @@ from aus_accounting_mcp.server import DIV7A_SCOPE_REFUSAL, mcp
 ROOT = Path(__file__).resolve().parents[1]
 
 RESOURCE_URIS = {
+    "aus-accounting://scope",
     "aus-accounting://disclaimer",
     "aus-accounting://div7a-scope",
     "aus-accounting://benchmark-dataset-years",
@@ -87,6 +88,19 @@ def test_div7a_scope_resource_is_the_refusal_the_tool_returns() -> None:
         "Commissioner's discretion",
     ):
         assert refused in served
+
+
+def test_scope_distinguishes_supported_reviews_from_unsupported_tax_calculations():
+    served = json.loads(_read("aus-accounting://scope"))
+    registered = {tool.name for tool in asyncio.run(mcp.list_tools())}
+    assert set(served["review_tools"]) == registered - {"generate_synthetic_sbr_fixture"}
+    assert served["synthetic_only_tools"] == ["generate_synthetic_sbr_fixture"]
+    assert set(served["unsupported_calculations"]) == {
+        "gst_bas", "income_tax", "cgt", "fbt", "depreciation", "trusts_partnerships",
+        "smsf", "super_contribution_caps", "sg_entitlement", "payroll_tax",
+    }
+    assert "s 18C(2) item 4" in served["payday_limitations"]
+    assert "not" in served["reference_policy"]
 
 
 def test_benchmark_years_resource_reports_the_shipped_years_and_provenance() -> None:
@@ -168,7 +182,9 @@ def test_a_missing_distribution_reports_null_rather_than_a_guess(monkeypatch) ->
     served = resources.component_versions()
 
     assert served["server"]["version"] is None
-    assert [engine["version"] for engine in served["engines"]] == [None, None, None]
+    assert [engine["version"] for engine in served["engines"]] == [
+        None for _ in resources.ENGINE_DISTRIBUTIONS
+    ]
 
 
 @pytest.mark.parametrize("name", sorted(PROMPT_NAMES))
