@@ -279,7 +279,7 @@ class BoundaryTests(unittest.TestCase):
             with self.subTest(component=component):
                 policy_sha = (
                     "d487b1a854bc7a6f97cc114fc68cf3fe3989ce7e"
-                    if component == "aus-accounting-mcp"
+                    if component in {"aus-accounting-mcp", "australian-tax-calculators"}
                     else RELEASE_POLICY_SHA
                 )
                 self.assertIn(

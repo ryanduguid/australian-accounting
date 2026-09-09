@@ -204,7 +204,7 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "australian-tax-calculators"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "packages/australian-tax-calculators" }
 
 [package.optional-dependencies]

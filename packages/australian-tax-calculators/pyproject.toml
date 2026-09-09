@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "australian-tax-calculators"
-version = "0.1.0"
+version = "0.1.1"
 description = "Bounded Australian tax calculation worksheets with explicit scope and sources."
 readme = "README.md"
 requires-python = ">=3.10"
