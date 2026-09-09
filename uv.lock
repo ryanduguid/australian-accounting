@@ -164,10 +164,11 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.1.9"
+version = "0.2.0"
 source = { editable = "apps/aus-accounting-mcp" }
 dependencies = [
     { name = "ato-benchmark-compare" },
+    { name = "australian-tax-calculators" },
     { name = "div7a-loan-review" },
     { name = "mcp" },
     { name = "payday-super-checker" },
@@ -188,6 +189,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "ato-benchmark-compare", editable = "packages/ato-benchmark-compare" },
+    { name = "australian-tax-calculators", editable = "packages/australian-tax-calculators" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2" },
     { name = "div7a-loan-review", editable = "packages/div7a-loan-review" },
     { name = "mcp", specifier = ">=2.1.1,<3" },

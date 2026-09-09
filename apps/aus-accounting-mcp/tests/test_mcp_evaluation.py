@@ -3,6 +3,7 @@
 import asyncio
 import json
 import sys
+import tempfile
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 from pathlib import Path
@@ -43,8 +44,17 @@ class _RecordingSession:
         self.calls.append({"name": name, "arguments": deepcopy(arguments)})
         return await self._session.call_tool(name, arguments)
 
+    async def read_resource(self, uri):
+        return await self._session.read_resource(uri)
+
 
 async def _answer(session, case):
+    if case.startswith("scope-"):
+        response = await session.read_resource("aus-accounting://scope")
+        scope = json.loads(response.contents[0].text)
+        assert case.removeprefix("scope-") in scope["unsupported_calculations"]
+        return "UNSUPPORTED"
+
     async def call(name, **arguments):
         result = await session.call_tool(name, arguments)
         assert not result.is_error, result.content
@@ -53,6 +63,16 @@ async def _answer(session, case):
 
     def ratio(result, name):
         return next(row["status"] for row in result["ratios"] if row["ratio"] == name)
+
+    if case in {"grouped-payday", "worksheet-gst", "library-reference"}:
+        reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
+        results = [await call(c["name"], **c["arguments"])
+                   for c in json.loads(reference.text)]
+        if case == "grouped-payday":
+            return results[0]["results"][1]["due"]
+        if case == "worksheet-gst":
+            return results[0]["amounts"]["gst"]
+        return results[-1]["text"]
 
     if case == "catalogue-pages":
         first = await call("list_ato_benchmark_industries", search="shop", year="2023-24", limit=2)
@@ -138,9 +158,10 @@ async def _answer(session, case):
     return str(all(fixture["not_a_lodgment"] for fixture in fixtures)).lower()
 
 
-async def _evaluate(case):
+async def _evaluate(case, library_root):
     parameters = StdioServerParameters(
-        command=sys.executable, args=["-m", "aus_accounting_mcp.cli"]
+        command=sys.executable, args=["-m", "aus_accounting_mcp.cli"],
+        env={"AUS_ACCOUNTING_LIBRARY_ROOT": library_root},
     )
     async with stdio_client(parameters) as (reader, writer):
         async with ClientSession(reader, writer) as session:
@@ -153,7 +174,11 @@ async def _evaluate(case):
     "case,expected,tools", CASES, ids=[case for case, _, _ in CASES]
 )
 def test_evaluation_answer_is_reproducible(case, expected, tools):
-    answer, selected, calls = asyncio.run(_evaluate(case))
+    with tempfile.TemporaryDirectory() as library_root:
+        (Path(library_root) / "example.md").write_text(
+            "# Synthetic\nsynthetic credit example\n", encoding="utf-8"
+        )
+        answer, selected, calls = asyncio.run(_evaluate(case, library_root))
 
     assert answer == expected
     # questions.xml publishes the tools a correct answer needs, and the
@@ -238,6 +263,9 @@ def test_the_selection_harness_context_is_the_whole_tool_definition():
     tools = asyncio.run(mcp.list_tools())
 
     assert "# Server instructions" in context
+    assert "# Preloaded scope resource" in context
+    assert "aus-accounting://scope" in context
+    assert "unsupported_calculations" in context
     for tool in tools:
         assert tool.name in context
         assert (tool.description or "").strip().splitlines()[0] in context
@@ -273,7 +301,7 @@ def test_recorded_calls_and_answer_are_scored_together(tmp_path, capsys):
     recorded.write_text(json.dumps(UNKNOWN_RATE_RUN), encoding="utf-8")
     assert tool_selection.main(["score", str(recorded)]) == 0
     report = capsys.readouterr().out
-    assert "1 of 10 recorded calls and answers match the reference" in report
+    assert f"1 of {len(CASES)} recorded calls and answers match the reference" in report
 
 
 @pytest.mark.parametrize("change", ["answer", "argument", "repetition", "order"])
@@ -292,7 +320,7 @@ def test_correct_tool_names_cannot_hide_wrong_calls_or_answer(change, tmp_path, 
     recorded.write_text(json.dumps(run), encoding="utf-8")
     assert tool_selection.main(["score", str(recorded)]) == 0
     report = capsys.readouterr().out
-    assert "0 of 10 recorded calls and answers match the reference" in report
+    assert f"0 of {len(CASES)} recorded calls and answers match the reference" in report
     difference = "answer differs" if change == "answer" else "calls differ"
     assert difference in report
 
@@ -314,7 +342,7 @@ def test_invented_zero_fails_even_when_the_answer_and_tools_are_right(tmp_path, 
     recorded.write_text(json.dumps(run), encoding="utf-8")
     assert tool_selection.main(["score", str(recorded)]) == 0
     report = capsys.readouterr().out
-    assert "0 of 10 recorded calls and answers match the reference" in report
+    assert f"0 of {len(CASES)} recorded calls and answers match the reference" in report
     assert "calls differ" in report
 
 

@@ -7,12 +7,13 @@ told which tool to call. This measures the other half.
 Run it in three steps, none of which contacts a network or a model:
 
     python evaluation/tool_selection.py context     # what a model is given
-    python evaluation/tool_selection.py questions   # the ten questions, no answers
+    python evaluation/tool_selection.py questions   # questions without answers
     python evaluation/tool_selection.py score runs/claude.json
 
-`context` prints exactly what an MCP host puts in front of a model before it
-chooses: the server instructions from initialization, and every tool's name,
-title, description and complete input and output schemas. The schemas are
+`context` prints the server instructions from initialization, every tool's name,
+title, description and complete input and output schemas, and the scope resource
+preloaded for this evaluation. A host may expose resources differently; record
+that difference when comparing model trials. The schemas are
 printed whole rather than summarised, because most of what decides both the
 selection and the arguments lives inside them. `questions` prints the questions
 with the answer and tool elements stripped, so nothing in the prompt hints at
@@ -77,6 +78,7 @@ async def _describe() -> str:
         async with ClientSession(reader, writer) as session:
             initialized = await session.initialize()
             tools = (await session.list_tools()).tools
+            scope = await session.read_resource("aus-accounting://scope")
 
     lines = ["# Server instructions", "", initialized.instructions or "", "", "# Tools", ""]
     for tool in tools:
@@ -99,6 +101,10 @@ async def _describe() -> str:
         lines.append("")
         lines.append(json.dumps(tool.output_schema, indent=2, sort_keys=True))
         lines.append("")
+    lines.extend([
+        "# Preloaded scope resource", "", "aus-accounting://scope", "",
+        scope.contents[0].text, "",
+    ])
     return "\n".join(lines)
 
 

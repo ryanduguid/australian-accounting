@@ -19,6 +19,7 @@ from paydaysuper.csv_io import CsvError, parse_date_text
 from paydaysuper.deadlines import ContribLine, PreRegimeError
 from paydaysuper.rates import load_gic
 from paydaysuper.report import Result, assess
+from pydantic import BaseModel, ConfigDict, Field
 
 from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.money import parse_amount, parse_optional_amount
@@ -34,6 +35,14 @@ DISCLAIMER = (
     "the supplied facts do not establish the statutory test (SGAA 1992 s 18C). "
     "This MCP does not model clearing-house latency. Fund receipt must be supplied "
     "before a contribution can be ON_TIME."
+)
+
+SINGLE_CONTRIBUTION_CAVEAT = (
+    "This review covers one contribution. It does not review related contributions, "
+    "allocate receipts across QE days or apply s 18C(2) item 4 deadline alignment. "
+    "Those facts can change the deadline or shortfall. Use payday-super-checker's "
+    "full contribution review with the related evidence before drawing a conclusion. "
+    "The supplied sg_amount is not a calculation of SG entitlement."
 )
 
 
@@ -112,7 +121,7 @@ def _money(value: Decimal | None) -> str | None:
     return str(value)
 
 
-def _serialise(result: Result) -> dict[str, Any]:
+def _serialise(result: Result, *, single: bool = True) -> dict[str, Any]:
     due = result.deadline.due
     uplift = None
     if result.uplift is not None:
@@ -140,18 +149,18 @@ def _serialise(result: Result) -> dict[str, Any]:
         "experimental_sgc_high": _money(result.sgc_high),
         "uplift": uplift,
         "notes": list(result.notes),
-        "caveats": list(result.caveats),
+        "caveats": [*result.caveats, *([SINGLE_CONTRIBUTION_CAVEAT] if single else [])],
         "horizon_verdicts": (
             None if result.horizon_verdicts is None else list(result.horizon_verdicts)
         ),
     }
 
 
-def review_contribution(
+def _line(
     *,
     qe_day: str,
     sg_amount: str,
-    as_at: str,
+    row: int = 1,
     remitted: str | None = None,
     received: str | None = None,
     employee_id: str = "mcp-1",
@@ -161,9 +170,9 @@ def review_contribution(
     db_interest: bool = False,
     remitted_amount: str | None = None,
     matched_amount: str | None = None,
-) -> dict[str, Any]:
-    """Review one contribution against payday-super-checker."""
-    line = ContribLine(
+) -> ContribLine:
+    """Translate one row using the shared date and money boundary."""
+    return ContribLine(
         employee_id=employee_id,
         qe_day=_required_date(qe_day, "qe_day"),
         sg_amount=parse_amount(sg_amount, "sg_amount"),
@@ -175,12 +184,15 @@ def review_contribution(
         out_of_cycle=out_of_cycle,
         next_standard_qe_day=_optional_date(next_standard_qe_day, "next_standard_qe_day"),
         db_interest=db_interest,
-        row=1,
+        row=row,
     )
+
+
+def _review(lines: list[ContribLine], as_at: str) -> tuple[date, list[Result]]:
     as_at_day = _required_date(as_at, "as_at")
     try:
         results = assess(
-            [line],
+            lines,
             load_calendar(),
             load_gic(),
             as_at_day,
@@ -194,13 +206,54 @@ def review_contribution(
             "a human reconciliation of June-quarter balances; this MCP cannot confirm that",
         )
         raise InputError(message) from exc
-    result = results[0]
+    return as_at_day, results
+
+
+def review_contribution(*, as_at: str, **facts: Any) -> dict[str, Any]:
+    """Review one contribution against payday-super-checker."""
+    as_at_day, results = _review([_line(**facts)], as_at)
     return {
         "ok": True,
         "engine": "payday-super-checker",
         "engine_version": PAYDAY_VERSION,
         "law_content_date": LAW_CONTENT_DATE,
         "as_at": as_at_day.isoformat(),
+        "assessment_scope": "single_contribution",
         "disclaimer": DISCLAIMER,
-        "result": _serialise(result),
+        "result": _serialise(results[0]),
+    }
+
+
+class ContributionInput(BaseModel):
+    """One established contribution for a single employer's grouped review."""
+
+    model_config = ConfigDict(extra="forbid", strict=True, str_strip_whitespace=True)
+    employee_id: str = Field(min_length=1, max_length=120, description="Stable employee reference.")
+    qe_day: str = Field(description="Wage payment date, preferably YYYY-MM-DD.")
+    sg_amount: str = Field(description="Established SG liability, AUD decimal string.")
+    first_to_fund: bool = Field(description="Established first-to-fund eligibility; required.")
+    out_of_cycle: bool = Field(description="Established out-of-cycle status; required.")
+    db_interest: bool = Field(description="Established defined-benefit status; required.")
+    remitted: str | None = Field(default=None, description="Evidenced remittance date.")
+    received: str | None = Field(default=None, description="Evidenced fund-receipt date.")
+    next_standard_qe_day: str | None = Field(default=None, description="Next standard payday.")
+    remitted_amount: str | None = Field(default=None, description="AUD remitted for this row.")
+    matched_amount: str | None = Field(default=None, description="AUD allocated to this row.")
+
+
+def review_contributions(contributions: list[ContributionInput], as_at: str) -> dict[str, Any]:
+    """Let the engine assess related rows together, including item 4 alignment."""
+    lines = [_line(row=i, **row.model_dump()) for i, row in enumerate(contributions, 1)]
+    as_at_day, results = _review(lines, as_at)
+    return {
+        "ok": True, "engine": "payday-super-checker", "engine_version": PAYDAY_VERSION,
+        "law_content_date": LAW_CONTENT_DATE, "as_at": as_at_day.isoformat(),
+        "assessment_scope": "contribution_group", "disclaimer": DISCLAIMER,
+        "caveats": [
+            "Supply all related contributions for one employer. Employee references are exact.",
+            "Receipt amounts must already be allocated to rows without double counting. "
+            "This tool does not allocate raw payments or calculate SG entitlement.",
+            "No ATO assessment is assumed to have issued. Transition allocation is unconfirmed.",
+        ],
+        "results": [{"input_row": r.line.row, **_serialise(r, single=False)} for r in results],
     }

@@ -10,7 +10,7 @@ checks from its own directory.
 - Components: `apps/aus-accounting-mcp/` (the MCP application) and
   `packages/<distribution>/` (one directory per engine).
 - Dependency direction: the MCP application depends on engines only through their
-  published distributions. The root workspace redirects those three dependencies to the
+  published distributions. The root workspace redirects those four dependencies to the
   checked-out sources so the application is developed and tested against the tree, but
   the exact pins in its `pyproject.toml` stay authoritative and uv sources are never
   written into a built distribution. Engines never import `aus_accounting_mcp` or

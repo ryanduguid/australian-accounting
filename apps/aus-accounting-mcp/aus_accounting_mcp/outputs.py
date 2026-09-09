@@ -223,6 +223,10 @@ class PaydayAssessment(ResultObject):
 
 class PaydayReview(EngineResult):
     law_content_date: DateText
+    assessment_scope: Annotated[
+        Literal["single_contribution"],
+        Field(description="Related contributions and SG entitlement were not reviewed."),
+    ]
     as_at: Annotated[DateText, Field(description="Explicit operator assessment date, YYYY-MM-DD.")]
     disclaimer: Annotated[
         str, Field(description="Experimental review and fund-receipt limitations.")
@@ -238,6 +242,46 @@ class VerificationSource(ResultObject):
         str | None,
         Field(description="Engine verification URL; empty or null when none is available."),
     ]
+
+
+class PaydayGroupReview(EngineResult):
+    law_content_date: DateText
+    as_at: DateText
+    assessment_scope: Literal["contribution_group"]
+    disclaimer: str
+    caveats: Caveats
+    results: list[PaydayAssessment]
+
+
+class LibraryExcerpt(ResultObject):
+    path: str
+    sha256: str
+    start_line: int
+    end_line: int
+    total_lines: int
+    heading: str | None
+    pdf_page: int | None
+    text: str
+    notice: str
+
+
+class LibrarySearch(ResultObject):
+    matches: list[LibraryExcerpt]
+    has_more: bool
+    next_offset: int | None
+    skipped_files: int
+    notice: str
+
+
+class TaxCalculation(EngineResult):
+    calculation: str
+    period: str
+    amounts: dict[str, DecimalText]
+    rates: dict[str, DecimalText]
+    scope: str
+    sources: list[str]
+    source_checked: DateText
+    warnings: list[str]
 
 
 class Div7aResult(EngineResult):

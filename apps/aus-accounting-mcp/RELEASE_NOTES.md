@@ -1,4 +1,9 @@
-# Unreleased
+# v0.2.0
+
+- Add grouped Payday contribution reviews, strict eligibility booleans and a scope resource.
+- Add opt-in local Markdown search and bounded reading with file, line and hash citations.
+- Delegate six bounded tax worksheets to the new calculation engine.
+- Extend deterministic evaluation coverage to 23 cases.
 
 - Preserve explicit partial contribution amounts in Payday Super reviews and
   reject unknown arguments on every MCP tool.
@@ -7,7 +12,7 @@
   tool selection. Legacy recordings remain selection-only.
 - Expose bundled Payday rate and calendar coverage through a read-only resource.
 
-Engine pins and statutory calculations are unchanged. Not yet released.
+Add `australian-tax-calculators` 0.1.1. Existing engine pins remain unchanged.
 
 # v0.1.9
 
