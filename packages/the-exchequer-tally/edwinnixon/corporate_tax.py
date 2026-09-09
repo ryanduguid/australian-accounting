@@ -47,6 +47,8 @@ class BaseRateEntityTest:
             value = getattr(self, name)
             if not value.is_finite() or value < Decimal("0.00"):
                 raise ValueError(f"{name} must be a non-negative finite amount, got {value}")
+        if self.passive_income > self.assessable_income:
+            raise ValueError("passive_income must not exceed assessable_income")
 
     @property
     def passive_income_percentage(self) -> Optional[Decimal]:
@@ -133,13 +135,18 @@ def determine_max_franking_rate(
     assumption that the entity's aggregated turnover, BREPI and assessable
     income for the current year equal the prior year's figures. Only the
     amounts are assumed from the prior year; the rate scale and thresholds
-    are the current year's. A prior-year test is required; this function
-    refuses rather than assuming one.
+    are the current year's. Evidence must be labelled with the immediately
+    preceding financial year. Missing or wrong-year evidence is refused.
     """
     if prior_year_test is None:
         raise ValueError(
             f"prior_year_test is required for FY{current_fy}; "
             "the maximum franking rate is not assumed"
+        )
+    if prior_year_test.financial_year != current_fy - 1:
+        raise ValueError(
+            f"prior_year_test must be for FY{current_fy - 1}, "
+            f"got FY{prior_year_test.financial_year}"
         )
     assumed_current_year = BaseRateEntityTest(
         financial_year=current_fy,
