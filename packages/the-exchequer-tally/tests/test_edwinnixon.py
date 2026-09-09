@@ -3,7 +3,7 @@ import sys
 from datetime import date
 from decimal import Decimal
 from edwinnixon.corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate, determine_max_franking_rate
-from edwinnixon.franking_account import FrankingAccount
+from edwinnixon.franking_account import FrankingAccount, FrankingEntry, FrankingEntryType
 from edwinnixon.benchmark_rule import BenchmarkRuleValidator, DistributionEvent
 from edwinnixon.distribution_statement import generate_distribution_statement
 from edwinnixon.cli import main
@@ -650,3 +650,54 @@ def test_ordinary_refund_posts_once_with_existing_validation():
             date(2027, 3, 1), Decimal("-1"), includes_r_and_d_offset=False,
         )
     assert account.entries == [entry]
+
+
+@pytest.mark.parametrize("day", [date(2026, 6, 30), date(2027, 7, 1)])
+@pytest.mark.parametrize("method", [
+    "record_payg_instalment", "record_tax_assessment_paid",
+    "record_franked_distribution_received", "record_franked_distribution_paid",
+    "record_tax_refund", "record_under_franking_debit", "record_fdt_liability",
+])
+def test_recording_refuses_dates_outside_financial_year(day, method):
+    account = FrankingAccount(2027)
+    kwargs = {"includes_r_and_d_offset": False} if method == "record_tax_refund" else {}
+    with pytest.raises(ValueError, match="outside FY2027"):
+        getattr(account, method)(day, Decimal("100"), **kwargs)
+    assert account.entries == []
+
+
+@pytest.mark.parametrize("day", [date(2026, 6, 30), date(2027, 7, 1)])
+def test_initial_entries_must_belong_to_financial_year(day):
+    entry = FrankingEntry(day, FrankingEntryType.FRANKED_DISTRIBUTION_PAID,
+                          Decimal("100"), "Fabricated distribution")
+    with pytest.raises(ValueError, match="outside FY2027"):
+        FrankingAccount(2027, entries=[entry])
+
+
+@pytest.mark.parametrize("day", [date(2026, 7, 1), date(2027, 6, 30)])
+def test_financial_year_includes_both_boundary_dates(day):
+    entry = FrankingEntry(day, FrankingEntryType.PAYG_INSTALMENT,
+                          Decimal("1000"), "Fabricated instalment")
+    account = FrankingAccount(2027, entries=[entry])
+    account.record_franked_distribution_paid(day, Decimal("2000"))
+    assert account.closing_balance == Decimal("-1000")
+    assert account.evaluate_franking_deficit().allowable_tax_offset == Decimal("700")
+
+
+@pytest.mark.parametrize("day", [date(2026, 6, 30), date(2027, 7, 1)])
+@pytest.mark.parametrize("calculation", [
+    "total_credits", "total_debits", "closing_balance", "evaluate_franking_deficit",
+])
+def test_mutated_entries_cannot_contaminate_annual_calculations(day, calculation):
+    account = FrankingAccount(2027)
+    account.record_tax_refund(
+        date(2027, 3, 1), Decimal("3000"), includes_r_and_d_offset=False,
+    )
+    account.entries.append(FrankingEntry(
+        day, FrankingEntryType.FRANKED_DISTRIBUTION_PAID, Decimal("100"),
+        "Fabricated out-of-year distribution",
+    ))
+    with pytest.raises(ValueError, match="outside FY2027"):
+        result = getattr(account, calculation)
+        if callable(result):
+            result()

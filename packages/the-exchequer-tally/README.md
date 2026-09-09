@@ -145,7 +145,10 @@ credits arising during the year, excluding the opening credit balance.
 
 The evaluator assumes residency and no first-year exception or Commissioner's
 discretion. Other debit types, late-balancing rules and prior-year offset
-carry-forwards need separate review. Supply one year's reconciled entries.
+carry-forwards need separate review. The account accepts entries from 1 July
+to 30 June of its financial year, inclusive. Recording and construction reject
+out-of-year dates; balance calculations also reject entries inserted directly
+into the public list. Bring earlier periods forward through the opening balance.
 
 R&D refunds need separate review in full, including mixed refunds. The R&D
 portion does not create an immediate debit under s 205-30(2); s 205-15(4)
@@ -163,7 +166,7 @@ All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic
 | Statutory Domain | Primary Authority | Verification Invariant |
 | :--- | :--- | :--- |
 | **Base Rate Entity Status** | *Income Tax Rates Act 1986* s 23AA | BRE rate bounded by the year's aggregated-turnover threshold ($25M for FY2018, $50M from FY2019) and BREPI <= 80% compared exactly. |
-| **Franking Credits & Debits** | *ITAA 1997* s 205-15, s 205-30 | Cent-exact ledger of credits and debits (dates recorded for the workpaper; balances are order-independent sums). |
+| **Franking Credits & Debits** | *ITAA 1997* s 205-15, s 205-30 | Cent-exact, order-independent sums of entries within the account's July-to-June financial year. |
 | **FDT Offset Reduction** | *ITAA 1997* s 205-45, s 205-70(2) and (8) | Supported debit types determine whether the 30% reduction applies; see the scope above. |
 | **Benchmark Rule** | *ITAA 1997* ss 203-25 to 203-55 | Benchmark set by the first frankable distribution in the franking period (*s 203-30*), then one deterministic shortfall or over-franking result per later distribution. |
 | **Distribution Statements** | *ITAA 1997* ss 202-75, 202-80 | Precise franking credit formula: `Distribution * (Rate / (1 - Rate)) * Franking%`. |
