@@ -34,6 +34,10 @@ jobs:
         # changed-line-coverage lists the risk-scoped files held to complete
         # changed-line branch coverage against main.
         include:
+          - package: australian-tax-calculators
+            import-name: austaxcalc
+            windows-python: "3.12"
+            changed-line-coverage: ""
           - package: ato-benchmark-compare
             import-name: atobenchmark
             windows-python: "3.12"

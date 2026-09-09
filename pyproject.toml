@@ -27,6 +27,7 @@ members = ["packages/*", "apps/*"]
 ato-benchmark-compare = { workspace = true }
 payday-super-checker = { workspace = true }
 div7a-loan-review = { workspace = true }
+australian-tax-calculators = { workspace = true }
 
 # The shared toolchain for running every component's checks from one
 # environment. Components keep their own `dev` extras, which remain the
