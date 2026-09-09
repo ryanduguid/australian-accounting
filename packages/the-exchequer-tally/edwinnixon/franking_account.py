@@ -121,7 +121,24 @@ class FrankingAccount:
         self.entries.append(entry)
         return entry
 
-    def record_tax_refund(self, entry_date: date, refund_amount: Decimal, description: str = "Income tax refund received") -> FrankingEntry:
+    def record_tax_refund(
+        self,
+        entry_date: date,
+        refund_amount: Decimal,
+        description: str = "Income tax refund received",
+        *,
+        includes_r_and_d_offset: bool,
+    ) -> FrankingEntry:
+        """Record an ordinary refund after the caller confirms its tax classification.
+
+        Refunds containing an R&D offset are unsupported: s 205-30(2) excludes
+        that portion from an immediate debit, and s 205-15(4) affects later credits.
+        """
+        if includes_r_and_d_offset is not False:
+            raise ValueError(
+                "Refunds containing an R&D offset are unsupported; "
+                "confirm includes_r_and_d_offset=False only for an ordinary refund"
+            )
         entry = FrankingEntry(
             entry_date=entry_date,
             entry_type=FrankingEntryType.TAX_REFUND,
@@ -171,8 +188,11 @@ class FrankingAccount:
     def evaluate_franking_deficit(self) -> FrankingDeficitResult:
         """
         Evaluate Franking Deficit Tax (FDT) under s 205-45 and tax offset under s 205-70.
-        If the franking deficit exceeds 10% of total franking credits generated in the year,
-        the tax offset is reduced by 30% (s 205-70(6)).
+
+        For the supported debits (items 1, 2 and 3), s 205-70(8) includes item 2
+        only if item 1 or 3 also arose. Apply the s 205-70(2) reduction only then.
+        Assumes residency and no first-year exception or Commissioner's discretion;
+        those facts and any prior-year offset carry-forward need separate review.
         """
         balance = self.closing_balance
         if balance >= Decimal("0.00"):
@@ -190,15 +210,22 @@ class FrankingAccount:
         credits_year = self.total_credits
         threshold = credits_year * Decimal("0.10")
 
-        # Check 10% threshold rule (s 205-70(6))
-        reduction_applies = fdt > threshold
+        # All supported debits qualify if item 1 or 3 arose; refunds alone do not.
+        has_distribution_debit = any(
+            entry.entry_type in {
+                FrankingEntryType.FRANKED_DISTRIBUTION_PAID,
+                FrankingEntryType.UNDER_FRANKING_DEBIT,
+            }
+            for entry in self.entries
+        )
+        reduction_applies = has_distribution_debit and fdt > threshold
 
         if reduction_applies:
-            # 30% reduction penalty
             offset = (fdt * Decimal("0.70")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             basis = (
-                f"s 205-45 ITAA 1997: FDT liability ${fdt:,.2f}. Deficit exceeds 10% of total credits "
-                f"(${credits_year:,.2f}); tax offset is reduced by 30% to ${offset:,.2f} under s 205-70(6)."
+                f"s 205-45 ITAA 1997: FDT liability ${fdt:,.2f}. Deficit from debits covered by "
+                f"s 205-70(8) exceeds 10% of annual credits (${credits_year:,.2f}); "
+                f"tax offset is reduced by 30% to ${offset:,.2f} under s 205-70(2)."
             )
         else:
             offset = fdt

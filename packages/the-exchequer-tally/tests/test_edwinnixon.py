@@ -70,7 +70,7 @@ def test_franking_deficit_tax_and_penalty():
     fdt_eval = account.evaluate_franking_deficit()
     assert fdt_eval.has_deficit is True
     assert fdt_eval.franking_deficit_tax == Decimal("2000.00")
-    # Deficit $2000 > 10% of $1000 ($100), so 30% reduction applies under s 205-70(6)
+    # Item 1 deficit $2000 > 10% of $1000 ($100), so s 205-70(2) reduces the offset.
     assert fdt_eval.fdt_offset_reduction_applies is True
     assert fdt_eval.allowable_tax_offset == Decimal("1400.00")  # 70% of $2000
 
@@ -143,6 +143,26 @@ def test_max_franking_rate_requires_prior_year():
         assert "prior_year_test" in str(exc)
     else:
         raise AssertionError("franking rate must not assume BRE")
+
+
+@pytest.mark.parametrize("supplied_fy", [2023, 2025, 2026])
+def test_max_franking_rate_rejects_wrong_evidence_year(supplied_fy):
+    evidence = BaseRateEntityTest(
+        financial_year=supplied_fy,
+        aggregated_turnover=Decimal("2000000"),
+        assessable_income=Decimal("1000000"),
+        passive_income=Decimal("100000"),
+    )
+    with pytest.raises(ValueError, match="FY2024"):
+        determine_max_franking_rate(2025, evidence)
+
+
+def test_company_rate_and_franking_rate_use_different_income_years():
+    # Fabricated income mix: prior-year BREPI is 90%, current-year BREPI is 20%.
+    prior = BaseRateEntityTest(2026, Decimal("2000000"), Decimal("1000000"), Decimal("900000"))
+    current = BaseRateEntityTest(2027, Decimal("3000000"), Decimal("1000000"), Decimal("200000"))
+    assert determine_corporate_tax_rate(current).applicable_rate == Decimal("0.25")
+    assert determine_max_franking_rate(2027, prior) == Decimal("0.30")
 
 
 def test_max_franking_rate_uses_current_year_rate_scale():
@@ -458,14 +478,9 @@ def test_zero_assessable_income_has_no_passive_ratio():
     assert res.applicable_rate == Decimal("0.250")
     assert "BREPI <= 80%" in res.statutory_basis
 
-    # Passive income alongside no assessable income exceeds 80% of it.
-    phantom_passive = BaseRateEntityTest(
-        financial_year=2025,
-        aggregated_turnover=Decimal("1000000.00"),
-        assessable_income=Decimal("0.00"),
-        passive_income=Decimal("10.00"),
-    )
-    assert phantom_passive.is_brepi_eligible is False
+    # BREPI is part of assessable income, so this input is inconsistent.
+    with pytest.raises(ValueError, match="passive_income must not exceed assessable_income"):
+        BaseRateEntityTest(2025, Decimal("1000000"), Decimal("0"), Decimal("10"))
 
 
 def test_cli_reports_no_passive_ratio_without_assessable_income(monkeypatch, capsys):
@@ -533,3 +548,105 @@ def test_zero_amount_event_sets_no_benchmark():
     compliant, violations = validator.validate_distributions()
     assert compliant is True
     assert violations == []
+
+
+@pytest.mark.parametrize("assessable,passive", [("100", "150"), ("100", "100.01")])
+def test_passive_income_cannot_exceed_assessable_income(assessable, passive):
+    with pytest.raises(ValueError, match="passive_income must not exceed assessable_income"):
+        BaseRateEntityTest(2027, Decimal("1000000"), Decimal(assessable), Decimal(passive))
+
+
+def test_all_assessable_income_can_be_passive():
+    test = BaseRateEntityTest(2027, Decimal("1000000"), Decimal("100"), Decimal("100"))
+    assert test.passive_income_percentage == Decimal("100.00")
+    assert determine_corporate_tax_rate(test).applicable_rate == Decimal("0.300")
+
+
+def test_cli_refuses_inconsistent_income_without_a_rate(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", [
+        "the-exchequer-tally", "bre-test", "--fy", "2027",
+        "--turnover", "1000000", "--assessable", "100", "--passive", "150",
+    ])
+    assert main() == 2
+    captured = capsys.readouterr()
+    assert "passive_income must not exceed assessable_income" in captured.err
+    assert captured.out == ""
+
+
+@pytest.mark.parametrize("credits", ["0", "1000"])
+def test_refund_only_deficit_does_not_reduce_offset(credits):
+    account = FrankingAccount(2027)
+    if Decimal(credits):
+        account.record_payg_instalment(date(2026, 9, 1), Decimal(credits))
+    account.record_tax_refund(
+        date(2027, 3, 1), Decimal("3000"), includes_r_and_d_offset=False,
+    )
+    result = account.evaluate_franking_deficit()
+    assert result.franking_deficit_tax == Decimal("3000") - Decimal(credits)
+    assert result.allowable_tax_offset == result.franking_deficit_tax
+    assert result.fdt_offset_reduction_applies is False
+
+
+@pytest.mark.parametrize("debit_method", [
+    "record_franked_distribution_paid", "record_under_franking_debit",
+])
+def test_distribution_related_debit_brings_refund_into_offset_reduction(debit_method):
+    account = FrankingAccount(2027)
+    account.record_payg_instalment(date(2026, 9, 1), Decimal("1000"))
+    getattr(account, debit_method)(date(2027, 2, 1), Decimal("100"))
+    account.record_tax_refund(
+        date(2027, 3, 1), Decimal("2900"), includes_r_and_d_offset=False,
+    )
+    result = account.evaluate_franking_deficit()
+    assert result.franking_deficit_tax == Decimal("2000")
+    assert result.fdt_offset_reduction_applies is True
+    assert result.allowable_tax_offset == Decimal("1400")
+    assert "s 205-70(2)" in result.statutory_basis
+    assert "s 205-70(6)" not in result.statutory_basis
+
+
+@pytest.mark.parametrize("debit,offset,reduced", [
+    ("1600", "100", False), ("1600.01", "70.01", True),
+])
+def test_fdt_threshold_excludes_opening_credit_balance(debit, offset, reduced):
+    account = FrankingAccount(2027, opening_balance=Decimal("500"))
+    account.record_payg_instalment(date(2026, 9, 1), Decimal("1000"))
+    account.record_franked_distribution_paid(date(2027, 2, 1), Decimal(debit))
+    result = account.evaluate_franking_deficit()
+    assert result.allowable_tax_offset == Decimal(offset)
+    assert result.fdt_offset_reduction_applies is reduced
+
+
+@pytest.mark.parametrize("classification", [True, None])
+def test_r_and_d_or_unclassified_refund_is_refused_without_posting(classification):
+    account = FrankingAccount(2027, opening_balance=Decimal("5000"))
+    with pytest.raises(ValueError, match="R&D"):
+        account.record_tax_refund(
+            date(2027, 3, 1), Decimal("2000"), includes_r_and_d_offset=classification,
+        )
+    assert account.entries == []
+    assert account.closing_balance == Decimal("5000")
+
+
+def test_refund_requires_explicit_classification():
+    account = FrankingAccount(2027)
+    with pytest.raises(TypeError, match="includes_r_and_d_offset"):
+        account.record_tax_refund(date(2027, 3, 1), Decimal("2000"))
+    assert account.entries == []
+
+
+def test_ordinary_refund_posts_once_with_existing_validation():
+    account = FrankingAccount(2027, opening_balance=Decimal("5000"))
+    entry = account.record_tax_refund(
+        date(2027, 3, 1), Decimal("2000"), "Fabricated ordinary refund",
+        includes_r_and_d_offset=False,
+    )
+    assert entry.is_debit
+    assert entry.description == "Fabricated ordinary refund"
+    assert account.entries == [entry]
+    assert account.closing_balance == Decimal("3000")
+    with pytest.raises(ValueError, match="positive finite"):
+        account.record_tax_refund(
+            date(2027, 3, 1), Decimal("-1"), includes_r_and_d_offset=False,
+        )
+    assert account.entries == [entry]
