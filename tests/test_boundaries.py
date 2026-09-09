@@ -278,7 +278,7 @@ class BoundaryTests(unittest.TestCase):
             ).read_text(encoding="utf-8")
             with self.subTest(component=component):
                 policy_sha = (
-                    "d487b1a854bc7a6f97cc114fc68cf3fe3989ce7e"
+                    "ff86e30038ca4fd028ce3663646ee03ae5e94692"
                     if component in {"aus-accounting-mcp", "australian-tax-calculators"}
                     else RELEASE_POLICY_SHA
                 )
