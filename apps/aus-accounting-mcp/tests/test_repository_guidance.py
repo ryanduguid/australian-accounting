@@ -100,7 +100,12 @@ def test_agents_tracks_exact_ci_commands_and_classifies_other_checks() -> None:
     ci = _section(guidance, "CI gates")
     assert _fenced_commands(ci) == _ci_run_commands()
     assert _normalise(_without_fenced_commands(ci)) == _normalise(
-        "These are the current commands in `.github/workflows/ci.yml`:"
+        """\
+        Run these commands from `apps/aus-accounting-mcp/`. The active workflow is
+        [the root ci.yml](../../.github/workflows/ci.yml), not a workflow inside this
+        component. Read [root CONTRIBUTING.md](../../CONTRIBUTING.md) for workspace
+        lockfile behaviour and the additional packaging and release checks:
+        """
     )
 
 
