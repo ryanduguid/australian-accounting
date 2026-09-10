@@ -22,7 +22,7 @@ The confirmation acknowledges the missing receipt; it does not establish payment
 
 [Read the five-minute Payday Super case](packages/payday-super-checker/docs/manager-case-study.md) · [Division 7A repayment case](packages/div7a-loan-review/docs/manager-case-study.md) · [MCP setup](apps/aus-accounting-mcp/README.md#client-integration)
 
-<details>
+<details open>
 <summary>Installation, component identities, integration and reference</summary>
 
 Development home for the Aus Accounting MCP application and seven independently released
