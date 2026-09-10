@@ -75,8 +75,9 @@ For an editable source installation, run `pip install -e .` from
 
 `IMPORTS.md` records the source repository, commit and tree of every imported engine. The
 MCP application is the `io.github.ryanduguid/aus-accounting` MCP Registry server; it
-depends on the published `ato-benchmark-compare`, `payday-super-checker` and
-`div7a-loan-review` distributions, not on the sibling directories.
+depends on the published `ato-benchmark-compare`, `payday-super-checker`,
+`div7a-loan-review` and `australian-tax-calculators` distributions. In the development
+workspace, uv resolves those four dependencies to their checked-out sources.
 
 ## Working in a component
 

@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ryanduguid/aus-accounting",
   "title": "aus-accounting-mcp",
-  "description": "Local MCP for ATO benchmarks, Payday Super and limited Division 7A loan review. Not advice.",
+  "description": "Reviews, six bounded tax worksheets and cited retrieval from your local Markdown folder. Not advice.",
   "websiteUrl": "https://duguid.com.au/tools/australian-tax-ai-agents/",
   "repository": {
     "url": "https://github.com/ryanduguid/australian-accounting",
