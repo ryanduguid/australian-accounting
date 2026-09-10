@@ -9,7 +9,7 @@ assessment, and refuses inputs that would engage them rather than returning a
 number the model cannot stand behind. Outputs are review aids, not advice.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from decimal import Decimal, ROUND_HALF_UP
 from typing import List, Optional
 
@@ -83,6 +83,8 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
             "as negative assessable shares, it is carried forward by the trust "
             "against its own later net income"
         )
+    if assessment.franking_credits < Decimal("0.00"):
+        raise ValueError("franking credits must be non-negative")
     for b in assessment.beneficiaries:
         if not b.is_resident:
             raise ValueError(
@@ -176,6 +178,7 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
     # Allocate on the unrounded ratios, then hand the rounding residual to the
     # largest share so the allocated total reconciles to the s 95 net income.
     residual = s95_net.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    credit_residual = assessment.franking_credits.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     for b, ratio, pct in zip(assessment.beneficiaries, ratios, implied):
         entitlement_dollar = (total_trust_inc * ratio).quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
@@ -190,6 +193,7 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
         fc_share = (assessment.franking_credits * ratio).quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
+        credit_residual -= fc_share
 
         if b.is_under_legal_disability:
             section_ref = "s 98 ITAA 1936 (Trustee assessed on behalf of beneficiary under legal disability)"
@@ -229,5 +233,14 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
             total_taxable_component=adjusted.total_taxable_component + residual,
             assessed_under_section=adjusted.assessed_under_section,
         )
+
+    # Apply credit rounding differences to the largest entitlements first.
+    # Spread a reduction across shares if one cannot absorb it without going negative.
+    for i in sorted(range(len(shares)), key=lambda i: ratios[i], reverse=True):
+        if not credit_residual:
+            break
+        adjustment = max(-shares[i].franking_credit_grossup, credit_residual)
+        shares[i] = replace(shares[i], franking_credit_grossup=shares[i].franking_credit_grossup + adjustment)
+        credit_residual -= adjustment
 
     return shares
