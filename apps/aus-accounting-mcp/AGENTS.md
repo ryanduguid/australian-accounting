@@ -19,7 +19,10 @@ or datasets.
 
 ## CI gates
 
-These are the current commands in `.github/workflows/ci.yml`:
+Run these commands from `apps/aus-accounting-mcp/`. The active workflow is
+[the root ci.yml](../../.github/workflows/ci.yml), not a workflow inside this
+component. Read [root CONTRIBUTING.md](../../CONTRIBUTING.md) for workspace
+lockfile behaviour and the additional packaging and release checks:
 
 ```bash
 uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing
