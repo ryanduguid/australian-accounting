@@ -37,6 +37,41 @@ def test_division6_proportionate_approach():
     # separately for the s 207-45 offset.
     assert shares[0].total_taxable_component == Decimal("60000.00")
 
+
+@pytest.mark.parametrize("entitlements, credits, expected", [
+    ([1, 1, 1], "1.00", ["0.34", "0.33", "0.33"]),
+    ([1] * 6, "1.00", ["0.15"] + ["0.17"] * 5),
+    ([1] * 7, "1.00", ["0.16"] + ["0.14"] * 6),
+    ([1] * 6, "0.03", ["0.00"] * 3 + ["0.01"] * 3),
+    ([2, 3, 5], "0.05", ["0.01", "0.02", "0.02"]),
+    ([1, 1], "0.00", ["0.00", "0.00"]),
+])
+def test_franking_credits_reconcile_without_changing_taxable_income(entitlements, credits, expected):
+    assessment = TrustIncomeAssessment(
+        financial_year=2026, trust_name="Synthetic Trust",
+        trust_accounting_income=Decimal(sum(entitlements)),
+        section95_net_taxable_income=Decimal("120.00"),
+        franking_credits=Decimal(credits),
+        beneficiaries=[BeneficiaryEntitlement(str(i), fixed_entitlement_amount=Decimal(amount))
+                       for i, amount in enumerate(entitlements)],
+    )
+    shares = calculate_proportionate_share(assessment)
+    assert [s.franking_credit_grossup for s in shares] == [Decimal(value) for value in expected]
+    assert sum(s.franking_credit_grossup for s in shares) == Decimal(credits)
+    assert sum(s.total_taxable_component for s in shares) == Decimal("120.00")
+    assert all(s.total_taxable_component == s.section95_net_income_share for s in shares)
+
+
+def test_negative_franking_credit_pool_is_refused():
+    assessment = TrustIncomeAssessment(
+        financial_year=2026, trust_name="Synthetic Trust",
+        trust_accounting_income=Decimal("3.00"), section95_net_taxable_income=Decimal("3.00"),
+        franking_credits=Decimal("-1.00"),
+        beneficiaries=[BeneficiaryEntitlement(str(i), fixed_entitlement_amount=Decimal("1.00")) for i in range(3)],
+    )
+    with pytest.raises(ValueError, match="franking credits must be non-negative"):
+        calculate_proportionate_share(assessment)
+
 def test_section100a_risk_zones():
     # Red Zone: Adult child distribution retained by parents without loan
     red_res = evaluate_section100a_risk(
