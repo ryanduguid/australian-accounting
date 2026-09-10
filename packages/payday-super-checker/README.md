@@ -84,7 +84,7 @@ records do not establish them.
 | --- | --- | --- |
 | Payroll export | Your payroll system | The payday (the day you actually paid the wages) and the operator-determined SG amount per employee. Apply regulations 11 and 12 and filter out salary sacrifice before supplying the amount |
 | Super payment export | Your payroll or clearing-house portal | The day you sent the money. This is the `remitted` date; on its own it can only give `AT_RISK` |
-| Fund receipt dates | Your clearing house's per-contribution settlement or status report, or the fund's own contribution history | The law tests receipt by the fund. No payroll system or clearing house exports this date, so fill it in before treating any verdict as final |
+| Fund receipt dates | Your clearing house's per-contribution settlement or status report, or the fund's own contribution history | The law tests receipt by the fund. The supported export profiles do not establish this date. Add separate receipt evidence before treating any verdict as final |
 | Holidays coverage | The bundled calendar, complete through 31 August 2027 | Deadlines past that horizon fail closed until you supply later official dates in a reviewed `--holidays-override` file with `verified_until` |
 
 ## Use
@@ -159,10 +159,10 @@ Full detail goes to `report.csv`: due date, which deadline rule applied, days la
 
 ### The remittance-versus-fund-receipt boundary
 
-`examples/sample_remittance_only.csv` isolates the one fact no payroll system
-or clearing house exports. Every line in it was remitted on or before its own
-deadline, and every `fund_received_date` is blank, which is exactly the shape
-a vendor import gives you. Nothing in the file is late, and nothing in it can
+`examples/sample_remittance_only.csv` isolates the missing fund receipt date
+in the supported export profiles. Every line in it was remitted on or before its own
+deadline, and every `fund_received_date` is blank, as in the supported
+vendor imports. Nothing in the file is late, and nothing in it can
 be proved on time:
 
 ```bash
@@ -307,7 +307,7 @@ different base and deadline, so filter them out. The tool does not classify raw
 pay, apply regulations 11 or 12, or decide whether a termination payment is
 qualifying earnings. LCR 2026/D1 remains draft, so those decisions stay human.
 
-**Where the fund receipt date comes from.** Payroll exports (Xero, MYOB, KeyPay, Employment Hero) give you the payday and the batch remittance date, which is what `remitted` is for and why those lines come back `AT_RISK`. A fund receipt date lives somewhere else: your clearing house's per-contribution settlement or status report, or the fund's own contribution history. Without it the tool tells you what you sent and when, not what the law tests.
+**Where the fund receipt date comes from.** The supported payroll export profiles provide pay and remittance evidence, which is what `remitted` is for and why those lines come back `AT_RISK`. They do not establish receipt by the fund. Obtain separate receipt evidence from your clearing house's per-contribution settlement or status report, or the fund's own contribution history. Without it the tool tells you what you sent and when, not what the law tests.
 
 ## Import from your payroll system
 
@@ -340,7 +340,7 @@ Profiles ship for Xero Payroll, MYOB AccountRight, MYOB Business and Employment 
 
 **Every shipped profile is unverified against a real export.** Each one's column names come from vendor help documentation, and Xero, MYOB and Employment Hero do not publish an actual column list for these reports, so the first real export you try may match no profile at all. When that happens the importer prints the column headings it found in your file next to the headings each candidate profile wanted. Send both lists back and fixing the profile is a one-line edit to its JSON file, not a rewrite.
 
-**No payroll system or clearing house exports a fund receipt date.** Xero's report gives the date a payment was sent to the fund. MYOB gives a Paid Date. Employment Hero gives a Beam status (Sent to fund, Reconciled, and so on). None of these is the date the fund received the money. The legal deadline tests receipt by the fund, and time in transit through a clearing house is the employer's risk, not the fund's, so a vendor date is a remittance date and `fund_received_date` is left blank on every row. Fill that column in from your fund or clearing house before treating any verdict from the checker as final. `remitted_date` is the latest known vendor date for the dated subtotal; an entirely undated match leaves it blank. The Beam status also decides whether the date counts at all: a batch still at Created, Submission accepted or Awaiting payment is money that never left the employer, so its Payment Date is not written as a remittance date and the payday reads as unfunded, with a warning naming the status. A status outside the Beam ladder stops the import rather than being guessed either way.
+**The supported export profiles do not establish a fund receipt date.** Xero's report gives the date a payment was sent to the fund. MYOB gives a Paid Date. Employment Hero gives a Beam status (Sent to fund, Reconciled, and so on). None of these is the date the fund received the money. The legal deadline tests receipt by the fund, and time in transit through a clearing house is the employer's risk, not the fund's, so a vendor date is a remittance date and `fund_received_date` is left blank on every row. Fill that column in from your fund or clearing house before treating any verdict from the checker as final. `remitted_date` is the latest known vendor date for the dated subtotal; an entirely undated match leaves it blank. The Beam status also decides whether the date counts at all: a batch still at Created, Submission accepted or Awaiting payment is money that never left the employer, so its Payment Date is not written as a remittance date and the payday reads as unfunded, with a warning naming the status. A status outside the Beam ladder stops the import rather than being guessed either way.
 
 **A mixed dated/undated match uses the latest known date conservatively.** If 600.00 of a 1000.00 match has a vendor date and 400.00 does not, `remitted_date` is the latest known date for the dated subtotal, `remitted_amount` is 600.00 and `matched_amount` is 1000.00. An as-at report shows none of the dated subtotal as remitted before the date and only 600.00 on or after it; the undated 400.00 stays operationally unremitted. A dated 999.99 part payment writes 999.99 in both amount fields, leaving 0.01 operationally unremitted. That vendor evidence does **not** reduce the statutory base or final shortfall by itself: without `fund_received_date`, the SGC estimate continues to treat the full 1000.00 as unreceived. If an eligible fund receipt is supplied on the row, it can credit at most `matched_amount`; an on-time partial receipt reduces the base shortfall, while a late partial receipt can reduce only the final shortfall and not the base used for notional earnings. An entirely undated match leaves both remittance fields blank but still writes its total to `matched_amount`, so adding a later receipt date cannot turn a known partial match into full credit. `sg_amount` is always the amount owed.
 

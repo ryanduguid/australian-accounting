@@ -122,7 +122,7 @@ def build_import_parser() -> argparse.ArgumentParser:
         description=(
             "Build the contributions CSV from a payroll export and a super "
             "payments export after the statutory allocation is reconciled. "
-            "No payroll system or clearing house exports a fund receipt date, "
+            "The supported export profiles do not establish a fund receipt date, "
             "so fund_received_date is always left blank for you to fill in."
         ),
     )
