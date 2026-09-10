@@ -34,7 +34,13 @@ def test_fbt_type_one_and_two():
     r = c.fbt(D("1000"), D("1000"), 2026, True)
     assert r["amounts"]["fbt_estimate"] == "1864.49"
     r = c.fbt(D("16500"), D("6000"), 2026, True)
-    assert r["amounts"]["fbt_estimate"] == "21452.68"
+    assert r["amounts"]["fbt_estimate"] == "21452.73"
+
+
+def test_fbt_retains_gross_up_precision_until_final_presentation():
+    r = c.fbt(D("1000"), D("0"), 2026, True)
+    assert r["amounts"]["type_one_grossed_up"] == "2080.20"
+    assert r["amounts"]["fbt_estimate"] == "977.69"
 
 
 @pytest.mark.parametrize("method,decline,deduction", [

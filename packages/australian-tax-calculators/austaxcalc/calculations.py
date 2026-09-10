@@ -32,8 +32,8 @@ SCOPES = {
            "residency and small-business concessions. The result is a net gain, not CGT payable.",
     "fbt": "Ordinary taxable employer, established type 1 and type 2 taxable values for the "
            "year ended 31 March 2026. Excludes benefit valuation, exemptions, rebates, "
-           "not-for-profit caps and return preparation. Rounds each type's grossed-up "
-           "total to the nearest dollar, then the tax estimate to cents.",
+           "not-for-profit caps and return preparation. Retains gross-up precision "
+           "when calculating tax, then presents the amounts to cents.",
     "depreciation": "First year only, ordinary tangible Division 40 asset first held on or "
            "after 10 May 2006. Established cost, effective life and taxable-use proportion. "
            "Days run from first use or installation ready for use. No second-element costs, "
@@ -126,8 +126,8 @@ def capital_gains(other_gains: Decimal, discount_gains: Decimal, current_losses:
 def fbt(type_one_value: Decimal, type_two_value: Decimal, year_ended: int,
         scope_confirmed: bool) -> dict[str, Any]:
     _scope(scope_confirmed, str(year_ended), ("2026",))
-    first = (_money(type_one_value) * D("2.0802")).quantize(D(1), rounding=ROUND_HALF_UP)
-    second = (_money(type_two_value) * D("1.8868")).quantize(D(1), rounding=ROUND_HALF_UP)
+    first = _money(type_one_value) * D("2.0802")
+    second = _money(type_two_value) * D("1.8868")
     return _result("fbt", "year ended 31 March 2026", {
         "type_one_grossed_up": first, "type_two_grossed_up": second,
         "fbt_estimate": (first + second) * D("0.47"),
