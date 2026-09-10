@@ -1,5 +1,5 @@
 # payday-super-checker
-> High-density context for LLM agents. Experimental Payday Super review aid: not a compliance determination.
+> Experimental Payday Super review aid: not a compliance determination.
 
 ## Package Overview
 - **Explainer**: https://duguid.com.au/tools/payday-super/
