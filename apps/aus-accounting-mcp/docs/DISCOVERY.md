@@ -9,7 +9,7 @@ About, repository topics, README, `pyproject.toml`, `glama.json`, and
 Description:
 
 ```text
-Aus Accounting MCP, a local MCP server for Australian accounting review: ATO benchmarks, Payday Super 2026, limited Division 7A loan reviews and synthetic SBR fixtures. Not advice.
+Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, six bounded tax worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice.
 ```
 
 Website:
@@ -69,7 +69,8 @@ anything a later edit added.
 ## Keyword map
 
 - Primary: Australian computational accounting MCP, Payday Super review, ATO
-  small-business benchmarks, limited Division 7A loan review.
+  small-business benchmarks, limited Division 7A loan review, bounded tax worksheets
+  and cited local Markdown retrieval.
 - Agent/platform terms: MCP, Cursor, Claude Code, Claude Desktop, Codex, uvx.
 
 ## Copy rules
@@ -94,8 +95,8 @@ anything a later edit added.
   so the listing renders the application's README instead of the monorepo index.
   Use **Sync Server** after a source change lands. Profile name and description
   are separate fields under **Admin → Profile**. Review generated FAQs and TDQS
-  explanations after syncing: cached text may still describe the old five-tool
-  server even when the schema lists seven tools. Do not claim a new grade until
+  explanations after syncing: cached text may still describe an earlier tool set.
+  Version 0.2.0 exposes eleven tools. Do not claim a new grade until
   Glama actually recomputes it.
 - Official MCP registry: listed as `io.github.ryanduguid/aus-accounting` since
   25 August 2026. Record:
@@ -111,12 +112,23 @@ anything a later edit added.
 - For future releases, push the namespaced tag `aus-accounting-mcp/vX.Y.Z`.
   `release-aus-accounting-mcp.yml` creates and attests the GitHub release, then its
   `pypi` job publishes the exact attested distribution through the
-  `pypi-aus-accounting-mcp` environment, the same shape as the six engine workflows.
+  `pypi-aus-accounting-mcp` environment, the same shape as the engine workflows.
   PyPI's trusted publisher must name that workflow file and environment; change the
   publisher configuration together with the workflow, never one without the other.
 - Do not copy AGPL or proprietary-corpus language from other ATO MCP products.
 
 ## Glama profile
+
+Copy prepared for the next authorised profile update:
+
+```text
+Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, six bounded tax worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice.
+```
+
+The package contains no reference library. Retrieval requires an authorised local
+Markdown folder. The worksheets retain their documented periods and exclusions;
+the tool list does not establish support for every tax or accounting question.
+These local copy changes do not update GitHub, Glama, PyPI or the MCP Registry.
 
 Description saved and verified on 9 September 2026:
 

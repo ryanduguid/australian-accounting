@@ -13,10 +13,10 @@ uv sync        # install every component and the shared toolchain
 just test      # every component's suite, plus the repository boundary checks
 ```
 
-`uv sync` creates one `.venv` at the root and installs all seven components into it
+`uv sync` creates one `.venv` at the root and installs all eight components into it
 as editable workspace members. `apps/aus-accounting-mcp` therefore imports
-`atobenchmark`, `paydaysuper` and `div7aloan` from the checked-out tree rather than
-from their last PyPI release, with no per-component install step.
+`atobenchmark`, `paydaysuper`, `div7aloan` and `austaxcalc` from the checked-out tree
+rather than from their last PyPI release, with no per-component install step.
 
 `just` is optional tooling; install it with `uv tool install rust-just`. The recipes
 are `setup`, `lint`, `typecheck`, `test` and `check` (the last three together). Each
@@ -34,10 +34,10 @@ own commands:
 - `uv run --locked` from a component directory now validates the root `uv.lock`,
   not the component's. Regenerate it with `uv lock` at the root after changing any
   component's dependencies, and commit it.
-- The six engines pin the shared toolchain (`ruff`, `mypy`, `pytest`, `pytest-cov`,
+- The seven engines pin the shared toolchain (`ruff`, `mypy`, `pytest`, `pytest-cov`,
   `coverage`, `build`) to one exact version each, so the workspace resolves them without
   an override. One
-  workspace cannot hold two exact pins of the same tool, so keep the six identical when
+  workspace cannot hold two exact pins of the same tool, so keep the seven identical when
   changing one.
 
 ## Command routing
@@ -72,7 +72,7 @@ outside the checkout, the same way the lockfile is regenerated below.
 | solomons-sword | `packages/solomons-sword/` | `louisgoldberg` |
 | the-wip-tally | `packages/the-wip-tally/` | `wiptally` |
 
-The other two components keep their own commands:
+The MCP application and repository boundary checks use their own commands:
 
 | Component | Directory | Checks |
 |---|---|---|
@@ -81,7 +81,7 @@ The other two components keep their own commands:
 
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,
 so a gate behaves the same wherever it runs, and the workspace resolution takes the same
-versions for `just`. Changing a pin means changing all six, then relocking twice: `uv lock`
+versions for `just`. Changing a pin means changing all seven, then relocking twice: `uv lock`
 at the root, which is what CI validates, and each engine's own lockfile, which is what
 builds and releases it alone. Inside the workspace `uv lock` always writes the root lock,
 so an engine's own lockfile is regenerated from a copy of the engine outside it:
