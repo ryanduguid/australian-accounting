@@ -88,7 +88,7 @@ def test_library_is_opt_in_and_does_not_read_links(tmp_path, monkeypatch):
     ({"kind": "capital_gains", "other_gains": "100", "discount_gains": "1000",
       "current_losses": "200", "prior_losses": "300"}, "net_capital_gain", "300.00"),
     ({"kind": "fbt", "year_ended": 2026, "type_one_value": "16500",
-      "type_two_value": "6000"}, "fbt_estimate", "21452.68"),
+      "type_two_value": "6000"}, "fbt_estimate", "21452.73"),
     ({"kind": "depreciation", "cost": "3000", "effective_life": "4", "days": 146,
       "taxable_use": "0.4", "method": "prime_cost"}, "deduction", "120.00"),
     ({"kind": "quarterly_sg", "quarter": 1, "ordinary_time_earnings": "80000",

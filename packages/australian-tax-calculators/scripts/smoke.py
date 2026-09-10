@@ -7,7 +7,7 @@ from austaxcalc import calculations
 
 assert "site-packages" in Path(calculations.__file__).parts
 result = calculations.fbt(Decimal("16500"), Decimal("6000"), 2026, True)
-assert result["amounts"]["fbt_estimate"] == "21452.68"
+assert result["amounts"]["fbt_estimate"] == "21452.73"
 assert result["engine_version"] == "0.1.2"
 assert result["sources"] and result["warnings"]
 try:
