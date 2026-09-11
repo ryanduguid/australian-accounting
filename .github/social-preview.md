@@ -21,3 +21,5 @@ substitution on another platform can change its appearance.
 GitHub stores its social preview separately from repository files. After
 review, upload [social-preview.png](social-preview.png) under Settings,
 General, Social preview. Merging this file does not update that setting.
+
+PNG SHA-256: `82b9d581293fc615918484efb41d4a9d1a50db2e78f9bd0f91404bca3852587e`.

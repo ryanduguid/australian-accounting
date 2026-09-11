@@ -6,6 +6,7 @@ import re
 from decimal import Decimal
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+from xml.etree import ElementTree
 
 try:
     import tomllib
@@ -15,6 +16,7 @@ except ModuleNotFoundError:
 import pytest
 from atobenchmark.mapping import BUCKETS
 from atobenchmark.ratios import compute
+from PIL import Image
 
 from aus_accounting_mcp.server import (
     calc_payday_super_deadline,
@@ -1116,8 +1118,17 @@ def test_committed_binary_assets_have_current_provenance() -> None:
     assert not (root / "docs" / "quick-proof.gif").exists()
 
 
-def test_repository_has_no_committed_social_preview() -> None:
-    assert not (_repository_root() / ".github" / "social-preview.png").exists()
+def test_repository_social_preview_has_current_name_dimensions_and_provenance() -> None:
+    root = _repository_root() / ".github"
+    source = ElementTree.parse(root / "social-preview.svg").getroot()
+    assert source.findtext("{http://www.w3.org/2000/svg}title") == "australian-accounting"
+    assert (source.attrib["width"], source.attrib["height"]) == ("1280", "640")
+    preview = root / "social-preview.png"
+    with Image.open(preview) as image:
+        assert image.format == "PNG"
+        assert image.size == (1280, 640)
+    provenance = (root / "social-preview.md").read_text(encoding="utf-8")
+    assert hashlib.sha256(preview.read_bytes()).hexdigest() in provenance
 
 
 def test_server_metadata_publishes_exact_pypi_release() -> None:
