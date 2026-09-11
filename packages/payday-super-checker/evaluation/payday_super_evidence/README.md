@@ -31,6 +31,20 @@ No client, employee or live payroll data is included.
 
 ## Reproduce the result
 
+The unreleased `evidence-pack` subcommand composes these same fixtures into four
+review files. Its contract test reads the pinned as-at date and verdicts from
+`expected_results.json`, verifies the report hash, the non-`ON_TIME` queue,
+identifier omission and blank decision headings:
+
+```bash
+uv run --locked payday-super-check evidence-pack evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 -o evidence-pack
+uv run --locked --extra dev pytest tests/test_evidence_pack.py -q
+```
+
+The first command exits 2 and leaves `AT_RISK` in `exceptions.json`, even with
+`--confirm-remittance-only`. The source review date and fixture version below
+are unchanged. This is workflow verification, not a new review of timing law.
+
 Run these commands from `packages/payday-super-checker` in the monorepo. Exit code 2 signals a late result or an unacknowledged receipt-evidence gap.
 
 ```bash

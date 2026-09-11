@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import csv
+import io
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
+from typing import TextIO
 
 from . import __version__
 from .atomic_io import atomic_text_output
@@ -180,65 +182,104 @@ def write_csv(
     source: str | Path | None = None,
     gic_provenance: str = "",
 ) -> None:
-    # utf-8-sig, not utf-8: Excel on a cp1252 Windows box reads a BOM-less
-    # CSV in the locale code page, so a non-ASCII employee id comes out
-    # mojibake and stops joining back to the payroll export. parse_rows
-    # already reads with utf-8-sig, so a report fed back in still parses.
-    with atomic_text_output(path, encoding="utf-8-sig") as f:
-        writer = csv.writer(f)
-        writer.writerow(CSV_HEADER)
-        for r in results:
-            figures = _rounded_figures(r)
-            writer.writerow(
-                [
-                    r.line.row,
-                    csv_safe(r.line.employee_id),
-                    r.line.qe_day.isoformat(),
-                    r.deadline.pathway,
-                    r.deadline.due.isoformat() if r.deadline.due else "",
-                    r.verdict,
-                    "" if r.days_late is None else r.days_late,
-                    r.lateness_basis,
-                    money(r.line.sg_amount),
-                    money(figures["shortfall"]),
-                    money(figures["nec"]),
-                    money(figures["up_low"]),
-                    money(figures["up_high"]),
-                    money(figures["low"]),
-                    money(figures["high"]),
-                    " | ".join(r.caveats),
-                    " | ".join(r.notes),
-                    " or ".join(r.horizon_verdicts) if r.horizon_verdicts else "",
-                ]
-            )
+    # utf-8-sig keeps Excel from decoding non-ASCII employee references as cp1252.
+    with atomic_text_output(path, encoding="utf-8-sig") as stream:
+        _write_csv_rows(
+            results, stream, as_at, law_date, assessment_date, source, gic_provenance,
+        )
 
-        # Trailing note, full width so the file stays a clean table: a
-        # one-field title row makes Power Query infer the wrong column count.
-        note = [""] * len(CSV_HEADER)
-        note[1] = "NOTE"
-        assessment_text = (
-            f"Assessment date {assessment_date.isoformat()}. "
-            if assessment_date is not None
-            else "No assessment date given, so contributions received late are assumed "
-            "to have reached the fund before any assessment. "
+
+def render_csv(
+    results: list[Result],
+    as_at: date,
+    law_date: str,
+    assessment_date: date | None = None,
+    source: str | Path | None = None,
+    gic_provenance: str = "",
+    *,
+    include_employee_ids: bool = True,
+) -> str:
+    with io.StringIO(newline="") as stream:
+        _write_csv_rows(
+            results, stream, as_at, law_date, assessment_date, source, gic_provenance,
+            include_employee_ids=include_employee_ids,
         )
-        # By name, not by position: the trailing note belongs in "notes", and
-        # note[-1] silently moved it into whatever column was appended last.
-        note[CSV_HEADER.index("notes")] = (
-            f"payday-super-checker {__version__}"
-            + (f", source {source}" if source else "")
-            + f", as at {as_at.isoformat()}. {assessment_text}"
-            + (f"{gic_provenance}. " if gic_provenance else "")
-            + f"Legal content current at {law_date}. EXPERIMENTAL ESTIMATES: monetary "
-            "components are displayed to cents with ROUND_HALF_UP, while TAA 1953 "
-            "s 16B only rounds the Commissioner's final assessed SG charge down to "
-            "the nearest 5 cents. The low estimate assumes a "
-            "voluntary disclosure lodged within 30 days of the payday and a clean "
-            "24-month history; the high estimate assumes neither. Estimates exclude "
-            "choice loading, the maximum contributions base and post-assessment "
-            "penalties. Educational tool, not advice: the ATO assesses the charge."
+        return stream.getvalue()
+
+
+def _write_csv_rows(
+    results: list[Result],
+    f: TextIO,
+    as_at: date,
+    law_date: str,
+    assessment_date: date | None = None,
+    source: str | Path | None = None,
+    gic_provenance: str = "",
+    *,
+    include_employee_ids: bool = True,
+) -> None:
+    writer = csv.writer(f)
+    columns = [
+        i for i, name in enumerate(CSV_HEADER)
+        if include_employee_ids or name != "employee_id"
+    ]
+
+    def write_row(values: list) -> None:
+        writer.writerow([values[i] for i in columns])
+
+    write_row(CSV_HEADER)
+    for r in results:
+        figures = _rounded_figures(r)
+        write_row(
+            [
+                r.line.row,
+                csv_safe(r.line.employee_id),
+                r.line.qe_day.isoformat(),
+                r.deadline.pathway,
+                r.deadline.due.isoformat() if r.deadline.due else "",
+                r.verdict,
+                "" if r.days_late is None else r.days_late,
+                r.lateness_basis,
+                money(r.line.sg_amount),
+                money(figures["shortfall"]),
+                money(figures["nec"]),
+                money(figures["up_low"]),
+                money(figures["up_high"]),
+                money(figures["low"]),
+                money(figures["high"]),
+                " | ".join(r.caveats),
+                " | ".join(r.notes),
+                " or ".join(r.horizon_verdicts) if r.horizon_verdicts else "",
+            ]
         )
-        writer.writerow(note)
+
+    # Trailing note, full width so the file stays a clean table: a
+    # one-field title row makes Power Query infer the wrong column count.
+    note = [""] * len(CSV_HEADER)
+    note[1 if include_employee_ids else 0] = "NOTE"
+    assessment_text = (
+        f"Assessment date {assessment_date.isoformat()}. "
+        if assessment_date is not None
+        else "No assessment date given, so contributions received late are assumed "
+        "to have reached the fund before any assessment. "
+    )
+    # By name, not by position: the trailing note belongs in "notes", and
+    # note[-1] silently moved it into whatever column was appended last.
+    note[CSV_HEADER.index("notes")] = (
+        f"payday-super-checker {__version__}"
+        + (f", source {source}" if source else "")
+        + f", as at {as_at.isoformat()}. {assessment_text}"
+        + (f"{gic_provenance}. " if gic_provenance else "")
+        + f"Legal content current at {law_date}. EXPERIMENTAL ESTIMATES: monetary "
+        "components are displayed to cents with ROUND_HALF_UP, while TAA 1953 "
+        "s 16B only rounds the Commissioner's final assessed SG charge down to "
+        "the nearest 5 cents. The low estimate assumes a "
+        "voluntary disclosure lodged within 30 days of the payday and a clean "
+        "24-month history; the high estimate assumes neither. Estimates exclude "
+        "choice loading, the maximum contributions base and post-assessment "
+        "penalties. Educational tool, not advice: the ATO assesses the charge."
+    )
+    write_row(note)
 
 
 def console_summary(

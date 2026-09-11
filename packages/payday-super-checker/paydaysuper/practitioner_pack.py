@@ -85,6 +85,7 @@ class ReportSnapshot:
     source_sha256: str
     rows: tuple[ReportRow, ...]
     provenance: str
+    identifiers_omitted: bool = False
 
     @property
     def needs_attention(self) -> bool:
@@ -290,7 +291,13 @@ def load_report_snapshot(path: str | Path) -> ReportSnapshot:
     candidate = os.path.join(root, name)
     with open(candidate, "rb") as handle:  # codeql[py/path-injection]
         data = handle.read()
-    source = Path(candidate)
+    return parse_report_snapshot(data, Path(candidate))
+
+
+def parse_report_snapshot(
+    data: bytes, source: Path, *, identifiers_omitted: bool = False,
+) -> ReportSnapshot:
+    """Validate report bytes; the projected format is an explicit opt-in."""
     digest = hashlib.sha256(data).hexdigest()
     try:
         text = data.decode("utf-8-sig")
@@ -300,6 +307,20 @@ def load_report_snapshot(path: str | Path) -> ReportSnapshot:
         table = list(csv.reader(io.StringIO(text, newline=""), strict=True))
     except csv.Error as exc:
         raise PractitionerPackError(f"{source} is malformed CSV: {exc}") from exc
+    if identifiers_omitted:
+        projected_header = tuple(c for c in EXPECTED_REPORT_HEADER if c != "employee_id")
+        if not table or tuple(table[0]) != projected_header:
+            raise PractitionerPackError("expected the 17-column report without identifiers")
+        for values in table[1:]:
+            if len(values) != len(projected_header):
+                raise PractitionerPackError("projected report row must have 17 fields")
+            # Adapt only in memory for the existing strict validator. The digest
+            # above remains bound to the original 17-column exported bytes.
+            marker = "NOTE" if values[0] == "NOTE" else "omitted"
+            if marker == "NOTE":
+                values[0] = ""
+            values.insert(1, marker)
+        table[0] = list(EXPECTED_REPORT_HEADER)
     if not table or tuple(table[0]) != EXPECTED_REPORT_HEADER:
         raise PractitionerPackError(
             f"{source} must use the exact 18-column payday-super-checker report header"
@@ -355,6 +376,7 @@ def load_report_snapshot(path: str | Path) -> ReportSnapshot:
         source_sha256=digest,
         rows=rows,
         provenance=note_record["notes"],
+        identifiers_omitted=identifiers_omitted,
     )
 
 
@@ -373,12 +395,12 @@ def _review_task(row: ReportRow) -> str:
     if row.verdict == "UNPAID":
         return (
             "Confirm the payday, SG amount, receipt and remittance evidence, and any "
-            "assessment facts; an authorised practitioner decides any remediation or lodgment."
+            "assessment facts; an authorised practitioner decides any remediation or lodgement."
         )
     if row.verdict == "LATE":
         return (
             "Verify the receipt date, allocation and assessment facts, then have an "
-            "authorised practitioner decide any correction, advice or lodgment."
+            "authorised practitioner decide any correction, advice or lodgement."
         )
     if row.verdict == "AT_RISK":
         return (
@@ -400,7 +422,7 @@ def _review_task(row: ReportRow) -> str:
     raise AssertionError(f"no review task for {row.verdict}")
 
 
-def render_practitioner_pack(snapshot: ReportSnapshot) -> str:
+def render_practitioner_pack(snapshot: ReportSnapshot, *, decision_log: bool = False) -> str:
     """Render a deterministic review index without employee identifiers."""
     counts = Counter(row.verdict for row in snapshot.rows)
     exposed = [row for row in snapshot.rows if row.verdict in {"LATE", "UNPAID"}]
@@ -459,8 +481,13 @@ def render_practitioner_pack(snapshot: ReportSnapshot) -> str:
         ]
     else:
         lines += [
-            "The identifiers stay in the private source CSV. Use the original `row` value below "
-            "to locate each employee record.",
+            (
+                "Identifiers are omitted from this pack. Use the original `row` value "
+                "to reconcile against the private contribution input."
+                if snapshot.identifiers_omitted else
+                "The identifiers stay in the private source CSV. Use the original `row` value below "
+                "to locate each employee record."
+            ),
             "",
             "| Done | Source reference | QE day | Due | Verdict | Displayed range | Human review task |",
             "| --- | --- | --- | --- | --- | ---: | --- |",
@@ -470,7 +497,7 @@ def render_practitioner_pack(snapshot: ReportSnapshot) -> str:
             verdict = row.verdict
             if row.unassessable_between:
                 verdict += f" ({row.unassessable_between})"
-            exposure_range = "—"
+            exposure_range = "not displayed"
             if row.sgc_estimate_low is not None and row.sgc_estimate_high is not None:
                 exposure_range = (
                     f"{_money(row.sgc_estimate_low)} to {_money(row.sgc_estimate_high)}"
@@ -486,20 +513,28 @@ def render_practitioner_pack(snapshot: ReportSnapshot) -> str:
         lines.append("")
 
     lines += [
-        "## Practitioner sign-off",
+        "## Review checklist" if decision_log else "## Practitioner sign-off",
         "",
         "- [ ] The source report SHA-256 above matches the file reviewed.",
         "- [ ] The payroll, clearing-house and fund evidence has been reconciled for every queued row.",
         "- [ ] Missing calendar, allocation, assessment and classification facts have been resolved or escalated.",
-        "- [ ] Any advice, correction, payment, lodgment or disclosure was decided and performed by an appropriately authorised human.",
-        "",
-        "Reviewer: ______________________________",
-        "",
-        "Review date (Australia): ______________________________",
-        "",
-        "Conclusion and workpaper reference: ______________________________",
+        "- [ ] Any advice, correction, payment, lodgement or disclosure was decided and performed by an appropriately authorised human.",
         "",
     ]
+    if decision_log:
+        lines += [
+            "Record all decisions and practitioner sign-off in [decision-log.md](decision-log.md).",
+            "",
+        ]
+    else:
+        lines += [
+            "Reviewer: ______________________________",
+            "",
+            "Review date (Australia): ______________________________",
+            "",
+            "Conclusion and workpaper reference: ______________________________",
+            "",
+        ]
     return "\n".join(lines)
 
 

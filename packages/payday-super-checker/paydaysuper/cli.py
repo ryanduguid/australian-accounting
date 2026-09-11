@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -39,9 +40,9 @@ def _reconfigure_stdout_for_unicode() -> None:
         reconfigure(encoding="utf-8", errors="backslashreplace")
 
 
-def build_parser() -> argparse.ArgumentParser:
+def build_parser(*, evidence_pack: bool = False) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="payday-super-check",
+        prog="payday-super-check evidence-pack" if evidence_pack else "payday-super-check",
         description=(
             "Experimental review of super contributions against payday-super deadlines "
             "(SGAA 1992 s 18C, in force for paydays from 1 July 2026) and "
@@ -50,7 +51,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("csv_path", help="contribution CSV to check")
     parser.add_argument(
-        "-o", "--output", default="report.csv", help="report CSV to write (default: report.csv)"
+        "-o", "--output", default="evidence-pack" if evidence_pack else "report.csv",
+        help=("new pack directory (default: evidence-pack)" if evidence_pack else
+              "report CSV to write (default: report.csv)")
     )
     parser.add_argument(
         "--as-at",
@@ -408,7 +411,8 @@ def main(argv: list[str] | None = None) -> int:
         return import_main(argv[1:])
     if argv and argv[0] == "review-pack":
         return review_pack_main(argv[1:])
-    args = build_parser().parse_args(argv)
+    evidence_pack = bool(argv and argv[0] == "evidence-pack")
+    args = build_parser(evidence_pack=evidence_pack).parse_args(argv[1:] if evidence_pack else argv)
 
     try:
         as_at = _parse_cli_date(args.as_at, "--as-at")
@@ -457,7 +461,11 @@ def main(argv: list[str] | None = None) -> int:
         # told before the whole assessment runs. write_csv enforces the same
         # rule, but the ValueError it raises reaches a handler that only
         # covers OSError.
-        csv_destination(args.output)
+        if evidence_pack:
+            from .evidence_pack import evidence_destination
+            evidence_destination(args.output)
+        else:
+            csv_destination(args.output)
         mapping, explicit = load_mapping(args.mapping_file, args.map)
         lines = parse_rows(args.csv_path, mapping, explicit)
         cal = load_calendar(args.holidays_override)
@@ -500,6 +508,23 @@ def main(argv: list[str] | None = None) -> int:
         target = exc.filename or args.csv_path
         print(f"error: cannot read {target}: {exc.strerror or exc}", file=sys.stderr)
         return EXIT_ERROR
+
+    if evidence_pack:
+        from .evidence_pack import build_evidence_pack, write_evidence_pack
+
+        try:
+            files = build_evidence_pack(
+                results, as_at=as_at, assessment_date=assessment_date,
+                gic_provenance=gic.provenance(),
+                remittance_only_confirmed=args.confirm_remittance_only,
+            )
+            write_evidence_pack(files, args.output)
+        except (ValueError, ArithmeticError, OSError) as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return EXIT_ERROR
+        _reconfigure_stdout_for_unicode()
+        print(f"wrote evidence pack to {args.output}")
+        return EXIT_LATE_FOUND if json.loads(files["exceptions.json"])["exceptions"] else EXIT_OK
 
     try:
         write_csv(

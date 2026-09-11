@@ -204,6 +204,60 @@ does not turn `AT_RISK` into `ON_TIME`, because paying on time is not the
 statutory test. Fill `fund_received_date` from your clearing house or fund and
 rerun before treating any verdict here as final.
 
+### Build an evidence pack in one command (unreleased)
+
+From the monorepo root, change into the component and run:
+
+```bash
+cd packages/payday-super-checker
+uv run --locked payday-super-check evidence-pack evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 -o evidence-pack
+```
+
+This uses the existing checker and practitioner checklist to write four files
+into a **new** directory:
+
+| File | Purpose |
+| --- | --- |
+| `report.csv` | Existing report fields with the employee identifier column omitted; source row numbers remain |
+| `practitioner-review.md` | Review queue and checklist bound to the exported CSV's SHA-256 |
+| `exceptions.json` | Schema version 1; every non-`ON_TIME` row, report hash and run context |
+| `decision-log.md` | Blank evidence, decision and practitioner sign-off template |
+
+Record all decisions and practitioner sign-off in `decision-log.md`. The
+checklist links to that record. Standalone `review-pack` retains its own
+sign-off form.
+
+The fabricated example exits **2** with `AT_RISK`. Remittance does not establish
+receipt. Evidence-pack uses the review-pack exit contract: **0** when every row
+is `ON_TIME`, **2** when any row needs review, and **1** on input or write failure.
+`--confirm-remittance-only` records the acknowledgement but does not remove an
+exception or clear exit 2. The existing check, import and review-pack commands
+retain their exit meanings and report format.
+
+The exported report has 17 columns and its terminal `NOTE` marker is in `row`.
+It is not input to the legacy 18-column `review-pack` command or the accounting
+review pipeline's `PaydaySuper.Report` Excel importer; its matching checklist is
+already included. Use the ordinary checker report for that existing importer.
+No input path or employee identifier is exported in the evidence pack.
+Dates, amounts and engine warnings remain, so keep the pack and its original
+input in the same approved private workpaper location. Use source row numbers
+to reconcile them. The workflow retains missing facts and all review flags;
+the human reviewer records evidence and decisions under applicable APES 110 and
+TPB obligations. It provides no advice and performs no lodgement or ledger write.
+
+An existing output file, directory or symlink is refused to preserve previous
+human decisions. The parent directory must exist. All files are rendered before
+the output directory is created exclusively. Consume the pack only after the
+command completes; file creation is not a directory-wide atomic transaction.
+Write failures leave the partial directory for inspection and return exit 1.
+The command never deletes these files, which another process may have edited.
+Choose a new directory for the next run. This feature is not in published v0.1.3.
+
+Use an access-controlled parent directory on every platform. Permissions depend
+on the OS and Python version; older Windows runtimes can inherit the parent's
+access controls despite the requested directory mode. The command does not
+configure or audit access controls.
+
 ### Build a practitioner review pack
 
 Turn the completed checker report into a deterministic Markdown index and
@@ -349,6 +403,11 @@ The importer still prints `row N: partial: 999.99 of 1000.00 matched` and `row N
 **A full financial-year export needs trimming first.** The check refuses any file holding a payday before 1 July 2026, because the old quarterly law governs those and this tool does not model it. An export that starts at 1 July 2025 therefore imports fine and then fails the check outright. The import names those rows in a warning and writes them anyway; delete them from the canonical file, or re-export from 1 July 2026, before running the second command.
 
 **A bare filename of `import` does not work.** `payday-super-check import`, run against a file that is genuinely named `import` with no extension, is read as the import subcommand and fails on the missing `--payroll`/`--super` arguments instead of checking the file. `payday-super-check import.csv` and `payday-super-check ./import` both check the file as expected; only the exact bare string `import` is swallowed.
+
+The bare names `review-pack` and `evidence-pack` are also reserved subcommands.
+For a contribution file with one of those names, use `./review-pack` or
+`./evidence-pack` to run the ordinary checker. Qualified paths and `.csv` filenames
+remain unambiguous.
 
 ## Local file boundary
 
