@@ -8,6 +8,8 @@ import pytest
 from jsonschema import Draft202012Validator
 from mcp.server.mcpserver.exceptions import ToolError
 
+from aus_accounting_mcp.adapters import payday
+from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.server import mcp
 
 TOOL = "build_payday_super_evidence_pack"
@@ -74,6 +76,16 @@ def test_old_published_engine_fails_closed_without_breaking_other_tools(monkeypa
         "contributions": [ROW], "as_at": "2026-08-20",
     }))
     assert not result.is_error
+
+
+@pytest.mark.parametrize("name", ["review_contribution", "review_contributions", "evidence_pack"])
+def test_sentinel_dates_are_normal_input_errors_in_each_payday_adapter(name):
+    row = {**ROW, "qe_day": "9999-12-31", "remitted": None}
+    arguments = row if name == "review_contribution" else {
+        "contributions": [payday.ContributionInput(**row)],
+    }
+    with pytest.raises(InputError, match="too far in the future"):
+        getattr(payday, name)(**arguments, as_at="9999-12-31")
 
 
 def test_related_rows_still_delegate_alignment_and_keep_unknowns():

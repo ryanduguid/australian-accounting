@@ -199,6 +199,11 @@ def _review(lines: list[ContribLine], as_at: str) -> tuple[date, list[Result]]:
             as_at_day,
             transition_allocation_confirmed=False,
         )
+    except OverflowError as exc:
+        raise InputError(
+            "A date is too far in the future to work with. "
+            "Check for placeholder dates such as 9999-12-31."
+        ) from exc
     except PreRegimeError as exc:
         raise InputError(str(exc)) from exc
     except ValueError as exc:
