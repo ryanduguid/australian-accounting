@@ -1,3 +1,9 @@
+# v0.1.5
+
+- Use the checked release workflow reference. The v0.1.4 tag stopped before
+  building or publishing because GitHub could not load its historical workflow.
+- Include the calculation corrections listed under v0.1.4.
+
 # v0.1.4
 
 - Refuse incomplete prior-year inputs and inconsistent passive-income amounts

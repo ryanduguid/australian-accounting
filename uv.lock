@@ -2394,7 +2394,7 @@ wheels = [
 
 [[package]]
 name = "solomons-sword"
-version = "0.1.4"
+version = "0.1.5"
 source = { editable = "packages/solomons-sword" }
 
 [package.optional-dependencies]
@@ -2455,7 +2455,7 @@ wheels = [
 
 [[package]]
 name = "the-exchequer-tally"
-version = "0.1.4"
+version = "0.1.5"
 source = { editable = "packages/the-exchequer-tally" }
 
 [package.optional-dependencies]
