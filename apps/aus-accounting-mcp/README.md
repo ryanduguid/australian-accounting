@@ -108,6 +108,10 @@ still receives the input references; use an approved environment and fabricated
 data for demonstrations. Amounts, dates and warnings remain private workpaper
 information. Missing receipt dates remain missing.
 
+The 17-column evidence report is for the included checklist. It is not accepted
+by legacy `review-pack` or the accounting review pipeline's `PaydaySuper.Report`
+Excel importer. Use an ordinary 18-column checker report for that importer.
+
 Published checker v0.1.3 does not include the pack builder. With that installation,
 this tool returns a feature-unavailable error and the existing tools continue to
 work. Package versions, dependency pins, `compatibility.json` and `server.json`
