@@ -65,11 +65,13 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         },
     ]
     distribution = record["server"]["distribution"]
-    assert importlib.metadata.version(distribution) == "0.2.0"
+    assert importlib.metadata.version(distribution) == "0.2.1"
     requirements = set(importlib.metadata.requires(record["server"]["distribution"]) or [])
-    for engine in record["engines"]:
-        assert importlib.metadata.version(engine["distribution"]) == engine["version"]
-        assert f"{engine['distribution']}=={engine['version']}" in requirements
+    runtime_versions = {engine["distribution"]: engine["version"] for engine in record["engines"]}
+    runtime_versions["australian-tax-calculators"] = "0.1.3"
+    for name, engine_version in runtime_versions.items():
+        assert importlib.metadata.version(name) == engine_version
+        assert f"{name}=={engine_version}" in requirements
     benchmark = _call(
         "list_ato_benchmark_industries",
         {"search": "baker"},

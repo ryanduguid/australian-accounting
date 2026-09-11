@@ -1,3 +1,12 @@
+# v0.2.1
+
+- Pin `australian-tax-calculators` 0.1.3 so the FBT worksheet uses the corrected
+  ATO gross-up factors. The other engine pins remain unchanged.
+
+Release after the engine is published and its installed package is verified.
+Regenerate this application's standalone lock from PyPI before releasing it.
+The compatibility and Registry records still describe the published 0.2.0 release.
+
 # v0.2.0
 
 - Add grouped Payday contribution reviews, strict eligibility booleans and a scope resource.

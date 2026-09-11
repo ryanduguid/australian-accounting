@@ -1,3 +1,10 @@
+# v0.1.4
+
+- Reconcile allocated franking credits to the available credit pool.
+- Distribute section 95 rounding adjustments across available shares so a
+  positive income pool cannot give a beneficiary a negative taxable share.
+  Four equal beneficiaries now share a two-cent pool without a negative amount.
+
 # v0.1.3
 
 This is the first PyPI release of `solomons-sword`.

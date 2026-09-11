@@ -1,3 +1,8 @@
+# v0.1.3
+
+- Calculate FBT using the ATO's prescribed gross-up factors. A $1,000 type 1
+  taxable value produces $977.69 FBT.
+
 # v0.1.2
 
 - Bind the release workflow to the checked current Release Policy main commit.

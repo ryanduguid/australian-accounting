@@ -43,7 +43,7 @@ def test_proof_package_surface_is_versioned_and_keeps_stdio_separate() -> None:
     root = Path(__file__).resolve().parents[1]
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     assert project["name"] == "aus-accounting-mcp"
-    assert project["version"] == "0.2.0"
+    assert project["version"] == "0.2.1"
     assert project["scripts"] == {
         "aus-accounting-mcp": "aus_accounting_mcp.cli:main",
         "aus-accounting-mcp-demo": "aus_accounting_mcp.demo:main",
@@ -987,7 +987,7 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
     assert CANONICAL_REPOSITORY in citation
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
-    assert 'version = "0.2.0"' in pyproject
+    assert 'version = "0.2.1"' in pyproject
     assert "uvx from PyPI" in pyproject
     # The engines stay pinned to an exact version, which is what the commit pins
     # used to buy. They cannot be pinned by URL: PyPI rejects a distribution
@@ -1001,7 +1001,7 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     assert "allow-direct-references" not in pyproject
 
 
-def test_release_metadata_is_aligned_for_0_1_9() -> None:
+def test_release_metadata_distinguishes_source_from_published_version() -> None:
     root = Path(__file__).resolve().parents[1]
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
@@ -1009,15 +1009,15 @@ def test_release_metadata_is_aligned_for_0_1_9() -> None:
     server = json.loads((root / "server.json").read_text(encoding="utf-8"))
     published_version = server["version"]
 
-    assert project["version"] == "0.2.0"
+    assert project["version"] == "0.2.1"
     assert re.search(r"(?m)^version: 0\.2\.0$", citation)
     assert re.search(r"(?m)^date-released: 2026-09-10$", citation)
-    assert re.findall(r"(?m)^# (v\S+)$", release_notes)[0] == "v0.2.0"
+    assert re.findall(r"(?m)^# (v\S+)$", release_notes)[0] == "v0.2.1"
     assert "ato-benchmark-compare` 0.1.6" in release_notes
     assert "payday-super-checker` 0.1.3" in release_notes
     assert "div7a-loan-review` 0.1.1" in release_notes
     assert published_version == server["packages"][0]["version"] == "0.2.0"
-    assert project["version"] == published_version
+    assert project["version"] != published_version
 
 
 def test_active_repository_metadata_uses_canonical_identity() -> None:

@@ -1,3 +1,12 @@
+# v0.1.4
+
+- Refuse incomplete prior-year inputs and inconsistent passive-income amounts
+  when determining the maximum franking rate.
+- Validate ledger entry periods and preserve the full FDT offset when only
+  income-tax refunds cause the deficit. A $200 refund-only deficit retains
+  a $200 offset.
+- Refuse R&D refundable-offset debits that require the unsupported deferral rules.
+
 # v0.1.3
 
 This is the first PyPI release of `the-exchequer-tally`.
