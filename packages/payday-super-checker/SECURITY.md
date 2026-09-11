@@ -17,8 +17,11 @@ and disclosure timeline with the reporter.
 
 `evidence-pack` applies the same single-user CLI boundary below. It writes four
 fixed filenames into a new, operator-selected directory. An existing file,
-directory or symlink is refused, and rendering or staging failure leaves no
-published pack. The report omits employee identifiers and the input path while
+directory or symlink is refused using exclusive directory creation. Rendering
+finishes first; on a write failure, cleanup removes only files created by this
+run where the OS permits. Consume the pack only after the command completes.
+An interrupted run or failed cleanup can leave a partial directory. The report
+omits employee identifiers and the input path while
 retaining row numbers, dates, amounts and engine warnings. It remains a private
 workpaper. The in-memory builder accepts assessed engine results, not untrusted
 report text or caller-written provenance. Do not expose its path argument to a

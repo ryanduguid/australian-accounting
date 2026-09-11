@@ -3,6 +3,7 @@ import csv
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -126,21 +127,21 @@ def test_every_non_on_time_verdict_requires_review(change, verdict, tmp_path):
     assert [r["verdict"] for r in queue["exceptions"]] == [verdict]
 
 
-def test_writer_refuses_traversal_and_cleans_failed_staging(tmp_path, monkeypatch):
+def test_writer_refuses_traversal_and_cleans_failed_writes(tmp_path, monkeypatch):
     from paydaysuper.evidence_pack import write_evidence_pack
 
     output = tmp_path / "pack"
     with pytest.raises(ValueError, match="fixed filenames"):
         write_evidence_pack({"../outside.txt": "refuse"}, output)
     assert not output.exists()
-    original = Path.write_bytes
+    original = Path.open
 
-    def fail_second(path, data):
+    def fail_second(path, *args, **kwargs):
         if path.name == "exceptions.json":
             raise OSError("fabricated write failure")
-        return original(path, data)
+        return original(path, *args, **kwargs)
 
-    monkeypatch.setattr(Path, "write_bytes", fail_second)
+    monkeypatch.setattr(Path, "open", fail_second)
     with pytest.raises(OSError, match="fabricated write failure"):
         write_evidence_pack({name: "fabricated" for name in sorted(FILES)}, output)
     assert list(tmp_path.iterdir()) == []
@@ -162,3 +163,37 @@ def test_projected_report_validation_refuses_format_drift(tmp_path, malformation
         report = report.replace("\n2,", "\n2,extra,", 1)
     with pytest.raises(PractitionerPackError, match="17"):
         parse_report_snapshot(report.encode(), Path("report.csv"), identifiers_omitted=True)
+
+
+def test_concurrent_destination_creation_is_not_replaced(tmp_path, monkeypatch):
+    from paydaysuper import evidence_pack
+
+    output = tmp_path / "pack"
+    mkdir = Path.mkdir
+    rename = os.rename
+
+    def racing_mkdir(path, *args, **kwargs):
+        if path == output:
+            mkdir(output)  # The competing writer claims the name first.
+        return mkdir(path, *args, **kwargs)
+
+    def unix_replacing_rename(source, destination):
+        # Model Unix's replacement of an empty directory on every test platform.
+        mkdir(output)
+        output.rmdir()
+        return rename(source, destination)
+
+    monkeypatch.setattr(Path, "mkdir", racing_mkdir)
+    monkeypatch.setattr(os, "rename", unix_replacing_rename)
+    with pytest.raises(FileExistsError):
+        evidence_pack.write_evidence_pack({name: "fabricated" for name in FILES}, output)
+    assert output.is_dir()
+    assert list(output.iterdir()) == []
+
+
+@pytest.mark.parametrize("name", ["import", "review-pack", "evidence-pack"])
+def test_qualified_reserved_filename_still_runs_the_existing_checker(name, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    Path(name).write_bytes((EVALUATION / "fixtures/receipt_on_due_date.csv").read_bytes())
+    assert cli.main(["./" + name, "--as-at", EXPECTED["as_at"], "-o", "report.csv"]) == 0
+    assert "employee_id" in Path("report.csv").read_text(encoding="utf-8-sig")

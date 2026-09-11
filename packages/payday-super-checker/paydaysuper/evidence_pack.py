@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import json
-import os
-import tempfile
 from dataclasses import asdict
 from datetime import date
 from decimal import Decimal
@@ -92,12 +90,30 @@ def evidence_destination(path: str | Path) -> Path:
 
 
 def write_evidence_pack(files: dict[str, str], path: str | Path) -> None:
-    """Stage the four files beside a new directory and publish them together."""
+    """Create a new private directory exclusively; clean up our files on failure.
+
+    Consume the pack only after successful return. Directory-wide atomic
+    publication with no replacement is not portable in the standard library.
+    """
     if set(files) != {"report.csv", "practitioner-review.md", "exceptions.json", "decision-log.md"}:
         raise ValueError("evidence pack must contain exactly the four fixed filenames")
     destination = evidence_destination(path)
-    with tempfile.TemporaryDirectory(prefix=".payday-evidence-", dir=destination.parent) as staging:
+    destination.mkdir(mode=0o700)
+    created: list[Path] = []
+    try:
         for name, text in files.items():
-            (Path(staging) / name).write_bytes(text.encode("utf-8"))
-        evidence_destination(destination)
-        os.rename(staging, destination)
+            target = destination / name
+            with target.open("xb") as stream:
+                created.append(target)
+                stream.write(text.encode("utf-8"))
+    except (OSError, ValueError):
+        for target in created:
+            try:
+                target.unlink()
+            except OSError:
+                pass  # Preserve the write error if the OS also prevents cleanup.
+        try:
+            destination.rmdir()
+        except OSError:
+            pass  # Never recursively delete a directory that may contain another writer's file.
+        raise

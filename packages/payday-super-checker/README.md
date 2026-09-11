@@ -206,9 +206,10 @@ rerun before treating any verdict here as final.
 
 ### Build an evidence pack in one command (unreleased)
 
-From this source checkout, run:
+From the monorepo root, change into the component and run:
 
 ```bash
+cd packages/payday-super-checker
 uv run --locked payday-super-check evidence-pack evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 -o evidence-pack
 ```
 
@@ -230,8 +231,10 @@ exception or clear exit 2. The existing check, import and review-pack commands
 retain their exit meanings and report format.
 
 The exported report has 17 columns and its terminal `NOTE` marker is in `row`.
-It is not input to the legacy 18-column `review-pack` command; its matching
-checklist is already included. No input path or employee identifier is exported.
+It is not input to the legacy 18-column `review-pack` command or the accounting
+review pipeline's `PaydaySuper.Report` Excel importer; its matching checklist is
+already included. Use the ordinary checker report for that existing importer.
+No input path or employee identifier is exported in the evidence pack.
 Dates, amounts and engine warnings remain, so keep the pack and its original
 input in the same approved private workpaper location. Use source row numbers
 to reconcile them. The workflow retains missing facts and all review flags;
@@ -239,9 +242,12 @@ the human reviewer records evidence and decisions under applicable APES 110 and
 TPB obligations. It provides no advice and performs no lodgement or ledger write.
 
 An existing output file, directory or symlink is refused to preserve previous
-human decisions. The parent directory must exist. Files are staged beside the
-destination and published together after rendering succeeds. Use a new output
-directory for each run. This feature is not in published v0.1.3.
+human decisions. The parent directory must exist. All files are rendered before
+the output directory is created exclusively. Consume the pack only after the
+command completes; file creation is not a directory-wide atomic transaction.
+On write failure, cleanup removes only this run's files where the OS permits.
+An interrupted run or failed cleanup can leave a partial directory; inspect it
+and choose a new directory for the next run. This feature is not in published v0.1.3.
 
 ### Build a practitioner review pack
 
@@ -388,6 +394,11 @@ The importer still prints `row N: partial: 999.99 of 1000.00 matched` and `row N
 **A full financial-year export needs trimming first.** The check refuses any file holding a payday before 1 July 2026, because the old quarterly law governs those and this tool does not model it. An export that starts at 1 July 2025 therefore imports fine and then fails the check outright. The import names those rows in a warning and writes them anyway; delete them from the canonical file, or re-export from 1 July 2026, before running the second command.
 
 **A bare filename of `import` does not work.** `payday-super-check import`, run against a file that is genuinely named `import` with no extension, is read as the import subcommand and fails on the missing `--payroll`/`--super` arguments instead of checking the file. `payday-super-check import.csv` and `payday-super-check ./import` both check the file as expected; only the exact bare string `import` is swallowed.
+
+The bare names `review-pack` and `evidence-pack` are also reserved subcommands.
+For a contribution file with one of those names, use `./review-pack` or
+`./evidence-pack` to run the ordinary checker. Qualified paths and `.csv` filenames
+remain unambiguous.
 
 ## Local file boundary
 
