@@ -8,6 +8,7 @@ allocation cannot be confirmed through this facade.
 
 from __future__ import annotations
 
+import json
 import re
 from datetime import date
 from decimal import Decimal
@@ -273,14 +274,15 @@ def evidence_pack(contributions: list[ContributionInput], as_at: str) -> dict[st
         ) from exc
     lines = [_line(row=i, **row.model_dump()) for i, row in enumerate(contributions, 1)]
     as_at_day, results = _review(lines, as_at)
+    files = build_evidence_pack(
+        results, as_at=as_at_day, gic_provenance=load_gic().provenance(),
+    )
     return {
         "ok": True, "engine": "payday-super-checker", "engine_version": PAYDAY_VERSION,
         "law_content_date": LAW_CONTENT_DATE, "as_at": as_at_day.isoformat(),
         "disclaimer": DISCLAIMER,
-        "review_exit_code": 2 if any(row.verdict != "ON_TIME" for row in results) else 0,
-        "files": build_evidence_pack(
-            results, as_at=as_at_day, gic_provenance=load_gic().provenance(),
-        ),
+        "review_exit_code": 2 if json.loads(files["exceptions.json"])["exceptions"] else 0,
+        "files": files,
         "caveats": [
             "Private review artefacts. No files are written. Save returned strings as UTF-8 "
             "without altering newlines or the CSV's initial BOM, so the report hash matches.",
