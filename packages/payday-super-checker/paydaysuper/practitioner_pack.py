@@ -395,12 +395,12 @@ def _review_task(row: ReportRow) -> str:
     if row.verdict == "UNPAID":
         return (
             "Confirm the payday, SG amount, receipt and remittance evidence, and any "
-            "assessment facts; an authorised practitioner decides any remediation or lodgment."
+            "assessment facts; an authorised practitioner decides any remediation or lodgement."
         )
     if row.verdict == "LATE":
         return (
             "Verify the receipt date, allocation and assessment facts, then have an "
-            "authorised practitioner decide any correction, advice or lodgment."
+            "authorised practitioner decide any correction, advice or lodgement."
         )
     if row.verdict == "AT_RISK":
         return (
@@ -422,7 +422,7 @@ def _review_task(row: ReportRow) -> str:
     raise AssertionError(f"no review task for {row.verdict}")
 
 
-def render_practitioner_pack(snapshot: ReportSnapshot) -> str:
+def render_practitioner_pack(snapshot: ReportSnapshot, *, decision_log: bool = False) -> str:
     """Render a deterministic review index without employee identifiers."""
     counts = Counter(row.verdict for row in snapshot.rows)
     exposed = [row for row in snapshot.rows if row.verdict in {"LATE", "UNPAID"}]
@@ -497,7 +497,7 @@ def render_practitioner_pack(snapshot: ReportSnapshot) -> str:
             verdict = row.verdict
             if row.unassessable_between:
                 verdict += f" ({row.unassessable_between})"
-            exposure_range = "—"
+            exposure_range = "not displayed"
             if row.sgc_estimate_low is not None and row.sgc_estimate_high is not None:
                 exposure_range = (
                     f"{_money(row.sgc_estimate_low)} to {_money(row.sgc_estimate_high)}"
@@ -513,20 +513,28 @@ def render_practitioner_pack(snapshot: ReportSnapshot) -> str:
         lines.append("")
 
     lines += [
-        "## Practitioner sign-off",
+        "## Review checklist" if decision_log else "## Practitioner sign-off",
         "",
         "- [ ] The source report SHA-256 above matches the file reviewed.",
         "- [ ] The payroll, clearing-house and fund evidence has been reconciled for every queued row.",
         "- [ ] Missing calendar, allocation, assessment and classification facts have been resolved or escalated.",
-        "- [ ] Any advice, correction, payment, lodgment or disclosure was decided and performed by an appropriately authorised human.",
-        "",
-        "Reviewer: ______________________________",
-        "",
-        "Review date (Australia): ______________________________",
-        "",
-        "Conclusion and workpaper reference: ______________________________",
+        "- [ ] Any advice, correction, payment, lodgement or disclosure was decided and performed by an appropriately authorised human.",
         "",
     ]
+    if decision_log:
+        lines += [
+            "Record all decisions and practitioner sign-off in [decision-log.md](decision-log.md).",
+            "",
+        ]
+    else:
+        lines += [
+            "Reviewer: ______________________________",
+            "",
+            "Review date (Australia): ______________________________",
+            "",
+            "Conclusion and workpaper reference: ______________________________",
+            "",
+        ]
     return "\n".join(lines)
 
 

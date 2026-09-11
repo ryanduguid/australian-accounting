@@ -138,6 +138,9 @@ def test_no_exception_pack_still_requires_human_signoff(tmp_path):
     assert pack.needs_attention is False
     assert "NO EXCEPTION INDICATORS" in text
     assert "Practitioner sign-off is still required" in text
+    for field in ("Reviewer:", "Review date (Australia):", "Conclusion and workpaper reference:"):
+        assert field in text
+    assert "decision-log.md" not in text
 
 
 @pytest.mark.parametrize(

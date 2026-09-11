@@ -75,7 +75,7 @@ def build_evidence_pack(
     ])
     return {
         "report.csv": report,
-        "practitioner-review.md": render_practitioner_pack(snapshot),
+        "practitioner-review.md": render_practitioner_pack(snapshot, decision_log=True),
         "exceptions.json": json.dumps(queue, default=_json_value, indent=2, ensure_ascii=True) + "\n",
         "decision-log.md": decision,
     }

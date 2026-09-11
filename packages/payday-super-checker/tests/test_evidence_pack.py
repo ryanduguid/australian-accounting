@@ -45,6 +45,10 @@ def test_pinned_fabricated_pack(scenario, tmp_path, capsys):
     )
     for heading in ("## Evidence reviewed", "## Decisions", "## Practitioner sign-off"):
         assert heading in decision
+    assert "[decision-log.md](decision-log.md)" in review
+    for field in ("Reviewer:", "Review date (Australia):", "Conclusion and workpaper reference:"):
+        assert field in decision
+        assert field not in review
     assert "APES 110" in decision and "TPB" in decision
     assert "Obtain and verify the fund receipt date" in review or code == 0 or "LATE" in review
     captured = capsys.readouterr()
