@@ -257,3 +257,37 @@ def review_contributions(contributions: list[ContributionInput], as_at: str) -> 
         ],
         "results": [{"input_row": r.line.row, **_serialise(r, single=False)} for r in results],
     }
+
+
+def evidence_pack(contributions: list[ContributionInput], as_at: str) -> dict[str, Any]:
+    """Delegate the pack to an engine that provides it; never accept local paths."""
+    try:
+        from paydaysuper.evidence_pack import build_evidence_pack
+    except ModuleNotFoundError as exc:
+        if exc.name != "paydaysuper.evidence_pack":
+            raise
+        raise InputError(
+            "Evidence-pack is not available in the installed payday-super-checker. "
+            "Use the reviewed source checkout until the engine is released and the "
+            "MCP dependency pin is updated. Existing review tools remain available."
+        ) from exc
+    lines = [_line(row=i, **row.model_dump()) for i, row in enumerate(contributions, 1)]
+    as_at_day, results = _review(lines, as_at)
+    return {
+        "ok": True, "engine": "payday-super-checker", "engine_version": PAYDAY_VERSION,
+        "law_content_date": LAW_CONTENT_DATE, "as_at": as_at_day.isoformat(),
+        "disclaimer": DISCLAIMER,
+        "review_exit_code": 2 if any(row.verdict != "ON_TIME" for row in results) else 0,
+        "files": build_evidence_pack(
+            results, as_at=as_at_day, gic_provenance=load_gic().provenance(),
+        ),
+        "caveats": [
+            "Private review artefacts. No files are written. Save returned strings as UTF-8 "
+            "without altering newlines or the CSV's initial BOM, so the report hash matches.",
+            "Source row references are one-based positions in the supplied contribution list.",
+            "Supply all related rows for one employer with established receipt allocation. "
+            "No ATO assessment is assumed to have issued. Transition allocation is unconfirmed.",
+            "Employee identifiers are omitted from the returned pack. The calling host still "
+            "receives the input references; use an approved environment and fabricated demos.",
+        ],
+    }

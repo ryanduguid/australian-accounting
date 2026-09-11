@@ -22,7 +22,12 @@ except PackageNotFoundError:  # running from a source tree without installation
 
 from .adapters.benchmarks import compare_figures, list_industries
 from .adapters.div7a import get_benchmark_rate, review_loan
-from .adapters.payday import ContributionInput, review_contribution, review_contributions
+from .adapters.payday import (
+    ContributionInput,
+    evidence_pack,
+    review_contribution,
+    review_contributions,
+)
 from .adapters.tax import TaxFacts, calculate
 from .errors import InputError
 from .fixtures.synthetic_sbr import (
@@ -38,6 +43,7 @@ from .outputs import (
     IndustryList,
     LibraryExcerpt,
     LibrarySearch,
+    PaydayEvidencePack,
     PaydayGroupReview,
     PaydayReview,
     ScopeRefusal,
@@ -80,6 +86,10 @@ SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operato
   review_payday_super_contributions with related rows for one employer when that
   context matters; do not combine single calls
   into a payroll-wide conclusion or treat supplied sg_amount as verified entitlement.
+- build_payday_super_evidence_pack returns four private review files in memory from
+  the same related rows. It omits employee identifiers from outputs and queues every
+  non-ON_TIME result. It accepts no paths and records no decisions. The installed
+  checker must provide evidence-pack; otherwise this tool refuses the request.
 - Use get_div7a_benchmark_rate for rate-only queries and review_div7a_loan for
   the reviewed s 109N/s 109E facts of one operator-supplied amalgamated loan.
   Use refuse_div7a for unsupported matters. Do not form amalgamated loans,
@@ -778,6 +788,25 @@ def review_payday_super_contributions(
     UNKNOWN outcomes and engine metadata. Local review aid, not advice.
     """
     return cast(PaydayGroupReview, review_contributions(contributions, as_at))
+
+
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Build a Payday Super evidence pack")
+def build_payday_super_evidence_pack(
+    contributions: Annotated[list[ContributionInput], Field(
+        min_length=1, max_length=200,
+        description="Established contribution rows for one employer. Supply all related rows "
+        "and the three eligibility flags. Use fabricated rows for demonstrations.")],
+    as_at: Annotated[str, Field(description="Explicit assessment date, YYYY-MM-DD.")],
+) -> PaydayEvidencePack:
+    """Return report.csv, practitioner-review.md, exceptions.json and decision-log.md.
+
+    The engine owns all assessment and rendering. Returns UTF-8 file contents in
+    memory, with no file reads or writes for caller-supplied paths. Missing receipt
+    evidence remains missing; all non-ON_TIME rows require human review. The report
+    omits employee identifiers, but input references still enter the calling host.
+    Review aid, not advice or lodgement. Requires an engine with evidence-pack support.
+    """
+    return cast(PaydayEvidencePack, evidence_pack(contributions, as_at))
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Calculate a bounded Australian tax worksheet")

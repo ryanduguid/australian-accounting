@@ -82,6 +82,8 @@ def scope() -> dict[str, Any]:
             "review_div7a_loan": "Review s 109N/s 109E facts of one supplied amalgamated loan.",
             "refuse_div7a": "Return the standing refusal for unsupported Division 7A matters.",
             "review_payday_super_contributions": "Assess related contributions for one employer.",
+            "build_payday_super_evidence_pack": "Return four review files in memory; requires "
+            "checker evidence-pack support. No caller paths or decisions accepted.",
             "calculate_tax_worksheet": "Run one of the bounded calculation_worksheets below.",
             "search_accounting_library": "Search an explicitly configured local Markdown library.",
             "read_accounting_library": "Read bounded lines with a source path and hash.",

@@ -253,6 +253,23 @@ class PaydayGroupReview(EngineResult):
     results: list[PaydayAssessment]
 
 
+PaydayEvidenceFiles = TypedDict("PaydayEvidenceFiles", {
+    "report.csv": str,
+    "practitioner-review.md": str,
+    "exceptions.json": str,
+    "decision-log.md": str,
+})
+
+
+class PaydayEvidencePack(EngineResult):
+    law_content_date: DateText
+    as_at: DateText
+    disclaimer: str
+    review_exit_code: Literal[0, 2]
+    files: PaydayEvidenceFiles
+    caveats: Caveats
+
+
 class LibraryExcerpt(ResultObject):
     path: str
     sha256: str
