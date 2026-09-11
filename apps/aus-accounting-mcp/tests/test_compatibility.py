@@ -30,13 +30,13 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         "distribution": "aus-accounting-mcp",
         "version": server_metadata["version"],
         "repository": CANONICAL_REPOSITORY,
-        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.2.0/",
+        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.2.1/",
         "registry_identity": "io.github.ryanduguid/aus-accounting",
         "registry": (
             "https://registry.modelcontextprotocol.io/v0.1/servers/"
-            "io.github.ryanduguid%2Faus-accounting/versions/0.2.0"
+            "io.github.ryanduguid%2Faus-accounting/versions/0.2.1"
         ),
-        "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v0.2.0",
+        "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v0.2.1",
     }
     assert record["engines"] == [
         {
@@ -59,16 +59,15 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         },
         {
             "distribution": "australian-tax-calculators",
-            "version": "0.1.2",
+            "version": "0.1.3",
             "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/australian-tax-calculators",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/australian-tax-calculators/v0.1.2",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/australian-tax-calculators/v0.1.3",
         },
     ]
     distribution = record["server"]["distribution"]
     assert importlib.metadata.version(distribution) == "0.2.1"
     requirements = set(importlib.metadata.requires(record["server"]["distribution"]) or [])
     runtime_versions = {engine["distribution"]: engine["version"] for engine in record["engines"]}
-    runtime_versions["australian-tax-calculators"] = "0.1.3"
     for name, engine_version in runtime_versions.items():
         assert importlib.metadata.version(name) == engine_version
         assert f"{name}=={engine_version}" in requirements
