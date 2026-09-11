@@ -223,6 +223,10 @@ into a **new** directory:
 | `exceptions.json` | Schema version 1; every non-`ON_TIME` row, report hash and run context |
 | `decision-log.md` | Blank evidence, decision and practitioner sign-off template |
 
+Record all decisions and practitioner sign-off in `decision-log.md`. The
+checklist links to that record. Standalone `review-pack` retains its own
+sign-off form.
+
 The fabricated example exits **2** with `AT_RISK`. Remittance does not establish
 receipt. Evidence-pack uses the review-pack exit contract: **0** when every row
 is `ON_TIME`, **2** when any row needs review, and **1** on input or write failure.
