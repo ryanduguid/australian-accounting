@@ -90,30 +90,17 @@ def evidence_destination(path: str | Path) -> Path:
 
 
 def write_evidence_pack(files: dict[str, str], path: str | Path) -> None:
-    """Create a new private directory exclusively; clean up our files on failure.
+    """Create a new directory exclusively; preserve partial files on failure.
 
     Consume the pack only after successful return. Directory-wide atomic
     publication with no replacement is not portable in the standard library.
+    The caller supplies an access-controlled parent; OS permissions vary.
     """
     if set(files) != {"report.csv", "practitioner-review.md", "exceptions.json", "decision-log.md"}:
         raise ValueError("evidence pack must contain exactly the four fixed filenames")
     destination = evidence_destination(path)
     destination.mkdir(mode=0o700)
-    created: list[Path] = []
-    try:
-        for name, text in files.items():
-            target = destination / name
-            with target.open("xb") as stream:
-                created.append(target)
-                stream.write(text.encode("utf-8"))
-    except (OSError, ValueError):
-        for target in created:
-            try:
-                target.unlink()
-            except OSError:
-                pass  # Preserve the write error if the OS also prevents cleanup.
-        try:
-            destination.rmdir()
-        except OSError:
-            pass  # Never recursively delete a directory that may contain another writer's file.
-        raise
+    # Never unlink on failure: a completed file may already have been edited.
+    for name, text in files.items():
+        with (destination / name).open("xb") as stream:
+            stream.write(text.encode("utf-8"))

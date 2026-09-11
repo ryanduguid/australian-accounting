@@ -127,7 +127,8 @@ def test_every_non_on_time_verdict_requires_review(change, verdict, tmp_path):
     assert [r["verdict"] for r in queue["exceptions"]] == [verdict]
 
 
-def test_writer_refuses_traversal_and_cleans_failed_writes(tmp_path, monkeypatch):
+@pytest.mark.parametrize("replace_completed_file", [False, True])
+def test_writer_refuses_traversal_and_preserves_failed_pack(tmp_path, monkeypatch, replace_completed_file):
     from paydaysuper.evidence_pack import write_evidence_pack
 
     output = tmp_path / "pack"
@@ -138,13 +139,20 @@ def test_writer_refuses_traversal_and_cleans_failed_writes(tmp_path, monkeypatch
 
     def fail_second(path, *args, **kwargs):
         if path.name == "exceptions.json":
+            if replace_completed_file:
+                with original(output / "decision-log.md", "wb") as stream:
+                    stream.write(b"A human has started this decision log")
             raise OSError("fabricated write failure")
         return original(path, *args, **kwargs)
 
     monkeypatch.setattr(Path, "open", fail_second)
     with pytest.raises(OSError, match="fabricated write failure"):
         write_evidence_pack({name: "fabricated" for name in sorted(FILES)}, output)
-    assert list(tmp_path.iterdir()) == []
+    assert {path.name for path in output.iterdir()} == {"decision-log.md"}
+    expected = "A human has started this decision log" if replace_completed_file else "fabricated"
+    assert (output / "decision-log.md").read_text() == expected
+    with pytest.raises(ValueError, match="already exists"):
+        write_evidence_pack({name: "fabricated" for name in sorted(FILES)}, output)
 
 
 @pytest.mark.parametrize("malformation", ["header", "width"])

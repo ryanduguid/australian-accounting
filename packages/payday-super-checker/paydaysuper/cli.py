@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -523,7 +524,7 @@ def main(argv: list[str] | None = None) -> int:
             return EXIT_ERROR
         _reconfigure_stdout_for_unicode()
         print(f"wrote evidence pack to {args.output}")
-        return EXIT_LATE_FOUND if any(r.verdict != "ON_TIME" for r in results) else EXIT_OK
+        return EXIT_LATE_FOUND if json.loads(files["exceptions.json"])["exceptions"] else EXIT_OK
 
     try:
         write_csv(

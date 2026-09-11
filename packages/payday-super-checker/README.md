@@ -245,9 +245,14 @@ An existing output file, directory or symlink is refused to preserve previous
 human decisions. The parent directory must exist. All files are rendered before
 the output directory is created exclusively. Consume the pack only after the
 command completes; file creation is not a directory-wide atomic transaction.
-On write failure, cleanup removes only this run's files where the OS permits.
-An interrupted run or failed cleanup can leave a partial directory; inspect it
-and choose a new directory for the next run. This feature is not in published v0.1.3.
+Write failures leave the partial directory for inspection and return exit 1.
+The command never deletes these files, which another process may have edited.
+Choose a new directory for the next run. This feature is not in published v0.1.3.
+
+Use an access-controlled parent directory on every platform. Permissions depend
+on the OS and Python version; older Windows runtimes can inherit the parent's
+access controls despite the requested directory mode. The command does not
+configure or audit access controls.
 
 ### Build a practitioner review pack
 
