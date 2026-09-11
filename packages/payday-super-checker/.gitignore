@@ -9,6 +9,10 @@
 *.[pP][dD][fF]
 *.[cC][sS][vV]
 /practitioner-review.md
+# Generated evidence packs may use any operator-selected directory name.
+practitioner-review.md
+exceptions.json
+decision-log.md
 # The only CSV exceptions are examples, importer test fixtures, and the four
 # fabricated Payday Super evaluation fixtures below.
 !examples/*.csv

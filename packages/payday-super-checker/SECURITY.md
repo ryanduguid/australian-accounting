@@ -15,6 +15,15 @@ and disclosure timeline with the reporter.
 
 ## Local path trust boundary
 
+`evidence-pack` applies the same single-user CLI boundary below. It writes four
+fixed filenames into a new, operator-selected directory. An existing file,
+directory or symlink is refused, and rendering or staging failure leaves no
+published pack. The report omits employee identifiers and the input path while
+retaining row numbers, dates, amounts and engine warnings. It remains a private
+workpaper. The in-memory builder accepts assessed engine results, not untrusted
+report text or caller-written provenance. Do not expose its path argument to a
+less-trusted caller without enforcing a safe root.
+
 This is a single-user CLI, not a sandbox or service. Its input, mapping,
 calendar-override and output paths are selected by the invoking operating-system
 user and intentionally may refer to any file that user can access. Do not run it

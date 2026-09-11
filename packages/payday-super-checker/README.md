@@ -204,6 +204,45 @@ does not turn `AT_RISK` into `ON_TIME`, because paying on time is not the
 statutory test. Fill `fund_received_date` from your clearing house or fund and
 rerun before treating any verdict here as final.
 
+### Build an evidence pack in one command (unreleased)
+
+From this source checkout, run:
+
+```bash
+uv run --locked payday-super-check evidence-pack evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 -o evidence-pack
+```
+
+This uses the existing checker and practitioner checklist to write four files
+into a **new** directory:
+
+| File | Purpose |
+| --- | --- |
+| `report.csv` | Existing report fields with the employee identifier column omitted; source row numbers remain |
+| `practitioner-review.md` | Review queue and checklist bound to the exported CSV's SHA-256 |
+| `exceptions.json` | Schema version 1; every non-`ON_TIME` row, report hash and run context |
+| `decision-log.md` | Blank evidence, decision and practitioner sign-off template |
+
+The fabricated example exits **2** with `AT_RISK`. Remittance does not establish
+receipt. Evidence-pack uses the review-pack exit contract: **0** when every row
+is `ON_TIME`, **2** when any row needs review, and **1** on input or write failure.
+`--confirm-remittance-only` records the acknowledgement but does not remove an
+exception or clear exit 2. The existing check, import and review-pack commands
+retain their exit meanings and report format.
+
+The exported report has 17 columns and its terminal `NOTE` marker is in `row`.
+It is not input to the legacy 18-column `review-pack` command; its matching
+checklist is already included. No input path or employee identifier is exported.
+Dates, amounts and engine warnings remain, so keep the pack and its original
+input in the same approved private workpaper location. Use source row numbers
+to reconcile them. The workflow retains missing facts and all review flags;
+the human reviewer records evidence and decisions under applicable APES 110 and
+TPB obligations. It provides no advice and performs no lodgement or ledger write.
+
+An existing output file, directory or symlink is refused to preserve previous
+human decisions. The parent directory must exist. Files are staged beside the
+destination and published together after rendering succeeds. Use a new output
+directory for each run. This feature is not in published v0.1.3.
+
 ### Build a practitioner review pack
 
 Turn the completed checker report into a deterministic Markdown index and

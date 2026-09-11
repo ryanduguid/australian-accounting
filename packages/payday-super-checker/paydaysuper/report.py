@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import csv
+import io
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
@@ -180,16 +181,40 @@ def write_csv(
     source: str | Path | None = None,
     gic_provenance: str = "",
 ) -> None:
+    with atomic_text_output(path, encoding="utf-8-sig") as stream:
+        stream.write(render_csv(
+            results, as_at, law_date, assessment_date, source, gic_provenance,
+        ))
+
+
+def render_csv(
+    results: list[Result],
+    as_at: date,
+    law_date: str,
+    assessment_date: date | None = None,
+    source: str | Path | None = None,
+    gic_provenance: str = "",
+    *,
+    include_employee_ids: bool = True,
+) -> str:
     # utf-8-sig, not utf-8: Excel on a cp1252 Windows box reads a BOM-less
     # CSV in the locale code page, so a non-ASCII employee id comes out
     # mojibake and stops joining back to the payroll export. parse_rows
     # already reads with utf-8-sig, so a report fed back in still parses.
-    with atomic_text_output(path, encoding="utf-8-sig") as f:
+    with io.StringIO(newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(CSV_HEADER)
+        columns = [
+            i for i, name in enumerate(CSV_HEADER)
+            if include_employee_ids or name != "employee_id"
+        ]
+
+        def write_row(values: list) -> None:
+            writer.writerow([values[i] for i in columns])
+
+        write_row(CSV_HEADER)
         for r in results:
             figures = _rounded_figures(r)
-            writer.writerow(
+            write_row(
                 [
                     r.line.row,
                     csv_safe(r.line.employee_id),
@@ -215,7 +240,7 @@ def write_csv(
         # Trailing note, full width so the file stays a clean table: a
         # one-field title row makes Power Query infer the wrong column count.
         note = [""] * len(CSV_HEADER)
-        note[1] = "NOTE"
+        note[1 if include_employee_ids else 0] = "NOTE"
         assessment_text = (
             f"Assessment date {assessment_date.isoformat()}. "
             if assessment_date is not None
@@ -238,7 +263,8 @@ def write_csv(
             "choice loading, the maximum contributions base and post-assessment "
             "penalties. Educational tool, not advice: the ATO assesses the charge."
         )
-        writer.writerow(note)
+        write_row(note)
+        return f.getvalue()
 
 
 def console_summary(
