@@ -1,4 +1,4 @@
-# Australian accounting: inspect the evidence behind the result
+# Australian accounting engines and MCP server
 
 Synthetic examples. Review aid, not professional advice; accounting decisions stay with the reviewer.
 
