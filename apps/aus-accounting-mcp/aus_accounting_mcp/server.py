@@ -5,6 +5,7 @@ Statutory tools are facades over reviewed delegated engines. SBR payloads are sy
 
 from __future__ import annotations
 
+import json
 from decimal import Decimal
 from importlib.metadata import PackageNotFoundError, version
 from typing import Annotated, Any, Literal, cast
@@ -12,7 +13,7 @@ from typing import Annotated, Any, Literal, cast
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.context import Context
 from mcp.server.mcpserver.exceptions import ToolError
-from mcp_types import CallToolResult, InputRequiredResult, Tool, ToolAnnotations
+from mcp_types import CallToolResult, InputRequiredResult, TextContent, Tool, ToolAnnotations
 from pydantic import Field
 
 try:
@@ -90,6 +91,8 @@ SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operato
   the same related rows. It omits employee identifiers from outputs and queues every
   non-ON_TIME result. It accepts no paths and records no decisions. The installed
   checker must provide evidence-pack; otherwise this tool refuses the request.
+  Use response_detail="compact" only if the host reads structuredContent.files;
+  it keeps every file there and returns a short text summary. Otherwise keep "full".
 - Use get_div7a_benchmark_rate for rate-only queries and review_div7a_loan for
   the reviewed s 109N/s 109E facts of one operator-supplied amalgamated loan.
   Use refuse_div7a for unsupported matters. Do not form amalgamated loans,
@@ -797,7 +800,11 @@ def build_payday_super_evidence_pack(
         description="Established contribution rows for one employer. Supply all related rows "
         "and the three eligibility flags. Use fabricated rows for demonstrations.")],
     as_at: Annotated[str, Field(description="Explicit assessment date, YYYY-MM-DD.")],
-) -> PaydayEvidencePack:
+    response_detail: Annotated[Literal["full", "compact"], Field(
+        description="Full repeats the pack in text for compatibility. Compact keeps all files "
+        "in structuredContent.files and summarises text; use only with a host that reads them.")
+    ] = "full",
+) -> Annotated[CallToolResult, PaydayEvidencePack]:
     """Return report.csv, practitioner-review.md, exceptions.json and decision-log.md.
 
     The engine owns all assessment and rendering. Returns UTF-8 file contents in
@@ -806,7 +813,20 @@ def build_payday_super_evidence_pack(
     omits employee identifiers, but input references still enter the calling host.
     Review aid, not advice or lodgement. Requires an engine with evidence-pack support.
     """
-    return cast(PaydayEvidencePack, evidence_pack(contributions, as_at))
+    result = evidence_pack(contributions, as_at)
+    if response_detail == "compact":
+        text = (
+            f"Review exit code: {result['review_exit_code']} "
+            "(0: no exception indicators; 2: review required).\n"
+            "Four private review files are in structuredContent.files. Read their warnings "
+            "and retain the exact file contents. No decisions or sign-off recorded.\n"
+            + result["disclaimer"] + "\n" + "\n".join(result["caveats"])
+        )
+    else:
+        text = json.dumps(result, ensure_ascii=False, indent=2)
+    return CallToolResult(
+        content=[TextContent(type="text", text=text)], structured_content=result,
+    )
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Calculate a bounded Australian tax worksheet")

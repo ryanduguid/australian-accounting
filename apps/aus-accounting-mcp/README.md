@@ -103,6 +103,15 @@ exact report bytes. Source row numbers are one-based positions in the input list
 `review_exit_code` is 2 for any non-`ON_TIME` row and 0 only when all rows are
 `ON_TIME`. An error remains an MCP error. No decision or sign-off is generated.
 
+The default `response_detail="full"` includes the pack in both text and structured
+content for client compatibility. Hosts that read `structuredContent.files` can
+request `response_detail="compact"` to replace the duplicate text with a short
+summary, the disclaimer and caveats. Both modes retain every file byte, hash and
+review flag. Use full mode if the host only reads text results.
+
+Record decisions and practitioner sign-off in `decision-log.md`; the included
+checklist links to that record.
+
 Employee identifiers are omitted from the returned pack. The calling MCP host
 still receives the input references; use an approved environment and fabricated
 data for demonstrations. Amounts, dates and warnings remain private workpaper
