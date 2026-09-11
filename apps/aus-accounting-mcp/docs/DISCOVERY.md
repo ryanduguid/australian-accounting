@@ -105,7 +105,7 @@ anything a later edit added.
   `publish-mcp.yml` runs. The [MCP Registry PyPI package
   guidance](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/package-types.mdx)
   requires the published package README to contain its matching `mcp-name`
-  marker. Version 0.2.0 is the release represented by `server.json`; publish it
+  marker. Version 0.2.1 is the release represented by `server.json`; publish it
   to PyPI and verify it before dispatching the registry workflow. `server.json`
   names that exact package version. GitHub Actions OIDC publishes the registry
   record only after an explicit manual dispatch.
@@ -176,7 +176,7 @@ update `tag` if the intended version changes and run these checks after
 downloading the assets and checking `SHA256SUMS`:
 
 ```bash
-tag=aus-accounting-mcp/v0.2.0
+tag=aus-accounting-mcp/v0.2.1
 repo=ryanduguid/australian-accounting
 wheel="aus_accounting_mcp-${tag#aus-accounting-mcp/v}-py3-none-any.whl"
 release_commit="$(git ls-remote "https://github.com/$repo.git" "refs/tags/$tag^{}" | cut -f1)"
@@ -185,11 +185,11 @@ gh attestation verify "$wheel" -R "$repo" \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest 787db4590e725cfd37104c8a9dd9e75f7fd4c018
+  --signer-digest ff86e30038ca4fd028ce3663646ee03ae5e94692
 gh attestation verify "$wheel" -R "$repo" \
   --predicate-type https://spdx.dev/Document \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest 787db4590e725cfd37104c8a9dd9e75f7fd4c018
+  --signer-digest ff86e30038ca4fd028ce3663646ee03ae5e94692
 ```
