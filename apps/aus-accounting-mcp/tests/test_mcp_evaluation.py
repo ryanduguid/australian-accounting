@@ -64,7 +64,7 @@ async def _answer(session, case):
     def ratio(result, name):
         return next(row["status"] for row in result["ratios"] if row["ratio"] == name)
 
-    if case in {"grouped-payday", "worksheet-gst", "library-reference"}:
+    if case in {"grouped-payday", "worksheet-gst", "library-reference", "payday-evidence-pack"}:
         reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
         results = [await call(c["name"], **c["arguments"])
                    for c in json.loads(reference.text)]
@@ -72,6 +72,8 @@ async def _answer(session, case):
             return results[0]["results"][1]["due"]
         if case == "worksheet-gst":
             return results[0]["amounts"]["gst"]
+        if case == "payday-evidence-pack":
+            return json.loads(results[0]["files"]["exceptions.json"])["exceptions"][0]["verdict"]
         return results[-1]["text"]
 
     if case == "catalogue-pages":

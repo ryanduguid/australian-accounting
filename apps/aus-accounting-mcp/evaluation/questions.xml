@@ -185,4 +185,10 @@
     <calls>[{"name": "search_accounting_library", "arguments": {"query": "synthetic credit"}}, {"name": "read_accounting_library", "arguments": {"path": "example.md", "start_line": 2, "line_count": 1}}]</calls>
     <tools><tool>read_accounting_library</tool><tool>search_accounting_library</tool></tools>
   </qa_pair>
+  <qa_pair id="payday-evidence-pack">
+    <question>Build a review evidence pack for one fabricated contribution: employee SYN001, QE day 2026-08-06, established SG amount AUD 120.00, remitted 2026-08-14 and no fund receipt date. First-to-fund, out-of-cycle and defined-benefit flags are all established false. As at 2026-08-20, return only the verdict queued in exceptions.json. Do not invent receipt evidence or write files.</question>
+    <answer>AT_RISK</answer>
+    <calls>[{"name":"build_payday_super_evidence_pack","arguments":{"contributions":[{"employee_id":"SYN001","qe_day":"2026-08-06","sg_amount":"120.00","remitted":"2026-08-14","received":null,"first_to_fund":false,"out_of_cycle":false,"db_interest":false}],"as_at":"2026-08-20"}}]</calls>
+    <tools><tool>build_payday_super_evidence_pack</tool></tools>
+  </qa_pair>
 </evaluation>

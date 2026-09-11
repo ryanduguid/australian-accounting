@@ -60,6 +60,7 @@ claude mcp add aus-accounting -- uvx aus-accounting-mcp
 | `get_ato_benchmarks` | Compare supplied P&L figures with ATO benchmark ranges. |
 | `calc_payday_super_deadline` | Review timing for one super contribution. |
 | `review_payday_super_contributions` | Review related contributions together for one employer. |
+| `build_payday_super_evidence_pack` | Return four review files in memory; unreleased, requires checker evidence-pack support. |
 | `calculate_tax_worksheet` | Calculate one of six worksheets with established scope and period. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
@@ -87,6 +88,45 @@ as forming amalgamated loans, s 109R repayment classification, unpaid present
 entitlements and distributable surplus. The
 [reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md)
 covers all exclusions, input rules, prompts, resources and evaluation instructions.
+
+## Payday Super evidence pack (unreleased)
+
+In the reviewed monorepo checkout, `build_payday_super_evidence_pack` accepts the
+same `contributions` and explicit `as_at` as grouped review. It delegates the
+assessment and all four artefacts to the checker. There are no path arguments,
+fixture-path lookups, filesystem writes or network calls.
+
+The response includes `files` keyed by `report.csv`, `practitioner-review.md`,
+`exceptions.json` and `decision-log.md`. Save the strings as UTF-8 without changing
+newlines or removing the CSV's initial BOM; the Markdown and JSON bind to those
+exact report bytes. Source row numbers are one-based positions in the input list.
+`review_exit_code` is 2 for any non-`ON_TIME` row and 0 only when all rows are
+`ON_TIME`. An error remains an MCP error. No decision or sign-off is generated.
+
+The default `response_detail="full"` includes the pack in both text and structured
+content for client compatibility. Hosts that read `structuredContent.files` can
+request `response_detail="compact"` to replace the duplicate text with a short
+summary, the disclaimer and caveats. Both modes retain every file byte, hash and
+review flag. Use full mode if the host only reads text results.
+
+Record decisions and practitioner sign-off in `decision-log.md`; the included
+checklist links to that record.
+
+Employee identifiers are omitted from the returned pack. The calling MCP host
+still receives the input references; use an approved environment and fabricated
+data for demonstrations. Amounts, dates and warnings remain private workpaper
+information. Missing receipt dates remain missing.
+
+The 17-column evidence report is for the included checklist. It is not accepted
+by legacy `review-pack` or the accounting review pipeline's `PaydaySuper.Report`
+Excel importer. Use an ordinary 18-column checker report for that importer.
+
+Published checker v0.1.3 does not include the pack builder. With that installation,
+this tool returns a feature-unavailable error and the existing tools continue to
+work. Package versions, dependency pins, `compatibility.json` and `server.json`
+remain unchanged. After the checker feature is reviewed, its release and the MCP
+dependency update require a separate handoff. `uvx aus-accounting-mcp` does not yet
+provide this new workflow. No release is implied by these source changes.
 
 ## 30-second proof
 
