@@ -415,6 +415,22 @@ def test_section95_loss_is_not_allocated_to_beneficiaries():
         calculate_proportionate_share(t)
 
 
+@pytest.mark.parametrize("count,pool", [(4, "0.02"), (10, "0.05"), (4, "0.01"), (4, "0.00"), (4, "100.00")])
+def test_section95_rounding_never_creates_negative_taxable_shares(count, pool):
+    assessment = TrustIncomeAssessment(
+        financial_year=2026,
+        trust_name="Example Trust",
+        trust_accounting_income=Decimal(100 * count),
+        section95_net_taxable_income=Decimal(pool),
+        beneficiaries=[BeneficiaryEntitlement(str(i), fixed_entitlement_amount=Decimal("100"))
+                       for i in range(count)],
+    )
+    shares = calculate_proportionate_share(assessment)
+    assert all(share.section95_net_income_share >= 0 for share in shares)
+    assert sum(share.section95_net_income_share for share in shares) == Decimal(pool)
+    assert all(share.total_taxable_component == share.section95_net_income_share for share in shares)
+
+
 def test_resolution_before_the_income_year_started_is_refused():
     schedule = TrustResolutionSchedule(
         trust_name="Smith Family Trust",

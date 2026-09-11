@@ -158,20 +158,20 @@ def test_payday_coverage_resource_uses_the_loaded_engine_tables(monkeypatch) -> 
     assert served["disclaimer"]
 
 
-def test_component_versions_resource_agrees_with_the_compatibility_record() -> None:
-    # The resource reads installed metadata so it is right from a wheel, where
-    # compatibility.json is not shipped. The record is what the release says was
-    # published. In this checkout the two describe the same thing, so a pin bump
-    # that updates one and not the other fails here.
+def test_component_versions_resource_preserves_identity_and_exact_runtime_pins() -> None:
+    # The compatibility record describes the last published release. A candidate
+    # keeps that identity but reports the versions its installed wheel requires.
     record = json.loads((ROOT / "compatibility.json").read_text(encoding="utf-8"))
     served = json.loads(_read("aus-accounting://component-versions"))
 
-    assert served["server"]["version"] == record["server"]["version"]
+    assert served["server"]["version"] == importlib.metadata.version("aus-accounting-mcp")
     assert served["server"]["registry_identity"] == record["server"]["registry_identity"]
     assert served["server"]["repository"] == record["server"]["repository"]
-    assert {engine["distribution"]: engine["version"] for engine in served["engines"]} == {
-        engine["distribution"]: engine["version"] for engine in record["engines"]
-    }
+    requirements = set(importlib.metadata.requires("aus-accounting-mcp") or [])
+    assert {engine["distribution"] for engine in served["engines"]} == {
+        engine["distribution"] for engine in record["engines"]}
+    for engine in served["engines"]:
+        assert f"{engine['distribution']}=={engine['version']}" in requirements
 
 
 def test_a_missing_distribution_reports_null_rather_than_a_guess(monkeypatch) -> None:

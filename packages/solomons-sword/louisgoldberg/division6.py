@@ -175,8 +175,8 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
             "until the entitlements reconcile to the cent"
         )
 
-    # Allocate on the unrounded ratios, then hand the rounding residual to the
-    # largest share so the allocated total reconciles to the s 95 net income.
+    # Allocate on the unrounded ratios, then reconcile rounding differences
+    # without reducing a beneficiary's taxable share below zero.
     residual = s95_net.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     credit_residual = assessment.franking_credits.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     for b, ratio, pct in zip(assessment.beneficiaries, ratios, implied):
@@ -219,20 +219,16 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
             )
         )
 
-    if residual and shares:
-        largest = max(range(len(shares)), key=lambda i: shares[i].section95_net_income_share)
-        adjusted = shares[largest]
-        shares[largest] = BeneficiaryTaxShare(
-            beneficiary_name=adjusted.beneficiary_name,
-            trust_income_entitlement=adjusted.trust_income_entitlement,
-            proportion_percentage=adjusted.proportion_percentage,
-            section95_net_income_share=adjusted.section95_net_income_share + residual,
-            streamed_capital_gains=adjusted.streamed_capital_gains,
-            streamed_franked_dividends=adjusted.streamed_franked_dividends,
-            franking_credit_grossup=adjusted.franking_credit_grossup,
-            total_taxable_component=adjusted.total_taxable_component + residual,
-            assessed_under_section=adjusted.assessed_under_section,
+    for i in sorted(range(len(shares)), key=lambda i: shares[i].section95_net_income_share, reverse=True):
+        if not residual:
+            break
+        adjustment = max(-shares[i].section95_net_income_share, residual)
+        shares[i] = replace(
+            shares[i],
+            section95_net_income_share=shares[i].section95_net_income_share + adjustment,
+            total_taxable_component=shares[i].total_taxable_component + adjustment,
         )
+        residual -= adjustment
 
     # Apply credit rounding differences to the largest entitlements first.
     # Spread a reduction across shares if one cannot absorb it without going negative.
