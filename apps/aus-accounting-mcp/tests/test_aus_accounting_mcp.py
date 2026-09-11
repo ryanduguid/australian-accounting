@@ -211,41 +211,6 @@ def _yaml_block(source: str, key: str, indent: int) -> str | None:
     return "\n".join(lines[start:end])
 
 
-def _job_run_scripts(job: str) -> list[str]:
-    lines = job.splitlines()
-    scripts: list[str] = []
-    run_line = re.compile(r"^(?P<indent>\s*)(?:-\s+)?run:\s*(?P<body>.*)$")
-    index = 0
-
-    while index < len(lines):
-        match = run_line.fullmatch(lines[index])
-        if match is None:
-            index += 1
-            continue
-
-        indent = len(match.group("indent"))
-        body = match.group("body").strip()
-        if re.fullmatch(r"[|>][+-]?", body):
-            script_lines: list[str] = []
-            index += 1
-            while index < len(lines):
-                line = lines[index]
-                stripped = line.strip()
-                line_indent = len(line) - len(line.lstrip(" "))
-                if stripped and line_indent <= indent:
-                    break
-                if stripped and not stripped.startswith("#"):
-                    script_lines.append(stripped)
-                index += 1
-            scripts.append("\n".join(script_lines))
-            continue
-
-        scripts.append(body.split(" #", 1)[0].rstrip())
-        index += 1
-
-    return scripts
-
-
 def _pypi_publisher_uses(workflows: dict[str, str]) -> list[tuple[str, str]]:
     action = re.compile(
         r"^\s*(?:-\s+)?uses:\s*['\"]?"
