@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import os
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -205,3 +206,30 @@ def test_qualified_reserved_filename_still_runs_the_existing_checker(name, tmp_p
     Path(name).write_bytes((EVALUATION / "fixtures/receipt_on_due_date.csv").read_bytes())
     assert cli.main(["./" + name, "--as-at", EXPECTED["as_at"], "-o", "report.csv"]) == 0
     assert "employee_id" in Path("report.csv").read_text(encoding="utf-8-sig")
+
+
+def test_ordinary_checker_writes_csv_in_bounded_chunks(tmp_path, monkeypatch):
+    from paydaysuper import report
+
+    header, row = (EVALUATION / "fixtures/receipt_on_due_date.csv").read_text().splitlines()
+    source = tmp_path / "contributions.csv"
+    source.write_text(header + "\n" + (row + "\n") * 50)
+    original_output = report.atomic_text_output
+
+    @contextmanager
+    def bounded_output(*args, **kwargs):
+        with original_output(*args, **kwargs) as stream:
+            original_write = stream.write
+
+            def bounded_write(chunk):
+                assert len(chunk) < 4096, "ordinary report output must remain streamed"
+                return original_write(chunk)
+
+            monkeypatch.setattr(stream, "write", bounded_write)
+            yield stream
+
+    monkeypatch.setattr(report, "atomic_text_output", bounded_output)
+    output = tmp_path / "report.csv"
+    assert cli.main([str(source), "--as-at", EXPECTED["as_at"], "-o", str(output)]) == 0
+    with output.open(encoding="utf-8-sig", newline="") as stream:
+        assert len(list(csv.reader(stream))) == 52
