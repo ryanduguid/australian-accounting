@@ -24,7 +24,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE_POLICY_SHA = "787db4590e725cfd37104c8a9dd9e75f7fd4c018"
+RELEASE_POLICY_SHA = "c24612618f177f6dccb7ed9ee2a8648959b87e2e"
 
 
 def _load_select_package():
@@ -281,17 +281,9 @@ class BoundaryTests(unittest.TestCase):
                 ROOT / ".github" / "workflows" / f"release-{component}.yml"
             ).read_text(encoding="utf-8")
             with self.subTest(component=component):
-                policy_sha = (
-                    "ff86e30038ca4fd028ce3663646ee03ae5e94692"
-                    if component in {
-                        "aus-accounting-mcp", "australian-tax-calculators",
-                        "the-exchequer-tally", "solomons-sword",
-                    }
-                    else RELEASE_POLICY_SHA
-                )
                 self.assertIn(
                     "uses: ryanduguid/release-policy/.github/workflows/"
-                    f"release-python.yml@{policy_sha}",
+                    f"release-python.yml@{RELEASE_POLICY_SHA}",
                     workflow,
                 )
                 self.assertIn(f"source-directory: {source_directory}", workflow)
