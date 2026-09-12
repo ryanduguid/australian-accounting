@@ -21,7 +21,7 @@ is the canonical release history.
   `australian-accounting` monorepo.
 - Publish through `release-solomons-sword.yml`, using the monorepo's
   namespaced, attested release workflow.
-- Preserve the v0.1.2 Division 6, Section 100A and Section 99B behavior.
+- Preserve the v0.1.2 Division 6, Section 100A and Section 99B behaviour.
 
 # v0.1.2
 

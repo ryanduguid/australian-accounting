@@ -15,7 +15,7 @@ records the last verified published server version and the matching engine relea
 `server.json` records the published MCP Registry package. An unreleased source version
 may therefore be ahead of both files. Change compatibility metadata only as part of a
 release handoff, and keep repository, PyPI, release, Registry and engine versions
-consistent with the artifacts that actually exist.
+consistent with the artefacts that actually exist.
 
 ## Demo evidence
 

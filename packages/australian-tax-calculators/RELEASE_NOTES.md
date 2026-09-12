@@ -7,7 +7,7 @@
 
 - Bind the release workflow to the checked current Release Policy main commit.
   Both historical pins are rejected by GitHub Actions despite remaining readable
-  through the commit API. Versions 0.1.0 and 0.1.1 produced no release artifacts.
+  through the commit API. Versions 0.1.0 and 0.1.1 produced no release artefacts.
   Calculation behaviour is unchanged.
 
 # v0.1.1
