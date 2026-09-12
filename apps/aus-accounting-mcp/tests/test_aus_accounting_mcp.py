@@ -1197,7 +1197,7 @@ def test_release_uses_the_hardened_shared_policy_contract() -> None:
 
     assert (
         "uses: ryanduguid/release-policy/.github/workflows/release-python.yml@"
-        "ff86e30038ca4fd028ce3663646ee03ae5e94692"
+        "c24612618f177f6dccb7ed9ee2a8648959b87e2e"
     ) in release_mapping
     assert "source-directory: apps/aus-accounting-mcp" in release_mapping
     assert "tag-prefix: aus-accounting-mcp" in release_mapping
