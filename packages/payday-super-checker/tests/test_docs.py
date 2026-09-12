@@ -1,7 +1,6 @@
 """Guards on the primary-source review and the user-facing claims it settled."""
 
 import json
-
 from pathlib import Path
 
 DOCS = Path(__file__).resolve().parents[1] / "docs"

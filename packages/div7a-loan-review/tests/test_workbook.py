@@ -15,7 +15,6 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-
 from div7aloan import __version__, parse_year, review_register
 from div7aloan.rates import load_table
 

@@ -1,5 +1,4 @@
 import pytest
-
 from atobenchmark.csvsafe import guard
 
 

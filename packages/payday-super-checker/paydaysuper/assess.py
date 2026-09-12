@@ -247,7 +247,7 @@ def assess(
         more = f" and {len(pre_regime) - 10} more" if len(pre_regime) > 10 else ""
         raise PreRegimeError(
             f"{len(pre_regime)} row(s) have a QE day before 1 Jul 2026 (rows {rows}"
-            f"{more}; earliest {min(l.qe_day for l in pre_regime).isoformat()}): the old "
+            f"{more}; earliest {min(line.qe_day for line in pre_regime).isoformat()}): the old "
             "quarterly SG law applies to them and this tool covers payday super only. "
             "Remove them and run again."
         )

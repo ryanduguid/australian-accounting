@@ -3,7 +3,6 @@ from datetime import date
 from pathlib import Path
 
 import pytest
-
 from paydaysuper.calendar import CalendarError, load_calendar
 
 
@@ -349,9 +348,10 @@ def test_an_unreadable_verified_date_is_named(tmp_path, monkeypatch, key):
 
 
 def test_the_cli_prints_a_calendar_error_without_a_traceback(tmp_path, monkeypatch, capsys):
-    from conftest import SAMPLE
     from paydaysuper import calendar as cal_module
     from paydaysuper.cli import EXIT_ERROR, main
+
+    from conftest import SAMPLE
 
     doc = {k: v for k, v in GOOD_DOC.items() if k != "non_business_days"}
     doc["holidays"] = GOOD_DOC["non_business_days"]

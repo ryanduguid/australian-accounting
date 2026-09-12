@@ -15,7 +15,6 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-
 from atobenchmark import __version__, dataset, mapping, pnl
 from atobenchmark.ratios import compute
 from atobenchmark.report import compare

@@ -4,7 +4,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
 from paydaysuper import cli
 from paydaysuper.practitioner_pack import (
     EXPECTED_REPORT_HEADER,
@@ -14,7 +13,6 @@ from paydaysuper.practitioner_pack import (
     write_practitioner_pack,
 )
 from paydaysuper.report import CSV_HEADER
-
 
 NOTE_TEXT = (
     "payday-super-checker 0.1.3, source C:\\Private\\Client A\\pay.csv, "

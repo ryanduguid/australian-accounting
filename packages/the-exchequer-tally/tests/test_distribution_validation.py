@@ -2,9 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
-
 from edwinnixon.distribution_statement import generate_distribution_statement
-
 
 NON_FINITE = [Decimal("NaN"), Decimal("Infinity"), Decimal("-Infinity")]
 

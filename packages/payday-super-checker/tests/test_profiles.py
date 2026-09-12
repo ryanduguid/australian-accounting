@@ -2,11 +2,16 @@ import json
 from pathlib import Path
 
 import pytest
-
 from paydaysuper import profiles
 from paydaysuper.csv_io import CsvError
-from paydaysuper.profiles import normalise_header, Profile, load_profiles
-from paydaysuper.profiles import detect, resolve_columns, score
+from paydaysuper.profiles import (
+    Profile,
+    detect,
+    load_profiles,
+    normalise_header,
+    resolve_columns,
+    score,
+)
 
 
 def test_normalise_header_folds_case_space_and_punctuation():

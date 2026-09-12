@@ -33,7 +33,6 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 
 from .facts import (
-    FactError,
     optional_rate,
     optional_ratio,
     optional_year_of_income,

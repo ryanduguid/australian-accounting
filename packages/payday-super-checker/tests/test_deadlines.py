@@ -2,7 +2,6 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
-
 from paydaysuper.calendar import load_calendar
 from paydaysuper.deadlines import (
     EXTENDED_20BD,
@@ -31,7 +30,7 @@ def due_for(lines, cal):
     compute_due alone sees the deadline before apply_item4 has had its say."""
     if isinstance(lines, ContribLine):
         lines = [lines]
-    pairs = [(l, compute_due(l, cal)) for l in lines]
+    pairs = [(ln, compute_due(ln, cal)) for ln in lines]
     apply_item4(pairs)
     annotate_missing_flag(pairs)
     return pairs
@@ -254,7 +253,7 @@ def test_regime_starts_on_first_july_2026(cal):
 def test_item4_aligns_a_later_payday_inside_an_extended_window(cal):
     first = line(qe_day=date(2026, 7, 9), first_to_fund=True, row=2)
     second = line(qe_day=date(2026, 7, 23), row=3)
-    pairs = [(l, compute_due(l, cal)) for l in (first, second)]
+    pairs = [(ln, compute_due(ln, cal)) for ln in (first, second)]
     own_due = pairs[1][1].due
     apply_item4(pairs)
     assert own_due == date(2026, 8, 4)
@@ -265,7 +264,7 @@ def test_item4_aligns_a_later_payday_inside_an_extended_window(cal):
 def test_item4_does_not_shorten_a_later_deadline(cal):
     first = line(qe_day=date(2026, 7, 9), row=2)
     second = line(qe_day=date(2026, 8, 20), row=3)
-    pairs = [(l, compute_due(l, cal)) for l in (first, second)]
+    pairs = [(ln, compute_due(ln, cal)) for ln in (first, second)]
     later_due = pairs[1][1].due
     apply_item4(pairs)
     assert pairs[1][1].due == later_due
@@ -275,14 +274,14 @@ def test_item4_does_not_shorten_a_later_deadline(cal):
 def test_item4_is_per_employee(cal):
     a = line(employee_id="A", qe_day=date(2026, 7, 9), first_to_fund=True, row=2)
     b = line(employee_id="B", qe_day=date(2026, 7, 23), row=3)
-    pairs = [(l, compute_due(l, cal)) for l in (a, b)]
+    pairs = [(ln, compute_due(ln, cal)) for ln in (a, b)]
     apply_item4(pairs)
     assert pairs[1][1].due == date(2026, 8, 4)  # unaffected by A's window
 
 
 def test_unconfirmed_dates_are_flagged_but_do_not_extend_the_deadline(cal):
-    l = line(qe_day=date(2027, 9, 21))
-    pairs = [(l, compute_due(l, cal))]
+    ln = line(qe_day=date(2027, 9, 21))
+    pairs = [(ln, compute_due(ln, cal))]
     annotate_calendar_risk(pairs, cal)
     assert pairs[0][1].due == date(2027, 9, 30)
     assert any("unconfirmed holiday" in n for n in pairs[0][1].caveats)
@@ -295,7 +294,7 @@ def test_item4_does_not_align_contributions_sharing_a_qe_day(cal):
     the verdict."""
     extended = line(qe_day=date(2026, 7, 9), first_to_fund=True, row=2)
     ordinary = line(qe_day=date(2026, 7, 9), row=3)
-    pairs = [(l, compute_due(l, cal)) for l in (extended, ordinary)]
+    pairs = [(ln, compute_due(ln, cal)) for ln in (extended, ordinary)]
     apply_item4(pairs)
     assert pairs[1][1].due == date(2026, 7, 20)
     assert pairs[1][1].pathway == USUAL_7BD
@@ -309,9 +308,9 @@ def test_item4_result_is_independent_of_row_order(cal):
             line(qe_day=date(2026, 7, 9), first_to_fund=flag, row=i)
             for i, flag in enumerate(order, start=2)
         ]
-        pairs = [(l, compute_due(l, cal)) for l in rows]
+        pairs = [(ln, compute_due(ln, cal)) for ln in rows]
         apply_item4(pairs)
-        return {l.first_to_fund: (d.due, d.pathway) for l, d in pairs}
+        return {ln.first_to_fund: (d.due, d.pathway) for ln, d in pairs}
 
     assert run([True, False]) == run([False, True])
 
@@ -325,9 +324,9 @@ def test_item4_aligns_paydays_given_out_of_date_order(cal):
             line(qe_day=day, first_to_fund=(day == date(2026, 7, 9)), row=i)
             for i, day in enumerate(qe_days, start=2)
         ]
-        pairs = [(l, compute_due(l, cal)) for l in rows]
+        pairs = [(ln, compute_due(ln, cal)) for ln in rows]
         apply_item4(pairs)
-        return {l.qe_day: (d.due, d.pathway) for l, d in pairs}
+        return {ln.qe_day: (d.due, d.pathway) for ln, d in pairs}
 
     early, late = date(2026, 7, 9), date(2026, 7, 23)
     in_order = run([early, late])
@@ -344,7 +343,7 @@ def test_later_qe_day_inherits_the_longest_window_from_a_group(cal):
         line(qe_day=date(2026, 7, 9), row=3),
         line(qe_day=date(2026, 7, 23), row=4),
     ]
-    pairs = [(l, compute_due(l, cal)) for l in rows]
+    pairs = [(ln, compute_due(ln, cal)) for ln in rows]
     apply_item4(pairs)
     assert pairs[2][1].due == date(2026, 8, 7)
     assert pairs[2][1].pathway == ITEM4_ALIGNED
@@ -384,8 +383,8 @@ def test_deadline_past_the_calendar_horizon_warns(cal):
     from datetime import timedelta
 
     qe = cal.verified_until - timedelta(days=3)
-    l = line(qe_day=qe)
-    pairs = [(l, compute_due(l, cal))]
+    ln = line(qe_day=qe)
+    pairs = [(ln, compute_due(ln, cal))]
     annotate_calendar_risk(pairs, cal)
     assert any("beyond the calendar's coverage" in n for n in pairs[0][1].caveats)
 
@@ -410,7 +409,7 @@ def test_a_nil_payday_does_not_seed_an_item_4_alignment(cal):
         received=date(2026, 8, 6),
         row=3,
     )
-    pairs = [(l, compute_due(l, cal)) for l in (nil, real)]
+    pairs = [(ln, compute_due(ln, cal)) for ln in (nil, real)]
     assert pairs[0][1].due == date(2026, 8, 7)  # the nil row's own 20bd window
     apply_item4(pairs)
     assert pairs[1][1].due == date(2026, 8, 4)  # its own period, not inherited
@@ -429,7 +428,7 @@ def test_a_real_payday_still_seeds_an_item_4_alignment(cal):
     real = line(
         employee_id="EMP200", qe_day=date(2026, 7, 23), sg_amount=Decimal("1000.00"), row=3
     )
-    pairs = [(l, compute_due(l, cal)) for l in (paid, real)]
+    pairs = [(ln, compute_due(ln, cal)) for ln in (paid, real)]
     apply_item4(pairs)
     assert pairs[1][1].due == date(2026, 8, 7)
     assert pairs[1][1].pathway == ITEM4_ALIGNED

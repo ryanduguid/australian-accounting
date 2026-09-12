@@ -7,10 +7,9 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from hypothesis import example, given, seed, settings, strategies as st
-
 from atobenchmark.mapping import BUCKETS, MappingRow, account_key, read_mapping, write_mapping
-
+from hypothesis import example, given, seed, settings
+from hypothesis import strategies as st
 
 PROPERTY_SETTINGS = settings(max_examples=100, database=None, deadline=None)
 

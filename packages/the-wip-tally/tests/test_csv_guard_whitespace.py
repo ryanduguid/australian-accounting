@@ -1,5 +1,4 @@
 import pytest
-
 from wiptally.csvsafe import guard
 
 

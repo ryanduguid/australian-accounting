@@ -4,7 +4,6 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-
 from div7aloan.facts import FactError
 from div7aloan.gate import GateFacts, LimbState, complying_loan_gate
 from div7aloan.verdicts import GateVerdict

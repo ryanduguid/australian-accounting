@@ -8,13 +8,12 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-
 from paydaysuper.cli import EXIT_ERROR, EXIT_LATE_FOUND, EXIT_OK
 from paydaysuper.cli import main as cli_main
 from paydaysuper.csv_io import (
-    CsvError,
     DEFAULT_MAPPING,
     LATEST_SANE_YEAR,
+    CsvError,
     parse_rows,
 )
 from paydaysuper.importers import (
@@ -33,11 +32,13 @@ from paydaysuper.importers import (
     PayrollRow,
     SuperRow,
     _amount,
-    import_files as _import_files,
     join,
     read_payroll,
     read_super,
     write_canonical,
+)
+from paydaysuper.importers import (
+    import_files as _import_files,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures" / "importers"
@@ -1827,10 +1828,10 @@ def test_canonical_csv_round_trips_through_parse_rows_and_the_real_cli(tmp_path,
 
     lines = parse_rows(out, DEFAULT_MAPPING)
     assert len(lines) == 2
-    assert {l.employee_id for l in lines} == {"Test Employee One", "Test Employee Two"}
-    assert {l.sg_amount for l in lines} == {Decimal("612.00"), Decimal("540.00")}
-    assert all(l.remitted is not None for l in lines)
-    assert all(l.received is None for l in lines)  # never invented
+    assert {ln.employee_id for ln in lines} == {"Test Employee One", "Test Employee Two"}
+    assert {ln.sg_amount for ln in lines} == {Decimal("612.00"), Decimal("540.00")}
+    assert all(ln.remitted is not None for ln in lines)
+    assert all(ln.received is None for ln in lines)  # never invented
 
     report_out = tmp_path / "report.csv"
     code = cli_main(

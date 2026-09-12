@@ -9,14 +9,13 @@ from __future__ import annotations
 
 import contextlib
 import csv
-import re
 import io
 import json
+import re
 from decimal import Decimal
 from pathlib import Path
 
 import pytest
-
 from div7aloan.cli import main
 
 PACK = Path(__file__).resolve().parents[1] / "evaluation/div7a_myr"

@@ -1,5 +1,13 @@
 # Australian tax calculators
 
+[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/australian-tax-calculators.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/australian-tax-calculators/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
+
+Distribution `australian-tax-calculators`, import package `austaxcalc`. Library
+only: this component ships no command.
+
 Six calculation worksheets for established facts: ordinary GST, resident basic income
 tax, CGT losses and discount, ordinary employer FBT, first-year depreciation and
 quarterly super guarantee. These are experimental review aids, not advice or return
@@ -11,6 +19,49 @@ the source-check date and engine version. They perform no network calls or write
 Amounts must be non-negative, finite, at most two decimal places and no more than
 AUD 1 trillion. Rounding uses half-up to cents at output; individual worksheets
 state additional conventions.
+
+## Install
+
+Python 3.10 or later. No runtime dependencies.
+
+```bash
+pip install australian-tax-calculators
+```
+
+## Use
+
+Every worksheet takes `Decimal` amounts, an explicit period, and a
+`scope_confirmed` flag the caller sets only once it has established the scope
+conditions the worksheet states. Splitting $1,100.00 GST-inclusive into its
+exclusive amount and its GST:
+
+```python
+from decimal import Decimal
+
+from austaxcalc.calculations import gst
+
+result = gst(Decimal("1100.00"), gst_inclusive=True, scope_confirmed=True, year="2025-26")
+print(result["amounts"], result["source_checked"])
+```
+
+```
+{'gst': '100.00', 'exclusive': '1000.00', 'inclusive': '1100.00'} 2026-09-10
+```
+
+Amounts come back as quoted decimal strings rather than numbers, so an amount
+that leaves a worksheet cannot arrive at a JSON reader as a float.
+
+The full result also carries `scope`, the official `sources` the figures came
+from, the engine version and the warnings that travel with every worksheet:
+
+```python
+>>> result["scope"]
+'One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.'
+>>> result["warnings"]
+['Operator-confirmed facts and scope; eligibility is not independently verified.', 'Worksheet only, not advice, an assessment or a lodgment. Obtain human review.']
+```
+
+Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 
 ## Supported periods
 

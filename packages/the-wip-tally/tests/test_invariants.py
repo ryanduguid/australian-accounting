@@ -6,7 +6,6 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-
 from wiptally.csv_io import CANONICAL_FIELDS, CsvError, load_mapping, read_contracts
 from wiptally.csvsafe import guard
 from wiptally.model import Schedule

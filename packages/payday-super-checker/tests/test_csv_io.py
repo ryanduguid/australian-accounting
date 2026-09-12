@@ -4,7 +4,6 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-
 from paydaysuper.csv_io import CsvError, load_mapping, parse_date_text, parse_rows
 
 from conftest import SAMPLE as FIXTURE

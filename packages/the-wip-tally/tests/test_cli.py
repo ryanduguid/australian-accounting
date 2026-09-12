@@ -4,7 +4,6 @@ import csv
 from pathlib import Path
 
 import pytest
-
 from wiptally.cli import main
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -260,6 +259,7 @@ def test_review_pack_refuses_to_overwrite_its_mapping_file(tmp_path: Path) -> No
 
 def test_review_pack_hashes_the_bytes_used_even_if_source_changes(tmp_path, monkeypatch):
     import hashlib
+
     from wiptally import cli
     source = tmp_path / "synthetic.csv"
     original = SAMPLE.read_bytes()

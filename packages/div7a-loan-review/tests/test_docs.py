@@ -13,7 +13,6 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-
 from div7aloan.money import ROUNDING
 from div7aloan.rates import benchmark_rate, load_table
 from div7aloan.register import GATE_COLUMNS, MYR_COLUMNS, OPTIONAL_COLUMNS

@@ -3,7 +3,6 @@
 from decimal import Decimal
 
 import pytest
-
 from atobenchmark import cli, mapping
 from atobenchmark.mapping import BUCKETS, MappingError, MappingRow
 from atobenchmark.pnl import PnlRow

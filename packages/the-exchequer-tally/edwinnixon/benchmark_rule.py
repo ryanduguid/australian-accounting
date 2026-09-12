@@ -5,7 +5,7 @@ Ensures all frankable distributions within a franking period bear the same frank
 
 from dataclasses import dataclass, replace
 from datetime import date
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from typing import List, Optional, Tuple
 
 

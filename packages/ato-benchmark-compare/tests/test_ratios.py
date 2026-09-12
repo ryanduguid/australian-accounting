@@ -3,13 +3,12 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-
-from atobenchmark import to_evidenced_dict
 from atobenchmark import dataset as ds
+from atobenchmark import to_evidenced_dict
 from atobenchmark.ratios import (
-    RatioError,
     TURNOVER_FROM_SALES,
     TURNOVER_FROM_TOTAL_INCOME,
+    RatioError,
     compute,
 )
 from atobenchmark.report import ABOVE, BELOW, WITHIN, compare

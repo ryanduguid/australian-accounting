@@ -12,7 +12,6 @@ import io
 import json
 
 import pytest
-
 from div7aloan.cli import main
 
 MET = "examples/sample_loans_myr_met.csv"

@@ -4,7 +4,6 @@ from collections.abc import Callable
 from decimal import Decimal
 
 import pytest
-
 from atobenchmark.csvsafe import guard
 from atobenchmark.money import AmountError, money, parse_amount, percent, percent_compact
 
@@ -22,7 +21,6 @@ from atobenchmark.money import AmountError, money, parse_amount, percent, percen
         ("500 CR", "-500"),
         ("500 cr", "-500"),
         ("500 DR", "500"),
-        ("(500) CR", "500"),
         ("0", "0"),
         (".5", "0.5"),
     ],
@@ -40,6 +38,23 @@ def test_parse_amount_rejects(raw: str) -> None:
     # so they have to be refused at the door.
     with pytest.raises(AmountError):
         parse_amount(raw)
+
+
+@pytest.mark.parametrize(
+    "raw",
+    ["1,2,3", "12,34,567", "1,23", "1,,000", "1 000", "(500) CR", "(500) DR", "$($100)"],
+)
+def test_parse_amount_refuses_malformed_grouping_and_conflicting_signs(raw: str) -> None:
+    # "1,2,3" is the one that moved money: stripping every comma before parsing
+    # read it as 123. Thousands separators are only a group of three, and a cell
+    # carrying both a parenthesis and a CR marker states its sign twice.
+    with pytest.raises(AmountError):
+        parse_amount(raw)
+
+
+def test_parse_amount_keeps_the_ordinary_grouped_forms() -> None:
+    assert parse_amount("1,234.50") == Decimal("1234.50")
+    assert parse_amount("(1,234.50)") == Decimal("-1234.50")
 
 
 def test_parse_amount_reports_where() -> None:

@@ -8,6 +8,9 @@ __version__ = "0.1.3"
 
 LAW_CONTENT_DATE = "2026-08-15"
 
-from .report import Result, assess
+# The version and the law dates sit above these imports on purpose: they are
+# the first thing a reader of this module needs, and a reader of the built
+# wheel's metadata reaches them without importing the engine.
+from .report import Result, assess  # noqa: E402
 
 __all__ = ["LAW_CONTENT_DATE", "Result", "assess", "__version__"]

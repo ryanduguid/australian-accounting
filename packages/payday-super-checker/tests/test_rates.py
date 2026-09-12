@@ -3,7 +3,6 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
-
 from paydaysuper import rates as rates_module
 from paydaysuper.rates import RatesError, load_gic
 
@@ -191,8 +190,9 @@ def test_a_table_that_is_not_json_is_a_rates_error_naming_the_file(
 def test_the_cli_prints_a_top_level_rates_error_without_a_traceback(
     tmp_path, monkeypatch, capsys
 ):
-    from conftest import SAMPLE
     from paydaysuper.cli import EXIT_ERROR, main
+
+    from conftest import SAMPLE
 
     (tmp_path / "gic_rates.json").write_text(
         json.dumps({"gic_quarters": [GOOD]}), encoding="utf-8"
@@ -233,8 +233,9 @@ def test_an_unreadable_quarter_date_is_named(tmp_path, monkeypatch):
 
 
 def test_the_cli_prints_a_rate_error_without_a_traceback(tmp_path, monkeypatch, capsys):
-    from conftest import SAMPLE
     from paydaysuper.cli import EXIT_ERROR, main
+
+    from conftest import SAMPLE
 
     monkeypatch.setattr(
         rates_module,

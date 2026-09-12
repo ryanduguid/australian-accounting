@@ -9,23 +9,23 @@ from pathlib import Path
 from typing import TextIO
 
 from . import __version__
-from .atomic_io import atomic_text_output
-from .csv_io import cents, csv_safe, money
 from .assess import (  # noqa: F401
     AT_RISK,
     EXPOSED,
     LATE,
     NO_RECEIPT_CAVEAT,
     ON_TIME,
-    Result,
     SKIPPED,
     TRANSITION_END,
     UNKNOWN,
     UNPAID,
     VERDICTS,
+    Result,
     assess,
     financial_year,
 )
+from .atomic_io import atomic_text_output
+from .csv_io import cents, csv_safe, money
 
 
 def horizon_indeterminate(results: list[Result]) -> list[Result]:

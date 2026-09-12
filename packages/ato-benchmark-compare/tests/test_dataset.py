@@ -4,7 +4,6 @@ import json
 from decimal import Decimal
 
 import pytest
-
 from atobenchmark import dataset as ds
 
 

@@ -2,7 +2,6 @@ import argparse
 from decimal import Decimal
 
 import pytest
-
 from edwinnixon.cli import money_type, percentage_type, rate_type
 
 

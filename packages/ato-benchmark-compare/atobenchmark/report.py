@@ -6,7 +6,7 @@ from collections.abc import Collection
 from dataclasses import dataclass, field
 from decimal import Decimal
 
-from .dataset import Band, BusinessType, Dataset, RATIO_LABELS, Range
+from .dataset import RATIO_LABELS, Band, BusinessType, Dataset, Range
 from .evidence import EvidenceMessage
 from .mapping import BUCKETS, EXPENSE_BUCKETS
 from .money import money, percent, percent_range

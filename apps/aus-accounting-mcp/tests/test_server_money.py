@@ -4,6 +4,7 @@ import json
 import pytest
 from mcp.server.mcpserver.exceptions import ToolError
 
+from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.server import mcp
 
 _MAX_MONEY = "1000000000000.00"
@@ -224,3 +225,15 @@ def test_every_monetary_endpoint_accepts_the_limit_and_serialises_finite_json(
 ):
     result = _call_tool_with_monetary_value(tool_name, field_name, _MAX_MONEY)
     json.dumps(result, allow_nan=False)
+
+
+@pytest.mark.parametrize("raw", ["1,2,3", "1,234.50", "(1,234.50)"])
+def test_parse_amount_refuses_every_grouped_or_bracketed_form(raw):
+    # The MCP boundary reads a JSON decimal string, not a spreadsheet cell, so a
+    # comma or a bracket is a malformed argument rather than an accounting
+    # presentation to decode. "1,2,3" is refused here and in every engine behind
+    # this server, so no path through the repository reads it as 123.
+    from aus_accounting_mcp.money import parse_amount
+
+    with pytest.raises(InputError):
+        parse_amount(raw, "amount")

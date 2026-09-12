@@ -3,7 +3,6 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-
 from wiptally.model import ContractInput
 from wiptally.money import points
 from wiptally.schedule import ScheduleError, measure

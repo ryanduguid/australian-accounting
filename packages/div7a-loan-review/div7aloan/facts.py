@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from .money import MoneyError, parse_money, parse_ratio, parse_rate
+from .money import MoneyError, parse_money, parse_rate, parse_ratio
 from .years import YearError, YearOfIncome, parse_year
 
 #: Spellings of "I do not know" accepted in a CSV cell. A blank cell counts:

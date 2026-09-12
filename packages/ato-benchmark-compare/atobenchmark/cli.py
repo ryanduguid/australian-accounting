@@ -15,17 +15,21 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__, dataset as dataset_module, mapping as mapping_module, pnl as pnl_module
+from . import __version__
+from . import dataset as dataset_module
+from . import mapping as mapping_module
+from . import pnl as pnl_module
 from .atomic_io import atomic_write_text
-from .dataset import Dataset, DatasetError, RATIO_KEYS, RATIO_LABELS
+from .dataset import RATIO_KEYS, RATIO_LABELS, Dataset, DatasetError
 from .mapping import (
     BUCKETS,
-    MappingError,
     REVIEW,
+    MappingError,
 )
 from .money import AmountError, parse_amount, percent_range
 from .ratios import RatioError, compute
-from .report import compare as compare_ratios, render_text, to_dict
+from .report import compare as compare_ratios
+from .report import render_text, to_dict
 
 EXIT_OK = 0
 EXIT_ERROR = 1

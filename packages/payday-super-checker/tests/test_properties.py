@@ -3,11 +3,10 @@
 from datetime import date, timedelta
 from decimal import Decimal
 
-from hypothesis import example, given, seed, settings, strategies as st
-
+from hypothesis import example, given, seed, settings
+from hypothesis import strategies as st
 from paydaysuper.calendar import load_calendar
 from paydaysuper.sgc import exposure_range, uplift_scenarios
-
 
 CALENDAR = load_calendar()
 PROPERTY_SETTINGS = settings(max_examples=100, database=None, deadline=None)

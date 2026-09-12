@@ -16,7 +16,6 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-
 from paydaysuper import __version__
 from paydaysuper.assess import EXPOSED, assess
 from paydaysuper.calendar import load_calendar

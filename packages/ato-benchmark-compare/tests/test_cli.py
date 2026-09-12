@@ -7,8 +7,8 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-
 from atobenchmark import mapping as mapping_module
+from atobenchmark import pnl as pnl_module
 from atobenchmark.cli import (
     EXIT_ERROR,
     EXIT_OK,
@@ -16,7 +16,6 @@ from atobenchmark.cli import (
     EXIT_UNREVIEWED,
     main,
 )
-from atobenchmark import pnl as pnl_module
 from atobenchmark.mapping import MappingError, MappingRow, read_mapping
 from atobenchmark.pnl import PnlRow
 

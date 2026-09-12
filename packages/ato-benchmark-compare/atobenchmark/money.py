@@ -8,13 +8,21 @@ approximation of it.
 from __future__ import annotations
 
 import re
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 CENTS = Decimal("0.01")
 PERCENT_PLACES = Decimal("0.01")
 
-_STRIP_RE = re.compile(r"[\s$,]")
-_TRAILING_SIGNS = ("CR", "DR")
+# The accounting grammar, shared with the wiptally engine. Thousands separators
+# are only accepted in groups of three: stripping every comma first and parsing
+# what is left reads "1,2,3" as 123, which is a typed cell silently turned into a
+# number nobody entered.
+_NUMBER = r"(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)(?:\.[0-9]+)?|\.[0-9]+"
+_ACCOUNTING_NUMBER = re.compile(
+    rf"(?:[+-]?\$?\s*(?:{_NUMBER})|\$[+-]\s*(?:{_NUMBER})|"
+    rf"\$?\s*\(\s*(?:{_NUMBER})\s*\)|\(\s*\$?(?:{_NUMBER})\s*\)|"
+    rf"\$?\s*(?:{_NUMBER})\s*(?:CR|DR))", re.IGNORECASE,
+)
 
 
 class AmountError(ValueError):
@@ -24,10 +32,12 @@ class AmountError(ValueError):
 def parse_amount(raw: str, where: str = "amount") -> Decimal:
     """Parse an accounting amount.
 
-    Accepts a plain number, thousands separators, a leading currency symbol,
-    parentheses for negatives and a trailing CR marker. Rejects anything else,
-    including the strings Decimal itself would happily accept such as "NaN" and
-    "Infinity", which parse cleanly and then explode on the first comparison.
+    Accepts a plain number, thousands separators in groups of three, a leading
+    currency symbol, parentheses for negatives and a trailing CR or DR marker.
+    Rejects anything else, including the strings Decimal itself would happily
+    accept such as "NaN" and "Infinity", which parse cleanly and then explode on
+    the first comparison, and a cell carrying both a parenthesis and a CR marker,
+    where the two signs disagree about which way the amount runs.
     """
     if raw is None:
         raise AmountError(f"{where}: no amount given")
@@ -35,23 +45,10 @@ def parse_amount(raw: str, where: str = "amount") -> Decimal:
     if not text:
         raise AmountError(f"{where}: no amount given")
 
-    negative = False
-    # A plain suffix test rather than a regex with a lazy prefix, which would scan the
-    # whole cell again for every starting position when the suffix is not there.
-    suffix = text[-2:].upper()
-    if len(text) > 2 and suffix in _TRAILING_SIGNS:
-        negative = suffix == "CR"
-        text = text[:-2].strip()
-
-    if text.startswith("(") and text.endswith(")"):
-        negative = not negative
-        text = text[1:-1].strip()
-
-    cleaned = _STRIP_RE.sub("", text)
-    if not cleaned:
-        raise AmountError(f"{where}: no amount given")
-    if not re.fullmatch(r"[+-]?\d*\.?\d+", cleaned):
+    if not _ACCOUNTING_NUMBER.fullmatch(text):
         raise AmountError(f"{where}: {raw!r} is not an amount")
+    negative = "(" in text or text.upper().endswith("CR")
+    cleaned = re.sub(r"[\s$,()]|CR$|DR$", "", text, flags=re.IGNORECASE)
 
     try:
         value = Decimal(cleaned)

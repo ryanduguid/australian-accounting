@@ -5,9 +5,8 @@ import hashlib
 from pathlib import Path
 
 import pytest
-
 from atobenchmark import mapping
-from atobenchmark.mapping import BUCKETS, MappingError, MappingRow, REVIEW
+from atobenchmark.mapping import BUCKETS, REVIEW, MappingError, MappingRow
 
 
 def _digest(normalised_account: str) -> str:

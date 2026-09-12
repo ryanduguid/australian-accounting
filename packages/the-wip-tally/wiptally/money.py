@@ -8,7 +8,7 @@ approximation of 0.285714.
 from __future__ import annotations
 
 import re
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 CENTS = Decimal("0.01")
 RATIO_PLACES = Decimal("0.00000001")
