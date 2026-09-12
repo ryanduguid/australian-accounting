@@ -40,7 +40,7 @@ dev = [
     # No `coverage` entry: `just test` runs pytest uninstrumented, and the
     # engines' coverage gates run through their own `dev` extras, which pin it.
     "holidays>=0.103",
-    "hypothesis>=6.165",
+    "hypothesis>=6.167.1",
     "jsonschema>=4.0",
     "mypy>=1.14",
     "openpyxl>=3.1",
