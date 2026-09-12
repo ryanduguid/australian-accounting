@@ -8,4 +8,4 @@ is the canonical release history.
   `australian-accounting` monorepo.
 - Publish through `release-the-wip-tally.yml`, using the monorepo's namespaced,
   attested release workflow.
-- Preserve the imported v0.1.0 AASB 15 schedule behavior and CLI contract.
+- Preserve the imported v0.1.0 AASB 15 schedule behaviour and CLI contract.

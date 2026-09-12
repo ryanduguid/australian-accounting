@@ -3,12 +3,12 @@
 - move the maintained source into the `australian-accounting` monorepo under
   `packages/ato-benchmark-compare`;
 - publish from the monorepo's hardened, attested release workflow; and
-- preserve the v0.1.5 calculation and serialization behaviour unchanged.
+- preserve the v0.1.5 calculation and serialisation behaviour unchanged.
 
 # v0.1.5
 
 - add structured dependency metadata for calculation warnings and comparison notes;
-- add the public `to_evidenced_dict` serializer so omitted inputs are not presented as
+- add the public `to_evidenced_dict` serialiser so omitted inputs are not presented as
   zero-valued evidence; and
 - preserve the existing human-readable warning and note fields for compatibility.
 

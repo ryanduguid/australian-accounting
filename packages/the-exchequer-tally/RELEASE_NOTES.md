@@ -21,7 +21,7 @@ This is the first PyPI release of `the-exchequer-tally`.
   `australian-accounting` monorepo.
 - Publish through `release-the-exchequer-tally.yml`, using the monorepo's
   namespaced, attested release workflow.
-- Preserve the v0.1.2 corporate-tax, franking-ledger and Division 203 behavior.
+- Preserve the v0.1.2 corporate-tax, franking-ledger and Division 203 behaviour.
 
 # v0.1.2
 
