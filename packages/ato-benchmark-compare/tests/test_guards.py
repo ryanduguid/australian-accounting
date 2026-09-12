@@ -6,7 +6,6 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-
 from atobenchmark import pnl
 from atobenchmark.cli import EXIT_ERROR, EXIT_OK, main
 from atobenchmark.money import money

@@ -9,9 +9,9 @@ from paydaysuper.assess import (
     UNKNOWN,
     Result,
     _apply_exposure,
-    _AssessmentFacts,
     _assess_received,
     _assess_without_receipt,
+    _AssessmentFacts,
 )
 from paydaysuper.calendar import load_calendar
 from paydaysuper.deadlines import USUAL_7BD, ContribLine, Deadline

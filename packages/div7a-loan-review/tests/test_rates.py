@@ -5,7 +5,6 @@ import json
 from decimal import Decimal
 
 import pytest
-
 from div7aloan.rates import (
     RatesError,
     benchmark_rate,

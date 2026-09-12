@@ -2,7 +2,6 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
-
 from paydaysuper.rates import GicQuarter, GicTable, RatesError, load_gic
 from paydaysuper.sgc import exposure_range, notional_earnings, uplift_scenarios
 

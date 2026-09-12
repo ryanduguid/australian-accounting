@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from .schedule import measure
 from .money import parse_money
+from .schedule import measure
 
 __version__ = "0.1.0"
 

@@ -11,7 +11,8 @@ import csv
 from datetime import date
 from pathlib import Path
 
-from paydaysuper.cli import EXIT_LATE_FOUND, EXIT_OK, main as cli_main
+from paydaysuper.cli import EXIT_LATE_FOUND, EXIT_OK
+from paydaysuper.cli import main as cli_main
 
 from conftest import REMITTANCE_ONLY
 

@@ -5,7 +5,6 @@ from decimal import Decimal
 from fractions import Fraction
 
 import pytest
-
 from div7aloan.gate import GateFacts, complying_loan_gate
 from div7aloan.money import ROUNDING
 from div7aloan.myr import (

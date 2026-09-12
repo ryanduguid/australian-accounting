@@ -5,7 +5,7 @@ under Part 3-6 (Divisions 205 and 214) of the Income Tax Assessment Act 1997.
 
 from dataclasses import dataclass, field
 from datetime import date
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from enum import Enum
 from typing import List
 

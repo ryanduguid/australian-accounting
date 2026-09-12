@@ -1,10 +1,16 @@
-import pytest
 from datetime import date
 from decimal import Decimal
-from louisgoldberg.division6 import TrustIncomeAssessment, BeneficiaryEntitlement, calculate_proportionate_share
-from louisgoldberg.section100a import evaluate_section100a_risk, Section100ARiskZone
+
+import pytest
+from louisgoldberg.division6 import (
+    BeneficiaryEntitlement,
+    TrustIncomeAssessment,
+    calculate_proportionate_share,
+)
 from louisgoldberg.section99b import ForeignTrustReceipt, evaluate_section99b_liability
+from louisgoldberg.section100a import Section100ARiskZone, evaluate_section100a_risk
 from louisgoldberg.trust_resolution import TrustResolutionSchedule, validate_trust_resolution
+
 
 def test_division6_proportionate_approach():
     # Trust with $100k accounting income, $120k s95 taxable net income (due to non-deductible adjustments)
@@ -301,7 +307,7 @@ def test_s99b_corpus_proviso_and_residency():
 
 
 def test_green_zone_does_not_claim_the_ordinary_family_dealing_exception():
-    from louisgoldberg.section100a import evaluate_section100a_risk, Section100ARiskZone
+    from louisgoldberg.section100a import Section100ARiskZone, evaluate_section100a_risk
     res = evaluate_section100a_risk(
         beneficiary_name="A", distribution_amount=Decimal("50000.00"),
         beneficiary_actually_received_funds=True)

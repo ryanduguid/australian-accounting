@@ -20,7 +20,7 @@ last updated 16 March 2026. The rules this module implements are:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 from .evidence import EvidenceMessage
 from .mapping import BUCKETS, EXPENSE_BUCKETS

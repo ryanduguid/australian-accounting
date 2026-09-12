@@ -4,9 +4,8 @@ Sections 23AA & 23AB of the Income Tax Rates Act 1986 and Division 328 ITAA 1997
 """
 
 from dataclasses import dataclass
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Optional
-
 
 # Historical Base Rate Entity Tax Rates
 BRE_RATES: dict[int, Decimal] = {

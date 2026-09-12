@@ -4,7 +4,6 @@ from collections.abc import Callable
 from decimal import Decimal
 
 import pytest
-
 from atobenchmark.csvsafe import guard
 from atobenchmark.money import AmountError, money, parse_amount, percent, percent_compact
 

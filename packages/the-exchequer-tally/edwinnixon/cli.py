@@ -6,6 +6,7 @@ import argparse
 import sys
 from datetime import date
 from decimal import Decimal, InvalidOperation
+
 from .corporate_tax import BaseRateEntityTest, determine_corporate_tax_rate, turnover_threshold_for
 from .distribution_statement import generate_distribution_statement
 

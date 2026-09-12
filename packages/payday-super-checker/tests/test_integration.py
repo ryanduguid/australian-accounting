@@ -5,10 +5,10 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
-
-from paydaysuper.calendar import load_calendar
 from paydaysuper.assess import LATE, Result
-from paydaysuper.cli import EXIT_ERROR, EXIT_LATE_FOUND, EXIT_OK, main as cli_main
+from paydaysuper.calendar import load_calendar
+from paydaysuper.cli import EXIT_ERROR, EXIT_LATE_FOUND, EXIT_OK
+from paydaysuper.cli import main as cli_main
 from paydaysuper.csv_io import load_mapping, parse_rows
 from paydaysuper.deadlines import ContribLine, Deadline
 from paydaysuper.rates import load_gic, load_rates
@@ -17,6 +17,7 @@ from paydaysuper.report import console_summary, financial_year, needs_attention
 from paydaysuper.sgc import notional_earnings
 
 from conftest import SAMPLE as FIXTURE
+
 AS_AT = date(2026, 8, 10)
 
 
@@ -2277,7 +2278,7 @@ def _at_risk_result(n: int, caveats: list[str]):
     """An AT_RISK Result built straight, so the console block can be driven
     with exactly the caveats under test."""
     from paydaysuper.deadlines import USUAL_7BD, Deadline
-    from paydaysuper.report import NO_RECEIPT_CAVEAT, AT_RISK, Result
+    from paydaysuper.report import AT_RISK, NO_RECEIPT_CAVEAT, Result
 
     line = ContribLine(
         employee_id=f"ARK{n:02d}",

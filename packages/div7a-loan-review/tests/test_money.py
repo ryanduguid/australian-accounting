@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 import pytest
-
 from div7aloan.money import MoneyError, parse_money
 
 

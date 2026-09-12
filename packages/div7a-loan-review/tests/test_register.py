@@ -6,7 +6,6 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
-
 from div7aloan.register import (
     GATE_COLUMNS,
     MYR_COLUMNS,

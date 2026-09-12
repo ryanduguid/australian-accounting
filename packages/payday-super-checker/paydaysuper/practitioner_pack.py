@@ -8,9 +8,9 @@ consequential action to an appropriately authorised human.
 from __future__ import annotations
 
 import csv
-import os
 import hashlib
 import io
+import os
 from collections import Counter
 from dataclasses import dataclass
 from datetime import date
@@ -18,7 +18,6 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from .atomic_io import atomic_text_output, markdown_destination
-
 
 # Deliberately duplicated from report.CSV_HEADER.  A producer change must fail
 # a contract test until this consumer is consciously reviewed and updated.

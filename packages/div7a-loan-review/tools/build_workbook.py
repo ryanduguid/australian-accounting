@@ -36,7 +36,7 @@ from openpyxl.worksheet.table import Table, TableColumn, TableFormula, TableStyl
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from div7aloan import __version__  # noqa: E402
-from div7aloan.facts import UNKNOWN_TOKENS, _FALSE, _TRUE  # noqa: E402
+from div7aloan.facts import _FALSE, _TRUE, UNKNOWN_TOKENS  # noqa: E402
 from div7aloan.register import FIRST_REVIEWABLE_YEAR  # noqa: E402
 
 OUT = ROOT / "workbooks" / "div7a-loan-review.xlsx"

@@ -1,5 +1,4 @@
 import pytest
-
 from paydaysuper.atomic_io import atomic_text_output
 
 

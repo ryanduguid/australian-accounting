@@ -5,11 +5,9 @@ from decimal import Decimal
 from importlib import import_module
 
 import pytest
-
 from paydaysuper.calendar import load_calendar
 from paydaysuper.deadlines import USUAL_7BD, ContribLine, Deadline
 from paydaysuper.rates import load_gic
-
 
 AS_AT = date(2026, 9, 1)
 assessment_module = import_module("paydaysuper.assess")

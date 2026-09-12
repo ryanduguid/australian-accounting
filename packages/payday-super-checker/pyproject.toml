@@ -58,9 +58,9 @@ line-length = 100
 src = ["paydaysuper", "tests"]
 
 [tool.ruff.lint]
-# First-enablement set: syntax and undefined-name errors only (E9, F82).
-# Keep Decimal("10.00") money literals and existing import layout.
-select = ["E9", "F82"]
+# The shared workspace baseline: ruff's default correctness set plus import
+# sorting. Money literals stay exactly as written: no rule here rewrites one.
+select = ["E4", "E7", "E9", "F", "I"]
 
 [tool.mypy]
 python_version = "3.10"

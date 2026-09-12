@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 
 import pytest
-
 from atobenchmark.atomic_io import atomic_text_writer, atomic_write_text
 from atobenchmark.mapping import MappingRow, write_mapping
 

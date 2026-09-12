@@ -1,5 +1,4 @@
 import pytest
-
 from paydaysuper.csv_io import csv_safe
 
 

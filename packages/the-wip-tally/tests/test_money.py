@@ -3,8 +3,16 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-
-from wiptally.money import AmountError, as_money, money, parse_amount, parse_bool, parse_money, parse_ratio, percent
+from wiptally.money import (
+    AmountError,
+    as_money,
+    money,
+    parse_amount,
+    parse_bool,
+    parse_money,
+    parse_ratio,
+    percent,
+)
 
 
 def test_parse_money_accepts_accounting_forms() -> None:

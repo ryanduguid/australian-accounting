@@ -8,9 +8,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
-
 from paydaysuper import cli
-
 
 EVALUATION = Path(__file__).resolve().parents[1] / "evaluation/payday_super_evidence"
 EXPECTED = json.loads((EVALUATION / "expected_results.json").read_text())

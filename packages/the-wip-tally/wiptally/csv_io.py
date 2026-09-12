@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import csv
 import json
-from io import BytesIO, TextIOWrapper
 from collections.abc import Iterable, Iterator
 from decimal import Decimal
+from io import BytesIO, TextIOWrapper
 from pathlib import Path
 
 from .model import (

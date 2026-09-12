@@ -9,16 +9,15 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from pathlib import Path
 
 from . import LAW_COMPILATION, LAW_CONTENT_DATE, __version__
 from .facts import FactError
 from .gate import GateResult
 from .money import cents_str
 from .myr import MyrResult
-from .rates import RatesError, RateResult, benchmark_rate, load_override, load_table
+from .rates import RateResult, RatesError, benchmark_rate, load_override, load_table
 from .register import RegisterError, ReviewReport, review_register_file
-from .verdicts import GateVerdict, MyrVerdict, RateVerdict
+from .verdicts import RateVerdict
 from .years import YearError, parse_year
 
 EXIT_OK = 0

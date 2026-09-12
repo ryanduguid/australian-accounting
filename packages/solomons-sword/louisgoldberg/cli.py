@@ -5,9 +5,9 @@ CLI interface for Solomon's Sword (import package louisgoldberg).
 import argparse
 import sys
 from decimal import Decimal, InvalidOperation
-from .section100a import evaluate_section100a_risk
-from .section99b import ForeignTrustReceipt, evaluate_section99b_liability
 
+from .section99b import ForeignTrustReceipt, evaluate_section99b_liability
+from .section100a import evaluate_section100a_risk
 
 NOT_ADVICE = "Not advice. Review aid only; confirm against current law and the trust deed before acting."
 # Output carries the beneficiary name the operator supplied, because a workpaper

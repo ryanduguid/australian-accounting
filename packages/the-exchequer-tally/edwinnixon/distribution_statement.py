@@ -4,7 +4,7 @@ Distribution Statement generation under Sections 202-75 and 202-80 of the ITAA 1
 
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
+from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 
 
 @dataclass(frozen=True)

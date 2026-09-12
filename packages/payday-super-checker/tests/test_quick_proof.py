@@ -6,7 +6,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SVG = ROOT / "assets" / "quick-proof.svg"
 TRANSCRIPT = ROOT / "assets" / "quick-proof.md"

@@ -10,7 +10,7 @@ number the model cannot stand behind. Outputs are review aids, not advice.
 """
 
 from dataclasses import dataclass, field, replace
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from typing import List, Optional
 
 

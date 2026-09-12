@@ -4,7 +4,6 @@ import argparse
 from decimal import Decimal
 
 import pytest
-
 from louisgoldberg.cli import decimal_type, main
 
 
