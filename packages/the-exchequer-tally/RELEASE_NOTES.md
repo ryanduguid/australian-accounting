@@ -1,4 +1,12 @@
-# v0.1.5
+# v0.1.6
+
+- Require an explicit ISO payment date.
+- Reject invalid types and non-finite or negative direct franking entries.
+- Correct the release pointer and private-reporting fallback.
+
+## Previous release
+
+### v0.1.5
 
 - Use the checked release workflow reference. The v0.1.4 tag stopped before
   building or publishing because GitHub could not load its historical workflow.

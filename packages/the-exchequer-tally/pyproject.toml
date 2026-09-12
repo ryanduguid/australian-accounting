@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "the-exchequer-tally"
-version = "0.1.5"
+version = "0.1.6"
 description = "Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian companies."
 readme = "README.md"
 requires-python = ">=3.10"

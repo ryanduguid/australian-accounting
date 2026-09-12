@@ -1,4 +1,11 @@
-# v0.1.5
+# v0.1.6
+
+- Leave ordinary family dealing undetermined for red-zone results and explain the compliance-review consequence.
+- Correct the documented release pointer.
+
+## Previous release
+
+### v0.1.5
 
 - Use the checked release workflow reference. The v0.1.4 tag stopped before
   building or publishing because GitHub could not load its historical workflow.

@@ -230,17 +230,18 @@ def test_the_citation_and_pyproject_agree_on_the_version():
     assert f'version = "{__version__}"' in pyproject
 
 
-def test_v011_release_metadata_points_to_the_canonical_monorepo():
+def test_current_release_metadata_points_to_the_canonical_monorepo():
     from div7aloan import __version__
 
     citation = Path("CITATION.cff").read_text(encoding="utf-8")
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
     notes = Path("RELEASE_NOTES.md").read_text(encoding="utf-8")
 
-    assert __version__ == "0.1.1"
-    assert notes.startswith("# v0.1.1\n")
+    assert __version__ == "0.1.2"
+    assert notes.startswith("# v0.1.2\n")
     assert "https://github.com/ryanduguid/australian-accounting" in citation
     assert "https://github.com/ryanduguid/australian-accounting" in pyproject
+    # Keep the README citation on the last published release until publication.
     assert "div7a-loan-review/v0.1.1" in README
 
 

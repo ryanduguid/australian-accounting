@@ -1,6 +1,5 @@
-# v0.1.3
+# v0.1.4
 
-- Move the maintained source to `packages/payday-super-checker` in the
-  `australian-accounting` monorepo.
-- Publish the unchanged v0.1.2 calculation behaviour through the monorepo's
-  namespaced, attested workflow while retaining the experimental review boundary.
+- Keep payments awaiting clearance pending, with a warning and no remitted or received date.
+- Match duplicate payroll rows only when the payment covers all competing unmet balances.
+- Retain refusal for insufficient payments and align evidence-pack documentation.

@@ -1,4 +1,12 @@
-# v0.1.0
+# v0.1.1
+
+- Reject malformed numeric grouping and conflicting signs.
+- Parse and hash the same captured source bytes for each review pack.
+- Preserve separate contract assets and liabilities in schedule checks.
+
+## Previous release
+
+### v0.1.0
 
 This is the first PyPI release of `the-wip-tally`.
 The monorepo's [filtered GitHub Releases page](https://github.com/ryanduguid/australian-accounting/releases?q=the-wip-tally)
