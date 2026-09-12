@@ -19,7 +19,7 @@ from paydaysuper.rates import load_gic
 
 
 def test_assess_line_only_orchestrates_decision_phases() -> None:
-    tree = ast.parse(Path("paydaysuper/assess.py").read_text(encoding="utf-8"))
+    tree = ast.parse((Path(__file__).resolve().parents[1] / "paydaysuper/assess.py").read_text(encoding="utf-8"))
     function = next(
         node
         for node in tree.body

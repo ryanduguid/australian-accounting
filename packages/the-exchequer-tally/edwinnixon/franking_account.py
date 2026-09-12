@@ -34,6 +34,13 @@ class FrankingEntry:
     description: str
     statutory_reference: str = ""
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.entry_type, FrankingEntryType):
+            raise ValueError("entry_type must be a FrankingEntryType")
+        if (not isinstance(self.amount, Decimal) or not self.amount.is_finite()
+                or self.amount < 0):
+            raise ValueError("amount must be a non-negative finite Decimal")
+
     @property
     def is_credit(self) -> bool:
         return self.entry_type in {

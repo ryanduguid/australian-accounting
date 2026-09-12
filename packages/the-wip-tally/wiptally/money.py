@@ -14,8 +14,12 @@ CENTS = Decimal("0.01")
 RATIO_PLACES = Decimal("0.00000001")
 PERCENT_POINTS = Decimal("0.01")
 
-_STRIP_RE = re.compile(r"[\s$,]")
-_TRAILING_SIGNS = ("CR", "DR")
+_NUMBER = r"(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)(?:\.[0-9]+)?|\.[0-9]+"
+_ACCOUNTING_NUMBER = re.compile(
+    rf"(?:[+-]?\$?\s*(?:{_NUMBER})|\$[+-]\s*(?:{_NUMBER})|"
+    rf"\$?\s*\(\s*(?:{_NUMBER})\s*\)|\(\s*\$?(?:{_NUMBER})\s*\)|"
+    rf"\$?\s*(?:{_NUMBER})\s*(?:CR|DR))", re.IGNORECASE,
+)
 _PERCENT_RE = re.compile(r"^([+-]?\d*\.?\d+)\s*%$")
 _YES = frozenset({"yes", "y", "true", "1"})
 _NO = frozenset({"no", "n", "false", "0"})
@@ -38,24 +42,10 @@ def parse_amount(raw: str, where: str = "amount") -> Decimal:
     if not text:
         raise AmountError(f"{where}: no amount given")
 
-    negative = False
-    suffix = text[-2:].upper()
-    if len(text) > 2 and suffix in _TRAILING_SIGNS:
-        negative = suffix == "CR"
-        text = text[:-2].strip()
-
-    if text.startswith("$"):
-        text = text[1:].strip()
-
-    if text.startswith("(") and text.endswith(")"):
-        negative = not negative
-        text = text[1:-1].strip()
-
-    cleaned = _STRIP_RE.sub("", text)
-    if not cleaned:
-        raise AmountError(f"{where}: no amount given")
-    if not re.fullmatch(r"[+-]?\d*\.?\d+", cleaned):
+    if not _ACCOUNTING_NUMBER.fullmatch(text):
         raise AmountError(f"{where}: {raw!r} is not an amount")
+    negative = "(" in text or text.upper().endswith("CR")
+    cleaned = re.sub(r"[\s$,()]|CR$|DR$", "", text, flags=re.IGNORECASE)
 
     try:
         value = Decimal(cleaned)

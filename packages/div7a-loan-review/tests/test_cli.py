@@ -62,17 +62,26 @@ def test_json_output_carries_no_floats(argv):
 
 @pytest.mark.parametrize("argv", JSON_COMMANDS, ids=lambda a: " ".join(a))
 def test_no_amount_is_written_as_a_json_number(argv):
-    """Stronger than checking the parsed document: this fails if the raw text
-    ever holds a bare decimal literal, whatever the parser would make of it."""
-    seen = []
-
-    def refuse(text):
-        seen.append(text)
-        return text
-
-    _, out, _ = run(argv + ["--format", "json"])
-    json.loads(out, parse_float=refuse)
-    assert seen == [], f"decimal literals emitted as JSON numbers: {seen}"
+    """Amounts must stay strings, including integral amounts; counts may be ints."""
+    money_fields = {
+        "rate", "benchmark_rate", "amalgamated_loan_unpaid_at_end_of_previous_year",
+        "myr_required", "payments_applied", "shortfall",
+        "experimental_deemed_dividend_exposure", "experimental_total_exposure",
+    }
+    def check(value):
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if key in money_fields:
+                    assert item is None or isinstance(item, str), (key, item)
+                check(item)
+        elif isinstance(value, list):
+            for item in value:
+                check(item)
+    _, document = run_json(argv)
+    check(document)
+    with pytest.raises(AssertionError):
+        check({"lines": [{"row_number": 1, "shortfall": 1}]})
+    check({"row_number": 1, "shortfall": "1.00"})
 
 
 def test_amounts_are_strings_with_two_decimal_places():

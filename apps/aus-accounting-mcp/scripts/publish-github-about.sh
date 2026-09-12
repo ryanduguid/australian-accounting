@@ -33,9 +33,10 @@ if ! command -v gh >/dev/null 2>&1; then
 fi
 
 gh repo edit "$REPO" --description "$DESCRIPTION" --homepage "$HOMEPAGE"
-topic_flags=()
+topic_fields=()
 for topic in "${TOPICS[@]}"; do
-  topic_flags+=(--add-topic "$topic")
+  topic_fields+=(-f "names[]=$topic")
 done
-gh repo edit "$REPO" "${topic_flags[@]}"
+# Replace the complete topic set so removed discovery terms do not linger.
+gh api --method PUT "repos/$REPO/topics" "${topic_fields[@]}"
 echo "Updated $REPO About."

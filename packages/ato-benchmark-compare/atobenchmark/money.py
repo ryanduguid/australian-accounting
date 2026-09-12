@@ -71,7 +71,8 @@ def _quantise(value: Decimal, places: Decimal) -> Decimal:
     already been produced. AmountError is a ValueError the handler already catches.
     """
     try:
-        return value.quantize(places, rounding=ROUND_HALF_UP)
+        quantised = value.quantize(places, rounding=ROUND_HALF_UP)
+        return abs(quantised) if quantised == 0 else quantised
     except InvalidOperation as exc:
         raise AmountError(f"{value} has more digits than this tool can report") from exc
 
@@ -79,9 +80,6 @@ def _quantise(value: Decimal, places: Decimal) -> Decimal:
 def money(value: Decimal) -> str:
     """Format an amount for display, with thousands separators and two decimals."""
     quantised = _quantise(value, CENTS)
-    if quantised == 0:
-        # Decimal keeps the sign through quantize, so -0.001 would print as -0.00.
-        quantised = abs(quantised)
     return f"{quantised:,.2f}"
 
 

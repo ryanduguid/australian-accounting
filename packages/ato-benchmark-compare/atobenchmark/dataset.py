@@ -200,13 +200,19 @@ def loads(text: str, source_name: str = "<string>") -> Dataset:
             if not isinstance(band_raw, dict):
                 raise DatasetError(f"{source_name}: {name}: a turnover band is not an object")
             where = f"{source_name}: {name}/{band_raw.get('band')}"
+            band_id = band_raw.get("band")
+            inclusive = band_raw.get("turnover_from_inclusive")
+            if not isinstance(band_id, str) or not band_id.strip():
+                raise DatasetError(f"{where}: band is missing or empty")
+            if not isinstance(inclusive, bool):
+                raise DatasetError(f"{where}: turnover_from_inclusive must be a boolean")
             turnover_to = band_raw.get("turnover_to")
             bands.append(
                 Band(
-                    band=str(band_raw.get("band")),
+                    band=band_id,
                     label=str(band_raw.get("label", "")),
                     turnover_from=_decimal(band_raw.get("turnover_from"), f"{where}.turnover_from"),
-                    turnover_from_inclusive=bool(band_raw.get("turnover_from_inclusive")),
+                    turnover_from_inclusive=inclusive,
                     turnover_to=None
                     if turnover_to is None
                     else _decimal(turnover_to, f"{where}.turnover_to"),

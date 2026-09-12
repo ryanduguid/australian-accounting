@@ -227,23 +227,26 @@ def formulas():
         ),
         "MYR_verdict": (
             f'=IF({T("Status")}="SKIPPED","",IF(OR({T("Gate_verdict")}<>"COMPLYING",'
+            f'AND(NOT({unknown(T("year_loan_made"))}),{T("Floor_year")}<>{T("year_loan_made")}&""),'
             f'{T("year_loan_made")}&""={YEAR},IFERROR({year_start}>{YEAR_START},FALSE),'
             f'AND(ISNUMBER({T("Term_used")}),{T("Term_used")}<=0),'
             f'AND(ISNUMBER({YEAR_RATE}),{YEAR_RATE}<=0)),"REFUSED",'
-            f'IF(OR(NOT(ISNUMBER({YEAR_RATE})),NOT(ISNUMBER({principal})),NOT(ISNUMBER({payments})),'
+            f'IF(OR({unknown(T("year_loan_made"))},NOT(ISNUMBER({YEAR_RATE})),NOT(ISNUMBER({principal})),NOT(ISNUMBER({payments})),'
             f'NOT(ISNUMBER({T("Term_used")}))),"UNKNOWN",'
             f'IF({T("MYR_raw")}-ROUND({payments},2)<=0,"MYR_MET","MYR_SHORT"))))'
         ),
         "MYR_reason": (
             f'=IF({v}="REFUSED",IF({T("Gate_verdict")}<>"COMPLYING","s 109N gate is "&{T("Gate_verdict")}&", so s 109E produces no repayment figure",'
+            f'IF({T("Floor_year")}<>{T("year_loan_made")}&"","gate benchmark year differs from year_loan_made",'
             f'IF({T("year_loan_made")}&""={YEAR},"year of income is the year the loan was made (s 109E(1)(a), s 109P)",'
             f'IF(IFERROR({year_start}>{YEAR_START},FALSE),"loan made after the year of income",'
             f'IF(AND(ISNUMBER({T("Term_used")}),{T("Term_used")}<=0),"nil remaining term under s 109E(6)",'
-            f'"nil benchmark rate")))),IF({v}="UNKNOWN",'
+            f'"nil benchmark rate"))))),IF({v}="UNKNOWN",'
+            f'IF({unknown(T("year_loan_made"))},"year_loan_made not established",'
             f'IF(NOT(ISNUMBER({YEAR_RATE})),"no reviewed benchmark rate for the year of income",'
             f'IF(NOT(ISNUMBER({principal})),"unpaid balance at end of previous year not established",'
             f'IF(NOT(ISNUMBER({payments})),"payments applied not established",'
-            f'"remaining term not established"))),""))'
+            f'"remaining term not established")))),""))'
         ),
         "MYR_required": f'=IF(OR({v}="MYR_MET",{v}="MYR_SHORT"),{T("MYR_raw")},"")',
         "Shortfall": (

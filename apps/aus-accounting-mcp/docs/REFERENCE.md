@@ -105,6 +105,7 @@ codex mcp add aus-accounting -- uvx aus-accounting-mcp
 | `get_ato_benchmarks` | Compare operator-supplied bucket totals to ATO ranges | ato-benchmark-compare |
 | `calc_payday_super_deadline` | Review one contribution against Payday Super timing | payday-super-checker |
 | `review_payday_super_contributions` | Assess up to 200 related contributions for one employer | payday-super-checker |
+| `build_payday_super_evidence_pack` | Return four in-memory review files for supplied contributions; requires checker evidence-pack support | payday-super-checker |
 | `calculate_tax_worksheet` | Run one of six bounded worksheets with established scope | australian-tax-calculators |
 | `search_accounting_library` | Search explicitly configured local Markdown files | local read-only retrieval |
 | `read_accounting_library` | Read bounded lines with file, line, page and hash citations | local read-only retrieval |
@@ -266,7 +267,7 @@ Compare these P&L buckets to the ATO small-business benchmarks for this industry
 ```
 
 ```text
-Review this Payday Super contribution. QE day, remitted date, and fund-receipt date are in the CSV. as_at is today. Do not invent an SGC charge.
+Review this Payday Super contribution. QE day, remitted date, and fund-receipt date are in the CSV. Ask me for an explicit ISO as_at date before running the review; do not infer today. Do not invent an SGC charge.
 ```
 
 ```text

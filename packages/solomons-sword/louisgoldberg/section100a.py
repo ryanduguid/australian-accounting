@@ -78,9 +78,12 @@ def evaluate_section100a_risk(
     # Determine Risk Zone
     if risk_factors:
         zone = Section100ARiskZone.RED
-        is_ofd = False
+        # PCG 2022/2 paragraph 33: red-zone status does not establish s 100A.
+        is_ofd = None
         consequence = (
-            "HIGH RISK: High likelihood of s 100A application. If s 100A applies, the entitlement is disregarded "
+            "HIGH RISK: the ATO prioritises review of red-zone arrangements. This does not "
+            "determine whether the ordinary family dealing exception or s 100A applies. "
+            "If s 100A applies, the entitlement is disregarded "
             "and the trustee is assessed at the top rate applying under s 99A of the ITAA 1936."
         )
     elif mitigating:

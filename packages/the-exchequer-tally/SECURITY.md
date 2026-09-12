@@ -12,4 +12,4 @@ Include a clear description, reproduction steps using fabricated data, likely im
 
 A valid report will be acknowledged within seven days. The fix and disclosure timeline will be agreed with the reporter.
 
-If GitHub private reporting is not visible, enable it in repository settings rather than creating a public inbox.
+If GitHub private reporting is not visible, email [ryan@duguid.com.au](mailto:ryan@duguid.com.au). Maintainers can enable private reporting in repository settings. Send a fabricated reproduction and omit credentials or client records.

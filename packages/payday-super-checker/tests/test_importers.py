@@ -3409,7 +3409,7 @@ def test_a_created_batch_is_not_written_as_a_remitted_payday(tmp_path):
     # The caveat names the status: the export DOES carry a date, and the
     # status is the reason it was not used.
     assert any(
-        "super row 2" in w and "'Created'" in w and "never left the employer" in w
+        "super row 2" in w and "'Created'" in w and "does not establish" in w
         for w in report.warnings
     ), report.warnings
 
@@ -3427,7 +3427,7 @@ def test_a_created_batch_exits_nonzero_through_the_real_cli(tmp_path, capsys):
     assert _canonical_rows(out)[0]["remitted_date"] == ""
 
 
-@pytest.mark.parametrize("status", ["Created", "Submission accepted", "Awaiting payment"])
+@pytest.mark.parametrize("status", ["Created", "Submission accepted", "Awaiting payment", "Awaiting clearance"])
 def test_every_not_yet_paid_beam_status_blanks_the_paid_date(tmp_path, status):
     _, super_path = _eh_files(tmp_path, status)
     rows, _, _ = read_super(super_path, vendor="employment-hero")
@@ -3438,7 +3438,6 @@ def test_every_not_yet_paid_beam_status_blanks_the_paid_date(tmp_path, status):
 @pytest.mark.parametrize(
     "status",
     [
-        "Awaiting clearance",
         "Sent to fund",
         "Reconciled",
         # Status comparison folds like every other heading-shaped value.
@@ -3483,3 +3482,21 @@ def test_eh_super_without_a_status_column_is_refused(tmp_path):
     )
     with pytest.raises(CsvError, match="payment status column"):
         read_super(super_path, vendor="employment-hero")
+
+
+def test_identical_paydays_can_both_be_fully_paid():
+    rows = [payroll("Synthetic", "2026-07-09", "612.00", row=n) for n in (2, 3)]
+    result = join(rows, [super_row("Synthetic", "2026-07-01", "2026-07-09", "2026-07-14", "1224.00")])
+    assert [o.remitted_amount for o in result.outcomes] == [Decimal("612.00")] * 2
+    assert all(o.remitted == date(2026, 7, 14) for o in result.outcomes)
+
+
+def test_awaiting_clearance_is_not_remittance_evidence(tmp_path):
+    payroll_path, super_path = _eh_files(tmp_path, "Awaiting clearance")
+    out = tmp_path / "contributions.csv"
+    report = import_files(payroll_path, super_path, out, vendor="employment-hero")
+    row = _canonical_rows(out)[0]
+    assert row["remitted_date"] == ""
+    assert row["fund_received_date"] == ""
+    assert not report.clean
+    assert any("Awaiting clearance" in warning for warning in report.warnings)

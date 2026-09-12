@@ -139,3 +139,12 @@ def test_library_scan_budget_counts_invalid_utf8(tmp_path, monkeypatch):
         (tmp_path / name).write_bytes(b"\xffabc")
     with pytest.raises(ToolError, match="64 MB"):
         call("search_accounting_library", query="GST")
+
+
+def test_library_internal_excerpt_rejects_non_positive_start():
+    from aus_accounting_mcp.errors import InputError
+    from aus_accounting_mcp.library import _excerpt
+
+    for start in (0, -1):
+        with pytest.raises(InputError, match="at least 1"):
+            _excerpt("fixture.md", ["first", "second"], "digest", start, 1)

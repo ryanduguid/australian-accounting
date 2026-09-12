@@ -339,3 +339,13 @@ def test_evidenced_dict_filters_checks_by_structured_dependencies() -> None:
     assert not any("salary and wages label" in check for check in payload["checks_to_make"])
     assert any("rent total is negative" in check for check in payload["checks_to_make"])
     assert any("check(s) to make were withheld" in note for note in payload["notes"])
+
+
+def test_optional_w1_is_not_described_as_withholding_ratios():
+    from atobenchmark.report import CALCULATION_FIELDS
+    data = ds.load("2023-24")
+    comparison = compare(data, data.get("Bakeries and hot bread shops"),
+                         compute(totals(turnover="100000", salary_wages="30000")))
+    payload = to_evidenced_dict(comparison, set(CALCULATION_FIELDS))
+    assert "w1" in payload["omitted_buckets"]
+    assert not any("not_supplied" in note and "w1" in note for note in payload["notes"])

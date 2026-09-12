@@ -81,7 +81,7 @@ def test_section100a_risk_zones():
         funds_retained_by_parents_without_loan=True,
     )
     assert red_res.risk_zone == Section100ARiskZone.RED
-    assert red_res.is_ordinary_family_dealing is False
+    assert red_res.is_ordinary_family_dealing is None
     # The s 99A rate is named, not hard-coded: the old "47%" was uncited and
     # conflated the trustee rate with the individual top effective rate.
     assert "47%" not in red_res.tax_consequence_summary

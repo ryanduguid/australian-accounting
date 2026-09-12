@@ -64,7 +64,7 @@ def _note(**overrides):
 
 
 def _write_report(path: Path, rows=None, header=None):
-    dest = Path(path.name)
+    dest = path
     with dest.open("w", encoding="utf-8-sig", newline="") as stream:
         writer = csv.writer(stream)
         writer.writerow(header or EXPECTED_REPORT_HEADER)
@@ -79,7 +79,7 @@ def test_contract_is_deliberately_pinned_to_the_report_writer():
 
 def test_pack_is_deterministic_private_by_default_and_source_bound(tmp_path):
     source = _write_report(
-        tmp_path / "report.csv",
+        Path("report.csv"),
         [
             _row(employee_id="'=SUM(1,1)"),
             _row(
@@ -117,7 +117,7 @@ def test_pack_is_deterministic_private_by_default_and_source_bound(tmp_path):
 
 def test_no_exception_pack_still_requires_human_signoff(tmp_path):
     source = _write_report(
-        tmp_path / "report.csv",
+        Path("report.csv"),
         [
             _row(
                 verdict="ON_TIME",
@@ -157,13 +157,13 @@ def test_no_exception_pack_still_requires_human_signoff(tmp_path):
     ],
 )
 def test_malformed_or_internally_inconsistent_reports_fail_closed(tmp_path, rows, message):
-    source = _write_report(tmp_path / "report.csv", rows)
+    source = _write_report(Path("report.csv"), rows)
     with pytest.raises(PractitionerPackError, match=message):
         load_report_snapshot(source)
 
 
 def test_employee_identifier_note_is_not_a_terminal_note(tmp_path):
-    source = _write_report(tmp_path / "report.csv", [_row(employee_id="NOTE"), _note()])
+    source = _write_report(Path("report.csv"), [_row(employee_id="NOTE"), _note()])
 
     snapshot = load_report_snapshot(source)
 
@@ -171,21 +171,21 @@ def test_employee_identifier_note_is_not_a_terminal_note(tmp_path):
 
 
 def test_note_only_report_is_rejected_instead_of_rendering_no_exceptions(tmp_path):
-    source = _write_report(tmp_path / "report.csv", [_note()])
+    source = _write_report(Path("report.csv"), [_note()])
 
     with pytest.raises(PractitionerPackError, match="at least one contribution row"):
         load_report_snapshot(source)
 
 
 def test_terminal_note_requires_non_whitespace_provenance(tmp_path):
-    source = _write_report(tmp_path / "report.csv", [_row(), _note(notes=" \t ")])
+    source = _write_report(Path("report.csv"), [_row(), _note(notes=" \t ")])
 
     with pytest.raises(PractitionerPackError, match="malformed terminal NOTE"):
         load_report_snapshot(source)
 
 
 def test_malformed_terminal_note_with_data_fields_fails_closed(tmp_path):
-    source = _write_report(tmp_path / "report.csv", [_row(), _note(row="3")])
+    source = _write_report(Path("report.csv"), [_row(), _note(row="3")])
 
     with pytest.raises(PractitionerPackError, match="terminal NOTE"):
         load_report_snapshot(source)
@@ -194,13 +194,13 @@ def test_malformed_terminal_note_with_data_fields_fails_closed(tmp_path):
 def test_duplicate_or_changed_headers_fail_closed(tmp_path):
     duplicate = list(EXPECTED_REPORT_HEADER)
     duplicate[-1] = "notes"
-    source = _write_report(tmp_path / "duplicate.csv", header=duplicate)
+    source = _write_report(Path("duplicate.csv"), header=duplicate)
     with pytest.raises(PractitionerPackError, match="exact 18-column"):
         load_report_snapshot(source)
 
     changed = list(EXPECTED_REPORT_HEADER)
     changed[0] = "source_row"
-    source = _write_report(tmp_path / "changed.csv", header=changed)
+    source = _write_report(Path("changed.csv"), header=changed)
     with pytest.raises(PractitionerPackError, match="exact 18-column"):
         load_report_snapshot(source)
 
@@ -224,7 +224,7 @@ def test_default_practitioner_workpaper_is_ignored():
 
 
 def test_output_is_atomic_and_replaces_the_link_not_its_target(tmp_path):
-    source = _write_report(tmp_path / "report.csv")
+    source = _write_report(Path("report.csv"))
     target = tmp_path / "elsewhere.md"
     target.write_text("leave me", encoding="utf-8")
     output = tmp_path / "practitioner-review.md"
@@ -241,7 +241,7 @@ def test_output_is_atomic_and_replaces_the_link_not_its_target(tmp_path):
 
 
 def test_cli_writes_pack_and_uses_attention_exit_code(tmp_path, capsys):
-    source = _write_report(tmp_path / "report.csv")
+    source = _write_report(Path("report.csv"))
     output = tmp_path / "review.md"
 
     result = cli.main(["review-pack", str(source), "-o", str(output)])
@@ -252,7 +252,7 @@ def test_cli_writes_pack_and_uses_attention_exit_code(tmp_path, capsys):
 
 
 def test_cli_refuses_input_output_collision_and_wrong_suffix(tmp_path, capsys):
-    source = _write_report(tmp_path / "report.csv")
+    source = _write_report(Path("report.csv"))
 
     assert cli.main(["review-pack", str(source), "-o", str(source)]) == cli.EXIT_ERROR
     assert "overwrite the input report" in capsys.readouterr().err
@@ -262,7 +262,7 @@ def test_cli_refuses_input_output_collision_and_wrong_suffix(tmp_path, capsys):
 
 
 def test_cli_refuses_input_output_collision_through_a_symlink(tmp_path, capsys):
-    source = _write_report(tmp_path / "report.csv")
+    source = _write_report(Path("report.csv"))
     output = tmp_path / "review.md"
     try:
         output.symlink_to(source)

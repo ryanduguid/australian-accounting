@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
@@ -22,8 +23,9 @@ D = Decimal
 YEAR = parse_year("2026-27")
 ALL_COLUMNS = list(GATE_COLUMNS) + list(MYR_COLUMNS)
 
-MET = "examples/sample_loans_myr_met.csv"
-MIXED = "examples/sample_loans_mixed.csv"
+ROOT = Path(__file__).resolve().parents[1]
+MET = ROOT / "examples/sample_loans_myr_met.csv"
+MIXED = ROOT / "examples/sample_loans_mixed.csv"
 
 
 def row(**overrides) -> dict:
@@ -289,3 +291,8 @@ def test_the_gate_can_be_anchored_to_a_later_year():
 def test_total_exposure_is_a_decimal():
     report = review_register_file(MIXED, YEAR)
     assert isinstance(report.total_exposure, Decimal)
+
+
+def test_padded_required_header_is_refused():
+    with pytest.raises(RegisterError, match="loan_id"):
+        require_columns([" loan_id ", *GATE_COLUMNS[1:]], GATE_COLUMNS, "synthetic.csv")

@@ -8,6 +8,8 @@ same file the evaluation README's hand-working describes.
 from __future__ import annotations
 
 import contextlib
+import csv
+import re
 import io
 import json
 from decimal import Decimal
@@ -17,7 +19,7 @@ import pytest
 
 from div7aloan.cli import main
 
-PACK = Path("evaluation/div7a_myr")
+PACK = Path(__file__).resolve().parents[1] / "evaluation/div7a_myr"
 EXPECTED = json.loads((PACK / "expected_results.json").read_text(encoding="utf-8"))
 SCENARIOS = EXPECTED["scenarios"]
 IDS = [scenario["id"] for scenario in SCENARIOS]
@@ -61,6 +63,7 @@ def test_amounts_match_to_the_cent(scenario):
     _, document = run_fixture(scenario)
     myr = document["lines"][0]["myr"]
     assert myr["myr_required"] == scenario["expected_myr_required"]
+    assert myr["payments_applied"] == scenario["expected_payments_applied"]
     assert myr["shortfall"] == scenario["expected_shortfall"]
     assert myr["experimental_deemed_dividend_exposure"] == scenario["expected_exposure"]
 
@@ -139,7 +142,12 @@ def test_at_least_three_fixtures_are_hand_worked():
 def test_no_fixture_carries_anything_that_looks_like_a_client_record():
     """Every identifier in the pack is synthetic."""
     for path in (PACK / "fixtures").glob("*.csv"):
-        text = path.read_text(encoding="utf-8")
-        for row in text.splitlines()[1:]:
-            reference = row.split(",")[1]
-            assert reference.startswith("SYN-"), f"{path.name}: {reference}"
+        with path.open(encoding="utf-8", newline="") as source:
+            for row in csv.DictReader(source):
+                # Identifier grammar and empty free text are the fixture policy.
+                assert re.fullmatch(r"F[1-6]-[A-Z0-9-]+", row["loan_id"]), path.name
+                assert re.fullmatch(r"SYN-00[1-6]", row["borrower_reference"]), path.name
+                assert row["out_of_scope_reason"] == "", path.name
+                for key, value in row.items():
+                    if key not in {"loan_id", "borrower_reference", "out_of_scope_reason"}:
+                        assert re.fullmatch(r"(?:true|false|unknown|[0-9.-]+)", value), (path.name, key)

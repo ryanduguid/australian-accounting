@@ -148,7 +148,9 @@ def _coverage(s: SuperRow, candidates: list[PayrollRow]) -> list[PayrollRow]:
     return [r for r in candidates if _covers(s, r.effective_period_end)]
 
 
-def _check_defensible(s: SuperRow, competing: list[PayrollRow]) -> None:
+def _check_defensible(
+    s: SuperRow, competing: list[PayrollRow], allocated_total: dict[int, Decimal]
+) -> None:
     """Refuse only where apportionment cannot produce a defensible answer:
     two or more of the payroll rows still competing for this super row's
     money are indistinguishable in every field that affects the outcome --
@@ -162,7 +164,9 @@ def _check_defensible(s: SuperRow, competing: list[PayrollRow]) -> None:
     actually contested by this payment even if the super row's period
     still technically spans its payday. Refusing over a row that needs
     nothing from this payment would be a false alarm, not a defensible
-    caution."""
+    caution. Full coverage of every competing balance is unambiguous."""
+    if s.amount >= sum((_unmet(row, allocated_total) for row in competing), Decimal("0")):
+        return
     groups: dict[tuple[date, date, Decimal], list[PayrollRow]] = {}
     for r in competing:
         groups.setdefault((r.payday, r.effective_period_end, r.sg_amount), []).append(r)
@@ -425,7 +429,7 @@ def join(
     for s in sorted(super_rows, key=lambda s: (s.paid_date or date.max, *_super_order(s))):
         covered = coverage[id(s)]
         competing = [r for r in covered if _unmet(r, allocated_total) > 0]
-        _check_defensible(s, competing)
+        _check_defensible(s, competing, allocated_total)
         allocations = _allocate(s, covered, allocated_total)
         # A super row reads as shared only if more than one payroll row still
         # had an unmet balance when it was processed.

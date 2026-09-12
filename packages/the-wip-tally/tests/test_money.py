@@ -55,3 +55,9 @@ def test_parse_amount_never_returns_float() -> None:
     value = parse_amount("10.10")
     assert type(value) is Decimal
     assert type(value + value) is Decimal
+
+
+@pytest.mark.parametrize("raw", ["1,23", "12,34,567", "1,,000", "1 000", "(100) CR", "(100) DR", "-100 CR", "+100 DR", "$($100)"])
+def test_malformed_grouping_and_conflicting_signs_are_refused(raw):
+    with pytest.raises(AmountError):
+        parse_amount(raw)

@@ -130,7 +130,7 @@ reusable `ci-package.yml` for each engine, from a package-name matrix.
   only. The root is a virtual uv workspace: no root distribution, no root version, no
   root runtime dependency, nothing published from the root. Never add a root package,
   a shared runtime library, a unified version or a code generator.
-- The workspace redirects the MCP application's three engine dependencies to the
+- The workspace redirects the MCP application's four engine dependencies to the
   checked-out sources for development. It does not change the dependency direction.
   The exact pins in `apps/aus-accounting-mcp/pyproject.toml` stay authoritative, uv
   sources are development metadata and are never written into a built distribution,

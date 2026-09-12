@@ -151,7 +151,7 @@ def require_columns(fieldnames: Sequence[str] | None, needed: Iterable[str], whe
     "unknown" and produce a file of UNKNOWN verdicts that looks like a
     considered review rather than a mis-shaped file.
     """
-    present = {name.strip() for name in (fieldnames or [])}
+    present = set(fieldnames or [])
     missing = [name for name in needed if name not in present]
     if missing:
         raise RegisterError(
