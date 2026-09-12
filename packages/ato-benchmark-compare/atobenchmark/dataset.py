@@ -68,10 +68,6 @@ class BusinessType:
     key_ratio: str
     bands: tuple[Band, ...]
 
-    @property
-    def lowest_turnover(self) -> Decimal:
-        return self.bands[0].turnover_from
-
     def band_for(self, turnover: Decimal) -> Band | None:
         for band in self.bands:
             if band.contains(turnover):
