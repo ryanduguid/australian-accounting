@@ -187,7 +187,7 @@ gh attestation verify "$wheel" -R "$repo" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
   --signer-digest c24612618f177f6dccb7ed9ee2a8648959b87e2e
 gh attestation verify "$wheel" -R "$repo" \
-  --predicate-type https://spdx.dev/Document \
+  --predicate-type https://spdx.dev/Document/v2.3 \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
