@@ -93,6 +93,14 @@ tmp=$(mktemp -d) && cp -r packages/<engine>/. "$tmp" && (cd "$tmp" && uv lock) \
 
 ## CI routing
 
+Dependabot runs one Python update job at the workspace root. All eight components
+share that resolution, so separate component jobs can propose conflicting exact
+toolchain pins or fail to update the root lockfile. Keep Python updates grouped
+at `/`, including `div7a-loan-review`, which is also a uv workspace member.
+Dependabot updates the workspace lock; before merging a dependency PR, regenerate
+each affected component's standalone release lock using the procedure above.
+The existing component lock checks remain required.
+
 `ci.yml` is the anchor workflow. It carries no path filter, so its required checks always
 report, and it runs two things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.

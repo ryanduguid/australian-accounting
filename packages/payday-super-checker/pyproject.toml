@@ -34,7 +34,7 @@ dev = [
     "pytest-cov==7.1.0",
     "build==1.6.0",
     "diff-cover==10.5.1",
-    "hypothesis==6.165.10",
+    "hypothesis==6.167.1",
     "holidays==0.103",
     "openpyxl==3.1.5",
     "setuptools==84.0.0",
