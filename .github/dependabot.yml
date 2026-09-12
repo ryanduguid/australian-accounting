@@ -20,83 +20,11 @@ updates:
       # audit instead.
       - dependency-name: "ryanduguid/release-policy/.github/workflows/*"
 
-  # Python dependency updates stay scoped to one component directory so that
-  # no component's lockfile changes because of another component.
+  # uv resolves all workspace members together. Start at the shared lockfile so
+  # an update can change every occurrence of an exact toolchain pin together.
+  # Component release locks still need the checks in CONTRIBUTING.md.
   - package-ecosystem: uv
-    directory: /apps/aus-accounting-mcp
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
-    open-pull-requests-limit: 2
-    groups:
-      python:
-        patterns:
-          - "*"
-  - package-ecosystem: uv
-    directory: /packages/ato-benchmark-compare
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
-    open-pull-requests-limit: 2
-    groups:
-      python:
-        patterns:
-          - "*"
-  - package-ecosystem: uv
-    directory: /packages/payday-super-checker
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
-    open-pull-requests-limit: 2
-    groups:
-      python:
-        patterns:
-          - "*"
-  - package-ecosystem: uv
-    directory: /packages/the-exchequer-tally
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
-    open-pull-requests-limit: 2
-    groups:
-      python:
-        patterns:
-          - "*"
-  - package-ecosystem: uv
-    directory: /packages/solomons-sword
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
-    open-pull-requests-limit: 2
-    groups:
-      python:
-        patterns:
-          - "*"
-  - package-ecosystem: uv
-    directory: /packages/the-wip-tally
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
-    open-pull-requests-limit: 2
-    groups:
-      python:
-        patterns:
-          - "*"
-  - package-ecosystem: pip
-    directory: /packages/div7a-loan-review
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 7
-    open-pull-requests-limit: 2
-  - package-ecosystem: uv
-    directory: /packages/australian-tax-calculators
+    directory: /
     schedule:
       interval: weekly
     cooldown:
