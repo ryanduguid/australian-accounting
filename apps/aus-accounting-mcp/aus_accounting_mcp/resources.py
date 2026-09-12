@@ -141,6 +141,8 @@ def disclaimer() -> str:
             PAYDAY_DISCLAIMER,
             "# div7a-loan-review",
             DIV7A_DISCLAIMER,
+            "# australian-tax-calculators",
+            "\n".join(f"{kind}: {description}" for kind, description in SCOPES.items()),
         )
     )
 

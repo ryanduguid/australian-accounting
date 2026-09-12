@@ -370,13 +370,13 @@ def to_evidenced_dict(
     ]
     withheld_checks = len(figures.warning_details) - len(checks)
     omitted = [name for name in CALCULATION_FIELDS if name not in supplied]
-    if not w1_supplied:
-        omitted.append("w1")
     if omitted:
         notes.append(
             "These buckets were omitted, not evidenced as zero, so their ratios "
             f"are not_supplied: {', '.join(omitted)}."
         )
+    if not w1_supplied:
+        omitted.append("w1")
     if "other_income" not in supplied:
         notes.append(
             "other_business_income was omitted. The ATO rule divides by sales, or "

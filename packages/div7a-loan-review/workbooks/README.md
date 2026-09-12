@@ -35,8 +35,9 @@ printed on Review Checks.
    exit code 0.
 5. **Rates.** The frozen table of May RBA F5 figures. To review a year outside it,
    add a row and cite where you read the figure. The engine refuses an override
-   without a citation; the workbook cannot enforce that, so the citation column is
-   your record.
+   without a citation; the workbook cannot enforce that. Record the reference in
+   `source` and the date checked in `seen`, alongside `rba_table`, `rba_series`,
+   `rba_month` and `verify_at`.
 
 The rules are the engine's: a loan that fails any limb is NOT_COMPLYING and gets no
 repayment figure; an unestablished limb is UNKNOWN and never coerced to a verdict;

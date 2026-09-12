@@ -259,10 +259,12 @@ uv run --with openpyxl python tools/build_dataset.py \
   --year 2024-25 \
   --resource-name "2024-25 Benchmarks" \
   --resource-url https://data.gov.au/... \
-  --resource-last-modified 2027-03-15T00:00:00 \
-  --retrieved 2027-03-20 \
+  --resource-last-modified "<observed resource modification timestamp>" \
+  --retrieved "<actual retrieval date YYYY-MM-DD>" \
   --out atobenchmark/data/benchmarks-2024-25.json
 ```
+
+Replace the placeholders with the actual observed resource metadata for the build.
 
 The builder refuses a workbook whose columns are not where it expects them, rather
 than quietly producing a dataset with the ratios in the wrong places.

@@ -60,6 +60,8 @@ def _decode(raw: bytes) -> tuple[list[str], str]:
 
 
 def _excerpt(name: str, lines: list[str], digest: str, start: int, count: int) -> dict[str, Any]:
+    if start < 1:
+        raise InputError("start_line must be at least 1.")
     if start > len(lines):
         raise InputError("start_line is beyond the end of the document.")
     selected = lines[start - 1:start - 1 + count]

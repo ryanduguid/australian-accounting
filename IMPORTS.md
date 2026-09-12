@@ -172,10 +172,13 @@ commit. The imported subtree must have the same tree id as the source commit.
 
 ## Release Policy prerequisites
 
-Every root release caller calls
-`ryanduguid/release-policy/.github/workflows/release-python.yml` at the commit
-`tests/test_boundaries.py` pins (`787db4590e725cfd37104c8a9dd9e75f7fd4c018` as at
-7 September 2026). That workflow requires, inside the component directory, a
+The root release callers use
+`ryanduguid/release-policy/.github/workflows/release-python.yml`. As at
+12 September 2026, `aus-accounting-mcp`, `australian-tax-calculators`,
+`the-exchequer-tally` and `solomons-sword` pin
+`ff86e30038ca4fd028ce3663646ee03ae5e94692`; the other callers pin
+`787db4590e725cfd37104c8a9dd9e75f7fd4c018`. `tests/test_boundaries.py` checks
+these component-specific pins. That workflow requires, inside the component directory, a
 `RELEASE_NOTES.md` whose first line is `# vX.Y.Z` for the tag, a committed `uv.lock` (it
 runs `uv run --locked`), a `dev` extra providing `pytest` and `build`, a pure-Python
 wheel, and a version source that is either a static `[project] version` in

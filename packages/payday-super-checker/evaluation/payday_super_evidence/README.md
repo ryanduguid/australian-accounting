@@ -31,7 +31,7 @@ No client, employee or live payroll data is included.
 
 ## Reproduce the result
 
-The unreleased `evidence-pack` subcommand composes these same fixtures into four
+The `evidence-pack` subcommand composes these same fixtures into four
 review files. Its contract test reads the pinned as-at date and verdicts from
 `expected_results.json`, verifies the report hash, the non-`ON_TIME` queue,
 identifier omission and blank decision headings:

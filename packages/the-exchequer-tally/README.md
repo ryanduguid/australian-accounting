@@ -21,7 +21,7 @@ The `australian-accounting` repository contains the maintained source. The
 `edwinnixon` import package remains unchanged, so internal Python imports do not
 need a rename.
 
-Release: [`v0.1.3`](https://github.com/ryanduguid/australian-accounting/releases/tag/the-exchequer-tally/v0.1.3).
+Release: [`v0.1.5`](https://github.com/ryanduguid/australian-accounting/releases/tag/the-exchequer-tally/v0.1.5).
 
 ---
 
@@ -57,7 +57,7 @@ pip install the-exchequer-tally
 the-exchequer-tally bre-test --fy 2025 --turnover 4500000 --assessable 800000 --passive 120000
 
 # Generate a dividend distribution statement
-the-exchequer-tally dist-statement --entity "Acme Pty Ltd" --acn "123456789" --recipient "Jane Doe" --amount 15000 --franking-pct 100 --tax-rate 0.25
+the-exchequer-tally dist-statement --entity "Acme Pty Ltd" --acn "123456789" --recipient "Jane Doe" --payment-date 2025-03-14 --amount 15000 --franking-pct 100 --tax-rate 0.25
 ```
 
 ---

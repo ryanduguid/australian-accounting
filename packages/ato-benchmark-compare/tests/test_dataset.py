@@ -194,3 +194,18 @@ def test_ratios_are_exact_decimals_not_floats() -> None:
     assert isinstance(value, Decimal)
     assert value == Decimal("0.31")
     assert str(value) == "0.31"
+
+
+@pytest.mark.parametrize("field,value", [
+    ("turnover_from_inclusive", None), ("turnover_from_inclusive", "false"),
+    ("turnover_from_inclusive", 0), ("band", None), ("band", ""),
+])
+def test_band_requires_identity_and_explicit_boolean(field, value):
+    payload = json.loads((ds.DATA_DIR / "benchmarks-2023-24.json").read_text(encoding="utf-8"))
+    band = payload["business_types"][0]["turnover_bands"][0]
+    if value is None:
+        del band[field]
+    else:
+        band[field] = value
+    with pytest.raises(ds.DatasetError, match=field):
+        ds.loads(json.dumps(payload))

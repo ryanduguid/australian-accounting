@@ -76,8 +76,8 @@ class RemittedStatus:
     """How a vendor status column decides whether a payment left the employer.
 
     `sent` holds the statuses that evidence the payment was actually made;
-    `not_sent` holds the ones that mean the money never left (a batch merely
-    created, submitted or still awaiting the employer's payment). Both lists
+    `not_sent` holds pending statuses that do not establish remittance,
+    including a payment still awaiting clearance. Both lists
     together must cover the vendor's whole ladder: a status in neither is
     refused at read time rather than guessed either way."""
 

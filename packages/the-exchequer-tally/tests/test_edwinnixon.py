@@ -500,11 +500,12 @@ def test_cli_distribution_statement_states_the_acn(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", [
         "edwinnixon", "dist-statement", "--entity", "Acme Pty Ltd", "--acn", "123 456 789",
         "--recipient", "Jane Doe", "--amount", "15000", "--franking-pct", "100",
-        "--tax-rate", "0.25",
+        "--tax-rate", "0.25", "--payment-date", "2025-03-14",
     ])
     assert main() == 0
     out = capsys.readouterr().out
     assert "ACN/ABN:                 123 456 789" in out
+    assert "Payment Date:            2025-03-14" in out
 
 
 def test_sub_cent_total_distribution_is_refused():
@@ -701,3 +702,27 @@ def test_mutated_entries_cannot_contaminate_annual_calculations(day, calculation
         result = getattr(account, calculation)
         if callable(result):
             result()
+
+
+@pytest.mark.parametrize("entry_type,amount", [
+    (FrankingEntryType.TAX_REFUND, Decimal("NaN")),
+    (FrankingEntryType.PAYG_INSTALMENT, Decimal("Infinity")),
+    (FrankingEntryType.TAX_REFUND, Decimal("-1")),
+    (FrankingEntryType.PAYG_INSTALMENT, Decimal("-1")),
+    ("unrecognised", Decimal("1")),
+])
+def test_direct_franking_entries_preserve_ledger_invariants(entry_type, amount):
+    with pytest.raises(ValueError):
+        FrankingEntry(date(2026, 9, 1), entry_type, amount, "Synthetic entry")
+
+
+@pytest.mark.parametrize("day", [None, "2026-02-30", "20260901"])
+def test_distribution_cli_requires_an_explicit_iso_payment_date(monkeypatch, day):
+    args = ["the-exchequer-tally", "dist-statement", "--entity", "Synthetic Pty Ltd",
+            "--acn", "123456789", "--recipient", "Synthetic person", "--amount", "100"]
+    if day is not None:
+        args += ["--payment-date", day]
+    monkeypatch.setattr(sys, "argv", args)
+    with pytest.raises(SystemExit) as exc:
+        main()
+    assert exc.value.code == 2

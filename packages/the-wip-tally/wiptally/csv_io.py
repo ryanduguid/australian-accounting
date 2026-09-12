@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+from io import BytesIO, TextIOWrapper
 from collections.abc import Iterable, Iterator
 from decimal import Decimal
 from pathlib import Path
@@ -145,9 +146,12 @@ def _readable_rows(reader: Iterable[list[str]], path: Path) -> Iterator[list[str
         raise CsvError(f"cannot read {path} as CSV: {exc}") from exc
 
 
-def read_contracts(path: Path, mapping: dict[str, str]) -> list[ContractInput]:
+def read_contracts(
+    path: Path, mapping: dict[str, str], *, source_bytes: bytes | None = None
+) -> list[ContractInput]:
     try:
-        handle = path.open("r", encoding="utf-8-sig", newline="")
+        handle = (path.open("r", encoding="utf-8-sig", newline="") if source_bytes is None
+                  else TextIOWrapper(BytesIO(source_bytes), encoding="utf-8-sig", newline=""))
     except OSError as exc:
         raise CsvError(f"cannot read {path}: {exc}") from exc
 

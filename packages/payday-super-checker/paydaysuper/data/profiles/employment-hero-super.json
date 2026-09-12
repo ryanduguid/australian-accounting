@@ -21,8 +21,8 @@
   },
   "remitted_status": {
     "column": "status",
-    "sent": ["Awaiting clearance", "Sent to fund", "Reconciled"],
-    "not_sent": ["Created", "Submission accepted", "Awaiting payment"]
+    "sent": [ "Sent to fund", "Reconciled"],
+    "not_sent": ["Awaiting clearance","Created", "Submission accepted", "Awaiting payment"]
   },
-  "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Sent to fund, Reconciled. None of them is a fund receipt date. The first three mean the money has not left the employer -- a batch merely created, submitted, or still waiting on the employer's payment -- so those rows get no remitted date. A status outside the ladder is refused rather than guessed."
+  "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Sent to fund, Reconciled. None of them is a fund receipt date. The first four do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance remains pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
 }

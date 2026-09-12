@@ -199,3 +199,12 @@ def test_table_refuses_a_percentage_written_as_a_whole_number(tmp_path):
 def test_rates_are_decimals_not_floats():
     for year in PUBLISHED:
         assert isinstance(benchmark_rate(year).rate, Decimal)
+
+
+def test_override_refuses_duplicate_years(tmp_path):
+    path = _write_override(tmp_path, {
+        "verified_until": "2027-28", "citation": "Synthetic duplicate-year fixture",
+        "rates": [{"year_of_income": "2027-28", "rate": rate} for rate in ("0.08", "0.09")],
+    })
+    with pytest.raises(RatesError, match="twice"):
+        load_override(path)

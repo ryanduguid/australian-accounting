@@ -59,14 +59,6 @@ OUTPUT_COLUMNS = (
 SCHEMA_VERSION = "wip-tally-schedule-v2"
 
 
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(65536), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
 def _dec(value: Decimal | None) -> str:
     if value is None:
         return ""
@@ -199,6 +191,7 @@ def build_review_pack(
     schedule_path: Path,
     source_path: Path | None,
     schedule: Schedule,
+    *, source_bytes: bytes | None,
 ) -> str:
     schedule_bytes = schedule_path.read_bytes()
     with StringIO(newline="") as expected:
@@ -211,7 +204,9 @@ def build_review_pack(
         )
 
     schedule_hash = hashlib.sha256(schedule_bytes).hexdigest()
-    source_hash = sha256_file(source_path) if source_path is not None else "not supplied"
+    if source_path is not None and source_bytes is None:
+        raise ScheduleError("source_bytes must be the snapshot used to rebuild the schedule")
+    source_hash = hashlib.sha256(source_bytes).hexdigest() if source_bytes is not None else "not supplied"
     source_name = source_path.name if source_path is not None else "not supplied"
     lines = [
         "# Construction WIP review pack",

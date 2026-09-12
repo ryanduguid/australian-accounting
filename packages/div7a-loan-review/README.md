@@ -85,7 +85,7 @@ rather than a number it cannot stand behind.
 | s 109RB Commissioner's discretion, s 109Q hardship, s 109RD extensions | Out of scope, and each can change the answer. |
 | s 109Y distributable surplus | Not modelled. The shortfall is not the dividend; see below. |
 | Loans made before 4 December 1997 | s 109D(5). `SKIPPED`, including the 1997-98 year that straddles the date. |
-| Public companies | Division 7A is a private-company provision. |
+| Public companies | Outside scope. The operator must establish private-company status before using the gate, or mark the row with `out_of_scope_reason`; the engine does not classify lenders. |
 | "This looks like a dividend, call it s 109C or s 109D for me" | Characterisation is not arithmetic. |
 | Interest accrued but not paid, offset accounts, set-off, journal-only repayments | Not payments this engine will count for you. |
 | Any rate year not in the frozen table and not in a reviewed override | Fail closed. No extrapolation, no runtime scraping. |

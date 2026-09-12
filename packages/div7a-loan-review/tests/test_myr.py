@@ -318,7 +318,7 @@ def test_the_benchmark_provenance_reaches_the_result():
 
 def test_a_missing_year_loan_made_is_noted_rather_than_assumed():
     result = minimum_yearly_repayment(facts(year_loan_made=None))
-    assert result.verdict is MyrVerdict.MYR_MET
+    assert result.verdict is MyrVerdict.UNKNOWN
     assert any("109E(1)(a)" in caveat for caveat in result.caveats)
 
 
@@ -332,3 +332,28 @@ def test_every_money_field_is_a_decimal():
         result.amalgamated_loan_unpaid_at_end_of_previous_year,
     ):
         assert isinstance(value, Decimal)
+
+
+@pytest.mark.parametrize("verdict", list(GateVerdict))
+@pytest.mark.parametrize("year", [YEAR, None])
+def test_gate_caveats_survive_every_result(verdict, year):
+    from dataclasses import replace
+    gate = replace(_gate(verdict), caveats=("Synthetic scope warning",))
+    result = minimum_yearly_repayment(facts(gate_result=gate, year_of_income=year))
+    assert "Synthetic scope warning" in result.caveats
+
+
+def test_gate_from_another_benchmark_year_cannot_authorise_myr():
+    from dataclasses import replace
+    gate = replace(COMPLYING_GATE, benchmark_year_used="2021-22")
+    result = minimum_yearly_repayment(facts(gate_result=gate))
+    assert result.verdict is MyrVerdict.REFUSED
+    assert result.myr_required is None
+    assert any("benchmark year" in reason for reason in result.reasons)
+
+
+def test_missing_loan_year_cannot_produce_myr():
+    result = minimum_yearly_repayment(facts(year_loan_made=None))
+    assert result.verdict is MyrVerdict.UNKNOWN
+    assert result.myr_required is None
+    assert any("year_loan_made" in reason for reason in result.reasons)

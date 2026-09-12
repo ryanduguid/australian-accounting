@@ -90,7 +90,8 @@ def cmd_review_pack(args: argparse.Namespace) -> int:
             "itself to the facts, not only to a downstream schedule file"
         )
     mapping = load_mapping(mapping_path)
-    contracts = read_contracts(source, mapping)
+    source_bytes = source.read_bytes()
+    contracts = read_contracts(source, mapping, source_bytes=source_bytes)
     positions = [measure(contract) for contract in contracts]
     as_at = _as_at(args.as_at)
     schedule = Schedule(as_at=as_at, positions=positions, source_name=source.name)
@@ -99,7 +100,7 @@ def cmd_review_pack(args: argparse.Namespace) -> int:
             f"{schedule_path} does not exist. Run `wip-tally schedule` first so the "
             f"pack can hash the schedule bytes that were actually reviewed."
         )
-    text = build_review_pack(schedule_path, source, schedule)
+    text = build_review_pack(schedule_path, source, schedule, source_bytes=source_bytes)
     write_review_pack(out, text)
     print(f"Wrote {out}")
     return EXIT_REVIEW if schedule.review_rows else EXIT_OK

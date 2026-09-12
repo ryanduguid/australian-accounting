@@ -6,7 +6,7 @@
 # answered on the day, so no production module may open one.
 set -euo pipefail
 
-if grep -rniE 'requests\.|urllib|http://|urlopen|socket\.' div7aloan/*.py; then
+if grep -rniE 'requests\.|urllib|https?://|httpx|aiohttp|urlopen|socket\.' div7aloan/*.py; then
   echo "::error::a div7aloan module reaches the network; the rate table stays local" >&2
   exit 1
 fi

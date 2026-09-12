@@ -89,7 +89,8 @@
       "expected_shortfall": null,
       "expected_exposure": null,
       "expected_exit": 2,
-      "note": "s 109E(1)(a) applies only to an amalgamated loan made in an earlier year of income, and s 109P puts an amalgamated loan outside s 109D in the year it is made."
+      "note": "s 109E(1)(a) applies only to an amalgamated loan made in an earlier year of income, and s 109P puts an amalgamated loan outside s 109D in the year it is made.",
+      "expected_payments_applied": "25556.00"
     },
     {
       "id": "refused_not_complying",
@@ -102,7 +103,8 @@
       "expected_shortfall": null,
       "expected_exposure": null,
       "expected_exit": 2,
-      "note": "The interest rate 0.0400 is below the 2022-23 benchmark 0.0477, so s 109N(1)(b) fails and no minimum yearly repayment is emitted."
+      "note": "The interest rate 0.0400 is below the 2022-23 benchmark 0.0477, so s 109N(1)(b) fails and no minimum yearly repayment is emitted.",
+      "expected_payments_applied": "25556.00"
     },
     {
       "id": "unknown_missing_payments",
@@ -115,7 +117,8 @@
       "expected_shortfall": null,
       "expected_exposure": null,
       "expected_exit": 2,
-      "note": "s 109R decides which payments count. The operator did not assert an amount applied, and bank credits are not a substitute."
+      "note": "s 109R decides which payments count. The operator did not assert an amount applied, and bank credits are not a substitute.",
+      "expected_payments_applied": null
     }
   ],
   "human_decision": "Whether a payment is a genuine repayment under s 109R, whether the terms were in place before the lodgment day under s 109D(6), whether the company has a distributable surplus under s 109Y, and whether s 109Q or s 109RB applies are all decisions for a human. This engine reports what the supplied facts establish and refuses the rest."

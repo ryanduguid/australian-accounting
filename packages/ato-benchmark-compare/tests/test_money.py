@@ -90,3 +90,11 @@ def test_guard_leaves_data_alone(value: str) -> None:
 
 def test_guard_escapes_leading_whitespace_control() -> None:
     assert guard("\t=1+1").startswith("'")
+
+
+def test_all_formatters_remove_negative_zero_only():
+    from atobenchmark.money import percent_range
+    assert money(Decimal("-0.001")) == "0.00"
+    assert percent(Decimal("-0.000001")) == "0.00%"
+    assert percent_compact(Decimal("-0.000001")) == "0%"
+    assert percent_range(Decimal("-0.000001"), Decimal("-0.01")) == "0% to -1%"

@@ -78,7 +78,8 @@ def test_review_pack_escapes_pipes_in_ledger_identifiers(tmp_path: Path) -> None
             ["JOB|A\n| 999 | pwned", "1000.00", "400.00", "400.00", "450.00", "10.00"]
         )
 
-    contracts = read_contracts(source, load_mapping(None))
+    source_bytes = source.read_bytes()
+    contracts = read_contracts(source, load_mapping(None), source_bytes=source_bytes)
     schedule = Schedule(
         as_at="2026-08-31",
         positions=[measure(contract) for contract in contracts],
@@ -86,7 +87,7 @@ def test_review_pack_escapes_pipes_in_ledger_identifiers(tmp_path: Path) -> None
     )
     out = tmp_path / "wip-schedule.csv"
     write_schedule_csv(out, schedule)
-    pack = build_review_pack(out, source, schedule)
+    pack = build_review_pack(out, source, schedule, source_bytes=source_bytes)
 
     row = next(line for line in pack.splitlines() if line.startswith("| JOB"))
     cells = row.split(" | ")
@@ -173,7 +174,8 @@ def test_review_pack_escapes_backslashes_before_pipes(tmp_path: Path) -> None:
         )
         writer.writerow([contract_id, "1000.00", "400.00", "400.00", "450.00", "10.00"])
 
-    contracts = read_contracts(source, load_mapping(None))
+    source_bytes = source.read_bytes()
+    contracts = read_contracts(source, load_mapping(None), source_bytes=source_bytes)
     schedule = Schedule(
         as_at="2026-08-31",
         positions=[measure(contract) for contract in contracts],
@@ -181,7 +183,7 @@ def test_review_pack_escapes_backslashes_before_pipes(tmp_path: Path) -> None:
     )
     out = tmp_path / "wip-schedule.csv"
     write_schedule_csv(out, schedule)
-    pack = build_review_pack(out, source, schedule)
+    pack = build_review_pack(out, source, schedule, source_bytes=source_bytes)
 
     lines = pack.splitlines()
     header = next(line for line in lines if line.startswith("| Contract |"))

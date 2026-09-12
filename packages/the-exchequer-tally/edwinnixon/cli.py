@@ -54,6 +54,16 @@ def rate_type(value: str) -> Decimal:
         raise argparse.ArgumentTypeError(f"rate must be between 0 and 1: {value!r}")
     return parsed
 
+
+def payment_date_type(value: str) -> date:
+    try:
+        parsed = date.fromisoformat(value)
+        if parsed.isoformat() != value:
+            raise ValueError
+        return parsed
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("payment date must be YYYY-MM-DD") from exc
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="the-exchequer-tally",
@@ -73,6 +83,7 @@ def main() -> int:
     dist_parser.add_argument("--entity", type=str, required=True, help="Company name")
     dist_parser.add_argument("--acn", type=str, required=True, help="ACN or ABN")
     dist_parser.add_argument("--recipient", type=str, required=True, help="Shareholder name")
+    dist_parser.add_argument("--payment-date", type=payment_date_type, required=True, help="Actual payment date YYYY-MM-DD")
     dist_parser.add_argument("--amount", type=money_type, required=True, help="Total dividend distribution ($)")
     dist_parser.add_argument("--franking-pct", type=percentage_type, default=Decimal("100.00"), help="Franking percentage (e.g. 100)")
     dist_parser.add_argument("--tax-rate", type=rate_type, default=Decimal("0.25"), help="Corporate tax rate (0.25 or 0.30)")
@@ -118,7 +129,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             entity_name=args.entity,
             abn_or_acn=args.acn,
             recipient_name=args.recipient,
-            payment_date=date.today(),
+            payment_date=args.payment_date,
             total_distribution=args.amount,
             franking_percentage=args.franking_pct,
             corporate_tax_rate=args.tax_rate,

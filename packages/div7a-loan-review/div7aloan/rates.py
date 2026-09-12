@@ -291,6 +291,7 @@ def load_override(path: Path | str) -> RateOverride:
         raise RatesError(f"{path}: 'rates' must be a non-empty list of rate objects")
 
     entries: list[BenchmarkEntry] = []
+    seen_years: set[int] = set()
     for n, row in enumerate(raw_rates, start=1):
         where = f"override rate {n} in {path}"
         if not isinstance(row, dict):
@@ -300,6 +301,9 @@ def load_override(path: Path | str) -> RateOverride:
             rate = parse_rate(_required(row, "rate", where), f"{where} rate")
         except (YearError, MoneyError) as exc:
             raise RatesError(str(exc))
+        if year.start_year in seen_years:
+            raise RatesError(f"{where}: {year.label} occurs twice")
+        seen_years.add(year.start_year)
         if year > verified_until:
             raise RatesError(
                 f"{where} supplies {year.label}, past the file's own verified_until "

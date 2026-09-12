@@ -256,3 +256,23 @@ def test_review_pack_refuses_to_overwrite_its_mapping_file(tmp_path: Path) -> No
         ]
     ) == 1
     assert mapping.read_bytes() == original
+
+
+def test_review_pack_hashes_the_bytes_used_even_if_source_changes(tmp_path, monkeypatch):
+    import hashlib
+    from wiptally import cli
+    source = tmp_path / "synthetic.csv"
+    original = SAMPLE.read_bytes()
+    source.write_bytes(original)
+    schedule = tmp_path / "schedule.csv"
+    pack = tmp_path / "pack.md"
+    assert main(["schedule", str(source), "-o", str(schedule), "--as-at", "2026-08-31"]) == 2
+    read = cli.read_contracts
+    def change_after_read(*args, **kwargs):
+        contracts = read(*args, **kwargs)
+        source.write_bytes(original.replace(b"500000", b"999999"))
+        return contracts
+    monkeypatch.setattr(cli, "read_contracts", change_after_read)
+    assert main(["review-pack", str(schedule), "--source", str(source), "-o", str(pack), "--as-at", "2026-08-31"]) == 2
+    assert hashlib.sha256(original).hexdigest() in pack.read_text()
+    assert hashlib.sha256(source.read_bytes()).hexdigest() not in pack.read_text()

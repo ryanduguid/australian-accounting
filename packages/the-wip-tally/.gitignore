@@ -1,8 +1,6 @@
 # Client and taxpayer data never belongs in this repository.
 # Working files that could carry a real job cost are blocked by name and by folder.
 wip*.csv
-!examples/**
-!tests/fixtures/**
 job-cost*.csv
 jobcost*.csv
 cvr*.csv
@@ -17,6 +15,14 @@ exports/
 *.xlsx
 *.xls
 *.xlsm
+
+# Default CLI outputs sitting in the repo root
+wip-schedule.csv
+practitioner-review.md
+report.csv
+
+!examples/**
+!tests/fixtures/**
 
 # Credentials
 .env
@@ -51,8 +57,3 @@ Thumbs.db
 # Agent scratch
 .superpowers/
 .claude/settings.local.json
-
-# Default CLI outputs sitting in the repo root
-wip-schedule.csv
-practitioner-review.md
-report.csv

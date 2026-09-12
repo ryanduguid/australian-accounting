@@ -78,7 +78,7 @@ def trigger_path_filters(workflow: str) -> list[str]:
     lines = workflow.splitlines()
     trigger_lines: list[str] = []
     for index, line in enumerate(lines):
-        match = re.match(r"^on\s*:(.*)$", line)
+        match = re.match(r"^(?:on|\"on\"|'on')\s*:(.*)$", line)
         if match is None:
             continue
         trigger_lines.append(match.group(1))
@@ -266,6 +266,10 @@ class BoundaryTests(unittest.TestCase):
             "on:\n  pull_request:\n    paths-ignore:\n      - docs/**\njobs: {}\n",
             "on: {push: {paths: [packages/**]}}\njobs: {}\n",
             "on: {pull_request: {paths-ignore: [docs/**]}}\njobs: {}\n",
+        )
+        positive_controls += tuple(
+            control.replace("on:", quoted + ":", 1)
+            for control in positive_controls for quoted in ('"on"', "'on'")
         )
         for control in positive_controls:
             with self.subTest(control=control):

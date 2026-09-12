@@ -217,6 +217,10 @@ def minimum_yearly_repayment(
     unknowns: list[str] = []
     caveats: list[str] = [_GENUINE_REPAYMENT_CAVEAT, _NOT_A_DETERMINATION_CAVEAT]
 
+    gate = facts.gate_result
+    if gate is not None:
+        caveats.extend(gate.caveats)
+
     year = facts.year_of_income
     if year is None:
         return MyrResult(
@@ -226,7 +230,6 @@ def minimum_yearly_repayment(
             caveats=tuple(caveats),
         )
 
-    gate = facts.gate_result
     gate_verdict = None if gate is None else gate.verdict
     if gate is None:
         refusals.append(
@@ -250,6 +253,10 @@ def minimum_yearly_repayment(
             "is an amalgamated loan on complying terms. Reasons: " + "; ".join(gate.reasons)
         )
 
+    if (gate is not None and facts.year_loan_made is not None
+            and gate.benchmark_year_used != facts.year_loan_made.label):
+        refusals.append("The gate benchmark year differs from year_loan_made. Run the original-year gate first.")
+
     if facts.year_loan_made is not None:
         if facts.year_loan_made == year:
             refusals.append(
@@ -266,6 +273,7 @@ def minimum_yearly_repayment(
                 "earlier year of making."
             )
     else:
+        unknowns.append("year_loan_made was not established.")
         caveats.append(
             "year_loan_made was not supplied, so this engine has not established that "
             "the amalgamated loan was made in an earlier year of income as s 109E(1)(a) "

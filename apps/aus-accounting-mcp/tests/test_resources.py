@@ -66,8 +66,11 @@ def test_disclaimer_resource_carries_the_facade_and_every_engine_boundary() -> N
     for paragraph in resources.BOUNDARY_PARAGRAPHS:
         assert _normalise(paragraph) in _normalise(served)
     # Each engine states its own limits, and the facade does not restate them.
-    for engine in ("ato-benchmark-compare", "payday-super-checker", "div7a-loan-review"):
+    for engine in ("ato-benchmark-compare", "payday-super-checker", "div7a-loan-review",
+                   "australian-tax-calculators"):
         assert engine in served
+    for description in resources.SCOPES.values():
+        assert description in served
     assert "not tax, legal, accounting" in served
     assert "human review" in served
 

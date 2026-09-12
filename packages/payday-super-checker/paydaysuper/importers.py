@@ -85,11 +85,11 @@ class SuperRow:
     paid_date: date | None
     amount: Decimal
     row: int
-    # The vendor status that showed this payment never left the employer
+    # The vendor status that did not establish remittance to the fund
     # (whitespace-collapsed, as written otherwise), set only where a
     # profile's `remitted_status` classified the row as not sent. Such a
     # row always carries `paid_date=None`, whatever its date cell said:
-    # the date belongs to a payment that was not made. None everywhere
+    # the date does not establish remittance. None everywhere
     # else, including for rows whose status shows the payment WAS sent.
     unpaid_status: str | None = None
 
@@ -774,8 +774,8 @@ def import_files(
     # line, someone opens the super file, sees the date, and reads the
     # blank remitted_date as this tool's mistake instead of Beam's ladder.
     warnings.extend(
-        f"super row {s.row}: status {s.unpaid_status!r} means the money never "
-        "left the employer, so its payment date is not evidence of remittance "
+        f"super row {s.row}: status {s.unpaid_status!r} does not establish "
+        "remittance to the fund, so its payment date is not evidence of remittance "
         "and was not used"
         for s in super_rows
         if s.unpaid_status is not None

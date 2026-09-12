@@ -262,11 +262,10 @@ def test_contracts_are_not_netted_by_the_caller() -> None:
             retention_withheld=ZERO,
         )
     )
-    assets = under.contract_asset + over.contract_asset
-    liabilities = under.contract_liability + over.contract_liability
-    assert assets == Decimal("50000.00")
-    assert liabilities == Decimal("200000.00")
-    assert assets - liabilities != under.contract_asset  # a net figure would hide the pair
+    from wiptally.model import Schedule
+    schedule = Schedule(as_at="2026-08-31", positions=[under, over], source_name="synthetic.csv")
+    assert schedule.total_contract_assets == Decimal("50000.00")
+    assert schedule.total_contract_liabilities == Decimal("200000.00")
 
 
 def test_b19_exclusions_cannot_exceed_cost() -> None:
