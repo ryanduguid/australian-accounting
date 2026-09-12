@@ -5,6 +5,11 @@ import importlib.metadata
 import json
 from pathlib import Path
 
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
 from atobenchmark.dataset import load
 from div7aloan import __version__ as DIV7A_VERSION
 from paydaysuper import LAW_CONTENT_DATE
@@ -65,11 +70,15 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         },
     ]
     distribution = record["server"]["distribution"]
-    assert importlib.metadata.version(distribution) == "0.2.1"
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    assert importlib.metadata.version(distribution) == project["version"]
     requirements = set(importlib.metadata.requires(record["server"]["distribution"]) or [])
-    runtime_versions = {engine["distribution"]: engine["version"] for engine in record["engines"]}
-    for name, engine_version in runtime_versions.items():
-        assert importlib.metadata.version(name) == engine_version
+    runtime_versions = {}
+    for engine in record["engines"]:
+        name = engine["distribution"]
+        engine_version = importlib.metadata.version(name)
+        runtime_versions[name] = engine_version
+        assert f"{name}=={engine_version}" in project["dependencies"]
         assert f"{name}=={engine_version}" in requirements
     benchmark = _call(
         "list_ato_benchmark_industries",
@@ -86,12 +95,12 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
     )
     div7a = _call("get_div7a_benchmark_rate", {"year_of_income": "2025-26"})
     assert benchmark["engine"] == "ato-benchmark-compare"
-    assert benchmark["engine_version"] == record["engines"][0]["version"]
+    assert benchmark["engine_version"] == runtime_versions["ato-benchmark-compare"]
     assert benchmark["source"] == dict(load().source)
     assert payday["engine"] == "payday-super-checker"
-    assert payday["engine_version"] == record["engines"][2]["version"]
+    assert payday["engine_version"] == runtime_versions["payday-super-checker"]
     assert payday["law_content_date"] == LAW_CONTENT_DATE
     assert div7a["engine"] == "div7a-loan-review"
-    assert div7a["engine_version"] == DIV7A_VERSION == record["engines"][1]["version"]
+    assert div7a["engine_version"] == DIV7A_VERSION == runtime_versions["div7a-loan-review"]
     assert "law_content_date" not in json.dumps(record)
     assert '"source"' not in json.dumps(record)

@@ -1,8 +1,5 @@
-# v0.1.1
+# v0.1.2
 
-- Move the maintained source to `packages/div7a-loan-review` in the
-  `australian-accounting` monorepo.
-- Publish through the monorepo's namespaced, attested release workflow.
-- Include the documentation, examples and evaluation fixtures required to run
-  the tests shipped in the source distribution.
-- Preserve the v0.1.0 Division 7A review calculations and refusal boundaries.
+- Reject padded required headers, duplicate override years and gates from another loan year.
+- Withhold minimum-yearly-repayment figures when the loan year is missing and retain gate caveats in every result.
+- Align the workbook formulas and cached values with the reviewed year checks.

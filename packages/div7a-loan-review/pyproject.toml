@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "div7a-loan-review"
-version = "0.1.1"
+version = "0.1.2"
 description = "Experimental review aid for ITAA 1936 Division 7A complying loan terms and minimum yearly repayments"
 readme = "README.md"
 requires-python = ">=3.10"

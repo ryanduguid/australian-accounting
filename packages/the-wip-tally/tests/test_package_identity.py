@@ -16,7 +16,7 @@ def test_published_distribution_uses_the_project_identity() -> None:
     llms = (ROOT / "llms.txt").read_text(encoding="utf-8")
     release_notes = (ROOT / "RELEASE_NOTES.md").read_text(encoding="utf-8")
 
-    assert version("the-wip-tally") == wiptally.__version__ == "0.1.0"
+    assert version("the-wip-tally") == wiptally.__version__ == "0.1.1"
     assert 'name = "the-wip-tally"' in pyproject
     assert 'wip-tally = "wiptally.cli:main"' in pyproject
     assert 'name = "the-wip-tally"' in lockfile
@@ -31,9 +31,9 @@ def test_published_distribution_uses_the_project_identity() -> None:
         "packages/the-wip-tally/examples/mapping.example.json"
     ) in readme
     assert "release-the-wip-tally.yml" in release_notes
-    assert release_notes.startswith("# v0.1.0\n")
+    assert release_notes.startswith("# v0.1.1\n")
     assert "first PyPI release" in release_notes
-    assert "date-released: 2026-09-02" in citation
+    assert "date-released:" not in citation
     assert "australian-accounting/tree/main/packages/the-wip-tally" in citation
     assert "australian-accounting/tree/main/packages/the-wip-tally" in llms
     assert "github.com/ryanduguid/TheWIPTally" not in "\n".join(

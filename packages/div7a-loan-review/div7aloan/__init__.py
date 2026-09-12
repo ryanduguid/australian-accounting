@@ -9,7 +9,7 @@ The four functions below are the stable surface imported by the
 aus-accounting-mcp adapter. The modules behind them are not stable.
 """
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 #: The date the compiled Act and the benchmark rate table were last read.
 LAW_CONTENT_DATE = "2026-08-31"

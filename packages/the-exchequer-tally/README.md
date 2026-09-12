@@ -21,7 +21,7 @@ The `australian-accounting` repository contains the maintained source. The
 `edwinnixon` import package remains unchanged, so internal Python imports do not
 need a rename.
 
-Release: [`v0.1.5`](https://github.com/ryanduguid/australian-accounting/releases/tag/the-exchequer-tally/v0.1.5).
+Release: [`v0.1.5`](https://github.com/ryanduguid/australian-accounting/releases/tag/the-exchequer-tally/v0.1.6).
 
 ---
 

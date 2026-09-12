@@ -21,7 +21,7 @@ The `australian-accounting` repository contains the maintained source. The
 `louisgoldberg` import package remains unchanged, so internal Python imports do
 not need a rename.
 
-Release: [`v0.1.5`](https://github.com/ryanduguid/australian-accounting/releases/tag/solomons-sword/v0.1.5).
+Release: [`v0.1.5`](https://github.com/ryanduguid/australian-accounting/releases/tag/solomons-sword/v0.1.6).
 
 Named for the judgement of Solomon, where the threat of dividing the child in proportion is what reveals who the true claimant is. Division 6 allocates trust income by proportionate entitlement following *Bamford*; Section 100A asks who actually ended up with the benefit. The name is a tribute only.
 
