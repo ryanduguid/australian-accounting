@@ -316,24 +316,57 @@ def test_benchmark_percentage_caps_at_100():
 
 
 def test_benchmark_comparison_works_in_dollars():
-    # A $10,000.01 credit against a $10,000.00 benchmark on a $30,000
-    # distribution is a real variance a rounded-percentage comparison missed.
+    # A $9,000.02 credit against a $9,000.00 benchmark on a $30,000
+    # distribution is a real variance a rounded-percentage comparison missed:
+    # both display as 90.00%. Both credits sit below the $10,000 maximum.
     validator = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.25"))
     validator.add_distribution(DistributionEvent(
         event_date=date(2025, 1, 15),
         recipient_name="A",
         distribution_amount=Decimal("30000.00"),
-        franking_credit=Decimal("10000.00"),
+        franking_credit=Decimal("9000.00"),
     ))
     validator.add_distribution(DistributionEvent(
         event_date=date(2025, 2, 15),
         recipient_name="B",
         distribution_amount=Decimal("30000.00"),
-        franking_credit=Decimal("10000.02"),
+        franking_credit=Decimal("9000.02"),
     ))
     ok, violations = validator.validate_distributions()
     assert not ok
     assert violations[0].consequence_type == "OVER_FRANKING_TAX"
+    assert violations[0].penalty_or_debit_amount == Decimal("0.02")
+
+
+def test_credit_above_maximum_is_capped_before_benchmark_comparison():
+    # s 202-65 caps a stated credit at the s 202-60 maximum. On a $30,000
+    # distribution at 25% the maximum is $10,000, so a $12,000 statement is a
+    # fully franked distribution: no Division 203 differential against a 100%
+    # benchmark, and a $5,000 differential against a 50% benchmark, not $7,000.
+    def run(first_credit):
+        validator = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.25"))
+        validator.add_distribution(DistributionEvent(
+            event_date=date(2025, 1, 15),
+            recipient_name="A",
+            distribution_amount=Decimal("30000.00"),
+            franking_credit=first_credit,
+        ))
+        validator.add_distribution(DistributionEvent(
+            event_date=date(2025, 2, 15),
+            recipient_name="B",
+            distribution_amount=Decimal("30000.00"),
+            franking_credit=Decimal("12000.00"),
+        ))
+        return validator.validate_distributions()
+
+    ok, violations = run(Decimal("10000.00"))
+    assert ok
+    assert violations == []
+
+    ok, violations = run(Decimal("5000.00"))
+    assert not ok
+    assert violations[0].consequence_type == "OVER_FRANKING_TAX"
+    assert violations[0].penalty_or_debit_amount == Decimal("5000.00")
 
 
 def test_events_without_a_rate_take_the_validators_rate():

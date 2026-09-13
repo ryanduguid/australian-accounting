@@ -186,8 +186,9 @@ A report style export, with a title block, section headings and subtotal rows, i
 also read. Subtotal rows are detected and written into the mapping marked `excluded`
 rather than dropped, so a total can never be quietly added to the figures it totals,
 and nothing vanishes without appearing in a file you can read. Amounts are taken from
-the first column that parses as amounts; `--amount-column` takes a column number or a
-column heading when a comparative export has more than one.
+the column with the most cells that parse as amounts, keeping the leftmost on a tie, so
+a comparative export can pick the prior period; `--amount-column` takes a column number
+or a column heading to name the intended period.
 
 **The report style layout is inferred.** It was written against the shape these
 exports normally take, not verified against a real export from any particular
