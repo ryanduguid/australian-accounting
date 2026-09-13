@@ -402,9 +402,14 @@ def build() -> None:
     # ponytail: COUNTIF is case-insensitive like the engine, but it reads ? and * in an
     # account name as wildcards; switch to SUMPRODUCT(--(range=cell)) if that ever bites.
     bucket_list = "{" + ",".join(f'"{bucket}"' for bucket in BUCKET_ORDER) + "}"
+    ones = "{" + ";".join("1" for _ in BUCKET_ORDER) + "}"
     # A bucket outside the engine's list falls outside every SUMIFS row, so an
-    # unrecognised value is as blocking as a blank one.
-    bad_bucket = f'(tblPnl[Account]<>"")*ISNA(MATCH(tblPnl[Bucket],{bucket_list},0))'
+    # unrecognised value is as blocking as a blank one. Literal equality, not
+    # MATCH: a pasted "*" or "?" would otherwise match the list as a wildcard.
+    bad_bucket = (
+        '(tblPnl[Account]<>"")'
+        f"*(MMULT(--(tblPnl[Bucket]={bucket_list}),{ones})=0)"
+    )
     suggested = '(TRIM(LOWER(tblMapping[Source]))="suggested")'
     checks = [
         ("Every P&L account has a recognised bucket", '=IF(C2=0,"PASS","BLOCKED")',
