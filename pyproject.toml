@@ -11,14 +11,14 @@
 [tool.uv.workspace]
 members = ["packages/*", "apps/*"]
 
-# The seven engines pin the shared toolchain to one exact version each, so the
+# The 7 engines pin the shared toolchain to one exact version each, so the
 # workspace resolves it without an override. Keep those pins identical: a
-# workspace resolves every member together, and cannot hold two exact pins of
+# workspace resolves every member together, and cannot hold 2 exact pins of
 # the same tool.
 
-# apps/aus-accounting-mcp declares exact pins on the four engines it consumes,
+# apps/aus-accounting-mcp declares exact pins on the 4 engines it consumes,
 # because a published distribution cannot depend on a path. Inside the
-# workspace those four names resolve to the checked-out sources instead, so
+# workspace those 4 names resolve to the checked-out sources instead, so
 # the application's tests import atobenchmark, paydaysuper, div7aloan and
 # austaxcalc from the tree under review rather than from the last PyPI release.
 # The pins stay authoritative for the published wheel; uv sources are development metadata

@@ -620,7 +620,7 @@ def test_cli_rejects_a_non_csv_output_before_it_reads_the_input(tmp_path, capsys
     """The point of the up-front `csv_destination(args.output)` call is that
     the operator hears about a bad -o before the whole assessment runs. The
     write-time backstop in write_csv raises the same message and returns the
-    same exit code, so no run that reaches write_csv can tell the two apart.
+    same exit code, so no run that reaches write_csv can tell the 2 apart.
     An input file that does not exist can: only the up-front check can report
     the -o problem, because parse_rows never gets to open anything."""
     missing = tmp_path / "no-such-payrun.csv"
@@ -776,7 +776,7 @@ def test_cli_refuses_to_overwrite_the_input(tmp_path, capsys):
     ],
 )
 def test_cli_refuses_to_overwrite_an_override_input(tmp_path, capsys, flag, contents):
-    """The check command reads three files, not one. A --mapping-file or a
+    """The check command reads 3 files, not one. A --mapping-file or a
     --holidays-override aimed at by -o used to be overwritten with the report
     and the run still finished normally, returning EXIT_LATE_FOUND on this
     fixture with nothing on stderr, so a scheduled wrapper saw "late
@@ -1073,7 +1073,7 @@ def test_stale_prepayment_before_the_deadline_is_not_yet_assessable():
 
 
 def test_a_stale_prepayment_is_still_quiet_on_the_deadline_date_itself():
-    """The boundary of that gate, which the test above clears by eight days.
+    """The boundary of that gate, which the test above clears by 8 days.
     `dl.due >= as_at` is the same line assess draws everywhere else: the
     nil-amount branch and the nothing-recorded branch both treat `dl.due <
     as_at` as "the deadline has passed", so a deadline falling ON the as-at
@@ -1587,7 +1587,7 @@ def test_horizon_caveat_says_the_table_may_be_missing_holidays():
 def test_an_unrelated_added_holiday_does_not_silence_the_horizon(tmp_path, capsys):
     """End to end for the coverage regression, on the CLI the README tells you
     to schedule. An override adding only Christmas 2029 used to jump the
-    coverage end nine months forward, so an EARLIER 2029 payday lost its
+    coverage end 9 months forward, so an EARLIER 2029 payday lost its
     horizon caveat entirely and was reported LATE with an SG charge attached -
     while the holidays actually missing from that window (Good Friday, Easter
     Monday) would have moved the deadline and made it on time."""
@@ -1989,7 +1989,7 @@ def test_a_supplied_2029_calendar_produces_a_real_verdict(tmp_path):
     assert late.final_shortfall == Decimal("0")  # received before any assessment
     assert not any("beyond the calendar's coverage" in c for c in late.caveats)
 
-    # Without the override the same rows sit on a four-day-earlier deadline
+    # Without the override the same rows sit on a 4-day-earlier deadline
     # that the calendar cannot vouch for, which is why the caveat exists.
     bare_cal = load_calendar()
     bare = assess([row(date(2029, 4, 12))], bare_cal, load_gic(), date(2029, 5, 1))[0]
@@ -2236,7 +2236,7 @@ def test_receipts_after_the_as_at_date_are_still_remittance_only(tmp_path, capsy
 
 def test_the_universal_at_risk_caveat_does_not_fill_the_listing():
     """Every AT_RISK row carries the no-fund-receipt caveat by construction,
-    so listing it made ten rows whose only note repeated the block header, and
+    so listing it made 10 rows whose only note repeated the block header, and
     the duplicate-payday warning on rows 12 and 13 was truncated away."""
     plain = [
         ContribLine(
@@ -2267,8 +2267,8 @@ def test_the_universal_at_risk_caveat_does_not_fill_the_listing():
     assert "row 12  QE day 2026-07-09  due 2026-07-20" in text
     assert "row 13  QE day 2026-07-09  due 2026-07-20" in text
     assert "DUPE" not in text
-    # The ten rows with nothing of their own to say are not listed, and no
-    # truncation notice is owed because only two rows carry a real note.
+    # The 10 rows with nothing of their own to say are not listed, and no
+    # truncation notice is owed because only 2 rows carry a real note.
     assert "row 2  E01" not in text
     assert "more at-risk line(s) with notes" not in text
     assert "statutory test is receipt by the fund" not in text
@@ -2312,21 +2312,21 @@ def test_the_at_risk_block_names_every_row_and_every_caveat_it_prints():
         assert f"      note: alpha marker {n}" in text, n
         assert f"      note: beta marker {n}" in text, n
 
-    # The cap stops at ten, and the two beyond it are counted, not printed.
+    # The cap stops at 10, and the 2 beyond it are counted, not printed.
     for n in (11, 12):
         assert f"ARK{n}" not in text
         assert f"alpha marker {n}" not in text
         assert f"beta marker {n}" not in text
     assert "... and 2 more at-risk line(s) with notes" in text
 
-    # Twenty notes for ten rows: exactly two per row, no more and no fewer.
+    # Twenty notes for 10 rows: exactly 2 per row, no more and no fewer.
     assert text.count("      note: ") == 20
     assert text.count("QE day 2026-07-09  due 2026-07-20") == 10
 
 
 def test_the_at_risk_truncation_notice_counts_only_flagged_rows():
-    """Eleven rows carry a note and ten more carry nothing but the universal
-    caveat, so the overflow is one, not eleven."""
+    """Eleven rows carry a note and 10 more carry nothing but the universal
+    caveat, so the overflow is one, not 11."""
     results = [_at_risk_result(n, [f"alpha marker {n}"]) for n in range(1, 12)]
     results += [_at_risk_result(n, []) for n in range(20, 30)]
     text = console_summary(results, AS_AT, "report.csv", "2026-08-02", load_rates())
@@ -2710,7 +2710,7 @@ def test_an_unpaid_row_does_not_claim_no_date_when_one_was_supplied():
     # in one caveat, then the UNPAID branch asserted flatly that no remittance
     # or fund-receipt date "is recorded" and told the reader to supply date
     # columns they had already supplied. The AT_RISK branch above already
-    # varies its wording for exactly this case; these two did not.
+    # varies its wording for exactly this case; these 2 did not.
     line = ContribLine(
         employee_id="E9",
         qe_day=date(2026, 7, 9),

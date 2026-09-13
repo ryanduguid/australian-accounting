@@ -70,7 +70,7 @@ def test_pypi_facets_are_declared_without_contradicting_the_licence_field() -> N
 
 def test_github_about_copy_matches_the_script_that_applies_it() -> None:
     # docs/DISCOVERY.md is the source of truth and the script is what writes it
-    # to GitHub, so the two drifting apart would leave the documented copy
+    # to GitHub, so the 2 drifting apart would leave the documented copy
     # unreachable. The live About is checked by hand and its drift is recorded
     # in DISCOVERY.md; nothing here reads or sets it.
     root = Path(__file__).resolve().parents[1]
@@ -603,7 +603,7 @@ def test_engine_declares_every_fact_its_labour_check_quotes() -> None:
     # label as a definite amount and concludes that W1 is the figure used in the
     # labour ratio. The label is the mapped salary and wages plus cost of sales
     # labour plus payments to associates, so a declaration missing any of those
-    # three, or W1 itself, would put that sentence back beside a bucket the same
+    # 3, or W1 itself, would put that sentence back beside a bucket the same
     # payload reports as unknown. This fails if the engine ever narrows it.
     totals = {bucket: Decimal("0") for bucket in BUCKETS}
     totals.update({"turnover": Decimal("850000"), "salary_wages": Decimal("1")})
@@ -623,7 +623,7 @@ def test_ato_omitted_salary_wages_withholds_checks_that_quote_the_label() -> Non
     # The engine's checks quote the figures it was handed. Where W1 beats the
     # rebuilt salary and wages label it states that label as a definite amount
     # and concludes from it that W1 is the figure used in the labour ratio. That
-    # is the same unevidenced bucket the payload reports as unknown two keys
+    # is the same unevidenced bucket the payload reports as unknown 2 keys
     # away, carried in prose, so it is withheld with the figures.
     omitted = _bakery_with_w1(
         contractor_commission="0", cost_of_sales_labour="0", associated_persons="0"
@@ -665,13 +665,13 @@ def test_ato_a_check_resting_only_on_supplied_buckets_survives_the_withholding()
     # Withholding is decided per check, on the facts that check declares, not on
     # there being an omitted bucket somewhere in the payload. Three of the checks
     # here rest only on buckets the operator supplied and are the operator's to
-    # read; two rest on the omitted salary and wages and are withheld.
+    # read; 2 rest on the omitted salary and wages and are withheld.
     #
-    # A sign-flipped export is what separates the two rules that could produce
+    # A sign-flipped export is what separates the 2 rules that could produce
     # this. Every amount in play is -500.00: the rent total, the cost of sales
     # labour total, and the salary and wages label the engine rebuilds from the
     # omitted bucket. Withholding a check because it renders the label's amount
-    # would eat the two negative-bucket checks as well, and then report a reason
+    # would eat the 2 negative-bucket checks as well, and then report a reason
     # that was untrue of either.
     payload = get_ato_benchmarks(
         industry="Bakeries and hot bread shops",
@@ -864,7 +864,7 @@ def test_ato_omitted_other_income_withholds_every_ratio() -> None:
     assert set(statuses.values()) == {"not_supplied"}
     assert any("other_business_income was omitted" in note for note in omitted["notes"])
 
-    # Establishing the figure restores the ratio, and the two candidate
+    # Establishing the figure restores the ratio, and the 2 candidate
     # denominators disagree on the verdict.
     against_sales = get_ato_benchmarks(
         industry="Bakeries and hot bread shops",
@@ -913,7 +913,7 @@ def test_div7a_is_refused() -> None:
 def test_div7a_refusal_is_reachable_without_inventing_loan_facts() -> None:
     # A question this server refuses, such as an unpaid present entitlement or
     # a debt forgiveness, usually comes with no loan facts at all. While the
-    # three legacy inputs were required, reaching the refusal meant fabricating
+    # 3 legacy inputs were required, reaching the refusal meant fabricating
     # a borrower, a lender and a principal, which is the one thing every other
     # tool here is built to stop. The refusal takes no facts now.
     assert refuse_div7a() == refuse_div7a("Alice", "HoldingCo Pty Ltd", "50000.00")
@@ -1285,7 +1285,7 @@ def test_payday_still_names_the_field_that_could_not_be_read() -> None:
 
 
 def test_payday_date_shapes_do_not_change_a_verdict() -> None:
-    # The same day written four ways is the same day, so the deadline, the
+    # The same day written 4 ways is the same day, so the deadline, the
     # pathway and the verdict have to be identical. A shape that quietly moved
     # any of them would be a parsing difference presented as a review outcome.
     outcomes = {

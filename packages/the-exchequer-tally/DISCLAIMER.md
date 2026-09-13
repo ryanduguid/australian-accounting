@@ -20,13 +20,13 @@ facts. Corporate tax rates, aggregated-turnover thresholds, the passive-income
 test, ATO guidance and administrative practice change, and the engine sees
 only the facts it is handed. Confirm every rate, threshold and consequence
 against the current law and the entity's facts before acting, and leave
-lodgment decisions with a registered practitioner.
+lodgement decisions with a registered practitioner.
 
 A franking account balance produced here is a workpaper figure rebuilt from
 the entries supplied. It is not the company's franking account for statutory
 purposes and it does not replace the company's own records. A distribution
 statement built by this tool populates the fields required by s 202-75 and
-s 202-80 as a review helper. It is not a lodgment and not a compliance
+s 202-80 as a review helper. It is not a lodgement and not a compliance
 certificate.
 
 Nothing here lodges a company tax return, a franking account tax return, or

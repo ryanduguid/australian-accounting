@@ -357,7 +357,7 @@ def complying_loan_gate(
 
     The benchmark floor year is facts.year_of_income_being_tested where the
     operator nominates one, and otherwise facts.year_loan_made, which is the
-    year s 109N(1)(b) itself points at. Where the two differ the result
+    year s 109N(1)(b) itself points at. Where the 2 differ the result
     carries a caveat saying so: testing a later year is a practice check
     against a risen benchmark, not the s 109N(1)(b) test.
     """

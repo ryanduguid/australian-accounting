@@ -18,8 +18,8 @@ Checked against the public AASB 15 text as cited in the
 | Cost-to-cost input method | 39-40, B18 | Progress = progress cost / progress EAC. |
 | Exclude wasted cost from the progress measure | B19(a), 98(b) | `inefficiency_rework_wastage` is stripped from numerator and denominator and left in EAC / margin. |
 | Uninstalled materials at cost | B19(b) | `uninstalled_materials` recognised at cost (zero margin); remainder of transaction price follows POC. |
-| Outcome not reasonably measurable | 44-45 | Revenue limited to `recoverable_costs` (defaulting to progress cost). A `recoverable_costs` above `costs_incurred` is refused with a `ScheduleError` naming the row, not silently reduced to it, because para 45 recognises revenue only to the extent of the costs incurred and an excess is a mapping error for the operator to resolve. Percent complete is reported as zero. |
-| Contract asset vs contract liability | 105-107 | Per contract, revenue minus certified billings. Positive = asset. Negative = liability. No cross-contract offset. |
+| Outcome not reasonably measurable | 44-45 | Revenue limited to `recoverable_costs` (defaulting to progress cost). A `recoverable_costs` above `costs_incurred` is refused with a `ScheduleError` naming the row, not silently reduced to it, because para 45 recognises revenue only to the extent of the costs incurred and an excess is a mapping error for the operator to resolve. Per cent complete is reported as zero. |
+| Contract asset versus contract liability | 105-107 | Per contract, revenue minus certified billings. Positive = asset. Negative = liability. No cross-contract offset. |
 | Change in estimate | 43, AASB 108 | Period revenue = current revenue to date minus prior revenue to date. Comparatives are not restated, because this tool has no comparatives. |
 | Right-to-invoice expedient | B16 | If selected, revenue equals certified billings. Flagged as not cost-to-cost. |
 | Output method | 41, B14-B15 | If selected, revenue = transaction price x `output_percent`. Flagged as not cost-to-cost. |
@@ -29,10 +29,10 @@ Checked against the public AASB 15 text as cited in the
 | Topic | Paragraphs | Why it is a flag |
 | --- | --- | --- |
 | Combining contracts | 17 | Unit of account is an operator fact. Combine before the CSV. |
-| Over time vs point in time | 35-38, B9-B13 | Legal characterisation. The wip-over-under-billing skill puts it to the engagement lead. |
+| Over time versus point in time | 35-38, B9-B13 | Legal characterisation. The wip-over-under-billing skill puts it to the engagement lead. |
 | Whether a modification is a separate contract | 18-21 | Legal characterisation. |
 | Whether variable consideration will reverse | 56-57 | Judgement. The ratio is an input, not a conclusion. |
-| Retention as receivable vs contract balance | 105-108 | AASB 15 has no retention-specific rule. Classification is an interpretation. |
+| Retention as receivable versus contract balance | 105-108 | AASB 15 has no retention-specific rule. Classification is an interpretation. |
 | Onerous contracts | AASB 137 66-69, 68A | Provision measurement is outside this engine. Negative EAC margin raises a review flag. Para 69 (impair assets used on the contract first) is flagged when `assets_used_carrying` is supplied. |
 | Impairment of contract cost assets | AASB 15 101-103 | Separate, narrower test. Not substituted for AASB 137. |
 | Expected credit losses on contract assets | AASB 9 via 15.107 | Not modelled. |

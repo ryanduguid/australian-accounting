@@ -13,8 +13,8 @@ Date for money that was never sent, and writing that date as a remittance
 would read a wholly unfunded payday as remitted by the deadline.
 
 Duplicate headers: `profiles._index` normalises headings and silently keeps
-the first of two that collide, because column *matching* only needs one
-usable candidate. Reading a real file is different: two columns that both
+the first of 2 that collide, because column *matching* only needs one
+usable candidate. Reading a real file is different: 2 columns that both
 normalise to "amount" mean the tool cannot tell which one is the real
 figure, and every amount it reports becomes a guess. `csv_io.py` already
 refuses a file outright over duplicate column names for the same reason.
@@ -95,7 +95,7 @@ class SuperRow:
 
 
 def _check_duplicate_headers(headers: list[str], path: str | Path) -> None:
-    """Refuse a file where two headings normalise to the same field.
+    """Refuse a file where 2 headings normalise to the same field.
 
     `resolve_columns` (via `profiles._index`) would silently read whichever
     one of them happened to come first, and there is no way for the rest of
@@ -103,11 +103,11 @@ def _check_duplicate_headers(headers: list[str], path: str | Path) -> None:
     groups: dict[str, list[str]] = {}
     for h in headers:
         # A heading that folds away to nothing -- "###", say -- is still a
-        # heading, and csv_io refuses two byte-identical ones. Skipping the
+        # heading, and csv_io refuses 2 byte-identical ones. Skipping the
         # falsy key here made this module's refusal narrower than csv_io's
         # for exactly those files, contradicting the module docstring's
         # claim that it is a superset. Such a heading falls back to its own
-        # collapsed text, so two identical ones still collide and two
+        # collapsed text, so 2 identical ones still collide and 2
         # different ones still do not.
         key = normalise_header(h) or " ".join(h.split()).casefold()
         groups.setdefault(key, []).append(h)
@@ -217,7 +217,7 @@ def _amount(value: str, field: str, row: int) -> Decimal:
     leave `_unmet` holding 0.004. The next super row whose period reached
     that payday spent the 0.004 on it, and its own later payment date then
     became the payday's remittance date: a payday whose every payable cent
-    arrived five days inside the deadline reported LATE with the full
+    arrived 5 days inside the deadline reported LATE with the full
     540.00 as a shortfall and an SG-charge estimate on top, or, where that
     second payment carried no date, UNPAID for the same 540.00. Comparing
     to the cent at the point of the verdict fixed the verdict and left the
@@ -225,7 +225,7 @@ def _amount(value: str, field: str, row: int) -> Decimal:
 
     ROUND_HALF_UP through `report.cents`, the same rounding `money()`
     applies on the way out, so the figure this reads and the figure it
-    writes are the same number rather than two roundings of one input.
+    writes are the same number rather than 2 roundings of one input.
 
     Rounding is per row, and a row is the unit of obligation: one payroll
     row is one payday's liability for one employee, one super row is one
@@ -458,7 +458,7 @@ def _iso(value: date | None) -> str:
 # `ImportReport`'s counts and (see `write_canonical`) for deciding what is
 # safe to write into the canonical CSV. Deliberately separate from the
 # ORPHAN_* constants above: those classify an unused SUPER row, these
-# classify a payroll row, and the two answer different questions for
+# classify a payroll row, and the 2 answer different questions for
 # different readers. Plain strings, not an enum, to match ORPHAN_*'s own
 # style and stay trivially printable.
 OUTCOME_MATCHED = "matched"
@@ -525,11 +525,11 @@ def write_canonical(result: JoinResult, path: str | Path) -> None:
     The employee label is the key `join` matched on, not `employee_id or
     employee_name`: under name matching a file where only some rows carry
     an id would otherwise write the id for those rows and the name for the
-    rest, splitting one person the join had already merged into two
+    rest, splitting one person the join had already merged into 2
     identities in the checker's own per-employee grouping. Every row
     sharing a key writes the same label, the first one seen for that key.
 
-    `fund_received_date` and the four flag columns are always written
+    `fund_received_date` and the 4 flag columns are always written
     blank. No payroll or clearing-house export this tool reads carries a
     fund receipt date or these flags (see the module docstring and
     `join`'s), and inventing any of them would silently move a deadline --
@@ -583,7 +583,7 @@ def _pre_regime_warnings(payroll_rows: list[PayrollRow]) -> list[str]:
     A payroll export spanning 30 June -- the normal shape of a
     financial-year export -- imports without complaint, and the check then
     dies with "N row(s) have a QE day before 1 Jul 2026 ... Remove them and
-    run again" and writes no report at all. The README promises two
+    run again" and writes no report at all. The README promises 2
     commands turn an export into a checked report, and this is where that
     promise dead-ends, so the first command says it rather than leaving the
     second to.
@@ -616,7 +616,7 @@ class ImportReport:
     per payroll row. `orphan_reasons` is `JoinResult.orphan_reasons`
     unchanged -- the full detail behind every unused super payment, one
     entry per orphan, in the same order as the orphans themselves -- so
-    nothing here collapses the four `ORPHAN_*` codes to a bare count: an
+    nothing here collapses the 4 `ORPHAN_*` codes to a bare count: an
     overpayment on already-settled paydays (`ORPHAN_PAYDAYS_SETTLED`) and a
     payment that matched no payday at all (`ORPHAN_NO_PAYDAY`) read as
     opposite findings to an accountant and must stay tellable apart."""
@@ -642,7 +642,7 @@ class ImportReport:
 
     @property
     def orphans(self) -> int:
-        """Total orphaned super payments, across all four ORPHAN_* codes.
+        """Total orphaned super payments, across all 4 ORPHAN_* codes.
         See `orphan_reasons` for the breakdown this number alone loses."""
         return len(self.orphan_reasons)
 

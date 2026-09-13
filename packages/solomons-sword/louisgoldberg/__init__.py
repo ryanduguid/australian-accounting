@@ -1,5 +1,5 @@
 """
-Solomon's Sword: Trust Distribution & Section 100A / 99B Risk Engine
+Solomon's Sword: trust distribution and section 100A / 99B risk engine
 The distribution is `solomons-sword`; the import package remains `louisgoldberg`.
 """
 

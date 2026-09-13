@@ -13,13 +13,13 @@ uv sync        # install every component and the shared toolchain
 just test      # every component's suite, plus the repository boundary checks
 ```
 
-`uv sync` creates one `.venv` at the root and installs all eight components into it
+`uv sync` creates one `.venv` at the root and installs all 8 components into it
 as editable workspace members. `apps/aus-accounting-mcp` therefore imports
 `atobenchmark`, `paydaysuper`, `div7aloan` and `austaxcalc` from the checked-out tree
 rather than from their last PyPI release, with no per-component install step.
 
 `just` is optional tooling; install it with `uv tool install rust-just`. The recipes
-are `setup`, `lint`, `typecheck`, `test` and `check` (the last three together). Each
+are `setup`, `lint`, `typecheck`, `test` and `check` (the last 3 together). Each
 loops over the per-component commands in the table below, which remain the authority;
 `just` runs them from one place, it does not replace them.
 
@@ -34,10 +34,10 @@ own commands:
 - `uv run --locked` from a component directory now validates the root `uv.lock`,
   not the component's. Regenerate it with `uv lock` at the root after changing any
   component's dependencies, and commit it.
-- The seven engines pin the shared toolchain (`ruff`, `mypy`, `pytest`, `pytest-cov`,
+- The 7 engines pin the shared toolchain (`ruff`, `mypy`, `pytest`, `pytest-cov`,
   `coverage`, `build`) to one exact version each, so the workspace resolves them without
   an override. One
-  workspace cannot hold two exact pins of the same tool, so keep the seven identical when
+  workspace cannot hold 2 exact pins of the same tool, so keep the 7 identical when
   changing one.
 
 ## Command routing
@@ -81,7 +81,7 @@ The MCP application and repository boundary checks use their own commands:
 
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,
 so a gate behaves the same wherever it runs, and the workspace resolution takes the same
-versions for `just`. Changing a pin means changing all seven, then relocking twice: `uv lock`
+versions for `just`. Changing a pin means changing all 7, then relocking twice: `uv lock`
 at the root, which is what CI validates, and each engine's own lockfile, which is what
 builds and releases it alone. Inside the workspace `uv lock` always writes the root lock,
 so an engine's own lockfile is regenerated from a copy of the engine outside it:
@@ -93,7 +93,7 @@ tmp=$(mktemp -d) && cp -r packages/<engine>/. "$tmp" && (cd "$tmp" && uv lock) \
 
 ## CI routing
 
-Dependabot runs one Python update job at the workspace root. All eight components
+Dependabot runs one Python update job at the workspace root. All 8 components
 share that resolution, so separate component jobs can propose conflicting exact
 toolchain pins or fail to update the root lockfile. Keep Python updates grouped
 at `/`, including `div7a-loan-review`, which is also a uv workspace member.
@@ -102,7 +102,7 @@ each affected component's standalone release lock using the procedure above.
 The existing component lock checks remain required.
 
 `ci.yml` is the anchor workflow. It carries no path filter, so its required checks always
-report, and it runs two things: the MCP application's own gates, and one call of the
+report, and it runs 2 things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
 
 - `ci-package.yml` gives every engine the same gates from the engine's own directory,
@@ -138,7 +138,7 @@ reusable `ci-package.yml` for each engine, from a package-name matrix.
   only. The root is a virtual uv workspace: no root distribution, no root version, no
   root runtime dependency, nothing published from the root. Never add a root package,
   a shared runtime library, a unified version or a code generator.
-- The workspace redirects the MCP application's four engine dependencies to the
+- The workspace redirects the MCP application's 4 engine dependencies to the
   checked-out sources for development. It does not change the dependency direction.
   The exact pins in `apps/aus-accounting-mcp/pyproject.toml` stay authoritative, uv
   sources are development metadata and are never written into a built distribution,

@@ -48,7 +48,7 @@ def test_every_year_reads_the_may_figure(year):
 
 
 def test_2025_26_uses_the_may_figure_not_the_june_one():
-    """The trap. May 2025 was 8.37 per cent; June 2025 was 8.27 per cent and
+    """The trap. May 2025 was 8.37%; June 2025 was 8.27% and
     was published in early July, after 2025-26 had already begun."""
     result = benchmark_rate("2025-26")
     assert result.rate == Decimal("0.0837")
@@ -57,7 +57,7 @@ def test_2025_26_uses_the_may_figure_not_the_june_one():
 
 
 def test_2023_24_is_the_year_that_carries_0_0827():
-    """8.27 per cent is a real benchmark rate, for 2023-24. Confusing it with
+    """8.27% is a real benchmark rate, for 2023-24. Confusing it with
     2025-26 is the same mistake from the other direction."""
     assert benchmark_rate("2023-24").rate == Decimal("0.0827")
 

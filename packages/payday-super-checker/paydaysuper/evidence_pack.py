@@ -25,7 +25,7 @@ def build_evidence_pack(
     assessment_date: date | None = None, gic_provenance: str = "",
     remittance_only_confirmed: bool = False,
 ) -> dict[str, str]:
-    """Return four deterministic UTF-8 files with row references and no identifiers.
+    """Return 4 deterministic UTF-8 files with row references and no identifiers.
 
     Supply results from the engine, not caller-written caveats or provenance.
     The report contains no input path. Missing receipts remain missing facts.

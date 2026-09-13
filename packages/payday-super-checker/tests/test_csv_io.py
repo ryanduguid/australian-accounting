@@ -58,7 +58,7 @@ def test_a_comma_in_the_decimal_position_is_refused_not_read_as_thousands(tmp_pa
     # charge estimate of $62,010.11 - $99,216.18 against a true $620.10 -
     # $992.16. importers._amount already refused exactly this input, and the
     # README invites hand-editing the canonical file, so one package cannot
-    # ship two amount parsers that disagree by 100x. Both now read the same
+    # ship 2 amount parsers that disagree by 100x. Both now read the same
     # pattern, csv_io.AMOUNT_TEXT.
     path = write_csv(tmp_path, 'E1,2026-07-09,"612,00",,,no,no,,no')
     with pytest.raises(CsvError, match="612,00 is refused"):
@@ -90,7 +90,7 @@ def test_a_space_after_the_dollar_sign_is_read(tmp_path):
         # Every amount shape that parsed at fd58595, the commit before the
         # separator rule arrived, with the value it produced then. The rule
         # is about WHERE a comma or space sits; narrowing the pattern past
-        # that quietly took four unrelated shapes with it, all of which a
+        # that quietly took 4 unrelated shapes with it, all of which a
         # spreadsheet or an ERP extract does emit.
         ("612.00", "612.00"),
         ("612", "612"),
@@ -172,7 +172,7 @@ def test_zone_less_iso_datetime_is_accepted_as_its_calendar_day(tmp_path):
         # failure direction the tool otherwise refuses. Every explicit zone
         # marker the old gate read through is refused loudly now, including
         # an offset that happens to be an Australian one: the tool cannot
-        # know the operator's zone, and DST splits the country across two.
+        # know the operator's zone, and DST splits the country across 2.
         "2026-07-21T20:00:00Z",
         "2026-07-09T14:30:00+10:00",
         "2026-07-09T14:30:00-05:00",
@@ -200,9 +200,9 @@ def test_the_offset_refusal_reaches_the_row_reader_with_a_row_number(tmp_path):
 @pytest.mark.parametrize(
     "text",
     [
-        # .NET DateTime and SQL Server datetime2 stamp seven fractional-second
-        # digits; the last case is a nine-digit nanosecond stamp. Python 3.10,
-        # the declared floor, refuses a fraction longer than six digits that
+        # .NET DateTime and SQL Server datetime2 stamp 7 fractional-second
+        # digits; the last case is a 9-digit nanosecond stamp. Python 3.10,
+        # the declared floor, refuses a fraction longer than 6 digits that
         # 3.11+ truncates itself, so these are the cases that exercise the
         # parser's own truncation on the floor version. Zone-less stamps
         # only: an offset-carrying stamp is refused outright, see above.
@@ -236,10 +236,10 @@ def test_dotnet_timestamp_is_accepted_as_its_calendar_day(tmp_path):
 )
 def test_iso_shapes_beyond_the_documented_surface_are_refused(text):
     # fromisoformat on Python 3.11+ reads compact dates, week dates and bare
-    # year-months (2026-07 as its FIRST day); 3.10 refuses all three and the
+    # year-months (2026-07 as its FIRST day); 3.10 refuses all 3 and the
     # README documents none of them. Refused on every version rather than
     # parsed on some: version-dependent acceptance is how the same file gets
-    # two different compliance verdicts.
+    # 2 different compliance verdicts.
     assert parse_date_text(text) is None
 
 
@@ -437,11 +437,11 @@ def _outcome(fn, text):
     "text",
     [
         # Round-3 review claimed importers._amount and csv_io._parse_amount
-        # diverged on these. They did, in two ways, both fixed: the importer
+        # diverged on these. They did, in 2 ways, both fixed: the importer
         # refused Excel's accounting-format negative "($ 612.00)" with a
         # message blaming a comma for a space (the checker's reader named it
         # negative), and the checker's reader kept sub-cent digits the
-        # importer rounded to the cent, so 1,234.567 meant two different
+        # importer rounded to the cent, so 1,234.567 meant 2 different
         # numbers depending on which door it came through. The README
         # invites hand-editing the canonical file, so BOTH parsers can
         # receive every one of these.

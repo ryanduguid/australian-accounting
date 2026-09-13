@@ -10,7 +10,7 @@ branch.
 Use this repository's private vulnerability-reporting feature. Do not open a public
 issue for a suspected vulnerability. Include a clear description, reproduction steps
 with fabricated data, the likely impact and any suggested mitigation. A valid report is
-acknowledged within seven days, and the fix and disclosure timeline is agreed with the
+acknowledged within 7 days, and the fix and disclosure timeline is agreed with the
 reporter.
 
 ## Boundaries

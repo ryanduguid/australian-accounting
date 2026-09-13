@@ -390,7 +390,7 @@ def test_map_still_collapses_normalisation_equivalent_accounts(
 def test_map_says_repeated_names_must_be_fixed_in_the_export(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    # compare can never run against these two files, whatever is done to the mapping,
+    # compare can never run against these 2 files, whatever is done to the mapping,
     # so map has to name the export as the thing that must change. A message that reads
     # as though the repetition was handled sends the user on to a dead end.
     pnl = tmp_path / "source.csv"
@@ -570,7 +570,7 @@ def test_the_reported_byte_position_counts_from_the_start_of_the_file(
 ) -> None:
     # utf-8-sig strips the byte-order mark before decoding, so the position the
     # decoder reports counts from the text after it. Left uncorrected the message
-    # named a byte three earlier than the one an operator opening the file would find.
+    # named a byte 3 earlier than the one an operator opening the file would find.
     prefix = b"\xef\xbb\xbf" if with_bom else b""
     payload = prefix + b"account,amount\nSales,\xff00\n"
     expected = payload.index(b"\xff")

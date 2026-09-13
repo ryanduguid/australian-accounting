@@ -14,7 +14,7 @@ Nothing leaves the workbook.
    bakery line that is still in the P&L, because it would otherwise count in the
    ratios.
 2. **Mapping.** Give every account a bucket from the drop-down and set Source to
-   `reviewed`. The buckets are the same eleven the engine uses, and a `suggested` or
+   `reviewed`. The buckets are the same 11 the engine uses, and a `suggested` or
    missing mapping blocks the result, exactly as the CLI refuses unreviewed mappings.
    An account name that appears twice in the P&L or the mapping blocks it too, as
    the CLI does. Rows pasted below the example pick up the Bucket and Guard formulas
@@ -31,7 +31,7 @@ Nothing leaves the workbook.
 Every rule is visible on the Calculation sheet: turnover falls back to total business
 income when sales are not positive or are less than half of it, payments to
 associated persons are deducted once, cost of sales excludes wages, W1 replaces the
-salary and wages label only when it is larger, ratios are rounded to four places
+salary and wages label only when it is larger, ratios are rounded to 4 places
 before comparison, and band and benchmark boundaries are inclusive.
 
 ## How it is kept honest

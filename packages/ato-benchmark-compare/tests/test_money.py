@@ -46,7 +46,7 @@ def test_parse_amount_rejects(raw: str) -> None:
 )
 def test_parse_amount_refuses_malformed_grouping_and_conflicting_signs(raw: str) -> None:
     # "1,2,3" is the one that moved money: stripping every comma before parsing
-    # read it as 123. Thousands separators are only a group of three, and a cell
+    # read it as 123. Thousands separators are only a group of 3, and a cell
     # carrying both a parenthesis and a CR marker states its sign twice.
     with pytest.raises(AmountError):
         parse_amount(raw)

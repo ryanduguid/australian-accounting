@@ -9,7 +9,7 @@ or datasets.
 - Keep Division 7A limited to the delegated engine's reviewed s 109N and s 109E scope;
   refuse unsupported matters.
 - Keep repository fixtures and demonstrations synthetic-only; never add client data or
-  present a fixture as a lodgment.
+  present a fixture as a lodgement.
 - Route all MCP-boundary money parsing through `aus_accounting_mcp.money`; preserve
   finite decimal strings and the domain limits.
 - Never invent current rates, thresholds, law dates, source dates or missing facts.
@@ -33,7 +33,7 @@ uv run --locked --extra dev mypy aus_accounting_mcp
 
 ## Supplementary local and release-readiness checks
 
-These checks are not CI gates. Use them when their affected artifact changes:
+These checks are not CI gates. Use them when their affected artefact changes:
 
 ```bash
 uv sync --locked --extra dev

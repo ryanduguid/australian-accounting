@@ -35,7 +35,7 @@ class RatesError(ValueError):
 
 # A GIC rate above this is a typo, not a rate. The ATO general interest charge
 # is a base rate plus 7 points and has never approached 100% a year, so the
-# ceiling costs nothing real and catches the two hand-edit slips that print
+# ceiling costs nothing real and catches the 2 hand-edit slips that print
 # money: a dropped decimal point (1143 for 11.43) and a stray minus sign.
 RATE_CEILING = Decimal("100")
 

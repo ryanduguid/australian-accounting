@@ -25,7 +25,7 @@ amalgamated loans; they are not ATO assessments or Division 7A determinations.
 Unsupported matters, including s 109R repayment classification, unpaid present
 entitlements, distributable surplus, interposed entities, debt forgiveness and
 Commissioner discretion, remain refused. SBR payloads from this server are
-synthetic fixtures marked `synthetic: true`; they are not lodgments.
+synthetic fixtures marked `synthetic: true`; they are not lodgements.
 
 Payday Super reviews can mark `UNKNOWN` or refuse where the facts do not
 establish the statutory test. A remittance date alone cannot produce `ON_TIME`.

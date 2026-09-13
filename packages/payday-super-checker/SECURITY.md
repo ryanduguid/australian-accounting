@@ -10,12 +10,12 @@ Please use this repository's private vulnerability-reporting feature. Do not
 open a public issue for a suspected security vulnerability. Include a clear
 description, reproduction steps, impact, and any suggested mitigation.
 
-We will acknowledge a valid report within seven days and will coordinate a fix
+We will acknowledge a valid report within 7 days and will coordinate a fix
 and disclosure timeline with the reporter.
 
 ## Local path trust boundary
 
-`evidence-pack` applies the same single-user CLI boundary below. It writes four
+`evidence-pack` applies the same single-user CLI boundary below. It writes 4
 fixed filenames into a new, operator-selected directory. An existing file,
 directory or symlink is refused using exclusive directory creation. Rendering
 finishes first; write failures return an error and leave partial files for

@@ -31,7 +31,7 @@ Named for the judgement of Solomon, where the threat of dividing the child in pr
 Nothing this engine produces is tax, legal or financial advice, an assessment or
 a determination. Outputs are review aids: confirm every allocation, zone and
 exemption against the current law, the trust deed and the entity's facts before
-acting, and leave lodgment decisions with a registered practitioner. Where the
+acting, and leave lodgement decisions with a registered practitioner. Where the
 model does not implement a rule it refuses the input rather than returning a
 number it cannot stand behind.
 
@@ -59,7 +59,7 @@ Full boundary statement: [DISCLAIMER.md](https://github.com/ryanduguid/australia
 pip install solomons-sword
 ```
 
-### CLI Usage
+### CLI usage
 ```bash
 # Evaluate Section 100A risk zone
 solomons-sword s100a-check --beneficiary "Adult Child" --amount 40000 --adult-child --retained-by-parents
@@ -78,10 +78,10 @@ All allocation and threshold algorithms use exact `decimal.Decimal` calculations
 | :--- | :--- | :--- |
 | **Proportionate Entitlement** | *ITAA 1936* s 95, s 97 (*Commissioner of Taxation v Bamford* [2010] HCA 10) | `Beneficiary Share = (Accounting Entitlement / Total Accounting Income) * s95 Net Income`. |
 | **Section 100A Risk Matrix** | *ITAA 1936* s 100A, *ATO PCG 2022/2* | Returns GREEN, RED or OUTSIDE_GREEN from the supplied flags. It does not decide the white zone. |
-| **Foreign Trust Distributions** | *ITAA 1936* s 99B(1), s 99B(2)(a) | Subtracts settled corpus and previously taxed income prior to assessable inclusion. |
+| **Foreign Trust Distributions** | *ITAA 1936* s 99B(1), s 99B(2)(a) | Subtracts settled corpus and previously taxed income before assessable inclusion. |
 | **Trust Resolution Timing** | Caller-supplied deed and execution facts | Refuses incomplete percentages and missing deed facts. This is not a substitute for current ATO guidance. |
 
-### Automated Test Suite
+### Automated test suite
 - Run the suite: `pytest tests/`
 - The suite covers proportionate streaming, Section 100A zones the engine implements, Section 99B corpus deductions, and resolution gates. Do not treat a badge as a live coverage certificate.
 

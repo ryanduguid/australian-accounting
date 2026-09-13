@@ -55,7 +55,7 @@ def test_pinned_fabricated_pack(scenario, tmp_path, capsys):
     )
     assert "SYN001" not in combined
     assert str(source) not in combined
-    # A second destination must produce exactly the same four files.
+    # A second destination must produce exactly the same 4 files.
     second = tmp_path / "second"
     assert cli.main([
         "evidence-pack", str(source), "--as-at", EXPECTED["as_at"], "-o", str(second),

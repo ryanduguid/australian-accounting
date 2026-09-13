@@ -1,4 +1,4 @@
-"""Command-line behaviour for the two subcommands the README quick start runs."""
+"""Command-line behaviour for the 2 subcommands the README quick start runs."""
 
 import argparse
 from decimal import Decimal

@@ -10,12 +10,12 @@ Please use this repository's private vulnerability reporting feature. Do not ope
 public issue for a suspected security vulnerability. Include a clear description,
 reproduction steps, impact, and any suggested mitigation.
 
-A valid report will be acknowledged within seven days, and the fix and disclosure
+A valid report will be acknowledged within 7 days, and the fix and disclosure
 timeline will be agreed with the reporter.
 
 ## What this tool does and does not do
 
-It reads two CSV files, writes a CSV or JSON file, and prints a report. It makes no
+It reads 2 CSV files, writes a CSV or JSON file, and prints a report. It makes no
 network call at any point, holds no credentials, and has no runtime dependencies
 outside the Python standard library. The benchmark data is shipped inside the package
 and is never fetched.

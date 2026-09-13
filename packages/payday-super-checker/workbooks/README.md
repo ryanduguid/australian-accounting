@@ -12,7 +12,7 @@ and the assumptions the checker prints with every run sit on Review Checks.
 ## Using it
 
 1. **Register.** Paste one contribution line per row over the example rows in
-   the eleven canonical columns the checker reads and `import` writes:
+   the 11 canonical columns the checker reads and `import` writes:
    `employee_id`, `payment_date`, `sg_amount`, `remitted_date`,
    `remitted_amount`, `matched_amount`, `fund_received_date`,
    `first_contribution_to_fund`, `out_of_cycle`, `next_standard_payday`,
@@ -23,7 +23,7 @@ and the assumptions the checker prints with every run sit on Review Checks.
    fabricated example line that is still in the register, because it would
    otherwise count in the totals.
 2. **Summary.** Set the as-at date (`--as-at`), an assessment date if the ATO
-   has assessed (`--assessment-date`), and the two confirmations the checker
+   has assessed (`--assessment-date`), and the 2 confirmations the checker
    asks for: LCR 2026/1 transition allocation
    (`--confirm-transition-allocation`) and remittance-only review
    (`--confirm-remittance-only`). Both ship as `N`, as the CLI defaults them,

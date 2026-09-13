@@ -66,18 +66,18 @@ class JoinResult:
 
 
 def _key(row, mode: str) -> str:
-    """The identity the two files are matched on.
+    """The identity the 2 files are matched on.
 
     An id is compared EXACTLY, with nothing folded. Ids are opaque codes,
-    not prose: `E-001` and `E001` are two different employees at plenty of
-    employers, and folding punctuation out of them merges the two into one
+    not prose: `E-001` and `E001` are 2 different employees at plenty of
+    employers, and folding punctuation out of them merges the 2 into one
     record. That merge understates -- the first employee's payment settles
     the second employee's payday, and the workpaper reports someone who
     received nothing as owing nothing -- which is the one direction the
     rest of this design refuses to fail in.
 
     The documented name fallback folds case and whitespace and nothing
-    else (`profiles.normalise_name`), so `O'Brien` and `OBrien` stay two
+    else (`profiles.normalise_name`), so `O'Brien` and `OBrien` stay 2
     people and a name written in any script keeps a non-empty key. The old
     code sent both id and name through `profiles.normalise_header`, whose
     own docstring says it folds HEADINGS: it strips `[^0-9a-z ]+`, so a
@@ -140,7 +140,7 @@ def _coverage(s: SuperRow, candidates: list[PayrollRow]) -> list[PayrollRow]:
     """Which of one employee's payroll rows a super row could have settled.
 
     A super row with no period at all rules nothing out: it is exactly as
-    ambiguous against two candidates as a dated row whose range brackets
+    ambiguous against 2 candidates as a dated row whose range brackets
     both, so it is treated the same way (all of them), rather than being
     silently handed to whichever candidate happens to be alone."""
     if s.period_start is None and s.period_end is None:
@@ -152,7 +152,7 @@ def _check_defensible(
     s: SuperRow, competing: list[PayrollRow], allocated_total: dict[int, Decimal]
 ) -> None:
     """Refuse only where apportionment cannot produce a defensible answer:
-    two or more of the payroll rows still competing for this super row's
+    2 or more of the payroll rows still competing for this super row's
     money are indistinguishable in every field that affects the outcome --
     same payday, same effective period end, same sg_amount. Anything else
     (different payday, different period, different amount, or a row that
@@ -206,7 +206,7 @@ def _unmet(row: PayrollRow, allocated_total: dict[int, Decimal]) -> Decimal:
     Never sub-cent either, for any input. `sg_amount` and every super row's
     `amount` are quantised to cents by `_amount` as they are read, and
     every step between there and here is exact Decimal arithmetic on cent
-    figures: a share is `min` of two of them, `remaining` is one of them
+    figures: a share is `min` of 2 of them, `remaining` is one of them
     less the shares taken off it, and the leftover added to the newest
     allocation is what is left of one. Subtraction and `min` over cent
     figures cannot produce a third decimal place, so this balance is always
@@ -276,7 +276,7 @@ def _super_order(s: SuperRow) -> tuple:
 
     Row number leads, because that is the order a reader expects and the
     order the file was read in. Every other field follows as a tiebreak:
-    row numbers are only unique within one file, and two rows identical in
+    row numbers are only unique within one file, and 2 rows identical in
     every field are interchangeable anyway. `date.min` stands in for a
     missing date purely to keep the tuple comparable; it is never treated
     as a real date."""
@@ -295,7 +295,7 @@ def _why_orphaned(
     covered: list[PayrollRow], allocated_total: dict[int, Decimal]
 ) -> tuple[str, str]:
     """Classify an unused super payment, so a report can tell an accountant
-    which of two opposite things happened.
+    which of 2 opposite things happened.
 
     A payment whose period reaches no payday at all is data the tool could
     not place. A payment whose paydays were every one of them already
@@ -353,13 +353,13 @@ def join(
     file's headers, not whether a particular cell happened to be blank).
     They exist only to decide whether a loud warning belongs in the result:
     a payroll file with no pay period end column, or a super file missing
-    one or both of its two period columns, still joins -- the fallback
+    one or both of its 2 period columns, still joins -- the fallback
     (payday instead of period end; a single-day window instead of a range;
     "covers every payday for the employee" when both are missing) already
     happens on its own from `None` fields on the rows themselves -- but the
     caller has no way to tell "this file structurally lacks that column"
     from "this row's cell was blank" once the file has been read into
-    `PayrollRow`/`SuperRow` objects, and the messages differ. All three
+    `PayrollRow`/`SuperRow` objects, and the messages differ. All 3
     default to True (column present) so existing callers that never pass
     them see no new warnings."""
     _check_reversed_periods(super_rows)
@@ -441,8 +441,8 @@ def join(
         # coverage (`_coverage`: the paydays its period reaches, or every
         # payday for the employee when it has no period at all), because
         # that is what the sentence claims. Counting `competing` there made
-        # it false: a payment structurally covering three paydays, one of
-        # them already settled elsewhere, said it covered two.
+        # it false: a payment structurally covering 3 paydays, one of
+        # them already settled elsewhere, said it covered 2.
         for row, share in allocations:
             note = (
                 f"{share} of {s.amount} allocated from super row {s.row} (paid "
@@ -485,7 +485,7 @@ def join(
         flag_parts: list[str] = []
         # `_classify_outcome`, below `join` in this module, reads the exact
         # literal text built here -- "no super payment found" above, and
-        # the "partial: "/"over: " prefixes on the next two lines -- to
+        # the "partial: "/"over: " prefixes on the next 2 lines -- to
         # bucket an outcome for `ImportReport`. Reword any of the three and
         # that classification silently stops matching; a test would catch
         # the drift, but the coupling is otherwise invisible from here.
@@ -498,12 +498,12 @@ def join(
         # arrived on time into a $540.00 shortfall with an SG-charge
         # estimate on top. Both sides now arrive here already cent-clean,
         # because `_amount` quantises as it reads (see its docstring, and
-        # `_unmet`'s), so these two calls no longer change anything. They
+        # `_unmet`'s), so these 2 calls no longer change anything. They
         # stay because this is the comparison the verdict turns on, and it
         # should say to the cent on its own face rather than depend on an
-        # invariant established three functions away. The flag text prints
+        # invariant established 3 functions away. The flag text prints
         # the figures as read, which is now the same thing to the cent as
-        # what the two files say.
+        # what the 2 files say.
         paid_to_cents = cents(total)
         owed_to_cents = cents(row.sg_amount)
         matched_amount = min(paid_to_cents, owed_to_cents)
@@ -515,9 +515,9 @@ def join(
                 "in the contribution types"
             )
         # One note per contributing super row, never deduplicated by text:
-        # two different shared payments can produce identical-looking
+        # 2 different shared payments can produce identical-looking
         # notes only by coincidence of amount/row/date, and even then they
-        # are two separate payments that both belong in the flag.
+        # are 2 separate payments that both belong in the flag.
         flag_parts.extend(note for _, _, note in entries if note)
 
         # The deadline tests receipt: a matched row without a paid date is
@@ -570,7 +570,7 @@ def join(
 
     # Sorted, not left in the caller's list order: the orphan list is
     # reported to a user, so its order is part of the answer, and the same
-    # two files must not produce two different-looking reports because one
+    # 2 files must not produce 2 different-looking reports because one
     # caller sorted its rows before handing them over.
     orphans = sorted(
         (s for s in super_rows if id(s) not in used_super_ids), key=_super_order

@@ -27,7 +27,7 @@ does not lodge, approve, pay, or make compliance determinations.
   supported. Division 7A requests outside the delegated engine's reviewed
   s 109N and s 109E scope remain refused.
 - **Synthetic SBR fixture**: deliberately artificial CTR or BAS-shaped data
-  for tests and examples. It is never a lodgment or a real client payload.
+  for tests and examples. It is never a lodgement or a real client payload.
 
 ## Control rules
 

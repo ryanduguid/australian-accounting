@@ -221,7 +221,7 @@ class BoundaryTests(unittest.TestCase):
 
     def test_every_engine_configures_the_shared_gate_scope(self) -> None:
         # ruff check ., mypy and pytest --cov take their scope from the engine's
-        # pyproject.toml, so each engine has to declare all three.
+        # pyproject.toml, so each engine has to declare all 3.
         for component, import_name in ENGINES.items():
             pyproject = (ROOT / component / "pyproject.toml").read_text(encoding="utf-8")
             with self.subTest(component=component):

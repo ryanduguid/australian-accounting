@@ -20,7 +20,7 @@ or datasets.
 - Keep Division 7A limited to the delegated engine's reviewed s 109N and s 109E scope;
   refuse unsupported matters.
 - Keep repository fixtures and demonstrations synthetic-only; never add client data or
-  present a fixture as a lodgment.
+  present a fixture as a lodgement.
 - Route all MCP-boundary money parsing through `aus_accounting_mcp.money`; preserve
   finite decimal strings and the domain limits.
 - Never invent current rates, thresholds, law dates, source dates or missing facts.
@@ -128,7 +128,7 @@ def test_agents_pins_repository_backed_supplementary_commands_as_non_ci() -> Non
     assert _fenced_commands(supplementary) == SUPPLEMENTARY_COMMANDS
     assert _normalise(_without_fenced_commands(supplementary)) == _normalise(
         """\
-        These checks are not CI gates. Use them when their affected artifact changes:
+        These checks are not CI gates. Use them when their affected artefact changes:
 
         Keep `docs/quick-proof.txt` as the accessible source of truth for
         `docs/quick-proof.webp`. Route publication through the existing release workflows;

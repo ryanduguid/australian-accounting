@@ -21,7 +21,7 @@ judgement, and it is not an ATO assessment.
 ## Primary sources and review date
 
 The implementation was written on 31 August 2026 against the
-[Income Tax Assessment Act 1936](https://www.legislation.gov.au/C1936A00027/latest/text)
+[*Income Tax Assessment Act 1936*](https://www.legislation.gov.au/C1936A00027/latest/text)
 as compiled on the Federal Register of Legislation, compilation
 `C1936A00027` in force 1 July 2026, Part III Division 7A. Sections 109D,
 109E, 109N, 109P and 109R were read in full from the compilation text. The
@@ -90,7 +90,7 @@ derived here so the fixtures can be checked end to end.
 `fixtures/myr_met_exact.csv`, reviewed for **2026-27**.
 
 This loan is on complying terms. It was written in 2023-24 at 0.0827, which
-met the 2023-24 benchmark of 0.0827, and it has a seven-year term.
+met the 2023-24 benchmark of 0.0827, and it has a 7-year term.
 
 Amount unpaid at the end of 2025-26: **100,000.00**.
 Benchmark rate for 2026-27 (s 109N(2), RBA F5 FILRHLBVS, May 2026):
@@ -116,7 +116,7 @@ Payments applied: 25,556.00. Shortfall: `max(0, 25556.00 - 25556.00)` =
 `fixtures/myr_short_by_1000.csv`, reviewed for **2023-24**.
 
 This loan is on complying terms. It was written in 2022-23 at 0.0477, which
-met the 2022-23 benchmark of 0.0477, and it has a seven-year term.
+met the 2022-23 benchmark of 0.0477, and it has a 7-year term.
 
 Amount unpaid at the end of 2022-23: **250,000.00**.
 Benchmark rate for 2023-24 (May 2023): **0.0827**. Remaining term: **7**.
@@ -142,7 +142,7 @@ exit code 2.
 `fixtures/rising_benchmark.csv`, reviewed for **2026-27**.
 
 This loan is on complying terms. It was written in 2021-22 at 0.0452, which
-met the 2021-22 benchmark of 0.0452, and it has a seven-year term. Nothing
+met the 2021-22 benchmark of 0.0452, and it has a 7-year term. Nothing
 about the agreement has changed. The benchmark rate has.
 
 Amount unpaid at the end of 2025-26: **48,500.00**.
@@ -183,7 +183,7 @@ last year repays too little this year without changing anything.
 
 | Fixture | What varies | Gate | MYR | Why |
 | --- | --- | --- | --- | --- |
-| `refused_year_of_loan.csv` | Loan made in the year being reviewed | COMPLYING | REFUSED | s 109E(1)(a) reaches an amalgamated loan made "in an earlier year of income", and s 109P puts an amalgamated loan outside s 109D in the year it is made. There is no minimum yearly repayment for the year of the loan. |
+| `refused_year_of_loan.csv` | Loan made in the year being reviewed | COMPLYING | REFUSED | s 109E(1)(a) reaches an amalgamated loan made 'in an earlier year of income', and s 109P puts an amalgamated loan outside s 109D in the year it is made. There is no minimum yearly repayment for the year of the loan. |
 | `refused_not_complying.csv` | Interest rate 0.0400 against a 0.0477 benchmark | NOT_COMPLYING | REFUSED | s 109N(1)(b) fails. A constituent loan is one that would be a s 109D dividend apart from s 109N (s 109E(3)(b)), so this loan is not one and s 109E produces no repayment for it. Absent another Subdivision D exclusion, s 109D(1) treats it as a dividend in the year it was made (s 109D(1AA)). The engine will not print a schedule as though one might save it. |
 | `unknown_missing_payments.csv` | `payments_applied_during_the_year` left unknown | COMPLYING | UNKNOWN | s 109R takes some payments out of the reckoning on a test the engine cannot apply. Bank credits are not a substitute for the operator's assertion. |
 
@@ -241,10 +241,10 @@ So the `gate` command, run without `--year`, anchors each row to its own
 
 It is also common in practice to check, year by year, that the rate being
 charged still meets the current benchmark, on the footing that a loan
-agreement expressed to carry "the benchmark rate" must keep up with it.
+agreement expressed to carry 'the benchmark rate' must keep up with it.
 Passing `--year` runs that later-year comparison. The result carries a caveat
 saying so, because it is a practice check on a risen benchmark and **not** the
-s 109N(1)(b) test. Where the two readings could differ, this repository
+s 109N(1)(b) test. Where the 2 readings could differ, this repository
 follows the Act and labels the other.
 
 The reviewed position, and the date it was confirmed, are recorded in
@@ -268,16 +268,16 @@ one has not necessarily found an error in either.
 Intermediate arithmetic runs at 60 significant digits in a local
 `decimal` context and is quantised once, at the end. The implementation was
 cross-checked against exact rational arithmetic (`fractions.Fraction`) over
-the fixture set; the two agree to the cent.
+the fixture set; the 2 agree to the cent.
 
 ## Controls and refusal boundary
 
-The commands above run the production code against only the six declared
+The commands above run the production code against only the 6 declared
 fabricated fixtures. Every identifier is synthetic (`SYN-001` and similar),
 and there are no client names, TFNs, ABNs, ACNs or addresses in this
 repository.
 
-No result here authorises a payment, a journal, a lodgment, a disclosure or a
+No result here authorises a payment, a journal, a lodgement, a disclosure or a
 compliance conclusion.
 
 ## Limitations and non-claims

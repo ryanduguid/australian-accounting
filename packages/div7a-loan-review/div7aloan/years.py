@@ -65,7 +65,7 @@ def parse_year(raw: object, where: str = "year of income") -> YearOfIncome:
     """Parse '2026-27'.
 
     The second half is checked against the first rather than ignored. '2026-28'
-    and '2026-26' are the two ways a hand-typed year goes wrong, and either one
+    and '2026-26' are the 2 ways a hand-typed year goes wrong, and either one
     silently reads the wrong benchmark rate off the table if only the first
     half is used.
     """

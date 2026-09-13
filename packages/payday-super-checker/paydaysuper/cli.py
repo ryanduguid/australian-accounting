@@ -237,7 +237,7 @@ MAX_WARNINGS_SHOWN = 20
 # apart from a STRUCTURAL warning (join()'s own `warnings`: the employee-key
 # fallback, a missing pay-period column), which never carries a row number
 # this way. Structural warnings are printed before the row-level block
-# regardless of the cap, and are few enough (at most three today) that they
+# regardless of the cap, and are few enough (at most 3 today) that they
 # are never capped either.
 _ROW_LEVEL_WARNING = re.compile(r"^(row|super row) \d+: ")
 
@@ -297,7 +297,7 @@ def import_main(argv: list[str]) -> int:
         # file to name. open() sets exc.filename to whichever path it was
         # actually working on, so that is trusted first; the join of both
         # input paths is only a fallback for the rare OSError that leaves
-        # it unset (e.g. from Path.resolve() rather than open()).
+        # it unset (for example, from Path.resolve() rather than open()).
         filename = exc.filename
         target = filename or f"{args.payroll} or {args.super_path}"
         # Resolve BOTH sides. The writer is handed the originally selected
@@ -444,7 +444,7 @@ def main(argv: list[str] | None = None) -> int:
         # to be named .csv walks straight past it. importers.import_files
         # guards both of ITS inputs the same way. README.md's "Local file
         # boundary" section and SECURITY.md's "Local path trust boundary"
-        # section both state the rule for the tool as a whole, so those two
+        # section both state the rule for the tool as a whole, so those 2
         # and this loop and that one have to move together.
         output = Path(args.output).resolve()
         for value, label in (

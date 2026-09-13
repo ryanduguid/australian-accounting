@@ -4,7 +4,7 @@ This tool checks contributions against the payday-super deadline and estimates S
 
 ## Data boundary
 
-- Use fabricated data. The `.gitignore` blocks `.csv`, `.xls`, `.xlsx`, `.pdf`, `.ofx`, `.qif` and `.aba` files, with exceptions for `examples/*.csv` and `tests/fixtures/importers/*.csv`. The four additional exceptions under `evaluation/payday_super_evidence/fixtures/` are `timely_remittance_no_receipt.csv`, `late_remittance_no_receipt.csv`, `receipt_on_due_date.csv` and `receipt_after_due_date.csv`. Put new general fixtures in the examples or importer test directory.
+- Use fabricated data. The `.gitignore` blocks `.csv`, `.xls`, `.xlsx`, `.pdf`, `.ofx`, `.qif` and `.aba` files, with exceptions for `examples/*.csv` and `tests/fixtures/importers/*.csv`. The 4 additional exceptions under `evaluation/payday_super_evidence/fixtures/` are `timely_remittance_no_receipt.csv`, `late_remittance_no_receipt.csv`, `receipt_on_due_date.csv` and `receipt_after_due_date.csv`. Put new general fixtures in the examples or importer test directory.
 - Never commit an `.aba` file, redacted or not. It carries the account numbers a payroll run pays into.
 - Keep employee names, membership numbers, TFNs, ABNs tied to a real employer, and screenshots of a live payroll system out of the repository.
 

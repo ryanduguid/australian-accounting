@@ -51,9 +51,9 @@ commit. The imported subtree must have the same tree id as the source commit.
 - Migration-context exception: `diff-cover coverage.xml --compare-branch=origin/main
   --branch-coverage --fail-under=100` exits 1 here because `origin/main` of this repository
   (`d6bf940cc6850ecb97c07035519167ed86e151ad`) predates the import, so every line of
-  `atobenchmark/mapping.py` counts as changed and the whole file must reach 100 percent.
-  Measured 96 percent branch-inclusive over the whole file (`coverage report`: 227 statements,
-  5 missed, 100 branches, 4 partial, 97 percent). The check is unchanged; once `main` contains
+  `atobenchmark/mapping.py` counts as changed and the whole file must reach 100%.
+  Measured 96% branch-inclusive over the whole file (`coverage report`: 227 statements,
+  5 missed, 100 branches, 4 partial, 97%). The check is unchanged; once `main` contains
   the package the comparison covers only changed lines again, as in the source repository.
 
 ### payday-super-checker
@@ -86,8 +86,8 @@ commit. The imported subtree must have the same tree id as the source commit.
 - Migration-context exception: `diff-cover coverage.xml --compare-branch=origin/main
   --branch-coverage --fail-under=100` exits 1 here because `origin/main` of this repository
   predates the import, so every line of `paydaysuper/assess.py` and `paydaysuper/report.py`
-  counts as changed. Measured 97 percent branch-inclusive over both whole files (`assess.py`
-  97.1 percent, `report.py` 97.2 percent; `coverage report` 98 percent each). The check is
+  counts as changed. Measured 97% branch-inclusive over both whole files (`assess.py`
+  97.1%, `report.py` 97.2%; `coverage report` 98% each). The check is
   unchanged; once `main` contains the package the comparison covers only changed lines again.
 
 ### div7a-loan-review
@@ -170,7 +170,7 @@ commit. The imported subtree must have the same tree id as the source commit.
   design, output contains `221,000.00`); `ruff check wiptally tests`; `mypy wiptally`;
   `uv lock --check`. All passed.
 
-## Release Policy prerequisites
+## Release policy prerequisites
 
 The root release callers use
 `ryanduguid/release-policy/.github/workflows/release-python.yml`. As at

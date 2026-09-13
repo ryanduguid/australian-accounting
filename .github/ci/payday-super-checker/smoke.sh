@@ -5,7 +5,7 @@
 # CLI that will not start. The import path reads data/profiles/*.json, package
 # data the check path never touches, so a wheel that ships the law files and
 # drops the profiles passes the first command and still cannot import a payroll
-# export. Both commands of the documented two-command flow run, the second
+# export. Both commands of the documented 2-command flow run, the second
 # against the first's output.
 set -euo pipefail
 

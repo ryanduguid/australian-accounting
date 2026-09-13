@@ -17,7 +17,7 @@ BAKERY_MAPPING = EXAMPLES / "bakery-mapping.csv"
 
 def test_section_heading_carrying_its_own_total_is_not_an_account(tmp_path: Path) -> None:
     # Some exports print the section total on the heading row. Treated as an account it
-    # would double count everything underneath it. This is a report layout rule: a two
+    # would double count everything underneath it. This is a report layout rule: a 2
     # column file has no section headings, only the accounts the user chose to list.
     text = "Demo Pty Ltd,\nIncome,850000\nSales,850000\nLess Operating Expenses,60000\nRent,60000\n"
     path = tmp_path / "p.csv"
@@ -64,7 +64,7 @@ def test_compare_refuses_to_write_json_over_the_mapping(capsys: pytest.CaptureFi
 
 
 def test_repeated_account_names_block_the_run(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    # One mapping row cannot answer for two ledger rows with the same name.
+    # One mapping row cannot answer for 2 ledger rows with the same name.
     pnl_path = tmp_path / "p.csv"
     pnl_path.write_text(
         "account,amount\nSales,500000\nOther,1000\nOTHER,2000\n", encoding="utf-8"
@@ -167,7 +167,7 @@ def test_no_runtime_module_imports_anything_outside_the_standard_library() -> No
 
 def test_amount_column_is_refused_where_it_cannot_apply(tmp_path: Path) -> None:
     # Accepting the option silently would leave the user believing they had selected a
-    # comparative period that a two column file does not have.
+    # comparative period that a 2 column file does not have.
     path = tmp_path / "p.csv"
     path.write_text("account,amount\nSales,100\n", encoding="utf-8")
     with pytest.raises(pnl.PnlError) as excinfo:

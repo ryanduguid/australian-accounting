@@ -1,7 +1,7 @@
 """Thin adapter over div7a-loan-review.
 
 The delegated engine owns the statutory tests, rates, arithmetic, refusals and
-serialization. This module only translates MCP arguments and applies the
+serialisation. This module only translates MCP arguments and applies the
 facade's money boundary.
 """
 

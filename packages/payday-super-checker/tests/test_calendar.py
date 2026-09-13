@@ -157,7 +157,7 @@ def test_an_undeclared_override_does_not_raise_the_coverage_end(tmp_path):
 
 def test_one_far_future_holiday_does_not_cover_the_gap_before_it(tmp_path):
     """The sharpest form: an override adding only Christmas 2029 says nothing
-    about the 2029 Easter holidays nine months earlier."""
+    about the 2029 Easter holidays 9 months earlier."""
     override = tmp_path / "sparse.json"
     override.write_text(
         json.dumps(
@@ -267,7 +267,7 @@ def test_override_rejects_duplicate_additions(tmp_path):
 
 def test_an_unpatched_calendar_computes_the_earlier_deadline(cal):
     """The other half of the pair above: without the override the same QE day
-    lands four days earlier, which is what makes the horizon warning real."""
+    lands 4 days earlier, which is what makes the horizon warning real."""
     assert cal.add_business_days(date(2029, 3, 27), 7) == date(2029, 4, 5)
     assert cal.check_horizon(date(2029, 4, 5)) is not None
 
@@ -299,7 +299,7 @@ def test_a_good_bundled_table_still_loads(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("key", ["non_business_days", "verified_from", "verified_until"])
 def test_a_missing_top_level_key_is_named(tmp_path, monkeypatch, key):
-    """These three were read straight off the parsed JSON, so a renamed key
+    """These 3 were read straight off the parsed JSON, so a renamed key
     raised KeyError, which the CLI's handler tuple does not catch."""
     from paydaysuper import calendar as cal_module
 

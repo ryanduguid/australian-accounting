@@ -4,7 +4,7 @@ A README figure that has drifted is worse than no README: a reviewer
 re-performs the sum, disagrees, and cannot tell which of the two is stale.
 
 Prose assertions run against a whitespace-flattened copy, because these files
-are hard-wrapped and a sentence that reads as one line on screen is two in the
+are hard-wrapped and a sentence that reads as one line on screen is 2 in the
 source. Structural assertions -- table rows, the banner -- read the raw file.
 """
 from __future__ import annotations
@@ -105,7 +105,7 @@ def test_the_readme_rate_table_matches_the_frozen_table(year, percent):
 
 
 def test_the_readme_explains_the_may_versus_june_trap():
-    assert "May 2025 was 8.37 per cent and June 2025 was 8.27 per cent" in FLAT_README
+    assert "May 2025 was 8.37% and June 2025 was 8.27%" in FLAT_README
     assert "8.37 is the benchmark rate" in FLAT_README
 
 

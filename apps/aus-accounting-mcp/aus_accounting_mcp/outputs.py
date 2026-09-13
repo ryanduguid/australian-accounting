@@ -2,7 +2,7 @@
 
 Typed dictionaries preserve existing JSON objects. Separate variants require
 summary/full and CTR/BAS fields without inserting defaults. Extra fields are
-retained so engine audit information is never discarded during serialization.
+retained so engine audit information is never discarded during serialisation.
 """
 
 from datetime import date
