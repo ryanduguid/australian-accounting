@@ -133,9 +133,13 @@ class BenchmarkRuleValidator:
             # The benchmark credit takes the unrounded ratio: the 2dp display
             # percentage moves the benchmark by more than a cent once the
             # distribution is large, so identically franked distributions breached.
+            # A stated credit above the s 202-60 maximum is capped at that
+            # maximum (s 202-65) before the Division 203 comparison: a 100%
+            # benchmark and an over-credited later distribution have no
+            # differential, and the overstated statement is a separate matter.
             max_credit = dist.maximum_franking_credit
             benchmark_credit = benchmark_ratio * max_credit
-            credit_diff = dist.franking_credit - benchmark_credit
+            credit_diff = min(dist.franking_credit, max_credit) - benchmark_credit
 
             if abs(credit_diff) > Decimal("0.01"):
 

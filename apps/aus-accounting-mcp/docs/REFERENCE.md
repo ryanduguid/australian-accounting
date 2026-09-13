@@ -145,7 +145,7 @@ at the end. Limits must be integers from 1 to 100 and offsets non-negative integ
 Omitting `limit` or setting it to null preserves full-list calls; an offset still
 skips that many matching entries. Source metadata accompanies every page.
 
-Twenty fabricated, read-only agent evaluation questions are in
+Twenty-four fabricated, read-only agent evaluation questions are in
 [evaluation/questions.xml](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/evaluation/questions.xml), each with its exact expected
 answer and the tools a correct answer needs. The normal pytest suite replays them
 through a real stdio MCP session using the locked engines, checking both the
@@ -299,8 +299,9 @@ Their rules and sources come from `australian-tax-calculators`. Broader classifi
 exemptions, BAS/returns, trusts, partnerships, SMSFs, contribution caps and payroll
 tax remain unsupported. Reference text cannot establish calculation support.
 
-The evaluation includes 23 cases: 10 original workflows, 10 unsupported-topic
-questions, grouped Payday, a tax worksheet and synthetic library retrieval.
+The evaluation includes 24 cases: 10 original workflows, 10 unsupported-topic
+questions, grouped Payday, a tax worksheet, synthetic library retrieval and the
+Payday evidence pack, which needs checker evidence-pack support.
 The unsupported-topic answers require no tool calls. The
 `context` command preloads `aus-accounting://scope` so the model can inspect the
 boundary. The deterministic suite reads that resource through stdio and checks
