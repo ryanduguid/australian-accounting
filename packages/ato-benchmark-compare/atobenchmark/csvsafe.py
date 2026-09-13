@@ -5,8 +5,15 @@ ledger holds, and the mapping file this tool writes is meant to be opened in Exc
 
 The guard is deliberately narrower than "anything that could start a formula". A
 leading = or @ is always escaped. A leading + or - is escaped only when what follows
-is not a plain number, so a general ledger code like -00123 survives the round trip
-and still joins back to the ledger, while +A1 does not.
+is not a plain number, so a general ledger code like -00123 is written unquoted and
+still joins back to the ledger, while +A1 does not.
+
+Unquoted is not the same as unchanged. A spreadsheet that opens the CSV by
+double-click reads -00123, +00123 and 00123 as numbers and writes them back as
+-123, 123 and 123, so the account no longer matches its account_key and the reader
+refuses the file. That refusal is the intended failure: the guard cannot stop the
+spreadsheet, so the review path in README.md imports the file with the account and
+account_key columns typed as Text.
 """
 
 from __future__ import annotations

@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import re
 import zipfile
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -155,3 +155,104 @@ def test_input_columns_are_formatted_so_pasted_values_stay_inert():
     assert ws.protection.sheet is False, "pasting extends the table"
     assert book["Summary"].protection.sheet is True
     assert book["Review Checks"].protection.sheet is True
+
+
+# ---------------------------------------------------------------------------
+# Generator-level checks. Excel is not run here, so these hold the formulas the
+# builder writes; the shipped cached values still come from a desktop Excel pass
+# (tools/build_workbook.py).
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def builder():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "payday_build_workbook", ROOT / "tools" / "build_workbook.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_every_register_date_is_read_as_a_whole_calendar_day(builder):
+    """The checker drops a zone-less time component; noon on the deadline is not late."""
+    calc = builder.formulas()
+    for column, source in (("Pay_day", "payment_date"), ("Remit_day", "remitted_date"),
+                           ("Recv_day", "fund_received_date"),
+                           ("Next_day", "next_standard_payday")):
+        assert calc[column] == builder.whole_day(source)
+        assert "INT(" in calc[column]
+    # Nothing downstream may reach past the whole-day columns to the raw date cells.
+    downstream = {name: formula for name, formula in calc.items()
+                  if name not in {"Pay_day", "Remit_day", "Recv_day", "Next_day",
+                                  "Row_problem", "Guard"}}
+    for name, formula in downstream.items():
+        for source in ("payment_date", "remitted_date", "fund_received_date",
+                       "next_standard_payday"):
+            assert f"[{source}]]" not in formula, (name, source)
+    assert builder.AS_AT != builder.AS_AT_INPUT
+    assert builder.ASSESS != builder.ASSESS_INPUT
+
+
+def test_a_blank_register_date_stays_blank_through_the_whole_day_columns(builder):
+    """A blank date cell read as a number is 30 December 1899, not a missing date.
+
+    Excel gives a bare reference to an empty cell the value 0, so a whole-day
+    column that returned the raw reference made every blank date look supplied:
+    ISNUMBER saw a number, Settled and Remit accepted day 0 as on or before the
+    as-at date, and the shipped sample's unremitted EMP004 turned from UNPAID
+    into LATE.
+    """
+    for source in ("payment_date", "remitted_date", "fund_received_date",
+                   "next_standard_payday"):
+        formula = builder.whole_day(source)
+        assert formula.startswith(f'=IF({builder.T(source)}="","",')
+    # The control: a supplied date is still truncated to its calendar day.
+    assert "INT(" in builder.whole_day("payment_date")
+
+
+def test_the_register_refuses_the_dates_and_amounts_the_checker_refuses(builder):
+    from paydaysuper.csv_io import LATEST_SANE_YEAR
+
+    problem = builder.formulas()["Row_problem"]
+    assert f"DATE({LATEST_SANE_YEAR},12,31)" in problem
+    # The Summary coverage date is bound the same way, so a fabricated far-future
+    # coverage cannot mark deadlines as covered.
+    source = (ROOT / "tools" / "build_workbook.py").read_text(encoding="utf-8")
+    assert "AND(ISNUMBER({COVERAGE}),{COVERAGE}<={FAR_DATE})" in source
+    assert "date-not-real" in problem
+    assert "amount-under-half-a-cent" in problem
+    for column in builder.AMOUNT_COLUMNS:
+        assert f"ROUND(tblLines[[#This Row],[{column}]],2)=0" in problem
+
+
+def test_amount_invariants_compare_cents_not_raw_input(builder):
+    """1000.001 against 1000.004 is one figure to the checker, so it is here too."""
+    calc = builder.formulas()
+    problem = calc["Row_problem"]
+    for pair in ("remitted_amount>sg", "matched_amount>sg", "remitted_amount>matched"):
+        assert pair in problem
+    assert "ROUND(tblLines[[#This Row],[remitted_amount]],2)>ROUND(" in problem
+    assert "ROUND(tblLines[[#This Row],[matched_amount]],2)>ROUND(" in problem
+    # The receipt-covers-liability test is the one that read a fully received
+    # 1000.004 payday as UNPAID.
+    assert ("tblLines[[#This Row],[Receipt_credit]]>=ROUND(tblLines[[#This Row],[sg_amount]],2)"
+            in calc["Branch"])
+
+
+def test_the_gic_estimate_covers_every_date_the_register_can_hold(builder):
+    from paydaysuper.csv_io import LATEST_SANE_YEAR
+
+    rows, last_known = builder.read_gic()
+    assert builder.ESTIMATE_UNTIL == date(LATEST_SANE_YEAR, 12, 31)
+    assert rows[-1][1] == builder.ESTIMATE_UNTIL
+    # Contiguous, so no accrual day falls between 2 segments.
+    for earlier, later in zip(rows, rows[1:]):
+        assert later[0] == earlier[1] + timedelta(days=1)
+    estimates = [row for row in rows if row[4] == "estimate"]
+    assert estimates and all(row[2] == rows[len(rows) - len(estimates) - 1][2]
+                             for row in estimates)
+    # The accrual end is no longer capped at a build-time constant.
+    assert "ESTIMATE_UNTIL" not in builder.formulas()["NEC_end"]
+    assert builder.excel_date(builder.ESTIMATE_UNTIL) not in builder.formulas()["NEC_end"]

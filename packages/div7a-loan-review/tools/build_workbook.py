@@ -37,7 +37,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from div7aloan import __version__  # noqa: E402
 from div7aloan.facts import _FALSE, _TRUE, UNKNOWN_TOKENS  # noqa: E402
+from div7aloan.money import MAX_MONEY_DECIMAL_PLACES, MAX_MONEY_MAGNITUDE  # noqa: E402
 from div7aloan.register import FIRST_REVIEWABLE_YEAR  # noqa: E402
+from div7aloan.years import _EARLIEST, _LATEST  # noqa: E402
 
 OUT = ROOT / "workbooks" / "div7a-loan-review.xlsx"
 SAMPLE = ROOT / "examples" / "sample_loans_mixed.csv"
@@ -146,12 +148,29 @@ def tristate(column):
     return f'=IF({unknown(T(column))},"UNKNOWN",IF(OR({v}={{{t}}}),"PASS",IF(OR({v}={{{f}}}),"FAIL","UNKNOWN")))'
 
 
+def year_text(column):
+    """The year label as the engine reads it: surrounding whitespace stripped."""
+    return f'TRIM({T(column)}&"")'
+
+
 def year_bad(column):
-    y = T(column)
+    """True where the engine's parse_year would refuse the label.
+
+    Three differences from the earlier test, each a case where the workbook and
+    the engine disagreed. The label is trimmed, because parse_year strips before
+    matching and ` 2023-24 ` is a year to it. Every one of the 6 positions has to
+    be a digit, because VALUE reads `20e2` as 2000 and accepted a label the
+    engine's 4-digit pattern refuses. And the start year has to fall inside the
+    engine's own 1900 to 2100 typo guard, so `1800-01` is refused here too
+    instead of being silently skipped as historical.
+    """
+    y = year_text(column)
+    digits = ",".join(f'ISNUMBER(VALUE(MID({y},{k},1)))' for k in (1, 2, 3, 4, 6, 7))
     return (
-        f"AND(NOT({unknown(y)}),NOT(IFERROR(AND(LEN({y})=7,MID({y},5,1)=\"-\","
-        f"ISNUMBER(VALUE(LEFT({y},4))),ISNUMBER(VALUE(RIGHT({y},2))),"
-        f"VALUE(RIGHT({y},2))=MOD(VALUE(LEFT({y},4))+1,100)),FALSE)))"
+        f"AND(NOT({unknown(T(column))}),NOT(IFERROR(AND(LEN({y})=7,MID({y},5,1)=\"-\","
+        f"{digits},"
+        f"VALUE(RIGHT({y},2))=MOD(VALUE(LEFT({y},4))+1,100),"
+        f"VALUE(LEFT({y},4))>={_EARLIEST},VALUE(LEFT({y},4))<={_LATEST}),FALSE)))"
     )
 
 
@@ -163,10 +182,29 @@ def bool_bad(column):
 
 def number_bad(column):
     """Text where a number belongs, or a negative, which the engine refuses for every
-    numeric column (parse_money, parse_rate, parse_ratio); a rate above 1 is refused too."""
+    numeric column (parse_money, parse_rate, parse_ratio); a rate above 1 is refused too.
+
+    parse_money adds 2 limits the workbook used to calculate straight through: an
+    amount cannot carry more than 2 decimal places, and cannot exceed
+    MAX_MONEY_MAGNITUDE. They apply to the 2 money columns only, because
+    parse_rate and parse_ratio do not impose them."""
     x = T(column)
-    ceiling = f",{x}>1" if column == "interest_rate_for_years_after_year_loan_made" else ""
-    return f"AND(NOT({unknown(x)}),OR(NOT(ISNUMBER({x})),AND(ISNUMBER({x}),OR({x}<0{ceiling}))))"
+    extra = ""
+    if column == "interest_rate_for_years_after_year_loan_made":
+        extra = f",{x}>1"
+    elif column in MONEY_COLUMNS:
+        # ROUND(x,2)<>x, exact: parse_money refuses any value with a third decimal
+        # place, so a tolerance would let 100.00000001 through here and be refused
+        # by the engine. A typed 1234.56 and ROUND(1234.56,2) are the same double
+        # in Excel, so a clean cent figure is not refused.
+        # N() around every arithmetic use of the cell: AND and OR evaluate all of
+        # their arguments, so ROUND on a text cell such as `unknown` returns
+        # #VALUE! and the error propagates out of the guard that was meant to
+        # catch it. N() reads text as 0 and leaves a real number untouched.
+        n = f"N({x})"
+        extra = (f",ROUND({n},{MAX_MONEY_DECIMAL_PLACES})<>{n}"
+                 f",{n}>{MAX_MONEY_MAGNITUDE}")
+    return f"AND(NOT({unknown(x)}),OR(NOT(ISNUMBER({x})),AND(ISNUMBER({x}),OR({x}<0{extra}))))"
 
 
 def formulas():
@@ -174,19 +212,24 @@ def formulas():
     principal = T("amalgamated_loan_unpaid_at_end_of_previous_year")
     payments = T("payments_applied_during_the_year")
     term = T("maximum_term_years")
-    year_start = f"VALUE(LEFT({T('year_loan_made')},4))"
+    year_start = f"VALUE(LEFT({year_text('year_loan_made')},4))"
     limbs = [T(a), T(lo), T(b), T(c)]
     fails = ",".join(f'{x}="FAIL"' for x in limbs)
     unknowns = ",".join(f'{x}="UNKNOWN"' for x in limbs)
     v = T("MYR_verdict")
     return {
+        # register._skip_reason skips ANY nonblank out_of_scope_reason before it
+        # parses a single loan fact. Passing the cell through the unknown-token
+        # helper instead meant a reason of "unknown" or "n/a" left the row in the
+        # review, and the workbook reported a shortfall on a loan the engine
+        # skipped with exit 0.
         "Status": (
-            f'=IF(NOT({unknown(T("out_of_scope_reason"))}),"SKIPPED",'
+            f'=IF(TRIM({T("out_of_scope_reason")}&"")<>"","SKIPPED",'
             f'IF(IFERROR({year_start}<{FIRST_REVIEWABLE_YEAR.start_year},FALSE),"SKIPPED","REVIEWED"))'
         ),
         "Floor_year": (
-            f'=IF({unknown(T("year_of_income_being_tested"))},{T("year_loan_made")}&"",'
-            f'{T("year_of_income_being_tested")}&"")'
+            f'=IF({unknown(T("year_of_income_being_tested"))},{year_text("year_loan_made")},'
+            f'{year_text("year_of_income_being_tested")})'
         ),
         "Floor_rate": (
             f'=IFERROR(INDEX(tblRates[rate],MATCH({T("Floor_year")},tblRates[year_of_income],0)),"")'
@@ -227,8 +270,8 @@ def formulas():
         ),
         "MYR_verdict": (
             f'=IF({T("Status")}="SKIPPED","",IF(OR({T("Gate_verdict")}<>"COMPLYING",'
-            f'AND(NOT({unknown(T("year_loan_made"))}),{T("Floor_year")}<>{T("year_loan_made")}&""),'
-            f'{T("year_loan_made")}&""={YEAR},IFERROR({year_start}>{YEAR_START},FALSE),'
+            f'AND(NOT({unknown(T("year_loan_made"))}),{T("Floor_year")}<>{year_text("year_loan_made")}),'
+            f'{year_text("year_loan_made")}={YEAR},IFERROR({year_start}>{YEAR_START},FALSE),'
             f'AND(ISNUMBER({T("Term_used")}),{T("Term_used")}<=0),'
             f'AND(ISNUMBER({YEAR_RATE}),{YEAR_RATE}<=0)),"REFUSED",'
             f'IF(OR({unknown(T("year_loan_made"))},NOT(ISNUMBER({YEAR_RATE})),NOT(ISNUMBER({principal})),NOT(ISNUMBER({payments})),'
@@ -237,8 +280,8 @@ def formulas():
         ),
         "MYR_reason": (
             f'=IF({v}="REFUSED",IF({T("Gate_verdict")}<>"COMPLYING","s 109N gate is "&{T("Gate_verdict")}&", so s 109E produces no repayment figure",'
-            f'IF({T("Floor_year")}<>{T("year_loan_made")}&"","gate benchmark year differs from year_loan_made",'
-            f'IF({T("year_loan_made")}&""={YEAR},"year of income is the year the loan was made (s 109E(1)(a), s 109P)",'
+            f'IF({T("Floor_year")}<>{year_text("year_loan_made")},"gate benchmark year differs from year_loan_made",'
+            f'IF({year_text("year_loan_made")}={YEAR},"year of income is the year the loan was made (s 109E(1)(a), s 109P)",'
             f'IF(IFERROR({year_start}>{YEAR_START},FALSE),"loan made after the year of income",'
             f'IF(AND(ISNUMBER({T("Term_used")}),{T("Term_used")}<=0),"nil remaining term under s 109E(6)",'
             f'"nil benchmark rate"))))),IF({v}="UNKNOWN",'
@@ -259,10 +302,23 @@ def formulas():
         # One ISFORMULA per cell: a multi-cell ISFORMULA inside SUMPRODUCT implicitly
         # intersects in a plain formula and a pasted formula slipped through unflagged.
         "Guard": "=IF(OR(" + ",".join(f"_xlfn.ISFORMULA({T(c)})" for c in INPUT_COLUMNS) + "),1,0)",
+        # What the engine reads, and when. register._skip_reason returns on a
+        # nonblank out_of_scope_reason before it parses anything, so such a row
+        # carries no input problem at all. Otherwise it parses year_loan_made to
+        # decide whether the loan is pre-1998, so that one label has to be
+        # readable even on a row the workbook then skips: `1800-01` is exit 1 in
+        # the CLI, not a silent historical skip. Every remaining fact is parsed
+        # after the skip, so it is validated only on a reviewed row: blocking the
+        # workbook over deliberately unused values refused a file the CLI reads
+        # with exit 0. The formula guard below stays on every row.
         "Input_problem": (
-            '=TRIM(IF(OR(' + ",".join(year_bad(cn) for cn in YEAR_COLUMNS) + '),"year label ","")'
-            '&IF(OR(' + ",".join(bool_bad(cn) for cn in BOOL_COLUMNS) + '),"true/false/unknown ","")'
-            '&IF(OR(' + ",".join(number_bad(cn) for cn in NUMBER_COLUMNS) + '),"number ",""))'
+            f'=IF(TRIM({T("out_of_scope_reason")}&"")<>"","",'
+            'TRIM(IF(OR(' + year_bad("year_loan_made")
+            + f',AND({T("Status")}="REVIEWED",' + year_bad("year_of_income_being_tested")
+            + ')),"year label ","")'
+            f'&IF({T("Status")}<>"REVIEWED",""'
+            ',IF(OR(' + ",".join(bool_bad(cn) for cn in BOOL_COLUMNS) + '),"true/false/unknown ","")'
+            '&IF(OR(' + ",".join(number_bad(cn) for cn in NUMBER_COLUMNS) + '),"number ",""))))'
         ),
         # A fabricated loan left in the register would count in the summary; flag the
         # loan_id and year pairs the shipped sample carries (filled in by build()).

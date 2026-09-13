@@ -123,3 +123,22 @@ def test_only_declared_evaluation_csvs_are_allowlisted() -> None:
             check=False,
         )
         assert refused.returncode == 0
+
+
+def test_confirmation_changes_the_at_risk_exit_code_but_not_the_verdict(tmp_path: Path) -> None:
+    """The guide's refusal boundary: AT_RISK exits 0 once remittance-only is confirmed."""
+    fixture = PACK / "fixtures" / "timely_remittance_no_receipt.csv"
+    codes = {}
+    for label, extra in (("plain", []), ("confirmed", ["--confirm-remittance-only"])):
+        output = tmp_path / f"{label}.csv"
+        codes[label] = main([str(fixture), "--as-at", CONTRACT["as_at"],
+                             *extra, "-o", str(output)])
+        with output.open(encoding="utf-8-sig", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+        assert rows[0]["verdict"] == "AT_RISK"
+    assert codes == {"plain": 2, "confirmed": 0}
+    # The control: confirmation does not rescue a LATE result.
+    late = tmp_path / "late.csv"
+    assert main([str(PACK / "fixtures" / "late_remittance_no_receipt.csv"),
+                 "--as-at", CONTRACT["as_at"], "--confirm-remittance-only",
+                 "-o", str(late)]) == 2

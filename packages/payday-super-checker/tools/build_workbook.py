@@ -39,7 +39,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from paydaysuper import __version__  # noqa: E402
 from paydaysuper.assess import TRANSITION_END  # noqa: E402
-from paydaysuper.csv_io import FALSE_WORDS, TRUE_WORDS  # noqa: E402
+from paydaysuper.csv_io import FALSE_WORDS, LATEST_SANE_YEAR, TRUE_WORDS  # noqa: E402
 from paydaysuper.deadlines import REGIME_START  # noqa: E402
 from paydaysuper.rates import days_in_year  # noqa: E402
 
@@ -47,7 +47,13 @@ OUT = ROOT / "workbooks" / "payday-super-checker.xlsx"
 SAMPLE = ROOT / "examples" / "sample_payrun.csv"
 DATA = ROOT / "paydaysuper" / "data"
 DEFAULT_AS_AT = date(2026, 8, 10)
-ESTIMATE_UNTIL = date(2030, 12, 31)
+# The last calendar day the estimated GIC segments reach. It is the checker's own
+# sane-date bound, not a guess about how long a rate holds: past the known table
+# daily_rate carries the last known rate forward without end, and a workbook that
+# stopped earlier silently understated the accrual instead of saying so. Row_problem
+# refuses a register date beyond it and Review Checks refuses an as-at or assessment
+# date beyond it, so no accrual can run off the end of the table.
+ESTIMATE_UNTIL = date(LATEST_SANE_YEAR, 12, 31)
 
 PURPLE, LAVENDER, GREY = "5C2D91", "F3F1F6", "E2E0DF"
 HEAD = dict(font=Font(bold=True, color="FFFFFF"), fill=PatternFill("solid", fgColor=PURPLE))
@@ -66,12 +72,20 @@ DATE_COLUMNS = ["payment_date", "remitted_date", "fund_received_date", "next_sta
 AMOUNT_COLUMNS = ["sg_amount", "remitted_amount", "matched_amount"]
 BOOL_COLUMNS = ["first_contribution_to_fund", "out_of_cycle", "defined_benefit"]
 
-AS_AT = "Summary!$B$2"
-ASSESS = "Summary!$B$3"
+# The register compares whole calendar days, as the checker does: it drops a
+# zone-less time component rather than letting noon on the deadline read as half a
+# day late. B2 and B3 stay the cells the accountant types into; D2 and D3 hold the
+# whole-day values every formula below reads.
+AS_AT_INPUT = "Summary!$B$2"
+ASSESS_INPUT = "Summary!$B$3"
+AS_AT = "Summary!$D$2"
+ASSESS = "Summary!$D$3"
 TRANSITION_OK = "Summary!$B$4"
 REMIT_ONLY_OK = "Summary!$B$5"
 COVERAGE = "Summary!$B$6"
 GIC_LAST = "Summary!$B$7"
+# The last date the checker treats as a real date rather than a placeholder.
+FAR_DATE = f"DATE({LATEST_SANE_YEAR},12,31)"
 
 
 def style(cell, **kw):
@@ -189,17 +203,34 @@ CODES = {
 }
 
 
+def whole_day(column):
+    """A register date column as a whole calendar day.
+
+    A blank cell stays blank and a non-numeric cell is passed through unchanged,
+    so ``Row_problem``'s own ISNUMBER guards still see what they are there to
+    refuse. Returning the raw reference for a blank cell would give numeric 0,
+    which reads as 30 December 1899 and makes an empty date look supplied.
+    """
+    return (
+        f'=IF({T(column)}="","",'
+        f'IF(ISNUMBER({T(column)}),INT({T(column)}),{T(column)}))'
+    )
+
+
 def formulas():
-    pay, sg = T("payment_date"), T("sg_amount")
-    rem, rem_amt, matched = T("remitted_date"), T("remitted_amount"), T("matched_amount")
-    rec, nxt = T("fund_received_date"), T("next_standard_payday")
+    pay, sg = T("Pay_day"), T("sg_amount")
+    rem, rem_amt, matched = T("Remit_day"), T("remitted_amount"), T("matched_amount")
+    rec, nxt = T("Recv_day"), T("Next_day")
     db, ooc, ftf = T("Flag_db"), T("Flag_ooc"), T("Flag_ftf")
     due, settled, remit = T("Final_due"), T("Settled"), T("Remit")
     poss = T("Possible_item4")
     horizon = f"({due}>{COVERAGE})"
     unc = f"({poss}<>\"\")"
     later_gate = f"OR({horizon},AND({unc},{AS_AT}<={poss}))"
-    covers = f"({T('Receipt_credit')}>={sg})"
+    # Both sides in cents. The credit is already rounded, and comparing it with a raw
+    # liability read a fully received 1000.004 payday as UNPAID where the checker,
+    # which rounds the liability on the way in, returns ON_TIME.
+    covers = f"({T('Receipt_credit')}>=ROUND({sg},2))"
     nec_from = f"({due}+1)"
     nec_end = T("NEC_end")
     # Elementwise min and max via ABS: MIN and MAX aggregate a whole column inside
@@ -214,24 +245,40 @@ def formulas():
     amount_bad = ",".join(
         f"AND({T(c)}<>\"\",OR(NOT(ISNUMBER({T(c)})),{T(c)}<0))" for c in AMOUNT_COLUMNS
     )
+    # The checker refuses a placeholder such as 9999-12-31 rather than assessing it,
+    # and refuses a nonzero amount that rounds to nothing rather than rounding the row
+    # away. Both refusals belong here, where the register says what it cannot read.
+    date_far = ",".join(
+        f"AND(ISNUMBER({T(c)}),{T(c)}>{excel_date(date(LATEST_SANE_YEAR, 12, 31))})"
+        for c in DATE_COLUMNS
+    )
+    sub_cent = ",".join(
+        f"AND(ISNUMBER({T(c)}),{T(c)}<>0,ROUND({T(c)},2)=0)" for c in AMOUNT_COLUMNS
+    )
     bool_bad = ",".join(f'{T("Flag_" + s)}=""' for s in ("ftf", "ooc", "db"))
     return {
+        "Pay_day": whole_day("payment_date"),
+        "Remit_day": whole_day("remitted_date"),
+        "Recv_day": whole_day("fund_received_date"),
+        "Next_day": whole_day("next_standard_payday"),
         "Flag_db": "=" + bool_expr("defined_benefit"),
         "Flag_ooc": "=" + bool_expr("out_of_cycle"),
         "Flag_ftf": "=" + bool_expr("first_contribution_to_fund"),
         "Row_problem": (
             f'=TRIM(IF(TRIM({T("employee_id")}&"")="","employee_id ","")'
             '&IF(OR(' + date_bad + '),"date ","")'
+            '&IF(OR(' + date_far + '),"date-not-real ","")'
             f'&IF(NOT(ISNUMBER({pay})),"payment_date ","")'
             f'&IF(AND(ISNUMBER({pay}),{pay}<{excel_date(REGIME_START)}),"pre-1-Jul-2026 ","")'
             '&IF(OR(' + amount_bad + '),"amount ","")'
+            '&IF(OR(' + sub_cent + '),"amount-under-half-a-cent ","")'
             f'&IF(NOT(ISNUMBER({sg})),"sg_amount ","")'
             '&IF(OR(' + bool_bad + '),"yes/no ","")'
-            f'&IF(AND(ISNUMBER({rem_amt}),ISNUMBER({sg}),{rem_amt}>{sg}),"remitted_amount>sg ","")'
+            f'&IF(AND(ISNUMBER({rem_amt}),ISNUMBER({sg}),ROUND({rem_amt},2)>ROUND({sg},2)),"remitted_amount>sg ","")'
             f'&IF(AND(ISNUMBER({rem_amt}),NOT(ISNUMBER({rem}))),"remitted_amount-needs-date ","")'
-            f'&IF(AND(ISNUMBER({matched}),ISNUMBER({sg}),{matched}>{sg}),"matched_amount>sg ","")'
-            f'&IF(AND(ISNUMBER({matched}),ISNUMBER({rem_amt}),{rem_amt}>{matched}),"remitted_amount>matched ","")'
-            f'&IF(AND(ISNUMBER({matched}),ISNUMBER({sg}),{matched}<{sg},ISNUMBER({rem}),NOT(ISNUMBER({rem_amt}))),"partial-match-needs-remitted_amount ","")'
+            f'&IF(AND(ISNUMBER({matched}),ISNUMBER({sg}),ROUND({matched},2)>ROUND({sg},2)),"matched_amount>sg ","")'
+            f'&IF(AND(ISNUMBER({matched}),ISNUMBER({rem_amt}),ROUND({rem_amt},2)>ROUND({matched},2)),"remitted_amount>matched ","")'
+            f'&IF(AND(ISNUMBER({matched}),ISNUMBER({sg}),ROUND({matched},2)<ROUND({sg},2),ISNUMBER({rem}),NOT(ISNUMBER({rem_amt}))),"partial-match-needs-remitted_amount ","")'
             f'&IF(AND(ISNUMBER({rec}),ISNUMBER({rem}),{rec}<{rem}),"receipt-before-remittance ","")'
             f'&IF(AND({ooc}=1,NOT(ISNUMBER({nxt}))),"out_of_cycle-needs-next_standard_payday ","")'
             f'&IF(AND({ooc}=1,ISNUMBER({nxt}),ISNUMBER({pay}),{nxt}<={pay}),"next_standard_payday-not-after-payday ",""))'
@@ -261,7 +308,7 @@ def formulas():
         # Evidence against the row's own deadline. Aligned or possible deadlines only
         # ever propagate values already present, so the sweep needs no recursion.
         "Evidence_own": (
-            f'=IF(OR({T("Own_due")}=0,{sg}<=0,{db}=1,{T("Cap")}<=0),"impossible",'
+            f'=IF(OR({T("Own_due")}=0,ROUND({sg},2)<=0,{db}=1,ROUND({T("Cap")},2)<=0),"impossible",'
             f'IF(ISNUMBER({rec}),IF({rec}<{T("Earliest_prepay")},"impossible",'
             f'IF({rec}<={AS_AT},IF(OR({rec}<{pay},{rec}<={T("Own_due")}),"confirmed",'
             f'IF({rec}>{T("Own_due")},"impossible","possible")),'
@@ -298,7 +345,7 @@ def formulas():
         ),
         "Past_horizon": f'=IF({due}="","",IF({horizon},1,0))',
         "Branch": (
-            f'=IF({db}=1,"DB",IF({due}="","",IF({sg}<=0,"NIL",'
+            f'=IF({db}=1,"DB",IF({due}="","",IF(ROUND({sg},2)<=0,"NIL",'
             f'IF({settled}<>"",'
             # received branch
             f'IF({settled}<{pay},'
@@ -340,9 +387,16 @@ def formulas():
         "Outstanding_to": (
             f'=IF({exposed},IF(AND({settled}<>"",{T("Stale_prepay")}=0,{covers}),{settled},{AS_AT}),"")'
         ),
+        # No fixed horizon: the accrual ends on the assessment date or the day the
+        # money stops being outstanding, exactly as the checker does. Capping it at a
+        # build-time constant left a 2031 as-at date estimating only to 2030 and
+        # understating the notional earnings with no note saying so.
         "NEC_end": (
-            f'=IF({exposed},MIN(IF({ASSESS}="",{excel_date(ESTIMATE_UNTIL)},{ASSESS}-1),'
-            f'IF(AND({settled}<>"",{T("Stale_prepay")}=0,{covers},{T("Final_shortfall")}=0),{settled},{AS_AT})),"")'
+            f'=IF({exposed},IF({ASSESS}="",{T("Accrual_to")},MIN({ASSESS}-1,{T("Accrual_to")})),"")'
+        ),
+        "Accrual_to": (
+            f'=IF({exposed},IF(AND({settled}<>"",{T("Stale_prepay")}=0,{covers},'
+            f'{T("Final_shortfall")}=0),{settled},{AS_AT}),"")'
         ),
         "Days_late": (
             f'=IF({exposed},IF({T("Past_horizon")}=1,"",MAX({T("Outstanding_to")}-{due},0)),"")'
@@ -359,11 +413,11 @@ def formulas():
         "SGC_low": f'=IF({exposed},{T("Shortfall_r")}+{T("NEC_r")}+{T("Uplift_best")},"")',
         "SGC_high": f'=IF({exposed},{T("Shortfall_r")}+{T("NEC_r")}+{T("Uplift_worst")},"")',
         "Transition_row": (
-            f'=IF(AND({db}<>1,ISNUMBER({sg}),{sg}>0,{T("Cap")}>0,OR(ISNUMBER({rec}),ISNUMBER({rem})),'
+            f'=IF(AND({db}<>1,ISNUMBER({sg}),ROUND({sg},2)>0,ROUND({T("Cap")},2)>0,OR(ISNUMBER({rec}),ISNUMBER({rem})),'
             f'IF(ISNUMBER({rec}),{rec},{rem})<={excel_date(TRANSITION_END)}),1,0)'
         ),
         "Receipt_established": f'=IF({settled}<>"",1,0)',
-        "Assessable": f'=IF(AND({v}<>"",{v}<>"SKIPPED",ISNUMBER({sg}),{sg}>0),1,0)',
+        "Assessable": f'=IF(AND({v}<>"",{v}<>"SKIPPED",ISNUMBER({sg}),ROUND({sg},2)>0),1,0)',
         "Duplicate": (
             f'=IF(COUNTIFS(tblLines[employee_id],{T("employee_id")},tblLines[payment_date],{pay},'
             f'tblLines[sg_amount],{sg},tblLines[remitted_date],{rem}&"",tblLines[fund_received_date],{rec}&"")>1,1,0)'
@@ -372,19 +426,21 @@ def formulas():
 
 
 CALC_ORDER = [
+    "Pay_day", "Remit_day", "Recv_day", "Next_day",
     "Flag_db", "Flag_ooc", "Flag_ftf", "Row_problem", "Guard", "Cap", "Due_ooc", "Due_ftf",
     "Own_due", "Own_pathway", "Earliest_prepay", "Settled", "Remit", "Receipt_credit", "Credit",
     "Evidence_own", "Confirmed_latest", "Possible_latest", "Final_due", "Pathway",
     "Possible_item4", "Past_horizon", "Branch", "Verdict", "Unassessable_between", "Exposed",
     "Stale_prepay", "OTRC", "Base_shortfall", "Offset_s18D", "Final_shortfall", "Lateness_basis",
-    "Outstanding_to", "NEC_end", "Days_late", "NEC", "GIC_estimated", "Shortfall_r", "NEC_r",
+    "Outstanding_to", "Accrual_to", "NEC_end", "Days_late", "NEC", "GIC_estimated", "Shortfall_r", "NEC_r",
     "Uplift_best", "Uplift_worst", "SGC_low", "SGC_high", "Transition_row",
     "Receipt_established", "Assessable", "Duplicate", "Case_variant", "Sample_row",
 ]
 ARRAY_CALCS = {"Confirmed_latest", "Possible_latest", "Case_variant"}
-DATE_CALCS = {"Due_ooc", "Due_ftf", "Own_due", "Earliest_prepay", "Settled", "Remit",
+DATE_CALCS = {"Pay_day", "Remit_day", "Recv_day", "Next_day",
+              "Due_ooc", "Due_ftf", "Own_due", "Earliest_prepay", "Settled", "Remit",
               "Confirmed_latest", "Possible_latest", "Final_due", "Possible_item4",
-              "Outstanding_to", "NEC_end"}
+              "Outstanding_to", "Accrual_to", "NEC_end"}
 MONEY_CALCS = {"Cap", "Receipt_credit", "Credit", "OTRC", "Base_shortfall", "Offset_s18D",
                "Final_shortfall", "NEC", "Shortfall_r", "NEC_r", "Uplift_best", "Uplift_worst",
                "SGC_low", "SGC_high"}
@@ -555,6 +611,14 @@ def build() -> None:
         dv = DataValidation(type="list", formula1='"Y,N"', allow_blank=False)
         dv.add(ref)
         ws.add_data_validation(dv)
+    ws["C2"] = "As-at date used by the register (whole day)"
+    style(ws["D2"], value=(f'=IF({AS_AT_INPUT}="","",IF(ISNUMBER({AS_AT_INPUT}),'
+                           f'INT({AS_AT_INPUT}),{AS_AT_INPUT}))'),
+          number_format=DATE, **CALC)
+    ws["C3"] = "Assessment date used by the register (whole day)"
+    style(ws["D3"], value=(f'=IF({ASSESS_INPUT}="","",IF(ISNUMBER({ASSESS_INPUT}),'
+                           f'INT({ASSESS_INPUT}),{ASSESS_INPUT}))'),
+          number_format=DATE, **CALC)
     for ref, blank_ok in (("B2", False), ("B3", True), ("B6", False)):
         dv = DataValidation(type="date", operator="greaterThan", formula1="1", allow_blank=blank_ok)
         dv.add(ref)
@@ -622,8 +686,10 @@ def build() -> None:
          '=IF(C10=0,"",' + offender("(tblLines[Duplicate]=1)") + ")"),
         ("Lines assessed at a nil SG amount (nothing to assess)", '=IF(C11=0,"PASS","NOTE")',
          '=COUNTIF(tblLines[Branch],"NIL")', '=IF(C11=0,"",' + offender('(tblLines[Branch]="NIL")') + ")"),
-        ("As-at, assessment and coverage dates on Summary are dates",
-         f'=IF(AND(ISNUMBER({AS_AT}),OR({ASSESS}="",ISNUMBER({ASSESS})),ISNUMBER({COVERAGE})),"PASS","BLOCKED")',
+        ("As-at, assessment and coverage dates on Summary are real dates",
+         f'=IF(AND(ISNUMBER({AS_AT}),{AS_AT}<={FAR_DATE},'
+         f'OR({ASSESS}="",AND(ISNUMBER({ASSESS}),{ASSESS}<={FAR_DATE})),'
+         f'AND(ISNUMBER({COVERAGE}),{COVERAGE}<={FAR_DATE})),"PASS","BLOCKED")',
          f'={AS_AT}', None),
         ("No fabricated example line from the shipped sample remains in the register",
          '=IF(C13=0,"PASS","REVIEW")', "=SUM(tblLines[Sample_row])",
@@ -716,16 +782,34 @@ if (Get-Process EXCEL -ErrorAction SilentlyContinue) {
 }
 $xl = New-Object -ComObject Excel.Application
 $xl.Visible = $false; $xl.DisplayAlerts = $false; $xl.AutomationSecurity = 1
+# Excel rejects calls while it is still opening or calculating (RPC_E_CALL_REJECTED,
+# 0x80010001) and can hand back a null workbook from Open on a cold start. Each
+# step asks again rather than failing the build on a busy signal.
+function Invoke-Com([scriptblock]$Action) {
+  for ($attempt = 0; $attempt -lt 40; $attempt++) {
+    try { return (& $Action) }
+    catch [System.Runtime.InteropServices.COMException] {
+      if ($_.Exception.HResult -ne -2147418111) { throw }
+      Start-Sleep -Milliseconds 500
+    }
+  }
+  throw 'Excel kept rejecting the call'
+}
 try {
-  $wb = $xl.Workbooks.Open('%s')
-  $sources = $wb.Worksheets.Item('Sources & Version')
-  $sources.Range('B3').Value2 = 'Excel ' + $xl.Version + ' build ' + $xl.Build
-  $xl.CalculateFullRebuild()
+  $wb = $null
+  for ($attempt = 0; $attempt -lt 5 -and $null -eq $wb; $attempt++) {
+    $wb = Invoke-Com { $xl.Workbooks.Open('%s') }
+    if ($null -eq $wb) { Start-Sleep -Seconds 2 }
+  }
+  if ($null -eq $wb) { throw 'Excel returned no workbook from Workbooks.Open after 5 attempts' }
+  $sources = Invoke-Com { $wb.Worksheets.Item('Sources & Version') }
+  Invoke-Com { $sources.Range('B3').Value2 = 'Excel ' + $xl.Version + ' build ' + $xl.Build } | Out-Null
+  Invoke-Com { $xl.CalculateFullRebuild() } | Out-Null
   $tries = 0
-  while ($xl.CalculationState -ne 0 -and $tries -lt 600) { Start-Sleep -Milliseconds 100; $tries++ }
-  $status = $wb.Worksheets.Item('Review Checks').Range('B16').Text
-  $wb.Save()
-  $wb.Close($false)
+  while ((Invoke-Com { $xl.CalculationState }) -ne 0 -and $tries -lt 600) { Start-Sleep -Milliseconds 100; $tries++ }
+  $status = Invoke-Com { $wb.Worksheets.Item('Review Checks').Range('B16').Text }
+  Invoke-Com { $wb.Save() } | Out-Null
+  Invoke-Com { $wb.Close($false) } | Out-Null
   Write-Output ('overall=' + $status)
 } finally { $xl.Quit() }
 """

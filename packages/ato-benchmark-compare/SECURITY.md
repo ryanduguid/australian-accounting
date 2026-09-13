@@ -37,7 +37,14 @@ Account names come from whatever the ledger holds and are written into a CSV tha
 meant to be opened in a spreadsheet. Values written by this tool are escaped against
 formula injection: a leading `=` or `@` is always escaped, and a leading `+` or `-`
 is escaped unless what follows is a plain number, so a ledger code such as `-00123`
-survives and still joins back to the ledger.
+is written unquoted and still joins back to the ledger.
+
+The guard controls what this tool writes, not what a spreadsheet does with it. Excel
+opened by double-click reads `-00123`, `+00123` and `00123` as numbers and saves them
+back as `-123`, `123` and `123`, even when no account cell was edited. The mapping
+reader then refuses the file, because the displayed account no longer identifies the
+same account as its `account_key`. Use the text-preserving import path in README.md
+for the review step; the refusal is the safety property, not the workflow.
 
 Amounts are parsed strictly. `NaN` and `Infinity` are refused at the door, because
 `Decimal` accepts both and then raises on the first comparison.

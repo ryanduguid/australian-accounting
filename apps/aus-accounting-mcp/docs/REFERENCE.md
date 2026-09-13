@@ -362,7 +362,13 @@ the hash when checking whether a later read uses the same file version.
 Duplicate exports remain separate cited sources.
 
 Search accepts `limit` up to 20 and `offset` for continuation with the same query
-and unchanged library. Reading accepts a relative `.md` path, `start_line` and
+and unchanged library. `offset` counts every eligible matching line the earlier
+pages consumed, including a line too long to excerpt, so a page can return fewer
+than `limit` excerpts without repeating one. `offset` stops at 10000: past that
+point a page keeps `has_more` true, omits `next_offset` and asks for a narrower
+query rather than emitting an offset the tool refuses.
+
+Reading accepts a relative `.md` path, `start_line` and
 `line_count` up to 100; excerpts stop at a line boundary within 12000 characters.
 Retrieval refuses traversal, hidden paths, links and Windows junctions. It reads
 UTF-8 Markdown, up to 8 MB per file, 64 MB per search and 1000 files. Search reports

@@ -478,3 +478,27 @@ def test_read_rejects_a_forced_digest_collision(
     )
     with pytest.raises(MappingError, match="collision"):
         mapping.read_mapping(path)
+
+
+@pytest.mark.parametrize("code,coerced", [("-00123", "-123"), ("+00123", "123"),
+                                          ("00123", "123")])
+def test_a_spreadsheet_coerced_numeric_account_is_refused_not_silently_rematched(
+    tmp_path: Path, code: str, coerced: str
+) -> None:
+    """SECURITY.md and README.md: the guard writes these codes unquoted, and a
+    spreadsheet that reads the CSV as numbers rewrites them. The key check has to
+    refuse the rewritten file rather than join it to a different ledger account."""
+    path = tmp_path / "m.csv"
+    mapping.write_mapping(
+        path, [MappingRow(account=code, bucket="turnover", source="reviewed", amount="100")]
+    )
+    written = path.read_text(encoding="utf-8")
+    # Unquoted, which is what makes the coercion possible in the first place.
+    assert f"\n{code}," in written
+    assert mapping.read_mapping(path)[_digest(code.lower())].bucket == "turnover"
+
+    # Excel saving the same file after reading the account cell as a number.
+    path.write_text(written.replace(f"\n{code},", f"\n{coerced},"), encoding="utf-8")
+    with pytest.raises(MappingError) as excinfo:
+        mapping.read_mapping(path)
+    assert "account_key" in str(excinfo.value)

@@ -256,8 +256,14 @@ def test_prompts_preserve_the_unknown_and_refusal_language() -> None:
     assert "at least one expense bucket" in texts["compare_ato_benchmarks"]
     assert "turnover" in texts["compare_ato_benchmarks"]
     assert "rather than supplying a" in texts["compare_ato_benchmarks"]
-    assert "AT_RISK" in texts["review_payday_super_contribution"]
-    assert "Do not invent an SGC charge" in texts["review_payday_super_contribution"]
+    # A missing fund receipt does not have one verdict: the tool returns UNPAID,
+    # AT_RISK or LATE on the same facts, so the prompt states the ON_TIME bar and
+    # tells the host to keep the returned verdict rather than naming one.
+    payday_prompt = texts["review_payday_super_contribution"]
+    assert "prevents an ON_TIME result" in payday_prompt
+    assert "report the verdict the tool returns with its caveats" in payday_prompt
+    assert "no fund receipt is AT_RISK" not in payday_prompt
+    assert "Do not invent an SGC charge" in payday_prompt
     assert "UNKNOWN" in texts["review_div7a_loan_terms"]
     assert "refuse_div7a" in texts["review_div7a_loan_terms"]
 
