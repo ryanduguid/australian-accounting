@@ -4,6 +4,18 @@
   "title": "aus-accounting-mcp",
   "description": "Reviews, six bounded tax worksheets and cited retrieval from your local Markdown folder. Not advice.",
   "websiteUrl": "https://duguid.com.au/tools/australian-tax-ai-agents/",
+  "icons": [
+    {
+      "src": "https://duguid.com.au/assets/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"]
+    },
+    {
+      "src": "https://duguid.com.au/assets/favicon-180.png",
+      "mimeType": "image/png",
+      "sizes": ["180x180"]
+    }
+  ],
   "repository": {
     "url": "https://github.com/ryanduguid/australian-accounting",
     "source": "github"

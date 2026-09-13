@@ -4,6 +4,7 @@ import asyncio
 import json
 import sys
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError
@@ -227,6 +228,16 @@ async def _inspect_stdio():
         async with ClientSession(read_stream, write_stream) as session:
             initialized = await session.initialize()
             assert initialized.instructions
+            # The registry reads server.json; clients read the initialize
+            # result. Both must name the same site and icons.
+            metadata = json.loads(
+                (Path(__file__).resolve().parents[1] / "server.json").read_text(encoding="utf-8")
+            )
+            assert initialized.server_info.website_url == metadata["websiteUrl"]
+            assert [
+                icon.model_dump(by_alias=True, exclude_none=True)
+                for icon in initialized.server_info.icons or []
+            ] == metadata["icons"]
             tools = (await session.list_tools()).tools
             assert all(tool.name in initialized.instructions for tool in tools)
             assert all(

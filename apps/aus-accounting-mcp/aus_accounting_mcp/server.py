@@ -13,7 +13,14 @@ from typing import Annotated, Any, Literal, cast
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.context import Context
 from mcp.server.mcpserver.exceptions import ToolError
-from mcp_types import CallToolResult, InputRequiredResult, TextContent, Tool, ToolAnnotations
+from mcp_types import (
+    CallToolResult,
+    Icon,
+    InputRequiredResult,
+    TextContent,
+    Tool,
+    ToolAnnotations,
+)
 from pydantic import Field
 
 try:
@@ -138,7 +145,29 @@ class AccountingServer(MCPServer):
         return await super().call_tool(name, arguments, context)
 
 
-mcp = AccountingServer("aus-accounting-mcp", version=_VERSION, instructions=SERVER_INSTRUCTIONS)
+# Clients read these from the initialize result; the registry reads the same
+# values from server.json, and test_output_contracts keeps the two copies equal.
+SERVER_WEBSITE_URL = "https://duguid.com.au/tools/australian-tax-ai-agents/"
+SERVER_ICONS = [
+    Icon(
+        src="https://duguid.com.au/assets/favicon.svg",
+        mime_type="image/svg+xml",
+        sizes=["any"],
+    ),
+    Icon(
+        src="https://duguid.com.au/assets/favicon-180.png",
+        mime_type="image/png",
+        sizes=["180x180"],
+    ),
+]
+
+mcp = AccountingServer(
+    "aus-accounting-mcp",
+    version=_VERSION,
+    instructions=SERVER_INSTRUCTIONS,
+    website_url=SERVER_WEBSITE_URL,
+    icons=SERVER_ICONS,
+)
 
 # These tools read bundled data and return results in memory. They never lodge,
 # write records or contact external services; installation is a separate step.
