@@ -121,6 +121,11 @@ reusable `ci-package.yml` for each engine, from a package-name matrix.
   `.github/` runs every engine. The root workspace files are in that list because the root
   `uv.lock` is what `uv run --locked` validates from inside every component directory. A
   run with no usable comparison point, such as a dispatch or a new branch, runs every engine.
+- Branch protection requires one context per engine, `<engine> / gates`, which reports on
+  every run: it passes when each gate passed or was skipped by the path filter and fails
+  when any gate failed or was cancelled. The individual jobs are not required, because a
+  skipped matrix job never reports under its matrix names and would block every pull
+  request the path filter skips.
 - The MCP application's tests run on every change, because `ci.yml` has no path filter.
   Inside the workspace they import the checked-out engines, so an engine change is proved
   against the application before the engine is published.
