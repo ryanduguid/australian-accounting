@@ -308,7 +308,8 @@ def build() -> None:
         "4. Review Checks: BLOCKED means the register cannot be read (a bad year label, a value "
         "that is not true, false or unknown, text where a number belongs, a formula pasted into an "
         "input, or no reviewed rate for the year). REVIEW means a loan is not on s 109N terms, a "
-        "repayment is short, or a row is undecided. PASS means nothing exposed, nothing undecided.",
+        "repayment is short, a row is undecided, or a repayment figure is refused (read the "
+        "reason; refusal alone is not a breach). PASS means nothing exposed, nothing undecided.",
         "5. A rising benchmark rate raises the minimum yearly repayment on existing complying "
         "loans, not just on new ones: s 109E(6) uses the current year's rate.",
         "6. Experimental review aid. Not a Division 7A determination. The shortfall is not the "
@@ -431,7 +432,7 @@ def build() -> None:
         ("No row is undecided (UNKNOWN)", '=IF(C7=0,"PASS","REVIEW")', "=SUM(tblLoans[Undecided])",
          '=IF(C7=0,"",' + offender("(tblLoans[Undecided]=1)") + ")"),
         ("Rows refused a repayment figure (read the reason; not a breach by itself)",
-         '=IF(C8=0,"PASS","NOTE")', '=COUNTIF(tblLoans[MYR_verdict],"REFUSED")',
+         '=IF(C8=0,"PASS","REVIEW")', '=COUNTIF(tblLoans[MYR_verdict],"REFUSED")',
          '=IF(C8=0,"",' + offender('(tblLoans[MYR_verdict]="REFUSED")') + ")"),
         ("No fabricated example loan from the shipped sample remains in the register",
          '=IF(C9=0,"PASS","REVIEW")', "=SUM(tblLoans[Sample_row])",
