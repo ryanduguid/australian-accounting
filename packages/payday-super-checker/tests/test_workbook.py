@@ -217,6 +217,10 @@ def test_the_register_refuses_the_dates_and_amounts_the_checker_refuses(builder)
 
     problem = builder.formulas()["Row_problem"]
     assert f"DATE({LATEST_SANE_YEAR},12,31)" in problem
+    # The Summary coverage date is bound the same way, so a fabricated far-future
+    # coverage cannot mark deadlines as covered.
+    source = (ROOT / "tools" / "build_workbook.py").read_text(encoding="utf-8")
+    assert "AND(ISNUMBER({COVERAGE}),{COVERAGE}<={FAR_DATE})" in source
     assert "date-not-real" in problem
     assert "amount-under-half-a-cent" in problem
     for column in builder.AMOUNT_COLUMNS:

@@ -689,7 +689,7 @@ def build() -> None:
         ("As-at, assessment and coverage dates on Summary are real dates",
          f'=IF(AND(ISNUMBER({AS_AT}),{AS_AT}<={FAR_DATE},'
          f'OR({ASSESS}="",AND(ISNUMBER({ASSESS}),{ASSESS}<={FAR_DATE})),'
-         f'ISNUMBER({COVERAGE})),"PASS","BLOCKED")',
+         f'AND(ISNUMBER({COVERAGE}),{COVERAGE}<={FAR_DATE})),"PASS","BLOCKED")',
          f'={AS_AT}', None),
         ("No fabricated example line from the shipped sample remains in the register",
          '=IF(C13=0,"PASS","REVIEW")', "=SUM(tblLines[Sample_row])",
@@ -782,16 +782,34 @@ if (Get-Process EXCEL -ErrorAction SilentlyContinue) {
 }
 $xl = New-Object -ComObject Excel.Application
 $xl.Visible = $false; $xl.DisplayAlerts = $false; $xl.AutomationSecurity = 1
+# Excel rejects calls while it is still opening or calculating (RPC_E_CALL_REJECTED,
+# 0x80010001) and can hand back a null workbook from Open on a cold start. Each
+# step asks again rather than failing the build on a busy signal.
+function Invoke-Com([scriptblock]$Action) {
+  for ($attempt = 0; $attempt -lt 40; $attempt++) {
+    try { return (& $Action) }
+    catch [System.Runtime.InteropServices.COMException] {
+      if ($_.Exception.HResult -ne -2147418111) { throw }
+      Start-Sleep -Milliseconds 500
+    }
+  }
+  throw 'Excel kept rejecting the call'
+}
 try {
-  $wb = $xl.Workbooks.Open('%s')
-  $sources = $wb.Worksheets.Item('Sources & Version')
-  $sources.Range('B3').Value2 = 'Excel ' + $xl.Version + ' build ' + $xl.Build
-  $xl.CalculateFullRebuild()
+  $wb = $null
+  for ($attempt = 0; $attempt -lt 5 -and $null -eq $wb; $attempt++) {
+    $wb = Invoke-Com { $xl.Workbooks.Open('%s') }
+    if ($null -eq $wb) { Start-Sleep -Seconds 2 }
+  }
+  if ($null -eq $wb) { throw 'Excel returned no workbook from Workbooks.Open after 5 attempts' }
+  $sources = Invoke-Com { $wb.Worksheets.Item('Sources & Version') }
+  Invoke-Com { $sources.Range('B3').Value2 = 'Excel ' + $xl.Version + ' build ' + $xl.Build } | Out-Null
+  Invoke-Com { $xl.CalculateFullRebuild() } | Out-Null
   $tries = 0
-  while ($xl.CalculationState -ne 0 -and $tries -lt 600) { Start-Sleep -Milliseconds 100; $tries++ }
-  $status = $wb.Worksheets.Item('Review Checks').Range('B16').Text
-  $wb.Save()
-  $wb.Close($false)
+  while ((Invoke-Com { $xl.CalculationState }) -ne 0 -and $tries -lt 600) { Start-Sleep -Milliseconds 100; $tries++ }
+  $status = Invoke-Com { $wb.Worksheets.Item('Review Checks').Range('B16').Text }
+  Invoke-Com { $wb.Save() } | Out-Null
+  Invoke-Com { $wb.Close($false) } | Out-Null
   Write-Output ('overall=' + $status)
 } finally { $xl.Quit() }
 """

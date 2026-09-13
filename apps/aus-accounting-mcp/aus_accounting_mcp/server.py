@@ -79,7 +79,8 @@ SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operato
 - Start with list_ato_benchmark_industries to select an industry, then use
   get_ato_benchmarks to compare supplied buckets with the bundled ATO dataset.
   Use search and limit=20 for concise discovery; continue with next_offset as
-  offset while has_more is true. Keep search unchanged and use the returned
+  offset while a next_offset is returned. has_more without a next_offset means
+  the page limit is reached, so narrow the query. Keep search unchanged and use the returned
   benchmark_year as year on subsequent pages.
   Supply established other_income for a ratio denominator; omitted buckets are
   unknown, not zero. Comparisons are not findings of wrongdoing.

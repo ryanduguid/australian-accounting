@@ -193,15 +193,16 @@ def number_bad(column):
     if column == "interest_rate_for_years_after_year_loan_made":
         extra = f",{x}>1"
     elif column in MONEY_COLUMNS:
-        # ABS(...) against a tolerance, not ROUND(x,2)<>x: a clean 1234.56 is not
-        # exactly 1234.56 as a double, and an equality test would refuse it. A real
-        # third decimal is at least 0.001 away from its cent figure.
+        # ROUND(x,2)<>x, exact: parse_money refuses any value with a third decimal
+        # place, so a tolerance would let 100.00000001 through here and be refused
+        # by the engine. A typed 1234.56 and ROUND(1234.56,2) are the same double
+        # in Excel, so a clean cent figure is not refused.
         # N() around every arithmetic use of the cell: AND and OR evaluate all of
         # their arguments, so ROUND on a text cell such as `unknown` returns
         # #VALUE! and the error propagates out of the guard that was meant to
         # catch it. N() reads text as 0 and leaves a real number untouched.
         n = f"N({x})"
-        extra = (f",ABS(ROUND({n},{MAX_MONEY_DECIMAL_PLACES})-{n})>0.0000001"
+        extra = (f",ROUND({n},{MAX_MONEY_DECIMAL_PLACES})<>{n}"
                  f",{n}>{MAX_MONEY_MAGNITUDE}")
     return f"AND(NOT({unknown(x)}),OR(NOT(ISNUMBER({x})),AND(ISNUMBER({x}),OR({x}<0{extra}))))"
 

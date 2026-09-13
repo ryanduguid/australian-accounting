@@ -203,13 +203,13 @@ def test_the_money_guard_carries_the_engine_limits(builder):
                    "payments_applied_during_the_year"):
         guard = builder.number_bad(column)
         assert f">{MAX_MONEY_MAGNITUDE}" in guard
-        assert "ABS(ROUND(" in guard and ",2)-" in guard
+        assert f"ROUND(N({builder.T(column)}),2)<>N({builder.T(column)})" in guard
     # parse_rate and parse_ratio impose neither limit, so neither does the workbook.
     for column in ("interest_rate_for_years_after_year_loan_made",
                    "security_coverage_at_first_made"):
         guard = builder.number_bad(column)
         assert str(MAX_MONEY_MAGNITUDE) not in guard
-        assert "ABS(ROUND(" not in guard
+        assert "ROUND(" not in guard
 
 
 def test_the_money_guard_survives_a_text_cell(builder):
@@ -225,7 +225,7 @@ def test_the_money_guard_survives_a_text_cell(builder):
         guard = builder.number_bad(column)
         cell = builder.T(column)
         assert f"ROUND({cell}," not in guard
-        assert f"ABS(ROUND(N({cell})," in guard
+        assert f"ROUND(N({cell}),2)<>N({cell})" in guard
         # The control: the raw cell is still what ISNUMBER and the sign test read.
         assert f"ISNUMBER({cell})" in guard and f"{cell}<0" in guard
 
