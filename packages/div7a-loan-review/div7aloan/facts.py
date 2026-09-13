@@ -73,15 +73,6 @@ def optional_rate(raw: object, where: str) -> Decimal | None:
         raise FactError(str(exc))
 
 
-def optional_ratio(raw: object, where: str) -> Decimal | None:
-    if is_unknown(raw):
-        return None
-    try:
-        return parse_ratio(raw, where)
-    except MoneyError as exc:
-        raise FactError(str(exc))
-
-
 def optional_years(raw: object, where: str) -> Decimal | None:
     """A term or remaining term, in years. Non-negative, finite, may be
     fractional: s 109E(6) contemplates a difference that is not a whole
@@ -92,6 +83,10 @@ def optional_years(raw: object, where: str) -> Decimal | None:
         return parse_ratio(raw, where)
     except MoneyError as exc:
         raise FactError(str(exc))
+
+
+# A security-coverage ratio parses the same way: non-negative, finite, may be fractional.
+optional_ratio = optional_years
 
 
 def optional_year_of_income(raw: object, where: str) -> YearOfIncome | None:
