@@ -14,7 +14,7 @@ CENTS = Decimal("0.01")
 PERCENT_PLACES = Decimal("0.01")
 
 # The accounting grammar, shared with the wiptally engine. Thousands separators
-# are only accepted in groups of three: stripping every comma first and parsing
+# are only accepted in groups of 3: stripping every comma first and parsing
 # what is left reads "1,2,3" as 123, which is a typed cell silently turned into a
 # number nobody entered.
 _NUMBER = r"(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)(?:\.[0-9]+)?|\.[0-9]+"
@@ -32,12 +32,12 @@ class AmountError(ValueError):
 def parse_amount(raw: str, where: str = "amount") -> Decimal:
     """Parse an accounting amount.
 
-    Accepts a plain number, thousands separators in groups of three, a leading
+    Accepts a plain number, thousands separators in groups of 3, a leading
     currency symbol, parentheses for negatives and a trailing CR or DR marker.
     Rejects anything else, including the strings Decimal itself would happily
     accept such as "NaN" and "Infinity", which parse cleanly and then explode on
     the first comparison, and a cell carrying both a parenthesis and a CR marker,
-    where the two signs disagree about which way the amount runs.
+    where the 2 signs disagree about which way the amount runs.
     """
     if raw is None:
         raise AmountError(f"{where}: no amount given")

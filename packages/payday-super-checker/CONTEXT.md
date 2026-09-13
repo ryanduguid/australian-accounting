@@ -3,7 +3,7 @@
 This repository is an experimental review aid for Australian payday-super
 records. It helps an accountant or employer organise supplied contribution
 facts; it does not make a compliance determination, legal conclusion, payment,
-lodgment or accounting entry.
+lodgement or accounting entry.
 
 ## Glossary
 

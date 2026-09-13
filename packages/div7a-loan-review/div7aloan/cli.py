@@ -105,7 +105,7 @@ def _print_gate(gate: GateResult) -> None:
 
 def _print_myr(myr: MyrResult) -> None:
     print(f"  s 109E MYR: {myr.verdict}")
-    # These three are set together or not at all: a REFUSED or UNKNOWN result
+    # These 3 are set together or not at all: a REFUSED or UNKNOWN result
     # carries reasons instead of figures.
     required, applied, shortfall = myr.myr_required, myr.payments_applied, myr.shortfall
     if required is not None and applied is not None and shortfall is not None:

@@ -5,7 +5,7 @@ Not tax, legal or financial advice, and not a Division 7A determination.
 Verify every output against the compiled Act and the ATO's own materials
 before acting on it.
 
-The four functions below are the stable surface imported by the
+The 4 functions below are the stable surface imported by the
 aus-accounting-mcp adapter. The modules behind them are not stable.
 """
 

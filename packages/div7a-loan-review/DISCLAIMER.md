@@ -1,7 +1,7 @@
 # Disclaimer
 
 `div7a-loan-review` is an experimental review aid for Division 7A of Part III
-of the Income Tax Assessment Act 1936. It is not tax, legal, accounting,
+of the *Income Tax Assessment Act 1936*. It is not tax, legal, accounting,
 financial, investment, BAS-agent, registered-tax-agent, or assurance advice,
 and using it creates no professional relationship.
 

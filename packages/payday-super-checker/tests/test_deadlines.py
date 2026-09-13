@@ -143,7 +143,7 @@ def test_missing_flag_does_not_invent_an_absent_next_qe_day():
 def test_next_payday_caveat_names_the_deadline_the_row_actually_got(cal):
     """A first-to-fund row takes the 20-business-day period, so the caveat
     must not claim the strict 7-business-day deadline was used, and must not
-    name an item 2 date four business days EARLIER than the row's own."""
+    name an item 2 date 4 business days EARLIER than the row's own."""
     _, dl = due_for(
         line(
             qe_day=date(2026, 7, 10),

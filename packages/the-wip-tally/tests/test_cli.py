@@ -94,7 +94,7 @@ def test_portfolio_totals_are_not_netted(tmp_path: Path) -> None:
     rows = _rows(out)
     assets = sum(float(row["contract_asset"]) for row in rows.values())
     liabilities = sum(float(row["contract_liability"]) for row in rows.values())
-    # The test uses float only to assert the two sides both exist. The engine
+    # The test uses float only to assert the 2 sides both exist. The engine
     # never does. A netted  one-line "WIP" figure would cancel these.
     assert assets > 0
     assert liabilities > 0

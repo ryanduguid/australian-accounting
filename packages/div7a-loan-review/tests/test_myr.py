@@ -64,7 +64,7 @@ def facts(**overrides) -> MyrFacts:
 
 def _exact(principal: str, rate: str, term: int) -> Decimal:
     """The s 109E(6) formula in exact rational arithmetic, rounded half up to
-    cents. An independent check on the Decimal implementation: if the two
+    cents. An independent check on the Decimal implementation: if the 2
     agree, the intermediate precision is not costing cents."""
     p, r = Fraction(principal), Fraction(rate)
     value = (p * r) / (1 - (Fraction(1) / (1 + r)) ** term)
@@ -78,7 +78,7 @@ def _exact(principal: str, rate: str, term: int) -> Decimal:
 @pytest.mark.parametrize(
     "principal,rate,term,expected",
     [
-        # The three hand-worked fixtures in evaluation/div7a_myr/README.md.
+        # The 3 hand-worked fixtures in evaluation/div7a_myr/README.md.
         ("100000.00", "0.0877", 5, "25556.00"),
         ("250000.00", "0.0827", 7, "48462.41"),
         ("48500.00", "0.0877", 3, "19081.67"),

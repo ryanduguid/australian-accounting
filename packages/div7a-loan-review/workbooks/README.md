@@ -12,10 +12,10 @@ printed on Review Checks.
 ## Using it
 
 1. **Register.** Paste one amalgamated loan per row over the example rows. The
-   fourteen input columns are the CSV columns the command line tool reads, in the
+   14 input columns are the CSV columns the command line tool reads, in the
    same order and with the same meanings (see the package README). Booleans are
    `true`, `false` or `unknown`; a blank is unknown. Rates are fractions, so
-   8.77 per cent is `0.0877`. Years of income are written `2026-27` in Text cells,
+   8.77% is `0.0877`. Years of income are written `2026-27` in Text cells,
    so Excel does not turn them into dates. Rows pasted below the example pick up the
    calculated columns on their own. Delete any example rows you did not overwrite:
    Review Checks flags a fabricated example loan that is still in the register,

@@ -356,7 +356,7 @@ def test_misaligned_row_is_refused_not_silently_shifted():
     # guard, the true amount (612.00) lands in the discarded surplus
     # bucket, the contribution-type cell reads "Employee One" instead of
     # "Superannuation Guarantee", the SG filter drops the row as not-SG,
-    # and read_super silently returns one row and $100.00 instead of two
+    # and read_super silently returns one row and $100.00 instead of 2
     # rows and $712.00 -- an understated shortfall with no exception at
     # all. This must be refused outright instead.
     with pytest.raises(CsvError) as exc:
@@ -427,7 +427,7 @@ def test_two_identical_punctuation_only_headings_are_refused_like_csv_io_refuses
     tmp_path,
 ):
     # MINOR regression. _check_duplicate_headers skipped any heading whose
-    # normalised key was falsy, so two byte-identical "###" columns walked
+    # normalised key was falsy, so 2 byte-identical "###" columns walked
     # straight past the importer while csv_io refuses them outright --
     # contradicting this module's own docstring, which claims its refusal
     # is a SUPERSET of csv_io's rather than a different shape of it.
@@ -544,7 +544,7 @@ def test_a_super_row_bracketing_two_paydays_apportions_oldest_first():
     # (sg 540.00). Oldest-first apportionment gives the whole 300.00 to the
     # 9 July row (a partial, since 300.00 < 612.00) and nothing is left for
     # 23 July, which is flagged unpaid rather than silently dropped. This
-    # must hold identically regardless of which order the two payroll rows
+    # must hold identically regardless of which order the 2 payroll rows
     # are passed to join in -- the ordering that decides the outcome is the
     # sort inside join, never the caller's list order.
     for payroll_rows in (
@@ -575,7 +575,7 @@ def test_ambiguous_coverage_apportions_deterministically_regardless_of_amount():
     # a payday and period end, one 612.00 super payment covers both.
     # Matching never looks at amount, so the tie between them is broken by
     # row number (the payroll row's position in its own file, not by
-    # whichever order the two rows happen to be passed to join in) -- row 2
+    # whichever order the 2 rows happen to be passed to join in) -- row 2
     # always wins the payment in full, row 3 is always left unpaid, and
     # neither list order ever manufactures a false "over:" flag.
     for payroll_rows in (
@@ -602,8 +602,8 @@ def test_ambiguous_coverage_apportions_deterministically_regardless_of_amount():
 
 def test_one_payment_covering_three_fortnightly_paydays_is_apportioned_not_aborted():
     # The exact shape the owner's ruling exists to fix: a single monthly
-    # remittance settling three fortnightly paydays for one employee. This
-    # must not raise -- it must allocate to all three and flag each one
+    # remittance settling 3 fortnightly paydays for one employee. This
+    # must not raise -- it must allocate to all 3 and flag each one
     # with how many paydays the payment covered.
     result = join(
         [payroll("A", "2026-07-09", "600.00", row=2),
@@ -809,7 +809,7 @@ def test_a_name_with_no_ascii_letters_imports_instead_of_stopping_the_run(tmp_pa
     # all. Chinese, Korean, Greek, Cyrillic and Arabic names all blocked
     # the entire import. The name is written as escapes because every file
     # in this repo is ASCII; the fixture on disk is UTF-8.
-    name = "\u5f20\u4f1f"  # a two-character Chinese name
+    name = "\u5f20\u4f1f"  # a 2-character Chinese name
     payroll_path = tmp_path / "payroll.csv"
     payroll_path.write_text(
         "Employee Name,Date,Pay Period End,Superannuation Guarantee\n"
@@ -857,7 +857,7 @@ def test_a_sub_cent_shortfall_is_not_reported_as_a_partial_payment(tmp_path):
 def test_a_sub_cent_excess_is_not_reported_as_an_overpayment():
     # The mirror case: 540.004 paid against 540.00 owed printed "over:
     # 540.004 against 540.00, check for salary sacrifice" and sent an
-    # accountant looking for a salary-sacrifice mix-up over four tenths of
+    # accountant looking for a salary-sacrifice mix-up over 4 tenths of
     # a cent.
     result = join(
         [payroll("A", "2026-07-09", "540.00")],
@@ -867,7 +867,7 @@ def test_a_sub_cent_excess_is_not_reported_as_an_overpayment():
 
 
 def test_a_whole_cent_difference_is_still_flagged_both_ways():
-    # Teeth for the two tests above: rounding to cents must not blunt the
+    # Teeth for the 2 tests above: rounding to cents must not blunt the
     # comparison itself. One cent short is still partial, one cent over is
     # still over.
     short = join(
@@ -962,7 +962,7 @@ def test_claimed_tracks_object_identity_not_row_number():
 
 
 def test_period_less_super_row_refusal_names_the_super_file_as_the_cause():
-    # A period-less super row covering two genuinely-identical payroll rows
+    # A period-less super row covering 2 genuinely-identical payroll rows
     # is refused (same rule as any other indistinguishable pair), but the
     # message must name the super file's missing pay period column(s) as
     # the cause -- it is the reason this row was treated as covering both
@@ -1078,9 +1078,9 @@ def test_global_cap_prevents_a_settled_row_from_starving_another():
 def test_three_period_less_payments_settle_three_fortnightly_paydays_in_full():
     # The worst instance from the review: a super file with no period
     # columns at all, so every payment nominally covers every payday.
-    # Three period-less 600.00 payments against three 600.00 fortnightly
-    # paydays, paid in full, must settle all three -- not read two of
-    # three paid quarters as complete non-payment.
+    # Three period-less 600.00 payments against 3 600.00 fortnightly
+    # paydays, paid in full, must settle all 3 -- not read 2 of
+    # 3 paid quarters as complete non-payment.
     s1 = SuperRow(None, "A", None, None, date(2026, 7, 14), Decimal("600.00"), 2)
     s2 = SuperRow(None, "A", None, None, date(2026, 7, 28), Decimal("600.00"), 3)
     s3 = SuperRow(None, "A", None, None, date(2026, 8, 11), Decimal("600.00"), 4)
@@ -1141,8 +1141,8 @@ def test_two_different_shared_payments_are_named_separately_not_merged():
     # The review's own reproduction: a row that received 300.00 from one
     # super row and 250.00 from a different one must show BOTH as distinct
     # notes, each naming its own super row number, amount and paid date --
-    # deduplicating by note text would collapse two different payments
-    # into what reads as one 550.00 payment, with no way to tell two
+    # deduplicating by note text would collapse 2 different payments
+    # into what reads as one 550.00 payment, with no way to tell 2
     # payments were involved.
     result = join(
         [payroll("A", "2026-07-09", "600.00", row=2),
@@ -1198,7 +1198,7 @@ def test_a_zero_amount_payment_covering_two_paydays_says_it_has_nothing_to_give(
     # ORPHAN_NO_PAYDAY in _why_orphaned broke nothing: the only test
     # touching this code asserted `ORPHAN_NO_AMOUNT not in codes`, a
     # negative that passes either way. The branch is reachable -- a super
-    # row of 0.00 covering two paydays that both still owe -- and the two
+    # row of 0.00 covering 2 paydays that both still owe -- and the 2
     # codes say opposite things to an accountant. "no payday matched" sends
     # someone looking for a missing payroll row; the payroll rows are right
     # there and it is the payment that is empty.
@@ -1370,8 +1370,8 @@ def test_fund_order_fills_the_earlier_shortfall_before_the_later_payday():
 
 
 def test_monthly_payment_whose_last_payday_is_the_period_end_exact_short_and_over():
-    # Exact: all three settle. Short: LCR 2026/2 leaves the newest payday
-    # short after the two earliest shortfalls are cleared. Over: the excess
+    # Exact: all 3 settle. Short: LCR 2026/2 leaves the newest payday
+    # short after the 2 earliest shortfalls are cleared. Over: the excess
     # remains surfaced on the newest payday.
     def run(amount):
         return _by_row(join(
@@ -1420,7 +1420,7 @@ def test_an_overpayment_on_already_settled_paydays_is_named_not_just_orphaned():
     # allocated, and no payroll row can carry an "over:" flag for it -- it
     # is a genuine excess contribution that exists nowhere in the result
     # except as an orphan. "Matched no payday" would read as unmatchable
-    # data; the two cases have to be tellable apart.
+    # data; the 2 cases have to be tellable apart.
     result = join(
         [payroll("A", "2026-07-09", "600.00", row=2),
          payroll("A", "2026-07-23", "600.00", row=3)],
@@ -1454,8 +1454,8 @@ def test_a_payment_matching_no_payday_is_reported_differently_from_a_settled_one
 def test_the_shared_note_counts_the_paydays_the_payment_covered():
     # The note's count is the payment's structural coverage, not how many
     # paydays still had a balance when it was applied. Here a period-less
-    # payment is treated as covering all three of the employee's paydays,
-    # but the 9 July one is already settled by its own payment, so only two
+    # payment is treated as covering all 3 of the employee's paydays,
+    # but the 9 July one is already settled by its own payment, so only 2
     # compete for it. Reporting "one of 2 paydays that payment covered"
     # understated what the payment reached.
     result = join(
@@ -1481,7 +1481,7 @@ def test_the_shared_note_counts_the_paydays_the_payment_covered():
 def test_orphans_are_reported_in_row_order_whatever_order_they_arrived_in():
     # The orphan list is shown to a user, so its order is part of the
     # answer. Two callers handing join the same rows in different orders
-    # must not get two different-looking reports.
+    # must not get 2 different-looking reports.
     result = join(
         [payroll("A", "2026-07-09", "612.00")],
         [super_row("Z", "2026-07-01", "2026-07-09", "2026-07-14", "99.00", row=4),
@@ -1560,7 +1560,7 @@ def test_canonical_output_feeds_the_normal_check(tmp_path):
     assert rows[0]["sg_amount"] == "612.00"
     assert rows[0]["remitted_date"] == "2026-07-14"
     assert rows[0]["fund_received_date"] == ""  # no vendor export carries it
-    # The other three flag columns are equally unsourced from any vendor
+    # The other 3 flag columns are equally unsourced from any vendor
     # export and must be equally blank, not just the fund receipt date.
     assert rows[0]["first_contribution_to_fund"] == ""
     assert rows[0]["out_of_cycle"] == ""
@@ -1620,7 +1620,7 @@ def test_write_canonical_prefers_employee_id_over_employee_name(tmp_path):
     # Swapping `row.employee_id or row.employee_name` to the reverse order
     # in write_canonical survives every other test in this file, because
     # every fixture used so far is name-only. It matters downstream: the
-    # checker's s 18C(2) item-4 alignment groups by employee_id, so two
+    # checker's s 18C(2) item-4 alignment groups by employee_id, so 2
     # employees who happen to share a name would silently merge if the
     # canonical file wrote the name instead of the id whenever both exist.
     payroll_path = tmp_path / "payroll.csv"
@@ -1651,7 +1651,7 @@ def test_one_employee_is_written_under_one_label_when_only_some_rows_have_an_id(
     # employee_name`, decided per row, while `join` had matched on the name
     # for the whole file (one blank id anywhere forces name matching). A
     # file where the same person carries an id on one payday and not the
-    # next was written as two employees, and the checker groups its s
+    # next was written as 2 employees, and the checker groups its s
     # 18C(2) item-4 alignment by employee_id, so the 20-business-day window
     # opened by the first payday stopped reaching the second.
     payroll_path = tmp_path / "payroll.csv"
@@ -1819,7 +1819,7 @@ def test_a_formula_in_an_employee_name_is_guarded(tmp_path):
 
 def test_canonical_csv_round_trips_through_parse_rows_and_the_real_cli(tmp_path, capsys):
     # Requirement: the canonical CSV must be readable by the existing
-    # checker without modification. Proven two ways -- through the reader
+    # checker without modification. Proven 2 ways -- through the reader
     # function directly, with the default mapping and nothing special-cased
     # for this tool's own output, and separately through the actual CLI
     # entry point end to end.
@@ -1989,7 +1989,7 @@ def test_dated_subtotal_with_an_undated_remainder_is_classified_partial():
 
 
 def test_import_report_clean_is_false_for_a_partial_payment(tmp_path):
-    # `clean` must catch a partial match too, not only orphans -- the two
+    # `clean` must catch a partial match too, not only orphans -- the 2
     # earlier `clean` assertions in this file happen to both go through the
     # orphans branch, so this pins the outcome_counts branch on its own.
     payroll_path = tmp_path / "payroll.csv"
@@ -2063,7 +2063,7 @@ def test_import_files_derives_super_has_period_columns_from_the_file(tmp_path):
 
 
 def test_import_files_does_not_warn_when_both_files_have_full_period_columns(tmp_path):
-    # The control for the two tests above: the ordinary myob fixtures have
+    # The control for the 2 tests above: the ordinary myob fixtures have
     # every period column, so neither structural warning should fire.
     out = tmp_path / "contributions.csv"
     report = import_files(FIXTURES / "myob_payroll.csv", FIXTURES / "myob_super.csv", out)
@@ -2076,7 +2076,7 @@ def test_a_payroll_file_spanning_30_june_warns_instead_of_dead_ending(tmp_path, 
     # the ordinary shape of the file a user reaches for. It imported with
     # exit 0 and no warning at all, and the check then died with "1 row(s)
     # have a QE day before 1 Jul 2026 ... Remove them and run again" and
-    # wrote no report -- so README's "two commands turn a payroll export
+    # wrote no report -- so README's "2 commands turn a payroll export
     # into a checked report" was false for any full-year export. The
     # importer knows REGIME_START; it says so now, names the rows, and says
     # what to do about them.
@@ -2662,7 +2662,7 @@ def test_structural_warnings_print_before_the_per_row_block(tmp_path, capsys):
     # used to be implemented by hoisting every partial/over warning above
     # everything else in report.warnings, including the structural "matched
     # on employee name" caveat that says the whole join might have merged
-    # two employees who share a name -- a caveat that governs whether the
+    # 2 employees who share a name -- a caveat that governs whether the
     # join can be trusted at all. That pushed it to the LAST bullet instead
     # of the first. Structural warnings (join()'s own `warnings`, never
     # prefixed with a row number) must print before the per-row block,
@@ -2813,7 +2813,7 @@ def test_import_distinguishes_orphan_codes_in_the_console_output(tmp_path, capsy
     printed = capsys.readouterr().out
     assert ORPHAN_PAYDAYS_SETTLED in printed
     assert ORPHAN_NO_PAYDAY in printed
-    # The two counts are distinct entries (1 each), not folded into a single
+    # The 2 counts are distinct entries (1 each), not folded into a single
     # combined line.
     assert f"1  {ORPHAN_PAYDAYS_SETTLED}" in printed
     assert f"1  {ORPHAN_NO_PAYDAY}" in printed
@@ -2932,7 +2932,7 @@ def test_reconfigure_stdout_for_unicode_prevents_a_non_ascii_crash():
     # takes when redirected on Windows (PEP 528's fallback locale
     # encoding). Without paydaysuper.cli._reconfigure_stdout_for_unicode,
     # writing a character outside cp1252's range (a CJK character, not
-    # merely non-ASCII -- e.g. "e with an accent" is IN cp1252 and would
+    # merely non-ASCII -- for example, "e with an accent" is IN cp1252 and would
     # not reproduce the bug) raises UnicodeEncodeError; with it, the same
     # write succeeds and the UTF-8 bytes survive exactly, not mangled or
     # backslash-escaped (utf-8 can represent this character natively, so
@@ -2963,7 +2963,7 @@ def test_reconfigure_stdout_for_unicode_prevents_a_non_ascii_crash():
 
 def test_both_cli_paths_call_the_shared_stdout_reconfigure(tmp_path, monkeypatch):
     # MINOR REVIEW FINDING (round 1). The reconfigure block used to be
-    # duplicated verbatim at two call sites (check path and import path);
+    # duplicated verbatim at 2 call sites (check path and import path);
     # extracted into one shared helper per the review, both call sites must
     # still actually call it. A spy wrapping the real implementation proves
     # both main() and import_main() reach it exactly once per run, on a
@@ -3031,9 +3031,9 @@ SUBCENT_SUPER = (
 
 
 def _subcent_files(tmp_path, owed, first, second):
-    """The blocker's reproduction as two real vendor files.
+    """The blocker's reproduction as 2 real vendor files.
 
-    Payday 09/07 is settled in full on 15/07, five days inside its 20/07
+    Payday 09/07 is settled in full on 15/07, 5 days inside its 20/07
     deadline, by a super row whose period covers that payday alone. The
     second super row's period spans 09/07 and 23/07, so it reaches a payday
     it did not settle. That is harmless only while the payday has no
@@ -3064,7 +3064,7 @@ def test_a_sub_cent_payroll_figure_does_not_drag_the_remittance_date(tmp_path):
     # unmet balance, and the NEXT super row -- one whose period merely spans
     # that payday on its way to a later one -- spent its 0.004 there. That
     # pulled the second row's 30/07 payment date into the match, max() made
-    # it the payday's remittance date, and a payday funded in full five days
+    # it the payday's remittance date, and a payday funded in full 5 days
     # inside its deadline reported LATE for the whole $540.00 with an SG
     # charge estimate on top. Amounts are read to the cent now, so there is
     # no fraction left for the second payment to spend.
@@ -3122,7 +3122,7 @@ def test_a_sub_cent_figure_on_the_super_side_triggers_nothing_either(tmp_path):
     rows = _canonical_rows(out)
     assert rows[0]["remitted_date"] == "2026-07-15"
     # Not merely the right date: the payday reads as settled in full, with
-    # no partial flag from the four-tenths of a cent that went missing.
+    # no partial flag from the 4-tenths of a cent that went missing.
     assert [o.flag for o in _outcomes_by_row(payroll_path, super_path)] == ["", ""]
 
 
@@ -3161,7 +3161,7 @@ def test_the_blocker_reproduction_checks_clean_end_to_end(tmp_path, capsys):
 def test_amounts_are_read_to_the_cent_half_up():
     # ROUND_HALF_UP through report.cents, the same rounding money() applies
     # on the way out, so the figure read and the figure written are one
-    # rounding of the input rather than two. ROUND_HALF_EVEN, the default a
+    # rounding of the input rather than 2. ROUND_HALF_EVEN, the default a
     # bare quantize() would take, gives 612.00 for 612.005.
     assert _amount("540.004", "sg amount", 2) == Decimal("540.00")
     assert _amount("539.996", "amount", 2) == Decimal("540.00")
@@ -3301,7 +3301,7 @@ def test_unmet_never_holds_a_sub_cent_residue_and_money_is_conserved(monkeypatch
 
 def test_the_importer_reads_excels_accounting_format_too(tmp_path):
     # csv_io._parse_amount's regression, on the importer's side of the same
-    # shared pattern. The two parsers exist to agree about what a figure
+    # shared pattern. The 2 parsers exist to agree about what a figure
     # means, so a file the checker reads and the importer refuses is exactly
     # the drift they were built to prevent.
     payroll_path, super_path = _subcent_files(tmp_path, "$ 540.00", "$  540.00", "30/07/2026")

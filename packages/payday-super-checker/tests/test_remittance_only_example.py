@@ -19,7 +19,7 @@ from conftest import REMITTANCE_ONLY
 README = Path(__file__).resolve().parents[1] / "README.md"
 AS_AT = "2026-09-10"
 
-# LCR 2026/1 applies 1-28 July 2026 contributions to the June quarter first.
+# LCR 2026/1 applies 1 to 28 July 2026 contributions to the June quarter first.
 # A payday inside that window would make the run ask for a second, unrelated
 # confirmation and stop before a verdict.
 TRANSITION_ENDS = date(2026, 7, 28)

@@ -25,7 +25,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.money import parse_amount, parse_optional_amount
 
-#: A purely numeric slash or dash date, captured to its first two components.
+#: A purely numeric slash or dash date, captured to its first 2 components.
 #: The engine reads these day first, as the Australian calendar is written, and
 #: the guard below refuses the ones where that reading cannot be checked.
 NUMERIC_DATE = re.compile(r"^(\d{1,2})[/-](\d{1,2})[/-]\d{2,4}(?=\s|$)")
@@ -64,7 +64,7 @@ def _read_date(text: str, field: str) -> date:
     UTC evening is already the next day in Australia, so keeping the written day
     could pass a receipt that was really a day later.
 
-    A purely numeric date is refused here only where the two readings give
+    A purely numeric date is refused here only where the 2 readings give
     different days. The engine reads 01/02/2027 day first, as 1 February, which
     is right for the Australian export it was written for. Through an MCP tool
     the same text can as easily be a caller writing 2 January, and nothing in

@@ -64,14 +64,14 @@ small amount, use total expenses to turnover as your key benchmark range instead
 The dataset therefore derives the key ratio as cost of sales where the ATO publishes
 one for that industry and total expenses where it does not. Where no cost of sales is
 mapped at all, the tool switches to total expenses and says so. The ATO does not put
-a figure on "a small amount", so no threshold has been invented; both ranges are
+a figure on 'a small amount', so no threshold has been invented; both ranges are
 always reported.
 
-**Five ratios exist, two are published in bulk.** Types of benchmarks lists cost of
+**Five ratios exist, 2 are published in bulk.** Types of benchmarks lists cost of
 sales, total expenses, labour, rent and motor vehicle expenses. The data.gov.au
-workbook carries the two key ratios only, in columns headed "Total Expenses" and
-"Cost of Sales". Labour, rent and motor vehicle ranges appear on the individual
-industry pages under "Other benchmarks". They are not in this dataset yet.
+workbook carries the 2 key ratios only, in columns headed 'Total Expenses' and
+'Cost of Sales'. Labour, rent and motor vehicle ranges appear on the individual
+industry pages under 'Other benchmarks'. They are not in this dataset yet.
 
 **Activity statement benchmarks.** "These benchmarks haven't been produced since
 1 July 2017 with the introduction of Simpler BAS." Out of scope.
@@ -98,7 +98,7 @@ The workbook prints bands as `$65,000 - $400,000`, `$400,001 - $750,000` and
 `More than $750,000`. Read literally, turnover of $400,000.50 falls in no band. The
 builder therefore sets each band after the first to begin, exclusively, at the
 previous band's upper bound, which closes the gap without moving any published
-boundary. Four industries publish two bands rather than three, with `N/A` in the high
+boundary. Four industries publish 2 bands rather than 3, with `N/A` in the high
 band column.
 
 ## Not checked

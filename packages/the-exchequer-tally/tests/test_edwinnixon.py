@@ -374,7 +374,7 @@ def test_events_without_a_rate_take_the_validators_rate():
 def test_equally_franked_distributions_are_compliant_at_any_size():
     # The benchmark is the exact ratio, not the 2dp display percentage: a
     # 49.99992% franked distribution displays as 50.00%, and a benchmark credit
-    # taken from the displayed figure made two identical distributions breach.
+    # taken from the displayed figure made 2 identical distributions breach.
     identical = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.25"))
     for recipient, day in (("A", date(2024, 9, 30)), ("B", date(2024, 12, 31))):
         identical.add_distribution(DistributionEvent(
@@ -387,7 +387,7 @@ def test_equally_franked_distributions_are_compliant_at_any_size():
     assert ok, violations
     assert identical.benchmark_percentage == Decimal("50.00")
 
-    # Same franking ratio, ten times the distribution: the rounded benchmark
+    # Same franking ratio, 10 times the distribution: the rounded benchmark
     # understated the second credit by $111.10, which scales with the dollars.
     scaled = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.25"))
     scaled.add_distribution(DistributionEvent(

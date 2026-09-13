@@ -1,6 +1,6 @@
 # Disclaimer
 
-Australian tax calculators runs six bounded worksheets on facts the caller has
+Australian tax calculators runs 6 bounded worksheets on facts the caller has
 already established: ordinary GST, resident basic income tax, CGT losses and
 the discount, ordinary employer FBT, first-year depreciation and quarterly
 super guarantee. It is not tax, legal, accounting, financial, investment,
@@ -22,7 +22,7 @@ practice change, and a worksheet sees only the figures and the period it is
 handed. Sources were checked on 10 September 2026; a source-check date is not
 an assurance that every tax rule or taxpayer circumstance has been reviewed.
 Confirm every rate, threshold and consequence against the current law and the
-taxpayer's facts before acting, and leave lodgment decisions with a registered
+taxpayer's facts before acting, and leave lodgement decisions with a registered
 practitioner.
 
 Every worksheet takes a `scope_confirmed` flag, and each result states the

@@ -38,7 +38,7 @@ Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written
 ## Not advice
 
 Nothing this engine produces is accounting, tax or legal advice, a journal, a
-lodgment, or a conclusion that a contract transfers over time, that a claim is
+lodgement, or a conclusion that a contract transfers over time, that a claim is
 enforceable, or that a contract is onerous. Those stay with a person. Confirm
 the operative AASB 15 compilation at standards.aasb.gov.au before relying on a
 paragraph number.
@@ -155,11 +155,11 @@ booked. Uncertified claims are never added to billings.
 
 **Cost-to-cost progress.** `(costs incurred - B19 exclusions) / (EAC - B19
 exclusions)`. Wasted cost stays in estimated cost at completion, so it hits
-margin, but it does not accelerate percent complete. Uninstalled materials are
+margin, but it does not accelerate per cent complete. Uninstalled materials are
 recognised at cost (zero margin) and the remainder of the transaction price
 follows the stripped ratio.
 
-**Contract asset vs liability.** Revenue to date less certified billings, per
+**Contract asset versus liability.** Revenue to date less certified billings, per
 contract. Positive is a contract asset. Negative is a contract liability. The
 engine never offsets one contract against another. Retention classification
 under paras 105-108 is flagged for the engagement lead; it is not auto-posted

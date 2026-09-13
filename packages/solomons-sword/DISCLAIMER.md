@@ -19,7 +19,7 @@ Outputs can be wrong, incomplete, stale, or unsuitable for a given set of
 facts. Tax law, ATO guidance, practical compliance guidelines, rates and
 thresholds change, and the engine sees only the facts it is handed. Confirm
 every allocation, zone and exemption against the current law, the trust deed
-and the entity's facts before acting, and leave lodgment decisions with a
+and the entity's facts before acting, and leave lodgement decisions with a
 registered practitioner.
 
 Coverage is deliberately partial. Specifically streamed capital gains and

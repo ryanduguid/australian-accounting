@@ -28,7 +28,7 @@ on your own machine, with the working shown.
 
 The ATO publishes benchmark ranges for 100 industries and uses them to pick which
 small businesses to look at more closely. Checking a client against them is a
-sensible thing to do before lodgment, and it is usually done by hand: find the
+sensible thing to do before lodgement, and it is usually done by hand: find the
 industry page, work out which turnover range applies, add up the right accounts, and
 divide. This does that, and it records which accounts went into which figure so the
 answer can be checked by someone else later.
@@ -41,7 +41,7 @@ import package remains `atobenchmark`.
 
 ## What it gets right
 
-The arithmetic is not "expenses over income". The ATO defines these ratios narrowly,
+The arithmetic is not 'expenses over income'. The ATO defines these ratios narrowly,
 and the differences change the answer:
 
 - **Turnover** is the sales of goods and services label, not total income. It falls
@@ -86,7 +86,7 @@ repository when you want the example files used below.
 
 ## Use it
 
-The flow is two commands, because the middle step is a person reading the ledger.
+The flow is 2 commands, because the middle step is a person reading the ledger.
 
 **1. Draft a mapping from the profit and loss.**
 
@@ -159,7 +159,7 @@ bucket total and the source metadata.
 Library callers that distinguish an omitted figure from an evidenced zero can use
 `atobenchmark.to_evidenced_dict(comparison, supplied_fields)`; include `w1` in that
 collection when it was supplied.
-The serializer masks ratios and prose whose required inputs were not supplied and
+The serialiser masks ratios and prose whose required inputs were not supplied and
 returns `supplied_buckets`, `omitted_buckets`, and `complete_buckets` alongside the
 ordinary comparison payload.
 
@@ -173,7 +173,7 @@ ato-benchmark-compare buckets
 
 ## Input formats
 
-The format this tool guarantees is two columns, with an optional `section` column of
+The format this tool guarantees is 2 columns, with an optional `section` column of
 `income`, `cost_of_sales` or `expense`:
 
 ```csv
@@ -223,13 +223,13 @@ and use `--amount-column` if it picked the wrong period.
 
 - It is not tax advice, and sitting outside a range is not a finding that anything is
   wrong. The ATO publishes ranges precisely because businesses differ.
-- The bulk dataset the ATO publishes carries the two key ratios only. Labour, rent
+- The bulk dataset the ATO publishes carries the 2 key ratios only. Labour, rent
   and motor vehicle ratios are calculated and shown, but the ranges for them are on
   the ATO's individual industry pages and are not in this dataset yet.
 - Activity statement benchmarks are not covered. The ATO has not produced them since
   1 July 2017.
 - It reads a profit and loss. It does not read a tax return, so it cannot see the
-  W1 label, the salary and wages code, or anything else that only exists at lodgment.
+  W1 label, the salary and wages code, or anything else that only exists at lodgement.
   Pass `--w1` if you want the ATO's W1 rule applied to the labour ratio.
 
 ## Client data

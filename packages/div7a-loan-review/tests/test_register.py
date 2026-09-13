@@ -186,7 +186,7 @@ def test_a_non_complying_row_refuses_the_repayment():
 
 
 def test_an_unknown_gate_counts_once_as_unknown_and_once_as_refused():
-    """A reviewed row answers two questions, so it can contribute to two
+    """A reviewed row answers 2 questions, so it can contribute to 2
     counts. That is why the counts are documented as per question."""
     report = review_register([row(written_agreement="unknown")], YEAR)
     assert report.summary["UNKNOWN"] == 1

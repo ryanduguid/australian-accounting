@@ -16,7 +16,7 @@ preparation. Callers must establish every scope condition before calculating.
 The Python functions in `austaxcalc.calculations` accept `Decimal` amounts and an
 explicit period. Results include amounts, scope exclusions, official source URLs,
 the source-check date and engine version. They perform no network calls or writes.
-Amounts must be non-negative, finite, at most two decimal places and no more than
+Amounts must be non-negative, finite, at most 2 decimal places and no more than
 AUD 1 trillion. Rounding uses half-up to cents at output; individual worksheets
 state additional conventions.
 

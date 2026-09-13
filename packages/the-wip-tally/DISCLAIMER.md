@@ -3,7 +3,7 @@
 The WIP Tally builds a construction work-in-progress schedule from the contract
 facts it is handed. It is not accounting, tax, legal, financial, investment,
 BAS-agent, registered-tax-agent, or assurance advice. It is not a journal, a
-lodgment, an audit opinion, or a determination under AASB 15, AASB 137, AASB 9
+lodgement, an audit opinion, or a determination under AASB 15, AASB 137, AASB 9
 or AASB 108.
 
 This project is not affiliated with, sponsored by, endorsed by, or approved by:
@@ -20,7 +20,7 @@ Outputs can be wrong, incomplete, stale, or unsuitable for a given set of
 facts. AASB compilations are remade and paragraph numbers move. Confirm the
 operative compilation at standards.aasb.gov.au, the entity's reporting tier
 against AASB 1053 and current ASIC guidance, and the contract facts against
-source records before acting. Leave sign-off, journals and lodgment with a
+source records before acting. Leave sign-off, journals and lodgement with a
 registered practitioner.
 
 The engine does not decide whether a performance obligation transfers over

@@ -51,11 +51,11 @@ running it is what reconciles the live About with this file.
 
 ### Live About drift, read 7 September 2026
 
-The live About has been edited away from this file and the script, in two ways.
+The live About has been edited away from this file and the script, in 2 ways.
 Neither is fixed here: applying it is a repository-admin action.
 
-- The description reads "Division 7A loan review" where this file and the script
-  read "limited Division 7A loan reviews". Dropping "limited" is the one wording
+- The description reads 'Division 7A loan review' where this file and the script
+  read 'limited Division 7A loan reviews'. Dropping 'limited' is the one wording
   change the rule above forbids, because it implies the server handles every
   Division 7A question when it reviews s 109N terms and s 109E repayments only.
   The live text also leads with the engines rather than the server, which is a
@@ -96,7 +96,7 @@ anything a later edit added.
   Use **Sync Server** after a source change lands. Profile name and description
   are separate fields under **Admin → Profile**. Review generated FAQs and TDQS
   explanations after syncing: cached text may still describe an earlier tool set.
-  Version 0.2.0 exposes eleven tools. Do not claim a new grade until
+  Version 0.2.0 exposes 11 tools. Do not claim a new grade until
   Glama actually recomputes it.
 - Official MCP registry: listed as `io.github.ryanduguid/aus-accounting` since
   25 August 2026. Record:

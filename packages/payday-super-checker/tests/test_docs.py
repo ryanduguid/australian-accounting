@@ -22,7 +22,7 @@ LOCKED_CALENDAR_COMMAND = (
 )
 
 def test_rounding_authority_and_experimental_boundary_stay_visible():
-    """LCR 2026/3 settled the assessment-level five-cent rule, not this
+    """LCR 2026/3 settled the assessment-level 5-cent rule, not this
     tool's per-line display boundary. The distinction must survive in both
     implementation design and user guidance."""
     design = (DOCS / "design.md").read_text(encoding="utf-8")
@@ -34,7 +34,7 @@ def test_rounding_authority_and_experimental_boundary_stay_visible():
         assert "TAA 1953 s 16B" in document
         assert "final assessed" in document
         assert "experimental" in document.lower()
-    assert "nearest multiple of five cents" in design
+    assert "nearest multiple of 5 cents" in design
     assert "implementation choice" in review
 
 

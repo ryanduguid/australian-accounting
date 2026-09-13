@@ -30,7 +30,7 @@ The fail-closed controls added from this review are:
   attention-driving `UNKNOWN`;
 - `out_of_cycle=yes` is rejected without the subsequent standard QE day that
   the final determination requires;
-- an unconfirmed holiday date is not used to extend a deadline;
+- an unconfirmed holiday date is not used to extend a deadline
 - funded, unfunded and stale-prepayment rows after the official whole-of-
   jurisdiction calendar horizon can produce attention-driving `UNKNOWN` with
   no exposure rather than a false late/on-time or unpaid conclusion; and
@@ -83,7 +83,7 @@ The ATO legal database was read directly on 15 August 2026:
   *Department of Education v Commissioner of Taxation* [2026] FCA 898.
 
 The final rulings identify their previous drafts as LCR 2026/D2, LCR 2026/D3
-and LCR 2026/D4 respectively. Any statement that all four rulings remain draft
+and LCR 2026/D4 respectively. Any statement that all 4 rulings remain draft
 is out of date; only LCR 2026/D1 remains draft in this series as at the review
 date.
 
@@ -137,7 +137,7 @@ classification is human-only while D1 is unresolved.
 ## Regulations 11 to 13D
 
 The current official compilation is the
-[Superannuation Guarantee (Administration) Regulations 2018, compilation 8
+[*Superannuation Guarantee (Administration) Regulations 2018*, compilation 8
 from 1 July 2026](https://www.legislation.gov.au/F2018L01289/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html)
 (F2026C00535).
 
@@ -195,7 +195,7 @@ for an employee on a QE day multiplied by 12%. It does not establish a
 per-line cents-rounding rule for this checker's intermediate values. Footnote
 86 confirms that TAA 1953 s 16B ([Taxation Administration Act
 1953](https://www.legislation.gov.au/C1953A00001/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html)) reduces the
-Commissioner's final assessed SG charge to the nearest multiple of five cents.
+Commissioner's final assessed SG charge to the nearest multiple of 5 cents.
 That is an assessment-level rule, not authority to round every employee,
 payday, shortfall, interest or uplift component first.
 
@@ -204,7 +204,7 @@ components are displayed to cents with `ROUND_HALF_UP` so each report row adds
 up. That display boundary is an implementation choice. It is now disclosed in
 the console and trailing CSV note, and every monetary result is labelled an
 **experimental estimate**. The checker does not pretend to reproduce the
-Commissioner's final five-cent assessment rounding.
+Commissioner's final 5-cent assessment rounding.
 
 ## Whole-of-jurisdiction holiday calendar
 
@@ -225,7 +225,7 @@ The bundled dates were checked against each official jurisdiction source:
 - [Western Australia](https://www.wa.gov.au/service/employment/workplace-arrangements/public-holidays-western-australia)
 
 The source registry and check date now ship inside `business_days.json`.
-Regional and part-day holidays remain excluded. The review also corrected two
+Regional and part-day holidays remain excluded. The review also corrected 2
 dates that were unsafe to include:
 
 - WA's official page says some regional areas observe an alternative King's

@@ -20,12 +20,12 @@ The confirmation acknowledges the missing receipt; it does not establish payment
 | Remitted before the deadline; receipt missing | `AT_RISK` | Obtain fund receipt evidence before concluding it was on time. |
 | Fund receipt recorded on 17 August | `ON_TIME` on supplied facts | Confirm the evidence and any applicable timing exception. |
 
-[Read the five-minute Payday Super case](packages/payday-super-checker/docs/manager-case-study.md) · [Division 7A repayment case](packages/div7a-loan-review/docs/manager-case-study.md) · [MCP setup](apps/aus-accounting-mcp/README.md#client-integration)
+[Read the 5-minute Payday Super case](packages/payday-super-checker/docs/manager-case-study.md) · [Division 7A repayment case](packages/div7a-loan-review/docs/manager-case-study.md) · [MCP setup](apps/aus-accounting-mcp/README.md#client-integration)
 
 <details open>
 <summary>Installation, component identities, integration and reference</summary>
 
-Development home for the Aus Accounting MCP application and seven independently released
+Development home for the Aus Accounting MCP application and 7 independently released
 Australian accounting engines. Each component keeps its own distribution name, version,
 lockfile, tests, release notes, commands and licence. There is no root distribution,
 shared runtime library or combined version.
@@ -52,10 +52,10 @@ The tools list ATO benchmark industries, compare supplied expense buckets,
 review Payday Super timing, look up reviewed Division 7A rates, review an
 operator-supplied Division 7A loan, refuse unsupported Division 7A matters, and
 generate synthetic CTR/BAS fixtures. They also assess related Payday contributions,
-calculate six bounded tax worksheets and retrieve cited local Markdown excerpts.
+calculate 6 bounded tax worksheets and retrieve cited local Markdown excerpts.
 Division 7A review is limited to the delegated
 engine's s 109N/s 109E scope; it does not form amalgamated loans or classify
-repayments under s 109R. Outputs are review aids, not advice or lodgments.
+repayments under s 109R. Outputs are review aids, not advice or lodgements.
 
 For an editable source installation, run `pip install -e .` from
 `apps/aus-accounting-mcp/`. The repository root is not an installable Python package.
@@ -77,7 +77,7 @@ For an editable source installation, run `pip install -e .` from
 MCP application is the `io.github.ryanduguid/aus-accounting` MCP Registry server; it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
 `div7a-loan-review` and `australian-tax-calculators` distributions. In the development
-workspace, uv resolves those four dependencies to their checked-out sources.
+workspace, uv resolves those 4 dependencies to their checked-out sources.
 
 ## Working in a component
 

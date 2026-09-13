@@ -10,7 +10,7 @@ Please use this repository's private vulnerability-reporting feature. Do not
 open a public issue for a suspected security vulnerability. Include a clear
 description, reproduction steps, impact, and any suggested mitigation.
 
-A valid report will be acknowledged within seven days, and a fix and
+A valid report will be acknowledged within 7 days, and a fix and
 disclosure timeline coordinated with the reporter.
 
 ## Local path trust boundary

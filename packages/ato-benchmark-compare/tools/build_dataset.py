@@ -98,7 +98,7 @@ def build_bands(row: tuple, name: str, anomalies: list[str]) -> list[dict]:
 
         # The ATO prints adjoining bands as "$50,000 - $150,000" then
         # "$150,001 - $600,000". Read as printed those leave a gap for any turnover
-        # between the two whole dollar figures, so the lower bound of every band after
+        # between the 2 whole dollar figures, so the lower bound of every band after
         # the first is the previous band's upper bound, exclusive. That closes the gap
         # without moving any published boundary.
         if previous_to is None:

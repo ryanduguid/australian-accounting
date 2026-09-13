@@ -4,13 +4,13 @@ The pytest suite replays `questions.xml` through a real stdio session and checks
 the answers reproduce. That measures the server, not the model: the replay is
 told which tool to call. This measures the other half.
 
-Run it in three steps, none of which contacts a network or a model:
+Run it in 3 steps, none of which contacts a network or a model:
 
     python evaluation/tool_selection.py context     # what a model is given
     python evaluation/tool_selection.py questions   # questions without answers
     python evaluation/tool_selection.py score runs/claude.json
 
-`context` prints the server instructions from initialization, every tool's name,
+`context` prints the server instructions from initialisation, every tool's name,
 title, description and complete input and output schemas, and the scope resource
 preloaded for this evaluation. A host may expose resources differently; record
 that difference when comparing model trials. The schemas are
@@ -32,7 +32,7 @@ reference, so a mismatch needs human review and is not proof of a bad answer.
 Legacy lists of tool names remain accepted, with arguments and answers explicitly
 marked NOT EVALUATED. No recording is executed by the scorer.
 
-This is a supplementary check and deliberately not a CI gate. Steps one and two
+This is a supplementary check and deliberately not a CI gate. Steps one and 2
 are deterministic; the step in the middle is a model, and a gate whose result
 depends on one would fail for reasons that are not this repository's.
 """

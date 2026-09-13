@@ -18,7 +18,7 @@ from typing import List, Optional
 class BeneficiaryEntitlement:
     beneficiary_name: str
     is_resident: bool = True
-    is_under_legal_disability: bool = False  # e.g., minor (s 98) vs adult (s 97)
+    is_under_legal_disability: bool = False  # for example, minor (s 98) versus adult (s 97)
     fixed_entitlement_amount: Optional[Decimal] = None
     percentage_entitlement: Optional[Decimal] = None
     specifically_streamed_capital_gains: Decimal = Decimal("0.00")
@@ -35,7 +35,7 @@ class BeneficiaryTaxShare:
     streamed_franked_dividends: Decimal
     franking_credit_grossup: Decimal
     total_taxable_component: Decimal
-    assessed_under_section: str  # e.g., "s 97 (Beneficiary direct)", "s 98 (Trustee on behalf of minor)"
+    assessed_under_section: str  # for example, "s 97 (Beneficiary direct)", "s 98 (Trustee on behalf of minor)"
 
 
 @dataclass
@@ -59,7 +59,7 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
     nil income of the trust estate, a s 95 net loss, no presently entitled
     beneficiary, non-resident beneficiaries, specifically streamed capital gains
     or franked dividends (Division 6E with Subdivisions 115-C and 207-B),
-    entitlements outside the 0 to 100 per cent range, and entitlements that do
+    entitlements outside the 0 to 100% range, and entitlements that do
     not reconcile exactly to the income of the trust estate.
     """
     total_trust_inc = assessment.trust_accounting_income
@@ -101,7 +101,7 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
     # Unrounded ratios: quantising each share's percentage before multiplying it
     # into the s 95 pool loses cents that never reach any beneficiary. The 2dp
     # implied percentage below is a report field only; reconciliation is tested
-    # on the basis the operator actually supplied, because seven equal fixed
+    # on the basis the operator actually supplied, because 7 equal fixed
     # entitlements that exhaust the income imply 14.29% each and 100.03% in total.
     ratios: list[Decimal] = []
     implied: list[Decimal] = []

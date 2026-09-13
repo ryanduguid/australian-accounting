@@ -7,7 +7,7 @@ Division 7A implementations were not used to settle any rule.
 
 ## Review position
 
-The engine reviews two questions and refuses the rest: whether a loan meets
+The engine reviews 2 questions and refuses the rest: whether a loan meets
 the s 109N(1) criteria on facts the operator asserts, and what the s 109E
 minimum yearly repayment is for a later year of income on an amalgamated loan
 the operator has already identified.
@@ -37,9 +37,9 @@ The fail-closed controls this review put in place are:
 ## The compilation that was read
 
 The controlling text is the
-[Income Tax Assessment Act 1936](https://www.legislation.gov.au/C1936A00027/latest/text),
+[*Income Tax Assessment Act 1936*](https://www.legislation.gov.au/C1936A00027/latest/text),
 Federal Register identifier **C1936A00027**, compilation in force **1 July
-2026**. The compiled Act is published in seven volumes; Part III Division 7A
+2026**. The compiled Act is published in 7 volumes; Part III Division 7A
 (ss 109B to 109ZE) sits in volume 2.
 
 Read in full from that text on 31 August 2026:
@@ -53,7 +53,7 @@ Read in full from that text on 31 August 2026:
   maximum term and the refinancing reductions;
 - **s 109P**: amalgamated loans not treated as dividends in the year they are
   made;
-- **s 109R**: payments not taken into account; and
+- **s 109R**: payments not taken into account
 - **s 109ZD**: defined terms, to confirm where each defined expression is
   anchored.
 
@@ -99,7 +99,7 @@ digits in a local decimal context so a result never depends on the ambient
 context a caller has set, and is quantised once at the end. The
 implementation was cross-checked against exact rational arithmetic
 (`fractions.Fraction`) over the fixture set and over boundary inputs including
-a one-year remaining term and a 25-year term; the two agree to the cent.
+a one-year remaining term and a 25-year term; the 2 agree to the cent.
 
 At `n = 1` the formula reduces to `P x (1 + r)`, which is asserted directly as
 a closed-form check on the shape.
@@ -139,14 +139,14 @@ arrears, in the first week of the following month. The last figure published
 published in early July, after the year of income has already begun, and
 cannot be the rate the subsection points at.
 
-For 2025-26 the difference is live: May 2025 was 8.37 per cent, June 2025 was
-8.27 per cent, and 8.37 is the benchmark rate. 8.27 is a real benchmark rate,
-for 2023-24, which makes the two easy to confuse in either direction.
+For 2025-26 the difference is live: May 2025 was 8.37%, June 2025 was
+8.27%, and 8.37 is the benchmark rate. 8.27 is a real benchmark rate,
+for 2023-24, which makes the 2 easy to confuse in either direction.
 
 **Runtime result:** `div7aloan/data/benchmark_rates.csv` is frozen, carries
 its own `reviewed_until` and `reviewed_on` header, and records the RBA table,
 series and month for every year. Every entry is a May figure, asserted as a
-test across all eight years. Nothing in this repository reads the network, at
+test across all 8 years. Nothing in this repository reads the network, at
 run time or in tests.
 
 ## s 109N(1)(b): which year's benchmark rate sets the floor
@@ -159,13 +159,13 @@ This is the one interpretive question in the build.
 
 Read against the chapeau, "A private company that makes a loan to an entity
 in one of the private company's years of income ... if, **before the lodgment
-day for the year of income** ...", "the year" is the year of income in which
+day for the year of income** ...", 'the year' is the year of income in which
 the loan was made, and the whole of s 109N(1) is tested once, before that
 year's lodgment day. It is not a test that recurs annually.
 
 It is nonetheless common in practice to check, year by year, that the rate
 being charged still meets the current benchmark, on the footing that an
-agreement expressed to carry "the benchmark rate" must keep up with it. That
+agreement expressed to carry 'the benchmark rate' must keep up with it. That
 is a sensible commercial check. It is not the s 109N(1)(b) test.
 
 **Reviewed position:** the Act's reading is followed. Confirmed by Ryan Duguid
@@ -174,7 +174,7 @@ on 31 August 2026.
 **Runtime result:** `gate` without `--year` anchors each row to its own
 `year_loan_made`, which is the statutory test. `gate --year <Y>` runs the
 later-year comparison, and every result it produces carries a caveat naming
-the divergence and the year the Act actually points at. Where the two readings
+the divergence and the year the Act actually points at. Where the 2 readings
 could differ, the engine follows the Act and labels the alternative.
 
 Nothing turns on this for the repayment calculation. s 109E(6) uses the
@@ -194,10 +194,10 @@ The 25-year term requires both limbs of paragraph (a):
 > priority to the loan) is at least 110% of the amount of the loan
 
 Paragraph (b) gives 7 years for any other loan. A registered mortgage with
-cover below 110 per cent does not shorten the term to something between the
-two: the 25-year limb is simply unavailable and paragraph (b) applies.
+cover below 110% does not shorten the term to something between the
+2: the 25-year limb is simply unavailable and paragraph (b) applies.
 
-"At least 110%" is inclusive, so cover of exactly 1.10 satisfies it.
+'At least 110%' is inclusive, so cover of exactly 1.10 satisfies it.
 
 **Runtime result:** the term limb is decided as above and both boundaries are
 tested. Where the security facts are unestablished the limb is `UNKNOWN` only
@@ -300,7 +300,7 @@ None of those is modelled, and each can reduce or eliminate the figure.
 
 **Runtime result:** the shortfall is reported as an *experimental
 deemed-dividend exposure*, labelled a review aid on every surface that prints
-it. The phrase "the ATO will assess" appears nowhere in this repository, and a
+it. The phrase 'the ATO will assess' appears nowhere in this repository, and a
 test asserts the README says so.
 
 ## Rounding: the Act prescribes none
@@ -349,10 +349,10 @@ coverage claim cannot drift away from the rows it describes.
 - 269 tests pass across the rate table, the gate, the formula, the register,
   the CLI, the evaluation pack and the documentation.
 - `GATES.md` records 17 completion gates, all met with recorded evidence,
-  covering every "Done when" criterion and every required test in the build
+  covering every 'Done when' criterion and every required test in the build
   brief.
 - The s 109E(6) implementation is checked against exact rational arithmetic.
-- Three repayments are worked by hand in the evaluation README to twelve
+- Three repayments are worked by hand in the evaluation README to 12
   decimal places. Fixture 2 was re-performed from that README's printed text
   alone, importing nothing from the package, and every intermediate reproduces.
 - No amount is emitted as a JSON number; the emitter refuses a float and a
@@ -371,7 +371,7 @@ present entitlements and the sub-trust material (PCG 2017/13, TD 2022/11),
 s 109Q, s 109RB, s 109RD, s 109Y, substituted accounting periods, or public
 companies.
 
-It does not authorise a payment, a journal, a lodgment, a disclosure or a
+It does not authorise a payment, a journal, a lodgement, a disclosure or a
 compliance conclusion.
 
 ## Reviewer

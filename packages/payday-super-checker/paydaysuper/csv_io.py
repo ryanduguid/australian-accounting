@@ -99,7 +99,7 @@ DEFAULT_MAPPING = {
     "out_of_cycle": "out_of_cycle",
     "next_standard_qe_day": "next_standard_payday",
     "db_interest": "defined_benefit",
-    # Appended, never inserted: a nine-column file from before this field
+    # Appended, never inserted: a 9-column file from before this field
     # still parses. The heading sits last so a positional reader keeps its
     # column numbers.
     "remitted_amount": "remitted_amount",
@@ -117,7 +117,7 @@ FALSE_WORDS = {"", "n", "no", "false", "0", "f"}
 # belongs: stripping every comma regardless of position turns the European
 # decimal 612,00 into 61200, a hundredfold overstatement of a shortfall in
 # a file this tool invites you to hand-edit. `importers.py` reads this same
-# constant, so one package cannot ship two amount parsers that disagree
+# constant, so one package cannot ship 2 amount parsers that disagree
 # about what a figure means.
 #
 # Everything Decimal itself reads is allowed through wherever no comma or
@@ -192,7 +192,7 @@ DATE_FORMATS = (
 )
 
 # Payroll exports use either an ISO date, an Australian day-first date, or one
-# of the spelled-month forms above. A time of day is harmless because the law
+# of the spelt-month forms above. A time of day is harmless because the law
 # tests whole days, but arbitrary text is not: accepting ``2026-07-09 typo``
 # as a real payday can turn a source-data problem into a compliance verdict.
 TIME_FORMATS = (
@@ -207,7 +207,7 @@ TIME_FORMATS = (
 # ERP extracts and would otherwise compound interest for millennia.
 LATEST_SANE_YEAR = 2200
 
-# .NET and SQL Server timestamps carry seven fractional-second digits
+# .NET and SQL Server timestamps carry 7 fractional-second digits
 # (2026-07-09T00:00:00.0000000). fromisoformat on Python 3.11+ truncates a
 # long fraction itself; 3.10, the declared floor, refuses it, so the same
 # export parsed on one interpreter and was refused on another. Truncated to
@@ -230,7 +230,7 @@ FRACTION_PAD = re.compile(r"(:\d{2})\.(\d{1,5})(?!\d)")
 # pre-fromisoformat parser accepted none of them and README documents none
 # of them. The shape gate refuses them all on every version: a tool that
 # refuses ambiguous dates must not read 2026-07 as 2026-07-01, and
-# version-dependent acceptance is how the same file gets two different
+# version-dependent acceptance is how the same file gets 2 different
 # compliance verdicts.
 ISO_SHAPE = re.compile(
     r"\d{4}-\d{2}-\d{2}"
@@ -245,7 +245,7 @@ ISO_SHAPE = re.compile(
 # receipt into a false ON_TIME, the one direction this tool refuses to
 # fail in. Refused loudly rather than converted: the tool does not know
 # which Australian zone the operator means, and DST splits the country
-# across two. A zone-less time is different (dropping it cannot move the
+# across 2. A zone-less time is different (dropping it cannot move the
 # day), so ISO_SHAPE above still reads it. Hour-only offsets (+10) never
 # parsed here on any version and keep their ordinary refusal.
 ISO_OFFSET_SHAPE = re.compile(
@@ -358,7 +358,7 @@ def _parse_amount(value: str, field: str, row: int) -> Decimal:
         raise CsvError(f"row {row}: {field} is negative ({value!r})")
     # Quantised to the cent HERE, at the read boundary, exactly as
     # importers._amount does, and refusing the one case quantising would
-    # destroy. The two readers exist to agree about what a figure means
+    # destroy. The 2 readers exist to agree about what a figure means
     # (see AMOUNT_TEXT above), and they had drifted on precision: the
     # importer read 1,234.567 as 1234.57 while this reader kept 1234.567,
     # so a hand-edited canonical file -- which the README invites --

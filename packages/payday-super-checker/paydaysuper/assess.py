@@ -60,7 +60,7 @@ NO_RECEIPT_CAVEAT = (
 
 
 def financial_year(d: date) -> str:
-    """Australian financial year label for a date, e.g. 2026-27."""
+    """Australian financial year label for a date, for example, 2026-27."""
     start = d.year if d.month >= 7 else d.year - 1
     return f"{start}-{str(start + 1)[2:]}"
 
@@ -112,7 +112,7 @@ def _received_credit(line: ContribLine, received_as_at: date | None) -> Decimal:
     """Amount tied to an evidenced fund receipt on this as-at date.
 
     ``matched_amount`` preserves the contribution amount associated by an
-    importer even where no vendor date exists. A ten-column partial row falls
+    importer even where no vendor date exists. A 10-column partial row falls
     back to ``remitted_amount``; a legacy row with neither appended amount
     continues to mean the whole SG amount. Eligibility and timing are applied
     separately when base and final shortfalls are calculated.
@@ -163,10 +163,10 @@ def _amount_problem(line: ContribLine) -> str | None:
 def _flag_duplicates(lines: list[ContribLine]) -> None:
     """Two identical rows are double-counted, and a re-exported pay run is a
     common way to get them. They can also be legitimate (one payday split
-    across two funds), so this warns rather than refuses."""
+    across 2 funds), so this warns rather than refuses."""
     groups: dict[tuple, list[ContribLine]] = {}
     for line in lines:
-        # The appended amount columns preserve nine- and ten-column files:
+        # The appended amount columns preserve 9- and 10-column files:
         # a dated legacy row with no explicit remitted amount means the whole
         # SG amount was remitted, while a blank matched amount falls back to
         # that dated subtotal and then to the whole legacy liability. Normalise

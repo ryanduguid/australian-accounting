@@ -31,7 +31,7 @@ FORMULA_PRECISION = 60
 
 # A benchmark rate above this is a typo, not a rate. The RBA indicator rate
 # for bank variable housing loans has never approached 100% a year, so the
-# ceiling costs nothing real and catches the two hand-edit slips that move
+# ceiling costs nothing real and catches the 2 hand-edit slips that move
 # money: a dropped decimal point (877 for 0.0877) and a stray minus sign.
 RATE_CEILING = Decimal("1")
 
@@ -121,7 +121,7 @@ def to_cents(value: Decimal) -> Decimal:
 
 
 def cents_str(value: Decimal) -> str:
-    """The JSON and CSV form of an amount: a quoted decimal string, always two
+    """The JSON and CSV form of an amount: a quoted decimal string, always 2
     places. JSON numbers are IEEE doubles in most parsers, so an amount that
     left this engine as a JSON number would arrive at the reader as a float."""
     return str(to_cents(value))

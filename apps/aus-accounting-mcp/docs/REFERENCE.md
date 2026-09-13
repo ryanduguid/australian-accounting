@@ -105,8 +105,8 @@ codex mcp add aus-accounting -- uvx aus-accounting-mcp
 | `get_ato_benchmarks` | Compare operator-supplied bucket totals to ATO ranges | ato-benchmark-compare |
 | `calc_payday_super_deadline` | Review one contribution against Payday Super timing | payday-super-checker |
 | `review_payday_super_contributions` | Assess up to 200 related contributions for one employer | payday-super-checker |
-| `build_payday_super_evidence_pack` | Return four in-memory review files for supplied contributions; requires checker evidence-pack support | payday-super-checker |
-| `calculate_tax_worksheet` | Run one of six bounded worksheets with established scope | australian-tax-calculators |
+| `build_payday_super_evidence_pack` | Return 4 in-memory review files for supplied contributions; requires checker evidence-pack support | payday-super-checker |
+| `calculate_tax_worksheet` | Run one of 6 bounded worksheets with established scope | australian-tax-calculators |
 | `search_accounting_library` | Search explicitly configured local Markdown files | local read-only retrieval |
 | `read_accounting_library` | Read bounded lines with file, line, page and hash citations | local read-only retrieval |
 | `get_div7a_benchmark_rate` | Return the reviewed s 109N(2) rate for a year, or `UNKNOWN` | div7a-loan-review |
@@ -221,7 +221,7 @@ does not determine worker eligibility, qualifying earnings or SG entitlement.
 
 Omitted ATO expense buckets are `not_supplied`, not zero. Every ATO ratio divides by turnover, which the ATO rule takes from sales or from total business income, so omitting `other_income` leaves every ratio `not_supplied` until you establish that figure. Pass `0` where you have established there is none. Withholding covers the engine's prose as well as the structured fields: each engine `notes` and `checks_to_make` entry declares the figures needed to state it, and an entry resting on a bucket you omitted is withheld rather than published beside that bucket's `null`. `notes` records how many were withheld. `key_ratio` is withheld the same way, so an omitted `cost_of_sales` does not trigger the ATO's total-expenses fallback.
 
-Amounts, including Division 7A loan balances and payments, are decimal strings, finite, at most two decimal places, and no greater than AUD 1,000,000,000,000.00. Dates are ISO-8601. Payday Super uses payday-super-checker's national SGAA 1992 s 6(1) calendar.
+Amounts, including Division 7A loan balances and payments, are decimal strings, finite, at most 2 decimal places, and no greater than AUD 1,000,000,000,000.00. Dates are ISO-8601. Payday Super uses payday-super-checker's national SGAA 1992 s 6(1) calendar.
 
 Payday Super dates come out of a payroll or clearing-house export, so
 `calc_payday_super_deadline` reads the shapes those exports hold, through the
@@ -231,13 +231,13 @@ marker, whose time the law ignores. Two are refused. A stamp carrying `Z` or a
 UTC offset is the engine's refusal, because a UTC evening is already the next day
 in Australia and keeping the written day could pass a receipt that was really a
 day later; convert it to the Australian calendar date first. A numeric date is refused at this
-boundary only where the two readings give different days, such as `01/07/2027`: it
+boundary only where the 2 readings give different days, such as `01/07/2027`: it
 is read day first, nothing in the text rules out the other reading, and the
 difference is a month in a date that decides the verdict. Send those as
 `YYYY-MM-DD`. This refusal also applies when a numeric date has a time suffix,
 such as `01/07/2027 00:00`. Two things settle the reading and are accepted: a component above 12
 can only be the day, so `13/07/2027` is the 13th, and equal components land on the
-same date either way, so `12/12/2027` is the 12th of December. Results are always
+same date either way, so `12/12/2027` is the 12 December. Results are always
 ISO-8601.
 
 Division 7A already takes a loan in the shape a register row holds: every
@@ -249,7 +249,7 @@ handling the engines do not.
 
 ## Prompts
 
-The three documented workflows are registered as MCP prompts, so a host can offer
+The 3 documented workflows are registered as MCP prompts, so a host can offer
 them from its prompt menu rather than having you paste the text. Each argument is
 optional: supply it and the prompt names it, omit it and the prompt asks you for it
 instead of assuming one.
@@ -294,12 +294,12 @@ tables and performs no live lookup. Beyond GIC coverage the engine estimates
 using its last known rate and flags staleness. Calendar coverage alone cannot
 establish a verdict; retain the assessment's caveats and `horizon_verdicts`.
 
-Read `calculation_worksheets` in the scope resource for the six worksheet boundaries.
+Read `calculation_worksheets` in the scope resource for the 6 worksheet boundaries.
 Their rules and sources come from `australian-tax-calculators`. Broader classifications,
 exemptions, BAS/returns, trusts, partnerships, SMSFs, contribution caps and payroll
 tax remain unsupported. Reference text cannot establish calculation support.
 
-The evaluation includes 23 cases: ten original workflows, ten unsupported-topic
+The evaluation includes 23 cases: 10 original workflows, 10 unsupported-topic
 questions, grouped Payday, a tax worksheet and synthetic library retrieval.
 The unsupported-topic answers require no tool calls. The
 `context` command preloads `aus-accounting://scope` so the model can inspect the

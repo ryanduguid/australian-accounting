@@ -36,11 +36,11 @@ compatibility identifiers.
 
 **A rising benchmark rate raises the minimum yearly repayment on existing
 complying loans, not just on new ones.** s 109E(6) uses the *current* year's
-benchmark rate, not the rate written into the agreement. A seven-year loan
-signed in 2021-22 at 4.52 per cent is measured for 2026-27 against 8.77 per
+benchmark rate, not the rate written into the agreement. A 7-year loan
+signed in 2021-22 at 4.52% is measured for 2026-27 against 8.77 per
 cent, and the repayment that was right when it was written is no longer
 enough. Nothing in the process tells you. A loan that has met its repayments
-for four years can fall short in the fifth on unchanged terms.
+for 4 years can fall short in the fifth on unchanged terms.
 
 No install, just the rates and the reasoning:
 <https://duguid.com.au/rates/div7a-benchmark-rate/>
@@ -74,10 +74,10 @@ rather than a number it cannot stand behind.
 | Refused | Why |
 | --- | --- |
 | Forming the amalgamated loan from constituent loans | s 109E(3). v1 takes the unpaid balance at the end of the previous year from the operator. A list of component loans gets `UNKNOWN`. |
-| A minimum yearly repayment for the year the loan was made | s 109E(1)(a) reaches a loan made "in an earlier year of income"; s 109P puts an amalgamated loan outside s 109D in the year it is made. |
+| A minimum yearly repayment for the year the loan was made | s 109E(1)(a) reaches a loan made 'in an earlier year of income'; s 109P puts an amalgamated loan outside s 109D in the year it is made. |
 | A repayment figure for a loan that is not on s 109N terms | A constituent loan is one that would be a s 109D dividend apart from s 109N (s 109E(3)(b)), so a loan that fails s 109N is not one. Absent another Subdivision D exclusion, s 109D(1) treats it as a dividend in the year it was made (s 109D(1AA)). A schedule does not save it. |
 | Whether a payment is a genuine repayment | s 109R turns on what a reasonable person would conclude about intention. The operator asserts the amount applied. Bank credits are not a substitute. |
-| Computing the lodgment day | s 109D(6) is the earlier of the return's due date and the date of lodgment. That needs a lodgment-program date this engine does not hold. |
+| Computing the lodgment day | s 109D(6) is the earlier of the return's due date and the date of lodgement. That needs a lodgment-program date this engine does not hold. |
 | s 109C payments | This engine is loans, not payments. |
 | s 109F forgiven debts | Out of scope. |
 | s 109T, s 109W, s 109C(3A) interposed entities | Out of scope. |
@@ -86,7 +86,7 @@ rather than a number it cannot stand behind.
 | s 109Y distributable surplus | Not modelled. The shortfall is not the dividend; see below. |
 | Loans made before 4 December 1997 | s 109D(5). `SKIPPED`, including the 1997-98 year that straddles the date. |
 | Public companies | Outside scope. The operator must establish private-company status before using the gate, or mark the row with `out_of_scope_reason`; the engine does not classify lenders. |
-| "This looks like a dividend, call it s 109C or s 109D for me" | Characterisation is not arithmetic. |
+| 'This looks like a dividend, call it s 109C or s 109D for me' | Characterisation is not arithmetic. |
 | Interest accrued but not paid, offset accounts, set-off, journal-only repayments | Not payments this engine will count for you. |
 | Any rate year not in the frozen table and not in a reviewed override | Fail closed. No extrapolation, no runtime scraping. |
 
@@ -182,7 +182,7 @@ absent: reading a missing column as blank would turn every absent fact into
 considered review rather than a mis-shaped file.
 
 Booleans are `true`, `false` or `unknown`. A blank cell is `unknown`. Amounts
-and rates are decimal strings. Rates are fractions, so 8.77 per cent is
+and rates are decimal strings. Rates are fractions, so 8.77% is
 `0.0877`, not `8.77`. Years of income are written `2026-27`.
 
 **Required by `gate`, `myr` and `review`:**
@@ -193,9 +193,9 @@ and rates are decimal strings. Rates are fractions, so 8.77 per cent is
 | `year_loan_made` | The year of income the loan was made in |
 | `written_agreement` | s 109N(1)(a): the agreement is in writing |
 | `terms_in_place_before_lodgment_day` | s 109N(1) chapeau, with s 109D(6). You assert this; the engine does not compute the lodgment day |
-| `maximum_term_years` | The **term of the loan** under the written agreement, in years. It is tested against the maximum term worked out under s 109N(3). The column name follows the published API surface, not the Act's use of "maximum term" for the statutory cap |
+| `maximum_term_years` | The **term of the loan** under the written agreement, in years. It is tested against the maximum term worked out under s 109N(3). The column name follows the published API surface, not the Act's use of 'maximum term' for the statutory cap |
 | `secured_by_registered_mortgage_over_real_property` | s 109N(3)(a)(i) |
-| `security_coverage_at_first_made` | s 109N(3)(a)(ii): the property's market value less liabilities secured over it in priority to the loan, as a ratio to the loan, at the time the loan is first made. `1.10` is the 110 per cent the paragraph requires |
+| `security_coverage_at_first_made` | s 109N(3)(a)(ii): the property's market value less liabilities secured over it in priority to the loan, as a ratio to the loan, at the time the loan is first made. `1.10` is the 110% the paragraph requires |
 | `interest_rate_for_years_after_year_loan_made` | s 109N(1)(b), as a decimal fraction |
 
 **Also required by `myr` and `review`:**
@@ -217,10 +217,10 @@ and rates are decimal strings. Rates are fractions, so 8.77 per cent is
 Two samples ship with the repository:
 
 - [`examples/sample_loans_myr_met.csv`](examples/sample_loans_myr_met.csv) -
-  three complying loans that run to a verdict with no confirmation flags.
+  3 complying loans that run to a verdict with no confirmation flags.
 - [`examples/sample_loans_mixed.csv`](examples/sample_loans_mixed.csv) -
   `UNKNOWN` rows, a loan whose rate is below the benchmark, a 25-year loan
-  with 109 per cent cover, a nil remaining term, and two skipped rows.
+  with 109% cover, a nil remaining term, and 2 skipped rows.
 
 Both are fabricated. Every identifier is synthetic.
 
@@ -233,8 +233,8 @@ statistical table F5 in arrears, in the first week of the following month, so
 the last figure published before 1 July is the **May** figure.
 
 The June figure is published in early July, after the year has already begun,
-and is the usual wrong rate. For 2025-26, May 2025 was 8.37 per cent and June
-2025 was 8.27 per cent. **8.37 is the benchmark rate.**
+and is the usual wrong rate. For 2025-26, May 2025 was 8.37% and June
+2025 was 8.27%. **8.37 is the benchmark rate.**
 
 | Year of income | Rate | RBA F5 FILRHLBVS figure |
 | --- | --- | --- |
@@ -337,7 +337,7 @@ refusal or unknown reason where one applies.
 ## Evaluation pack
 
 [`evaluation/div7a_myr/`](evaluation/div7a_myr/) holds fabricated fixtures,
-pinned expectations, and three minimum yearly repayments worked by hand from
+pinned expectations, and 3 minimum yearly repayments worked by hand from
 the statutory formula with the arithmetic shown. A reviewer who knows s 109N
 and s 109E can re-perform every one on paper without running Python.
 
@@ -361,7 +361,7 @@ evidence of its last run.
 ## Provenance
 
 Written against the
-[Income Tax Assessment Act 1936](https://www.legislation.gov.au/C1936A00027/latest/text)
+[*Income Tax Assessment Act 1936*](https://www.legislation.gov.au/C1936A00027/latest/text)
 as compiled on the Federal Register of Legislation, `C1936A00027`, in force
 1 July 2026, Part III Division 7A. Sections 109D, 109E, 109N, 109P and 109R
 were read in full from the compilation, and the s 109E(6) formula from the

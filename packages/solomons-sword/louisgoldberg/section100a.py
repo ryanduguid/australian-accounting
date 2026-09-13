@@ -12,7 +12,7 @@ from typing import List, Optional
 class Section100ARiskZone(str, Enum):
     """PCG 2022/2 zones, plus the residual case the guideline leaves unzoned.
 
-    The finalised guideline carries three zones: white (entitlements conferred
+    The finalised guideline carries 3 zones: white (entitlements conferred
     in income years before 1 July 2014), green (low risk) and red (high risk).
     Draft PCG 2022/D1 also had a blue zone, which did not survive into the
     final guideline. The white zone is not decided here because it turns on the
@@ -47,7 +47,7 @@ def evaluate_section100a_risk(
     circular_flow_of_funds: bool = False,
     corporate_beneficiary_unpaid_present_entitlement: bool = False,
     beneficiary_actually_received_funds: bool | None = None,
-    funds_used_for_beneficiary_direct_benefit: bool = False,  # e.g., education, medical, independent asset
+    funds_used_for_beneficiary_direct_benefit: bool = False,  # for example, education, medical, independent asset
     commercial_loan_agreement_in_place: bool = False,
 ) -> Section100AAssessment:
     """

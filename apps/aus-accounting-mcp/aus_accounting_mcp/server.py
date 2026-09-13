@@ -337,7 +337,7 @@ def get_ato_benchmarks(
     that anything is wrong. Supply at least one expense bucket; omitted
     buckets remain not_supplied, never evidenced zeros. Returns ratios,
     ranges, source citations and warnings from ato-benchmark-compare.
-    Runs locally with no network, writes or lodgments. Not tax advice.
+    Runs locally with no network, writes or lodgements. Not tax advice.
     """
     return cast(
         BenchmarkComparison,
@@ -624,7 +624,7 @@ def review_div7a_loan(
     get_div7a_benchmark_rate for rate-only lookups; unsupported matters remain
     refused by refuse_div7a. This tool does not form amalgamated loans or
     classify payments under s 109R. Runs locally with no network, writes or
-    lodgments. Experimental review aid, not a tax determination or advice.
+    lodgements. Experimental review aid, not a tax determination or advice.
     """
     return cast(
         Div7aReview,
@@ -702,7 +702,7 @@ def refuse_div7a(
     Use review_div7a_loan for reviewed s 109N/s 109E loan facts, or
     get_div7a_benchmark_rate for a reviewed rate. This tool always returns
     ERR_POLICY_DIV7A_SCOPE_REFUSED with the scope explanation; it never
-    calculates a repayment. No network, writes or lodgments.
+    calculates a repayment. No network, writes or lodgements.
     """
     if loan_principal is not None:
         parse_amount(loan_principal, "loan_principal")
@@ -747,7 +747,7 @@ def generate_synthetic_sbr_fixture(
     Use only with synthetic inputs. Fixed demonstration assumptions produce
     a payload marked synthetic=true and not_a_lodgment=true, not a real tax
     calculation or production SBR validation. Returns the fixture in memory;
-    no file writes, network calls or lodgments. Not statutory advice.
+    no file writes, network calls or lodgements. Not statutory advice.
     """
     amount = parse_amount(revenue_or_sales, "revenue_or_sales")
     kind = form_type.strip().upper()

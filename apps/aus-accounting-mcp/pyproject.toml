@@ -25,7 +25,7 @@ keywords = [
     "tax",
 ]
 # PyPI facets. No "License ::" classifier: the SPDX `license` field above is the
-# PEP 639 replacement and the two together are rejected. No "Typing :: Typed"
+# PEP 639 replacement and the 2 together are rejected. No "Typing :: Typed"
 # either, because this distribution ships no py.typed marker; it is a server to
 # run, not a library to import against.
 classifiers = [

@@ -152,7 +152,7 @@ def test_a_failed_limb_beats_an_unknown_one():
 
 
 def test_unknown_security_does_not_make_a_short_term_unknown():
-    """Below seven years both limbs of s 109N(3) permit the term, so the
+    """Below 7 years both limbs of s 109N(3) permit the term, so the
     security facts cannot change the answer."""
     result = complying_loan_gate(
         facts(secured_by_registered_mortgage_over_real_property=None, maximum_term_years=D("7"))

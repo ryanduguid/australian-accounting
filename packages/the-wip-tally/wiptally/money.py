@@ -123,13 +123,13 @@ def money(value: Decimal) -> str:
 
 
 def percent(value: Decimal) -> str:
-    """Format a ratio as a percentage to two decimal places."""
+    """Format a ratio as a percentage to 2 decimal places."""
     scaled = (value * 100).quantize(PERCENT_POINTS, rounding=ROUND_HALF_UP)
     return f"{scaled}%"
 
 
 def as_points(value: Decimal) -> Decimal:
-    """Quantise a margin movement to the two places it is displayed at.
+    """Quantise a margin movement to the 2 places it is displayed at.
 
     The flag threshold and the printed figure have to be the same number, so
     every margin movement is put through here before either is taken.

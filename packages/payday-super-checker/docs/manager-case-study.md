@@ -8,7 +8,7 @@ A payroll preparer has a remittance record and wants to mark super as paid on ti
 
 ## Input and result
 
-The four existing fixtures use synthetic employee SYN001, payday 6 August 2026, an operator-supplied SG amount of $120 and an as-at date of 20 August. The bundled national calendar produces a deadline of 17 August. These examples assume the ordinary timing pathway; they do not establish employee eligibility, SG amount or an extension.
+The 4 existing fixtures use synthetic employee SYN001, payday 6 August 2026, an operator-supplied SG amount of $120 and an as-at date of 20 August. The bundled national calendar produces a deadline of 17 August. These examples assume the ordinary timing pathway; they do not establish employee eligibility, SG amount or an extension.
 
 | Existing fixture | Remitted | Fund received | Actual verdict |
 | --- | --- | --- | --- |
@@ -29,7 +29,7 @@ uv run --locked --extra dev --python 3.12 payday-super-check evaluation/payday_s
 
 This prints AT_RISK and writes `report.csv`. With `--confirm-remittance-only`, it exits 0 because the operator has acknowledged the evidence gap. Without that flag it exits 2. The flag cannot turn AT_RISK into ON_TIME. Replace the fixture filename with another row above to reproduce it; the receipt-on-deadline case exits 0 and the late cases exit 2 when any required remittance-only acknowledgement is supplied.
 
-[All fixture inputs and expected results](../evaluation/payday_super_evidence/README.md) remain inspectable. The existing `tests/test_evaluation_pack.py` checks the production calculation for all four records. The CLI acknowledgement is a separate operational boundary.
+[All fixture inputs and expected results](../evaluation/payday_super_evidence/README.md) remain inspectable. The existing `tests/test_evaluation_pack.py` checks the production calculation for all 4 records. The CLI acknowledgement is a separate operational boundary.
 
 ## Interpretation and evidence
 

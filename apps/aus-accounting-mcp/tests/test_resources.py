@@ -200,7 +200,7 @@ def test_each_prompt_renders_a_workflow_without_inventing_facts(name) -> None:
     assert rendered.messages
     assert all(message.role == "user" for message in rendered.messages)
     # With no argument supplied the prompt asks for the fact rather than
-    # choosing one, which is the whole point of these three workflows.
+    # choosing one, which is the whole point of these 3 workflows.
     assert "Ask me" in text or "Select the industry" in text
     # Every prompt names a tool the server actually registers.
     tools = {tool.name for tool in asyncio.run(mcp.list_tools())}
@@ -250,7 +250,7 @@ def test_prompts_preserve_the_unknown_and_refusal_language() -> None:
 
     assert "not_supplied" in texts["compare_ato_benchmarks"]
     assert "Do not treat missing as zero" in texts["compare_ato_benchmarks"]
-    # The two inputs without which the tool cannot run at all. Naming them stops
+    # The 2 inputs without which the tool cannot run at all. Naming them stops
     # a host following this prompt into a tool error, and the prompt has to ask
     # for them rather than supplying a zero the operator never established.
     assert "at least one expense bucket" in texts["compare_ato_benchmarks"]

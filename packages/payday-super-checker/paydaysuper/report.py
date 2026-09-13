@@ -387,12 +387,12 @@ def console_summary(
         )
         # An at-risk line is in neither the exposure listing nor the unflagged
         # count, so without this its caveats never reached the console at all
-        # -- including the one saying two rows are identical and the payday is
+        # -- including the one saying 2 rows are identical and the payday is
         # counted twice, which is the data-quality warning most worth reading.
         #
         # The no-fund-receipt caveat is excluded because EVERY at-risk row
         # carries it and the header above already says it. Listed, it filled
-        # the ten-row cap with rows whose only note repeated the header, and
+        # the 10-row cap with rows whose only note repeated the header, and
         # truncated away the rows that had something of their own to say.
         flagged = [
             (r, [c for c in r.caveats if c != NO_RECEIPT_CAVEAT]) for r in at_risk

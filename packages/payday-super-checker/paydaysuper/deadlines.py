@@ -106,7 +106,7 @@ class Deadline:
     # contribution was received and applied on time. ``due`` remains the
     # latest deadline supported by the evidence supplied. Report assessment
     # uses this upper bound only to return an attention-driving UNKNOWN where
-    # the two dates would change the verdict; it never presents the later
+    # the 2 dates would change the verdict; it never presents the later
     # date as the deadline.
     possible_item4_due: date | None = None
 
@@ -169,7 +169,7 @@ def compute_due(line: ContribLine, cal: BusinessCalendar) -> Deadline:
         # The next payday is only ever read inside the branch above, so a row
         # that supplies it but leaves the flag blank is silently given the
         # strict 7-business-day deadline. csv_io does not cross-validate the
-        # two columns either, so the check belongs here.
+        # 2 columns either, so the check belongs here.
         if line.next_standard_qe_day <= line.qe_day:
             caveats.append(
                 f"next standard QE day {line.next_standard_qe_day.isoformat()} is not "

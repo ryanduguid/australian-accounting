@@ -10,7 +10,7 @@ transmit anything.
 
 - Use invented data. The `.gitignore` blocks the file names a real ledger arrives
   under, including `pnl*.csv`, `mapping*.csv`, `client-data/` and spreadsheet files.
-  Put new fixtures in `examples/` or `tests/fixtures/`. Those two directories take a
+  Put new fixtures in `examples/` or `tests/fixtures/`. Those 2 directories take a
   `.xlsx` at their top level. A `.xls`, a `.xlsm`, or any spreadsheet in a
   subdirectory stays blocked, so add the matching `.gitignore` exception in the same
   change that adds the fixture.
@@ -57,7 +57,7 @@ rather than UTF-8.
   asserting the old rule long after the code has moved.
 - Amounts stay in `Decimal` end to end. A float anywhere in the ratio path will be
   rejected: 0.31 as a float is not 0.31, and these comparisons are against published
-  figures at two decimal places.
+  figures at 2 decimal places.
 - A displayed figure and its verdict must never disagree. 30.96% is below a 31% floor
   and must not print as 31%.
 

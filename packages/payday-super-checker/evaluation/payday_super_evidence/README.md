@@ -31,7 +31,7 @@ No client, employee or live payroll data is included.
 
 ## Reproduce the result
 
-The `evidence-pack` subcommand composes these same fixtures into four
+The `evidence-pack` subcommand composes these same fixtures into 4
 review files. Its contract test reads the pinned as-at date and verdicts from
 `expected_results.json`, verifies the report hash, the non-`ON_TIME` queue,
 identifier omission and blank decision headings:
@@ -63,7 +63,7 @@ are in [`expected_results.json`](expected_results.json).
 
 ## Expected result
 
-All four rows have the supported due date 17 August 2026.
+All 4 rows have the supported due date 17 August 2026.
 
 - Timely remittance with no receipt remains `AT_RISK` and cannot prove on-time.
 - Remittance after the due date can establish lateness even without a receipt,
@@ -73,17 +73,17 @@ All four rows have the supported due date 17 August 2026.
 
 ## Controls and refusal boundary
 
-The commands call the production CLI against only the four declared fabricated
+The commands call the production CLI against only the 4 declared fabricated
 fixtures. The repository's CSV deny rule remains in force, with exact
 allow-list entries for these files and no wildcard evaluation exception.
 Remittance is not substituted for fund receipt. An `AT_RISK` or `LATE` result
-drives exit code 2, and no result authorises payment, lodgment, disclosure,
+drives exit code 2, and no result authorises payment, lodgement, disclosure,
 accounting entry or a compliance conclusion.
 
 ## Primary sources and review date
 
 The source position was reviewed on 15 August 2026 against the
-[Superannuation Guarantee (Administration) Act 1992](https://www.legislation.gov.au/C2004A04402/latest/text)
+[*Superannuation Guarantee (Administration) Act 1992*](https://www.legislation.gov.au/C2004A04402/latest/text)
 on the Federal Register of Legislation and the ATO's
 [LCR 2026/2 eligible contributions](https://www.ato.gov.au/law/view/document?DocID=COG%2FLCR20262%2FNAT%2FATO%2F00001).
 The repository's [primary-source implementation review](../../docs/primary-source-review-2026-08-15.md)
@@ -101,7 +101,7 @@ Remittance evidence can show operational timing but cannot prove on-time; a huma
 
 ## Limitations and non-claims
 
-These four rows do not establish fund eligibility, statutory allocation,
+These 4 rows do not establish fund eligibility, statutory allocation,
 qualifying-earnings classification, assessments or final ATO amounts. They do
 not test transition allocation, item 4 extensions, out-of-cycle payments,
 exceptional-circumstances determinations, maximum-contribution-base limits or

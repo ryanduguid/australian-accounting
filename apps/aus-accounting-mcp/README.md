@@ -7,7 +7,7 @@
 
 Local Australian accounting tools for AI assistants. Compare business figures with
 ATO benchmarks, review Payday Super timing and check limited Division 7A loan terms
-and repayments. Calculate six bounded tax worksheets and search a configured local
+and repayments. Calculate 6 bounded tax worksheets and search a configured local
 Markdown library with file and line citations. Includes synthetic CTR/BAS fixtures
 for integration testing.
 
@@ -65,8 +65,8 @@ claude mcp add aus-accounting -- uvx aus-accounting-mcp
 | `get_ato_benchmarks` | Compare supplied P&L figures with ATO benchmark ranges. |
 | `calc_payday_super_deadline` | Review timing for one super contribution. |
 | `review_payday_super_contributions` | Review related contributions together for one employer. |
-| `build_payday_super_evidence_pack` | Return four review files in memory; unreleased, requires checker evidence-pack support. |
-| `calculate_tax_worksheet` | Calculate one of six worksheets with established scope and period. |
+| `build_payday_super_evidence_pack` | Return 4 review files in memory; unreleased, requires checker evidence-pack support. |
+| `calculate_tax_worksheet` | Calculate one of 6 worksheets with established scope and period. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
 | `get_div7a_benchmark_rate` | Get a reviewed Division 7A benchmark rate, or `UNKNOWN`. |
@@ -77,7 +77,7 @@ claude mcp add aus-accounting -- uvx aus-accounting-mcp
 Missing figures remain unknown. Preserve `UNKNOWN`, `REFUSED`, `not_supplied` and
 `null` results; `ok: true` means the tool ran, not that a review passed.
 
-The six worksheets cover bounded GST, resident basic tax, CGT, FBT, first-year
+The 6 worksheets cover bounded GST, resident basic tax, CGT, FBT, first-year
 depreciation and quarterly SG cases. Read `aus-accounting://scope` before supplying
 scope confirmation. Most support 2025-26; see the reference for periods and exclusions.
 To enable library retrieval, set `AUS_ACCOUNTING_LIBRARY_ROOT` in the server's
@@ -98,7 +98,7 @@ covers all exclusions, input rules, prompts, resources and evaluation instructio
 
 In the reviewed monorepo checkout, `build_payday_super_evidence_pack` accepts the
 same `contributions` and explicit `as_at` as grouped review. It delegates the
-assessment and all four artefacts to the checker. There are no path arguments,
+assessment and all 4 artefacts to the checker. There are no path arguments,
 fixture-path lookups, filesystem writes or network calls.
 
 The response includes `files` keyed by `report.csv`, `practitioner-review.md`,

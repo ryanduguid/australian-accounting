@@ -159,7 +159,7 @@ def test_detect_refuses_a_tie_rather_than_guessing():
     # Xero's Superannuation Payments report and MYOB Business's Superannuation
     # payments report both use Employee, Contribution Type (or Payment date)
     # and Amount, and both accept "Payment Date" as the paid_date heading.
-    # A file with exactly these four columns is a genuine tie: xero-super and
+    # A file with exactly these 4 columns is a genuine tie: xero-super and
     # myob-business-super each resolve 4 fields, and picking one would guess
     # which vendor actually produced the file. Verified against the real
     # shipped profiles: employment-hero-super and myob-ar-super both fail
@@ -185,7 +185,7 @@ def test_an_unknown_vendor_is_not_advised_to_type_a_vendor_it_never_mentioned():
     # ended with the advice written for one specific mistake: naming a real
     # profile key that is one half of a vendor's pair, which the OTHER file
     # then refuses. Someone who typed "quickbooks" got told to write
-    # 'myob-ar' instead of 'myob-ar-payroll', two names they had never used
+    # 'myob-ar' instead of 'myob-ar-payroll', 2 names they had never used
     # and neither of which this tool has a profile for.
     with pytest.raises(CsvError) as exc:
         detect(MYOB_SUPER, "super", vendor="quickbooks")

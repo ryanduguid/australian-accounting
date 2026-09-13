@@ -10,7 +10,7 @@ wheel ships the import package alone, so a resource that read `DISCLAIMER.md` or
 `compatibility.json` from disk would be empty for the documented `uvx` install.
 The component record is therefore built from installed distribution metadata,
 which is the version that produced the result rather than the version a checked
-in record says was released; `tests/test_resources.py` holds the two together.
+in record says was released; `tests/test_resources.py` holds the 2 together.
 
 No rate, threshold, law date or source date is written here. Those stay owned by
 the engines and appear in their own payloads.
@@ -59,7 +59,7 @@ BOUNDARY_PARAGRAPHS = (
     " Unsupported matters, including s 109R repayment classification, unpaid present"
     " entitlements, distributable surplus, interposed entities, debt forgiveness and"
     " Commissioner discretion, remain refused. SBR payloads from this server are"
-    " synthetic fixtures marked `synthetic: true`; they are not lodgments.",
+    " synthetic fixtures marked `synthetic: true`; they are not lodgements.",
     "Payday Super reviews can mark `UNKNOWN` or refuse where the facts do not"
     " establish the statutory test. A remittance date alone cannot produce `ON_TIME`."
     " Experimental SG-charge figures are exposure flags, not an ATO assessment.",

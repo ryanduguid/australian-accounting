@@ -215,7 +215,7 @@ def route(
                 f"{entry.account!r} and {row.account!r}; no amount was routed"
             )
         if key in counted:
-            # One mapping row cannot answer for two ledger rows with the same name, and
+            # One mapping row cannot answer for 2 ledger rows with the same name, and
             # guessing which bucket the second one belongs to is exactly the silent
             # error this tool exists to avoid.
             repeated.append(f"line {row.line_number}: {row.account}")
@@ -364,7 +364,7 @@ def read_mapping(path: Path) -> dict[str, MappingRow]:
         # UnicodeDecodeError is a ValueError, not a MappingError, so left alone it ends
         # the run with a traceback rather than an error line naming the file. utf-8-sig
         # strips the byte-order mark before decoding, so exc.start counts from the text
-        # after it. Add those three bytes back, or the position names nothing the
+        # after it. Add those 3 bytes back, or the position names nothing the
         # operator can find in the file.
         offset = exc.start + (3 if data.startswith(b"\xef\xbb\xbf") else 0)
         raise MappingError(

@@ -344,7 +344,7 @@ def build() -> None:
         ("motor_vehicle_to_turnover", "Motor vehicle expenses to turnover", "B16", None, None),
     ]
     # ponytail: the published datasets only carry cost of sales and total expenses ranges,
-    # so the other three ratios have no benchmark columns; add columns if the ATO adds ranges.
+    # so the other 3 ratios have no benchmark columns; add columns if the ATO adds ranges.
     for r, (key, label, cell, lo, hi) in enumerate(ratios, 2):
         ws.cell(row=r, column=1, value=key)
         ws.cell(row=r, column=2, value=label)

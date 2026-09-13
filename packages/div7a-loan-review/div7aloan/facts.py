@@ -9,7 +9,7 @@ bank movement.
 "unknown" is a value here, not a missing value. It is carried through to the
 verdict as UNKNOWN and is never coerced to False, because s 109N(1) is a set
 of positive requirements: a limb that has not been established is not the
-same as a limb that has failed, and only one of those two is a finding.
+same as a limb that has failed, and only one of those 2 is a finding.
 """
 from __future__ import annotations
 

@@ -284,7 +284,7 @@ def test_relative_report_path_cannot_leave_cwd(tmp_path, monkeypatch):
 def test_rejected_report_path_names_the_remedy(tmp_path, monkeypatch, capsys):
     """The confinement is real and stays, but it applies to no other path this
     tool accepts and `-o out/report.csv` is fully supported, so the operator
-    who follows the documented two-command path has to be told how to proceed
+    who follows the documented 2-command path has to be told how to proceed
     rather than left with a bare refusal."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "sub").mkdir()

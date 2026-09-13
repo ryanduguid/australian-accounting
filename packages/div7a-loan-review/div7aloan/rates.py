@@ -9,7 +9,7 @@ A year of income starts on 1 July. The RBA publishes statistical table F5 in
 arrears, in the first week of the following month, so the last figure
 published before 1 July is the MAY figure. The June figure appears in early
 July, after the year of income has already started, and is the usual wrong
-rate: June 2025 was 8.27 per cent while May 2025 was 8.37 per cent, and 8.37
+rate: June 2025 was 8.27% while May 2025 was 8.37%, and 8.37
 is the benchmark rate for 2025-26.
 
 The table is frozen in div7aloan/data/benchmark_rates.csv and reviewed by

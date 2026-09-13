@@ -271,7 +271,7 @@ def to_evidenced_dict(
     *,
     unreviewed: int | None = None,
 ) -> dict:
-    """Serialize a comparison without presenting unsupplied amounts as zero."""
+    """Serialise a comparison without presenting unsupplied amounts as zero."""
     known = frozenset(supplied_fields)
     unknown = known - (set(BUCKETS) | {"w1"})
     if unknown:

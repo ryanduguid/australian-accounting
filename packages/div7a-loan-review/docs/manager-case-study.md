@@ -10,7 +10,7 @@ The further advance is a synthetic evidence complication, not an engine finding.
 
 ## Input and result
 
-The existing F1 fixture supplies an amalgamated loan made in 2023-24, an unpaid balance of $100,000 at the end of 2025-26 and five years remaining. Its agreement facts are operator assertions. For the 2026-27 scenario, the frozen reviewed rate is 8.77% and the engine rounds its minimum yearly repayment to $25,556.00.
+The existing F1 fixture supplies an amalgamated loan made in 2023-24, an unpaid balance of $100,000 at the end of 2025-26 and 5 years remaining. Its agreement facts are operator assertions. For the 2026-27 scenario, the frozen reviewed rate is 8.77% and the engine rounds its minimum yearly repayment to $25,556.00.
 
 | Conditional scenario | Repayments supplied | MYR | Shortfall | Verdict |
 | --- | ---: | ---: | ---: | --- |

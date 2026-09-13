@@ -115,7 +115,7 @@ def read(path: Path, amount_column: str | None = None) -> PnlFile:
         # run with a traceback. A "CSV (Comma delimited)" export from a Windows
         # accounting package is cp1252, which fails here on the first accented account
         # name or smart apostrophe. utf-8-sig strips the byte-order mark before
-        # decoding, so exc.start counts from the text after it. Add those three bytes
+        # decoding, so exc.start counts from the text after it. Add those 3 bytes
         # back, or the position names nothing the operator can find in the file.
         offset = exc.start + (3 if raw.startswith(b"\xef\xbb\xbf") else 0)
         raise PnlError(

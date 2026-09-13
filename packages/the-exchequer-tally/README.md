@@ -31,14 +31,14 @@ Release: [`v0.1.5`](https://github.com/ryanduguid/australian-accounting/releases
 - **Franking Account Ledger (FAB)**: Tracks PAYG instalments, company tax payments, dividends paid/received, ordinary income tax refunds, under-franking debits and FDT liability credits.
 - **Franking Deficit Tax (FDT) & Offset Reduction**: Evaluates FDT liability under *s 205-45* and the offset reduction under *s 205-70(2) and (8)* for the supported debit types. Refund-only deficits receive no reduction.
 - **Division 203 Benchmark Rule Engine**: Detects over-franking tax (*s 203-50(1)*) and franking debit shortfalls (*s 203-50(2)*) across distributions in a franking period.
-- **Dividend Distribution Statements**: Builds the statement fields required by *s 202-75 / s 202-80*. This is a review helper, not a lodgment and not a compliance certificate.
+- **Dividend Distribution Statements**: Builds the statement fields required by *s 202-75 / s 202-80*. This is a review helper, not a lodgement and not a compliance certificate.
 
 ## Not advice
 
 Nothing this engine produces is tax, legal or financial advice, an assessment
 or a determination. Outputs are review aids: confirm every rate, threshold and
 consequence against the current law and the entity's facts before acting, and
-leave lodgment decisions with a registered practitioner.
+leave lodgement decisions with a registered practitioner.
 
 Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 
@@ -51,7 +51,7 @@ Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 pip install the-exchequer-tally
 ```
 
-### CLI Usage
+### CLI usage
 ```bash
 # Evaluate Base Rate Entity (BRE) status for FY2025
 the-exchequer-tally bre-test --fy 2025 --turnover 4500000 --assessable 800000 --passive 120000
@@ -64,7 +64,7 @@ the-exchequer-tally dist-statement --entity "Acme Pty Ltd" --acn "123456789" --r
 
 ## Statutory sources and tests
 
-### Worked example: two income years, two rates
+### Worked example: 2 income years, 2 rates
 
 These fabricated figures are independently prepared inputs for an ordinary
 company. Aggregated turnover is a separate tax measure; do not substitute total
@@ -171,7 +171,7 @@ All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic
 | **Benchmark Rule** | *ITAA 1997* ss 203-25 to 203-55 | Benchmark set by the first frankable distribution in the franking period (*s 203-30*), then one deterministic shortfall or over-franking result per later distribution. |
 | **Distribution Statements** | *ITAA 1997* ss 202-75, 202-80 | Precise franking credit formula: `Distribution * (Rate / (1 - Rate)) * Franking%`. |
 
-### Automated Test Suite
+### Automated test suite
 - Run the full suite: `uv run --locked --extra dev pytest` (or `pip install .[dev]` then `pytest`; the configured coverage add-on needs the dev extras)
 - The suite covers BRE eligibility, FDT penalty triggers, benchmark-rule checks, and distribution-statement generation. Do not treat a static badge as live coverage.
 

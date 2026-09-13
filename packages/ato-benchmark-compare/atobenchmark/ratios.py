@@ -26,7 +26,7 @@ from .evidence import EvidenceMessage
 from .mapping import BUCKETS, EXPENSE_BUCKETS
 from .money import AmountError
 
-#: Ratios are held to four decimal places, which is two decimal places as a
+#: Ratios are held to 4 decimal places, which is 2 decimal places as a
 #: percentage. The comparison and the printed figure therefore always agree.
 RATIO_PLACES = Decimal("0.0001")
 
