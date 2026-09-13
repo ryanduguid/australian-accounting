@@ -25,18 +25,9 @@ from aus_accounting_mcp.server import (
     list_ato_benchmark_industries,
     refuse_div7a,
 )
+from repository_root import repository_root
 
 CANONICAL_REPOSITORY = "https://github.com/ryanduguid/australian-accounting"
-
-
-def _repository_root() -> Path:
-    # The package lives in apps/aus-accounting-mcp; the workflows these tests audit
-    # live in the repository root .github directory above it.
-    package_root = Path(__file__).resolve().parents[1]
-    for candidate in (package_root, *package_root.parents):
-        if (candidate / ".github" / "workflows").is_dir():
-            return candidate
-    pytest.skip("repository-root policy is not shipped in the Python source distribution")
 
 
 def test_proof_package_surface_is_versioned_and_keeps_stdio_separate() -> None:
@@ -1084,7 +1075,7 @@ def test_committed_binary_assets_have_current_provenance() -> None:
 
 
 def test_repository_social_preview_has_current_name_dimensions_and_provenance() -> None:
-    root = _repository_root() / ".github"
+    root = repository_root() / ".github"
     source = ElementTree.parse(root / "social-preview.svg").getroot()
     assert source.findtext("{http://www.w3.org/2000/svg}title") == "australian-accounting"
     assert (source.attrib["width"], source.attrib["height"]) == ("1280", "640")
@@ -1169,7 +1160,7 @@ def test_pypi_route_rejects_a_rebuilt_distribution() -> None:
 
 
 def test_release_workflow_uses_registered_pypi_publisher() -> None:
-    _assert_registered_pypi_publisher(_workflow_sources(_repository_root()))
+    _assert_registered_pypi_publisher(_workflow_sources(repository_root()))
 
 
 def test_readme_links_to_release_records() -> None:
@@ -1188,7 +1179,7 @@ def test_readme_links_to_release_records() -> None:
 
 
 def test_release_uses_the_hardened_shared_policy_contract() -> None:
-    root = _repository_root()
+    root = repository_root()
     release = (root / ".github" / "workflows" / "release-aus-accounting-mcp.yml").read_text(
         encoding="utf-8"
     )
@@ -1210,7 +1201,7 @@ def test_release_uses_the_hardened_shared_policy_contract() -> None:
 
 
 def test_registry_publisher_is_pinned_and_checksum_verified() -> None:
-    root = _repository_root()
+    root = repository_root()
     workflow = (root / ".github" / "workflows" / "publish-mcp.yml").read_text(encoding="utf-8")
 
     assert "releases/latest" not in workflow

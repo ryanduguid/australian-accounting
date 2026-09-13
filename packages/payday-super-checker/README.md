@@ -37,7 +37,7 @@ Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written
 
 No-install explainer: [When is payday super actually due](https://duguid.com.au/tools/payday-super/). From an AI coding agent, run the same engine through [aus-accounting-mcp](https://duguid.com.au/tools/australian-tax-ai-agents/).
 
-Citation: [`CITATION.cff`](CITATION.cff); release: [`v0.1.3`](https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.1.4).
+Citation: [`CITATION.cff`](CITATION.cff); release: [`v0.1.4`](https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.1.4).
 
 ## Quick proof
 
