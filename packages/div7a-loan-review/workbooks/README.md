@@ -30,8 +30,10 @@ printed on Review Checks.
 4. **Review Checks.** `BLOCKED` means the register cannot be read: a bad year
    label, a value that is not true, false or unknown, text where a number belongs, a
    formula pasted into an input, or no reviewed rate for the year. `REVIEW` means a
-   loan is not on s 109N terms, a repayment is short, or a row is undecided. `PASS`
-   means nothing exposed and nothing undecided, which is the command line tool's
+   loan is not on s 109N terms, a repayment is short, a row is undecided, or a
+   repayment figure is refused (read the reason; refusal alone is not a breach),
+   which matches the command line tool's attention rule. `PASS` means nothing
+   exposed, nothing undecided and nothing refused, which is the command line tool's
    exit code 0.
 5. **Rates.** The frozen table of May RBA F5 figures. To review a year outside it,
    add a row and cite where you read the figure. The engine refuses an override

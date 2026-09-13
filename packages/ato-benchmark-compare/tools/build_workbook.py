@@ -168,9 +168,9 @@ def build() -> None:
         "Not advice; see DISCLAIMER.md in the repository."
     )
 
-    # 2. P&L Import: tblPnl = Account, Amount, Bucket, Guard
+    # 2. P&L Import: tblPnl = Account, Amount, Bucket, Guard, Sample, Key
     ws = wb.create_sheet("P&L Import")
-    header(ws, 1, ["Account", "Amount", "Bucket", "Guard", "Sample"])
+    header(ws, 1, ["Account", "Amount", "Bucket", "Guard", "Sample", "Key"])
     # A fabricated bakery line left in the P&L would count in the ratios; flag the
     # exact account-and-amount pairs the shipped sample carries.
     sample_names = ",".join(f'"{account.strip().lower()}"' for account, _ in pnl)
@@ -179,9 +179,12 @@ def build() -> None:
         "=IF(SUMPRODUCT((LOWER(TRIM(tblPnl[[#This Row],[Account]]))={" + sample_names + "})"
         "*(tblPnl[[#This Row],[Amount]]={" + sample_amounts + "}))>0,1,0)"
     )
+    # The engine compares normalised names literally, so the lookup matches on an
+    # equality array rather than MATCH's text form, which reads ? and * as wildcards.
+    pnl_key_formula = "=TRIM(LOWER(tblPnl[[#This Row],[Account]]))"
     bucket_formula = (
-        "=IFERROR(INDEX(tblMapping[Bucket],MATCH(TRIM(LOWER(tblPnl[[#This Row],[Account]])),"
-        'tblMapping[Key],0)),"")'
+        "=IFERROR(INDEX(tblMapping[Bucket],MATCH(TRUE,"
+        'INDEX(tblMapping[Key]=tblPnl[[#This Row],[Key]],0),0)),"")'
     )
     guard_formula = (
         "=IF(OR(_xlfn.ISFORMULA(tblPnl[[#This Row],[Account]]),"
@@ -195,11 +198,17 @@ def build() -> None:
         style(ws.cell(row=r, column=3, value=bucket_formula), **CALC)
         style(ws.cell(row=r, column=4, value=guard_formula), **CALC)
         style(ws.cell(row=r, column=5, value=sample_formula), **CALC)
+        style(ws.cell(row=r, column=6, value=pnl_key_formula), **CALC)
     add_table(
         ws,
         "tblPnl",
-        f"A1:E{len(pnl) + 1}",
-        {"Bucket": bucket_formula[1:], "Guard": guard_formula[1:], "Sample": sample_formula[1:]},
+        f"A1:F{len(pnl) + 1}",
+        {
+            "Bucket": bucket_formula[1:],
+            "Guard": guard_formula[1:],
+            "Sample": sample_formula[1:],
+            "Key": pnl_key_formula[1:],
+        },
     )
     ws.column_dimensions["A"].width = 34
     ws.column_dimensions["B"].width = 16
@@ -386,17 +395,24 @@ def build() -> None:
             f"INDEX({table}[Account],SUMPRODUCT(MAX({cond}*(ROW({table}[Account])-1))))"
         )
 
-    pnl_dup = "(COUNTIF(tblPnl[Account],tblPnl[Account])>1)*(tblPnl[Account]<>\"\")"
+    # Both duplicate checks read the normalised Key columns, matching the engine's
+    # trimmed, case-folded identity, so "Sales" and " Sales " count as one name.
+    pnl_dup = "(COUNTIF(tblPnl[Key],tblPnl[Key])>1)*(tblPnl[Key]<>\"\")"
     map_dup = "(COUNTIF(tblMapping[Key],tblMapping[Key])>1)*(tblMapping[Key]<>\"\")"
     # ponytail: COUNTIF is case-insensitive like the engine, but it reads ? and * in an
     # account name as wildcards; switch to SUMPRODUCT(--(range=cell)) if that ever bites.
+    bucket_list = "{" + ",".join(f'"{bucket}"' for bucket in BUCKET_ORDER) + "}"
+    # A bucket outside the engine's list falls outside every SUMIFS row, so an
+    # unrecognised value is as blocking as a blank one.
+    bad_bucket = f'(tblPnl[Account]<>"")*ISNA(MATCH(tblPnl[Bucket],{bucket_list},0))'
+    suggested = '(TRIM(LOWER(tblMapping[Source]))="suggested")'
     checks = [
-        ("Every P&L account has a bucket", '=IF(C2=0,"PASS","BLOCKED")',
-         '=COUNTIFS(tblPnl[Account],"<>",tblPnl[Bucket],"")',
-         '=IF(C2=0,"",' + offender("tblPnl", '(tblPnl[Account]<>"")*(tblPnl[Bucket]="")') + ")"),
+        ("Every P&L account has a recognised bucket", '=IF(C2=0,"PASS","BLOCKED")',
+         f"=SUMPRODUCT({bad_bucket})",
+         '=IF(C2=0,"",' + offender("tblPnl", bad_bucket) + ")"),
         ("No mapping is still suggested", '=IF(C3=0,"PASS","BLOCKED")',
-         '=COUNTIF(tblMapping[Source],"suggested")',
-         '=IF(C3=0,"",' + offender("tblMapping", '(tblMapping[Source]="suggested")') + ")"),
+         f"=SUMPRODUCT(--{suggested})",
+         '=IF(C3=0,"",' + offender("tblMapping", suggested) + ")"),
         ("No formula or non-numeric cell in the P&L", '=IF(C4=0,"PASS","BLOCKED")',
          "=SUM(tblPnl[Guard])",
          '=IF(C4=0,"",' + offender("tblPnl", "(tblPnl[Guard]=1)") + ")"),
