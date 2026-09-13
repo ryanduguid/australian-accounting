@@ -13,11 +13,13 @@ name: package
 # ([tool.ruff], [tool.mypy] and [tool.coverage.run] in its pyproject.toml), so
 # every engine runs the same commands.
 #
-# The path filter lives in the changes job rather than on the trigger, so every
-# gate keeps a stable check name whether or not this engine changed. A change
+# The path filter lives in the changes job rather than on the trigger. A change
 # under packages/<name>/ runs that engine; a change to a root policy file, a root
 # workspace file or anything under .github/ runs every engine, because the root
 # uv.lock is what `uv run --locked` validates from inside every engine directory.
+# A skipped matrix job never reports under its matrix names, so the gates job
+# below is the one check name that reports on every run; branch protection
+# requires `<engine> / gates`, not the individual jobs.
 
 on:
   workflow_call:
@@ -351,3 +353,23 @@ jobs:
           else
             echo "::notice::packages/$PACKAGE declares no wheel smoke checks."
           fi
+
+  gates:
+    # The one context branch protection requires for this engine. It passes
+    # when every gate above passed or was skipped by the path filter, and fails
+    # when any gate failed or was cancelled, so a path-skipped engine never
+    # blocks a merge and a failed gate always does.
+    needs: [changes, test, test-windows, changed-line-coverage, lint, dependency-audit, build]
+    if: always()
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: fail when any gate failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS"
+          exit 1
