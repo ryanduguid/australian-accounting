@@ -24,7 +24,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE_POLICY_SHA = "c24612618f177f6dccb7ed9ee2a8648959b87e2e"
+RELEASE_POLICY_SHA = "171aa487dbc0a8f437ed84407f0d506f814548c1"
 
 
 def _load_select_package():
