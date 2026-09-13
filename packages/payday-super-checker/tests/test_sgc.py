@@ -132,3 +132,23 @@ def test_daily_rate_past_the_table_falls_back_with_a_warning():
     assert table.daily_rate(beyond) == Decimal("11.43") / 100 / 365
     assert "11.43" in table.staleness(beyond)
     assert table.staleness(date(2026, 9, 30)) is None
+
+
+def test_notional_earnings_keeps_the_active_precision_rather_than_an_exact_figure():
+    """The design describes retained precision, not exactness: a repeating rate divides."""
+    import decimal
+    from fractions import Fraction
+
+    table = GicTable([GicQuarter(date(2026, 1, 1), date(2026, 12, 31), Decimal("11.43"))])
+    results = {}
+    for precision in (28, 50):
+        with decimal.localcontext() as context:
+            context.prec = precision
+            results[precision] = notional_earnings(
+                Decimal("120"), date(2026, 8, 1), date(2026, 8, 2), table)
+    exact = Fraction(3429, 91250)
+    assert results[28] != results[50]
+    assert all(Fraction(value) != exact for value in results.values())
+    # Both still display as the same cent figure, so this is a documentation
+    # limit on the word "exact", not a cent-level output error.
+    assert {value.quantize(Decimal("0.01")) for value in results.values()} == {Decimal("0.04")}

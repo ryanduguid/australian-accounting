@@ -3501,3 +3501,94 @@ def test_awaiting_clearance_is_not_remittance_evidence(tmp_path):
     assert row["fund_received_date"] == ""
     assert not report.clean
     assert any("Awaiting clearance" in warning for warning in report.warnings)
+
+
+# ---------------------------------------------------------------------------
+# The formula guard must not merge 2 employees into one written identifier
+# ---------------------------------------------------------------------------
+
+
+def _guarded_identity_join():
+    """2 distinct source ids whose csv_safe form is the same string."""
+    payroll_rows = [
+        PayrollRow("-00123", "Synthetic One", date(2026, 8, 3), date(2026, 8, 3),
+                   Decimal("1000.00"), 2),
+        PayrollRow("'-00123", "Synthetic Two", date(2026, 8, 10), date(2026, 8, 10),
+                   Decimal("1000.00"), 3),
+    ]
+    super_rows = [
+        SuperRow("-00123", "Synthetic One", date(2026, 8, 3), date(2026, 8, 3),
+                 date(2026, 8, 17), Decimal("1000.00"), 2),
+        SuperRow("'-00123", "Synthetic Two", date(2026, 8, 10), date(2026, 8, 10),
+                 date(2026, 8, 19), Decimal("1000.00"), 3),
+    ]
+    return join(payroll_rows, super_rows)
+
+
+def test_write_canonical_refuses_ids_the_formula_guard_would_merge(tmp_path):
+    # -00123 and '-00123 are 2 employees to the join, which compares ids
+    # exactly, but csv_safe writes both as '-00123. The checker then reads one
+    # employee, and the second inherits the first's item 4 deadline group.
+    result = _guarded_identity_join()
+    assert len({outcome.payroll.employee_id for outcome in result.outcomes}) == 2
+    out = tmp_path / "out.csv"
+    with pytest.raises(CsvError) as raised:
+        write_canonical(result, out)
+    message = str(raised.value)
+    assert "'-00123" in message and "payroll row(s) 2" in message
+    assert "payroll row(s) 3" in message
+    assert not out.exists()
+
+
+def test_write_canonical_still_writes_distinct_guarded_ids(tmp_path):
+    # The control: a formula-leading id is still quoted and still written, so
+    # the refusal above is about the merge and not about the guard.
+    result = join(
+        [PayrollRow("-00123", "Synthetic One", date(2026, 8, 3), date(2026, 8, 3),
+                    Decimal("1000.00"), 2),
+         PayrollRow("-00124", "Synthetic Two", date(2026, 8, 10), date(2026, 8, 10),
+                    Decimal("1000.00"), 3)],
+        [SuperRow("-00123", "Synthetic One", date(2026, 8, 3), date(2026, 8, 3),
+                  date(2026, 8, 17), Decimal("1000.00"), 2),
+         SuperRow("-00124", "Synthetic Two", date(2026, 8, 10), date(2026, 8, 10),
+                  date(2026, 8, 19), Decimal("1000.00"), 3)],
+    )
+    out = tmp_path / "out.csv"
+    write_canonical(result, out)
+    with open(out, newline="", encoding="utf-8-sig") as f:
+        rows = list(_csv.DictReader(f))
+    assert [r["employee_id"] for r in rows] == ["'-00123", "'-00124"]
+
+
+# ---------------------------------------------------------------------------
+# An accepted zero has no sign, so the canonical file stays readable
+# ---------------------------------------------------------------------------
+
+
+def test_negative_zero_is_written_as_an_unsigned_zero(tmp_path):
+    # Decimal keeps the sign of -0.00, money() formats it with a leading "-"
+    # and csv_safe quotes it, so the file the importer just wrote came back as
+    # "'-0.00", which the checker's own reader refuses.
+    assert _amount("-0.00", "sg_amount", 2) == Decimal("0.00")
+    assert str(_amount("-0.00", "sg_amount", 2)) == "0.00"
+    result = join(
+        [PayrollRow("ZERO", "Synthetic Zero", date(2026, 8, 3), date(2026, 8, 3),
+                    _amount("-0.00", "sg_amount", 2), 2)],
+        [],
+    )
+    out = tmp_path / "out.csv"
+    write_canonical(result, out)
+    with open(out, newline="", encoding="utf-8-sig") as f:
+        rows = list(_csv.DictReader(f))
+    assert rows[0]["sg_amount"] == "0.00"
+    # The checker reads back what the importer wrote.
+    assert parse_rows(out, DEFAULT_MAPPING)[0].sg_amount == Decimal("0.00")
+
+
+def test_a_sub_cent_amount_is_still_refused_in_both_readers(tmp_path):
+    # The control for the change above: only an exact zero loses its sign.
+    with pytest.raises(CsvError, match="under half a cent"):
+        _amount("0.004", "sg_amount", 2)
+    for negative in ("-0.004", "-0.01"):
+        with pytest.raises(CsvError, match="negative"):
+            _amount(negative, "sg_amount", 2)

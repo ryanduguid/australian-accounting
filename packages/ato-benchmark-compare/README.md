@@ -102,6 +102,20 @@ to `reviewed`. `ato-benchmark-compare buckets` explains each bucket. This is the
 that decides whether the answer is worth anything: no account name tells you whether
 wages went to an associate.
 
+Open it so the spreadsheet keeps the account columns as text. In Excel, use Data >
+From Text/CSV, set the `account` and `account_key` columns to Text in the preview,
+then load and save as CSV UTF-8. Opening the file by double-click instead reads a
+numeric-looking ledger code as a number: `-00123`, `+00123` and `00123` are saved
+back as `-123`, `123` and `123` even when no account cell was touched, and the next
+run refuses the file because the account no longer identifies the same account as its
+`account_key`. The refusal is deliberate, so regenerate the mapping and reapply the
+reviewed values rather than editing the key. The double-click round trip was
+observed in Excel 16.0. The text import above was checked in the same Excel 16.0 by
+driving the equivalent text-typed import over COM: `-00123`, `+00123` and `00123`
+came back unchanged and the next `compare` run read every file. The dialog itself and
+other spreadsheet applications have not been checked here, so confirm the account and
+`account_key` columns are unchanged before the next run.
+
 The generated mapping includes an `account_key` immediately after `account`. It is a
 SHA-256 digest of the tool's existing case-and-whitespace-insensitive account identity.
 Leave both columns unchanged while reviewing `bucket`, `source` and `note`; `amount` is

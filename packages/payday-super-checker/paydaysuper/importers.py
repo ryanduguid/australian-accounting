@@ -285,6 +285,13 @@ def _amount(value: str, field: str, row: int) -> Decimal:
             "tool matches, writes and reports is a cent figure. Round it yourself, or "
             "take the row out."
         )
+    if rounded == 0:
+        # Decimal keeps the sign of "-0.00", and money() then formats it with a
+        # leading "-" that csv_safe quotes as text, so the canonical file the
+        # importer just wrote came back as an amount this reader refuses. An
+        # accepted zero has no sign worth preserving; a nonzero negative is
+        # already refused above and a sub-cent figure just above that.
+        return Decimal("0.00")
     return rounded
 
 
@@ -504,6 +511,49 @@ def _classify_outcome(outcome: MatchOutcome) -> str:
     return OUTCOME_MATCHED
 
 
+def _refuse_merged_identities(result: JoinResult, labels: dict[str, str]) -> None:
+    """Refuse an export whose formula guard would write 2 employees as one.
+
+    `csv_safe` quotes a formula-leading label, so the distinct source ids
+    `-00123` and `'-00123` both leave `write_canonical` as `'-00123`. The
+    checker compares employee ids exactly and reads that single value as one
+    person, so the second employee joins the first's s 18C(2) item 4 deadline
+    group and inherits its deadline and verdict: a LATE row with a shortfall
+    reports ON_TIME, and the check's exit code falls from 2 to 0.
+
+    Refusing here keeps both the guard and the join's exact-id rule. Naming
+    the source rows is what the operator can act on: give the people distinct
+    codes that do not start with a formula character, and re-run.
+    """
+    written: dict[str, list[str]] = {}
+    for key, label in labels.items():
+        written.setdefault(csv_safe(label), []).append(key)
+    merged = {value: keys for value, keys in written.items() if len(keys) > 1}
+    if not merged:
+        return
+    rows: dict[str, list[int]] = {}
+    for outcome in result.outcomes:
+        rows.setdefault(_key(outcome.payroll, result.key_mode), []).append(outcome.payroll.row)
+    detail = "; ".join(
+        f'"{value}" would be written for '
+        + " and ".join(
+            f'"{labels[key]}" (payroll row(s) '
+            + ", ".join(str(number) for number in sorted(rows.get(key, [])))
+            + ")"
+            for key in sorted(keys)
+        )
+        for value, keys in sorted(merged.items())
+    )
+    raise CsvError(
+        f"{len(merged)} written employee identifier(s) would stand for more than one "
+        f"person: {detail}. The usual cause is the spreadsheet formula guard, which "
+        "adds a leading quote to a code starting with =, +, - or @. Two employees "
+        "under one identifier share a deadline group in the "
+        "check, so the canonical file is not written. Give them distinct codes that "
+        "survive the guard unchanged, and import again."
+    )
+
+
 def write_canonical(result: JoinResult, path: str | Path) -> None:
     """Write the canonical contributions CSV that
     `paydaysuper.csv_io.parse_rows` reads unmodified with its default
@@ -540,7 +590,12 @@ def write_canonical(result: JoinResult, path: str | Path) -> None:
     today (amounts are never negative, dates are ISO, the flag columns are
     always blank), but running all of them through the one guard is one
     rule with no unstated exception, rather than a rule that only covers
-    the field known to carry attacker-controlled text today."""
+    the field known to carry attacker-controlled text today.
+
+    The guard can make 2 labels identical -- `-00123` and `'-00123` both
+    leave here as `'-00123` -- so the export is refused when that would
+    happen, rather than writing one identifier for 2 people. See
+    `_refuse_merged_identities`."""
     labels: dict[str, str] = {}
     for outcome in result.outcomes:
         row = outcome.payroll
@@ -548,6 +603,7 @@ def write_canonical(result: JoinResult, path: str | Path) -> None:
             row.employee_id if result.key_mode == "id" else row.employee_name
         ) or row.employee_id or row.employee_name or ""
         labels.setdefault(_key(row, result.key_mode), preferred)
+    _refuse_merged_identities(result, labels)
 
     with atomic_text_output(path, encoding="utf-8-sig") as f:
         writer = csv.writer(f)

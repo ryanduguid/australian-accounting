@@ -130,6 +130,39 @@ def test_library_pagination_unicode_and_external_link(tmp_path, monkeypatch):
         call("read_accounting_library", path="link.md")
 
 
+def test_library_pagination_does_not_repeat_around_an_oversized_line(tmp_path, monkeypatch):
+    """An eligible line too long to excerpt is consumed once, not skipped then repeated."""
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    oversized = "GST " + "x" * 12_001
+    (tmp_path / "example.md").write_text(
+        "\n".join(["GST one", oversized, "GST three", "GST four"]), encoding="utf-8")
+    cited = []
+    offset = 0
+    for _ in range(4):
+        page = call("search_accounting_library", query="GST", limit=1, offset=offset)
+        cited.extend(match["start_line"] for match in page["matches"])
+        if not page["has_more"]:
+            break
+        assert page["next_offset"] is not None and page["next_offset"] > offset
+        offset = page["next_offset"]
+    assert cited == [1, 3, 4]
+
+
+def test_library_pagination_stops_at_the_offset_bound_instead_of_stranding_the_caller(
+        tmp_path, monkeypatch):
+    """Past the accepted offset the page asks for a narrower query, not an unusable offset."""
+    from aus_accounting_mcp import library
+
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    monkeypatch.setattr(library, "MAX_OFFSET", 4)
+    (tmp_path / "example.md").write_text("\n".join(["GST"] * 8), encoding="utf-8")
+    page = call("search_accounting_library", query="GST", limit=2, offset=3)
+    assert page["has_more"] and page["next_offset"] is None
+    assert "narrow the query" in page["notice"]
+    control = call("search_accounting_library", query="GST", limit=2, offset=1)
+    assert control["has_more"] and control["next_offset"] == 3
+
+
 def test_library_scan_budget_counts_invalid_utf8(tmp_path, monkeypatch):
     from aus_accounting_mcp import library
 

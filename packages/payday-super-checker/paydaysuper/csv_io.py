@@ -374,6 +374,13 @@ def _parse_amount(value: str, field: str, row: int) -> Decimal:
             "tool matches, writes and reports is a cent figure. Round it yourself, or "
             "take the row out."
         )
+    if rounded == 0:
+        # Decimal keeps the sign of "-0.00", and money() then formats it with a
+        # leading "-" that csv_safe quotes as text, so the canonical file the
+        # importer just wrote came back as an amount this reader refuses. An
+        # accepted zero has no sign worth preserving; a nonzero negative is
+        # already refused above and a sub-cent figure just above that.
+        return Decimal("0.00")
     return rounded
 
 

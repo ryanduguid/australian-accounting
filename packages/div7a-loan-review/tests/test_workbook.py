@@ -121,3 +121,129 @@ def test_input_columns_are_text_or_validated_so_pasted_values_stay_inert():
     assert ws.protection.sheet is False, "pasting extends the table"
     assert book["Summary"].protection.sheet is True
     assert book["Review Checks"].protection.sheet is True
+
+
+# ---------------------------------------------------------------------------
+# Generator-level checks. Excel is not run here, so these hold the formulas the
+# builder writes; the shipped cached values still come from a desktop Excel pass
+# (tools/build_workbook.py).
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def builder():
+    import importlib.util
+    import sys
+
+    root = Path(__file__).resolve().parents[1]
+    sys.path.insert(0, str(root))
+    spec = importlib.util.spec_from_file_location(
+        "div7a_build_workbook", root / "tools" / "build_workbook.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_any_nonblank_exclusion_reason_skips_the_row(builder):
+    """register._skip_reason skips a nonblank reason; "unknown" is a reason, not a blank."""
+    status = builder.formulas()["Status"]
+    assert 'TRIM(tblLoans[[#This Row],[out_of_scope_reason]]&"")<>""' in status
+    assert "out_of_scope_reason" not in builder.unknown(
+        builder.T("year_loan_made"))  # the helper is not what decides scope any more
+    assert builder.unknown(builder.T("out_of_scope_reason")) not in status
+
+
+def test_only_reviewed_rows_are_validated(builder):
+    """The engine skips before parsing, so unused facts on a skipped row block nothing."""
+    problem = builder.formulas()["Input_problem"]
+    assert problem.startswith(
+        '=IF(TRIM(tblLoans[[#This Row],[out_of_scope_reason]]&"")<>"","",')
+    # The bool and number tests are the ones the engine reaches only after the skip.
+    for guard in (builder.bool_bad("written_agreement"),
+                  builder.number_bad("payments_applied_during_the_year")):
+        head = problem.index(guard)
+        assert 'tblLoans[[#This Row],[Status]]<>"REVIEWED",""' in problem[:head]
+    # The formula guard stays on every row: a pasted formula is a tamper signal.
+    assert "Status" not in builder.formulas()["Guard"]
+
+
+def test_the_loan_year_label_is_read_before_the_historical_skip(builder):
+    """register._skip_reason parses year_loan_made to decide whether the loan is pre-1998.
+
+    An out-of-bounds label such as `1800-01` is exit 1 in the CLI, so the workbook
+    cannot suppress it as a silent historical skip. Only a row the operator has
+    marked out of scope escapes the label test, because the engine returns on that
+    reason before it parses anything.
+    """
+    problem = builder.formulas()["Input_problem"]
+    made = builder.year_bad("year_loan_made")
+    tested = builder.year_bad("year_of_income_being_tested")
+    assert made in problem
+    skip_gate = 'tblLoans[[#This Row],[Status]]<>"REVIEWED",""'
+    assert skip_gate not in problem[:problem.index(made)]
+    # The control: the other year label is parsed after the skip, so it is gated.
+    assert f'AND(tblLoans[[#This Row],[Status]]="REVIEWED",{tested})' in problem
+
+
+def test_the_year_guard_matches_the_engine_grammar_and_bounds(builder):
+    from div7aloan.years import _EARLIEST, _LATEST
+
+    guard = builder.year_bad("year_loan_made")
+    assert 'TRIM(tblLoans[[#This Row],[year_loan_made]]&"")' in guard
+    assert f">={_EARLIEST}" in guard and f"<={_LATEST}" in guard
+    # Every one of the 6 digit positions is tested, so VALUE cannot read 20e2 as 2000.
+    for position in (1, 2, 3, 4, 6, 7):
+        assert f',{position},1)))' in guard
+
+
+def test_the_money_guard_carries_the_engine_limits(builder):
+    from div7aloan.money import MAX_MONEY_MAGNITUDE
+
+    for column in ("amalgamated_loan_unpaid_at_end_of_previous_year",
+                   "payments_applied_during_the_year"):
+        guard = builder.number_bad(column)
+        assert f">{MAX_MONEY_MAGNITUDE}" in guard
+        assert "ABS(ROUND(" in guard and ",2)-" in guard
+    # parse_rate and parse_ratio impose neither limit, so neither does the workbook.
+    for column in ("interest_rate_for_years_after_year_loan_made",
+                   "security_coverage_at_first_made"):
+        guard = builder.number_bad(column)
+        assert str(MAX_MONEY_MAGNITUDE) not in guard
+        assert "ABS(ROUND(" not in guard
+
+
+def test_the_money_guard_survives_a_text_cell(builder):
+    """AND and OR evaluate every argument, so the arithmetic must not error.
+
+    ROUND on a cell holding `unknown` returns #VALUE!, and the error propagates
+    out through the ISNUMBER guard that was there to catch it: the shipped
+    sample's L-104, whose payments column is `unknown`, turned Input_problem and
+    the whole 'Every register value can be read' check into #VALUE!.
+    """
+    for column in ("amalgamated_loan_unpaid_at_end_of_previous_year",
+                   "payments_applied_during_the_year"):
+        guard = builder.number_bad(column)
+        cell = builder.T(column)
+        assert f"ROUND({cell}," not in guard
+        assert f"ABS(ROUND(N({cell})," in guard
+        # The control: the raw cell is still what ISNUMBER and the sign test read.
+        assert f"ISNUMBER({cell})" in guard and f"{cell}<0" in guard
+
+
+def test_scope_and_lookup_read_the_trimmed_year(builder):
+    calc = builder.formulas()
+    for name in ("Status", "Floor_year"):
+        assert 'LEFT(tblLoans[[#This Row],[year_loan_made]]' not in calc[name]
+    assert 'TRIM(tblLoans[[#This Row],[year_loan_made]]&"")' in calc["Floor_year"]
+    # The repayment verdict compares the same trimmed label. Comparing the raw cell
+    # with the trimmed Floor_year made ` 2023-24 ` REFUSED for a benchmark-year
+    # mismatch against itself, where the engine trims and returns MYR_MET, exit 0.
+    raw = 'tblLoans[[#This Row],[year_loan_made]]&""'
+    for name in ("MYR_verdict", "MYR_reason"):
+        formula = calc[name]
+        assert f"TRIM({raw})" in formula
+        # Every reading of the label goes through TRIM, none of them the raw cell.
+        at = formula.find(raw)
+        while at != -1:
+            assert formula[at - 5:at] == "TRIM(", (name, formula[at - 40:at + 40])
+            at = formula.find(raw, at + 1)

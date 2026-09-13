@@ -115,3 +115,18 @@ def test_stdio_rejects_unknown_arguments_and_preserves_partial_receipts():
                 })
                 assert result.is_error
     asyncio.run(check())
+
+
+@pytest.mark.parametrize("remitted,verdict", [
+    (None, "UNPAID"), ("2026-08-04", "AT_RISK"), ("2026-08-20", "LATE"),
+])
+def test_a_missing_fund_receipt_has_more_than_one_verdict(remitted, verdict):
+    """The prompt cannot name one verdict for a missing receipt: the tool returns three."""
+    result = asyncio.run(mcp.call_tool("calc_payday_super_deadline", {
+        "qe_day": "2026-08-03", "sg_amount": "100.00", "as_at": "2026-08-25",
+        "remitted": remitted,
+    }))
+    assessment = result.structured_content["result"]
+    assert assessment["due"] == "2026-08-12"
+    assert assessment["received"] is None
+    assert assessment["verdict"] == verdict != "ON_TIME"

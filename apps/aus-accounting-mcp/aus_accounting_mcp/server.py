@@ -42,7 +42,7 @@ from .fixtures.synthetic_sbr import (
     generate_synthetic_bas_payload,
     generate_synthetic_ctr_payload,
 )
-from .library import read_reference, search_references
+from .library import MAX_OFFSET, read_reference, search_references
 from .money import parse_amount
 from .outputs import (
     BenchmarkComparison,
@@ -884,8 +884,10 @@ def search_accounting_library(
         description="Words to find together on a line, case-insensitive; no regular expressions.")],
     limit: Annotated[int, Field(strict=True, ge=1, le=20,
         description="Maximum excerpts per page.")] = 5,
-    offset: Annotated[int, Field(strict=True, ge=0, le=10000,
-        description="Continue with next_offset using the same query and unchanged library.")] = 0,
+    offset: Annotated[int, Field(strict=True, ge=0, le=MAX_OFFSET,
+        description="Continue with next_offset using the same query and unchanged library. "
+                    "A page can omit next_offset while has_more is true at the 10000-result "
+                    "boundary; narrow the query instead.")] = 0,
 ) -> LibrarySearch:
     """Search local Markdown when AUS_ACCOUNTING_LIBRARY_ROOT is configured.
 
@@ -1064,9 +1066,10 @@ def review_payday_super_contribution_prompt(as_at: str | None = None) -> str:
         f"{assessment} Call calc_payday_super_deadline once for the contribution, with "
         "qe_day as the day the wages were actually paid.\n\n"
         "Pass received only where the clearing house or the fund evidences the date the "
-        "fund received the contribution. A remitted date is not that date, and a "
-        "contribution with no fund receipt is AT_RISK rather than ON_TIME. Leave "
-        "received out if the CSV does not carry it.\n\n"
+        "fund received the contribution. A remitted date is not that date. Missing "
+        "fund-receipt evidence prevents an ON_TIME result, and the verdict then depends "
+        "on the other facts, so report the verdict the tool returns with its caveats "
+        "instead of assuming one. Leave received out if the CSV does not carry it.\n\n"
         "Pass matched_amount or remitted_amount for a partial contribution; do not "
         "drop the amount and imply full receipt. Read aus-accounting://payday-coverage "
         "for the bundled rate and calendar limits.\n\n"
