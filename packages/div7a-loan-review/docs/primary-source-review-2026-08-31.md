@@ -187,9 +187,9 @@ The earlier review treated checking later years' rates against their benchmarks
 as a commercial check for an agreement expressed to carry 'the benchmark rate',
 rather than part of the s 109N(1)(b) test. That distinction is now unresolved.
 
-**Historical reviewed position:** the build followed the original-year reading,
-confirmed by Ryan Duguid on 31 August 2026. This is no longer presented as a
-settled interpretation.
+**Reviewed position (historical, superseded):** the build followed the
+original-year reading. Confirmed by Ryan Duguid on 31 August 2026. This is no
+longer presented as a settled interpretation.
 
 **Runtime result:** `gate` without `--year` anchors each row to its own
 `year_loan_made`. `gate --year <Y>` runs the selected-year comparison. These
