@@ -101,6 +101,7 @@ def _print_gate(gate: GateResult) -> None:
     print(f"  s 109N gate: {gate.verdict}  (benchmark year {gate.benchmark_year_used})")
     for limb in gate.limbs:
         print(f"    [{limb.state.value:<7}] {limb.cite}: {limb.finding}")
+    _print_lines("!", gate.caveats)
 
 
 def _print_myr(myr: MyrResult) -> None:
@@ -192,7 +193,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--year",
         help=(
             "year of income to read the benchmark floor for. Omit to use each row's "
-            "year_loan_made, which is the year s 109N(1)(b) points at"
+            "year_loan_made. The annual-interest interpretation remains unresolved"
         ),
     )
     common(gate)

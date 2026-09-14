@@ -68,6 +68,7 @@ def test_static_proof_selects_both_checked_outcomes() -> None:
     assert '  summary.total_payable_to_ato: "42500.00"' in lines
     assert "review_div7a_loan" in lines
     assert '  gate.verdict: "COMPLYING"' in lines
+    assert '  gate.caveat: "Interest-floor interpretation unresolved"' in lines
     assert '  minimum_yearly_repayment.verdict: "MYR_MET"' in lines
     assert '  minimum_yearly_repayment.myr_required: "108770.00"' in lines
     assert '  minimum_yearly_repayment.shortfall: "0.00"' in lines

@@ -48,6 +48,7 @@ def proof_lines(transcript_path: Path) -> list[str]:
         "",
         "review_div7a_loan",
         f"  gate.verdict: {_json_value(div7a['gate']['verdict'])}",
+        f"  gate.caveat: {_json_value(div7a['gate']['caveats'][0].split(':', 1)[0])}",
         f"  minimum_yearly_repayment.verdict: {_json_value(myr['verdict'])}",
         "  minimum_yearly_repayment.myr_required: "
         f"{_json_value(myr['myr_required'])}",

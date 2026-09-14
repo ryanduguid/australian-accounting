@@ -110,6 +110,13 @@ def test_a_clean_register_exits_zero():
     assert code == 0
 
 
+@pytest.mark.parametrize("command", ["gate", "review"])
+def test_text_output_exposes_the_annual_interest_limitation(command):
+    _, out, _ = run([command, "--input", MET, "--year", "2026-27"])
+    assert "Interest-floor interpretation unresolved" in out
+    assert "COMPLYING does not establish" in out
+
+
 def test_a_register_needing_attention_exits_two():
     code, _, _ = run(["review", "--input", MIXED, "--year", "2026-27"])
     assert code == 2

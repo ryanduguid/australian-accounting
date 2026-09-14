@@ -151,6 +151,24 @@ run time or in tests.
 
 ## s 109N(1)(b): which year's benchmark rate sets the floor
 
+### Unresolved interpretation, 14 September 2026
+
+The original-year interpretation below conflicts with [current ATO complying-loan guidance](https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/private-company-benefits-division-7a-dividends/in-detail/division-7a-loans).
+The guidance requires the benchmark for each year, and its example requires
+subsequent years' rates to meet their respective benchmarks. The Library does
+not settle this particular question. The page also carries a Bendel review
+alert; this note concerns its annual-interest requirement, not UPE treatment.
+
+The engine retains its selected-year comparison while this interpretation is
+unresolved. A `COMPLYING` result records the model comparisons and does not
+establish that a fixed-rate agreement meets the annual interest requirement.
+For example, 5% exceeds the 2022-23 benchmark of 4.77% but falls below the
+2023-24 benchmark of 8.27%. Review the agreement and relevant years before
+relying on the gate. The separate minimum-repayment formula still uses the
+repayment year's benchmark.
+
+### Historical position, 31 August 2026
+
 This is the one interpretive question in the build.
 
 > (b) the rate of interest payable on the loan for years of income after the

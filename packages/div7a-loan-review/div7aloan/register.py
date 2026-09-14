@@ -201,11 +201,10 @@ def review_register(
 ) -> ReviewReport:
     """Review a loan register for one year of income.
 
-    The s 109N gate is anchored to each row's year_loan_made, which is the
-    year s 109N(1)(b) itself points at. Pass gate_benchmark_year to test the
-    supplied rate against a later year's benchmark instead; that is a
-    practice check on a risen benchmark rather than the s 109N(1)(b) test,
-    and the result says so.
+    The s 109N model defaults to each row's year_loan_made. Pass
+    gate_benchmark_year to select another year's benchmark. The result
+    identifies the unresolved annual-interest interpretation; a passing
+    comparison does not establish compliance across the loan's years.
 
     The s 109E minimum yearly repayment is worked out for year_of_income,
     using that year's benchmark rate: a benchmark rate that has risen since

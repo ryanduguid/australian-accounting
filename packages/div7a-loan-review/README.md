@@ -154,14 +154,15 @@ a reviewed benchmark rate for a year outside the frozen table.
 
 ### Which year the gate reads its benchmark from
 
-`gate` without `--year` anchors each row to its own `year_loan_made`. That is
-the s 109N(1)(b) test: the rate payable for later years is measured against
-the benchmark rate for the year the loan was made.
+`gate` without `--year` anchors each row to its own `year_loan_made`.
+`gate --year 2026-27` uses the nominated year's benchmark instead.
 
-`gate --year 2026-27` measures every row against that year's benchmark
-instead. That is a practice check on a risen benchmark, not the s 109N(1)(b)
-test, and the result says so. The divergence is written up in
-[evaluation/div7a_myr/README.md](evaluation/div7a_myr/README.md).
+**The interest-floor interpretation is unresolved.** [ATO guidance](https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/private-company-benefits-division-7a-dividends/in-detail/division-7a-loans)
+requires the benchmark for each year of the loan. The model compares one
+supplied rate with one selected benchmark. Its `COMPLYING` label does not
+establish that the agreement satisfies the annual requirement. Review the
+agreement and relevant years before relying on it. The [source review](docs/primary-source-review-2026-08-31.md)
+preserves the earlier interpretation and records this conflict.
 
 `review` always anchors the gate to `year_loan_made` and works the repayment
 for `--year`.

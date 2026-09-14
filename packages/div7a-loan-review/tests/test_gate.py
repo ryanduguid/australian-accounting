@@ -193,8 +193,7 @@ def test_no_year_at_all_is_unknown():
 
 
 def test_the_floor_year_defaults_to_the_year_the_loan_was_made():
-    """s 109N(1)(b) points at the benchmark rate for the year the loan was
-    made, so that is the anchor when the operator nominates nothing else."""
+    """The model retains its default comparison while its interpretation is unresolved."""
     result = complying_loan_gate(
         GateFacts(
             written_agreement=True,
@@ -207,6 +206,22 @@ def test_the_floor_year_defaults_to_the_year_the_loan_was_made():
     )
     assert result.benchmark_year_used == "2022-23"
     assert result.verdict is GateVerdict.COMPLYING
+
+
+def test_each_selected_year_result_exposes_the_unresolved_annual_requirement():
+    for supplied, year, expected in (
+        ("0.05", None, GateVerdict.COMPLYING),
+        ("0.05", parse_year("2023-24"), GateVerdict.NOT_COMPLYING),
+        ("0.0827", parse_year("2023-24"), GateVerdict.COMPLYING),
+        ("0.04", None, GateVerdict.NOT_COMPLYING),
+    ):
+        result = complying_loan_gate(facts(
+            year_loan_made=parse_year("2022-23"), year_of_income_being_tested=year,
+            interest_rate_for_years_after_year_loan_made=D(supplied),
+        ))
+        assert result.verdict is expected
+        assert any("Interest-floor interpretation unresolved" in c for c in result.caveats)
+        assert any("COMPLYING does not establish" in c for c in result.caveats)
 
 
 def test_testing_a_later_year_carries_a_caveat_naming_the_divergence():

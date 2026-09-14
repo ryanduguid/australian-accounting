@@ -66,6 +66,8 @@ def test_cached_values_were_calculated_by_desktop_excel(cached):
     assert cached["Review Checks"]["C9"].value == 8
     assert cached["Review Checks"]["B10"].value == "REVIEW"
     assert cached["Start Here"]["A11"].value == "REVIEW"
+    assert "Interest-floor interpretation unresolved" in cached["Review Checks"]["A13"].value
+    assert "COMPLYING does not establish" in cached["Review Checks"]["A13"].value
 
 
 def test_mixed_sample_matches_the_engine_line_by_line(cached):

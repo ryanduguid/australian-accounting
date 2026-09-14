@@ -582,6 +582,8 @@ def build() -> None:
         style(ws.cell(row=r, column=5, value=basis), **INPUT)
         style(ws.cell(row=r, column=6, value=seen), **INPUT)
     add_table(ws, "tblGic", f"A1:F{len(gic) + 1}")
+    for column in ("A", "B", "C"):
+        ws.column_dimensions[column].width = 14
     ws.cell(row=len(gic) + 4, column=1, value=(
         "General interest charge, TAA 1953 s 8AAD: annual rate divided by the days in the "
         "calendar year. Rows marked estimate carry the last known rate forward, as the "
