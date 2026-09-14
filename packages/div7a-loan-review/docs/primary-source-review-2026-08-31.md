@@ -169,31 +169,32 @@ repayment year's benchmark.
 
 ### Historical position, 31 August 2026
 
-This is the one interpretive question in the build.
+The position recorded below on 31 August 2026 is superseded by the unresolved
+interpretation above. It records the reasoning at that date, not a current
+conclusion about the annual interest requirement.
 
 > (b) the rate of interest payable on the loan for years of income after the
 > year in which the loan is made equals or exceeds the benchmark interest rate
 > **for the year**;
 
-Read against the chapeau, "A private company that makes a loan to an entity
+The earlier review read the chapeau, "A private company that makes a loan to an entity
 in one of the private company's years of income ... if, **before the lodgment
-day for the year of income** ...", 'the year' is the year of income in which
-the loan was made, and the whole of s 109N(1) is tested once, before that
-year's lodgment day. It is not a test that recurs annually.
+day for the year of income** ...", as referring to the year of income in which
+the loan was made. It treated the whole of s 109N(1) as tested once, before
+that year's lodgment day, rather than annually.
 
-It is nonetheless common in practice to check, year by year, that the rate
-being charged still meets the current benchmark, on the footing that an
-agreement expressed to carry 'the benchmark rate' must keep up with it. That
-is a sensible commercial check. It is not the s 109N(1)(b) test.
+The earlier review treated checking later years' rates against their benchmarks
+as a commercial check for an agreement expressed to carry 'the benchmark rate',
+rather than part of the s 109N(1)(b) test. That distinction is now unresolved.
 
-**Reviewed position:** the Act's reading is followed. Confirmed by Ryan Duguid
-on 31 August 2026.
+**Historical reviewed position:** the build followed the original-year reading,
+confirmed by Ryan Duguid on 31 August 2026. This is no longer presented as a
+settled interpretation.
 
 **Runtime result:** `gate` without `--year` anchors each row to its own
-`year_loan_made`, which is the statutory test. `gate --year <Y>` runs the
-later-year comparison, and every result it produces carries a caveat naming
-the divergence and the year the Act actually points at. Where the 2 readings
-could differ, the engine follows the Act and labels the alternative.
+`year_loan_made`. `gate --year <Y>` runs the selected-year comparison. These
+model comparisons retain the unresolved-interpretation caveat described above;
+they do not establish compliance with the annual interest requirement.
 
 Nothing turns on this for the repayment calculation. s 109E(6) uses the
 *current* year's benchmark rate on its own terms, so a risen benchmark raises
