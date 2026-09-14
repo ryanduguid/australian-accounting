@@ -39,6 +39,20 @@ No-install explainer: [When is payday super actually due](https://duguid.com.au/
 
 Citation: [`CITATION.cff`](CITATION.cff); release: [`v0.1.4`](https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.1.4).
 
+## Try one contribution without cloning
+
+With [uv](https://docs.astral.sh/uv/) installed, [download the synthetic CSV](https://duguid.com.au/assets/examples/payday/timely_remittance_no_receipt.csv) as `timely_remittance_no_receipt.csv`. Open a terminal in that folder and run:
+
+```bash
+uvx --from payday-super-checker==0.1.4 payday-super-check timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o payday-report.csv
+```
+
+The pinned PyPI package writes `payday-report.csv` in that folder, replacing that file if it exists. Expected result: one `AT_RISK` contribution, due `2026-08-17`, with exit 0. The $120 contribution was remitted on 14 August, but no fund receipt is recorded as at 20 August.
+
+`--confirm-remittance-only` acknowledges that gap; it does not prove timely receipt. Omit the flag to get the same verdict with exit 2 and a request to resolve or acknowledge the missing evidence. Obtain fund receipt evidence before closing the exception.
+
+The [recorded public evaluation](https://duguid.com.au/evaluate/payday-super-evidence/) uses release 0.1.3 and preserves its original commands and expected exit codes. This quick trial uses release 0.1.4.
+
 ## Quick proof
 
 [![Fabricated Payday Super review](assets/quick-proof.svg)](assets/quick-proof.md)
@@ -73,7 +87,7 @@ cd australian-accounting/packages/payday-super-checker && pip install .
 
 Cloning first means you have the sample file the next command uses. To skip
 the clone, `pip install payday-super-checker` installs the tool alone from
-PyPI; point it at your own CSV.
+PyPI. Use the synthetic CSV above for a first run before preparing your own input.
 
 ## Before you run
 
