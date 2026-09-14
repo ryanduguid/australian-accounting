@@ -1007,8 +1007,8 @@ def test_release_metadata_matches_the_candidate_version() -> None:
     assert "ato-benchmark-compare` 0.1.7" in release_notes
     assert "payday-super-checker` 0.1.4" in release_notes
     assert "div7a-loan-review` 0.1.2" in release_notes
-    assert published_version == server["packages"][0]["version"] == "0.2.1"
-    assert project["version"] != published_version
+    assert published_version == server["packages"][0]["version"] == "0.2.2"
+    assert project["version"] == published_version
 
 
 def test_active_repository_metadata_uses_canonical_identity() -> None:
@@ -1051,8 +1051,8 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
         "aus-accounting-mcp",
         "aus-accounting-mcp-demo",
         "io.github.ryanduguid/aus-accounting",
-        "https://pypi.org/project/aus-accounting-mcp/0.2.1/",
-        "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.1",
+        "https://pypi.org/project/aus-accounting-mcp/0.2.2/",
+        "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.2",
         "[compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json)",
     ):
         assert text in readme + reference
@@ -1091,12 +1091,12 @@ def test_server_metadata_publishes_exact_pypi_release() -> None:
     root = Path(__file__).resolve().parents[1]
     server = json.loads((root / "server.json").read_text(encoding="utf-8"))
 
-    assert server["version"] == "0.2.1"
+    assert server["version"] == "0.2.2"
     assert server["packages"] == [
         {
             "registryType": "pypi",
             "identifier": "aus-accounting-mcp",
-            "version": "0.2.1",
+            "version": "0.2.2",
             "transport": {"type": "stdio"},
         }
     ]
@@ -1172,8 +1172,8 @@ def test_readme_links_to_release_records() -> None:
         "main/apps/aus-accounting-mcp/CITATION.cff)" in readme
     )
     assert (
-        f"[v0.2.1 release record]({CANONICAL_REPOSITORY}/releases/tag/"
-        "aus-accounting-mcp/v0.2.1)"
+        f"[v0.2.2 release record]({CANONICAL_REPOSITORY}/releases/tag/"
+        "aus-accounting-mcp/v0.2.2)"
         in readme
     )
 

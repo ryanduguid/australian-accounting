@@ -65,7 +65,7 @@ claude mcp add aus-accounting -- uvx aus-accounting-mcp
 | `get_ato_benchmarks` | Compare supplied P&L figures with ATO benchmark ranges. |
 | `calc_payday_super_deadline` | Review timing for one super contribution. |
 | `review_payday_super_contributions` | Review related contributions together for one employer. |
-| `build_payday_super_evidence_pack` | Return 4 review files in memory; unreleased, requires checker evidence-pack support. |
+| `build_payday_super_evidence_pack` | Return 4 review files in memory using the pinned Payday Super checker. |
 | `calculate_tax_worksheet` | Calculate one of 6 worksheets with established scope and period. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
@@ -94,9 +94,9 @@ entitlements and distributable surplus. The
 [reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md)
 covers all exclusions, input rules, prompts, resources and evaluation instructions.
 
-## Payday Super evidence pack (unreleased)
+## Payday Super evidence pack
 
-In the reviewed monorepo checkout, `build_payday_super_evidence_pack` accepts the
+In v0.2.2, `build_payday_super_evidence_pack` accepts the
 same `contributions` and explicit `as_at` as grouped review. It delegates the
 assessment and all 4 artefacts to the checker. There are no path arguments,
 fixture-path lookups, filesystem writes or network calls.
@@ -126,12 +126,11 @@ The 17-column evidence report is for the included checklist. It is not accepted
 by legacy `review-pack` or the accounting review pipeline's `PaydaySuper.Report`
 Excel importer. Use an ordinary 18-column checker report for that importer.
 
-Published checker v0.1.3 does not include the pack builder. With that installation,
-this tool returns a feature-unavailable error and the existing tools continue to
-work. Package versions, dependency pins, `compatibility.json` and `server.json`
-remain unchanged. After the checker feature is reviewed, its release and the MCP
-dependency update require a separate handoff. `uvx aus-accounting-mcp` does not yet
-provide this new workflow. No release is implied by these source changes.
+Published MCP v0.2.2 pins `payday-super-checker==0.1.4`, which includes the pack
+builder. Run `uvx aus-accounting-mcp==0.2.2` for that version. An installation with
+checker v0.1.3 returns a feature-unavailable error for this tool; the existing
+tools continue to work. See the [website guide](https://duguid.com.au/tools/australian-tax-ai-agents/)
+for examples and scope.
 
 ## 30-second proof
 
@@ -151,7 +150,7 @@ record the expected output, limitations and asset source.
 
 MIT License. Created by Ryan Duguid.
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.2.1 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.1),
+[v0.2.2 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.2),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <!-- mcp-name: io.github.ryanduguid/aus-accounting -->
