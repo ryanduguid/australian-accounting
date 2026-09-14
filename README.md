@@ -4,14 +4,17 @@ Synthetic examples. Review aid, not professional advice; accounting decisions st
 
 **Input:** $120 super contribution for payday 6 August 2026, remitted 14 August, with no fund receipt evidence as at 20 August.
 
-From a clone, with [uv](https://docs.astral.sh/uv/) installed:
+## Try one contribution
+
+With [uv](https://docs.astral.sh/uv/) installed, [download the synthetic CSV](https://duguid.com.au/assets/examples/payday/timely_remittance_no_receipt.csv) as `timely_remittance_no_receipt.csv`. Open a terminal in that folder and run:
 
 ```bash
-cd packages/payday-super-checker
-uv run --locked --extra dev --python 3.12 payday-super-check evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only
+uvx --from payday-super-checker==0.1.4 payday-super-check timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o payday-report.csv
 ```
 
-The confirmation acknowledges the missing receipt; it does not establish payment.
+This downloads the pinned PyPI package without cloning the repository. It writes `payday-report.csv` in the current folder, replacing that file if it exists. Open the report to see the due date and verdict.
+
+The confirmation acknowledges the missing receipt; it does not establish payment. Omit `--confirm-remittance-only` to see the same `AT_RISK` result with exit 2, which asks you to resolve or acknowledge that evidence gap.
 
 **Output:** `AT_RISK`, due 17 August 2026; exit 0 acknowledges the remittance-only evidence, without proving timely receipt.
 
@@ -22,7 +25,19 @@ The confirmation acknowledges the missing receipt; it does not establish payment
 
 [Read the 5-minute Payday Super case](packages/payday-super-checker/docs/manager-case-study.md) · [Division 7A repayment case](packages/div7a-loan-review/docs/manager-case-study.md) · [MCP setup](apps/aus-accounting-mcp/README.md#client-integration)
 
-<details open>
+The [recorded public evaluation](https://duguid.com.au/evaluate/payday-super-evidence/) uses release 0.1.3. Follow its fixed revision and commands to reproduce that historical run; the quick trial above uses release 0.1.4.
+
+## Choose the next example
+
+| Your task | Start here |
+| --- | --- |
+| BAS pack review | [Two synthetic packs with expected findings](https://duguid.com.au/evaluate/manager-review-gate/) |
+| Month-end close | [Balanced trial balance with unresolved exceptions](https://duguid.com.au/tools/monthly-close-controls/#worked-example) |
+| GST planning | [Browser planning calculators](https://duguid.com.au/tools/business-calculators/) |
+| Division 7A | [Repayment assertions and the review boundary](packages/div7a-loan-review/docs/manager-case-study.md) |
+| Other engines and agent workflows | [Examples and reproduction routes](https://duguid.com.au/evaluate/#example-routes) |
+
+<details>
 <summary>Installation, component identities, integration and reference</summary>
 
 Development home for the Aus Accounting MCP application and 7 independently released
