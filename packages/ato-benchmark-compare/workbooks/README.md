@@ -56,4 +56,4 @@ parity test fails, which is the point.
 
 Account identity in the workbook is the trimmed, lower-cased account name rather than
 the engine's SHA-256 account key. Both resolve the same account to the same mapping
-row.
+row. Duplicate checks treat `*`, `?` and `~` as literal account-name characters.
