@@ -50,6 +50,8 @@ relevant years before relying on the result. See the
    Every rate must be numeric and between zero and one. A blank, text, negative or
    above-one rate blocks the workbook. A zero rate remains a refused repayment
    calculation, consistent with the engine.
+   Each year label must occur once in the rate table. Duplicate labels block the
+   workbook, even when their rates agree.
 
 The rules are the engine's: a loan that fails any limb is NOT_COMPLYING and gets no
 repayment figure; an unestablished limb is UNKNOWN and never coerced to a verdict;

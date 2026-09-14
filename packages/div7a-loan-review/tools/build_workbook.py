@@ -477,8 +477,9 @@ def build() -> None:
          '=IF(C2=0,"",' + offender('(tblLoans[Input_problem]<>"")') + ")"),
         ("No formula in an input cell", '=IF(C3=0,"PASS","BLOCKED")', "=SUM(tblLoans[Guard])",
          '=IF(C3=0,"",' + offender("(tblLoans[Guard]=1)") + ")"),
-        ("A reviewed benchmark exists and every table rate is a number from zero to one",
+        ("A reviewed benchmark exists, rate years are unique and rates are from zero to one",
          '=IFERROR(IF(AND(ISNUMBER(Summary!B3),COUNT(tblRates[rate])=ROWS(tblRates[rate]),'
+         'SUMPRODUCT(--(COUNTIF(tblRates[year_of_income],tblRates[year_of_income])<>1))=0,'
          'MIN(tblRates[rate])>=0,MAX(tblRates[rate])<=1),"PASS","BLOCKED"),"BLOCKED")',
          "=Summary!B2", None),
         ("Every reviewed loan is on s 109N terms", '=IF(C5=0,"PASS","REVIEW")',
