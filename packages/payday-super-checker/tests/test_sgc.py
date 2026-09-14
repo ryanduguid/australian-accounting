@@ -25,6 +25,16 @@ def test_rate_table_covers_prior_quarter(gic):
     assert gic.daily_rate(date(2026, 5, 1)) == Decimal("10.96") / 100 / 365
 
 
+def test_published_october_december_2026_rate_and_accrual(gic):
+    """ATO GIC table, updated 4 September 2026: 11.51% for this quarter."""
+    assert gic.daily_rate(date(2026, 10, 1)) == Decimal("11.51") / 100 / 365
+    assert gic.daily_rate(date(2026, 12, 31)) == Decimal("11.51") / 100 / 365
+    assert gic.staleness(date(2026, 12, 31)) is None
+    amount = notional_earnings(
+        Decimal("10000"), date(2026, 9, 30), date(2026, 12, 31), gic)
+    assert amount.quantize(Decimal("0.01")) == Decimal("294.32")
+
+
 def test_staleness_warns_past_the_shipped_table(gic):
     """Pinned to the table's own horizon so a quarterly data update does
     not turn this red."""

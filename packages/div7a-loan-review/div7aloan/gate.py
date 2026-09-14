@@ -356,10 +356,9 @@ def complying_loan_gate(
     """Test one loan against s 109N(1) on the operator's own facts.
 
     The benchmark floor year is facts.year_of_income_being_tested where the
-    operator nominates one, and otherwise facts.year_loan_made, which is the
-    year s 109N(1)(b) itself points at. Where the 2 differ the result
-    carries a caveat saying so: testing a later year is a practice check
-    against a risen benchmark, not the s 109N(1)(b) test.
+    operator nominates one, and otherwise facts.year_loan_made. This is the
+    model's selected comparison, not a settled interpretation of the annual
+    interest requirement. Every result with a benchmark carries that limitation.
     """
     caveats: list[str] = []
     reasons: list[str] = []
@@ -379,17 +378,25 @@ def complying_loan_gate(
 
     rate = benchmark_rate(floor_year, table=table, override=override)
 
+    caveats.append(
+        "Interest-floor interpretation unresolved: ATO guidance requires the "
+        "benchmark interest rate for each year of the loan. This model compares "
+        "the supplied rate with one selected year's benchmark and defaults to "
+        "year_loan_made. COMPLYING does not establish that the agreement meets "
+        "the annual interest requirement. Review the agreement and relevant "
+        "years before relying on this result. See docs/primary-source-review-2026-08-31.md."
+    )
+
     if (
         facts.year_loan_made is not None
         and facts.year_of_income_being_tested is not None
         and facts.year_of_income_being_tested != facts.year_loan_made
     ):
         caveats.append(
-            f"s 109N(1)(b) sets the floor by reference to the benchmark rate for the "
-            f"year the loan was made ({facts.year_loan_made.label}). This run tested "
-            f"the rate against {floor_year.label} because the operator nominated it. "
-            "A later-year comparison is a practice check on a risen benchmark, not "
-            "the s 109N(1)(b) test itself. See evaluation/div7a_myr/README.md."
+            f"This s 109N(1)(b) model uses the operator's nominated benchmark year "
+            f"{floor_year.label}, rather than its default year_loan_made "
+            f"({facts.year_loan_made.label}). The annual-interest interpretation "
+            "remains unresolved. See evaluation/div7a_myr/README.md."
         )
 
     limbs = [
@@ -414,8 +421,9 @@ def complying_loan_gate(
             reasons.append(f"{limb.cite}: {limb.finding}")
 
     caveats.append(
-        "COMPLYING here means the four limbs of s 109N(1) are established on the "
-        "facts supplied. It is not a finding that no dividend arises: Subdivision D "
+        "COMPLYING here means the four model comparisons passed on the facts "
+        "supplied, subject to the interest-floor limitation. It is not a finding "
+        "that no dividend arises: Subdivision D "
         "holds other exclusions, s 109T to s 109X reach interposed entities, and "
         "s 109XA reaches unpaid present entitlements. None of those is modelled."
     )

@@ -223,33 +223,20 @@ amount as a quoted decimal string. The expectations are pinned in
 fixture against them, so the numbers can be checked without trusting the
 pretty-printed output.
 
-## Where the Act and common practice diverge
-
-Two points where this engine follows the compiled Act, and a reader coming
-from a commercial calculator may expect something else.
+## Interpretation limits and model boundaries
 
 **1. Which year's benchmark rate the s 109N(1)(b) floor uses.**
 
-s 109N(1)(b) requires that "the rate of interest payable on the loan for
-years of income after the year in which the loan is made equals or exceeds
-the benchmark interest rate **for the year**". Read against the chapeau, "the
-year" is the year of income in which the loan was made, and the whole of
-s 109N(1) is tested once, before the lodgment day for that year.
+The `gate` command defaults to `year_loan_made`; `--year` selects another
+benchmark. This model choice conflicts with current ATO guidance requiring
+the benchmark for each year of the loan. The interpretation remains
+unresolved, and `COMPLYING` does not establish that the agreement satisfies
+the annual interest requirement. Review the agreement and relevant years
+before relying on it.
 
-So the `gate` command, run without `--year`, anchors each row to its own
-`year_loan_made`. That is the statutory test.
-
-It is also common in practice to check, year by year, that the rate being
-charged still meets the current benchmark, on the footing that a loan
-agreement expressed to carry 'the benchmark rate' must keep up with it.
-Passing `--year` runs that later-year comparison. The result carries a caveat
-saying so, because it is a practice check on a risen benchmark and **not** the
-s 109N(1)(b) test. Where the 2 readings could differ, this repository
-follows the Act and labels the other.
-
-The reviewed position, and the date it was confirmed, are recorded in
+The dated earlier position and the 14 September 2026 qualification are in
 [docs/primary-source-review-2026-08-31.md](../../docs/primary-source-review-2026-08-31.md),
-which also carries the full source trail behind every rule in the engine.
+with the primary-source links.
 
 Nothing turns on this for the repayment calculation. s 109E(6) uses the
 *current* year's benchmark rate on its own terms, so a risen benchmark raises

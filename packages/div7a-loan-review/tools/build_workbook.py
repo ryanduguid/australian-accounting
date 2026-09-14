@@ -477,8 +477,10 @@ def build() -> None:
          '=IF(C2=0,"",' + offender('(tblLoans[Input_problem]<>"")') + ")"),
         ("No formula in an input cell", '=IF(C3=0,"PASS","BLOCKED")', "=SUM(tblLoans[Guard])",
          '=IF(C3=0,"",' + offender("(tblLoans[Guard]=1)") + ")"),
-        ("A reviewed benchmark rate exists for the year of income",
-         '=IF(ISNUMBER(Summary!B3),"PASS","BLOCKED")', "=Summary!B2", None),
+        ("A reviewed benchmark exists and every table rate is a number from zero to one",
+         '=IFERROR(IF(AND(ISNUMBER(Summary!B3),COUNT(tblRates[rate])=ROWS(tblRates[rate]),'
+         'MIN(tblRates[rate])>=0,MAX(tblRates[rate])<=1),"PASS","BLOCKED"),"BLOCKED")',
+         "=Summary!B2", None),
         ("Every reviewed loan is on s 109N terms", '=IF(C5=0,"PASS","REVIEW")',
          '=COUNTIF(tblLoans[Gate_verdict],"NOT_COMPLYING")',
          '=IF(C5=0,"",' + offender('(tblLoans[Gate_verdict]="NOT_COMPLYING")') + ")"),
@@ -508,7 +510,11 @@ def build() -> None:
           font=Font(bold=True), **CALC)
     style(ws["A12"], value="Caveats the engine attaches to every result", **HEAD)
     caveats = [
-        "COMPLYING means the four limbs of s 109N(1) are established on the operator's own facts. "
+        "Interest-floor interpretation unresolved: ATO guidance requires the benchmark interest "
+        "rate for each year of the loan. This workbook compares one selected year's benchmark "
+        "and defaults to the year the loan was made. COMPLYING does not establish that the "
+        "agreement meets the annual interest requirement. Review the agreement and relevant "
+        "years before relying on this result. See docs/primary-source-review-2026-08-31.md. "
         "The lodgment day (s 109D(6)) is asserted, not computed. Refinancing reductions to the "
         "maximum term (s 109N(3A) to (3D)) and the other Subdivision D exclusions are not modelled.",
         "s 109R: the workbook does not decide whether the payments applied are genuine repayments. "
@@ -524,6 +530,7 @@ def build() -> None:
     ]
     for r, text in enumerate(caveats, 13):
         ws.cell(row=r, column=1, value=text).alignment = Alignment(wrap_text=True)
+    ws.row_dimensions[13].height = 135
     fills = {"BLOCKED": "F8D7DA", "REVIEW": "FFF3CD", "PASS": "D4EDDA"}
     for target, ref in ((ws, "B2:B10"), (wb["Start Here"], "A11"), (wb["Summary"], "B17")):
         for word, colour in fills.items():

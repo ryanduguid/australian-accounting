@@ -273,9 +273,7 @@ def test_the_mixed_sample_leads_with_its_exposure():
 
 
 def test_the_gate_can_be_anchored_to_a_later_year():
-    """A loan written at the 2021-22 benchmark of 0.0452 is complying on the
-    Act's own anchor, and falls short of the 2026-27 benchmark on the
-    later-year practice check."""
+    """The model compares the same supplied rate with the selected year's benchmark."""
     facts = row(year_loan_made="2021-22", interest_rate_for_years_after_year_loan_made="0.0452")
     on_the_act = review_register([facts], YEAR)
     assert on_the_act.lines[0].gate.verdict is GateVerdict.COMPLYING

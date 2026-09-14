@@ -9,6 +9,13 @@ Nothing leaves the workbook.
 engine refuses, the workbook refuses too, and every caveat the engine attaches is
 printed on Review Checks.
 
+**Interest-floor interpretation unresolved.** ATO guidance requires the benchmark
+interest rate for each year of the loan. The workbook compares one selected year's
+benchmark and defaults to the year the loan was made. `COMPLYING` does not establish
+that the agreement meets the annual interest requirement. Review the agreement and
+relevant years before relying on the result. See the
+[interpretation record](../docs/primary-source-review-2026-08-31.md).
+
 ## Using it
 
 1. **Register.** Paste one amalgamated loan per row over the example rows. The
@@ -40,6 +47,9 @@ printed on Review Checks.
    without a citation; the workbook cannot enforce that. Record the reference in
    `source` and the date checked in `seen`, alongside `rba_table`, `rba_series`,
    `rba_month` and `verify_at`.
+   Every rate must be numeric and between zero and one. A blank, text, negative or
+   above-one rate blocks the workbook. A zero rate remains a refused repayment
+   calculation, consistent with the engine.
 
 The rules are the engine's: a loan that fails any limb is NOT_COMPLYING and gets no
 repayment figure; an unestablished limb is UNKNOWN and never coerced to a verdict;
