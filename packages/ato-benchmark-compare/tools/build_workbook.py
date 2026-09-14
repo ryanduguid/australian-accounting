@@ -397,10 +397,13 @@ def build() -> None:
 
     # Both duplicate checks read the normalised Key columns, matching the engine's
     # trimmed, case-folded identity, so "Sales" and " Sales " count as one name.
-    pnl_dup = "(COUNTIF(tblPnl[Key],tblPnl[Key])>1)*(tblPnl[Key]<>\"\")"
-    map_dup = "(COUNTIF(tblMapping[Key],tblMapping[Key])>1)*(tblMapping[Key]<>\"\")"
-    # ponytail: COUNTIF is case-insensitive like the engine, but it reads ? and * in an
-    # account name as wildcards; switch to SUMPRODUCT(--(range=cell)) if that ever bites.
+    # Compare names literally. COUNTIF interprets wildcard and escape characters.
+    def duplicate_names(table):
+        keys = f"{table}[Key]"
+        return f'(MMULT(--({keys}=TRANSPOSE({keys})),ROW({keys})^0)>1)*({keys}<>"")'
+
+    pnl_dup = duplicate_names("tblPnl")
+    map_dup = duplicate_names("tblMapping")
     bucket_list = "{" + ",".join(f'"{bucket}"' for bucket in BUCKET_ORDER) + "}"
     ones = "{" + ";".join("1" for _ in BUCKET_ORDER) + "}"
     # A bucket outside the engine's list falls outside every SUMIFS row, so an
@@ -445,9 +448,11 @@ def build() -> None:
     for r, (label, result, detail, example) in enumerate(checks, 2):
         ws.cell(row=r, column=1, value=label)
         style(ws.cell(row=r, column=2, value=result), **CALC)
-        style(ws.cell(row=r, column=3, value=detail), **CALC)
-        # Array formula: a COUNTIF nested inside MAX gets implicit intersection in a
-        # plain formula and the example silently names the wrong account.
+        detail_cell = ws.cell(row=r, column=3)
+        # Keep whole columns in duplicate checks and offender examples. Excel
+        # otherwise inserts implicit intersection into nested array expressions.
+        detail_cell.value = ArrayFormula(detail_cell.coordinate, detail) if r in (5, 6) else detail
+        style(detail_cell, **CALC)
         cell = ws.cell(row=r, column=4)
         style(cell, **CALC)
         if example:
