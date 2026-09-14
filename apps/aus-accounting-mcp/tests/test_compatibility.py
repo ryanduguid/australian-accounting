@@ -35,32 +35,32 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         "distribution": "aus-accounting-mcp",
         "version": server_metadata["version"],
         "repository": CANONICAL_REPOSITORY,
-        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.2.1/",
+        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.2.2/",
         "registry_identity": "io.github.ryanduguid/aus-accounting",
         "registry": (
             "https://registry.modelcontextprotocol.io/v0.1/servers/"
-            "io.github.ryanduguid%2Faus-accounting/versions/0.2.1"
+            "io.github.ryanduguid%2Faus-accounting/versions/0.2.2"
         ),
-        "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v0.2.1",
+        "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v0.2.2",
     }
     assert record["engines"] == [
         {
             "distribution": "ato-benchmark-compare",
-            "version": "0.1.6",
+            "version": "0.1.7",
             "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/ato-benchmark-compare",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/ato-benchmark-compare/v0.1.6",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/ato-benchmark-compare/v0.1.7",
         },
         {
             "distribution": "div7a-loan-review",
-            "version": "0.1.1",
+            "version": "0.1.2",
             "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/div7a-loan-review",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/div7a-loan-review/v0.1.1",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/div7a-loan-review/v0.1.2",
         },
         {
             "distribution": "payday-super-checker",
-            "version": "0.1.3",
+            "version": "0.1.4",
             "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/payday-super-checker",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/payday-super-checker/v0.1.3",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/payday-super-checker/v0.1.4",
         },
         {
             "distribution": "australian-tax-calculators",
