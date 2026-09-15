@@ -1,4 +1,4 @@
-"""Synthetic examples and boundaries, independent of the MCP transport."""
+"""Synthetic boundaries; derivations and source limits are in docs/calculation-evidence.md."""
 
 from decimal import Decimal as D
 

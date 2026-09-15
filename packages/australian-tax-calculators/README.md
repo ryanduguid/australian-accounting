@@ -79,6 +79,27 @@ Payday entitlement rules. The separate Payday engine reviews timing on a supplie
 liability. Contribution caps, SMSF tax, trusts, payroll tax, HELP and Medicare
 calculations remain outside these worksheets.
 
-Source URLs and exact exclusions are in `austaxcalc/calculations.py` and every result.
-Sources were checked on 10 September 2026. A source-check date is not an assurance
-that every tax rule or taxpayer circumstance has been reviewed.
+## Worksheet discovery
+
+The development source adds `austaxcalc.calculations.worksheet_catalogue()`.
+It returns supported periods with inclusive dates, required inputs and units,
+available methods, scope exclusions and a fabricated example for each worksheet.
+Money in the catalogue uses decimal strings. Python callers convert these to
+`Decimal`; MCP clients can send `example.facts` to `calculate_tax_worksheet`.
+This addition is unreleased and is not part of the published 0.1.3 wheel.
+
+The engine owns the supported periods for both discovery and calculation.
+Returned dictionaries can be edited without changing later calls or engine rules.
+
+## Calculation evidence
+
+[Calculation evidence](docs/calculation-evidence.md) records Library paragraphs,
+document review dates, independent arithmetic and the limits of each example.
+`example_evidence` in the catalogue points to these records. It requires no local
+Library installation or network access at runtime.
+
+Source URLs and exact exclusions remain in `austaxcalc/calculations.py` and every
+result. The existing 10 September 2026 source-check baseline is now stored per
+worksheet. A later check of one worksheet cannot refresh another's date. The
+15 September Library example check does not extend that baseline to other periods
+or establish a taxpayer's circumstances.

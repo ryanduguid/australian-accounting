@@ -23,6 +23,7 @@ from typing import Any
 
 from atobenchmark.dataset import available_years, load
 from atobenchmark.report import DISCLAIMER as BENCHMARK_DISCLAIMER
+from austaxcalc import calculations
 from austaxcalc.calculations import SCOPES, SOURCE_CHECKED, SOURCES
 from paydaysuper import LAW_CONTENT_DATE
 from paydaysuper.calendar import load_calendar
@@ -88,7 +89,9 @@ def scope() -> dict[str, Any]:
             "search_accounting_library": "Search an explicitly configured local Markdown library.",
             "read_accounting_library": "Read bounded lines with a source path and hash.",
         },
-        "calculation_worksheets": {
+        "calculation_worksheets": calculations.worksheet_catalogue() if callable(
+            getattr(calculations, "worksheet_catalogue", None)
+        ) else {
             kind: {"scope": description, "source": SOURCES[kind],
                    "source_checked": SOURCE_CHECKED}
             for kind, description in SCOPES.items()

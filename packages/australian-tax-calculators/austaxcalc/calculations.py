@@ -6,8 +6,17 @@ from decimal import ROUND_HALF_UP, Decimal, localcontext
 from typing import Any
 
 from . import __version__
+from .metadata import (
+    EXAMPLES,
+    INPUT_UNITS,
+    LIBRARY_EVIDENCE,
+    SOURCE_REVIEWS,
+    SUPPORTED_PERIODS,
+    periods,
+)
 
 D = Decimal
+# Kept for consumers of the older catalogue. Results use the per-rule record.
 SOURCE_CHECKED = "2026-09-10"
 SOURCES = {
     "gst": "https://smallbusiness.taxsuperandyou.gov.au/goods-and-services-tax/fast-facts",
@@ -42,7 +51,8 @@ SCOPES = {
     "quarterly_sg": "One eligible employee, one employer and one complete quarter of 2025-26. "
            "Established ordinary time earnings and qualifying contributions for that quarter. "
            "Excludes eligibility and earnings classification, defined benefits, contribution "
-           "caps, special certificates, salary-sacrifice offsets, award entitlements and SGC. "
+           "caps, Norfolk Island transitional rates, special certificates, salary-sacrifice "
+           "offsets, award entitlements and SGC. "
            "Does not test timeliness. From July 2026 Payday rules require a separate calculation.",
 }
 
@@ -54,9 +64,46 @@ def _money(value: Decimal) -> Decimal:
     return value
 
 
-def _scope(confirmed: bool, year: str, supported: tuple[str, ...] = ("2025-26",)) -> None:
+def worksheet_catalogue() -> dict[str, Any]:
+    """Return independent JSON-ready discovery data for the supported worksheets.
+
+    Example money uses decimal strings. Library callers convert those strings
+    to Decimal; MCP clients can pass example.facts directly to the worksheet tool.
+    """
+    result: dict[str, Any] = {}
+    for kind, description in SCOPES.items():
+        supported = periods(kind)
+        period_field = "year_ended" if kind == "fbt" else "year"
+        result[kind] = {
+            "scope": description, "source": SOURCES[kind],
+            "source_checked": SOURCE_REVIEWS[kind]["checked"],
+            "source_passage": SOURCE_REVIEWS[kind]["passage"],
+            "example_evidence": {
+                **LIBRARY_EVIDENCE[kind],
+                "note": f"docs/calculation-evidence.md#{kind.replace('_', '-')}",
+            },
+            "supported_periods": supported,
+            "required_inputs": {
+                "kind": kind, "scope_confirmed": "boolean true; establish every scope condition",
+                period_field: "integer" if kind == "fbt" else "income-year string",
+                **INPUT_UNITS[kind],
+            },
+            "money_format": "Non-negative finite AUD decimal strings, at most 2 decimal places "
+                            "and 1000000000000.00. Resident taxable income must be whole dollars.",
+            "methods": ["prime_cost", "diminishing_value"] if kind == "depreciation" else [],
+            "example": {
+                "synthetic": True,
+                "facts": {"kind": kind, "scope_confirmed": True,
+                          **supported[0]["arguments"], **EXAMPLES[kind]},
+            },
+        }
+    return result
+
+
+def _scope(confirmed: bool, year: str, kind: str) -> None:
     if confirmed is not True:
         raise ValueError("Establish all stated scope conditions before calculating.")
+    supported = SUPPORTED_PERIODS[kind]
     if year not in supported:
         raise ValueError(f"Unsupported period {year!r}; supported: {', '.join(supported)}.")
 
@@ -70,7 +117,8 @@ def _result(kind: str, period: str, amounts: dict[str, Decimal],
     return {
         "ok": True, "engine": "australian-tax-calculators", "engine_version": __version__,
         "calculation": kind, "period": period, "amounts": rendered, "rates": rates or {},
-        "scope": SCOPES[kind], "sources": [SOURCES[kind]], "source_checked": SOURCE_CHECKED,
+        "scope": SCOPES[kind], "sources": [SOURCES[kind]],
+        "source_checked": SOURCE_REVIEWS[kind]["checked"],
         "warnings": [
             "Operator-confirmed facts and scope; eligibility is not independently verified.",
             "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
@@ -80,7 +128,7 @@ def _result(kind: str, period: str, amounts: dict[str, Decimal],
 
 def gst(amount: Decimal, gst_inclusive: bool, scope_confirmed: bool,
         year: str) -> dict[str, Any]:
-    _scope(scope_confirmed, year)
+    _scope(scope_confirmed, year, "gst")
     _money(amount)
     if type(gst_inclusive) is not bool:
         raise ValueError("gst_inclusive must be a boolean.")
@@ -93,7 +141,7 @@ def gst(amount: Decimal, gst_inclusive: bool, scope_confirmed: bool,
 
 
 def resident_tax(taxable_income: Decimal, year: str, scope_confirmed: bool) -> dict[str, Any]:
-    _scope(scope_confirmed, year, ("2024-25", "2025-26", "2026-27"))
+    _scope(scope_confirmed, year, "resident_tax")
     income = _money(taxable_income)
     if income != income.to_integral_value():
         raise ValueError("Supply established whole-dollar taxable income.")
@@ -108,7 +156,7 @@ def resident_tax(taxable_income: Decimal, year: str, scope_confirmed: bool) -> d
 
 def capital_gains(other_gains: Decimal, discount_gains: Decimal, current_losses: Decimal,
                   prior_losses: Decimal, scope_confirmed: bool, year: str) -> dict[str, Any]:
-    _scope(scope_confirmed, year)
+    _scope(scope_confirmed, year, "capital_gains")
     for value in (other_gains, discount_gains, current_losses, prior_losses):
         _money(value)
     losses = current_losses + prior_losses
@@ -125,7 +173,7 @@ def capital_gains(other_gains: Decimal, discount_gains: Decimal, current_losses:
 
 def fbt(type_one_value: Decimal, type_two_value: Decimal, year_ended: int,
         scope_confirmed: bool) -> dict[str, Any]:
-    _scope(scope_confirmed, str(year_ended), ("2026",))
+    _scope(scope_confirmed, str(year_ended), "fbt")
     first = _money(type_one_value) * D("2.0802")
     second = _money(type_two_value) * D("1.8868")
     return _result("fbt", "year ended 31 March 2026", {
@@ -137,7 +185,7 @@ def fbt(type_one_value: Decimal, type_two_value: Decimal, year_ended: int,
 def depreciation(cost: Decimal, effective_life: Decimal, days: int,
                  taxable_use: Decimal, method: str, scope_confirmed: bool,
                  year: str) -> dict[str, Any]:
-    _scope(scope_confirmed, year)
+    _scope(scope_confirmed, year, "depreciation")
     _money(cost)
     if (not isinstance(effective_life, Decimal) or not effective_life.is_finite()
             or not D("0.01") <= effective_life <= 1000):
@@ -159,7 +207,7 @@ def depreciation(cost: Decimal, effective_life: Decimal, days: int,
 
 def quarterly_sg(ordinary_time_earnings: Decimal, qualifying_contributions: Decimal,
                  year: str, quarter: int, scope_confirmed: bool) -> dict[str, Any]:
-    _scope(scope_confirmed, year)
+    _scope(scope_confirmed, year, "quarterly_sg")
     if type(quarter) is not int or not 1 <= quarter <= 4:
         raise ValueError("quarter must be 1 (Jul-Sep), 2, 3 or 4 (Apr-Jun).")
     earnings = min(_money(ordinary_time_earnings), D("62500"))
