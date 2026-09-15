@@ -89,7 +89,7 @@ def test_s99b_check_deducts_the_corpus_exemption(monkeypatch, capsys):
     out = capsys.readouterr().out
 
     assert code == 0
-    assert "Section 99B Assessment — Jane Doe" in out
+    assert "Section 99B Assessment - Jane Doe" in out
     assert "Gross Receipt:           $150,000.00" in out
     assert "Corpus Exemption:        $50,000.00" in out
     assert "Assessable under s99B:   $100,000.00" in out

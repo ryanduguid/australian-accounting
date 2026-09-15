@@ -2934,7 +2934,7 @@ def test_reconfigure_stdout_for_unicode_prevents_a_non_ascii_crash():
     # MINOR REVIEW FINDING (round 1). Proven directly against a real
     # io.TextIOWrapper set to strict cp1252 -- the shape stdout actually
     # takes when redirected on Windows (PEP 528's fallback locale
-    # encoding). Without paydaysuper.cli._reconfigure_stdout_for_unicode,
+    # encoding). Without paydaysuper.cli._reconfigure_output_for_unicode,
     # writing a character outside cp1252's range (a CJK character, not
     # merely non-ASCII -- for example, "e with an accent" is IN cp1252 and would
     # not reproduce the bug) raises UnicodeEncodeError; with it, the same
@@ -2943,7 +2943,7 @@ def test_reconfigure_stdout_for_unicode_prevents_a_non_ascii_crash():
     # the errors="backslashreplace" fallback never has to fire here).
     import io
 
-    from paydaysuper.cli import _reconfigure_stdout_for_unicode
+    from paydaysuper.cli import _reconfigure_output_for_unicode
 
     non_cp1252_char = "\u4e2d"  # CJK ideogram, outside Windows-1252's range (not Latin-1)
 
@@ -2952,17 +2952,24 @@ def test_reconfigure_stdout_for_unicode_prevents_a_non_ascii_crash():
     with pytest.raises(UnicodeEncodeError):
         before.write(non_cp1252_char)
 
-    after_buffer = io.BytesIO()
-    after = io.TextIOWrapper(after_buffer, encoding="cp1252", errors="strict")
-    original_stdout = sys.stdout
-    sys.stdout = after
+    # Both streams: the error branches print a caller-supplied path to stderr, so
+    # a filename outside the codepage crashed the failure path, not just the
+    # success path.
+    out_buffer, err_buffer = io.BytesIO(), io.BytesIO()
+    out = io.TextIOWrapper(out_buffer, encoding="cp1252", errors="strict")
+    err = io.TextIOWrapper(err_buffer, encoding="cp1252", errors="strict")
+    original_stdout, original_stderr = sys.stdout, sys.stderr
+    sys.stdout, sys.stderr = out, err
     try:
-        _reconfigure_stdout_for_unicode()
-        after.write(non_cp1252_char)
-        after.flush()
+        _reconfigure_output_for_unicode()
+        out.write(non_cp1252_char)
+        err.write(non_cp1252_char)
+        out.flush()
+        err.flush()
     finally:
-        sys.stdout = original_stdout
-    assert after_buffer.getvalue() == non_cp1252_char.encode("utf-8")
+        sys.stdout, sys.stderr = original_stdout, original_stderr
+    assert out_buffer.getvalue() == non_cp1252_char.encode("utf-8")
+    assert err_buffer.getvalue() == non_cp1252_char.encode("utf-8")
 
 
 def test_both_cli_paths_call_the_shared_stdout_reconfigure(tmp_path, monkeypatch):
@@ -2976,13 +2983,13 @@ def test_both_cli_paths_call_the_shared_stdout_reconfigure(tmp_path, monkeypatch
     import paydaysuper.cli as cli_module
 
     calls = []
-    real = cli_module._reconfigure_stdout_for_unicode
+    real = cli_module._reconfigure_output_for_unicode
 
     def _spy():
         calls.append(True)
         real()
 
-    monkeypatch.setattr(cli_module, "_reconfigure_stdout_for_unicode", _spy)
+    monkeypatch.setattr(cli_module, "_reconfigure_output_for_unicode", _spy)
 
     out = tmp_path / "contributions.csv"
     code = cli_main(

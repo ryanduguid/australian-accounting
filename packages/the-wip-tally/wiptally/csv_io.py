@@ -187,7 +187,10 @@ def read_contracts(
                 contract = _parse_row(row, index, mapping, line_number)
             except (AmountError, CsvError) as exc:
                 errors.append(str(exc))
-                if len(errors) >= 20:
+                # One past the cap, so len(errors) can exceed 20 and the
+                # "... and more" suffix below can fire. Stopping at exactly 20
+                # told an operator there were no further unreadable rows.
+                if len(errors) > 20:
                     break
                 continue
             previous = seen_ids.get(contract.contract_id)

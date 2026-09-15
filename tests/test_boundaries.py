@@ -297,8 +297,18 @@ class BoundaryTests(unittest.TestCase):
                     f"release-python.yml@{RELEASE_POLICY_SHA}",
                     workflow,
                 )
-                self.assertIn(f"source-directory: {source_directory}", workflow)
-                self.assertIn(f"tag-prefix: {component}", workflow)
+                # Whole lines, not substrings: assertIn also accepts
+                # `source-directory: packages/example-old` and
+                # `tag-prefix: example-preview`, so the test passed while the
+                # release workflow named the wrong directory or tag prefix.
+                self.assertRegex(
+                    workflow,
+                    rf"(?m)^\s*source-directory:\s*{re.escape(source_directory)}\s*$",
+                )
+                self.assertRegex(
+                    workflow,
+                    rf"(?m)^\s*tag-prefix:\s*{re.escape(component)}\s*$",
+                )
 
     def test_every_component_has_production_modules(self) -> None:
         for component, package in {**ENGINES, **APPLICATIONS}.items():

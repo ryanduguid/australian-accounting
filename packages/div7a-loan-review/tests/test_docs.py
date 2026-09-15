@@ -241,8 +241,10 @@ def test_current_release_metadata_points_to_the_canonical_monorepo():
     assert notes.startswith("# v0.1.4\n")
     assert "https://github.com/ryanduguid/australian-accounting" in citation
     assert "https://github.com/ryanduguid/australian-accounting" in pyproject
-    # Keep the README citation on the last published release until publication.
-    assert "div7a-loan-review/v0.1.1" in README
+    # v0.1.2 is published: the release div7a-loan-review/v0.1.2 is not a draft and
+    # not a prerelease, so the README citation moves to it. It stayed on v0.1.1 while
+    # 0.1.2 was unpublished, and it disagreed with CITATION.cff once that changed.
+    assert "div7a-loan-review/v0.1.2" in README
 
 
 def test_the_package_records_the_compilation_it_was_written_against():

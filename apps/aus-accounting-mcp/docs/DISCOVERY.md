@@ -105,9 +105,9 @@ anything a later edit added.
   `publish-mcp.yml` runs. The [MCP Registry PyPI package
   guidance](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/package-types.mdx)
   requires the published package README to contain its matching `mcp-name`
-  marker. Version 0.2.1 is the release represented by `server.json`; publish it
-  to PyPI and verify it before dispatching the registry workflow. `server.json`
-  names that exact package version. GitHub Actions OIDC publishes the registry
+  marker. `server.json` names the exact package version the registry record
+  represents; publish that version to PyPI and verify it there before dispatching
+  the registry workflow. GitHub Actions OIDC publishes the registry
   record only after an explicit manual dispatch.
 - For future releases, push the namespaced tag `aus-accounting-mcp/vX.Y.Z`.
   `release-aus-accounting-mcp.yml` creates and attests the GitHub release, then its

@@ -97,11 +97,14 @@ def test_demo_payload_rejects_input_required_mcp_results(
 
 
 def test_stdio_contract_and_demo_entry_point_are_separate() -> None:
-    asyncio.run(_stdio_smoke())
+    # mcp 2.1.1 bounds only stdio_client shutdown, so an unset ClientSession request
+    # timeout can wait forever, as can the demo subprocess in its own call_tool.
+    asyncio.run(asyncio.wait_for(_stdio_smoke(), timeout=60))
     completed = subprocess.run(
         [sys.executable, "-m", "aus_accounting_mcp.demo"],
         check=True,
         capture_output=True,
         text=True,
+        timeout=60,
     )
     assert completed.stdout == demo.render_transcript()

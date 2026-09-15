@@ -24,3 +24,17 @@ def test_parse_money_accepts_maximum_to_cents() -> None:
     assert parse_money("1000000000000.00", "amount") == Decimal(
         "1000000000000.00"
     )
+
+
+@pytest.mark.parametrize("raw", ["25000.000", "1000.500", "0.10", "12.3400"])
+def test_parse_money_accepts_an_exact_cent_amount_written_with_trailing_zeros(raw: str) -> None:
+    # as_tuple().exponent reports the written scale, not the value's, so a ledger or
+    # payroll export writing 3 or 4 places was refused with "amounts cannot have more
+    # than 2 decimal places" for an amount that has none.
+    assert parse_money(raw, "amount") == Decimal(raw)
+
+
+@pytest.mark.parametrize("raw", ["1.005", "0.001", "25000.0001"])
+def test_parse_money_still_refuses_a_real_sub_cent_amount(raw: str) -> None:
+    with pytest.raises(MoneyError):
+        parse_money(raw, "amount")
