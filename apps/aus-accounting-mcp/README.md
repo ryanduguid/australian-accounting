@@ -7,9 +7,10 @@
 
 Local Australian accounting tools for AI assistants. Compare business figures with
 ATO benchmarks, review Payday Super timing and check limited Division 7A loan terms
-and repayments. Calculate 6 bounded tax worksheets and search a configured local
-Markdown library with file and line citations. Includes synthetic CTR/BAS fixtures
-for integration testing.
+and repayments. Calculate 6 bounded tax worksheets, search a configured local
+Markdown library with file and line citations, and search a configured legislation
+corpus for provisions, rates and thresholds cited to their Act, section and
+compilation. Includes synthetic CTR/BAS fixtures for integration testing.
 
 > Not tax advice. Payday Super and Division 7A reviews are experimental and need
 > human review before consequential accounting action. Fixtures are not a lodgement.
@@ -23,9 +24,11 @@ Requires Python 3.10+ and [uv](https://docs.astral.sh/uv/):
 uvx aus-accounting-mcp
 ```
 
-The server waits for an MCP client over stdio. No API key is required. Installation
-downloads packages; tool calls use bundled data locally without contacting services
-or changing records. It does not retrieve ATO documents or lodge returns.
+The server waits for an MCP client over stdio. No API key, account or sign-in is
+required. Installation downloads packages; tool calls then read bundled data and the
+folders you explicitly configure, locally, without contacting services or changing
+records. It does not fetch documents from the ATO or the Federal Register, and it
+does not lodge.
 
 ## Client integration
 
@@ -57,6 +60,23 @@ For Claude Code:
 claude mcp add aus-accounting -- uvx aus-accounting-mcp
 ```
 
+For Gemini CLI:
+
+```bash
+gemini mcp add -s user aus-accounting uvx aus-accounting-mcp
+```
+
+For VS Code:
+
+```bash
+code --add-mcp "{\"name\":\"aus-accounting\",\"command\":\"uvx\",\"args\":[\"aus-accounting-mcp\"]}"
+```
+
+Windsurf reads the standard config from `~/.codeium/windsurf/mcp_config.json`, and
+any other host that launches a local stdio server runs it the same way. ChatGPT
+connectors and the Claude.ai web app accept a remote URL rather than a local
+command, so they cannot run this server.
+
 ## Tools
 
 | Tool | Use |
@@ -69,6 +89,9 @@ claude mcp add aus-accounting -- uvx aus-accounting-mcp
 | `calculate_tax_worksheet` | Calculate one of 6 worksheets with established scope and period. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
+| `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page. |
+| `read_tax_legislation_section` | Read one cited provision from that corpus in full. |
+| `search_tax_rates` | Find legislated rate and threshold rows with the provision that sets them. |
 | `get_div7a_benchmark_rate` | Get a reviewed Division 7A benchmark rate, or `UNKNOWN`. |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayments for one supplied amalgamated loan. |
 | `refuse_div7a` | Explain unsupported Division 7A matters. Call without arguments. |
@@ -90,6 +113,26 @@ published dependency pins have not changed.
 To enable library retrieval, set `AUS_ACCOUNTING_LIBRARY_ROOT` in the server's
 environment to an authorised Markdown folder. Returned excerpts enter the calling
 assistant's context. The package contains no reference library.
+
+## Legislation corpus
+
+Set `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus you have built or obtained
+and authorise the assistant to read. The three corpus tools then cite every
+provision to its Act, section, compilation number, compilation date and register
+page, and carry the corpus licence and attribution with the text.
+
+The package ships no corpus and downloads nothing, so the corpus stays yours: no
+account, no hosted index and no record of what you searched for.
+[au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus)
+builds one from the Federal Register of Legislation in the expected layout.
+
+A row is a point-in-time copy from one build, not a live lookup, and
+`version_is_current` records what was true when the corpus was built. Check the
+compilation date and the register page before relying on a provision, and treat a
+rate row as the text of one provision rather than a calculation or a confirmed
+current figure. Retrieval does not extend what the reviewed engines calculate. The
+[reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#local-legislation-corpus)
+covers the layout, fields, bounds and a worked example.
 
 Payday Super needs an explicit assessment date and fund-receipt evidence before
 it can return `ON_TIME`. Check the `aus-accounting://payday-coverage` resource for

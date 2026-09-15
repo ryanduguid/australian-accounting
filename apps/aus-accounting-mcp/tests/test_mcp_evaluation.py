@@ -12,6 +12,7 @@ import pytest
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
+import synthetic_corpus
 from aus_accounting_mcp.server import mcp
 from evaluation import tool_selection
 
@@ -64,7 +65,8 @@ async def _answer(session, case):
     def ratio(result, name):
         return next(row["status"] for row in result["ratios"] if row["ratio"] == name)
 
-    if case in {"grouped-payday", "worksheet-gst", "library-reference", "payday-evidence-pack"}:
+    if case in {"grouped-payday", "worksheet-gst", "library-reference", "payday-evidence-pack",
+                "legislation-citation", "legislated-rate"}:
         reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
         results = [await call(c["name"], **c["arguments"])
                    for c in json.loads(reference.text)]
@@ -74,6 +76,10 @@ async def _answer(session, case):
             return results[0]["amounts"]["gst"]
         if case == "payday-evidence-pack":
             return json.loads(results[0]["files"]["exceptions.json"])["exceptions"][0]["verdict"]
+        if case == "legislation-citation":
+            return results[-1]["section"]["section"]
+        if case == "legislated-rate":
+            return results[0]["matches"][0]["amounts"][0]
         return results[-1]["text"]
 
     if case == "catalogue-pages":
@@ -160,10 +166,13 @@ async def _answer(session, case):
     return str(all(fixture["not_a_lodgment"] for fixture in fixtures)).lower()
 
 
-async def _evaluate(case, library_root):
+async def _evaluate(case, library_root, corpus_root):
     parameters = StdioServerParameters(
         command=sys.executable, args=["-m", "aus_accounting_mcp.cli"],
-        env={"AUS_ACCOUNTING_LIBRARY_ROOT": library_root},
+        env={
+            "AUS_ACCOUNTING_LIBRARY_ROOT": library_root,
+            "AUS_ACCOUNTING_CORPUS_ROOT": corpus_root,
+        },
     )
     async with stdio_client(parameters) as (reader, writer):
         async with ClientSession(reader, writer) as session:
@@ -176,11 +185,13 @@ async def _evaluate(case, library_root):
     "case,expected,tools", CASES, ids=[case for case, _, _ in CASES]
 )
 def test_evaluation_answer_is_reproducible(case, expected, tools):
-    with tempfile.TemporaryDirectory() as library_root:
+    with tempfile.TemporaryDirectory() as library_root, \
+            tempfile.TemporaryDirectory() as corpus_root:
         (Path(library_root) / "example.md").write_text(
             "# Synthetic\nsynthetic credit example\n", encoding="utf-8"
         )
-        answer, selected, calls = asyncio.run(_evaluate(case, library_root))
+        synthetic_corpus.build(Path(corpus_root))
+        answer, selected, calls = asyncio.run(_evaluate(case, library_root, corpus_root))
 
     assert answer == expected
     # questions.xml publishes the tools a correct answer needs, and the

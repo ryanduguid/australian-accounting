@@ -290,6 +290,91 @@ class LibrarySearch(ResultObject):
     notice: str
 
 
+CorpusProvenance = Annotated[
+    dict[str, Any],
+    Field(
+        description=(
+            "Corpus-level source, retrieval date and licence terms from the operator's "
+            "configured corpus; empty when the corpus ships no manifest."
+        )
+    ),
+]
+
+
+class LegislationSection(ResultObject):
+    """One cited provision copied from the operator's corpus at its build date."""
+
+    row_id: str | None
+    register_id: str | None
+    act: str | None
+    collection: str | None
+    section: str | None
+    heading: str | None
+    container: str | None
+    kind: str | None
+    compilation_number: str | None
+    compilation_date: str | None
+    version_is_current: bool | None
+    register_page: str | None
+    source_url: str | None
+    licence: str | None
+    attribution: str | None
+    text: str
+    total_chars: Annotated[
+        int, Field(ge=0, description="Characters in the stored provision before truncation.")
+    ]
+    caveats: Caveats
+
+
+class LegislationSearch(ResultObject):
+    matches: list[LegislationSection]
+    has_more: bool
+    next_offset: int | None
+    corpus: CorpusProvenance
+    notice: str
+
+
+class LegislationExcerpt(ResultObject):
+    section: LegislationSection
+    corpus: CorpusProvenance
+    notice: str
+
+
+class RateEntry(ResultObject):
+    """One legislated rate, threshold or factor with the provision that sets it."""
+
+    rate_id: str | None
+    register_id: str | None
+    act: str | None
+    collection: str | None
+    section: str | None
+    heading: str | None
+    topic: str | None
+    kind: str | None
+    amounts: Annotated[
+        list[str], Field(description="Amounts as they appear in the provision, unparsed.")
+    ]
+    years: Annotated[
+        list[str], Field(description="Years as they appear in the provision, unparsed.")
+    ]
+    compilation_number: str | None
+    compilation_date: str | None
+    register_page: str | None
+    content: str
+    total_chars: Annotated[
+        int, Field(ge=0, description="Characters in the stored passage before truncation.")
+    ]
+    caveats: Caveats
+
+
+class RateSearch(ResultObject):
+    matches: list[RateEntry]
+    has_more: bool
+    next_offset: int | None
+    corpus: CorpusProvenance
+    notice: str
+
+
 class TaxCalculation(EngineResult):
     calculation: str
     period: str

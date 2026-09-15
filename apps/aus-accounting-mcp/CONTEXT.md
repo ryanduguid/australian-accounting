@@ -13,10 +13,20 @@ does not lodge, approve, pay, or make compliance determinations.
   through the Model Context Protocol.
 - **Reviewed engine**: a separately published dependency that performs a
   supported calculation and whose version is reported with the result.
-- **Computational MCP**: this server's role. It applies defined tests to facts
-  supplied by the operator; it is not a hosted source-document store.
-- **Document-retrieval MCP**: a separate tool category for locating rulings,
-  legislation and other source documents. Do not present this server as one.
+- **Computational MCP**: this server's primary role. It applies defined tests to
+  facts supplied by the operator; it is not a hosted source-document store.
+- **Operator-configured retrieval**: this server's secondary role. Search and read
+  tools return cited excerpts from folders the operator configures and controls,
+  and from nowhere else: no bundled corpus, no download, no hosted index and no
+  record of a query. Retrieval never establishes calculation support, and a
+  matching passage never extends a reviewed engine's scope.
+- **Point-in-time copy**: what a retrieved provision or rate row is. It reflects
+  the corpus build, not the register today, so it travels with its compilation
+  number, compilation date and register page.
+- **Document-retrieval MCP**: a hosted service that owns and serves its own
+  corpus of rulings, legislation and other source documents. This server is not
+  one. Do not present it as one, and do not present a retrieved passage as a
+  determination, as advice or as a confirmation of current law.
 - **Operator-supplied fact**: an input supplied to a tool invocation. Preserve
   its stated meaning; do not infer missing facts or silently replace it.
 - **Structured result**: the machine-readable output of a tool. Reviewed-engine
@@ -33,4 +43,7 @@ does not lodge, approve, pay, or make compliance determinations.
 
 Keep refusals and warnings visible in public interfaces. Preserve the
 distinction between preparation support and professional advice, and require a
-human decision for any consequential accounting action.
+human decision for any consequential accounting action. Quote a retrieved
+provision only with its citation and compilation date, keep the source licence
+attribution with the text, and never present a stored copy as a confirmation of
+current law.
