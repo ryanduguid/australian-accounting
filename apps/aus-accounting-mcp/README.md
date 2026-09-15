@@ -80,6 +80,13 @@ Missing figures remain unknown. Preserve `UNKNOWN`, `REFUSED`, `not_supplied` an
 The 6 worksheets cover bounded GST, resident basic tax, CGT, FBT, first-year
 depreciation and quarterly SG cases. Read `aus-accounting://scope` before supplying
 scope confirmation. Most support 2025-26; see the reference for periods and exclusions.
+
+With the development worksheet engine, `aus-accounting://scope` also includes
+engine-owned period dates, required inputs and units, methods, Library example
+references and fabricated `example.facts` that can be passed to the worksheet
+tool. With the published pinned engine, the resource retains its existing scope,
+source and source-check date fields. The richer catalogue remains unreleased;
+published dependency pins have not changed.
 To enable library retrieval, set `AUS_ACCOUNTING_LIBRARY_ROOT` in the server's
 environment to an authorised Markdown folder. Returned excerpts enter the calling
 assistant's context. The package contains no reference library.
