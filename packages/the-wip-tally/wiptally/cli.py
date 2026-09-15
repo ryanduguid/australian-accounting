@@ -9,6 +9,7 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import csv
 import sys
 from datetime import date
 from pathlib import Path
@@ -41,6 +42,25 @@ def _refuse_to_write_over_an_input(out: Path, inputs: list[Path | None]) -> None
 def _require_suffix(path: Path, suffix: str) -> None:
     if path.suffix.casefold() != suffix:
         raise CsvError(f"{path} must have a {suffix} filename")
+
+
+def _schedule_as_at(schedule_path: Path) -> str | None:
+    """The reporting date the supplied schedule records, or None.
+
+    review-pack rebuilds the schedule to compare bytes, so it has to rebuild it on
+    the date the schedule was made. Defaulting to today rejected a valid schedule
+    on any later day unless the operator happened to repeat the original date.
+    """
+    try:
+        with schedule_path.open(newline="", encoding="utf-8-sig") as fh:
+            for row in csv.DictReader(fh):
+                value = (row.get("as_at") or "").strip()
+                if value:
+                    return date.fromisoformat(value).isoformat()
+                return None
+    except (OSError, ValueError, csv.Error):
+        return None
+    return None
 
 
 def _as_at(raw: str | None) -> str:
@@ -93,13 +113,15 @@ def cmd_review_pack(args: argparse.Namespace) -> int:
     source_bytes = source.read_bytes()
     contracts = read_contracts(source, mapping, source_bytes=source_bytes)
     positions = [measure(contract) for contract in contracts]
-    as_at = _as_at(args.as_at)
-    schedule = Schedule(as_at=as_at, positions=positions, source_name=source.name)
     if not schedule_path.exists():
         raise CsvError(
             f"{schedule_path} does not exist. Run `wip-tally schedule` first so the "
             f"pack can hash the schedule bytes that were actually reviewed."
         )
+    # An explicit --as-at still wins; otherwise take the date the schedule records,
+    # and fall back to today only when it carries none.
+    as_at = _as_at(args.as_at) if args.as_at else (_schedule_as_at(schedule_path) or _as_at(None))
+    schedule = Schedule(as_at=as_at, positions=positions, source_name=source.name)
     text = build_review_pack(schedule_path, source, schedule, source_bytes=source_bytes)
     write_review_pack(out, text)
     print(f"Wrote {out}")
