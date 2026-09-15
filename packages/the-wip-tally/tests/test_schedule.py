@@ -323,3 +323,17 @@ def test_stated_measurability_keeps_its_figures() -> None:
     )
     assert not_measurable.revenue_to_date == Decimal("400000.00")
     assert "outcome_not_reasonably_measurable" in not_measurable.flags
+
+
+@pytest.mark.parametrize("percent", [Decimal("-0.5"), Decimal("2"), Decimal("1.0001")])
+def test_output_progress_outside_zero_to_one_is_refused(percent: Decimal) -> None:
+    # CSV ingestion already refuses these. measure() is the public calculation path,
+    # and a direct library caller reached it, producing revenue above the transaction
+    # price or below zero.
+    with pytest.raises(ScheduleError):
+        measure(_contract(progress_method="output", output_percent=percent))
+
+
+def test_output_progress_at_the_bounds_is_accepted() -> None:
+    for percent in (Decimal("0"), Decimal("1")):
+        assert measure(_contract(progress_method="output", output_percent=percent)) is not None
