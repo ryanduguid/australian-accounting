@@ -440,7 +440,7 @@ def build() -> None:
     # a validation formula, so it goes through a defined name, which is the one form that
     # both resolves to the table column and expands with it.
     wb.defined_names.add(DefinedName("RateYears", attr_text="tblRates[year_of_income]"))
-    dv = DataValidation(type="list", formula1="=RateYears", allow_blank=False)
+    dv = DataValidation(type="list", formula1="RateYears", allow_blank=False)
     dv.add("B2")
     ws.add_data_validation(dv)
     ws["A3"] = "Benchmark interest rate for that year (s 109N(2))"
@@ -585,7 +585,7 @@ if (Get-Process EXCEL -ErrorAction SilentlyContinue) {
   throw 'Excel is already running; refusing to share its COM server.'
 }
 $xl = New-Object -ComObject Excel.Application
-$xl.Visible = $false; $xl.DisplayAlerts = $false; $xl.AutomationSecurity = 1
+$xl.Visible = $false; $xl.DisplayAlerts = $false; $xl.AutomationSecurity = 3
 try {
   $wb = $xl.Workbooks.Open('%s')
   $sources = $wb.Worksheets.Item('Sources & Version')

@@ -276,7 +276,19 @@ def _header_scalar(lines: Iterable[str], key: str, path: Path) -> str:
 
 
 def _required(row: dict, key: str, where: str) -> str:
-    value = (row.get(key) or "").strip()
+    raw = row.get(key)
+    if raw is None:
+        raw = ""
+    if not isinstance(raw, str):
+        # An override file is JSON, so a rate or year can arrive as a number.
+        # .strip() raised AttributeError, which cli.main does not catch, so the
+        # operator saw a traceback instead of the refusal. A JSON number is an
+        # IEEE double as well, which is the value this engine will not trust.
+        raise RatesError(
+            f"{where} gives {key!r} as {raw!r}. Write it as a quoted string: a JSON "
+            "number is read as an IEEE double and loses precision"
+        )
+    value = raw.strip()
     if not value:
         raise RatesError(f"{where} is missing {key!r}")
     return value

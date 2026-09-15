@@ -199,7 +199,7 @@ Record the version the figures were reproduced under:
 python -m div7aloan.cli --version
 ```
 
-Then, from the repository root:
+Then, from `packages/div7a-loan-review`:
 
 ```bash
 python -m div7aloan.cli review --input evaluation/div7a_myr/fixtures/myr_met_exact.csv --year 2026-27

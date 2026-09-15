@@ -43,6 +43,11 @@ def test_past_end_and_exact_end_do_not_offer_another_page():
     assert final["industries"] == complete["industries"][-1:]
     assert final["has_more"] is False
     assert final["next_offset"] is None
+    at_end = list_ato_benchmark_industries(year="2023-24", limit=1, offset=total)
+    assert at_end["industries"] == []
+    assert at_end["count"] == 0
+    assert at_end["has_more"] is False
+    assert at_end["next_offset"] is None
     past_end = list_ato_benchmark_industries(year="2023-24", limit=1, offset=total + 1)
     assert past_end["industries"] == []
     assert past_end["count"] == 0

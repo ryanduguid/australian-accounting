@@ -158,7 +158,10 @@ missing facts. Every tool publishes an output schema describing its returned fie
 including verdicts, decimal strings, warnings and source information. `ok: true`
 means the tool ran, not that the review passed; retain `UNKNOWN`, `REFUSED`,
 `not_supplied` and `null` results when presenting findings. Engine audit fields are
-preserved, and clients receive the same payload in structured content and JSON text.
+preserved, and clients receive the same payload in structured content and JSON text,
+with one exception: `build_payday_super_evidence_pack` with `response_detail="compact"`
+puts only a summary in the text content, so a client using that mode must read the four
+evidence files from `structuredContent.files`.
 An unavailable Division 7A `benchmark_year_used` may be the engine's empty string
 or null; neither is evidence of a reviewed year.
 

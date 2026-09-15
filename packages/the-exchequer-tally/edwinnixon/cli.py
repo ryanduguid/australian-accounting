@@ -111,7 +111,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         )
         res = determine_corporate_tax_rate(test)
         print("=" * 60)
-        print(f"Base Rate Entity (BRE) Evaluation — FY{args.fy}")
+        print(f"Base Rate Entity (BRE) Evaluation - FY{args.fy}")
         print("=" * 60)
         threshold_m = turnover_threshold_for(args.fy) / Decimal("1000000")
         print(f"Aggregated Turnover:     ${args.turnover:,.2f} (< ${threshold_m:.0f}M: {test.is_aggregated_turnover_eligible})")
@@ -136,7 +136,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             corporate_tax_rate=args.tax_rate,
         )
         print("=" * 60)
-        print(f"Australian Dividend Distribution Statement — {stmt.entity_name}")
+        print(f"Australian Dividend Distribution Statement - {stmt.entity_name}")
         print("=" * 60)
         # s 202-75(2)(a): the statement must identify the entity making the distribution.
         print(f"ACN/ABN:                 {stmt.abn_or_acn}")

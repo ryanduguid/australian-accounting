@@ -241,7 +241,7 @@ FRACTION_PAD = re.compile(r"(:\d{2})\.(\d{1,5})(?!\d)")
 # compliance verdicts.
 ISO_SHAPE = re.compile(
     r"\d{4}-\d{2}-\d{2}"
-    r"(?:[T ]\d{2}(?::\d{2}(?::\d{2}(?:\.\d{1,6})?)?)?)?$"
+    r"(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?)?$"
 )
 
 # A date-time carrying an explicit zone marker: Z, or the [+-]HH:MM(:SS)

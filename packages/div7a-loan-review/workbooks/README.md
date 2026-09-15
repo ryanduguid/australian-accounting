@@ -45,8 +45,8 @@ relevant years before relying on the result. See the
 5. **Rates.** The frozen table of May RBA F5 figures. To review a year outside it,
    add a row and cite where you read the figure. The engine refuses an override
    without a citation; the workbook cannot enforce that. Record the reference in
-   `source` and the date checked in `seen`, alongside `rba_table`, `rba_series`,
-   `rba_month` and `verify_at`.
+   `source` and the date checked in `seen`, alongside `rba_table`, `rba_series`
+   and `rba_month`.
    Every rate must be numeric and between zero and one. A blank, text, negative or
    above-one rate blocks the workbook. A zero rate remains a refused repayment
    calculation, consistent with the engine.

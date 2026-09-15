@@ -32,7 +32,8 @@ Every rule is visible on the Calculation sheet: turnover falls back to total bus
 income when sales are not positive or are less than half of it, payments to
 associated persons are deducted once, cost of sales excludes wages, W1 replaces the
 salary and wages label only when it is larger, ratios are rounded to 4 places
-before comparison, and band and benchmark boundaries are inclusive.
+before comparison, benchmark range boundaries are inclusive, and a band includes
+its upper bound while only the first band includes its lower bound.
 
 ## How it is kept honest
 
