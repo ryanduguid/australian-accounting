@@ -88,6 +88,11 @@ def scope() -> dict[str, Any]:
             "calculate_tax_worksheet": "Run one of the bounded calculation_worksheets below.",
             "search_accounting_library": "Search an explicitly configured local Markdown library.",
             "read_accounting_library": "Read bounded lines with a source path and hash.",
+            "search_tax_legislation": "Search an explicitly configured local legislation corpus; "
+            "returns point-in-time provisions with their compilation and register citation.",
+            "read_tax_legislation_section": "Read one cited provision from that corpus in full.",
+            "search_tax_rates": "Find legislated rate, threshold and factor rows in that corpus; "
+            "amounts are quoted text, not a calculation or a current-figure confirmation.",
         },
         "calculation_worksheets": calculations.worksheet_catalogue() if callable(
             getattr(calculations, "worksheet_catalogue", None)

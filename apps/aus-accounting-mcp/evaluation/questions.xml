@@ -191,4 +191,16 @@
     <calls>[{"name":"build_payday_super_evidence_pack","arguments":{"contributions":[{"employee_id":"SYN001","qe_day":"2026-08-06","sg_amount":"120.00","remitted":"2026-08-14","received":null,"first_to_fund":false,"out_of_cycle":false,"db_interest":false}],"as_at":"2026-08-20"}}]</calls>
     <tools><tool>build_payday_super_evidence_pack</tool></tools>
   </qa_pair>
+  <qa_pair id="legislation-citation">
+    <question>The configured synthetic corpus holds a Synthetic Levy Act 2099. Search that Act for the synthetic levy rate, then read the matching provision in full. Return only its section label.</question>
+    <answer>5-10</answer>
+    <calls>[{"name": "search_tax_legislation", "arguments": {"query": "synthetic levy rate", "act": "levy act"}}, {"name": "read_tax_legislation_section", "arguments": {"row_id": "C9999A00001:0002:5-10"}}]</calls>
+    <tools><tool>read_tax_legislation_section</tool><tool>search_tax_legislation</tool></tools>
+  </qa_pair>
+  <qa_pair id="legislated-rate">
+    <question>Search the configured synthetic corpus for the superannuation cap row. Return only the amount exactly as the provision states it, with no calculation.</question>
+    <answer>$30,000</answer>
+    <calls>[{"name": "search_tax_rates", "arguments": {"query": "cap", "topic": "superannuation"}}]</calls>
+    <tools><tool>search_tax_rates</tool></tools>
+  </qa_pair>
 </evaluation>

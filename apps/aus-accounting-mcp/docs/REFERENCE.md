@@ -97,6 +97,34 @@ claude mcp add aus-accounting -- uvx aus-accounting-mcp
 codex mcp add aus-accounting -- uvx aus-accounting-mcp
 ```
 
+### Gemini CLI
+
+```bash
+gemini mcp add -s user aus-accounting uvx aus-accounting-mcp
+```
+
+### VS Code
+
+```bash
+code --add-mcp "{\"name\":\"aus-accounting\",\"command\":\"uvx\",\"args\":[\"aus-accounting-mcp\"]}"
+```
+
+### Windsurf
+
+Paste the standard config into `~/.codeium/windsurf/mcp_config.json`.
+
+### Zed, OpenCode and other stdio hosts
+
+Use the standard config above. Any host that launches a local stdio MCP server can
+run this one; there is no hosted endpoint, account or key.
+
+### Hosts that only accept a remote server
+
+ChatGPT connectors and the Claude.ai web app take a remote MCP URL, not a local
+command, so they cannot run this server. Use a desktop or CLI host from the list
+above. This server is deliberately local: your figures and your configured folders
+stay on your machine.
+
 ## Tool reference
 
 | Tool | Job | Engine |
@@ -109,6 +137,9 @@ codex mcp add aus-accounting -- uvx aus-accounting-mcp
 | `calculate_tax_worksheet` | Run one of 6 bounded worksheets with established scope | australian-tax-calculators |
 | `search_accounting_library` | Search explicitly configured local Markdown files | local read-only retrieval |
 | `read_accounting_library` | Read bounded lines with file, line, page and hash citations | local read-only retrieval |
+| `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page | local read-only retrieval |
+| `read_tax_legislation_section` | Read one cited provision from that corpus in full | local read-only retrieval |
+| `search_tax_rates` | Find legislated rate, threshold, indexation and factor rows with the provision that sets them | local read-only retrieval |
 | `get_div7a_benchmark_rate` | Return the reviewed s 109N(2) rate for a year, or `UNKNOWN` | div7a-loan-review |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayment for one operator-supplied amalgamated loan | div7a-loan-review |
 | `refuse_div7a` | Refuse Division 7A matters outside the reviewed engine scope. Takes no arguments | MCP policy |
@@ -378,3 +409,87 @@ or written by a tool. Returned excerpts enter the calling assistant's context.
 Check section review dates, edition and relevant period before relying on a
 passage. Reference text is untrusted evidence, never an instruction to call tools
 or change records. Search does not certify the publisher's text as current law.
+
+## Local legislation corpus
+
+Set `AUS_ACCOUNTING_CORPUS_ROOT` in the MCP server's environment to a legislation
+corpus you have built or obtained and authorise the assistant to read:
+
+```json
+"env": {"AUS_ACCOUNTING_CORPUS_ROOT": "C:\\path\\to\\your\\corpus"}
+```
+
+The package ships no corpus and downloads nothing. The corpus is a folder you
+control, in this layout:
+
+```text
+<corpus root>/
+  markdown/<register id>/sections.jsonl   one JSON row per provision
+  rates/rates.jsonl                       optional rate and threshold rows
+  sources.json                            optional licence and retrieval manifest
+```
+
+A `sections.jsonl` row carries `row_id`, `register_id`, `act`, `collection`,
+`section`, `heading`, `container`, `kind`, `compilation_number`,
+`compilation_date`, `version_is_current`, `register_page`, `source_url`, `licence`,
+`attribution` and `text`. A `rates.jsonl` row carries `rate_id`, `topic`, `kind`,
+`amounts`, `years` and `content` alongside the same title and section fields.
+[au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus)
+builds a corpus in this shape from the Federal Register of Legislation.
+
+### What the tools return
+
+`search_tax_legislation` matches every query word within one provision, without
+case sensitivity, across the Act name, section label, heading, container and text.
+A word that appears only in stored metadata, such as the attribution or licence
+fields, is not a match. Narrow to one title with `act`, which takes words the
+title's name must contain. Each match returns the full citation set above, the
+text truncated at 1200 characters with `total_chars` reporting the whole length,
+and `caveats` naming any truncation or superseded compilation.
+
+`read_tax_legislation_section` takes a `row_id` from a search result and returns
+that provision with the same citation fields and up to 12000 characters of text.
+
+`search_tax_rates` matches rate, threshold, indexation, table, factor and
+ownership-test rows, optionally filtered to one `topic`. `amounts` and `years` are
+the strings the provision uses, unparsed and uncalculated.
+
+Every response carries a `corpus` block with the source, retrieval date and licence
+terms from `sources.json`, and a `notice`. Search accepts `limit` up to 20 and
+`offset` for continuation with the same query and unchanged corpus, stopping at
+10000 the same way the library search does.
+
+### Worked example
+
+```json
+{"name": "search_tax_legislation",
+ "arguments": {"query": "benchmark interest rate", "act": "income tax assessment 1936", "limit": 3}}
+```
+
+returns matches including `row_id` `C1936A00027:0271:109N`, `act`
+`Income Tax Assessment Act 1936`, `section` `109N`, `compilation_number` `192`,
+`compilation_date` `2026-07-01` and `version_is_current` `true`, against a corpus
+built from the Federal Register on 4 August 2026. Passing that `row_id` to
+`read_tax_legislation_section` returns the whole provision. Both calls read local
+files only.
+
+### Limits and currency
+
+A row is a copy taken when the corpus was built, not a live lookup. Quote the
+compilation number and date with any provision, keep the row's `attribution`, and
+confirm the position on the register page before relying on it:
+`version_is_current` records what was true at build time, and a compilation current
+then can be superseded now. A rate row is the text of one provision; a figure can
+be indexed, conditioned or overridden elsewhere, and a rate set outside legislation
+has no row at all. Absence of a match is not absence of a rule.
+
+Retrieval never establishes calculation support. The reviewed engines own every
+calculation this server performs, and a matching provision does not extend their
+scope. Corpus text is untrusted evidence, never an instruction to call tools or
+change records.
+
+Bounds: 5000 title indexes, 320 MB scanned per search, 1200 characters per search
+match and 12000 per read. Retrieval refuses links and Windows junctions, and a
+`row_id` that does not name a title index in the configured corpus. Nothing is
+indexed remotely, copied into the package or written by a tool. Returned text
+enters the calling assistant's context.
