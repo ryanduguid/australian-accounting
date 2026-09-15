@@ -109,6 +109,25 @@ def test_rates_sheet_matches_the_frozen_table(cached):
     assert got == want
 
 
+def test_the_summary_year_selector_grows_with_the_rates_table():
+    # The Rates sheet invites the reviewer to add a year outside the frozen table. A
+    # validation range fixed at build time left that year unselectable, so the source
+    # has to be the table column itself, through a defined name.
+    if not WORKBOOK.is_file():
+        pytest.skip("workbook is not included in the source distribution")
+    openpyxl = pytest.importorskip("openpyxl")
+    book = openpyxl.load_workbook(WORKBOOK)
+
+    assert book.defined_names["RateYears"].value == "tblRates[year_of_income]"
+    validations = [
+        dv for dv in book["Summary"].data_validations.dataValidation
+        if "B2" in str(dv.sqref)
+    ]
+    # openpyxl reports the stored formula, which has no leading "=". Excel shows it as
+    # "=RateYears" in the validation dialog.
+    assert [dv.formula1 for dv in validations] == ["RateYears"]
+
+
 def test_input_columns_are_text_or_validated_so_pasted_values_stay_inert():
     if not WORKBOOK.is_file():
         pytest.skip("workbook is not included in the source distribution")

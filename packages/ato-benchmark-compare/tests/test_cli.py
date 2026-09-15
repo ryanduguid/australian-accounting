@@ -141,6 +141,34 @@ def test_map_then_compare_round_trip(tmp_path: Path, capsys: pytest.CaptureFixtu
     assert "Review outstanding" in capsys.readouterr().out
 
 
+def test_compare_reports_the_rows_it_left_out_of_the_totals(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # map already says which rows carried no readable amount; compare used source.rows
+    # and said nothing, so a dash or a blank figure dropped out of every total in
+    # silence. The warning goes to stderr so `--json -` still writes only JSON.
+    pnl = tmp_path / "p.csv"
+    pnl.write_text("Sales,850000\nPurchases,290000\nRent,-\n", encoding="utf-8")
+    mapping = tmp_path / "m.csv"
+    assert main(["map", "--profit-and-loss", str(pnl), "--out", str(mapping)]) == EXIT_OK
+    capsys.readouterr()
+
+    main(
+        [
+            "compare",
+            "--profit-and-loss", str(pnl),
+            "--mapping", str(mapping),
+            "--industry", "bakeries",
+            "--json", "-",
+        ]
+    )
+    captured = capsys.readouterr()
+
+    assert "row(s) carried no readable amount and are not in these totals" in captured.err
+    assert "Rent" in captured.err
+    json.loads(captured.out)
+
+
 def test_accept_unreviewed_clears_the_review_exit(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     out = tmp_path / "m.csv"
     main(["map", "--profit-and-loss", str(BAKERY_PNL), "--out", str(out)])
