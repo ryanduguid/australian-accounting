@@ -247,6 +247,10 @@ and use `--amount-column` if it picked the wrong period.
   W1 label, the salary and wages code, or anything else that only exists at lodgement.
   Pass `--w1` if you want the ATO's W1 rule applied to the labour ratio.
 
+Those are the things the tool never attempts. Separately,
+[LIMITATIONS.md](LIMITATIONS.md) records the cases where it does produce a figure that
+you should not read at face value, naming what stays correct in each.
+
 ## Client data
 
 Nothing leaves the machine. There is no network call anywhere in the runtime.
