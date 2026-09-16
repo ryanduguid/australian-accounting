@@ -248,7 +248,7 @@ and use `--amount-column` if it picked the wrong period.
   Pass `--w1` if you want the ATO's W1 rule applied to the labour ratio.
 
 Those are the things the tool never attempts. Separately,
-[LIMITATIONS.md](LIMITATIONS.md) records the cases where it does produce a figure that
+[LIMITATIONS.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/ato-benchmark-compare/LIMITATIONS.md) records the cases where it does produce a figure that
 you should not read at face value, naming what stays correct in each.
 
 ## Client data
