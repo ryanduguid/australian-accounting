@@ -510,6 +510,7 @@ class Div7aRepayment(ResultObject):
     ]
     rounding: Annotated[str, Field(description="Rounding rule reported by the engine.")]
     reasons: Reasons
+    reason_codes: Annotated[list[str], Field(description="Stable machine-readable causes aligned with reasons.")]
     caveats: Caveats
 
 
