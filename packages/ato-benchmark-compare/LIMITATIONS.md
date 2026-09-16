@@ -30,11 +30,12 @@ report a different `key_ratio` for the same comparison:
 tell an unmapped bucket from a nil one. `to_evidenced_dict()` takes
 `supplied_fields` and can.
 
-**What stays correct.** Every ratio and every verdict. Both serialisers compute
-the same turnover, cost of sales, total expenses and labour figures from the
-same mapping, and each ratio carries the same verdict against the same
-published range in both. Only which ratio is flagged as the key one differs,
-and only when the bucket was never mapped.
+**What stays correct.** The underlying calculations and published ranges are
+the same in both serialisers. The exposed payload is not: `to_evidenced_dict()`
+suppresses ratios whose inputs were not supplied, emitting `null` figures and a
+`not_supplied` verdict. With this unmapped input, total-expense and labour
+outputs are therefore also suppressed there, while `to_dict()` retains their
+calculated figures and verdicts. The key-ratio flag differs as described above.
 
 **Where it surfaces at runtime.** The `cost_of_sales_key_fallback` note appears
 in the CLI text and JSON output whenever the fallback is applied. The note does

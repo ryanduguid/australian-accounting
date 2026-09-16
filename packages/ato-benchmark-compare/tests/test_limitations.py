@@ -55,6 +55,17 @@ def test_abc_1_serialisers_diverge_on_the_key_ratio() -> None:
     assert library_payload["key_ratio"] == bakery.key_ratio
     assert cli_payload["key_ratio"] != library_payload["key_ratio"]
 
+    cli_ratios = {row["ratio"]: row for row in cli_payload["ratios"]}
+    library_ratios = {row["ratio"]: row for row in library_payload["ratios"]}
+    for ratio in (
+        "cost_of_sales_to_turnover",
+        "total_expenses_to_turnover",
+        "labour_to_turnover",
+    ):
+        assert cli_ratios[ratio]["value"] is not None
+        assert library_ratios[ratio]["value"] is None
+        assert library_ratios[ratio]["status"] == "not_supplied"
+
 
 def test_abc_1_library_payload_stays_internally_consistent() -> None:
     """The reverted key ratio and the per-row flag must name the same ratio."""
