@@ -540,6 +540,7 @@ class Div7aRepayment(ResultObject):
 
 class RepaymentFull(Div7aRepayment):
     benchmark_provenance: Provenance | None
+    manifest: Manifest
     statutory_trace: Trace
 
 
