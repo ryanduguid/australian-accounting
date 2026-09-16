@@ -12,8 +12,10 @@ import inspect
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
 from atobenchmark import dataset as ds
 from atobenchmark import to_evidenced_dict
+from atobenchmark.pnl import PnlRow
 from atobenchmark.ratios import compute
 from atobenchmark.report import compare, to_dict
 
@@ -117,15 +119,55 @@ def test_abc_1_parity_also_needs_both_income_fields() -> None:
 
 
 def test_abc_1_trigger_is_an_absent_bucket_not_an_unmapped_account() -> None:
-    """ABC-1 must not describe a case the command line refuses outright:
-    route() raises on a profit-and-loss row with no mapping entry, so that
-    input never reaches either serialiser."""
+    """ABC-1 must not describe a case the command line refuses outright.
+    Executes route() against an unmapped row rather than asserting the
+    symbols exist, so the guard fails if routing ever starts accepting one."""
     from atobenchmark.mapping import MappingError, route
 
-    register = _register()
-    assert "MappingError" in register
-    assert "route()" in register
-    assert MappingError is not None and callable(route)
+    rows = [PnlRow(line_number=1, account="Sales - cakes", amount=Decimal("100"))]
+    with pytest.raises(MappingError) as excinfo:
+        route(rows, {}, flip=False)
+    assert "no mapping entry" in str(excinfo.value)
+    assert "Sales - cakes" in str(excinfo.value)
+
+
+def test_abc_1_mapping_error_lists_at_most_twenty_rows() -> None:
+    """ABC-1 says the error lists the first 20 and counts the rest, so it
+    must not claim to name every unmapped row."""
+    from atobenchmark.mapping import MappingError, route
+
+    rows = [
+        PnlRow(line_number=n, account=f"Unmapped {n}", amount=Decimal("1"))
+        for n in range(1, 26)
+    ]
+    with pytest.raises(MappingError) as excinfo:
+        route(rows, {}, flip=False)
+    message = str(excinfo.value)
+    assert "Unmapped 20" in message
+    assert "Unmapped 21" not in message
+    assert "and 5 more" in message
+
+
+def test_abc_1_benchmark_range_survives_a_withheld_value() -> None:
+    """ABC-1 separates value withholding from range withholding: with both
+    income fields supplied, a row whose own bucket is absent loses its value
+    but keeps its published range, and the key flag does not move."""
+    data = ds.load("2023-24")
+    bakery = data.get("Bakeries and hot bread shops")
+    supplied = {"turnover": "850000", "other_income": "0", "cost_of_sales": "300000"}
+    comparison = compare(data, bakery, compute(totals(**supplied)))
+
+    payload = to_evidenced_dict(comparison, set(supplied))
+    rows = {row["ratio"]: row for row in payload["ratios"]}
+
+    withheld = rows["total_expenses_to_turnover"]
+    assert withheld["value"] is None
+    assert withheld["status"] == "not_supplied"
+    assert withheld["benchmark_min"] is not None
+
+    # cost_of_sales was supplied, so no fallback and no key-flag movement.
+    assert payload["key_ratio"] == bakery.key_ratio
+    assert rows[bakery.key_ratio]["is_key_ratio"] is True
 
 
 def test_abc_1_cli_serialiser_cannot_see_which_buckets_were_supplied() -> None:

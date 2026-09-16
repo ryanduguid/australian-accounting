@@ -15,11 +15,12 @@ that bucket is `cost_of_sales` and the business type's key ratio is
 `cost_of_sales_to_turnover`, the effect also reaches which ratio is marked key.
 
 This is **not** the same as a profit-and-loss account with no mapping entry.
-`route()` raises `MappingError` and names every unmapped row, and the command
-line exits with an error before any comparison happens, so that input cannot
-reach either serialiser. The trigger here is a bucket that no account was
-mapped *to*: the mapping is complete, the bucket simply has nothing in it and
-so is absent from the supplied-field set the library serialiser is given.
+`route()` raises `MappingError` listing the first 20 unmapped rows and a count
+of any beyond that, and the command line exits with an error before any
+comparison happens, so that input cannot reach either serialiser. The trigger
+here is a bucket that no account was mapped *to*: the mapping is complete, the
+bucket simply has nothing in it and so is absent from the supplied-field set
+the library serialiser is given.
 
 **Effect.** An absent bucket reaches the comparison as exactly the same nil
 that a genuine zero produces. The ATO's own fallback to
@@ -50,12 +51,19 @@ Parity at the row level is narrower than that, and needs both conditions:
 2. **Both income fields are supplied.** `to_evidenced_dict()` gates every row
    on `income_evidenced`, which is `turnover` and `other_income` together.
    Without both, even a ratio holding all of its own buckets is emitted by the
-   command line and withheld by the library, and its benchmark range is
-   withheld too.
+   command line and withheld by the library.
 
 Where both hold, the row carries the same value in both payloads against the
-same published range. Everywhere else the two diverge, and the key flag those
-ratios drive diverges with them.
+same published range.
+
+Three things diverge independently, and running them together overstates the
+effect:
+
+| What | When it diverges |
+| --- | --- |
+| A ratio's **value** | Its own buckets are absent, or an income field is. The library withholds it as `not_supplied`; the command line emits a figure. |
+| A ratio's **benchmark range** | Only when an income field is absent. With both income fields supplied the range is retained, even on a row whose value is withheld. |
+| The **key ratio and its flag** | Only in the `cost_of_sales` fallback above. A missing non-key bucket leaves the key ratio and every key flag alone. |
 
 Do not read the two payloads as interchangeable.
 

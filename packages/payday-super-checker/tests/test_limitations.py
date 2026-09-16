@@ -87,13 +87,32 @@ def test_psc_1_names_every_verdict_and_the_two_that_carry_the_estimate():
 
 
 def test_psc_1_uplift_is_a_range_not_a_flat_rate():
-    """PSC-1 said the uplift was 60%. It spans 0% to 60%, and only the
-    0% low estimate is unmoved by an extrapolated rate."""
+    """PSC-1 said the uplift was 60%. It spans 0% to 60%."""
     scenarios = sgc.uplift_scenarios(Decimal("1000"), Decimal("100"))
     assert scenarios["clean_history"]["vds_within_30d"] == Decimal("0")
     assert scenarios["prior_history"]["no_vds"] > Decimal("0")
     register = _register()
     assert "0%" in register and "60%" in register
+
+
+def test_psc_1_both_exposure_totals_move_with_the_notional_earnings():
+    """PSC-1 first said the 0% low estimate was unmoved. It is not:
+    exposure_range adds notional earnings into both totals before the uplift,
+    so only the low estimate's uplift COMPONENT is unmoved."""
+    shortfall = Decimal("1000")
+    low_a, high_a = sgc.exposure_range(shortfall, Decimal("100"))
+    low_b, high_b = sgc.exposure_range(shortfall, Decimal("120"))
+
+    assert low_a != low_b, "the low total must move with notional earnings"
+    assert high_a != high_b
+
+    # The component that does not move: 0% of a larger base is still nil.
+    for nec in (Decimal("100"), Decimal("120")):
+        component = sgc.uplift_scenarios(shortfall, nec)["clean_history"]["vds_within_30d"]
+        assert component == Decimal("0")
+
+    register = _register()
+    assert "Both exposure totals move" in register
 
 
 def test_psc_2_join_declares_each_degraded_match():

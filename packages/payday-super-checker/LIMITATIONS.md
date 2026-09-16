@@ -22,12 +22,17 @@ quarter recorded in `paydaysuper/data/gic_rates.json`.
 those days rather than refusing. The notional earnings component under SGAA
 s 19A is then compounded at a rate the ATO has not published for that quarter.
 The administrative uplift under s 19B(1) is a percentage of shortfalls plus
-notional earnings, so every scenario with a non-zero uplift moves with the
-extrapolated figure. The percentage is not fixed: `uplift_scenarios()` models
-the reg 13C and reg 13D reductions, and `exposure_range()` spans 0% for the low
-estimate (clean 24-month history with a voluntary disclosure inside 30 days)
-to 60% for the high estimate (prior history, no disclosure). Only the 0% low
-estimate is unmoved by the extrapolation.
+notional earnings, so it moves with the extrapolated figure wherever the
+percentage is non-zero. That percentage is not fixed: `uplift_scenarios()`
+models the reg 13C and reg 13D reductions, and `exposure_range()` spans 0% for
+the low estimate (clean 24-month history with a voluntary disclosure inside 30
+days) to 60% for the high estimate (prior history, no disclosure).
+
+**Both exposure totals move, including the low one.** `exposure_range()` adds
+the notional earnings into each total before the uplift, so an extrapolated
+rate changes the low estimate too. Only the low estimate's *uplift component*
+is unmoved, because 0% of a larger base is still nil. Do not read the low
+estimate as a rate-independent floor.
 
 **What stays correct.** Every verdict. All 6 of them, `ON_TIME`, `AT_RISK`,
 `LATE`, `UNPAID`, `UNKNOWN` and `SKIPPED`, are decided by the deadline and
