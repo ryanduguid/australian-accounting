@@ -197,8 +197,11 @@ def _review(lines: list[ContribLine], as_at: str) -> tuple[date, list[Result], G
     the same path.
     """
     as_at_day = _required_date(as_at, "as_at")
-    gic = load_gic()
     try:
+        # Inside the try: RatesError is a ValueError, and the handler below is
+        # what turns a rate table this engine cannot read into the adapter's
+        # own error rather than a raw one from the engine's internals.
+        gic = load_gic()
         results = assess(
             lines,
             load_calendar(),
