@@ -197,8 +197,8 @@ def _review(lines: list[ContribLine], as_at: str) -> tuple[date, list[Result], G
     the same path.
     """
     as_at_day = _required_date(as_at, "as_at")
-    gic = load_gic()
     try:
+        gic = load_gic()
         results = assess(
             lines,
             load_calendar(),
