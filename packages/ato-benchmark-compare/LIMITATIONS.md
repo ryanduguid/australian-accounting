@@ -10,11 +10,18 @@ Applies to ato-benchmark-compare 0.1.7.
 
 ## ABC-1 An unmapped bucket reads as a nil in one output and as withheld in the other
 
-**Trigger.** An account was not mapped to a bucket a ratio needs. Where that
-bucket is `cost_of_sales` and the business type's key ratio is
+**Trigger.** A bucket a ratio needs is absent from the supplied totals. Where
+that bucket is `cost_of_sales` and the business type's key ratio is
 `cost_of_sales_to_turnover`, the effect also reaches which ratio is marked key.
 
-**Effect.** An omitted bucket reaches the comparison as exactly the same nil
+This is **not** the same as a profit-and-loss account with no mapping entry.
+`route()` raises `MappingError` and names every unmapped row, and the command
+line exits with an error before any comparison happens, so that input cannot
+reach either serialiser. The trigger here is a bucket that no account was
+mapped *to*: the mapping is complete, the bucket simply has nothing in it and
+so is absent from the supplied-field set the library serialiser is given.
+
+**Effect.** An absent bucket reaches the comparison as exactly the same nil
 that a genuine zero produces. The ATO's own fallback to
 `total_expenses_to_turnover` triggers on that nil, so the tool would otherwise
 mark a key ratio chosen by a figure nobody established.
@@ -33,14 +40,24 @@ tell an unmapped bucket from a nil one. `to_evidenced_dict()` takes
 
 **What stays correct.** The comparison behind both. Each serialiser renders one
 `Comparison` object built from one mapping, so turnover, the turnover basis and
-every computed figure are the same on both sides. Any ratio whose buckets
-**were** supplied carries the same value in both payloads, against the same
-published range. The divergence is confined to ratios resting on buckets that
-were never mapped, and to the key flag those ratios drive.
+every computed figure are the same on both sides.
 
-This is narrower than parity. Do not read the two payloads as interchangeable:
-where a bucket was not supplied, the CLI shows a figure and the library withholds
-one.
+Parity at the row level is narrower than that, and needs both conditions:
+
+1. The ratio's own buckets are supplied. `total_expenses_to_turnover` needs
+   every expense bucket, `labour_to_turnover` needs the labour set (and
+   `associated_persons` once `w1` is given), and the rest need their own field.
+2. **Both income fields are supplied.** `to_evidenced_dict()` gates every row
+   on `income_evidenced`, which is `turnover` and `other_income` together.
+   Without both, even a ratio holding all of its own buckets is emitted by the
+   command line and withheld by the library, and its benchmark range is
+   withheld too.
+
+Where both hold, the row carries the same value in both payloads against the
+same published range. Everywhere else the two diverge, and the key flag those
+ratios drive diverges with them.
+
+Do not read the two payloads as interchangeable.
 
 **Where it surfaces at runtime.** The `cost_of_sales_key_fallback` note appears
 in the CLI text and JSON output whenever the fallback is applied. The note does

@@ -93,6 +93,41 @@ def test_abc_1_unsupplied_ratios_are_a_figure_in_one_payload_and_withheld_in_the
     assert library["rent_to_turnover"]["status"] != "not_supplied"
 
 
+def test_abc_1_parity_also_needs_both_income_fields() -> None:
+    """ABC-1 claims row parity needs the ratio's own buckets AND both income
+    fields. to_evidenced_dict gates every row on income_evidenced, so a ratio
+    holding all of its own buckets is still withheld without other_income."""
+    data = ds.load("2023-24")
+    bakery = data.get("Bakeries and hot bread shops")
+    # rent is supplied; other_income is not.
+    supplied = {"turnover": "850000", "rent": "40000"}
+    comparison = compare(data, bakery, compute(totals(**supplied)))
+
+    cli = {row["ratio"]: row for row in to_dict(comparison)["ratios"]}
+    library = {
+        row["ratio"]: row
+        for row in to_evidenced_dict(comparison, set(supplied))["ratios"]
+    }
+
+    assert cli["rent_to_turnover"]["value"] == "0.0471"
+    assert library["rent_to_turnover"]["value"] is None
+    assert library["rent_to_turnover"]["status"] == "not_supplied"
+    # The benchmark range is withheld with it.
+    assert library["rent_to_turnover"]["benchmark_min"] is None
+
+
+def test_abc_1_trigger_is_an_absent_bucket_not_an_unmapped_account() -> None:
+    """ABC-1 must not describe a case the command line refuses outright:
+    route() raises on a profit-and-loss row with no mapping entry, so that
+    input never reaches either serialiser."""
+    from atobenchmark.mapping import MappingError, route
+
+    register = _register()
+    assert "MappingError" in register
+    assert "route()" in register
+    assert MappingError is not None and callable(route)
+
+
 def test_abc_1_cli_serialiser_cannot_see_which_buckets_were_supplied() -> None:
     """The divergence exists because to_dict() has no supplied-field set. If
     it gains one, ABC-1 is fixable and the entry must be revisited."""

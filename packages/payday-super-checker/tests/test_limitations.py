@@ -6,12 +6,17 @@ fixing the behaviour fails the test and forces the entry to be updated or
 removed.
 """
 
+import ast
 import inspect
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
 from paydaysuper import join, sgc
+
+# The package re-exports an `assess` function that shadows the module, so the
+# verdict vocabulary is imported by name rather than through the package.
+from paydaysuper.assess import EXPOSED, LATE, UNPAID, VERDICTS
 from paydaysuper.rates import GicQuarter, GicTable
 
 LIMITATIONS = Path(__file__).resolve().parents[1] / "LIMITATIONS.md"
@@ -50,15 +55,45 @@ def test_psc_1_gic_table_still_extrapolates_past_its_last_quarter():
 
 def test_psc_1_only_the_exposure_estimate_reads_the_gic_rate():
     """PSC-1 claims verdicts are unaffected. That holds only while the
-    notional earnings loop is the single caller of daily_rate()."""
+    notional earnings loop is the single caller of daily_rate().
+
+    Counts call expressions with ast rather than matching text: the method
+    definition in rates.py is not a call, and a second call added inside an
+    already-listed module would not change a set of filenames.
+    """
     package = Path(__file__).resolve().parents[1] / "paydaysuper"
-    callers = {
-        path.name
-        for path in package.glob("*.py")
-        if "daily_rate(" in path.read_text(encoding="utf-8")
-    }
-    assert callers == {"rates.py", "sgc.py"}
-    assert "daily_rate(" in inspect.getsource(sgc)
+    call_sites = [
+        f"{path.name}:{node.lineno}"
+        for path in sorted(package.glob("*.py"))
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8")))
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "daily_rate"
+    ]
+    assert len(call_sites) == 1, call_sites
+    assert call_sites[0].startswith("sgc.py:")
+
+
+def test_psc_1_names_every_verdict_and_the_two_that_carry_the_estimate():
+    """PSC-1 vouches for the verdict, so it must cover the whole vocabulary,
+    and must not imply a sound verdict makes the row's figures sound."""
+    register = _register()
+    for verdict in VERDICTS:
+        assert f"`{verdict}`" in register
+    assert len(VERDICTS) == 6
+    assert EXPOSED == (LATE, UNPAID)
+    for exposed in EXPOSED:
+        assert f"`{exposed}`" in register
+
+
+def test_psc_1_uplift_is_a_range_not_a_flat_rate():
+    """PSC-1 said the uplift was 60%. It spans 0% to 60%, and only the
+    0% low estimate is unmoved by an extrapolated rate."""
+    scenarios = sgc.uplift_scenarios(Decimal("1000"), Decimal("100"))
+    assert scenarios["clean_history"]["vds_within_30d"] == Decimal("0")
+    assert scenarios["prior_history"]["no_vds"] > Decimal("0")
+    register = _register()
+    assert "0%" in register and "60%" in register
 
 
 def test_psc_2_join_declares_each_degraded_match():

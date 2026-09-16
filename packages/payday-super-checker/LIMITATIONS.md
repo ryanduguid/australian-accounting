@@ -21,16 +21,26 @@ quarter recorded in `paydaysuper/data/gic_rates.json`.
 **Effect.** `GicTable.daily_rate()` returns the last known quarter's rate for
 those days rather than refusing. The notional earnings component under SGAA
 s 19A is then compounded at a rate the ATO has not published for that quarter.
-The administrative uplift under s 19B(1) is 60% of shortfalls plus notional
-earnings, so it moves with the extrapolated figure as well.
+The administrative uplift under s 19B(1) is a percentage of shortfalls plus
+notional earnings, so every scenario with a non-zero uplift moves with the
+extrapolated figure. The percentage is not fixed: `uplift_scenarios()` models
+the reg 13C and reg 13D reductions, and `exposure_range()` spans 0% for the low
+estimate (clean 24-month history with a voluntary disclosure inside 30 days)
+to 60% for the high estimate (prior history, no disclosure). Only the 0% low
+estimate is unmoved by the extrapolation.
 
-**What stays correct.** The verdict is unaffected. `ON_TIME`, `LATE`,
-`AT_RISK` and `UNKNOWN` are decided by the deadline and fund-receipt tests,
-which never read the GIC table. Deadlines, business-day arithmetic, the
-matched and remitted amounts, and the SG shortfall itself are all unaffected.
-`GicTable.daily_rate` is called from exactly one place, the notional earnings
-loop in `paydaysuper/sgc.py`, so nothing outside the exposure estimate depends
-on it.
+**What stays correct.** Every verdict. All 6 of them, `ON_TIME`, `AT_RISK`,
+`LATE`, `UNPAID`, `UNKNOWN` and `SKIPPED`, are decided by the deadline and
+fund-receipt tests, which never read the GIC table. Deadlines, business-day
+arithmetic, the matched and remitted amounts, and the SG shortfall itself are
+all unaffected. `GicTable.daily_rate` is called from exactly one place, the
+notional earnings loop in `paydaysuper/sgc.py`, so nothing outside the exposure
+estimate depends on it.
+
+The verdict being sound does not make the row's figures sound. `LATE` and
+`UNPAID` are the 2 verdicts in `EXPOSED`, so a row carrying either also carries
+the exposure estimate this entry qualifies. A `SKIPPED` row has no estimate to
+qualify.
 
 **Where it surfaces at runtime.** `GicTable.staleness()` adds a caveat to the
 result naming the table's end date, the rate carried forward, and the file to
@@ -53,7 +63,7 @@ than withheld or presented as settled.
 | Either file has a blank `employee_id` on any row | Matching falls back to employee name. Two employees sharing a name are merged. |
 | The payroll file has no pay-period-end column | Matching falls back to the payday. A super payment recorded against the pay period rather than the payday can be missed. |
 | The super file has only one of pay-period start or end | A payment's coverage collapses to a single day and can miss the payday it actually settled. |
-| The super file has no pay-period columns at all | A payment is treated as covering every payday for that employee, which can trigger the same-payment ambiguity check where an employee has more than one payday. |
+| The super file has no pay-period columns at all | A payment is treated as covering every payday for that employee. Where it cannot cover every competing balance, `_check_defensible` refuses only if 2 or more of the still-competing payroll rows are identical in payday, effective period end and amount. Rows differing in any of those 3 are sorted and apportioned, not refused. |
 
 **Effect.** Each condition weakens the join that every downstream verdict rests
 on. A merged pair of employees or a missed payment changes which contribution
@@ -70,6 +80,15 @@ condition. These are structural warnings: `paydaysuper/cli.py` prints them
 ahead of every row-level warning and never truncates them, because they govern
 whether the whole join can be trusted. The report header also states the key in
 use as `employee matching: by id` or `by name`.
+
+**This declaration is console-only.** The CSV carries each row's caveats and
+notes and a trailing provenance note, not the structural join warnings, so a
+consumer reading the CSV alone does not receive them. Anything downstream of
+the file, including a spreadsheet built from it, can therefore present an
+affected verdict without the warning needed to read it. Keep the console output
+with the pack, or re-run and read it, before relying on a verdict from a file
+whose join conditions you have not checked. Carrying the warnings into the CSV
+would change a published contract and its consumers, so it is not done here.
 
 **Operator step.** Re-export with an employee id column present on both files,
 a pay-period-end column on the payroll file, and pay-period start and end
