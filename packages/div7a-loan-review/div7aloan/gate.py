@@ -142,6 +142,7 @@ class GateResult:
     maximum_term_years_allowed: Decimal | None = None
     limbs: tuple[Limb, ...] = field(default_factory=tuple)
     reasons: tuple[str, ...] = field(default_factory=tuple)
+    reason_codes: tuple[str, ...] = field(default_factory=tuple)
     caveats: tuple[str, ...] = field(default_factory=tuple)
     statutory_trace: tuple[str, ...] = field(default_factory=tuple)
 
@@ -166,6 +167,7 @@ class GateResult:
             ),
             "limbs": [limb.to_json_dict() for limb in self.limbs],
             "reasons": list(self.reasons),
+            "reason_codes": list(self.reason_codes),
             "caveats": list(self.caveats),
             "statutory_trace": list(self.statutory_trace),
         }
@@ -367,12 +369,14 @@ def complying_loan_gate(
     """
     caveats: list[str] = []
     reasons: list[str] = []
+    reason_codes: list[str] = []
 
     floor_year = facts.year_of_income_being_tested or facts.year_loan_made
     if floor_year is None:
         return GateResult(
             verdict=GateVerdict.UNKNOWN,
             loan_id=facts.loan_id,
+            reason_codes=(ReasonCode.REFUSED_GATE_RESULT_MISSING.value,),
             reasons=(
                 "Neither year_of_income_being_tested nor year_loan_made was supplied, "
                 "so there is no year to read a benchmark interest rate for and "
@@ -424,6 +428,11 @@ def complying_loan_gate(
     for limb in limbs:
         if limb.state is not LimbState.PASS:
             reasons.append(f"{limb.cite}: {limb.finding}")
+            reason_codes.append(
+                ReasonCode.REFUSED_GATE_NOT_COMPLYING.value
+                if limb.state is LimbState.FAIL
+                else ReasonCode.REFUSED_GATE_UNKNOWN.value
+            )
 
     caveats.append(
         "COMPLYING here means the four model comparisons passed on the facts "
@@ -452,6 +461,7 @@ def complying_loan_gate(
         maximum_term_years_allowed=allowed,
         limbs=tuple(limbs),
         reasons=tuple(reasons),
+        reason_codes=tuple(reason_codes),
         caveats=tuple(caveats),
         statutory_trace=trace,
     )
