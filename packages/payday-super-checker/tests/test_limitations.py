@@ -103,13 +103,24 @@ def test_psc_1_both_exposure_totals_move_with_the_notional_earnings():
     low_a, high_a = sgc.exposure_range(shortfall, Decimal("100"))
     low_b, high_b = sgc.exposure_range(shortfall, Decimal("120"))
 
-    assert low_a != low_b, "the low total must move with notional earnings"
-    assert high_a != high_b
+    # Exact totals, not merely "they differ": subtracting the notional
+    # earnings, or dropping the high uplift, would satisfy an inequality
+    # while contradicting the published explanation.
+    assert (low_a, high_a) == (Decimal("1100"), Decimal("1760"))
+    assert (low_b, high_b) == (Decimal("1120"), Decimal("1792"))
 
-    # The component that does not move: 0% of a larger base is still nil.
-    for nec in (Decimal("100"), Decimal("120")):
-        component = sgc.uplift_scenarios(shortfall, nec)["clean_history"]["vds_within_30d"]
-        assert component == Decimal("0")
+    # Both totals rise by the full increase in notional earnings, plus the
+    # uplift charged on it where the percentage is non-zero.
+    assert low_b - low_a == Decimal("20")
+    assert high_b - high_a == Decimal("32")
+
+    # The component that does not move: 0% of a larger base is still nil,
+    # while the high estimate's uplift component grows with the base.
+    scenarios_a = sgc.uplift_scenarios(shortfall, Decimal("100"))
+    scenarios_b = sgc.uplift_scenarios(shortfall, Decimal("120"))
+    assert scenarios_a["clean_history"]["vds_within_30d"] == Decimal("0")
+    assert scenarios_b["clean_history"]["vds_within_30d"] == Decimal("0")
+    assert scenarios_b["prior_history"]["no_vds"] > scenarios_a["prior_history"]["no_vds"]
 
     register = _register()
     assert "Both exposure totals move" in register
