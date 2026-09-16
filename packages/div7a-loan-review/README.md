@@ -308,13 +308,25 @@ stable token per reason, in the same order.
 ```
 
 The prose is written for a person and changes with the wording of the Act or
-the engine. The codes are the half a caller branches on, and they divide the
-two cases that matter to a caller: a `REFUSED_*` code means the question is
-outside s 109E and no further fact will help, while a bare `*_UNKNOWN` code
-means a fact the operator can still establish was not established. The
-vocabulary is `ReasonCode` in `div7aloan/verdicts.py`; a code is not removed
-without a version bump, and a reason built without one fails at construction
-rather than reaching a caller with nothing to branch on.
+the engine. The codes are the half a caller branches on. There are three
+prefixes, one per question:
+
+| Prefix | Means |
+| --- | --- |
+| `REFUSED_*` | the s 109E question is outside this engine; no further fact helps |
+| `GATE_*` | a s 109N(1) limb failed (`_FAIL`) or could not be decided (`_UNKNOWN`) |
+| other `*_UNKNOWN` | a fact the operator can still establish was not established |
+
+A gate result carries one `GATE_*` code per limb that did not pass, so a
+caller can tell a loan that fails the interest limb from one whose term was
+never supplied without reading the prose.
+
+The vocabulary is `ReasonCode` in `div7aloan/verdicts.py`; a code is not
+removed without a version bump, and a reason built without one fails at
+construction rather than reaching a caller with nothing to branch on.
+`tests/test_reason_codes.py` holds the other half of that contract: every
+published code is reachable from some scenario, so the vocabulary cannot
+promise a token no engine emits.
 
 ## Arithmetic
 

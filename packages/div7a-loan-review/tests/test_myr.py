@@ -478,34 +478,3 @@ def test_a_nil_benchmark_rate_is_refused_with_its_code(tmp_path):
     assert result.verdict is MyrVerdict.REFUSED
     assert "REFUSED_BENCHMARK_RATE_NOT_POSITIVE" in result.reason_codes
     assert result.myr_required is None
-
-
-def test_no_code_in_the_vocabulary_is_unreachable():
-    """Every published code is emitted by some scenario in this file.
-
-    A code nobody can produce is a promise to a caller that never arrives;
-    one produced under no code is the drift the constructor guard catches.
-    """
-    emitted = set()
-    for overrides in (
-        {"gate_result": None},
-        {"gate_result": _gate(GateVerdict.NOT_COMPLYING)},
-        {"gate_result": _gate(GateVerdict.UNKNOWN)},
-        {"year_of_income": MADE},
-        {"year_of_income": parse_year("2021-22")},
-        {"remaining_term_years": D("0")},
-        {"year_of_income": None},
-        {"year_loan_made": None},
-        {"year_of_income": parse_year("2027-28")},
-        {"amalgamated_loan_unpaid_at_end_of_previous_year": None},
-        {"payments_applied_during_the_year": None},
-        {"remaining_term_years": None},
-    ):
-        emitted.update(minimum_yearly_repayment(facts(**overrides)).reason_codes)
-    # The two remaining codes have their own tests above: they need a gate
-    # built for another year, and an override carrying a nil rate.
-    emitted.update({
-        "REFUSED_GATE_BENCHMARK_YEAR_MISMATCH",
-        "REFUSED_BENCHMARK_RATE_NOT_POSITIVE",
-    })
-    assert emitted == {code.value for code in ReasonCode}

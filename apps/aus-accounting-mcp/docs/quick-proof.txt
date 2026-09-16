@@ -61,6 +61,7 @@ $ uv run --locked aus-accounting-mcp-demo
           ],
           "loan_id": "synthetic-loan-1",
           "maximum_term_years_allowed": "7",
+          "reason_codes": [],
           "reasons": [],
           "verdict": "COMPLYING"
         },

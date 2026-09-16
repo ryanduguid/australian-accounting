@@ -41,7 +41,7 @@ from .facts import (
 )
 from .money import rate_str
 from .rates import BenchmarkTable, RateOverride, RateResult, benchmark_rate
-from .verdicts import GateVerdict, RateVerdict, StrEnum
+from .verdicts import GateVerdict, RateVerdict, ReasonCode, StrEnum
 from .years import YearOfIncome
 
 #: s 109N(3)(a): 25 years where the loan is fully secured by a registered
@@ -142,8 +142,18 @@ class GateResult:
     maximum_term_years_allowed: Decimal | None = None
     limbs: tuple[Limb, ...] = field(default_factory=tuple)
     reasons: tuple[str, ...] = field(default_factory=tuple)
+    reason_codes: tuple[str, ...] = field(default_factory=tuple)
     caveats: tuple[str, ...] = field(default_factory=tuple)
     statutory_trace: tuple[str, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        # Same guard as MyrResult: a reason that reaches a caller with no code
+        # to branch on is a hole in the vocabulary, not a cosmetic omission.
+        if len(self.reason_codes) != len(self.reasons):
+            raise ValueError(
+                f"{len(self.reasons)} reason(s) carry {len(self.reason_codes)} code(s); "
+                "every reason needs its ReasonCode"
+            )
 
     def to_json_dict(self) -> dict:
         return {
@@ -166,6 +176,7 @@ class GateResult:
             ),
             "limbs": [limb.to_json_dict() for limb in self.limbs],
             "reasons": list(self.reasons),
+            "reason_codes": list(self.reason_codes),
             "caveats": list(self.caveats),
             "statutory_trace": list(self.statutory_trace),
         }
@@ -367,6 +378,7 @@ def complying_loan_gate(
     """
     caveats: list[str] = []
     reasons: list[str] = []
+    reason_codes: list[ReasonCode] = []
 
     floor_year = facts.year_of_income_being_tested or facts.year_loan_made
     if floor_year is None:
@@ -378,6 +390,7 @@ def complying_loan_gate(
                 "so there is no year to read a benchmark interest rate for and "
                 "s 109N(1)(b) cannot be tested.",
             ),
+            reason_codes=(ReasonCode.GATE_NO_BENCHMARK_YEAR.value,),
             statutory_trace=("ITAA 1936 s 109N(1): every limb must be met before the lodgment day.",),
         )
 
@@ -404,13 +417,17 @@ def complying_loan_gate(
             "remains unresolved. See evaluation/div7a_myr/README.md."
         )
 
-    limbs = [
-        _written_agreement_limb(facts),
-        _lodgment_day_limb(facts),
-        _interest_limb(facts, rate),
+    # Each limb carries the token a caller branches on. Pairing them here,
+    # where the limb is built, is what keeps the codes from drifting out of
+    # step with the prose reasons derived from the same list below.
+    named_limbs = [
+        ("WRITTEN_AGREEMENT", _written_agreement_limb(facts)),
+        ("LODGMENT_DAY", _lodgment_day_limb(facts)),
+        ("INTEREST", _interest_limb(facts, rate)),
     ]
     term_limb, allowed, term_caveats = _term_limb(facts)
-    limbs.append(term_limb)
+    named_limbs.append(("TERM", term_limb))
+    limbs = [limb for _, limb in named_limbs]
     caveats.extend(term_caveats)
 
     states = [limb.state for limb in limbs]
@@ -421,9 +438,13 @@ def complying_loan_gate(
     else:
         verdict = GateVerdict.COMPLYING
 
-    for limb in limbs:
+    for name, limb in named_limbs:
         if limb.state is not LimbState.PASS:
             reasons.append(f"{limb.cite}: {limb.finding}")
+            # Built from the enum rather than formatted into the output, so a
+            # limb or state with no published code raises here instead of
+            # emitting a token no caller can look up.
+            reason_codes.append(ReasonCode(f"GATE_{name}_{limb.state.value}"))
 
     caveats.append(
         "COMPLYING here means the four model comparisons passed on the facts "
@@ -452,6 +473,7 @@ def complying_loan_gate(
         maximum_term_years_allowed=allowed,
         limbs=tuple(limbs),
         reasons=tuple(reasons),
+        reason_codes=tuple(code.value for code in reason_codes),
         caveats=tuple(caveats),
         statutory_trace=trace,
     )

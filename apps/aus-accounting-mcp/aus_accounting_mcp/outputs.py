@@ -59,6 +59,13 @@ Caveats = Annotated[
     list[str], Field(description="Limitations to retain when presenting the result.")
 ]
 Reasons = Annotated[list[str], Field(description="Engine reasons for the reported verdict.")]
+#: The stable half of a reason: one token per entry in `reasons`, same order,
+#: for a client that branches rather than reads. The engine's ReasonCode
+#: vocabulary documents them; a code is not removed without a version bump.
+ReasonCodes = Annotated[
+    list[str],
+    Field(description="Stable token per reason, aligned with `reasons` by position."),
+]
 Trace = Annotated[
     list[str], Field(description="Engine statutory citations and audit trace; full only.")
 ]
@@ -241,6 +248,20 @@ class RateTableSource(ResultObject):
     uri: Annotated[str, Field(description="The rate table the engine read.")]
     sha256: Annotated[
         str, Field(description="SHA-256 of the table text the figure was computed from.")
+    ]
+
+
+class Manifest(ResultObject):
+    """Which statutory tables a figure was computed from, and their digests."""
+
+    rate_table_uris: Annotated[
+        list[RateTableSource],
+        Field(
+            description=(
+                "Statutory rate tables this answer consumed, each with the digest of "
+                "what was read. Empty when no rate table was consulted."
+            )
+        ),
     ]
 
 
@@ -445,6 +466,7 @@ class RateSummary(RateFields, SummaryDetails):
 )
 class RateFull(RateFields):
     provenance: Provenance
+    manifest: Manifest
     statutory_trace: Trace
 
 
@@ -473,11 +495,13 @@ class Div7aGate(ResultObject):
     benchmark_rate: MaybeDecimal
     maximum_term_years_allowed: MaybeDecimal
     reasons: Reasons
+    reason_codes: ReasonCodes
     caveats: Caveats
 
 
 class GateFull(Div7aGate):
     benchmark_provenance: Provenance | None
+    manifest: Manifest
     limbs: Annotated[list[dict[str, str]], Field(description="Individual s 109N findings.")]
     statutory_trace: Trace
 
@@ -510,6 +534,7 @@ class Div7aRepayment(ResultObject):
     ]
     rounding: Annotated[str, Field(description="Rounding rule reported by the engine.")]
     reasons: Reasons
+    reason_codes: ReasonCodes
     caveats: Caveats
 
 

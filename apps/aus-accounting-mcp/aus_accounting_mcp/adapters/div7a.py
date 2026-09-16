@@ -190,6 +190,7 @@ def review_loan(
             "benchmark_rate",
             "maximum_term_years_allowed",
             "reasons",
+            "reason_codes",
             "caveats",
         )},
         "minimum_yearly_repayment": {key: repayment_payload[key] for key in (
