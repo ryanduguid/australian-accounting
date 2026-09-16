@@ -213,13 +213,7 @@ def review_register(
     the loan was written raises the minimum yearly repayment on an existing
     complying loan, which is the common way a long-standing loan falls short.
     """
-    # Resolve the table once for the whole register. Left to the per-row
-    # lookups, an unsupplied table is re-read and re-merged for every row, and
-    # the report has no single answer to "which table produced these numbers".
-    table = load_table() if table is None else table
-    if override is not None:
-        table = table.with_override(override)
-        override = None
+    # Resolve lazily: skipped-only registers do not consume a benchmark table.
 
     lines: list[ReviewLine] = []
     summary = {key: 0 for key in SUMMARY_KEYS}
@@ -240,6 +234,11 @@ def review_register(
             continue
 
         reviewed += 1
+        if table is None:
+            table = load_table()
+            if override is not None:
+                table = table.with_override(override)
+                override = None
         gate_facts = GateFacts.from_mapping(row, where)
         if gate_benchmark_year is not None:
             gate_facts = replace(gate_facts, year_of_income_being_tested=gate_benchmark_year)
@@ -284,7 +283,7 @@ def review_register(
         lines=tuple(sorted(lines, key=_line_order)),
         summary=summary,
         rows_reviewed=reviewed,
-        sources=table.sources,
+        sources=() if table is None else table.sources,
     )
 
 
