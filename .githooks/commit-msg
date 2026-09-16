@@ -29,7 +29,7 @@ VENDOR='claude|anthropic|codex|openai|cursor|copilot|chatgpt|gemini|devin|codeiu
 DOMAIN='claude\.ai|claude\.com|anthropic\.com|openai\.com|chatgpt\.com|cursor\.(com|sh)|codeium\.com|windsurf\.com|cognition\.ai|devin\.ai|nousresearch\.com|qodo\.ai|openhands\.dev|all-hands\.dev'
 
 # Vendor words that are not plausible human names, so they can be matched alone.
-SOLE='claude|anthropic|openai|chatgpt|copilot|codex|cursor|codeium|windsurf|antigravity|qodo|openhands|nousresearch'
+SOLE='anthropic|openai|chatgpt|copilot|codex|cursor|codeium|windsurf|antigravity|qodo|openhands|nousresearch'
 
 status=0
 
@@ -52,8 +52,8 @@ check_identity() {
 	email=${rest%%>*}
 
 	hit=''
-	if printf '%s' "$email" | grep -Eqi "^($DOMAIN)\$|@($DOMAIN)\$"; then
-		hit="vendor email domain"
+	if printf '%s' "$email" | grep -Eqi '^(claude@anthropic\.com|noreply@anthropic\.com|ai@openai\.com)$'; then
+		hit="AI email address"
 	elif ai_name "$name"; then
 		hit="vendor name"
 	else
@@ -75,14 +75,21 @@ check_identity author "$(git var GIT_AUTHOR_IDENT)"
 check_identity committer "$(git var GIT_COMMITTER_IDENT)"
 
 # --- message ---------------------------------------------------------------
-# Comment lines are stripped by git after this hook, so drop them here too, and
-# skip fenced code blocks so a quoted example is not read as a credit.
-awk -v vendor="$VENDOR" -v domain="$DOMAIN" -v hook="$hook" '
+# Match Git's cleanup behavior: retained comments are message content, while
+# strip cleanup removes comments and scissors truncate the message.
+cleanup=$(git config --get commit.cleanup 2>/dev/null || printf '%s' strip)
+comment_char=$(git config --get core.commentChar 2>/dev/null || printf '%s' '#')
+[ "$comment_char" = auto ] && comment_char='#'
+[ "$cleanup" = default ] && cleanup=strip
+awk -v vendor="$VENDOR" -v domain="$DOMAIN" -v hook="$hook" \
+	-v cleanup="$cleanup" -v comment_char="$comment_char" '
 	function flag(why) {
 		printf "%s: %s line %d: %s\n", hook, why, NR, $0 > "/dev/stderr"
 		bad = 1
 	}
-	/^#/ { next }
+	cleanup == "strip" && substr($0, 1, 1) == comment_char { next }
+	(cleanup == "strip" || cleanup == "whitespace") && \
+		$0 ~ ("^[[:space:]]*" comment_char ".*>8") { exit }
 	{
 		line = tolower($0)
 		if (line ~ /^[ \t]*(```|~~~)/) { fence = !fence; next }
@@ -94,9 +101,9 @@ awk -v vendor="$VENDOR" -v domain="$DOMAIN" -v hook="$hook" '
 			flag("agent by-line trailer")
 		else if (line ~ ("^[ \t]*(" vendor ")[-_ ]?(session|run|thread|trace|id):"))
 			flag("session trailer")
-		else if (line ~ ("^[ \t]*_?[^a-z0-9]*\xf0\x9f\xa4\x96.*(" vendor ")"))
+		else if (line ~ ("^[ \t]*_?[^a-z0-9]*🤖.*(" vendor ")"))
 			flag("robot emoji credit")
-		else if (line ~ ("^[ \t]*_?(generated|written|created|produced|assisted) (with|by) .*(" vendor ")"))
+		else if (line ~ ("^[ \t]*_?(generated|written|created|produced|authored|reviewed|fixed|resolved|implemented|assisted|handled) (with|by .*(" vendor ")"))
 			flag("generated-with footer")
 		else if (line ~ ("^[ \t]*[_<(]*https?://([a-z0-9.-]+\\.)?(" domain ")"))
 			flag("bare vendor url")
