@@ -468,6 +468,8 @@ The uplift starts at 60% and falls 20 points where the clean-history test is met
 
 PCG 2026/1 sets out how the ATO will allocate compliance resources for paydays up to 30 June 2027. Fixing a late contribution quickly lowers the chance of review. It does not remove the liability: the Commissioner has no discretion to waive the charge once a shortfall is known (PCG 2026/1 paragraph 11).
 
+Those are the things the tool never attempts. Separately, [LIMITATIONS.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/LIMITATIONS.md) records the cases where it does produce a figure that you should not read at face value, naming what stays correct in each.
+
 ## Keeping it current
 
 Everything that goes stale lives in `paydaysuper/data/`.
