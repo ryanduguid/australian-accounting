@@ -118,6 +118,48 @@ def test_abc_1_parity_also_needs_both_income_fields() -> None:
     assert library["rent_to_turnover"]["benchmark_min"] is None
 
 
+def test_abc_1_labour_parity_also_needs_associated_persons_once_w1_is_given() -> None:
+    """ABC-1 says the labour ratio needs the labour set *and*
+    `associated_persons` once `w1` is given. Supplying `w1` without it is the
+    case that separates the two conditions, so run all three combinations
+    rather than asserting the wording."""
+    data = ds.load("2023-24")
+    bakery = data.get("Bakeries and hot bread shops")
+    labour_set = {
+        "turnover": "850000",
+        "other_income": "0",
+        "salary_wages": "200000",
+        "contractor_commission": "10000",
+        "cost_of_sales_labour": "5000",
+    }
+
+    def labour_row(fields: dict[str, str]) -> tuple[str | None, dict[str, object]]:
+        # w1 is a supplied-field marker, not a bucket, so it is kept out of totals.
+        amounts = totals(**{k: v for k, v in fields.items() if k != "w1"})
+        comparison = compare(data, bakery, compute(amounts))
+        cli = {r["ratio"]: r for r in to_dict(comparison)["ratios"]}
+        library = {
+            r["ratio"]: r for r in to_evidenced_dict(comparison, set(fields))["ratios"]
+        }
+        return cli["labour_to_turnover"]["value"], library["labour_to_turnover"]
+
+    # No w1: the labour set alone is enough, and both payloads agree.
+    cli_value, library_row = labour_row(labour_set)
+    assert library_row["value"] == cli_value
+
+    # w1 given, associated_persons absent: the condition the register names.
+    cli_value, library_row = labour_row({**labour_set, "w1": "210000"})
+    assert cli_value is not None
+    assert library_row["value"] is None
+    assert library_row["status"] == "not_supplied"
+
+    # w1 given with associated_persons: parity restored.
+    cli_value, library_row = labour_row(
+        {**labour_set, "w1": "210000", "associated_persons": "0"}
+    )
+    assert library_row["value"] == cli_value
+
+
 def test_abc_1_trigger_is_an_absent_bucket_not_an_unmapped_account() -> None:
     """ABC-1 must not describe a case the command line refuses outright.
     Executes route() against an unmapped row rather than asserting the

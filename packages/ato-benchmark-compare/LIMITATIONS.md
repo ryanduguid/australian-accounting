@@ -27,8 +27,8 @@ that a genuine zero produces. The ATO's own fallback to
 `total_expenses_to_turnover` triggers on that nil, so the tool would otherwise
 mark a key ratio chosen by a figure nobody established.
 
-The two serialisers resolve this differently, on purpose, and diverge in two
-ways for the same comparison:
+The two serialisers resolve this differently, on purpose, for the same
+comparison:
 
 | | `to_dict()`, used by the CLI and `--json` | `to_evidenced_dict()`, the exported library API |
 | --- | --- | --- |
