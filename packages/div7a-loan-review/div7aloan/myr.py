@@ -62,7 +62,7 @@ from .facts import optional_money, optional_year_of_income, optional_years
 from .gate import GateResult
 from .money import FORMULA_PRECISION, ROUNDING, cents_str, to_cents
 from .rates import BenchmarkTable, RateOverride, RateResult, benchmark_rate
-from .verdicts import GateVerdict, MyrVerdict, RateVerdict
+from .verdicts import GateVerdict, MyrVerdict, RateVerdict, ReasonCode
 from .years import YearOfIncome
 
 
@@ -121,8 +121,19 @@ class MyrResult:
     shortfall: Decimal | None = None
     experimental_deemed_dividend_exposure: Decimal | None = None
     reasons: tuple[str, ...] = field(default_factory=tuple)
+    reason_codes: tuple[str, ...] = field(default_factory=tuple)
     caveats: tuple[str, ...] = field(default_factory=tuple)
     statutory_trace: tuple[str, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        # The codes are the half a caller branches on, so a reason that
+        # arrives without one is a silent hole in the vocabulary rather than a
+        # cosmetic omission. Both lists are built from the same appends.
+        if len(self.reason_codes) != len(self.reasons):
+            raise ValueError(
+                f"{len(self.reasons)} reason(s) carry {len(self.reason_codes)} code(s); "
+                "every reason needs its ReasonCode"
+            )
 
     def to_json_dict(self) -> dict:
         def money(value: Decimal | None) -> str | None:
@@ -136,6 +147,11 @@ class MyrResult:
             "benchmark_rate": None if self.benchmark is None else self.benchmark.rate_text,
             "benchmark_provenance": (
                 None if self.benchmark is None else self.benchmark.to_json_dict()["provenance"]
+            ),
+            "manifest": (
+                {"rate_table_uris": []}
+                if self.benchmark is None
+                else self.benchmark.to_json_dict()["manifest"]
             ),
             "amalgamated_loan_unpaid_at_end_of_previous_year": money(
                 self.amalgamated_loan_unpaid_at_end_of_previous_year
@@ -151,6 +167,7 @@ class MyrResult:
             ),
             "rounding": ROUNDING,
             "reasons": list(self.reasons),
+            "reason_codes": list(self.reason_codes),
             "caveats": list(self.caveats),
             "statutory_trace": list(self.statutory_trace),
         }
@@ -213,8 +230,8 @@ def minimum_yearly_repayment(
     fact needed to answer it was not established, and never a number in
     either case.
     """
-    refusals: list[str] = []
-    unknowns: list[str] = []
+    refusals: list[tuple[ReasonCode, str]] = []
+    unknowns: list[tuple[ReasonCode, str]] = []
     caveats: list[str] = [_GENUINE_REPAYMENT_CAVEAT, _NOT_A_DETERMINATION_CAVEAT]
 
     gate = facts.gate_result
@@ -227,18 +244,21 @@ def minimum_yearly_repayment(
             verdict=MyrVerdict.UNKNOWN,
             loan_id=facts.loan_id,
             reasons=("year_of_income was not supplied.",),
+            reason_codes=(ReasonCode.YEAR_OF_INCOME_UNKNOWN.value,),
             caveats=tuple(caveats),
         )
 
     gate_verdict = None if gate is None else gate.verdict
     if gate is None:
-        refusals.append(
+        refusals.append((
+            ReasonCode.REFUSED_GATE_RESULT_MISSING,
             "No s 109N gate result was supplied. s 109E works on an amalgamated loan, "
             "which s 109E(3)(b) builds out of loans that would be dividends apart from "
             "s 109N. Run the gate first."
-        )
+        ))
     elif gate.verdict is GateVerdict.NOT_COMPLYING:
-        refusals.append(
+        refusals.append((
+            ReasonCode.REFUSED_GATE_NOT_COMPLYING,
             "The s 109N gate returned NOT_COMPLYING. A constituent loan of an "
             "amalgamated loan is one that would be a s 109D dividend apart from "
             "s 109N (s 109E(3)(b)), so a loan that fails s 109N is not one, and s 109E "
@@ -246,34 +266,42 @@ def minimum_yearly_repayment(
             "provision applies, s 109D(1) instead treats it as a dividend in the year "
             "it was made, for the amount unpaid before the lodgment day (s 109D(1AA)). "
             "No MYR figure is emitted. Reasons: " + "; ".join(gate.reasons)
-        )
+        ))
     elif gate.verdict is GateVerdict.UNKNOWN:
-        refusals.append(
+        refusals.append((
+            ReasonCode.REFUSED_GATE_UNKNOWN,
             "The s 109N gate returned UNKNOWN, so it is not established that this loan "
             "is an amalgamated loan on complying terms. Reasons: " + "; ".join(gate.reasons)
-        )
+        ))
 
     if (gate is not None and facts.year_loan_made is not None
             and gate.benchmark_year_used != facts.year_loan_made.label):
-        refusals.append("The gate benchmark year differs from year_loan_made. Run the original-year gate first.")
+        refusals.append((
+            ReasonCode.REFUSED_GATE_BENCHMARK_YEAR_MISMATCH,
+            "The gate benchmark year differs from year_loan_made. Run the original-year gate first.",
+        ))
 
     if facts.year_loan_made is not None:
         if facts.year_loan_made == year:
-            refusals.append(
+            refusals.append((
+                ReasonCode.REFUSED_YEAR_IS_YEAR_OF_LOAN,
                 f"The year of income requested ({year.label}) is the year the loan was "
                 "made. s 109E(1)(a) applies only where the amalgamated loan was made in "
                 "an earlier year of income, and s 109P puts an amalgamated loan outside "
                 "s 109D in the year it is made. There is no minimum yearly repayment for "
                 "the year of the loan."
-            )
+            ))
         elif facts.year_loan_made > year:
-            refusals.append(
+            refusals.append((
+                ReasonCode.REFUSED_YEAR_BEFORE_LOAN,
                 f"The year of income requested ({year.label}) is before the year the loan "
                 f"was made ({facts.year_loan_made.label}). s 109E(1)(a) requires an "
                 "earlier year of making."
-            )
+            ))
     else:
-        unknowns.append("year_loan_made was not established.")
+        unknowns.append(
+            (ReasonCode.YEAR_LOAN_MADE_UNKNOWN, "year_loan_made was not established.")
+        )
         caveats.append(
             "year_loan_made was not supplied, so this engine has not established that "
             "the amalgamated loan was made in an earlier year of income as s 109E(1)(a) "
@@ -283,36 +311,44 @@ def minimum_yearly_repayment(
 
     rate = benchmark_rate(year, table=table, override=override)
     if rate.verdict is not RateVerdict.KNOWN or rate.rate is None:
-        unknowns.append(rate.reason or f"No reviewed benchmark rate for {year.label}.")
+        unknowns.append((
+            ReasonCode.BENCHMARK_RATE_UNKNOWN,
+            rate.reason or f"No reviewed benchmark rate for {year.label}.",
+        ))
 
     principal = facts.amalgamated_loan_unpaid_at_end_of_previous_year
     if principal is None:
-        unknowns.append(
+        unknowns.append((
+            ReasonCode.UNPAID_BALANCE_UNKNOWN,
             "amalgamated_loan_unpaid_at_end_of_previous_year was not established. This "
             "engine does not form the amalgamated loan from its constituent loans "
             "(s 109E(3)); the operator supplies the balance."
-        )
+        ))
 
     payments = facts.payments_applied_during_the_year
     if payments is None:
-        unknowns.append(
+        unknowns.append((
+            ReasonCode.PAYMENTS_APPLIED_UNKNOWN,
             "payments_applied_during_the_year was not established. Bank credits are not "
             "a substitute: s 109R decides which payments count, and this engine does "
             "not apply it."
-        )
+        ))
 
     term_used: Decimal | None = None
     if facts.remaining_term_years is None:
-        unknowns.append("remaining_term_years was not established.")
+        unknowns.append(
+            (ReasonCode.REMAINING_TERM_UNKNOWN, "remaining_term_years was not established.")
+        )
     else:
         term_used = statutory_remaining_term(facts.remaining_term_years)
         if term_used <= 0:
-            refusals.append(
+            refusals.append((
+                ReasonCode.REFUSED_REMAINING_TERM_NOT_POSITIVE,
                 f"remaining_term_years is {facts.remaining_term_years}, which leaves a "
                 f"remaining term of {term_used} under s 109E(6). The formula divides by a "
                 "term that is nil at that point, and the loan should have been repaid in "
                 "full by the end of the previous year of income. No MYR figure is emitted."
-            )
+            ))
         elif term_used != facts.remaining_term_years:
             caveats.append(
                 f"remaining_term_years {facts.remaining_term_years} was rounded up to "
@@ -320,11 +356,12 @@ def minimum_yearly_repayment(
             )
 
     if rate.rate is not None and rate.rate <= 0:
-        refusals.append(
+        refusals.append((
+            ReasonCode.REFUSED_BENCHMARK_RATE_NOT_POSITIVE,
             f"The benchmark rate for {year.label} is {rate.rate_text}. The s 109E(6) "
             "formula divides by 1 minus a power of 1/(1+rate), which is nil at a nil "
             "rate. No MYR figure is emitted."
-        )
+        ))
 
     trace: list[str] = [
         "ITAA 1936 s 109E(1): a private company is taken to pay a dividend at the end "
@@ -344,7 +381,8 @@ def minimum_yearly_repayment(
             amalgamated_loan_unpaid_at_end_of_previous_year=principal,
             remaining_term_years_used=term_used,
             payments_applied=payments,
-            reasons=tuple(refusals),
+            reasons=tuple(text for _, text in refusals),
+            reason_codes=tuple(code.value for code, _ in refusals),
             caveats=tuple(caveats),
             statutory_trace=tuple(trace),
         )
@@ -358,7 +396,8 @@ def minimum_yearly_repayment(
             amalgamated_loan_unpaid_at_end_of_previous_year=principal,
             remaining_term_years_used=term_used,
             payments_applied=payments,
-            reasons=tuple(unknowns),
+            reasons=tuple(text for _, text in unknowns),
+            reason_codes=tuple(code.value for code, _ in unknowns),
             caveats=tuple(caveats),
             statutory_trace=tuple(trace),
         )

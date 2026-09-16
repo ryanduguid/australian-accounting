@@ -1,11 +1,13 @@
 """The frozen benchmark rate table, and what happens outside it."""
 from __future__ import annotations
 
+import hashlib
 import json
 from decimal import Decimal
 
 import pytest
 from div7aloan.rates import (
+    RATES_PATH,
     RatesError,
     benchmark_rate,
     load_override,
@@ -207,3 +209,83 @@ def test_override_refuses_duplicate_years(tmp_path):
     })
     with pytest.raises(RatesError, match="twice"):
         load_override(path)
+
+
+# The manifest: which rate table produced this figure, and what was in it.
+
+
+def _manifest(result):
+    return result.to_json_dict()["manifest"]["rate_table_uris"]
+
+
+def test_a_known_rate_names_the_table_it_came_from():
+    entries = _manifest(benchmark_rate("2025-26"))
+    assert [entry["uri"] for entry in entries] == [
+        "div7aloan/data/benchmark_rates.csv"
+    ]
+    assert len(entries[0]["sha256"]) == 64
+
+
+def test_an_unknown_rate_still_names_the_table_it_was_looked_for_in():
+    # The lookup consumed the frozen table; that it holds no row for the year
+    # is the answer, so the manifest is not empty.
+    result = benchmark_rate("2027-28")
+    assert result.verdict is RateVerdict.UNKNOWN
+    assert [entry["uri"] for entry in _manifest(result)] == [
+        "div7aloan/data/benchmark_rates.csv"
+    ]
+
+
+def test_the_digest_is_the_digest_of_the_table_that_was_read(tmp_path):
+    source = RATES_PATH.read_text(encoding="utf-8")
+    copy = tmp_path / "benchmark_rates.csv"
+    copy.write_text(source, encoding="utf-8")
+    expected = hashlib.sha256(source.encode("utf-8")).hexdigest()
+    assert _manifest(benchmark_rate("2025-26"))[0]["sha256"] == expected
+    # A table read from outside the package is identified by name, not by the
+    # reader's directory layout, and carries the same digest.
+    entry = _manifest(benchmark_rate("2025-26", table=load_table(copy)))[0]
+    assert entry == {"uri": "file:benchmark_rates.csv", "sha256": expected}
+
+
+def test_an_edited_table_changes_the_digest(tmp_path):
+    edited = tmp_path / "benchmark_rates.csv"
+    edited.write_text(
+        RATES_PATH.read_text(encoding="utf-8").replace("0.0837", "0.0838"),
+        encoding="utf-8",
+    )
+    before = _manifest(benchmark_rate("2025-26"))[0]["sha256"]
+    after = _manifest(benchmark_rate("2025-26", table=load_table(edited)))[0]["sha256"]
+    assert before != after
+
+
+def test_a_crlf_checkout_and_an_lf_checkout_agree(tmp_path):
+    # The digest is taken over decoded text, so the same reviewed table gives
+    # the same digest whichever line endings the checkout has.
+    text = RATES_PATH.read_text(encoding="utf-8")
+    lf = tmp_path / "lf.csv"
+    crlf = tmp_path / "crlf.csv"
+    lf.write_bytes(text.encode("utf-8"))
+    crlf.write_bytes(text.replace("\n", "\r\n").encode("utf-8"))
+    assert (
+        _manifest(benchmark_rate("2025-26", table=load_table(lf)))[0]["sha256"]
+        == _manifest(benchmark_rate("2025-26", table=load_table(crlf)))[0]["sha256"]
+    )
+
+
+def test_an_override_is_named_in_the_manifest_without_the_operator_path(tmp_path):
+    path = _write_override(
+        tmp_path,
+        {
+            "verified_until": "2027-28",
+            "citation": "RBA table F5 series FILRHLBVS, May 2027 figure, read 2027-07-02",
+            "rates": [{"year_of_income": "2027-28", "rate": "0.0850", "rba_month": "2027-05"}],
+        },
+    )
+    entries = _manifest(benchmark_rate("2027-28", override=load_override(path)))
+    assert [entry["uri"] for entry in entries] == [
+        "div7aloan/data/benchmark_rates.csv",
+        "override:override.json",
+    ]
+    assert str(tmp_path) not in json.dumps(entries)
+    assert len({entry["sha256"] for entry in entries}) == 2

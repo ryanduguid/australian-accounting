@@ -142,3 +142,61 @@ def test_related_rows_still_delegate_alignment_and_keep_unknowns(detail):
     ).structured_content
     assert payload["review_exit_code"] == 2
     assert json.loads(payload["files"]["exceptions.json"])["exceptions"][0]["verdict"] == "LATE"
+
+
+def test_an_mcp_pack_names_the_gic_table_the_assessment_used(tmp_path, monkeypatch):
+    """The pack's manifest must come from the table the review ran against.
+
+    The adapter previously built its pack without passing any rate table, so
+    an MCP-generated pack carried an empty manifest while its notional
+    earnings came from the GIC table. Reloading the table here instead would
+    name a second read rather than the one that produced the figures.
+    """
+    monkeypatch.chdir(tmp_path)
+    queue = json.loads(call().structured_content["files"]["exceptions.json"])
+    entries = queue["manifest"]["rate_table_uris"]
+    assert [entry["uri"] for entry in entries] == ["paydaysuper/data/gic_rates.json"]
+
+    from paydaysuper.rates import DATA_DIR
+    expected = hashlib.sha256(
+        (DATA_DIR / "gic_rates.json").read_text(encoding="utf-8").encode("utf-8")
+    ).hexdigest()
+    assert entries[0]["sha256"] == expected
+
+
+def test_the_pack_manifest_follows_the_table_the_review_loaded(tmp_path, monkeypatch):
+    # Point the engine at an edited table: the pack has to report that table,
+    # which only holds while the manifest comes from the assessed instance.
+    from paydaysuper import rates as payday_rates
+
+    source = json.loads((payday_rates.DATA_DIR / "gic_rates.json").read_text(encoding="utf-8"))
+    source["quarters"][-1]["annual_pct"] = "11.44"
+    folder = tmp_path / "rates"
+    folder.mkdir()
+    (folder / "gic_rates.json").write_text(json.dumps(source), encoding="utf-8")
+    monkeypatch.setattr(payday_rates, "DATA_DIR", folder)
+    monkeypatch.chdir(tmp_path)
+
+    queue = json.loads(call().structured_content["files"]["exceptions.json"])
+    entry = queue["manifest"]["rate_table_uris"][0]
+    assert entry["uri"] == "file:gic_rates.json"
+    expected = hashlib.sha256(
+        (folder / "gic_rates.json").read_text(encoding="utf-8").encode("utf-8")
+    ).hexdigest()
+    assert entry["sha256"] == expected
+
+
+def test_an_unreadable_rate_table_is_an_adapter_error_not_a_raw_one(tmp_path, monkeypatch):
+    """A rate table the engine cannot read must surface as this adapter's own
+    error. RatesError is a ValueError, so it is caught with the rest; loading
+    the table outside that handler let it escape raw to the caller."""
+    from paydaysuper import rates as payday_rates
+
+    folder = tmp_path / "rates"
+    folder.mkdir()
+    (folder / "gic_rates.json").write_text("{ not json", encoding="utf-8")
+    monkeypatch.setattr(payday_rates, "DATA_DIR", folder)
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(InputError):
+        payday.evidence_pack([payday.ContributionInput(**ROW)], "2026-08-20")

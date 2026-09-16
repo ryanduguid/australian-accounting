@@ -517,6 +517,7 @@ def main(argv: list[str] | None = None) -> int:
                 results, as_at=as_at, assessment_date=assessment_date,
                 gic_provenance=gic.provenance(),
                 remittance_only_confirmed=args.confirm_remittance_only,
+                rate_tables=(gic.source,) if gic.source else (),
             )
             write_evidence_pack(files, args.output)
         except (ValueError, ArithmeticError, OSError) as exc:

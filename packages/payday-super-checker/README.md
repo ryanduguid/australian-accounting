@@ -470,6 +470,29 @@ PCG 2026/1 sets out how the ATO will allocate compliance resources for paydays u
 
 Those are the things the tool never attempts. Separately, [LIMITATIONS.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/LIMITATIONS.md) records the cases where it does produce a figure that you should not read at face value, naming what stays correct in each.
 
+## Which table produced the interest
+
+`exceptions.json` in an evidence pack carries a `manifest` naming the
+statutory rate tables the run consumed, each with the SHA-256 of the text that
+was read:
+
+```json
+"manifest": {
+  "rate_table_uris": [
+    { "uri": "paydaysuper/data/gic_rates.json", "sha256": "243e64b5..." }
+  ]
+}
+```
+
+The digest comes from the loader that read the file, not from a later pass
+over the directory, and it is taken over decoded text so a CRLF checkout and
+an LF checkout of the same reviewed table agree. The prose provenance line in
+the report says which quarters the table covers; the digest says whether it is
+the same table, which is the question a reviewer reopening the pack months
+later actually has. `rates.json` is not yet listed: its loader returns a bare
+dictionary shared by several callers, so carrying its source needs a wider
+change than this.
+
 ## Keeping it current
 
 Everything that goes stale lives in `paydaysuper/data/`.

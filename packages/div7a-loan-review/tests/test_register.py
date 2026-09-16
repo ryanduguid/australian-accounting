@@ -293,3 +293,42 @@ def test_total_exposure_is_a_decimal():
 def test_padded_required_header_is_refused():
     with pytest.raises(RegisterError, match="loan_id"):
         require_columns([" loan_id ", *GATE_COLUMNS[1:]], GATE_COLUMNS, "synthetic.csv")
+
+
+def test_a_register_of_skipped_rows_reads_no_rate_table(monkeypatch):
+    """A skipped row answers no statutory question, so it needs no table.
+
+    Resolving the table up front made a register of out-of-scope rows depend
+    on a file it never consults, which would turn an unreadable table into a
+    failure on a run that has nothing to compute.
+    """
+    from div7aloan import register as register_module
+
+    def refuse():  # pragma: no cover - called only if the lazy read regresses
+        raise AssertionError("the rate table was read for a skipped-only register")
+
+    monkeypatch.setattr(register_module, "load_table", refuse)
+    report = review_register([row(year_loan_made="1996-97")], YEAR)
+    assert report.summary["SKIPPED"] == 1
+    assert report.rows_reviewed == 0
+    assert report.to_json_dict()["manifest"]["rate_table_uris"] == []
+
+
+def test_a_reviewed_register_names_the_table_once():
+    from div7aloan import register as register_module
+
+    reads = []
+    original = register_module.load_table
+
+    def counted(*args, **kwargs):
+        reads.append(1)
+        return original(*args, **kwargs)
+
+    register_module.load_table = counted
+    try:
+        report = review_register([row(), row(loan_id="TWO")], YEAR)
+    finally:
+        register_module.load_table = original
+    assert len(reads) == 1
+    entries = report.to_json_dict()["manifest"]["rate_table_uris"]
+    assert [entry["uri"] for entry in entries] == ["div7aloan/data/benchmark_rates.csv"]
