@@ -80,6 +80,7 @@ $ uv run --locked aus-accounting-mcp-demo
           "loan_id": "synthetic-loan-1",
           "myr_required": "108770.00",
           "payments_applied": "108770.00",
+          "reason_codes": [],
           "reasons": [],
           "remaining_term_years_used": "1",
           "rounding": "ROUND_HALF_UP",
@@ -90,6 +91,12 @@ $ uv run --locked aus-accounting-mcp-demo
         "ok": true,
         "response_detail": "summary",
         "source": {
+          "rate_table_uris": [
+            {
+              "sha256": "84264b28fa2c0848220ef4f19db030fdbc3c03bb368263e1641df7f4544e4113",
+              "uri": "div7aloan/data/benchmark_rates.csv"
+            }
+          ],
           "verify_at": "https://duguid.com.au/rates/div7a-benchmark-rate/"
         }
       },

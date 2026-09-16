@@ -20,6 +20,7 @@ guessed one year forward moves every minimum yearly repayment in the file.
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 from dataclasses import dataclass, field
 from decimal import Decimal
@@ -30,7 +31,8 @@ from .money import MoneyError, parse_rate, rate_str
 from .verdicts import RateVerdict
 from .years import YearError, YearOfIncome, parse_year
 
-DATA_DIR = Path(__file__).resolve().parent / "data"
+PACKAGE_DIR = Path(__file__).resolve().parent
+DATA_DIR = PACKAGE_DIR / "data"
 RATES_PATH = DATA_DIR / "benchmark_rates.csv"
 
 FROZEN_ORIGIN = "frozen table"
@@ -39,6 +41,40 @@ OVERRIDE_ORIGIN = "reviewed override"
 
 class RatesError(ValueError):
     """The rate table, or an operator's override of it, cannot be trusted."""
+
+
+@dataclass(frozen=True)
+class TableSource:
+    """A rate table a result was computed from, and the digest of what was read.
+
+    The digest is taken over the decoded text, not the raw bytes, so a CRLF
+    checkout and an LF checkout of the same reviewed table agree. Every
+    TableSource is produced by the loader that read the file; nothing attaches
+    one by hand. An output whose digest moves was computed from a different
+    table, whatever its provenance fields still say.
+    """
+
+    uri: str
+    sha256: str
+
+    def to_json_dict(self) -> dict:
+        return {"uri": self.uri, "sha256": self.sha256}
+
+
+def _source_of(path: Path, text: str, *, override: bool = False) -> TableSource:
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    if override:
+        # Only the file name: an operator's override lives outside the package
+        # and its full path would put the operator's directory layout into
+        # every emitted result. The digest is what identifies it.
+        return TableSource(uri=f"override:{path.name}", sha256=digest)
+    try:
+        uri = path.resolve().relative_to(PACKAGE_DIR.parent).as_posix()
+    except ValueError:
+        # A table loaded from outside the package (a test fixture, or an
+        # operator pointing load_table at their own copy).
+        uri = f"file:{path.name}"
+    return TableSource(uri=uri, sha256=digest)
 
 
 @dataclass(frozen=True)
@@ -74,6 +110,7 @@ class RateResult:
     table_reviewed_on: str = ""
     reason: str | None = None
     statutory_trace: tuple[str, ...] = field(default_factory=tuple)
+    sources: tuple[TableSource, ...] = field(default_factory=tuple)
 
     @property
     def rate_text(self) -> str | None:
@@ -97,6 +134,7 @@ class RateResult:
             },
             "reason": self.reason,
             "statutory_trace": list(self.statutory_trace),
+            "manifest": {"rate_table_uris": [s.to_json_dict() for s in self.sources]},
         }
 
 
@@ -105,6 +143,7 @@ class BenchmarkTable:
     entries: dict[int, BenchmarkEntry]
     reviewed_until: YearOfIncome
     reviewed_on: str
+    sources: tuple[TableSource, ...] = field(default_factory=tuple)
 
     @property
     def earliest(self) -> YearOfIncome:
@@ -125,6 +164,7 @@ class BenchmarkTable:
             entries=merged,
             reviewed_until=max(self.reviewed_until, override.verified_until),
             reviewed_on=f"{self.reviewed_on}; override {override.citation}",
+            sources=self.sources + ((override.source,) if override.source else ()),
         )
 
     def lookup(self, year: YearOfIncome) -> RateResult:
@@ -148,6 +188,7 @@ class BenchmarkTable:
                     "at runtime and does not extrapolate from an adjacent year."
                 ),
                 statutory_trace=trace,
+                sources=self.sources,
             )
         return RateResult(
             verdict=RateVerdict.KNOWN,
@@ -168,6 +209,7 @@ class BenchmarkTable:
                 f"{entry.rba_series}, {entry.rba_month} figure, as reviewed on "
                 f"{entry.seen} ({entry.origin}).",
             ),
+            sources=self.sources,
         )
 
 
@@ -176,6 +218,7 @@ class RateOverride:
     entries: tuple[BenchmarkEntry, ...]
     verified_until: YearOfIncome
     citation: str
+    source: TableSource | None = None
 
 
 def _header_scalar(lines: Iterable[str], key: str, path: Path) -> str:
@@ -245,7 +288,12 @@ def load_table(path: Path | None = None) -> BenchmarkTable:
             f"{path} claims reviewed_until {reviewed_until.label} but carries a rate "
             f"for {latest.label}; re-review the table and update the header"
         )
-    return BenchmarkTable(entries=entries, reviewed_until=reviewed_until, reviewed_on=reviewed_on)
+    return BenchmarkTable(
+        entries=entries,
+        reviewed_until=reviewed_until,
+        reviewed_on=reviewed_on,
+        sources=(_source_of(path, text),),
+    )
 
 
 def load_override(path: Path | str) -> RateOverride:
@@ -258,9 +306,11 @@ def load_override(path: Path | str) -> RateOverride:
     """
     path = Path(path)
     try:
-        doc = json.loads(path.read_text(encoding="utf-8"))
+        text = path.read_text(encoding="utf-8")
     except OSError as exc:
         raise RatesError(f"cannot read the rate override at {path}: {exc}")
+    try:
+        doc = json.loads(text)
     except json.JSONDecodeError as exc:
         raise RatesError(f"{path} is not valid JSON: {exc}")
     if not isinstance(doc, dict):
@@ -322,7 +372,12 @@ def load_override(path: Path | str) -> RateOverride:
                 origin=OVERRIDE_ORIGIN,
             )
         )
-    return RateOverride(entries=tuple(entries), verified_until=verified_until, citation=citation)
+    return RateOverride(
+        entries=tuple(entries),
+        verified_until=verified_until,
+        citation=citation,
+        source=_source_of(path, text, override=True),
+    )
 
 
 def benchmark_rate(

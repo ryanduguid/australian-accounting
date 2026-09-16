@@ -22,7 +22,7 @@ from .facts import FactError, optional_year_of_income
 from .gate import GateFacts, GateResult, complying_loan_gate
 from .money import cents_str
 from .myr import MyrFacts, MyrResult, minimum_yearly_repayment
-from .rates import BenchmarkTable, RateOverride
+from .rates import BenchmarkTable, RateOverride, TableSource, load_table
 from .verdicts import SUMMARY_KEYS, GateVerdict, MyrVerdict, RowStatus
 from .years import YearOfIncome
 
@@ -120,6 +120,7 @@ class ReviewReport:
     lines: tuple[ReviewLine, ...] = field(default_factory=tuple)
     summary: dict[str, int] = field(default_factory=dict)
     rows_reviewed: int = 0
+    sources: tuple[TableSource, ...] = field(default_factory=tuple)
 
     @property
     def total_exposure(self) -> Decimal:
@@ -135,6 +136,7 @@ class ReviewReport:
             "rows_reviewed": self.rows_reviewed,
             "summary": dict(self.summary),
             "experimental_total_exposure": cents_str(self.total_exposure),
+            "manifest": {"rate_table_uris": [s.to_json_dict() for s in self.sources]},
             "lines": [line.to_json_dict() for line in self.lines],
             "note": (
                 "Counts are per question, not per row: a reviewed row answers both "
@@ -211,6 +213,14 @@ def review_register(
     the loan was written raises the minimum yearly repayment on an existing
     complying loan, which is the common way a long-standing loan falls short.
     """
+    # Resolve the table once for the whole register. Left to the per-row
+    # lookups, an unsupplied table is re-read and re-merged for every row, and
+    # the report has no single answer to "which table produced these numbers".
+    table = load_table() if table is None else table
+    if override is not None:
+        table = table.with_override(override)
+        override = None
+
     lines: list[ReviewLine] = []
     summary = {key: 0 for key in SUMMARY_KEYS}
     reviewed = 0
@@ -274,6 +284,7 @@ def review_register(
         lines=tuple(sorted(lines, key=_line_order)),
         summary=summary,
         rows_reviewed=reviewed,
+        sources=table.sources,
     )
 
 

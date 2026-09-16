@@ -272,6 +272,50 @@ and refused if it lists a year past its own `verified_until`. The point of an
 override is that a human went and read the figure; a file that does not say
 who checked what, and how far, is not a review.
 
+## Which table produced the number
+
+Every JSON result carries a `manifest`, naming the rate tables the answer was
+actually computed from and the SHA-256 of what was read:
+
+```json
+"manifest": {
+  "rate_table_uris": [
+    { "uri": "div7aloan/data/benchmark_rates.csv", "sha256": "84264b28..." }
+  ]
+}
+```
+
+The digest is emitted by the lookup that read the file, not attached by hand,
+and it is taken over the decoded text so a CRLF checkout and an LF checkout of
+the same reviewed table agree. Two outputs with the same digest were computed
+from the same table; an output whose digest has moved was not, whatever its
+`provenance` fields still say. A reviewed override is listed after the frozen
+table as `override:<file name>`: the name and digest identify it without
+putting the operator's directory layout into the result.
+
+An `UNKNOWN` rate still names the table it was looked for in, because the
+absence of a row in that table is the answer. An empty list means no rate
+table was consulted at all.
+
+## Reason codes
+
+`REFUSED` and `UNKNOWN` results carry `reason_codes` beside `reasons`: one
+stable token per reason, in the same order.
+
+```json
+"reasons": ["remaining_term_years was not established."],
+"reason_codes": ["REMAINING_TERM_UNKNOWN"]
+```
+
+The prose is written for a person and changes with the wording of the Act or
+the engine. The codes are the half a caller branches on, and they divide the
+two cases that matter to a caller: a `REFUSED_*` code means the question is
+outside s 109E and no further fact will help, while a bare `*_UNKNOWN` code
+means a fact the operator can still establish was not established. The
+vocabulary is `ReasonCode` in `div7aloan/verdicts.py`; a code is not removed
+without a version bump, and a reason built without one fails at construction
+rather than reaching a caller with nothing to branch on.
+
 ## Arithmetic
 
 `decimal.Decimal` throughout, built from strings. No float, no numpy, no

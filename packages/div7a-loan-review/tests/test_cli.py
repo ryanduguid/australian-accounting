@@ -8,11 +8,13 @@ built for would then be handing a float to a tax calculation.
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import io
 import json
 
 import pytest
 from div7aloan.cli import main
+from div7aloan.rates import RATES_PATH
 
 MET = "examples/sample_loans_myr_met.csv"
 MIXED = "examples/sample_loans_mixed.csv"
@@ -239,3 +241,29 @@ def test_an_override_without_a_citation_exits_one(tmp_path):
     code, _, err = run(["rate", "--year", "2027-28", "--rates-override", str(path)])
     assert code == 1
     assert "citation" in err
+
+
+# --- manifest ----------------------------------------------------------
+
+
+def test_every_json_command_names_the_rate_table_it_used():
+    for argv in (
+        ["rate", "--year", "2026-27"],
+        ["review", "--input", MIXED, "--year", "2026-27"],
+        ["gate", "--input", MIXED],
+        ["myr", "--input", MIXED, "--year", "2026-27"],
+    ):
+        _, document = run_json(argv)
+        entries = document["manifest"]["rate_table_uris"]
+        assert [entry["uri"] for entry in entries] == [
+            "div7aloan/data/benchmark_rates.csv"
+        ], argv
+        assert len(entries[0]["sha256"]) == 64, argv
+
+
+def test_the_manifest_digest_matches_the_shipped_table():
+    expected = hashlib.sha256(
+        RATES_PATH.read_text(encoding="utf-8").encode("utf-8")
+    ).hexdigest()
+    _, document = run_json(["review", "--input", MIXED, "--year", "2026-27"])
+    assert document["manifest"]["rate_table_uris"][0]["sha256"] == expected

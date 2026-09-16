@@ -237,10 +237,26 @@ class PaydayReview(EngineResult):
     ]
 
 
+class RateTableSource(ResultObject):
+    uri: Annotated[str, Field(description="The rate table the engine read.")]
+    sha256: Annotated[
+        str, Field(description="SHA-256 of the table text the figure was computed from.")
+    ]
+
+
 class VerificationSource(ResultObject):
     verify_at: Annotated[
         str | None,
         Field(description="Engine verification URL; empty or null when none is available."),
+    ]
+    rate_table_uris: Annotated[
+        list[RateTableSource],
+        Field(
+            description=(
+                "Statutory rate tables this answer consumed, each with the digest of "
+                "what was read. Empty when the figure came from the request alone."
+            )
+        ),
     ]
 
 

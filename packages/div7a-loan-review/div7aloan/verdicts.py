@@ -48,6 +48,35 @@ class RowStatus(StrEnum):
     SKIPPED = "SKIPPED"
 
 
+class ReasonCode(StrEnum):
+    """Why no figure was emitted, as a token a caller can branch on.
+
+    The prose in `reasons` is written for a person and is free to change with
+    the wording of the Act or the engine. These codes are the stable half: an
+    MCP client deciding whether to ask the operator for a fact
+    (`*_UNKNOWN`) or to stop asking (`REFUSED_*`) should branch on these and
+    display the prose. A code is never removed without a version bump.
+    """
+
+    # REFUSED: the question is outside s 109E, and no further fact helps.
+    REFUSED_GATE_RESULT_MISSING = "REFUSED_GATE_RESULT_MISSING"
+    REFUSED_GATE_NOT_COMPLYING = "REFUSED_GATE_NOT_COMPLYING"
+    REFUSED_GATE_UNKNOWN = "REFUSED_GATE_UNKNOWN"
+    REFUSED_GATE_BENCHMARK_YEAR_MISMATCH = "REFUSED_GATE_BENCHMARK_YEAR_MISMATCH"
+    REFUSED_YEAR_IS_YEAR_OF_LOAN = "REFUSED_YEAR_IS_YEAR_OF_LOAN"
+    REFUSED_YEAR_BEFORE_LOAN = "REFUSED_YEAR_BEFORE_LOAN"
+    REFUSED_REMAINING_TERM_NOT_POSITIVE = "REFUSED_REMAINING_TERM_NOT_POSITIVE"
+    REFUSED_BENCHMARK_RATE_NOT_POSITIVE = "REFUSED_BENCHMARK_RATE_NOT_POSITIVE"
+
+    # UNKNOWN: a fact the operator can still establish was not established.
+    YEAR_OF_INCOME_UNKNOWN = "YEAR_OF_INCOME_UNKNOWN"
+    YEAR_LOAN_MADE_UNKNOWN = "YEAR_LOAN_MADE_UNKNOWN"
+    BENCHMARK_RATE_UNKNOWN = "BENCHMARK_RATE_UNKNOWN"
+    UNPAID_BALANCE_UNKNOWN = "UNPAID_BALANCE_UNKNOWN"
+    PAYMENTS_APPLIED_UNKNOWN = "PAYMENTS_APPLIED_UNKNOWN"
+    REMAINING_TERM_UNKNOWN = "REMAINING_TERM_UNKNOWN"
+
+
 #: The summary counts a register review reports, in display order.
 SUMMARY_KEYS = (
     GateVerdict.COMPLYING.value,

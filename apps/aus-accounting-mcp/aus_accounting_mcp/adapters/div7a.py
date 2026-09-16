@@ -72,7 +72,10 @@ def get_benchmark_rate(
             "reason",
         )},
         "response_detail": "summary",
-        "source": {"verify_at": payload["provenance"]["verify_at"]},
+        "source": {
+            "verify_at": payload["provenance"]["verify_at"],
+            "rate_table_uris": payload["manifest"]["rate_table_uris"],
+        },
     }
 
 
@@ -173,7 +176,13 @@ def review_loan(
             "disclaimer",
         )},
         "response_detail": "summary",
-        "source": {"verify_at": provenance.get("verify_at")},
+        "source": {
+            "verify_at": provenance.get("verify_at"),
+            "rate_table_uris": (
+                gate_payload["manifest"]["rate_table_uris"]
+                or repayment_payload["manifest"]["rate_table_uris"]
+            ),
+        },
         "gate": {key: gate_payload[key] for key in (
             "verdict",
             "loan_id",
@@ -197,6 +206,7 @@ def review_loan(
             "experimental_deemed_dividend_exposure",
             "rounding",
             "reasons",
+            "reason_codes",
             "caveats",
         )},
     }

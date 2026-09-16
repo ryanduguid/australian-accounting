@@ -1,6 +1,7 @@
 """The s 109E(5) and (6) minimum yearly repayment."""
 from __future__ import annotations
 
+import json
 from decimal import Decimal
 from fractions import Fraction
 
@@ -9,11 +10,13 @@ from div7aloan.gate import GateFacts, complying_loan_gate
 from div7aloan.money import ROUNDING
 from div7aloan.myr import (
     MyrFacts,
+    MyrResult,
     minimum_yearly_repayment,
     minimum_yearly_repayment_amount,
     statutory_remaining_term,
 )
-from div7aloan.verdicts import GateVerdict, MyrVerdict
+from div7aloan.rates import load_override
+from div7aloan.verdicts import GateVerdict, MyrVerdict, ReasonCode
 from div7aloan.years import parse_year
 
 D = Decimal
@@ -356,3 +359,153 @@ def test_missing_loan_year_cannot_produce_myr():
     assert result.verdict is MyrVerdict.UNKNOWN
     assert result.myr_required is None
     assert any("year_loan_made" in reason for reason in result.reasons)
+
+
+# Reason codes: the half of a refusal or an unknown that a caller branches on.
+
+
+@pytest.mark.parametrize(
+    "overrides, verdict, code",
+    [
+        ({"gate_result": None}, MyrVerdict.REFUSED, "REFUSED_GATE_RESULT_MISSING"),
+        (
+            {"gate_result": _gate(GateVerdict.NOT_COMPLYING)},
+            MyrVerdict.REFUSED,
+            "REFUSED_GATE_NOT_COMPLYING",
+        ),
+        (
+            {"gate_result": _gate(GateVerdict.UNKNOWN)},
+            MyrVerdict.REFUSED,
+            "REFUSED_GATE_UNKNOWN",
+        ),
+        ({"year_of_income": MADE}, MyrVerdict.REFUSED, "REFUSED_YEAR_IS_YEAR_OF_LOAN"),
+        (
+            {"year_of_income": parse_year("2021-22")},
+            MyrVerdict.REFUSED,
+            "REFUSED_YEAR_BEFORE_LOAN",
+        ),
+        (
+            {"remaining_term_years": D("0")},
+            MyrVerdict.REFUSED,
+            "REFUSED_REMAINING_TERM_NOT_POSITIVE",
+        ),
+        ({"year_of_income": None}, MyrVerdict.UNKNOWN, "YEAR_OF_INCOME_UNKNOWN"),
+        ({"year_loan_made": None}, MyrVerdict.UNKNOWN, "YEAR_LOAN_MADE_UNKNOWN"),
+        (
+            {"year_of_income": parse_year("2027-28")},
+            MyrVerdict.UNKNOWN,
+            "BENCHMARK_RATE_UNKNOWN",
+        ),
+        (
+            {"amalgamated_loan_unpaid_at_end_of_previous_year": None},
+            MyrVerdict.UNKNOWN,
+            "UNPAID_BALANCE_UNKNOWN",
+        ),
+        (
+            {"payments_applied_during_the_year": None},
+            MyrVerdict.UNKNOWN,
+            "PAYMENTS_APPLIED_UNKNOWN",
+        ),
+        ({"remaining_term_years": None}, MyrVerdict.UNKNOWN, "REMAINING_TERM_UNKNOWN"),
+    ],
+)
+def test_every_way_of_not_getting_a_figure_carries_its_code(overrides, verdict, code):
+    result = minimum_yearly_repayment(facts(**overrides))
+    assert result.verdict is verdict
+    assert code in result.reason_codes
+    assert code in result.to_json_dict()["reason_codes"]
+
+
+def test_a_figure_carries_no_reason_codes():
+    result = minimum_yearly_repayment(facts())
+    assert result.verdict is MyrVerdict.MYR_MET
+    assert result.reason_codes == ()
+
+
+def test_the_codes_stay_in_step_with_the_prose():
+    # Two facts missing at once: the codes are per reason, not a summary.
+    result = minimum_yearly_repayment(
+        facts(amalgamated_loan_unpaid_at_end_of_previous_year=None, remaining_term_years=None)
+    )
+    assert len(result.reason_codes) == len(result.reasons) == 2
+    assert set(result.reason_codes) == {"UNPAID_BALANCE_UNKNOWN", "REMAINING_TERM_UNKNOWN"}
+
+
+def test_every_emitted_code_is_in_the_published_vocabulary():
+    known = {code.value for code in ReasonCode}
+    for overrides in ({"gate_result": None}, {"year_of_income": None}, {"remaining_term_years": None}):
+        result = minimum_yearly_repayment(facts(**overrides))
+        assert set(result.reason_codes) <= known
+
+
+def test_a_reason_without_a_code_is_refused_at_construction():
+    # The guard against the two lists drifting apart: a reason that reaches a
+    # caller with no code to branch on is a hole in the vocabulary, not a
+    # cosmetic omission, so it fails where it is built.
+    with pytest.raises(ValueError, match="every reason needs its ReasonCode"):
+        MyrResult(verdict=MyrVerdict.REFUSED, reasons=("no code for this one",))
+
+
+def test_a_gate_run_against_another_year_is_refused_with_its_code():
+    other_year_gate = complying_loan_gate(
+        GateFacts(
+            loan_id="TEST",
+            written_agreement=True,
+            terms_in_place_before_lodgment_day=True,
+            maximum_term_years=D("7"),
+            secured_by_registered_mortgage_over_real_property=False,
+            interest_rate_for_years_after_year_loan_made=D("0.0877"),
+            year_loan_made=MADE,
+            year_of_income_being_tested=YEAR,
+        )
+    )
+    result = minimum_yearly_repayment(facts(gate_result=other_year_gate))
+    assert result.verdict is MyrVerdict.REFUSED
+    assert "REFUSED_GATE_BENCHMARK_YEAR_MISMATCH" in result.reason_codes
+
+
+def test_a_nil_benchmark_rate_is_refused_with_its_code(tmp_path):
+    override = tmp_path / "nil.json"
+    override.write_text(
+        json.dumps({
+            "verified_until": "2026-27",
+            "citation": "Synthetic nil-rate fixture, not a published RBA figure",
+            "rates": [{"year_of_income": "2026-27", "rate": "0", "rba_month": "2026-05"}],
+        }),
+        encoding="utf-8",
+    )
+    result = minimum_yearly_repayment(facts(), override=load_override(override))
+    assert result.verdict is MyrVerdict.REFUSED
+    assert "REFUSED_BENCHMARK_RATE_NOT_POSITIVE" in result.reason_codes
+    assert result.myr_required is None
+
+
+def test_no_code_in_the_vocabulary_is_unreachable():
+    """Every published code is emitted by some scenario in this file.
+
+    A code nobody can produce is a promise to a caller that never arrives;
+    one produced under no code is the drift the constructor guard catches.
+    """
+    emitted = set()
+    for overrides in (
+        {"gate_result": None},
+        {"gate_result": _gate(GateVerdict.NOT_COMPLYING)},
+        {"gate_result": _gate(GateVerdict.UNKNOWN)},
+        {"year_of_income": MADE},
+        {"year_of_income": parse_year("2021-22")},
+        {"remaining_term_years": D("0")},
+        {"year_of_income": None},
+        {"year_loan_made": None},
+        {"year_of_income": parse_year("2027-28")},
+        {"amalgamated_loan_unpaid_at_end_of_previous_year": None},
+        {"payments_applied_during_the_year": None},
+        {"remaining_term_years": None},
+    ):
+        emitted.update(minimum_yearly_repayment(facts(**overrides)).reason_codes)
+    # The two remaining codes have their own tests above: they need a gate
+    # built for another year, and an override carrying a nil rate.
+    emitted.update({
+        "REFUSED_GATE_BENCHMARK_YEAR_MISMATCH",
+        "REFUSED_BENCHMARK_RATE_NOT_POSITIVE",
+    })
+    assert emitted == {code.value for code in ReasonCode}

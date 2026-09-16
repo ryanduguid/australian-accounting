@@ -154,6 +154,11 @@ class GateResult:
             "benchmark_provenance": (
                 None if self.benchmark is None else self.benchmark.to_json_dict()["provenance"]
             ),
+            "manifest": (
+                {"rate_table_uris": []}
+                if self.benchmark is None
+                else self.benchmark.to_json_dict()["manifest"]
+            ),
             "maximum_term_years_allowed": (
                 None
                 if self.maximum_term_years_allowed is None
