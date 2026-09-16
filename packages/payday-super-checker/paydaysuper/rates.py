@@ -6,13 +6,47 @@ of it changes: GIC resets quarterly (TAA 1953 s 8AAD), the SG
 parameters change each financial year."""
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-DATA_DIR = Path(__file__).resolve().parent / "data"
+PACKAGE_DIR = Path(__file__).resolve().parent
+DATA_DIR = PACKAGE_DIR / "data"
+
+
+@dataclass(frozen=True)
+class TableSource:
+    """A rate table a figure was computed from, and the digest of what was read.
+
+    The digest is taken over the decoded text, not the raw bytes, so a CRLF
+    checkout and an LF checkout of the same reviewed table agree. It is
+    produced by the loader that read the file; nothing attaches one by hand.
+    An evidence pack whose digest has moved was built from a different table,
+    whatever its provenance line still says.
+    """
+
+    uri: str
+    sha256: str
+
+    def to_json_dict(self) -> dict:
+        return {"uri": self.uri, "sha256": self.sha256}
+
+
+def _read_data(path: Path) -> tuple[str, TableSource]:
+    text = path.read_text(encoding="utf-8")
+    try:
+        uri = path.resolve().relative_to(PACKAGE_DIR.parent).as_posix()
+    except ValueError:
+        # A table read from outside the package: a test fixture, or a caller
+        # pointing DATA_DIR at their own copy. Named, not pathed, so the
+        # reader's directory layout stays out of the evidence pack.
+        uri = f"file:{path.name}"
+    return text, TableSource(
+        uri=uri, sha256=hashlib.sha256(text.encode("utf-8")).hexdigest()
+    )
 
 
 def days_in_year(d: date) -> int:
@@ -41,7 +75,8 @@ RATE_CEILING = Decimal("100")
 
 
 class GicTable:
-    def __init__(self, quarters: list[GicQuarter]):
+    def __init__(self, quarters: list[GicQuarter], source: TableSource | None = None):
+        self.source = source
         self._quarters = sorted(quarters, key=lambda q: q.start)
         if not self._quarters:
             raise RatesError("GIC table is empty")
@@ -163,11 +198,11 @@ def _checked_document(doc: object, path: Path) -> dict:
 
 def load_gic() -> GicTable:
     path = DATA_DIR / "gic_rates.json"
-    with open(path, encoding="utf-8") as f:
-        try:
-            doc = _checked_document(json.load(f), path)
-        except json.JSONDecodeError as exc:
-            raise RatesError(f"{path} is not valid JSON: {exc}")
+    text, source = _read_data(path)
+    try:
+        doc = _checked_document(json.loads(text), path)
+    except json.JSONDecodeError as exc:
+        raise RatesError(f"{path} is not valid JSON: {exc}")
     quarters = []
     for n, e in enumerate(doc["quarters"], start=1):
         if not isinstance(e, dict):
@@ -184,7 +219,7 @@ def load_gic() -> GicTable:
                 seen=str(e.get("seen", "")),
             )
         )
-    return GicTable(quarters)
+    return GicTable(quarters, source=source)
 
 
 def load_rates() -> dict:

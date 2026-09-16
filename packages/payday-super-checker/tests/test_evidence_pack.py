@@ -8,7 +8,8 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
-from paydaysuper import cli
+from paydaysuper import cli, rates
+from paydaysuper.rates import DATA_DIR, load_gic
 
 EVALUATION = Path(__file__).resolve().parents[1] / "evaluation/payday_super_evidence"
 EXPECTED = json.loads((EVALUATION / "expected_results.json").read_text())
@@ -235,3 +236,56 @@ def test_ordinary_checker_writes_csv_in_bounded_chunks(tmp_path, monkeypatch):
     assert cli.main([str(source), "--as-at", EXPECTED["as_at"], "-o", str(output)]) == 0
     with output.open(encoding="utf-8-sig", newline="") as stream:
         assert len(list(csv.reader(stream))) == 52
+
+
+# The manifest: which statutory table produced the interest in this pack.
+
+
+def _pack_queue(tmp_path):
+    output = tmp_path / "pack"
+    scenario = EXPECTED["scenarios"][0]
+    cli.main([
+        "evidence-pack", str(EVALUATION / "fixtures" / scenario["fixture"]),
+        "--as-at", EXPECTED["as_at"], "-o", str(output),
+    ])
+    return json.loads((output / "exceptions.json").read_text(encoding="utf-8"))
+
+
+def test_the_pack_names_the_gic_table_it_used(tmp_path):
+    entries = _pack_queue(tmp_path)["manifest"]["rate_table_uris"]
+    assert [entry["uri"] for entry in entries] == ["paydaysuper/data/gic_rates.json"]
+    assert len(entries[0]["sha256"]) == 64
+
+
+def test_the_manifest_digest_matches_the_shipped_gic_table(tmp_path):
+    expected = hashlib.sha256(
+        (DATA_DIR / "gic_rates.json").read_text(encoding="utf-8").encode("utf-8")
+    ).hexdigest()
+    entries = _pack_queue(tmp_path)["manifest"]["rate_table_uris"]
+    assert entries[0]["sha256"] == expected
+
+
+def test_an_edited_gic_table_changes_the_digest(tmp_path, monkeypatch):
+    before = _pack_queue(tmp_path)["manifest"]["rate_table_uris"][0]["sha256"]
+    edited = tmp_path / "data"
+    edited.mkdir()
+    source = json.loads((DATA_DIR / "gic_rates.json").read_text(encoding="utf-8"))
+    source["quarters"][-1]["annual_pct"] = "11.44"
+    (edited / "gic_rates.json").write_text(json.dumps(source), encoding="utf-8")
+    monkeypatch.setattr(rates, "DATA_DIR", edited)
+    after = load_gic().source
+    assert after.sha256 != before
+    # Read from outside the package, so it is named rather than pathed.
+    assert after.uri == "file:gic_rates.json"
+
+
+def test_a_crlf_checkout_and_an_lf_checkout_agree(tmp_path, monkeypatch):
+    text = (DATA_DIR / "gic_rates.json").read_text(encoding="utf-8")
+    digests = []
+    for name, body in (("lf", text), ("crlf", text.replace("\n", "\r\n"))):
+        folder = tmp_path / name
+        folder.mkdir()
+        (folder / "gic_rates.json").write_bytes(body.encode("utf-8"))
+        monkeypatch.setattr(rates, "DATA_DIR", folder)
+        digests.append(load_gic().source.sha256)
+    assert digests[0] == digests[1]

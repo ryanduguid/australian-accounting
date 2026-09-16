@@ -6,9 +6,11 @@ from dataclasses import asdict
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
+from typing import Sequence
 
 from . import LAW_CONTENT_DATE
 from .practitioner_pack import parse_report_snapshot, render_practitioner_pack
+from .rates import TableSource
 from .report import Result, render_csv
 
 
@@ -24,6 +26,7 @@ def build_evidence_pack(
     results: list[Result], *, as_at: date,
     assessment_date: date | None = None, gic_provenance: str = "",
     remittance_only_confirmed: bool = False,
+    rate_tables: Sequence[TableSource] = (),
 ) -> dict[str, str]:
     """Return 4 deterministic UTF-8 files with row references and no identifiers.
 
@@ -43,6 +46,10 @@ def build_evidence_pack(
         "as_at": as_at.isoformat(),
         "assessment_date": assessment_date.isoformat() if assessment_date else None,
         "remittance_only_confirmed": remittance_only_confirmed,
+        # Which statutory table produced the interest, not just the prose
+        # provenance line: a reviewer reopening this pack can tell whether the
+        # GIC table has been edited since, without trusting the wording.
+        "manifest": {"rate_table_uris": [table.to_json_dict() for table in rate_tables]},
         "exceptions": [asdict(row) for row in snapshot.rows if row.verdict != "ON_TIME"],
     }
     decision = "\n".join([
