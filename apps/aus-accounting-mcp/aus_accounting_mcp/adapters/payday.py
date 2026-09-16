@@ -189,13 +189,14 @@ def _line(
     )
 
 
-def _review(lines: list[ContribLine], as_at: str) -> tuple[date, list[Result]]:
+def _review(lines: list[ContribLine], as_at: str) -> tuple[date, list[Result], Any]:
     as_at_day = _required_date(as_at, "as_at")
+    gic = load_gic()
     try:
         results = assess(
             lines,
             load_calendar(),
-            load_gic(),
+            gic,
             as_at_day,
             transition_allocation_confirmed=False,
         )
@@ -212,12 +213,12 @@ def _review(lines: list[ContribLine], as_at: str) -> tuple[date, list[Result]]:
             "a human reconciliation of June-quarter balances; this MCP cannot confirm that",
         )
         raise InputError(message) from exc
-    return as_at_day, results
+    return as_at_day, results, gic
 
 
 def review_contribution(*, as_at: str, **facts: Any) -> dict[str, Any]:
     """Review one contribution against payday-super-checker."""
-    as_at_day, results = _review([_line(**facts)], as_at)
+    as_at_day, results, _ = _review([_line(**facts)], as_at)
     return {
         "ok": True,
         "engine": "payday-super-checker",
@@ -250,7 +251,7 @@ class ContributionInput(BaseModel):
 def review_contributions(contributions: list[ContributionInput], as_at: str) -> dict[str, Any]:
     """Let the engine assess related rows together, including item 4 alignment."""
     lines = [_line(row=i, **row.model_dump()) for i, row in enumerate(contributions, 1)]
-    as_at_day, results = _review(lines, as_at)
+    as_at_day, results, _ = _review(lines, as_at)
     return {
         "ok": True, "engine": "payday-super-checker", "engine_version": PAYDAY_VERSION,
         "law_content_date": LAW_CONTENT_DATE, "as_at": as_at_day.isoformat(),
@@ -278,9 +279,9 @@ def evidence_pack(contributions: list[ContributionInput], as_at: str) -> dict[st
             "MCP dependency pin is updated. Existing review tools remain available."
         ) from exc
     lines = [_line(row=i, **row.model_dump()) for i, row in enumerate(contributions, 1)]
-    as_at_day, results = _review(lines, as_at)
+    as_at_day, results, gic = _review(lines, as_at)
     files = build_evidence_pack(
-        results, as_at=as_at_day, gic_provenance=load_gic().provenance(),
+        results, as_at=as_at_day, gic_provenance=gic.provenance(), rate_tables=(gic,),
     )
     return {
         "ok": True, "engine": "payday-super-checker", "engine_version": PAYDAY_VERSION,
