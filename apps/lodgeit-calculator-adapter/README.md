@@ -161,7 +161,7 @@ A live probe is separate, manual and small: see
 [docs/live-probe.md](docs/live-probe.md). Nothing schedules one, and upstream
 availability never gates a build.
 
-One was run on 18 September 2026: a drift check and twelve invocations across
+One was run on 18 September 2026: a drift check and eleven invocations across
 Division 7A, accounting depreciation and one FBT category, all with fabricated
 inputs. The arithmetic agreed everywhere it was meant to, the provider's own
 published pre-acquisition limitation was reproduced and refused, and the probe

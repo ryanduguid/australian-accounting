@@ -559,3 +559,102 @@ def test_a_result_row_that_is_not_an_object_is_a_contract_failure(stub, fano_con
     assert status == "CONTRACT_FAILURE"
     assert suggestions == []
     assert any("position 1" in note for note in notes)
+
+
+# -- the final review pass -------------------------------------------------
+
+def test_a_discovery_body_that_is_not_a_list_is_not_agreement(stub, contract):
+    base_url, state = stub
+    state.respond({"calculators": [{"calc_uri": "brand-new"}]})
+    client = LodgeitClient(
+        AdapterConfig(enabled=True, base_url=base_url, allow_loopback=True, max_attempts=1),
+        contract,
+    )
+    outcome, findings = client.drift()
+    assert outcome.computed
+    assert findings and "nothing was compared" in findings[0]
+
+
+def test_a_listing_entry_that_is_not_an_object_is_reported_not_a_crash(stub, contract):
+    base_url, state = stub
+    state.respond(["urn:sbrm:calculator:div7a:at", {"calc_uri": "urn:sbrm:calculator:div7a:at"}])
+    client = LodgeitClient(
+        AdapterConfig(enabled=True, base_url=base_url, allow_loopback=True, max_attempts=1),
+        contract,
+    )
+    _outcome, findings = client.drift()
+    assert any("entry 0 is str" in item for item in findings)
+
+
+def test_verify_reports_an_evidence_file_that_is_not_an_object():
+    assert evidence.verify([]) == ["the evidence file is list, not a JSON object"]
+    assert evidence.verify(None) == ["the evidence file is NoneType, not a JSON object"]
+
+
+def test_verify_accepts_a_discovery_record_the_tool_wrote(stub, contract):
+    # A discovery listing has no manifest and no advisory, and no contract asks
+    # for one. verify used to reject the record the same tool had just written.
+    base_url, state = stub
+    state.respond([{"calc_uri": "urn:sbrm:calculator:div7a:at"}])
+    client = LodgeitClient(
+        AdapterConfig(enabled=True, base_url=base_url, allow_loopback=True, max_attempts=1),
+        contract,
+    )
+    record = evidence.build(
+        client.discover(), label="discover", synthetic=True,
+        response_contract=contract.response_contract,
+    )
+    assert evidence.verify(record) == []
+
+
+def test_verify_honours_a_contract_that_requires_no_manifest(stub, fano_contract):
+    from lodgeitadapter.trials import fano as fano_trial
+
+    base_url, state = stub
+    state.respond({"status": "COMPLETE", "equilibrium_valid": True, "results": [
+        {"description": "Bank account", "predicted_code": "sbrm_1234"},
+    ]})
+    client = LodgeitClient(
+        AdapterConfig(enabled=True, base_url=base_url, allow_loopback=True, max_attempts=1),
+        fano_contract,
+    )
+    outcome = client.invoke(
+        fano_trial.ROUTE_CALC_URI, fano_trial.PERIOD_URI,
+        {"entity_structure": "company", "lines": []},
+    )
+    assert outcome.computed
+    record = evidence.build(
+        outcome, label="fano-trial", synthetic=True,
+        response_contract=fano_contract.response_contract,
+    )
+    assert evidence.verify(record) == []
+
+
+def test_verify_still_requires_a_manifest_where_the_contract_does(stub, contract):
+    base_url, state = stub
+    state.respond({
+        "statutory_myr": "21874.92", "total_repayments": "22000.00",
+        "shortfall": "0.00", "benchmark_rate": "0.0837",
+        "manifest": {"rate_uris_consumed": ["urn:sbrm:rate:div7a:fy2026"]},
+        "advisory": {"disclaimer": "Calculated on supplied facts."},
+    })
+    client = LodgeitClient(
+        AdapterConfig(enabled=True, base_url=base_url, allow_loopback=True, max_attempts=1),
+        contract,
+    )
+    outcome = client.invoke(
+        "urn:sbrm:calculator:div7a:at", "urn:sbrm:period:div7a:fy2026",
+        {"amalgamated_base": Decimal("100000.00")},
+    )
+    record = evidence.build(
+        outcome, label="div7a", synthetic=True, response_contract=contract.response_contract,
+    )
+    assert evidence.verify(record) == []
+    record["calculation"]["upstream"]["manifest"] = None
+    record["calculation_sha256"] = evidence.digest_of(record)
+    assert any("no upstream manifest" in item for item in evidence.verify(record))
+
+
+def test_a_port_that_is_not_a_number_is_a_refusal_not_a_traceback():
+    with pytest.raises(DisallowedTargetError, match="port is not a number"):
+        AdapterConfig(enabled=True).check_url(f"{HOST}:notaport/v1/calculators")

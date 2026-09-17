@@ -109,7 +109,13 @@ def compare(contract: Contract, live_listing: list[dict]) -> list[str]:
     """
     findings: list[str] = []
     live: dict[str, dict] = {}
-    for entry in live_listing:
+    for index, entry in enumerate(live_listing):
+        if not isinstance(entry, dict):
+            findings.append(
+                f"live listing entry {index} is {type(entry).__name__}, not an object, and "
+                "was not compared"
+            )
+            continue
         uri = entry.get("calc_uri")
         if isinstance(uri, str):
             live[uri] = entry

@@ -106,8 +106,15 @@ class LodgeitClient:
         from .contract import compare
 
         outcome = self.discover()
-        if not outcome.computed or not isinstance(outcome.result, list):
+        if not outcome.computed:
             return outcome, []
+        if not isinstance(outcome.result, list):
+            # A 200 that is not a listing is not agreement with the snapshot.
+            # Returning no findings here printed "agrees" for a body of null.
+            return outcome, [
+                f"live discovery returned {type(outcome.result).__name__} where a list of "
+                "calculators was expected; nothing was compared"
+            ]
         return outcome, compare(self.contract, outcome.result)
 
     # -- invocation ------------------------------------------------------

@@ -210,6 +210,7 @@ def main(argv: list[str] | None = None) -> int:
                 outcome,
                 label=getattr(args, "label", args.command),
                 synthetic=not args.not_synthetic,
+                response_contract=contract.response_contract,
             )
         except ValueError as exc:
             # A record with a label the consumer refuses is worse than no

@@ -141,11 +141,16 @@ class AdapterConfig:
             raise DisallowedTargetError(f"{url}: scheme {parts.scheme!r} is refused")
         if parts.scheme == "http" and not loopback:
             raise DisallowedTargetError(f"{url}: plaintext http is refused off loopback")
-        if not loopback and parts.port is not None and parts.port not in (443, 80):
+        try:
+            port = parts.port
+        except ValueError as exc:
+            # urlsplit parses lazily and raises here on ":notaport".
+            raise DisallowedTargetError(f"{url}: the port is not a number") from exc
+        if not loopback and port is not None and port not in (443, 80):
             # Off loopback the port is part of the destination, so it is part of
             # what the allowlist decides. A local stub binds an ephemeral port
             # and allow_loopback is already the gate on reaching one at all.
-            raise DisallowedTargetError(f"{url}: port {parts.port} is not one this adapter calls")
+            raise DisallowedTargetError(f"{url}: port {port} is not one this adapter calls")
         if parts.query or parts.fragment:
             raise DisallowedTargetError(
                 f"{url}: a query string or fragment on a base URL would swallow the route built "

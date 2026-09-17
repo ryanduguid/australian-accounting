@@ -64,6 +64,7 @@ def build(
     engine: dict[str, str] | None = None,
     local_result: dict | None = None,
     notes: tuple[str, ...] = (),
+    response_contract: dict | None = None,
 ) -> dict:
     """Assemble an evidence record from one outcome.
 
@@ -81,6 +82,16 @@ def build(
             "name": "lodgeit-labs",
             "contract_snapshot": outcome.contract_snapshot,
             "contract_sha256": outcome.contract_sha256,
+            # What the reviewed contract required of a 200, recorded so that
+            # verify() asks the same question the client asked and not a
+            # stricter one. A discovery call names no calculator and no
+            # contract requires a manifest of a listing.
+            "requires_manifest": bool(
+                outcome.calculator and (response_contract or {}).get("requires_manifest", True)
+            ),
+            "requires_advisory": bool(
+                outcome.calculator and (response_contract or {}).get("requires_advisory", True)
+            ),
         },
         "call": {
             "calculator": outcome.calculator,
@@ -158,9 +169,11 @@ def digest_of(record: dict) -> str:
     return hashlib.sha256(_canonical(record["calculation"])).hexdigest()
 
 
-def verify(record: dict) -> list[str]:
+def verify(record: object) -> list[str]:
     """Findings against an evidence record. Empty means it hangs together."""
     findings: list[str] = []
+    if not isinstance(record, dict):
+        return [f"the evidence file is {type(record).__name__}, not a JSON object"]
     if record.get("schema") != SCHEMA:
         findings.append(f"unknown evidence schema {record.get('schema')!r}")
         return findings
@@ -186,10 +199,14 @@ def verify(record: dict) -> list[str]:
         findings.append(str(exc))
     call = _block(calculation, "call", findings)
     upstream = _block(calculation, "upstream", findings)
+    provider = _block(calculation, "provider", findings)
     if call.get("status") == str(Status.COMPUTED):
-        if not upstream.get("manifest"):
+        # Records written before the provider block carried these flags all
+        # came from the calculators snapshot, which requires both, so absent
+        # means required.
+        if provider.get("requires_manifest", True) and not upstream.get("manifest"):
             findings.append("a computed result with no upstream manifest")
-        if not upstream.get("advisory"):
+        if provider.get("requires_advisory", True) and not upstream.get("advisory"):
             findings.append("a computed result with no upstream advisory")
     return findings
 
