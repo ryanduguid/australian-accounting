@@ -14,6 +14,7 @@ error all do nothing over the network, and the test suite asserts that.
 
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import dataclass, field, replace
 from urllib.parse import urlsplit
@@ -62,7 +63,8 @@ class AdapterConfig:
     def __post_init__(self) -> None:
         for name in ("connect_timeout", "read_timeout", "retry_backoff_seconds"):
             value = getattr(self, name)
-            if not isinstance(value, (int, float)) or value <= 0:
+            if (not isinstance(value, (int, float)) or not math.isfinite(value)
+                    or value <= 0):
                 raise ConfigurationError(f"{name} must be a positive number")
         if self.max_response_bytes <= 0:
             raise ConfigurationError("max_response_bytes must be positive")
