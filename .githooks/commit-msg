@@ -126,12 +126,20 @@ def comment_markers():
     `auto` names no single character, so every character Git may pick is
     treated as a marker: that scans more lines, never fewer.
     """
-    configured = (os.environ.get("COMMENT_STRING") or os.environ.get("COMMENT_CHAR") or "").strip()
+    configured = []
+    for value in (os.environ.get("COMMENT_STRING"), os.environ.get("COMMENT_CHAR")):
+        value = (value or "").strip()
+        if value and value not in configured:
+            configured.append(value)
     if not configured:
         return ("#",)
-    if configured.casefold() == "auto":
-        return AUTO_MARKERS
-    return (configured,)
+    markers = []
+    for value in configured:
+        if value.casefold() == "auto":
+            markers.extend(AUTO_MARKERS)
+        elif value not in markers:
+            markers.append(value)
+    return tuple(markers)
 
 
 MARKERS = comment_markers()
@@ -202,9 +210,9 @@ for number, line in enumerate(lines, 1):
 
     for text, at in candidates:
         hit = None
-        for reading in readings(comparable(text)):
+        for reading in readings(text):
             for name, rx in RX:
-                if rx.match(reading):
+                if rx.match(comparable(reading)):
                     hit = "line %d: %s (%s)" % (at, text.strip()[:120], name)
                     break
             if hit:
