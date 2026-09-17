@@ -267,7 +267,7 @@ def posix_bash() -> str | None:
     "ref, expected",
     [("refs/heads/main", 0), ("refs/heads/feature", 1), ("refs/tags/aus-accounting-mcp/v0.2.2", 1)],
 )
-def test_the_ref_guard_admits_only_main(ref: str, expected: int) -> None:
+def test_the_ref_guard_admits_only_main(ref: str, expected: int, tmp_path: Path) -> None:
     workflow = (repository_root() / ".github" / "workflows" / "publish-mcp.yml").read_text(
         encoding="utf-8"
     )
@@ -278,8 +278,17 @@ def test_the_ref_guard_admits_only_main(ref: str, expected: int) -> None:
     bash = posix_bash()
     if bash is None:
         pytest.skip("no POSIX bash available; System32 bash.exe only launches WSL")
+    preflight_job = workflow[workflow.index("\n  preflight:") : workflow.index("\n  publish:")]
+    defaults, steps = preflight_job.split("    steps:", 1)
+    guard_step = steps.split("      - uses:", 1)[0]
+    directory = re.search(r"^        working-directory: (.+)$", guard_step, re.M)
+    if directory is None:
+        directory = re.search(r"^        working-directory: (.+)$", defaults, re.M)
+    # The guard runs before checkout, so only the empty workspace exists.
+    working_directory = tmp_path / directory.group(1) if directory else tmp_path
     completed = subprocess.run(
         [bash, "-euo", "pipefail", "-c", guard],
+        cwd=working_directory,
         env={**os.environ, "GITHUB_REF": ref},
         capture_output=True,
         text=True,

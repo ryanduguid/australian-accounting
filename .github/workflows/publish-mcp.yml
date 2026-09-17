@@ -30,9 +30,6 @@ jobs:
       contents: read
     outputs:
       server-json-sha256: ${{ steps.preflight.outputs.server-json-sha256 }}
-    defaults:
-      run:
-        working-directory: apps/aus-accounting-mcp
     steps:
       - name: Refuse any ref other than main
         shell: bash
@@ -48,6 +45,7 @@ jobs:
           python-version: "3.12"
       - name: Check server.json against pyproject.toml, PyPI and its provenance
         id: preflight
+        working-directory: apps/aus-accounting-mcp
         run: python scripts/registry_preflight.py
 
   publish:
