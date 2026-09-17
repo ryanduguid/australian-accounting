@@ -90,10 +90,13 @@ def build_server(config: AdapterConfig | None = None, contract_name: str = "lodg
         from .cli import _decimalise  # noqa: PLC0415
 
         try:
-            body: Any = _decimalise(json.loads(request_json))
-        except json.JSONDecodeError as exc:
+            recorded = contract.calculators.get(calculator_uri, {})
+            body: Any = _decimalise(
+                json.loads(request_json), recorded.get("request_number_fields", ()),
+            )
+        except (json.JSONDecodeError, ValueError) as exc:
             return json.dumps({"status": "REFUSED_TO_SEND",
-                               "findings": [f"request_json is not valid JSON: {exc}"],
+                               "findings": [f"request_json could not be read: {exc}"],
                                "boundary": BOUNDARY}, indent=2)
         outcome = client.invoke(calculator_uri, period_uri, body)
         return json.dumps({

@@ -78,12 +78,20 @@ def test_the_local_engine_reproduces_the_independently_derived_figure(case_id):
         assert values[field] == expected, f"{case_id}.{field}"
 
 
-def test_a_nil_remaining_term_is_refused_by_the_local_engine_not_divided():
+def test_a_nil_remaining_term_is_refused_by_the_local_engine_not_divided(
+    stub, stub_config, contract,
+):
+    _, state = stub
     case = CASES["D7A-8-nil-remaining-term-refused"]
     verdict, values, reasons = trial.run_local(case)
     assert verdict == "REFUSED"
     assert "statutory_myr" not in values
     assert any("remaining term" in reason for reason in reasons)
+    # A local refusal ends the case. Nothing is sent, so the fixture's recorded
+    # evaluation is decidable offline and is asserted here.
+    comparison = trial.evaluate(case, LodgeitClient(stub_config, contract))
+    assert str(comparison.evaluation) == case.expect_evaluation
+    assert state.requests == []
 
 
 def test_a_matching_provider_answer_is_a_match(stub, stub_config, contract):
@@ -115,7 +123,11 @@ def test_a_term_convention_difference_is_scope_not_arithmetic(stub, stub_config,
 
 
 def test_the_rate_trap_case_reports_a_difference_and_names_the_rate(stub, stub_config, contract):
-    """D7A-4 expects the previous year's rate; the engine must use the current one."""
+    """D7A-4 expects the previous year's rate; the engine must use the current one.
+
+    The provider here echoes the term the case supplied, which isolates the
+    rate. The live provider derives its own term, which is the case below.
+    """
     _, state = stub
     case = CASES["D7A-4-later-year-not-first"]
     state.respond(provider_body(case))
@@ -126,6 +138,26 @@ def test_the_rate_trap_case_reports_a_difference_and_names_the_rate(stub, stub_c
     assert any("29297.01" in reason for reason in comparison.reasons)
 
 
+def test_the_rate_trap_case_reaches_the_outcome_its_fixture_records(
+    stub, stub_config, contract,
+):
+    """The term the live provider derived, reproduced offline.
+
+    `expect_evaluation` records what the trial reported against the provider
+    on the probe date. On 18 September 2026 the provider derived a remaining
+    term of 4 from the origination facts while the case supplied 3, so the
+    term convention outranks the rate difference underneath it: two engines
+    using different terms were never comparing the same arithmetic.
+    """
+    _, state = stub
+    case = CASES["D7A-4-later-year-not-first"]
+    state.respond(provider_body(case, remaining_term_years=4))
+    comparison = trial.evaluate(case, LodgeitClient(stub_config, contract))
+    assert str(comparison.evaluation) == case.expect_evaluation
+    assert comparison.evaluation is Evaluation.SCOPE_MISMATCH
+    assert any("remaining term" in reason for reason in comparison.reasons)
+
+
 def test_an_unsupported_period_is_its_own_outcome(stub, stub_config, contract):
     _, state = stub
     case = CASES["D7A-9-unsupported-period"]
@@ -134,6 +166,7 @@ def test_an_unsupported_period_is_its_own_outcome(stub, stub_config, contract):
     # Neither side covers fy2024: the local engine has no income-year mapping
     # for it and the snapshot does not record it, so nothing is sent.
     assert comparison.evaluation is Evaluation.UNSUPPORTED_PERIOD
+    assert str(comparison.evaluation) == case.expect_evaluation
     assert comparison.upstream == {} and comparison.local == {}
     assert state.requests == []
 

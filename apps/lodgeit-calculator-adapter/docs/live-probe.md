@@ -65,7 +65,7 @@ the case is what is wrong.
 
 ## What a probe on 18 September 2026 found
 
-One drift check and twelve invocations across three calculators, all with
+One drift check and eleven invocations across three calculators, all with
 fabricated inputs. Recorded here because a probe that is never written down has
 to be run again to be believed.
 

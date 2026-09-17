@@ -56,6 +56,17 @@ uv run --locked --extra dev lodgeit-adapter invoke \
 Every request you send should carry fabricated figures. The evidence file
 records `synthetic_input`, and the flag travels with the file.
 
+A body file is JSON, and the money in it is written as a decimal string. The
+snapshot's `request_number_fields` names which fields become JSON numbers on
+the wire, and nothing else is converted: a reference of `0012` and an ABN stay
+the strings they were written as, because their digits are an identity rather
+than a quantity. A field the snapshot names that is not a number makes the
+command refuse the body instead of sending a guess.
+
+`--evidence-out` writes a record the monthly-close control plane can read. Its
+`--label` is a slug, lower-case letters, digits and single hyphens, at most 120
+characters, because that is what the consumer keys a source digest on.
+
 ## Outcomes, not results
 
 Every call returns an `Outcome` with a `status`. Only `COMPUTED` carries
@@ -118,9 +129,14 @@ complies, a benefit is reportable, or that a reviewer should sign anything.
   figure is compared, and the provider's `is_complying` label is recorded and
   never mapped onto the local engine's verdict.
 - **FBT** (`trials/fbt.py`): one benefit category, the car statutory formula.
-  Only the category taxable value crosses into the local aggregate worksheet, so
-  a grossed-up figure cannot be grossed up twice. Type 1 or type 2 is a
-  required reviewed input, never the provider's engine-side default.
+  Only the category taxable value crosses into the local aggregate worksheet.
+  The single door that carries it refuses a grossed-up figure by its name and
+  by its value, comparing the candidate against the figures the provider
+  reported as already grossed up, because a caller that reads the wrong field
+  keeps the right name. Both derived figures are then compared, the grossed-up
+  amount and the FBT payable; a response carrying neither is a scope mismatch,
+  not a match. Type 1 or type 2 is a required reviewed input, never the
+  provider's engine-side default.
 - **Accounting depreciation** (`trials/depreciation.py`): the provider's own
   movement has to close, or it is refused. It is deliberately not compared with
   the local Division 40 worksheet, which answers a different question.

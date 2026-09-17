@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -71,6 +72,7 @@ def build(
     has to guess. A record whose input was not synthetic is still built, so the
     caller can keep it locally, but it says so.
     """
+    _check_label(label)
     calculation = {
         "schema": SCHEMA,
         "label": label,
@@ -130,6 +132,27 @@ def build(
     }
 
 
+#: A label names a calculation and keys a digest in the consuming pack, so it
+#: is a slug and nothing else. This is the rule the monthly-close control plane
+#: applies when it reads one of these files; applying it here means a record
+#: this package writes is a record that package can read.
+_LABEL = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+MAX_LABEL = 120
+
+
+def _check_label(label: object) -> str:
+    if not isinstance(label, str):
+        raise ValueError(f"label must be a string, got {type(label).__name__}")
+    if len(label) > MAX_LABEL:
+        raise ValueError(f"label is longer than {MAX_LABEL} characters")
+    if not _LABEL.fullmatch(label):
+        raise ValueError(
+            f"label {label!r} is not a slug. A consumer keys a digest on it, so it is "
+            "lower-case letters, digits and single hyphens."
+        )
+    return label
+
+
 def digest_of(record: dict) -> str:
     """Recompute the digest from the record's own calculation block."""
     return hashlib.sha256(_canonical(record["calculation"])).hexdigest()
@@ -151,17 +174,40 @@ def verify(record: dict) -> list[str]:
         findings.append(f"calculation block cannot be canonicalised: {exc}")
         return findings
     if recorded != actual:
-        findings.append(f"calculation_sha256 {recorded} does not match the calculation block "
-                         "({actual})")
+        findings.append(
+            f"calculation_sha256 {recorded} does not match the calculation block ({actual})"
+        )
     calculation = record["calculation"]
     if calculation.get("schema") != SCHEMA:
         findings.append("the calculation block names a different schema from the record")
-    if calculation.get("call", {}).get("status") == str(Status.COMPUTED):
-        if not calculation.get("upstream", {}).get("manifest"):
+    try:
+        _check_label(calculation.get("label"))
+    except ValueError as exc:
+        findings.append(str(exc))
+    call = _block(calculation, "call", findings)
+    upstream = _block(calculation, "upstream", findings)
+    if call.get("status") == str(Status.COMPUTED):
+        if not upstream.get("manifest"):
             findings.append("a computed result with no upstream manifest")
-        if not calculation.get("upstream", {}).get("advisory"):
+        if not upstream.get("advisory"):
             findings.append("a computed result with no upstream advisory")
     return findings
+
+
+def _block(calculation: dict, name: str, findings: list[str]) -> dict:
+    """One named block, or an empty one with a finding. Never a crash.
+
+    An evidence file is untrusted input. A `null` where an object belongs is
+    the thing this function reports, so reading it must not raise.
+    """
+    value = calculation.get(name)
+    if value is None:
+        findings.append(f"the calculation block has no {name} block")
+        return {}
+    if not isinstance(value, dict):
+        findings.append(f"{name} is {type(value).__name__}, not an object")
+        return {}
+    return value
 
 
 def write(record: dict, path: Path) -> Path:

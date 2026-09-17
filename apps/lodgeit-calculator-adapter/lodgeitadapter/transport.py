@@ -4,8 +4,14 @@
   provider changing the destination after the allowlist check passed.
 - The response is read with a hard byte ceiling, one chunk at a time, so an
   endless body cannot exhaust memory.
-- Retries happen only for a transport failure or a 5xx, only on a request the
-  provider documents as safe to retry, and never on a 4xx.
+- Retries happen only for a transport failure or a 5xx, and never on a 4xx.
+  The caller decides which of its own requests may be retried and passes
+  `retry_safe`; this module never decides that for it. `client._call` marks
+  GET and POST retry-safe because every route it calls is a stateless
+  computation the provider documents as its own fault on a 5xx.
+- `config.read_timeout` is the only timeout. urllib sets one socket timeout,
+  which bounds the connection and each read, so a separate connect timeout
+  would be a number nothing enforced.
 - Nothing here logs a request or response body.
 """
 

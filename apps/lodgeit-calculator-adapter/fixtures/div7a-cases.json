@@ -109,9 +109,9 @@
         "benchmark_rate": "0.0837"
       },
       "derivation": "The case supplies a remaining term of 3 and expects the figure the 2024-25 rate produces: (75000.00 x 0.0877) / (1 - (1/1.0877)^3) = 29507.73. The local engine will instead use the 2025-26 rate the period selects, 0.0837, giving 29297.01 on the same term.",
-      "note": "Deliberately inconsistent, to catch a convention difference rather than an arithmetic one. The elapsed-year count for a loan made in 2022-23 measured in 2025-26 implies a remaining term of 4, not the 3 supplied, and the expected figure is computed at the previous year's rate. The trial must report a NUMERIC_DIFFERENCE and name the rate in its reasons. No engine should silently reconcile any of it: s 109E(6) uses the CURRENT year's benchmark rate, which is the whole point of the local engine's warning that a rising rate raises the repayment on an existing loan.",
+      "note": "Deliberately inconsistent, to catch a convention difference rather than an arithmetic one. The elapsed-year count for a loan made in 2022-23 measured in 2025-26 implies a remaining term of 4, not the 3 supplied, and the expected figure is computed at the previous year's rate. The provider derives its own remaining term from the origination facts, so the trial reports a SCOPE_MISMATCH naming the term convention, which outranks the rate difference underneath it: two engines that used different terms were never comparing the same arithmetic. No engine should silently reconcile any of it. Section 109E(6) uses the CURRENT year's benchmark rate, which is the whole point of the local engine's warning that a rising rate raises the repayment on an existing loan.",
       "expect_local": "MYR_MET",
-      "expect_evaluation": "NUMERIC_DIFFERENCE"
+      "expect_evaluation": "SCOPE_MISMATCH"
     },
     {
       "case_id": "D7A-5-earlier-year-rate",
@@ -215,8 +215,8 @@
       "remaining_term_years": 6,
       "repayments": [],
       "expected": {},
-      "derivation": "The provider accepted only fy2025 and fy2026 on 18 September 2026. The local engine's table covers 2019-20 onwards, so the local side answers and the provider cannot. The trial must report UNSUPPORTED_PERIOD and must not present the local figure as agreement.",
-      "expect_local": "MYR_SHORT",
+      "derivation": "The provider accepted only fy2025 and fy2026 on 18 September 2026. This case sits outside both, and outside the trial's own PERIOD_MAP, so neither side produces a figure: the local engine answers UNMAPPED_PERIOD because the trial has no local income year to map the period onto, and nothing is sent. The trial must report UNSUPPORTED_PERIOD and must present no figure as agreement.",
+      "expect_local": "UNMAPPED_PERIOD",
       "expect_evaluation": "UNSUPPORTED_PERIOD"
     }
   ]

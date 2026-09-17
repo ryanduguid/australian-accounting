@@ -37,6 +37,13 @@ and it does so only when switched on. Read [README.md](README.md) first.
    periods, its required and optional decimal fields, and the scope notes that
    matter. Update `read_at` and `read_by` honestly: an automated retrieval is
    not a professional review.
+   `request_number_fields` is the list the command line and the MCP server use
+   to decide which fields of a body read from a file become JSON numbers. It is
+   the only thing that decides that: a field the list does not name stays the
+   string it was written as, because a reference and an ABN are numeric-looking
+   strings whose leading zeros are part of their identity. Paths are dotted and
+   `[]` walks a list, as in `repayments[].amount`. Naming a field that is not a
+   number makes the command refuse the body rather than send a guess.
 3. Add offline tests driven by a stub before anything is sent live.
 4. If it has a local counterpart, align the conventions in writing before
    comparing a single figure.

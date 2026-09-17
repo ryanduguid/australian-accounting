@@ -160,13 +160,13 @@ class LodgeitClient:
         if body is not None:
             try:
                 encoded = decimals.dumps(body)
-            except DecimalWireError as exc:
+                payload_bytes = encoded.encode("utf-8")
+            except (DecimalWireError, UnicodeEncodeError) as exc:
                 return Outcome(status=Status.CONTRACT_FAILURE, request_body=body,
                                findings=(
                                    f"request could not be serialised exactly: {exc}",
                                    ), **common,
                                )
-            payload_bytes = encoded.encode("utf-8")
         common["request_body"] = body
         common["request_json"] = encoded
 
@@ -229,6 +229,15 @@ class LodgeitClient:
                     f"provider refused: {refusal or 'no refusal_class in the body'}",
                     ), **common,
             )
+        if raw.status in (401, 403):
+            refusal = parsed.get("refusal_class") if isinstance(parsed, dict) else None
+            return Outcome(
+                status=Status.UPSTREAM_REFUSED, upstream_refusal_class=refusal,
+                findings=(
+                    f"provider returned {raw.status}: it declined to answer. This adapter "
+                    "holds no credential and adds none.",
+                    ), **common,
+            )
         if raw.status != 200:
             return Outcome(status=Status.CONTRACT_FAILURE,
                            findings=(f"unexpected status {raw.status}",), **common)
@@ -248,8 +257,11 @@ class LodgeitClient:
 
         manifest = parsed.get("manifest")
         advisory = parsed.get("advisory")
-        if rules.get("requires_manifest", True) and not isinstance(manifest, dict):
-            findings.append("no manifest block: the response does not name what it consumed")
+        if rules.get("requires_manifest", True) and not (isinstance(manifest, dict) and manifest):
+            findings.append(
+                "no usable manifest block: the response does not name what it consumed. An "
+                "empty object is not an answer to that question."
+            )
         if rules.get("requires_advisory", True):
             # Which key carries the boundary statement is the provider's
             # choice and the snapshot records it. The publishing standard shows
@@ -291,7 +303,7 @@ class LodgeitClient:
             if not item.startswith("note:")
         ]
         if blocking:
-            return Outcome(status=Status.CONTRACT_FAILURE, result=parsed,
+            return Outcome(status=Status.CONTRACT_FAILURE,
                            manifest=manifest if isinstance(manifest, dict) else None,
                            advisory=advisory if isinstance(advisory, dict) else None,
                            findings=tuple(findings), **common)

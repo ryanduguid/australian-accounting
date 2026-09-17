@@ -98,7 +98,8 @@
       ],
       "input_schema_ref": "#/components/schemas/Div7aAtInput",
       "request_number_fields": [
-        "amalgamated_base"
+        "amalgamated_base",
+        "repayments[].amount"
       ],
       "scope_notes": [
         "The provider derives the remaining term from loan_term_years, loan_origination_date and income_year_start_date, with is_first_real_myr_year as an override. The local engine takes the remaining term as an operator assertion and applies the s 109E(6) rounding to it.",

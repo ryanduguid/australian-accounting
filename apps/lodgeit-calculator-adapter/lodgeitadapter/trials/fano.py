@@ -122,8 +122,10 @@ class Suggestion:
 def build_payload(entity_structure: str, lines: list[Line]) -> dict[str, Any]:
     """The request body, with the provider's own limits checked first."""
     if entity_structure not in ENTITY_STRUCTURES:
-        raise ContractError(f"entity_structure {entity_structure!r} is not one of "
-                             "{ENTITY_STRUCTURES}")
+        raise ContractError(
+            f"entity_structure {entity_structure!r} is not one of "
+            f"{sorted(ENTITY_STRUCTURES)}"
+        )
     if not lines:
         raise ContractError("a trial balance with no lines has nothing to classify")
     if len(lines) > MAX_LINES:
@@ -222,7 +224,14 @@ def interpret(lines: list[Line], outcome) -> tuple[str, list[Suggestion], tuple[
                 findings=tuple(findings),
             )
         )
+    # The first element is this trial's own status and it stays in this
+    # trial's vocabulary. Returning the provider's string verbatim put an
+    # unchecked value where a caller reads CONTRACT_FAILURE and NOT_RUN, so a
+    # provider that answered "NOT_RUN" or "COMPLETE" would have been read as
+    # one of ours. Its status is recorded, unaltered, as a note.
+    provider_status = body.get("status")
     notes = tuple(outcome.findings) + (
+        f"the provider's own status field read {provider_status!r}",
         "Every line above is a suggestion awaiting review. Nothing has been applied.",
     )
-    return str(body.get("status") or "COMPLETE"), suggestions, notes
+    return "INTERPRETED", suggestions, notes

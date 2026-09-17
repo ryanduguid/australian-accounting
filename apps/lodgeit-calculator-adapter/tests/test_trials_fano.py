@@ -78,7 +78,10 @@ def test_every_line_keeps_its_original_alongside_the_suggestion(fano_client):
     client, state = fano_client
     state.respond(response_for(LINES))
     status, suggestions, notes = trial.classify("company", LINES, client)
-    assert status == "COMPLETE"
+    # This trial's own vocabulary, never the provider's string. Its status is
+    # recorded as a note so a reader can see it without it being read as ours.
+    assert status == "INTERPRETED"
+    assert any("'COMPLETE'" in note for note in notes)
     assert len(suggestions) == 3
     first = suggestions[0].to_json_dict()
     assert first["original"]["description"] == "Bank account, operating"
@@ -164,8 +167,12 @@ def test_an_authentication_refusal_is_reported_not_worked_around(fano_client):
     client, state = fano_client
     state.respond({"detail": "Not authenticated"}, status=403)
     status, suggestions, notes = trial.classify("company", LINES, client)
-    assert status == str(Status.CONTRACT_FAILURE)
+    # The contract snapshot records that a 401 or 403 is the provider refusing
+    # to answer. Calling it a contract failure blamed the shape of a body the
+    # provider never read, and hid the open question about the X-API-Key.
+    assert status == str(Status.UPSTREAM_REFUSED)
     assert suggestions == []
+    assert any("declined to answer" in note for note in notes)
 
 
 def test_a_code_needs_a_reviewed_crosswalk_before_it_means_anything():

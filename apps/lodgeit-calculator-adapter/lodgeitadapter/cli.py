@@ -15,7 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from . import evidence as evidence_module
@@ -25,25 +25,55 @@ from .contract import load as load_contract
 from .errors import AdapterError
 
 
-def _decimalise(value):
-    """Rebuild Decimals from a JSON body so money goes out exactly."""
-    if isinstance(value, dict):
-        return {key: _decimalise(item) for key, item in value.items()}
-    if isinstance(value, list):
-        return [_decimalise(item) for item in value]
-    if isinstance(value, str):
-        try:
-            return Decimal(value) if value.strip() and _looks_numeric(value) else value
-        except Exception:  # noqa: BLE001 - a non-numeric string stays a string
-            return value
-    return value
+def _decimalise(body, number_fields):
+    """Rebuild Decimals at the fields the snapshot records as JSON numbers.
+
+    Driven by the contract, never by what a string looks like. A reference,
+    an ABN and a tax file number are numeric-looking strings whose leading
+    zeros matter and which the provider declares as strings; converting them
+    because they parse as a Decimal corrupted the identifier and dropped the
+    zeros. Only a path the snapshot names is converted.
+
+    A path is dotted, and `[]` walks every element of a list, so
+    `repayments[].amount` reaches each repayment.
+    """
+    if not isinstance(body, dict):
+        raise ValueError("a request body must be a JSON object")
+    converted = json.loads(json.dumps(body))  # a private copy; the caller keeps its own
+    for path in number_fields:
+        _set_decimal(converted, path.split("."), path)
+    return converted
 
 
-def _looks_numeric(text: str) -> bool:
-    body = text.strip()
-    if body.startswith("-"):
-        body = body[1:]
-    return body.replace(".", "", 1).isdigit() and body.count(".") <= 1
+def _set_decimal(node, parts, path):
+    """Walk one dotted path and convert the leaf. A missing path is not an error.
+
+    An optional field the caller did not supply is ordinary; a field that is
+    present and is not a decimal is not, because the alternative is putting a
+    value on the wire that means something other than what it says.
+    """
+    head, rest = parts[0], parts[1:]
+    if head.endswith("[]"):
+        name = head[:-2]
+        if not isinstance(node, dict) or not isinstance(node.get(name), list):
+            return
+        for index, item in enumerate(node[name]):
+            _set_decimal(item, rest, f"{path}[{index}]")
+        return
+    if not isinstance(node, dict) or head not in node:
+        return
+    if rest:
+        _set_decimal(node[head], rest, path)
+        return
+    value = node[head]
+    if isinstance(value, Decimal):
+        return
+    if isinstance(value, bool) or value is None:
+        raise ValueError(f"{path}: {value!r} is not a number")
+    try:
+        node[head] = Decimal(str(value).strip())
+    except InvalidOperation as exc:
+        raise ValueError(f"{path}: {value!r} is not a number") from exc
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -75,7 +105,10 @@ def build_parser() -> argparse.ArgumentParser:
     invoke.add_argument("--calculator", required=True)
     invoke.add_argument("--period", required=True)
     invoke.add_argument("--body", required=True, type=Path, help="JSON request body")
-    invoke.add_argument("--label", default="manual invocation")
+    invoke.add_argument(
+        "--label", default="manual-invocation",
+        help="slug naming this calculation; the consuming pack keys a digest on it",
+    )
     verify = commands.add_parser("verify", parents=[shared],
                                  help="check an evidence file, offline")
     verify.add_argument("--evidence", required=True, type=Path)
@@ -122,7 +155,6 @@ def main(argv: list[str] | None = None) -> int:
         base_url=args.base_url or base.base_url,
         allowed_hosts=base.allowed_hosts,
         allow_loopback=args.allow_loopback or base.allow_loopback,
-        connect_timeout=base.connect_timeout,
         read_timeout=base.read_timeout,
         max_response_bytes=base.max_response_bytes,
         max_attempts=base.max_attempts,
@@ -142,8 +174,12 @@ def main(argv: list[str] | None = None) -> int:
             return 1 if findings else 0
     else:
         try:
-            body = _decimalise(json.loads(args.body.read_text(encoding="utf-8")))
-        except (OSError, json.JSONDecodeError) as exc:
+            recorded = contract.calculators.get(args.calculator, {})
+            body = _decimalise(
+                json.loads(args.body.read_text(encoding="utf-8")),
+                recorded.get("request_number_fields", ()),
+            )
+        except (OSError, json.JSONDecodeError, ValueError) as exc:
             print(f"lodgeit-adapter: {args.body} could not be read: {exc}", file=sys.stderr)
             return 2
         outcome = client.invoke(args.calculator, args.period, body)
@@ -156,11 +192,17 @@ def main(argv: list[str] | None = None) -> int:
     }, indent=2, default=str))
 
     if args.evidence_out is not None:
-        record = evidence_module.build(
-            outcome,
-            label=getattr(args, "label", args.command),
-            synthetic=not args.not_synthetic,
-        )
+        try:
+            record = evidence_module.build(
+                outcome,
+                label=getattr(args, "label", args.command),
+                synthetic=not args.not_synthetic,
+            )
+        except ValueError as exc:
+            # A record with a label the consumer refuses is worse than no
+            # record, because it looks like evidence until something reads it.
+            print(f"lodgeit-adapter: no evidence written: {exc}", file=sys.stderr)
+            return 2
         evidence_module.write(record, args.evidence_out)
         print(f"evidence written to {args.evidence_out} "
               f"(calculation_sha256 {record['calculation_sha256']})")

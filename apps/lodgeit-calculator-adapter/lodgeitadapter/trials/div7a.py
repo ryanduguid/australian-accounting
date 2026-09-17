@@ -83,7 +83,14 @@ class Case:
     remaining_term_years: int
     expected: dict[str, Decimal]
     derivation: str
+    #: The verdict `run_local` reaches for this case. Asserted for every case,
+    #: because two fixtures once recorded a verdict nothing ever ran.
     expect_local: str
+    #: The evaluation the trial reported against the provider on the probe date
+    #: recorded in `docs/live-probe.md`. It describes a comparison with a live
+    #: or faithfully stubbed provider, not the local side alone: a case whose
+    #: term the provider derives for itself reaches a different outcome from
+    #: one whose term it echoes back.
     expect_evaluation: str
     note: str = ""
 

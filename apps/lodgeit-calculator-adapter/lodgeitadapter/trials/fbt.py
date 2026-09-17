@@ -30,6 +30,7 @@ classification is a required, reviewed input, and `"unknown"` is a refusal.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
@@ -89,17 +90,33 @@ def prepare_aggregate_input(
     fbt_type: str,
     *,
     field_name: str = "taxable_value",
+    response_values: Mapping[str, Decimal] | None = None,
 ) -> dict[str, Decimal]:
     """Turn one category taxable value into the local worksheet's arguments.
 
     Refuses anything that is not a category taxable value. This is the single
     door between the two engines and it is deliberately narrow.
+
+    Two checks, because the first one alone was a check on a name. A caller
+    that read the wrong field and passed the default `field_name` got a
+    grossed-up amount grossed up again, which is what the README says cannot
+    happen. So the value itself is compared against the figures the provider
+    reported as already grossed up, and a match is refused whatever it was
+    called.
     """
     if field_name in ALREADY_GROSSED_UP:
         raise ContractError(
             f"{field_name} is already grossed up. Passing it to the aggregate worksheet would "
             "gross it up a second time. Use the category taxable_value."
         )
+    for name in ALREADY_GROSSED_UP:
+        recorded = (response_values or {}).get(name)
+        if recorded is not None and recorded == taxable_value and taxable_value != 0:
+            raise ContractError(
+                f"the value supplied as {field_name} is the same figure the provider returned "
+                f"as {name}, which is already grossed up. Grossing it up again would overstate "
+                "the liability. Use the category taxable_value."
+            )
     if fbt_type == "Type 1":
         return {"type_one_value": taxable_value, "type_two_value": Decimal("0.00")}
     if fbt_type == "Type 2":
@@ -179,7 +196,9 @@ def evaluate_outcome(benefit: CarBenefit, outcome) -> Comparison:
             **common,
         )
     category_value = values["taxable_value"]
-    arguments = prepare_aggregate_input(category_value, benefit.fbt_type)
+    arguments = prepare_aggregate_input(
+        category_value, benefit.fbt_type, response_values=values,
+    )
     local = run_local_aggregate(arguments, PERIOD_MAP[benefit.period_uri])
     reasons = list(outcome.findings)
 
@@ -190,18 +209,54 @@ def evaluate_outcome(benefit: CarBenefit, outcome) -> Comparison:
     for name in ALREADY_GROSSED_UP:
         if name in values:
             upstream[name] = values[name]
-    local_grossed = local.get(
+    # Both derived figures are compared, not just the gross-up. The FBT
+    # payable is the one that reaches a return, so a trial that reported MATCH
+    # without looking at it was reporting agreement it had not established.
+    # The two engines name them differently; the map is the whole translation.
+    local_grossed_key = (
         "type_one_grossed_up" if benefit.fbt_type == "Type 1" else "type_two_grossed_up"
     )
-    if "grossed_up_taxable_value" in upstream and local_grossed is not None:
-        difference = local_grossed - upstream["grossed_up_taxable_value"]
-        if difference.copy_abs() > Decimal("0.01"):
+    compared: dict[str, tuple[Decimal, Decimal]] = {}
+    for upstream_name, local_name in (
+        ("grossed_up_taxable_value", local_grossed_key),
+        ("fbt_payable", "fbt_estimate"),
+    ):
+        if upstream_name in upstream and local_name in local:
+            compared[upstream_name] = (local[local_name], upstream[upstream_name])
+        elif upstream_name in upstream:
             reasons.append(
-                f"grossed-up amounts differ: local {local_grossed} against provider "
-                f"{upstream['grossed_up_taxable_value']}. Check the gross-up rate each side used."
+                f"{upstream_name}: the provider returned a figure and the local worksheet "
+                f"produced no {local_name}"
             )
-            return Comparison(evaluation=Evaluation.NUMERIC_DIFFERENCE, local=local,
-                              upstream=upstream, reasons=tuple(reasons), **common)
+        elif local_name in local:
+            reasons.append(
+                f"{local_name}: the local worksheet produced a figure and the provider "
+                f"returned no {upstream_name}"
+            )
+
+    differences: dict[str, Decimal] = {}
+    for name, (local_value, upstream_value) in sorted(compared.items()):
+        difference = local_value - upstream_value
+        if difference.copy_abs() > Decimal("0.01"):
+            differences[name] = difference
+            reasons.append(
+                f"{name}: local {local_value} against provider {upstream_value}. Check the "
+                "gross-up rate and the FBT rate each side used."
+            )
+    if differences:
+        return Comparison(evaluation=Evaluation.NUMERIC_DIFFERENCE, local=local,
+                          upstream=upstream, differences=differences,
+                          reasons=tuple(reasons), **common)
+    if not compared:
+        reasons.append(
+            "the provider returned neither a grossed-up amount nor an FBT payable, so the "
+            "only figure that crossed was never checked against anything"
+        )
+        return Comparison(evaluation=Evaluation.SCOPE_MISMATCH, local=local,
+                          upstream=upstream, reasons=tuple(reasons), **common)
+    if len(compared) < 2:
+        return Comparison(evaluation=Evaluation.SCOPE_MISMATCH, local=local,
+                          upstream=upstream, reasons=tuple(reasons), **common)
     reasons.append(
         f"only taxable_value crossed into the aggregate worksheet, as a {benefit.fbt_type} amount"
     )

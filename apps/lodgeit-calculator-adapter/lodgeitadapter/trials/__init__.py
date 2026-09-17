@@ -92,6 +92,13 @@ def compare_values(
             )
         if name not in upstream:
             reasons.append(f"{name}: the provider returned no figure")
+    # A field one side produced and the other did not is a coverage
+    # difference and is named, whether or not the case expected it. Leaving it
+    # out let a trial report MATCH on a field nobody compared.
+    for name in sorted(set(local) - set(upstream)):
+        reasons.append(f"{name}: the local engine produced a figure and the provider did not")
+    for name in sorted(set(upstream) - set(local)):
+        reasons.append(f"{name}: the provider returned a figure and the local engine did not")
     shared = sorted(set(local) & set(upstream))
     if not shared:
         reasons.append("no field is present on both sides, so nothing was compared")
@@ -104,5 +111,9 @@ def compare_values(
     if differences:
         return Evaluation.NUMERIC_DIFFERENCE, differences, tuple(reasons)
     if reasons:
-        return Evaluation.NUMERIC_DIFFERENCE, differences, tuple(reasons)
+        # Every figure the two sides both produced agreed. What is left is a
+        # field one side did not produce, which is a difference in what was
+        # covered, not in what was calculated. Calling it a numeric difference
+        # named an arithmetic disagreement that the comparison did not find.
+        return Evaluation.SCOPE_MISMATCH, differences, tuple(reasons)
     return Evaluation.MATCH, differences, ()
