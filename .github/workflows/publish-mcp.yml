@@ -1,9 +1,15 @@
 name: Publish to MCP Registry
 
 # Official registry listing for io.github.ryanduguid/aus-accounting.
-# OIDC maps this repository to that GitHub namespace. Registry publication
-# requires explicit manual dispatch after the exact PyPI version in server.json
-# has already been published and independently verified.
+# OIDC maps this repository to that GitHub namespace, and the registry applies
+# no branch or environment rule of its own, so this workflow supplies them:
+# only a manual dispatch on main can publish, an unprivileged preflight must
+# first prove that server.json names the exact version this repository
+# released to PyPI through its own trusted publisher, and the privileged job
+# publishes only the server.json the preflight verified, through the
+# mcp-registry environment. That environment's required reviewer and
+# main-only deployment branch rule are repository settings, not YAML; the
+# job's approval boundary is only as strong as they are configured.
 
 on:
   workflow_dispatch:
@@ -16,9 +22,43 @@ permissions:
   contents: read
 
 jobs:
-  publish:
+  preflight:
+    name: verify the released version without credentials
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      server-json-sha256: ${{ steps.preflight.outputs.server-json-sha256 }}
+    defaults:
+      run:
+        working-directory: apps/aus-accounting-mcp
+    steps:
+      - name: Refuse any ref other than main
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/main" \
+            || { echo "registry publication runs only from refs/heads/main, not $GITHUB_REF" >&2; exit 1; }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Check server.json against pyproject.toml, PyPI and its provenance
+        id: preflight
+        run: python scripts/registry_preflight.py
+
+  publish:
+    name: publish the verified server.json
+    needs: preflight
+    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    environment:
+      name: mcp-registry
+      url: https://registry.modelcontextprotocol.io/v0/servers?search=io.github.ryanduguid/aus-accounting
     permissions:
       contents: read
       id-token: write
@@ -31,6 +71,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Require the server.json the preflight verified
+        env:
+          EXPECTED_SHA256: ${{ needs.preflight.outputs.server-json-sha256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          printf '%s  server.json\n' "$EXPECTED_SHA256" | sha256sum --check
       - name: Install mcp-publisher
         shell: bash
         run: |

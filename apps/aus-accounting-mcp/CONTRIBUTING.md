@@ -30,5 +30,15 @@ Do not publish from a contribution branch. After the CI gates and relevant suppl
 checks pass, hand the reviewed commit to the existing release workflow. A version tag
 creates the attested GitHub release, and the same workflow's **Publish to PyPI** job then
 publishes that exact distribution through the `pypi-aus-accounting-mcp` environment. Verify
-the published package, then dispatch **Publish to MCP Registry** for the exact version in
-`server.json`. The registry publication remains an explicit, approval-gated action.
+the published package, then dispatch **Publish to MCP Registry** from `main` for the exact
+version in `server.json`. That workflow refuses any other ref, and its unprivileged
+`preflight` job runs `scripts/registry_preflight.py` first: `server.json` must name this
+package at the version in `pyproject.toml`, PyPI must hold that exact version as one wheel
+and one source distribution whose README carries the `mcp-name` marker, and PyPI's
+provenance for both files must name `release-aus-accounting-mcp.yml` and the
+`pypi-aus-accounting-mcp` environment. Only then does the `publish` job, through the
+`mcp-registry` environment, publish the byte-identical `server.json` the preflight
+verified. The environment's required reviewer and `main`-only deployment branch rule are
+repository settings; the workflow cannot prove they are configured, so check them before
+relying on the approval boundary. Run the preflight locally with
+`uv run --locked python scripts/registry_preflight.py`; it makes public reads only.
