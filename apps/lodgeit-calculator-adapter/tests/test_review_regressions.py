@@ -658,3 +658,37 @@ def test_verify_still_requires_a_manifest_where_the_contract_does(stub, contract
 def test_a_port_that_is_not_a_number_is_a_refusal_not_a_traceback():
     with pytest.raises(DisallowedTargetError, match="port is not a number"):
         AdapterConfig(enabled=True).check_url(f"{HOST}:notaport/v1/calculators")
+
+
+def test_a_listing_entry_without_a_calc_uri_is_a_finding_not_agreement(stub, contract):
+    # Every recorded calculator present, plus one malformed object. Skipping
+    # the object silently printed agreement.
+    base_url, state = stub
+    listing = [{"calc_uri": uri, "supported_periods": recorded.get("supported_periods", []),
+                "input_schema_ref": recorded.get("input_schema_ref")}
+               for uri, recorded in contract.calculators.items()]
+    listing.append({"label": "no uri here"})
+    state.respond(listing)
+    client = LodgeitClient(
+        AdapterConfig(enabled=True, base_url=base_url, allow_loopback=True, max_attempts=1),
+        contract,
+    )
+    _outcome, findings = client.drift()
+    assert any("carries no calc_uri string" in item for item in findings)
+
+
+# A JSON integer arrives as a string, because the client reads numbers with
+# parse_int=str, so the non-string case here is an object entry.
+@pytest.mark.parametrize("periods", [None, "fy2026", [["nested"]], [{"period": 1}]])
+def test_malformed_supported_periods_are_a_finding_not_a_crash(stub, contract, periods):
+    base_url, state = stub
+    state.respond([{"calc_uri": "urn:sbrm:calculator:div7a:at", "supported_periods": periods}])
+    client = LodgeitClient(
+        AdapterConfig(enabled=True, base_url=base_url, allow_loopback=True, max_attempts=1),
+        contract,
+    )
+    _outcome, findings = client.drift()
+    if periods is None:
+        assert any("no longer accepts" in item for item in findings)
+    else:
+        assert any("not a list of strings" in item for item in findings)

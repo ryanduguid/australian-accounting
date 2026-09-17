@@ -117,8 +117,14 @@ def compare(contract: Contract, live_listing: list[dict]) -> list[str]:
             )
             continue
         uri = entry.get("calc_uri")
-        if isinstance(uri, str):
-            live[uri] = entry
+        if not isinstance(uri, str) or not uri:
+            # Skipping this silently let a malformed row sit beside a full set
+            # of valid ones and the command print agreement.
+            findings.append(
+                f"live listing entry {index} carries no calc_uri string and was not compared"
+            )
+            continue
+        live[uri] = entry
     for uri in sorted(set(live) - set(contract.calculators)):
         findings.append(f"live has {uri}, which snapshot {contract.snapshot_id} does not record")
     for uri in sorted(set(contract.calculators) - set(live)):
@@ -126,7 +132,18 @@ def compare(contract: Contract, live_listing: list[dict]) -> list[str]:
                          "lists")
     for uri in sorted(set(live) & set(contract.calculators)):
         recorded = set(contract.calculators[uri].get("supported_periods", []))
-        current = set(live[uri].get("supported_periods", []))
+        periods = live[uri].get("supported_periods")
+        if periods is None:
+            periods = []
+        if not isinstance(periods, list) or not all(isinstance(p, str) for p in periods):
+            # set() of a null or of unhashable entries raised TypeError out of
+            # a function that promises not to raise.
+            findings.append(
+                f"{uri}: live supported_periods is not a list of strings; its periods were "
+                "not compared"
+            )
+            continue
+        current = set(periods)
         for period in sorted(current - recorded):
             findings.append(f"{uri}: live accepts {period}, which the snapshot does not record")
         for period in sorted(recorded - current):
