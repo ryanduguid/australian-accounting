@@ -188,6 +188,9 @@ class LodgeitClient:
 
         common["elapsed_ms"] = raw.elapsed_ms
         common["http_status"] = raw.status
+        if raw.status >= 500:
+            return Outcome(status=Status.UPSTREAM_UNAVAILABLE,
+                           findings=(f"provider returned {raw.status}",), **common)
         try:
             # parse_float and parse_int keep the provider's own digits: a JSON
             # number becomes the text it was written as, so a money field
@@ -221,6 +224,9 @@ class LodgeitClient:
             return Outcome(status=Status.UPSTREAM_REJECTED,
                            findings=("provider returned 422: our request was malformed. "
                                      "Do not retry unchanged.",), **common)
+        if raw.status in (401, 403):
+            return Outcome(status=Status.UPSTREAM_REFUSED,
+                           findings=(f"provider returned {raw.status}: access refused",), **common)
         if raw.status == 400:
             refusal = parsed.get("refusal_class") if isinstance(parsed, dict) else None
             return Outcome(
