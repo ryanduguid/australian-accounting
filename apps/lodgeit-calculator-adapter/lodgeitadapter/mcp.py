@@ -87,12 +87,12 @@ def build_server(config: AdapterConfig | None = None, contract_name: str = "lodg
         Returns the adapter's outcome, including the provider's manifest and
         advisory. A non-computed status carries no figure.
         """
-        from .cli import _decimalise  # noqa: PLC0415
+        from .cli import _decimalise, load_body  # noqa: PLC0415
 
         try:
             recorded = contract.calculators.get(calculator_uri, {})
             body: Any = _decimalise(
-                json.loads(request_json), recorded.get("request_number_fields", ()),
+                load_body(request_json), recorded.get("request_number_fields", ()),
             )
         except (json.JSONDecodeError, ValueError) as exc:
             return json.dumps({"status": "REFUSED_TO_SEND",

@@ -456,3 +456,106 @@ def test_a_repayment_amount_read_from_a_file_goes_on_the_wire_as_a_number(
     assert '"amount":11000.00' in sent
     # The date beside it is a string and stays one.
     assert '"date":"2025-12-15"' in sent
+
+
+# -- a second review pass --------------------------------------------------
+
+def test_a_json_number_keeps_its_own_digits_on_the_way_in(tmp_path, stub, contract):
+    """`float("0.10000000000000001")` is `0.1`, and the difference reached the wire.
+
+    The body file is parsed before anything rebuilds a Decimal from it, so a
+    number that went through `float` was already rounded when the exact
+    serialiser received it.
+    """
+    base_url, state = stub
+    state.respond({
+        "statutory_myr": "21874.92", "total_repayments": "22000.00",
+        "shortfall": "0.00", "benchmark_rate": "0.0837",
+        "manifest": {"rate_uris_consumed": ["urn:sbrm:rate:div7a:fy2026"]},
+        "advisory": {"disclaimer": "Calculated on supplied facts."},
+    })
+    body = tmp_path / "body.json"
+    # Written as text, because a Python literal of this number is already the
+    # rounded float and the file has to carry the digits the caller typed.
+    # 12345678901.234567 is inside the serialiser's own scale limit and still
+    # comes back from float as ...568.
+    body.write_text(
+        '{"amalgamated_base": 12345678901.234567, "loan_term_years": 7,'
+        ' "loan_origination_date": "2024-09-01",'
+        ' "income_year_start_date": "2025-07-01",'
+        ' "is_first_real_myr_year": true, "repayments": []}',
+        encoding="utf-8",
+    )
+    assert cli.main([
+        "invoke", "--enable-network", "--allow-loopback", "--base-url", base_url,
+        "--calculator", "urn:sbrm:calculator:div7a:at",
+        "--period", "urn:sbrm:period:div7a:fy2026",
+        "--body", str(body),
+    ]) == 0
+    sent = state.requests[-1]["body"].decode("utf-8")
+    assert '"amalgamated_base":12345678901.234567' in sent
+    assert "12345678901.234568" not in sent
+    # An integer stays an integer, not a decimal-pointed float.
+    assert '"loan_term_years":7' in sent
+
+
+def test_a_number_too_precise_to_send_is_refused_rather_than_rounded(tmp_path, stub, contract):
+    # The serialiser's scale limit is the guard. Before, the digits were lost
+    # to float first, so the value reached that guard already rounded and
+    # passed it, and the provider received a number nobody wrote.
+    base_url, state = stub
+    body = tmp_path / "toofine.json"
+    body.write_text(
+        '{"amalgamated_base": 0.10000000000000001, "loan_term_years": 7,'
+        ' "loan_origination_date": "2024-09-01",'
+        ' "income_year_start_date": "2025-07-01",'
+        ' "is_first_real_myr_year": true, "repayments": []}',
+        encoding="utf-8",
+    )
+    assert cli.main([
+        "invoke", "--enable-network", "--allow-loopback", "--base-url", base_url,
+        "--calculator", "urn:sbrm:calculator:div7a:at",
+        "--period", "urn:sbrm:period:div7a:fy2026",
+        "--body", str(body),
+    ]) == 1
+    assert state.requests == []
+
+
+def test_the_body_reader_keeps_an_integer_an_integer():
+    parsed = cli.load_body('{"a": 7, "b": 1.50, "c": "0012"}')
+    assert parsed["a"] == 7 and isinstance(parsed["a"], int)
+    assert str(parsed["b"]) == "1.50"
+    assert parsed["c"] == "0012"
+
+
+def test_a_result_row_that_is_not_an_object_is_a_contract_failure(stub, fano_contract):
+    """A row that cannot be read is not a row with empty fields.
+
+    A row-count mismatch already fails the whole response because the rows
+    cannot be matched up. A non-object row cannot be matched up either, and
+    substituting an empty mapping proposed a suggestion about a row nobody
+    had read.
+    """
+    from lodgeitadapter.trials import fano as fano_trial
+
+    base_url, state = stub
+    lines = [
+        fano_trial.Line("Bank account", "current_assets", Decimal("15000.00"),
+                        "sbrm_0000", Decimal("0")),
+        fano_trial.Line("Sales", "revenue", Decimal("-15000.00"),
+                        "sbrm_0000", Decimal("0")),
+    ]
+    state.respond({
+        "status": "COMPLETE",
+        "equilibrium_valid": True,
+        "results": [{"description": "Bank account", "predicted_code": "sbrm_1234"},
+                    "not an object"],
+    })
+    client = LodgeitClient(
+        AdapterConfig(enabled=True, base_url=base_url, allow_loopback=True, max_attempts=1),
+        fano_contract,
+    )
+    status, suggestions, notes = fano_trial.classify("company", lines, client)
+    assert status == "CONTRACT_FAILURE"
+    assert suggestions == []
+    assert any("position 1" in note for note in notes)

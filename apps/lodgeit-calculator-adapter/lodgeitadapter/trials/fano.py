@@ -195,12 +195,17 @@ def interpret(lines: list[Line], outcome) -> tuple[str, list[Suggestion], tuple[
     if body.get("equilibrium_valid") is False:
         return "CONTRACT_FAILURE", [], ("the provider reports equilibrium_valid false",)
 
+    for index, result in enumerate(results):
+        if not isinstance(result, dict):
+            return "CONTRACT_FAILURE", [], (
+                f"the result at position {index} is {type(result).__name__}, not an object, so "
+                "there is nothing in it to propose. A row that cannot be read is not a row "
+                "with empty fields.",
+            )
+
     suggestions: list[Suggestion] = []
     for line, result in zip(lines, results):
         findings: list[str] = []
-        if not isinstance(result, dict):
-            findings.append("a result entry that is not an object")
-            result = {}
         if result.get("description") != line.description:
             findings.append(
                 f"the provider echoed description {result.get('description')!r} against the "

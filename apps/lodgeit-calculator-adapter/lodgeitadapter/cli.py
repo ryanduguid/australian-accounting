@@ -13,6 +13,7 @@ Exit codes: 0 the command did what it was asked, 1 a refusal or a failure,
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import sys
 from decimal import Decimal, InvalidOperation
@@ -23,6 +24,18 @@ from .client import LodgeitClient, Status
 from .config import AdapterConfig, from_environment
 from .contract import load as load_contract
 from .errors import AdapterError
+
+
+def load_body(text: str):
+    """Parse a request body without losing a digit on the way in.
+
+    `json.loads` reaches a JSON number through `float`, and
+    `float("0.10000000000000001")` is `0.1`. Rebuilding that as a Decimal
+    afterwards rebuilds the rounded number, so the exact serialiser would put
+    digits on the wire that the caller never wrote. `parse_float=Decimal`
+    keeps the literal's own digits, and an integer stays an integer.
+    """
+    return json.loads(text, parse_float=Decimal)
 
 
 def _decimalise(body, number_fields):
@@ -39,7 +52,7 @@ def _decimalise(body, number_fields):
     """
     if not isinstance(body, dict):
         raise ValueError("a request body must be a JSON object")
-    converted = json.loads(json.dumps(body))  # a private copy; the caller keeps its own
+    converted = copy.deepcopy(body)  # a private copy; the caller keeps its own
     for path in number_fields:
         _set_decimal(converted, path.split("."), path)
     return converted
@@ -176,7 +189,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             recorded = contract.calculators.get(args.calculator, {})
             body = _decimalise(
-                json.loads(args.body.read_text(encoding="utf-8")),
+                load_body(args.body.read_text(encoding="utf-8")),
                 recorded.get("request_number_fields", ()),
             )
         except (OSError, json.JSONDecodeError, ValueError) as exc:
