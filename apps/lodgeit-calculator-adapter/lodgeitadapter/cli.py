@@ -52,10 +52,11 @@ def build_parser() -> argparse.ArgumentParser:
     # `... --enable-network drift` both work. argparse otherwise accepts them
     # only before the subcommand, which is not where anyone types them.
     shared = argparse.ArgumentParser(add_help=False)
-    shared.add_argument("--contract", default="lodgeit-calculators", help="reviewed snapshot name")
-    shared.add_argument("--enable-network", action="store_true",
+    shared.add_argument("--contract", default=argparse.SUPPRESS, help="reviewed snapshot name")
+    shared.add_argument("--enable-network", action="store_true", default=argparse.SUPPRESS,
                         help="permit this one run to contact the configured service")
-    shared.add_argument("--base-url", help="the service base URL; must be on the allowlist")
+    shared.add_argument("--base-url", default=argparse.SUPPRESS,
+                        help="the service base URL; must be on the allowlist")
     shared.add_argument("--allow-loopback", action="store_true",
                         help="permit a loopback base URL, for a local stub in tests")
     shared.add_argument("--evidence-out", type=Path, help="write an evidence file for the call")
@@ -66,6 +67,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="lodgeit-adapter", description=__doc__.split("\n")[0], parents=[shared],
     )
+    parser.set_defaults(contract="lodgeit-calculators", enable_network=False, base_url=None)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("contract", parents=[shared], help="print the reviewed snapshot, offline")
     commands.add_parser("discover", parents=[shared], help="fetch the live calculator listing")
