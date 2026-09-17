@@ -1,0 +1,194 @@
+{
+  "provider": "lodgeit-labs",
+  "snapshot_id": "lodgeit-calculators-2026-09-18",
+  "read_at": "2026-09-18",
+  "read_by": "automated retrieval reviewed in session, 18 September 2026; no practitioner review",
+  "source_urls": [
+    "https://lodgeit.org/llms.txt",
+    "https://lodgeit.org/publish.html",
+    "https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app/v1/calculators",
+    "https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app/openapi.json"
+  ],
+  "live_openapi_version": "0.1.0a0",
+  "notes": [
+    "The live discovery response spells calculators urn:sbrm:calculator:..., while publish.html documents urn:sbrm:calc:.... The live spelling is recorded here because it is what the routes accept.",
+    "Request money fields are declared type: number in the live OpenAPI, not decimal strings. Requests therefore carry JSON numbers, serialised exactly by lodgeitadapter.decimals rather than through float.",
+    "Response 200 bodies are declared as objects with additionalProperties: true and no response schema, so the fields below were read from llms.txt and from the shape of live responses, not from a schema.",
+    "GET /healthz returned 404 on 18 September 2026 while GET /livez returned 200, although both are declared.",
+    "Only the three calculators this repository has a local counterpart for are recorded. The nineteen FBT benefit categories are listed by the provider; one is recorded here because one is what has been reviewed.",
+    "This snapshot is a reading, not an agreement. Nothing in it is endorsed by LodgeiT Labs.",
+    "Decimal fields are split into required and optional. A required field's absence is a contract failure; an optional field appears only in some outcomes, such as a Division 7A deemed dividend where nothing fell short.",
+    "Read from a live div7a response on 18 September 2026: the advisory block carries `disclaimer`, not the `notes` array llms.txt and publish.html describe, and the body also echoes `amalgamated_base`, `period_uri` and `rate_uris_consumed`. The manifest entries use `content_hash`, not the `sha256` key the publishing standard's example shows. advisory_any_of records which keys count as an advisory; a response with neither is still a contract failure.",
+    "Live 200 bodies carry more than the standard describes. Depreciation adds `numeric_mode`. The FBT car statutory formula adds counts_towards_fbt_cap, exempt_under, exemption_provenance, gross_taxable_value, rfba_notional_grossed_up_t2, rfba_notional_taxable_value, s8a_inputs and taxable_value_before_reductions. Recorded on 18 September 2026 so they read as known rather than as drift; none is consumed."
+  ],
+  "response_contract": {
+    "requires_manifest": true,
+    "requires_advisory": true,
+    "refuse_unknown_fields": false,
+    "known_top_level_fields": [
+      "advisory",
+      "amalgamated_base",
+      "at_date",
+      "basis",
+      "benchmark_rate",
+      "closing_wdv",
+      "counts_towards_fbt_cap",
+      "day_count",
+      "days_in_range",
+      "deemed_dividend",
+      "employee_contribution",
+      "exempt_under",
+      "exemption_provenance",
+      "fbt_payable",
+      "fbt_type",
+      "from_date",
+      "gross_taxable_value",
+      "gross_up_factor",
+      "grossed_up_taxable_value",
+      "interest_accrued",
+      "is_complying",
+      "loan_term_years",
+      "manifest",
+      "numeric_mode",
+      "opening_wdv",
+      "period_dep_at",
+      "period_uri",
+      "range_dep",
+      "rate_uris_consumed",
+      "reductions",
+      "remaining_term_years",
+      "rfba_notional_grossed_up_t2",
+      "rfba_notional_taxable_value",
+      "s8a_inputs",
+      "schedule_summary",
+      "shortfall",
+      "statutory_myr",
+      "taxable_value",
+      "taxable_value_before_reductions",
+      "to_date",
+      "total_repayments",
+      "trace",
+      "truncated",
+      "wdv_at"
+    ],
+    "manifest_fields": [
+      "calculator",
+      "period",
+      "rate_table_uris",
+      "engine",
+      "citation"
+    ],
+    "advisory_fields": [
+      "figure_type",
+      "notes",
+      "disclaimer"
+    ],
+    "advisory_any_of": [
+      "notes",
+      "disclaimer"
+    ]
+  },
+  "calculators": {
+    "urn:sbrm:calculator:div7a:at": {
+      "label": "Division 7A minimum yearly repayment",
+      "route": "/v1/calculators/div7a/at/{period_uri}",
+      "supported_periods": [
+        "urn:sbrm:period:div7a:fy2025",
+        "urn:sbrm:period:div7a:fy2026"
+      ],
+      "input_schema_ref": "#/components/schemas/Div7aAtInput",
+      "request_number_fields": [
+        "amalgamated_base",
+        "repayments[].amount"
+      ],
+      "scope_notes": [
+        "The provider derives the remaining term from loan_term_years, loan_origination_date and income_year_start_date, with is_first_real_myr_year as an override. The local engine takes the remaining term as an operator assertion and applies the s 109E(6) rounding to it.",
+        "The provider returns is_complying and deemed_dividend. Those are the provider's labels for its own arithmetic. They are not a Division 7A determination and must not be mapped onto the local engine's gate verdicts.",
+        "Live on 18 September 2026 this route returned statutory_myr 21874.92, shortfall 0.00, total_repayments 22000.00 and benchmark_rate 0.0837 for the fabricated loan in fixtures/example-div7a-request.json, agreeing to the cent with both the local engine and the s 109E(6) formula evaluated independently."
+      ],
+      "required_decimal_fields": [
+        "benchmark_rate",
+        "statutory_myr",
+        "total_repayments",
+        "shortfall"
+      ],
+      "optional_decimal_fields": [
+        "deemed_dividend",
+        "interest_accrued"
+      ]
+    },
+    "urn:sbrm:calculator:depreciation:at": {
+      "label": "AASB 116 carrying amount at a date",
+      "route": "/v1/calculators/depreciation/at/{period_uri}",
+      "supported_periods": [
+        "urn:sbrm:period:depreciation:unscoped"
+      ],
+      "input_schema_ref": "#/components/schemas/DepreciationAtInput",
+      "request_number_fields": [
+        "asset.cost",
+        "asset.accounting_useful_life_years",
+        "asset.dv_rate_factor"
+      ],
+      "scope_notes": [
+        "Accounting basis only. This is not a Division 40 deduction and the tax figure will not equal it.",
+        "basis accepts only the literal \"accounting\"; a pooled asset returns 400 pool_asset_out_of_t6_scope."
+      ],
+      "required_decimal_fields": [
+        "wdv_at",
+        "period_dep_at"
+      ],
+      "optional_decimal_fields": []
+    },
+    "urn:sbrm:calculator:depreciation:range": {
+      "label": "AASB 116 depreciation over a range",
+      "route": "/v1/calculators/depreciation/range/{period_uri}",
+      "supported_periods": [
+        "urn:sbrm:period:depreciation:unscoped"
+      ],
+      "input_schema_ref": "#/components/schemas/DepreciationRangeInput",
+      "request_number_fields": [
+        "asset.cost",
+        "asset.accounting_useful_life_years",
+        "asset.dv_rate_factor"
+      ],
+      "scope_notes": [
+        "day_count is required on this route and has no default.",
+        "Documented limitation, as published on 18 September 2026: where from_date precedes acquisition_date the cost enters during the window and no cost_additions field is emitted, so closing_wdv = opening_wdv - range_dep does not hold. The provider says range_dep and closing_wdv are correct and the roll-forward is not closable from the response alone.",
+        "Live on 18 September 2026: a window on or after the acquisition date closes exactly (120000.00 opening, 24000.00 charge, 96000.00 closing for a five-year prime-cost asset over its first anniversary year), consecutive windows telescope (12098.63 + 11901.37 = 24000.00 and the closing of one is the opening of the next), and a window starting before the acquisition date reproduces the published limitation: opening 0.00, closing 107901.37, charge 12098.63 and a 120000.00 gap with no cost_additions field."
+      ],
+      "required_decimal_fields": [
+        "range_dep",
+        "opening_wdv",
+        "closing_wdv"
+      ],
+      "optional_decimal_fields": []
+    },
+    "urn:sbrm:calculator:fbt:car-statutory-formula": {
+      "label": "FBT car, statutory formula method",
+      "route": "/v1/calculators/{calc_uri}/{period_uri}",
+      "supported_periods": [
+        "urn:sbrm:period:fbt:fy2026"
+      ],
+      "input_schema_ref": "#/components/schemas/FBTCarStatutoryFormulaInput",
+      "request_number_fields": [
+        "baseValue",
+        "daysAvailable",
+        "accessories",
+        "employeeContribution"
+      ],
+      "scope_notes": [
+        "taxable_value is the category taxable value. grossed_up_taxable_value and fbt_payable are derived from it and must never be grossed up again.",
+        "fbtType selects the gross-up rate and defaults engine-side to Type 2 when omitted. Type 1 and type 2 classification is a professional judgement about creditable acquisitions, which this adapter requires the caller to establish rather than inheriting the default.",
+        "Live on 18 September 2026: a 40000.00 base value available all year with no accessories or employee contribution returned taxable_value 8000.00, grossed_up_taxable_value 15094.40 and fbt_payable 7094.37. Carrying only the category taxable value into austaxcalc.fbt as a Type 2 amount produced the same 15094.40 and 7094.37."
+      ],
+      "required_decimal_fields": [
+        "taxable_value"
+      ],
+      "optional_decimal_fields": [
+        "gross_up_factor",
+        "grossed_up_taxable_value",
+        "fbt_payable"
+      ]
+    }
+  }
+}

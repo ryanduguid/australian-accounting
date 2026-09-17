@@ -19,6 +19,7 @@ packages/solomons-sword:louisgoldberg
 packages/the-exchequer-tally:edwinnixon
 packages/the-wip-tally:wiptally
 apps/aus-accounting-mcp:aus_accounting_mcp
+apps/lodgeit-calculator-adapter:lodgeitadapter
 ''', "\n", " "))
 
 # List the available recipes.

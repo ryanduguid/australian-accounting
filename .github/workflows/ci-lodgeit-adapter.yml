@@ -1,0 +1,105 @@
+name: lodgeit-calculator-adapter
+
+# The optional remote adapter's own gates, in their own workflow rather than in
+# ci.yml. Two reasons. The MCP application's guidance test pins ci.yml's command
+# list to that component's AGENTS.md, so a second component's commands in the
+# same file would make one component's documentation answer for another's. And
+# this is the one component that can make a network call, so its gates are worth
+# reading on their own.
+#
+# The suite here is offline. The only socket it opens is to a http.server on
+# loopback that the test starts itself, and tests/test_no_network_by_default.py
+# proves the package sends nothing without being switched on. Nothing in this
+# workflow contacts LodgeiT, and upstream availability never gates a build.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: lodgeit-calculator-adapter-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    permissions:
+      contents: read
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.10"
+          - os: ubuntu-latest
+            python: "3.12"
+          - os: ubuntu-latest
+            python: "3.13"
+          - os: windows-latest
+            python: "3.12"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - name: run tests with branch coverage
+        run: uv run --locked --extra dev pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing
+        working-directory: apps/lodgeit-calculator-adapter
+        env:
+          UV_PYTHON: ${{ matrix.python }}
+
+  lint:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - run: uv run --locked --extra dev ruff check lodgeitadapter tests
+        working-directory: apps/lodgeit-calculator-adapter
+      - run: uv run --locked --extra dev mypy lodgeitadapter
+        working-directory: apps/lodgeit-calculator-adapter
+
+  dependency-audit:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: install the locked toolchain
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - name: audit the locked project environment
+        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+        working-directory: apps/lodgeit-calculator-adapter
