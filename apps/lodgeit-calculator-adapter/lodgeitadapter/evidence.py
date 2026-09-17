@@ -152,7 +152,7 @@ def verify(record: dict) -> list[str]:
         return findings
     if recorded != actual:
         findings.append(f"calculation_sha256 {recorded} does not match the calculation block "
-                         "({actual})")
+                         f"({actual})")
     calculation = record["calculation"]
     if calculation.get("schema") != SCHEMA:
         findings.append("the calculation block names a different schema from the record")
