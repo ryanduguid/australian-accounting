@@ -145,6 +145,13 @@ A live probe is separate, manual and small: see
 [docs/live-probe.md](docs/live-probe.md). Nothing schedules one, and upstream
 availability never gates a build.
 
+One was run on 18 September 2026: a drift check and eight Division 7A
+invocations with fabricated loans. Six of the seven cases the provider accepted
+matched to the cent across three independent derivations, the seventh behaved as
+its trap was designed to, and the probe found that the live advisory block is
+shaped differently from the published standard. What it found, and the caveat
+that it is a point-in-time reading, are in that document.
+
 ## Boundary
 
 This adapter calls a third-party service that says of itself: "Response shapes

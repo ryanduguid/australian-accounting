@@ -251,10 +251,16 @@ class LodgeitClient:
         if rules.get("requires_manifest", True) and not isinstance(manifest, dict):
             findings.append("no manifest block: the response does not name what it consumed")
         if rules.get("requires_advisory", True):
-            if not isinstance(advisory, dict) or not advisory.get("notes"):
+            # Which key carries the boundary statement is the provider's
+            # choice and the snapshot records it. The publishing standard shows
+            # `notes`; the live div7a route uses `disclaimer`. An advisory with
+            # neither is still a figure travelling without its framing.
+            carriers = rules.get("advisory_any_of", ["notes"])
+            if not isinstance(advisory, dict) or not any(advisory.get(key) for key in carriers):
                 findings.append(
                     "no advisory block: the provider's own boundary statement is missing, so "
-                    "the figure would travel without the framing it needs"
+                    f"the figure would travel without the framing it needs (looked for "
+                    f"{', '.join(carriers)})"
                 )
 
         unknown = sorted(set(parsed) - set(rules.get("known_top_level_fields", [])))

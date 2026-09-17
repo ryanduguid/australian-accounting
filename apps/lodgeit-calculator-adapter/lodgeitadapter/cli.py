@@ -47,27 +47,37 @@ def _looks_numeric(text: str) -> bool:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="lodgeit-adapter", description=__doc__.split("\n")[0])
-    parser.add_argument("--contract", default="lodgeit-calculators", help="reviewed snapshot name")
-    parser.add_argument("--enable-network", action="store_true",
+    # The flags below are attached to the top-level parser and to every
+    # subcommand, so `... drift --enable-network` and
+    # `... --enable-network drift` both work. argparse otherwise accepts them
+    # only before the subcommand, which is not where anyone types them.
+    shared = argparse.ArgumentParser(add_help=False)
+    shared.add_argument("--contract", default="lodgeit-calculators", help="reviewed snapshot name")
+    shared.add_argument("--enable-network", action="store_true",
                         help="permit this one run to contact the configured service")
-    parser.add_argument("--base-url", help="the service base URL; must be on the allowlist")
-    parser.add_argument("--allow-loopback", action="store_true",
+    shared.add_argument("--base-url", help="the service base URL; must be on the allowlist")
+    shared.add_argument("--allow-loopback", action="store_true",
                         help="permit a loopback base URL, for a local stub in tests")
-    parser.add_argument("--evidence-out", type=Path, help="write an evidence file for the call")
-    parser.add_argument("--not-synthetic", action="store_true",
+    shared.add_argument("--evidence-out", type=Path, help="write an evidence file for the call")
+    shared.add_argument("--not-synthetic", action="store_true",
                         help="record that the input was not fabricated; the flag travels into the "
                              "evidence")
+
+    parser = argparse.ArgumentParser(
+        prog="lodgeit-adapter", description=__doc__.split("\n")[0], parents=[shared],
+    )
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("contract", help="print the reviewed snapshot, offline")
-    commands.add_parser("discover", help="fetch the live calculator listing")
-    commands.add_parser("drift", help="compare the live listing with the reviewed snapshot")
-    invoke = commands.add_parser("invoke", help="call one calculator once")
+    commands.add_parser("contract", parents=[shared], help="print the reviewed snapshot, offline")
+    commands.add_parser("discover", parents=[shared], help="fetch the live calculator listing")
+    commands.add_parser("drift", parents=[shared],
+                        help="compare the live listing with the reviewed snapshot")
+    invoke = commands.add_parser("invoke", parents=[shared], help="call one calculator once")
     invoke.add_argument("--calculator", required=True)
     invoke.add_argument("--period", required=True)
     invoke.add_argument("--body", required=True, type=Path, help="JSON request body")
     invoke.add_argument("--label", default="manual invocation")
-    verify = commands.add_parser("verify", help="check an evidence file, offline")
+    verify = commands.add_parser("verify", parents=[shared],
+                                 help="check an evidence file, offline")
     verify.add_argument("--evidence", required=True, type=Path)
     return parser
 

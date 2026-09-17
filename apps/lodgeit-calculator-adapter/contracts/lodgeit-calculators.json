@@ -17,7 +17,8 @@
     "GET /healthz returned 404 on 18 September 2026 while GET /livez returned 200, although both are declared.",
     "Only the three calculators this repository has a local counterpart for are recorded. The nineteen FBT benefit categories are listed by the provider; one is recorded here because one is what has been reviewed.",
     "This snapshot is a reading, not an agreement. Nothing in it is endorsed by LodgeiT Labs.",
-    "Decimal fields are split into required and optional. A required field's absence is a contract failure; an optional field appears only in some outcomes, such as a Division 7A deemed dividend where nothing fell short."
+    "Decimal fields are split into required and optional. A required field's absence is a contract failure; an optional field appears only in some outcomes, such as a Division 7A deemed dividend where nothing fell short.",
+    "Read from a live div7a response on 18 September 2026: the advisory block carries `disclaimer`, not the `notes` array llms.txt and publish.html describe, and the body also echoes `amalgamated_base`, `period_uri` and `rate_uris_consumed`. The manifest entries use `content_hash`, not the `sha256` key the publishing standard's example shows. advisory_any_of records which keys count as an advisory; a response with neither is still a contract failure."
   ],
   "response_contract": {
     "requires_manifest": true,
@@ -25,36 +26,40 @@
     "refuse_unknown_fields": false,
     "known_top_level_fields": [
       "advisory",
-      "manifest",
-      "basis",
+      "amalgamated_base",
       "at_date",
-      "from_date",
-      "to_date",
-      "wdv_at",
-      "period_dep_at",
-      "day_count",
-      "schedule_summary",
-      "range_dep",
-      "opening_wdv",
-      "closing_wdv",
-      "days_in_range",
-      "truncated",
+      "basis",
       "benchmark_rate",
-      "remaining_term_years",
-      "statutory_myr",
-      "total_repayments",
-      "shortfall",
-      "is_complying",
+      "closing_wdv",
+      "day_count",
+      "days_in_range",
       "deemed_dividend",
-      "interest_accrued",
-      "taxable_value",
+      "employee_contribution",
+      "fbt_payable",
+      "fbt_type",
+      "from_date",
       "gross_up_factor",
       "grossed_up_taxable_value",
-      "fbt_payable",
+      "interest_accrued",
+      "is_complying",
+      "loan_term_years",
+      "manifest",
+      "opening_wdv",
+      "period_dep_at",
+      "period_uri",
+      "range_dep",
+      "rate_uris_consumed",
+      "reductions",
+      "remaining_term_years",
+      "schedule_summary",
+      "shortfall",
+      "statutory_myr",
+      "taxable_value",
+      "to_date",
+      "total_repayments",
       "trace",
-      "fbt_type",
-      "employee_contribution",
-      "reductions"
+      "truncated",
+      "wdv_at"
     ],
     "manifest_fields": [
       "calculator",
@@ -65,7 +70,12 @@
     ],
     "advisory_fields": [
       "figure_type",
-      "notes"
+      "notes",
+      "disclaimer"
+    ],
+    "advisory_any_of": [
+      "notes",
+      "disclaimer"
     ]
   },
   "calculators": {
@@ -82,7 +92,8 @@
       ],
       "scope_notes": [
         "The provider derives the remaining term from loan_term_years, loan_origination_date and income_year_start_date, with is_first_real_myr_year as an override. The local engine takes the remaining term as an operator assertion and applies the s 109E(6) rounding to it.",
-        "The provider returns is_complying and deemed_dividend. Those are the provider's labels for its own arithmetic. They are not a Division 7A determination and must not be mapped onto the local engine's gate verdicts."
+        "The provider returns is_complying and deemed_dividend. Those are the provider's labels for its own arithmetic. They are not a Division 7A determination and must not be mapped onto the local engine's gate verdicts.",
+        "Live on 18 September 2026 this route returned statutory_myr 21874.92, shortfall 0.00, total_repayments 22000.00 and benchmark_rate 0.0837 for the fabricated loan in fixtures/example-div7a-request.json, agreeing to the cent with both the local engine and the s 109E(6) formula evaluated independently."
       ],
       "required_decimal_fields": [
         "benchmark_rate",

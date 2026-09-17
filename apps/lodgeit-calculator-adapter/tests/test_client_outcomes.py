@@ -239,3 +239,36 @@ def test_an_unrecorded_response_field_is_noted_but_not_fatal(stub, stub_config, 
     assert outcome.status is Status.COMPUTED
     assert any("brand_new_field" in finding for finding in outcome.findings)
     assert json.dumps(outcome.raw_response)  # the provider's body is preserved whole
+
+
+def test_an_advisory_carried_under_disclaimer_is_accepted(stub, stub_config, contract):
+    """The live div7a route uses `disclaimer`, not the `notes` the standard shows.
+
+    Read from a live response on 18 September 2026 and recorded in the
+    snapshot's `advisory_any_of`. A response with neither key is still a
+    contract failure.
+    """
+    _, state = stub
+    live_shape = {key: value for key, value in GOOD.items() if key != "advisory"}
+    live_shape["advisory"] = {
+        "disclaimer": "This is calculator output, not advice.",
+        "registered_agent_required": True,
+    }
+    state.respond(live_shape)
+    outcome = call(LodgeitClient(stub_config, contract))
+    assert outcome.status is Status.COMPUTED
+    assert outcome.advisory["disclaimer"]
+
+    live_shape["advisory"] = {"registered_agent_required": True}
+    state.respond(live_shape)
+    outcome = call(LodgeitClient(stub_config, contract))
+    assert outcome.status is Status.CONTRACT_FAILURE
+    assert any("notes, disclaimer" in finding for finding in outcome.findings)
+
+
+def test_the_live_response_fields_are_recorded_in_the_snapshot(contract):
+    """Fields a live div7a 200 carries, so none of them reads as unrecorded."""
+    known = set(contract.response_contract["known_top_level_fields"])
+    for field in ("amalgamated_base", "period_uri", "rate_uris_consumed",
+                  "statutory_myr", "is_complying", "interest_accrued"):
+        assert field in known, field

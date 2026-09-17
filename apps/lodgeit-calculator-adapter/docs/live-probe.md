@@ -62,3 +62,50 @@ where their engine was right.
 Before reporting anything, check the case's own derivation. The expected figure
 in a case file was derived from the statute; if it disagrees with both engines,
 the case is what is wrong.
+
+## What a probe on 18 September 2026 found
+
+One drift check and eight invocations of `urn:sbrm:calculator:div7a:at`, all
+with fabricated loans. Recorded here because a probe that is never written down
+has to be run again to be believed.
+
+**Drift.** The live catalogue carries eighteen FBT calculators the snapshot does
+not record. That is the snapshot being deliberately narrow, not the provider
+changing: it records the four calculators that have been reviewed.
+
+**The advisory is not shaped the way the standard shows.** `llms.txt` and
+`publish.html` describe an `advisory` block with a `notes` array. The live
+div7a route returns `advisory.disclaimer`, a single string, beside
+`registered_agent_required`. The adapter refused the first response for that
+reason, which is what it is for. The snapshot now records both keys under
+`advisory_any_of`, and a response with neither is still a contract failure.
+
+**Three other fields the standard does not mention.** A live 200 also carries
+`amalgamated_base` echoed back, `period_uri`, and `rate_uris_consumed` beside
+the manifest. The manifest's entries use `content_hash`, not the `sha256` key
+the publishing standard's example shows.
+
+**The arithmetic agreed.** Seven fabricated loans ran through the trial. Six
+matched to the cent across three independent derivations: the figure worked out
+by hand from s 109E(6), this repository's engine, and the provider's. The
+seventh is the deliberate trap case, and it behaved as designed: the provider
+derived a remaining term of 4 from the origination facts while the case supplied
+3, and the trial reported a scope mismatch naming the convention difference
+rather than an arithmetic error.
+
+| Case | Outcome |
+| --- | --- |
+| D7A-1 met, first real year | MATCH |
+| D7A-2 short repayment | MATCH |
+| D7A-3 excess repayment | MATCH |
+| D7A-4 term and rate trap | SCOPE_MISMATCH, as designed |
+| D7A-5 earlier year's rate | MATCH |
+| D7A-6 one-year remaining term | MATCH |
+| D7A-7 twenty-five-year term | MATCH |
+| D7A-8 nil remaining term | LOCAL_REFUSED, never sent |
+| D7A-9 unsupported period | UNSUPPORTED_PERIOD, never sent |
+
+A match says two implementations agreed on a number. It does not say either is
+right about the law, and it approves nothing.
+
+This is a point-in-time reading. Re-run it before quoting it.
