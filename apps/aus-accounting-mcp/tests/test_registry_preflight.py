@@ -6,6 +6,7 @@ import importlib.util
 import json
 import os
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -240,6 +241,28 @@ def test_publication_is_gated_by_the_preflight_the_main_ref_and_an_environment()
     assert workflow.count("id-token: write") == 1
 
 
+def posix_bash() -> str | None:
+    """A real POSIX bash, never the WSL launcher.
+
+    On Windows, PATH resolves `bash` to C:\\Windows\\System32\\bash.exe, which
+    starts WSL. On a runner with no distribution installed that exits 1 with a
+    UTF-16LE error before the script under test runs, so prefer Git Bash and
+    refuse the System32 stub.
+    """
+    if os.name == "nt":
+        for variable in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"):
+            root = os.environ.get(variable)
+            if not root:
+                continue
+            candidate = Path(root) / "Git" / "bin" / "bash.exe"
+            if candidate.is_file():
+                return str(candidate)
+    found = shutil.which("bash")
+    if found and os.name == "nt" and Path(found).parent.name.lower() == "system32":
+        return None
+    return found
+
+
 @pytest.mark.parametrize(
     "ref, expected",
     [("refs/heads/main", 0), ("refs/heads/feature", 1), ("refs/tags/aus-accounting-mcp/v0.2.2", 1)],
@@ -252,8 +275,11 @@ def test_the_ref_guard_admits_only_main(ref: str, expected: int) -> None:
     marker = 'test "$GITHUB_REF" = "refs/heads/main"'
     first = next(i for i, line in enumerate(lines) if marker in line)
     guard = chr(10).join(line.strip() for line in lines[first : first + 2])
+    bash = posix_bash()
+    if bash is None:
+        pytest.skip("no POSIX bash available; System32 bash.exe only launches WSL")
     completed = subprocess.run(
-        ["bash", "-euo", "pipefail", "-c", guard],
+        [bash, "-euo", "pipefail", "-c", guard],
         env={**os.environ, "GITHUB_REF": ref},
         capture_output=True,
         text=True,
