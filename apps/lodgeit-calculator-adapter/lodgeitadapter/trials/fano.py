@@ -27,6 +27,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
+from .. import decimals
+
 from ..client import LodgeitClient, Status
 from ..errors import ContractError
 
@@ -137,10 +139,17 @@ def build_payload(entity_structure: str, lines: list[Line]) -> dict[str, Any]:
             "payload with a 400 on equilibrium, and a trial balance that does not balance is "
             "a bookkeeping problem, not a classification problem."
         )
-    return {
+    payload = {
         "entity_structure": entity_structure,
         "lines": [line.payload() for line in lines],
     }
+    try:
+        encoded = decimals.dumps(payload).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise ContractError(f"payload cannot be serialized: {exc}") from exc
+    if len(encoded) > MAX_BODY_BYTES:
+        raise ContractError(f"serialized payload exceeds {MAX_BODY_BYTES} bytes")
+    return payload
 
 
 def require_crosswalk(crosswalk: dict[str, str] | None, proposed_code: str) -> str:
@@ -197,8 +206,7 @@ def interpret(lines: list[Line], outcome) -> tuple[str, list[Suggestion], tuple[
     for line, result in zip(lines, results):
         findings: list[str] = []
         if not isinstance(result, dict):
-            findings.append("a result entry that is not an object")
-            result = {}
+            return "CONTRACT_FAILURE", [], ("a result entry that is not an object",)
         if result.get("description") != line.description:
             findings.append(
                 f"the provider echoed description {result.get('description')!r} against the "
