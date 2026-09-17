@@ -65,9 +65,9 @@ the case is what is wrong.
 
 ## What a probe on 18 September 2026 found
 
-One drift check and eight invocations of `urn:sbrm:calculator:div7a:at`, all
-with fabricated loans. Recorded here because a probe that is never written down
-has to be run again to be believed.
+One drift check and twelve invocations across three calculators, all with
+fabricated inputs. Recorded here because a probe that is never written down has
+to be run again to be believed.
 
 **Drift.** The live catalogue carries eighteen FBT calculators the snapshot does
 not record. That is the snapshot being deliberately narrow, not the provider
@@ -109,3 +109,55 @@ A match says two implementations agreed on a number. It does not say either is
 right about the law, and it approves nothing.
 
 This is a point-in-time reading. Re-run it before quoting it.
+
+### Accounting depreciation
+
+Three windows on one fabricated asset: 120,000.00 of plant, five-year life,
+prime cost, acquired 1 July 2024, `actual/actual`.
+
+| Window | Outcome | Opening | Charge | Closing |
+| --- | --- | ---: | ---: | ---: |
+| 1 Jul 2024 to 30 Jun 2025 | MATCH | 120,000.00 | 24,000.00 | 96,000.00 |
+| 1 Jan 2024 to 31 Dec 2024 | CONTRACT_FAILURE | 0.00 | 12,098.63 | 107,901.37 |
+| 1 Jan 2025 to 30 Jun 2025 | MATCH | 107,901.37 | 11,901.37 | 96,000.00 |
+
+The first is exactly cost over life for an anniversary year, which is what
+`actual/actual` promises. The third telescopes with the second: its opening
+balance is the second's closing balance, and 12,098.63 plus 11,901.37 is
+24,000.00.
+
+The second is the provider's own published pre-acquisition limitation,
+reproduced. The cost enters during the window, no `cost_additions` field comes
+back, and the three figures leave a 120,000.00 gap. The trial refused it and
+named the limitation. Nothing was derived to close it.
+
+### FBT, car statutory formula
+
+A fabricated car: 40,000.00 base value, available all year, no accessories, no
+employee contribution, Type 2.
+
+| | Provider | Local worksheet |
+| --- | ---: | ---: |
+| Category taxable value | 8,000.00 | (input) |
+| Grossed up | 15,094.40 | 15,094.40 |
+| FBT | 7,094.37 | 7,094.37 |
+
+Only the category taxable value crossed. Two independent engines agreed on the
+gross-up and the FBT to the cent, which is worth having, and says nothing about
+whether the benefit is reportable or how it should be classified. The type 2
+classification was supplied as a reviewed input, not inherited from the
+provider's default.
+
+A live 200 from this route also carries `counts_towards_fbt_cap`,
+`exempt_under`, `exemption_provenance`, `gross_taxable_value`,
+`rfba_notional_grossed_up_t2`, `rfba_notional_taxable_value`, `s8a_inputs` and
+`taxable_value_before_reductions`. The depreciation routes add `numeric_mode`.
+All are recorded in the snapshot so they read as known rather than as drift.
+None is consumed.
+
+### Fano
+
+Not probed. No classification request has been sent from this repository, so
+the authentication discrepancy between `llms.txt` and the Fano integration kit
+README is still unresolved. Its adapter and its offline tests are complete
+against the schema snapshot, and live compatibility is unverified.

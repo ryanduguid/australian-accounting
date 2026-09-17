@@ -18,7 +18,8 @@
     "Only the three calculators this repository has a local counterpart for are recorded. The nineteen FBT benefit categories are listed by the provider; one is recorded here because one is what has been reviewed.",
     "This snapshot is a reading, not an agreement. Nothing in it is endorsed by LodgeiT Labs.",
     "Decimal fields are split into required and optional. A required field's absence is a contract failure; an optional field appears only in some outcomes, such as a Division 7A deemed dividend where nothing fell short.",
-    "Read from a live div7a response on 18 September 2026: the advisory block carries `disclaimer`, not the `notes` array llms.txt and publish.html describe, and the body also echoes `amalgamated_base`, `period_uri` and `rate_uris_consumed`. The manifest entries use `content_hash`, not the `sha256` key the publishing standard's example shows. advisory_any_of records which keys count as an advisory; a response with neither is still a contract failure."
+    "Read from a live div7a response on 18 September 2026: the advisory block carries `disclaimer`, not the `notes` array llms.txt and publish.html describe, and the body also echoes `amalgamated_base`, `period_uri` and `rate_uris_consumed`. The manifest entries use `content_hash`, not the `sha256` key the publishing standard's example shows. advisory_any_of records which keys count as an advisory; a response with neither is still a contract failure.",
+    "Live 200 bodies carry more than the standard describes. Depreciation adds `numeric_mode`. The FBT car statutory formula adds counts_towards_fbt_cap, exempt_under, exemption_provenance, gross_taxable_value, rfba_notional_grossed_up_t2, rfba_notional_taxable_value, s8a_inputs and taxable_value_before_reductions. Recorded on 18 September 2026 so they read as known rather than as drift; none is consumed."
   ],
   "response_contract": {
     "requires_manifest": true,
@@ -31,19 +32,24 @@
       "basis",
       "benchmark_rate",
       "closing_wdv",
+      "counts_towards_fbt_cap",
       "day_count",
       "days_in_range",
       "deemed_dividend",
       "employee_contribution",
+      "exempt_under",
+      "exemption_provenance",
       "fbt_payable",
       "fbt_type",
       "from_date",
+      "gross_taxable_value",
       "gross_up_factor",
       "grossed_up_taxable_value",
       "interest_accrued",
       "is_complying",
       "loan_term_years",
       "manifest",
+      "numeric_mode",
       "opening_wdv",
       "period_dep_at",
       "period_uri",
@@ -51,10 +57,14 @@
       "rate_uris_consumed",
       "reductions",
       "remaining_term_years",
+      "rfba_notional_grossed_up_t2",
+      "rfba_notional_taxable_value",
+      "s8a_inputs",
       "schedule_summary",
       "shortfall",
       "statutory_myr",
       "taxable_value",
+      "taxable_value_before_reductions",
       "to_date",
       "total_repayments",
       "trace",
@@ -142,7 +152,8 @@
       ],
       "scope_notes": [
         "day_count is required on this route and has no default.",
-        "Documented limitation, as published on 18 September 2026: where from_date precedes acquisition_date the cost enters during the window and no cost_additions field is emitted, so closing_wdv = opening_wdv - range_dep does not hold. The provider says range_dep and closing_wdv are correct and the roll-forward is not closable from the response alone."
+        "Documented limitation, as published on 18 September 2026: where from_date precedes acquisition_date the cost enters during the window and no cost_additions field is emitted, so closing_wdv = opening_wdv - range_dep does not hold. The provider says range_dep and closing_wdv are correct and the roll-forward is not closable from the response alone.",
+        "Live on 18 September 2026: a window on or after the acquisition date closes exactly (120000.00 opening, 24000.00 charge, 96000.00 closing for a five-year prime-cost asset over its first anniversary year), consecutive windows telescope (12098.63 + 11901.37 = 24000.00 and the closing of one is the opening of the next), and a window starting before the acquisition date reproduces the published limitation: opening 0.00, closing 107901.37, charge 12098.63 and a 120000.00 gap with no cost_additions field."
       ],
       "required_decimal_fields": [
         "range_dep",
@@ -166,7 +177,8 @@
       ],
       "scope_notes": [
         "taxable_value is the category taxable value. grossed_up_taxable_value and fbt_payable are derived from it and must never be grossed up again.",
-        "fbtType selects the gross-up rate and defaults engine-side to Type 2 when omitted. Type 1 and type 2 classification is a professional judgement about creditable acquisitions, which this adapter requires the caller to establish rather than inheriting the default."
+        "fbtType selects the gross-up rate and defaults engine-side to Type 2 when omitted. Type 1 and type 2 classification is a professional judgement about creditable acquisitions, which this adapter requires the caller to establish rather than inheriting the default.",
+        "Live on 18 September 2026: a 40000.00 base value available all year with no accessories or employee contribution returned taxable_value 8000.00, grossed_up_taxable_value 15094.40 and fbt_payable 7094.37. Carrying only the category taxable value into austaxcalc.fbt as a Type 2 amount produced the same 15094.40 and 7094.37."
       ],
       "required_decimal_fields": [
         "taxable_value"

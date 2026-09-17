@@ -145,12 +145,13 @@ A live probe is separate, manual and small: see
 [docs/live-probe.md](docs/live-probe.md). Nothing schedules one, and upstream
 availability never gates a build.
 
-One was run on 18 September 2026: a drift check and eight Division 7A
-invocations with fabricated loans. Six of the seven cases the provider accepted
-matched to the cent across three independent derivations, the seventh behaved as
-its trap was designed to, and the probe found that the live advisory block is
-shaped differently from the published standard. What it found, and the caveat
-that it is a point-in-time reading, are in that document.
+One was run on 18 September 2026: a drift check and twelve invocations across
+Division 7A, accounting depreciation and one FBT category, all with fabricated
+inputs. The arithmetic agreed everywhere it was meant to, the provider's own
+published pre-acquisition limitation was reproduced and refused, and the probe
+found that the live advisory block is shaped differently from the published
+standard. What it found, and the caveat that it is a point-in-time reading, are
+in that document. Fano was not probed and its live compatibility is unverified.
 
 ## Boundary
 
