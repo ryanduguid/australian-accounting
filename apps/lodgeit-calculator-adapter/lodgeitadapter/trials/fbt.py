@@ -190,6 +190,8 @@ def evaluate_outcome(benefit: CarBenefit, outcome) -> Comparison:
     for name in ALREADY_GROSSED_UP:
         if name in values:
             upstream[name] = values[name]
+    if "fbt_payable" in values:
+        upstream["fbt_payable"] = values["fbt_payable"]
     local_grossed = local.get(
         "type_one_grossed_up" if benefit.fbt_type == "Type 1" else "type_two_grossed_up"
     )
@@ -199,6 +201,15 @@ def evaluate_outcome(benefit: CarBenefit, outcome) -> Comparison:
             reasons.append(
                 f"grossed-up amounts differ: local {local_grossed} against provider "
                 f"{upstream['grossed_up_taxable_value']}. Check the gross-up rate each side used."
+            )
+            return Comparison(evaluation=Evaluation.NUMERIC_DIFFERENCE, local=local,
+                              upstream=upstream, reasons=tuple(reasons), **common)
+    if "fbt_payable" in values and "fbt_estimate" in local:
+        difference = local["fbt_estimate"] - values["fbt_payable"]
+        if difference.copy_abs() > Decimal("0.01"):
+            reasons.append(
+                f"FBT payable amounts differ: local {local['fbt_estimate']} against provider "
+                f"{values['fbt_payable']}"
             )
             return Comparison(evaluation=Evaluation.NUMERIC_DIFFERENCE, local=local,
                               upstream=upstream, reasons=tuple(reasons), **common)
