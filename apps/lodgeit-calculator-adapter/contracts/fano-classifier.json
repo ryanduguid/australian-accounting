@@ -1,0 +1,79 @@
+{
+  "provider": "lodgeit-labs-fano",
+  "snapshot_id": "fano-classifier-2026-09-18",
+  "read_at": "2026-09-18",
+  "read_by": "automated retrieval reviewed in session, 18 September 2026; no practitioner review",
+  "source_urls": [
+    "https://lodgeit.org/llms.txt",
+    "https://fano-engine-79859053141.australia-southeast1.run.app/v1/info",
+    "https://fano-engine-79859053141.australia-southeast1.run.app/openapi.json",
+    "https://github.com/lodgeit-labs/fano-classifier-integration-kit"
+  ],
+  "notes": [
+    "Fano has a model in the path. It is not a deterministic calculator and nothing it returns is a calculation.",
+    "GET /v1/info answered 200 on 18 September 2026 with service \"Fano-Constraint API\", version \"Rev 27 (Phase 4a iter11.B) + CORS Phase 5\", access \"open\".",
+    "Unresolved: llms.txt says open access with no key, while the integration kit README says the current engine requires an X-API-Key header and that an empty POST returns 403. No classification request has been sent from this repository, so which is current is untested here. The adapter treats a 401 or 403 as UPSTREAM_REFUSED and says so rather than guessing at a credential.",
+    "fano_status accepted_fact and draft_fact are the classifier's own verdicts on its own prediction. Neither authorises a posting and neither is a human approval.",
+    "The base URL is a historical Cloud Run URL and the provider says it will change. It belongs in configuration."
+  ],
+  "limits": {
+    "max_lines_per_request": 500,
+    "max_body_bytes": 524288,
+    "rate_per_min": 60
+  },
+  "response_contract": {
+    "requires_manifest": false,
+    "requires_advisory": false,
+    "refuse_unknown_fields": false,
+    "known_top_level_fields": [
+      "status",
+      "equilibrium_valid",
+      "results"
+    ],
+    "result_fields": [
+      "description",
+      "predicted_code",
+      "confidence",
+      "cascade_topology",
+      "model_architecture",
+      "operator_hint_predicted_code",
+      "operator_hint_source_topology",
+      "operator_hint_confidence",
+      "fano_status",
+      "quarantine_reason"
+    ]
+  },
+  "calculators": {
+    "urn:lodgeit:classifier:fano:trial-balance": {
+      "label": "Fano trial-balance line classifier (experimental, model in the path)",
+      "route": "/ingest/trial_balance",
+      "supported_periods": [
+        "urn:lodgeit:period:fano:unscoped"
+      ],
+      "input_schema_ref": "TrialBalancePayload",
+      "entity_structures": [
+        "company",
+        "trust",
+        "partnership",
+        "sole_trader",
+        "super_fund"
+      ],
+      "topologies": [
+        "current_assets",
+        "non_current_assets",
+        "current_liabilities",
+        "non_current_liabilities",
+        "equity",
+        "revenue",
+        "expenses"
+      ],
+      "scope_notes": [
+        "The payload must net to zero or the provider returns 400 on equilibrium.",
+        "Sign convention: assets and expenses positive, liabilities, equity and revenue negative.",
+        "predicted_code and confidence on a request are hints, echoed back as operator_hint_*. They do not steer the classification."
+      ],
+      "required_decimal_fields": [],
+      "optional_decimal_fields": []
+    }
+  }
+}

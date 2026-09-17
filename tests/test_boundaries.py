@@ -2,7 +2,7 @@
 
 Two properties are proved with the ast module over every production module:
 
-1. no engine production module imports ``aus_accounting_mcp`` or a sibling engine
+1. no engine production module imports an application package or a sibling engine
    package (engines depend on nothing in this repository);
 2. no production module, engine or application, uses a relative import whose level
    climbs out of its own top-level package directory.
@@ -59,7 +59,12 @@ ENGINES = {
     "packages/solomons-sword": "louisgoldberg",
     "packages/the-wip-tally": "wiptally",
 }
-APPLICATION = {"apps/aus-accounting-mcp": "aus_accounting_mcp"}
+APPLICATIONS = {
+    "apps/aus-accounting-mcp": "aus_accounting_mcp",
+    # The optional remote adapter. An application, not an engine: it may consume
+    # engines, and no engine may consume it.
+    "apps/lodgeit-calculator-adapter": "lodgeitadapter",
+}
 
 # The files the changed-line coverage gate holds to complete branch coverage,
 # and the engine that owns each set.
@@ -67,7 +72,7 @@ CHANGED_LINE_COVERAGE = {
     "ato-benchmark-compare": "atobenchmark/mapping.py",
     "payday-super-checker": "paydaysuper/assess.py,paydaysuper/report.py",
 }
-FORBIDDEN_FOR_ENGINES = frozenset({"aus_accounting_mcp", *ENGINES.values()})
+FORBIDDEN_FOR_ENGINES = frozenset({*APPLICATIONS.values(), *ENGINES.values()})
 PATH_FILTER_KEY = re.compile(
     r"(?<![\w-])['\"]?(paths(?:-ignore)?)['\"]?\s*:"
 )
@@ -150,13 +155,12 @@ class BoundaryTests(unittest.TestCase):
                     select_package.should_run(package, [f"{component}/engine.py"])
                 )
                 self.assertFalse(select_package.should_run(package, siblings))
-                # The application is not an engine dependency, so an application
+                # An application is not an engine dependency, so an application
                 # change alone does not run an engine's gates.
-                self.assertFalse(
-                    select_package.should_run(
-                        package, ["apps/aus-accounting-mcp/server.py"]
+                for application in APPLICATIONS:
+                    self.assertFalse(
+                        select_package.should_run(package, [f"{application}/module.py"])
                     )
-                )
 
     def test_a_cross_package_move_runs_both_packages(self) -> None:
         # git reports a detected rename as its destination alone, so a file moved
@@ -290,7 +294,7 @@ class BoundaryTests(unittest.TestCase):
                 self.assertIn(f"tag-prefix: {component}", workflow)
 
     def test_every_component_has_production_modules(self) -> None:
-        for component, package in {**ENGINES, **APPLICATION}.items():
+        for component, package in {**ENGINES, **APPLICATIONS}.items():
             with self.subTest(component=component):
                 self.assertTrue((ROOT / component / "pyproject.toml").is_file())
                 self.assertGreater(len(production_modules(component, package)), 0)
@@ -304,7 +308,7 @@ class BoundaryTests(unittest.TestCase):
                     self.assertEqual(imported_top_levels(tree) & forbidden, set())
 
     def test_no_production_module_escapes_its_package_by_relative_import(self) -> None:
-        for component, package in {**ENGINES, **APPLICATION}.items():
+        for component, package in {**ENGINES, **APPLICATIONS}.items():
             for path, depth in production_modules(component, package):
                 with self.subTest(module=str(path.relative_to(ROOT))):
                     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
