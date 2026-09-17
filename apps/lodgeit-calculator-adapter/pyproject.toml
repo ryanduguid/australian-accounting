@@ -1,0 +1,86 @@
+[build-system]
+requires = ["hatchling==1.32.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lodgeit-calculator-adapter"
+version = "0.1.0"
+description = "Optional, explicitly enabled adapter for the LodgeiT Labs calculator constellation, with independent comparison trials. Never called by an offline engine."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Ryan Duguid" }]
+keywords = ["australian-tax", "division-7a", "fbt", "depreciation", "interoperability"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial :: Accounting",
+]
+# No runtime dependency. The transport is urllib from the standard library, so
+# nothing is added to the audit surface of a component whose whole job is to
+# make a network call carefully.
+dependencies = []
+
+[project.optional-dependencies]
+# The MCP surface is a separate switch from the adapter's network enablement.
+mcp = ["mcp>=2.1.1,<3"]
+# The comparison trials need the engines they compare against. Exact pins, the
+# same shape apps/aus-accounting-mcp uses: a published distribution cannot
+# depend on a path, and inside the workspace these resolve to the tree.
+trials = [
+    "div7a-loan-review==0.1.2",
+    "australian-tax-calculators==0.1.3",
+]
+dev = [
+    "ruff==0.16.6",
+    "mypy==2.3.1",
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "coverage==7.16.0",
+    "build>=1.2",
+    "div7a-loan-review==0.1.2",
+    "australian-tax-calculators==0.1.3",
+]
+
+[project.scripts]
+lodgeit-adapter = "lodgeitadapter.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/ryanduguid/australian-accounting/tree/main/apps/lodgeit-calculator-adapter"
+Repository = "https://github.com/ryanduguid/australian-accounting.git"
+Issues = "https://github.com/ryanduguid/australian-accounting/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["lodgeitadapter"]
+
+[tool.hatch.build.targets.sdist]
+include = ["lodgeitadapter", "contracts", "fixtures", "tests", "README.md", "AGENTS.md", "SECURITY.md", "LICENSE"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"contracts" = "lodgeitadapter/contracts"
+"fixtures" = "lodgeitadapter/fixtures"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+src = ["lodgeitadapter", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["lodgeitadapter"]
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["lodgeitadapter"]
+ignore_missing_imports = true
+pretty = true
+
+[tool.coverage.run]
+source = ["lodgeitadapter"]

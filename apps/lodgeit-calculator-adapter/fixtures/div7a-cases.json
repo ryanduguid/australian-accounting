@@ -1,0 +1,223 @@
+{
+  "schema": "lodgeit-div7a-trial-cases/1",
+  "synthetic": true,
+  "note": "Fabricated loans. Every expected figure was derived by evaluating the s 109E(6) formula directly at 40 significant digits and quantising once to cents, independently of both engines. The derivation is written out per case.",
+  "formula": "MYR = (amount not repaid at the end of the previous income year x current year's benchmark interest rate) / (1 - (1 / (1 + rate)) ^ remaining term), ITAA 1936 s 109E(6). The remaining term is rounded up to the next whole number by the closing words of s 109E(6).",
+  "rates_used": {
+    "2025-26 (provider fy2026)": "0.0837",
+    "2024-25 (provider fy2025)": "0.0877"
+  },
+  "cases": [
+    {
+      "case_id": "D7A-1-met-first-real-year",
+      "period_uri": "urn:sbrm:period:div7a:fy2026",
+      "amalgamated_base": "100000.00",
+      "loan_term_years": 7,
+      "loan_origination_date": "2024-09-01",
+      "income_year_start_date": "2025-07-01",
+      "is_first_real_myr_year": true,
+      "remaining_term_years": 6,
+      "repayments": [
+        {
+          "amount": "11000.00",
+          "date": "2025-12-15"
+        },
+        {
+          "amount": "11000.00",
+          "date": "2026-06-15"
+        }
+      ],
+      "expected": {
+        "statutory_myr": "21874.92",
+        "total_repayments": "22000.00",
+        "shortfall": "0.00",
+        "benchmark_rate": "0.0837"
+      },
+      "derivation": "Unsecured 7-year loan made in 2024-25, first real MYR year 2025-26, so the remaining term is 7 - 1 = 6. MYR = (100000.00 x 0.0837) / (1 - (1/1.0837)^6) = 8370 / 0.382630... = 21874.92140891... quantised half up to 21874.92. Repayments 22000.00 exceed it, so the shortfall is nil.",
+      "expect_local": "MYR_MET",
+      "expect_evaluation": "MATCH"
+    },
+    {
+      "case_id": "D7A-2-short-repayment",
+      "period_uri": "urn:sbrm:period:div7a:fy2026",
+      "amalgamated_base": "100000.00",
+      "loan_term_years": 7,
+      "loan_origination_date": "2024-09-01",
+      "income_year_start_date": "2025-07-01",
+      "is_first_real_myr_year": true,
+      "remaining_term_years": 6,
+      "repayments": [
+        {
+          "amount": "15000.00",
+          "date": "2026-05-30"
+        }
+      ],
+      "expected": {
+        "statutory_myr": "21874.92",
+        "total_repayments": "15000.00",
+        "shortfall": "6874.92",
+        "benchmark_rate": "0.0837"
+      },
+      "derivation": "Same loan and term as D7A-1. MYR 21874.92 against repayments of 15000.00 leaves a shortfall of 6874.92. The shortfall is not the dividend: s 109E(2) makes it subject to s 109Y, which neither engine models.",
+      "expect_local": "MYR_SHORT",
+      "expect_evaluation": "MATCH"
+    },
+    {
+      "case_id": "D7A-3-excess-repayment",
+      "period_uri": "urn:sbrm:period:div7a:fy2026",
+      "amalgamated_base": "100000.00",
+      "loan_term_years": 7,
+      "loan_origination_date": "2024-09-01",
+      "income_year_start_date": "2025-07-01",
+      "is_first_real_myr_year": true,
+      "remaining_term_years": 6,
+      "repayments": [
+        {
+          "amount": "40000.00",
+          "date": "2025-08-01"
+        }
+      ],
+      "expected": {
+        "statutory_myr": "21874.92",
+        "total_repayments": "40000.00",
+        "shortfall": "0.00",
+        "benchmark_rate": "0.0837"
+      },
+      "derivation": "Same as D7A-1 with a single 40000.00 repayment. The shortfall floors at nil; an excess does not become a credit and neither engine carries it forward.",
+      "expect_local": "MYR_MET",
+      "expect_evaluation": "MATCH"
+    },
+    {
+      "case_id": "D7A-4-later-year-not-first",
+      "period_uri": "urn:sbrm:period:div7a:fy2026",
+      "amalgamated_base": "75000.00",
+      "loan_term_years": 7,
+      "loan_origination_date": "2022-10-01",
+      "income_year_start_date": "2025-07-01",
+      "is_first_real_myr_year": false,
+      "remaining_term_years": 3,
+      "repayments": [
+        {
+          "amount": "29507.73",
+          "date": "2026-06-20"
+        }
+      ],
+      "expected": {
+        "statutory_myr": "29507.73",
+        "total_repayments": "29507.73",
+        "shortfall": "0.00",
+        "benchmark_rate": "0.0837"
+      },
+      "derivation": "The case supplies a remaining term of 3 and expects the figure the 2024-25 rate produces: (75000.00 x 0.0877) / (1 - (1/1.0877)^3) = 29507.73. The local engine will instead use the 2025-26 rate the period selects, 0.0837, giving 29297.01 on the same term.",
+      "note": "Deliberately inconsistent, to catch a convention difference rather than an arithmetic one. The elapsed-year count for a loan made in 2022-23 measured in 2025-26 implies a remaining term of 4, not the 3 supplied, and the expected figure is computed at the previous year's rate. The provider derives its own remaining term from the origination facts, so the trial reports a SCOPE_MISMATCH naming the term convention, which outranks the rate difference underneath it: two engines that used different terms were never comparing the same arithmetic. No engine should silently reconcile any of it. Section 109E(6) uses the CURRENT year's benchmark rate, which is the whole point of the local engine's warning that a rising rate raises the repayment on an existing loan.",
+      "expect_local": "MYR_MET",
+      "expect_evaluation": "SCOPE_MISMATCH"
+    },
+    {
+      "case_id": "D7A-5-earlier-year-rate",
+      "period_uri": "urn:sbrm:period:div7a:fy2025",
+      "amalgamated_base": "50000.00",
+      "loan_term_years": 7,
+      "loan_origination_date": "2023-11-01",
+      "income_year_start_date": "2024-07-01",
+      "is_first_real_myr_year": true,
+      "remaining_term_years": 6,
+      "repayments": [
+        {
+          "amount": "9000.00",
+          "date": "2025-04-01"
+        }
+      ],
+      "expected": {
+        "statutory_myr": "11069.67",
+        "total_repayments": "9000.00",
+        "shortfall": "2069.67",
+        "benchmark_rate": "0.0877"
+      },
+      "derivation": "Loan made in 2023-24 with a 7-year term; first real MYR year 2024-25, remaining term 6, benchmark rate 0.0877. MYR = (50000.00 x 0.0877) / (1 - (1/1.0877)^6) = 4385 / 0.396217... = 11069.66989... quantised half up to 11069.67. Repayments of 9000.00 leave a shortfall of 2069.67. This case proves the period mapping: the provider's fy2025 and the local 2024-25 must select the same 8.77 per cent.",
+      "expect_local": "MYR_SHORT",
+      "expect_evaluation": "MATCH"
+    },
+    {
+      "case_id": "D7A-6-term-of-one-year",
+      "period_uri": "urn:sbrm:period:div7a:fy2026",
+      "amalgamated_base": "100000.00",
+      "loan_term_years": 2,
+      "loan_origination_date": "2024-08-01",
+      "income_year_start_date": "2025-07-01",
+      "is_first_real_myr_year": true,
+      "remaining_term_years": 1,
+      "repayments": [
+        {
+          "amount": "108370.00",
+          "date": "2026-06-30"
+        }
+      ],
+      "expected": {
+        "statutory_myr": "108370.00",
+        "total_repayments": "108370.00",
+        "shortfall": "0.00",
+        "benchmark_rate": "0.0837"
+      },
+      "derivation": "At a remaining term of 1 the formula collapses to principal x (1 + rate): (100000 x 0.0837) / (1 - 1/1.0837) = 100000 x 1.0837 = 108370.00 exactly. The lower boundary of a valid term, and a case where the closed form has an exact answer to check the arithmetic against.",
+      "expect_local": "MYR_MET",
+      "expect_evaluation": "MATCH"
+    },
+    {
+      "case_id": "D7A-7-secured-25-year-term",
+      "period_uri": "urn:sbrm:period:div7a:fy2026",
+      "amalgamated_base": "250000.00",
+      "loan_term_years": 26,
+      "loan_origination_date": "2024-07-15",
+      "income_year_start_date": "2025-07-01",
+      "is_first_real_myr_year": true,
+      "remaining_term_years": 25,
+      "repayments": [
+        {
+          "amount": "24164.27",
+          "date": "2026-06-01"
+        }
+      ],
+      "expected": {
+        "statutory_myr": "24164.27",
+        "total_repayments": "24164.27",
+        "shortfall": "0.00",
+        "benchmark_rate": "0.0837"
+      },
+      "derivation": "MYR = (250000.00 x 0.0837) / (1 - (1/1.0837)^25) = 20925 / 0.866031... = 24164.26738... quantised half up to 24164.27. The upper boundary: s 109N(3) allows 25 years for a loan secured over real property, so a remaining term of 25 is the longest the formula is asked for.",
+      "note": "loan_term_years is 26 so that the first real MYR year leaves a remaining term of 25. A 26-year original term exceeds the s 109N(3) maximum; the s 109N gate, not this repayment arithmetic, is what would refuse it, and the trial supplies the gate as an asserted fact.",
+      "expect_local": "MYR_MET",
+      "expect_evaluation": "MATCH"
+    },
+    {
+      "case_id": "D7A-8-nil-remaining-term-refused",
+      "period_uri": "urn:sbrm:period:div7a:fy2026",
+      "amalgamated_base": "10000.00",
+      "loan_term_years": 7,
+      "loan_origination_date": "2018-08-01",
+      "income_year_start_date": "2025-07-01",
+      "is_first_real_myr_year": false,
+      "remaining_term_years": 0,
+      "repayments": [],
+      "expected": {},
+      "derivation": "A remaining term of nil makes the s 109E(6) denominator zero. The loan should have been repaid in full by the end of the previous income year, so there is no minimum yearly repayment to work out. The local engine refuses rather than dividing.",
+      "expect_local": "REFUSED",
+      "expect_evaluation": "LOCAL_REFUSED"
+    },
+    {
+      "case_id": "D7A-9-unsupported-period",
+      "period_uri": "urn:sbrm:period:div7a:fy2024",
+      "amalgamated_base": "100000.00",
+      "loan_term_years": 7,
+      "loan_origination_date": "2022-09-01",
+      "income_year_start_date": "2023-07-01",
+      "is_first_real_myr_year": true,
+      "remaining_term_years": 6,
+      "repayments": [],
+      "expected": {},
+      "derivation": "The provider accepted only fy2025 and fy2026 on 18 September 2026. This case sits outside both, and outside the trial's own PERIOD_MAP, so neither side produces a figure: the local engine answers UNMAPPED_PERIOD because the trial has no local income year to map the period onto, and nothing is sent. The trial must report UNSUPPORTED_PERIOD and must present no figure as agreement.",
+      "expect_local": "UNMAPPED_PERIOD",
+      "expect_evaluation": "UNSUPPORTED_PERIOD"
+    }
+  ]
+}

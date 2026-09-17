@@ -13,7 +13,7 @@ uv sync        # install every component and the shared toolchain
 just test      # every component's suite, plus the repository boundary checks
 ```
 
-`uv sync` creates one `.venv` at the root and installs all 8 components into it
+`uv sync` creates one `.venv` at the root and installs all 9 components into it
 as editable workspace members. `apps/aus-accounting-mcp` therefore imports
 `atobenchmark`, `paydaysuper`, `div7aloan` and `austaxcalc` from the checked-out tree
 rather than from their last PyPI release, with no per-component install step.
@@ -72,11 +72,12 @@ outside the checkout, the same way the lockfile is regenerated below.
 | solomons-sword | `packages/solomons-sword/` | `louisgoldberg` |
 | the-wip-tally | `packages/the-wip-tally/` | `wiptally` |
 
-The MCP application and repository boundary checks use their own commands:
+The 2 applications and the repository boundary checks use their own commands:
 
 | Component | Directory | Checks |
 |---|---|---|
 | Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev mypy aus_accounting_mcp` |
+| LodgeiT calculator adapter | `apps/lodgeit-calculator-adapter/` | `uv run --locked --extra dev pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check lodgeitadapter tests`; `uv run --locked --extra dev mypy lodgeitadapter`. Its gates run from `.github/workflows/ci-lodgeit-adapter.yml`, not `ci.yml`. |
 | Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py` |
 
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,
@@ -93,7 +94,7 @@ tmp=$(mktemp -d) && cp -r packages/<engine>/. "$tmp" && (cd "$tmp" && uv lock) \
 
 ## CI routing
 
-Dependabot runs one Python update job at the workspace root. All 8 components
+Dependabot runs one Python update job at the workspace root. All 9 components
 share that resolution, so separate component jobs can propose conflicting exact
 toolchain pins or fail to update the root lockfile. Keep Python updates grouped
 at `/`, including `div7a-loan-review`, which is also a uv workspace member.

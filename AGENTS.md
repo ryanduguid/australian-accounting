@@ -7,7 +7,9 @@ checks from its own directory.
 - Setup: `uv sync` at the root installs every component and the shared toolchain into
   one `.venv`; `just test` runs every component's suite plus the boundary checks. That
   is the whole setup for a fresh clone. `just` comes from `uv tool install rust-just`.
-- Components: `apps/aus-accounting-mcp/` (the MCP application) and
+- Components: `apps/aus-accounting-mcp/` (the MCP application),
+  `apps/lodgeit-calculator-adapter/` (an optional adapter for a third-party calculator
+  service, off by default and imported by nothing else here) and
   `packages/<distribution>/` (one directory per engine).
 - Dependency direction: the MCP application depends on engines only through their
   published distributions. The root workspace redirects those 4 dependencies to the
