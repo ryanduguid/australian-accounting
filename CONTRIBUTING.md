@@ -183,3 +183,13 @@ Registry through `publish-mcp.yml`.
 `IMPORTS.md` records which components still lack a Release Policy prerequisite; their
 workflows fail closed until a reviewed component change adds it. Nothing publishes from a
 contribution branch, and no tag or release is created without explicit approval.
+
+## Release checks
+
+The release caller names the component checks that must have succeeded for the
+exact release commit on `main`. It advances the policy SHA, `required-checks`
+and `actions: read` together. Skipped, missing, cancelled or failed checks block
+publication, including component tests skipped by a path filter. An aggregate
+gates job cannot replace those checks. Before tagging, choose a main-branch
+commit with successful component CI; a successful run for an older commit is
+not evidence for the release. Tags and publication still require explicit approval.

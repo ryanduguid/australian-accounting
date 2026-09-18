@@ -26,8 +26,17 @@ jobs:
       attestations: write # Record provenance and SBOM attestations for release assets.
       contents: write # Create the draft release, upload assets and publish it.
       id-token: write # Obtain the OIDC identity required to sign attestations.
-    uses: ryanduguid/release-policy/.github/workflows/release-python.yml@171aa487dbc0a8f437ed84407f0d506f814548c1
+    uses: ryanduguid/release-policy/.github/workflows/release-python.yml@2adf9e19b7c73970a1dd6703afb3f9c27b7972d7
     with:
+      required-checks: |
+        .github/workflows/ci.yml: the-exchequer-tally / build
+        .github/workflows/ci.yml: the-exchequer-tally / dependency-audit
+        .github/workflows/ci.yml: the-exchequer-tally / lint
+        .github/workflows/ci.yml: the-exchequer-tally / test (3.10)
+        .github/workflows/ci.yml: the-exchequer-tally / test (3.12)
+        .github/workflows/ci.yml: the-exchequer-tally / test (3.13)
+        .github/workflows/boundaries.yml: boundaries
+        .github/workflows/codeql.yml: Analyze Python
       source-directory: packages/the-exchequer-tally
       tag-prefix: the-exchequer-tally
       upload-dist-artifact: true

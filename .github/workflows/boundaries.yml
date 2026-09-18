@@ -30,4 +30,4 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
-      - run: python -m unittest -v tests/test_boundaries.py
+      - run: python -m unittest -v tests/test_boundaries.py tests/test_release_checks.py
