@@ -10,6 +10,7 @@ POLICY = "2adf9e19b7c73970a1dd6703afb3f9c27b7972d7"
 # aggregate gates. Review the list when a component's CI contract changes.
 REQUIRED = {
     "release-ato-benchmark-compare.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: ato-benchmark-compare / build",
         ".github/workflows/ci.yml: ato-benchmark-compare / changed-line-coverage",
         ".github/workflows/ci.yml: ato-benchmark-compare / dependency-audit",
@@ -22,6 +23,7 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python"
     ],
     "release-aus-accounting-mcp.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: dependency-audit",
         ".github/workflows/ci.yml: lint",
         ".github/workflows/ci.yml: test (ubuntu-latest, 3.10)",
@@ -32,6 +34,7 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python"
     ],
     "release-australian-tax-calculators.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: australian-tax-calculators / build",
         ".github/workflows/ci.yml: australian-tax-calculators / dependency-audit",
         ".github/workflows/ci.yml: australian-tax-calculators / lint",
@@ -43,6 +46,7 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python"
     ],
     "release-div7a-loan-review.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: div7a-loan-review / build",
         ".github/workflows/ci.yml: div7a-loan-review / dependency-audit",
         ".github/workflows/ci.yml: div7a-loan-review / lint",
@@ -53,6 +57,7 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python"
     ],
     "release-payday-super-checker.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: payday-super-checker / build",
         ".github/workflows/ci.yml: payday-super-checker / changed-line-coverage",
         ".github/workflows/ci.yml: payday-super-checker / dependency-audit",
@@ -65,6 +70,7 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python"
     ],
     "release-solomons-sword.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: solomons-sword / build",
         ".github/workflows/ci.yml: solomons-sword / dependency-audit",
         ".github/workflows/ci.yml: solomons-sword / lint",
@@ -75,6 +81,7 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python"
     ],
     "release-the-exchequer-tally.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: the-exchequer-tally / build",
         ".github/workflows/ci.yml: the-exchequer-tally / dependency-audit",
         ".github/workflows/ci.yml: the-exchequer-tally / lint",
@@ -85,6 +92,7 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python"
     ],
     "release-the-wip-tally.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: the-wip-tally / build",
         ".github/workflows/ci.yml: the-wip-tally / dependency-audit",
         ".github/workflows/ci.yml: the-wip-tally / lint",
