@@ -109,6 +109,10 @@ def compare(contract: Contract, live_listing: list[dict]) -> list[str]:
     """
     findings: list[str] = []
     live: dict[str, dict] = {}
+    # A calc_uri listed twice is drift whatever the two entries say: a plain
+    # dict assignment kept whichever came last, so a conflicting duplicate
+    # ahead of a matching one printed agreement and the reverse order did not.
+    repeated: set[str] = set()
     for index, entry in enumerate(live_listing):
         if not isinstance(entry, dict):
             findings.append(
@@ -122,6 +126,14 @@ def compare(contract: Contract, live_listing: list[dict]) -> list[str]:
             # of valid ones and the command print agreement.
             findings.append(
                 f"live listing entry {index} carries no calc_uri string and was not compared"
+            )
+            continue
+        if uri in live or uri in repeated:
+            repeated.add(uri)
+            live.pop(uri, None)
+            findings.append(
+                f"live lists {uri} more than once (again at entry {index}); no entry for it "
+                "was compared"
             )
             continue
         live[uri] = entry
@@ -150,6 +162,15 @@ def compare(contract: Contract, live_listing: list[dict]) -> list[str]:
             findings.append(f"{uri}: the snapshot records {period}, which live no longer accepts")
         recorded_ref = contract.calculators[uri].get("input_schema_ref")
         current_ref = live[uri].get("input_schema_ref")
-        if recorded_ref and current_ref and recorded_ref != current_ref:
+        if not recorded_ref:
+            continue
+        if not isinstance(current_ref, str) or not current_ref:
+            # The comparison used to be skipped whenever live carried no
+            # reference, so a dropped schema printed agreement.
+            findings.append(
+                f"{uri}: live no longer states input schema ref {recorded_ref} "
+                f"(now {current_ref!r})"
+            )
+        elif recorded_ref != current_ref:
             findings.append(f"{uri}: input schema ref moved from {recorded_ref} to {current_ref}")
     return findings
