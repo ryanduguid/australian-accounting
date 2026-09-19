@@ -52,9 +52,9 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         },
         {
             "distribution": "div7a-loan-review",
-            "version": "0.1.2",
+            "version": "0.1.3",
             "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/div7a-loan-review",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/div7a-loan-review/v0.1.2",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/div7a-loan-review/v0.1.3",
         },
         {
             "distribution": "payday-super-checker",

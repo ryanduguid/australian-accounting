@@ -1,3 +1,10 @@
+# v0.1.3
+
+- Name the rate table behind every figure: each JSON result carries a `manifest` whose `rate_table_uris` list the frozen benchmark table with its SHA-256, produced by the lookup that read it, and any reviewed override as `override:<file name>`. An `UNKNOWN` rate still names the table it was looked for in.
+- Carry `reason_codes` beside `reasons` on every `REFUSED` and `UNKNOWN` result, one stable token per reason in the same order, so a caller can branch on `REFUSED_*` (outside s 109E) separately from `*_UNKNOWN` (a fact the operator can still establish). A result built with a reason and no code fails at construction.
+- Resolve the rate table once per register review instead of once per row.
+- Workbook: refused repayment rows drive `REVIEW`; duplicate benchmark-year labels, and blank, text, negative or above-one rates, block the workbook; dates are read as whole calendar days, money is compared in cents, and placeholder dates and out-of-range amounts are refused; the unresolved interest-floor interpretation is stated beside the result.
+
 # v0.1.2
 
 - Reject padded required headers, duplicate override years and gates from another loan year.
