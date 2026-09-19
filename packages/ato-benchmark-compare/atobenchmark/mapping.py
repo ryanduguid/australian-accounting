@@ -411,6 +411,20 @@ def read_mapping(path: Path) -> dict[str, MappingRow]:
                 f"{path}: missing required column(s): {', '.join(sorted(missing))}. "
                 f"Found: {', '.join(name for name in header if name)}"
             )
+        unknown = [name for name in names if name and name not in FIELDNAMES]
+        if "source" not in names and unknown:
+            # Extension columns stay accepted, but the legacy reviewed
+            # default belongs only to the plain legacy layout. A file that
+            # carries extra columns without a source column is refused: a
+            # header typo such as "sourse" would otherwise drop the source
+            # column entirely and every row would take the legacy reviewed
+            # default, evidencing buckets on a decision nobody made.
+            raise MappingError(
+                f"{path}: the source column is missing while the file carries "
+                f"extra column(s): {', '.join(unknown)}. Every row would take "
+                "the legacy reviewed default, so add the source column (reviewed "
+                "or suggested for each row) or remove the extras."
+            )
         keyed = "account_key" in names
         width = len(header)
 
