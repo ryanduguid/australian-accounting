@@ -210,13 +210,19 @@ def test_unmapped_account_blocks_the_comparison(tmp_path: Path, capsys: pytest.C
 
 
 def test_outside_the_key_range_exits_two(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    # The mapping evidences the turnover basis (sales plus other income) as
+    # well as cost of sales, so the key ratio is supplied and a genuine
+    # outside verdict exits 2.
     pnl = tmp_path / "p.csv"
     pnl.write_text(
-        "account,amount\nSales,1000000\nPurchases,700000\nRent,50000\n", encoding="utf-8"
+        "account,amount\nSales,1000000\nInterest income,0\nPurchases,700000\nRent,50000\n",
+        encoding="utf-8",
     )
     mapping = tmp_path / "m.csv"
     mapping.write_text(
-        "account,bucket\nSales,turnover\nPurchases,cost_of_sales\nRent,rent\n", encoding="utf-8"
+        "account,bucket\nSales,turnover\nInterest income,other_income\n"
+        "Purchases,cost_of_sales\nRent,rent\n",
+        encoding="utf-8",
     )
     code = main(
         [
@@ -232,11 +238,59 @@ def test_outside_the_key_range_exits_two(tmp_path: Path, capsys: pytest.CaptureF
     assert "above" in out
 
 
+def test_outside_exit_needs_the_turnover_basis_evidenced(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # The same figures with no other-income account mapped: the key ratio is
+    # not supplied, because the ATO turnover basis is not established, so the
+    # run must not exit 2 on a figure nobody evidenced.
+    pnl = tmp_path / "p.csv"
+    pnl.write_text(
+        "account,amount\nSales,1000000\nPurchases,700000\nRent,50000\n", encoding="utf-8"
+    )
+    mapping = tmp_path / "m.csv"
+    mapping.write_text(
+        "account,bucket\nSales,turnover\nPurchases,cost_of_sales\nRent,rent\n",
+        encoding="utf-8",
+    )
+    code = main(
+        [
+            "compare",
+            "--profit-and-loss", str(pnl),
+            "--mapping", str(mapping),
+            "--industry", "bakeries",
+        ]
+    )
+    assert code == EXIT_OK
+    out = capsys.readouterr().out
+    assert "not supplied" in out
+    assert "70.00%" not in out
+    # The operator who established there was no other income restores the
+    # computed figures and the exit code with it.
+    assert main(
+        [
+            "compare",
+            "--profit-and-loss", str(pnl),
+            "--mapping", str(mapping),
+            "--industry", "bakeries",
+            "--confirm-other-income-nil",
+        ]
+    ) == EXIT_OUTSIDE
+    assert "70.00%" in capsys.readouterr().out
+
+
 def test_flip_expense_signs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     pnl = tmp_path / "p.csv"
-    pnl.write_text("account,amount\nSales,1000000\nPurchases,-320000\n", encoding="utf-8")
+    pnl.write_text(
+        "account,amount\nSales,1000000\nInterest income,0\nPurchases,-320000\n",
+        encoding="utf-8",
+    )
     mapping = tmp_path / "m.csv"
-    mapping.write_text("account,bucket\nSales,turnover\nPurchases,cost_of_sales\n", encoding="utf-8")
+    mapping.write_text(
+        "account,bucket\nSales,turnover\nInterest income,other_income\n"
+        "Purchases,cost_of_sales\n",
+        encoding="utf-8",
+    )
     args = [
         "compare",
         "--profit-and-loss", str(pnl),
@@ -250,13 +304,20 @@ def test_flip_expense_signs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) 
 
 
 def test_w1_is_applied_to_the_labour_ratio(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    # The labour ratio needs the whole labour bucket set plus the turnover
+    # basis; w1 additionally requires payments to associates, so a nil row is
+    # mapped for it.
     pnl = tmp_path / "p.csv"
     pnl.write_text(
-        "account,amount\nSales,1000000\nPurchases,320000\nWages,200000\n", encoding="utf-8"
+        "account,amount\nSales,1000000\nInterest income,0\nPurchases,320000\n"
+        "Wages,200000\nContractors,0\nPacking labour,0\nDirectors fees,0\n",
+        encoding="utf-8",
     )
     mapping = tmp_path / "m.csv"
     mapping.write_text(
-        "account,bucket\nSales,turnover\nPurchases,cost_of_sales\nWages,salary_wages\n",
+        "account,bucket\nSales,turnover\nInterest income,other_income\n"
+        "Purchases,cost_of_sales\nWages,salary_wages\nContractors,contractor_commission\n"
+        "Packing labour,cost_of_sales_labour\nDirectors fees,associated_persons\n",
         encoding="utf-8",
     )
     code = main(

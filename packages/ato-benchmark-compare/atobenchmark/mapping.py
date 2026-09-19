@@ -119,6 +119,10 @@ class RoutingResult:
     totals: dict[str, Decimal]
     unreviewed: int
     notes: tuple[str, ...]
+    # Buckets that received at least one routed row. A bucket no account was
+    # mapped to is absent from here, so a serialiser can tell an omitted
+    # bucket from an evidenced nil: the totals dict zero-fills both.
+    supplied_buckets: frozenset[str] = frozenset()
 
 
 def suggest(account: str, section: str | None = None) -> tuple[str, str]:
@@ -201,6 +205,7 @@ def route(
     missing: list[str] = []
     repeated: list[str] = []
     counted: set[str] = set()
+    counted_buckets: set[str] = set()
 
     for row in rows:
         identity = normalise_account(row.account)
@@ -232,6 +237,7 @@ def route(
         if flip and entry.bucket in EXPENSE_BUCKETS:
             amount = -amount
         totals[entry.bucket] += amount
+        counted_buckets.add(entry.bucket)
 
     if missing:
         listed = "\n  ".join(missing[:20])
@@ -255,7 +261,12 @@ def route(
             f"{len(unused)} mapping row(s) did not match any account in the export: "
             f"{', '.join(mapping[key].account for key in unused[:5])}"
         )
-    return RoutingResult(totals=totals, unreviewed=unreviewed, notes=tuple(notes))
+    return RoutingResult(
+        totals=totals,
+        unreviewed=unreviewed,
+        notes=tuple(notes),
+        supplied_buckets=frozenset(counted_buckets),
+    )
 
 
 def _duplicate_or_collision(

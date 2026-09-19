@@ -67,6 +67,11 @@ class ContribLine:
     # supplied a remittance date. Importers write it explicitly so an undated
     # partial cannot later look like a legacy full row when receipt is added.
     matched_amount: Decimal | None = None
+    # Quality state the payroll-to-super join recorded for this row, carried
+    # from the canonical file so a report or evidence pack built from the file
+    # alone shows a degraded match. Empty for a hand-built or clean file.
+    # Appended after matched_amount, same append-never-insert rule.
+    join_caveats: list[str] = field(default_factory=list)
 
 
 def receipt_amount_cap(line: ContribLine) -> Decimal:
