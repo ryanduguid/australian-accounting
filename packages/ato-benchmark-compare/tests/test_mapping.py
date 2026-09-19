@@ -502,3 +502,31 @@ def test_a_spreadsheet_coerced_numeric_account_is_refused_not_silently_rematched
     with pytest.raises(MappingError) as excinfo:
         mapping.read_mapping(path)
     assert "account_key" in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "source",
+    ["reviewd", "confirmed", "human"],
+)
+def test_a_mistyped_source_is_refused_not_read_as_reviewed(tmp_path: Path, source: str) -> None:
+    """The source column is a trust boundary. The presence gate counts any
+    source other than "suggested" as reviewed evidence, so a typo must be
+    refused with the row named, not silently evidence its bucket. The two
+    canonical values are accepted in any case."""
+    path = tmp_path / "m.csv"
+    mapping.write_mapping(
+        path, [MappingRow(account="Sales", bucket="turnover", source=source, amount="100")]
+    )
+    with pytest.raises(MappingError) as excinfo:
+        mapping.read_mapping(path)
+    assert "has source" in str(excinfo.value)
+    assert "Choose one of: reviewed, suggested" in str(excinfo.value)
+
+    # Case variants of the canonical values are accepted: the reject test
+    # above is about typos, not capitalisation.
+    for canonical in ("reviewed", "suggested", "Reviewed", "SUGGESTED", "revieWed"):
+        mapping.write_mapping(
+            path,
+            [MappingRow(account="Sales", bucket="turnover", source=canonical, amount="100")],
+        )
+        assert mapping.read_mapping(path)[_digest("sales")].source == canonical

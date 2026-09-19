@@ -459,6 +459,16 @@ def read_mapping(path: Path) -> dict[str, MappingRow]:
                     f"Choose one of: {', '.join(sorted(BUCKETS))}"
                 )
             source = record.get("source", "").strip() or SOURCE_REVIEWED
+            # A source is a trust boundary: the presence gate counts a row as
+            # evidence when its source is not "suggested", so a typo such as
+            # "reviewd" would present a name-based guess as an established
+            # figure. Only the 2 canonical values are accepted, in any case;
+            # anything else is refused with the row named.
+            if source.casefold() not in (SOURCE_REVIEWED, SOURCE_SUGGESTED):
+                raise MappingError(
+                    f"{path} line {number}: {account!r} has source {source!r}. "
+                    "Choose one of: reviewed, suggested"
+                )
             previous = rows.get(key)
             if previous is not None:
                 raise _duplicate_or_collision(path, number, account, previous.account)
