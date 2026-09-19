@@ -192,6 +192,20 @@ def test_an_unparsable_row_is_skipped_rather_than_failing_the_search(corpus):
     assert result["matches"][0]["row_id"] == "C9999A00001:0002:5-10"
 
 
+def test_a_deep_escaped_row_is_skipped_rather_than_failing_requests(corpus):
+    index = corpus / "markdown" / "C9999A00001" / "sections.jsonl"
+    deep_row = "[" * 1100 + '"\\u0061"' + "]" * 1100 + "\n"
+    index.write_text(deep_row + index.read_text(encoding="utf-8"), encoding="utf-8")
+
+    result = call("search_tax_legislation", query="synthetic levy rate")
+    row_id = result["matches"][0]["row_id"]
+
+    excerpt = call("read_tax_legislation_section", row_id=row_id)
+
+    assert row_id == "C9999A00001:0002:5-10"
+    assert "7%" in excerpt["text"]
+
+
 def test_a_title_folder_without_an_index_is_skipped(corpus):
     (corpus / "markdown" / "C9999A00003").mkdir()
 

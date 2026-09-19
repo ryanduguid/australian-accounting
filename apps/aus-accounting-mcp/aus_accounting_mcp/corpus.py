@@ -120,7 +120,7 @@ def _rows(path: Path, prefilter: list[str]) -> Iterator[dict[str, Any]]:
                     continue
             try:
                 row = json.loads(line)
-            except ValueError:
+            except (RecursionError, ValueError):
                 continue
             if isinstance(row, dict):
                 yield row
