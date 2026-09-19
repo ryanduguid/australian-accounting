@@ -17,8 +17,12 @@ expect_contains "31% to 38%" \
 
 printf 'account,amount\nSales,1000000\nPurchases,320000\n' > "$work/pnl.csv"
 printf 'account,bucket\nSales,turnover\nPurchases,cost_of_sales\n' > "$work/map.csv"
+# The P&L maps no other-income account, so the operator asserts the nil
+# behind the turnover basis; without the confirmation every ratio reads
+# not supplied because the ATO turnover basis is not established.
 expect_contains "32.00%" "$("$WHEEL_BIN/ato-benchmark-compare" compare \
   --profit-and-loss "$work/pnl.csv" --mapping "$work/map.csv" \
-  --industry "Bakeries and hot bread shops")"
+  --industry "Bakeries and hot bread shops" \
+  --confirm-other-income-nil)"
 
 run_sdist_tests "$work"

@@ -34,6 +34,103 @@ RATIO_ORDER = (
 
 CALCULATION_FIELDS = tuple(name for name in BUCKETS if name != "excluded")
 
+NOT_SUPPLIED = "not_supplied"
+
+
+@dataclass(frozen=True)
+class _Presence:
+    """Which figures a comparison can actually state, given the supplied set.
+
+    Shared by `to_evidenced_dict` and `render_text` so the exported library
+    payload and the command-line output cannot drift on which figures count as
+    evidenced. `evidenced` is keyed by ratio name over `RATIO_ORDER`.
+    """
+
+    income_evidenced: bool
+    expense_complete: bool
+    labour_evidenced: bool
+    # The key ratio reverts to the published one where cost of sales was not
+    # supplied: the ATO's fallback to total expenses triggers on a nil, and an
+    # omitted bucket reaches the comparison as exactly that nil.
+    key_ratio: str
+    evidenced: dict[str, bool]
+
+
+def _ratio_own_buckets(name: str) -> frozenset[str]:
+    """The buckets a ratio needs, EXCEPT labour, whose evidence rule also
+    depends on w1 (see `_presence`)."""
+    return frozenset(
+        {
+            "total_expenses_to_turnover": set(EXPENSE_BUCKETS),
+            "cost_of_sales_to_turnover": {"cost_of_sales"},
+            "rent_to_turnover": {"rent"},
+            "motor_vehicle_to_turnover": {"motor_vehicle"},
+        }.get(name, set())
+    )
+
+
+def _presence(comparison: Comparison, supplied_fields: Collection[str]) -> _Presence:
+    known = frozenset(supplied_fields)
+    unknown = known - (set(BUCKETS) | {"w1"})
+    if unknown:
+        raise ValueError(f"unknown supplied field(s): {', '.join(sorted(unknown))}")
+    supplied = known - {"w1"}
+    w1_supplied = "w1" in known
+    income_evidenced = {"turnover", "other_income"} <= supplied
+    expense_complete = EXPENSE_BUCKETS <= supplied
+    labour_evidenced = (
+        {"salary_wages", "contractor_commission", "cost_of_sales_labour"} <= supplied
+        and (not w1_supplied or "associated_persons" in supplied)
+    )
+    key_ratio = (
+        comparison.key_ratio
+        if "cost_of_sales" in supplied
+        else comparison.business_type.key_ratio
+    )
+    evidenced = {}
+    for name in RATIO_ORDER:
+        own = labour_evidenced if name == "labour_to_turnover" else (
+            _ratio_own_buckets(name) <= supplied
+        )
+        evidenced[name] = own and income_evidenced
+    return _Presence(
+        income_evidenced=income_evidenced,
+        expense_complete=expense_complete,
+        labour_evidenced=labour_evidenced,
+        key_ratio=key_ratio,
+        evidenced=evidenced,
+    )
+
+
+def omitted_buckets_note(omitted: list[str]) -> str:
+    return (
+        "These buckets were omitted, not evidenced as zero, so their ratios "
+        f"are not_supplied: {', '.join(omitted)}."
+    )
+
+
+def evidenced_ratio(
+    comparison: Comparison, supplied_fields: Collection[str], ratio: str
+) -> bool:
+    """Whether one ratio is evidenced under the same gate as the outputs.
+
+    A caller deciding whether a comparison supports a claim (an exit code, a
+    flag) must apply the same presence gate the serialisers apply, or the
+    claim can rest on a figure nobody supplied.
+    """
+    return _presence(comparison, supplied_fields).evidenced.get(ratio, False)
+
+
+OTHER_INCOME_NOTE = (
+    "other_business_income was omitted. The ATO rule divides by sales, or "
+    "by total business income once other income exceeds sales, so every "
+    "ratio is not_supplied until that figure is established. The turnover "
+    "figure, the basis that selected it, the turnover band, the published "
+    "ranges and any note quoting that turnover are withheld for the same "
+    "reason. Pass 0 only when the operator established the business had "
+    "no other income."
+)
+
 
 @dataclass(frozen=True)
 class Verdict:
@@ -153,9 +250,24 @@ def compare(dataset: Dataset, business_type: BusinessType, figures: Figures) -> 
     )
 
 
-def render_text(comparison: Comparison, unreviewed: int = 0) -> str:
+def render_text(
+    comparison: Comparison,
+    unreviewed: int = 0,
+    supplied: Collection[str] | None = None,
+) -> str:
+    """Render the comparison as text.
+
+    `supplied` carries the set of fields the operator evidenced (bucket names,
+    plus "w1" where payments to associates were supplied). Given it, a ratio
+    or figure nobody supplied reads "not supplied" instead of a computed nil,
+    the same gating `to_evidenced_dict` applies, so the command-line output
+    and the library payload cannot drift. Left as None, every figure prints,
+    which keeps direct library callers rendering as before.
+    """
     figures = comparison.figures
     source = comparison.dataset.source
+    presence = None if supplied is None else _presence(comparison, supplied)
+    supplied_names = None if supplied is None else frozenset(supplied) - {"w1"}
     lines: list[str] = []
     add = lines.append
 
@@ -163,32 +275,47 @@ def render_text(comparison: Comparison, unreviewed: int = 0) -> str:
     add("=" * 39)
     add(f"Business type:  {comparison.business_type.name}")
     add(f"Benchmark year: {comparison.dataset.year}")
-    add(f"Turnover:       ${money(figures.turnover)} ({figures.turnover_basis})")
-    add(f"Turnover band:  {comparison.band.label if comparison.band else 'none applies'}")
+    if presence is None or presence.income_evidenced:
+        add(f"Turnover:       ${money(figures.turnover)} ({figures.turnover_basis})")
+        add(f"Turnover band:  {comparison.band.label if comparison.band else 'none applies'}")
+    else:
+        add("Turnover:       not supplied (other business income was not evidenced)")
+        add("Turnover band:  withheld until turnover is established")
     add("")
 
     width = max(len(v.label) for v in comparison.verdicts) + 6
     add(f"{'Ratio'.ljust(width)}{'This business'.ljust(15)}{'ATO range'.ljust(18)}Result")
     add("-" * (width + 15 + 18 + 8))
     for verdict in comparison.verdicts:
-        label = verdict.label + (" (key)" if verdict.is_key else "")
+        evidenced = presence is None or presence.evidenced[verdict.key]
+        is_key = presence.key_ratio == verdict.key if presence is not None else verdict.is_key
+        label = verdict.label + (" (key)" if is_key else "")
+        # The library payload keeps the published range for a withheld row
+        # only while the turnover basis is evidenced; without it the range is
+        # withheld too, because no comparison can be read against it.
+        show_range = presence is None or presence.income_evidenced
         benchmark = (
             percent_range(verdict.benchmark.minimum, verdict.benchmark.maximum)
-            if verdict.benchmark
+            if verdict.benchmark and show_range
             else "-"
         )
-        add(f"{label.ljust(width)}{percent(verdict.ratio).ljust(15)}{benchmark.ljust(18)}{verdict.status}")
+        this_business = percent(verdict.ratio) if evidenced else "not supplied"
+        status = verdict.status if evidenced else NOT_SUPPLIED
+        add(f"{label.ljust(width)}{this_business.ljust(15)}{benchmark.ljust(18)}{status}")
     add("")
 
+    def figure(value: Decimal, evidenced: bool) -> str:
+        return f"${money(value)}" if evidenced else "not supplied"
+
     add("Figures used")
-    add(f"  Sales of goods and services   ${money(figures.trading_sales)}")
-    add(f"  Other business income         ${money(figures.other_income)}")
-    add(f"  Total business income         ${money(figures.total_business_income)}")
-    add(f"  Total expenses                ${money(figures.total_expenses_reported)}")
-    add(f"  Less payments to associates   ${money(figures.totals['associated_persons'])}")
-    add(f"  Total expenses for the ratio  ${money(figures.total_expenses_for_ratio)}")
-    add(f"  Cost of sales excluding wages ${money(figures.cost_of_sales_for_ratio)}")
-    add(f"  Labour                        ${money(figures.labour)}")
+    add(f"  Sales of goods and services   {figure(figures.trading_sales, presence is None or ('turnover' in (supplied_names or set())))}")
+    add(f"  Other business income         {figure(figures.other_income, presence is None or presence.income_evidenced)}")
+    add(f"  Total business income         {figure(figures.total_business_income, presence is None or presence.income_evidenced)}")
+    add(f"  Total expenses                {figure(figures.total_expenses_reported, presence is None or presence.expense_complete)}")
+    add(f"  Less payments to associates   {figure(figures.totals['associated_persons'], presence is None or ('associated_persons' in (supplied_names or set())))}")
+    add(f"  Total expenses for the ratio  {figure(figures.total_expenses_for_ratio, presence is None or presence.expense_complete)}")
+    add(f"  Cost of sales excluding wages {figure(figures.cost_of_sales_for_ratio, presence is None or ('cost_of_sales' in (supplied_names or set())))}")
+    add(f"  Labour                        {figure(figures.labour, presence is None or presence.labour_evidenced)}")
     add("")
 
     if unreviewed:
@@ -200,15 +327,48 @@ def render_text(comparison: Comparison, unreviewed: int = 0) -> str:
         )
         add("")
 
-    if comparison.notes:
+    # The same presence qualifications the evidenced payload carries, so the
+    # text output states why a figure reads "not supplied". With a supplied
+    # set, notes and checks are filtered exactly as to_evidenced_dict filters
+    # them: a note or check that needs a field nobody supplied is withheld
+    # rather than printed next to the "not supplied" it contradicts.
+    if supplied is not None:
+        known = frozenset(supplied)
+        supplied_names = known - {"w1"}
+        rendered_notes = [
+            detail.text
+            for detail in comparison.note_details
+            if detail.required_fields <= known
+        ]
+        checks = [
+            detail.text
+            for detail in figures.warning_details
+            if detail.required_fields <= known
+        ]
+        withheld_checks = len(figures.warning_details) - len(checks)
+        omitted = [name for name in CALCULATION_FIELDS if name not in supplied_names]
+        if omitted:
+            rendered_notes.append(omitted_buckets_note(omitted))
+        if "other_income" not in supplied_names:
+            rendered_notes.append(OTHER_INCOME_NOTE)
+        if withheld_checks:
+            rendered_notes.append(
+                f"{withheld_checks} check(s) to make were withheld because one or more "
+                "figures needed to state them were omitted rather than evidenced as zero."
+            )
+    else:
+        rendered_notes = list(comparison.notes)
+        checks = list(figures.warnings)
+
+    if rendered_notes:
         add("Notes")
-        for note in comparison.notes:
+        for note in rendered_notes:
             add(f"  - {note}")
         add("")
 
-    if figures.warnings:
+    if checks:
         add("Checks to make")
-        for warning in figures.warnings:
+        for warning in checks:
             add(f"  - {warning}")
         add("")
 
@@ -272,22 +432,12 @@ def to_evidenced_dict(
     unreviewed: int | None = None,
 ) -> dict:
     """Serialise a comparison without presenting unsupplied amounts as zero."""
-    known = frozenset(supplied_fields)
-    unknown = known - (set(BUCKETS) | {"w1"})
-    if unknown:
-        raise ValueError(f"unknown supplied field(s): {', '.join(sorted(unknown))}")
-
-    supplied = known - {"w1"}
-    w1_supplied = "w1" in known
+    presence = _presence(comparison, supplied_fields)
     payload = to_dict(comparison, unreviewed=unreviewed or 0)
     payload["unreviewed_accounts"] = unreviewed
     figures = comparison.figures
-    income_evidenced = {"turnover", "other_income"} <= supplied
-    expense_complete = EXPENSE_BUCKETS <= supplied
-    labour_evidenced = (
-        {"salary_wages", "contractor_commission", "cost_of_sales_labour"} <= supplied
-        and (not w1_supplied or "associated_persons" in supplied)
-    )
+    supplied = frozenset(supplied_fields) - {"w1"}
+    key_ratio = presence.key_ratio
 
     # The ATO's fallback to total expenses is triggered by a nil cost of sales,
     # and an omitted bucket reaches the comparison as exactly that nil. Where the
@@ -298,27 +448,10 @@ def to_evidenced_dict(
     # payload naming one ratio at key_ratio while flagging a different row as the
     # key one contradicts itself, and a caller reading either field alone is
     # given a different answer depending on which it happened to read.
-    key_ratio = (
-        comparison.key_ratio
-        if "cost_of_sales" in supplied
-        else comparison.business_type.key_ratio
-    )
-
-    ratio_fields = {
-        "cost_of_sales_to_turnover": {"cost_of_sales"},
-        "rent_to_turnover": {"rent"},
-        "motor_vehicle_to_turnover": {"motor_vehicle"},
-    }
     ratios = []
     for row in payload["ratios"]:
         is_key_ratio = row["ratio"] == key_ratio
-        if row["ratio"] == "total_expenses_to_turnover":
-            evidenced = expense_complete
-        elif row["ratio"] == "labour_to_turnover":
-            evidenced = labour_evidenced
-        else:
-            evidenced = ratio_fields.get(row["ratio"], set()) <= supplied
-        if evidenced and income_evidenced:
+        if presence.evidenced[row["ratio"]]:
             ratios.append({**row, "is_key_ratio": is_key_ratio})
             continue
         ratios.append(
@@ -327,9 +460,9 @@ def to_evidenced_dict(
                 "label": row["label"],
                 "value": None,
                 "percent": None,
-                "benchmark_min": row["benchmark_min"] if income_evidenced else None,
-                "benchmark_max": row["benchmark_max"] if income_evidenced else None,
-                "status": "not_supplied",
+                "benchmark_min": row["benchmark_min"] if presence.income_evidenced else None,
+                "benchmark_max": row["benchmark_max"] if presence.income_evidenced else None,
+                "status": NOT_SUPPLIED,
                 "is_key_ratio": is_key_ratio,
             }
         )
@@ -341,13 +474,13 @@ def to_evidenced_dict(
         payload["bucket_totals"]["excluded"] = None
     if "turnover" not in supplied:
         payload["figures"]["sales_of_goods_and_services"] = None
-    if not income_evidenced:
+    if not presence.income_evidenced:
         payload["figures"]["other_business_income"] = None
         payload["figures"]["total_business_income"] = None
         payload["turnover"] = None
         payload["turnover_basis"] = None
         payload["turnover_band"] = None
-    if not expense_complete:
+    if not presence.expense_complete:
         payload["figures"]["total_expenses"] = None
         payload["figures"]["total_expenses_for_ratio"] = None
     if "associated_persons" not in supplied:
@@ -355,38 +488,27 @@ def to_evidenced_dict(
     if "cost_of_sales" not in supplied:
         payload["figures"]["cost_of_sales_for_ratio"] = None
     payload["key_ratio"] = key_ratio
-    if not labour_evidenced:
+    if not presence.labour_evidenced:
         payload["figures"]["labour"] = None
 
     notes = [
         detail.text
         for detail in comparison.note_details
-        if detail.required_fields <= known
+        if detail.required_fields <= frozenset(supplied_fields)
     ]
     checks = [
         detail.text
         for detail in figures.warning_details
-        if detail.required_fields <= known
+        if detail.required_fields <= frozenset(supplied_fields)
     ]
     withheld_checks = len(figures.warning_details) - len(checks)
     omitted = [name for name in CALCULATION_FIELDS if name not in supplied]
     if omitted:
-        notes.append(
-            "These buckets were omitted, not evidenced as zero, so their ratios "
-            f"are not_supplied: {', '.join(omitted)}."
-        )
-    if not w1_supplied:
+        notes.append(omitted_buckets_note(omitted))
+    if "w1" not in supplied_fields:
         omitted.append("w1")
     if "other_income" not in supplied:
-        notes.append(
-            "other_business_income was omitted. The ATO rule divides by sales, or "
-            "by total business income once other income exceeds sales, so every "
-            "ratio is not_supplied until that figure is established. The turnover "
-            "figure, the basis that selected it, the turnover band, the published "
-            "ranges and any note quoting that turnover are withheld for the same "
-            "reason. Pass 0 only when the operator established the business had "
-            "no other income."
-        )
+        notes.append(OTHER_INCOME_NOTE)
     if withheld_checks:
         notes.append(
             f"{withheld_checks} check(s) to make were withheld because one or more "
@@ -400,7 +522,7 @@ def to_evidenced_dict(
             "checks_to_make": checks,
             "supplied_buckets": sorted(supplied),
             "omitted_buckets": omitted,
-            "complete_buckets": expense_complete,
+            "complete_buckets": presence.expense_complete,
         }
     )
     return payload

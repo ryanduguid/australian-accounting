@@ -176,7 +176,7 @@ update `tag` if the intended version changes and run these checks after
 downloading the assets and checking `SHA256SUMS`:
 
 ```bash
-tag=aus-accounting-mcp/v0.2.2
+tag=aus-accounting-mcp/v0.2.3
 repo=ryanduguid/australian-accounting
 wheel="aus_accounting_mcp-${tag#aus-accounting-mcp/v}-py3-none-any.whl"
 release_commit="$(git ls-remote "https://github.com/$repo.git" "refs/tags/$tag^{}" | cut -f1)"

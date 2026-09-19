@@ -1,3 +1,10 @@
+# v0.2.3
+
+- Resolve the standalone lock against published `payday-super-checker` 0.1.5 and `ato-benchmark-compare` 0.1.8; `div7a-loan-review` 0.1.3 and `australian-tax-calculators` 0.1.3.
+- Checker 0.1.5 carries the join's structural matching warnings into the canonical CSV and the evidence-pack report, so a degraded match can no longer read as an unqualified verdict from the files alone.
+- Benchmark compare 0.1.8 withholds a bucket no account was mapped to (`not_supplied`) across its command-line output instead of presenting a computed nil; the MCP tool results already used the evidenced payload and are unchanged.
+- Refresh the published package description, which still described the 0.2.2 evidence pack as unreleased.
+
 # v0.2.2
 
 - Publish the website URL and duguid.com.au icons in `server.json` and the initialize result so registries and clients show them.

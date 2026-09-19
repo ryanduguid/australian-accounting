@@ -165,7 +165,7 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.2.2"
+version = "0.2.3"
 source = { editable = "apps/aus-accounting-mcp" }
 dependencies = [
     { name = "ato-benchmark-compare" },
@@ -816,7 +816,7 @@ wheels = [
 
 [[package]]
 name = "div7a-loan-review"
-version = "0.1.2"
+version = "0.1.3"
 source = { editable = "packages/div7a-loan-review" }
 
 [package.optional-dependencies]
@@ -1646,7 +1646,7 @@ wheels = [
 
 [[package]]
 name = "payday-super-checker"
-version = "0.1.4"
+version = "0.1.5"
 source = { editable = "packages/payday-super-checker" }
 
 [package.optional-dependencies]

@@ -87,6 +87,9 @@ CANONICAL = {
     "db_interest": False,
     "remitted_amount": False,
     "matched_amount": False,
+    # Optional: the importer writes the join's structural warnings here so
+    # they travel with the file instead of living only in the console.
+    "join_caveats": False,
 }
 
 DEFAULT_MAPPING = {
@@ -107,6 +110,10 @@ DEFAULT_MAPPING = {
     # matched to a payday even when the vendor supplied no remittance date.
     # Blank keeps legacy whole-liability receipt semantics.
     "matched_amount": "matched_amount",
+    # Appended last: the importer writes the join's structural warnings into
+    # this column so they travel with the canonical file. Older files simply
+    # leave it absent and read back with no join caveats.
+    "join_caveats": "join_caveats",
 }
 
 TRUE_WORDS = {"y", "yes", "true", "1", "t"}
@@ -525,6 +532,10 @@ def _parse_rows(
             next_raw = optional("next_standard_qe_day").strip()
             remitted_amount_raw = optional("remitted_amount").strip()
             matched_amount_raw = optional("matched_amount").strip()
+            join_caveats_raw = optional("join_caveats").strip()
+            # The importer joins multiple warnings with " | ", the same
+            # separator the report uses, so a caveat list round-trips.
+            join_caveats = [p for p in join_caveats_raw.split(" | ") if p]
 
             try:
                 sg_amount = _parse_amount(row[mapping["sg_amount"]], "sg_amount", i)
@@ -595,6 +606,7 @@ def _parse_rows(
                     ),
                     db_interest=_parse_bool(optional("db_interest"), "db_interest", i),
                     row=i,
+                    join_caveats=join_caveats,
                 )
             except CsvError as exc:
                 problems.append(str(exc))

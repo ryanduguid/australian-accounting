@@ -1595,6 +1595,10 @@ def test_write_canonical_writes_the_exact_header_and_blank_flag_columns(tmp_path
         "",
         "612.00",
         "612.00",
+        # join_caveats: these rows carry no employee id, so the join matched
+        # by name and the file must say so.
+        "matched on employee name because one of the files has no id column. "
+        "Two employees sharing a name would be merged.",
     ]
 
 

@@ -89,13 +89,24 @@ def _set_decimal(node, parts, path):
         raise ValueError(f"{path}: {value!r} is not a number") from exc
 
 
-def build_parser() -> argparse.ArgumentParser:
-    # The flags below are attached to the top-level parser and to every
-    # subcommand, so `... drift --enable-network` and
-    # `... --enable-network drift` both work. argparse otherwise accepts them
-    # only before the subcommand, which is not where anyone types them.
-    shared = argparse.ArgumentParser(add_help=False)
-    shared.add_argument("--contract", default="lodgeit-calculators", help="reviewed snapshot name")
+def _shared_options(*, root: bool) -> argparse.ArgumentParser:
+    """The options every subcommand accepts, typed before or after the command word.
+
+    The same options are attached to the top-level parser and to every
+    subcommand, so `... drift --enable-network` and `... --enable-network drift`
+    both work. argparse applies a subparser's defaults after the top-level
+    parser has stored what it saw, so while both copies carried real defaults a
+    value typed before the command word was reset: `--not-synthetic invoke ...`
+    recorded synthetic=True and `--evidence-out x invoke ...` wrote nothing.
+    Only the root copy owns a default now; the subcommand copies default to
+    SUPPRESS and so leave the namespace alone unless the option was typed after
+    the command word. An option typed in both positions takes the later value.
+    """
+    shared = argparse.ArgumentParser(
+        add_help=False, argument_default=None if root else argparse.SUPPRESS,
+    )
+    shared.add_argument("--contract", help="reviewed snapshot name",
+                        default="lodgeit-calculators" if root else argparse.SUPPRESS)
     shared.add_argument("--enable-network", action="store_true",
                         help="permit this one run to contact the configured service")
     shared.add_argument("--base-url", help="the service base URL; must be on the allowlist")
@@ -105,9 +116,14 @@ def build_parser() -> argparse.ArgumentParser:
     shared.add_argument("--not-synthetic", action="store_true",
                         help="record that the input was not fabricated; the flag travels into the "
                              "evidence")
+    return shared
 
+
+def build_parser() -> argparse.ArgumentParser:
+    shared = _shared_options(root=False)
     parser = argparse.ArgumentParser(
-        prog="lodgeit-adapter", description=__doc__.split("\n")[0], parents=[shared],
+        prog="lodgeit-adapter", description=__doc__.split("\n")[0],
+        parents=[_shared_options(root=True)],
     )
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("contract", parents=[shared], help="print the reviewed snapshot, offline")
