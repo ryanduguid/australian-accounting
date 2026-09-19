@@ -52,9 +52,12 @@ class _NoRedirects(urllib.request.HTTPRedirectHandler):
 
 
 def _opener() -> urllib.request.OpenerDirector:
-    # No cookie handling, no proxy auto-detection, no redirects. Building the
-    # opener explicitly is what keeps a global default from adding any of them.
+    # No cookie handling, no proxy, no redirects. build_opener adds a
+    # ProxyHandler that reads the environment unless one is supplied, so the
+    # empty one below is what makes "no proxy" true: without it an https_proxy
+    # variable routed the call through a host the allowlist never saw.
     return urllib.request.build_opener(
+        urllib.request.ProxyHandler({}),
         _NoRedirects(),
         urllib.request.HTTPSHandler(),
         urllib.request.HTTPHandler(),
@@ -121,7 +124,23 @@ def request(
         except urllib.error.HTTPError as error:
             # An HTTP error is still an answer. Read it under the same ceiling
             # and hand it back; the caller preserves the provider's own body.
-            payload = _read_bounded(error, config.max_response_bytes, url)
+            # The read runs inside this handler, so a socket failure here never
+            # reaches the transport clause below: a timed-out 503 body escaped
+            # as a raw TimeoutError after one attempt. Retry it on the status
+            # the provider did send, and normalise the last failure.
+            try:
+                payload = _read_bounded(error, config.max_response_bytes, url)
+            except (OSError, TimeoutError) as read_error:
+                last = read_error
+                if error.code >= 500 and attempt < attempts:
+                    sleep(config.retry_backoff_seconds * attempt)
+                    continue
+                raise TransportError(
+                    f"{url}: HTTP {error.code} body could not be read after {attempt} "
+                    f"attempt(s) ({read_error})"
+                ) from read_error
+            finally:
+                error.close()
             raw = RawResponse(
                 status=error.code,
                 headers={key.lower(): value for key, value in error.headers.items()},
