@@ -36,7 +36,7 @@ australian-tax-calculators = { workspace = true }
 # and the workspace resolution takes the same versions from there.
 [dependency-groups]
 dev = [
-    "build>=1.2",
+    "build>=1.6.1",
     # No `coverage` entry: `just test` runs pytest uninstrumented, and the
     # engines' coverage gates run through their own `dev` extras, which pin it.
     "holidays>=0.103",
