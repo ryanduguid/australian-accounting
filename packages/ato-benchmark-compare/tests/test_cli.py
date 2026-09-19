@@ -279,6 +279,115 @@ def test_outside_exit_needs_the_turnover_basis_evidenced(
     assert "70.00%" in capsys.readouterr().out
 
 
+def test_suggested_only_bucket_is_not_evidence(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    # A bucket whose only account carries the suggested source routes its
+    # amount but does not evidence the bucket: the ratio reads not supplied
+    # until the mapping is reviewed, whatever --accept-unreviewed says.
+    pnl = tmp_path / "p.csv"
+    pnl.write_text(
+        "account,amount\nSales,1000000\nInterest income,0\nPurchases,320000\n",
+        encoding="utf-8",
+    )
+    mapping = tmp_path / "m.csv"
+    mapping.write_text(
+        "account,bucket,source\nSales,turnover,reviewed\n"
+        "Interest income,other_income,reviewed\nPurchases,cost_of_sales,suggested\n",
+        encoding="utf-8",
+    )
+    routed = mapping_module.route(
+        pnl_module.read(pnl).rows, mapping_module.read_mapping(mapping), False
+    )
+    assert "cost_of_sales" not in routed.supplied_buckets
+    assert {"turnover", "other_income"} <= routed.supplied_buckets
+
+    code = main(
+        [
+            "compare",
+            "--profit-and-loss", str(pnl),
+            "--mapping", str(mapping),
+            "--industry", "bakeries",
+            "--accept-unreviewed",
+        ]
+    )
+    assert code == EXIT_OK
+    out = capsys.readouterr().out
+    assert "not supplied" in out
+    assert "32.00%" not in out
+
+
+def test_no_income_text_withholds_ranges_and_dependent_notes(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # With no cost-of-sales account mapped, compare() still fires its ATO
+    # fallback note, but the note needs the cost_of_sales field, so the text
+    # withholds it beside the not_supplied verdict, along with the turnover
+    # and every published range, until the turnover basis is evidenced. A
+    # mapped nil is different: cost of sales is then supplied, the fallback
+    # is the ATO's own behaviour on an established zero, and the note stands.
+    pnl = tmp_path / "p.csv"
+    pnl.write_text("account,amount\nSales,1000000\n", encoding="utf-8")
+    mapping = tmp_path / "m.csv"
+    mapping.write_text("account,bucket\nSales,turnover\n", encoding="utf-8")
+    args = [
+        "compare",
+        "--profit-and-loss", str(pnl),
+        "--mapping", str(mapping),
+        "--industry", "bakeries",
+    ]
+    assert main(args) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "Turnover:       not supplied" in out
+    assert "% to " not in out  # no published range is shown
+    assert "use total expenses to turnover instead" not in out
+    assert "other_business_income was omitted" in out
+
+    # The operator confirms there was no other income: the basis is
+    # evidenced again, but cost of sales still is not, so the note stays
+    # withheld and the key ratio stays the ATO's published one.
+    assert main(args + ["--confirm-other-income-nil"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "$1,000,000.00" in out
+    assert "% to " in out
+    assert "use total expenses to turnover instead" not in out
+    assert "Cost of sales to turnover (key)" in out
+
+    # A mapped nil is an established zero: the fallback note stands.
+    pnl.write_text("account,amount\nSales,1000000\nPurchases,0\n", encoding="utf-8")
+    mapping.write_text(
+        "account,bucket\nSales,turnover\nPurchases,cost_of_sales\n", encoding="utf-8"
+    )
+    assert main(args + ["--confirm-other-income-nil"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "use total expenses to turnover instead" in out
+
+
+def test_routing_notes_reach_the_json_payload(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    # The JSON payload is built from note_details, so routing notes must ride
+    # with them; before they were appended to plain notes and vanished.
+    pnl = tmp_path / "p.csv"
+    pnl.write_text(
+        "account,amount\nSales,1000000\nInterest income,0\nPurchases,320000\n",
+        encoding="utf-8",
+    )
+    mapping = tmp_path / "m.csv"
+    mapping.write_text(
+        "account,bucket\nSales,turnover\nInterest income,other_income\n"
+        "Purchases,cost_of_sales\nGhost account,rent\n",
+        encoding="utf-8",
+    )
+    assert main(
+        [
+            "compare",
+            "--profit-and-loss", str(pnl),
+            "--mapping", str(mapping),
+            "--industry", "bakeries",
+            "--json", "-",
+        ]
+    ) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert any("did not match any account" in note for note in payload["notes"])
+
+
 def test_flip_expense_signs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     pnl = tmp_path / "p.csv"
     pnl.write_text(

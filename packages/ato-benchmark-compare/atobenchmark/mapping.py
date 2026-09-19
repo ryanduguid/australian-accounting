@@ -237,7 +237,12 @@ def route(
         if flip and entry.bucket in EXPENSE_BUCKETS:
             amount = -amount
         totals[entry.bucket] += amount
-        counted_buckets.add(entry.bucket)
+        # Only a REVIEWED mapping evidences a bucket. A suggested row still
+        # routes its amount, but a bucket whose only account is an unreviewed
+        # suggestion is not supplied: presenting its ratios as evidenced
+        # would dress a name-based guess up as an established figure.
+        if entry.source.strip().casefold() != SOURCE_SUGGESTED:
+            counted_buckets.add(entry.bucket)
 
     if missing:
         listed = "\n  ".join(missing[:20])

@@ -290,9 +290,13 @@ def render_text(
         evidenced = presence is None or presence.evidenced[verdict.key]
         is_key = presence.key_ratio == verdict.key if presence is not None else verdict.is_key
         label = verdict.label + (" (key)" if is_key else "")
+        # The library payload keeps the published range for a withheld row
+        # only while the turnover basis is evidenced; without it the range is
+        # withheld too, because no comparison can be read against it.
+        show_range = presence is None or presence.income_evidenced
         benchmark = (
             percent_range(verdict.benchmark.minimum, verdict.benchmark.maximum)
-            if verdict.benchmark
+            if verdict.benchmark and show_range
             else "-"
         )
         this_business = percent(verdict.ratio) if evidenced else "not supplied"
@@ -324,14 +328,37 @@ def render_text(
         add("")
 
     # The same presence qualifications the evidenced payload carries, so the
-    # text output states why a figure reads "not supplied".
-    rendered_notes = list(comparison.notes)
-    if presence is not None:
-        omitted = [name for name in CALCULATION_FIELDS if name not in (supplied_names or set())]
+    # text output states why a figure reads "not supplied". With a supplied
+    # set, notes and checks are filtered exactly as to_evidenced_dict filters
+    # them: a note or check that needs a field nobody supplied is withheld
+    # rather than printed next to the "not supplied" it contradicts.
+    if supplied is not None:
+        known = frozenset(supplied)
+        supplied_names = known - {"w1"}
+        rendered_notes = [
+            detail.text
+            for detail in comparison.note_details
+            if detail.required_fields <= known
+        ]
+        checks = [
+            detail.text
+            for detail in figures.warning_details
+            if detail.required_fields <= known
+        ]
+        withheld_checks = len(figures.warning_details) - len(checks)
+        omitted = [name for name in CALCULATION_FIELDS if name not in supplied_names]
         if omitted:
             rendered_notes.append(omitted_buckets_note(omitted))
-        if "other_income" not in (supplied_names or set()):
+        if "other_income" not in supplied_names:
             rendered_notes.append(OTHER_INCOME_NOTE)
+        if withheld_checks:
+            rendered_notes.append(
+                f"{withheld_checks} check(s) to make were withheld because one or more "
+                "figures needed to state them were omitted rather than evidenced as zero."
+            )
+    else:
+        rendered_notes = list(comparison.notes)
+        checks = list(figures.warnings)
 
     if rendered_notes:
         add("Notes")
@@ -339,9 +366,9 @@ def render_text(
             add(f"  - {note}")
         add("")
 
-    if figures.warnings:
+    if checks:
         add("Checks to make")
-        for warning in figures.warnings:
+        for warning in checks:
             add(f"  - {warning}")
         add("")
 

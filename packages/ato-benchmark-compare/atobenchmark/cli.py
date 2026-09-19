@@ -21,6 +21,7 @@ from . import mapping as mapping_module
 from . import pnl as pnl_module
 from .atomic_io import atomic_write_text
 from .dataset import RATIO_KEYS, RATIO_LABELS, Dataset, DatasetError
+from .evidence import EvidenceMessage
 from .mapping import (
     BUCKETS,
     REVIEW,
@@ -161,7 +162,13 @@ def cmd_compare(args: argparse.Namespace) -> int:
     w1 = parse_amount(args.w1, "--w1") if args.w1 is not None else None
     figures = compute(routing.totals, w1=w1)
     comparison = compare_ratios(data, business_type, figures)
-    comparison.notes.extend(routing.notes)
+    # Routing notes join the evidence-carrying notes with no required fields,
+    # so the JSON payload (built from note_details) keeps them and the presence
+    # filter never withholds one: they are mapping hygiene, not figure claims.
+    comparison.note_details.extend(
+        EvidenceMessage("routing", note, frozenset())
+        for note in routing.notes
+    )
 
     # Which fields the mapping evidenced: every bucket at least one reviewed
     # account was routed to, plus w1 where the operator supplied it. A bucket
