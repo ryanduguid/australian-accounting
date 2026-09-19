@@ -1,14 +1,21 @@
 # Australian accounting engines and MCP server
 
-Seven independently released Python engines that apply Australian tax and payroll
-rules to figures you supply, plus **Aus Accounting MCP**, a local Model Context
-Protocol server that hands those engines to an AI assistant. It serves Australian
-accountants and bookkeepers, and the developers who build tooling for them.
+Seven independently released Python engines apply Australian tax and payroll
+rules to figures you supply. **Aus Accounting MCP** is a local Model Context
+Protocol server that exposes the four engines it depends on—ATO Benchmark Compare,
+Payday Super Checker, Division 7A Loan Review and Australian Tax Calculators—to an
+AI assistant. The repository also contains the other independently released
+engines; it serves Australian accountants and bookkeepers, and the developers who
+build tooling for them.
 
-Each tool returns a calculation, the facts it used and the matters it refuses to
-decide. Everything runs locally: the tools read files you point them at, contact no
-service, write to no ledger and lodge nothing. Missing facts stay missing rather
-than being inferred, and a person reviews every output before it is relied on.
+Calculation tools return the calculation, the facts they used and the matters they
+refuse to decide. Discovery, reference, synthetic-fixture and refusal tools instead
+return their cited local-reference results, synthetic fixtures or explicit
+refusals. Everything runs locally: the tools read files you point them at, contact
+no service, write to no ledger and lodge nothing. Missing facts stay unknown except
+where a tool documents a default or legacy convention; supply an explicit amount
+for partial payday contributions. A person reviews every output before it is relied
+on.
 
 **Start here:** [what each component is](#components) ·
 [MCP client setup](apps/aus-accounting-mcp/README.md#client-integration) ·
