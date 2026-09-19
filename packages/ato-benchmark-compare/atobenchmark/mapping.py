@@ -119,6 +119,10 @@ class RoutingResult:
     totals: dict[str, Decimal]
     unreviewed: int
     notes: tuple[str, ...]
+    # Buckets that received at least one routed row. A bucket no account was
+    # mapped to is absent from here, so a serialiser can tell an omitted
+    # bucket from an evidenced nil: the totals dict zero-fills both.
+    supplied_buckets: frozenset[str] = frozenset()
 
 
 def suggest(account: str, section: str | None = None) -> tuple[str, str]:
@@ -201,6 +205,7 @@ def route(
     missing: list[str] = []
     repeated: list[str] = []
     counted: set[str] = set()
+    counted_buckets: set[str] = set()
 
     for row in rows:
         identity = normalise_account(row.account)
@@ -232,6 +237,12 @@ def route(
         if flip and entry.bucket in EXPENSE_BUCKETS:
             amount = -amount
         totals[entry.bucket] += amount
+        # Only a REVIEWED mapping evidences a bucket. A suggested row still
+        # routes its amount, but a bucket whose only account is an unreviewed
+        # suggestion is not supplied: presenting its ratios as evidenced
+        # would dress a name-based guess up as an established figure.
+        if entry.source.strip().casefold() != SOURCE_SUGGESTED:
+            counted_buckets.add(entry.bucket)
 
     if missing:
         listed = "\n  ".join(missing[:20])
@@ -255,7 +266,12 @@ def route(
             f"{len(unused)} mapping row(s) did not match any account in the export: "
             f"{', '.join(mapping[key].account for key in unused[:5])}"
         )
-    return RoutingResult(totals=totals, unreviewed=unreviewed, notes=tuple(notes))
+    return RoutingResult(
+        totals=totals,
+        unreviewed=unreviewed,
+        notes=tuple(notes),
+        supplied_buckets=frozenset(counted_buckets),
+    )
 
 
 def _duplicate_or_collision(
@@ -395,6 +411,20 @@ def read_mapping(path: Path) -> dict[str, MappingRow]:
                 f"{path}: missing required column(s): {', '.join(sorted(missing))}. "
                 f"Found: {', '.join(name for name in header if name)}"
             )
+        unknown = [name for name in names if name and name not in FIELDNAMES]
+        if "source" not in names and unknown:
+            # Extension columns stay accepted, but the legacy reviewed
+            # default belongs only to the plain legacy layout. A file that
+            # carries extra columns without a source column is refused: a
+            # header typo such as "sourse" would otherwise drop the source
+            # column entirely and every row would take the legacy reviewed
+            # default, evidencing buckets on a decision nobody made.
+            raise MappingError(
+                f"{path}: the source column is missing while the file carries "
+                f"extra column(s): {', '.join(unknown)}. Every row would take "
+                "the legacy reviewed default, so add the source column (reviewed "
+                "or suggested for each row) or remove the extras."
+            )
         keyed = "account_key" in names
         width = len(header)
 
@@ -442,7 +472,23 @@ def read_mapping(path: Path) -> dict[str, MappingRow]:
                     f"{path} line {number}: {account!r} has unknown bucket {bucket!r}. "
                     f"Choose one of: {', '.join(sorted(BUCKETS))}"
                 )
-            source = record.get("source", "").strip() or SOURCE_REVIEWED
+            raw_source = record.get("source")
+            # A mapping file that predates the source column counts its rows
+            # as reviewed (the legacy default). A file that HAS the column
+            # must state a value: a blank cell is an operator who deleted
+            # "suggested" without writing "reviewed", and defaulting it to
+            # reviewed would evidence the bucket on an unmade decision.
+            source = SOURCE_REVIEWED if raw_source is None else raw_source.strip()
+            # A source is a trust boundary: the presence gate counts a row as
+            # evidence when its source is not "suggested", so a typo such as
+            # "reviewd" would present a name-based guess as an established
+            # figure. Only the 2 canonical values are accepted, in any case;
+            # anything else is refused with the row named.
+            if not source or source.casefold() not in (SOURCE_REVIEWED, SOURCE_SUGGESTED):
+                raise MappingError(
+                    f"{path} line {number}: {account!r} has source {source!r}. "
+                    "Choose one of: reviewed, suggested"
+                )
             previous = rows.get(key)
             if previous is not None:
                 raise _duplicate_or_collision(path, number, account, previous.account)

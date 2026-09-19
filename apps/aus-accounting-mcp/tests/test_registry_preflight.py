@@ -265,7 +265,7 @@ def posix_bash() -> str | None:
 
 @pytest.mark.parametrize(
     "ref, expected",
-    [("refs/heads/main", 0), ("refs/heads/feature", 1), ("refs/tags/aus-accounting-mcp/v0.2.2", 1)],
+    [("refs/heads/main", 0), ("refs/heads/feature", 1), ("refs/tags/aus-accounting-mcp/v0.2.3", 1)],
 )
 def test_the_ref_guard_admits_only_main(ref: str, expected: int, tmp_path: Path) -> None:
     workflow = (repository_root() / ".github" / "workflows" / "publish-mcp.yml").read_text(

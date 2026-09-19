@@ -405,15 +405,27 @@ def test_populated_unnamed_mapping_column_is_rejected(
 
 
 def test_named_mapping_extension_column_remains_accepted(tmp_path: Path) -> None:
+    # Extension columns stay accepted, but a file that carries one must also
+    # carry the source column: without it every row would take the legacy
+    # reviewed default, and a mistyped "sourse" header would turn suggestions
+    # into reviewed evidence.
     path = tmp_path / "m.csv"
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(("account", "account_key", "bucket", "review_status"))
-        writer.writerow(("Sales", _digest("sales"), "turnover", "approved"))
+        writer.writerow(("account", "account_key", "bucket", "source", "review_status"))
+        writer.writerow(("Sales", _digest("sales"), "turnover", "reviewed", "approved"))
 
     rows = mapping.read_mapping(path)
 
     assert rows[_digest("sales")].bucket == "turnover"
+
+    without_source = tmp_path / "no-source.csv"
+    without_source.write_text(
+        "account,bucket,sourse,amount\nSales,turnover,suggested,100\n", encoding="utf-8"
+    )
+    with pytest.raises(MappingError) as excinfo:
+        mapping.read_mapping(without_source)
+    assert "the source column is missing" in str(excinfo.value)
 
 
 def test_extra_empty_trailing_mapping_cells_remain_accepted(tmp_path: Path) -> None:
@@ -502,3 +514,63 @@ def test_a_spreadsheet_coerced_numeric_account_is_refused_not_silently_rematched
     with pytest.raises(MappingError) as excinfo:
         mapping.read_mapping(path)
     assert "account_key" in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "source",
+    ["reviewd", "confirmed", "human"],
+)
+def test_a_mistyped_source_is_refused_not_read_as_reviewed(tmp_path: Path, source: str) -> None:
+    """The source column is a trust boundary. The presence gate counts any
+    source other than "suggested" as reviewed evidence, so a typo must be
+    refused with the row named, not silently evidence its bucket. The two
+    canonical values are accepted in any case."""
+    path = tmp_path / "m.csv"
+    mapping.write_mapping(
+        path, [MappingRow(account="Sales", bucket="turnover", source=source, amount="100")]
+    )
+    with pytest.raises(MappingError) as excinfo:
+        mapping.read_mapping(path)
+    assert "has source" in str(excinfo.value)
+    assert "Choose one of: reviewed, suggested" in str(excinfo.value)
+
+    # Case variants of the canonical values are accepted: the reject test
+    # above is about typos, not capitalisation.
+    for canonical in ("reviewed", "suggested", "Reviewed", "SUGGESTED", "revieWed"):
+        mapping.write_mapping(
+            path,
+            [MappingRow(account="Sales", bucket="turnover", source=canonical, amount="100")],
+        )
+        assert mapping.read_mapping(path)[_digest("sales")].source == canonical
+
+
+def test_a_blank_source_cell_is_refused_not_defaulted_to_reviewed(tmp_path: Path) -> None:
+    """A file that carries the source column must state a value. A blank cell
+    is an operator who deleted "suggested" without writing "reviewed"; the
+    legacy reviewed default belongs only to files that predate the column."""
+    path = tmp_path / "m.csv"
+    path.write_text(
+        "account,bucket,source,amount\nSales,turnover,,100\n", encoding="utf-8"
+    )
+    with pytest.raises(MappingError) as excinfo:
+        mapping.read_mapping(path)
+    assert "has source ''" in str(excinfo.value)
+
+    # A legacy file with no source column at all keeps the reviewed default.
+    legacy = tmp_path / "legacy.csv"
+    legacy.write_text("account,bucket,amount\nSales,turnover,100\n", encoding="utf-8")
+    assert mapping.read_mapping(legacy)[_digest("sales")].source == "reviewed"
+
+
+def test_a_mistyped_header_is_refused_not_read_as_legacy(tmp_path: Path) -> None:
+    """A mistyped source header drops the source column, so the file would
+    read as legacy and every row would take the reviewed default, evidencing
+    its bucket on no decision. The reader refuses instead."""
+    path = tmp_path / "m.csv"
+    path.write_text(
+        "account,bucket,sourse,amount\nSales,turnover,suggested,100\n", encoding="utf-8"
+    )
+    with pytest.raises(MappingError) as excinfo:
+        mapping.read_mapping(path)
+    assert "the source column is missing" in str(excinfo.value)
+    assert "sourse" in str(excinfo.value)

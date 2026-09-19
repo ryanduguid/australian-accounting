@@ -936,6 +936,9 @@ def _assess_line(
         )
     if line.duplicate_note:
         result.caveats.append(line.duplicate_note)
+    # Join quality state carried from the canonical file: a row whose match
+    # was made on a degraded join cannot read as an unqualified verdict.
+    result.caveats.extend(line.join_caveats)
     if dl.pathway == SKIP_DB or dl.due is None:
         result.verdict = SKIPPED
         return result

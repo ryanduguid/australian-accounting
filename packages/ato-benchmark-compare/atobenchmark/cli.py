@@ -21,6 +21,7 @@ from . import mapping as mapping_module
 from . import pnl as pnl_module
 from .atomic_io import atomic_write_text
 from .dataset import RATIO_KEYS, RATIO_LABELS, Dataset, DatasetError
+from .evidence import EvidenceMessage
 from .mapping import (
     BUCKETS,
     REVIEW,
@@ -29,7 +30,7 @@ from .mapping import (
 from .money import AmountError, parse_amount, percent_range
 from .ratios import RatioError, compute
 from .report import compare as compare_ratios
-from .report import render_text, to_dict
+from .report import evidenced_ratio, render_text, to_evidenced_dict
 
 EXIT_OK = 0
 EXIT_ERROR = 1
@@ -161,12 +162,38 @@ def cmd_compare(args: argparse.Namespace) -> int:
     w1 = parse_amount(args.w1, "--w1") if args.w1 is not None else None
     figures = compute(routing.totals, w1=w1)
     comparison = compare_ratios(data, business_type, figures)
-    comparison.notes.extend(routing.notes)
+    # Routing notes join the evidence-carrying notes with no required fields,
+    # so the JSON payload (built from note_details) keeps them and the presence
+    # filter never withholds one: they are mapping hygiene, not figure claims.
+    comparison.note_details.extend(
+        EvidenceMessage("routing", note, frozenset())
+        for note in routing.notes
+    )
+
+    # Which fields the mapping evidenced: every bucket at least one reviewed
+    # account was routed to, plus w1 where the operator supplied it. A bucket
+    # no account maps to is omitted, not zero, and the outputs below withhold
+    # every figure built on it rather than presenting a computed nil.
+    supplied: set[str] = set(routing.supplied_buckets)
+    if w1 is not None:
+        supplied.add("w1")
+    if args.confirm_other_income_nil and "other_income" not in supplied:
+        supplied.add("other_income")
+
+    # The exit code must not claim the key range is missed on a figure nobody
+    # supplied. compare() falls back to total expenses where cost of sales
+    # reads nil, and an omitted bucket reaches it as exactly that nil; the
+    # presence gate also withholds any ratio whose turnover basis (sales plus
+    # other income) was not evidenced. In both cases "outside the key range"
+    # is not an established finding, so the run exits 0 and the notes say why.
+    outside = comparison.outside_key_range and evidenced_ratio(
+        comparison, supplied, comparison.key_ratio
+    )
 
     if args.json and args.json != "-":
         _refuse_to_write_over_an_input(Path(args.json), [args.profit_and_loss, args.mapping])
     if args.json:
-        payload = to_dict(comparison, unreviewed=routing.unreviewed)
+        payload = to_evidenced_dict(comparison, supplied, unreviewed=routing.unreviewed)
         text = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
         if args.json == "-":
             print(text, end="")
@@ -174,11 +201,11 @@ def cmd_compare(args: argparse.Namespace) -> int:
             atomic_write_text(Path(args.json), text, encoding="utf-8", newline="\n")
             print(f"Wrote {args.json}")
     if args.json != "-":
-        print(render_text(comparison, unreviewed=routing.unreviewed))
+        print(render_text(comparison, unreviewed=routing.unreviewed, supplied=supplied))
 
     if routing.unreviewed and not args.accept_unreviewed:
         return EXIT_UNREVIEWED
-    if comparison.outside_key_range:
+    if outside:
         return EXIT_OUTSIDE
     return EXIT_OK
 
@@ -228,6 +255,16 @@ def build_parser() -> argparse.ArgumentParser:
     comparer.add_argument("--industry", required=True)
     comparer.add_argument("--amount-column", help="column number or heading holding the amounts")
     comparer.add_argument("--w1", help="activity statement W1 total for the year")
+    comparer.add_argument(
+        "--confirm-other-income-nil",
+        action="store_true",
+        help=(
+            "assert the business had no other income beyond the accounts mapped to "
+            "the other_income bucket. Without this, or a mapped other-income account, "
+            "every ratio is not_supplied because the ATO turnover basis is not "
+            "established"
+        ),
+    )
     comparer.add_argument("--json", help="write the result as JSON to this path, or - for stdout")
     comparer.add_argument(
         "--flip-expense-signs",

@@ -86,14 +86,15 @@ ahead of every row-level warning and never truncates them, because they govern
 whether the whole join can be trusted. The report header also states the key in
 use as `employee matching: by id` or `by name`.
 
-**This declaration is console-only.** The CSV carries each row's caveats and
-notes and a trailing provenance note, not the structural join warnings, so a
-consumer reading the CSV alone does not receive them. Anything downstream of
-the file, including a spreadsheet built from it, can therefore present an
-affected verdict without the warning needed to read it. Keep the console output
-with the pack, or re-run and read it, before relying on a verdict from a file
-whose join conditions you have not checked. Carrying the warnings into the CSV
-would change a published contract and its consumers, so it is not done here.
+**Since 0.1.5 the warnings also travel with the files.** The import writes
+them into the canonical CSV's `join_caveats` column on every row, so the
+checker's report carries them in its caveats column and the evidence pack
+carries them in `report.csv`: a reviewer holding only an exported file sees
+the qualification that governs its verdicts, including an `ON_TIME` produced
+from a degraded join. In 0.1.4 this declaration was console-only, so a file
+from that release still needs its console transcript beside it before a
+verdict can be relied on. Re-exporting with complete columns removes the
+warning at the source; the column itself never clears an ambiguous join.
 
 **Operator step.** Re-export with an employee id column present on both files,
 a pay-period-end column on the payroll file, and pay-period start and end

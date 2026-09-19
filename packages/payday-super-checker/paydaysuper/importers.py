@@ -454,6 +454,10 @@ CANONICAL_HEADER = [
     "defined_benefit",
     "remitted_amount",
     "matched_amount",
+    # Appended last, never inserted: a positional reader keeps its column
+    # numbers and an older canonical file still parses without it. Carries
+    # the join's structural warnings so they travel with the file.
+    "join_caveats",
 ]
 
 
@@ -605,6 +609,13 @@ def write_canonical(result: JoinResult, path: str | Path) -> None:
         labels.setdefault(_key(row, result.key_mode), preferred)
     _refuse_merged_identities(result, labels)
 
+    # The join's structural warnings govern the whole file, so every row
+    # carries them: the canonical file is the only artefact the import
+    # writes, and a report or evidence pack built from it later cannot
+    # recover them from anywhere else. Clean joins write nothing, keeping
+    # the caveat column's meaning ("this row needs attention") intact.
+    join_note = " | ".join(result.warnings)
+
     with atomic_text_output(path, encoding="utf-8-sig") as f:
         writer = csv.writer(f)
         writer.writerow(CANONICAL_HEADER)
@@ -629,6 +640,7 @@ def write_canonical(result: JoinResult, path: str | Path) -> None:
                 "",  # defined_benefit
                 money(credited) if credited is not None else "",
                 money(matched) if matched is not None else "",
+                join_note,
             ]
             writer.writerow(csv_safe(v) for v in values)
 
