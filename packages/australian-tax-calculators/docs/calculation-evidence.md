@@ -1,7 +1,12 @@
 # Calculation evidence
 
 The maintainer's local Library is the source of truth for this example review.
-The references below identify its stored documents and numbered paragraphs.
+The references below identify its documents by Library document id and
+numbered paragraph. Since the Library's 19 September 2026 reorganisation, each
+paragraph is an extract at `_reference/<document id>/p<paragraph>-01.md`, and
+`python _tools/library.py paragraph "<paragraph>" --collection <collection>`
+resolves it. The former chapter paths (`Tax/<chapter>.md` and
+`Superannuation/<chapter>.md`) now hold document maps and aliases, not the text.
 The repository includes original arithmetic and fabricated test inputs, with
 selected established amounts from Library worked examples. It does not reproduce
 the Library documents or require access to them at runtime.
@@ -18,14 +23,14 @@ are listed below. The existing engine source-check baseline, 10 September 2026,
 is preserved in a separate record for each worksheet. The Library check adds
 example evidence; it does not claim a fresh review of every supported period.
 
-| Worksheet | Library document and paragraphs | Document review date | Evidence boundary |
+| Worksheet | Library document id (collection) and paragraphs | Document review date | Evidence boundary |
 | --- | --- | --- | --- |
-| GST | `Tax/Goods and services tax (GST) and other indirect taxes.md`, ¶12-020 | 30 June 2026 | Established taxable value and the GST fraction only |
-| Resident tax | `Tax/Individuals.md`, ¶7-010, step 2 | 30 June 2025 | Basic tax for 2024–25; later offsets and levies excluded |
-| Capital gains | `Tax/Capital Gains Tax (CGT).md`, ¶2-040 and ¶2-240 | 30 June 2026 | Established ordinary gains, losses and discount entitlement for 2025–26 |
-| FBT | `Tax/Fringe Benefits Tax (FBT).md`, ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
-| Depreciation | `Tax/Depreciation.md`, ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
-| Quarterly SG | `Superannuation/Instant Reference – Rates, Thresholds and Checklists.md`, ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
+| GST | `tax-examples-gst-and-other-indirect-taxes` (tax-examples), ¶12-020 | 30 June 2026 | Established taxable value and the GST fraction only |
+| Resident tax | `tax-examples-individuals` (tax-examples), ¶7-010, step 2 | 30 June 2025 | Basic tax for 2024–25; later offsets and levies excluded |
+| Capital gains | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-040 and ¶2-240 | 30 June 2026 | Established ordinary gains, losses and discount entitlement for 2025–26 |
+| FBT | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
+| Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
+| Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
 coverage. Its existing 2026–27 regression and statutory source remain unchanged.
@@ -113,13 +118,16 @@ this calculation.
 
 ## Rechecking the evidence
 
-Locate the numbered paragraph in the stored document, compare the file digest
-below, and read the paragraph's period and review date before changing a case.
-Derive expected amounts separately from the implementation. Update only the
-affected worksheet's evidence and date after its review. A changed digest means
-the document bytes changed; it does not establish that the rule changed.
+Resolve the numbered paragraph with the Library helper, read the extract's
+period and review date, and compare the original document's digest below before
+changing a case. The digests are of the pre-reorganisation chapter files, which
+the Library keeps byte-for-byte in `_maintenance/original-markdown.zip` at the
+paths listed; the files now at those paths are maps or aliases and will not
+match. Derive expected amounts separately from the implementation. Update only
+the affected worksheet's evidence and date after its review. A changed digest
+means the document bytes changed; it does not establish that the rule changed.
 
-| Library document | SHA-256 |
+| Original document in `_maintenance/original-markdown.zip` | SHA-256 |
 | --- | --- |
 | `Tax/Goods and services tax (GST) and other indirect taxes.md` | `ce2b07cd69f7d27ca8cbe2a48ed7dca562db1cd2f35dc3a7894327143bcf3a08` |
 | `Tax/Individuals.md` | `311921374a9b011b35d999de38e02458a0b286472c72ea9b3420c41e89ba9a6c` |

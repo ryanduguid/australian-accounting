@@ -34,29 +34,31 @@ SOURCE_REVIEWS = {
     },
 }
 
+# "document" is the Library document id; each paragraph is an extract at
+# _reference/<document id>/p<paragraph>-01.md. See docs/calculation-evidence.md.
 LIBRARY_EVIDENCE = {
     "gst": {
-        "document": "Tax/Goods and services tax (GST) and other indirect taxes.md",
+        "document": "tax-examples-gst-and-other-indirect-taxes",
         "paragraphs": "12-020", "reviewed": "2026-06-30", "checked": "2026-09-15",
     },
     "resident_tax": {
-        "document": "Tax/Individuals.md", "paragraphs": "7-010",
+        "document": "tax-examples-individuals", "paragraphs": "7-010",
         "reviewed": "2025-06-30", "checked": "2026-09-15",
     },
     "capital_gains": {
-        "document": "Tax/Capital Gains Tax (CGT).md", "paragraphs": "2-040, 2-240",
+        "document": "tax-examples-capital-gains-tax-cgt", "paragraphs": "2-040, 2-240",
         "reviewed": "2026-06-30", "checked": "2026-09-15",
     },
     "fbt": {
-        "document": "Tax/Fringe Benefits Tax (FBT).md", "paragraphs": "3-000, 3-020",
+        "document": "tax-examples-fringe-benefits-tax-fbt", "paragraphs": "3-000, 3-020",
         "reviewed": "2026-06-30", "checked": "2026-09-15",
     },
     "depreciation": {
-        "document": "Tax/Depreciation.md", "paragraphs": "6-000, 6-020",
+        "document": "tax-examples-depreciation", "paragraphs": "6-000, 6-020",
         "reviewed": "2025-06-30", "checked": "2026-09-15",
     },
     "quarterly_sg": {
-        "document": "Superannuation/Instant Reference – Rates, Thresholds and Checklists.md",
+        "document": "superannuation-instant-reference-rates-thresholds-and-checklists",
         "paragraphs": "18-600, 18-620", "reviewed": "2026-06-30", "checked": "2026-09-15",
     },
 }
