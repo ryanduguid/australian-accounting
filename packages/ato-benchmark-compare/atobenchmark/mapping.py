@@ -237,7 +237,8 @@ def route(
         if flip and entry.bucket in EXPENSE_BUCKETS:
             amount = -amount
         totals[entry.bucket] += amount
-        counted_buckets.add(entry.bucket)
+        if entry.source.strip().casefold() != SOURCE_SUGGESTED:
+            counted_buckets.add(entry.bucket)
 
     if missing:
         listed = "\n  ".join(missing[:20])
