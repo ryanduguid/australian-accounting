@@ -92,6 +92,8 @@ def test_a_repeated_calc_uri_is_drift_in_either_order(contract, conflict_first) 
     assert any(f"live lists {uri} more than once" in finding for finding in findings)
     identical = compare(contract, [live[0], live[0], *live[1:]])
     assert identical != [], "an identical repeat is still drift"
+    assert not any(f"snapshot {contract.snapshot_id} records {uri}, which live no longer lists"
+                   in finding for finding in identical)
 
 
 @pytest.mark.parametrize("current_ref", [None, "", 7])

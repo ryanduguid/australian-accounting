@@ -109,6 +109,7 @@ def compare(contract: Contract, live_listing: list[dict]) -> list[str]:
     """
     findings: list[str] = []
     live: dict[str, dict] = {}
+    live_uris: set[str] = set()
     # A calc_uri listed twice is drift whatever the two entries say: a plain
     # dict assignment kept whichever came last, so a conflicting duplicate
     # ahead of a matching one printed agreement and the reverse order did not.
@@ -128,6 +129,7 @@ def compare(contract: Contract, live_listing: list[dict]) -> list[str]:
                 f"live listing entry {index} carries no calc_uri string and was not compared"
             )
             continue
+        live_uris.add(uri)
         if uri in live or uri in repeated:
             repeated.add(uri)
             live.pop(uri, None)
@@ -139,7 +141,7 @@ def compare(contract: Contract, live_listing: list[dict]) -> list[str]:
         live[uri] = entry
     for uri in sorted(set(live) - set(contract.calculators)):
         findings.append(f"live has {uri}, which snapshot {contract.snapshot_id} does not record")
-    for uri in sorted(set(contract.calculators) - set(live)):
+    for uri in sorted(set(contract.calculators) - live_uris):
         findings.append(f"snapshot {contract.snapshot_id} records {uri}, which live no longer "
                          "lists")
     for uri in sorted(set(live) & set(contract.calculators)):
