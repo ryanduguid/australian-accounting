@@ -5,6 +5,8 @@ enters this repository.
 """
 
 import asyncio
+import json
+import os
 
 import pytest
 from jsonschema import Draft202012Validator
@@ -239,3 +241,48 @@ def test_the_offset_boundary_asks_for_a_narrower_query(corpus, monkeypatch):
     assert page["has_more"] is True
     assert page["next_offset"] is None
     assert "narrow the query" in page["notice"]
+
+
+ACCENTED_ROW_ID = "C9999A00001:0004:5-20\u00e9"
+
+
+@pytest.mark.parametrize("ensure_ascii", [True, False])
+def test_escaped_and_literal_indexes_search_and_read_alike(tmp_path, monkeypatch, ensure_ascii):
+    """An index written with ensure_ascii=True hid its accented text from the raw prefilter."""
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    synthetic_corpus.build(tmp_path)
+    index = tmp_path / "markdown" / "C9999A00001" / "sections.jsonl"
+    rows = [json.loads(line) for line in index.read_text(encoding="utf-8").splitlines()]
+    rows.append(synthetic_corpus.section(
+        "C9999A00001", "0004", "5-20\u00e9",
+        "A synthetic d\u00e9duction applies to the N\u00fa\u00f1ez levy.",
+        act=synthetic_corpus.LEVY_ACT,
+    ))
+    index.write_text(
+        "".join(json.dumps(row, ensure_ascii=ensure_ascii) + "\n" for row in rows),
+        encoding="utf-8",
+    )
+    assert ("\\u00e9" in index.read_text(encoding="utf-8")) is ensure_ascii
+
+    result = call("search_tax_legislation", query="d\u00e9duction")
+    assert [match["row_id"] for match in result["matches"]] == [ACCENTED_ROW_ID]
+    read = call("read_tax_legislation_section", row_id=ACCENTED_ROW_ID)
+    assert "N\u00fa\u00f1ez" in read["section"]["text"]
+
+
+def test_a_linked_markdown_directory_is_refused_by_read_as_well_as_search(tmp_path, monkeypatch):
+    """A direct read followed a link to markdown that search had already refused."""
+    real = synthetic_corpus.build(tmp_path / "real")
+    root = tmp_path / "root"
+    root.mkdir()
+    try:
+        os.symlink(real / "markdown", root / "markdown", target_is_directory=True)
+    except (OSError, NotImplementedError) as exc:  # pragma: no cover - no symlink privilege
+        pytest.skip(f"symbolic links unavailable: {exc}")
+    (root / "sources.json").write_bytes((real / "sources.json").read_bytes())
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(root))
+
+    with pytest.raises(ToolError):
+        call("read_tax_legislation_section", row_id="C9999A00001:0003:5-15")
+    with pytest.raises(ToolError):
+        call("search_tax_legislation", query="synthetic levy rate")

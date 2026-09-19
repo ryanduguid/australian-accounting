@@ -108,9 +108,16 @@ def _rows(path: Path, prefilter: list[str]) -> Iterator[dict[str, Any]]:
     """
     with path.open(encoding="utf-8") as stream:
         for line in stream:
-            folded = line.casefold()
-            if not all(term in folded for term in prefilter):
-                continue
+            # A JSON escape hides the characters it encodes from a raw scan:
+            # an index written with ensure_ascii=True spells "e acute" as six
+            # ASCII bytes, so a query for the letter matched nothing and a
+            # row_id search returned could not be read back. A line carrying
+            # an escape is parsed instead of prefiltered; the caller confirms
+            # the decoded fields either way.
+            if "\\u" not in line:
+                folded = line.casefold()
+                if not all(term in folded for term in prefilter):
+                    continue
             try:
                 row = json.loads(line)
             except ValueError:
@@ -298,7 +305,15 @@ def read_section(row_id: str) -> dict[str, Any]:
     register_id = row_id.split(":", 1)[0]
     root = _root()
     path = root / "markdown" / register_id / "sections.jsonl"
-    if not path.is_file() or _linked(path) or _linked(path.parent):
+    # The same no-links rule _index_files applies to a search, component by
+    # component: a linked markdown directory let a direct read reach an index
+    # outside the configured root that search had refused.
+    if (
+        not path.is_file()
+        or _linked(path)
+        or _linked(path.parent)
+        or _linked(path.parent.parent)
+    ):
         raise InputError("No title index for that row_id in the configured corpus.")
     try:
         for row in _rows(path, [row_id.casefold()]):
