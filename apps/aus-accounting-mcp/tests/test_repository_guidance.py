@@ -109,7 +109,7 @@ def test_agents_pins_repository_backed_supplementary_commands_as_non_ci() -> Non
 
     assert (ROOT / "uv.lock").is_file()
     assert 'dev = [' in pyproject
-    assert '"build>=1.2"' in pyproject
+    assert '"build>=1.6.1"' in pyproject
     assert '"pytest>=8.0.0"' in pyproject
     assert '"Pillow==12.3.0"' in pyproject
     assert 'aus-accounting-mcp-demo = "aus_accounting_mcp.demo:main"' in pyproject
