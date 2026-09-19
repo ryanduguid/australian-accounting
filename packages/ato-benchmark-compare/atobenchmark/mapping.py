@@ -458,13 +458,19 @@ def read_mapping(path: Path) -> dict[str, MappingRow]:
                     f"{path} line {number}: {account!r} has unknown bucket {bucket!r}. "
                     f"Choose one of: {', '.join(sorted(BUCKETS))}"
                 )
-            source = record.get("source", "").strip() or SOURCE_REVIEWED
+            raw_source = record.get("source")
+            # A mapping file that predates the source column counts its rows
+            # as reviewed (the legacy default). A file that HAS the column
+            # must state a value: a blank cell is an operator who deleted
+            # "suggested" without writing "reviewed", and defaulting it to
+            # reviewed would evidence the bucket on an unmade decision.
+            source = SOURCE_REVIEWED if raw_source is None else raw_source.strip()
             # A source is a trust boundary: the presence gate counts a row as
             # evidence when its source is not "suggested", so a typo such as
             # "reviewd" would present a name-based guess as an established
             # figure. Only the 2 canonical values are accepted, in any case;
             # anything else is refused with the row named.
-            if source.casefold() not in (SOURCE_REVIEWED, SOURCE_SUGGESTED):
+            if not source or source.casefold() not in (SOURCE_REVIEWED, SOURCE_SUGGESTED):
                 raise MappingError(
                     f"{path} line {number}: {account!r} has source {source!r}. "
                     "Choose one of: reviewed, suggested"

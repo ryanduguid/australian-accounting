@@ -530,3 +530,21 @@ def test_a_mistyped_source_is_refused_not_read_as_reviewed(tmp_path: Path, sourc
             [MappingRow(account="Sales", bucket="turnover", source=canonical, amount="100")],
         )
         assert mapping.read_mapping(path)[_digest("sales")].source == canonical
+
+
+def test_a_blank_source_cell_is_refused_not_defaulted_to_reviewed(tmp_path: Path) -> None:
+    """A file that carries the source column must state a value. A blank cell
+    is an operator who deleted "suggested" without writing "reviewed"; the
+    legacy reviewed default belongs only to files that predate the column."""
+    path = tmp_path / "m.csv"
+    path.write_text(
+        "account,bucket,source,amount\nSales,turnover,,100\n", encoding="utf-8"
+    )
+    with pytest.raises(MappingError) as excinfo:
+        mapping.read_mapping(path)
+    assert "has source ''" in str(excinfo.value)
+
+    # A legacy file with no source column at all keeps the reviewed default.
+    legacy = tmp_path / "legacy.csv"
+    legacy.write_text("account,bucket,amount\nSales,turnover,100\n", encoding="utf-8")
+    assert mapping.read_mapping(legacy)[_digest("sales")].source == "reviewed"
