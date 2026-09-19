@@ -292,8 +292,8 @@ def render_text(
         label = verdict.label + (" (key)" if is_key else "")
         benchmark = (
             percent_range(verdict.benchmark.minimum, verdict.benchmark.maximum)
-            if verdict.benchmark
-            else "-"
+            if evidenced and verdict.benchmark
+            else "-" if evidenced else "not supplied"
         )
         this_business = percent(verdict.ratio) if evidenced else "not supplied"
         status = verdict.status if evidenced else NOT_SUPPLIED
@@ -327,6 +327,12 @@ def render_text(
     # text output states why a figure reads "not supplied".
     rendered_notes = list(comparison.notes)
     if presence is not None:
+        supplied_for_evidence = frozenset(supplied or ())
+        rendered_notes = [
+            detail.text
+            for detail in comparison.note_details
+            if detail.required_fields <= supplied_for_evidence
+        ]
         omitted = [name for name in CALCULATION_FIELDS if name not in (supplied_names or set())]
         if omitted:
             rendered_notes.append(omitted_buckets_note(omitted))
@@ -339,9 +345,17 @@ def render_text(
             add(f"  - {note}")
         add("")
 
-    if figures.warnings:
+    warnings = figures.warnings
+    if presence is not None:
+        supplied_for_evidence = frozenset(supplied or ())
+        warnings = [
+            detail.text
+            for detail in figures.warning_details
+            if detail.required_fields <= supplied_for_evidence
+        ]
+    if warnings:
         add("Checks to make")
-        for warning in figures.warnings:
+        for warning in warnings:
             add(f"  - {warning}")
         add("")
 
