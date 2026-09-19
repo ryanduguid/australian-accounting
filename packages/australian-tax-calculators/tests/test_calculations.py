@@ -1,6 +1,7 @@
 """Synthetic boundaries; derivations and source limits are in docs/calculation-evidence.md."""
 
 from decimal import Decimal as D
+from decimal import getcontext, localcontext
 
 import pytest
 from austaxcalc import calculations as c
@@ -99,3 +100,21 @@ def test_depreciation_rejects_invalid_scope_inputs(field, value):
     args[field] = value
     with pytest.raises(ValueError):
         c.depreciation(**args)
+
+
+@pytest.mark.parametrize("precision", [4, 6, 28, 40])
+def test_worksheets_do_not_inherit_the_callers_decimal_precision(precision):
+    """At precision 4 the basic tax came back as 56140.00 and the FBT estimate as 21450.00."""
+    with localcontext() as context:
+        context.prec = precision
+        tax = c.resident_tax(D("200000"), "2025-26", True)
+        assert tax["amounts"]["basic_income_tax"] == "56138.00"
+        gains = c.capital_gains(D("100.37"), D("1000.99"), D("200.11"), D("300.22"), True,
+                                "2025-26")
+        assert gains["amounts"]["net_capital_gain"] == "300.52"
+        assert gains["amounts"]["losses_remaining"] == "0.00"
+        assert c.fbt(D("16500"), D("6000"), 2026, True)["amounts"]["fbt_estimate"] == "21452.73"
+        sg = c.quarterly_sg(D("41576.15"), D("0"), "2025-26", 1, True)
+        assert sg["amounts"]["additional_contribution"] == "4989.14"
+        assert c.gst(D("1100"), True, True, "2025-26")["amounts"]["gst"] == "100.00"
+        assert getcontext().prec == precision, "the caller's context is left alone"

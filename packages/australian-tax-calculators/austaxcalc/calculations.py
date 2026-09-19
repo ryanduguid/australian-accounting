@@ -146,12 +146,18 @@ def resident_tax(taxable_income: Decimal, year: str, scope_confirmed: bool) -> d
     if income != income.to_integral_value():
         raise ValueError("Supply established whole-dollar taxable income.")
     first = D("0.15") if year == "2026-27" else D("0.16")
-    tax = D(0)
-    for low, high, rate in [(18200, 45000, first), (45000, 135000, D("0.30")),
-                            (135000, 190000, D("0.37")), (190000, 10**12, D("0.45"))]:
-        tax += max(D(0), min(income, D(high)) - low) * rate
-    return _result("resident_tax", year, {"taxable_income_used": income,
-                                          "basic_income_tax": tax})
+    # Every worksheet computes in its own context, as gst and depreciation
+    # already did: a caller that had lowered decimal precision rounded these
+    # intermediate amounts before _result could quantise them, and a
+    # different tax figure came back with ok=true.
+    with localcontext() as context:
+        context.prec = 40
+        tax = D(0)
+        for low, high, rate in [(18200, 45000, first), (45000, 135000, D("0.30")),
+                                (135000, 190000, D("0.37")), (190000, 10**12, D("0.45"))]:
+            tax += max(D(0), min(income, D(high)) - low) * rate
+        return _result("resident_tax", year, {"taxable_income_used": income,
+                                              "basic_income_tax": tax})
 
 
 def capital_gains(other_gains: Decimal, discount_gains: Decimal, current_losses: Decimal,
@@ -159,27 +165,31 @@ def capital_gains(other_gains: Decimal, discount_gains: Decimal, current_losses:
     _scope(scope_confirmed, year, "capital_gains")
     for value in (other_gains, discount_gains, current_losses, prior_losses):
         _money(value)
-    losses = current_losses + prior_losses
-    other_offset = min(other_gains, losses)
-    discount_offset = min(discount_gains, losses - other_offset)
-    discounted = (discount_gains - discount_offset) / 2
-    return _result("capital_gains", year, {
-        "losses_used": other_offset + discount_offset,
-        "losses_remaining": losses - other_offset - discount_offset,
-        "net_capital_gain": other_gains - other_offset + discounted,
-        "discount_applied": discounted,
-    }, {"discount": "0.50"})
+    with localcontext() as context:
+        context.prec = 40
+        losses = current_losses + prior_losses
+        other_offset = min(other_gains, losses)
+        discount_offset = min(discount_gains, losses - other_offset)
+        discounted = (discount_gains - discount_offset) / 2
+        return _result("capital_gains", year, {
+            "losses_used": other_offset + discount_offset,
+            "losses_remaining": losses - other_offset - discount_offset,
+            "net_capital_gain": other_gains - other_offset + discounted,
+            "discount_applied": discounted,
+        }, {"discount": "0.50"})
 
 
 def fbt(type_one_value: Decimal, type_two_value: Decimal, year_ended: int,
         scope_confirmed: bool) -> dict[str, Any]:
     _scope(scope_confirmed, str(year_ended), "fbt")
-    first = _money(type_one_value) * D("2.0802")
-    second = _money(type_two_value) * D("1.8868")
-    return _result("fbt", "year ended 31 March 2026", {
-        "type_one_grossed_up": first, "type_two_grossed_up": second,
-        "fbt_estimate": (first + second) * D("0.47"),
-    }, {"type_one": "2.0802", "type_two": "1.8868", "fbt_rate": "0.47"})
+    with localcontext() as context:
+        context.prec = 40
+        first = _money(type_one_value) * D("2.0802")
+        second = _money(type_two_value) * D("1.8868")
+        return _result("fbt", "year ended 31 March 2026", {
+            "type_one_grossed_up": first, "type_two_grossed_up": second,
+            "fbt_estimate": (first + second) * D("0.47"),
+        }, {"type_one": "2.0802", "type_two": "1.8868", "fbt_rate": "0.47"})
 
 
 def depreciation(cost: Decimal, effective_life: Decimal, days: int,
@@ -210,10 +220,12 @@ def quarterly_sg(ordinary_time_earnings: Decimal, qualifying_contributions: Deci
     _scope(scope_confirmed, year, "quarterly_sg")
     if type(quarter) is not int or not 1 <= quarter <= 4:
         raise ValueError("quarter must be 1 (Jul-Sep), 2, 3 or 4 (Apr-Jun).")
-    earnings = min(_money(ordinary_time_earnings), D("62500"))
-    paid = _money(qualifying_contributions)
-    minimum = earnings * D("0.12")
-    return _result("quarterly_sg", f"{year} Q{quarter}", {
-        "earnings_used": earnings, "minimum_sg": minimum,
-        "additional_contribution": max(D(0), minimum - paid),
-    }, {"sg_rate": "0.12", "maximum_quarterly_base": "62500.00"})
+    with localcontext() as context:
+        context.prec = 40
+        earnings = min(_money(ordinary_time_earnings), D("62500"))
+        paid = _money(qualifying_contributions)
+        minimum = earnings * D("0.12")
+        return _result("quarterly_sg", f"{year} Q{quarter}", {
+            "earnings_used": earnings, "minimum_sg": minimum,
+            "additional_contribution": max(D(0), minimum - paid),
+        }, {"sg_rate": "0.12", "maximum_quarterly_base": "62500.00"})
