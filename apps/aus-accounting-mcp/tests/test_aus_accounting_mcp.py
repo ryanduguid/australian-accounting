@@ -986,7 +986,7 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     # this package unpublishable and silently undo its own release process.
     assert "payday-super-checker==0.1.5" in pyproject
     assert "ato-benchmark-compare==0.1.8" in pyproject
-    assert "div7a-loan-review==0.1.2" in pyproject
+    assert "div7a-loan-review==0.1.3" in pyproject
     dependencies = pyproject.split("dependencies = [", 1)[1].split("]", 1)[0]
     assert "git+" not in dependencies
     assert "allow-direct-references" not in pyproject
@@ -1006,7 +1006,7 @@ def test_release_metadata_matches_the_candidate_version() -> None:
     assert re.findall(r"(?m)^# (v\S+)$", release_notes)[0] == "v0.2.3"
     assert "ato-benchmark-compare` 0.1.8" in release_notes
     assert "payday-super-checker` 0.1.5" in release_notes
-    assert "div7a-loan-review` 0.1.2" in release_notes
+    assert "div7a-loan-review` 0.1.3" in release_notes
     assert published_version == server["packages"][0]["version"] == "0.2.3"
     assert project["version"] == published_version
 
