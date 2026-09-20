@@ -89,9 +89,9 @@ command, so they cannot run this server.
 | `calculate_tax_worksheet` | Calculate one of 6 worksheets with established scope and period. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
-| `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page. |
+| `search_tax_legislation` | Find in-force provisions in a configured local legislation corpus, cited to Act, section, compilation and register page; `in_force_only=false` includes superseded compilations. |
 | `read_tax_legislation_section` | Read one cited provision from that corpus in full. |
-| `search_tax_rates` | Find legislated rate and threshold rows with the provision that sets them. |
+| `search_tax_rates` | Find legislated rate and threshold rows with the provision that sets them, optionally for one stated `year`. |
 | `get_div7a_benchmark_rate` | Get a reviewed Division 7A benchmark rate, or `UNKNOWN`. |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayments for one supplied amalgamated loan. |
 | `refuse_div7a` | Explain unsupported Division 7A matters. Call without arguments. |

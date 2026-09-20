@@ -443,7 +443,10 @@ builds a corpus in this shape from the Federal Register of Legislation.
 case sensitivity, across the Act name, section label, heading, container and text.
 A word that appears only in stored metadata, such as the attribution or licence
 fields, is not a match. Narrow to one title with `act`, which takes words the
-title's name must contain. Each match returns the full citation set above, the
+title's name must contain. A provision the corpus marks as a superseded
+compilation is left out unless `in_force_only` is false; a provision whose currency
+the corpus did not record is returned either way with `version_is_current` null.
+Each match returns the full citation set above, the
 text truncated at 1200 characters with `total_chars` reporting the whole length,
 and `caveats` naming any truncation or superseded compilation.
 
@@ -451,8 +454,10 @@ and `caveats` naming any truncation or superseded compilation.
 that provision with the same citation fields and up to 12000 characters of text.
 
 `search_tax_rates` matches rate, threshold, indexation, table, factor and
-ownership-test rows, optionally filtered to one `topic`. `amounts` and `years` are
-the strings the provision uses, unparsed and uncalculated.
+ownership-test rows, optionally filtered to one `topic` and to one `year` written the
+way the provision writes it, such as `2026-27`; with a year given, rows that state no
+year are left out. `amounts` and `years` are the strings the provision uses, unparsed
+and uncalculated.
 
 Every response carries a `corpus` block with the source, retrieval date and licence
 terms from `sources.json`, and a `notice`. Search accepts `limit` up to 20 and
