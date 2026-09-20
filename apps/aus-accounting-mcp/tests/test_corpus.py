@@ -435,3 +435,23 @@ def test_a_definition_beyond_the_partial_cap_is_reported_not_returned(corpus, mo
 def test_a_term_without_a_word_is_refused(corpus):
     with pytest.raises(ToolError):
         call("define_tax_term", term=" ")
+
+
+def test_a_malformed_line_beside_the_cited_row_costs_no_neighbour_slot(corpus):
+    index = corpus / "markdown" / "C9999A00001" / "sections.jsonl"
+    rows = index.read_text(encoding="utf-8").splitlines()
+    index.write_text(
+        "\n".join([rows[0], "{not json", rows[1], '["not", "an", "object"]', rows[2]]) + "\n",
+        encoding="utf-8",
+    )
+
+    result = call("read_tax_legislation_section", row_id="C9999A00001:0002:5-10", neighbours=1)
+
+    assert [row["row_id"] for row in result["before"]] == ["C9999A00001:0001:1"]
+    assert [row["row_id"] for row in result["after"]] == ["C9999A00001:0003:5-15"]
+
+
+def test_a_definition_lookup_refuses_a_corpus_past_the_scan_bounds(corpus, monkeypatch):
+    monkeypatch.setattr(corpus_module, "MAX_CORPUS_BYTES", 10)
+    with pytest.raises(ToolError):
+        call("define_tax_term", term="small entity")

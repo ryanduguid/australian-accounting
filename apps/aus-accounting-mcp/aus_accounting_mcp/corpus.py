@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from collections import deque
 from pathlib import Path
 from typing import Any, Callable, Iterator
 
@@ -267,6 +268,18 @@ def _page(
     return page
 
 
+def _within_bounds(files: list[Path]) -> Iterator[Path]:
+    """The indexes in order, refusing the corpus once their total size passes the bound."""
+    size = 0
+    for path in files:
+        size += path.stat().st_size
+        if size > MAX_CORPUS_BYTES:
+            raise InputError(
+                f"Corpus exceeds {MAX_CORPUS_BYTES // 1_000_000} MB; configure a smaller corpus."
+            )
+        yield path
+
+
 def _scan(
     files: list[Path],
     prefilter: list[str],
@@ -279,13 +292,7 @@ def _scan(
     """Walk the indexes in order, paging on every eligible match, matched or skipped."""
     matches: list[dict[str, Any]] = []
     seen = 0
-    size = 0
-    for path in files:
-        size += path.stat().st_size
-        if size > MAX_CORPUS_BYTES:
-            raise InputError(
-                f"Corpus exceeds {MAX_CORPUS_BYTES // 1_000_000} MB; configure a smaller corpus."
-            )
+    for path in _within_bounds(files):
         try:
             for row in _rows(path, prefilter):
                 if not confirm(row):
@@ -358,35 +365,41 @@ def read_section(row_id: str, neighbours: int = 0) -> dict[str, Any]:
         or _linked(path.parent.parent)
     ):
         raise InputError("No title index for that row_id in the configured corpus.")
+    # A title index is written in document order, so the parsed rows either side of the
+    # cited one are the neighbouring provisions, including any container heading. The
+    # file is streamed once: the last `neighbours` valid rows are kept in a bounded
+    # deque, and reading stops once that many valid rows follow the cited one, so a
+    # malformed line never costs a neighbour slot and no index is held whole.
+    needle = [row_id.casefold()]
+    before: deque[dict[str, Any]] = deque(maxlen=neighbours)
+    found: dict[str, Any] | None = None
+    after: list[dict[str, Any]] = []
     try:
-        lines = path.read_text(encoding="utf-8").splitlines()
+        with path.open(encoding="utf-8") as stream:
+            for line in stream:
+                row = _row(line, [] if neighbours else needle)
+                if row is None:
+                    continue
+                if found is None:
+                    if row.get("row_id") == row_id:
+                        found = row
+                    else:
+                        before.append(row)
+                    continue
+                after.append(row)
+                if len(after) >= neighbours:
+                    break
     except (OSError, UnicodeError) as exc:
         raise InputError("Cannot read that UTF-8 JSONL index in the configured corpus.") from exc
-    needle = [row_id.casefold()]
-    for position, line in enumerate(lines):
-        row = _row(line, needle)
-        if row is None or row.get("row_id") != row_id:
-            continue
-        # A title index is written in document order, so the lines either side of the
-        # cited one are the neighbouring provisions, including any container heading.
-        around = [
-            _section(near, SEARCH_TEXT_CHARS)
-            for near in (_row(other, []) for other in lines[max(0, position - neighbours):position])
-            if near is not None
-        ]
-        after = [
-            _section(near, SEARCH_TEXT_CHARS)
-            for near in (_row(other, []) for other in lines[position + 1:position + 1 + neighbours])
-            if near is not None
-        ]
-        return {
-            "section": _section(row, READ_TEXT_CHARS),
-            "before": around,
-            "after": after,
-            "corpus": _provenance(root),
-            "notice": NOTICE,
-        }
-    raise InputError("No section with that row_id in the configured corpus.")
+    if found is None:
+        raise InputError("No section with that row_id in the configured corpus.")
+    return {
+        "section": _section(found, READ_TEXT_CHARS),
+        "before": [_section(near, SEARCH_TEXT_CHARS) for near in before],
+        "after": [_section(near, SEARCH_TEXT_CHARS) for near in after],
+        "corpus": _provenance(root),
+        "notice": NOTICE,
+    }
 
 
 def _plain(text: str) -> str:
@@ -445,7 +458,7 @@ def define_term(
     exact: list[dict[str, Any]] = []
     partial: list[dict[str, Any]] = []
     dropped = False
-    for path in _index_files(root):
+    for path in _within_bounds(_index_files(root)):
         try:
             for row in _rows(path, words + act_terms):
                 if not DICTIONARY_HEADING.match(_string(row, "heading") or ""):
