@@ -123,6 +123,15 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
                     f"{b.beneficiary_name} has a fixed entitlement of "
                     f"{b.fixed_entitlement_amount}; it must be positive"
                 )
+            # A fixed entitlement is reported as supplied, so it has to be a
+            # sum of money already: a sub-cent figure could only be reported
+            # after rounding, and that would be this module's figure, not the
+            # deed's.
+            if b.fixed_entitlement_amount != b.fixed_entitlement_amount.quantize(Decimal("0.01")):
+                raise ValueError(
+                    f"{b.beneficiary_name} has a fixed entitlement of "
+                    f"{b.fixed_entitlement_amount}; it must be stated in whole cents"
+                )
             ratios.append(b.fixed_entitlement_amount / total_trust_inc)
             implied.append(
                 ((b.fixed_entitlement_amount / total_trust_inc) * Decimal("100.00")).quantize(

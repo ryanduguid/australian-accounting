@@ -99,6 +99,22 @@ def test_all_fixed_entitlements_are_reported_as_supplied():
     assert [s.trust_income_entitlement for s in shares] == amounts
 
 
+def test_a_sub_cent_fixed_entitlement_is_refused_rather_than_rounded():
+    assessment = TrustIncomeAssessment(
+        financial_year=2026,
+        trust_name="Synthetic Trust",
+        trust_accounting_income=Decimal("10.000"),
+        section95_net_taxable_income=Decimal("10.00"),
+        franking_credits=Decimal("0.00"),
+        beneficiaries=[
+            BeneficiaryEntitlement("F0", fixed_entitlement_amount=Decimal("3.335")),
+            BeneficiaryEntitlement("F1", fixed_entitlement_amount=Decimal("6.665")),
+        ],
+    )
+    with pytest.raises(ValueError, match="whole cents"):
+        calculate_proportionate_share(assessment)
+
+
 @seed(0x5010)
 @PROPERTY_SETTINGS
 @given(weights=WEIGHTS, trust_income=CENTS, s95_net=CENTS, credits=CREDITS)
