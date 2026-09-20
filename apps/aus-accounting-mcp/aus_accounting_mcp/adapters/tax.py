@@ -1,5 +1,6 @@
 """Validate worksheet facts and delegate all arithmetic to austaxcalc."""
 
+from collections.abc import Callable
 from decimal import Decimal, InvalidOperation
 from typing import Annotated, Any, Literal
 
@@ -90,7 +91,7 @@ def calculate(facts: TaxFacts) -> dict[str, Any]:
         for name in ("effective_life", "taxable_use"):
             if name in arguments:
                 arguments[name] = Decimal(arguments[name])
-        functions = {
+        functions: dict[str, Callable[..., dict[str, Any]]] = {
             "gst": calculations.gst, "resident_tax": calculations.resident_tax,
             "capital_gains": calculations.capital_gains, "fbt": calculations.fbt,
             "depreciation": calculations.depreciation, "quarterly_sg": calculations.quarterly_sg,

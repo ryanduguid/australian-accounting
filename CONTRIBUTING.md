@@ -28,6 +28,19 @@ pytest. CI additionally runs, per component, the dependency audit, the distribut
 build, the installed-wheel and sdist smoke tests and changed-line coverage listed in
 that table and in `ci-package.yml`. A green `just check` is not a green CI.
 
+The same locked environment also supports these commands from the repository root:
+
+```bash
+uv run --locked --group dev ruff check .
+uv run --locked --group dev mypy
+uv run --locked --group dev pytest
+```
+
+Root mypy checks all 9 runtime packages. Root pytest runs the repository checks
+and each component's existing suite in a separate process, from that component's
+directory. This keeps repeated test module names and relative fixture paths
+independent. Component configuration and CI gates remain authoritative.
+
 Two consequences of the workspace are worth knowing before you run a component's
 own commands:
 
@@ -105,6 +118,8 @@ The existing component lock checks remain required.
 `ci.yml` is the anchor workflow. It carries no path filter, so its required checks always
 report, and it runs 2 things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
+The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, mypy and
+pytest commands on Ubuntu with Python 3.12.
 
 - `ci-package.yml` gives every engine the same gates from the engine's own directory,
   the same definition `ryanduguid/accounting-review-pipeline` uses for its components: a
