@@ -68,6 +68,23 @@ def test_workbook_is_macro_free_and_carries_no_build_path(cached):
         assert re.search(rf'name="{column}"[^>]*>\s*<calculatedColumnFormula>', tables), column
 
 
+def test_charge_estimate_is_withheld_past_the_gic_table(cached):
+    """Engine 0.1.6 refuses a day past the GIC table unless --allow-stale-gic is
+    passed. The workbook has no opt-in, so every rate-dependent column must go
+    blank on such a line and the GIC table must hold published quarters only."""
+    with zipfile.ZipFile(WORKBOOK) as archive:
+        tables = "".join(archive.read(n).decode("utf-8") for n in archive.namelist()
+                         if n.startswith("xl/tables/"))
+    for column in ("NEC", "NEC_r", "Uplift_best", "Uplift_worst", "SGC_low", "SGC_high"):
+        formula = re.search(rf'name="{column}"[^>]*>\s*<calculatedColumnFormula>([^<]*)<', tables)
+        assert formula, column
+        assert '[Past_gic_table]]=1,"",' in formula.group(1), column
+    ws = cached["GIC"]
+    last_row = int(re.search(r"(\d+)$", ws.tables["tblGic"].ref).group(1))
+    bases = {r[4] for r in ws.iter_rows(min_row=2, max_row=last_row, max_col=5, values_only=True)}
+    assert bases == {"known"}
+
+
 def test_cached_values_were_calculated_by_desktop_excel(cached):
     sources = cached["Sources & Version"]
     assert sources["B2"].value == __version__
@@ -241,18 +258,13 @@ def test_amount_invariants_compare_cents_not_raw_input(builder):
             in calc["Branch"])
 
 
-def test_the_gic_estimate_covers_every_date_the_register_can_hold(builder):
-    from paydaysuper.csv_io import LATEST_SANE_YEAR
-
+def test_the_gic_table_holds_only_published_contiguous_quarters(builder):
+    """No estimated rows: a day past the table withholds the estimate instead of
+    reading a carried-forward rate, and the accrual end stays uncapped."""
     rows, last_known = builder.read_gic()
-    assert builder.ESTIMATE_UNTIL == date(LATEST_SANE_YEAR, 12, 31)
-    assert rows[-1][1] == builder.ESTIMATE_UNTIL
-    # Contiguous, so no accrual day falls between 2 segments.
+    assert rows and all(row[4] == "known" for row in rows)
+    assert last_known == rows[-1][1]
     for earlier, later in zip(rows, rows[1:]):
         assert later[0] == earlier[1] + timedelta(days=1)
-    estimates = [row for row in rows if row[4] == "estimate"]
-    assert estimates and all(row[2] == rows[len(rows) - len(estimates) - 1][2]
-                             for row in estimates)
-    # The accrual end is no longer capped at a build-time constant.
-    assert "ESTIMATE_UNTIL" not in builder.formulas()["NEC_end"]
-    assert builder.excel_date(builder.ESTIMATE_UNTIL) not in builder.formulas()["NEC_end"]
+    assert not hasattr(builder, "ESTIMATE_UNTIL")
+    assert "Past_gic_table" in builder.formulas()["NEC"]

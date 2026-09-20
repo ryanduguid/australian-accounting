@@ -24,7 +24,7 @@ import re
 import subprocess
 import sys
 import zipfile
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 
 from openpyxl import Workbook
@@ -47,13 +47,6 @@ OUT = ROOT / "workbooks" / "payday-super-checker.xlsx"
 SAMPLE = ROOT / "examples" / "sample_payrun.csv"
 DATA = ROOT / "paydaysuper" / "data"
 DEFAULT_AS_AT = date(2026, 8, 10)
-# The last calendar day the estimated GIC segments reach. It is the checker's own
-# sane-date bound, not a guess about how long a rate holds: past the known table
-# daily_rate carries the last known rate forward without end, and a workbook that
-# stopped earlier silently understated the accrual instead of saying so. Row_problem
-# refuses a register date beyond it and Review Checks refuses an as-at or assessment
-# date beyond it, so no accrual can run off the end of the table.
-ESTIMATE_UNTIL = date(LATEST_SANE_YEAR, 12, 31)
 
 PURPLE, LAVENDER, GREY = "5C2D91", "F3F1F6", "E2E0DF"
 HEAD = dict(font=Font(bold=True, color="FFFFFF"), fill=PatternFill("solid", fgColor=PURPLE))
@@ -148,16 +141,10 @@ def read_gic():
     for q in doc["quarters"]:
         start, end = date.fromisoformat(q["from"]), date.fromisoformat(q["to"])
         rows.append((start, end, float(q["annual_pct"]), days_in_year(start), "known", q["seen"]))
-    last_end = rows[-1][1]
-    last_pct = rows[-1][2]
-    # Carry the last known rate forward in calendar-year segments, as daily_rate does
-    # past the table, so the formula stays one SUMPRODUCT; staleness is flagged.
-    start = last_end + timedelta(days=1)
-    while start <= ESTIMATE_UNTIL:
-        end = min(date(start.year, 12, 31), ESTIMATE_UNTIL)
-        rows.append((start, end, last_pct, days_in_year(start), "estimate", ""))
-        start = end + timedelta(days=1)
-    return rows, last_end
+    # Only the ATO's published quarters. The engine refuses a day past the table
+    # unless --allow-stale-gic is passed; the workbook has no opt-in, so a line whose
+    # accrual runs past the table withholds the charge estimate (Past_gic_table).
+    return rows, rows[-1][1]
 
 
 def bool_expr(column):
@@ -401,17 +388,26 @@ def formulas():
         "Days_late": (
             f'=IF({exposed},IF({T("Past_horizon")}=1,"",MAX({T("Outstanding_to")}-{due},0)),"")'
         ),
+        # A day past the last published GIC quarter has no rate. The engine withholds
+        # the notional earnings and both exposure totals for that row unless
+        # --allow-stale-gic is passed; the workbook has no opt-in and withholds them.
+        "Past_gic_table": f'=IF({exposed},IF({nec_end}>{GIC_LAST},1,0),"")',
         "NEC": (
-            f'=IF({exposed},IF({nec_end}>{due},{T("Base_shortfall")}*(EXP(SUMPRODUCT({segments}'
-            f'*LN(1+tblGic[annual_pct]/100/tblGic[divisor])))-1),0),"")'
+            f'=IF({exposed},IF({T("Past_gic_table")}=1,"",IF({nec_end}>{due},{T("Base_shortfall")}'
+            f'*(EXP(SUMPRODUCT({segments}*LN(1+tblGic[annual_pct]/100/tblGic[divisor])))-1),0)),"")'
         ),
-        "GIC_estimated": f'=IF({exposed},IF({nec_end}>{GIC_LAST},1,0),"")',
         "Shortfall_r": f'=IF({exposed},ROUND({T("Final_shortfall")},2),"")',
-        "NEC_r": f'=IF({exposed},ROUND({T("NEC")},2),"")',
-        "Uplift_best": f'=IF({exposed},0,"")',
-        "Uplift_worst": f'=IF({exposed},ROUND(0.6*({T("Final_shortfall")}+{T("NEC")}),2),"")',
-        "SGC_low": f'=IF({exposed},{T("Shortfall_r")}+{T("NEC_r")}+{T("Uplift_best")},"")',
-        "SGC_high": f'=IF({exposed},{T("Shortfall_r")}+{T("NEC_r")}+{T("Uplift_worst")},"")',
+        "NEC_r": f'=IF({exposed},IF({T("Past_gic_table")}=1,"",ROUND({T("NEC")},2)),"")',
+        "Uplift_best": f'=IF({exposed},IF({T("Past_gic_table")}=1,"",0),"")',
+        "Uplift_worst": (
+            f'=IF({exposed},IF({T("Past_gic_table")}=1,"",ROUND(0.6*({T("Final_shortfall")}+{T("NEC")}),2)),"")'
+        ),
+        "SGC_low": (
+            f'=IF({exposed},IF({T("Past_gic_table")}=1,"",{T("Shortfall_r")}+{T("NEC_r")}+{T("Uplift_best")}),"")'
+        ),
+        "SGC_high": (
+            f'=IF({exposed},IF({T("Past_gic_table")}=1,"",{T("Shortfall_r")}+{T("NEC_r")}+{T("Uplift_worst")}),"")'
+        ),
         "Transition_row": (
             f'=IF(AND({db}<>1,ISNUMBER({sg}),ROUND({sg},2)>0,ROUND({T("Cap")},2)>0,OR(ISNUMBER({rec}),ISNUMBER({rem})),'
             f'IF(ISNUMBER({rec}),{rec},{rem})<={excel_date(TRANSITION_END)}),1,0)'
@@ -432,7 +428,7 @@ CALC_ORDER = [
     "Evidence_own", "Confirmed_latest", "Possible_latest", "Final_due", "Pathway",
     "Possible_item4", "Past_horizon", "Branch", "Verdict", "Unassessable_between", "Exposed",
     "Stale_prepay", "OTRC", "Base_shortfall", "Offset_s18D", "Final_shortfall", "Lateness_basis",
-    "Outstanding_to", "Accrual_to", "NEC_end", "Days_late", "NEC", "GIC_estimated", "Shortfall_r", "NEC_r",
+    "Outstanding_to", "Accrual_to", "NEC_end", "Days_late", "Past_gic_table", "NEC", "Shortfall_r", "NEC_r",
     "Uplift_best", "Uplift_worst", "SGC_low", "SGC_high", "Transition_row",
     "Receipt_established", "Assessable", "Duplicate", "Case_variant", "Sample_row",
 ]
@@ -586,9 +582,10 @@ def build() -> None:
         ws.column_dimensions[column].width = 14
     ws.cell(row=len(gic) + 4, column=1, value=(
         "General interest charge, TAA 1953 s 8AAD: annual rate divided by the days in the "
-        "calendar year. Rows marked estimate carry the last known rate forward, as the "
-        "engine does, and the workbook flags any line that uses them. Update each quarter "
-        "from the ATO GIC rates page and set basis to known."))
+        "calendar year. Only the ATO's published quarters are listed. A line whose accrual "
+        "runs past the last row keeps its verdict, days late and shortfall and shows no "
+        "notional earnings or charge estimate, as the checker does without --allow-stale-gic; "
+        "the workbook has no opt-in. Add each new quarter from the ATO GIC rates page."))
     ws.column_dimensions["F"].width = 14
 
     # 6. Summary
@@ -680,9 +677,9 @@ def build() -> None:
         ("Deadlines inside the holiday coverage (figures past it are a maximum)",
          '=IF(C8=0,"PASS","NOTE")', "=SUM(tblLines[Past_horizon])",
          '=IF(C8=0,"",' + offender("(tblLines[Past_horizon]=1)") + ")"),
-        ("Notional earnings use only known GIC quarters", '=IF(C9=0,"PASS","NOTE")',
-         "=SUM(tblLines[GIC_estimated])",
-         '=IF(C9=0,"",' + offender("(tblLines[GIC_estimated]=1)") + ")"),
+        ("Accruals past the GIC table (charge estimate withheld until the rate is added)",
+         '=IF(C9=0,"PASS","NOTE")', "=SUM(tblLines[Past_gic_table])",
+         '=IF(C9=0,"",' + offender("(tblLines[Past_gic_table]=1)") + ")"),
         ("No identical lines (a doubled export counts a payday twice)", '=IF(C10=0,"PASS","NOTE")',
          "=SUM(tblLines[Duplicate])",
          '=IF(C10=0,"",' + offender("(tblLines[Duplicate]=1)") + ")"),
@@ -722,7 +719,9 @@ def build() -> None:
         "a possible upper bound and an attention-driving UNKNOWN where it would change the verdict.",
         "Notional earnings compound daily at the general interest charge on the base shortfall "
         "from the day after the deadline while the final shortfall remains greater than nil "
-        "(s 19A, LCR 2026/3). A part receipt does not slow the accrual.",
+        "(s 19A, LCR 2026/3). A part receipt does not slow the accrual. Past the last "
+        "published GIC quarter the notional earnings and the charge estimate are withheld, "
+        "as the command line withholds them without --allow-stale-gic.",
         "The uplift range runs from 0 per cent (clean history and a voluntary disclosure within "
         "30 days) to 60 per cent (prior history, no disclosure). The ATO, not this workbook, "
         "decides which reductions apply.",
@@ -761,7 +760,7 @@ def build() -> None:
         ("Primary-source review", "docs/primary-source-review-2026-08-15.md in the repository"),
         ("Holiday calendar", f"Official whole-of-jurisdiction sources checked through {verified_until.isoformat()}"),
         ("GIC rates", f"ATO general interest charge rates, known through {gic_last.isoformat()}; "
-                      "later days carry the last known rate as an estimate"),
+                      "an accrual past that day withholds the charge estimate"),
         ("No-install explainer", "https://duguid.com.au/tools/payday-super/"),
         ("Disclaimer", "Experimental review aid. Not a compliance determination, not an ATO "
                        "assessment, and not tax, legal or financial advice."),
