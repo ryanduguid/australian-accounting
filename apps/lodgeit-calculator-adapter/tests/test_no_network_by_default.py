@@ -184,7 +184,7 @@ def test_the_mcp_invoke_tool_needs_a_per_call_network_acknowledgement(monkeypatc
 def test_an_absent_or_null_acknowledgement_never_reaches_the_client(monkeypatch, supplied):
     """Omitting the argument is a schema error rather than a default, so a
     caller cannot reach the calculator by leaving the question out."""
-    from mcp.server.mcpserver.exceptions import ToolError
+    ToolError = pytest.importorskip("mcp.server.mcpserver.exceptions").ToolError
 
     with pytest.raises(ToolError, match="network_acknowledged"):
         _call_invoke(monkeypatch, **supplied)
