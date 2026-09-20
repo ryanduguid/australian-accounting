@@ -37,7 +37,7 @@ Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written
 
 No-install explainer: [When is payday super actually due](https://duguid.com.au/tools/payday-super/). From an AI coding agent, run the same engine through [aus-accounting-mcp](https://duguid.com.au/tools/australian-tax-ai-agents/).
 
-Citation: [`CITATION.cff`](CITATION.cff). In-repo version: `0.1.7` (not yet published); see [release notes](RELEASE_NOTES.md).
+Citation: [`CITATION.cff`](CITATION.cff). Current version: `0.1.7`; see [release notes](RELEASE_NOTES.md).
 
 ## Try one contribution without cloning
 
@@ -241,7 +241,7 @@ received on each row that has a `fund_received_date`, as the shipped
 examples do. Released versions (0.1.6 and earlier) read such a row as a
 receipt of the whole `sg_amount` and say so in a caveat.
 
-### Build an evidence pack in one command (unreleased)
+### Build an evidence pack in one command (v0.1.7)
 
 From the monorepo root, change into the component and run:
 

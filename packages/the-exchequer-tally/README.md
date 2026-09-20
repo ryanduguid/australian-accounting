@@ -21,7 +21,7 @@ The `australian-accounting` repository contains the maintained source. The
 `edwinnixon` import package remains unchanged, so internal Python imports do not
 need a rename.
 
-In-repo version: `0.1.7` (not yet published); see [release notes](RELEASE_NOTES.md).
+Current version: `0.1.7`; see [release notes](RELEASE_NOTES.md).
 
 ---
 
