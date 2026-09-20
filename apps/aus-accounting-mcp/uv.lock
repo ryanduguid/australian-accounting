@@ -116,7 +116,7 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.2.3"
+version = "0.2.4"
 source = { editable = "." }
 dependencies = [
     { name = "ato-benchmark-compare" },
@@ -146,7 +146,7 @@ requires-dist = [
     { name = "div7a-loan-review", specifier = "==0.1.3" },
     { name = "mcp", specifier = ">=2.1.1,<3" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.14" },
-    { name = "payday-super-checker", specifier = "==0.1.5" },
+    { name = "payday-super-checker", specifier = "==0.1.6" },
     { name = "pillow", marker = "extra == 'dev'", specifier = "==12.3.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
@@ -1234,11 +1234,11 @@ wheels = [
 
 [[package]]
 name = "payday-super-checker"
-version = "0.1.5"
+version = "0.1.6"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/72/d0/930b5c1f936f09beffeeb534bf95c17a7a170110ec97131c3c4f48650bc4/payday_super_checker-0.1.5.tar.gz", hash = "sha256:707a37804fb5699391620319ecf6cebc450d1ae219b776e223f602d18d5afce1", size = 347248, upload-time = "2026-09-19T16:22:56.712Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ac/f9/460942bdd652601a8899b547e17268d4b76d1ec68b74fc7fc569401337e9/payday_super_checker-0.1.6.tar.gz", hash = "sha256:69cfbb85d2296b26c31ee998374d4307f20305e8d8664cd424a7e30941cfb32f", size = 353447, upload-time = "2026-09-20T07:56:27.577Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/91/a0797174a7485364e14a00f3450561203c1cd8d2a0200f522e1fa2e38abf/payday_super_checker-0.1.5-py3-none-any.whl", hash = "sha256:39a7c683a0d18bf85abbeea35824a90041ef20b0a396daff48fd50b9d371300c", size = 115483, upload-time = "2026-09-19T16:22:55.061Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/56/2516676a99ea692cb9de4bf518ec7cc334bf786613aee3780c9d818b7b28/payday_super_checker-0.1.6-py3-none-any.whl", hash = "sha256:5260ef43231eeee3ea7b5896e93cde9cb5b31b2b8ecea4baafe87ac502bcf377", size = 117950, upload-time = "2026-09-20T07:56:26.177Z" },
 ]
 
 [[package]]
