@@ -25,6 +25,9 @@ DICTIONARY = (
     "- (a) its *assessable amount for the year is below the cap; and\n\n"
     "- (b) it is not a *large entity.\n\n"
     "small entity cap, for a year, means the amount worked out under section 5.\n\n"
+    "qualifying receipt means a receipt if:\n\n"
+    "(a) it is issued to the entity; and\n\n"
+    "(b) it is dated in the year.\n\n"
     "(2) A term used in a note has its ordinary meaning."
 )
 INJECTED = (

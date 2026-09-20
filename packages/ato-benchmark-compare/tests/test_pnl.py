@@ -44,6 +44,17 @@ def test_neutral_layout(tmp_path: Path) -> None:
     assert result.rows[0].amount == Decimal("850000")
 
 
+@pytest.mark.parametrize(
+    "header",
+    ["account,amount,amount", "Account,AMOUNT,amount ", "account,account,amount", "account,amount,section,section"],
+)
+def test_a_repeated_header_name_is_refused_not_guessed(tmp_path: Path, header: str) -> None:
+    """The first of two amount columns used to win silently, so a comparison ran on whichever period came first."""
+    text = f"{header}\nSales,100,200,income\nPurchases,40,50,cost_of_sales\n"
+    with pytest.raises(pnl.PnlError, match="more than one column is named"):
+        pnl.read(write(tmp_path, "p.csv", text))
+
+
 def test_neutral_layout_accepts_a_section_column(tmp_path: Path) -> None:
     text = "account,amount,section\nSales,100,income\nPurchases,40,cost_of_sales\n"
     result = pnl.read(write(tmp_path, "p.csv", text))

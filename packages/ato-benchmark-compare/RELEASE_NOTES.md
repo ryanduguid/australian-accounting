@@ -1,3 +1,7 @@
+# Unreleased
+
+- Refuse a neutral CSV whose header names `account`, `amount` or `section` more than once, instead of reading the first such column silently.
+
 # v0.1.8
 
 - Withhold, do not nil: the compare command now gates its text output, `--json` payload and exit code on which buckets the mapping actually supplied, using the same presence rules as the exported library API, so a bucket no account was mapped to reads `not supplied`/`not_supplied` instead of a computed zero.

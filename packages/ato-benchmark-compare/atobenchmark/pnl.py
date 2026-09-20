@@ -141,6 +141,14 @@ def read(path: Path, amount_column: str | None = None) -> PnlFile:
                 f"apply. Remove it, or drop the header row to read the file as a report "
                 f"style export."
             )
+        # header.index() would take the first of two "amount" columns without a word,
+        # and a comparison would then run on whichever period the export listed first.
+        repeated = [name for name in ("account", "amount", "section") if header.count(name) > 1]
+        if repeated:
+            raise PnlError(
+                f"{path}: more than one column is named {', '.join(repeated)}, so the "
+                f"column to read is ambiguous. Keep one column with each of those names."
+            )
         return _read_neutral(path, rows, header)
     return _read_report(path, rows, amount_column)
 

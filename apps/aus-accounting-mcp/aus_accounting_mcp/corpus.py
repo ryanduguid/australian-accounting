@@ -67,6 +67,9 @@ DEFINITION_HEAD = re.compile(
     r"(?::(?:\s|$)|\s(?:has|have)\s(?:the|a)\s(?:same\s)?meanings?\b|\smeans\b"
     r"|\sincludes\b|\s(?:is|are)\sdefined\b)"
 )
+# "(2) A term used in a note ..." opens the subsection after the dictionary; a
+# lettered paragraph such as "(a) it is issued; and" is part of the definition.
+SUBSECTION_LABEL = re.compile(r"^\(\d+[A-Za-z]*\)")
 # Dictionaries write "165-CC" and "40-880" with U+2011, a non-breaking hyphen, and
 # pad labels with U+00A0, a non-breaking space; a caller types the plain characters.
 PLAIN = str.maketrans({"\u2011": "-", "\u00a0": " ", "*": ""})
@@ -142,10 +145,13 @@ def _row(line: str, prefilter: list[str]) -> dict[str, Any] | None:
     # A JSON escape hides the characters it encodes from a raw scan:
     # an index written with ensure_ascii=True spells "e acute" as six
     # ASCII bytes, so a query for the letter matched nothing and a
-    # row_id search returned could not be read back. A line carrying
-    # an escape is parsed instead of prefiltered; the caller confirms
-    # the decoded fields either way.
-    if "\\u" not in line:
+    # row_id search returned could not be read back. JSON also lets a
+    # writer spell "/" as "\/", which hid a row_id such as "5/10" the
+    # same way. A line carrying either escape is parsed instead of
+    # prefiltered; the caller confirms the decoded fields either way.
+    # The other escapes encode only quotes, backslashes and control
+    # characters, none of which a query term or row_id can hold.
+    if "\\u" not in line and "\\/" not in line:
         folded = line.casefold()
         if not all(term in folded for term in prefilter):
             return None
@@ -415,8 +421,8 @@ def _definitions(text: str) -> Iterator[tuple[str, str]]:
     """Each (head, definition text) in a dictionary section, in document order.
 
     A definition is its opening paragraph plus the paragraphs that follow until
-    the next opening paragraph or a subsection label; a note or example stays with
-    the definition it follows.
+    the next opening paragraph or a subsection label; a note, an example or a
+    lettered condition stays with the definition it follows.
     """
     head: str | None = None
     body: list[str] = []
@@ -429,7 +435,7 @@ def _definitions(text: str) -> Iterator[tuple[str, str]]:
             or found.startswith("- ")
         ):
             found = None
-        if found is not None or paragraph.startswith("("):
+        if found is not None or SUBSECTION_LABEL.match(paragraph):
             if head is not None:
                 yield head, "\n\n".join(body)
             head, body = found, [paragraph]

@@ -294,6 +294,27 @@ def test_escaped_and_literal_indexes_search_and_read_alike(tmp_path, monkeypatch
     assert "N\u00fa\u00f1ez" in read["section"]["text"]
 
 
+def test_an_escaped_solidus_row_id_reads_back_without_neighbours(tmp_path, monkeypatch):
+    """JSON may spell "/" as "\\/"; search returned such a row_id and a default read lost it."""
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    synthetic_corpus.build(tmp_path)
+    index = tmp_path / "markdown" / "C9999A00001" / "sections.jsonl"
+    row = synthetic_corpus.section(
+        "C9999A00001", "0004", "5/10", "A synthetic apportionment applies.",
+        act=synthetic_corpus.LEVY_ACT,
+    )
+    line = json.dumps(row, ensure_ascii=True).replace("/", "\\/") + "\n"
+    assert "5\\/10" in line and "\\u" not in line
+    with index.open("a", encoding="utf-8") as stream:
+        stream.write(line)
+
+    result = call("search_tax_legislation", query="apportionment")
+    assert [match["row_id"] for match in result["matches"]] == ["C9999A00001:0004:5/10"]
+    read = call("read_tax_legislation_section", row_id="C9999A00001:0004:5/10")
+    assert read["section"]["section"] == "5/10"
+    assert read["before"] == [] and read["after"] == []
+
+
 def test_a_linked_markdown_directory_is_refused_by_read_as_well_as_search(tmp_path, monkeypatch):
     """A direct read followed a link to markdown that search had already refused."""
     real = synthetic_corpus.build(tmp_path / "real")
@@ -384,6 +405,18 @@ def test_a_note_stays_with_the_definition_it_follows(corpus):
         "Note: The amount is reported on the approved form."
     )
     # "(2) A term used in a note ..." is a subsection, not a definition head.
+    assert not call("define_tax_term", term="term used")["definitions"]
+
+
+def test_lettered_conditions_stay_with_the_definition_they_complete(corpus):
+    """"(a)" and "(b)" paragraphs were read as subsection labels and dropped without a caveat."""
+    result = call("define_tax_term", term="qualifying receipt")
+
+    assert result["definitions"][0]["text"] == (
+        "qualifying receipt means a receipt if:\n\n"
+        "(a) it is issued to the entity; and\n\n"
+        "(b) it is dated in the year."
+    )
     assert not call("define_tax_term", term="term used")["definitions"]
 
 
