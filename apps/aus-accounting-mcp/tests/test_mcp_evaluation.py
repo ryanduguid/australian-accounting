@@ -66,7 +66,7 @@ async def _answer(session, case):
         return next(row["status"] for row in result["ratios"] if row["ratio"] == name)
 
     if case in {"grouped-payday", "worksheet-gst", "library-reference", "payday-evidence-pack",
-                "legislation-citation", "legislated-rate"}:
+                "legislation-citation", "legislated-rate", "statutory-definition"}:
         reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
         results = [await call(c["name"], **c["arguments"])
                    for c in json.loads(reference.text)]
@@ -80,6 +80,8 @@ async def _answer(session, case):
             return results[-1]["section"]["section"]
         if case == "legislated-rate":
             return results[0]["matches"][0]["amounts"][0]
+        if case == "statutory-definition":
+            return results[0]["definitions"][0]["section"]
         return results[-1]["text"]
 
     if case == "catalogue-pages":

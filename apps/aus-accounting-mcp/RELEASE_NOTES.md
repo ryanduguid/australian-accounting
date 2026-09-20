@@ -1,3 +1,8 @@
+# Unreleased
+
+- Add `define_tax_term`, which finds an expression's statutory definitions in the configured corpus's dictionary, definitions and interpretation sections, exact matches first, each cited to the dictionary section that holds it. No match is reported as no match, never as an ordinary meaning.
+- `read_tax_legislation_section` accepts `neighbours` (0 to 5) and returns the provisions either side of the cited one as `before` and `after`, each cited and truncated like a search match.
+
 # v0.2.3
 
 - Resolve the standalone lock against published `payday-super-checker` 0.1.5 and `ato-benchmark-compare` 0.1.8; `div7a-loan-review` 0.1.3 and `australian-tax-calculators` 0.1.3.

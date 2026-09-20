@@ -98,6 +98,8 @@ BOUNDED_STRING_INPUTS = {
     ("search_tax_legislation", "query"): 200,
     ("search_tax_legislation", "act"): 200,
     ("read_tax_legislation_section", "row_id"): 300,
+    ("define_tax_term", "term"): 200,
+    ("define_tax_term", "act"): 200,
     ("search_tax_rates", "query"): 200,
     ("search_tax_rates", "topic"): 100,
 }

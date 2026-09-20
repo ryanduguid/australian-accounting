@@ -203,4 +203,10 @@
     <calls>[{"name": "search_tax_rates", "arguments": {"query": "cap", "topic": "superannuation"}}]</calls>
     <tools><tool>search_tax_rates</tool></tools>
   </qa_pair>
+  <qa_pair id="statutory-definition">
+    <question>In the configured synthetic corpus, which section of the Synthetic Glossary Act 2099 defines "small entity"? Return only that section label, and do not paraphrase the definition.</question>
+    <answer>2</answer>
+    <calls>[{"name": "define_tax_term", "arguments": {"term": "small entity", "act": "glossary act"}}]</calls>
+    <tools><tool>define_tax_term</tool></tools>
+  </qa_pair>
 </evaluation>
