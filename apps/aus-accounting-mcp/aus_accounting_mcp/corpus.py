@@ -142,16 +142,10 @@ def _rows(path: Path, prefilter: list[str]) -> Iterator[dict[str, Any]]:
 
 def _row(line: str, prefilter: list[str]) -> dict[str, Any] | None:
     """The parsed row when the raw line could match, else None."""
-    # A JSON escape hides the characters it encodes from a raw scan:
-    # an index written with ensure_ascii=True spells "e acute" as six
-    # ASCII bytes, so a query for the letter matched nothing and a
-    # row_id search returned could not be read back. JSON also lets a
-    # writer spell "/" as "\/", which hid a row_id such as "5/10" the
-    # same way. A line carrying either escape is parsed instead of
-    # prefiltered; the caller confirms the decoded fields either way.
-    # The other escapes encode only quotes, backslashes and control
-    # characters, none of which a query term or row_id can hold.
-    if "\\u" not in line and "\\/" not in line:
+    # Any JSON escape can hide characters from a raw scan, including escaped
+    # Unicode, solidi, quotes, and backslashes in row IDs. Parse escaped lines
+    # so the caller can confirm the decoded fields.
+    if "\\" not in line:
         folded = line.casefold()
         if not all(term in folded for term in prefilter):
             return None

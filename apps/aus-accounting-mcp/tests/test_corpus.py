@@ -315,6 +315,26 @@ def test_an_escaped_solidus_row_id_reads_back_without_neighbours(tmp_path, monke
     assert read["before"] == [] and read["after"] == []
 
 
+@pytest.mark.parametrize("label", ['5"10', "5\\10"])
+def test_escaped_row_id_characters_read_back_with_default_neighbours(tmp_path, monkeypatch, label):
+    """Search-returned IDs containing JSON-escaped characters remain readable."""
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    synthetic_corpus.build(tmp_path)
+    index = tmp_path / "markdown" / "C9999A00001" / "sections.jsonl"
+    row = synthetic_corpus.section(
+        "C9999A00001", "0004", label, "A synthetic escaped-label provision applies.",
+        act=synthetic_corpus.LEVY_ACT,
+    )
+    with index.open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps(row, ensure_ascii=True) + "\n")
+
+    result = call("search_tax_legislation", query="escaped-label")
+    row_id = result["matches"][-1]["row_id"]
+    read = call("read_tax_legislation_section", row_id=row_id)
+    assert read["section"]["section"] == label
+    assert read["before"] == [] and read["after"] == []
+
+
 def test_a_linked_markdown_directory_is_refused_by_read_as_well_as_search(tmp_path, monkeypatch):
     """A direct read followed a link to markdown that search had already refused."""
     real = synthetic_corpus.build(tmp_path / "real")
