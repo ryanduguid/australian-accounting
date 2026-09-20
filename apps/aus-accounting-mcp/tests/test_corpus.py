@@ -50,18 +50,34 @@ def test_search_returns_a_traceable_citation(corpus):
     assert "never" in result["notice"]
 
 
-def test_a_superseded_compilation_says_so(corpus):
-    result = call("search_tax_legislation", query="not applied here")
+def test_a_superseded_compilation_is_left_out_unless_asked_for(corpus):
+    assert not call("search_tax_legislation", query="not applied here")["matches"]
+
+    result = call("search_tax_legislation", query="not applied here", in_force_only=False)
     hit = result["matches"][0]
 
     assert hit["version_is_current"] is False
     assert any("not the current version" in caveat for caveat in hit["caveats"])
 
 
+def test_in_force_only_keeps_a_row_with_unrecorded_currency(corpus):
+    path = corpus / "markdown" / "C9999A00001" / "sections.jsonl"
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    del rows[1]["version_is_current"]
+    synthetic_corpus.write(path, rows)
+
+    hit = call("search_tax_legislation", query="synthetic levy rate")["matches"][0]
+
+    assert hit["row_id"] == "C9999A00001:0002:5-10"
+    assert hit["version_is_current"] is None
+
+
 def test_search_matches_every_word_and_filters_by_act(corpus):
     assert not call("search_tax_legislation", query="levy unrelatedword")["matches"]
 
-    filtered = call("search_tax_legislation", query="synthetic levy rate", act="charge act")
+    filtered = call(
+        "search_tax_legislation", query="synthetic levy rate", act="charge act", in_force_only=False
+    )
 
     assert [match["register_id"] for match in filtered["matches"]] == ["C9999A00002"]
 
@@ -128,6 +144,14 @@ def test_rates_keep_the_amounts_years_and_provision(corpus):
     assert hit["years"] == ["2098-99"]
     assert hit["section"] == "9-20"
     assert hit["register_page"] == "https://example.invalid/C9999A00001/latest"
+
+
+def test_rates_filter_by_stated_year(corpus):
+    dated = call("search_tax_rates", query="cap", year="2098-99")["matches"]
+    assert [row["rate_id"] for row in dated] == ["R00002"]
+    assert not call("search_tax_rates", query="cap", year="2097-98")["matches"]
+    # A blank year is no filter, the same as omitting it.
+    assert call("search_tax_rates", query="cap", year=" ")["matches"][0]["rate_id"] == "R00002"
 
 
 def test_rates_filter_by_topic(corpus):
