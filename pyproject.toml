@@ -60,3 +60,25 @@ src = ["tests"]
 [tool.ruff.lint]
 # The shared baseline: ruff's default correctness set plus import sorting.
 select = ["E4", "E7", "E9", "F", "I"]
+
+# Component suites run in separate processes so their test module names and
+# working directories stay independent. The root also keeps its boundary checks.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+# Runtime packages only. Components retain their own configuration and CI gates.
+[tool.mypy]
+python_version = "3.10"
+files = [
+    "packages/australian-tax-calculators/austaxcalc",
+    "packages/ato-benchmark-compare/atobenchmark",
+    "packages/payday-super-checker/paydaysuper",
+    "packages/div7a-loan-review/div7aloan",
+    "packages/solomons-sword/louisgoldberg",
+    "packages/the-exchequer-tally/edwinnixon",
+    "packages/the-wip-tally/wiptally",
+    "apps/aus-accounting-mcp/aus_accounting_mcp",
+    "apps/lodgeit-calculator-adapter/lodgeitadapter",
+]
+ignore_missing_imports = true
+pretty = true

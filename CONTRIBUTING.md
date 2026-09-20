@@ -28,6 +28,19 @@ pytest. CI additionally runs, per component, the dependency audit, the distribut
 build, the installed-wheel and sdist smoke tests and changed-line coverage listed in
 that table and in `ci-package.yml`. A green `just check` is not a green CI.
 
+The same locked environment also supports these commands from the repository root:
+
+```bash
+uv run --locked --group dev ruff check .
+uv run --locked --group dev mypy
+uv run --locked --group dev pytest
+```
+
+Root mypy checks all 9 runtime packages. Root pytest runs the repository checks
+and each component's existing suite in a separate process, from that component's
+directory. This keeps repeated test module names and relative fixture paths
+independent. Component configuration and CI gates remain authoritative.
+
 Two consequences of the workspace are worth knowing before you run a component's
 own commands:
 
