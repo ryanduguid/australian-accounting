@@ -1,4 +1,4 @@
-# Unreleased
+# v0.1.2
 
 Breaking: `outcome_reasonably_measurable` is required on every contract row.
 

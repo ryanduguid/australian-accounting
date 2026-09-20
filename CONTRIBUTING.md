@@ -191,7 +191,7 @@ Registry through `publish-mcp.yml`.
 | div7a-loan-review | `div7a-loan-review/vX.Y.Z` | `release-div7a-loan-review.yml` | `pyproject.toml` | `pypi-div7a-loan-review` |
 | the-exchequer-tally | `the-exchequer-tally/vX.Y.Z` | `release-the-exchequer-tally.yml` | `pyproject.toml` | `pypi-the-exchequer-tally` |
 | solomons-sword | `solomons-sword/vX.Y.Z` | `release-solomons-sword.yml` | `pyproject.toml` | `pypi-solomons-sword` |
-| the-wip-tally | `the-wip-tally/vX.Y.Z` | `release-the-wip-tally.yml` | `wiptally/__init__.py` | `pypi-the-wip-tally` |
+| the-wip-tally | `the-wip-tally/vX.Y.Z` | `release-the-wip-tally.yml` | `pyproject.toml` | `pypi-the-wip-tally` |
 
 `IMPORTS.md` records which components still lack a Release Policy prerequisite; their
 workflows fail closed until a reviewed component change adds it. Nothing publishes from a

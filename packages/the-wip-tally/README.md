@@ -31,7 +31,7 @@ The `australian-accounting` repository contains the maintained source. The
 `the-wip-tally` distribution, `wip-tally` command and `wiptally` import package
 are the install identifiers.
 
-Release: [`v0.1.0`](https://github.com/ryanduguid/australian-accounting/releases/tag/the-wip-tally/v0.1.1).
+In-repo version: `0.1.2` (not yet published); see [release notes](RELEASE_NOTES.md).
 
 Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written independently, in his own time and on his own equipment.
 

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "the-wip-tally"
-dynamic = ["version"]
+version = "0.1.2"
 description = "Deterministic AASB 15 construction WIP schedule. Review aid, not a determination."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -54,9 +54,6 @@ dev = [
     "pytest-cov==7.1.0",
     "build==1.6.1",
 ]
-
-[tool.hatch.version]
-path = "wiptally/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["wiptally"]

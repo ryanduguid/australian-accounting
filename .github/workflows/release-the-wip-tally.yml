@@ -41,8 +41,6 @@ jobs:
         .github/workflows/codeql.yml: Analyze Python
       source-directory: packages/the-wip-tally
       tag-prefix: the-wip-tally
-      version-parser: python-literal
-      version-file: wiptally/__init__.py
       upload-dist-artifact: true
 
   pypi:
