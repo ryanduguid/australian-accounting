@@ -31,7 +31,9 @@ def test_published_distribution_uses_the_project_identity() -> None:
         "packages/the-wip-tally/examples/mapping.example.json"
     ) in readme
     assert "release-the-wip-tally.yml" in release_notes
-    assert release_notes.startswith("# v0.1.1\n")
+    # Unreleased work sits above the released sections; the released notes stay.
+    assert release_notes.startswith("# Unreleased\n")
+    assert "\n# v0.1.1\n" in release_notes
     assert "first PyPI release" in release_notes
     assert "date-released:" not in citation
     assert "australian-accounting/tree/main/packages/the-wip-tally" in citation

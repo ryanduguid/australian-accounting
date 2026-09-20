@@ -87,7 +87,7 @@ def main() -> int:
     dist_parser.add_argument("--payment-date", type=payment_date_type, required=True, help="Actual payment date YYYY-MM-DD")
     dist_parser.add_argument("--amount", type=money_type, required=True, help="Total dividend distribution ($)")
     dist_parser.add_argument("--franking-pct", type=percentage_type, default=Decimal("100.00"), help="Franking percentage (e.g. 100)")
-    dist_parser.add_argument("--tax-rate", type=rate_type, default=Decimal("0.25"), help="Corporate tax rate (0.25 or 0.30)")
+    dist_parser.add_argument("--tax-rate", type=rate_type, required=True, help="Corporate tax rate for the entity, e.g. 0.25 or 0.30. Required: it is not assumed")
 
     args = parser.parse_args()
 

@@ -35,7 +35,10 @@ def test_published_distribution_uses_the_project_identity() -> None:
     assert "`louisgoldberg` import package" in readme
     assert "solomons-sword s100a-check" in readme
     assert "louisgoldberg s100a-check" not in readme
-    assert release_notes.startswith("# v0.1.7\n")
+    # An Unreleased section sits above the released notes, so the released
+    # heading is pinned in place rather than at the top of the file.
+    assert release_notes.startswith("# Unreleased\n")
+    assert "\n# v0.1.7\n" in release_notes
     assert "first PyPI release" in release_notes
     assert "release-solomons-sword.yml" in release_notes
     assert (

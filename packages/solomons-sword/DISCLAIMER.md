@@ -22,6 +22,16 @@ every allocation, zone and exemption against the current law, the trust deed
 and the entity's facts before acting, and leave lodgement decisions with a
 registered practitioner.
 
+A fact this engine was not given is not a fact in the taxpayer's favour. The
+Section 100A zones, the Division 6 legal disability test and the resolution
+checks each take their facts as stated, denied or unstated, and an unstated fact
+produces a named not-established result rather than the answer that happens to
+help: no green zone, no s 97 assessment, no validated resolution, and no Section 99B
+assessment without a stated residency. Section 99B's exemption amounts run the
+other way and still default to nil, because that gives the largest assessable
+amount; the result names every nil so it cannot be mistaken for an established
+figure.
+
 Coverage is deliberately partial. Specifically streamed capital gains and
 franked dividends, non-resident beneficiaries under s 98(2A) and s 98(3), nil
 income of the trust estate, and s 99 or s 99A cases are refused rather than

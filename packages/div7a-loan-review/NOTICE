@@ -1,0 +1,20 @@
+div7a-loan-review bundles eight benchmark interest rate figures in
+div7aloan/data/benchmark_rates.csv. They are Financial Data published by the
+Reserve Bank of Australia in statistical table F5 (series FILRHLBVS,
+Indicator Lending Rates, standard variable housing loan rate), read from
+https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx on the date each
+row records, with the workbook's SHA-256 recorded beside it.
+
+Source: Reserve Bank of Australia 2026.
+
+The RBA's Copyright and Disclaimer Notice (https://www.rba.gov.au/copyright/,
+read 20 September 2026) excludes Financial Data from its Creative Commons
+licence and permits its reproduction for personal or commercial use on the
+conditions in Section 5 of that Notice: the RBA is attributed as above, no
+endorsement by the RBA of this software or any use of it is stated or
+implied, the RBA does not administer the figures as a benchmark, and the
+Notice's disclaimers apply. The RBA has not endorsed this software. Nothing
+here alters the figures; the engine applies them to the Division 7A
+benchmark interest rate as the Income Tax Assessment Act 1936 defines it.
+
+The software itself is licensed under the MIT licence in LICENSE.

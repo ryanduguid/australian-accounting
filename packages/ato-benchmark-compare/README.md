@@ -177,6 +177,16 @@ The serialiser masks ratios and prose whose required inputs were not supplied an
 returns `supplied_buckets`, `omitted_buckets`, and `complete_buckets` alongside the
 ordinary comparison payload.
 
+`compare()` applies the same rule to its own verdicts. `compute()` records which
+buckets the totals you passed actually held, and `compare()` reads that record
+unless you pass `supplied_fields` yourself, so a ratio resting on a bucket you
+omitted comes back with status `not_supplied` rather than `within`, `below` or
+`above`, and `outside_key_range` stays false. Pass a bucket as `Decimal("0")` when
+the operator established it is nil, and pass `supplied_fields` explicitly when the
+set you can vouch for differs from the keys in the totals, which is what the
+command line does: it supplies every bucket to keep the arithmetic whole and
+vouches only for the buckets a reviewed account was mapped to.
+
 Other commands:
 
 ```bash

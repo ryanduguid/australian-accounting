@@ -9,6 +9,7 @@ description = "Trust distribution allocation, Section 100A / 99B risk evaluation
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     { name = "Ryan Duguid", email = "ryan@duguid.com.au" }
 ]

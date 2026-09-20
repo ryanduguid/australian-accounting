@@ -107,8 +107,11 @@ scope confirmation. Most support 2025-26; see the reference for periods and excl
 
 With the development worksheet engine, `aus-accounting://scope` also includes
 engine-owned period dates, required inputs and units, methods, Library example
-references and fabricated `example.facts` that can be passed to the worksheet
-tool. With the published pinned engine, the resource retains its existing scope,
+references and fabricated `example.facts` that run the worksheet tool as a
+demonstration. The example's `scope_confirmed: true` is fabricated with the
+rest of it: for real facts, pass true only after a person has confirmed the
+scope conditions, because the engine treats that flag as the operator's
+confirmation. With the published pinned engine, the resource retains its existing scope,
 source and source-check date fields. The richer catalogue remains unreleased;
 published dependency pins have not changed.
 To enable library retrieval, set `AUS_ACCOUNTING_LIBRARY_ROOT` in the server's
@@ -135,8 +138,11 @@ current figure. Retrieval does not extend what the reviewed engines calculate. T
 [reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#local-legislation-corpus)
 covers the layout, fields, bounds and a worked example.
 
-Payday Super needs an explicit assessment date and fund-receipt evidence before
-it can return `ON_TIME`. Check the `aus-accounting://payday-coverage` resource for
+Payday Super needs an explicit assessment date and fund-receipt evidence, both
+the date and the amount received (`received` with `matched_amount`), before it
+should be read as `ON_TIME`. An engine with the receipt-amount rule (unreleased
+after payday-super-checker 0.1.6) leaves a receipt date with no amount `UNKNOWN`;
+the pinned 0.1.6 engine reads it as a full receipt and says so in a caveat. Check the `aus-accounting://payday-coverage` resource for
 bundled rate and calendar coverage, and retain the result's caveats.
 
 Division 7A covers the reviewed s 109N/s 109E scope only. It refuses matters such
@@ -184,15 +190,15 @@ checker v0.1.3 returns a feature-unavailable error for this tool; the existing
 tools continue to work. See the [website guide](https://duguid.com.au/tools/australian-tax-ai-agents/)
 for examples and scope.
 
-## 30-second proof
+## 30-second demonstration
 
-From `apps/aus-accounting-mcp/` in a repository checkout, run the fabricated example:
+From `apps/aus-accounting-mcp/` in a repository checkout, run the fabricated example. It shows the tools running on synthetic data; it is not evidence that a review passed:
 
 ```bash
 uv run --locked aus-accounting-mcp-demo
 ```
 
-![Static terminal proof of synthetic BAS output and Division 7A loan review](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/apps/aus-accounting-mcp/docs/quick-proof.webp)
+![Static terminal demonstration of synthetic BAS output and Division 7A loan review](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/apps/aus-accounting-mcp/docs/quick-proof.webp)
 
 The [checked text transcript](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/quick-proof.txt)
 and [proof and provenance](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#demonstration-and-provenance)

@@ -32,6 +32,7 @@ Checked against the public AASB 15 text as cited in the
 | Over time versus point in time | 35-38, B9-B13 | Legal characterisation. The wip-over-under-billing skill puts it to the engagement lead. |
 | Whether a modification is a separate contract | 18-21 | Legal characterisation. |
 | Whether variable consideration will reverse | 56-57 | Judgement. The ratio is an input, not a conclusion. |
+| Whether the outcome can be reasonably measured | 44-45 | Judgement. `outcome_reasonably_measurable` is an input, so a row that leaves it blank is refused with a `ScheduleError` naming the row. Neither reading of a blank is neutral: `yes` books percentage-of-completion revenue and `no` asserts para 45. |
 | Retention as receivable versus contract balance | 105-108 | AASB 15 has no retention-specific rule. Classification is an interpretation. |
 | Onerous contracts | AASB 137 66-69, 68A | Provision measurement is outside this engine. Negative EAC margin raises a review flag. Para 69 (impair assets used on the contract first) is flagged when `assets_used_carrying` is supplied. |
 | Impairment of contract cost assets | AASB 15 101-103 | Separate, narrower test. Not substituted for AASB 137. |

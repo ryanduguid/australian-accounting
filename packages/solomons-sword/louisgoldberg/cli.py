@@ -27,6 +27,26 @@ def decimal_type(value: str) -> Decimal:
         raise argparse.ArgumentTypeError(f"not a finite decimal amount: {value!r}")
     return parsed
 
+
+def add_tristate(
+    parser: argparse.ArgumentParser,
+    dest: str,
+    yes: str,
+    no: str,
+    fact: str,
+) -> None:
+    """Add a mutually exclusive pair of flags for one tristate fact.
+
+    Neither flag given leaves the fact None, which the engine reports as not
+    established rather than treating as False. A single `store_true` flag cannot
+    express that difference, and the facts here decide whether a risk zone can
+    be assigned at all.
+    """
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(yes, dest=dest, action="store_const", const=True, help=f"{fact}: yes")
+    group.add_argument(no, dest=dest, action="store_const", const=False, help=f"{fact}: no")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="solomons-sword",
@@ -38,12 +58,23 @@ def main() -> int:
     s100a_parser = subparsers.add_parser("s100a-check", help="Evaluate Section 100A reimbursement agreement risk")
     s100a_parser.add_argument("--beneficiary", type=str, required=True, help="Beneficiary name")
     s100a_parser.add_argument("--amount", type=decimal_type, required=True, help="Distribution amount ($)")
-    s100a_parser.add_argument("--adult-child", action="store_true", help="Beneficiary is an adult child")
-    s100a_parser.add_argument("--retained-by-parents", action="store_true", help="Funds retained by parents without loan")
-    s100a_parser.add_argument("--circular", action="store_true", help="Circular flow of funds present")
-    received = s100a_parser.add_mutually_exclusive_group()
-    received.add_argument("--received-funds", action="store_true", help="Beneficiary received and retained the funds")
-    received.add_argument("--funds-not-received", action="store_true", help="Beneficiary did not receive the funds")
+    # Every fact PCG 2022/2 zoning turns on, each stated or left unstated. A
+    # green zone needs all 7, so a flag that could only say "yes" would leave the
+    # green zone unreachable for an operator who has established the facts.
+    add_tristate(s100a_parser, "adult_child", "--adult-child", "--no-adult-child",
+                 "Beneficiary is an adult child")
+    add_tristate(s100a_parser, "retained_by_parents", "--retained-by-parents",
+                 "--no-retained-by-parents", "Funds retained by parents without loan")
+    add_tristate(s100a_parser, "circular", "--circular", "--no-circular",
+                 "Circular flow of funds present")
+    add_tristate(s100a_parser, "corporate_upe", "--corporate-upe", "--no-corporate-upe",
+                 "Corporate beneficiary holds an unpaid present entitlement")
+    add_tristate(s100a_parser, "received_funds", "--received-funds", "--funds-not-received",
+                 "Beneficiary received and retained the funds")
+    add_tristate(s100a_parser, "direct_benefit", "--direct-benefit", "--no-direct-benefit",
+                 "Funds applied directly for the beneficiary's benefit")
+    add_tristate(s100a_parser, "commercial_loan", "--commercial-loan", "--no-commercial-loan",
+                 "Funds lent under documented arm's-length commercial terms")
 
     # Command: s99b-check
     s99b_parser = subparsers.add_parser("s99b-check", help="Evaluate Section 99B foreign trust distribution")
@@ -53,6 +84,11 @@ def main() -> int:
     s99b_parser.add_argument("--corpus-attributable", type=decimal_type, default=Decimal("0.00"), help="Part of the corpus attributable to amounts that would have been assessable to a resident (s 99B(2)(a) proviso)")
     s99b_parser.add_argument("--not-assessable-to-resident", type=decimal_type, default=Decimal("0.00"), help="Amounts that would not have been assessable to a resident (s 99B(2)(b))")
     s99b_parser.add_argument("--prior-taxed", type=decimal_type, default=Decimal("0.00"), help="Amounts already assessed under s 97/98/99/99A (s 99B(2)(c))")
+    # s 99B(1) turns on residency, so the run states it. Neither flag leaves it
+    # unstated and the engine refuses rather than assessing on an assumption.
+    add_tristate(s99b_parser, "resident_during_year", "--resident-during-year",
+                 "--not-resident-during-year",
+                 "Beneficiary was a resident at some time during the year of income")
 
     args = parser.parse_args()
 
@@ -72,9 +108,10 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             beneficiary_is_adult_child=args.adult_child,
             funds_retained_by_parents_without_loan=args.retained_by_parents,
             circular_flow_of_funds=args.circular,
-            beneficiary_actually_received_funds=(
-                True if args.received_funds else False if args.funds_not_received else None
-            ),
+            corporate_beneficiary_unpaid_present_entitlement=args.corporate_upe,
+            beneficiary_actually_received_funds=args.received_funds,
+            funds_used_for_beneficiary_direct_benefit=args.direct_benefit,
+            commercial_loan_agreement_in_place=args.commercial_loan,
         )
         print("=" * 60)
         print(f"Section 100A Risk Evaluation — {res.beneficiary_name}")
@@ -85,6 +122,10 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         # workpaper rather than as the word None.
         ofd = res.is_ordinary_family_dealing
         print(f"Ordinary Family Dealing: {'Not determined' if ofd is None else ofd}")
+        if res.unestablished_facts:
+            # Naming them is the point of the zone: the operator has to see which
+            # facts are missing, not just that no zone was assigned.
+            print(f"Facts Not Established:   {', '.join(res.unestablished_facts)}")
         if res.risk_factors_identified:
             print(f"Risk Factors:            {', '.join(res.risk_factors_identified)}")
         print(f"Consequence:             {res.tax_consequence_summary}")
@@ -101,6 +142,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             corpus_attributable_to_notional_assessable_income_aud=args.corpus_attributable,
             not_assessable_to_resident_aud=args.not_assessable_to_resident,
             already_assessed_under_div6_aud=args.prior_taxed,
+            beneficiary_was_resident_during_year=args.resident_during_year,
         )
         s99b = evaluate_section99b_liability(receipt)
         print("=" * 60)
@@ -110,6 +152,8 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         print(f"Corpus Exemption:        ${s99b.corpus_exemption:,.2f}")
         print(f"Assessable under s99B:   ${s99b.assessable_income_under_s99b:,.2f}")
         print(f"Basis:                   {s99b.statutory_basis}")
+        for caveat in s99b.caveats:
+            print(f"Caveat:                  {caveat}")
         print(NOT_ADVICE)
         print(DATA_BOUNDARY)
         print("=" * 60)

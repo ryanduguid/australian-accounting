@@ -27,6 +27,23 @@ that a genuine zero produces. The ATO's own fallback to
 `total_expenses_to_turnover` triggers on that nil, so the tool would otherwise
 mark a key ratio chosen by a figure nobody established.
 
+**Unreleased: `compare` now withholds the verdict as well.** `compute` records
+which buckets the supplied totals actually held, and `compare` reads that record
+where the caller passes no `supplied_fields`, so a ratio built on an omitted
+bucket carries status `not_supplied` instead of `within`, `below` or `above`, and
+`outside_key_range` is false on a withheld key ratio for a direct library caller
+too. What is left of the divergence is narrower, and it sits in the raw
+serialiser and the raw key-ratio field:
+
+- `to_dict()` still prints the computed figure for a withheld row, so that
+  payload reads `"value": "0.0000"` beside `"status": "not_supplied"`. It is the
+  raw serialiser and it holds no presence record of its own.
+- `Comparison.key_ratio` still carries the ATO's nil-triggered fallback.
+  `to_evidenced_dict` and `render_text` revert it to the published key ratio
+  where `cost_of_sales` was not supplied; a caller reading the field off the
+  comparison does not get that revert, and the withheld status on the fallback
+  row is what stops the choice reaching a verdict.
+
 **Since 0.1.8 every command-line output withholds what was not supplied.** The
 `route()` step now records which buckets received at least one reviewed
 account, `compare` passes that set into the same presence gate the exported
@@ -46,7 +63,7 @@ all honour it:
 
 `to_dict()` remains exported as the raw serialiser with no presence record, so
 a caller passing incomplete figures directly to it still receives computed
-figures. The command line no longer uses it. In 0.1.7 the divergence was in the
+figures, now beside the withheld status. The command line no longer uses it. In 0.1.7 the divergence was in the
 CLI itself: the command line emitted a figure while the library withheld it,
 which is the finding this entry originally recorded. Files from that release
 keep that behaviour.

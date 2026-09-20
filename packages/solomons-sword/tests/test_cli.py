@@ -37,6 +37,30 @@ def test_s100a_check_reports_the_risk_zone_and_the_factors(monkeypatch, capsys):
 def test_s100a_check_takes_the_stated_receipt_from_the_other_flag(monkeypatch, capsys):
     # Same distribution, the opposite member of the receipt group, and the zone
     # moves. That is the flag reaching the evaluation rather than being dropped.
+    # The green zone turns on every fact, so every fact is stated.
+    code = run(
+        monkeypatch,
+        "s100a-check",
+        "--beneficiary", "Adult Child",
+        "--amount", "40000",
+        "--received-funds",
+        "--no-adult-child",
+        "--no-retained-by-parents",
+        "--no-circular",
+        "--no-corporate-upe",
+        "--no-direct-benefit",
+        "--no-commercial-loan",
+    )
+    out = capsys.readouterr().out
+
+    assert code == 0
+    assert "Risk Zone:               GREEN" in out
+    assert "Facts Not Established:" not in out
+
+
+def test_s100a_check_reports_the_facts_it_was_not_given(monkeypatch, capsys):
+    # Unstated facts used to arrive as False, so a single mitigating flag
+    # returned GREEN on an arrangement nobody had described.
     code = run(
         monkeypatch,
         "s100a-check",
@@ -47,7 +71,10 @@ def test_s100a_check_takes_the_stated_receipt_from_the_other_flag(monkeypatch, c
     out = capsys.readouterr().out
 
     assert code == 0
-    assert "Risk Zone:               GREEN" in out
+    assert "Risk Zone:               FACTS_NOT_ESTABLISHED" in out
+    assert "Facts Not Established:   beneficiary_is_adult_child" in out
+    assert "commercial_loan_agreement_in_place" in out
+    assert "GREEN" not in out
 
 
 def test_s99b_check_deducts_the_corpus_exemption(monkeypatch, capsys):
@@ -57,6 +84,7 @@ def test_s99b_check_deducts_the_corpus_exemption(monkeypatch, capsys):
         "--beneficiary", "Jane Doe",
         "--gross", "150000",
         "--corpus", "50000",
+        "--resident-during-year",
     )
     out = capsys.readouterr().out
 
@@ -139,3 +167,33 @@ def test_no_subcommand_prints_the_help_and_fails(monkeypatch, capsys):
     assert code == 1
     assert "s100a-check" in out
     assert "s99b-check" in out
+
+
+def test_s99b_check_refuses_a_run_that_does_not_state_residency(monkeypatch, capsys):
+    # s 99B(1) turns on residency. Without the flag the engine has no fact, and
+    # an error line beats an assessable amount computed on an assumption.
+    code = run(
+        monkeypatch,
+        "s99b-check",
+        "--beneficiary", "Jane Doe",
+        "--gross", "150000",
+    )
+
+    assert code == 2
+    assert "residency during the year of income is not established" in capsys.readouterr().err
+
+
+def test_s99b_check_names_the_nil_exemptions_it_was_given(monkeypatch, capsys):
+    code = run(
+        monkeypatch,
+        "s99b-check",
+        "--beneficiary", "Jane Doe",
+        "--gross", "150000",
+        "--corpus", "50000",
+        "--resident-during-year",
+    )
+    out = capsys.readouterr().out
+
+    assert code == 0
+    assert "Caveat:" in out
+    assert "not_assessable_to_resident_aud" in out

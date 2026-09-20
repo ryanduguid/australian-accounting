@@ -16,7 +16,7 @@ The Division 7A adapter covers reviewed s 109N loan terms and benchmark rates pl
 
 ![Static terminal proof of synthetic BAS output and Division 7A loan review](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/apps/aus-accounting-mcp/docs/quick-proof.webp)
 
-**Release proof:** from `apps/aus-accounting-mcp/` in a repository checkout, run the fabricated
+**Release demonstration:** from `apps/aus-accounting-mcp/` in a repository checkout, run the fabricated
 demonstration without starting the stdio server:
 
 ```bash

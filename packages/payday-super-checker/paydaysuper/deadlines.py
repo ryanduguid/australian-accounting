@@ -78,15 +78,31 @@ def receipt_amount_cap(line: ContribLine) -> Decimal:
     """Maximum contribution amount a receipt date on this row can evidence.
 
     ``matched_amount`` is the preferred explicit association. Ten-column
-    part-payment rows fall back to ``remitted_amount``. A legacy row with
-    neither appended amount keeps its historical whole-liability meaning.
-    Assessment validates the explicit amounts before this helper is used.
+    part-payment rows fall back to ``remitted_amount``. A row with neither
+    appended amount is capped at the whole liability, which is an upper
+    bound only: ``receipt_amount_evidenced`` says whether the row actually
+    evidences an amount, and assessment refuses to read a bare receipt date
+    as a full receipt. Assessment validates the explicit amounts before this
+    helper is used.
     """
     if line.matched_amount is not None:
         return line.matched_amount
     if line.remitted_amount is not None:
         return line.remitted_amount
     return line.sg_amount
+
+
+def receipt_amount_evidenced(line: ContribLine) -> bool:
+    """Whether the row states an amount its fund-receipt date can evidence.
+
+    A receipt date establishes when the fund received something. It says
+    nothing about how much. Only ``matched_amount`` (the amount associated
+    with this payday) or ``remitted_amount`` (a ten-column part payment)
+    supplies that fact. A row carrying neither cannot evidence the whole
+    liability as received, so assessment leaves it UNKNOWN rather than
+    ON_TIME until an amount is supplied.
+    """
+    return line.matched_amount is not None or line.remitted_amount is not None
 
 
 @dataclass

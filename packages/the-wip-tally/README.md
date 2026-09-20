@@ -104,13 +104,18 @@ pack refuses to bind one period's numbers to another period's header.
 ## Input columns
 
 Required: `contract_id`, `original_contract_sum`, `costs_incurred`,
-`estimated_cost_to_complete`, `certified_billings`. Everything else is optional
-but sharpens the answer. Amounts are exclusive of GST.
+`estimated_cost_to_complete`, `certified_billings`, and
+`outcome_reasonably_measurable` on every row. Everything else is optional but
+sharpens the answer. Amounts are exclusive of GST.
 
 Every data row must carry one field per header column. Leave an optional field
 empty rather than short. A row with the wrong field count is refused with its
 row number, because its trailing columns would otherwise shift by one position
 and read as absent.
+
+A blank `outcome_reasonably_measurable` is refused by row number rather than
+read as `yes`. Both readings state a revenue figure, and the answer to AASB 15
+para 44 is a judgement about the contract, not a default this engine can pick.
 
 | Field | Meaning |
 | --- | --- |
@@ -128,7 +133,7 @@ and read as absent.
 | `retention_withheld` | Retention on this contract |
 | `retention_classification` | `receivable`, `conditional`, or `review` (the default) |
 | `committed_outstanding` | Open POs and subcontracts still to invoice |
-| `outcome_reasonably_measurable` | `yes` (default) or `no`. `no` applies para 45 recoverable-cost-only revenue |
+| `outcome_reasonably_measurable` | `yes` or `no`, per row. There is no default: a blank refuses the contract, because paras 44-45 decide between percentage-of-completion revenue and revenue limited to recoverable cost. `no` applies para 45 recoverable-cost-only revenue |
 | `recoverable_costs` | Required in substance when the outcome is not measurable; defaults to progress cost, and is refused above `costs_incurred` |
 | `progress_method` | `cost_to_cost` (default), `output`, or `right_to_invoice` |
 | `output_percent` | Required for `output`, as `0.40` or `40%` |

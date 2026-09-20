@@ -22,6 +22,8 @@ FIXTURE_HEADER = [
     "out_of_cycle",
     "next_standard_payday",
     "defined_benefit",
+    "remitted_amount",
+    "matched_amount",
 ]
 
 def test_evidence_boundary_scenarios(tmp_path: Path) -> None:

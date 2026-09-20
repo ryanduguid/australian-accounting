@@ -71,10 +71,19 @@ def test_review_pack_escapes_pipes_in_ledger_identifiers(tmp_path: Path) -> None
                 "estimated_cost_to_complete",
                 "certified_billings",
                 "uncertified_claims",
+                "outcome_reasonably_measurable",
             ]
         )
         writer.writerow(
-            ["JOB|A\n| 999 | pwned", "1000.00", "400.00", "400.00", "450.00", "10.00"]
+            [
+                "JOB|A\n| 999 | pwned",
+                "1000.00",
+                "400.00",
+                "400.00",
+                "450.00",
+                "10.00",
+                "yes",
+            ]
         )
 
     source_bytes = source.read_bytes()
@@ -169,9 +178,12 @@ def test_review_pack_escapes_backslashes_before_pipes(tmp_path: Path) -> None:
                 "estimated_cost_to_complete",
                 "certified_billings",
                 "uncertified_claims",
+                "outcome_reasonably_measurable",
             ]
         )
-        writer.writerow([contract_id, "1000.00", "400.00", "400.00", "450.00", "10.00"])
+        writer.writerow(
+            [contract_id, "1000.00", "400.00", "400.00", "450.00", "10.00", "yes"]
+        )
 
     source_bytes = source.read_bytes()
     contracts = read_contracts(source, load_mapping(None), source_bytes=source_bytes)

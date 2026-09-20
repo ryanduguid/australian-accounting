@@ -5,7 +5,7 @@ Trust Distribution Resolution verification and 30 June deadline compliance.
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 
 @dataclass(frozen=True)
@@ -13,9 +13,12 @@ class TrustResolutionSchedule:
     trust_name: str
     financial_year: int  # Year the income year ends: 2025 is 1 July 2024 to 30 June 2025
     resolution_date: date
-    is_signed_by_trustee: bool
-    streaming_powers_in_deed: bool
-    default_beneficiary_clause_exists: bool
+    # The 3 facts below come from the executed resolution and the deed, and each
+    # is tristate: True, False, or None where the operator has not established
+    # it. None is not False, and it is not compliance either.
+    is_signed_by_trustee: Optional[bool]
+    streaming_powers_in_deed: Optional[bool]
+    default_beneficiary_clause_exists: Optional[bool]
     allocated_percentages_total: Decimal
 
     @property
@@ -32,9 +35,20 @@ class TrustResolutionSchedule:
         return self.resolution_date >= date(self.financial_year - 1, 7, 1)
 
 
-def validate_trust_resolution(schedule: TrustResolutionSchedule) -> Tuple[bool, List[str]]:
+def validate_trust_resolution(
+    schedule: TrustResolutionSchedule,
+) -> Tuple[Optional[bool], List[str]]:
     """
     Validate that a trust distribution resolution complies with statutory and deed requirements.
+
+    The first element is None wherever a fact the answer turns on was not
+    established, whether or not an established fact is also breached, because an
+    unestablished fact leaves the result unknown and a breach found alongside it
+    does not settle the rest. With every fact established, it is True where
+    nothing is breached and False where something is. None is not compliance: the
+    issues list names each unestablished fact and each breach found, and a caller
+    that treats the result as a boolean reads it as "not validated", which is
+    what it is.
     """
     issues: List[str] = []
 
@@ -46,14 +60,32 @@ def validate_trust_resolution(schedule: TrustResolutionSchedule) -> Tuple[bool, 
             f"{schedule.financial_year} income year, which began on 1 July "
             f"{schedule.financial_year - 1}; it does not distribute that year's income."
         )
-    if not schedule.is_signed_by_trustee:
+    if schedule.is_signed_by_trustee is False:
         issues.append("Trustee resolution is not executed/signed.")
     if schedule.allocated_percentages_total != Decimal("100.00"):
         issues.append(f"Allocated income percentages sum to {schedule.allocated_percentages_total}%, not 100%.")
-    if not schedule.streaming_powers_in_deed:
+    if schedule.streaming_powers_in_deed is False:
         issues.append("Deed does not record streaming powers; specific streaming cannot be assumed.")
-    if not schedule.default_beneficiary_clause_exists:
+    if schedule.default_beneficiary_clause_exists is False:
         issues.append("Deed has no default beneficiary clause; unresolved income may be taxed to the trustee.")
 
-    is_valid = len(issues) == 0
-    return is_valid, issues
+    unestablished = [
+        name
+        for name, value in (
+            ("is_signed_by_trustee", schedule.is_signed_by_trustee),
+            ("streaming_powers_in_deed", schedule.streaming_powers_in_deed),
+            ("default_beneficiary_clause_exists", schedule.default_beneficiary_clause_exists),
+        )
+        if value is None
+    ]
+    if unestablished:
+        issues.append(
+            "Not established: "
+            + ", ".join(unestablished)
+            + ". Each is a fact of the executed resolution or the deed. Read it and "
+            "state it as True or False; until then the resolution is neither validated "
+            "nor shown to be in breach."
+        )
+        return None, issues
+
+    return len(issues) == 0, issues

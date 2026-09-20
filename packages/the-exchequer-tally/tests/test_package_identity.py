@@ -31,7 +31,9 @@ def test_published_distribution_uses_the_project_identity() -> None:
     assert "`edwinnixon` import package" in readme
     assert "the-exchequer-tally bre-test" in readme
     assert "edwinnixon bre-test" not in readme
-    assert release_notes.startswith("# v0.1.6\n")
+    # Unreleased work sits above the released sections; the released notes stay.
+    assert release_notes.startswith("# Unreleased\n")
+    assert "\n# v0.1.6\n" in release_notes
     assert "first PyPI release" in release_notes
     assert "release-the-exchequer-tally.yml" in release_notes
 

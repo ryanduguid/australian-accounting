@@ -5,16 +5,24 @@ from decimal import Decimal
 import pytest
 from atobenchmark import dataset as ds
 from atobenchmark import to_evidenced_dict
+from atobenchmark.mapping import BUCKETS
 from atobenchmark.ratios import (
     TURNOVER_FROM_SALES,
     TURNOVER_FROM_TOTAL_INCOME,
     RatioError,
     compute,
 )
-from atobenchmark.report import ABOVE, BELOW, WITHIN, compare
+from atobenchmark.report import ABOVE, BELOW, CALCULATION_FIELDS, WITHIN, compare
 
 
 def totals(**kwargs: str) -> dict[str, Decimal]:
+    """Bucket totals exactly as an operator supplied them.
+
+    A bucket that is not named here was not supplied, and `compare` withholds
+    every ratio built on one, including all of them where the turnover basis is
+    incomplete. A test that wants a verdict therefore states `other_income="0"`
+    as the established nil it is.
+    """
     return {name: Decimal(value) for name, value in kwargs.items()}
 
 
@@ -137,8 +145,8 @@ def test_verdict_boundaries_are_inclusive() -> None:
     data = ds.load("2023-24")
     bakery = data.get("Bakeries and hot bread shops")
     # High band cost of sales is 29% to 36%.
-    at_bottom = compute(totals(turnover="1000000", cost_of_sales="290000"))
-    at_top = compute(totals(turnover="1000000", cost_of_sales="360000"))
+    at_bottom = compute(totals(turnover="1000000", other_income="0", cost_of_sales="290000"))
+    at_top = compute(totals(turnover="1000000", other_income="0", cost_of_sales="360000"))
     assert compare(data, bakery, at_bottom).key_verdict.status == WITHIN
     assert compare(data, bakery, at_top).key_verdict.status == WITHIN
 
@@ -146,8 +154,8 @@ def test_verdict_boundaries_are_inclusive() -> None:
 def test_just_outside_the_boundary_is_reported_as_outside() -> None:
     data = ds.load("2023-24")
     bakery = data.get("Bakeries and hot bread shops")
-    low = compute(totals(turnover="1000000", cost_of_sales="289000"))
-    high = compute(totals(turnover="1000000", cost_of_sales="365000"))
+    low = compute(totals(turnover="1000000", other_income="0", cost_of_sales="289000"))
+    high = compute(totals(turnover="1000000", other_income="0", cost_of_sales="365000"))
     assert compare(data, bakery, low).key_verdict.status == BELOW
     assert compare(data, bakery, high).key_verdict.status == ABOVE
     assert compare(data, bakery, high).outside_key_range is True
@@ -158,7 +166,7 @@ def test_displayed_figure_and_verdict_never_disagree() -> None:
     # it below the range.
     data = ds.load("2023-24")
     bakery = data.get("Bakeries and hot bread shops")
-    figures = compute(totals(turnover="100000", cost_of_sales="30960"))
+    figures = compute(totals(turnover="100000", other_income="0", cost_of_sales="30960"))
     comparison = compare(data, bakery, figures)
     assert comparison.key_verdict.ratio == Decimal("0.3096")
     assert comparison.key_verdict.status == BELOW
@@ -187,7 +195,9 @@ def test_turnover_below_every_band_produces_no_verdict() -> None:
 def test_service_industry_reports_no_cost_of_sales_benchmark() -> None:
     data = ds.load("2023-24")
     architects = data.get("Architectural services")
-    figures = compute(totals(turnover="500000", cost_of_sales="50000", other_expense="200000"))
+    figures = compute(
+        totals(turnover="500000", other_income="0", cost_of_sales="50000", other_expense="200000")
+    )
     comparison = compare(data, architects, figures)
     statuses = {verdict.key: verdict.status for verdict in comparison.verdicts}
     assert statuses["cost_of_sales_to_turnover"] == "no benchmark in this dataset"
@@ -341,10 +351,66 @@ def test_evidenced_dict_filters_checks_by_structured_dependencies() -> None:
 
 
 def test_optional_w1_is_not_described_as_withholding_ratios():
-    from atobenchmark.report import CALCULATION_FIELDS
     data = ds.load("2023-24")
     comparison = compare(data, data.get("Bakeries and hot bread shops"),
                          compute(totals(turnover="100000", salary_wages="30000")))
     payload = to_evidenced_dict(comparison, set(CALCULATION_FIELDS))
     assert "w1" in payload["omitted_buckets"]
     assert not any("not_supplied" in note and "w1" in note for note in payload["notes"])
+
+
+def test_compare_withholds_a_ratio_built_on_a_bucket_nobody_supplied() -> None:
+    # An omitted bucket is zero-filled so the division can run. Comparing that
+    # fill against a published range stated a verdict on a figure nobody
+    # supplied, and for the key ratio it decided the exit code.
+    data = ds.load("2023-24")
+    bakery = data.get("Bakeries and hot bread shops")
+    comparison = compare(
+        data, bakery, compute(totals(turnover="850000", other_income="0", rent="40000"))
+    )
+    statuses = {verdict.key: verdict.status for verdict in comparison.verdicts}
+
+    assert statuses["cost_of_sales_to_turnover"] == "not_supplied"
+    assert statuses["labour_to_turnover"] == "not_supplied"
+    assert statuses["total_expenses_to_turnover"] == "not_supplied"
+    # rent was supplied, so the row still reports the dataset's own answer
+    # rather than being withheld. This dataset publishes no rent range.
+    assert statuses["rent_to_turnover"] == "no benchmark in this dataset"
+    assert comparison.outside_key_range is False
+
+
+def test_compare_keeps_the_explicitly_supplied_set() -> None:
+    # The command line and the MCP adapter state the set themselves. Given one,
+    # compare uses it and nothing else, whatever the totals happen to hold.
+    data = ds.load("2023-24")
+    bakery = data.get("Bakeries and hot bread shops")
+    sparse = compute(totals(turnover="1000000", other_income="0", cost_of_sales="365000"))
+
+    claimed = compare(data, bakery, sparse, supplied_fields=set(CALCULATION_FIELDS))
+    assert {v.key: v.status for v in claimed.verdicts}["cost_of_sales_to_turnover"] == ABOVE
+    assert claimed.outside_key_range is True
+
+    withheld = compare(data, bakery, sparse, supplied_fields={"turnover", "other_income"})
+    assert {v.key: v.status for v in withheld.verdicts}["cost_of_sales_to_turnover"] == "not_supplied"
+    assert withheld.outside_key_range is False
+
+
+def test_compare_on_zero_filled_totals_reads_every_bucket_as_supplied() -> None:
+    # The shape route() and the MCP adapter build: every bucket present, so every
+    # nil is an established one and every verdict stands.
+    data = ds.load("2023-24")
+    bakery = data.get("Bakeries and hot bread shops")
+    amounts = {name: Decimal("0") for name in BUCKETS}
+    amounts.update(totals(turnover="1000000", cost_of_sales="365000"))
+    comparison = compare(data, bakery, compute(amounts))
+
+    assert {v.key: v.status for v in comparison.verdicts}["cost_of_sales_to_turnover"] == ABOVE
+    assert comparison.outside_key_range is True
+
+
+def test_an_unknown_supplied_field_is_refused_by_compare() -> None:
+    data = ds.load("2023-24")
+    bakery = data.get("Bakeries and hot bread shops")
+    figures = compute(totals(turnover="1000000", other_income="0", cost_of_sales="365000"))
+    with pytest.raises(ValueError, match="unknown supplied field"):
+        compare(data, bakery, figures, supplied_fields={"turnover", "nonsense"})

@@ -89,6 +89,10 @@ def test_abc_1_unsupplied_ratios_are_a_figure_in_one_payload_and_withheld_in_the
     assert cli["cost_of_sales_to_turnover"]["value"] == "0.0000"
     assert library["cost_of_sales_to_turnover"]["value"] is None
     assert library["cost_of_sales_to_turnover"]["status"] == "not_supplied"
+    # What is left of the divergence: the raw payload prints the computed figure,
+    # but compare() no longer gives it a verdict, so the status agrees with the
+    # library payload even where the value does not.
+    assert cli["cost_of_sales_to_turnover"]["status"] == "not_supplied"
 
     # rent was supplied, so it carries the same value in both payloads.
     assert cli["rent_to_turnover"]["value"] == library["rent_to_turnover"]["value"]
@@ -225,3 +229,19 @@ def test_abc_1_fallback_note_is_still_emitted() -> None:
     comparison = compare(data, bakery, compute(totals(**UNMAPPED_COST_OF_SALES)))
 
     assert any(item.code == "cost_of_sales_key_fallback" for item in comparison.note_details)
+
+
+def test_abc_1_compare_withholds_the_verdict_for_a_direct_library_caller() -> None:
+    """The Unreleased paragraph: with no supplied set passed, compare() reads the
+    one compute() recorded, so an omitted bucket gets no verdict and cannot carry
+    the key range."""
+    data = ds.load("2023-24")
+    bakery = data.get("Bakeries and hot bread shops")
+    comparison = compare(data, bakery, compute(totals(**UNMAPPED_COST_OF_SALES)))
+
+    statuses = {verdict.key: verdict.status for verdict in comparison.verdicts}
+    assert statuses["cost_of_sales_to_turnover"] == "not_supplied"
+    assert statuses["total_expenses_to_turnover"] == "not_supplied"
+    assert comparison.outside_key_range is False
+    # The key ratio field itself still carries the ATO's nil-triggered fallback.
+    assert comparison.key_ratio == "total_expenses_to_turnover"

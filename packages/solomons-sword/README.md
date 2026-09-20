@@ -45,10 +45,10 @@ Full boundary statement: [DISCLAIMER.md](https://github.com/ryanduguid/australia
 
 ## What it checks
 
-- **Division 6 Proportionate Allocation (*Commissioner of Taxation v Bamford* [2010] HCA 10)**: Calculates present entitlement proportions and allocates *s 95(1) ITAA 1936* taxable net income and the franking credits that ride with it. Specifically streamed capital gains and franked dividends are **refused**, not allocated: the Division 6E carve-out with *Subdivision 115-C* (including s 115-220) and *Subdivision 207-B* is not implemented, so a proportionate answer would be wrong. Non-resident beneficiaries (*s 98(2A)/(3)*), nil income of the trust estate and no presently entitled beneficiary (*s 99 / s 99A*) are refused for the same reason.
-- **Section 100A Reimbursement Agreement Matrix**: Classifies supplied facts against **ATO PCG 2022/2** as Green, Red, or outside those zones. The final guideline has white, green and red; the draft blue zone did not survive. White zone (income years ending before 1 July 2014) is out of scope because the function does not take an income year.
-- **Section 99B Foreign Trust Receipt Assessment**: Computes assessable amounts under *s 99B(1)* after corpus exemptions (*s 99B(2)(a)*) and prior-taxed income.
-- **Trust Resolution 30 June Schedule Verifier**: Checks timing, deed-power and percentage-completeness facts the caller supplies.
+- **Division 6 Proportionate Allocation (*Commissioner of Taxation v Bamford* [2010] HCA 10)**: Calculates present entitlement proportions and allocates *s 95(1) ITAA 1936* taxable net income and the franking credits that ride with it. Specifically streamed capital gains and franked dividends are **refused**, not allocated: the Division 6E carve-out with *Subdivision 115-C* (including s 115-220) and *Subdivision 207-B* is not implemented, so a proportionate answer would be wrong. Non-resident beneficiaries (*s 98(2A)/(3)*), nil income of the trust estate and no presently entitled beneficiary (*s 99 / s 99A*) are refused for the same reason. Each beneficiary's residency is a required input and their legal disability is stated as `True` or `False`: those 2 facts select the refused paths, so an unstated one is refused rather than defaulted.
+- **Section 100A Reimbursement Agreement Matrix**: Classifies supplied facts against **ATO PCG 2022/2** as Green, Red, or outside those zones. The final guideline has white, green and red; the draft blue zone did not survive. White zone (income years ending before 1 July 2014) is out of scope because the function does not take an income year. Every fact is `True`, `False` or unstated, and the green zone turns on all 7 of them: while any is unstated the result is `FACTS_NOT_ESTABLISHED`, naming the facts that are missing, because an arrangement nobody has described is not one the ATO has said it will leave alone. An established red-zone trigger still returns `RED`.
+- **Section 99B Foreign Trust Receipt Assessment**: Computes assessable amounts under *s 99B(1)* after corpus exemptions (*s 99B(2)(a)*) and prior-taxed income. Residency during the year of income is a required input, stated with `--resident-during-year` or `--not-resident-during-year`, because *s 99B(1)* turns on it: an unstated residency is refused and a non-resident receipt is refused rather than assessed. The 3 exemption amounts default to nil, which gives the largest assessable amount, and the result carries one caveat naming every exemption that came through as nil, because a nil default cannot be told apart from a figure nobody supplied.
+- **Trust Resolution 30 June Schedule Verifier**: Checks timing, deed-power and percentage-completeness facts the caller supplies. The 3 deed and execution facts are `True`, `False` or unstated; an unstated one returns `None` for validity, naming the fact, rather than reporting compliance or a breach.
 
 ---
 
@@ -64,8 +64,14 @@ pip install solomons-sword
 # Evaluate Section 100A risk zone
 solomons-sword s100a-check --beneficiary "Adult Child" --amount 40000 --adult-child --retained-by-parents
 
+# Every fact stated, which is what a green zone needs. Each fact has a
+# --no- form, and a fact left out is reported as not established.
+solomons-sword s100a-check --beneficiary "Adult Child" --amount 40000 \
+  --no-adult-child --no-retained-by-parents --no-circular --no-corporate-upe \
+  --received-funds --no-direct-benefit --no-commercial-loan
+
 # Assess Section 99B receipt from foreign trust with corpus deduction
-solomons-sword s99b-check --beneficiary "Jane Doe" --gross 150000 --corpus 50000
+solomons-sword s99b-check --beneficiary "Jane Doe" --gross 150000 --corpus 50000 --resident-during-year
 ```
 
 ---
@@ -77,9 +83,9 @@ All allocation and threshold algorithms use exact `decimal.Decimal` calculations
 | Statutory Domain | Primary Authority | What the code actually does |
 | :--- | :--- | :--- |
 | **Proportionate Entitlement** | *ITAA 1936* s 95, s 97 (*Commissioner of Taxation v Bamford* [2010] HCA 10) | `Beneficiary Share = (Accounting Entitlement / Total Accounting Income) * s95 Net Income`. |
-| **Section 100A Risk Matrix** | *ITAA 1936* s 100A, *ATO PCG 2022/2* | Returns GREEN, RED or OUTSIDE_GREEN from the supplied flags. It does not decide the white zone. |
-| **Foreign Trust Distributions** | *ITAA 1936* s 99B(1), s 99B(2)(a) | Subtracts settled corpus and previously taxed income before assessable inclusion. |
-| **Trust Resolution Timing** | Caller-supplied deed and execution facts | Refuses incomplete percentages and missing deed facts. This is not a substitute for current ATO guidance. |
+| **Section 100A Risk Matrix** | *ITAA 1936* s 100A, *ATO PCG 2022/2* | Returns GREEN, RED, OUTSIDE_GREEN, or FACTS_NOT_ESTABLISHED where a fact the zone turns on was not stated. It does not decide the white zone. |
+| **Foreign Trust Distributions** | *ITAA 1936* s 99B(1), s 99B(2)(a) | Subtracts settled corpus and previously taxed income before assessable inclusion. Requires a stated residency and caveats every nil exemption. |
+| **Trust Resolution Timing** | Caller-supplied deed and execution facts | Refuses incomplete percentages, reports stated deed defects, and returns not-established where a deed fact was never stated. This is not a substitute for current ATO guidance. |
 
 ### Automated test suite
 - Run the suite: `pytest tests/`

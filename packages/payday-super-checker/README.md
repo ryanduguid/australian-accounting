@@ -218,6 +218,29 @@ does not turn `AT_RISK` into `ON_TIME`, because paying on time is not the
 statutory test. Fill `fund_received_date` from your clearing house or fund and
 rerun before treating any verdict here as final.
 
+### A receipt date needs an amount (unreleased)
+
+A `fund_received_date` says when the fund received something. It does not
+say how much. On a row with neither `matched_amount` nor `remitted_amount`
+the checker therefore leaves the line `UNKNOWN` rather than `ON_TIME`,
+reports the two outcomes it sits between (`ON_TIME` if the receipt covered
+the whole amount, otherwise `UNPAID`, `NOT_YET_DUE` or `LATE`), exits 2 and
+names the amount it needs:
+
+```text
+  row 2  QE day 2026-08-06  due 2026-08-17  super $540.00  UNPAID or ON_TIME
+      note: the fund receipt dated 2026-08-12 carries no amount: neither matched_amount nor remitted_amount is on this row, so how much the fund received against the $540.00 SG amount is unknown. A receipt date alone is not evidence of a full receipt, so the line is not read as ON_TIME. Supply matched_amount (the amount the fund received for this payday) from the fund or clearing-house confirmation and rerun
+```
+
+A late receipt with no amount is still `LATE`, but the s 18D reduction of
+the final shortfall waits for the amount and the notional earnings run to
+the as-at date as a maximum. Files written by `import` already carry
+`matched_amount`. For a hand-built file, add the `remitted_amount` and
+`matched_amount` columns and fill `matched_amount` with the amount the fund
+received on each row that has a `fund_received_date`, as the shipped
+examples do. Released versions (0.1.6 and earlier) read such a row as a
+receipt of the whole `sg_amount` and say so in a caveat.
+
 ### Build an evidence pack in one command (unreleased)
 
 From the monorepo root, change into the component and run:
@@ -357,9 +380,9 @@ Required: `employee_id`, `payment_date`, `sg_amount`. Everything else is optiona
 | `qe_day` | `payment_date` | The day you actually paid the wages, not the period end or payslip date |
 | `sg_amount` | `sg_amount` | Super guarantee for that payment |
 | `remitted` | `remitted_date` | Day you sent the money |
-| `remitted_amount` | `remitted_amount` | Amount covered by `remitted_date`. Blank on a dated legacy row means the whole `sg_amount`; a value requires `remitted_date` and cannot exceed `sg_amount`. This records operational remittance only. It does not reduce a statutory shortfall without an eligible fund receipt |
-| `matched_amount` | `matched_amount` | Total vendor contribution amount associated with this payday, capped at `sg_amount`. The importer writes an explicit amount even when the vendor supplied no payment date: zero for no match, the partial amount for a short match, and the liability for a full or over match. It is not proof of remittance or fund receipt. When you later add `fund_received_date`, it caps the amount that date can evidence. If it is below `sg_amount` and `remitted_date` is present, `remitted_amount` is required. Blank retains the legacy whole-liability meaning |
-| `received` | `fund_received_date` | Day the fund received the eligible contribution associated with this QE day. Receipt is necessary for an on-time result; the row association also asserts the contribution was allocable and applied to this QE day under the statutory ordering. Receipt credit is capped first by `matched_amount`, then by `remitted_amount` for older 10-column partial files; a legacy row with neither amount means the whole `sg_amount` |
+| `remitted_amount` | `remitted_amount` | Amount covered by `remitted_date`. Blank on a dated row means the whole `sg_amount` was remitted (the operational reading that 9-column files rely on); a value requires `remitted_date` and cannot exceed `sg_amount`. This records operational remittance only. It does not reduce a statutory shortfall without an eligible fund receipt |
+| `matched_amount` | `matched_amount` | Total contribution amount associated with this payday, capped at `sg_amount`. The importer writes an explicit amount even when the vendor supplied no payment date: zero for no match, the partial amount for a short match, and the liability for a full or over match. It is not proof of remittance or fund receipt. When you add `fund_received_date`, it is the amount that date can evidence, and a receipt date with neither this column nor `remitted_amount` evidences no amount at all. If it is below `sg_amount` and `remitted_date` is present, `remitted_amount` is required |
+| `received` | `fund_received_date` | Day the fund received the eligible contribution associated with this QE day. Receipt is necessary for an on-time result; the row association also asserts the contribution was allocable and applied to this QE day under the statutory ordering. The date fixes timing only. The amount it evidences is `matched_amount`, then `remitted_amount` for older 10-column partial files; a row with neither amount is left `UNKNOWN` rather than `ON_TIME` (unreleased; released versions read it as the whole `sg_amount`) |
 | `join_caveats` | `join_caveats` | Optional, appended last. The importer writes the join's structural warnings here, joined with `"\|"`, so they travel with the file into the report's caveats column and the evidence pack instead of living only in the console. Blank on a clean join; absent on canonical files from before 0.1.5 |
 | `first_to_fund` | `first_contribution_to_fund` | Yes for the first contribution to that fund (new starter, or a fund switch) |
 | `out_of_cycle` | `out_of_cycle` | Yes only for an allowance, bonus, commission, loading, payment in advance or back payment made outside an established payment timing, pattern or schedule, where the statutory next-standard-payment conditions are met |

@@ -268,3 +268,34 @@ def test_the_gic_table_holds_only_published_contiguous_quarters(builder):
         assert later[0] == earlier[1] + timedelta(days=1)
     assert not hasattr(builder, "ESTIMATE_UNTIL")
     assert "Past_gic_table" in builder.formulas()["NEC"]
+
+def test_a_bare_receipt_date_is_left_unknown_in_the_workbook(builder):
+    """A fund-receipt date with neither amount column filled evidences timing
+    only. The branch formula sends such a row to the U codes before any
+    receipt branch can read the whole-liability cap as a full receipt, the
+    covers test itself needs a stated amount, and the s 18D offset waits for
+    one. Verified through desktop Excel on 20 Sep 2026: bare timely receipt
+    U2 (UNPAID or ON_TIME), bare late receipt E with the not-evidenced
+    lateness basis and no offset, stated full receipt D1."""
+    calc = builder.formulas()
+    evidenced = (
+        "OR(ISNUMBER(tblLines[[#This Row],[matched_amount]]),"
+        "ISNUMBER(tblLines[[#This Row],[remitted_amount]]))"
+    )
+    assert calc["Branch"].index(f"IF(AND(NOT({evidenced})") < calc["Branch"].index('"A1"')
+    # A pre-payment is timely only inside the 12-month window, so a stale one
+    # must fall through to the S codes rather than be offered ON_TIME: the
+    # window test has to be nested under the pre-payment test, not OR-ed
+    # beside the on-or-before-deadline test (which every pre-payment passes).
+    settled = "tblLines[[#This Row],[Settled]]"
+    pay = "tblLines[[#This Row],[Pay_day]]"
+    assert (
+        f"IF({settled}<{pay},{settled}>=tblLines[[#This Row],[Earliest_prepay]],OR("
+        in calc["Branch"]
+    )
+    assert '"U1"' in calc["Branch"] and '"U2"' in calc["Branch"] and '"U3"' in calc["Branch"]
+    assert f"AND(tblLines[[#This Row],[Receipt_credit]]>=ROUND(tblLines[[#This Row],[sg_amount]],2),{evidenced})" in calc["Branch"]
+    assert evidenced in calc["Offset_s18D"]
+    assert "as-at date (fund receipt amount not evidenced)" in calc["Lateness_basis"]
+    for code, outer in (("U1", "LATE or ON_TIME"), ("U2", "UNPAID or ON_TIME"), ("U3", "NOT_YET_DUE or ON_TIME")):
+        assert builder.CODES[code] == ("UNKNOWN", outer, 0, 0, 0)

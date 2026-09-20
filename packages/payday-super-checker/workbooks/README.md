@@ -44,7 +44,11 @@ and the assumptions the checker prints with every run sit on Review Checks.
    payday, a formula in an input) or a transition line is not confirmed.
    `REVIEW` means a line is `LATE` or `UNPAID`, a line is undecided, or no
    assessable line has a fund receipt and remittance-only review is not
-   accepted. `PASS` mirrors the checker's exit code 0.
+   accepted. `PASS` mirrors the checker's exit code 0. A `fund_received_date`
+   with neither `matched_amount` nor `remitted_amount` is undecided
+   (`UNKNOWN`, between `ON_TIME` and the partial-receipt outcome): the date
+   shows when the fund received something, not how much, so state the amount
+   the fund received before reading the line as on time.
 5. **Holidays and GIC.** The whole-of-jurisdiction holiday table and the
    quarterly general interest charge rates the engine ships. To review a
    deadline past the holiday coverage, add the official dates and move the

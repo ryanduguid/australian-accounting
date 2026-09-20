@@ -187,6 +187,12 @@ CODES = {
     "N1": ("UNKNOWN", "UNPAID or NOT_YET_DUE", 0, 0, 0),
     "N2": ("UNPAID", "", 0, 0, 1),
     "N3": ("UNKNOWN", "", 0, 0, 0),
+    # A fund-receipt date with neither amount column filled evidences timing
+    # only. Where that timing could earn ON_TIME the engine leaves the row
+    # UNKNOWN between the full-receipt and partial-receipt outcomes.
+    "U1": ("UNKNOWN", "LATE or ON_TIME", 0, 0, 0),
+    "U2": ("UNKNOWN", "UNPAID or ON_TIME", 0, 0, 0),
+    "U3": ("UNKNOWN", "NOT_YET_DUE or ON_TIME", 0, 0, 0),
 }
 
 
@@ -217,7 +223,18 @@ def formulas():
     # Both sides in cents. The credit is already rounded, and comparing it with a raw
     # liability read a fully received 1000.004 payday as UNPAID where the checker,
     # which rounds the liability on the way in, returns ON_TIME.
-    covers = f"({T('Receipt_credit')}>=ROUND({sg},2))"
+    # A receipt date evidences an amount only where a row states one; the Cap
+    # falls back to the whole liability as an upper bound, never as evidence.
+    evidenced = f"OR(ISNUMBER({matched}),ISNUMBER({rem_amt}))"
+    covers = f"AND({T('Receipt_credit')}>=ROUND({sg},2),{evidenced})"
+    # Mirrors _receipt_could_be_timely: a pre-payment is judged only by the
+    # 12-month window, so a stale one falls through to the S codes and is
+    # never offered ON_TIME; every other receipt is timely on or before the
+    # proved deadline or where the real deadline is unsettled.
+    timely_possible = (
+        f"IF({settled}<{pay},{settled}>={T('Earliest_prepay')},"
+        f"OR({settled}<={due},{horizon},AND({unc},{settled}<={poss})))"
+    )
     nec_from = f"({due}+1)"
     nec_end = T("NEC_end")
     # Elementwise min and max via ABS: MIN and MAX aggregate a whole column inside
@@ -334,7 +351,10 @@ def formulas():
         "Branch": (
             f'=IF({db}=1,"DB",IF({due}="","",IF(ROUND({sg},2)<=0,"NIL",'
             f'IF({settled}<>"",'
-            # received branch
+            # received branch: a receipt with no stated amount that could be
+            # timely is left between the full and partial outcomes (U codes)
+            f'IF(AND(NOT({evidenced}),{timely_possible}),'
+            f'IF({settled}>{due},"U1",IF({due}<{AS_AT},"U2","U3")),'
             f'IF({settled}<{pay},'
             f'IF({settled}>={T("Earliest_prepay")},'
             f'IF({covers},"A1",IF({due}>={AS_AT},"A2",IF({later_gate},"A3","A4"))),'
@@ -342,7 +362,7 @@ def formulas():
             f'IF(AND({unc},{due}<{settled},{settled}<={poss}),'
             f'IF({covers},"B1",IF({AS_AT}<={poss},"B2","B3")),'
             f'IF(AND({horizon},{settled}>{due}),IF({covers},"C1","C2"),'
-            f'IF({settled}<={due},IF({covers},"D1",IF({later_gate},"D2",IF({due}<{AS_AT},"D3","D4"))),"E")))),'
+            f'IF({settled}<={due},IF({covers},"D1",IF({later_gate},"D2",IF({due}<{AS_AT},"D3","D4"))),"E"))))),'
             # without receipt
             f'IF(AND({remit}<>"",{sg}-{T("Credit")}<=0),'
             f'IF(AND({unc},{due}<{remit},{remit}<={poss}),"R1",'
@@ -361,15 +381,17 @@ def formulas():
         ),
         "Base_shortfall": f'=IF({exposed},MAX(ROUND({sg},2)-{T("OTRC")},0),"")',
         "Offset_s18D": (
-            f'=IF({exposed},IF(AND({settled}<>"",{T("Stale_prepay")}=0,{settled}>{due},'
+            f'=IF({exposed},IF(AND({settled}<>"",{T("Stale_prepay")}=0,{settled}>{due},{evidenced},'
             f'OR({ASSESS}="",{settled}<{ASSESS})),MIN({T("Receipt_credit")},{T("Base_shortfall")}),0),"")'
         ),
         "Final_shortfall": f'=IF({exposed},MAX({T("Base_shortfall")}-{T("Offset_s18D")},0),"")',
         "Lateness_basis": (
             f'=IF({exposed},IF(AND({settled}<>"",{T("Stale_prepay")}=0,{covers}),"fund receipt",'
+            f'IF(AND({settled}<>"",{T("Stale_prepay")}=0,NOT({evidenced})),'
+            f'"as-at date (fund receipt amount not evidenced)",'
             f'IF(AND({settled}<>"",{T("Stale_prepay")}=0),"as-at date (shortfall remains after part receipt)",'
             f'IF(AND(OR({settled}<>"",{remit}<>""),{T("Stale_prepay")}=0),"as-at date (no fund receipt recorded)",'
-            f'"as-at date (nothing applied to this payday)"))),"")'
+            f'"as-at date (nothing applied to this payday)")))),"")'
         ),
         "Outstanding_to": (
             f'=IF({exposed},IF(AND({settled}<>"",{T("Stale_prepay")}=0,{covers}),{settled},{AS_AT}),"")'

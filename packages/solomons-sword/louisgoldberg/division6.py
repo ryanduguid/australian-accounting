@@ -7,6 +7,10 @@ income of the trust estate. It does NOT model the Division 6E streaming
 carve-out, s 98(2A)/(3) non-resident trustee assessment, or s 99/99A trustee
 assessment, and refuses inputs that would engage them rather than returning a
 number the model cannot stand behind. Outputs are review aids, not advice.
+
+Each beneficiary's residency is a required input and their legal disability is
+tristate: the paths those 2 facts select are the refused ones, so neither is
+defaulted to the answer that routes past a refusal.
 """
 
 from dataclasses import dataclass, field, replace
@@ -17,8 +21,16 @@ from typing import List, Optional
 @dataclass(frozen=True)
 class BeneficiaryEntitlement:
     beneficiary_name: str
-    is_resident: bool = True
-    is_under_legal_disability: bool = False  # for example, minor (s 98) versus adult (s 97)
+    # Stated, never defaulted: s 98(2A) and s 98(3) assess the trustee for a
+    # non-resident beneficiary and this module refuses that case, so a default of
+    # True would route an unstated residency straight past the refusal.
+    is_resident: bool
+    # None where the operator has not established the fact. s 97 assesses the
+    # beneficiary and s 98 assesses the trustee on
+    # the beneficiary's behalf, so an unstated disability is refused rather than
+    # read as "no disability". For example, a minor is under one (s 98) and an
+    # adult ordinarily is not (s 97).
+    is_under_legal_disability: bool | None = None
     fixed_entitlement_amount: Optional[Decimal] = None
     percentage_entitlement: Optional[Decimal] = None
     specifically_streamed_capital_gains: Decimal = Decimal("0.00")
@@ -57,7 +69,8 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
 
     Refuses, rather than guesses, the cases this model does not implement:
     nil income of the trust estate, a s 95 net loss, no presently entitled
-    beneficiary, non-resident beneficiaries, specifically streamed capital gains
+    beneficiary, non-resident beneficiaries, a beneficiary whose legal
+    disability was not established, specifically streamed capital gains
     or franked dividends (Division 6E with Subdivisions 115-C and 207-B),
     entitlements outside the 0 to 100% range, and entitlements that do
     not reconcile exactly to the income of the trust estate.
@@ -90,6 +103,13 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
             raise ValueError(
                 f"{b.beneficiary_name} is a non-resident: the trustee is assessed "
                 "under s 98(2A) or s 98(3) ITAA 1936, which this module does not compute"
+            )
+        if b.is_under_legal_disability is None:
+            raise ValueError(
+                f"{b.beneficiary_name}: whether the beneficiary is under a legal "
+                "disability is not established. s 97 ITAA 1936 assesses the beneficiary "
+                "and s 98 assesses the trustee on the beneficiary's behalf, so the "
+                "assessed taxpayer is not known; state the fact as True or False"
             )
         if b.specifically_streamed_capital_gains > Decimal("0.00") or b.specifically_streamed_franked_dividends > Decimal("0.00"):
             raise ValueError(

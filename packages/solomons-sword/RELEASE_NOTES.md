@@ -1,3 +1,9 @@
+# Unreleased
+
+- Breaking input requirements: every Section 100A fact, both Division 6 beneficiary status facts and the 3 trust resolution deed facts are now stated as `True` or `False`, or reported as not established. `BeneficiaryEntitlement.is_resident` and `ForeignTrustReceipt.beneficiary_was_resident_during_year` have no default at all, so a construction that omits either raises `TypeError`; pass them explicitly. `beneficiary_was_resident_during_year` also moves ahead of the optional exemption amounts, so a call that passed 3 or more positional arguments to `ForeignTrustReceipt` needs updating. `is_under_legal_disability`, the Section 100A facts and the resolution facts default to `None`, which the engine refuses or reports rather than reading as `False`.
+- Migration: state the facts. `BeneficiaryEntitlement(name, is_resident=True, is_under_legal_disability=False, ...)` reproduces the old defaults where the operator has established them; a Section 100A call needs all 7 facts to reach `GREEN` or `OUTSIDE_GREEN`, and the command line gains a `--no-` form for each one; `validate_trust_resolution` now returns `bool | None`, where `None` means a deed fact was never established. Results for fully supplied inputs are unchanged.
+- Section 99B keeps its nil exemption defaults, which give the largest assessable amount, and the result carries one caveat naming every exemption amount that arrived as nil. The `s99b-check` command gains `--resident-during-year` and `--not-resident-during-year`, and a run that states neither is refused instead of assessed on an assumed residency.
+
 # v0.1.7
 
 - Foot the reported trust-income entitlement column to the income of the trust estate: the

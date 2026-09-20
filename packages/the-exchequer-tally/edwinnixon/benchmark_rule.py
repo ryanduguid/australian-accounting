@@ -1,12 +1,28 @@
 """
 Division 203 Benchmark Rule compliance under Sections 203-25 to 203-55 of the ITAA 1997.
-Ensures all frankable distributions within a franking period bear the same franking percentage.
+Tests whether all frankable distributions within a franking period bear the same
+franking percentage.
 """
 
 from dataclasses import dataclass, replace
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from typing import List, Optional, Tuple
+
+
+def _validated_rate(rate: Optional[Decimal], where: str) -> Decimal:
+    """Return a stated corporate tax rate, refusing a missing or out-of-range one."""
+    if rate is None:
+        raise ValueError(
+            f"{where}: corporate_tax_rate is required. The entity's corporate tax "
+            "rate is a fact to be supplied, not a base rate to be assumed"
+        )
+    if not (rate.is_finite() and Decimal("0.00") < rate < Decimal("1.00")):
+        raise ValueError(
+            f"{where}: corporate_tax_rate must be a finite fraction between 0 and 1, "
+            f"got {rate}"
+        )
+    return rate
 
 
 @dataclass(frozen=True)
@@ -17,7 +33,8 @@ class DistributionEvent:
     franking_credit: Decimal
     # None means the event states no rate of its own: BenchmarkRuleValidator.add_distribution
     # substitutes the validator's rate, so a 30% company is not scored at the base rate. A
-    # sentinel is needed because an explicit 0.25 is indistinguishable from the old default.
+    # sentinel is needed because an explicit 0.25 is indistinguishable from a default. An
+    # event still carrying the sentinel has no rate, so it refuses to measure itself.
     corporate_tax_rate: Optional[Decimal] = None
 
     def __post_init__(self) -> None:
@@ -25,18 +42,25 @@ class DistributionEvent:
             value = getattr(self, name)
             if not value.is_finite() or value < Decimal("0.00"):
                 raise ValueError(f"{name} must be a non-negative finite amount, got {value}")
-        rate = self.corporate_tax_rate
-        if rate is not None and not (rate.is_finite() and Decimal("0.00") < rate < Decimal("1.00")):
-            raise ValueError(
-                f"corporate_tax_rate must be a finite fraction between 0 and 1, got {rate}"
-            )
+        if self.corporate_tax_rate is not None:
+            _validated_rate(self.corporate_tax_rate, "DistributionEvent")
 
     @property
     def maximum_franking_credit(self) -> Decimal:
-        """Maximum credit for this distribution at this event's rate (s 202-60)."""
+        """
+        Maximum credit for this distribution at this event's rate (s 202-60).
+
+        An event with no stated rate is refused rather than measured at the base
+        rate: a 30% company's maximum credit is not the base rate entity's.
+        """
         if self.distribution_amount <= Decimal("0.00"):
             return Decimal("0.00")
-        rate = Decimal("0.25") if self.corporate_tax_rate is None else self.corporate_tax_rate
+        rate = _validated_rate(
+            self.corporate_tax_rate,
+            f"distribution to {self.recipient_name} on {self.event_date.isoformat()} "
+            "(state a rate on the event, or add it through "
+            "BenchmarkRuleValidator.add_distribution to take the validator's)",
+        )
         return self.distribution_amount * (rate / (Decimal("1.00") - rate))
 
     @property
@@ -73,10 +97,17 @@ class BenchmarkRuleViolation:
 
 class BenchmarkRuleValidator:
     """
-    Validates distributions across a franking period against the benchmark franking percentage (s 203-25).
+    Tests distributions across a franking period against the benchmark franking
+    percentage (s 203-25).
+
+    The entity's corporate tax rate is a required input. It sets the s 202-60
+    maximum credit every comparison is measured against, so a 30% company scored
+    at the base rate would read as under-franked on fully franked distributions.
     """
-    def __init__(self, corporate_tax_rate: Decimal = Decimal("0.25")):
-        self.corporate_tax_rate = corporate_tax_rate
+    def __init__(self, corporate_tax_rate: Decimal):
+        self.corporate_tax_rate = _validated_rate(
+            corporate_tax_rate, "BenchmarkRuleValidator"
+        )
         self.distributions: List[DistributionEvent] = []
 
     def add_distribution(self, event: DistributionEvent) -> None:
@@ -106,9 +137,16 @@ class BenchmarkRuleValidator:
                 return event.franking_percentage
         return None
 
-    def validate_distributions(self) -> Tuple[bool, List[BenchmarkRuleViolation]]:
+    def validate_distributions(self) -> Tuple[Optional[bool], List[BenchmarkRuleViolation]]:
         """
         Check all subsequent distributions against the established benchmark percentage.
+
+        Returns (True, []) where the rule is met, (False, violations) where it is
+        breached, and (None, []) where it was not tested because the period holds
+        no frankable distribution to set a benchmark, the same absence
+        `benchmark_percentage` reports. None is not a finding of compliance: a
+        period nothing was tested in cannot comply, and treating it as compliant
+        reports a passed test that never ran.
         """
         ordered = self._in_date_order()
         start = next(
@@ -116,7 +154,7 @@ class BenchmarkRuleValidator:
             None,
         )
         if start is None:
-            return True, []
+            return None, []
 
         benchmark = ordered[start]
         benchmark_pct = benchmark.franking_percentage
