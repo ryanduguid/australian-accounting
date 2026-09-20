@@ -553,6 +553,17 @@ def _assess_received(
                 result.caveats.append(item4_unknown)
             if past_horizon:
                 result.caveats.append(horizon_unknown)
+            if settled <= as_at:
+                # The two named outcomes assume the receipt was in full. A
+                # partial receipt inside a deadline that turns out to be
+                # extended leaves the remainder UNPAID once that deadline has
+                # passed, so the audit trail names the third outcome too.
+                result.caveats.append(
+                    "because the receipt amount is not evidenced, UNPAID is also "
+                    "possible: that is the outcome if the receipt covered only part "
+                    "of the SG amount and the actual deadline falls on or after the "
+                    "receipt date but on or before the as-at date"
+                )
         return on_time_receipt_credit, stale_prepayment, True
     if settled < line.qe_day:
         # Pre-payments count only inside the 12-month window ending

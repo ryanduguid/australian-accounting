@@ -138,6 +138,9 @@ def test_a_receipt_after_the_due_date_with_a_possible_item4_extension_stays_unkn
     assert second.horizon_verdicts == (LATE, ON_TIME)
     assert any(NO_AMOUNT in c for c in second.caveats)
     assert any("item 4" in c for c in second.caveats)
+    # A partial receipt inside an extended deadline that has since passed
+    # leaves the remainder UNPAID, so the trail names that third outcome.
+    assert any("UNPAID is also possible" in c for c in second.caveats)
 
 
 def test_contradictory_amounts_are_still_refused():
