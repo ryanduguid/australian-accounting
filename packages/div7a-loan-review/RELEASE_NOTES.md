@@ -1,3 +1,8 @@
+# v0.1.4
+
+- Name the primary source behind every benchmark rate: each rate-table manifest now carries `primary_url`, the RBA F5 historical workbook it was read from, `retrieved_on`, the date that workbook was downloaded, and `snapshot_sha256`, the digest of those bytes. `verify_at` stays a convenience link for a human rather than the source of the figure, and an operator's override carries no such claim. A table whose rows do not all make the same claim names none, instead of attributing every row to the last one read.
+- Record the read that produced those columns in `docs/primary-source-review-2026-09-20.md`, which checked all 8 reviewed years against the RBA workbook. No rate value changed.
+
 # v0.1.3
 
 - Name the rate table behind every figure: each JSON result carries a `manifest` whose `rate_table_uris` list the frozen benchmark table with its SHA-256, produced by the lookup that read it, and any reviewed override as `override:<file name>`. An `UNKNOWN` rate still names the table it was looked for in.

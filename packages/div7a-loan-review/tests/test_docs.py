@@ -237,8 +237,8 @@ def test_current_release_metadata_points_to_the_canonical_monorepo():
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
     notes = Path("RELEASE_NOTES.md").read_text(encoding="utf-8")
 
-    assert __version__ == "0.1.3"
-    assert notes.startswith("# v0.1.3\n")
+    assert __version__ == "0.1.4"
+    assert notes.startswith("# v0.1.4\n")
     assert "https://github.com/ryanduguid/australian-accounting" in citation
     assert "https://github.com/ryanduguid/australian-accounting" in pyproject
     # Keep the README citation on the last published release until publication.
