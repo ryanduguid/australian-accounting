@@ -51,16 +51,18 @@ class DistributionEvent:
         Maximum credit for this distribution at this event's rate (s 202-60).
 
         An event with no stated rate is refused rather than measured at the base
-        rate: a 30% company's maximum credit is not the base rate entity's.
+        rate: a 30% company's maximum credit is not the base rate entity's. The
+        rate is checked before the nil-distribution shortcut, so a nil amount
+        does not excuse the missing fact.
         """
-        if self.distribution_amount <= Decimal("0.00"):
-            return Decimal("0.00")
         rate = _validated_rate(
             self.corporate_tax_rate,
             f"distribution to {self.recipient_name} on {self.event_date.isoformat()} "
             "(state a rate on the event, or add it through "
             "BenchmarkRuleValidator.add_distribution to take the validator's)",
         )
+        if self.distribution_amount <= Decimal("0.00"):
+            return Decimal("0.00")
         return self.distribution_amount * (rate / (Decimal("1.00") - rate))
 
     @property

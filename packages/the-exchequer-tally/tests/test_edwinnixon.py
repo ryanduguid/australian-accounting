@@ -841,6 +841,29 @@ def test_distribution_event_without_a_rate_refuses_to_measure_itself():
     assert validator.benchmark_percentage == Decimal("77.78")
 
 
+def test_nil_distribution_does_not_excuse_a_missing_rate():
+    # A nil amount has no maximum credit at any rate, but the rate is still the
+    # fact that has to be stated: the shortcut must not become a way past it.
+    nil_without_rate = DistributionEvent(
+        event_date=date(2025, 1, 15),
+        recipient_name="Nil",
+        distribution_amount=Decimal("0.00"),
+        franking_credit=Decimal("0.00"),
+    )
+    with pytest.raises(ValueError, match="corporate_tax_rate is required"):
+        _ = nil_without_rate.maximum_franking_credit
+
+    nil_with_rate = DistributionEvent(
+        event_date=date(2025, 1, 15),
+        recipient_name="Nil",
+        distribution_amount=Decimal("0.00"),
+        franking_credit=Decimal("0.00"),
+        corporate_tax_rate=Decimal("0.30"),
+    )
+    assert nil_with_rate.maximum_franking_credit == Decimal("0.00")
+    assert nil_with_rate.franking_percentage == Decimal("0.00")
+
+
 def test_statement_requires_a_corporate_tax_rate():
     with pytest.raises(TypeError, match="corporate_tax_rate"):
         generate_distribution_statement(  # type: ignore[call-arg]
