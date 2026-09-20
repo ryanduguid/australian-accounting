@@ -223,3 +223,24 @@ def test_evidence_pack_carries_the_missing_amount_caveat(tmp_path, capsys):
     assert "ON_TIME" not in report.split("\n")[1].split(",")[:12] or "UNKNOWN" in report
     review = (pack / "practitioner-review.md").read_text(encoding="utf-8")
     assert "UNKNOWN" in review
+
+
+def test_a_bare_receipt_after_a_past_horizon_deadline_keeps_the_horizon_caveat():
+    """Past the calendar's coverage the proved deadline can only move later, so
+    a receipt after it might still be on time. With no amount stated the row
+    sits between LATE and ON_TIME and carries the horizon caveat as well as
+    the missing-amount one."""
+    bare = line(
+        employee_id="E9",
+        qe_day=date(2029, 3, 1),
+        sg_amount=Decimal("500.00"),
+        received=date(2029, 3, 14),
+        row=2,
+    )
+    result = one(bare, as_at=date(2029, 4, 1))
+    assert result.deadline.due < date(2029, 3, 14)
+    assert result.verdict == UNKNOWN
+    assert result.horizon_verdicts == (LATE, ON_TIME)
+    assert any("left unassessed" in c for c in result.caveats)
+    assert any(NO_AMOUNT in c for c in result.caveats)
+    assert any("UNPAID is also possible" in c for c in result.caveats)
