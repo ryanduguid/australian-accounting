@@ -19,7 +19,9 @@ refusal; there is no tool that returns a bare number.
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import Field
 
 from . import __version__
 from .client import LodgeitClient
@@ -88,7 +90,7 @@ def build_server(config: AdapterConfig | None = None, contract_name: str = "lodg
         calculator_uri: str,
         period_uri: str,
         request_json: str,
-        network_acknowledged: bool,
+        network_acknowledged: Annotated[bool, Field(strict=True)],
     ) -> str:
         """Invoke one calculator for one period with a JSON body.
 
