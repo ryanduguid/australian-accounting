@@ -37,7 +37,7 @@ Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written
 
 No-install explainer: [When is payday super actually due](https://duguid.com.au/tools/payday-super/). From an AI coding agent, run the same engine through [aus-accounting-mcp](https://duguid.com.au/tools/australian-tax-ai-agents/).
 
-Citation: [`CITATION.cff`](CITATION.cff); release: [`v0.1.4`](https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.1.4).
+Citation: [`CITATION.cff`](CITATION.cff). In-repo version: `0.1.7`; see [release notes](RELEASE_NOTES.md).
 
 ## Try one contribution without cloning
 
@@ -218,7 +218,7 @@ does not turn `AT_RISK` into `ON_TIME`, because paying on time is not the
 statutory test. Fill `fund_received_date` from your clearing house or fund and
 rerun before treating any verdict here as final.
 
-### A receipt date needs an amount (unreleased)
+### A receipt date needs an amount
 
 A `fund_received_date` says when the fund received something. It does not
 say how much. On a row with neither `matched_amount` nor `remitted_amount`
@@ -238,10 +238,10 @@ the as-at date as a maximum. Files written by `import` already carry
 `matched_amount`. For a hand-built file, add the `remitted_amount` and
 `matched_amount` columns and fill `matched_amount` with the amount the fund
 received on each row that has a `fund_received_date`, as the shipped
-examples do. Released versions (0.1.6 and earlier) read such a row as a
+examples do. Versions 0.1.6 and earlier read such a row as a
 receipt of the whole `sg_amount` and say so in a caveat.
 
-### Build an evidence pack in one command (unreleased)
+### Build an evidence pack in one command
 
 From the monorepo root, change into the component and run:
 
@@ -382,7 +382,7 @@ Required: `employee_id`, `payment_date`, `sg_amount`. Everything else is optiona
 | `remitted` | `remitted_date` | Day you sent the money |
 | `remitted_amount` | `remitted_amount` | Amount covered by `remitted_date`. Blank on a dated row means the whole `sg_amount` was remitted (the operational reading that 9-column files rely on); a value requires `remitted_date` and cannot exceed `sg_amount`. This records operational remittance only. It does not reduce a statutory shortfall without an eligible fund receipt |
 | `matched_amount` | `matched_amount` | Total contribution amount associated with this payday, capped at `sg_amount`. The importer writes an explicit amount even when the vendor supplied no payment date: zero for no match, the partial amount for a short match, and the liability for a full or over match. It is not proof of remittance or fund receipt. When you add `fund_received_date`, it is the amount that date can evidence, and a receipt date with neither this column nor `remitted_amount` evidences no amount at all. If it is below `sg_amount` and `remitted_date` is present, `remitted_amount` is required |
-| `received` | `fund_received_date` | Day the fund received the eligible contribution associated with this QE day. Receipt is necessary for an on-time result; the row association also asserts the contribution was allocable and applied to this QE day under the statutory ordering. The date fixes timing only. The amount it evidences is `matched_amount`, then `remitted_amount` for older 10-column partial files; a row with neither amount is left `UNKNOWN` rather than `ON_TIME` (unreleased; released versions read it as the whole `sg_amount`) |
+| `received` | `fund_received_date` | Day the fund received the eligible contribution associated with this QE day. Receipt is necessary for an on-time result; the row association also asserts the contribution was allocable and applied to this QE day under the statutory ordering. The date fixes timing only. The amount it evidences is `matched_amount`, then `remitted_amount` for older 10-column partial files; a row with neither amount is left `UNKNOWN` rather than `ON_TIME` (versions 0.1.6 and earlier read it as the whole `sg_amount`) |
 | `join_caveats` | `join_caveats` | Optional, appended last. The importer writes the join's structural warnings here, joined with `"\|"`, so they travel with the file into the report's caveats column and the evidence pack instead of living only in the console. Blank on a clean join; absent on canonical files from before 0.1.5 |
 | `first_to_fund` | `first_contribution_to_fund` | Yes for the first contribution to that fund (new starter, or a fund switch) |
 | `out_of_cycle` | `out_of_cycle` | Yes only for an allowance, bonus, commission, loading, payment in advance or back payment made outside an established payment timing, pattern or schedule, where the statutory next-standard-payment conditions are met |
