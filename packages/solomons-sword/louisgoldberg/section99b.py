@@ -107,6 +107,7 @@ def evaluate_section99b_liability(receipt: ForeignTrustReceipt) -> Section99BAss
             ("corpus_amount_aud", receipt.corpus_amount_aud),
             ("not_assessable_to_resident_aud", receipt.not_assessable_to_resident_aud),
             ("already_assessed_under_div6_aud", receipt.already_assessed_under_div6_aud),
+            ("corpus_attributable_to_notional_assessable_income_aud", attributable),
         )
         if value == Decimal("0.00")
     ]
