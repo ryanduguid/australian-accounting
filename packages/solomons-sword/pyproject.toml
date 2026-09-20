@@ -49,6 +49,7 @@ dev = [
     "coverage==7.16.0",
     "pytest-cov==7.1.0",
     "build==1.6.1",
+    "hypothesis==6.167.1",
 ]
 
 [project.scripts]

@@ -2442,6 +2442,7 @@ source = { editable = "packages/solomons-sword" }
 dev = [
     { name = "build" },
     { name = "coverage" },
+    { name = "hypothesis" },
     { name = "mypy" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -2452,6 +2453,7 @@ dev = [
 requires-dist = [
     { name = "build", marker = "extra == 'dev'", specifier = "==1.6.1" },
     { name = "coverage", marker = "extra == 'dev'", specifier = "==7.16.0" },
+    { name = "hypothesis", marker = "extra == 'dev'", specifier = "==6.167.1" },
     { name = "mypy", marker = "extra == 'dev'", specifier = "==2.3.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = "==7.1.0" },
