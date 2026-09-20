@@ -120,7 +120,11 @@ def test_lcr_2026_d3_accrual_boundary(gic):
     notional earnings begin accruing on 19 Jun 2027, not before."""
     due = date(2027, 6, 18)
     assert notional_earnings(Decimal("1000"), due, due, gic) == Decimal("0")
-    assert notional_earnings(Decimal("1000"), due, date(2027, 6, 19), gic) > Decimal("0")
+    # 19 Jun 2027 is past the last published quarter, so the accrual is an
+    # estimate this test asks for explicitly.
+    assert notional_earnings(
+        Decimal("1000"), due, date(2027, 6, 19), gic, allow_stale=True
+    ) > Decimal("0")
 
 
 def test_daily_rate_uses_366_in_a_leap_year():
@@ -136,10 +140,17 @@ def test_daily_rate_before_the_table_raises():
         table.daily_rate(date(2026, 6, 1))
 
 
-def test_daily_rate_past_the_table_falls_back_with_a_warning():
+def test_daily_rate_past_the_table_is_refused_unless_the_caller_asks():
+    """A warning beside an estimate put an unpublished rate into the SG-charge
+    figures on the strength of a caveat the reader had to notice."""
     table = GicTable([GicQuarter(date(2026, 7, 1), date(2026, 9, 30), Decimal("11.43"))])
     beyond = date(2026, 12, 1)
-    assert table.daily_rate(beyond) == Decimal("11.43") / 100 / 365
+    with pytest.raises(RatesError, match="past the last GIC quarter"):
+        table.daily_rate(beyond)
+    assert (
+        table.daily_rate(beyond, allow_stale=True)
+        == Decimal("11.43") / 100 / 365
+    )
     assert "11.43" in table.staleness(beyond)
     assert table.staleness(date(2026, 9, 30)) is None
 

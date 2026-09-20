@@ -51,6 +51,10 @@ EXPOSURE_FIELDS = (
     "sgc_estimate_low",
     "sgc_estimate_high",
 )
+#: The SG charge estimate, as distinct from the shortfall beside it. These 5
+#: stand or fall together: an exposed row whose notional earnings period ran
+#: past the published GIC quarters reports its shortfall and none of these.
+CHARGE_FIELDS = EXPOSURE_FIELDS[1:]
 
 
 class PractitionerPackError(ValueError):
@@ -196,29 +200,41 @@ def _parse_data_row(values: list[str], seen_rows: set[int]) -> ReportRow:
 
     exposure = [amounts[field] for field in EXPOSURE_FIELDS]
     if verdict in {"LATE", "UNPAID"}:
-        if any(value is None for value in exposure):
+        shortfall = amounts["final_shortfall"]
+        if shortfall is None:
             raise PractitionerPackError(
-                f"source row {source_row} exposed verdict has incomplete exposure amounts"
+                f"source row {source_row} exposed verdict has no final shortfall"
             )
-        shortfall, nec, uplift_low, uplift_high, estimate_low, estimate_high = exposure
-        assert shortfall is not None
-        assert nec is not None
-        assert uplift_low is not None
-        assert uplift_high is not None
-        assert estimate_low is not None
-        assert estimate_high is not None
-        if estimate_low != shortfall + nec + uplift_low:
-            raise PractitionerPackError(
-                f"source row {source_row} low SG-charge estimate does not add up"
-            )
-        if estimate_high != shortfall + nec + uplift_high:
-            raise PractitionerPackError(
-                f"source row {source_row} high SG-charge estimate does not add up"
-            )
-        if uplift_low > uplift_high or estimate_low > estimate_high:
-            raise PractitionerPackError(
-                f"source row {source_row} exposure range is reversed"
-            )
+        charge = [amounts[field] for field in CHARGE_FIELDS]
+        if any(value is None for value in charge):
+            # All 5 absent together is the one supported shape: the checker
+            # withholds the charge estimate where the notional earnings period
+            # reached past the published GIC quarters, and the row's own caveat
+            # says so. A partial set is a report this pack cannot trust.
+            if any(value is not None for value in charge):
+                raise PractitionerPackError(
+                    f"source row {source_row} exposed verdict has incomplete "
+                    "exposure amounts"
+                )
+        else:
+            nec, uplift_low, uplift_high, estimate_low, estimate_high = charge
+            assert nec is not None
+            assert uplift_low is not None
+            assert uplift_high is not None
+            assert estimate_low is not None
+            assert estimate_high is not None
+            if estimate_low != shortfall + nec + uplift_low:
+                raise PractitionerPackError(
+                    f"source row {source_row} low SG-charge estimate does not add up"
+                )
+            if estimate_high != shortfall + nec + uplift_high:
+                raise PractitionerPackError(
+                    f"source row {source_row} high SG-charge estimate does not add up"
+                )
+            if uplift_low > uplift_high or estimate_low > estimate_high:
+                raise PractitionerPackError(
+                    f"source row {source_row} exposure range is reversed"
+                )
     elif any(value is not None for value in exposure):
         raise PractitionerPackError(
             f"source row {source_row} non-exposed verdict carries exposure amounts"

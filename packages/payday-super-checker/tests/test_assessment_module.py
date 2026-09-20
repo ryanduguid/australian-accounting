@@ -20,6 +20,9 @@ def test_report_route_preserves_the_representative_result_object() -> None:
         qe_day=date(2026, 8, 6),
         sg_amount=Decimal("100"),
         received=date(2026, 8, 10),
+        # Explicit, so the row earns no blank-amount caveat and the
+        # comparison below stays about the object the seam hands back.
+        matched_amount=Decimal("100"),
         row=7,
     )
 

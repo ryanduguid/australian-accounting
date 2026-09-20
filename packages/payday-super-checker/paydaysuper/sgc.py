@@ -45,7 +45,7 @@ UPLIFT_PCT = {
 
 
 def notional_earnings(
-    shortfall: Decimal, due: date, end: date, gic: GicTable
+    shortfall: Decimal, due: date, end: date, gic: GicTable, *, allow_stale: bool = False
 ) -> Decimal:
     """NEC accrued over [due + 1 day, end] inclusive.
 
@@ -54,13 +54,15 @@ def notional_earnings(
     `shortfall` is the BASE shortfall: the statutory notional sum
     compounds on it until the final shortfall reaches nil, so a partial
     late payment does not slow the accrual.
-    Each day's accrual = (shortfall + NEC so far) x daily GIC rate."""
+    Each day's accrual = (shortfall + NEC so far) x daily GIC rate.
+    `allow_stale` is passed through to the GIC table: without it, a period
+    reaching past the last published quarter raises rather than estimating."""
     if shortfall < 0:
         raise ValueError("shortfall cannot be negative")
     nec = Decimal("0")
     d = due + timedelta(days=1)
     while d <= end:
-        nec += (shortfall + nec) * gic.daily_rate(d)
+        nec += (shortfall + nec) * gic.daily_rate(d, allow_stale=allow_stale)
         d += timedelta(days=1)
     return nec
 

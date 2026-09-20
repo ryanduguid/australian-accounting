@@ -7,7 +7,7 @@ accountants and bookkeepers, and the developers who build tooling for them.
 
 Each tool returns a calculation, the facts it used and the matters it refuses to
 decide. Everything runs locally: the tools read files you point them at, contact no
-service, write to no ledger and lodge nothing. Missing facts stay unknown except where a tool documents a default or legacy convention (for example Payday Super receipt amounts that omit matched_amount / remitted_amount); supply an explicit amount for partial payday contributions. A person reviews every output before it is relied on.
+service, write to no ledger and lodge nothing. Missing facts stay unknown, and where a tool still applies a legacy convention it says so on the row it applied it to: a Payday Super row with a fund-receipt date but no matched_amount or remitted_amount reads the receipt as covering the whole SG amount, and carries a caveat naming that fill. Supply an explicit amount for partial payday contributions. A person reviews every output before it is relied on.
 
 **Start here:** [what each component is](#components) ·
 [MCP client setup](apps/aus-accounting-mcp/README.md#client-integration) ·

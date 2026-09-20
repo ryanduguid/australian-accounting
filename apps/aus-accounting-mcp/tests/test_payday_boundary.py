@@ -130,3 +130,27 @@ def test_a_missing_fund_receipt_has_more_than_one_verdict(remitted, verdict):
     assert assessment["due"] == "2026-08-12"
     assert assessment["received"] is None
     assert assessment["verdict"] == verdict != "ON_TIME"
+
+
+def test_a_period_past_the_gic_table_keeps_the_verdict_and_drops_the_estimate():
+    """The MCP has no --allow-stale-gic, so a notional-earnings period reaching
+    past the last published GIC quarter never carries an extrapolated figure.
+    It is also not a refusal: the verdict, the days late and the shortfall rest
+    on the deadline and the receipt facts, which the GIC table has no part in.
+    """
+    from paydaysuper.rates import load_gic
+
+    assessment = asyncio.run(mcp.call_tool("calc_payday_super_deadline", {
+        **PAYDAY, "received": None,
+    })).structured_content["result"]
+
+    assert assessment["verdict"] == "UNPAID"
+    assert assessment["days_late"] is not None
+    assert assessment["final_shortfall"] == "120.00"
+    for field in (
+        "notional_earnings", "experimental_sgc_low", "experimental_sgc_high", "uplift",
+    ):
+        assert assessment[field] is None, field
+
+    caveat = next(c for c in assessment["caveats"] if "not assessed for this row" in c)
+    assert load_gic().last_known.isoformat() in caveat

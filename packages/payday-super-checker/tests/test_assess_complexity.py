@@ -171,6 +171,10 @@ def test_exposure_phase_keeps_horizon_and_new_starter_boundaries() -> None:
         _facts(settled=None, receipt_credit=Decimal("0"), past_horizon=True),
         Decimal("0"),
         False,
+        # Both as-at dates are past the last published GIC quarter, so
+        # neither row carries a charge estimate. The boundaries under test
+        # are the horizon and new-starter ones, which do not read a rate.
+        False,
     )
     assert result.days_late is None
     assert "calendar figures" in result.caveats
@@ -191,6 +195,10 @@ def test_exposure_phase_keeps_horizon_and_new_starter_boundaries() -> None:
             receipt_covers_all=True,
         ),
         Decimal("0"),
+        False,
+        # Both as-at dates are past the last published GIC quarter, so
+        # neither row carries a charge estimate. The boundaries under test
+        # are the horizon and new-starter ones, which do not read a rate.
         False,
     )
     assert not any("first_contribution_to_fund" in value for value in result.caveats)

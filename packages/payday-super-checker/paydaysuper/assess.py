@@ -25,7 +25,7 @@ from .deadlines import (
     earliest_prepayment_day,
     receipt_amount_cap,
 )
-from .rates import GicTable
+from .rates import GicTable, RatesError
 from .sgc import exposure_range, notional_earnings, uplift_scenarios
 
 TRANSITION_END = date(2026, 7, 28)
@@ -211,6 +211,7 @@ def assess(
     assessment_date: date | None = None,
     *,
     transition_allocation_confirmed: bool = False,
+    allow_stale_gic: bool = False,
 ) -> list[Result]:
     """Assess each contribution line.
 
@@ -290,7 +291,16 @@ def assess(
     results: list[Result] = []
     for line, dl in pairs:
         results.append(
-            _assess_line(line, dl, cal, gic, as_at, assessment_date, transition_row_ids)
+            _assess_line(
+                line,
+                dl,
+                cal,
+                gic,
+                as_at,
+                assessment_date,
+                transition_row_ids,
+                allow_stale_gic,
+            )
         )
 
     return results
@@ -364,6 +374,23 @@ def _assessment_facts(
     fully_remitted = operational_unremitted == 0
     receipt_credit = _received_credit(line, settled)
     receipt_covers_all = receipt_credit >= cents(line.sg_amount)
+    if (
+        settled is not None
+        and line.matched_amount is None
+        and line.remitted_amount is None
+        and line.sg_amount > 0
+    ):
+        # A blank amount column and an absent amount column read the same way
+        # here: ContribLine does not record which columns the file carried, so
+        # this cannot refuse the one and honour the other. Name the fill on the
+        # row instead, because the whole-liability reading is what lets a
+        # receipt date alone reach ON_TIME.
+        result.caveats.append(
+            "no matched_amount or remitted_amount on this row, so the fund-receipt "
+            f"date is read as evidencing the whole ${money(line.sg_amount)} SG amount, "
+            "which is the legacy convention for a row that carries neither amount. If "
+            "the receipt covered only part of this payday, supply matched_amount"
+        )
     if credit > 0 and operational_unremitted > 0:
         result.notes.append(
             f"part-paid: ${money(credit)} of ${money(line.sg_amount)} is evidenced "
@@ -746,6 +773,7 @@ def _apply_exposure(
     facts: _AssessmentFacts,
     on_time_receipt_credit: Decimal,
     stale_prepayment: bool,
+    allow_stale_gic: bool,
 ) -> None:
     assert dl.due is not None
     settled = facts.settled
@@ -856,19 +884,34 @@ def _apply_exposure(
     )
     if past_horizon:
         result.caveats.append(horizon_figures)
-    result.nec = (
-        notional_earnings(base_shortfall, dl.due, nec_end, gic)
-        if nec_end > dl.due
-        else Decimal("0")
-    )
 
     result.offset_s18d = offset
     result.base_shortfall = base_shortfall
     result.final_shortfall = final_shortfall
-    result.uplift = uplift_scenarios(result.final_shortfall, result.nec)
-    result.sgc_low, result.sgc_high = exposure_range(
-        result.final_shortfall, result.nec
-    )
+    try:
+        result.nec = (
+            notional_earnings(
+                base_shortfall, dl.due, nec_end, gic, allow_stale=allow_stale_gic
+            )
+            if nec_end > dl.due
+            else Decimal("0")
+        )
+    except RatesError as exc:
+        # The same rule as a deadline past the calendar's coverage, one row
+        # above: the verdict and the shortfall rest on the deadline and the
+        # receipt facts, and the GIC table has no part in either, so they
+        # stand. Only the figures that compound a rate are withheld, and the
+        # caveat says which and why. Refusing the whole row instead would
+        # discard a shortfall this run established.
+        result.caveats.append(
+            "notional earnings and the SG charge estimate are not assessed for this "
+            f"row: {exc}"
+        )
+    else:
+        result.uplift = uplift_scenarios(result.final_shortfall, result.nec)
+        result.sgc_low, result.sgc_high = exposure_range(
+            result.final_shortfall, result.nec
+        )
 
     # A missed new-starter flag is the most likely reason a line is
     # wrongly late, and the operator cannot tell which rows to check.
@@ -906,7 +949,11 @@ def _apply_exposure(
                 f"(due {extended.isoformat()})"
             )
 
-    stale = gic.staleness(nec_end)
+    # Only where the estimate was actually produced from the carried-forward
+    # rate. On a row that withheld the estimate, saying those days "use the last
+    # known rate" would contradict the caveat above, which says they were not
+    # used at all.
+    stale = gic.staleness(nec_end) if result.nec is not None else None
     if stale:
         result.caveats.append(stale)
 
@@ -919,6 +966,7 @@ def _assess_line(
     as_at: date,
     assessment_date: date | None,
     transition_row_ids: set[int],
+    allow_stale_gic: bool = False,
 ) -> Result:
     """Verdict, caveats and exposure figures for one contribution line.
 
@@ -986,5 +1034,6 @@ def _assess_line(
             facts,
             on_time_receipt_credit,
             stale_prepayment,
+            allow_stale_gic,
         )
     return result
