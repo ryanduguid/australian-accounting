@@ -380,6 +380,27 @@ def test_a_row_past_the_table_keeps_its_verdict_and_loses_only_the_estimate():
     assert not any("not assessed for this row" in c for c in estimated.caveats)
 
 
+def test_a_table_that_starts_after_the_period_still_fails_the_run():
+    """Only a day past the last recorded quarter is the operator's call to
+    estimate. A table with no rate for an earlier day is a broken table, and
+    withholding the estimate quietly would report a shortfall with no charge
+    and no error where the run used to stop."""
+    from paydaysuper.assess import assess
+    from paydaysuper.calendar import load_calendar
+    from paydaysuper.deadlines import ContribLine
+    from paydaysuper.rates import GicQuarter, GicTable, StaleGicError
+
+    late_start = GicTable(
+        [GicQuarter(date(2027, 1, 1), date(2027, 3, 31), Decimal("11.17"))]
+    )
+    line = ContribLine("E1", date(2026, 8, 3), Decimal("600.00"), row=2)
+
+    with pytest.raises(RatesError) as info:
+        assess([line], load_calendar(), late_start, date(2027, 2, 1))
+    assert "no GIC rate on record" in str(info.value)
+    assert not isinstance(info.value, StaleGicError)
+
+
 def test_a_period_inside_the_table_is_unaffected():
     """The other side of the boundary, so the pair pins the condition rather
     than only its effect."""

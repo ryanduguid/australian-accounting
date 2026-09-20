@@ -67,6 +67,15 @@ class RatesError(ValueError):
     pass
 
 
+class StaleGicError(RatesError):
+    """A day past the last recorded quarter, asked for without --allow-stale-gic.
+
+    Kept apart from every other RatesError so the assessment can withhold the
+    rate-dependent estimate for that one case, and let a table that does not
+    cover an earlier day, or cannot be read, fail the run as it always did.
+    """
+
+
 # A GIC rate above this is a typo, not a rate. The ATO general interest charge
 # is a base rate plus 7 points and has never approached 100% a year, so the
 # ceiling costs nothing real and catches the 2 hand-edit slips that print
@@ -126,7 +135,7 @@ class GicTable:
                 return q.annual_pct / Decimal(100) / divisor
         if d > self.last_known:
             if not allow_stale:
-                raise RatesError(
+                raise StaleGicError(
                     f"{d.isoformat()} is past the last GIC quarter on record "
                     f"({self.last_known.isoformat()}), and the ATO has published no "
                     "rate for it. Update paydaysuper/data/gic_rates.json from the ATO "

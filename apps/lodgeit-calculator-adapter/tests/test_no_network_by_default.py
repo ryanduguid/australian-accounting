@@ -180,10 +180,21 @@ def test_the_mcp_invoke_tool_needs_a_per_call_network_acknowledgement(monkeypatc
     assert any("network_acknowledged" in finding for finding in payload["findings"])
 
 
-@pytest.mark.parametrize("supplied", [{}, {"network_acknowledged": None}])
-def test_an_absent_or_null_acknowledgement_never_reaches_the_client(monkeypatch, supplied):
-    """Omitting the argument is a schema error rather than a default, so a
-    caller cannot reach the calculator by leaving the question out."""
+@pytest.mark.parametrize(
+    "supplied",
+    [
+        {},
+        {"network_acknowledged": None},
+        {"network_acknowledged": 1},
+        {"network_acknowledged": "true"},
+    ],
+    ids=["absent", "null", "integer", "string"],
+)
+def test_a_loose_acknowledgement_never_reaches_the_client(monkeypatch, supplied):
+    """Omitting the argument is a schema error rather than a default, and the
+    schema is strict, so 1 or "true", which ordinary validation would coerce
+    to True, fail the same way. A caller cannot reach the calculator by
+    leaving the question out or answering it loosely."""
     ToolError = pytest.importorskip("mcp.server.mcpserver.exceptions").ToolError
 
     with pytest.raises(ToolError, match="network_acknowledged"):

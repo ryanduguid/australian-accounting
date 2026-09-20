@@ -56,7 +56,7 @@ jobs:
           version: "0.12.0"
           enable-cache: true
       - name: run tests with branch coverage
-        run: uv run --locked --extra dev pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing
+        run: uv run --locked --extra dev --extra mcp pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing
         working-directory: apps/lodgeit-calculator-adapter
         env:
           UV_PYTHON: ${{ matrix.python }}

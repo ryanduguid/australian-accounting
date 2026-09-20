@@ -25,7 +25,7 @@ from .deadlines import (
     earliest_prepayment_day,
     receipt_amount_cap,
 )
-from .rates import GicTable, RatesError
+from .rates import GicTable, StaleGicError
 from .sgc import exposure_range, notional_earnings, uplift_scenarios
 
 TRANSITION_END = date(2026, 7, 28)
@@ -896,13 +896,15 @@ def _apply_exposure(
             if nec_end > dl.due
             else Decimal("0")
         )
-    except RatesError as exc:
+    except StaleGicError as exc:
         # The same rule as a deadline past the calendar's coverage, one row
         # above: the verdict and the shortfall rest on the deadline and the
         # receipt facts, and the GIC table has no part in either, so they
         # stand. Only the figures that compound a rate are withheld, and the
         # caveat says which and why. Refusing the whole row instead would
-        # discard a shortfall this run established.
+        # discard a shortfall this run established. Only that one condition
+        # is caught: a table with no rate for an earlier day, or one that
+        # cannot be read, is still a RatesError that fails the run.
         result.caveats.append(
             "notional earnings and the SG charge estimate are not assessed for this "
             f"row: {exc}"

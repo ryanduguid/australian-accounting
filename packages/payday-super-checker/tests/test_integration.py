@@ -1252,6 +1252,32 @@ def test_an_unreadable_cap_figure_names_the_year_and_the_value():
     assert "about $270k" in text
 
 
+def test_a_later_year_missing_from_the_cap_table_is_named_too():
+    """A file spanning two years used to look the cap up for the first year
+    only, so a later year absent from rates.json was never named. Each year
+    now gets its own figure or its own repair line."""
+    later = ContribLine(
+        employee_id="E9",
+        qe_day=date(2027, 9, 1),
+        sg_amount=Decimal("100.00"),
+        row=2,
+    )
+    both = [
+        *run_fixture(),
+        *assess([later], load_calendar(), load_gic(), date(2027, 10, 1)),
+    ]
+    text = console_summary(
+        both,
+        date(2027, 10, 1),
+        "report.csv",
+        "2026-08-02",
+        {"financial_years": {"2026-27": {"max_contributions_base": "270830"}}},
+    )
+    assert "$270,830 for 2026-27" in text
+    assert "not on record for 2027-28" in text
+    assert "spans" not in text
+
+
 def test_financial_year_rolls_over_on_1_july():
     """The 30 June / 1 July boundary itself. Every other test in this area
     uses July and September paydays, which land in the same financial year

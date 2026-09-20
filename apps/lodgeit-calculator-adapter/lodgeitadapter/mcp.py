@@ -19,7 +19,9 @@ refusal; there is no tool that returns a bare number.
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import Field
 
 from . import __version__
 from .client import LodgeitClient
@@ -88,7 +90,7 @@ def build_server(config: AdapterConfig | None = None, contract_name: str = "lodg
         calculator_uri: str,
         period_uri: str,
         request_json: str,
-        network_acknowledged: bool,
+        network_acknowledged: Annotated[bool, Field(strict=True)],
     ) -> str:
         """Invoke one calculator for one period with a JSON body.
 
@@ -100,7 +102,9 @@ def build_server(config: AdapterConfig | None = None, contract_name: str = "lodg
         third party is taken once per call there. Starting this server with
         remote access on would otherwise take it once for the whole session,
         and every later tool call would egress on the strength of how the
-        process was launched.
+        process was launched. Only the JSON boolean true answers it: the
+        schema is strict, so a coercible 1 or "true" fails validation before
+        this body runs, and false is refused here.
         """
         from .cli import _decimalise, load_body  # noqa: PLC0415
 
