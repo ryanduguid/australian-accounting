@@ -97,7 +97,9 @@ def compute(totals: dict[str, Decimal], w1: Decimal | None = None) -> Figures:
     reporting the fill as a figure.
     """
     amounts = {bucket: Decimal(totals.get(bucket, 0)) for bucket in BUCKETS}
-    supplied_fields = frozenset(name for name in totals if name in BUCKETS) | (
+    routed_supplied = getattr(totals, "supplied_buckets", None)
+    supplied_fields = (frozenset(routed_supplied) if routed_supplied is not None else
+                       frozenset(name for name in totals if name in BUCKETS)) | (
         frozenset({"w1"}) if w1 is not None else frozenset()
     )
     warnings: list[str] = []

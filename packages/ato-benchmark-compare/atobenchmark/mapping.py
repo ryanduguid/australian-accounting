@@ -112,6 +112,14 @@ class MappingDraft:
         return sum(1 for row in self.rows if row.bucket == REVIEW)
 
 
+class RoutedTotals(dict[str, Decimal]):
+    """Zero-filled totals retaining which buckets were actually routed."""
+
+    def __init__(self, values: dict[str, Decimal], supplied_buckets: set[str]) -> None:
+        super().__init__(values)
+        self.supplied_buckets = frozenset(supplied_buckets)
+
+
 @dataclass(frozen=True)
 class RoutingResult:
     """Bucket totals and review notes produced by routing mapped accounts."""
@@ -267,7 +275,7 @@ def route(
             f"{', '.join(mapping[key].account for key in unused[:5])}"
         )
     return RoutingResult(
-        totals=totals,
+        totals=RoutedTotals(totals, counted_buckets),
         unreviewed=unreviewed,
         notes=tuple(notes),
         supplied_buckets=frozenset(counted_buckets),
