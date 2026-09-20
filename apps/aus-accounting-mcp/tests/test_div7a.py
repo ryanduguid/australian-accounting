@@ -120,7 +120,7 @@ def test_unknown_gate_fact_never_becomes_non_complying_or_a_number() -> None:
 
 
 def test_legacy_div7a_tool_refuses_only_the_unsupported_scope() -> None:
-    payload = refuse_div7a("Alice", "HoldingCo Pty Ltd", "50000.00")
+    payload = refuse_div7a()
 
     assert payload["ok"] is False
     assert payload["reviewed_engine"] is True

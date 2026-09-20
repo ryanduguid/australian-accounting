@@ -9,16 +9,15 @@ from pydantic import BaseModel, ConfigDict, Field
 from ..errors import InputError
 from ..money import parse_amount
 
-Money = Annotated[str, Field(max_length=60, description="Non-negative AUD decimal string, "
-                            "at most 2dp and 1000000000000.00.")]
+# The money and scope rules are stated once in the calculate_tax_worksheet description;
+# a sentence here is repeated for every field of every worksheet kind in the schema.
+Money = Annotated[str, Field(max_length=60, description="AUD decimal string.")]
 Ratio = Annotated[str, Field(max_length=30, description="Finite decimal string, not a percentage.")]
 
 
 class Worksheet(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
-    scope_confirmed: bool = Field(description="Pass true only after establishing every scope "
-        "condition in aus-accounting://scope calculation_worksheets for this kind. "
-        "Missing or uncertain scope must be resolved first; false is refused.")
+    scope_confirmed: bool = Field(description="Scope confirmation for this kind; false is refused.")
 
 
 class GstFacts(Worksheet):

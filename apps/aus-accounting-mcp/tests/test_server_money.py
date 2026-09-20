@@ -24,7 +24,6 @@ _MONETARY_ENDPOINT_FIELDS = [
     ("calc_payday_super_deadline", "sg_amount"),
     ("review_div7a_loan", "amalgamated_loan_unpaid_at_end_of_previous_year"),
     ("review_div7a_loan", "payments_applied_during_the_year"),
-    ("refuse_div7a", "loan_principal"),
     ("generate_synthetic_sbr_fixture", "revenue_or_sales"),
 ]
 
@@ -62,12 +61,6 @@ def _call_tool_with_monetary_value(tool_name, field_name, value):
             "sg_amount": "800.00",
             "received": "2026-08-10",
             "as_at": "2026-08-21",
-        }
-    elif tool_name == "refuse_div7a":
-        arguments = {
-            "borrower_name": "Alice",
-            "lender_entity_name": "HoldingCo Pty Ltd",
-            "loan_principal": "100000.00",
         }
     elif tool_name == "review_div7a_loan":
         arguments = {
@@ -153,15 +146,8 @@ def test_payday_mcp_tool_keeps_exact_decimal_strings_from_the_engine():
     assert "is_compliant" not in result
 
 
-def test_div7a_mcp_tool_validates_money_then_refuses():
-    result = _call_tool(
-        "refuse_div7a",
-        {
-            "borrower_name": "Alice",
-            "lender_entity_name": "HoldingCo Pty Ltd",
-            "loan_principal": "50000.00",
-        },
-    )
+def test_div7a_mcp_tool_refuses_without_inputs():
+    result = _call_tool("refuse_div7a", {})
     assert result["available"] is False
     assert result["reviewed_engine"] is True
 

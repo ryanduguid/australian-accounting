@@ -147,10 +147,9 @@ stay on your machine.
 | `generate_synthetic_sbr_fixture` | Synthetic CTR/BAS for agent tests (`synthetic: true`) | local fixture |
 
 `refuse_div7a` answers the questions this server does not review, and those arrive
-with no loan facts, so it requires none. Call it with no arguments: the refusal is
-the same whatever is passed, and every input it still accepts is a retained legacy
-field that is ignored. Do not invent a borrower, a lender or a principal to reach
-it. A `loan_principal` that is supplied is still validated as an amount.
+with no loan facts, so it publishes no inputs. Call it with no arguments and do not
+invent a borrower, a lender or a principal to reach it; the legacy inputs it once
+accepted and ignored were removed so a schema cannot invite them.
 
 Every tool also publishes a human-readable title for host menus.
 
