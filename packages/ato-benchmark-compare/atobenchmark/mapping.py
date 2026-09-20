@@ -125,6 +125,23 @@ class RoutingResult:
     supplied_buckets: frozenset[str] = frozenset()
 
 
+class RoutedTotals(dict[str, Decimal]):
+    """Routed bucket totals that remember which buckets a reviewed account reached.
+
+    `route` zero-fills every bucket so each ratio has a number to divide, and that
+    fill loses the difference between an evidenced nil and a bucket no account was
+    mapped to. Carrying the routed set on the totals themselves means a caller who
+    passes them to `compute` keeps the difference without threading
+    `supplied_buckets` through by hand, and `compare` withholds the ratios that
+    rest on a bucket nothing was routed to. A plain dict still says what its own
+    keys say, so a caller who builds totals directly is unaffected.
+    """
+
+    def __init__(self, totals: dict[str, Decimal], supplied_buckets: frozenset[str]) -> None:
+        super().__init__(totals)
+        self.supplied_buckets = supplied_buckets
+
+
 def suggest(account: str, section: str | None = None) -> tuple[str, str]:
     """Propose a bucket for an account name. Returns (bucket, reason)."""
     for pattern, bucket, reason in _COMPILED:
@@ -267,7 +284,7 @@ def route(
             f"{', '.join(mapping[key].account for key in unused[:5])}"
         )
     return RoutingResult(
-        totals=totals,
+        totals=RoutedTotals(totals, frozenset(counted_buckets)),
         unreviewed=unreviewed,
         notes=tuple(notes),
         supplied_buckets=frozenset(counted_buckets),

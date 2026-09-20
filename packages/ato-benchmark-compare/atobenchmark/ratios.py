@@ -94,12 +94,16 @@ def compute(totals: dict[str, Decimal], w1: Decimal | None = None) -> Figures:
     A bucket missing from `totals` is zero-filled, because every ratio needs a
     number to divide. Which buckets were actually supplied is recorded on the
     result so a later comparison can withhold what nobody established instead of
-    reporting the fill as a figure.
+    reporting the fill as a figure. Routed totals carry that set themselves
+    (`mapping.RoutedTotals`), because `route` zero-fills every bucket and its keys
+    would otherwise vouch for buckets no account was mapped to; any other mapping
+    says what its own keys say.
     """
     amounts = {bucket: Decimal(totals.get(bucket, 0)) for bucket in BUCKETS}
-    supplied_fields = frozenset(name for name in totals if name in BUCKETS) | (
-        frozenset({"w1"}) if w1 is not None else frozenset()
-    )
+    routed = getattr(totals, "supplied_buckets", None)
+    supplied_fields = frozenset(
+        name for name in (totals if routed is None else routed) if name in BUCKETS
+    ) | (frozenset({"w1"}) if w1 is not None else frozenset())
     warnings: list[str] = []
     warning_details: list[EvidenceMessage] = []
 

@@ -32,7 +32,9 @@ which buckets the supplied totals actually held, and `compare` reads that record
 where the caller passes no `supplied_fields`, so a ratio built on an omitted
 bucket carries status `not_supplied` instead of `within`, `below` or `above`, and
 `outside_key_range` is false on a withheld key ratio for a direct library caller
-too. What is left of the divergence is narrower, and it sits in the raw
+too. `route` returns its totals as `RoutedTotals`, which carries the buckets a
+reviewed account actually reached, because the zero-fill means those keys would
+otherwise vouch for every bucket. What is left of the divergence is narrower, and it sits in the raw
 serialiser and the raw key-ratio field:
 
 - `to_dict()` still prints the computed figure for a withheld row, so that

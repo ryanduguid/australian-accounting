@@ -161,14 +161,6 @@ def cmd_compare(args: argparse.Namespace) -> int:
 
     w1 = parse_amount(args.w1, "--w1") if args.w1 is not None else None
     figures = compute(routing.totals, w1=w1)
-    comparison = compare_ratios(data, business_type, figures)
-    # Routing notes join the evidence-carrying notes with no required fields,
-    # so the JSON payload (built from note_details) keeps them and the presence
-    # filter never withholds one: they are mapping hygiene, not figure claims.
-    comparison.note_details.extend(
-        EvidenceMessage("routing", note, frozenset())
-        for note in routing.notes
-    )
 
     # Which fields the mapping evidenced: every bucket at least one reviewed
     # account was routed to, plus w1 where the operator supplied it. A bucket
@@ -179,6 +171,18 @@ def cmd_compare(args: argparse.Namespace) -> int:
         supplied.add("w1")
     if args.confirm_other_income_nil and "other_income" not in supplied:
         supplied.add("other_income")
+
+    # The comparison is gated on the same set as the outputs, including the
+    # operator's nil assertion, so a verdict and the row that prints it cannot
+    # disagree about whether the figure was established.
+    comparison = compare_ratios(data, business_type, figures, supplied)
+    # Routing notes join the evidence-carrying notes with no required fields,
+    # so the JSON payload (built from note_details) keeps them and the presence
+    # filter never withholds one: they are mapping hygiene, not figure claims.
+    comparison.note_details.extend(
+        EvidenceMessage("routing", note, frozenset())
+        for note in routing.notes
+    )
 
     # The exit code must not claim the key range is missed on a figure nobody
     # supplied. compare() falls back to total expenses where cost of sales

@@ -182,10 +182,15 @@ buckets the totals you passed actually held, and `compare()` reads that record
 unless you pass `supplied_fields` yourself, so a ratio resting on a bucket you
 omitted comes back with status `not_supplied` rather than `within`, `below` or
 `above`, and `outside_key_range` stays false. Pass a bucket as `Decimal("0")` when
-the operator established it is nil, and pass `supplied_fields` explicitly when the
-set you can vouch for differs from the keys in the totals, which is what the
-command line does: it supplies every bucket to keep the arithmetic whole and
-vouches only for the buckets a reviewed account was mapped to.
+the operator established it is nil.
+
+Totals from `route()` are the exception to reading the keys, because routing
+zero-fills every bucket and its keys would then vouch for buckets no account was
+mapped to. They carry the routed set themselves, so routing a file and comparing
+it withholds the ratios resting on a bucket no reviewed account reached, with no
+extra argument. Pass `supplied_fields` explicitly where the set you can vouch for
+differs again, which is what the command line does: it adds `w1` and the
+operator's `--confirm-other-income-nil` assertion to the routed set.
 
 Other commands:
 
