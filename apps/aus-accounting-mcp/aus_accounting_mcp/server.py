@@ -71,6 +71,11 @@ from .resources import (
 )
 
 SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operator-supplied facts.
+These instructions follow DrDebits, https://github.com/ryanduguid/llm-tax-guardrails,
+guide version 0.3.3, and its outcome classes PROCEED_DRAFT_ONLY, NEEDS_FACTS,
+ESCALATE and HARD_STOP govern what you may conclude from a result here.
+A verdict string such as LATE, UNPAID or NOT_COMPLYING is a review-aid
+classification of the facts the operator supplied, not a determination.
 - Read aus-accounting://scope before choosing a workflow. calculate_tax_worksheet
   covers six bounded worksheets, each with required scope confirmation and periods.
   Establish every scope condition before calling. Do not invent confirmation.
