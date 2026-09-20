@@ -383,6 +383,11 @@ def read_section(row_id: str, neighbours: int = 0) -> dict[str, Any]:
                 if found is None:
                     if row.get("row_id") == row_id:
                         found = row
+                        if not neighbours:
+                            # Stop at the hit: a later line holding a JSON escape is
+                            # parsed regardless of the prefilter and must not be
+                            # returned as context nobody asked for.
+                            break
                     else:
                         before.append(row)
                     continue
