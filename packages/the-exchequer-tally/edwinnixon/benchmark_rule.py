@@ -53,8 +53,6 @@ class DistributionEvent:
         An event with no stated rate is refused rather than measured at the base
         rate: a 30% company's maximum credit is not the base rate entity's.
         """
-        if self.distribution_amount <= Decimal("0.00"):
-            return Decimal("0.00")
         rate = _validated_rate(
             self.corporate_tax_rate,
             f"distribution to {self.recipient_name} on {self.event_date.isoformat()} "
