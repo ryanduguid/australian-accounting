@@ -123,6 +123,15 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
                     f"{b.beneficiary_name} has a fixed entitlement of "
                     f"{b.fixed_entitlement_amount}; it must be positive"
                 )
+            # A fixed entitlement is reported as supplied, so it has to be a
+            # sum of money already: a sub-cent figure could only be reported
+            # after rounding, and that would be this module's figure, not the
+            # deed's.
+            if b.fixed_entitlement_amount != b.fixed_entitlement_amount.quantize(Decimal("0.01")):
+                raise ValueError(
+                    f"{b.beneficiary_name} has a fixed entitlement of "
+                    f"{b.fixed_entitlement_amount}; it must be stated in whole cents"
+                )
             ratios.append(b.fixed_entitlement_amount / total_trust_inc)
             implied.append(
                 ((b.fixed_entitlement_amount / total_trust_inc) * Decimal("100.00")).quantize(
@@ -238,5 +247,26 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
         adjustment = max(-shares[i].franking_credit_grossup, credit_residual)
         shares[i] = replace(shares[i], franking_credit_grossup=shares[i].franking_credit_grossup + adjustment)
         credit_residual -= adjustment
+
+    # The entitlement column is reported rather than taxed, but a reviewer
+    # ties it to the income of the trust estate, and three 33.33/33.33/33.34
+    # shares of $10.00 each round down to $3.33. Reconcile it the same way,
+    # among the percentage shares only: a fixed entitlement is the deed's own
+    # figure and is reported as supplied, and the gate above has already
+    # proved the fixed amounts and the percentage leg reconcile to the cent.
+    entitlement_residual = total_trust_inc - sum(
+        (s.trust_income_entitlement for s in shares), Decimal("0.00")
+    )
+    percentage_shares = [
+        i for i, b in enumerate(assessment.beneficiaries) if b.percentage_entitlement is not None
+    ]
+    for i in sorted(percentage_shares, key=lambda i: ratios[i], reverse=True):
+        if not entitlement_residual:
+            break
+        adjustment = max(-shares[i].trust_income_entitlement, entitlement_residual)
+        shares[i] = replace(
+            shares[i], trust_income_entitlement=shares[i].trust_income_entitlement + adjustment
+        )
+        entitlement_residual -= adjustment
 
     return shares
