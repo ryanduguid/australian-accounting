@@ -65,6 +65,34 @@ BOUNDED_STRING_INPUTS = {
     ("calc_payday_super_deadline", "employee_id"): 120,
     ("review_div7a_loan", "loan_id"): 120,
     ("generate_synthetic_sbr_fixture", "entity_name"): 120,
+    ("list_ato_benchmark_industries", "search"): 120,
+    ("list_ato_benchmark_industries", "year"): 7,
+    ("get_ato_benchmarks", "industry"): 120,
+    ("get_ato_benchmarks", "year"): 7,
+    ("calc_payday_super_deadline", "qe_day"): 40,
+    ("calc_payday_super_deadline", "sg_amount"): 60,
+    ("calc_payday_super_deadline", "as_at"): 40,
+    ("calc_payday_super_deadline", "remitted"): 40,
+    ("calc_payday_super_deadline", "received"): 40,
+    ("calc_payday_super_deadline", "next_standard_qe_day"): 40,
+    ("calc_payday_super_deadline", "remitted_amount"): 60,
+    ("calc_payday_super_deadline", "matched_amount"): 60,
+    ("get_div7a_benchmark_rate", "year_of_income"): 7,
+    ("review_div7a_loan", "year_of_income"): 7,
+    ("review_div7a_loan", "year_loan_made"): 7,
+    ("review_div7a_loan", "maximum_term_years"): 30,
+    ("review_div7a_loan", "security_coverage_at_first_made"): 30,
+    ("review_div7a_loan", "interest_rate_for_years_after_year_loan_made"): 30,
+    ("review_div7a_loan", "amalgamated_loan_unpaid_at_end_of_previous_year"): 60,
+    ("review_div7a_loan", "remaining_term_years"): 30,
+    ("review_div7a_loan", "payments_applied_during_the_year"): 60,
+    ("refuse_div7a", "borrower_name"): 120,
+    ("refuse_div7a", "lender_entity_name"): 120,
+    ("refuse_div7a", "loan_principal"): 60,
+    ("generate_synthetic_sbr_fixture", "form_type"): 20,
+    ("generate_synthetic_sbr_fixture", "revenue_or_sales"): 60,
+    ("review_payday_super_contributions", "as_at"): 40,
+    ("build_payday_super_evidence_pack", "as_at"): 40,
     ("search_accounting_library", "query"): 200,
     ("read_accounting_library", "path"): 500,
     ("search_tax_legislation", "query"): 200,
@@ -126,3 +154,103 @@ def test_the_benchmark_money_bound_matches_the_worksheet_money_type() -> None:
 
     declared = _declared_max_length(Money.__metadata__[0].metadata)
     assert declared == BOUNDED_STRING_INPUTS[("get_ato_benchmarks", "turnover")]
+
+
+def test_every_money_input_shares_the_worksheet_money_bound() -> None:
+    """Every amount the tools take goes through aus_accounting_mcp.money, the same
+    boundary the worksheet Money alias describes, so they all carry its length."""
+    from aus_accounting_mcp.adapters.tax import Money
+
+    money = _declared_max_length(Money.__metadata__[0].metadata)
+    amounts = {
+        key for key in BOUNDED_STRING_INPUTS
+        if key[1].endswith(("amount", "principal", "revenue_or_sales"))
+        or key[1].startswith(("amalgamated_loan", "payments_applied"))
+    }
+    assert len(amounts) == 7
+    assert {BOUNDED_STRING_INPUTS[key] for key in amounts} == {money}
+
+
+def test_the_div7a_ratio_bounds_match_the_worksheet_ratio_type() -> None:
+    """Terms, coverage and the interest rate reach the engine's ratio parsers,
+    which put no ceiling on magnitude, so the facade's own Ratio alias is the
+    only width they are held to."""
+    from aus_accounting_mcp.adapters.tax import Ratio
+
+    ratio = _declared_max_length(Ratio.__metadata__[0].metadata)
+    for name in (
+        "maximum_term_years",
+        "remaining_term_years",
+        "security_coverage_at_first_made",
+        "interest_rate_for_years_after_year_loan_made",
+    ):
+        assert BOUNDED_STRING_INPUTS[("review_div7a_loan", name)] == ratio
+
+
+def test_the_year_bound_is_the_width_of_the_yyyy_yy_label() -> None:
+    """Both engines read a year of income as exactly YYYY-YY: div7a-loan-review
+    through parse_year, ato-benchmark-compare as the dataset file name. The
+    bound admits every year either one ships and nothing wider."""
+    from atobenchmark.dataset import DATA_DIR, available_years
+    from div7aloan import parse_year
+
+    bound = BOUNDED_STRING_INPUTS[("get_div7a_benchmark_rate", "year_of_income")]
+    shipped = available_years(DATA_DIR)
+    assert shipped
+    assert {len(year) for year in shipped} == {bound}
+    widest = "2026-27"
+    parse_year(widest)
+    assert len(widest) == bound
+    for key in (
+        ("list_ato_benchmark_industries", "year"),
+        ("get_ato_benchmarks", "year"),
+        ("review_div7a_loan", "year_of_income"),
+        ("review_div7a_loan", "year_loan_made"),
+    ):
+        assert BOUNDED_STRING_INPUTS[key] == bound
+
+
+def test_the_date_bound_admits_the_longest_date_the_engine_reads() -> None:
+    """The payday dates go to payday-super-checker's parse_date_text, whose
+    widest shapes are a spelled-out month with a 12-hour time and an ISO
+    date-time with a 6-digit fraction. Each must fit the published bound."""
+    from datetime import datetime
+
+    from paydaysuper.csv_io import DATE_FORMATS, TIME_FORMATS, parse_date_text
+
+    bound = BOUNDED_STRING_INPUTS[("calc_payday_super_deadline", "qe_day")]
+    moment = datetime(2027, 9, 13, 22, 30, 45, 123456)
+    shapes = [moment.strftime(fmt) for fmt in DATE_FORMATS]
+    shapes += [
+        moment.strftime(f"{fmt} {time_fmt}")
+        for fmt in DATE_FORMATS
+        for time_fmt in TIME_FORMATS
+    ]
+    shapes.append(moment.isoformat())
+    for shape in shapes:
+        assert parse_date_text(shape) == moment.date(), shape
+        assert len(shape) <= bound, shape
+    for key in (
+        ("calc_payday_super_deadline", "as_at"),
+        ("calc_payday_super_deadline", "remitted"),
+        ("calc_payday_super_deadline", "received"),
+        ("calc_payday_super_deadline", "next_standard_qe_day"),
+        ("review_payday_super_contributions", "as_at"),
+        ("build_payday_super_evidence_pack", "as_at"),
+    ):
+        assert BOUNDED_STRING_INPUTS[key] == bound
+
+
+def test_the_industry_bound_admits_every_shipped_business_type_name() -> None:
+    """industry and search are matched against the dataset's business-type
+    names, so the bound has to admit the longest name in every shipped year."""
+    from atobenchmark.dataset import DATA_DIR, available_years, load
+
+    bound = BOUNDED_STRING_INPUTS[("get_ato_benchmarks", "industry")]
+    assert BOUNDED_STRING_INPUTS[("list_ato_benchmark_industries", "search")] == bound
+    longest = max(
+        len(business_type.name)
+        for year in available_years(DATA_DIR)
+        for business_type in load(year).business_types
+    )
+    assert longest <= bound

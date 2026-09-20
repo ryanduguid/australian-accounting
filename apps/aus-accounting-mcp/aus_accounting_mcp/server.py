@@ -210,14 +210,14 @@ DIV7A_SCOPE_REFUSAL = (
 def list_ato_benchmark_industries(
     search: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=120, description=(
             'Optional case-insensitive industry-name search; omit to list all industries in the '
             'selected shipped dataset.'
         )),
     ] = None,
     year: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=7, description=(
             'Benchmark dataset year in YYYY-YY form, e.g. "2023-24". Omit or null selects the '
             'latest shipped dataset, not a live ATO lookup.'
         )),
@@ -261,7 +261,7 @@ def list_ato_benchmark_industries(
 def get_ato_benchmarks(
     industry: Annotated[
         str,
-        Field(description=(
+        Field(max_length=120, description=(
             'ATO business-type name returned by list_ato_benchmark_industries. Select an '
             'industry before comparing figures.'
         )),
@@ -368,7 +368,7 @@ def get_ato_benchmarks(
     ] = None,
     year: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=7, description=(
             'Benchmark dataset year in YYYY-YY form, e.g. "2023-24". Omit or null selects the '
             'latest shipped dataset, not a live ATO lookup.'
         )),
@@ -410,7 +410,7 @@ def get_ato_benchmarks(
 def calc_payday_super_deadline(
     qe_day: Annotated[
         str,
-        Field(description=(
+        Field(max_length=40, description=(
             'Qualifying-earnings payment date (payday). YYYY-MM-DD; a payroll export shape '
             'such as 13/07/2027 or "9 Jul 2027" is also read, and a numeric date that could be '
             'read either way round is refused. This engine rejects dates before its Payday '
@@ -419,7 +419,7 @@ def calc_payday_super_deadline(
     ],
     sg_amount: Annotated[
         str,
-        Field(description=(
+        Field(max_length=60, description=(
             'Superannuation guarantee contribution amount for this employee and '
             'qualifying-earnings payment. AUD decimal string, e.g. "1000.00"; finite, at most 2 '
             'decimal places, absolute value at most 1000000000000.00.'
@@ -427,21 +427,21 @@ def calc_payday_super_deadline(
     ],
     as_at: Annotated[
         str,
-        Field(description=(
+        Field(max_length=40, description=(
             'Required assessment date, YYYY-MM-DD. Supply explicitly; the tool does not assume '
             'today. Reads the same date shapes as qe_day.'
         )),
     ],
     remitted: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=40, description=(
             'Date money was sent, YYYY-MM-DD. Optional; does not prove receipt by the fund or '
             'establish ON_TIME. Reads the same date shapes as qe_day.'
         )),
     ] = None,
     received: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=40, description=(
             'Actual fund-receipt date, YYYY-MM-DD. Omit or null if unknown; required before the '
             'statutory test can return ON_TIME. Reads the same date shapes as qe_day; a stamp '
             'carrying Z or a UTC offset is refused, so convert it to the Australian calendar '
@@ -472,7 +472,7 @@ def calc_payday_super_deadline(
     ] = False,
     next_standard_qe_day: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=40, description=(
             'Subsequent schedule-consistent non-out-of-cycle QE payment date, YYYY-MM-DD; must '
             'be after qe_day when out_of_cycle is true. Not an assumed future payday. Reads the '
             'same date shapes as qe_day.'
@@ -487,7 +487,7 @@ def calc_payday_super_deadline(
     ] = False,
     remitted_amount: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Amount sent for this contribution, as an AUD decimal string with at most '
             '2 decimal places. Requires remitted; cannot exceed sg_amount. Omit or null '
             'preserves the engine full-remittance convention when remitted is supplied.'
@@ -495,7 +495,7 @@ def calc_payday_super_deadline(
     ] = None,
     matched_amount: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Amount associated with this payday, as an AUD decimal string with at most '
             '2 decimal places; cannot exceed sg_amount. Supply partial amounts even without '
             'a remittance date. Caps evidenced receipt and takes precedence over '
@@ -539,7 +539,7 @@ def calc_payday_super_deadline(
 def get_div7a_benchmark_rate(
     year_of_income: Annotated[
         str,
-        Field(description=(
+        Field(max_length=7, description=(
             'Income year being reviewed, YYYY-YY, e.g. "2025-26". Years outside the engine '
             'reviewed rate table return UNKNOWN.'
         )),
@@ -567,14 +567,14 @@ def get_div7a_benchmark_rate(
 def review_div7a_loan(
     year_of_income: Annotated[
         str,
-        Field(description=(
+        Field(max_length=7, description=(
             'Income year being reviewed, YYYY-YY, e.g. "2025-26". Years outside the engine '
             'reviewed rate table return UNKNOWN.'
         )),
     ],
     year_loan_made: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=7, description=(
             'Income year the loan was made, YYYY-YY, e.g. "2024-25". Omit or null if unknown.'
         )),
     ] = None,
@@ -593,7 +593,7 @@ def review_div7a_loan(
     ] = None,
     maximum_term_years: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=30, description=(
             'Actual agreed loan term in years as a decimal string, e.g. "7"; not the statutory '
             'maximum. Omit or null if unknown.'
         )),
@@ -607,21 +607,21 @@ def review_div7a_loan(
     ] = None,
     security_coverage_at_first_made: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=30, description=(
             'Property market value less prior secured liabilities, divided by the loan at '
             'inception; decimal ratio, e.g. "1.10" means 110%. Omit or null if unknown.'
         )),
     ] = None,
     interest_rate_for_years_after_year_loan_made: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=30, description=(
             'Agreed interest rate as a decimal fraction, e.g. "0.08" means 8%, not "8". Omit or '
             'null if unknown; do not assume a current benchmark rate.'
         )),
     ] = None,
     amalgamated_loan_unpaid_at_end_of_previous_year: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Operator-established amalgamated-loan balance at the end of the preceding income '
             'year. The tool does not form amalgamated loans. AUD decimal string, e.g. '
             '"1000.00"; finite, at most 2 decimal places, absolute value at most '
@@ -631,14 +631,14 @@ def review_div7a_loan(
     ] = None,
     remaining_term_years: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=30, description=(
             'Remaining statutory term for the supplied amalgamated loan, as a decimal string. '
             'The engine rounds fractional years up. Omit or null if unknown.'
         )),
     ] = None,
     payments_applied_during_the_year: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Amount the operator establishes as applied during the income year. The tool does '
             'not classify payments under s 109R; omit if not established. AUD decimal string, '
             'e.g. "1000.00"; finite, at most 2 decimal places, absolute value at most '
@@ -703,20 +703,20 @@ def review_div7a_loan(
 def refuse_div7a(
     borrower_name: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=120, description=(
             'Legacy borrower label; ignored. Omit it. This refusal tool does not look up a '
             'borrower or calculate a repayment.'
         )),
     ] = None,
     lender_entity_name: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=120, description=(
             'Legacy lender label; ignored. Omit it. No entity record is looked up or written.'
         )),
     ] = None,
     loan_principal: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Legacy principal; ignored beyond validation, and this tool always refuses '
             'unsupported scope. Omit it rather than inventing a figure. When supplied: AUD '
             'decimal string, e.g. "1000.00"; finite, at most 2 decimal places, absolute value '
@@ -767,7 +767,7 @@ def refuse_div7a(
 def generate_synthetic_sbr_fixture(
     form_type: Annotated[
         str,
-        Field(description=(
+        Field(max_length=20, description=(
             'Fixture type: "CTR" (company tax return) or "BAS" (activity statement), '
             'case-insensitive. No other forms are supported.'
         )),
@@ -781,7 +781,7 @@ def generate_synthetic_sbr_fixture(
     ] = "Synthetix Pty Ltd",
     revenue_or_sales: Annotated[
         str,
-        Field(description=(
+        Field(max_length=60, description=(
             'Fabricated gross revenue (CTR) or total sales G1 (BAS); defaults to "1000000.00". '
             'Other figures use fixed demonstration assumptions. AUD decimal string, e.g. '
             '"1000.00"; finite, at most 2 decimal places, absolute value at most '
@@ -827,7 +827,8 @@ def review_payday_super_contributions(
         min_length=1, max_length=200,
         description="All related contribution rows for one employer, up to 200. "
         "Use exact employee references and explicitly establish the three eligibility flags.")],
-    as_at: Annotated[str, Field(description="Explicit assessment date, YYYY-MM-DD.")],
+    as_at: Annotated[str, Field(
+        max_length=40, description="Explicit assessment date, YYYY-MM-DD.")],
 ) -> PaydayGroupReview:
     """Review related paydays together, including s 18C(2) item 4 alignment.
 
@@ -846,7 +847,8 @@ def build_payday_super_evidence_pack(
         min_length=1, max_length=200,
         description="Established contribution rows for one employer. Supply all related rows "
         "and the three eligibility flags. Use fabricated rows for demonstrations.")],
-    as_at: Annotated[str, Field(description="Explicit assessment date, YYYY-MM-DD.")],
+    as_at: Annotated[str, Field(
+        max_length=40, description="Explicit assessment date, YYYY-MM-DD.")],
     response_detail: Annotated[Literal["full", "compact"], Field(
         description="Full repeats the pack in text for compatibility. Compact keeps all files "
         "in structuredContent.files and summarises text; use only with a host that reads them.")
