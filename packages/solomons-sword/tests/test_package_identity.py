@@ -22,7 +22,7 @@ def test_published_distribution_uses_the_project_identity() -> None:
     assert 'name = "louisgoldberg"' not in lockfile
     assert '_dist_version("solomons-sword")' in package_init
     assert 'prog="solomons-sword"' in cli
-    assert version("solomons-sword") == louisgoldberg.__version__ == "0.1.7"
+    assert version("solomons-sword") == louisgoldberg.__version__ == "0.1.8"
     assert not (ROOT / ".github" / "workflows" / "release.yml").exists()
     assert "**Package lifecycle:** published." in readme
     assert "pip install solomons-sword" in readme
@@ -35,9 +35,8 @@ def test_published_distribution_uses_the_project_identity() -> None:
     assert "`louisgoldberg` import package" in readme
     assert "solomons-sword s100a-check" in readme
     assert "louisgoldberg s100a-check" not in readme
-    # An Unreleased section sits above the released notes, so the released
-    # heading is pinned in place rather than at the top of the file.
-    assert release_notes.startswith("# Unreleased\n")
+    # The current version heads the notes; prior released sections remain.
+    assert release_notes.startswith("# v0.1.8\n")
     assert "\n# v0.1.7\n" in release_notes
     assert "first PyPI release" in release_notes
     assert "release-solomons-sword.yml" in release_notes
