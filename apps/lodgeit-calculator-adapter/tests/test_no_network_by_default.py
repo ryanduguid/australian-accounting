@@ -6,6 +6,7 @@ should not happen fails loudly rather than reaching a service.
 
 from __future__ import annotations
 
+import json
 import socket
 import subprocess
 import sys
@@ -140,3 +141,61 @@ def test_loopback_needs_its_own_switch(no_sockets):
         off.check_url("http://127.0.0.1:8000/v1/calculators")
     on = AdapterConfig(enabled=True, allow_loopback=True)
     assert on.check_url("http://127.0.0.1:8000/v1/calculators")
+
+
+
+# The MCP surface. These 2 do not use the no_sockets fixture: asyncio's own
+# event loop opens a self-pipe on Windows, which the fixture would report as an
+# egress. The stronger guard is used instead, refusing the client call itself,
+# so a request that reached the transport fails whatever the platform does.
+
+ARGUMENTS = {
+    "calculator_uri": "urn:sbrm:calculator:div7a:at",
+    "period_uri": "urn:sbrm:period:div7a:fy2026",
+    "request_json": '{"amalgamated_base": 1}',
+}
+
+
+def _call_invoke(monkeypatch, **extra):
+    import asyncio
+
+    pytest.importorskip("mcp.server.mcpserver")
+    from lodgeitadapter.mcp import build_server
+
+    def refuse(*args, **kwargs):  # noqa: ANN002, ANN003
+        raise AssertionError("the adapter was asked to send a request")
+
+    monkeypatch.setattr(LodgeitClient, "invoke", refuse)
+    server = build_server(AdapterConfig(enabled=True, allow_loopback=True))
+    result = asyncio.run(server.call_tool("invoke_calculator", {**ARGUMENTS, **extra}))
+    return json.loads(result.content[0].text)
+
+
+def test_the_mcp_invoke_tool_needs_a_per_call_network_acknowledgement(monkeypatch):
+    """The CLI asks for --enable-network on every invocation. Through MCP, one
+    launch with remote access on would otherwise let every later tool call
+    egress the operator's facts with nothing decided per call."""
+    payload = _call_invoke(monkeypatch, network_acknowledged=False)
+    assert payload["status"] == "REFUSED_TO_SEND"
+    assert any("network_acknowledged" in finding for finding in payload["findings"])
+
+
+@pytest.mark.parametrize("supplied", [{}, {"network_acknowledged": None}])
+def test_an_absent_or_null_acknowledgement_never_reaches_the_client(monkeypatch, supplied):
+    """Omitting the argument is a schema error rather than a default, so a
+    caller cannot reach the calculator by leaving the question out."""
+    from mcp.server.mcpserver.exceptions import ToolError
+
+    with pytest.raises(ToolError, match="network_acknowledged"):
+        _call_invoke(monkeypatch, **supplied)
+
+
+def test_the_mcp_invoke_tool_declares_the_acknowledgement_as_required():
+    import asyncio
+
+    pytest.importorskip("mcp.server.mcpserver")
+    from lodgeitadapter.mcp import build_server
+
+    tools = asyncio.run(build_server(AdapterConfig()).list_tools())
+    invoke = next(tool for tool in tools if tool.name == "invoke_calculator")
+    assert "network_acknowledged" in invoke.input_schema["required"]

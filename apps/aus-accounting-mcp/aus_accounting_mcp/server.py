@@ -263,7 +263,7 @@ def get_ato_benchmarks(
     ],
     turnover: Annotated[
         str,
-        Field(description=(
+        Field(max_length=60, description=(
             'Sales of goods and services, excluding other income. AUD decimal string, e.g. '
             '"1000.00"; finite, at most 2 decimal places, absolute value at most '
             '1000000000000.00.'
@@ -271,7 +271,7 @@ def get_ato_benchmarks(
     ],
     other_income: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Non-sales business income, e.g. interest or grants. Required to establish any '
             'ratio denominator. AUD decimal string, e.g. "1000.00"; finite, at most 2 decimal '
             'places, absolute value at most 1000000000000.00. Omit or null means not supplied; '
@@ -280,7 +280,7 @@ def get_ato_benchmarks(
     ] = None,
     cost_of_sales: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Cost of sales excluding salary and wages; put that labour in cost_of_sales_labour. '
             'AUD decimal string, e.g. "1000.00"; finite, at most 2 decimal places, absolute '
             'value at most 1000000000000.00. Omit or null means not supplied; use "0.00" only '
@@ -289,7 +289,7 @@ def get_ato_benchmarks(
     ] = None,
     cost_of_sales_labour: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Salary and wages within cost of sales, excluding separately bucketed payments to '
             'associated persons. AUD decimal string, e.g. "1000.00"; finite, at most 2 decimal '
             'places, absolute value at most 1000000000000.00. Omit or null means not supplied; '
@@ -298,7 +298,7 @@ def get_ato_benchmarks(
     ] = None,
     salary_wages: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Salary and wages outside cost of sales, excluding separately bucketed payments to '
             'associated persons. AUD decimal string, e.g. "1000.00"; finite, at most 2 decimal '
             'places, absolute value at most 1000000000000.00. Omit or null means not supplied; '
@@ -307,7 +307,7 @@ def get_ato_benchmarks(
     ] = None,
     contractor_commission: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Contractor, subcontractor and commission expenses. AUD decimal string, e.g. '
             '"1000.00"; finite, at most 2 decimal places, absolute value at most '
             '1000000000000.00. Omit or null means not supplied; use "0.00" only for an '
@@ -316,7 +316,7 @@ def get_ato_benchmarks(
     ] = None,
     associated_persons: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Payments to associated persons, kept separate from salary/wage buckets to avoid '
             'double counting. Needed for labour comparison when w1 is supplied. AUD decimal '
             'string, e.g. "1000.00"; finite, at most 2 decimal places, absolute value at most '
@@ -326,7 +326,7 @@ def get_ato_benchmarks(
     ] = None,
     rent: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Business rent expenses for the comparison period. AUD decimal string, e.g. '
             '"1000.00"; finite, at most 2 decimal places, absolute value at most '
             '1000000000000.00. Omit or null means not supplied; use "0.00" only for an '
@@ -335,7 +335,7 @@ def get_ato_benchmarks(
     ] = None,
     motor_vehicle: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Business motor vehicle expenses for the comparison period. AUD decimal string, '
             'e.g. "1000.00"; finite, at most 2 decimal places, absolute value at most '
             '1000000000000.00. Omit or null means not supplied; use "0.00" only for an '
@@ -344,7 +344,7 @@ def get_ato_benchmarks(
     ] = None,
     other_expense: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Other expenses, including superannuation and depreciation; exclude amounts already '
             'in another bucket and income tax expense. AUD decimal string, e.g. "1000.00"; '
             'finite, at most 2 decimal places, absolute value at most 1000000000000.00. Omit or '
@@ -353,7 +353,7 @@ def get_ato_benchmarks(
     ] = None,
     w1: Annotated[
         str | None,
-        Field(description=(
+        Field(max_length=60, description=(
             'Activity statement W1 total for the same period; used by the engine when greater '
             'than the reconstructed salary and wages label. Supply associated_persons too. AUD '
             'decimal string, e.g. "1000.00"; finite, at most 2 decimal places, absolute value '
@@ -445,7 +445,7 @@ def calc_payday_super_deadline(
     ] = None,
     employee_id: Annotated[
         str,
-        Field(description=(
+        Field(max_length=120, description=(
             'Operator reference echoed in the result; defaults to "mcp-1". No employee record '
             'is looked up or written.'
         )),
@@ -643,7 +643,7 @@ def review_div7a_loan(
     ] = None,
     loan_id: Annotated[
         str,
-        Field(description=(
+        Field(max_length=120, description=(
             'Operator loan reference echoed in the result; defaults to "mcp-div7a-1". No loan '
             'record is looked up or written.'
         )),
@@ -769,7 +769,7 @@ def generate_synthetic_sbr_fixture(
     ],
     entity_name: Annotated[
         str,
-        Field(description=(
+        Field(max_length=120, description=(
             'Fabricated entity label for test output; defaults to "Synthetix Pty Ltd". Do not '
             'supply real client data.'
         )),
