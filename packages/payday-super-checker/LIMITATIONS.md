@@ -11,7 +11,7 @@ For what the tool declines to answer, see the refusal cases in
 [DISCLAIMER.md](DISCLAIMER.md) and
 [docs/primary-source-review-2026-08-15.md](docs/primary-source-review-2026-08-15.md).
 
-Applies to payday-super-checker 0.1.4.
+Applies to payday-super-checker 0.1.7.
 
 ## PSC-1 An SG-charge estimate dated past the GIC table extrapolates the rate, on request
 
