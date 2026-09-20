@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import importlib.metadata
+from pathlib import Path
 
 import atobenchmark
 
 
 def test_module_version_matches_distribution_metadata() -> None:
-    # The module attribute is the single source: hatchling reads it out of
-    # atobenchmark/__init__.py at build time, so the installed distribution
-    # metadata can only disagree with an install that predates the current
-    # source. Published 0.1.3 carried __version__ = "0.1.2", and downstream
-    # callers report that string as the engine version beside their numbers.
+    # The project version supplies installed metadata and the runtime value.
     assert atobenchmark.__version__ == importlib.metadata.version("ato-benchmark-compare")
+    root = Path(__file__).resolve().parents[1]
+    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+    assert f'version = "{atobenchmark.__version__}"' in pyproject

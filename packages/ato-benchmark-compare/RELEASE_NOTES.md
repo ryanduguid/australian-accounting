@@ -1,4 +1,4 @@
-# Unreleased
+# v0.1.9
 
 - Refuse a neutral CSV whose header names `account`, `amount` or `section` more than once, instead of reading the first such column silently.
 - Breaking for a direct library caller: `compare()` now withholds the verdict on a ratio built from a bucket the supplied totals did not hold. `compute()` records those buckets on `Figures.supplied_fields`, `compare()` reads that record when no `supplied_fields` argument is passed, and the affected verdicts carry status `not_supplied` instead of `within`, `below` or `above`, so `outside_key_range` is false on a withheld key ratio.

@@ -146,7 +146,7 @@ def test_no_runtime_module_imports_anything_outside_the_standard_library() -> No
     allowed = {
         "__future__", "argparse", "collections", "contextlib", "csv", "hashlib", "io", "json",
         "os", "re", "sys", "tempfile", "typing", "unicodedata", "dataclasses",
-        "decimal", "pathlib",
+        "decimal", "importlib", "pathlib",
     }
     found = set()
     for source in sorted(package.glob("*.py")):
