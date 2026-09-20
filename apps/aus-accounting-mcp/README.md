@@ -177,9 +177,9 @@ The 17-column evidence report is for the included checklist. It is not accepted
 by legacy `review-pack` or the accounting review pipeline's `PaydaySuper.Report`
 Excel importer. Use an ordinary 18-column checker report for that importer.
 
-Release candidate v0.2.4 on `main` pins `payday-super-checker==0.1.6`. The published
-server is v0.2.3, which pins 0.1.5 and includes the pack builder; run
-`uvx aus-accounting-mcp==0.2.3` for it until 0.2.4 is published. An installation with
+The published server is v0.2.4, which pins `payday-super-checker==0.1.6` and
+`div7a-loan-review==0.1.4` and includes the pack builder; run
+`uvx aus-accounting-mcp==0.2.4` for it. An installation with
 checker v0.1.3 returns a feature-unavailable error for this tool; the existing
 tools continue to work. See the [website guide](https://duguid.com.au/tools/australian-tax-ai-agents/)
 for examples and scope.
