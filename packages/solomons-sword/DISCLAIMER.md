@@ -29,8 +29,9 @@ produces a named not-established result rather than the answer that happens to
 help: no green zone, no s 97 assessment, no validated resolution, and no Section 99B
 assessment without a stated residency. Section 99B's exemption amounts run the
 other way and still default to nil, because that gives the largest assessable
-amount; the result names every nil so it cannot be mistaken for an established
-figure.
+amount, and its s 99B(2)(a) corpus add-back defaults to nil in the favourable
+direction; the result names each nil it relied on so none can be mistaken for an
+established figure.
 
 Coverage is deliberately partial. Specifically streamed capital gains and
 franked dividends, non-resident beneficiaries under s 98(2A) and s 98(3), nil

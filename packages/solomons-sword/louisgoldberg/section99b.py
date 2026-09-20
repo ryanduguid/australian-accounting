@@ -53,8 +53,9 @@ def evaluate_section99b_liability(receipt: ForeignTrustReceipt) -> Section99BAss
     derived them, so that part is added back.
 
     The 3 exemption amounts default to nil, which is the conservative direction
-    but makes an unsupplied figure look like an established one. Each nil is
-    named in the result's single caveat.
+    but makes an unsupplied figure look like an established one. The s 99B(2)(a)
+    add-back also defaults to nil and runs the other way, leaving the whole
+    corpus exempt. Both are named in the result's single caveat.
     """
     for name in (
         "gross_amount_received_aud",
@@ -110,13 +111,32 @@ def evaluate_section99b_liability(receipt: ForeignTrustReceipt) -> Section99BAss
         )
         if value == Decimal("0.00")
     ]
-    caveats: tuple[str, ...] = ()
+    # The s 99B(2)(a) add-back runs the other way: a nil there leaves the whole
+    # corpus exempt and gives the smallest assessable amount, so an omitted
+    # add-back is the one nil default that favours the taxpayer. It only bites
+    # where there is a corpus for it to reduce.
+    nil_addback = (
+        ["corpus_attributable_to_notional_assessable_income_aud"]
+        if receipt.corpus_amount_aud > Decimal("0.00") and attributable == Decimal("0.00")
+        else []
+    )
+    parts = []
     if nil_exemptions:
+        parts.append(
+            "nil exemption amounts, each of which gives the largest assessable amount: "
+            + ", ".join(nil_exemptions)
+        )
+    if nil_addback:
+        parts.append(
+            "a nil s 99B(2)(a) add-back, which leaves the whole corpus exempt and gives "
+            "the smallest assessable amount: " + ", ".join(nil_addback)
+        )
+    caveats: tuple[str, ...] = ()
+    if parts:
         caveats = (
-            "These exemption amounts are nil, and a nil default cannot be told apart "
-            f"from a figure that was never supplied: {', '.join(nil_exemptions)}. A nil "
-            "exemption gives the largest assessable amount, so establish each figure "
-            "from the trust's records before relying on this result.",
+            "A nil default cannot be told apart from a figure that was never supplied. "
+            "This result carries " + "; and ".join(parts) + ". Establish each figure from "
+            "the trust's records before relying on this result.",
         )
 
     basis = (

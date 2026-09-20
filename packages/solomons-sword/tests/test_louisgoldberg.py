@@ -676,11 +676,13 @@ def test_s99b_names_every_nil_exemption_in_one_caveat():
     assert "already_assessed_under_div6_aud" in res.caveats[0]
     assert "corpus_amount_aud" not in res.caveats[0]
 
-    # Every exemption supplied and positive: nothing to caveat.
+    # Every exemption and the s 99B(2)(a) add-back supplied and positive:
+    # nothing to caveat.
     full = evaluate_section99b_liability(ForeignTrustReceipt(
         beneficiary_name="A", gross_amount_received_aud=Decimal("100000.00"),
         beneficiary_was_resident_during_year=True,
         corpus_amount_aud=Decimal("40000.00"),
+        corpus_attributable_to_notional_assessable_income_aud=Decimal("5000.00"),
         not_assessable_to_resident_aud=Decimal("10000.00"),
         already_assessed_under_div6_aud=Decimal("5000.00")))
     assert full.caveats == ()
@@ -699,3 +701,31 @@ def test_s99b_residency_is_a_required_input_not_a_default():
     assert resident.assessable_income_under_s99b == Decimal("60000.00")
     with pytest.raises(ValueError, match="only where the beneficiary was a resident"):
         evaluate_section99b_liability(ForeignTrustReceipt("A", Decimal("100000.00"), False))
+
+
+def test_s99b_names_an_omitted_corpus_add_back_in_the_caveat():
+    # The s 99B(2)(a) add-back is the one nil that favours the taxpayer: omitting
+    # it exempts the whole corpus and lowers the assessable amount.
+    omitted = evaluate_section99b_liability(ForeignTrustReceipt(
+        beneficiary_name="A", gross_amount_received_aud=Decimal("100000.00"),
+        beneficiary_was_resident_during_year=True,
+        corpus_amount_aud=Decimal("40000.00")))
+    assert omitted.corpus_exemption == Decimal("40000.00")
+    assert len(omitted.caveats) == 1
+    assert "corpus_attributable_to_notional_assessable_income_aud" in omitted.caveats[0]
+    assert "smallest assessable amount" in omitted.caveats[0]
+
+    # Stated, it reduces the exemption and is not caveated.
+    stated = evaluate_section99b_liability(ForeignTrustReceipt(
+        beneficiary_name="A", gross_amount_received_aud=Decimal("100000.00"),
+        beneficiary_was_resident_during_year=True,
+        corpus_amount_aud=Decimal("40000.00"),
+        corpus_attributable_to_notional_assessable_income_aud=Decimal("5000.00")))
+    assert stated.corpus_exemption == Decimal("35000.00")
+    assert "corpus_attributable" not in stated.caveats[0]
+
+    # With no corpus claimed there is nothing for the add-back to reduce.
+    no_corpus = evaluate_section99b_liability(ForeignTrustReceipt(
+        beneficiary_name="A", gross_amount_received_aud=Decimal("100000.00"),
+        beneficiary_was_resident_during_year=True))
+    assert "corpus_attributable" not in no_corpus.caveats[0]
