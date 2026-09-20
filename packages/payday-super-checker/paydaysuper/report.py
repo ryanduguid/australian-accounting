@@ -490,27 +490,25 @@ def console_summary(
     fy = rates.get("financial_years", {})
     qe_days = [r.line.qe_day for r in results]
     fy_labels = sorted({financial_year(d) for d in qe_days}) if qe_days else []
-    fy_label = fy_labels[0] if fy_labels else financial_year(as_at)
-    entry = fy.get(fy_label)
-    mcb = (entry or {}).get("max_contributions_base")
-    # Naming the year the figure is missing for is the whole value of this
-    # line. "the annual cap" read as though the cap had been considered, and
-    # left a reader with no way to tell a stale rates.json from a run that
-    # simply had nothing to say.
-    absent = (
-        f"not on record for {fy_label}: add max_contributions_base for that year to "
-        "paydaysuper/data/rates.json"
-    )
-    if mcb is None:
-        mcb_text = absent
-    else:
-        try:
-            mcb_text = f"${int(mcb):,} for {fy_label}, annual per employer"
-        except (TypeError, ValueError):
-            mcb_text = (
-                f"unreadable for {fy_label}: paydaysuper/data/rates.json holds "
-                f"max_contributions_base {mcb!r}, which is not a whole number of dollars"
+    years_to_report = fy_labels or [financial_year(as_at)]
+    mcb_parts = []
+    for fy_label in years_to_report:
+        entry = fy.get(fy_label)
+        mcb = (entry or {}).get("max_contributions_base")
+        if mcb is None:
+            mcb_parts.append(
+                f"not on record for {fy_label}: add max_contributions_base for that year to "
+                "paydaysuper/data/rates.json"
             )
+        else:
+            try:
+                mcb_parts.append(f"${int(mcb):,} for {fy_label}, annual per employer")
+            except (TypeError, ValueError):
+                mcb_parts.append(
+                    f"unreadable for {fy_label}: paydaysuper/data/rates.json holds "
+                    f"max_contributions_base {mcb!r}, which is not a whole number of dollars"
+                )
+    mcb_text = "; ".join(mcb_parts)
     if len(fy_labels) > 1:
         mcb_text += f" (this file spans {', '.join(fy_labels)})"
 
