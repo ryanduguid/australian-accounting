@@ -273,14 +273,23 @@ def _scan(
     return _page(matches, seen, corpus, has_more=False)
 
 
-def search_sections(query: str, limit: int, offset: int, act: str | None = None) -> dict[str, Any]:
-    """Search the configured corpus for sections holding every supplied word."""
+def search_sections(
+    query: str, limit: int, offset: int, act: str | None = None, in_force_only: bool = True
+) -> dict[str, Any]:
+    """Search the configured corpus for sections holding every supplied word.
+
+    A superseded compilation is left out unless in_force_only is False; a row
+    whose currency the corpus did not record is kept either way, with its
+    version_is_current reported as null.
+    """
     terms = _terms(query, "query")
     act_terms = _terms(act, "act") if act else []
     root = _root()
     files = _index_files(root)
 
     def confirm(row: dict[str, Any]) -> bool:
+        if in_force_only and row.get("version_is_current") is False:
+            return False
         if act_terms and not _holds(row, ("act",), act_terms):
             return False
         return _holds(row, SECTION_FIELDS, terms)
@@ -326,11 +335,16 @@ def read_section(row_id: str) -> dict[str, Any]:
 
 
 def search_rates(
-    query: str, limit: int, offset: int, topic: str | None = None
+    query: str, limit: int, offset: int, topic: str | None = None, year: str | None = None
 ) -> dict[str, Any]:
-    """Search the configured corpus for legislated rate, threshold and factor rows."""
+    """Search the configured corpus for legislated rate, threshold and factor rows.
+
+    year keeps only rows whose stated years include it, written the way the
+    provision writes it, such as '2026-27'; a row that states no year is left out.
+    """
     terms = _terms(query, "query")
     topic_terms = _terms(topic, "topic") if topic else []
+    wanted_year = year.strip().casefold() if year and year.strip() else None
     root = _root()
     path = root / "rates" / "rates.jsonl"
     if not path.is_file() or _linked(path) or _linked(path.parent):
@@ -339,6 +353,12 @@ def search_rates(
     def confirm(row: dict[str, Any]) -> bool:
         if topic_terms and not _holds(row, ("topic",), topic_terms):
             return False
+        if wanted_year is not None:
+            years = row.get("years")
+            if not isinstance(years, list) or wanted_year not in {
+                str(stated).casefold() for stated in years
+            }:
+                return False
         return _holds(row, RATE_FIELDS, terms)
 
     return _scan([path], terms + topic_terms, confirm, _rate, limit, offset, _provenance(root))
