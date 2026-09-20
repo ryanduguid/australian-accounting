@@ -48,8 +48,10 @@ and the assumptions the checker prints with every run sit on Review Checks.
 5. **Holidays and GIC.** The whole-of-jurisdiction holiday table and the
    quarterly general interest charge rates the engine ships. To review a
    deadline past the holiday coverage, add the official dates and move the
-   coverage date on Summary; to keep notional earnings exact past the last
-   known quarter, add the ATO's next rate and mark it known.
+   coverage date on Summary. A line whose accrual runs past the last known
+   GIC quarter keeps its verdict, days late and shortfall and shows no
+   notional earnings or charge estimate until you add the ATO's next rate
+   and mark it known; the workbook has no equivalent of `--allow-stale-gic`.
 
 ## How it is kept honest
 

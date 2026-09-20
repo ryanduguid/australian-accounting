@@ -21,7 +21,10 @@ with `--allow-stale-gic`. Without that flag the row keeps its verdict, its days
 late and its shortfall and carries no SG charge estimate at all, with a caveat
 naming the day, the last quarter on record and the file to update, so nothing
 below applies to a default run. The MCP server has no equivalent option, so a
-result it returns never carries an extrapolated figure.
+result it returns never carries an extrapolated figure. Nor has the Excel
+workbook: a line whose accrual runs past the table keeps its verdict, days
+late and shortfall, leaves the five charge columns blank and is counted on
+Review Checks.
 
 **Effect.** With the flag, `GicTable.daily_rate()` returns the last known
 quarter's rate for those days. The notional earnings component under SGAA
