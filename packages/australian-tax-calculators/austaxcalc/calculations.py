@@ -10,6 +10,7 @@ from .metadata import (
     EXAMPLES,
     INPUT_UNITS,
     LIBRARY_EVIDENCE,
+    RESIDENT_TAX_SCALES,
     SOURCE_REVIEWS,
     SUPPORTED_PERIODS,
     periods,
@@ -145,7 +146,7 @@ def resident_tax(taxable_income: Decimal, year: str, scope_confirmed: bool) -> d
     income = _money(taxable_income)
     if income != income.to_integral_value():
         raise ValueError("Supply established whole-dollar taxable income.")
-    first = D("0.15") if year == "2026-27" else D("0.16")
+    scale = RESIDENT_TAX_SCALES[year]
     # Every worksheet computes in its own context, as gst and depreciation
     # already did: a caller that had lowered decimal precision rounded these
     # intermediate amounts before _result could quantise them, and a
@@ -153,11 +154,12 @@ def resident_tax(taxable_income: Decimal, year: str, scope_confirmed: bool) -> d
     with localcontext() as context:
         context.prec = 40
         tax = D(0)
-        for low, high, rate in [(18200, 45000, first), (45000, 135000, D("0.30")),
-                                (135000, 190000, D("0.37")), (190000, 10**12, D("0.45"))]:
-            tax += max(D(0), min(income, D(high)) - low) * rate
+        for low, high, rate in scale:
+            ceiling = income if high is None else min(income, D(high))
+            tax += max(D(0), ceiling - low) * D(rate)
         return _result("resident_tax", year, {"taxable_income_used": income,
-                                              "basic_income_tax": tax})
+                                              "basic_income_tax": tax},
+                       {f"over_{low}": rate for low, _, rate in scale})
 
 
 def capital_gains(other_gains: Decimal, discount_gains: Decimal, current_losses: Decimal,
