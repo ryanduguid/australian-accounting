@@ -12,7 +12,9 @@ TOOLS = asyncio.run(mcp.list_tools())
 @pytest.mark.parametrize("tool", TOOLS, ids=lambda tool: tool.name)
 def test_every_input_has_a_description_in_the_public_schema(tool) -> None:
     properties = tool.input_schema["properties"]
-    assert properties
+    # refuse_div7a is the one tool that takes nothing: a refusal needs no facts,
+    # and a published input would only invite inventing them.
+    assert properties or tool.name == "refuse_div7a"
     missing = [name for name, schema in properties.items() if not schema.get("description")]
     assert not missing, f"{tool.name} has undocumented inputs: {missing}"
 
@@ -86,9 +88,6 @@ BOUNDED_STRING_INPUTS = {
     ("review_div7a_loan", "amalgamated_loan_unpaid_at_end_of_previous_year"): 60,
     ("review_div7a_loan", "remaining_term_years"): 30,
     ("review_div7a_loan", "payments_applied_during_the_year"): 60,
-    ("refuse_div7a", "borrower_name"): 120,
-    ("refuse_div7a", "lender_entity_name"): 120,
-    ("refuse_div7a", "loan_principal"): 60,
     ("generate_synthetic_sbr_fixture", "form_type"): 20,
     ("generate_synthetic_sbr_fixture", "revenue_or_sales"): 60,
     ("review_payday_super_contributions", "as_at"): 40,
@@ -98,6 +97,8 @@ BOUNDED_STRING_INPUTS = {
     ("search_tax_legislation", "query"): 200,
     ("search_tax_legislation", "act"): 200,
     ("read_tax_legislation_section", "row_id"): 300,
+    ("define_tax_term", "term"): 200,
+    ("define_tax_term", "act"): 200,
     ("search_tax_rates", "query"): 200,
     ("search_tax_rates", "topic"): 100,
 }
@@ -167,7 +168,7 @@ def test_every_money_input_shares_the_worksheet_money_bound() -> None:
         if key[1].endswith(("amount", "principal", "revenue_or_sales"))
         or key[1].startswith(("amalgamated_loan", "payments_applied"))
     }
-    assert len(amounts) == 7
+    assert len(amounts) == 6
     assert {BOUNDED_STRING_INPUTS[key] for key in amounts} == {money}
 
 

@@ -310,3 +310,148 @@ def test_a_linked_markdown_directory_is_refused_by_read_as_well_as_search(tmp_pa
         call("read_tax_legislation_section", row_id="C9999A00001:0003:5-15")
     with pytest.raises(ToolError):
         call("search_tax_legislation", query="synthetic levy rate")
+
+
+def test_read_widens_to_the_provisions_either_side(corpus):
+    alone = call("read_tax_legislation_section", row_id="C9999A00001:0002:5-10")
+
+    assert alone["before"] == [] and alone["after"] == []
+
+    widened = call("read_tax_legislation_section", row_id="C9999A00001:0002:5-10", neighbours=1)
+
+    assert [row["row_id"] for row in widened["before"]] == ["C9999A00001:0001:1"]
+    assert [row["row_id"] for row in widened["after"]] == ["C9999A00001:0003:5-15"]
+    assert widened["after"][0]["text"] == "A synthetic levy exemption applies to a small entity."
+    assert widened["after"][0]["attribution"] == ATTRIBUTION
+    assert widened["section"]["row_id"] == "C9999A00001:0002:5-10"
+
+
+def test_neighbours_stop_at_the_edges_of_the_title(corpus):
+    result = call("read_tax_legislation_section", row_id="C9999A00001:0001:1", neighbours=5)
+
+    assert result["before"] == []
+    assert [row["row_id"] for row in result["after"]] == [
+        "C9999A00001:0002:5-10", "C9999A00001:0003:5-15"
+    ]
+
+
+def test_a_neighbour_is_truncated_like_a_search_match(corpus):
+    result = call("read_tax_legislation_section", row_id="C9999A00002:0001:2", neighbours=1)
+    neighbour = result["after"][0]
+
+    assert len(neighbour["text"]) == 1200
+    assert neighbour["total_chars"] == synthetic_corpus.LONG_TEXT_CHARS
+    assert any("truncated" in caveat for caveat in neighbour["caveats"])
+
+
+@pytest.mark.parametrize("neighbours", [-1, 6, "1"])
+def test_neighbours_outside_the_bound_are_rejected(corpus, neighbours):
+    with pytest.raises(ToolError):
+        call("read_tax_legislation_section", row_id="C9999A00001:0002:5-10",
+             neighbours=neighbours)
+
+
+def test_a_definition_carries_its_entry_and_the_dictionary_citation(corpus):
+    result = call("define_tax_term", term="small entity")
+    first = result["definitions"][0]
+
+    assert first["match"] == "exact"
+    assert first["head"] == "small entity"
+    assert first["text"] == (
+        "small entity: an entity is a small entity for a year if:\n\n"
+        "- (a) its *assessable amount for the year is below the cap; and\n\n"
+        "- (b) it is not a *large entity."
+    )
+    assert first["row_id"] == "C9999A00004:0002:2"
+    assert first["act"] == "Synthetic Glossary Act 2099"
+    assert first["section"] == "2"
+    assert first["compilation_date"] == "2098-07-01"
+    assert first["register_page"] == "https://example.invalid/C9999A00004/latest"
+    assert first["attribution"] == ATTRIBUTION
+    assert [(entry["head"], entry["match"]) for entry in result["definitions"]] == [
+        ("small entity", "exact"), ("small entity cap, for a year", "partial")
+    ]
+    assert result["has_more"] is False
+    assert "undefined" in result["notice"]
+    assert result["corpus"]["licence"] == "CC BY 4.0"
+
+
+def test_a_note_stays_with_the_definition_it_follows(corpus):
+    result = call("define_tax_term", term="assessable amount")
+
+    assert result["definitions"][0]["text"] == (
+        "assessable amount means the amount an entity reports for the year.\n\n"
+        "Note: The amount is reported on the approved form."
+    )
+    # "(2) A term used in a note ..." is a subsection, not a definition head.
+    assert not call("define_tax_term", term="term used")["definitions"]
+
+
+def test_a_qualified_head_and_a_non_breaking_hyphen_still_match_exactly(corpus):
+    cap = call("define_tax_term", term="Small Entity Cap")["definitions"][0]
+    tagged = call("define_tax_term", term="165-cc tagged asset")["definitions"][0]
+
+    assert cap["match"] == "exact" and cap["head"] == "small entity cap, for a year"
+    assert tagged["match"] == "exact" and tagged["head"] == "165\u2011CC tagged asset"
+
+
+def test_a_superseded_dictionary_is_left_out_unless_asked_for(corpus):
+    assert not call("define_tax_term", term="old term")["definitions"]
+
+    hit = call("define_tax_term", term="old term", in_force_only=False)["definitions"][0]
+
+    assert hit["match"] == "exact"
+    assert hit["version_is_current"] is False
+    assert any("not the current version" in caveat for caveat in hit["caveats"])
+
+
+def test_definitions_filter_by_act_and_put_the_exact_match_first(corpus):
+    assert not call("define_tax_term", term="entity", act="levy act")["definitions"]
+
+    page = call("define_tax_term", term="entity", act="glossary act", limit=1)
+
+    assert [entry["head"] for entry in page["definitions"]] == ["entity"]
+    assert page["has_more"] is True
+
+
+def test_a_word_outside_a_dictionary_section_is_not_a_definition(corpus):
+    # Every Levy Act provision mentions the levy; none of them is a dictionary.
+    assert not call("define_tax_term", term="levy")["definitions"]
+    # An operative section headed "Extended definition of ..." is not a dictionary
+    # either, so its opening sentence is not an entry for the words it contains.
+    assert not call("define_tax_term", term="covered body")["definitions"]
+    assert not call("define_tax_term", term="body")["definitions"]
+
+
+def test_a_definition_beyond_the_partial_cap_is_reported_not_returned(corpus, monkeypatch):
+    monkeypatch.setattr(corpus_module, "MAX_DEFINITIONS", 1)
+
+    result = call("define_tax_term", term="entity", limit=20)
+
+    assert [entry["match"] for entry in result["definitions"]] == ["exact", "partial"]
+    assert result["has_more"] is True
+
+
+def test_a_term_without_a_word_is_refused(corpus):
+    with pytest.raises(ToolError):
+        call("define_tax_term", term=" ")
+
+
+def test_a_malformed_line_beside_the_cited_row_costs_no_neighbour_slot(corpus):
+    index = corpus / "markdown" / "C9999A00001" / "sections.jsonl"
+    rows = index.read_text(encoding="utf-8").splitlines()
+    index.write_text(
+        "\n".join([rows[0], "{not json", rows[1], '["not", "an", "object"]', rows[2]]) + "\n",
+        encoding="utf-8",
+    )
+
+    result = call("read_tax_legislation_section", row_id="C9999A00001:0002:5-10", neighbours=1)
+
+    assert [row["row_id"] for row in result["before"]] == ["C9999A00001:0001:1"]
+    assert [row["row_id"] for row in result["after"]] == ["C9999A00001:0003:5-15"]
+
+
+def test_a_definition_lookup_refuses_a_corpus_past_the_scan_bounds(corpus, monkeypatch):
+    monkeypatch.setattr(corpus_module, "MAX_CORPUS_BYTES", 10)
+    with pytest.raises(ToolError):
+        call("define_tax_term", term="small entity")

@@ -90,7 +90,8 @@ command, so they cannot run this server.
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
 | `search_tax_legislation` | Find in-force provisions in a configured local legislation corpus, cited to Act, section, compilation and register page; `in_force_only=false` includes superseded compilations. |
-| `read_tax_legislation_section` | Read one cited provision from that corpus in full. |
+| `read_tax_legislation_section` | Read one cited provision from that corpus in full, with up to 5 provisions either side when `neighbours` is set. |
+| `define_tax_term` | Find an expression's statutory definitions in that corpus's dictionary sections, exact matches first; no match is not proof the expression is undefined. |
 | `search_tax_rates` | Find legislated rate and threshold rows with the provision that sets them, optionally for one stated `year`. |
 | `get_div7a_benchmark_rate` | Get a reviewed Division 7A benchmark rate, or `UNKNOWN`. |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayments for one supplied amalgamated loan. |
@@ -117,7 +118,7 @@ assistant's context. The package contains no reference library.
 ## Legislation corpus
 
 Set `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus you have built or obtained
-and authorise the assistant to read. The three corpus tools then cite every
+and authorise the assistant to read. The four corpus tools then cite every
 provision to its Act, section, compilation number, compilation date and register
 page, and carry the corpus licence and attribution with the text.
 

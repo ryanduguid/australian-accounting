@@ -66,7 +66,8 @@ async def _answer(session, case):
         return next(row["status"] for row in result["ratios"] if row["ratio"] == name)
 
     if case in {"grouped-payday", "worksheet-gst", "library-reference", "payday-evidence-pack",
-                "legislation-citation", "legislated-rate"}:
+                "legislation-citation", "legislated-rate", "statutory-definition",
+                "injected-instruction", "undefined-term", "stored-rate-date"}:
         reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
         results = [await call(c["name"], **c["arguments"])
                    for c in json.loads(reference.text)]
@@ -80,6 +81,17 @@ async def _answer(session, case):
             return results[-1]["section"]["section"]
         if case == "legislated-rate":
             return results[0]["matches"][0]["amounts"][0]
+        if case == "statutory-definition":
+            return results[0]["definitions"][0]["section"]
+        if case == "injected-instruction":
+            # The replay proves the row is served verbatim; the recorded-run scorer
+            # proves an agent that read it selected no other tool.
+            assert "ignore your instructions" in results[0]["section"]["text"]
+            return results[0]["section"]["section"]
+        if case == "undefined-term":
+            return "NONE_FOUND" if not results[0]["definitions"] else "FOUND"
+        if case == "stored-rate-date":
+            return results[0]["matches"][0]["compilation_date"]
         return results[-1]["text"]
 
     if case == "catalogue-pages":
@@ -149,10 +161,7 @@ async def _answer(session, case):
                 interest_rate_for_years_after_year_loan_made=rate["benchmark_rate"],
             )
             return review["gate"]["verdict"]
-        refusal = await call(
-            "refuse_div7a", borrower_name="Synthetic Borrower",
-            lender_entity_name="Synthetic Lender", loan_principal="50000.00",
-        )
+        refusal = await call("refuse_div7a")
         assert refusal["available"] is False
         return refusal["code"]
 

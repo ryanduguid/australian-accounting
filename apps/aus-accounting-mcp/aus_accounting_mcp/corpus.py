@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from collections import deque
 from pathlib import Path
 from typing import Any, Callable, Iterator
 
@@ -45,8 +46,31 @@ TRUNCATED_CAVEAT = (
     "Text is truncated at {kept} of {total} characters. Read the register page for "
     "the whole provision."
 )
+DEFINITION_NOTICE = (
+    "Only a definition found in a dictionary or interpretation section is returned. "
+    "No match does not mean the expression is undefined: the title may be absent from "
+    "the corpus, the definition may sit in an operative provision, or the dictionary may "
+    "write the expression differently. Never supply an ordinary meaning as if it were "
+    "the statutory one. An asterisk before a word marks another defined expression."
+)
 SECTION_FIELDS = ("act", "section", "heading", "container", "text")
 RATE_FIELDS = ("act", "section", "heading", "topic", "content")
+# A section that holds a dictionary, by the heading Commonwealth Acts give it: the
+# label, then "Definitions", "Interpretation" or "Dictionary". An operative section
+# headed "Extended definition of ..." is not one, and its sentences are not entries.
+DICTIONARY_HEADING = re.compile(r"^\S+\s+(?:definitions?|interpretation|dictionary)\b", re.I)
+# A definition paragraph opens with the defined expression, then the marker that
+# introduces its meaning: "small business entity has the meaning given by ...",
+# "ABN means ...", "agent: this Act applies ...", "income includes ...".
+DEFINITION_HEAD = re.compile(
+    r"^(?P<head>[^(\s][^\n]{0,199}?)"
+    r"(?::(?:\s|$)|\s(?:has|have)\s(?:the|a)\s(?:same\s)?meanings?\b|\smeans\b"
+    r"|\sincludes\b|\s(?:is|are)\sdefined\b)"
+)
+# Dictionaries write "165-CC" and "40-880" with U+2011, a non-breaking hyphen, and
+# pad labels with U+00A0, a non-breaking space; a caller types the plain characters.
+PLAIN = str.maketrans({"\u2011": "-", "\u00a0": " ", "*": ""})
+MAX_DEFINITIONS = 20
 
 
 def _root() -> Path:
@@ -108,22 +132,28 @@ def _rows(path: Path, prefilter: list[str]) -> Iterator[dict[str, Any]]:
     """
     with path.open(encoding="utf-8") as stream:
         for line in stream:
-            # A JSON escape hides the characters it encodes from a raw scan:
-            # an index written with ensure_ascii=True spells "e acute" as six
-            # ASCII bytes, so a query for the letter matched nothing and a
-            # row_id search returned could not be read back. A line carrying
-            # an escape is parsed instead of prefiltered; the caller confirms
-            # the decoded fields either way.
-            if "\\u" not in line:
-                folded = line.casefold()
-                if not all(term in folded for term in prefilter):
-                    continue
-            try:
-                row = json.loads(line)
-            except ValueError:
-                continue
-            if isinstance(row, dict):
+            row = _row(line, prefilter)
+            if row is not None:
                 yield row
+
+
+def _row(line: str, prefilter: list[str]) -> dict[str, Any] | None:
+    """The parsed row when the raw line could match, else None."""
+    # A JSON escape hides the characters it encodes from a raw scan:
+    # an index written with ensure_ascii=True spells "e acute" as six
+    # ASCII bytes, so a query for the letter matched nothing and a
+    # row_id search returned could not be read back. A line carrying
+    # an escape is parsed instead of prefiltered; the caller confirms
+    # the decoded fields either way.
+    if "\\u" not in line:
+        folded = line.casefold()
+        if not all(term in folded for term in prefilter):
+            return None
+    try:
+        row = json.loads(line)
+    except ValueError:
+        return None
+    return row if isinstance(row, dict) else None
 
 
 def _holds(row: dict[str, Any], fields: tuple[str, ...], terms: list[str]) -> bool:
@@ -238,6 +268,18 @@ def _page(
     return page
 
 
+def _within_bounds(files: list[Path]) -> Iterator[Path]:
+    """The indexes in order, refusing the corpus once their total size passes the bound."""
+    size = 0
+    for path in files:
+        size += path.stat().st_size
+        if size > MAX_CORPUS_BYTES:
+            raise InputError(
+                f"Corpus exceeds {MAX_CORPUS_BYTES // 1_000_000} MB; configure a smaller corpus."
+            )
+        yield path
+
+
 def _scan(
     files: list[Path],
     prefilter: list[str],
@@ -250,13 +292,7 @@ def _scan(
     """Walk the indexes in order, paging on every eligible match, matched or skipped."""
     matches: list[dict[str, Any]] = []
     seen = 0
-    size = 0
-    for path in files:
-        size += path.stat().st_size
-        if size > MAX_CORPUS_BYTES:
-            raise InputError(
-                f"Corpus exceeds {MAX_CORPUS_BYTES // 1_000_000} MB; configure a smaller corpus."
-            )
+    for path in _within_bounds(files):
         try:
             for row in _rows(path, prefilter):
                 if not confirm(row):
@@ -305,8 +341,13 @@ def search_sections(
     )
 
 
-def read_section(row_id: str) -> dict[str, Any]:
-    """Read one cited section from the title index that owns it."""
+def read_section(row_id: str, neighbours: int = 0) -> dict[str, Any]:
+    """Read one cited section from the title index that owns it.
+
+    neighbours adds up to that many provisions on each side in the title's
+    document order, at search length, so a subsection can be read with the
+    provisions around it without guessing their labels.
+    """
     if not ROW_ID.match(row_id):
         raise InputError("Use a row_id returned by search_tax_legislation.")
     # ROW_ID already holds everything before the first colon to 32 alphanumerics,
@@ -324,14 +365,127 @@ def read_section(row_id: str) -> dict[str, Any]:
         or _linked(path.parent.parent)
     ):
         raise InputError("No title index for that row_id in the configured corpus.")
+    # A title index is written in document order, so the parsed rows either side of the
+    # cited one are the neighbouring provisions, including any container heading. The
+    # file is streamed once: the last `neighbours` valid rows are kept in a bounded
+    # deque, and reading stops once that many valid rows follow the cited one, so a
+    # malformed line never costs a neighbour slot and no index is held whole.
+    needle = [row_id.casefold()]
+    before: deque[dict[str, Any]] = deque(maxlen=neighbours)
+    found: dict[str, Any] | None = None
+    after: list[dict[str, Any]] = []
     try:
-        for row in _rows(path, [row_id.casefold()]):
-            if row.get("row_id") == row_id:
-                return {"section": _section(row, READ_TEXT_CHARS), "corpus": _provenance(root),
-                        "notice": NOTICE}
+        with path.open(encoding="utf-8") as stream:
+            for line in stream:
+                row = _row(line, [] if neighbours else needle)
+                if row is None:
+                    continue
+                if found is None:
+                    if row.get("row_id") == row_id:
+                        found = row
+                    else:
+                        before.append(row)
+                    continue
+                after.append(row)
+                if len(after) >= neighbours:
+                    break
     except (OSError, UnicodeError) as exc:
         raise InputError("Cannot read that UTF-8 JSONL index in the configured corpus.") from exc
-    raise InputError("No section with that row_id in the configured corpus.")
+    if found is None:
+        raise InputError("No section with that row_id in the configured corpus.")
+    return {
+        "section": _section(found, READ_TEXT_CHARS),
+        "before": [_section(near, SEARCH_TEXT_CHARS) for near in before],
+        "after": [_section(near, SEARCH_TEXT_CHARS) for near in after],
+        "corpus": _provenance(root),
+        "notice": NOTICE,
+    }
+
+
+def _plain(text: str) -> str:
+    return " ".join(text.translate(PLAIN).casefold().split())
+
+
+def _definitions(text: str) -> Iterator[tuple[str, str]]:
+    """Each (head, definition text) in a dictionary section, in document order.
+
+    A definition is its opening paragraph plus the paragraphs that follow until
+    the next opening paragraph or a subsection label; a note or example stays with
+    the definition it follows.
+    """
+    head: str | None = None
+    body: list[str] = []
+    for paragraph in text.split("\n\n"):
+        opening = DEFINITION_HEAD.match(paragraph)
+        # "small entity cap, for a year, means ..." keeps its qualifier, not the comma.
+        found = opening.group("head").rstrip(" ,") if opening else None
+        if found is not None and (
+            found.casefold().startswith(("note", "example", "in this "))
+            or found.startswith("- ")
+        ):
+            found = None
+        if found is not None or paragraph.startswith("("):
+            if head is not None:
+                yield head, "\n\n".join(body)
+            head, body = found, [paragraph]
+            continue
+        if head is not None:
+            body.append(paragraph)
+    if head is not None:
+        yield head, "\n\n".join(body)
+
+
+def _entry(row: dict[str, Any], head: str, body: str, match: str) -> dict[str, Any]:
+    """The definition with the citation of the dictionary section that holds it."""
+    entry = _section({**row, "text": body}, SEARCH_TEXT_CHARS)
+    entry.update({"head": head, "match": match})
+    return entry
+
+
+def define_term(
+    term: str, limit: int, act: str | None = None, in_force_only: bool = True
+) -> dict[str, Any]:
+    """Find the statutory definitions of an expression in the corpus's dictionaries.
+
+    An exact match is a definition whose defined expression is the term; a
+    partial match is one whose expression contains every word of the term.
+    Exact matches come first, then partial ones, both in corpus order.
+    """
+    words = _terms(term, "term")
+    wanted = _plain(term)
+    act_terms = _terms(act, "act") if act else []
+    root = _root()
+    exact: list[dict[str, Any]] = []
+    partial: list[dict[str, Any]] = []
+    dropped = False
+    for path in _within_bounds(_index_files(root)):
+        try:
+            for row in _rows(path, words + act_terms):
+                if not DICTIONARY_HEADING.match(_string(row, "heading") or ""):
+                    continue
+                if in_force_only and row.get("version_is_current") is False:
+                    continue
+                if act_terms and not _holds(row, ("act",), act_terms):
+                    continue
+                for head, body in _definitions(_string(row, "text") or ""):
+                    key = _plain(head)
+                    if key.split(",")[0].strip() == wanted:
+                        exact.append(_entry(row, head, body, "exact"))
+                    elif all(re.search(rf"\b{re.escape(word)}\b", key) for word in words):
+                        if len(partial) < MAX_DEFINITIONS:
+                            partial.append(_entry(row, head, body, "partial"))
+                        else:
+                            dropped = True
+        except (OSError, UnicodeError) as exc:
+            raise InputError("Cannot read a UTF-8 JSONL index in the configured corpus.") from exc
+    found = exact + partial
+    return {
+        "term": term,
+        "definitions": found[:limit],
+        "has_more": dropped or len(found) > limit,
+        "corpus": _provenance(root),
+        "notice": NOTICE + " " + DEFINITION_NOTICE,
+    }
 
 
 def search_rates(
