@@ -401,17 +401,21 @@ def formulas():
         "Days_late": (
             f'=IF({exposed},IF({T("Past_horizon")}=1,"",MAX({T("Outstanding_to")}-{due},0)),"")'
         ),
+        # Do not expose figures calculated from generated (stale) GIC rows. This
+        # deliberately matches the engine's default: the verdict, lateness and
+        # shortfall remain useful, while an accountant must opt in to stale-rate
+        # estimates rather than silently receiving a carried-forward rate.
         "NEC": (
-            f'=IF({exposed},IF({nec_end}>{due},{T("Base_shortfall")}*(EXP(SUMPRODUCT({segments}'
-            f'*LN(1+tblGic[annual_pct]/100/tblGic[divisor])))-1),0),"")'
+            f'=IF({exposed},IF({nec_end}>{GIC_LAST},"",IF({nec_end}>{due},{T("Base_shortfall")}*(EXP(SUMPRODUCT({segments}'
+            f'*LN(1+tblGic[annual_pct]/100/tblGic[divisor])))-1),0)),"")'
         ),
         "GIC_estimated": f'=IF({exposed},IF({nec_end}>{GIC_LAST},1,0),"")',
         "Shortfall_r": f'=IF({exposed},ROUND({T("Final_shortfall")},2),"")',
-        "NEC_r": f'=IF({exposed},ROUND({T("NEC")},2),"")',
-        "Uplift_best": f'=IF({exposed},0,"")',
-        "Uplift_worst": f'=IF({exposed},ROUND(0.6*({T("Final_shortfall")}+{T("NEC")}),2),"")',
-        "SGC_low": f'=IF({exposed},{T("Shortfall_r")}+{T("NEC_r")}+{T("Uplift_best")},"")',
-        "SGC_high": f'=IF({exposed},{T("Shortfall_r")}+{T("NEC_r")}+{T("Uplift_worst")},"")',
+        "NEC_r": f'=IF({exposed},IF({T("GIC_estimated")}=1,"",ROUND({T("NEC")},2)),"")',
+        "Uplift_best": f'=IF({exposed},IF({T("GIC_estimated")}=1,"",0),"")',
+        "Uplift_worst": f'=IF({exposed},IF({T("GIC_estimated")}=1,"",ROUND(0.6*({T("Final_shortfall")}+{T("NEC")}),2)),"")',
+        "SGC_low": f'=IF({exposed},IF({T("GIC_estimated")} =1,"",{T("Shortfall_r")}+{T("NEC_r")}+{T("Uplift_best")}),"")',
+        "SGC_high": f'=IF({exposed},IF({T("GIC_estimated")} =1,"",{T("Shortfall_r")}+{T("NEC_r")}+{T("Uplift_worst")}),"")',
         "Transition_row": (
             f'=IF(AND({db}<>1,ISNUMBER({sg}),ROUND({sg},2)>0,ROUND({T("Cap")},2)>0,OR(ISNUMBER({rec}),ISNUMBER({rem})),'
             f'IF(ISNUMBER({rec}),{rec},{rem})<={excel_date(TRANSITION_END)}),1,0)'
