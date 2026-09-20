@@ -543,6 +543,10 @@ def _assess_received(
         result.verdict = UNKNOWN
         if settled > dl.due:
             worse = LATE
+        elif possible_item4_due is not None and as_at > possible_item4_due:
+            # Once even the possible extension has expired, an unevidenced
+            # partial receipt can leave the balance unpaid.
+            worse = UNPAID
         elif dl.due < as_at:
             worse = UNPAID
         else:
