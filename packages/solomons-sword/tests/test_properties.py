@@ -59,6 +59,46 @@ def test_three_near_equal_percentage_shares_foot_to_the_trust_income():
     assert sum(s.section95_net_income_share for s in shares) == Decimal("10.00")
 
 
+def test_a_fixed_entitlement_is_reported_as_supplied_and_percentages_absorb_the_cent():
+    # $5.00 fixed plus three 16.67% shares reconcile ($5.00 + $5.00) but the
+    # three quantised percentage shares of $1.67 overshoot by one cent.
+    assessment = TrustIncomeAssessment(
+        financial_year=2026,
+        trust_name="Synthetic Trust",
+        trust_accounting_income=Decimal("10.00"),
+        section95_net_taxable_income=Decimal("10.00"),
+        franking_credits=Decimal("0.00"),
+        beneficiaries=[
+            BeneficiaryEntitlement("Fixed", fixed_entitlement_amount=Decimal("5.00")),
+            BeneficiaryEntitlement("P1", percentage_entitlement=Decimal("16.67")),
+            BeneficiaryEntitlement("P2", percentage_entitlement=Decimal("16.67")),
+            BeneficiaryEntitlement("P3", percentage_entitlement=Decimal("16.67")),
+        ],
+    )
+    shares = calculate_proportionate_share(assessment)
+    assert shares[0].trust_income_entitlement == Decimal("5.00")
+    assert [s.trust_income_entitlement for s in shares[1:]] == [
+        Decimal("1.66"), Decimal("1.67"), Decimal("1.67"),
+    ]
+    assert sum(s.trust_income_entitlement for s in shares) == Decimal("10.00")
+
+
+def test_all_fixed_entitlements_are_reported_as_supplied():
+    amounts = [Decimal("3.33"), Decimal("3.33"), Decimal("3.34")]
+    assessment = TrustIncomeAssessment(
+        financial_year=2026,
+        trust_name="Synthetic Trust",
+        trust_accounting_income=Decimal("10.00"),
+        section95_net_taxable_income=Decimal("10.00"),
+        franking_credits=Decimal("0.00"),
+        beneficiaries=[
+            BeneficiaryEntitlement(f"F{i}", fixed_entitlement_amount=a) for i, a in enumerate(amounts)
+        ],
+    )
+    shares = calculate_proportionate_share(assessment)
+    assert [s.trust_income_entitlement for s in shares] == amounts
+
+
 @seed(0x5010)
 @PROPERTY_SETTINGS
 @given(weights=WEIGHTS, trust_income=CENTS, s95_net=CENTS, credits=CREDITS)

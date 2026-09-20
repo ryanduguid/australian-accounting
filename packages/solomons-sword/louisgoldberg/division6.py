@@ -241,11 +241,17 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
 
     # The entitlement column is reported rather than taxed, but a reviewer
     # ties it to the income of the trust estate, and three 33.33/33.33/33.34
-    # shares of $10.00 each round down to $3.33. Reconcile it the same way.
+    # shares of $10.00 each round down to $3.33. Reconcile it the same way,
+    # among the percentage shares only: a fixed entitlement is the deed's own
+    # figure and is reported as supplied, and the gate above has already
+    # proved the fixed amounts and the percentage leg reconcile to the cent.
     entitlement_residual = total_trust_inc - sum(
         (s.trust_income_entitlement for s in shares), Decimal("0.00")
     )
-    for i in sorted(range(len(shares)), key=lambda i: ratios[i], reverse=True):
+    percentage_shares = [
+        i for i, b in enumerate(assessment.beneficiaries) if b.percentage_entitlement is not None
+    ]
+    for i in sorted(percentage_shares, key=lambda i: ratios[i], reverse=True):
         if not entitlement_residual:
             break
         adjustment = max(-shares[i].trust_income_entitlement, entitlement_residual)
