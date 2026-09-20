@@ -25,7 +25,7 @@ from .deadlines import (
     earliest_prepayment_day,
     receipt_amount_cap,
 )
-from .rates import GicTable, RatesError
+from .rates import FutureGicCoverageError, GicTable, RatesError
 from .sgc import exposure_range, notional_earnings, uplift_scenarios
 
 TRANSITION_END = date(2026, 7, 28)
@@ -896,7 +896,7 @@ def _apply_exposure(
             if nec_end > dl.due
             else Decimal("0")
         )
-    except RatesError as exc:
+    except FutureGicCoverageError as exc:
         # The same rule as a deadline past the calendar's coverage, one row
         # above: the verdict and the shortfall rest on the deadline and the
         # receipt facts, and the GIC table has no part in either, so they

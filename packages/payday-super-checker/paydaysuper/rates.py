@@ -67,6 +67,10 @@ class RatesError(ValueError):
     pass
 
 
+class FutureGicCoverageError(RatesError):
+    """The requested day is after the final published GIC quarter."""
+
+
 # A GIC rate above this is a typo, not a rate. The ATO general interest charge
 # is a base rate plus 7 points and has never approached 100% a year, so the
 # ceiling costs nothing real and catches the 2 hand-edit slips that print
@@ -126,7 +130,7 @@ class GicTable:
                 return q.annual_pct / Decimal(100) / divisor
         if d > self.last_known:
             if not allow_stale:
-                raise RatesError(
+                raise FutureGicCoverageError(
                     f"{d.isoformat()} is past the last GIC quarter on record "
                     f"({self.last_known.isoformat()}), and the ATO has published no "
                     "rate for it. Update paydaysuper/data/gic_rates.json from the ATO "
