@@ -1,3 +1,8 @@
+# v0.2.4
+
+- Pin `payday-super-checker` 0.1.6; `ato-benchmark-compare` 0.1.8, `div7a-loan-review` 0.1.3 and `australian-tax-calculators` 0.1.3 are retained.
+- Checker 0.1.6 withholds a row's notional earnings, administrative uplift and SG-charge exposure when its period runs past the last GIC quarter on record, and says so in a caveat that names the day, the quarter and the file to update. The server has no equivalent of the checker's `--allow-stale-gic`, so a result it returns never carries an extrapolated rate. The checker also names the financial year a `rates.json` lookup is missing for, and caveats a fund-receipt row that carries no matched or remitted amount.
+
 # v0.2.3
 
 - Resolve the standalone lock against published `payday-super-checker` 0.1.5 and `ato-benchmark-compare` 0.1.8; `div7a-loan-review` 0.1.3 and `australian-tax-calculators` 0.1.3.
