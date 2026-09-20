@@ -18,9 +18,9 @@
     },
     {
       "distribution": "div7a-loan-review",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/div7a-loan-review",
-      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.1.3"
+      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.1.4"
     },
     {
       "distribution": "payday-super-checker",
