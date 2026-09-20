@@ -376,7 +376,9 @@ def read_section(row_id: str, neighbours: int = 0) -> dict[str, Any]:
     # file is streamed once: the last `neighbours` valid rows are kept in a bounded
     # deque, and reading stops once that many valid rows follow the cited one, so a
     # malformed line never costs a neighbour slot and no index is held whole.
-    needle = [row_id.casefold()]
+    # A quote or backslash in a row_id is always escaped in the raw line, so such
+    # an id cannot be prefiltered; every line of the one title is parsed instead.
+    needle = [] if '"' in row_id or "\\" in row_id else [row_id.casefold()]
     before: deque[dict[str, Any]] = deque(maxlen=neighbours)
     found: dict[str, Any] | None = None
     after: list[dict[str, Any]] = []

@@ -294,24 +294,29 @@ def test_escaped_and_literal_indexes_search_and_read_alike(tmp_path, monkeypatch
     assert "N\u00fa\u00f1ez" in read["section"]["text"]
 
 
-def test_an_escaped_solidus_row_id_reads_back_without_neighbours(tmp_path, monkeypatch):
-    """JSON may spell "/" as "\\/"; search returned such a row_id and a default read lost it."""
+@pytest.mark.parametrize(
+    ("section", "escaped"), [("5/10", "5\\/10"), ('5"10', '5\\"10'), ("5\\10", "5\\\\10")]
+)
+def test_an_escaped_row_id_reads_back_without_neighbours(tmp_path, monkeypatch, section, escaped):
+    """JSON may spell "/" as "\\/" and must escape a quote or backslash; search returned such
+    a row_id and a default read, which looked for the decoded id in the raw line, lost it."""
     monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
     synthetic_corpus.build(tmp_path)
     index = tmp_path / "markdown" / "C9999A00001" / "sections.jsonl"
     row = synthetic_corpus.section(
-        "C9999A00001", "0004", "5/10", "A synthetic apportionment applies.",
+        "C9999A00001", "0004", section, "A synthetic apportionment applies.",
         act=synthetic_corpus.LEVY_ACT,
     )
     line = json.dumps(row, ensure_ascii=True).replace("/", "\\/") + "\n"
-    assert "5\\/10" in line and "\\u" not in line
+    assert escaped in line and "\\u" not in line
     with index.open("a", encoding="utf-8") as stream:
         stream.write(line)
+    row_id = f"C9999A00001:0004:{section}"
 
     result = call("search_tax_legislation", query="apportionment")
-    assert [match["row_id"] for match in result["matches"]] == ["C9999A00001:0004:5/10"]
-    read = call("read_tax_legislation_section", row_id="C9999A00001:0004:5/10")
-    assert read["section"]["section"] == "5/10"
+    assert [match["row_id"] for match in result["matches"]] == [row_id]
+    read = call("read_tax_legislation_section", row_id=row_id)
+    assert read["section"]["section"] == section
     assert read["before"] == [] and read["after"] == []
 
 
