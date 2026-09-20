@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from collections import deque
 from pathlib import Path
 from typing import Any, Callable, Iterator
 
@@ -359,33 +360,49 @@ def read_section(row_id: str, neighbours: int = 0) -> dict[str, Any]:
     ):
         raise InputError("No title index for that row_id in the configured corpus.")
     try:
-        lines = path.read_text(encoding="utf-8").splitlines()
+        if path.stat().st_size > MAX_CORPUS_BYTES:
+            raise InputError(
+                f"Corpus exceeds {MAX_CORPUS_BYTES // 1_000_000} MB; configure a smaller corpus."
+            )
+        stream = path.open(encoding="utf-8")
+    except InputError:
+        raise
     except (OSError, UnicodeError) as exc:
         raise InputError("Cannot read that UTF-8 JSONL index in the configured corpus.") from exc
-    needle = [row_id.casefold()]
-    for position, line in enumerate(lines):
-        row = _row(line, needle)
-        if row is None or row.get("row_id") != row_id:
-            continue
-        # A title index is written in document order, so the lines either side of the
-        # cited one are the neighbouring provisions, including any container heading.
-        around = [
-            _section(near, SEARCH_TEXT_CHARS)
-            for near in (_row(other, []) for other in lines[max(0, position - neighbours):position])
-            if near is not None
-        ]
-        after = [
-            _section(near, SEARCH_TEXT_CHARS)
-            for near in (_row(other, []) for other in lines[position + 1:position + 1 + neighbours])
-            if near is not None
-        ]
-        return {
-            "section": _section(row, READ_TEXT_CHARS),
-            "before": around,
-            "after": after,
-            "corpus": _provenance(root),
-            "notice": NOTICE,
-        }
+    before: deque[dict[str, Any]] = deque(maxlen=neighbours)
+    try:
+        for line in stream:
+            # Parse every row: malformed and non-object lines must not consume a
+            # neighbour slot, and valid rows must not be hidden by the raw prefilter.
+            row = _row(line, [])
+            if row is None:
+                continue
+            if row.get("row_id") != row_id:
+                before.append(row)
+                continue
+            after: list[dict[str, Any]] = []
+            if neighbours == 0:
+                return {
+                    "section": _section(row, READ_TEXT_CHARS), "before": [], "after": [],
+                    "corpus": _provenance(root), "notice": NOTICE,
+                }
+            for following in stream:
+                valid = _row(following, [])
+                if valid is not None:
+                    after.append(valid)
+                    if len(after) == neighbours:
+                        break
+            return {
+                "section": _section(row, READ_TEXT_CHARS),
+                "before": [_section(item, SEARCH_TEXT_CHARS) for item in before],
+                "after": [_section(item, SEARCH_TEXT_CHARS) for item in after],
+                "corpus": _provenance(root),
+                "notice": NOTICE,
+            }
+    except (OSError, UnicodeError) as exc:
+        raise InputError("Cannot read that UTF-8 JSONL index in the configured corpus.") from exc
+    finally:
+        stream.close()
     raise InputError("No section with that row_id in the configured corpus.")
 
 
@@ -445,8 +462,14 @@ def define_term(
     exact: list[dict[str, Any]] = []
     partial: list[dict[str, Any]] = []
     dropped = False
+    size = 0
     for path in _index_files(root):
         try:
+            size += path.stat().st_size
+            if size > MAX_CORPUS_BYTES:
+                raise InputError(
+                    f"Corpus exceeds {MAX_CORPUS_BYTES // 1_000_000} MB; configure a smaller corpus."
+                )
             for row in _rows(path, words + act_terms):
                 if not DICTIONARY_HEADING.match(_string(row, "heading") or ""):
                     continue
