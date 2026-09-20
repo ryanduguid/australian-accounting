@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import hashlib
 import importlib
@@ -23,6 +24,7 @@ from aus_accounting_mcp.server import (
     generate_synthetic_sbr_fixture,
     get_ato_benchmarks,
     list_ato_benchmark_industries,
+    mcp,
     refuse_div7a,
 )
 from repository_root import repository_root
@@ -902,7 +904,7 @@ def test_ato_unknown_industry_is_refused() -> None:
 
 
 def test_div7a_is_refused() -> None:
-    payload = refuse_div7a("Alice", "HoldingCo Pty Ltd", "50000.00")
+    payload = refuse_div7a()
     assert payload["ok"] is False
     assert payload["available"] is False
     assert payload["reviewed_engine"] is True
@@ -912,31 +914,15 @@ def test_div7a_is_refused() -> None:
 
 def test_div7a_refusal_is_reachable_without_inventing_loan_facts() -> None:
     # A question this server refuses, such as an unpaid present entitlement or
-    # a debt forgiveness, usually comes with no loan facts at all. While the
-    # 3 legacy inputs were required, reaching the refusal meant fabricating
-    # a borrower, a lender and a principal, which is the one thing every other
-    # tool here is built to stop. The refusal takes no facts now.
-    assert refuse_div7a() == refuse_div7a("Alice", "HoldingCo Pty Ltd", "50000.00")
+    # a debt forgiveness, usually comes with no loan facts at all. While legacy
+    # inputs were accepted, reaching the refusal invited fabricating a borrower,
+    # a lender and a principal, which is the one thing every other tool here is
+    # built to stop. The refusal publishes no inputs at all now.
     assert refuse_div7a()["code"] == "ERR_POLICY_DIV7A_SCOPE_REFUSED"
-
-    # Every retained input is ignored, so none of them can change the outcome.
-    assert refuse_div7a(
-        borrower_name="Bob",
-        lender_entity_name="Other Pty Ltd",
-        loan_principal="1.00",
-        start_fy=1999,
-        is_secured_25_year=True,
-    ) == refuse_div7a()
-
-
-def test_div7a_refusal_still_validates_a_principal_that_is_supplied() -> None:
-    # Ignored is not unchecked. A caller that does pass an amount gets the same
-    # money boundary as everywhere else, so a malformed figure is an input
-    # error rather than passing silently into a payload that looks considered.
-    with pytest.raises(ValueError, match="loan_principal"):
-        refuse_div7a(loan_principal="not-an-amount")
-    with pytest.raises(ValueError, match="loan_principal"):
-        refuse_div7a(loan_principal="1000000000000.01")
+    tool = next(t for t in asyncio.run(mcp.list_tools()) if t.name == "refuse_div7a")
+    assert tool.input_schema.get("properties", {}) == {}
+    with pytest.raises(TypeError):
+        refuse_div7a("Alice", "HoldingCo Pty Ltd", "50000.00")  # type: ignore[call-arg]
 
 
 def test_synthetic_sbr_fixtures_are_labelled() -> None:

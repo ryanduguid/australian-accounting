@@ -138,7 +138,8 @@ stay on your machine.
 | `search_accounting_library` | Search explicitly configured local Markdown files | local read-only retrieval |
 | `read_accounting_library` | Read bounded lines with file, line, page and hash citations | local read-only retrieval |
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page | local read-only retrieval |
-| `read_tax_legislation_section` | Read one cited provision from that corpus in full | local read-only retrieval |
+| `read_tax_legislation_section` | Read one cited provision from that corpus in full, optionally with the provisions either side | local read-only retrieval |
+| `define_tax_term` | Find an expression's statutory definitions in that corpus's dictionary, definitions and interpretation sections | local read-only retrieval |
 | `search_tax_rates` | Find legislated rate, threshold, indexation and factor rows with the provision that sets them | local read-only retrieval |
 | `get_div7a_benchmark_rate` | Return the reviewed s 109N(2) rate for a year, or `UNKNOWN` | div7a-loan-review |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayment for one operator-supplied amalgamated loan | div7a-loan-review |
@@ -146,10 +147,9 @@ stay on your machine.
 | `generate_synthetic_sbr_fixture` | Synthetic CTR/BAS for agent tests (`synthetic: true`) | local fixture |
 
 `refuse_div7a` answers the questions this server does not review, and those arrive
-with no loan facts, so it requires none. Call it with no arguments: the refusal is
-the same whatever is passed, and every input it still accepts is a retained legacy
-field that is ignored. Do not invent a borrower, a lender or a principal to reach
-it. A `loan_principal` that is supplied is still validated as an amount.
+with no loan facts, so it publishes no inputs. Call it with no arguments and do not
+invent a borrower, a lender or a principal to reach it; the legacy inputs it once
+accepted and ignored were removed so a schema cannot invite them.
 
 Every tool also publishes a human-readable title for host menus.
 
@@ -452,6 +452,31 @@ and `caveats` naming any truncation or superseded compilation.
 
 `read_tax_legislation_section` takes a `row_id` from a search result and returns
 that provision with the same citation fields and up to 12000 characters of text.
+`neighbours`, 0 to 5, adds that many provisions on each side in the title's
+document order as `before` (nearest last) and `after` (nearest first), each cited
+and truncated like a search match, so a subsection can be read with the provisions
+around it without guessing their labels. A container heading row counts as a
+neighbour.
+
+`define_tax_term` reads every section whose heading is its label followed by
+"Definitions", "Interpretation" or "Dictionary", such as ITAA 1997 s 995-1, ITAA
+1936 s 6 and GST Act s 195-1 (an operative section headed "Extended definition
+of ..." is not one), and splits it into definitions: an entry opens with the defined
+expression and the words that introduce its meaning ("means", "has the meaning
+given by", "includes", a colon), and keeps the notes and paragraphs that follow it.
+A definition whose expression is the `term` is an `exact` match; one whose
+expression contains every word of the term is `partial`. Exact matches come first,
+then partial ones, in corpus order, up to `limit` (default 5, at most 20), with
+`has_more` when more remain and `act` to read one Act's dictionary. Each entry
+carries `head`, the expression as the dictionary writes it, the definition text
+truncated at 1200 characters, and the citation of the dictionary section that holds
+it. A non-breaking hyphen or space in the dictionary matches the plain character,
+and an asterisk in the text marks another defined expression. Only a statutory
+definition is ever returned: no match does not mean the expression is undefined,
+because the title may be absent, the definition may sit in an operative provision
+or the dictionary may write the expression differently, and an ordinary meaning
+must never be presented as the statutory one. Superseded dictionaries are left out
+unless `in_force_only` is false.
 
 `search_tax_rates` matches rate, threshold, indexation, table, factor and
 ownership-test rows, optionally filtered to one `topic` and to one `year` written the

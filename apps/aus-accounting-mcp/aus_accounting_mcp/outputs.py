@@ -373,6 +373,37 @@ class LegislationSearch(ResultObject):
 
 class LegislationExcerpt(ResultObject):
     section: LegislationSection
+    before: Annotated[
+        list[LegislationSection],
+        Field(description="Up to neighbours provisions before the cited one in document "
+                          "order, nearest last, at search length."),
+    ]
+    after: Annotated[
+        list[LegislationSection],
+        Field(description="Up to neighbours provisions after the cited one in document "
+                          "order, nearest first, at search length."),
+    ]
+    corpus: CorpusProvenance
+    notice: str
+
+
+class TermDefinition(LegislationSection):
+    """One statutory definition with the citation of the dictionary section holding it."""
+
+    head: Annotated[
+        str, Field(description="The defined expression as the dictionary writes it.")
+    ]
+    match: Annotated[
+        Literal["exact", "partial"],
+        Field(description="exact when the defined expression is the term; partial when it "
+                          "contains every word of the term."),
+    ]
+
+
+class TermDefinitions(ResultObject):
+    term: str
+    definitions: list[TermDefinition]
+    has_more: bool
     corpus: CorpusProvenance
     notice: str
 

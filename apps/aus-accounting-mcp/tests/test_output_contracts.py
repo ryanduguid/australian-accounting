@@ -33,11 +33,7 @@ BENCHMARK = {
     "turnover": "100000.00",
     "cost_of_sales": "35000.00",
 }
-REFUSAL = {
-    "borrower_name": "Synthetic Borrower",
-    "lender_entity_name": "Synthetic Lender",
-    "loan_principal": "50000.00",
-}
+REFUSAL: dict[str, str] = {}
 CASES = [
     ("list_ato_benchmark_industries", {}),
     ("list_ato_benchmark_industries", {"search": "synthetic-no-such-industry"}),

@@ -90,7 +90,10 @@ def scope() -> dict[str, Any]:
             "read_accounting_library": "Read bounded lines with a source path and hash.",
             "search_tax_legislation": "Search an explicitly configured local legislation corpus; "
             "returns point-in-time provisions with their compilation and register citation.",
-            "read_tax_legislation_section": "Read one cited provision from that corpus in full.",
+            "read_tax_legislation_section": "Read one cited provision from that corpus in full, "
+            "optionally with the provisions either side of it.",
+            "define_tax_term": "Find an expression's statutory definitions in that corpus's "
+            "dictionary sections; no match is not proof the expression is undefined.",
             "search_tax_rates": "Find legislated rate, threshold and factor rows in that corpus; "
             "amounts are quoted text, not a calculation or a current-figure confirmation.",
         },
