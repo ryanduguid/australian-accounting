@@ -3,6 +3,7 @@ import sys
 from importlib.metadata import version
 from pathlib import Path
 
+import pytest
 import wiptally
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +17,8 @@ def test_published_distribution_uses_the_project_identity() -> None:
     llms = (ROOT / "llms.txt").read_text(encoding="utf-8")
     release_notes = (ROOT / "RELEASE_NOTES.md").read_text(encoding="utf-8")
 
-    assert version("the-wip-tally") == wiptally.__version__ == "0.1.1"
+    assert version("the-wip-tally") == wiptally.__version__ == "0.1.2"
+    assert f'version = "{wiptally.__version__}"' in pyproject
     assert 'name = "the-wip-tally"' in pyproject
     assert 'wip-tally = "wiptally.cli:main"' in pyproject
     assert 'name = "the-wip-tally"' in lockfile
@@ -31,8 +33,8 @@ def test_published_distribution_uses_the_project_identity() -> None:
         "packages/the-wip-tally/examples/mapping.example.json"
     ) in readme
     assert "release-the-wip-tally.yml" in release_notes
-    # Unreleased work sits above the released sections; the released notes stay.
-    assert release_notes.startswith("# Unreleased\n")
+    # The current version heads the notes; prior released sections remain.
+    assert release_notes.startswith("# v0.1.2\n")
     assert "\n# v0.1.1\n" in release_notes
     assert "first PyPI release" in release_notes
     assert "date-released:" not in citation
@@ -51,3 +53,25 @@ def test_published_distribution_uses_the_project_identity() -> None:
     )
     assert help_result.returncode == 0
     assert help_result.stdout.startswith("usage: wip-tally")
+
+
+@pytest.mark.parametrize("installed_version", ["0.0.1", None])
+def test_checkout_version_ignores_unrelated_metadata(installed_version: str | None) -> None:
+    code = f"""
+from importlib.metadata import PackageNotFoundError
+from unittest.mock import patch
+
+with patch("importlib.metadata.version", return_value={installed_version!r},
+           side_effect=PackageNotFoundError if {installed_version!r} is None else None):
+    import wiptally
+    print(wiptally.__version__)
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == wiptally.__version__

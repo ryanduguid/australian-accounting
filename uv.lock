@@ -2524,6 +2524,7 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "the-wip-tally"
+version = "0.1.2"
 source = { editable = "packages/the-wip-tally" }
 
 [package.optional-dependencies]
