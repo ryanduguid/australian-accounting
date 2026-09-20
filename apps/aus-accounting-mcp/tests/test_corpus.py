@@ -455,3 +455,21 @@ def test_a_definition_lookup_refuses_a_corpus_past_the_scan_bounds(corpus, monke
     monkeypatch.setattr(corpus_module, "MAX_CORPUS_BYTES", 10)
     with pytest.raises(ToolError):
         call("define_tax_term", term="small entity")
+
+
+def test_a_default_read_returns_no_context_even_past_an_escaped_row(corpus):
+    # An index written with ensure_ascii=True spells a non-ASCII character as a JSON
+    # escape, and such a line is parsed regardless of the row_id prefilter. That must
+    # not turn a plain read into one with context nobody asked for.
+    index = corpus / "markdown" / "C9999A00001" / "sections.jsonl"
+    rows = [json.loads(line) for line in index.read_text(encoding="utf-8").splitlines()]
+    rows.insert(2, synthetic_corpus.section("C9999A00001", "0002a", "5-12",
+                                            "A r\u00e9sum\u00e9 of the levy.",
+                                            act=synthetic_corpus.LEVY_ACT))
+    index.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+
+    plain = call("read_tax_legislation_section", row_id="C9999A00001:0002:5-10")
+    widened = call("read_tax_legislation_section", row_id="C9999A00001:0002:5-10", neighbours=1)
+
+    assert plain["before"] == [] and plain["after"] == []
+    assert [row["row_id"] for row in widened["after"]] == ["C9999A00001:0002a:5-12"]
