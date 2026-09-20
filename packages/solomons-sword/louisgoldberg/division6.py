@@ -239,4 +239,19 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
         shares[i] = replace(shares[i], franking_credit_grossup=shares[i].franking_credit_grossup + adjustment)
         credit_residual -= adjustment
 
+    # The entitlement column is reported rather than taxed, but a reviewer
+    # ties it to the income of the trust estate, and three 33.33/33.33/33.34
+    # shares of $10.00 each round down to $3.33. Reconcile it the same way.
+    entitlement_residual = total_trust_inc - sum(
+        (s.trust_income_entitlement for s in shares), Decimal("0.00")
+    )
+    for i in sorted(range(len(shares)), key=lambda i: ratios[i], reverse=True):
+        if not entitlement_residual:
+            break
+        adjustment = max(-shares[i].trust_income_entitlement, entitlement_residual)
+        shares[i] = replace(
+            shares[i], trust_income_entitlement=shares[i].trust_income_entitlement + adjustment
+        )
+        entitlement_residual -= adjustment
+
     return shares
