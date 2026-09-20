@@ -439,3 +439,49 @@ def test_item_1_does_not_hide_an_invalid_out_of_cycle_claim(cal):
     fact needed to say item 2 applies."""
     with pytest.raises(ValueError, match="next_standard_qe_day"):
         compute_due(line(first_to_fund=True, out_of_cycle=True), cal)
+
+
+def test_receipt_amount_cap_cannot_tell_a_blank_amount_from_an_absent_column():
+    """A ContribLine records no list of the columns its file carried, so a row
+    whose amount columns are present but empty is indistinguishable from a
+    legacy row that never had them. The whole-liability fallback is the only
+    reading available here, which is why assessment names it on the row."""
+    from paydaysuper.deadlines import receipt_amount_cap
+
+    blank = line(sg_amount=Decimal("540.00"), received=date(2026, 8, 20))
+    assert blank.matched_amount is None
+    assert blank.remitted_amount is None
+    assert receipt_amount_cap(blank) == Decimal("540.00")
+
+
+def test_a_receipt_with_no_amount_evidences_the_whole_liability_out_loud(cal):
+    """The row can still reach an on-time-shaped result off a receipt date and
+    a blank amount column. The caveat is what stops that reading being silent."""
+    from paydaysuper.assess import assess
+    from paydaysuper.rates import load_gic
+
+    filled = "read as evidencing the whole $540.00 SG amount"
+
+    # After 28 Jul 2026, so the LCR 2026/1 transition gate is not what answers.
+    blank = line(sg_amount=Decimal("540.00"), received=date(2026, 8, 20))
+    result = assess([blank], cal, load_gic(), date(2026, 9, 10))[0]
+    assert any(filled in caveat for caveat in result.caveats), result.caveats
+    assert any("supply matched_amount" in caveat for caveat in result.caveats)
+
+    explicit = line(
+        sg_amount=Decimal("540.00"),
+        received=date(2026, 8, 20),
+        matched_amount=Decimal("540.00"),
+    )
+    stated = assess([explicit], cal, load_gic(), date(2026, 9, 10))[0]
+    assert not any(filled in caveat for caveat in stated.caveats), stated.caveats
+
+
+def test_a_row_with_no_receipt_at_all_gets_no_whole_liability_caveat(cal):
+    """The fill only matters where a receipt date is actually being credited."""
+    from paydaysuper.assess import assess
+    from paydaysuper.rates import load_gic
+
+    unfunded = line(sg_amount=Decimal("540.00"), received=None)
+    result = assess([unfunded], cal, load_gic(), date(2026, 9, 10))[0]
+    assert not any("SG amount" in caveat for caveat in result.caveats), result.caveats

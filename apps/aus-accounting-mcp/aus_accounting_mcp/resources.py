@@ -223,7 +223,11 @@ def payday_coverage() -> dict[str, Any]:
             "known_until": gic.last_known.isoformat(),
             "provenance": gic.provenance(),
             "beyond_coverage": (
-                "The engine estimates using the last known rate and flags staleness."
+                "A row whose notional-earnings period reaches past this date keeps its "
+                "verdict and its shortfall and carries no SG charge estimate: "
+                "notional_earnings, uplift and both experimental_sgc figures are null, "
+                "and a caveat names the last quarter on record. Estimating at the last "
+                "known rate is a CLI-only opt-in and is not available here."
             ),
         },
         "notes": [

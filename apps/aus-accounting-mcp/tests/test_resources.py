@@ -329,3 +329,23 @@ def test_the_benchmark_prompt_names_every_input_the_tool_cannot_run_without():
 def mcp_tool_input_requirements(name: str) -> list[str]:
     tool = next(tool for tool in asyncio.run(mcp.list_tools()) if tool.name == name)
     return list(tool.input_schema.get("required") or [])
+
+
+def test_the_instructions_name_the_guardrail_guide_and_its_outcome_classes() -> None:
+    """A verdict string is the thing an assistant is most likely to hand on as a
+    finding. The instructions name the guide that decides what may be concluded
+    from one, and say in terms that a verdict is not a determination."""
+    from aus_accounting_mcp.server import SERVER_INSTRUCTIONS
+
+    flat = _normalise(SERVER_INSTRUCTIONS)
+
+    assert "DrDebits" in flat
+    assert "https://github.com/ryanduguid/llm-tax-guardrails" in flat
+    assert "guide version 0.3.3" in flat
+    for outcome in ("PROCEED_DRAFT_ONLY", "NEEDS_FACTS", "ESCALATE", "HARD_STOP"):
+        assert outcome in flat, outcome
+
+    for verdict in ("LATE", "UNPAID", "NOT_COMPLYING"):
+        assert verdict in flat, verdict
+    assert "review-aid classification" in flat
+    assert "not a determination" in flat

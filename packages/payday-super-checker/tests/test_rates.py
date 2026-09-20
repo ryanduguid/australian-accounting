@@ -1,3 +1,4 @@
+import csv
 import json
 from datetime import date
 from decimal import Decimal
@@ -248,3 +249,187 @@ def test_the_cli_prints_a_rate_error_without_a_traceback(tmp_path, monkeypatch, 
     err = capsys.readouterr().err
     assert err.startswith("error: ")
     assert "Traceback" not in err
+
+
+def test_a_day_past_the_last_quarter_is_refused_by_default(tmp_path, monkeypatch):
+    """Reusing the last known rate behind a staleness warning put a rate the
+    ATO has not published into both SG-charge exposure totals. The estimate is
+    now something the operator asks for."""
+    monkeypatch.setattr(rates_module, "DATA_DIR", write_table(tmp_path, [GOOD]))
+    table = load_gic()
+    beyond = date(2026, 12, 1)
+    assert beyond > table.last_known
+
+    with pytest.raises(RatesError) as exc:
+        table.daily_rate(beyond)
+    message = str(exc.value)
+    assert "2026-12-01" in message
+    assert table.last_known.isoformat() in message
+    assert "--allow-stale-gic" in message
+
+    assert table.daily_rate(beyond, allow_stale=True) > Decimal("0")
+
+
+def test_the_cli_reports_a_row_the_gic_table_cannot_reach(tmp_path, monkeypatch, capsys):
+    """The console path. A period past the published quarters withholds the
+    charge estimate for that row and keeps everything the GIC table has no part
+    in: the run still succeeds, the verdict stands, and the caveat names the
+    last quarter on record and the flag that buys the estimate."""
+    from paydaysuper.cli import EXIT_ERROR, main
+
+    from conftest import SAMPLE
+
+    monkeypatch.setattr(rates_module, "DATA_DIR", write_table(tmp_path, [GOOD]))
+    # rates.json lives beside gic_rates.json, so copy the real one across.
+    (tmp_path / "rates.json").write_text(
+        (rates_module.PACKAGE_DIR / "data" / "rates.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+    report = tmp_path / "r.csv"
+    argv = [
+        str(SAMPLE),
+        "-o",
+        str(report),
+        "--as-at",
+        "2027-06-30",
+        "--confirm-transition-allocation",
+    ]
+    assert main(argv) != EXIT_ERROR
+    out = capsys.readouterr().out
+    assert "notional earnings and SG charge estimate not assessed" in out
+    assert "carry no charge estimate" in out
+    assert "2026-09-30" in out
+    assert "--allow-stale-gic" in out
+
+    exposed = [
+        row
+        for row in csv.DictReader(report.read_text(encoding="utf-8-sig").splitlines())
+        if row["verdict"] in {"LATE", "UNPAID"}
+    ]
+    assert exposed, "the sample file has no exposed row to report"
+    charge_columns = (
+        "notional_earnings",
+        "uplift_best_case",
+        "uplift_worst_case",
+        "sgc_estimate_low",
+        "sgc_estimate_high",
+    )
+    unassessed = []
+    for row in exposed:
+        # Every exposed row keeps its shortfall, which rests on the deadline
+        # and the receipt facts. A row whose notional earnings period ran past
+        # 30 Sep 2026 loses all 5 charge figures together, and only those.
+        assert row["final_shortfall"]
+        blanks = [column for column in charge_columns if row[column] == ""]
+        assert not blanks or len(blanks) == len(charge_columns), blanks
+        if blanks:
+            unassessed.append(row)
+            assert "not assessed for this row" in row["caveats"]
+        else:
+            assert "not assessed for this row" not in row["caveats"]
+    assert unassessed, "no row ran past the 1-quarter table this test installed"
+
+    with_flag = tmp_path / "r2.csv"
+    argv[2] = str(with_flag)
+    assert main(argv + ["--allow-stale-gic"]) != EXIT_ERROR
+    estimated = [
+        row
+        for row in csv.DictReader(with_flag.read_text(encoding="utf-8-sig").splitlines())
+        if row["verdict"] in {"LATE", "UNPAID"}
+    ]
+    assert estimated and all(row["notional_earnings"] for row in estimated)
+    assert any("GIC rate table ends" in row["caveats"] for row in estimated)
+    assert not any("not assessed for this row" in row["caveats"] for row in estimated)
+
+
+def test_a_row_past_the_table_keeps_its_verdict_and_loses_only_the_estimate():
+    """The same shape as a deadline past the holiday calendar's coverage. The
+    verdict and the shortfall rest on the deadline and the receipt facts, which
+    the GIC table has no part in, so withholding them would discard a shortfall
+    the run established."""
+    from paydaysuper.assess import assess
+    from paydaysuper.calendar import load_calendar
+    from paydaysuper.deadlines import ContribLine
+
+    line = ContribLine("E1", date(2026, 8, 3), Decimal("600.00"), row=2)
+    unassessed = assess([line], load_calendar(), load_gic(), date(2027, 6, 30))[0]
+
+    assert unassessed.verdict == "UNPAID"
+    assert unassessed.days_late == (date(2027, 6, 30) - unassessed.deadline.due).days
+    assert unassessed.base_shortfall == Decimal("600.00")
+    assert unassessed.final_shortfall == Decimal("600.00")
+    assert unassessed.nec is None
+    assert unassessed.uplift is None
+    assert unassessed.sgc_low is None and unassessed.sgc_high is None
+
+    caveat = next(
+        c for c in unassessed.caveats if "not assessed for this row" in c
+    )
+    assert load_gic().last_known.isoformat() in caveat
+    assert "--allow-stale-gic" in caveat
+
+    estimated = assess(
+        [line], load_calendar(), load_gic(), date(2027, 6, 30), allow_stale_gic=True
+    )[0]
+    assert estimated.verdict == unassessed.verdict
+    assert estimated.final_shortfall == unassessed.final_shortfall
+    assert estimated.nec is not None and estimated.nec > Decimal("0")
+    assert estimated.sgc_high is not None
+    assert any("GIC rate table ends" in c for c in estimated.caveats)
+    assert not any("not assessed for this row" in c for c in estimated.caveats)
+
+
+def test_a_table_that_starts_after_the_period_still_fails_the_run():
+    """Only a day past the last recorded quarter is the operator's call to
+    estimate. A table with no rate for an earlier day is a broken table, and
+    withholding the estimate quietly would report a shortfall with no charge
+    and no error where the run used to stop."""
+    from paydaysuper.assess import assess
+    from paydaysuper.calendar import load_calendar
+    from paydaysuper.deadlines import ContribLine
+    from paydaysuper.rates import GicQuarter, GicTable, StaleGicError
+
+    late_start = GicTable(
+        [GicQuarter(date(2027, 1, 1), date(2027, 3, 31), Decimal("11.17"))]
+    )
+    line = ContribLine("E1", date(2026, 8, 3), Decimal("600.00"), row=2)
+
+    with pytest.raises(RatesError) as info:
+        assess([line], load_calendar(), late_start, date(2027, 2, 1))
+    assert "no GIC rate on record" in str(info.value)
+    assert not isinstance(info.value, StaleGicError)
+
+
+def test_a_period_inside_the_table_is_unaffected():
+    """The other side of the boundary, so the pair pins the condition rather
+    than only its effect."""
+    from paydaysuper.assess import assess
+    from paydaysuper.calendar import load_calendar
+    from paydaysuper.deadlines import ContribLine
+
+    line = ContribLine("E1", date(2026, 8, 3), Decimal("600.00"), row=2)
+    result = assess([line], load_calendar(), load_gic(), load_gic().last_known)[0]
+
+    assert result.verdict == "UNPAID"
+    assert result.nec is not None
+    assert result.sgc_high is not None
+    assert not any("not assessed for this row" in c for c in result.caveats)
+
+
+def test_a_withheld_estimate_does_not_also_claim_the_rate_was_carried_forward():
+    """The staleness caveat says days past the table use the last known rate.
+    On a row that withheld the estimate that would contradict the caveat beside
+    it, so it is only added where the estimate was actually produced."""
+    from paydaysuper.assess import assess
+    from paydaysuper.calendar import load_calendar
+    from paydaysuper.deadlines import ContribLine
+
+    line = ContribLine("E1", date(2026, 8, 3), Decimal("600.00"), row=2)
+    withheld = assess([line], load_calendar(), load_gic(), date(2027, 6, 30))[0]
+    assert not any("use the last known rate" in c for c in withheld.caveats)
+
+    estimated = assess(
+        [line], load_calendar(), load_gic(), date(2027, 6, 30), allow_stale_gic=True
+    )[0]
+    assert any("use the last known rate" in c for c in estimated.caveats)

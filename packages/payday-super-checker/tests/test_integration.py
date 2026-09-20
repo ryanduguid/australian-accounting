@@ -190,13 +190,17 @@ def test_partial_stale_prepayment_receives_no_statutory_credit():
         row=2,
     )
     as_at = date(2027, 8, 1)
-    r = assess([line], load_calendar(), load_gic(), as_at)[0]
+    # The payday is past the last published GIC quarter, so the notional
+    # earnings are an estimate the caller has to ask for.
+    r = assess(
+        [line], load_calendar(), load_gic(), as_at, allow_stale_gic=True
+    )[0]
     assert r.verdict == "LATE"
     assert r.base_shortfall == Decimal("1000.00")
     assert r.final_shortfall == Decimal("1000.00")
     assert r.offset_s18d is False
     assert r.nec == notional_earnings(
-        Decimal("1000.00"), r.deadline.due, as_at, load_gic()
+        Decimal("1000.00"), r.deadline.due, as_at, load_gic(), allow_stale=True
     )
 
 
@@ -1039,7 +1043,9 @@ def test_stale_prepayment_keeps_the_full_shortfall():
         received=date(2026, 7, 1),
         row=2,
     )
-    r = assess([line], load_calendar(), load_gic(), date(2027, 8, 1))[0]
+    r = assess(
+        [line], load_calendar(), load_gic(), date(2027, 8, 1), allow_stale_gic=True
+    )[0]
     assert r.verdict == "LATE"
     assert r.final_shortfall == Decimal("300.00")
     assert r.offset_s18d is False
@@ -1217,6 +1223,59 @@ def test_mcb_caveat_follows_the_as_at_financial_year():
         later_results, date(2027, 10, 1), "report.csv", "2026-08-02", rates
     )
     assert "$280,000 for 2027-28" in text_2027
+
+
+def test_a_missing_cap_year_names_the_year_rather_than_saying_the_annual_cap():
+    """The bare words "the annual cap" read as though the cap had been
+    considered, and left no way to tell a stale rates.json from a run with
+    nothing to say. The line now names the year and the file to fix."""
+    results = run_fixture()
+    text = console_summary(
+        results, date(2026, 9, 1), "report.csv", "2026-08-02", {"financial_years": {}}
+    )
+    assert "the annual cap" not in text
+    assert "not on record for 2026-27" in text
+    assert "paydaysuper/data/rates.json" in text
+
+
+def test_an_unreadable_cap_figure_names_the_year_and_the_value():
+    results = run_fixture()
+    text = console_summary(
+        results,
+        date(2026, 9, 1),
+        "report.csv",
+        "2026-08-02",
+        {"financial_years": {"2026-27": {"max_contributions_base": "about $270k"}}},
+    )
+    assert "the annual cap" not in text
+    assert "unreadable for 2026-27" in text
+    assert "about $270k" in text
+
+
+def test_a_later_year_missing_from_the_cap_table_is_named_too():
+    """A file spanning two years used to look the cap up for the first year
+    only, so a later year absent from rates.json was never named. Each year
+    now gets its own figure or its own repair line."""
+    later = ContribLine(
+        employee_id="E9",
+        qe_day=date(2027, 9, 1),
+        sg_amount=Decimal("100.00"),
+        row=2,
+    )
+    both = [
+        *run_fixture(),
+        *assess([later], load_calendar(), load_gic(), date(2027, 10, 1)),
+    ]
+    text = console_summary(
+        both,
+        date(2027, 10, 1),
+        "report.csv",
+        "2026-08-02",
+        {"financial_years": {"2026-27": {"max_contributions_base": "270830"}}},
+    )
+    assert "$270,830 for 2026-27" in text
+    assert "not on record for 2027-28" in text
+    assert "spans" not in text
 
 
 def test_financial_year_rolls_over_on_1_july():
@@ -2774,7 +2833,9 @@ def test_check_reports_error_when_figures_outgrow_the_decimal_context(
         encoding="utf-8",
     )
     out = tmp_path / "report.csv"
-    code = main([str(src), "-o", str(out), "--as-at", "2200-12-31"])
+    code = main(
+        [str(src), "-o", str(out), "--as-at", "2200-12-31", "--allow-stale-gic"]
+    )
 
     assert code == EXIT_ERROR
     captured = capsys.readouterr()
@@ -2816,7 +2877,9 @@ def test_check_reports_error_when_totals_outgrow_the_decimal_context(
         encoding="utf-8",
     )
     out = tmp_path / "report.csv"
-    code = main([str(src), "-o", str(out), "--as-at", "2200-12-31"])
+    code = main(
+        [str(src), "-o", str(out), "--as-at", "2200-12-31", "--allow-stale-gic"]
+    )
 
     assert code == EXIT_ERROR
     captured = capsys.readouterr()

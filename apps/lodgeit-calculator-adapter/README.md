@@ -21,6 +21,12 @@ A request is sent only when all three are true:
 2. a base URL is configured;
 3. that base URL's host is on the allowlist.
 
+Through the optional MCP surface, `invoke_calculator` needs a fourth: a
+`network_acknowledged=true` argument on the call itself. The CLI asks for
+`--enable-network` every time it invokes a calculator, and this keeps the MCP
+tool on the same footing rather than letting one launch decision cover a whole
+session of calls.
+
 Importing the package, constructing a config, running discovery with remote
 access off, and recovering from an error all send nothing.
 `tests/test_no_network_by_default.py` proves each of those with sockets

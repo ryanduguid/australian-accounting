@@ -109,12 +109,32 @@ CSV_HEADER = [
 def _rounded_figures(r: Result) -> dict[str, Decimal | None]:
     """Round each component once, then build the totals from the rounded
     parts so the columns of a row always add up."""
-    if r.uplift is None:
-        return {k: None for k in ("shortfall", "nec", "up_low", "up_high", "low", "high")}
+    blank: dict[str, Decimal | None] = {
+        k: None for k in ("shortfall", "nec", "up_low", "up_high", "low", "high")
+    }
+    if r.final_shortfall is None:
+        return blank
     shortfall = cents(r.final_shortfall)
-    nec = cents(r.nec)
-    up_low = cents(r.uplift["clean_history"]["vds_within_30d"])
-    up_high = cents(r.uplift["prior_history"]["no_vds"])
+    raw_nec = r.nec
+    uplift = r.uplift
+    charge = (raw_nec, uplift, r.sgc_low, r.sgc_high)
+    if all(value is None for value in charge):
+        # An exposed row whose notional earnings period reached past the
+        # published GIC quarters. The shortfall was established from the
+        # deadline and the receipt facts, so it is reported; the figures that
+        # compound a rate are left empty rather than estimated.
+        return {**blank, "shortfall": shortfall}
+    # The 4 stand or fall together. A partial set is a broken result, and
+    # rendering it would print an estimate built from a missing component.
+    assert raw_nec is not None and uplift is not None, (
+        "exposed result has a partial SG charge estimate"
+    )
+    assert r.sgc_low is not None and r.sgc_high is not None, (
+        "exposed result has a partial SG charge estimate"
+    )
+    nec = cents(raw_nec)
+    up_low = cents(uplift["clean_history"]["vds_within_30d"])
+    up_high = cents(uplift["prior_history"]["no_vds"])
     return {
         "shortfall": shortfall,
         "nec": nec,
@@ -125,45 +145,34 @@ def _rounded_figures(r: Result) -> dict[str, Decimal | None]:
     }
 
 
-def _exposure_figures(r: Result) -> dict[str, Decimal]:
-    """Return display figures for a result already classified as exposed."""
-    final_shortfall = r.final_shortfall
-    nec = r.nec
-    uplift = r.uplift
-    assert (
-        final_shortfall is not None and nec is not None and uplift is not None
-    ), "exposed result has incomplete exposure figures"
+def _exposure_figures(r: Result) -> dict[str, Decimal | None]:
+    """Return display figures for a result already classified as exposed.
 
+    The shortfall is always there: an exposed verdict is reached from the
+    deadline and the receipt facts. The 5 charge components are None together
+    where the notional earnings period reached past the published GIC
+    quarters, which is the one case an exposed row carries no estimate.
+    """
     figures = _rounded_figures(r)
-    shortfall = figures["shortfall"]
-    rounded_nec = figures["nec"]
-    uplift_low = figures["up_low"]
-    uplift_high = figures["up_high"]
-    estimate_low = figures["low"]
-    estimate_high = figures["high"]
-    assert (
-        shortfall is not None
-        and rounded_nec is not None
-        and uplift_low is not None
-        and uplift_high is not None
-        and estimate_low is not None
-        and estimate_high is not None
-    ), "exposed result has incomplete exposure figures"
-    return {
-        "shortfall": shortfall,
-        "nec": rounded_nec,
-        "up_low": uplift_low,
-        "up_high": uplift_high,
-        "low": estimate_low,
-        "high": estimate_high,
-    }
+    assert figures["shortfall"] is not None, (
+        "exposed result has no final shortfall, so its exposure figures are incomplete"
+    )
+    return figures
+
+
+def _charge_assessed(r: Result) -> bool:
+    """Whether this exposed row carries an SG charge estimate at all."""
+    return r.sgc_high is not None
 
 
 def _exposure_high(r: Result) -> Decimal:
-    """Return the unrounded high estimate used for exposure ordering."""
-    high = r.sgc_high
-    assert high is not None, "exposed result has incomplete exposure figures"
-    return high
+    """Ordering key for the exposure list, highest estimate first.
+
+    A row with no estimate sorts below every row that has one rather than
+    dropping out of the list: its shortfall is still exposure, and its caveat
+    is still owed to the reader.
+    """
+    return r.sgc_high if r.sgc_high is not None else Decimal("-1")
 
 
 def _supported_due(r: Result) -> date:
@@ -282,6 +291,22 @@ def _write_csv_rows(
     write_row(note)
 
 
+def _cap_text(entry: dict | None, fy_label: str) -> str:
+    mcb = (entry or {}).get("max_contributions_base")
+    if mcb is None:
+        return (
+            f"not on record for {fy_label}: add max_contributions_base for that year "
+            "to paydaysuper/data/rates.json"
+        )
+    try:
+        return f"${int(mcb):,} for {fy_label}, annual per employer"
+    except (TypeError, ValueError):
+        return (
+            f"unreadable for {fy_label}: paydaysuper/data/rates.json holds "
+            f"max_contributions_base {mcb!r}, which is not a whole number of dollars"
+        )
+
+
 def console_summary(
     results: list[Result],
     as_at: date,
@@ -335,28 +360,47 @@ def console_summary(
                 )
             )
             at_most = "" if r.days_late is not None else "at most "
-            lines.append(
-                f"      {shortfall_text}  notional earnings {at_most}"
-                f"${money(figures['nec'])}  experimental SG charge estimate {at_most}"
-                f"${money(figures['low'])} - ${money(figures['high'])}"
-            )
+            if _charge_assessed(r):
+                lines.append(
+                    f"      {shortfall_text}  notional earnings {at_most}"
+                    f"${money(figures['nec'])}  experimental SG charge estimate {at_most}"
+                    f"${money(figures['low'])} - ${money(figures['high'])}"
+                )
+            else:
+                lines.append(
+                    f"      {shortfall_text}  notional earnings and SG charge estimate "
+                    "not assessed"
+                )
             for caveat in r.caveats:
                 lines.append(f"      note: {caveat}")
         if len(exposed) > 10:
             lines.append(f"  ... and {len(exposed) - 10} more (see {csv_path})")
 
-        total_shortfall = sum((_exposure_figures(r)["shortfall"] for r in exposed), Decimal("0"))
-        total_nec = sum((_exposure_figures(r)["nec"] for r in exposed), Decimal("0"))
-        total_low = sum((_exposure_figures(r)["low"] for r in exposed), Decimal("0"))
-        total_high = sum((_exposure_figures(r)["high"] for r in exposed), Decimal("0"))
+        def total(rows: list[Result], key: str) -> Decimal:
+            return sum(
+                (cents(_exposure_figures(r)[key]) for r in rows), Decimal("0")
+            )
+
+        # Every exposed row has a shortfall. Only the rows that carry a charge
+        # estimate go into the charge totals, so a row the GIC table could not
+        # reach is never added in as a nil estimate.
+        estimated = [r for r in exposed if _charge_assessed(r)]
         lines += [
             "",
-            f"  Total across {len(exposed)} line(s): shortfall ${money(total_shortfall)}, "
-            f"notional earnings ${money(total_nec)},",
-            f"  experimental estimated SG charge ${money(total_low)} - "
-            f"${money(total_high)}.",
-            "",
+            f"  Total across {len(exposed)} line(s): shortfall "
+            f"${money(total(exposed, 'shortfall'))}, notional earnings "
+            f"${money(total(estimated, 'nec'))},",
+            f"  experimental estimated SG charge ${money(total(estimated, 'low'))} - "
+            f"${money(total(estimated, 'high'))}.",
         ]
+        unassessed = len(exposed) - len(estimated)
+        if unassessed:
+            lines.append(
+                f"  {unassessed} of those line(s) carry no charge estimate, so the "
+                "notional earnings and SG charge totals cover the rest. See those "
+                "rows' notes."
+            )
+        lines.append("")
 
     if remittance_only_unproven(results):
         if remittance_only_confirmed:
@@ -461,19 +505,13 @@ def console_summary(
 
     fy = rates.get("financial_years", {})
     qe_days = [r.line.qe_day for r in results]
-    fy_labels = sorted({financial_year(d) for d in qe_days}) if qe_days else []
-    fy_label = fy_labels[0] if fy_labels else financial_year(as_at)
-    entry = fy.get(fy_label)
-    mcb = (entry or {}).get("max_contributions_base")
-    if mcb is None:
-        mcb_text = "the annual cap"
-    else:
-        try:
-            mcb_text = f"${int(mcb):,} for {fy_label}"
-        except (TypeError, ValueError):
-            mcb_text = "the annual cap"
-    if len(fy_labels) > 1:
-        mcb_text += f" (this file spans {', '.join(fy_labels)})"
+    fy_labels = sorted({financial_year(d) for d in qe_days}) or [financial_year(as_at)]
+    # Naming the year the figure is missing for is the whole value of this
+    # line. "the annual cap" read as though the cap had been considered, and
+    # left a reader with no way to tell a stale rates.json from a run that
+    # simply had nothing to say. Every year the file spans is looked up, so a
+    # later year missing from rates.json is not hidden behind the first.
+    mcb_text = "; ".join(_cap_text(fy.get(label), label) for label in fy_labels)
 
     assessment_line = (
         f"  - Assessment date {assessment_date.isoformat()}: only contributions received "
@@ -511,7 +549,7 @@ def console_summary(
         "confirms only that TAA 1953 s 16B reduces the Commissioner's final assessed "
         "SG charge to the nearest 5 cents; it does not authorise per-line cents "
         "rounding here.",
-        f"  - Maximum contributions base ({mcb_text}, annual per employer) is "
+        f"  - Maximum contributions base ({mcb_text}) is "
         "not applied: it needs each employee's cumulative earnings for the year. "
         "High earners may show a larger shortfall here than the law requires.",
         "  - PCG 2026/1 sets the ATO's compliance approach for QE days to 30 Jun 2027. "

@@ -8,6 +8,9 @@ calculation to a remote one.
 Two switches, not one. `mcp` must be installed (the `mcp` extra), and the
 adapter's own network enablement still applies, so starting this server with
 remote access off gives an assistant tools that answer `REFUSED_TO_SEND`.
+`invoke_calculator` adds a third, per call: it requires
+`network_acknowledged=true`, matching the CLI's per-invocation
+`--enable-network` rather than letting one launch decision cover a session.
 
 Every tool returns the adapter's own `Outcome` shape. A refusal stays a
 refusal; there is no tool that returns a bare number.
@@ -16,7 +19,9 @@ refusal; there is no tool that returns a bare number.
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import Field
 
 from . import __version__
 from .client import LodgeitClient
@@ -81,14 +86,39 @@ def build_server(config: AdapterConfig | None = None, contract_name: str = "lodg
         }, indent=2)
 
     @server.tool(title="Call one LodgeiT calculator")
-    def invoke_calculator(calculator_uri: str, period_uri: str, request_json: str) -> str:
+    def invoke_calculator(
+        calculator_uri: str,
+        period_uri: str,
+        request_json: str,
+        network_acknowledged: Annotated[bool, Field(strict=True)],
+    ) -> str:
         """Invoke one calculator for one period with a JSON body.
 
         Returns the adapter's outcome, including the provider's manifest and
         advisory. A non-computed status carries no figure.
+
+        `network_acknowledged` must be true. The CLI asks for `--enable-network`
+        on every invocation, so the decision to send an operator's facts to a
+        third party is taken once per call there. Starting this server with
+        remote access on would otherwise take it once for the whole session,
+        and every later tool call would egress on the strength of how the
+        process was launched. Only the JSON boolean true answers it: the
+        schema is strict, so a coercible 1 or "true" fails validation before
+        this body runs, and false is refused here.
         """
         from .cli import _decimalise, load_body  # noqa: PLC0415
 
+        if network_acknowledged is not True:
+            return json.dumps({
+                "status": "REFUSED_TO_SEND",
+                "findings": [
+                    "network_acknowledged must be true for this call. Supplied facts "
+                    "would be sent to a third-party service over the network, so each "
+                    "invocation acknowledges that, not the process that started this "
+                    "server."
+                ],
+                "boundary": BOUNDARY,
+            }, indent=2)
         try:
             recorded = contract.calculators.get(calculator_uri, {})
             body: Any = _decimalise(

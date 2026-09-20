@@ -12,12 +12,13 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
 from paydaysuper import join, sgc
 
 # The package re-exports an `assess` function that shadows the module, so the
 # verdict vocabulary is imported by name rather than through the package.
 from paydaysuper.assess import EXPOSED, LATE, UNPAID, VERDICTS
-from paydaysuper.rates import GicQuarter, GicTable
+from paydaysuper.rates import GicQuarter, GicTable, RatesError
 
 LIMITATIONS = Path(__file__).resolve().parents[1] / "LIMITATIONS.md"
 
@@ -35,13 +36,17 @@ def test_register_lists_every_documented_entry():
     assert register.count("**What stays correct.**") == 2
 
 
-def test_psc_1_gic_table_still_extrapolates_past_its_last_quarter():
-    """PSC-1: a day past the table takes the last known quarter's rate."""
+def test_psc_1_extrapolates_past_its_last_quarter_only_on_request():
+    """PSC-1: a day past the table is refused unless the operator asks for
+    the estimate, and then takes the last known quarter's rate."""
     table = GicTable([GicQuarter(date(2026, 7, 1), date(2026, 9, 30), Decimal("11.43"))])
     past_the_end = date(2026, 12, 31)
     assert past_the_end > table.last_known
 
-    carried = table.daily_rate(past_the_end)
+    with pytest.raises(RatesError, match="past the last GIC quarter"):
+        table.daily_rate(past_the_end)
+
+    carried = table.daily_rate(past_the_end, allow_stale=True)
     last_known_rate = table.daily_rate(date(2026, 9, 30))
     # Same annual rate; the divisor is the same calendar year here.
     assert carried == last_known_rate

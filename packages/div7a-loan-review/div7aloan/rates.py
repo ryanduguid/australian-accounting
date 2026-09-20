@@ -56,12 +56,33 @@ class TableSource:
 
     uri: str
     sha256: str
+    #: The primary publication the rows were read from, the date it was
+    #: downloaded, and the digest of that download. Empty when the table
+    #: carries no such claim, as an operator's override does.
+    primary_url: str = ""
+    retrieved_on: str = ""
+    snapshot_sha256: str = ""
 
     def to_json_dict(self) -> dict:
-        return {"uri": self.uri, "sha256": self.sha256}
+        payload = {"uri": self.uri, "sha256": self.sha256}
+        if self.primary_url:
+            payload["primary_url"] = self.primary_url
+        if self.retrieved_on:
+            payload["retrieved_on"] = self.retrieved_on
+        if self.snapshot_sha256:
+            payload["snapshot_sha256"] = self.snapshot_sha256
+        return payload
 
 
-def _source_of(path: Path, text: str, *, override: bool = False) -> TableSource:
+def _source_of(
+    path: Path,
+    text: str,
+    *,
+    override: bool = False,
+    primary_url: str = "",
+    retrieved_on: str = "",
+    snapshot_sha256: str = "",
+) -> TableSource:
     digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
     if override:
         # Only the file name: an operator's override lives outside the package
@@ -74,7 +95,13 @@ def _source_of(path: Path, text: str, *, override: bool = False) -> TableSource:
         # A table loaded from outside the package (a test fixture, or an
         # operator pointing load_table at their own copy).
         uri = f"file:{path.name}"
-    return TableSource(uri=uri, sha256=digest)
+    return TableSource(
+        uri=uri,
+        sha256=digest,
+        primary_url=primary_url,
+        retrieved_on=retrieved_on,
+        snapshot_sha256=snapshot_sha256,
+    )
 
 
 @dataclass(frozen=True)
@@ -90,6 +117,11 @@ class BenchmarkEntry:
     verify_at: str
     seen: str
     origin: str = FROZEN_ORIGIN
+    #: The primary publication behind the figure, as distinct from verify_at,
+    #: which is a convenience link for a human.
+    primary_url: str = ""
+    retrieved_on: str = ""
+    snapshot_sha256: str = ""
 
 
 @dataclass(frozen=True)
@@ -106,6 +138,9 @@ class RateResult:
     verify_at: str = ""
     seen: str = ""
     origin: str = ""
+    primary_url: str = ""
+    retrieved_on: str = ""
+    snapshot_sha256: str = ""
     table_reviewed_until: str = ""
     table_reviewed_on: str = ""
     reason: str | None = None
@@ -128,6 +163,9 @@ class RateResult:
                 "rba_month": self.rba_month,
                 "source": self.source,
                 "verify_at": self.verify_at,
+                "primary_url": self.primary_url,
+                "retrieved_on": self.retrieved_on,
+                "snapshot_sha256": self.snapshot_sha256,
                 "entry_seen": self.seen,
                 "table_reviewed_until": self.table_reviewed_until,
                 "table_reviewed_on": self.table_reviewed_on,
@@ -201,6 +239,9 @@ class BenchmarkTable:
             verify_at=entry.verify_at,
             seen=entry.seen,
             origin=entry.origin,
+            primary_url=entry.primary_url,
+            retrieved_on=entry.retrieved_on,
+            snapshot_sha256=entry.snapshot_sha256,
             table_reviewed_until=self.reviewed_until.label,
             table_reviewed_on=self.reviewed_on,
             statutory_trace=trace
@@ -276,6 +317,9 @@ def load_table(path: Path | None = None) -> BenchmarkTable:
             source=_required(row, "source", where),
             verify_at=(row.get("verify_at") or "").strip(),
             seen=_required(row, "seen", where),
+            primary_url=(row.get("primary_url") or "").strip(),
+            retrieved_on=(row.get("retrieved_on") or "").strip(),
+            snapshot_sha256=(row.get("snapshot_sha256") or "").strip(),
         )
     if not entries:
         raise RatesError(f"{path} holds no benchmark rates")
@@ -288,11 +332,27 @@ def load_table(path: Path | None = None) -> BenchmarkTable:
             f"{path} claims reviewed_until {reviewed_until.label} but carries a rate "
             f"for {latest.label}; re-review the table and update the header"
         )
+    # A table-level primary-source claim only holds when every row makes the
+    # same one. A table assembled from two downloads names neither, rather
+    # than attributing all of its rows to whichever row was read last.
+    claims = {
+        (entry.primary_url, entry.retrieved_on, entry.snapshot_sha256)
+        for entry in entries.values()
+    }
+    primary_url, retrieved_on, snapshot_sha256 = claims.pop() if len(claims) == 1 else ("", "", "")
     return BenchmarkTable(
         entries=entries,
         reviewed_until=reviewed_until,
         reviewed_on=reviewed_on,
-        sources=(_source_of(path, text),),
+        sources=(
+            _source_of(
+                path,
+                text,
+                primary_url=primary_url,
+                retrieved_on=retrieved_on,
+                snapshot_sha256=snapshot_sha256,
+            ),
+        ),
     )
 
 

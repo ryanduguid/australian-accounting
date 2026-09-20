@@ -67,6 +67,15 @@ class RatesError(ValueError):
     pass
 
 
+class StaleGicError(RatesError):
+    """A day past the last recorded quarter, asked for without --allow-stale-gic.
+
+    Kept apart from every other RatesError so the assessment can withhold the
+    rate-dependent estimate for that one case, and let a table that does not
+    cover an earlier day, or cannot be read, fail the run as it always did.
+    """
+
+
 # A GIC rate above this is a typo, not a rate. The ATO general interest charge
 # is a base rate plus 7 points and has never approached 100% a year, so the
 # ceiling costs nothing real and catches the 2 hand-edit slips that print
@@ -111,13 +120,30 @@ class GicTable:
             f"{latest.end.isoformat()} (latest quarter {latest.annual_pct}% p.a.{checked})"
         )
 
-    def daily_rate(self, d: date) -> Decimal:
+    def daily_rate(self, d: date, *, allow_stale: bool = False) -> Decimal:
+        """The daily GIC rate for one day.
+
+        A day past the last recorded quarter is refused unless the caller
+        asked for the estimate. Reusing the last known rate behind a warning
+        put an unpublished figure into the notional earnings, and from there
+        into both SG-charge exposure totals, on the strength of a caveat the
+        reader had to notice; the operator now has to ask for it.
+        """
         divisor = Decimal(days_in_year(d))
         for q in self._quarters:
             if q.start <= d <= q.end:
                 return q.annual_pct / Decimal(100) / divisor
         if d > self.last_known:
-            # estimate with the latest known rate; staleness() flags this
+            if not allow_stale:
+                raise StaleGicError(
+                    f"{d.isoformat()} is past the last GIC quarter on record "
+                    f"({self.last_known.isoformat()}), and the ATO has published no "
+                    "rate for it. Update paydaysuper/data/gic_rates.json from the ATO "
+                    "GIC rates page, or pass --allow-stale-gic to estimate those days "
+                    f"at the last known rate ({self._quarters[-1].annual_pct}% p.a.), "
+                    "which the report will then say it did"
+                )
+            # The caller asked for the estimate; staleness() flags it.
             return self._quarters[-1].annual_pct / Decimal(100) / divisor
         raise RatesError(f"no GIC rate on record for {d.isoformat()}")
 

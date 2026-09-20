@@ -90,6 +90,14 @@ def build_parser(*, evidence_pack: bool = False) -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--allow-stale-gic",
+        action="store_true",
+        help=(
+            "estimate notional earnings past the last published GIC quarter at the "
+            "last known rate, instead of refusing. The report says it did so"
+        ),
+    )
+    parser.add_argument(
         "--confirm-remittance-only",
         action="store_true",
         help=(
@@ -478,6 +486,7 @@ def main(argv: list[str] | None = None) -> int:
             as_at,
             assessment_date,
             transition_allocation_confirmed=args.confirm_transition_allocation,
+            allow_stale_gic=args.allow_stale_gic,
         )
     except OverflowError:
         # A sentinel date such as 9999-12-31 walked past date.max. Before the

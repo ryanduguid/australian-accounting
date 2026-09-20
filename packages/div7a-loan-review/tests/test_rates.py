@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 from decimal import Decimal
+from urllib.parse import urlsplit
 
 import pytest
 from div7aloan.rates import (
@@ -245,7 +246,8 @@ def test_the_digest_is_the_digest_of_the_table_that_was_read(tmp_path):
     # A table read from outside the package is identified by name, not by the
     # reader's directory layout, and carries the same digest.
     entry = _manifest(benchmark_rate("2025-26", table=load_table(copy)))[0]
-    assert entry == {"uri": "file:benchmark_rates.csv", "sha256": expected}
+    assert entry["uri"] == "file:benchmark_rates.csv"
+    assert entry["sha256"] == expected
 
 
 def test_an_edited_table_changes_the_digest(tmp_path):
@@ -289,3 +291,22 @@ def test_an_override_is_named_in_the_manifest_without_the_operator_path(tmp_path
     ]
     assert str(tmp_path) not in json.dumps(entries)
     assert len({entry["sha256"] for entry in entries}) == 2
+
+
+# The primary source behind a row, as distinct from the link beside it.
+
+PRIMARY_HOSTS = ("rba.gov.au", "ato.gov.au", "legislation.gov.au")
+
+
+@pytest.mark.parametrize("year", sorted(PUBLISHED))
+def test_every_row_cites_a_primary_source_on_an_official_host(year):
+    """verify_at may point at an explainer. primary_url may not: a rate this
+    engine applies has to be traceable to the body that published it, with the
+    date it was read and the digest of what was read."""
+    entry = load_table().entries[int(year[:4])]
+    host = urlsplit(entry.primary_url).hostname or ""
+    assert any(
+        host == allowed or host.endswith("." + allowed) for allowed in PRIMARY_HOSTS
+    ), f"{year} cites {host!r}, which is not an RBA, ATO or legislation host"
+    assert entry.retrieved_on, f"{year} does not say when its primary source was read"
+    assert len(entry.snapshot_sha256) == 64, f"{year} has no digest of what was read"

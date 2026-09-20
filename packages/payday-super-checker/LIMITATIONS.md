@@ -13,13 +13,18 @@ For what the tool declines to answer, see the refusal cases in
 
 Applies to payday-super-checker 0.1.4.
 
-## PSC-1 An SG-charge estimate dated past the GIC table extrapolates the rate
+## PSC-1 An SG-charge estimate dated past the GIC table extrapolates the rate, on request
 
 **Trigger.** Any day in the notional earnings period falls after the last
-quarter recorded in `paydaysuper/data/gic_rates.json`.
+quarter recorded in `paydaysuper/data/gic_rates.json`, and the run was started
+with `--allow-stale-gic`. Without that flag the row keeps its verdict, its days
+late and its shortfall and carries no SG charge estimate at all, with a caveat
+naming the day, the last quarter on record and the file to update, so nothing
+below applies to a default run. The MCP server has no equivalent option, so a
+result it returns never carries an extrapolated figure.
 
-**Effect.** `GicTable.daily_rate()` returns the last known quarter's rate for
-those days rather than refusing. The notional earnings component under SGAA
+**Effect.** With the flag, `GicTable.daily_rate()` returns the last known
+quarter's rate for those days. The notional earnings component under SGAA
 s 19A is then compounded at a rate the ATO has not published for that quarter.
 The administrative uplift under s 19B(1) is a percentage of shortfalls plus
 notional earnings, so it moves with the extrapolated figure wherever the
@@ -47,17 +52,23 @@ The verdict being sound does not make the row's figures sound. `LATE` and
 the exposure estimate this entry qualifies. A `SKIPPED` row has no estimate to
 qualify.
 
-**Where it surfaces at runtime.** `GicTable.staleness()` adds a caveat to the
-result naming the table's end date, the rate carried forward, and the file to
-update. Caveats reach the console, unlike notes.
+**Where it surfaces at runtime.** Asking for the estimate is the first signal.
+`GicTable.staleness()` then adds a caveat to the result naming the table's end
+date, the rate carried forward, and the file to update. Caveats reach the
+console, unlike notes. On a default run the caveat instead says the notional
+earnings and the SG charge estimate were not assessed for that row, and the 5
+charge columns of `report.csv` are empty rather than nil.
 
 **Operator step.** Update `paydaysuper/data/gic_rates.json` from the ATO
-general interest charge rates page before relying on an exposure figure whose
-period runs past the table. Re-run and confirm the caveat is gone.
+general interest charge rates page rather than passing `--allow-stale-gic`.
+Re-run and confirm the caveat is gone.
 
-**Status.** Open, by design. Refusing would withhold a shortfall figure that is
-itself correct. The estimate is offered with the extrapolation declared rather
-than withheld or presented as settled.
+**Status.** Narrowed. The extrapolation used to run behind a caveat the reader
+had to notice, which put an unpublished rate into both exposure totals by
+default. It is now an opt-in, so a default run either has a published rate for
+every day of the period or withholds the estimate for that row. The shortfall
+figure, which is itself correct, is reported either way, the same way a deadline
+past the holiday calendar's coverage keeps its verdict and drops its days late.
 
 ## PSC-2 The payroll-to-super join degrades in four declared ways
 
