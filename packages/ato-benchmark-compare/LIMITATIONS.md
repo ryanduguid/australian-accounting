@@ -6,7 +6,7 @@ face value. Each entry names the condition that triggers it, what it affects,
 
 For scope the tool never claimed, see [DISCLAIMER.md](DISCLAIMER.md).
 
-Applies to ato-benchmark-compare 0.1.8.
+Applies to ato-benchmark-compare 0.1.9.
 
 ## ABC-1 A bucket no account was mapped to is withheld, not read as a nil
 

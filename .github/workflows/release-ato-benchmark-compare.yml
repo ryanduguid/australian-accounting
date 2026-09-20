@@ -42,8 +42,6 @@ jobs:
         .github/workflows/codeql.yml: Analyze Python
       source-directory: packages/ato-benchmark-compare
       tag-prefix: ato-benchmark-compare
-      version-parser: python-literal
-      version-file: atobenchmark/__init__.py
       upload-dist-artifact: true
 
   pypi:
