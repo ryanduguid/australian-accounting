@@ -2,9 +2,23 @@
 
 from typing import Any
 
+# Resident basic tax scale per income year: (lower bound, upper bound, marginal rate)
+# on taxable income above the lower bound, whole dollars; None is no upper bound.
+# Income Tax Rates Act 1986, Schedule 7 Part I clause 1, as compiled for each year.
+# A period is supported only when its scale is written here, so a new year never
+# borrows another year's rates by falling through a default.
+RESIDENT_TAX_SCALES: dict[str, tuple[tuple[int, int | None, str], ...]] = {
+    "2024-25": ((18200, 45000, "0.16"), (45000, 135000, "0.30"),
+                (135000, 190000, "0.37"), (190000, None, "0.45")),
+    "2025-26": ((18200, 45000, "0.16"), (45000, 135000, "0.30"),
+                (135000, 190000, "0.37"), (190000, None, "0.45")),
+    "2026-27": ((18200, 45000, "0.15"), (45000, 135000, "0.30"),
+                (135000, 190000, "0.37"), (190000, None, "0.45")),
+}
+
 SUPPORTED_PERIODS = {
     "gst": ("2025-26",),
-    "resident_tax": ("2024-25", "2025-26", "2026-27"),
+    "resident_tax": tuple(RESIDENT_TAX_SCALES),
     "capital_gains": ("2025-26",),
     "fbt": ("2026",),
     "depreciation": ("2025-26",),
