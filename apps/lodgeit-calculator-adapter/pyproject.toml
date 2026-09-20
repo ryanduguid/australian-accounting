@@ -9,6 +9,7 @@ description = "Optional, explicitly enabled adapter for the LodgeiT Labs calcula
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Ryan Duguid" }]
 keywords = ["australian-tax", "division-7a", "fbt", "depreciation", "interoperability"]
 classifiers = [

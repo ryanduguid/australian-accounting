@@ -108,8 +108,9 @@ classification of the facts the operator supplied, not a determination.
 - Use calc_payday_super_deadline for one contribution, with an explicit as_at
   date. Remittance does not establish fund receipt. Do not infer receipt dates
   or clearing-house latency, or report ON_TIME without evidence of receipt.
-  Supply matched_amount or remitted_amount for partial contributions. Omitting
-  both retains the engine's convention that received means full receipt.
+  Supply matched_amount with every received date, partial or full. Omitting
+  both leaves the published 0.1.6 engine's convention that received means full
+  receipt; an engine with the receipt-amount rule leaves the row UNKNOWN instead.
   Read aus-accounting://payday-coverage for bundled rate and calendar coverage.
   This reviews one contribution only. Related contributions can change the
   deadline under s 18C(2) item 4 or the allocation of receipts. Use
@@ -142,8 +143,9 @@ execution succeeded, not that a review passed. For Division 7A, summary is the
 default; request response_detail="full" when the full audit trail is needed.
 Retain engine versions, source/review dates, citations, warnings and caveats.
 Bundled data is not a live lookup. These tools do not access the network, write
-records or lodge. Results are review aids, not advice or determinations; obtain
-human review before consequential accounting action.
+records or lodge; the host transmits every argument and result to its model
+provider, which these tools cannot control. Results are review aids, not advice
+or determinations; obtain human review before consequential accounting action.
 """
 
 class AccountingServer(MCPServer):
@@ -1147,8 +1149,11 @@ def review_payday_super_contribution_prompt(as_at: str | None = None) -> str:
         "fund-receipt evidence prevents an ON_TIME result, and the verdict then depends "
         "on the other facts, so report the verdict the tool returns with its caveats "
         "instead of assuming one. Leave received out if the CSV does not carry it.\n\n"
-        "Pass matched_amount or remitted_amount for a partial contribution; do not "
-        "drop the amount and imply full receipt. Read aus-accounting://payday-coverage "
+        "Pass matched_amount with every received date, the full amount included: a "
+        "receipt date alone evidences no amount. An engine with the receipt-amount rule "
+        "(unreleased after 0.1.6) leaves such a row UNKNOWN, not ON_TIME; 0.1.6 reads it "
+        "as a full receipt and warns. Do not drop the amount and imply full receipt. Read "
+        "aus-accounting://payday-coverage "
         "for the bundled rate and calendar limits.\n\n"
         "This call reviews one contribution. Related contributions can change the "
         "deadline under s 18C(2) item 4 and the allocation of receipts. If those "

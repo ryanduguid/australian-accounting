@@ -257,6 +257,17 @@ def test_the_package_records_the_compilation_it_was_written_against():
 REVIEW_PATH = Path("docs/primary-source-review-2026-08-31.md")
 REVIEW = REVIEW_PATH.read_text(encoding="utf-8")
 FLAT_REVIEW = flat(REVIEW)
+RATES_REVIEW_PATH = Path("docs/primary-source-review-2026-09-20.md")
+RATES_REVIEW = RATES_REVIEW_PATH.read_text(encoding="utf-8")
+
+
+def test_the_rates_review_is_linked_and_reads_the_rba_table():
+    """The 20 September review is the only recorded read of the RBA
+    publication behind benchmark_rates.csv, so it must stay linked from the
+    README and must name the table and series it read."""
+    assert str(RATES_REVIEW_PATH).replace("\\", "/") in README
+    assert "F5" in RATES_REVIEW and "FILRHLBVS" in RATES_REVIEW
+    assert "changes no rate" in RATES_REVIEW
 
 
 def test_the_readme_links_the_source_review():

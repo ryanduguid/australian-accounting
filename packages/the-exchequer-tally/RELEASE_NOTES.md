@@ -1,3 +1,27 @@
+# Unreleased
+
+Breaking: 3 facts the engine used to assume are now required inputs.
+
+- The corporate tax rate has no default. Pass `corporate_tax_rate` to
+  `BenchmarkRuleValidator` and `generate_distribution_statement`, and
+  `--tax-rate` to `dist-statement`. Callers that relied on the 25% base rate
+  must state the entity's own rate; a `DistributionEvent` measured outside a
+  validator now raises instead of assuming it. The franking account's
+  `opening_balance` has no default either: state it, `Decimal("0.00")`
+  included, or `closing_balance` is `None` and `evaluate_franking_deficit`
+  returns an explicit unknown carrying `unknown_reason`, not a surplus.
+- Missing facts no longer read as passed tests. `validate_distributions`
+  returns `(None, [])` for a period with no frankable distribution,
+  `is_brepi_eligible` and `is_base_rate_entity` are `None` where there is no
+  assessable income to run the s 23AB test against, and
+  `determine_corporate_tax_rate` then raises. `turnover_threshold_for` raises
+  for a year the table does not list instead of reading $50M forward.
+- Migration: supply the rate and opening balance at each call site, and treat a
+  `None` outcome as untested rather than compliant. `FrankingDeficitResult`
+  outcome fields are now optional and carry a new `unknown_reason`, and
+  `DEFAULT_TURNOVER_THRESHOLD` is gone; every supported year is listed in
+  `TURNOVER_THRESHOLDS`. No rate, threshold or formula changed.
+
 # v0.1.6
 
 - Require an explicit ISO payment date.

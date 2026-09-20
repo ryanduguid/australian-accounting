@@ -23,8 +23,10 @@ against the current law and the entity's facts before acting, and leave
 lodgement decisions with a registered practitioner.
 
 A franking account balance produced here is a workpaper figure rebuilt from
-the entries supplied. It is not the company's franking account for statutory
-purposes and it does not replace the company's own records. A distribution
+the entries and the opening balance supplied. It is not the company's franking
+account for statutory purposes and it does not replace the company's own
+records. Where a fact is missing the engine reports an unknown or refuses:
+an unknown is not a finding that the rule is met or that no liability arises. A distribution
 statement built by this tool populates the fields required by s 202-75 and
 s 202-80 as a review helper. It is not a lodgement and not a compliance
 certificate.

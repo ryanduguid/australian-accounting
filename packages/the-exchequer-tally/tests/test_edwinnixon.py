@@ -9,6 +9,7 @@ from edwinnixon.corporate_tax import (
     BaseRateEntityTest,
     determine_corporate_tax_rate,
     determine_max_franking_rate,
+    turnover_threshold_for,
 )
 from edwinnixon.distribution_statement import generate_distribution_statement
 from edwinnixon.franking_account import FrankingAccount, FrankingEntry, FrankingEntryType
@@ -267,6 +268,7 @@ def test_negative_amounts_are_refused():
             payment_date=date(2025, 1, 1),
             total_distribution=Decimal("-10000.00"),
             franking_percentage=Decimal("100.00"),
+            corporate_tax_rate=Decimal("0.25"),
         )
     with pytest.raises(ValueError):
         generate_distribution_statement(
@@ -276,6 +278,7 @@ def test_negative_amounts_are_refused():
             payment_date=date(2025, 1, 1),
             total_distribution=Decimal("10000.00"),
             franking_percentage=Decimal("150.00"),
+            corporate_tax_rate=Decimal("0.25"),
         )
 
 
@@ -500,10 +503,10 @@ def test_distribution_event_refuses_negative_and_out_of_range_inputs():
         FrankingAccount(financial_year=2025, opening_balance=Decimal("NaN"))
 
 
-def test_zero_assessable_income_has_no_passive_ratio():
-    # s 23AA compares BREPI against 80% of assessable income. With both nil
-    # that comparison is 0 <= 0, satisfied, so the rate turns on the turnover
-    # test alone; only the display ratio has no denominator and reads n/a.
+def test_zero_assessable_income_leaves_the_passive_test_unknown():
+    # s 23AA compares BREPI against 80% of assessable income. With no assessable
+    # income there is no proportion to compare, so the test is not run: the ratio
+    # and the eligibility answer are both absent, and no rate is determined.
     nil_income = BaseRateEntityTest(
         financial_year=2025,
         aggregated_turnover=Decimal("1000000.00"),
@@ -511,27 +514,56 @@ def test_zero_assessable_income_has_no_passive_ratio():
         passive_income=Decimal("0.00"),
     )
     assert nil_income.passive_income_percentage is None
-    assert nil_income.is_brepi_eligible is True
-    res = determine_corporate_tax_rate(nil_income)
-    assert res.is_base_rate_entity is True
-    assert res.applicable_rate == Decimal("0.250")
-    assert "BREPI <= 80%" in res.statutory_basis
+    assert nil_income.is_brepi_eligible is None
+    assert nil_income.is_base_rate_entity is None
+    with pytest.raises(ValueError, match="no assessable income"):
+        determine_corporate_tax_rate(nil_income)
 
     # BREPI is part of assessable income, so this input is inconsistent.
     with pytest.raises(ValueError, match="passive_income must not exceed assessable_income"):
         BaseRateEntityTest(2025, Decimal("1000000"), Decimal("0"), Decimal("10"))
 
 
-def test_cli_reports_no_passive_ratio_without_assessable_income(monkeypatch, capsys):
+def test_failed_turnover_test_settles_status_without_the_income_facts():
+    # Both s 23AA limbs must be met, so failing turnover is a definite answer
+    # even where the passive-income test cannot be run.
+    no_income_large_co = BaseRateEntityTest(
+        financial_year=2025,
+        aggregated_turnover=Decimal("60000000.00"),
+        assessable_income=Decimal("0.00"),
+        passive_income=Decimal("0.00"),
+    )
+    assert no_income_large_co.is_brepi_eligible is None
+    assert no_income_large_co.is_base_rate_entity is False
+    assert determine_corporate_tax_rate(no_income_large_co).applicable_rate == Decimal("0.300")
+
+
+def test_cli_refuses_a_rate_without_assessable_income(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", [
         "edwinnixon", "bre-test", "--fy", "2025",
         "--turnover", "1000000", "--assessable", "0", "--passive", "0",
     ])
-    assert main() == 0
-    out = capsys.readouterr().out
-    assert "Passive Income Ratio:    n/a (no assessable income) (<= 80%: True)" in out
-    assert "100.00%" not in out
-    assert "BREPI <= 80%" in out
+    assert main() == 2
+    captured = capsys.readouterr()
+    assert "no assessable income" in captured.err
+    assert captured.out == ""
+
+
+def test_unlisted_year_has_no_turnover_threshold():
+    # The $50M threshold is legislated year by year. Reading it forward into an
+    # unlisted year states a threshold Parliament has not set.
+    with pytest.raises(ValueError, match="FY2028"):
+        turnover_threshold_for(2028)
+    unlisted = BaseRateEntityTest(
+        financial_year=2028,
+        aggregated_turnover=Decimal("1000000.00"),
+        assessable_income=Decimal("500000.00"),
+        passive_income=Decimal("100000.00"),
+    )
+    with pytest.raises(ValueError, match="FY2028"):
+        _ = unlisted.is_aggregated_turnover_eligible
+    assert turnover_threshold_for(2018) == Decimal("25000000.00")
+    assert turnover_threshold_for(2027) == Decimal("50000000.00")
 
 
 def test_cli_distribution_statement_states_the_acn(monkeypatch, capsys):
@@ -556,6 +588,7 @@ def test_sub_cent_total_distribution_is_refused():
             payment_date=date(2025, 1, 1),
             total_distribution=Decimal("100.005"),
             franking_percentage=Decimal("100.00"),
+            corporate_tax_rate=Decimal("0.25"),
         )
     except ValueError as exc:
         assert "whole number of cents" in str(exc)
@@ -615,7 +648,7 @@ def test_cli_refuses_inconsistent_income_without_a_rate(monkeypatch, capsys):
 
 @pytest.mark.parametrize("credits", ["0", "1000"])
 def test_refund_only_deficit_does_not_reduce_offset(credits):
-    account = FrankingAccount(2027)
+    account = FrankingAccount(2027, opening_balance=Decimal("0.00"))
     if Decimal(credits):
         account.record_payg_instalment(date(2026, 9, 1), Decimal(credits))
     account.record_tax_refund(
@@ -631,7 +664,7 @@ def test_refund_only_deficit_does_not_reduce_offset(credits):
     "record_franked_distribution_paid", "record_under_franking_debit",
 ])
 def test_distribution_related_debit_brings_refund_into_offset_reduction(debit_method):
-    account = FrankingAccount(2027)
+    account = FrankingAccount(2027, opening_balance=Decimal("0.00"))
     account.record_payg_instalment(date(2026, 9, 1), Decimal("1000"))
     getattr(account, debit_method)(date(2027, 2, 1), Decimal("100"))
     account.record_tax_refund(
@@ -669,7 +702,7 @@ def test_r_and_d_or_unclassified_refund_is_refused_without_posting(classificatio
 
 
 def test_refund_requires_explicit_classification():
-    account = FrankingAccount(2027)
+    account = FrankingAccount(2027, opening_balance=Decimal("0.00"))
     with pytest.raises(TypeError, match="includes_r_and_d_offset"):
         account.record_tax_refund(date(2027, 3, 1), Decimal("2000"))
     assert account.entries == []
@@ -699,7 +732,7 @@ def test_ordinary_refund_posts_once_with_existing_validation():
     "record_tax_refund", "record_under_franking_debit", "record_fdt_liability",
 ])
 def test_recording_refuses_dates_outside_financial_year(day, method):
-    account = FrankingAccount(2027)
+    account = FrankingAccount(2027, opening_balance=Decimal("0.00"))
     kwargs = {"includes_r_and_d_offset": False} if method == "record_tax_refund" else {}
     with pytest.raises(ValueError, match="outside FY2027"):
         getattr(account, method)(day, Decimal("100"), **kwargs)
@@ -711,14 +744,14 @@ def test_initial_entries_must_belong_to_financial_year(day):
     entry = FrankingEntry(day, FrankingEntryType.FRANKED_DISTRIBUTION_PAID,
                           Decimal("100"), "Fabricated distribution")
     with pytest.raises(ValueError, match="outside FY2027"):
-        FrankingAccount(2027, entries=[entry])
+        FrankingAccount(2027, opening_balance=Decimal("0.00"), entries=[entry])
 
 
 @pytest.mark.parametrize("day", [date(2026, 7, 1), date(2027, 6, 30)])
 def test_financial_year_includes_both_boundary_dates(day):
     entry = FrankingEntry(day, FrankingEntryType.PAYG_INSTALMENT,
                           Decimal("1000"), "Fabricated instalment")
-    account = FrankingAccount(2027, entries=[entry])
+    account = FrankingAccount(2027, opening_balance=Decimal("0.00"), entries=[entry])
     account.record_franked_distribution_paid(day, Decimal("2000"))
     assert account.closing_balance == Decimal("-1000")
     assert account.evaluate_franking_deficit().allowable_tax_offset == Decimal("700")
@@ -729,7 +762,7 @@ def test_financial_year_includes_both_boundary_dates(day):
     "total_credits", "total_debits", "closing_balance", "evaluate_franking_deficit",
 ])
 def test_mutated_entries_cannot_contaminate_annual_calculations(day, calculation):
-    account = FrankingAccount(2027)
+    account = FrankingAccount(2027, opening_balance=Decimal("0.00"))
     account.record_tax_refund(
         date(2027, 3, 1), Decimal("3000"), includes_r_and_d_offset=False,
     )
@@ -758,10 +791,155 @@ def test_direct_franking_entries_preserve_ledger_invariants(entry_type, amount):
 @pytest.mark.parametrize("day", [None, "2026-02-30", "20260901"])
 def test_distribution_cli_requires_an_explicit_iso_payment_date(monkeypatch, day):
     args = ["the-exchequer-tally", "dist-statement", "--entity", "Synthetic Pty Ltd",
-            "--acn", "123456789", "--recipient", "Synthetic person", "--amount", "100"]
+            "--acn", "123456789", "--recipient", "Synthetic person", "--amount", "100",
+            "--tax-rate", "0.25"]
     if day is not None:
         args += ["--payment-date", day]
     monkeypatch.setattr(sys, "argv", args)
     with pytest.raises(SystemExit) as exc:
         main()
     assert exc.value.code == 2
+
+
+def test_distribution_cli_requires_an_explicit_tax_rate(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", [
+        "the-exchequer-tally", "dist-statement", "--entity", "Synthetic Pty Ltd",
+        "--acn", "123456789", "--recipient", "Synthetic person", "--amount", "100",
+        "--payment-date", "2026-09-01",
+    ])
+    with pytest.raises(SystemExit) as exc:
+        main()
+    assert exc.value.code == 2
+    assert "--tax-rate" in capsys.readouterr().err
+
+
+def test_benchmark_validator_requires_a_corporate_tax_rate():
+    with pytest.raises(TypeError, match="corporate_tax_rate"):
+        BenchmarkRuleValidator()  # type: ignore[call-arg]
+    with pytest.raises(ValueError, match="corporate_tax_rate is required"):
+        BenchmarkRuleValidator(None)  # type: ignore[arg-type]
+
+
+def test_distribution_event_without_a_rate_refuses_to_measure_itself():
+    # Standing alone, an event that states no rate has no s 202-60 maximum. The
+    # base rate is not substituted for the missing fact.
+    orphan = DistributionEvent(
+        event_date=date(2025, 1, 15),
+        recipient_name="A",
+        distribution_amount=Decimal("75000.00"),
+        franking_credit=Decimal("25000.00"),
+    )
+    for measure in ("maximum_franking_credit", "franking_ratio", "franking_percentage"):
+        with pytest.raises(ValueError, match="corporate_tax_rate is required"):
+            getattr(orphan, measure)
+
+    # Added through the validator, it takes the validator's stated rate.
+    validator = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.30"))
+    validator.add_distribution(orphan)
+    expected_maximum = Decimal("75000.00") * (Decimal("0.30") / Decimal("0.70"))
+    assert validator.distributions[0].maximum_franking_credit == expected_maximum
+    assert validator.benchmark_percentage == Decimal("77.78")
+
+
+def test_nil_distribution_does_not_excuse_a_missing_rate():
+    # A nil amount has no maximum credit at any rate, but the rate is still the
+    # fact that has to be stated: the shortcut must not become a way past it.
+    nil_without_rate = DistributionEvent(
+        event_date=date(2025, 1, 15),
+        recipient_name="Nil",
+        distribution_amount=Decimal("0.00"),
+        franking_credit=Decimal("0.00"),
+    )
+    with pytest.raises(ValueError, match="corporate_tax_rate is required"):
+        _ = nil_without_rate.maximum_franking_credit
+
+    nil_with_rate = DistributionEvent(
+        event_date=date(2025, 1, 15),
+        recipient_name="Nil",
+        distribution_amount=Decimal("0.00"),
+        franking_credit=Decimal("0.00"),
+        corporate_tax_rate=Decimal("0.30"),
+    )
+    assert nil_with_rate.maximum_franking_credit == Decimal("0.00")
+    assert nil_with_rate.franking_percentage == Decimal("0.00")
+
+
+def test_statement_requires_a_corporate_tax_rate():
+    with pytest.raises(TypeError, match="corporate_tax_rate"):
+        generate_distribution_statement(  # type: ignore[call-arg]
+            entity_name="X Pty Ltd",
+            abn_or_acn="12 345 678 901",
+            recipient_name="Y",
+            payment_date=date(2025, 1, 1),
+            total_distribution=Decimal("10000.00"),
+            franking_percentage=Decimal("100.00"),
+        )
+    with pytest.raises(ValueError, match="corporate_tax_rate is required"):
+        generate_distribution_statement(
+            entity_name="X Pty Ltd",
+            abn_or_acn="12 345 678 901",
+            recipient_name="Y",
+            payment_date=date(2025, 1, 1),
+            total_distribution=Decimal("10000.00"),
+            franking_percentage=Decimal("100.00"),
+            corporate_tax_rate=None,  # type: ignore[arg-type]
+        )
+
+
+def test_a_period_without_a_frankable_distribution_is_not_tested():
+    # s 203-30 has no benchmark to set, so there is no rule to meet. An empty
+    # period, and one holding only nil events, must not read as compliant.
+    empty = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.30"))
+    assert empty.benchmark_percentage is None
+    tested, violations = empty.validate_distributions()
+    assert tested is None
+    assert violations == []
+
+    nil_only = BenchmarkRuleValidator(corporate_tax_rate=Decimal("0.30"))
+    nil_only.add_distribution(DistributionEvent(
+        event_date=date(2024, 7, 1),
+        recipient_name="Nil",
+        distribution_amount=Decimal("0.00"),
+        franking_credit=Decimal("0.00"),
+    ))
+    assert nil_only.benchmark_percentage is None
+    tested, violations = nil_only.validate_distributions()
+    assert tested is None
+    assert tested is not True
+    assert violations == []
+
+
+def test_deficit_test_is_unknown_until_the_opening_balance_is_established():
+    unestablished = FrankingAccount(2027)
+    unestablished.record_payg_instalment(date(2026, 9, 1), Decimal("1000"))
+    assert unestablished.closing_balance is None
+    result = unestablished.evaluate_franking_deficit()
+    assert result.has_deficit is None
+    assert result.closing_balance is None
+    assert result.franking_deficit_tax is None
+    assert result.allowable_tax_offset is None
+    assert result.fdt_offset_reduction_applies is None
+    assert result.total_franking_credits_year == Decimal("1000.00")
+    assert result.unknown_reason is not None
+    assert "opening franking account balance is not established" in result.unknown_reason
+    assert "no FDT liability" not in result.statutory_basis
+
+    # A nil opening balance is a fact. Stated, the same entries give a result.
+    established = FrankingAccount(2027, opening_balance=Decimal("0.00"))
+    established.record_payg_instalment(date(2026, 9, 1), Decimal("1000"))
+    stated = established.evaluate_franking_deficit()
+    assert stated.has_deficit is False
+    assert stated.closing_balance == Decimal("1000.00")
+    assert stated.unknown_reason is None
+
+
+def test_unknown_opening_balance_still_refuses_out_of_year_entries():
+    account = FrankingAccount(2027)
+    account.entries.append(FrankingEntry(
+        date(2027, 7, 1), FrankingEntryType.PAYG_INSTALMENT, Decimal("100"),
+        "Fabricated out-of-year instalment",
+    ))
+    with pytest.raises(ValueError, match="outside FY2027"):
+        _ = account.closing_balance
+    with pytest.raises(ValueError, match="outside FY2027"):
+        account.evaluate_franking_deficit()

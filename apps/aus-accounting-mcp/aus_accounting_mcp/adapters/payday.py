@@ -251,10 +251,21 @@ class ContributionInput(BaseModel):
     out_of_cycle: bool = Field(description="Established out-of-cycle status; required.")
     db_interest: bool = Field(description="Established defined-benefit status; required.")
     remitted: str | None = Field(default=None, description="Evidenced remittance date.")
-    received: str | None = Field(default=None, description="Evidenced fund-receipt date.")
+    received: str | None = Field(
+        default=None,
+        description="Evidenced fund-receipt date. Timing only: pair it with matched_amount "
+        "(or remitted_amount). An engine with the receipt-amount rule (unreleased after "
+        "payday-super-checker 0.1.6) leaves a bare receipt UNKNOWN rather than ON_TIME; "
+        "0.1.6 reads it as a full receipt and says so in a caveat.",
+    )
     next_standard_qe_day: str | None = Field(default=None, description="Next standard payday.")
     remitted_amount: str | None = Field(default=None, description="AUD remitted for this row.")
-    matched_amount: str | None = Field(default=None, description="AUD allocated to this row.")
+    matched_amount: str | None = Field(
+        default=None,
+        description="AUD the fund received for this row. Supply it with every received date: "
+        "a receipt date alone evidences no amount, and an engine with the receipt-amount "
+        "rule will not assess a full receipt as ON_TIME without it.",
+    )
 
 
 def review_contributions(contributions: list[ContributionInput], as_at: str) -> dict[str, Any]:

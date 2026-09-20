@@ -17,6 +17,17 @@ CREDITS = st.decimals(min_value=Decimal("0.00"), max_value=Decimal("100000000.00
 WEIGHTS = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=8)
 
 
+def resident_adult(*args, **kwargs) -> BeneficiaryEntitlement:
+    """A resident beneficiary not under a legal disability.
+
+    Residency is a required input and legal disability is tristate, so both are
+    stated here once rather than in every fixture below.
+    """
+    return BeneficiaryEntitlement(
+        *args, is_resident=True, is_under_legal_disability=False, **kwargs
+    )
+
+
 def percentages_from(weights: list[int]) -> list[Decimal]:
     """Split 100.00 across the weights at two places, largest remainder first."""
     total = sum(weights)
@@ -37,7 +48,7 @@ def assessment_for(percentages, trust_income, s95_net, credits) -> TrustIncomeAs
         section95_net_taxable_income=s95_net,
         franking_credits=credits,
         beneficiaries=[
-            BeneficiaryEntitlement(f"B{i}", percentage_entitlement=pct)
+            resident_adult(f"B{i}", percentage_entitlement=pct)
             for i, pct in enumerate(percentages)
         ],
     )
@@ -69,10 +80,10 @@ def test_a_fixed_entitlement_is_reported_as_supplied_and_percentages_absorb_the_
         section95_net_taxable_income=Decimal("10.00"),
         franking_credits=Decimal("0.00"),
         beneficiaries=[
-            BeneficiaryEntitlement("Fixed", fixed_entitlement_amount=Decimal("5.00")),
-            BeneficiaryEntitlement("P1", percentage_entitlement=Decimal("16.67")),
-            BeneficiaryEntitlement("P2", percentage_entitlement=Decimal("16.67")),
-            BeneficiaryEntitlement("P3", percentage_entitlement=Decimal("16.67")),
+            resident_adult("Fixed", fixed_entitlement_amount=Decimal("5.00")),
+            resident_adult("P1", percentage_entitlement=Decimal("16.67")),
+            resident_adult("P2", percentage_entitlement=Decimal("16.67")),
+            resident_adult("P3", percentage_entitlement=Decimal("16.67")),
         ],
     )
     shares = calculate_proportionate_share(assessment)
@@ -92,7 +103,7 @@ def test_all_fixed_entitlements_are_reported_as_supplied():
         section95_net_taxable_income=Decimal("10.00"),
         franking_credits=Decimal("0.00"),
         beneficiaries=[
-            BeneficiaryEntitlement(f"F{i}", fixed_entitlement_amount=a) for i, a in enumerate(amounts)
+            resident_adult(f"F{i}", fixed_entitlement_amount=a) for i, a in enumerate(amounts)
         ],
     )
     shares = calculate_proportionate_share(assessment)
@@ -107,8 +118,8 @@ def test_a_sub_cent_fixed_entitlement_is_refused_rather_than_rounded():
         section95_net_taxable_income=Decimal("10.00"),
         franking_credits=Decimal("0.00"),
         beneficiaries=[
-            BeneficiaryEntitlement("F0", fixed_entitlement_amount=Decimal("3.335")),
-            BeneficiaryEntitlement("F1", fixed_entitlement_amount=Decimal("6.665")),
+            resident_adult("F0", fixed_entitlement_amount=Decimal("3.335")),
+            resident_adult("F1", fixed_entitlement_amount=Decimal("6.665")),
         ],
     )
     with pytest.raises(ValueError, match="whole cents"):

@@ -69,30 +69,57 @@ def _ratio_own_buckets(name: str) -> frozenset[str]:
     )
 
 
-def _presence(comparison: Comparison, supplied_fields: Collection[str]) -> _Presence:
+def _known_fields(supplied_fields: Collection[str]) -> frozenset[str]:
     known = frozenset(supplied_fields)
     unknown = known - (set(BUCKETS) | {"w1"})
     if unknown:
         raise ValueError(f"unknown supplied field(s): {', '.join(sorted(unknown))}")
+    return known
+
+
+def _evidence_flags(known: frozenset[str]) -> tuple[bool, bool, bool]:
+    """Whether income, the expense set and labour are evidenced, in that order.
+
+    One statement of each rule. `_presence` reports these to the serialisers and
+    `_evidenced_ratios` gates the rows on them, so a rule cannot be changed on
+    one side alone.
+    """
     supplied = known - {"w1"}
-    w1_supplied = "w1" in known
-    income_evidenced = {"turnover", "other_income"} <= supplied
-    expense_complete = EXPENSE_BUCKETS <= supplied
-    labour_evidenced = (
+    return (
+        {"turnover", "other_income"} <= supplied,
+        EXPENSE_BUCKETS <= supplied,
         {"salary_wages", "contractor_commission", "cost_of_sales_labour"} <= supplied
-        and (not w1_supplied or "associated_persons" in supplied)
+        and ("w1" not in known or "associated_persons" in supplied),
     )
-    key_ratio = (
-        comparison.key_ratio
-        if "cost_of_sales" in supplied
-        else comparison.business_type.key_ratio
-    )
+
+
+def _evidenced_ratios(known: frozenset[str]) -> dict[str, bool]:
+    """Which ratios the supplied set can state, by the one rule every output uses.
+
+    `compare` gates its own verdicts with this, so a direct library caller and a
+    serialiser cannot disagree about whether a ratio was evidenced.
+    """
+    supplied = known - {"w1"}
+    income_evidenced, _, labour_evidenced = _evidence_flags(known)
     evidenced = {}
     for name in RATIO_ORDER:
         own = labour_evidenced if name == "labour_to_turnover" else (
             _ratio_own_buckets(name) <= supplied
         )
         evidenced[name] = own and income_evidenced
+    return evidenced
+
+
+def _presence(comparison: Comparison, supplied_fields: Collection[str]) -> _Presence:
+    known = _known_fields(supplied_fields)
+    supplied = known - {"w1"}
+    income_evidenced, expense_complete, labour_evidenced = _evidence_flags(known)
+    key_ratio = (
+        comparison.key_ratio
+        if "cost_of_sales" in supplied
+        else comparison.business_type.key_ratio
+    )
+    evidenced = _evidenced_ratios(known)
     return _Presence(
         income_evidenced=income_evidenced,
         expense_complete=expense_complete,
@@ -166,7 +193,26 @@ class Comparison:
         return verdict is not None and verdict.status in {BELOW, ABOVE}
 
 
-def compare(dataset: Dataset, business_type: BusinessType, figures: Figures) -> Comparison:
+def compare(
+    dataset: Dataset,
+    business_type: BusinessType,
+    figures: Figures,
+    supplied_fields: Collection[str] | None = None,
+) -> Comparison:
+    """Compare the computed ratios against the dataset.
+
+    `supplied_fields` is the set of fields the operator evidenced (bucket names,
+    plus "w1"). Left out, it comes from the figures themselves: `compute`
+    zero-fills an omitted bucket, so the ratio built on that fill is reported as
+    `not_supplied` rather than compared against a published range as though it
+    were a nil somebody established. Pass the set explicitly to state a different
+    one, which is what the command line and the MCP adapter do.
+    """
+    evidenced = _evidenced_ratios(
+        _known_fields(
+            figures.supplied_fields if supplied_fields is None else supplied_fields
+        )
+    )
     notes: list[str] = []
     note_details: list[EvidenceMessage] = []
 
@@ -217,7 +263,11 @@ def compare(dataset: Dataset, business_type: BusinessType, figures: Figures) -> 
         if ratio is None:
             continue
         benchmark = band.ratios.get(name) if band else None
-        if band is None:
+        if not evidenced[name]:
+            # The ratio was computed from a bucket nobody supplied, so there is
+            # nothing to compare: not within the range, not outside it.
+            status = NOT_SUPPLIED
+        elif band is None:
             status = NO_BAND
         elif benchmark is None:
             status = NO_BENCHMARK

@@ -6,8 +6,8 @@ Protocol server that hands those engines to an AI assistant. It serves Australia
 accountants and bookkeepers, and the developers who build tooling for them.
 
 Each tool returns a calculation, the facts it used and the matters it refuses to
-decide. Everything runs locally: the tools read files you point them at, contact no
-service, write to no ledger and lodge nothing. Missing facts stay unknown, and where a tool still applies a legacy convention it says so on the row it applied it to: a Payday Super row with a fund-receipt date but no matched_amount or remitted_amount reads the receipt as covering the whole SG amount, and carries a caveat naming that fill. Supply an explicit amount for partial payday contributions. A person reviews every output before it is relied on.
+decide. The engines and the MCP server run locally: they read files you point them at, contact no
+service, write to no ledger and lodge nothing. Two boundaries sit outside that: an MCP host sends every tool argument and result to its model provider, and the optional LodgeiT adapter below makes bounded HTTP calls only when you enable it. Missing facts stay unknown: a Payday Super row with a fund-receipt date but no matched_amount or remitted_amount evidences when the fund received something, not how much, so the checker leaves it UNKNOWN rather than ON_TIME and names the amount it needs (unreleased; released versions read that receipt as covering the whole SG amount and say so in a caveat). Supply the amount the fund received with every receipt date. A person reviews every output before it is relied on.
 
 **Start here:** [what each component is](#components) ·
 [MCP client setup](apps/aus-accounting-mcp/README.md#client-integration) ·
@@ -70,7 +70,9 @@ uvx aus-accounting-mcp
 
 This starts a **local stdio server**; it waits for an MCP client rather than opening
 a web page. It requires no API key. Package installation downloads dependencies;
-the tools then use bundled data without network requests or record writes.
+the tools then use bundled data without network requests or record writes. The
+MCP host you connect it to is a separate boundary: it sends every tool argument
+and result to its model provider, so use fabricated data with a hosted model.
 
 [Client setup and examples](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#client-integration)
 · [Tool reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#tools)
@@ -101,6 +103,7 @@ For an editable source installation, run `pip install -e .` from
 | `packages/the-exchequer-tally/` | `the-exchequer-tally` | `edwinnixon` | `the-exchequer-tally` |
 | `packages/solomons-sword/` | `solomons-sword` | `louisgoldberg` | `solomons-sword` |
 | `packages/the-wip-tally/` | `the-wip-tally` | `wiptally` | `wip-tally` |
+| `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` | `lodgeitadapter` | optional adapter for a third-party calculator service; off by default, makes HTTP calls only when `LODGEIT_ADAPTER_ENABLED=1` |
 
 `IMPORTS.md` records the source repository, commit and tree of every imported engine. The
 MCP application is the `io.github.ryanduguid/aus-accounting` MCP Registry server; it

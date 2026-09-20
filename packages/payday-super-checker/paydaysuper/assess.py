@@ -24,6 +24,7 @@ from .deadlines import (
     compute_due,
     earliest_prepayment_day,
     receipt_amount_cap,
+    receipt_amount_evidenced,
 )
 from .rates import GicTable, StaleGicError
 from .sgc import exposure_range, notional_earnings, uplift_scenarios
@@ -324,6 +325,11 @@ class _AssessmentFacts:
     item4_unknown: str
     item4_partial_unknown: str
     horizon_partial_unknown: str
+    # True where a fund-receipt date was used but the row states no amount
+    # for it. The receipt then evidences timing only, never the whole
+    # liability, and the timing branches leave the row UNKNOWN. Appended
+    # with a default so positional constructions keep working.
+    receipt_amount_unevidenced: bool = False
 
 
 def _assessment_facts(
@@ -373,23 +379,28 @@ def _assessment_facts(
         operational_unremitted = Decimal("0")
     fully_remitted = operational_unremitted == 0
     receipt_credit = _received_credit(line, settled)
-    receipt_covers_all = receipt_credit >= cents(line.sg_amount)
-    if (
+    # A blank amount column and an absent amount column read the same way
+    # here: ContribLine does not record which columns the file carried. Both
+    # mean the received amount is unknown. The receipt date still fixes the
+    # timing, so a late receipt is still late, but it cannot evidence the
+    # whole liability, which is what would let a date alone reach ON_TIME.
+    receipt_amount_unevidenced = (
         settled is not None
-        and line.matched_amount is None
-        and line.remitted_amount is None
+        and not receipt_amount_evidenced(line)
         and line.sg_amount > 0
-    ):
-        # A blank amount column and an absent amount column read the same way
-        # here: ContribLine does not record which columns the file carried, so
-        # this cannot refuse the one and honour the other. Name the fill on the
-        # row instead, because the whole-liability reading is what lets a
-        # receipt date alone reach ON_TIME.
+    )
+    receipt_covers_all = (
+        receipt_credit >= cents(line.sg_amount) and not receipt_amount_unevidenced
+    )
+    if receipt_amount_unevidenced:
+        assert settled is not None
         result.caveats.append(
-            "no matched_amount or remitted_amount on this row, so the fund-receipt "
-            f"date is read as evidencing the whole ${money(line.sg_amount)} SG amount, "
-            "which is the legacy convention for a row that carries neither amount. If "
-            "the receipt covered only part of this payday, supply matched_amount"
+            f"the fund receipt dated {settled.isoformat()} carries no amount: neither "
+            "matched_amount nor remitted_amount is on this row, so how much the fund "
+            f"received against the ${money(line.sg_amount)} SG amount is unknown. A "
+            "receipt date alone is not evidence of a full receipt, so the line is not "
+            "read as ON_TIME. Supply matched_amount (the amount the fund received for "
+            "this payday) from the fund or clearing-house confirmation and rerun"
         )
     if credit > 0 and operational_unremitted > 0:
         result.notes.append(
@@ -462,6 +473,7 @@ def _assessment_facts(
         fully_remitted=fully_remitted,
         receipt_credit=receipt_credit,
         receipt_covers_all=receipt_covers_all,
+        receipt_amount_unevidenced=receipt_amount_unevidenced,
         past_horizon=past_horizon,
         horizon_unknown=horizon_unknown,
         horizon_figures=horizon_figures,
@@ -470,6 +482,30 @@ def _assessment_facts(
         item4_unknown=item4_unknown,
         item4_partial_unknown=item4_partial_unknown,
         horizon_partial_unknown=horizon_partial_unknown,
+    )
+
+
+def _receipt_could_be_timely(
+    line: ContribLine, dl: Deadline, settled: date, facts: _AssessmentFacts
+) -> bool:
+    """Whether a full receipt on ``settled`` could earn ON_TIME.
+
+    True inside the 12-month pre-payment window, on or before the proved
+    deadline, or after it where the real deadline is not settled (a possible
+    item 4 extension or a calendar horizon). Outside those cases the receipt
+    is late whatever it covered, so its amount changes figures, not verdicts.
+    """
+    assert dl.due is not None
+    if settled < line.qe_day:
+        return settled >= earliest_prepayment_day(line.qe_day)
+    if settled <= dl.due:
+        return True
+    if facts.past_horizon:
+        return True
+    return (
+        facts.item4_uncertain
+        and facts.possible_item4_due is not None
+        and settled <= facts.possible_item4_due
     )
 
 
@@ -494,6 +530,41 @@ def _assess_received(
     horizon_partial_unknown = facts.horizon_partial_unknown
     stale_prepayment = False
     on_time_receipt_credit = Decimal("0")
+    if facts.receipt_amount_unevidenced and _receipt_could_be_timely(
+        line, dl, settled, facts
+    ):
+        # The receipt date could satisfy the deadline, so the only thing
+        # standing between this row and ON_TIME is the amount the fund
+        # received, which the row does not state. Leave it between the
+        # outcome a full receipt would earn and the one a partial receipt
+        # would earn, and let the caveat added by _assessment_facts say what
+        # evidence resolves it. Nothing is credited, so no shortfall figure
+        # is produced from an invented amount.
+        result.verdict = UNKNOWN
+        if settled > dl.due:
+            worse = LATE
+        elif dl.due < as_at:
+            worse = UNPAID
+        else:
+            worse = "NOT_YET_DUE"
+        result.horizon_verdicts = (worse, ON_TIME)
+        if settled > dl.due:
+            if item4_uncertain:
+                result.caveats.append(item4_unknown)
+            if past_horizon:
+                result.caveats.append(horizon_unknown)
+            # The two named outcomes assume the receipt was in full. A partial
+            # receipt inside a deadline that turns out to be extended leaves
+            # the remainder UNPAID once that deadline has passed, so the audit
+            # trail names the third outcome too. ``settled`` is never after
+            # the as-at date (a later receipt is discarded before this point).
+            result.caveats.append(
+                "because the receipt amount is not evidenced, UNPAID is also "
+                "possible: that is the outcome if the receipt covered only part "
+                "of the SG amount and the actual deadline falls on or after the "
+                "receipt date but on or before the as-at date"
+            )
+        return on_time_receipt_credit, stale_prepayment, True
     if settled < line.qe_day:
         # Pre-payments count only inside the 12-month window ending
         # the day before the QE day (s 18C(1)(c)(ii)).
@@ -805,7 +876,19 @@ def _apply_exposure(
         and settled > dl.due
         and (assessment_date is None or settled < assessment_date)
     ):
-        offset_credit = min(receipt_credit, base_shortfall)
+        if facts.receipt_amount_unevidenced:
+            # A late receipt with no stated amount fixes when something
+            # arrived, not how much. Reducing the final shortfall by the
+            # whole liability would turn a blank column into a nil
+            # shortfall, so the reduction waits for the amount.
+            result.caveats.append(
+                f"the late fund receipt dated {settled.isoformat()} carries no "
+                "amount, so the s 18D reduction of the final shortfall is not "
+                "applied: the final shortfall shown is the whole base shortfall "
+                "and is a maximum until matched_amount is supplied"
+            )
+        else:
+            offset_credit = min(receipt_credit, base_shortfall)
     final_shortfall = max(base_shortfall - offset_credit, Decimal("0"))
     offset = offset_credit > 0
 
@@ -843,6 +926,20 @@ def _apply_exposure(
         outstanding_to = settled
         result.lateness_basis = "fund receipt"
         nec_end = settled if final_shortfall == 0 else as_at
+    elif (
+        settled is not None
+        and not stale_prepayment
+        and facts.receipt_amount_unevidenced
+    ):
+        nec_end = as_at
+        outstanding_to = as_at
+        result.lateness_basis = "as-at date (fund receipt amount not evidenced)"
+        result.notes.append(
+            "the fund receipt carries no amount: notional earnings are estimated on "
+            "the whole base shortfall to the as-at date and are a maximum. They "
+            "would end at the receipt date if matched_amount showed it covered the "
+            "whole liability"
+        )
     elif settled is not None and not stale_prepayment:
         nec_end = as_at
         outstanding_to = as_at
@@ -934,6 +1031,11 @@ def _apply_exposure(
             unfunded = cents(line.sg_amount) - receipt_credit
             if settled is not None and receipt_covers_all:
                 becomes = "the line becomes on time"
+            elif settled is not None and facts.receipt_amount_unevidenced:
+                becomes = (
+                    "the line can become on time only once matched_amount "
+                    "evidences that the fund received the whole amount"
+                )
             elif settled is None and fully_remitted:
                 becomes = (
                     "the line stops being late, though it stays at risk until "

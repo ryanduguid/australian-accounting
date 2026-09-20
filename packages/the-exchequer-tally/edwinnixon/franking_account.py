@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 
 class FrankingEntryType(str, Enum):
@@ -57,25 +57,38 @@ class FrankingEntry:
 
 @dataclass(frozen=True)
 class FrankingDeficitResult:
-    closing_balance: Decimal
-    has_deficit: bool
-    franking_deficit_tax: Decimal
+    """
+    The outcome of the s 205-45 deficit test.
+
+    Every outcome field is None where the test could not be run. A None
+    `has_deficit` is not a finding of no deficit: it means the account's opening
+    balance was never established, so there is no balance to test.
+    `unknown_reason` names the missing fact whenever that happens.
+    """
+    closing_balance: Optional[Decimal]
+    has_deficit: Optional[bool]
+    franking_deficit_tax: Optional[Decimal]
     total_franking_credits_year: Decimal
-    fdt_offset_reduction_applies: bool
-    allowable_tax_offset: Decimal
+    fdt_offset_reduction_applies: Optional[bool]
+    allowable_tax_offset: Optional[Decimal]
     statutory_basis: str
+    unknown_reason: Optional[str] = None
 
 
 @dataclass
 class FrankingAccount:
     financial_year: int
-    opening_balance: Decimal = Decimal("0.00")
+    # None means the opening balance has not been established. A nil opening
+    # balance is a fact about the prior year, so it is stated as Decimal("0.00")
+    # rather than assumed: assuming it turns an unreconciled account into a
+    # definite surplus and no FDT liability.
+    opening_balance: Optional[Decimal] = None
     entries: List[FrankingEntry] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         # A deficit opening balance is legitimate; a NaN or infinite one is not,
         # and would otherwise surface as InvalidOperation when the balance quantizes.
-        if not self.opening_balance.is_finite():
+        if self.opening_balance is not None and not self.opening_balance.is_finite():
             raise ValueError(f"opening_balance must be a finite amount, got {self.opening_balance}")
         self._validate_entry_periods(self.entries)
 
@@ -198,8 +211,17 @@ class FrankingAccount:
         return sum((e.amount for e in self.entries if e.is_debit), Decimal("0.00"))
 
     @property
-    def closing_balance(self) -> Decimal:
-        return (self.opening_balance + self.total_credits - self.total_debits).quantize(
+    def closing_balance(self) -> Optional[Decimal]:
+        """
+        The closing balance, or None where the opening balance is not established.
+
+        The year's entries are still validated, so an out-of-year entry is
+        refused whether or not the opening balance is known.
+        """
+        movement = self.total_credits - self.total_debits
+        if self.opening_balance is None:
+            return None
+        return (self.opening_balance + movement).quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
 
@@ -211,8 +233,27 @@ class FrankingAccount:
         only if item 1 or 3 also arose. Apply the s 205-70(2) reduction only then.
         Assumes residency and no first-year exception or Commissioner's discretion;
         those facts and any prior-year offset carry-forward need separate review.
+
+        Where the opening balance is not established the test is not run and the
+        result is an explicit unknown, not a surplus.
         """
         balance = self.closing_balance
+        if balance is None:
+            return FrankingDeficitResult(
+                closing_balance=None,
+                has_deficit=None,
+                franking_deficit_tax=None,
+                total_franking_credits_year=self.total_credits,
+                fdt_offset_reduction_applies=None,
+                allowable_tax_offset=None,
+                statutory_basis="s 205-45 ITAA 1997: not tested.",
+                unknown_reason=(
+                    f"The FY{self.financial_year} opening franking account balance is "
+                    "not established, so there is no closing balance to test. State "
+                    "it, including a nil balance, from the prior year's reconciled "
+                    "account"
+                ),
+            )
         if balance >= Decimal("0.00"):
             return FrankingDeficitResult(
                 closing_balance=balance,

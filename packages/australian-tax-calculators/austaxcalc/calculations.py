@@ -69,7 +69,10 @@ def worksheet_catalogue() -> dict[str, Any]:
     """Return independent JSON-ready discovery data for the supported worksheets.
 
     Example money uses decimal strings. Library callers convert those strings
-    to Decimal; MCP clients can pass example.facts directly to the worksheet tool.
+    to Decimal. The example facts carry ``scope_confirmed: True`` so the
+    fabricated example runs, and that confirmation is fabricated with the rest
+    of the example: for real facts the flag is the operator's own confirmation
+    of the scope conditions, not a field to copy from the example.
     """
     result: dict[str, Any] = {}
     for kind, description in SCOPES.items():

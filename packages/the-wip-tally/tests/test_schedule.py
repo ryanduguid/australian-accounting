@@ -281,3 +281,45 @@ def test_b19_exclusions_cannot_exceed_cost() -> None:
 def test_negative_etc_is_refused() -> None:
     with pytest.raises(ScheduleError):
         measure(_contract(estimated_cost_to_complete=Decimal("-1.00")))
+
+
+def test_unstated_measurability_refuses_the_revenue_figure() -> None:
+    """Paras 44-45 are answered by a person, so an unanswered row states nothing.
+
+    Read as `True` it books full percentage-of-completion revenue; read as
+    `False` it asserts para 45. Both put a figure on a judgement nobody made.
+    """
+    with pytest.raises(ScheduleError, match="outcome_reasonably_measurable"):
+        measure(_contract(outcome_reasonably_measurable=None))
+
+    # Every progress measure states a revenue figure, so none of them proceeds.
+    with pytest.raises(ScheduleError, match="is not stated"):
+        measure(
+            _contract(
+                outcome_reasonably_measurable=None,
+                progress_method="output",
+                output_percent=Decimal("0.40"),
+            )
+        )
+    with pytest.raises(ScheduleError, match="is not stated"):
+        measure(
+            _contract(
+                outcome_reasonably_measurable=None,
+                progress_method="right_to_invoice",
+            )
+        )
+
+
+def test_stated_measurability_keeps_its_figures() -> None:
+    measurable = measure(_contract(outcome_reasonably_measurable=True))
+    assert measurable.revenue_to_date == Decimal("500000.00")
+    assert "outcome_not_reasonably_measurable" not in measurable.flags
+
+    not_measurable = measure(
+        _contract(
+            outcome_reasonably_measurable=False,
+            recoverable_costs=Decimal("400000.00"),
+        )
+    )
+    assert not_measurable.revenue_to_date == Decimal("400000.00")
+    assert "outcome_not_reasonably_measurable" in not_measurable.flags

@@ -58,6 +58,17 @@ def measure(contract: ContractInput) -> ContractPosition:
     _require_non_negative(contract, contract.retention_withheld, "retention_withheld")
     _require_non_negative(contract, contract.committed_outstanding, "committed_outstanding")
 
+    # AASB 15 paras 44-45 turn on whether the outcome can be reasonably measured,
+    # and every progress measure below states a revenue figure. Unstated is not a
+    # yes: refuse the row rather than book percentage-of-completion revenue, or
+    # assert para 45, on a question nobody has answered.
+    if contract.outcome_reasonably_measurable is None:
+        raise ScheduleError(
+            f"{_where(contract, 'outcome_reasonably_measurable')} is not stated; "
+            f"paras 44-45 decide between percentage-of-completion revenue and "
+            f"revenue limited to recoverable cost, so state yes or no for this contract"
+        )
+
     excluded_from_progress = (
         contract.inefficiency_rework_wastage + contract.uninstalled_materials
     )

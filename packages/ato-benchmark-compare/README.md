@@ -177,6 +177,21 @@ The serialiser masks ratios and prose whose required inputs were not supplied an
 returns `supplied_buckets`, `omitted_buckets`, and `complete_buckets` alongside the
 ordinary comparison payload.
 
+`compare()` applies the same rule to its own verdicts. `compute()` records which
+buckets the totals you passed actually held, and `compare()` reads that record
+unless you pass `supplied_fields` yourself, so a ratio resting on a bucket you
+omitted comes back with status `not_supplied` rather than `within`, `below` or
+`above`, and `outside_key_range` stays false. Pass a bucket as `Decimal("0")` when
+the operator established it is nil.
+
+Totals from `route()` are the exception to reading the keys, because routing
+zero-fills every bucket and its keys would then vouch for buckets no account was
+mapped to. They carry the routed set themselves, so routing a file and comparing
+it withholds the ratios resting on a bucket no reviewed account reached, with no
+extra argument. Pass `supplied_fields` explicitly where the set you can vouch for
+differs again, which is what the command line does: it adds `w1` and the
+operator's `--confirm-other-income-nil` assertion to the routed set.
+
 Other commands:
 
 ```bash

@@ -1,3 +1,9 @@
+# Unreleased
+
+- **Breaking for hand-built files.** A `fund_received_date` on a row with neither `matched_amount` nor `remitted_amount` no longer reads as a receipt of the whole `sg_amount`. The date evidences timing only, so where it could be on time the row is left `UNKNOWN` between `ON_TIME` and the partial-receipt outcome (`UNPAID`, `NOT_YET_DUE` or `LATE`), the run exits 2, and the caveat names the amount the row needs. A late receipt with no amount stays `LATE`, but the s 18D reduction of the final shortfall is not applied and the notional earnings run to the as-at date as a maximum. Files written by `import` already carry `matched_amount` and are unaffected.
+- Migration: add `remitted_amount` and `matched_amount` columns and fill `matched_amount` with the amount the fund received for each row that has a `fund_received_date`; a full receipt states the whole `sg_amount`. The shipped examples and evaluation fixtures now do so. Older report CSVs, exit codes, column names and the canonical column order are unchanged.
+- The Excel workbook applies the same rule (branch codes `U1` to `U3`, lateness basis "as-at date (fund receipt amount not evidenced)") and was rebuilt through desktop Excel.
+
 # v0.1.6
 
 - Withhold the notional earnings, administrative uplift and SG-charge exposure for a row whose period runs past the last quarter in `gic_rates.json`, and say so in a caveat naming the day, the last quarter on record and the file to update. The verdict, days late and shortfall are still reported. `--allow-stale-gic` restores the estimate at the last known rate, and the report then says it did.

@@ -50,11 +50,11 @@
     </tools>
   </qa_pair>
   <qa_pair id="receipt-evidence">
-    <question>Review a fabricated 120.00 contribution with payday 2027-07-01, remitted 2027-07-02 and as_at 2027-08-01, first without fund receipt and then with established receipt 2027-07-02. What verdict applies to the first review? Return only the verdict.</question>
+    <question>Review a fabricated 120.00 contribution with payday 2027-07-01, remitted 2027-07-02 and as_at 2027-08-01, first without fund receipt and then with an established receipt of the full 120.00 on 2027-07-02. What verdict applies to the first review? Return only the verdict.</question>
     <answer>AT_RISK</answer>
     <calls>[
       {"name":"calc_payday_super_deadline","arguments":{"qe_day":"2027-07-01","sg_amount":"120.00","remitted":"2027-07-02","as_at":"2027-08-01"}},
-      {"name":"calc_payday_super_deadline","arguments":{"qe_day":"2027-07-01","sg_amount":"120.00","remitted":"2027-07-02","as_at":"2027-08-01","received":"2027-07-02"}}
+      {"name":"calc_payday_super_deadline","arguments":{"qe_day":"2027-07-01","sg_amount":"120.00","remitted":"2027-07-02","as_at":"2027-08-01","received":"2027-07-02","matched_amount":"120.00"}}
     ]</calls>
     <tools>
       <tool>calc_payday_super_deadline</tool>

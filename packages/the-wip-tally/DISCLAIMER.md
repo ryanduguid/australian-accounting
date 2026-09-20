@@ -25,8 +25,10 @@ registered practitioner.
 
 The engine does not decide whether a performance obligation transfers over
 time, whether contracts should be combined, whether a variation or claim is
-enforceable, how retention is classified, or whether a contract is onerous.
-Flags on those points are review prompts, not conclusions.
+enforceable, how retention is classified, whether a contract's outcome can be
+reasonably measured, or whether a contract is onerous. Flags on those points
+are review prompts, not conclusions, and a contract that leaves one of those
+inputs blank is refused rather than given a default answer.
 
 Do not carry the accounting progress measure into a tax computation. Confirm
 the ATO position on long-term construction contracts at ato.gov.au for the

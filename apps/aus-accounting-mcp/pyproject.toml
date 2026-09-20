@@ -9,6 +9,7 @@ description = "Local accounting reviews, six bounded tax worksheets and cited re
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     { name = "Ryan Duguid", email = "ryan@duguid.com.au" }
 ]

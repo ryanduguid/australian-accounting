@@ -250,6 +250,9 @@ def _parse_row(
         else Decimal("0")
     )
 
+    # A blank cell leaves the para 44 question unanswered, so it stays None and
+    # the row is refused a revenue figure, the way a blank retention
+    # classification falls to `review` rather than to `receivable`.
     measurable_raw = cell("outcome_reasonably_measurable")
     measurable = (
         parse_bool(
@@ -257,7 +260,7 @@ def _parse_row(
             f"row {line_number} ({contract_id}): outcome_reasonably_measurable",
         )
         if measurable_raw is not None
-        else True
+        else None
     )
 
     method_raw = (cell("progress_method") or PROGRESS_COST_TO_COST).strip().casefold()

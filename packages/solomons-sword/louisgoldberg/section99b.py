@@ -10,6 +10,10 @@ from decimal import Decimal
 class ForeignTrustReceipt:
     beneficiary_name: str
     gross_amount_received_aud: Decimal
+    # Stated, never defaulted: s 99B(1) applies only where the beneficiary was a
+    # resident at some time during the year of income, and a default of True
+    # would assess a receipt on an assumed residency.
+    beneficiary_was_resident_during_year: bool
     # s 99B(2)(a): corpus, EXCEPT to the extent it is attributable to amounts
     # that would have been assessable had a resident derived them. Supply the
     # corpus already net of that carve-out, or state the attributable part.
@@ -18,7 +22,6 @@ class ForeignTrustReceipt:
     # s 99B(2)(b): amounts that would not have been assessable to a resident.
     not_assessable_to_resident_aud: Decimal = Decimal("0.00")
     already_assessed_under_div6_aud: Decimal = Decimal("0.00")
-    beneficiary_was_resident_during_year: bool = True
     source_country: str = "Foreign"
 
 
@@ -31,6 +34,11 @@ class Section99BAssessment:
     prior_assessed_exemption: Decimal
     assessable_income_under_s99b: Decimal
     statutory_basis: str
+    # One caveat naming every exemption amount that came through as nil. The
+    # nil defaults are deliberate and conservative, but they make an unsupplied
+    # exemption indistinguishable from an established nil, so the result says so
+    # rather than presenting the assessable amount as settled.
+    caveats: tuple[str, ...] = ()
 
 
 def evaluate_section99b_liability(receipt: ForeignTrustReceipt) -> Section99BAssessment:
@@ -43,6 +51,11 @@ def evaluate_section99b_liability(receipt: ForeignTrustReceipt) -> Section99BAss
     rather than assessed. The s 99B(2)(a) corpus reduction excludes corpus
     attributable to amounts that would have been assessable had a resident
     derived them, so that part is added back.
+
+    The 3 exemption amounts default to nil, which is the conservative direction
+    but makes an unsupplied figure look like an established one. The s 99B(2)(a)
+    add-back also defaults to nil and runs the other way, leaving the whole
+    corpus exempt. Both are named in the result's single caveat.
     """
     for name in (
         "gross_amount_received_aud",
@@ -55,6 +68,12 @@ def evaluate_section99b_liability(receipt: ForeignTrustReceipt) -> Section99BAss
         if not value.is_finite() or value < Decimal("0.00"):
             raise ValueError(f"{name} must be a non-negative finite amount, got {value}")
 
+    if receipt.beneficiary_was_resident_during_year is None:
+        raise ValueError(
+            "residency during the year of income is not established; s 99B(1) ITAA "
+            "1936 turns on it, so state it as True or False rather than assessing "
+            "the receipt on an assumption"
+        )
     if not receipt.beneficiary_was_resident_during_year:
         raise ValueError(
             "s 99B(1) ITAA 1936 applies only where the beneficiary was a resident "
@@ -80,6 +99,46 @@ def evaluate_section99b_liability(receipt: ForeignTrustReceipt) -> Section99BAss
         )
     assessable = gross - exemptions
 
+    # A nil exemption is the largest assessable amount this section can produce,
+    # so a figure nobody supplied and a figure established as nil reach the same
+    # result. That is the conservative way round, but it must not read as settled.
+    nil_exemptions = [
+        name
+        for name, value in (
+            ("corpus_amount_aud", receipt.corpus_amount_aud),
+            ("not_assessable_to_resident_aud", receipt.not_assessable_to_resident_aud),
+            ("already_assessed_under_div6_aud", receipt.already_assessed_under_div6_aud),
+        )
+        if value == Decimal("0.00")
+    ]
+    # The s 99B(2)(a) add-back runs the other way: a nil there leaves the whole
+    # corpus exempt and gives the smallest assessable amount, so an omitted
+    # add-back is the one nil default that favours the taxpayer. It only bites
+    # where there is a corpus for it to reduce.
+    nil_addback = (
+        ["corpus_attributable_to_notional_assessable_income_aud"]
+        if receipt.corpus_amount_aud > Decimal("0.00") and attributable == Decimal("0.00")
+        else []
+    )
+    parts = []
+    if nil_exemptions:
+        parts.append(
+            "nil exemption amounts, each of which gives the largest assessable amount: "
+            + ", ".join(nil_exemptions)
+        )
+    if nil_addback:
+        parts.append(
+            "a nil s 99B(2)(a) add-back, which leaves the whole corpus exempt and gives "
+            "the smallest assessable amount: " + ", ".join(nil_addback)
+        )
+    caveats: tuple[str, ...] = ()
+    if parts:
+        caveats = (
+            "A nil default cannot be told apart from a figure that was never supplied. "
+            "This result carries " + "; and ".join(parts) + ". Establish each figure from "
+            "the trust's records before relying on this result.",
+        )
+
     basis = (
         f"s 99B(1) ITAA 1936: gross receipt ${gross:,.2f} less corpus exemption "
         f"${corpus_exempt:,.2f} (s 99B(2)(a), net of ${attributable:,.2f} attributable to "
@@ -96,4 +155,5 @@ def evaluate_section99b_liability(receipt: ForeignTrustReceipt) -> Section99BAss
         prior_assessed_exemption=prior_taxed,
         assessable_income_under_s99b=assessable,
         statutory_basis=basis,
+        caveats=caveats,
     )

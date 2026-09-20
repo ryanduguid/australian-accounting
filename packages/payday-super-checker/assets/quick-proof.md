@@ -19,15 +19,12 @@ Lines with exposure (experimental estimates, largest first):
       note: the deadline passed on 2026-08-17 and no remittance or fund-receipt date is recorded. Figures assume the contribution is still unpaid; if your export has no date columns, supply them before relying on this
   row 3  QE day 2026-08-06  due 2026-08-17  LATE, 17 days late to fund receipt
       super $540.00 (received, so the shortfall is nil)  notional earnings $2.88  experimental SG charge estimate $2.88 - $4.61
-      note: no matched_amount or remitted_amount on this row, so the fund-receipt date is read as evidencing the whole $540.00 SG amount, which is the legacy convention for a row that carries neither amount. If the receipt covered only part of this payday, supply matched_amount
       note: this assumes the contribution is not the first to this fund. If it is a new starter or a fund switch, set first_contribution_to_fund=yes and the line becomes on time (due 2026-09-03)
 
   Total across 2 line(s): shortfall $780.00, notional earnings $8.76,
   experimental estimated SG charge $788.76 - $1262.02.
 
 1 line(s) remitted by the deadline but with no fund-receipt date. The statutory timing test turns on receipt by the fund, not the day you paid, and clearing-house transit time is the employer's risk.
-
-3 other line(s) carry data-quality notes; see the caveats column in report.csv.
 
 Assumptions and limits:
   - Legal content current at 2026-08-15. LCR 2026/1, LCR 2026/2 and LCR 2026/3 were issued on 5 Aug 2026. LCR 2026/D1 remains a draft pending the appeal from Department of Education v Commissioner of Taxation [2026] FCA 898.

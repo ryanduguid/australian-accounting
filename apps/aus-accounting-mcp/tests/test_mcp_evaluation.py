@@ -134,7 +134,10 @@ async def _answer(session, case):
             "remitted": "2027-07-02", "as_at": "2027-08-01",
         }
         missing = await call("calc_payday_super_deadline", **facts)
-        supplied = await call("calc_payday_super_deadline", **facts, received="2027-07-02")
+        supplied = await call(
+            "calc_payday_super_deadline", **facts,
+            received="2027-07-02", matched_amount="120.00",
+        )
         assert supplied["result"]["verdict"] == "ON_TIME"
         return missing["result"]["verdict"]
 

@@ -114,6 +114,30 @@ income classifications or a dividend's approval.
 including a positive passive amount against nil assessable income. Both amounts
 may be zero, and passive income may equal assessable income.
 
+With no assessable income the s 23AB passive-income test has no proportion to
+compare, so `is_brepi_eligible` and `is_base_rate_entity` are `None` and
+`determine_corporate_tax_rate` raises rather than returning the base rate.
+Failing the turnover test still settles the status on its own, because both
+limbs of s 23AA must be met. A financial year the rate table and the
+turnover-threshold table do not list is refused; neither table is read forward
+into an unlisted year.
+
+### Facts the engine will not assume
+
+The entity's corporate tax rate is a required input everywhere it is used:
+`BenchmarkRuleValidator(corporate_tax_rate=...)`,
+`generate_distribution_statement(..., corporate_tax_rate=...)` and the CLI's
+`--tax-rate`. None of them fall back to the 25% base rate, because scoring a
+30% company at the base rate understates the s 202-60 maximum credit and makes
+fully franked distributions read as under-franked. A `DistributionEvent` may
+still leave its own rate unstated for `add_distribution` to fill from the
+validator; measured on its own it raises instead.
+
+`validate_distributions()` returns `(True, [])` when the benchmark rule is met,
+`(False, violations)` when it is breached, and `(None, [])` when the period
+holds no frankable distribution, so no benchmark was set and nothing was
+tested. `None` is not a finding of compliance.
+
 ### Refund classification and the FDT offset
 
 `record_tax_refund` now requires the keyword `includes_r_and_d_offset`.
@@ -128,7 +152,7 @@ from datetime import date
 from decimal import Decimal
 from edwinnixon.franking_account import FrankingAccount
 
-account = FrankingAccount(2027)
+account = FrankingAccount(2027, opening_balance=Decimal("0.00"))
 account.record_payg_instalment(date(2026, 9, 1), Decimal("1000"))
 account.record_tax_refund(
     date(2027, 3, 1), Decimal("3000"), includes_r_and_d_offset=False,
@@ -150,6 +174,13 @@ to 30 June of its financial year, inclusive. Recording and construction reject
 out-of-year dates; balance calculations also reject entries inserted directly
 into the public list. Bring earlier periods forward through the opening balance.
 
+The opening balance is a required fact. Left unstated it is `None`, and then
+`closing_balance` is `None` and `evaluate_franking_deficit` returns an explicit
+unknown: `has_deficit is None`, no FDT amount, and `unknown_reason` naming the
+missing balance. A `None` result is not a finding of no deficit. State the
+opening balance from the prior year's reconciled account, `Decimal("0.00")`
+included, to get a result.
+
 R&D refunds need separate review in full, including mixed refunds. The R&D
 portion does not create an immediate debit under s 205-30(2); s 205-15(4)
 can reduce later payment credits. This ledger does not track that history.
@@ -165,11 +196,11 @@ All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic
 
 | Statutory Domain | Primary Authority | Verification Invariant |
 | :--- | :--- | :--- |
-| **Base Rate Entity Status** | *Income Tax Rates Act 1986* s 23AA | BRE rate bounded by the year's aggregated-turnover threshold ($25M for FY2018, $50M from FY2019) and BREPI <= 80% compared exactly. |
+| **Base Rate Entity Status** | *Income Tax Rates Act 1986* s 23AA | BRE rate bounded by the year's listed aggregated-turnover threshold ($25M for FY2018, $50M for FY2019 to FY2027) and BREPI <= 80% compared exactly. An unlisted year, or a passive-income test with no assessable income to run against, yields no rate. |
 | **Franking Credits & Debits** | *ITAA 1997* s 205-15, s 205-30 | Cent-exact, order-independent sums of entries within the account's July-to-June financial year. |
 | **FDT Offset Reduction** | *ITAA 1997* s 205-45, s 205-70(2) and (8) | Supported debit types determine whether the 30% reduction applies; see the scope above. |
-| **Benchmark Rule** | *ITAA 1997* ss 203-25 to 203-55 | Benchmark set by the first frankable distribution in the franking period (*s 203-30*), then one deterministic shortfall or over-franking result per later distribution. |
-| **Distribution Statements** | *ITAA 1997* ss 202-75, 202-80 | Precise franking credit formula: `Distribution * (Rate / (1 - Rate)) * Franking%`. |
+| **Benchmark Rule** | *ITAA 1997* ss 203-25 to 203-55 | Benchmark set by the first frankable distribution in the franking period (*s 203-30*), then one deterministic shortfall or over-franking result per later distribution. A period with no frankable distribution is not tested. |
+| **Distribution Statements** | *ITAA 1997* ss 202-75, 202-80 | Precise franking credit formula: `Distribution * (Rate / (1 - Rate)) * Franking%`, at the supplied rate. |
 
 ### Automated test suite
 - Run the full suite: `uv run --locked --extra dev pytest` (or `pip install .[dev]` then `pytest`; the configured coverage add-on needs the dev extras)

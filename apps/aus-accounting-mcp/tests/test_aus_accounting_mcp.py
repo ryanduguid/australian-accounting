@@ -321,6 +321,7 @@ def test_payday_on_time_uses_payday_super_checker() -> None:
         sg_amount="800.00",
         remitted="2026-08-07",
         received="2026-08-10",
+        matched_amount="800.00",
         as_at="2026-08-21",
     )
     assert payload["ok"] is True
@@ -1019,8 +1020,8 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
     root = Path(__file__).resolve().parents[1]
     readme = (root / "README.md").read_text(encoding="utf-8")
     reference = (root / "docs" / "REFERENCE.md").read_text(encoding="utf-8")
-    assert "## 30-second proof\n" in readme
-    assert readme.index("## Install") < readme.index("## 30-second proof")
+    assert "## 30-second demonstration\n" in readme
+    assert readme.index("## Install") < readme.index("## 30-second demonstration")
     assert "docs/REFERENCE.md#demonstration-and-provenance" in readme
     for text in (
         "![Static terminal proof of synthetic BAS output and Division 7A loan review](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/apps/aus-accounting-mcp/docs/quick-proof.webp)",

@@ -127,8 +127,9 @@ def test_sentinel_dates_are_normal_input_errors_in_each_payday_adapter(name):
 def test_related_rows_still_delegate_alignment_and_keep_unknowns(detail):
     rows = [
         {**ROW, "qe_day": "2027-07-01", "remitted": None, "received": "2027-07-05",
-         "first_to_fund": True},
-        {**ROW, "qe_day": "2027-07-08", "remitted": None, "received": "2027-07-20"},
+         "matched_amount": "120.00", "first_to_fund": True},
+        {**ROW, "qe_day": "2027-07-08", "remitted": None, "received": "2027-07-20",
+         "matched_amount": "120.00"},
     ]
     payload = call(
         contributions=rows, as_at="2027-08-01", response_detail=detail,

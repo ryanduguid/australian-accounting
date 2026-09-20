@@ -53,6 +53,12 @@ class Figures:
     ratios: dict[str, Decimal] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
     warning_details: list[EvidenceMessage] = field(default_factory=list)
+    #: The fields the caller actually handed over: the bucket names present in
+    #: the supplied totals, plus "w1" where an activity statement amount was
+    #: given. `totals` below is zero-filled across every bucket, so this is the
+    #: only record of which nils were established and which were never supplied.
+    #: Empty on a `Figures` built by hand, which withholds rather than asserts.
+    supplied_fields: frozenset[str] = frozenset()
 
 
 def _add_warning(
@@ -83,8 +89,21 @@ def quantise(value: Decimal) -> Decimal:
 
 
 def compute(totals: dict[str, Decimal], w1: Decimal | None = None) -> Figures:
-    """Turn bucket totals into ATO benchmark ratios."""
+    """Turn bucket totals into ATO benchmark ratios.
+
+    A bucket missing from `totals` is zero-filled, because every ratio needs a
+    number to divide. Which buckets were actually supplied is recorded on the
+    result so a later comparison can withhold what nobody established instead of
+    reporting the fill as a figure. Routed totals carry that set themselves
+    (`mapping.RoutedTotals`), because `route` zero-fills every bucket and its keys
+    would otherwise vouch for buckets no account was mapped to; any other mapping
+    says what its own keys say.
+    """
     amounts = {bucket: Decimal(totals.get(bucket, 0)) for bucket in BUCKETS}
+    routed = getattr(totals, "supplied_buckets", None)
+    supplied_fields = frozenset(
+        name for name in (totals if routed is None else routed) if name in BUCKETS
+    ) | (frozenset({"w1"}) if w1 is not None else frozenset())
     warnings: list[str] = []
     warning_details: list[EvidenceMessage] = []
 
@@ -228,4 +247,5 @@ def compute(totals: dict[str, Decimal], w1: Decimal | None = None) -> Figures:
         ratios=ratios,
         warnings=warnings,
         warning_details=warning_details,
+        supplied_fields=supplied_fields,
     )

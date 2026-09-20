@@ -88,6 +88,48 @@ def test_sample_schedule_pins_the_worked_examples(tmp_path: Path) -> None:
     }
 
 
+HEADER = (
+    "contract_id,original_contract_sum,costs_incurred,estimated_cost_to_complete,"
+    "certified_billings"
+)
+
+
+@pytest.mark.parametrize(
+    "source_text",
+    [
+        # The column is present and the cell is blank.
+        f"{HEADER},outcome_reasonably_measurable\nBLANK-1,1000.00,400.00,400.00,450.00,\n",
+        # The column is absent altogether.
+        f"{HEADER}\nBLANK-1,1000.00,400.00,400.00,450.00\n",
+    ],
+    ids=["blank cell", "column absent"],
+)
+def test_unstated_measurability_refuses_the_contract(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], source_text: str
+) -> None:
+    """A blank para 44 answer must not become full percentage-of-completion revenue."""
+    source = tmp_path / "contracts.csv"
+    source.write_text(source_text, encoding="utf-8")
+    out = tmp_path / "wip-schedule.csv"
+    assert main(["schedule", str(source), "-o", str(out)]) == 1
+    err = capsys.readouterr().err
+    assert "outcome_reasonably_measurable is not stated" in err
+    assert "BLANK-1" in err
+    assert not out.exists()
+
+
+def test_stated_measurability_produces_the_schedule(tmp_path: Path) -> None:
+    source = tmp_path / "contracts.csv"
+    source.write_text(
+        f"{HEADER},committed_outstanding,outcome_reasonably_measurable\n"
+        "STATED-1,1000.00,400.00,400.00,450.00,380.00,yes\n",
+        encoding="utf-8",
+    )
+    out = tmp_path / "wip-schedule.csv"
+    assert main(["schedule", str(source), "-o", str(out)]) == 0
+    assert _rows(out)["STATED-1"]["revenue_to_date"] == "500.00"
+
+
 def test_portfolio_totals_are_not_netted(tmp_path: Path) -> None:
     out = tmp_path / "wip-schedule.csv"
     main(["schedule", str(SAMPLE), "-o", str(out), "--as-at", "2026-08-31"])
@@ -213,8 +255,9 @@ def test_oversized_field_reports_an_error_not_a_traceback(
 def test_mapping_file_renames_columns(tmp_path: Path) -> None:
     contracts = tmp_path / "jobs.csv"
     contracts.write_text(
-        "Job,Contract sum,Cost to date,ETC,Certified to date,committed_outstanding\n"
-        "MAP-1,1000.00,400.00,400.00,450.00,380.00\n",
+        "Job,Contract sum,Cost to date,ETC,Certified to date,committed_outstanding,"
+        "outcome_reasonably_measurable\n"
+        "MAP-1,1000.00,400.00,400.00,450.00,380.00,yes\n",
         encoding="utf-8",
     )
     mapping = tmp_path / "map.json"

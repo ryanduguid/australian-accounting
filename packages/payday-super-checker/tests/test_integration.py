@@ -426,6 +426,7 @@ def test_item4_without_an_evidenced_earlier_contribution_fails_closed():
         employee_id="ITEM4-EVIDENCE",
         qe_day=date(2026, 7, 23),
         sg_amount=Decimal("100.00"),
+        matched_amount=Decimal("100.00"),
         received=date(2026, 8, 6),
         row=3,
     )
@@ -467,6 +468,7 @@ def test_item4_remittance_or_late_receipt_is_not_eligible_evidence(
         employee_id="ITEM4-INELIGIBLE",
         qe_day=date(2026, 7, 23),
         sg_amount=Decimal("100.00"),
+        matched_amount=Decimal("100.00"),
         received=date(2026, 8, 6),
         row=3,
     )
@@ -490,6 +492,7 @@ def test_item4_on_time_received_and_applied_contribution_is_evidence():
         employee_id="ITEM4-CONFIRMED",
         qe_day=date(2026, 7, 9),
         sg_amount=Decimal("100.00"),
+        matched_amount=Decimal("100.00"),
         first_to_fund=True,
         received=date(2026, 8, 7),
         row=2,
@@ -498,6 +501,7 @@ def test_item4_on_time_received_and_applied_contribution_is_evidence():
         employee_id="ITEM4-CONFIRMED",
         qe_day=date(2026, 7, 23),
         sg_amount=Decimal("100.00"),
+        matched_amount=Decimal("100.00"),
         received=date(2026, 8, 6),
         row=3,
     )
@@ -584,6 +588,7 @@ def test_post_transition_contribution_needs_no_confirmation():
         employee_id="E1",
         qe_day=date(2026, 7, 31),
         sg_amount=Decimal("120.00"),
+        matched_amount=Decimal("120.00"),
         received=date(2026, 8, 3),
         row=2,
     )
@@ -598,6 +603,7 @@ def test_pre_july_prepayment_also_needs_transition_confirmation():
         employee_id="E1",
         qe_day=date(2026, 7, 31),
         sg_amount=Decimal("120.00"),
+        matched_amount=Decimal("120.00"),
         received=date(2026, 6, 30),
         row=2,
     )
@@ -747,6 +753,7 @@ def test_console_summary_does_not_disclose_employee_identifiers():
             employee_id="ava.lawson@example.test",
             qe_day=date(2026, 7, 23),
             sg_amount=Decimal("100.00"),
+            matched_amount=Decimal("100.00"),
             received=date(2026, 8, 4),
             row=3,
         ),
@@ -879,6 +886,7 @@ def test_receipt_on_the_due_date_is_on_time():
         employee_id="E9",
         qe_day=date(2026, 7, 9),
         sg_amount=Decimal("300.00"),
+        matched_amount=Decimal("300.00"),
         remitted=date(2026, 7, 17),
         received=date(2026, 7, 20),
         row=2,
@@ -911,6 +919,7 @@ def test_prepayment_inside_the_twelve_month_window_is_on_time():
         employee_id="E9",
         qe_day=date(2026, 7, 9),
         sg_amount=Decimal("300.00"),
+        matched_amount=Decimal("300.00"),
         received=date(2026, 5, 1),
         row=2,
     )
@@ -924,6 +933,7 @@ def test_payment_older_than_twelve_months_cannot_offset():
         employee_id="E9",
         qe_day=date(2027, 7, 9),
         sg_amount=Decimal("300.00"),
+        matched_amount=Decimal("300.00"),
         received=date(2026, 7, 1),
         row=2,
     )
@@ -937,6 +947,7 @@ def test_receipt_before_remittance_is_rejected():
         employee_id="E9",
         qe_day=date(2026, 7, 9),
         sg_amount=Decimal("300.00"),
+        matched_amount=Decimal("300.00"),
         remitted=date(2026, 7, 20),
         received=date(2026, 7, 15),
         row=2,
@@ -950,6 +961,7 @@ def test_receipt_after_the_as_at_date_is_not_used_to_settle_the_report():
         employee_id="E9",
         qe_day=date(2026, 7, 9),
         sg_amount=Decimal("300.00"),
+        matched_amount=Decimal("300.00"),
         received=date(2026, 8, 20),
         row=2,
     )
@@ -997,6 +1009,7 @@ def test_a_post_as_at_receipt_does_not_claim_no_receipt_was_supplied():
         employee_id="E9",
         qe_day=date(2026, 7, 9),
         sg_amount=Decimal("300.00"),
+        matched_amount=Decimal("300.00"),
         remitted=date(2026, 7, 15),
         received=date(2026, 8, 20),
         row=2,
@@ -1040,6 +1053,7 @@ def test_stale_prepayment_keeps_the_full_shortfall():
         employee_id="E9",
         qe_day=date(2027, 7, 9),
         sg_amount=Decimal("300.00"),
+        matched_amount=Decimal("300.00"),
         received=date(2026, 7, 1),
         row=2,
     )
@@ -1066,6 +1080,7 @@ def test_stale_prepayment_before_the_deadline_is_not_yet_assessable():
         employee_id="E9",
         qe_day=date(2027, 7, 9),
         sg_amount=Decimal("300.00"),
+        matched_amount=Decimal("300.00"),
         received=date(2026, 7, 1),
         row=2,
     )
@@ -1092,6 +1107,7 @@ def test_a_stale_prepayment_is_still_quiet_on_the_deadline_date_itself():
             employee_id="E9",
             qe_day=date(2027, 7, 9),
             sg_amount=Decimal("300.00"),
+            matched_amount=Decimal("300.00"),
             received=date(2026, 7, 1),
             row=2,
         )
@@ -1159,6 +1175,7 @@ def test_zero_amount_line_with_a_late_receipt_is_not_late():
         employee_id="E0",
         qe_day=date(2026, 7, 9),
         sg_amount=Decimal("0.00"),
+        matched_amount=Decimal("0.00"),
         received=date(2026, 8, 1),
         row=2,
     )
@@ -1299,6 +1316,7 @@ def test_a_june_payday_names_the_financial_year_it_falls_in():
         employee_id="E9",
         qe_day=date(2027, 6, 8),
         sg_amount=Decimal("600.00"),
+        matched_amount=Decimal("600.00"),
         received=date(2027, 6, 15),
         row=2,
     )
@@ -1317,6 +1335,7 @@ def test_all_date_problems_are_reported_at_once():
             employee_id=f"E{n}",
             qe_day=date(2026, 7, 9),
             sg_amount=Decimal("100.00"),
+            matched_amount=Decimal("100.00"),
             remitted=date(2026, 7, 20),
             received=date(2026, 7, 15),
             row=n,
@@ -1374,6 +1393,7 @@ def test_calendar_caveats_describe_the_aligned_deadline():
         employee_id="E9",
         qe_day=date(2028, 12, 8),
         sg_amount=Decimal("100.00"),
+        matched_amount=Decimal("100.00"),
         first_to_fund=True,
         received=date(2028, 12, 10),
         row=2,
@@ -1393,7 +1413,11 @@ def test_calendar_caveats_describe_the_aligned_deadline():
 
 def _past_horizon_line(**kwargs) -> ContribLine:
     """A QE day whose 7-business-day deadline lands past 31 Dec 2028, where
-    the bundled calendar records no holidays at all."""
+    the bundled calendar records no holidays at all. A receipt here is a
+    full one unless the test says otherwise: a receipt with no amount is a
+    different case, covered in test_receipt_evidence.py."""
+    if kwargs.get("received") is not None and "remitted_amount" not in kwargs:
+        kwargs.setdefault("matched_amount", Decimal("500.00"))
     return ContribLine(
         employee_id="E9",
         qe_day=date(2029, 3, 1),
@@ -1525,6 +1549,7 @@ def test_a_deadline_on_the_last_covered_day_is_still_assessed():
         employee_id="E9",
         qe_day=date(2027, 8, 20),
         sg_amount=Decimal("500.00"),
+        matched_amount=Decimal("500.00"),
         received=date(2027, 9, 6),
         row=2,
     )
@@ -1551,6 +1576,7 @@ def test_a_deadline_one_day_past_the_last_covered_day_is_not_assessed():
         employee_id="E9",
         qe_day=date(2027, 8, 23),
         sg_amount=Decimal("500.00"),
+        matched_amount=Decimal("500.00"),
         received=date(2027, 9, 7),
         row=2,
     )
@@ -1568,6 +1594,7 @@ def test_a_deadline_inside_the_horizon_is_still_assessed():
         employee_id="E9",
         qe_day=date(2027, 8, 2),
         sg_amount=Decimal("500.00"),
+        matched_amount=Decimal("500.00"),
         received=date(2027, 8, 20),
         row=2,
     )
@@ -1615,6 +1642,7 @@ def test_stale_prepayment_past_the_horizon_has_no_exposure():
         employee_id="HORIZON-STALE",
         qe_day=date(2027, 9, 16),
         sg_amount=Decimal("1000.00"),
+        matched_amount=Decimal("1000.00"),
         received=date(2026, 9, 1),
         row=2,
     )
@@ -1653,8 +1681,9 @@ def test_an_unrelated_added_holiday_does_not_silence_the_horizon(tmp_path, capsy
     src = tmp_path / "east.csv"
     src.write_text(
         "employee_id,payment_date,sg_amount,remitted_date,fund_received_date,"
-        "first_contribution_to_fund,out_of_cycle,next_standard_payday,defined_benefit\n"
-        "EAST29,2029-03-27,5000.00,2029-04-05,2029-04-06,no,no,,no\n",
+        "first_contribution_to_fund,out_of_cycle,next_standard_payday,defined_benefit,"
+        "remitted_amount,matched_amount\n"
+        "EAST29,2029-03-27,5000.00,2029-04-05,2029-04-06,no,no,,no,,5000.00\n",
         encoding="utf-8",
     )
     sparse = tmp_path / "sparse.json"
@@ -1754,6 +1783,7 @@ def test_case_variant_employee_ids_are_flagged_not_merged():
             employee_id="emp001",
             qe_day=date(2026, 7, 23),
             sg_amount=Decimal("100.00"),
+            matched_amount=Decimal("100.00"),
             received=date(2026, 8, 6),
             row=3,
         ),
@@ -1782,6 +1812,7 @@ def test_item4_inherited_from_an_unrecorded_payday_is_flagged():
             employee_id="E9",
             qe_day=date(2026, 7, 23),
             sg_amount=Decimal("100.00"),
+            matched_amount=Decimal("100.00"),
             received=date(2026, 8, 6),
             row=3,
         ),
@@ -1918,6 +1949,7 @@ def test_item4_inherited_caveat_survives_a_post_as_at_donor_payment():
             employee_id="E9",
             qe_day=date(2026, 7, 9),
             sg_amount=Decimal("100.00"),
+            matched_amount=Decimal("100.00"),
             received=date(2026, 9, 1),
             first_to_fund=True,
             row=2,
@@ -1926,6 +1958,7 @@ def test_item4_inherited_caveat_survives_a_post_as_at_donor_payment():
             employee_id="E9",
             qe_day=date(2026, 7, 23),
             sg_amount=Decimal("100.00"),
+            matched_amount=Decimal("100.00"),
             received=date(2026, 8, 6),
             row=3,
         ),
@@ -1959,6 +1992,7 @@ def test_a_nil_payday_does_not_extend_a_later_real_paydays_verdict():
             employee_id="EMP200",
             qe_day=date(2026, 7, 23),
             sg_amount=Decimal("1000.00"),
+            matched_amount=Decimal("1000.00"),
             remitted=date(2026, 8, 5),
             received=date(2026, 8, 6),
             row=3,
@@ -1994,6 +2028,7 @@ def test_a_nil_donor_does_not_suppress_the_unrecorded_item_4_caveat():
             employee_id="E9",
             qe_day=date(2026, 7, 23),
             sg_amount=Decimal("100.00"),
+            matched_amount=Decimal("100.00"),
             received=date(2026, 8, 6),
             row=4,
         ),
@@ -2029,6 +2064,7 @@ def test_a_supplied_2029_calendar_produces_a_real_verdict(tmp_path):
             employee_id="E9",
             qe_day=date(2029, 3, 27),
             sg_amount=Decimal("500.00"),
+            matched_amount=Decimal("500.00"),
             received=received,
             row=2,
         )
@@ -2124,6 +2160,7 @@ def test_missed_new_starter_flag_is_suggested_on_late_lines():
         employee_id="E9",
         qe_day=date(2026, 7, 9),
         sg_amount=Decimal("100.00"),
+        matched_amount=Decimal("100.00"),
         received=date(2026, 8, 5),
         row=2,
     )
@@ -2139,6 +2176,7 @@ def test_prepayment_window_is_leap_safe():
         employee_id="E9",
         qe_day=date(2029, 3, 1),
         sg_amount=Decimal("100.00"),
+        matched_amount=Decimal("100.00"),
         received=date(2028, 2, 29),
         row=2,
     )
@@ -2152,6 +2190,7 @@ def test_identical_rows_are_flagged_as_duplicates():
             employee_id="E9",
             qe_day=date(2026, 7, 9),
             sg_amount=Decimal("100.00"),
+            matched_amount=Decimal("100.00"),
             received=date(2026, 7, 15),
             row=n,
         )
@@ -2228,9 +2267,10 @@ def test_a_file_with_any_fund_receipt_is_not_remittance_only(tmp_path, capsys):
     src = tmp_path / "contributions.csv"
     src.write_text(
         "employee_id,payment_date,sg_amount,remitted_date,fund_received_date,"
-        "first_contribution_to_fund,out_of_cycle,next_standard_payday,defined_benefit\n"
-        "E1,2026-08-06,600.00,2026-08-07,2026-08-10,no,no,,no\n"
-        "E2,2026-08-06,318.00,2026-08-11,,no,no,,no\n",
+        "first_contribution_to_fund,out_of_cycle,next_standard_payday,defined_benefit,"
+        "remitted_amount,matched_amount\n"
+        "E1,2026-08-06,600.00,2026-08-07,2026-08-10,no,no,,no,,600.00\n"
+        "E2,2026-08-06,318.00,2026-08-11,,no,no,,no,,\n",
         encoding="utf-8",
     )
     code = main([str(src), "-o", str(tmp_path / "report.csv"), "--as-at", "2026-08-20"])
@@ -2248,9 +2288,10 @@ def test_receipts_after_the_as_at_date_are_still_remittance_only(tmp_path, capsy
     populated = tmp_path / "populated.csv"
     populated.write_text(
         "employee_id,payment_date,sg_amount,remitted_date,fund_received_date,"
-        "first_contribution_to_fund,out_of_cycle,next_standard_payday,defined_benefit\n"
-        "E1,2026-08-06,600.00,2026-08-14,2026-08-17,no,no,,no\n"
-        "E2,2026-08-06,318.00,2026-08-14,2026-08-17,no,no,,no\n",
+        "first_contribution_to_fund,out_of_cycle,next_standard_payday,defined_benefit,"
+        "remitted_amount,matched_amount\n"
+        "E1,2026-08-06,600.00,2026-08-14,2026-08-17,no,no,,no,,600.00\n"
+        "E2,2026-08-06,318.00,2026-08-14,2026-08-17,no,no,,no,,318.00\n",
         encoding="utf-8",
     )
     code = main([str(populated), "-o", str(tmp_path / "a.csv"), "--as-at", "2026-08-15"])
@@ -2489,6 +2530,7 @@ def test_stale_prepayment_gets_no_new_starter_hint():
         employee_id="E9",
         qe_day=date(2027, 9, 15),
         sg_amount=Decimal("1000.00"),
+        matched_amount=Decimal("1000.00"),
         received=date(2026, 8, 1),
         row=2,
     )
@@ -2578,6 +2620,7 @@ def test_zero_amount_line_with_late_payment_dates_is_not_exposure(tmp_path):
         employee_id="E0",
         qe_day=date(2026, 7, 9),
         sg_amount=Decimal("0.00"),
+        matched_amount=Decimal("0.00"),
         remitted=date(2026, 7, 15),
         received=date(2026, 7, 25),
         row=2,
@@ -2627,6 +2670,7 @@ def test_item4_caveat_names_the_deadline_without_the_alignment():
             employee_id="E9",
             qe_day=date(2026, 7, 23),
             sg_amount=Decimal("100.00"),
+            matched_amount=Decimal("100.00"),
             received=date(2026, 8, 6),
             row=3,
         ),
@@ -2654,6 +2698,7 @@ def test_item4_caveat_keeps_an_out_of_cycle_lines_own_deadline():
             employee_id="E9",
             qe_day=date(2026, 7, 23),
             sg_amount=Decimal("100.00"),
+            matched_amount=Decimal("100.00"),
             out_of_cycle=True,
             next_standard_qe_day=date(2026, 7, 27),
             received=date(2026, 8, 7),
@@ -2774,6 +2819,7 @@ def test_an_unpaid_row_does_not_claim_no_date_when_one_was_supplied():
         employee_id="E9",
         qe_day=date(2026, 7, 9),
         sg_amount=Decimal("300.00"),
+        matched_amount=Decimal("300.00"),
         remitted=date(2026, 8, 18),
         received=date(2026, 8, 20),
         row=2,
@@ -2791,6 +2837,7 @@ def test_a_not_yet_due_row_does_not_claim_no_date_when_one_was_supplied():
         employee_id="E10",
         qe_day=AS_AT,
         sg_amount=Decimal("300.00"),
+        matched_amount=Decimal("300.00"),
         received=AS_AT + timedelta(days=10),
         row=3,
     )

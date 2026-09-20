@@ -60,6 +60,7 @@ def _call_tool_with_monetary_value(tool_name, field_name, value):
             "qe_day": "2026-08-06",
             "sg_amount": "800.00",
             "received": "2026-08-10",
+            "matched_amount": "800.00",
             "as_at": "2026-08-21",
         }
     elif tool_name == "review_div7a_loan":
@@ -135,6 +136,7 @@ def test_payday_mcp_tool_keeps_exact_decimal_strings_from_the_engine():
             "qe_day": "2026-08-06",
             "sg_amount": "800.00",
             "received": "2026-08-10",
+            "matched_amount": "800.00",
             "as_at": "2026-08-21",
         },
     )

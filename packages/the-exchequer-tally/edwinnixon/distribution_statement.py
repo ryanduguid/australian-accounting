@@ -37,10 +37,14 @@ def generate_distribution_statement(
     payment_date: date,
     total_distribution: Decimal,
     franking_percentage: Decimal,
-    corporate_tax_rate: Decimal = Decimal("0.25"),
+    corporate_tax_rate: Decimal,
 ) -> DistributionStatement:
     """
     Generate the details a distribution statement must carry (s 202-75, s 202-80).
+
+    `corporate_tax_rate` is required. The rate sets the franking credit the
+    statement tells the shareholder to claim, so assuming the base rate for a
+    30% company understates it on the statement the shareholder relies on.
     """
     if not total_distribution.is_finite() or total_distribution <= Decimal("0.00"):
         raise ValueError(f"total_distribution must be a positive finite amount, got {total_distribution}")
@@ -54,6 +58,11 @@ def generate_distribution_statement(
         raise ValueError(
             f"franking_percentage must be finite and between 0 and 100, got "
             f"{franking_percentage}"
+        )
+    if corporate_tax_rate is None:
+        raise ValueError(
+            "corporate_tax_rate is required. The entity's corporate tax rate is a "
+            "fact to be supplied, not a base rate to be assumed"
         )
     if not corporate_tax_rate.is_finite() or not (
         Decimal("0.00") < corporate_tax_rate < Decimal("1.00")

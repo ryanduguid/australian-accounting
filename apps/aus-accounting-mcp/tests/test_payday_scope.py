@@ -15,9 +15,10 @@ from aus_accounting_mcp.server import mcp
 def test_single_contribution_warns_when_the_engine_can_align_related_paydays():
     related = [
         ContribLine("synthetic", date(2027, 7, 1), Decimal("120.00"),
-                    received=date(2027, 7, 5), first_to_fund=True, row=1),
+                    received=date(2027, 7, 5), first_to_fund=True, row=1,
+                    matched_amount=Decimal("120.00")),
         ContribLine("synthetic", date(2027, 7, 8), Decimal("120.00"),
-                    received=date(2027, 7, 20), row=2),
+                    received=date(2027, 7, 20), row=2, matched_amount=Decimal("120.00")),
     ]
     together = assess(related, load_calendar(), load_gic(), date(2027, 8, 1))[-1]
     assert together.verdict == "ON_TIME"
@@ -26,7 +27,7 @@ def test_single_contribution_warns_when_the_engine_can_align_related_paydays():
 
     single = asyncio.run(mcp.call_tool("calc_payday_super_deadline", {
         "employee_id": "synthetic", "qe_day": "2027-07-08", "sg_amount": "120.00",
-        "received": "2027-07-20", "as_at": "2027-08-01",
+        "received": "2027-07-20", "matched_amount": "120.00", "as_at": "2027-08-01",
     })).structured_content
     assert single["result"]["verdict"] == "LATE"
     assert single["result"]["due"] == "2027-07-19"

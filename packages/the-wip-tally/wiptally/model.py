@@ -43,7 +43,10 @@ class ContractInput:
     retention_withheld: Decimal
     retention_classification: str
     committed_outstanding: Decimal
-    outcome_reasonably_measurable: bool
+    # None is the not-stated state, the way `review` is for retention. It is not
+    # `True`: assuming a measurable outcome from a blank cell is what lets full
+    # percentage-of-completion revenue onto a contract nobody has assessed.
+    outcome_reasonably_measurable: bool | None
     recoverable_costs: Decimal | None
     progress_method: str
     output_percent: Decimal | None

@@ -24,14 +24,31 @@ BRE_RATES: dict[int, Decimal] = {
 STANDARD_CORPORATE_RATE = Decimal("0.300")
 # Aggregated turnover threshold under s 23AA(b) ITRA 1986. $25M for 2017-18
 # (Treasury Laws Amendment (Enterprise Tax Plan) Act 2017 Sch 1 Pt 2); $50M
-# from 2018-19 (Sch 1 Pt 3 item 16).
-TURNOVER_THRESHOLDS: dict[int, Decimal] = {2018: Decimal("25000000.00")}
-DEFAULT_TURNOVER_THRESHOLD = Decimal("50000000.00")
+# from 2018-19 (Sch 1 Pt 3 item 16). Every year the rate table covers is listed
+# here: a year with no listed threshold is refused rather than given the last
+# threshold Parliament happened to legislate.
+TURNOVER_THRESHOLDS: dict[int, Decimal] = {
+    2018: Decimal("25000000.00"),
+    2019: Decimal("50000000.00"),
+    2020: Decimal("50000000.00"),
+    2021: Decimal("50000000.00"),
+    2022: Decimal("50000000.00"),
+    2023: Decimal("50000000.00"),
+    2024: Decimal("50000000.00"),
+    2025: Decimal("50000000.00"),
+    2026: Decimal("50000000.00"),
+    2027: Decimal("50000000.00"),
+}
 BREPI_THRESHOLD_PERCENT = Decimal("80.00")    # Passive income must not exceed 80% (s 23AB)
 
 
 def turnover_threshold_for(fy: int) -> Decimal:
-    return TURNOVER_THRESHOLDS.get(fy, DEFAULT_TURNOVER_THRESHOLD)
+    try:
+        return TURNOVER_THRESHOLDS[fy]
+    except KeyError:
+        raise ValueError(
+            f"No legislated aggregated turnover threshold exists for FY{fy}"
+        ) from None
 
 
 @dataclass(frozen=True)
@@ -66,20 +83,36 @@ class BaseRateEntityTest:
         return self.aggregated_turnover < turnover_threshold_for(self.financial_year)
 
     @property
-    def is_brepi_eligible(self) -> bool:
-        # Exact comparison by cross-multiplication: rounding the ratio first
-        # would pass a company whose BREPI is just over the 80% limit. With no
-        # assessable income the s 23AA comparison is 0 <= 0, which is
-        # satisfied, not unmet, so a dormant company's rate turns on the
-        # turnover test alone.
+    def is_brepi_eligible(self) -> Optional[bool]:
+        """
+        The s 23AB passive-income test, or None where it cannot be run.
+
+        Exact comparison by cross-multiplication: rounding the ratio first
+        would pass a company whose BREPI is just over the 80% limit. With no
+        assessable income there is no proportion to compare, so the test is
+        not run and the answer is unknown, the same absence
+        `passive_income_percentage` reports. Reading the arithmetic 0 <= 0 as
+        satisfied turns a missing income fact into a passed test.
+        """
+        if self.assessable_income <= Decimal("0.00"):
+            return None
         return (
             self.passive_income * Decimal("100.00")
             <= BREPI_THRESHOLD_PERCENT * self.assessable_income
         )
 
     @property
-    def is_base_rate_entity(self) -> bool:
-        return self.is_aggregated_turnover_eligible and self.is_brepi_eligible
+    def is_base_rate_entity(self) -> Optional[bool]:
+        """
+        Base rate entity status under s 23AA, or None where it is unknown.
+
+        Failing the turnover test settles the question on its own, so an
+        unknown passive-income test only leaves the status unknown where the
+        turnover test is met.
+        """
+        if not self.is_aggregated_turnover_eligible:
+            return False
+        return self.is_brepi_eligible
 
 
 @dataclass(frozen=True)
@@ -96,9 +129,16 @@ def determine_corporate_tax_rate(test: BaseRateEntityTest) -> CorporateTaxRate:
     Determine the company tax rate under s23AA Income Tax Rates Act 1986.
     """
     fy = test.financial_year
-    is_bre = test.is_base_rate_entity
     if fy not in BRE_RATES:
         raise ValueError(f"No legislated company-rate table exists for FY{fy}")
+
+    is_bre = test.is_base_rate_entity
+    if is_bre is None:
+        raise ValueError(
+            f"FY{fy}: base rate entity status is not determinable because there is "
+            "no assessable income to run the s 23AB passive-income test against; "
+            "supply assessable_income for the year"
+        )
 
     threshold_m = turnover_threshold_for(fy) / Decimal("1000000")
     if is_bre:

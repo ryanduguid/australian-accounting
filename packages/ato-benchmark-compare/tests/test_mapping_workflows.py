@@ -147,3 +147,40 @@ def test_mapping_module_owns_suggestion_and_routing_workflows() -> None:
     assert callable(mapping.suggest_mapping)
     assert callable(mapping.route)
     assert not hasattr(cli, "_bucket_totals")
+
+
+def test_routed_totals_carry_the_buckets_a_reviewed_account_reached() -> None:
+    """route() zero-fills every bucket, so the totals it returns cannot vouch for
+    their own keys. They carry the routed set instead, and a comparison run
+    without an explicit supplied set withholds the ratios that rest on a bucket
+    no row reached."""
+    from atobenchmark import dataset as ds
+    from atobenchmark.ratios import compute
+    from atobenchmark.report import compare
+
+    rows = (
+        PnlRow("Sales", Decimal("850000"), line_number=1, section="income"),
+        PnlRow("Other income", Decimal("0"), line_number=2, section="income"),
+        PnlRow("Rent paid", Decimal("40000"), line_number=3),
+    )
+    reviewed = {
+        _key("Sales"): MappingRow("Sales", "turnover", "reviewed", "", "850000"),
+        _key("Other income"): MappingRow("Other income", "other_income", "reviewed", "", "0"),
+        _key("Rent paid"): MappingRow("Rent paid", "rent", "reviewed", "", "40000"),
+    }
+
+    routing = mapping.route(rows, reviewed, flip=False)
+    assert routing.totals["cost_of_sales"] == Decimal("0")
+    assert "cost_of_sales" not in routing.supplied_buckets
+
+    figures = compute(routing.totals)
+    assert figures.supplied_fields == frozenset({"turnover", "other_income", "rent"})
+
+    data = ds.load("2023-24")
+    comparison = compare(data, data.get("Bakeries and hot bread shops"), figures)
+    statuses = {verdict.key: verdict.status for verdict in comparison.verdicts}
+
+    assert statuses["cost_of_sales_to_turnover"] == "not_supplied"
+    assert statuses["total_expenses_to_turnover"] == "not_supplied"
+    assert statuses["rent_to_turnover"] != "not_supplied"
+    assert comparison.outside_key_range is False

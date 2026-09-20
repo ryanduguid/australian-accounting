@@ -140,3 +140,33 @@ class ReleaseChecksTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NoticePackagingTests(unittest.TestCase):
+    """Every distribution ships its licence, and a component that carries a
+    NOTICE for third-party data ships that too. The declaration in
+    pyproject.toml is what setuptools packages into .dist-info/licenses, so
+    a missing entry means a wheel without the notice."""
+
+    def component_dirs(self) -> list[Path]:
+        return sorted(
+            path.parent
+            for pattern in ("packages/*/pyproject.toml", "apps/*/pyproject.toml")
+            for path in ROOT.glob(pattern)
+        )
+
+    def test_every_component_declares_its_licence_files(self) -> None:
+        for component in self.component_dirs():
+            text = (component / "pyproject.toml").read_text(encoding="utf-8")
+            match = re.search(r'^license-files\s*=\s*\[(.*?)\]', text, re.M)
+            self.assertIsNotNone(match, f"{component.name}: no license-files")
+            declared = re.findall(r'"([^"]+)"', match.group(1))
+            self.assertIn("LICENSE", declared, component.name)
+            for name in declared:
+                self.assertTrue((component / name).is_file(), f"{component.name}: {name}")
+            if (component / "NOTICE").is_file():
+                self.assertIn("NOTICE", declared, f"{component.name}: NOTICE not packaged")
+                manifest = component / "MANIFEST.in"
+                if manifest.is_file():
+                    self.assertIn("include NOTICE", manifest.read_text(encoding="utf-8"),
+                                  f"{component.name}: NOTICE missing from sdist")
