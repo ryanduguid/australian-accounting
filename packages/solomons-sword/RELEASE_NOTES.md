@@ -1,9 +1,17 @@
-# v0.1.6
+# v0.1.7
+
+- Foot the reported trust-income entitlement column to the income of the trust estate: the
+  rounding residual now falls on percentage shares only, and a fixed entitlement is reported
+  exactly as supplied.
+- Refuse a fixed entitlement that is not stated in whole cents rather than round it.
+- Add seeded property tests that every allocated column foots to its pool.
+
+## Previous release
+
+### v0.1.6
 
 - Leave ordinary family dealing undetermined for red-zone results and explain the compliance-review consequence.
 - Correct the documented release pointer.
-
-## Previous release
 
 ### v0.1.5
 
