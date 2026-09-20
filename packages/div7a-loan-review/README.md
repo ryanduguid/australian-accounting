@@ -254,6 +254,15 @@ with its own `reviewed_until` and `reviewed_on` header, last reviewed
 28 August 2026. Nothing in this repository reads the network, in tests or at
 runtime.
 
+Every row also names the primary source it was read from, in `primary_url`,
+`retrieved_on` and `snapshot_sha256`: the RBA F5 historical workbook, the date
+it was downloaded and the digest of that download. `verify_at` stays beside
+them as a convenience link for a human, not as the source of the figure. The
+read that produced those columns is in
+[docs/primary-source-review-2026-09-20.md](docs/primary-source-review-2026-09-20.md),
+which checked all 8 reviewed years against the RBA workbook and changed no
+rate.
+
 A year outside that coverage is `UNKNOWN`. To review one, supply a reviewed
 override:
 
