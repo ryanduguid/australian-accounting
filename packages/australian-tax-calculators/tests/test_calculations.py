@@ -18,9 +18,30 @@ def test_gst_inclusive_and_exclusive_reconcile():
     ("2025-26", "18200", "0.00"), ("2025-26", "45000", "4288.00"),
     ("2025-26", "135000", "31288.00"), ("2025-26", "190000", "51638.00"),
     ("2025-26", "200000", "56138.00"), ("2026-27", "45000", "4020.00"),
+    ("2024-25", "45000", "4288.00"), ("2024-25", "200000", "56138.00"),
+    ("2026-27", "200000", "55870.00"),
 ])
 def test_resident_brackets(year, income, tax):
     assert c.resident_tax(D(income), year, True)["amounts"]["basic_income_tax"] == tax
+
+
+def test_every_supported_resident_period_has_its_own_contiguous_scale():
+    from austaxcalc.metadata import RESIDENT_TAX_SCALES, SUPPORTED_PERIODS
+
+    assert SUPPORTED_PERIODS["resident_tax"] == tuple(RESIDENT_TAX_SCALES)
+    for year, scale in RESIDENT_TAX_SCALES.items():
+        lows = [low for low, _, _ in scale]
+        highs = [high for _, high, _ in scale]
+        assert lows == sorted(lows), year
+        assert highs[:-1] == lows[1:], f"{year}: brackets must abut"
+        assert highs[-1] is None, f"{year}: the top bracket is open"
+        assert all(D("0") < D(rate) < D("1") for _, _, rate in scale), year
+
+
+def test_resident_result_reports_the_scale_it_applied():
+    rates = c.resident_tax(D("45000"), "2026-27", True)["rates"]
+    assert rates == {"over_18200": "0.15", "over_45000": "0.30",
+                     "over_135000": "0.37", "over_190000": "0.45"}
 
 
 def test_losses_precede_discount_and_excess_carries_forward():
