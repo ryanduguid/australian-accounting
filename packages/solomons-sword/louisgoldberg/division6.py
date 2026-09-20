@@ -245,7 +245,13 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
     entitlement_residual = total_trust_inc - sum(
         (s.trust_income_entitlement for s in shares), Decimal("0.00")
     )
-    for i in sorted(range(len(shares)), key=lambda i: ratios[i], reverse=True):
+    # Fixed entitlements are explicit dollar amounts, so only percentage-based
+    # beneficiaries can absorb rounding differences in the percentage leg.
+    percentage_indices = [
+        i for i, beneficiary in enumerate(assessment.beneficiaries)
+        if beneficiary.percentage_entitlement is not None
+    ]
+    for i in sorted(percentage_indices, key=lambda i: ratios[i], reverse=True):
         if not entitlement_residual:
             break
         adjustment = max(-shares[i].trust_income_entitlement, entitlement_residual)

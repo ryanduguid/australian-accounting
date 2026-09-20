@@ -43,6 +43,25 @@ def assessment_for(percentages, trust_income, s95_net, credits) -> TrustIncomeAs
     )
 
 
+def test_fixed_entitlement_is_not_changed_by_percentage_rounding():
+    assessment = TrustIncomeAssessment(
+        financial_year=2026,
+        trust_name="Synthetic Trust",
+        trust_accounting_income=Decimal("10.00"),
+        section95_net_taxable_income=Decimal("10.00"),
+        beneficiaries=[
+            BeneficiaryEntitlement("Fixed", fixed_entitlement_amount=Decimal("5.00")),
+            BeneficiaryEntitlement("P1", percentage_entitlement=Decimal("16.67")),
+            BeneficiaryEntitlement("P2", percentage_entitlement=Decimal("16.67")),
+            BeneficiaryEntitlement("P3", percentage_entitlement=Decimal("16.67")),
+        ],
+    )
+    shares = calculate_proportionate_share(assessment)
+
+    assert shares[0].trust_income_entitlement == Decimal("5.00")
+    assert sum(s.trust_income_entitlement for s in shares) == Decimal("10.00")
+
+
 def test_three_near_equal_percentage_shares_foot_to_the_trust_income():
     shares = calculate_proportionate_share(
         assessment_for(
