@@ -1,6 +1,6 @@
 # Excel workbook
 
-`payday-super-checker.xlsx` implements the development command line review,
+`payday-super-checker.xlsx` implements the 0.1.7 command line review,
 written in ordinary worksheet formulas for accountants who work in Excel and do
 not have Python. It is macro-free and needs desktop Excel for Microsoft 365 or
 Excel 2024. Nothing leaves the workbook.
@@ -12,10 +12,10 @@ verdict while the workbook is `BLOCKED`.
 
 ## Version and verification scope
 
-This checkout contains the development 0.1.7 workbook. The workbook at the
+This checkout contains the 0.1.7 workbook. The workbook at the
 published 0.1.6 tag assumes full receipt when a receipt date has no amount. It
 also extrapolates GIC after 31 December 2026, whereas the 0.1.6 CLI withholds the
-estimate by default. The development workbook fixes both cases and has no
+estimate by default. The 0.1.7 workbook fixes both cases and has no
 `--allow-stale-gic` option. A PyPI install does not install this workbook.
 
 The committed sample is checked against the matching source engine. On

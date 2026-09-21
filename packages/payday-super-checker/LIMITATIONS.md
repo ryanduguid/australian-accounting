@@ -11,7 +11,7 @@ For what the tool declines to answer, see the refusal cases in
 [DISCLAIMER.md](DISCLAIMER.md) and
 [docs/primary-source-review-2026-08-15.md](docs/primary-source-review-2026-08-15.md).
 
-Applies to development payday-super-checker 0.1.7. Published 0.1.6 and its
+Applies to payday-super-checker 0.1.7. Version 0.1.6 and its
 tagged workbook retain the exceptions recorded under
 [release status](README.md#release-status-and-examples).
 
