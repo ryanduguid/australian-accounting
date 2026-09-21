@@ -18,6 +18,9 @@ compilation. Includes synthetic CTR/BAS fixtures for integration testing.
 
 ## Install
 
+For a local file handoff that retains separate engine outputs, see the
+[group review example](examples/GROUP-REVIEW.md).
+
 Requires Python 3.10+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
