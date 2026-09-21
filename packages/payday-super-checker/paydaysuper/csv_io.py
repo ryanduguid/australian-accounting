@@ -329,15 +329,34 @@ def _parse_date(value: str, field: str, row: int) -> date:
     return parsed
 
 
-def _parse_amount(value: str, field: str, row: int) -> Decimal:
+def _parse_amount(
+    value: str, field: str, row: int, *, empty_is_error: bool = False
+) -> Decimal:
+    """Read one amount cell, to the cent.
+
+    The one reader for both doors into this package: the checker's own CSV
+    and `importers`' vendor exports. They exist to agree about what a figure
+    means, and they had drifted twice while there were 2 of them, once on
+    Excel's accounting-format negative and once on precision (the importer
+    read 1,234.567 as 1234.57 while this reader kept 1234.567, so the same
+    figure meant 2 numbers depending on which door it came through). The
+    README invites hand-editing the canonical file, so both callers can
+    receive every input the other can.
+
+    `empty_is_error` names an empty cell instead of reporting it as
+    unreadable. The importer sets it because an empty vendor cell is a
+    mapping problem the operator can fix by pointing at another column.
+    """
     # Stripped AGAIN after the "$" comes out. Excel's accounting format puts
     # the sign flush left and the figure flush right, so a copied cell reads
     # "$ 612.00" or "$  1,234.00", and the space the dollar sign left behind
     # is still in `text` when AMOUNT_TEXT is matched against it below. That
     # refused the file and blamed a comma for a space.
-    text = value.strip().replace("$", "").strip()
+    text = (value or "").strip().replace("$", "").strip()
     if text.startswith("(") and text.endswith(")"):
         text = "-" + text[1:-1].strip()
+    if empty_is_error and not text:
+        raise CsvError(f"row {row}: {field} is empty")
     loose = text.replace(",", "").replace(" ", "")
     try:
         amount = Decimal(loose)
@@ -363,16 +382,18 @@ def _parse_amount(value: str, field: str, row: int) -> Decimal:
         )
     if amount < 0:
         raise CsvError(f"row {row}: {field} is negative ({value!r})")
-    # Quantised to the cent HERE, at the read boundary, exactly as
-    # importers._amount does, and refusing the one case quantising would
-    # destroy. The 2 readers exist to agree about what a figure means
-    # (see AMOUNT_TEXT above), and they had drifted on precision: the
-    # importer read 1,234.567 as 1234.57 while this reader kept 1234.567,
-    # so a hand-edited canonical file -- which the README invites --
-    # carried sub-cent residue the imported file could not. Every figure
+    # Quantised to the cent HERE, at the read boundary, and refusing the one
+    # case quantising would destroy. Quantising here is what makes
+    # PayrollRow.sg_amount and SuperRow.amount cent-clean by construction, so
+    # no arithmetic downstream can leave a sub-cent residue for the allocator
+    # to spend: a payroll row of 540.004 settled by a payment of 540.00 used
+    # to leave 0.004 behind, and the next super row whose period reached that
+    # payday spent it, making that payment's later date the payday's
+    # remittance date and reporting a fully-funded payday LATE. Every figure
     # the checker matches, writes and reports is a cent figure;
     # ROUND_HALF_UP through cents(), the same rounding money() applies on
-    # the way out.
+    # the way out, so the figure this reads and the figure it writes are the
+    # same number rather than 2 roundings of one input.
     rounded = cents(amount)
     if rounded == 0 and amount != 0:
         raise CsvError(
