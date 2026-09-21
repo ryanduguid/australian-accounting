@@ -19,7 +19,7 @@ estimate by default. The development workbook fixes both cases and has no
 `--allow-stale-gic` option. A PyPI install does not install this workbook.
 
 The committed sample is checked against the matching source engine. On
-22 September 2026, disposable copies were also recalculated in desktop Excel
+21 September 2026, disposable copies were also recalculated in desktop Excel
 for receipt evidence and both sides of the GIC coverage boundary. These are
 specific parity checks, not proof of every input or option. See the
 [versioned results and method](../docs/release-parity-review-2026-09-22.md).

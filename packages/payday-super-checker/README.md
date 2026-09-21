@@ -44,7 +44,7 @@ Citation: [`CITATION.cff`](CITATION.cff).
 
 ## Release status and examples
 
-As checked on 22 September 2026, [PyPI](https://pypi.org/project/payday-super-checker/)
+As checked on 21 September 2026, [PyPI](https://pypi.org/project/payday-super-checker/)
 and [GitHub releases](https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.1.6)
 publish 0.1.6. This checkout is development version 0.1.7, not a published release.
 See [release notes](RELEASE_NOTES.md) for its changes and migration instructions.
@@ -57,7 +57,7 @@ evaluation stays pinned to 0.1.3. Neither is a claim about the latest release.
 Evidence packs are available from checker 0.1.4; 0.1.5 adds exported join warnings.
 The frozen PyPI 0.1.6 description still links release 0.1.4 and calls evidence
 packs unreleased. Editing this README does not change that published metadata.
-The [22 September verification](docs/release-parity-review-2026-09-22.md) records
+The [21 September verification](docs/release-parity-review-2026-09-22.md) records
 the package, MCP and workbook results separately.
 
 ## Try one contribution without cloning

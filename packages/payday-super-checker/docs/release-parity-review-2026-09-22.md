@@ -1,4 +1,4 @@
-# Release and workbook verification, 22 September 2026
+# Release and workbook verification, 21 September 2026
 
 This review distinguishes published checker 0.1.6, published MCP 0.2.4 and the
 development 0.1.7 source. It does not publish a release or renew the historical
@@ -19,7 +19,7 @@ development 0.1.7 source. It does not publish a release or renew the historical
 - Tagged workbook SHA-256: `8d19ef499457a5ae2202dbfc293cb40646ac996fdddf0b0323430b68a386a35a`.
 - Corrected development workbook SHA-256: `412f15a8024c84339897ec46032550e1239756a4422b34e8dee9b63918538b67`.
 - The [ATO GIC table](https://www.ato.gov.au/tax-rates-and-codes/general-interest-charge-rates)
-  returned HTTP 200 in Camofox on 22 September 2026. July to September is 11.43%
+  returned HTTP 200 in Camofox on 21 September 2026. July to September is 11.43%
   and October to December is 11.51%; the bundled table ends on 31 December 2026.
   Rates were not changed. The January boundary below is a synthetic future test.
 - The authoritative local Library's *Superannuation Guarantee Scheme*, paragraphs
