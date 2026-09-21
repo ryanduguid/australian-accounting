@@ -4,7 +4,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import stat
 from pathlib import Path
+
+
+MAX_REPORT_SIZE = 2_000_000
+REPORT_READ_LIMIT = MAX_REPORT_SIZE + 1
 
 
 def unique_object(pairs):
@@ -38,14 +44,18 @@ def build_index(manifest_path: Path) -> dict:
             raise ValueError("Duplicate report ID")
         identities.add(entry["id"])
         relative = Path(entry["path"])
-        if relative.is_absolute() or any(part.startswith(".") for part in relative.parts):
+        if relative.is_absolute():
             raise ValueError("Report path must remain inside the manifest directory")
         path = (root / relative).resolve()
         if not path.is_relative_to(root) or path.suffix not in {".txt", ".json"}:
             raise ValueError("Report must be text or JSON inside the manifest directory")
-        if path.stat().st_size > 2_000_000:
+        flags = os.O_RDONLY | getattr(os, "O_NONBLOCK", 0)
+        with os.fdopen(os.open(path, flags), "rb") as report:
+            if not stat.S_ISREG(os.fstat(report.fileno()).st_mode):
+                raise ValueError("Report must be a regular file")
+            source = report.read(REPORT_READ_LIMIT)
+        if len(source) > MAX_REPORT_SIZE:
             raise ValueError("Report exceeds the 2 MB example limit")
-        source = path.read_bytes()
         if hashlib.sha256(source).hexdigest() != entry["sha256"]:
             raise ValueError(f"Evidence digest mismatch: {entry['id']}")
         text = source.decode("utf-8-sig")
