@@ -109,8 +109,8 @@ classification of the facts the operator supplied, not a determination.
   date. Remittance does not establish fund receipt. Do not infer receipt dates
   or clearing-house latency, or report ON_TIME without evidence of receipt.
   Supply matched_amount with every received date, partial or full. Omitting
-  both leaves the published 0.1.6 engine's convention that received means full
-  receipt; an engine with the receipt-amount rule leaves the row UNKNOWN instead.
+  the amount leaves a timely receipt UNKNOWN in the pinned checker 0.1.7.
+  A late receipt without an amount stays LATE without reducing the shortfall.
   Read aus-accounting://payday-coverage for bundled rate and calendar coverage.
   This reviews one contribution only. Related contributions can change the
   deadline under s 18C(2) item 4 or the allocation of receipts. Use
@@ -1150,9 +1150,9 @@ def review_payday_super_contribution_prompt(as_at: str | None = None) -> str:
         "on the other facts, so report the verdict the tool returns with its caveats "
         "instead of assuming one. Leave received out if the CSV does not carry it.\n\n"
         "Pass matched_amount with every received date, the full amount included: a "
-        "receipt date alone evidences no amount. An engine with the receipt-amount rule "
-        "(unreleased after 0.1.6) leaves such a row UNKNOWN, not ON_TIME; 0.1.6 reads it "
-        "as a full receipt and warns. Do not drop the amount and imply full receipt. Read "
+        "receipt date alone evidences no amount. Checker 0.1.7 leaves a timely receipt "
+        "without an amount UNKNOWN; a late receipt stays LATE without reducing the "
+        "shortfall. Do not drop the amount and imply full receipt. Read "
         "aus-accounting://payday-coverage "
         "for the bundled rate and calendar limits.\n\n"
         "This call reviews one contribution. Related contributions can change the "

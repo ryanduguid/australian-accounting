@@ -143,9 +143,11 @@ covers the layout, fields, bounds and a worked example.
 
 Payday Super needs an explicit assessment date and fund-receipt evidence, both
 the date and the amount received (`received` with `matched_amount`), before it
-should be read as `ON_TIME`. An engine with the receipt-amount rule (unreleased
-after payday-super-checker 0.1.6) leaves a receipt date with no amount `UNKNOWN`;
-the pinned 0.1.6 engine reads it as a full receipt and says so in a caveat. Check the `aus-accounting://payday-coverage` resource for
+should be read as `ON_TIME`. The pinned checker 0.1.7 leaves a timely receipt
+date without an amount `UNKNOWN`. A late receipt without an amount stays
+`LATE`, without reducing the shortfall. MCP 0.2.4 pins checker 0.1.6, which
+assumes full receipt in that case and says so in a caveat. Check the
+`aus-accounting://payday-coverage` resource for
 bundled rate and calendar coverage, and retain the result's caveats.
 
 Division 7A covers the reviewed s 109N/s 109E scope only. It refuses matters such
@@ -156,7 +158,7 @@ covers all exclusions, input rules, prompts, resources and evaluation instructio
 
 ## Payday Super evidence pack
 
-In v0.2.4, `build_payday_super_evidence_pack` accepts the
+In v0.2.5, `build_payday_super_evidence_pack` accepts the
 same `contributions` and explicit `as_at` as grouped review. It delegates the
 assessment and all 4 artefacts to the checker. There are no path arguments,
 fixture-path lookups, filesystem writes or network calls.
@@ -186,9 +188,10 @@ The 17-column evidence report is for the included checklist. It is not accepted
 by legacy `review-pack` or the accounting review pipeline's `PaydaySuper.Report`
 Excel importer. Use an ordinary 18-column checker report for that importer.
 
-The published server is v0.2.4, which pins `payday-super-checker==0.1.6` and
-`div7a-loan-review==0.1.4` and includes the pack builder; run
-`uvx aus-accounting-mcp==0.2.4` for it. An installation with
+This documentation describes v0.2.5, which pins `payday-super-checker==0.1.7`
+and `div7a-loan-review==0.1.4` and includes the pack builder. Run
+`uvx aus-accounting-mcp==0.2.5` for this version. Check the
+release and compatibility references below before treating a source version as published. An installation with
 checker v0.1.3 returns a feature-unavailable error for this tool; the existing
 tools continue to work. See the [website guide](https://duguid.com.au/tools/australian-tax-ai-agents/)
 for examples and scope.
@@ -211,7 +214,7 @@ record the expected output, limitations and asset source.
 
 MIT License. Created by Ryan Duguid.
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.2.4 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.4),
+[v0.2.5 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.5),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <!-- mcp-name: io.github.ryanduguid/aus-accounting -->

@@ -1,3 +1,11 @@
+# v0.2.5
+
+- Pin `payday-super-checker` 0.1.7. A timely receipt date without either amount field remains `UNKNOWN`; a late receipt without an amount remains `LATE` without the unsupported shortfall reduction. Retain the other 3 published engine pins.
+- Update the tool descriptions, server instructions and package description for the receipt-amount rule. Require its regression tests in standalone installations as well as workspace tests.
+- Include the merged evidence semantics and explicit scope qualifications. The optional richer worksheet catalogue still depends on an unreleased worksheet engine; the pinned published engine retains its existing scope data.
+- Include the synthetic group-review example, which indexes separate engine evidence without combining conclusions or transferring outputs between engines.
+- Align the release, citation, compatibility and MCP Registry metadata to 0.2.5.
+
 # v0.2.4
 
 - A corpus line that spells a solidus as the JSON escape `\/` is parsed rather than prefiltered, so a `row_id` such as `5/10` that search returned can be read back without asking for neighbours.

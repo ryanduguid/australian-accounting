@@ -254,9 +254,9 @@ class ContributionInput(BaseModel):
     received: str | None = Field(
         default=None,
         description="Evidenced fund-receipt date. Timing only: pair it with matched_amount "
-        "(or remitted_amount). An engine with the receipt-amount rule (unreleased after "
-        "payday-super-checker 0.1.6) leaves a bare receipt UNKNOWN rather than ON_TIME; "
-        "0.1.6 reads it as a full receipt and says so in a caveat.",
+        "(or remitted_amount). Checker 0.1.7 leaves a timely receipt without an amount "
+        "UNKNOWN; a late receipt stays LATE without reducing the shortfall. Earlier "
+        "checker 0.1.6 assumes full receipt and says so in a caveat.",
     )
     next_standard_qe_day: str | None = Field(default=None, description="Next standard payday.")
     remitted_amount: str | None = Field(default=None, description="AUD remitted for this row.")
