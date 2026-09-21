@@ -1,7 +1,7 @@
 # v0.1.7
 
-Development source, not a published release as at 22 September 2026. PyPI and
-GitHub still publish 0.1.6; installing it does not include the changes below.
+Version 0.1.7 corrects receipt-amount handling and incomplete workbook estimates.
+The changes below are not present in 0.1.6.
 
 - The Excel Summary displays `Not assessed` for total notional earnings and both charge estimates when any line extends past the GIC table. It no longer sums withheld row estimates as zero or presents the assessed subset as a complete total. The final shortfall total remains available.
 - **Breaking for hand-built files.** A `fund_received_date` on a row with neither `matched_amount` nor `remitted_amount` no longer reads as a receipt of the whole `sg_amount`. The date evidences timing only, so where it could be on time the row is left `UNKNOWN` between `ON_TIME` and the partial-receipt outcome (`UNPAID`, `NOT_YET_DUE` or `LATE`), the run exits 2, and the caveat names the amount the row needs. A late receipt with no amount stays `LATE`, but the s 18D reduction of the final shortfall is not applied and the notional earnings run to the as-at date as a maximum. Files written by `import` already carry `matched_amount` and are unaffected.

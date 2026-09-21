@@ -20,9 +20,9 @@
 - `paydaysuper.csv_io`: Strict CSV schema parsing with atomic IO validation.
 
 ## Release and evidence limits
-- Checked 22 September 2026: PyPI publishes checker 0.1.6. This checkout is development 0.1.7, not a published release. Published aus-accounting-mcp 0.2.4 pins checker 0.1.6; the workspace uses the checked-out source.
-- Published 0.1.6 assumes full receipt when a fund-receipt date has neither matched_amount nor remitted_amount. Development 0.1.7 leaves a timely date without an amount UNKNOWN; a late date remains LATE with no shortfall reduction and a maximum estimate measured to the as-at date.
-- The tagged 0.1.6 workbook extrapolates beyond the GIC table ending 31 December 2026. The 0.1.6 CLI withholds those estimates by default and offers --allow-stale-gic. The development workbook withholds them and marks incomplete rate-dependent Summary totals Not assessed; it has no stale-rate opt-in.
+- This documentation describes checker 0.1.7. Check PyPI and GitHub releases for available distributions; a checkout version alone does not establish publication. aus-accounting-mcp 0.2.4 pins checker 0.1.6; the workspace uses the checked-out source.
+- Published 0.1.6 assumes full receipt when a fund-receipt date has neither matched_amount nor remitted_amount. Version 0.1.7 leaves a timely date without an amount UNKNOWN; a late date remains LATE with no shortfall reduction and a maximum estimate measured to the as-at date.
+- The tagged 0.1.6 workbook extrapolates beyond the GIC table ending 31 December 2026. The 0.1.6 CLI withholds those estimates by default and offers --allow-stale-gic. The 0.1.7 workbook withholds them and marks incomplete rate-dependent Summary totals Not assessed; it has no stale-rate opt-in.
 - Matching, receipt evidence and rate coverage remain separate limits. Arithmetic does not establish that a payment matched the right payday or reached the fund.
 - Evidence packs are published from 0.1.4. The README quick trial deliberately uses 0.1.4 and the historical evaluation uses 0.1.3. See README.md, LIMITATIONS.md and docs/release-parity-review-2026-09-22.md for scope and reproduction evidence.
 
