@@ -176,7 +176,7 @@ update `tag` if the intended version changes and run these checks after
 downloading the assets and checking `SHA256SUMS`:
 
 ```bash
-tag=aus-accounting-mcp/v0.2.4
+tag=aus-accounting-mcp/v0.2.5
 repo=ryanduguid/australian-accounting
 wheel="aus_accounting_mcp-${tag#aus-accounting-mcp/v}-py3-none-any.whl"
 release_commit="$(git ls-remote "https://github.com/$repo.git" "refs/tags/$tag^{}" | cut -f1)"
@@ -185,11 +185,11 @@ gh attestation verify "$wheel" -R "$repo" \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest c24612618f177f6dccb7ed9ee2a8648959b87e2e
+  --signer-digest 2adf9e19b7c73970a1dd6703afb3f9c27b7972d7
 gh attestation verify "$wheel" -R "$repo" \
   --predicate-type https://spdx.dev/Document/v2.3 \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest c24612618f177f6dccb7ed9ee2a8648959b87e2e
+  --signer-digest 2adf9e19b7c73970a1dd6703afb3f9c27b7972d7
 ```
