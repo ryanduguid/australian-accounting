@@ -44,3 +44,12 @@ def test_tool_descriptions_tell_the_caller_a_receipt_needs_an_amount() -> None:
     assert "UNKNOWN" in fields["received"].description
     assert "receipt date alone evidences no amount" in fields["matched_amount"].description
     assert "0.1.6" in fields["received"].description
+
+
+def test_single_contribution_schema_does_not_infer_full_receipt() -> None:
+    tools = asyncio.run(mcp.list_tools())
+    tool = next(tool for tool in tools if tool.name == "calc_payday_super_deadline")
+    description = tool.input_schema["properties"]["matched_amount"]["description"]
+    assert "UNKNOWN" in description
+    assert "without reducing the shortfall" in description
+    assert "received means full receipt" not in description

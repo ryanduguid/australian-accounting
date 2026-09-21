@@ -478,7 +478,8 @@ def calc_payday_super_deadline(
             'Amount associated with this payday, as an AUD decimal string with at most '
             '2 decimal places; cannot exceed sg_amount. Supply partial amounts even without '
             'a remittance date. Caps evidenced receipt and takes precedence over '
-            'remitted_amount. If both amounts are omitted, received means full receipt.'
+            'remitted_amount. If both amounts are omitted, a timely receipt remains UNKNOWN; '
+            'a late receipt remains LATE without reducing the shortfall.'
         )),
     ] = None,
 ) -> PaydayReview:
