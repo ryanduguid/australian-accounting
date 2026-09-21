@@ -22,5 +22,6 @@ The sample is supposed to exit 2.
 
 ## Version
 
-The version string lives in `wiptally/__init__.py`. Hatch reads it from there.
-Do not duplicate it in `pyproject.toml`.
+The version source is `[project].version` in `pyproject.toml`. Keep `__version__` in
+`wiptally/__init__.py` aligned with it; the version test checks both copies. Update the release-note heading, citation and
+lockfiles in the same commit, and keep the package identity test aligned.

@@ -78,8 +78,11 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         name = engine["distribution"]
         engine_version = importlib.metadata.version(name)
         runtime_versions[name] = engine_version
-        assert f"{name}=={engine_version}" in project["dependencies"]
-        assert f"{name}=={engine_version}" in requirements
+        # Workspace sources can be ahead of the published pins. Keep the
+        # published record consistent and check runtime output separately below.
+        published_pin = f"{name}=={engine['version']}"
+        assert published_pin in project["dependencies"]
+        assert published_pin in requirements
     benchmark = _call(
         "list_ato_benchmark_industries",
         {"search": "baker"},

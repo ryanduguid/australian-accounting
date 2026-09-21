@@ -1,26 +1,29 @@
-# Unreleased
+# v0.1.7
 
-Breaking: 3 facts the engine used to assume are now required inputs.
+Breaking: callers must supply the entity's corporate tax rate and establish the
+opening franking account balance before relying on the results.
 
-- The corporate tax rate has no default. Pass `corporate_tax_rate` to
-  `BenchmarkRuleValidator` and `generate_distribution_statement`, and
-  `--tax-rate` to `dist-statement`. Callers that relied on the 25% base rate
-  must state the entity's own rate; a `DistributionEvent` measured outside a
-  validator now raises instead of assuming it. The franking account's
-  `opening_balance` has no default either: state it, `Decimal("0.00")`
-  included, or `closing_balance` is `None` and `evaluate_franking_deficit`
-  returns an explicit unknown carrying `unknown_reason`, not a surplus.
-- Missing facts no longer read as passed tests. `validate_distributions`
-  returns `(None, [])` for a period with no frankable distribution,
-  `is_brepi_eligible` and `is_base_rate_entity` are `None` where there is no
-  assessable income to run the s 23AB test against, and
-  `determine_corporate_tax_rate` then raises. `turnover_threshold_for` raises
-  for a year the table does not list instead of reading $50M forward.
-- Migration: supply the rate and opening balance at each call site, and treat a
-  `None` outcome as untested rather than compliant. `FrankingDeficitResult`
-  outcome fields are now optional and carry a new `unknown_reason`, and
-  `DEFAULT_TURNOVER_THRESHOLD` is gone; every supported year is listed in
-  `TURNOVER_THRESHOLDS`. No rate, threshold or formula changed.
+- Pass `corporate_tax_rate` to `BenchmarkRuleValidator` and
+  `generate_distribution_statement`, and `--tax-rate` to `dist-statement`.
+  A `DistributionEvent` measured outside a validator also requires a stated rate.
+- State `FrankingAccount.opening_balance`, including an established nil balance.
+  Without it, `closing_balance` and the deficit outcome fields are `None`, and
+  `FrankingDeficitResult.unknown_reason` explains why the test could not run.
+- A period with no frankable distribution returns `(None, [])` from
+  `validate_distributions`. Missing assessable income leaves the passive-income
+  test unknown; base rate entity status remains unknown unless turnover alone
+  rules it out. `determine_corporate_tax_rate` refuses an unknown status.
+- `turnover_threshold_for` refuses years absent from `TURNOVER_THRESHOLDS`
+  instead of carrying a threshold forward. `DEFAULT_TURNOVER_THRESHOLD` is
+  removed. The supported years, rates and thresholds remain in
+  [the corporate tax source](edwinnixon/corporate_tax.py).
+- Cap stated franking credits at the statutory maximum before comparing them
+  with the benchmark credit. An overstated credit no longer creates a false
+  benchmark differential. See `validate_distributions` and
+  `maximum_franking_credit` in [the benchmark rule source](edwinnixon/benchmark_rule.py).
+
+Migration: supply each required fact and treat `None` outcomes as untested.
+The franking deficit result's outcome fields are now optional.
 
 # v0.1.6
 

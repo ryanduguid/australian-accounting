@@ -1,7 +1,8 @@
-# Unreleased
+# v0.1.7
 
 - **Breaking for hand-built files.** A `fund_received_date` on a row with neither `matched_amount` nor `remitted_amount` no longer reads as a receipt of the whole `sg_amount`. The date evidences timing only, so where it could be on time the row is left `UNKNOWN` between `ON_TIME` and the partial-receipt outcome (`UNPAID`, `NOT_YET_DUE` or `LATE`), the run exits 2, and the caveat names the amount the row needs. A late receipt with no amount stays `LATE`, but the s 18D reduction of the final shortfall is not applied and the notional earnings run to the as-at date as a maximum. Files written by `import` already carry `matched_amount` and are unaffected.
 - Migration: add `remitted_amount` and `matched_amount` columns and fill `matched_amount` with the amount the fund received for each row that has a `fund_received_date`; a full receipt states the whole `sg_amount`. The shipped examples and evaluation fixtures now do so. Older report CSVs, exit codes, column names and the canonical column order are unchanged.
+- The Excel workbook now withholds notional earnings and charge estimates beyond the shipped [GIC table](paydaysuper/data/gic_rates.json), while retaining verdicts, days late and shortfalls. The formula changes are in [the workbook source](tools/build_workbook.py); the workbook has no stale-rate opt-in.
 - The Excel workbook applies the same rule (branch codes `U1` to `U3`, lateness basis "as-at date (fund receipt amount not evidenced)") and was rebuilt through desktop Excel.
 
 # v0.1.6

@@ -28,6 +28,19 @@ pytest. CI additionally runs, per component, the dependency audit, the distribut
 build, the installed-wheel and sdist smoke tests and changed-line coverage listed in
 that table and in `ci-package.yml`. A green `just check` is not a green CI.
 
+The same locked environment also supports these commands from the repository root:
+
+```bash
+uv run --locked --group dev ruff check .
+uv run --locked --group dev mypy
+uv run --locked --group dev pytest
+```
+
+Root mypy checks all 9 runtime packages. Root pytest runs the repository checks
+and each component's existing suite in a separate process, from that component's
+directory. This keeps repeated test module names and relative fixture paths
+independent. Component configuration and CI gates remain authoritative.
+
 Two consequences of the workspace are worth knowing before you run a component's
 own commands:
 
@@ -105,6 +118,8 @@ The existing component lock checks remain required.
 `ci.yml` is the anchor workflow. It carries no path filter, so its required checks always
 report, and it runs 2 things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
+The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, mypy and
+pytest commands on Ubuntu with Python 3.12.
 
 - `ci-package.yml` gives every engine the same gates from the engine's own directory,
   the same definition `ryanduguid/accounting-review-pipeline` uses for its components: a
@@ -173,12 +188,12 @@ Registry through `publish-mcp.yml`.
 | Component | Tag | Workflow | Version source | PyPI environment |
 |---|---|---|---|---|
 | aus-accounting-mcp | `aus-accounting-mcp/vX.Y.Z` | `release-aus-accounting-mcp.yml` | `pyproject.toml` | `pypi-aus-accounting-mcp` |
-| ato-benchmark-compare | `ato-benchmark-compare/vX.Y.Z` | `release-ato-benchmark-compare.yml` | `atobenchmark/__init__.py` | `pypi-ato-benchmark-compare` |
+| ato-benchmark-compare | `ato-benchmark-compare/vX.Y.Z` | `release-ato-benchmark-compare.yml` | `pyproject.toml` | `pypi-ato-benchmark-compare` |
 | payday-super-checker | `payday-super-checker/vX.Y.Z` | `release-payday-super-checker.yml` | `pyproject.toml` | `pypi-payday-super-checker` |
 | div7a-loan-review | `div7a-loan-review/vX.Y.Z` | `release-div7a-loan-review.yml` | `pyproject.toml` | `pypi-div7a-loan-review` |
 | the-exchequer-tally | `the-exchequer-tally/vX.Y.Z` | `release-the-exchequer-tally.yml` | `pyproject.toml` | `pypi-the-exchequer-tally` |
 | solomons-sword | `solomons-sword/vX.Y.Z` | `release-solomons-sword.yml` | `pyproject.toml` | `pypi-solomons-sword` |
-| the-wip-tally | `the-wip-tally/vX.Y.Z` | `release-the-wip-tally.yml` | `wiptally/__init__.py` | `pypi-the-wip-tally` |
+| the-wip-tally | `the-wip-tally/vX.Y.Z` | `release-the-wip-tally.yml` | `pyproject.toml` | `pypi-the-wip-tally` |
 
 `IMPORTS.md` records which components still lack a Release Policy prerequisite; their
 workflows fail closed until a reviewed component change adds it. Nothing publishes from a

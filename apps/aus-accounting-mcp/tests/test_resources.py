@@ -161,9 +161,9 @@ def test_payday_coverage_resource_uses_the_loaded_engine_tables(monkeypatch) -> 
     assert served["disclaimer"]
 
 
-def test_component_versions_resource_preserves_identity_and_exact_runtime_pins() -> None:
-    # The compatibility record describes the last published release. A candidate
-    # keeps that identity but reports the versions its installed wheel requires.
+def test_component_versions_resource_preserves_identity_and_published_pins() -> None:
+    # The compatibility record describes published pins. Workspace engines can
+    # be ahead of those pins; the resource reports the installed versions.
     record = json.loads((ROOT / "compatibility.json").read_text(encoding="utf-8"))
     served = json.loads(_read("aus-accounting://component-versions"))
 
@@ -174,6 +174,8 @@ def test_component_versions_resource_preserves_identity_and_exact_runtime_pins()
     assert {engine["distribution"] for engine in served["engines"]} == {
         engine["distribution"] for engine in record["engines"]}
     for engine in served["engines"]:
+        assert engine["version"] == importlib.metadata.version(engine["distribution"])
+    for engine in record["engines"]:
         assert f"{engine['distribution']}=={engine['version']}" in requirements
 
 

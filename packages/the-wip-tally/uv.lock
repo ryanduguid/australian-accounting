@@ -571,6 +571,7 @@ wheels = [
 
 [[package]]
 name = "the-wip-tally"
+version = "0.1.2"
 source = { editable = "." }
 
 [package.optional-dependencies]
