@@ -44,3 +44,43 @@ def test_unsupported_industry_gets_no_invented_range():
             ROOT / "examples/bakery-pnl.csv", ROOT / "examples/bakery-pnl.csv",
             ROOT / "examples/bakery-mapping.csv", ROOT / "examples/bakery-mapping.csv",
             previous_period="2025", current_period="2026", industry="Invented unsupported industry")
+
+
+def test_unavailable_counterfactual_preserves_standalone_results(tmp_path):
+    previous, current = tmp_path / "previous.csv", tmp_path / "current.csv"
+    previous.write_text("Account,Amount\nSales,500000\nNew activity,0\nCosts,100000\n")
+    current.write_text("Account,Amount\nSales,0\nNew activity,600000\nCosts,120000\n")
+    old, new = tmp_path / "old.csv", tmp_path / "new.csv"
+    mapping = "account,bucket,source,amount,note\nSales,turnover,reviewed,0,Fabricated\nNew activity,{bucket},reviewed,0,Fabricated\nCosts,cost_of_sales,reviewed,0,Fabricated\n"
+    old.write_text(mapping.format(bucket="excluded"))
+    new.write_text(mapping.format(bucket="turnover"))
+    result = runpy.run_path(str(HISTORY))["history"](previous, current, old, new,
+        previous_period="2025", current_period="2026", industry="Bakeries and hot bread shops")
+    assert result["previous"] and result["current"]
+    assert result["limitation"]
+    assert all(row["comparison"] == "NOT_COMPARABLE" for row in result["ratio_bridge"])
+
+
+def test_expense_signs_are_explicit_for_each_snapshot(tmp_path):
+    from decimal import Decimal
+
+    from atobenchmark.mapping import EXPENSE_BUCKETS, account_key, read_mapping
+    from atobenchmark.pnl import read
+
+    positive = ROOT / "examples/bakery-pnl.csv"
+    mapping = ROOT / "examples/bakery-mapping.csv"
+    reviewed = read_mapping(mapping)
+    negative = tmp_path / "negative.csv"
+    with negative.open("w", newline="") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(["Account", "Amount"])
+        for row in read(positive, None).rows:
+            value = -row.amount if reviewed[account_key(row.account)].bucket in EXPENSE_BUCKETS else row.amount
+            writer.writerow([row.account, value])
+    result = runpy.run_path(str(HISTORY))["history"](positive, negative, mapping, mapping,
+        previous_period="2025", current_period="2026", industry="Bakeries and hot bread shops",
+        current_expenses_negative=True)
+    cost = next(row for row in result["ratio_bridge"] if row["ratio"] == "cost_of_sales_to_turnover")
+    assert cost["current"] == cost["previous"] and cost["current"] is not None
+    assert Decimal(cost["movement_under_previous_mapping"]) == 0
+    assert result["expense_signs"] == {"previous_negative": False, "current_negative": True}
