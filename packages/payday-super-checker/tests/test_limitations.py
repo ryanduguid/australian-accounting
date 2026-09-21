@@ -31,9 +31,12 @@ def test_register_lists_every_documented_entry():
     register = _register()
     for entry in ("PSC-1", "PSC-2"):
         assert entry in register
-    # Each entry must keep the clause that distinguishes a register from a
-    # disclaimer: what a reader may still rely on.
-    assert register.count("**What stays correct.**") == 2
+    # Each entry scopes what its own issue leaves unchanged, without assuring
+    # the result against separate receipt, matching or rate limitations.
+    assert register.count("**Unaffected by ") == 2
+    assert "all operate correctly" not in register
+    assert "receipt-amount evidence" in register
+    assert "calendar\nand GIC coverage" in register
 
 
 def test_psc_1_extrapolates_past_its_last_quarter_only_on_request():

@@ -1,13 +1,28 @@
 # Excel workbook
 
-`payday-super-checker.xlsx` is the same review as the command line checker,
+`payday-super-checker.xlsx` implements the development command line review,
 written in ordinary worksheet formulas for accountants who work in Excel and do
 not have Python. It is macro-free and needs desktop Excel for Microsoft 365 or
 Excel 2024. Nothing leaves the workbook.
 
-**Experimental review aid. Not a compliance determination.** Everything the
-checker refuses or leaves `UNKNOWN`, the workbook refuses or leaves `UNKNOWN`,
-and the assumptions the checker prints with every run sit on Review Checks.
+**Experimental review aid. Not a compliance determination.** Review Checks
+holds input failures, missing evidence and the review assumptions. Read its
+overall status before using a calculated row: invalid input can leave a displayed
+verdict while the workbook is `BLOCKED`.
+
+## Version and verification scope
+
+This checkout contains the development 0.1.7 workbook. The workbook at the
+published 0.1.6 tag assumes full receipt when a receipt date has no amount. It
+also extrapolates GIC after 31 December 2026, whereas the 0.1.6 CLI withholds the
+estimate by default. The development workbook fixes both cases and has no
+`--allow-stale-gic` option. A PyPI install does not install this workbook.
+
+The committed sample is checked against the matching source engine. On
+22 September 2026, disposable copies were also recalculated in desktop Excel
+for receipt evidence and both sides of the GIC coverage boundary. These are
+specific parity checks, not proof of every input or option. See the
+[versioned results and method](../docs/release-parity-review-2026-09-22.md).
 
 ## Using it
 
@@ -56,6 +71,9 @@ and the assumptions the checker prints with every run sit on Review Checks.
    GIC quarter keeps its verdict, days late and shortfall and shows no
    notional earnings or charge estimate until you add the ATO's next rate
    and mark it known; the workbook has no equivalent of `--allow-stale-gic`.
+   Summary shows `Not assessed` for total notional earnings and both charge
+   estimates if any row needs an uncovered rate. The shortfall total remains
+   available; a withheld estimate must not be read as zero.
 
 ## How it is kept honest
 

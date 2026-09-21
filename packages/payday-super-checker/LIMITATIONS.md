@@ -11,7 +11,9 @@ For what the tool declines to answer, see the refusal cases in
 [DISCLAIMER.md](DISCLAIMER.md) and
 [docs/primary-source-review-2026-08-15.md](docs/primary-source-review-2026-08-15.md).
 
-Applies to payday-super-checker 0.1.7.
+Applies to development payday-super-checker 0.1.7. Published 0.1.6 and its
+tagged workbook retain the exceptions recorded under
+[release status](README.md#release-status-and-examples).
 
 ## PSC-1 An SG-charge estimate dated past the GIC table extrapolates the rate, on request
 
@@ -42,7 +44,7 @@ rate changes the low estimate too. Only the low estimate's *uplift component*
 is unmoved, because 0% of a larger base is still nil. Do not read the low
 estimate as a rate-independent floor.
 
-**What stays correct.** Every verdict. All 6 of them, `ON_TIME`, `AT_RISK`,
+**Unaffected by this rate issue.** The verdict calculation. All 6 verdicts, `ON_TIME`, `AT_RISK`,
 `LATE`, `UNPAID`, `UNKNOWN` and `SKIPPED`, are decided by the deadline and
 fund-receipt tests, which never read the GIC table. Deadlines, business-day
 arithmetic, the matched and remitted amounts, and the SG shortfall itself are
@@ -50,7 +52,8 @@ all unaffected. `GicTable.daily_rate` is called from exactly one place, the
 notional earnings loop in `paydaysuper/sgc.py`, so nothing outside the exposure
 estimate depends on it.
 
-The verdict being sound does not make the row's figures sound. `LATE` and
+Receipt evidence and matching can still affect a verdict. A sound verdict
+does not make the row's figures sound. `LATE` and
 `UNPAID` are the 2 verdicts in `EXPOSED`, so a row carrying either also carries
 the exposure estimate this entry qualifies. A `SKIPPED` row has no estimate to
 qualify.
@@ -89,10 +92,13 @@ on. A merged pair of employees or a missed payment changes which contribution
 is tested against which deadline, so a verdict can be wrong without any
 arithmetic being wrong.
 
-**What stays correct.** The arithmetic on whatever was matched. Deadline
-computation, business-day handling, receipt testing and the exposure estimate
-all operate correctly on the rows they were given. The limitation is in the
-join, not the assessment.
+**Unaffected by the join itself.** Matching selects the rows and amounts
+sent to assessment; it does not change the downstream deadline, receipt or
+exposure rules. Their results still depend on receipt-amount evidence, calendar
+and GIC coverage, and the other limits in this file and the README. Correct
+arithmetic cannot establish that a payment was matched to the right payday or
+that the fund received it. Published 0.1.6 also retains the
+[missing-amount assumption](README.md#release-status-and-examples).
 
 **Where it surfaces at runtime.** `paydaysuper/join.py` emits one warning per
 condition. These are structural warnings: `paydaysuper/cli.py` prints them

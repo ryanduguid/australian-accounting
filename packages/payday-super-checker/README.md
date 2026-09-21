@@ -28,8 +28,11 @@ late.
 Since 1 July 2026, super is generally due within 7 business days of each payday
 instead of quarterly. A missed deadline can create an SG shortfall, notional
 earnings and administrative uplift; the ATO makes the assessment. This tool
-reviews a CSV from payroll, clearing-house and fund records. It refuses or marks
-`UNKNOWN` where those records do not establish the statutory facts.
+reviews a CSV from payroll, clearing-house and fund records. The development source refuses or marks `UNKNOWN` where the supported checks
+cannot establish the result. Published 0.1.6 still assumes full receipt when a
+fund-receipt date has neither `matched_amount` nor `remitted_amount`; its caveat
+discloses that assumption. Supply and reconcile the receipt amount before relying
+on an `ON_TIME` result. See [release status](#release-status-and-examples).
 
 The `australian-accounting` repository contains the maintained source. The `payday-super-checker` distribution, `payday-super-check` command and `paydaysuper` import package remain compatibility identifiers.
 
@@ -37,7 +40,25 @@ Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written
 
 No-install explainer: [When is payday super actually due](https://duguid.com.au/tools/payday-super/). From an AI coding agent, run the same engine through [aus-accounting-mcp](https://duguid.com.au/tools/australian-tax-ai-agents/).
 
-Citation: [`CITATION.cff`](CITATION.cff). In-repo version: `0.1.7`; see [release notes](RELEASE_NOTES.md).
+Citation: [`CITATION.cff`](CITATION.cff).
+
+## Release status and examples
+
+As checked on 22 September 2026, [PyPI](https://pypi.org/project/payday-super-checker/)
+and [GitHub releases](https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.1.6)
+publish 0.1.6. This checkout is development version 0.1.7, not a published release.
+See [release notes](RELEASE_NOTES.md) for its changes and migration instructions.
+Cloning and installing this checkout uses development code; an unpinned PyPI
+install currently selects 0.1.6. Published `aus-accounting-mcp` 0.2.4 pins checker
+0.1.6; the monorepo workspace substitutes the development source when testing.
+
+The quick trial below deliberately stays pinned to 0.1.4. The historical public
+evaluation stays pinned to 0.1.3. Neither is a claim about the latest release.
+Evidence packs are available from checker 0.1.4; 0.1.5 adds exported join warnings.
+The frozen PyPI 0.1.6 description still links release 0.1.4 and calls evidence
+packs unreleased. Editing this README does not change that published metadata.
+The [22 September verification](docs/release-parity-review-2026-09-22.md) records
+the package, MCP and workbook results separately.
 
 ## Try one contribution without cloning
 
@@ -66,10 +87,13 @@ python tools/render_quick_proof.py --check
 ## Excel workbook
 
 No Python? [`workbooks/payday-super-checker.xlsx`](workbooks/payday-super-checker.xlsx)
-runs the same review in ordinary worksheet formulas: paste the canonical
+implements the development review in ordinary worksheet formulas: paste the canonical
 contributions register, set the as-at date, and read the deadline, verdict,
 shortfall, notional earnings and SG charge estimate range per line, with the
-checker's UNKNOWN outcomes preserved. It is macro-free, needs desktop Excel for
+development checker's UNKNOWN outcomes preserved. The tagged 0.1.6 workbook
+still assumes full receipt without an amount and extrapolates beyond its GIC
+table, unlike the 0.1.6 CLI default. Use the version-specific limits in
+[workbooks/README.md](workbooks/README.md). It is macro-free, needs desktop Excel for
 Microsoft 365 or Excel 2024, and is held to this engine's answer by
 `tests/test_workbook.py`. See [workbooks/README.md](workbooks/README.md).
 
@@ -91,8 +115,9 @@ PyPI. Use the synthetic CSV above for a first run before preparing your own inpu
 
 ## Before you run
 
-Gather these facts first. The checker refuses or marks `UNKNOWN` where the
-records do not establish them.
+Gather these facts first. The development checks can refuse or mark `UNKNOWN`
+when required evidence is missing. The published receipt-amount exception is
+described under [release status](#release-status-and-examples).
 
 | Fact | Where it comes from | Why |
 | --- | --- | --- |
@@ -242,6 +267,9 @@ examples do. Versions 0.1.6 and earlier read such a row as a
 receipt of the whole `sg_amount` and say so in a caveat.
 
 ### Build an evidence pack in one command
+
+Available from published checker 0.1.4. The command below runs this checkout;
+its receipt-amount changes belong to development 0.1.7.
 
 From the monorepo root, change into the component and run:
 

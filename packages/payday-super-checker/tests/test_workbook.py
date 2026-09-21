@@ -98,6 +98,18 @@ def test_cached_values_were_calculated_by_desktop_excel(cached):
     assert cached["Start Here"]["A11"].value == "BLOCKED"
 
 
+def test_summary_does_not_total_withheld_estimates_as_zero():
+    """A SUM ignores blank row estimates; the summary must retain their uncertainty."""
+    openpyxl = pytest.importorskip("openpyxl")
+    if not WORKBOOK.is_file():
+        pytest.skip("workbook is not included in the source distribution")
+    summary = openpyxl.load_workbook(WORKBOOK, data_only=False)["Summary"]
+    for cell in ("B18", "B19", "B20"):
+        formula = summary[cell].value
+        assert "tblLines[Past_gic_table]" in formula, cell
+        assert '"Not assessed"' in formula, cell
+
+
 def test_sample_matches_the_engine_line_by_line(cached):
     lines = parse_rows(SAMPLE, dict(DEFAULT_MAPPING))
     results = assess(lines, load_calendar(), load_gic(), AS_AT, transition_allocation_confirmed=True)
