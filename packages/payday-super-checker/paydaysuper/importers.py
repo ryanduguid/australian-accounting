@@ -30,16 +30,16 @@ from __future__ import annotations
 import csv
 from dataclasses import dataclass
 from datetime import date, datetime
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from pathlib import Path
 from typing import Any, cast
 
 from .atomic_io import atomic_text_output
 from .csv_io import (
-    AMOUNT_TEXT,
     LATEST_SANE_YEAR,
     MISSING,
     CsvError,
+    _parse_amount,
     cents,
     csv_safe,
     malformed_row_problem,
@@ -54,12 +54,6 @@ from .profiles import (
     normalise_header,
     resolve_columns,
 )
-
-# A separator is allowed only where a thousands separator belongs. Stripping
-# every comma turns the European decimal 612,00 into 61200. The pattern
-# lives in csv_io so this module and the checker's own reader cannot drift
-# apart on what an amount is; see csv_io.AMOUNT_TEXT.
-_AMOUNT = AMOUNT_TEXT
 
 
 @dataclass(frozen=True)
@@ -204,95 +198,21 @@ def _date(value: str, field: str, row: int, formats: tuple[str, ...]) -> date | 
 
 
 def _amount(value: str, field: str, row: int) -> Decimal:
-    """Read one amount cell, to the cent.
+    """Read one amount cell, to the cent, through the checker's own reader.
 
     Every figure that leaves this module is a cent figure: `write_canonical`
     writes `money(...)`, the checker reads the file back at that precision,
-    and the report it produces is in dollars and cents. Quantising HERE, at
-    the read boundary, is what makes `PayrollRow.sg_amount` and
-    `SuperRow.amount` cent-clean by construction, so no arithmetic
-    downstream can leave a sub-cent residue for the allocator to spend.
-
-    A payroll row of 540.004 settled by a super payment of 540.00 used to
-    leave `_unmet` holding 0.004. The next super row whose period reached
-    that payday spent the 0.004 on it, and its own later payment date then
-    became the payday's remittance date: a payday whose every payable cent
-    arrived 5 days inside the deadline reported LATE with the full
-    540.00 as a shortfall and an SG-charge estimate on top, or, where that
-    second payment carried no date, UNPAID for the same 540.00. Comparing
-    to the cent at the point of the verdict fixed the verdict and left the
-    residue in place to move a date; there is no residue to move now.
-
-    ROUND_HALF_UP through `report.cents`, the same rounding `money()`
-    applies on the way out, so the figure this reads and the figure it
-    writes are the same number rather than 2 roundings of one input.
+    and the report it produces is in dollars and cents. `_parse_amount` is
+    the single reader for both doors, so a value this module accepts can
+    never be one the checker refuses; it quantises at the read boundary and
+    carries the refusals this module used to state for itself, including
+    Excel's accounting-format negative and the sub-half-cent row.
 
     Rounding is per row, and a row is the unit of obligation: one payroll
     row is one payday's liability for one employee, one super row is one
-    payment. Nothing here is ever summed across rows to reach a verdict, so
-    quantising each row on its own is the same granularity the law and the
-    report already work at. What it costs is under half a cent per row, and
-    the alternative is the defect above.
-
-    A value that is not zero in the file but rounds to zero is refused
-    rather than rounded, because that is the one case where quantising
-    would destroy the row instead of trimming it: a payment worth 0.004
-    would become a 0.00 payment that still carries a date and still matches
-    a payday, and a 0.004 liability would become a payday owing nothing. An
-    exact 0 in the file is untouched -- a payday that genuinely owes no
-    super guarantee is ordinary, and already has its own outcome."""
-    text = (value or "").strip().replace("$", "").strip()
-    if text.startswith("(") and text.endswith(")"):
-        # Stripped inside the parens too, mirroring _parse_amount: Excel's
-        # accounting format writes a negative as "($ 612.00)", and without
-        # this strip the space the "$" left behind broke the pattern match,
-        # so the refusal blamed a comma for a space instead of naming the
-        # negative the way the checker's reader does.
-        text = "-" + text[1:-1].strip()
-    if not text:
-        raise CsvError(f"row {row}: {field} is empty")
-    if not _AMOUNT.match(text):
-        raise CsvError(
-            f"row {row}: cannot read {field} value {value!r} as an amount. A comma or "
-            "space is only read as a thousands separator, so 612,00 is refused rather "
-            "than read as 61200."
-        )
-    try:
-        amount = Decimal(text.replace(",", "").replace(" ", ""))
-    except InvalidOperation:
-        raise CsvError(f"row {row}: cannot read {field} value {value!r} as an amount")
-    if not amount.is_finite():
-        raise CsvError(f"row {row}: cannot read {field} value {value!r} as an amount")
-    if amount.adjusted() > 15:
-        # Mirrors csv_io._parse_amount's own guard: beyond this the value
-        # cannot be rounded to cents under the default decimal context (28
-        # significant digits), and no super contribution is this large.
-        # Without this check here, `write_canonical`'s `money()` call is
-        # the first place such a value would be quantized, raising a raw
-        # decimal.InvalidOperation that is not a CsvError and so escapes
-        # the CLI's `except (CsvError, ..., ValueError)` -- a value this
-        # module accepted and the checker itself would refuse must be
-        # refused here, at the point closest to the bad input, not left to
-        # fail unpredictably downstream.
-        raise CsvError(f"row {row}: {field} value {value!r} is too large to be a real amount")
-    if amount < 0:
-        raise CsvError(f"row {row}: {field} is negative ({value!r})")
-    rounded = cents(amount)
-    if rounded == 0 and amount != 0:
-        raise CsvError(
-            f"row {row}: {field} value {value!r} is under half a cent, so reading it "
-            "to the cent leaves the row carrying no money at all. Every figure this "
-            "tool matches, writes and reports is a cent figure. Round it yourself, or "
-            "take the row out."
-        )
-    if rounded == 0:
-        # Decimal keeps the sign of "-0.00", and money() then formats it with a
-        # leading "-" that csv_safe quotes as text, so the canonical file the
-        # importer just wrote came back as an amount this reader refuses. An
-        # accepted zero has no sign worth preserving; a nonzero negative is
-        # already refused above and a sub-cent figure just above that.
-        return Decimal("0.00")
-    return rounded
+    payment. Nothing here is ever summed across rows to reach a verdict.
+    """
+    return _parse_amount(value, field, row, empty_is_error=True)
 
 
 def _cell(row: dict[str, str], resolved: dict[str, str], field: str) -> str:
