@@ -1,5 +1,10 @@
 # Release and workbook verification, 22 September 2026
 
+Dates use Australia/Sydney (AEST, UTC+10). The ATO browser capture at
+21 September 2026, 17:49 UTC was 22 September, 3:49 am locally. The package
+provenance capture at 17:51 UTC was 3:51 am locally. These are completed checks,
+not a future review date.
+
 This review distinguishes published checker 0.1.6, published MCP 0.2.4 and the
 development 0.1.7 source. It does not publish a release or renew the historical
 15 August legal review or the public 0.1.3 evaluation.
