@@ -12,7 +12,6 @@ REQUIRED = {
     "release-ato-benchmark-compare.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: ato-benchmark-compare / build",
-        ".github/workflows/ci.yml: ato-benchmark-compare / changed-line-coverage",
         ".github/workflows/ci.yml: ato-benchmark-compare / dependency-audit",
         ".github/workflows/ci.yml: ato-benchmark-compare / lint",
         ".github/workflows/ci.yml: ato-benchmark-compare / test (3.10)",
@@ -59,7 +58,6 @@ REQUIRED = {
     "release-payday-super-checker.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: payday-super-checker / build",
-        ".github/workflows/ci.yml: payday-super-checker / changed-line-coverage",
         ".github/workflows/ci.yml: payday-super-checker / dependency-audit",
         ".github/workflows/ci.yml: payday-super-checker / lint",
         ".github/workflows/ci.yml: payday-super-checker / test (3.10)",

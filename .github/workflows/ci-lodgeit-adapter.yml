@@ -27,6 +27,7 @@ permissions:
 
 jobs:
   test:
+    name: lodgeit tests (${{ matrix.os }}, ${{ matrix.python }})
     permissions:
       contents: read
     timeout-minutes: 15
@@ -62,6 +63,7 @@ jobs:
           UV_PYTHON: ${{ matrix.python }}
 
   lint:
+    name: lodgeit lint
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -84,6 +86,7 @@ jobs:
         working-directory: apps/lodgeit-calculator-adapter
 
   dependency-audit:
+    name: lodgeit dependency audit
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -103,3 +106,23 @@ jobs:
       - name: audit the locked project environment
         run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
         working-directory: apps/lodgeit-calculator-adapter
+
+  lodgeit-gates:
+    needs: [test, lint, dependency-audit]
+    if: always()
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every adapter check to succeed
+        shell: python
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          import json, os
+          results = json.loads(os.environ["RESULTS"])
+          expected = ("test", "lint", "dependency-audit")
+          failed = [name for name in expected if results.get(name, {}).get("result") != "success"]
+          if failed:
+              raise SystemExit("Adapter checks did not succeed: " + ", ".join(failed))

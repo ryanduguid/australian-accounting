@@ -119,7 +119,14 @@ The existing component lock checks remain required.
 report, and it runs 2 things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
 The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, mypy and
-pytest commands on Ubuntu with Python 3.12.
+pytest commands on Ubuntu with Python 3.12. The adapter uses distinct `lodgeit`
+job names and a `lodgeit-gates` result check, keeping the MCP application's existing
+release-check names unchanged. Require `lodgeit-gates` after its first successful
+hosted run.
+
+For engines with held files, the Python 3.12 test job filters its existing coverage
+data to those files and applies the 100% changed-line branch-coverage gate. The
+release callers require that test job; no second pytest run is needed.
 
 - `ci-package.yml` gives every engine the same gates from the engine's own directory,
   the same definition `ryanduguid/accounting-review-pipeline` uses for its components: a

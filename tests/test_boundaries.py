@@ -258,6 +258,13 @@ class BoundaryTests(unittest.TestCase):
         self.assertIn("--compare-branch=origin/main", reusable)
         self.assertIn("--branch-coverage", reusable)
         self.assertIn("--fail-under=100", reusable)
+        # Release callers now rely on the Python 3.12 test result to enforce
+        # both the suite and its held-file coverage. Keep the check in that job.
+        test_job = reusable.split("\n  test:\n", 1)[1].split("\n  test-windows:\n", 1)[0]
+        self.assertIn("matrix.python == '3.12' && inputs.changed-line-coverage != ''", test_job)
+        self.assertIn('coverage xml --include="$INCLUDE" -o coverage.xml', test_job)
+        self.assertIn("--branch-coverage --fail-under=100", test_job)
+        self.assertNotIn("\n  changed-line-coverage:\n", reusable)
 
     def test_anchor_required_checks_are_not_suppressed_by_path_filters(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
