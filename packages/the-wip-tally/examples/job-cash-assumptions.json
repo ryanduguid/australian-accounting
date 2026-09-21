@@ -1,0 +1,11 @@
+{
+  "receipts_to_date": "300000",
+  "costs_paid_to_date": "440000",
+  "future_cost_cash_multiplier": "1.10",
+  "certified_collection_date": "2026-10-31",
+  "certified_collection_evidence": "Fabricated reviewed payment plan",
+  "retention_collection_date": "2027-02-28",
+  "retention_release_assumption": "Fabricated assumption of release after defects obligations; not established entitlement",
+  "remaining_cost_payment_date": "2026-12-15",
+  "remaining_cost_evidence": "Fabricated cost-to-complete cash plan; all costs assumed subject to the supplied GST multiplier"
+}
