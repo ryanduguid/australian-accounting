@@ -7,7 +7,7 @@ name: package
 # locked environment, and a build of the distribution with an installed-wheel
 # import smoke plus the engine's own wheel smoke script. Engines that already
 # prove their Windows behaviour add a Windows test leg, and engines with a
-# risk-scoped file list add a changed-line coverage gate against main.
+# risk-scoped file list check changed-line coverage in the Python 3.12 test job.
 #
 # ruff, mypy and coverage read their scope from the engine's own configuration
 # ([tool.ruff], [tool.mypy] and [tool.coverage.run] in its pyproject.toml), so
@@ -43,8 +43,8 @@ on:
         description: >-
           Comma-separated files, relative to the package directory, held to
           complete changed-line branch coverage against origin/main. Empty
-          disables the gate. The coverage sources and the baseline sentinel are
-          derived from this list.
+          disables the gate. The Python 3.12 report is filtered to these files;
+          the first file is the baseline sentinel.
         type: string
         default: ""
 
@@ -113,6 +113,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Only the changed-line check needs the main-branch comparison.
+          fetch-depth: ${{ matrix.python == '3.12' && inputs.changed-line-coverage != '' && '0' || '1' }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
@@ -131,6 +133,22 @@ jobs:
           --cov --cov-branch --cov-report=term-missing --cov-report=xml
         env:
           UV_PYTHON: ${{ matrix.python }}
+
+      - name: require complete changed-line coverage in the held modules
+        if: matrix.python == '3.12' && inputs.changed-line-coverage != ''
+        env:
+          INCLUDE: ${{ inputs.changed-line-coverage }}
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          uv run --locked --extra dev coverage xml --include="$INCLUDE" -o coverage.xml
+          sentinel="packages/$PACKAGE/${INCLUDE%%,*}"
+          if git cat-file -e "origin/main:$sentinel"; then
+            uv run --locked --extra dev --python 3.12 diff-cover coverage.xml \
+              --compare-branch=origin/main --branch-coverage --fail-under=100
+          else
+            echo "::notice::Changed-line coverage starts after the imported package has a mainline baseline."
+          fi
 
   test-windows:
     needs: changes
@@ -160,59 +178,6 @@ jobs:
           --cov --cov-branch --cov-report=term-missing --cov-report=xml
         env:
           UV_PYTHON: ${{ inputs.windows-python }}
-
-  changed-line-coverage:
-    needs: changes
-    if: needs.changes.outputs.run == 'true' && inputs.changed-line-coverage != ''
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: packages/${{ inputs.package }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          # diff-cover compares against origin/main, which needs the history.
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.12"
-      - name: install the locked toolchain
-        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
-        with:
-          version: ${{ env.UV_VERSION }}
-          enable-cache: true
-      - name: run tests with branch coverage scoped to the held modules
-        env:
-          INCLUDE: ${{ inputs.changed-line-coverage }}
-        run: |
-          set -euo pipefail
-          # Each held file is measured as a module: drop the suffix, and a
-          # package path separator becomes a module separator.
-          cov_args=()
-          IFS=, read -ra held <<< "$INCLUDE"
-          for file in "${held[@]}"; do
-            module="${file%.py}"
-            cov_args+=("--cov=${module//\//.}")
-          done
-          uv run --locked --extra dev --python 3.12 pytest "${cov_args[@]}" \
-            --cov-branch --cov-report=xml:coverage.xml
-      - name: require complete changed-line coverage in the held modules
-        env:
-          INCLUDE: ${{ inputs.changed-line-coverage }}
-          PACKAGE: ${{ inputs.package }}
-        run: |
-          set -euo pipefail
-          sentinel="packages/$PACKAGE/${INCLUDE%%,*}"
-          if git cat-file -e "origin/main:$sentinel"; then
-            uv run --locked --extra dev --python 3.12 diff-cover coverage.xml \
-              --compare-branch=origin/main --branch-coverage --fail-under=100
-          else
-            echo "::notice::Changed-line coverage starts after the imported package has a mainline baseline."
-          fi
 
   lint:
     needs: changes
@@ -359,7 +324,7 @@ jobs:
     # when every gate above passed or was skipped by the path filter, and fails
     # when any gate failed or was cancelled, so a path-skipped engine never
     # blocks a merge and a failed gate always does.
-    needs: [changes, test, test-windows, changed-line-coverage, lint, dependency-audit, build]
+    needs: [changes, test, test-windows, lint, dependency-audit, build]
     if: always()
     permissions:
       contents: read
