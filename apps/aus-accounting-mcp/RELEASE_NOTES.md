@@ -1,3 +1,15 @@
+# v0.2.6
+
+- Pin `ato-benchmark-compare` 0.1.9 and `australian-tax-calculators` 0.1.4.
+  The benchmark release refuses a neutral CSV whose header names `account`,
+  `amount` or `section` more than once instead of reading the first such column
+  silently. The calculator release computes every worksheet in its own decimal
+  context, so a caller's precision no longer changes a result. Retain the
+  `payday-super-checker` 0.1.7 and `div7a-loan-review` 0.1.4 pins.
+- Serve the richer worksheet catalogue from the pinned published engine. An
+  installation on an older calculator keeps the legacy discovery entries.
+- Align the release, citation, compatibility and MCP Registry metadata to 0.2.6.
+
 # v0.2.5
 
 - Pin `payday-super-checker` 0.1.7. A timely receipt date without either amount field remains `UNKNOWN`; a late receipt without an amount remains `LATE` without the unsupported shortfall reduction. Retain the other 3 published engine pins.

@@ -188,9 +188,9 @@ The 17-column evidence report is for the included checklist. It is not accepted
 by legacy `review-pack` or the accounting review pipeline's `PaydaySuper.Report`
 Excel importer. Use an ordinary 18-column checker report for that importer.
 
-This documentation describes v0.2.5, which pins `payday-super-checker==0.1.7`
+This documentation describes v0.2.6, which pins `payday-super-checker==0.1.7`
 and `div7a-loan-review==0.1.4` and includes the pack builder. Run
-`uvx aus-accounting-mcp==0.2.5` for this version. Check the
+`uvx aus-accounting-mcp==0.2.6` for this version. Check the
 release and compatibility references below before treating a source version as published. An installation with
 checker v0.1.3 returns a feature-unavailable error for this tool; the existing
 tools continue to work. See the [website guide](https://duguid.com.au/tools/australian-tax-ai-agents/)
@@ -214,7 +214,7 @@ record the expected output, limitations and asset source.
 
 MIT License. Created by Ryan Duguid.
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.2.5 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.5),
+[v0.2.6 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.6),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <!-- mcp-name: io.github.ryanduguid/aus-accounting -->
