@@ -194,6 +194,8 @@ def minimum_yearly_repayment_amount(
         raise ValueError("the s 109E(6) formula is undefined at a nil benchmark rate")
     if remaining_term <= 0:
         raise ValueError("the s 109E(6) formula is undefined at a nil remaining term")
+    if remaining_term != remaining_term.to_integral_value():
+        raise ValueError("remaining_term must be a whole number of years; use statutory_remaining_term first")
     with localcontext() as ctx:
         ctx.prec = FORMULA_PRECISION
         numerator = principal * rate

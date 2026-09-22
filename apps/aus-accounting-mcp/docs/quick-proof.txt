@@ -96,7 +96,7 @@ $ uv run --locked aus-accounting-mcp-demo
             {
               "primary_url": "https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx",
               "retrieved_on": "2026-09-20",
-              "sha256": "117504ba1f471f577c3d122ca2fbff3777e71273cdb8b4f084bf1e42464e9730",
+              "sha256": "73d5014cd77bca935de528a540c2b90e69869aaab0dad8e6d104681e646d970a",
               "snapshot_sha256": "40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0",
               "uri": "div7aloan/data/benchmark_rates.csv"
             }
