@@ -25,6 +25,12 @@ MADE = parse_year("2022-23")
 RATE_2026_27 = D("0.0877")
 
 
+@pytest.mark.parametrize("term", ["0.5", "4.5", "6.9"])
+def test_bare_formula_refuses_fractional_term(term):
+    with pytest.raises(ValueError, match="whole number of years"):
+        minimum_yearly_repayment_amount(D("100000"), RATE_2026_27, D(term))
+
+
 def _gate(verdict: GateVerdict):
     """A gate result carrying the verdict a test needs."""
     common = dict(
