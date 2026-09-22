@@ -544,9 +544,10 @@ over the directory, and it is taken over decoded text so a CRLF checkout and
 an LF checkout of the same reviewed table agree. The prose provenance line in
 the report says which quarters the table covers; the digest says whether it is
 the same table, which is the question a reviewer reopening the pack months
-later actually has. `rates.json` is not yet listed: its loader returns a bare
-dictionary shared by several callers, so carrying its source needs a wider
-change than this.
+later actually has. `rates.json` supplies reference values for the ordinary
+CLI console summary. Evidence-pack mode does not use or load that table, so
+it is absent from the manifest. A missing or malformed reference table does
+not block an evidence pack; a missing or malformed GIC table still does.
 
 ## Keeping it current
 

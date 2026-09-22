@@ -478,7 +478,8 @@ def main(argv: list[str] | None = None) -> int:
         lines = parse_rows(args.csv_path, mapping, explicit)
         cal = load_calendar(args.holidays_override)
         gic = load_gic()
-        rates = load_rates()
+        if not evidence_pack:
+            rates = load_rates()
         results = assess(
             lines,
             cal,

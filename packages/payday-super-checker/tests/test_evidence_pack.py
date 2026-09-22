@@ -87,6 +87,59 @@ def test_bad_input_leaves_no_pack(tmp_path, capsys):
     assert "error:" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize("reference_state", ["missing", "malformed"])
+def test_reference_table_failure_does_not_block_evidence_pack(
+    tmp_path, monkeypatch, capsys, reference_state,
+):
+    data = tmp_path / "data"
+    data.mkdir()
+    (data / "gic_rates.json").write_bytes((DATA_DIR / "gic_rates.json").read_bytes())
+    if reference_state == "malformed":
+        (data / "rates.json").write_text("{", encoding="utf-8")
+    monkeypatch.setattr(rates, "DATA_DIR", data)
+    scenario = EXPECTED["scenarios"][0]
+    source = EVALUATION / "fixtures" / scenario["fixture"]
+    output = tmp_path / "pack"
+
+    assert cli.main([
+        "evidence-pack", str(source), "--as-at", EXPECTED["as_at"], "-o", str(output),
+    ]) == scenario["expected_exit"]
+    assert {p.name for p in output.iterdir()} == FILES
+    queue = json.loads((output / "exceptions.json").read_text(encoding="utf-8"))
+    assert [entry["uri"] for entry in queue["manifest"]["rate_table_uris"]] == [
+        "file:gic_rates.json",
+    ]
+    assert not capsys.readouterr().err
+
+    # Ordinary output still requires the reference values for its summary,
+    # and a failed load must not create its CSV.
+    report = tmp_path / "report.csv"
+    assert cli.main([
+        str(source), "--as-at", EXPECTED["as_at"], "-o", str(report),
+    ]) == cli.EXIT_ERROR
+    assert not report.exists()
+    assert "rates.json" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("gic_state", ["missing", "malformed"])
+def test_gic_table_failure_still_blocks_evidence_pack(tmp_path, monkeypatch, capsys, gic_state):
+    data = tmp_path / "data"
+    data.mkdir()
+    (data / "rates.json").write_bytes((DATA_DIR / "rates.json").read_bytes())
+    if gic_state == "malformed":
+        (data / "gic_rates.json").write_text("{", encoding="utf-8")
+    monkeypatch.setattr(rates, "DATA_DIR", data)
+    scenario = EXPECTED["scenarios"][0]
+    output = tmp_path / "pack"
+
+    assert cli.main([
+        "evidence-pack", str(EVALUATION / "fixtures" / scenario["fixture"]),
+        "--as-at", EXPECTED["as_at"], "-o", str(output),
+    ]) == cli.EXIT_ERROR
+    assert not output.exists()
+    assert "gic_rates.json" in capsys.readouterr().err
+
+
 def test_remittance_confirmation_does_not_clear_review_queue(tmp_path):
     source = EVALUATION / "fixtures/timely_remittance_no_receipt.csv"
     assert cli.main([
