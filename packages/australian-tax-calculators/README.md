@@ -86,7 +86,7 @@ It returns supported periods with inclusive dates, required inputs and units,
 available methods, scope exclusions and a fabricated example for each worksheet.
 Money in the catalogue uses decimal strings. Python callers convert these to
 `Decimal`; MCP clients can send `example.facts` to `calculate_tax_worksheet`.
-This addition is unreleased and is not part of the published 0.1.3 wheel.
+This addition is published in the 0.1.4 wheel.
 
 The engine owns the supported periods for both discovery and calculation.
 Returned dictionaries can be edited without changing later calls or engine rules.
