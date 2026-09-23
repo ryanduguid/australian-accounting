@@ -1,6 +1,6 @@
 # Releasing
 
-The monorepo's [GitHub Releases](https://github.com/ryanduguid/australian-accounting/releases) page is the canonical release history from `payday-super-checker/v0.1.3` onward. Releases through v0.1.2 remain in the archived [source repository](https://github.com/ryanduguid/payday-super-checker/releases). A separate changelog is intentionally not maintained.
+The monorepo's [GitHub Releases](https://github.com/ryanduguid/australian-accounting/releases) page is the canonical release history from `payday-super-checker/v0.1.3` onward. Releases through v0.1.2 were published from the standalone `payday-super-checker` repository, which was retired in September 2026; both remain on [PyPI](https://pypi.org/project/payday-super-checker/#history). A separate changelog is intentionally not maintained.
 
 The root workflow `.github/workflows/release-payday-super-checker.yml` builds
 and publishes this component.
