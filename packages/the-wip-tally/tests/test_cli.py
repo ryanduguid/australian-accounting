@@ -216,6 +216,18 @@ def test_review_pack_refuses_a_schedule_from_another_period(tmp_path: Path) -> N
     assert not pack.exists()
 
 
+def test_an_empty_review_date_is_refused_not_replaced(tmp_path: Path) -> None:
+    """`--as-at "$AS_AT"` with the variable unset passes an empty string. That is a
+    date the caller supplied and got wrong, not an omitted one to take from the
+    schedule."""
+    schedule = tmp_path / "wip-schedule.csv"
+    pack = tmp_path / "practitioner-review.md"
+    assert main(["schedule", str(SAMPLE), "-o", str(schedule), "--as-at", "2026-08-31"]) == 2
+    code = main(["review-pack", str(schedule), "--source", str(SAMPLE), "-o", str(pack), "--as-at", ""])
+    assert code == 1
+    assert not pack.exists()
+
+
 def test_as_at_must_be_a_real_iso_date(tmp_path: Path) -> None:
     """A transposed reporting date must not date the evidence."""
     out = tmp_path / "wip-schedule.csv"

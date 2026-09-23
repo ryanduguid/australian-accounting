@@ -120,7 +120,7 @@ def cmd_review_pack(args: argparse.Namespace) -> int:
         )
     # An explicit --as-at still wins; otherwise take the date the schedule records,
     # and fall back to today only when it carries none.
-    as_at = _as_at(args.as_at) if args.as_at else (_schedule_as_at(schedule_path) or _as_at(None))
+    as_at = _as_at(args.as_at) if args.as_at is not None else (_schedule_as_at(schedule_path) or _as_at(None))
     schedule = Schedule(as_at=as_at, positions=positions, source_name=source.name)
     text = build_review_pack(schedule_path, source, schedule, source_bytes=source_bytes)
     write_review_pack(out, text)

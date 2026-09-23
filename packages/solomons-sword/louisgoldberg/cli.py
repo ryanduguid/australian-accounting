@@ -48,6 +48,17 @@ def add_tristate(
 
 
 def main() -> int:
+    # On Windows a console or redirected stdout uses a codepage, not UTF-8, so a
+    # beneficiary name or the report's own dash outside it ended the run with a
+    # UnicodeEncodeError after the work was done.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(errors="backslashreplace")
+            except (ValueError, OSError):
+                pass
+
     parser = argparse.ArgumentParser(
         prog="solomons-sword",
         description="Solomon's Sword: Division 6 trust allocation with s 100A and s 99B checks. Review aid, not advice.",
@@ -114,7 +125,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             commercial_loan_agreement_in_place=args.commercial_loan,
         )
         print("=" * 60)
-        print(f"Section 100A Risk Evaluation - {res.beneficiary_name}")
+        print(f"Section 100A Risk Evaluation — {res.beneficiary_name}")
         print("=" * 60)
         print(f"Distribution Amount:     ${res.distribution_amount:,.2f}")
         print(f"Risk Zone:               {res.risk_zone.value}")
@@ -146,7 +157,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         )
         s99b = evaluate_section99b_liability(receipt)
         print("=" * 60)
-        print(f"Section 99B Assessment - {s99b.beneficiary_name}")
+        print(f"Section 99B Assessment — {s99b.beneficiary_name}")
         print("=" * 60)
         print(f"Gross Receipt:           ${s99b.gross_receipt:,.2f}")
         print(f"Corpus Exemption:        ${s99b.corpus_exemption:,.2f}")
