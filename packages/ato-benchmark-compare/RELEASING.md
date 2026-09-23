@@ -1,6 +1,6 @@
 # Releasing
 
-The monorepo's [GitHub Releases](https://github.com/ryanduguid/australian-accounting/releases) page is the canonical release history from v0.1.6 onward. Releases through v0.1.5 remain in the [source repository](https://github.com/ryanduguid/ato-benchmark-compare/releases). A separate changelog is intentionally not maintained.
+The monorepo's [GitHub Releases](https://github.com/ryanduguid/australian-accounting/releases) page is the canonical release history from v0.1.6 onward. Releases through v0.1.5 were published from the standalone `ato-benchmark-compare` repository, which was retired in September 2026; v0.1.1 and v0.1.3 to v0.1.5 remain on [PyPI](https://pypi.org/project/ato-benchmark-compare/#history). A separate changelog is intentionally not maintained.
 
 Releases are built by GitHub Actions from an annotated tag on the exact `main` commit. Do not build or upload wheel and source-distribution assets by hand.
 

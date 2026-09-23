@@ -2,8 +2,9 @@
 
 Source repositories enter this repository as single verified snapshots created with
 `git subtree add --prefix=packages/<destination> <url> <commit> --squash`. Historical
-tags and releases stay in the source repositories, which remain the authoritative
-location for pre-consolidation history.
+tags and releases stayed in the source repositories as the authoritative location
+for pre-consolidation history. Those repositories were retired in September 2026, so
+that history is no longer hosted and the links to them below no longer resolve.
 
 Tracked-tree SHA-256 is the SHA-256 of the NUL-delimited bytes of
 `git ls-tree -r --full-tree -z HEAD` in a fresh clone of the source at the recorded
