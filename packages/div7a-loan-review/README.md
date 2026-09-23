@@ -46,7 +46,7 @@ No install, just the rates and the reasoning:
 <https://duguid.com.au/rates/div7a-benchmark-rate/>
 
 Citation: [`CITATION.cff`](CITATION.cff); release:
-[`v0.1.1`](https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.1.1).
+[`v0.1.4`](https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.1.4).
 
 ---
 

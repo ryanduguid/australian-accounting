@@ -107,6 +107,14 @@ def measure(contract: ContractInput) -> ContractPosition:
                 f"progress_method is output"
             )
         percent_complete = contract.output_percent
+        # CSV ingestion already refuses these; measure() is the public calculation
+        # path and a direct caller reached it with 2 or -0.5, giving revenue above
+        # the transaction price or below zero.
+        if not percent_complete.is_finite() or not (ZERO <= percent_complete <= Decimal(1)):
+            raise ScheduleError(
+                f"{_where(contract, 'output_percent')} is {percent_complete}; "
+                f"output progress must be between 0 and 1"
+            )
         revenue_to_date = as_money(transaction_price * percent_complete)
     elif notes_method == PROGRESS_RIGHT_TO_INVOICE:
         flags.append("progress_method_not_cost_to_cost")

@@ -156,6 +156,19 @@ def cmd_compare(args: argparse.Namespace) -> int:
     data = _load(args)
     business_type = data.get(args.industry)
     source = pnl_module.read(Path(args.profit_and_loss), args.amount_column)
+    # compare used only source.rows, so a row whose amount would not parse was left out
+    # of every total with nothing said about it. map already reports the same list. It
+    # goes to stderr so `--json -` still writes nothing but JSON to stdout.
+    if source.skipped:
+        print(
+            f"{len(source.skipped)} row(s) carried no readable amount and are not in "
+            f"these totals:",
+            file=sys.stderr,
+        )
+        for line in source.skipped[:10]:
+            print(f"  {line}", file=sys.stderr)
+        if len(source.skipped) > 10:
+            print(f"  ... and {len(source.skipped) - 10} more", file=sys.stderr)
     mapping = mapping_module.read_mapping(Path(args.mapping))
     routing = mapping_module.route(source.rows, mapping, args.flip_expense_signs)
 

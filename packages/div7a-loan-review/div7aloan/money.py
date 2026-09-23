@@ -78,8 +78,10 @@ def parse_money(raw: object, where: str) -> Decimal:
             f"{where} is {raw!r}; amounts cannot exceed "
             f"{MAX_MONEY_MAGNITUDE} AUD"
         )
-    exponent = value.as_tuple().exponent
-    if isinstance(exponent, int) and exponent < -MAX_MONEY_DECIMAL_PLACES:
+    # The written scale is not the value's: 25000.000 and 1000.500 carry exponent
+    # -3 and are exact to the cent, and ledger and payroll exports routinely write
+    # 3 or 4 places. Refuse a real sub-cent amount, not a trailing zero.
+    if value != to_cents(value):
         raise MoneyError(
             f"{where} is {raw!r}; amounts cannot have more than "
             f"{MAX_MONEY_DECIMAL_PLACES} decimal places"

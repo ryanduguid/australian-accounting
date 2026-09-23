@@ -29,6 +29,7 @@ from openpyxl import Workbook
 from openpyxl.formatting.rule import CellIsRule
 from openpyxl.styles import Alignment, Font, PatternFill, Protection
 from openpyxl.utils import get_column_letter, range_boundaries
+from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.formula import ArrayFormula
 from openpyxl.worksheet.table import Table, TableColumn, TableFormula, TableStyleInfo
@@ -433,7 +434,13 @@ def build() -> None:
     style(ws["B1"], value="", **HEAD)
     ws["A2"] = "Year of income under review"
     style(ws["B2"], value=DEFAULT_YEAR, number_format=TEXT, protection=Protection(locked=False), **INPUT)
-    dv = DataValidation(type="list", formula1=f"=Rates!$A$2:$A${len(rates) + 1}", allow_blank=False)
+    # The Rates sheet tells the reviewer to add a year outside the frozen table, so the
+    # selector has to grow with it. A fixed A2:A<n> range froze it at build time and the
+    # added year could never be chosen. Excel refuses a structured reference directly in
+    # a validation formula, so it goes through a defined name, which is the one form that
+    # both resolves to the table column and expands with it.
+    wb.defined_names.add(DefinedName("RateYears", attr_text="tblRates[year_of_income]"))
+    dv = DataValidation(type="list", formula1="RateYears", allow_blank=False)
     dv.add("B2")
     ws.add_data_validation(dv)
     ws["A3"] = "Benchmark interest rate for that year (s 109N(2))"
@@ -578,7 +585,7 @@ if (Get-Process EXCEL -ErrorAction SilentlyContinue) {
   throw 'Excel is already running; refusing to share its COM server.'
 }
 $xl = New-Object -ComObject Excel.Application
-$xl.Visible = $false; $xl.DisplayAlerts = $false; $xl.AutomationSecurity = 1
+$xl.Visible = $false; $xl.DisplayAlerts = $false; $xl.AutomationSecurity = 3
 try {
   $wb = $xl.Workbooks.Open('%s')
   $sources = $wb.Worksheets.Item('Sources & Version')

@@ -48,6 +48,17 @@ def add_tristate(
 
 
 def main() -> int:
+    # On Windows a console or redirected stdout uses a codepage, not UTF-8, so a
+    # beneficiary name or the report's own dash outside it ended the run with a
+    # UnicodeEncodeError after the work was done.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(errors="backslashreplace")
+            except (ValueError, OSError):
+                pass
+
     parser = argparse.ArgumentParser(
         prog="solomons-sword",
         description="Solomon's Sword: Division 6 trust allocation with s 100A and s 99B checks. Review aid, not advice.",

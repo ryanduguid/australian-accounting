@@ -88,7 +88,10 @@ class FrankingAccount:
     def __post_init__(self) -> None:
         # A deficit opening balance is legitimate; a NaN or infinite one is not,
         # and would otherwise surface as InvalidOperation when the balance quantizes.
-        if self.opening_balance is not None and not self.opening_balance.is_finite():
+        if self.opening_balance is not None and (
+            not isinstance(self.opening_balance, Decimal)
+            or not self.opening_balance.is_finite()
+        ):
             raise ValueError(f"opening_balance must be a finite amount, got {self.opening_balance}")
         self._validate_entry_periods(self.entries)
 

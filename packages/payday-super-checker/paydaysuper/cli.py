@@ -29,15 +29,18 @@ EXIT_ERROR = 1
 EXIT_LATE_FOUND = 2
 
 
-def _reconfigure_stdout_for_unicode() -> None:
+def _reconfigure_output_for_unicode() -> None:
     """Redirected stdout on Windows falls back to the locale encoding (cp1252
     under PEP 528), which cannot represent every character a run might need
     to print. The check and import paths both print caller-supplied output
-    filenames, which are exactly as free to carry non-ASCII text. Both call
-    this, once, before their first print()."""
-    reconfigure = getattr(sys.stdout, "reconfigure", None)
-    if reconfigure is not None:
-        reconfigure(encoding="utf-8", errors="backslashreplace")
+    filenames, which are exactly as free to carry non-ASCII text, and the error
+    branches print those same filenames to stderr. Both streams are reconfigured,
+    once, at the top of each entry point, before any branch can print. A raw
+    traceback is never an acceptable failure mode here, only "error: "."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="backslashreplace")
 
 
 def build_parser(*, evidence_pack: bool = False) -> argparse.ArgumentParser:
@@ -196,6 +199,7 @@ def _same_local_path(left: str | Path, right: str | Path) -> bool:
 
 
 def review_pack_main(argv: list[str]) -> int:
+    _reconfigure_output_for_unicode()
     from .practitioner_pack import (
         PractitionerPackError,
         load_report_snapshot,
@@ -226,7 +230,6 @@ def review_pack_main(argv: list[str]) -> int:
         print(f"error: {verb} {target}: {exc.strerror or exc}", file=sys.stderr)
         return EXIT_ERROR
 
-    _reconfigure_stdout_for_unicode()
     print(f"wrote {output}")
     return EXIT_LATE_FOUND if snapshot.needs_attention else EXIT_OK
 
@@ -267,6 +270,7 @@ def _profile_line(label: str, profile: Profile) -> str:
 
 
 def import_main(argv: list[str]) -> int:
+    _reconfigure_output_for_unicode()
     from .importers import (
         OUTCOME_MATCHED,
         OUTCOME_OVER,
@@ -326,7 +330,6 @@ def import_main(argv: list[str]) -> int:
         print(f"error: {verb} {target}: {exc.strerror or exc}", file=sys.stderr)
         return EXIT_ERROR
 
-    _reconfigure_stdout_for_unicode()
 
     lines = [
         _profile_line("payroll", report.payroll_profile),
@@ -419,6 +422,7 @@ def main(argv: list[str] | None = None) -> int:
         return import_main(argv[1:])
     if argv and argv[0] == "review-pack":
         return review_pack_main(argv[1:])
+    _reconfigure_output_for_unicode()
     evidence_pack = bool(argv and argv[0] == "evidence-pack")
     args = build_parser(evidence_pack=evidence_pack).parse_args(argv[1:] if evidence_pack else argv)
 
@@ -533,7 +537,6 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, ArithmeticError, OSError) as exc:
             print(f"error: {exc}", file=sys.stderr)
             return EXIT_ERROR
-        _reconfigure_stdout_for_unicode()
         print(f"wrote evidence pack to {args.output}")
         return EXIT_LATE_FOUND if json.loads(files["exceptions.json"])["exceptions"] else EXIT_OK
 
@@ -561,7 +564,6 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: cannot write {args.output}: {exc.strerror or exc}", file=sys.stderr)
         return EXIT_ERROR
 
-    _reconfigure_stdout_for_unicode()
     try:
         summary = console_summary(
             results,

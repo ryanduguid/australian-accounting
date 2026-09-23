@@ -34,6 +34,22 @@ def test_s100a_check_reports_the_risk_zone_and_the_factors(monkeypatch, capsys):
     assert "Output contains client data." in out
 
 
+def test_a_narrow_console_codepage_does_not_end_the_run():
+    # cp437 holds neither the report's dash nor this beneficiary's name, which ended
+    # the run with a UnicodeEncodeError after the work was done.
+    import os
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "-c", "import sys; from louisgoldberg.cli import main; sys.exit(main())",
+         "s100a-check", "--beneficiary", "Zoë Ŧrust", "--amount", "100"],
+        capture_output=True, env={**os.environ, "PYTHONIOENCODING": "cp437"}, check=False,
+    )
+    assert result.returncode == 0, result.stderr.decode("cp437", "replace")
+    assert b"Section 100A Risk Evaluation" in result.stdout
+
+
 def test_s100a_check_takes_the_stated_receipt_from_the_other_flag(monkeypatch, capsys):
     # Same distribution, the opposite member of the receipt group, and the zone
     # moves. That is the flag reaching the evaluation rather than being dropped.

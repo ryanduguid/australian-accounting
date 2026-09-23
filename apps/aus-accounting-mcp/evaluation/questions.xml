@@ -61,7 +61,7 @@
     </tools>
   </qa_pair>
   <qa_pair id="unknown-rate">
-    <question>With the locked div7a-loan-review 0.1.1 engine, retrieve the 2027-28 benchmark rate in both summary and full detail. What verdict do both responses give? Return only the verdict, without extrapolating a rate.</question>
+    <question>With the locked div7a-loan-review 0.1.4 engine, retrieve the 2027-28 benchmark rate in both summary and full detail. What verdict do both responses give? Return only the verdict, without extrapolating a rate.</question>
     <answer>UNKNOWN</answer>
     <calls>[
       {"name":"get_div7a_benchmark_rate","arguments":{"year_of_income":"2027-28"}},
@@ -84,7 +84,7 @@
     </tools>
   </qa_pair>
   <qa_pair id="audit-consistency">
-    <question>Retrieve the reviewed 2025-26 Division 7A benchmark rate using both summary and full detail. With div7a-loan-review 0.1.1, what exact decimal benchmark_rate string appears in both? Return only that decimal string.</question>
+    <question>Retrieve the reviewed 2025-26 Division 7A benchmark rate using both summary and full detail. With div7a-loan-review 0.1.4, what exact decimal benchmark_rate string appears in both? Return only that decimal string.</question>
     <answer>0.0837</answer>
     <calls>[
       {"name":"get_div7a_benchmark_rate","arguments":{"year_of_income":"2025-26"}},

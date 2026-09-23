@@ -212,10 +212,19 @@ def _pypi_publisher_uses(workflows: dict[str, str]) -> list[tuple[str, str]]:
     )
     uses: list[tuple[str, str]] = []
     for filename, source in sorted(workflows.items()):
+        # _workflow_jobs only reads a job header at exactly 2 spaces, so a workflow
+        # indenting its jobs any other way yielded no jobs and its publisher step was
+        # invisible to the single-publisher guard. Count the declarations in the file
+        # as well, and fail loudly when a job is not parsed.
+        declared = [line for line in _yaml_mapping_lines(source) if action.fullmatch(line)]
+        before = len(uses)
         for job_name, job in _workflow_jobs(source).items():
             uses.extend(
                 (filename, job_name) for line in _yaml_mapping_lines(job) if action.fullmatch(line)
             )
+        assert len(uses) - before == len(declared), (
+            f"{filename} declares a publisher step outside any parsed job"
+        )
     return uses
 
 

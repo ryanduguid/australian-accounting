@@ -64,6 +64,9 @@ def render_image(transcript_path: Path, output_path: Path) -> None:
     image = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(image)
     font = ImageFont.load_default(size=FONT_SIZE)
+    for line in lines:
+        if LEFT_MARGIN + draw.textlength(line, font=font) > WIDTH - LEFT_MARGIN:
+            raise ValueError("quick-proof summary does not fit the image width")
 
     for row, line in enumerate(lines):
         colour = (
