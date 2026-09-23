@@ -59,6 +59,9 @@ solomons-sword = "louisgoldberg.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["louisgoldberg"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"DISCLAIMER.md" = "louisgoldberg/DISCLAIMER.md"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

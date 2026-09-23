@@ -58,6 +58,9 @@ dev = [
 [tool.hatch.build.targets.wheel]
 packages = ["wiptally"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"DISCLAIMER.md" = "wiptally/DISCLAIMER.md"
+
 [tool.hatch.build.targets.sdist]
 include = [
   "/wiptally",

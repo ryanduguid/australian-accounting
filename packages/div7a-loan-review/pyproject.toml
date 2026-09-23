@@ -47,7 +47,7 @@ packages = ["div7aloan"]
 include-package-data = false
 
 [tool.setuptools.package-data]
-div7aloan = ["data/*.csv", "py.typed"]
+div7aloan = ["data/*.csv", "py.typed", "DISCLAIMER.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

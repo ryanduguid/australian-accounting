@@ -48,6 +48,9 @@ the-exchequer-tally = "edwinnixon.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["edwinnixon"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"DISCLAIMER.md" = "edwinnixon/DISCLAIMER.md"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
