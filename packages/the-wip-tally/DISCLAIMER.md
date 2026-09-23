@@ -1,5 +1,7 @@
 # Disclaimer
 
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+
 The WIP Tally builds a construction work-in-progress schedule from the contract
 facts it is handed. It is not accounting, tax, legal, financial, investment,
 BAS-agent, registered-tax-agent, or assurance advice. It is not a journal, a

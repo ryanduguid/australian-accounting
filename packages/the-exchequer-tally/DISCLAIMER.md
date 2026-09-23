@@ -1,5 +1,7 @@
 # Disclaimer
 
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+
 The Exchequer Tally tests base rate entity status, tracks a franking account
 ledger, and applies the Division 203 benchmark rule for Australian companies.
 It is not tax, legal, accounting, financial, investment, BAS-agent,

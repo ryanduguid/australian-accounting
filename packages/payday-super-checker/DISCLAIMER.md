@@ -1,5 +1,7 @@
 # Regulatory disclaimer for Payday Super compliance
 
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+
 ## 1. Statutory scope and notice
 `payday-super-checker` computes statutory due dates under *Superannuation Guarantee (Administration) Act 1992 (SGAA 1992) s 6(1)* for payroll professionals and accountants to review.
 
