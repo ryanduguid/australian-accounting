@@ -14,6 +14,8 @@ service, write to no ledger and lodge nothing. Two boundaries sit outside that: 
 [tool reference](apps/aus-accounting-mcp/README.md#tools) ·
 [scope, limits and examples](https://duguid.com.au/tools/australian-tax-ai-agents/)
 
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+
 Synthetic examples. Review aid, not professional advice; accounting decisions stay with the reviewer.
 
 **Input:** $120 super contribution for payday 6 August 2026, remitted 14 August, with no fund receipt evidence as at 20 August.

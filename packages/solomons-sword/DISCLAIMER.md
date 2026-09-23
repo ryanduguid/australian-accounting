@@ -1,5 +1,7 @@
 # Disclaimer
 
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+
 Solomon's Sword allocates trust income on proportionate entitlement under
 Division 6 of the ITAA 1936 and evaluates caller-supplied facts against
 Section 100A, Section 99B and 30 June resolution requirements. It is not tax,

@@ -1,5 +1,7 @@
 # Disclaimer
 
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+
 `div7a-loan-review` is an experimental review aid for Division 7A of Part III
 of the *Income Tax Assessment Act 1936*. It is not tax, legal, accounting,
 financial, investment, BAS-agent, registered-tax-agent, or assurance advice,
