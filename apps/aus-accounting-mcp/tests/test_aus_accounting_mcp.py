@@ -265,10 +265,12 @@ def _assert_registered_pypi_publisher(workflows: dict[str, str]) -> None:
     assert re.search(r"(?m)^      id-token:\s*write\s*(?:#.*)?$", permissions), (
         "publishing job permissions must grant id-token: write"
     )
-    assert (
-        "name: dist-${{ needs.release.outputs.stem }}-${{ needs.release.outputs.version }}"
-        in publisher_mapping
-    ), "publishing job must download only the distribution the release job attested"
+    assert "artifact-ids: ${{ needs.release.outputs.dist-id }}" in publisher_mapping, (
+        "publishing job must download only the distribution the release job attested"
+    )
+    assert "python policy/scripts/python_release.py verify-candidate" in publisher_job, (
+        "publishing job must verify the candidate before upload"
+    )
     assert "python -m build" not in publisher_job, (
         "publishing job must not rebuild the distribution"
     )
@@ -297,8 +299,9 @@ jobs:
     steps:
       - uses: actions/download-artifact@abc123
         with:
-          name: dist-${{ needs.release.outputs.stem }}-${{ needs.release.outputs.version }}
-          path: dist
+          artifact-ids: ${{ needs.release.outputs.dist-id }}
+          path: candidate
+      - run: python policy/scripts/python_release.py verify-candidate
       - name: Publish
         uses: pypa/gh-action-pypi-publish@abc123
 """,
@@ -1175,7 +1178,7 @@ def test_release_uses_the_hardened_shared_policy_contract() -> None:
 
     assert (
         "uses: ryanduguid/release-policy/.github/workflows/release-python.yml@"
-        "2adf9e19b7c73970a1dd6703afb3f9c27b7972d7"
+        "87767ec809dc7f77bcd45808219adaf67841ae7b"
     ) in release_mapping
     assert "source-directory: apps/aus-accounting-mcp" in release_mapping
     assert "tag-prefix: aus-accounting-mcp" in release_mapping
