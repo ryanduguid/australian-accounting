@@ -73,6 +73,10 @@ def test_disclaimer_resource_carries_the_facade_and_every_engine_boundary() -> N
         assert description in served
     assert "not tax, legal, accounting" in served
     assert "human review" in served
+    assert "Ryan Duguid is not a registered tax agent or BAS agent." in served
+    assert "Ryan Duguid is not a registered tax agent or BAS agent." in _normalise(
+        (ROOT / "DISCLAIMER.md").read_text(encoding="utf-8")
+    )
 
 
 def test_div7a_scope_resource_is_the_refusal_the_tool_returns() -> None:
