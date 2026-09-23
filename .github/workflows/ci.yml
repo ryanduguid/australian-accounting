@@ -98,6 +98,8 @@ jobs:
         with:
           version: "0.12.0"
           enable-cache: true
+          save-cache: ${{ github.ref == 'refs/heads/main' }}
+          prune-cache: true
       # The same branch-coverage gate ci-package.yml runs for the engines, through
       # the pytest-cov the application already pins in its dev extra.
       - name: run tests with branch coverage
@@ -123,6 +125,8 @@ jobs:
         with:
           version: "0.12.0"
           enable-cache: true
+          save-cache: ${{ github.ref == 'refs/heads/main' }}
+          prune-cache: true
       - name: audit the locked project environment
         run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
         working-directory: apps/aus-accounting-mcp
@@ -144,6 +148,8 @@ jobs:
         with:
           version: "0.12.0"
           enable-cache: true
+          save-cache: ${{ github.ref == 'refs/heads/main' }}
+          prune-cache: true
       - run: uv run --locked --extra dev ruff check aus_accounting_mcp tests
         working-directory: apps/aus-accounting-mcp
       - run: uv run --locked --extra dev mypy aus_accounting_mcp

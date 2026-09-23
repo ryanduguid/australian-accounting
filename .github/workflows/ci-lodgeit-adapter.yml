@@ -56,6 +56,8 @@ jobs:
         with:
           version: "0.12.0"
           enable-cache: true
+          save-cache: ${{ github.ref == 'refs/heads/main' }}
+          prune-cache: true
       - name: run tests with branch coverage
         run: uv run --locked --extra dev --extra mcp pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing
         working-directory: apps/lodgeit-calculator-adapter
@@ -80,6 +82,8 @@ jobs:
         with:
           version: "0.12.0"
           enable-cache: true
+          save-cache: ${{ github.ref == 'refs/heads/main' }}
+          prune-cache: true
       - run: uv run --locked --extra dev ruff check lodgeitadapter tests
         working-directory: apps/lodgeit-calculator-adapter
       - run: uv run --locked --extra dev mypy lodgeitadapter
@@ -103,6 +107,8 @@ jobs:
         with:
           version: "0.12.0"
           enable-cache: true
+          save-cache: ${{ github.ref == 'refs/heads/main' }}
+          prune-cache: true
       - name: audit the locked project environment
         run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
         working-directory: apps/lodgeit-calculator-adapter
