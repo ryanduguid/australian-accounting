@@ -171,6 +171,26 @@ def test_review_pack_binds_source_hash(tmp_path: Path) -> None:
     assert "Source SHA-256" in text
 
 
+def test_review_pack_rejects_an_explicitly_empty_as_at(tmp_path: Path) -> None:
+    schedule = tmp_path / "wip-schedule.csv"
+    pack = tmp_path / "practitioner-review.md"
+    assert main(["schedule", str(SAMPLE), "-o", str(schedule), "--as-at", "2026-08-31"]) == 2
+
+    assert main(
+        [
+            "review-pack",
+            str(schedule),
+            "--source",
+            str(SAMPLE),
+            "-o",
+            str(pack),
+            "--as-at",
+            "",
+        ]
+    ) == 1
+    assert not pack.exists()
+
+
 def test_review_pack_rejects_tampered_schedule(tmp_path: Path) -> None:
     schedule = tmp_path / "wip-schedule.csv"
     pack = tmp_path / "practitioner-review.md"
