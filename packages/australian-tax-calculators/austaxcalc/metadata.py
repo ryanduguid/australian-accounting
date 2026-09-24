@@ -16,6 +16,34 @@ RESIDENT_TAX_SCALES: dict[str, tuple[tuple[int, int | None, str], ...]] = {
                 (135000, 190000, "0.37"), (190000, None, "0.45")),
 }
 
+# PAYG withholding coefficients per income year and scale: (weekly earnings
+# upper limit, a, b) for y = a * x - b, where the row applies while weekly
+# earnings x are below the limit; None is no upper limit. Transcribed from
+# Schedule 1 (NAT 1004), "Coefficients to use in formulas for withholding from
+# weekly payments", for payments made from 1 July 2026. The scale 2, 5 and 6
+# rows at a = b = 0 are the ATO's nil rows below the tax-free threshold.
+PAYG_WITHHOLDING_COEFFICIENTS: dict[str, dict[int, tuple[tuple[int | None, str, str], ...]]] = {
+    "2026-27": {
+        1: ((188, "0.1500", "0.1500"), (371, "0.2084", "11.0185"),
+            (515, "0.1790", "0.1066"), (932, "0.3227", "74.1674"),
+            (2246, "0.3200", "71.6508"), (3303, "0.3900", "228.8816"),
+            (None, "0.4700", "493.1893")),
+        2: ((362, "0", "0"), (538, "0.1500", "54.3462"), (673, "0.2500", "108.2135"),
+            (721, "0.1700", "54.3473"), (865, "0.1790", "60.8377"),
+            (1282, "0.3227", "185.1935"), (2596, "0.3200", "181.7319"),
+            (3653, "0.3900", "363.4627"), (None, "0.4700", "655.7704")),
+        3: ((2596, "0.3000", "0.3000"), (3653, "0.3700", "181.7308"),
+            (None, "0.4500", "474.0385")),
+        5: ((362, "0", "0"), (721, "0.1500", "54.3462"), (865, "0.1590", "60.8365"),
+            (1282, "0.3027", "185.1923"), (2596, "0.3000", "181.7308"),
+            (3653, "0.3700", "363.4615"), (None, "0.4500", "655.7692")),
+        6: ((362, "0", "0"), (721, "0.1500", "54.3462"), (865, "0.1590", "60.8365"),
+            (908, "0.3027", "185.1923"), (1135, "0.3527", "230.6135"),
+            (1282, "0.3127", "185.1923"), (2596, "0.3100", "181.7308"),
+            (3653, "0.3800", "363.4615"), (None, "0.4600", "655.7692")),
+    },
+}
+
 SUPPORTED_PERIODS = {
     "gst": ("2025-26",),
     "resident_tax": tuple(RESIDENT_TAX_SCALES),
@@ -23,6 +51,7 @@ SUPPORTED_PERIODS = {
     "fbt": ("2026",),
     "depreciation": ("2025-26",),
     "quarterly_sg": ("2025-26",),
+    "payg_withholding": tuple(PAYG_WITHHOLDING_COEFFICIENTS),
 }
 
 # Preserve the existing rule-review baseline. A Library example check does not
@@ -45,6 +74,11 @@ SOURCE_REVIEWS = {
     "quarterly_sg": {
         "checked": "2026-09-10",
         "passage": "Super guarantee, tables 21 and 24, 2025-26 rows",
+    },
+    "payg_withholding": {
+        "checked": "2026-09-24",
+        "passage": "Schedule 1 (NAT 1004) for payments from 1 July 2026: weekly coefficients, "
+                   "using a formula, working out the weekly earnings",
     },
 }
 
@@ -75,6 +109,13 @@ LIBRARY_EVIDENCE = {
         "document": "superannuation-instant-reference-rates-thresholds-and-checklists",
         "paragraphs": "18-600, 18-620", "reviewed": "2026-06-30", "checked": "2026-09-15",
     },
+    # Not a Library document: the ATO publishes its own sample data for this
+    # schedule, and tests/payg_withholding_sample_2026_27.csv carries all of it.
+    "payg_withholding": {
+        "document": "ATO Schedule 1 withholding amounts sample data",
+        "paragraphs": "weekly, fortnightly and monthly tables",
+        "reviewed": "2026-06-17", "checked": "2026-09-24",
+    },
 }
 
 INPUT_UNITS = {
@@ -94,6 +135,11 @@ INPUT_UNITS = {
         "ordinary_time_earnings": "AUD", "qualifying_contributions": "AUD",
         "quarter": "integer from 1 to 4",
     },
+    "payg_withholding": {
+        "earnings": "AUD, gross earnings and allowances subject to withholding for the pay period",
+        "pay_period": "weekly, fortnightly or monthly",
+        "scale": "integer 1, 2, 3, 5 or 6",
+    },
 }
 
 EXAMPLES: dict[str, dict[str, Any]] = {
@@ -112,6 +158,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
         "ordinary_time_earnings": "80000.00", "qualifying_contributions": "2000.00",
         "quarter": 1,
     },
+    "payg_withholding": {"earnings": "1000.00", "pay_period": "weekly", "scale": 2},
 }
 
 

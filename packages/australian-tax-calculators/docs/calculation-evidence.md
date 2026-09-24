@@ -116,6 +116,24 @@ excluded from this general-rate worksheet. Post-June 2026 annual-base rules,
 contribution timing, eligibility, earnings classification and SGC remain outside
 this calculation.
 
+## PAYG withholding
+
+This worksheet's evidence is not a Library document. The ATO publishes sample
+data for Schedule 1 (NAT 1004) so that payroll software can be checked against
+it, and `tests/payg_withholding_sample_2026_27.csv` holds every value in the
+weekly, fortnightly and monthly tables published on 17 June 2026: 48 earnings
+points for each period on scales 1, 2, 3, 5 and 6, 720 amounts in all.
+`tests/test_payg_withholding.py` requires the worksheet to reproduce each one.
+
+The coefficients in `austaxcalc/metadata.py` were transcribed from the ATO page
+"Coefficients to use in formulas for withholding from weekly payments", and the
+earnings conversion and rounding rules from "Using a formula" and "Working out
+the weekly earnings", all read on 24 September 2026. The sample data checks the
+transcription; it does not establish that a payee's scale, allowances or
+declarations are right. Scale 4, tax offsets, Medicare levy adjustments, study
+and training support loans, 53 and 27 pay years, quarterly pays and the other
+schedules are outside this worksheet.
+
 ## Rechecking the evidence
 
 Resolve the numbered paragraph with the Library helper, read the extract's
