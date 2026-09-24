@@ -1000,7 +1000,7 @@ def test_release_metadata_matches_the_candidate_version() -> None:
     published_version = server["version"]
 
     assert project["version"] == "0.2.9"
-    assert re.search(r"(?m)^version: 0.2.9$", citation)
+    assert re.search(r"(?m)^version: 0\.2\.9$", citation)
     assert "date-released:" not in citation
     assert re.findall(r"(?m)^# (v\S+)$", release_notes)[0] == "v0.2.9"
     assert "ato-benchmark-compare` 0.1.9" in release_notes
