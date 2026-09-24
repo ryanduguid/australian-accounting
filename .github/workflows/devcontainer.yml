@@ -1,9 +1,9 @@
 name: devcontainer
 
-# Starts the image named in .devcontainer/devcontainer.json, runs its setup
-# command, then the fabricated MCP demonstration, so a broken Codespaces setup
-# fails here instead of for a visitor. The push run on main also catches drift
-# in the image tag.
+# Builds the devcontainer with the Dev Containers CLI, which runs its lifecycle
+# commands with the same semantics as Codespaces, then runs the fabricated MCP
+# demonstration inside it. A broken Codespaces setup fails here instead of for
+# a visitor. The push run on main also catches drift in the image tag.
 
 on:
   workflow_dispatch:
@@ -22,58 +22,22 @@ concurrency:
   group: devcontainer-${{ github.ref }}
   cancel-in-progress: true
 
-jobs:
-  config:
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      image: ${{ steps.read.outputs.image }}
-      setup: ${{ steps.read.outputs.setup }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          sparse-checkout: .devcontainer
-      - id: read
-        name: Read the image and setup command
-        run: |
-          python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import json
-          import shlex
-          config = json.load(open(".devcontainer/devcontainer.json"))
-          def shell(command):
-              # A string runs through a shell; an array runs as argv, so quote it.
-              return command if isinstance(command, str) else shlex.join(command)
-          command = config["postCreateCommand"]
-          if isinstance(command, dict):
-              # An object's commands run in parallel; fail if any one fails.
-              starts = "".join(f'( {shell(part)} ) & pids="$pids $!"; ' for part in command.values())
-              setup = (f'pids=""; {starts}status=0; '
-                       'for pid in $pids; do wait "$pid" || status=1; done; exit "$status"')
-          else:
-              setup = shell(command)
-          print(f"image={config['image']}")
-          # JSON keeps a multi-line command on one output line.
-          print(f"setup={json.dumps(setup)}")
-          PY
+env:
+  DEVCONTAINER_CLI: "@devcontainers/cli@0.89.0"
 
+jobs:
   setup:
-    needs: config
     permissions:
       contents: read
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    container: ${{ needs.config.outputs.image }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Run the devcontainer setup command
-        env:
-          SETUP: ${{ fromJSON(needs.config.outputs.setup) }}
-        run: sh -c "$SETUP"
-      - name: Run the fabricated demonstration
-        working-directory: apps/aus-accounting-mcp
-        run: uv run --locked aus-accounting-mcp-demo > /dev/null
+      - name: Build the devcontainer and run its setup
+        run: npx --yes "$DEVCONTAINER_CLI" up --workspace-folder .
+      - name: Run the fabricated demonstration inside it
+        run: >-
+          npx --yes "$DEVCONTAINER_CLI" exec --workspace-folder .
+          sh -c 'cd apps/aus-accounting-mcp && uv run --locked aus-accounting-mcp-demo > /dev/null'
