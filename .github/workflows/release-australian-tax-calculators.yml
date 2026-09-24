@@ -36,6 +36,7 @@ jobs:
         .github/workflows/ci.yml: australian-tax-calculators / test (3.10)
         .github/workflows/ci.yml: australian-tax-calculators / test (3.12)
         .github/workflows/ci.yml: australian-tax-calculators / test (3.13)
+        .github/workflows/ci.yml: australian-tax-calculators / test (3.14)
         .github/workflows/ci.yml: australian-tax-calculators / test-windows
         .github/workflows/boundaries.yml: boundaries
         .github/workflows/codeql.yml: Analyze Python

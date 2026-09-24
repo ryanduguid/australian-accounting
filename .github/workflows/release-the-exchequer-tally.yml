@@ -36,6 +36,7 @@ jobs:
         .github/workflows/ci.yml: the-exchequer-tally / test (3.10)
         .github/workflows/ci.yml: the-exchequer-tally / test (3.12)
         .github/workflows/ci.yml: the-exchequer-tally / test (3.13)
+        .github/workflows/ci.yml: the-exchequer-tally / test (3.14)
         .github/workflows/boundaries.yml: boundaries
         .github/workflows/codeql.yml: Analyze Python
       source-directory: packages/the-exchequer-tally
