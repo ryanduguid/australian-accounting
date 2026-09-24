@@ -1,3 +1,16 @@
+# v0.2.9
+
+- Pin `australian-tax-calculators` 0.1.6 and add its `contribution_caps` and
+  `pension_minimum` worksheets to `calculate_tax_worksheet`, for 2024-25 to
+  2026-27: cap room, excess and bring-forward for one person's classified
+  contributions, and the SISR Schedule 7 minimum for one account-based
+  pension. Retain the `ato-benchmark-compare` 0.1.9, `payday-super-checker`
+  0.1.7 and `div7a-loan-review` 0.1.4 pins.
+- Count nine worksheets in the server instructions, scope resource, README,
+  reference and registry descriptions, and narrow the unsupported SMSF and
+  contribution-cap topics to what the worksheets leave out.
+- Align the release, citation, compatibility and MCP Registry metadata to 0.2.9.
+
 # v0.2.8
 
 - `search_tax_legislation` and `search_tax_rates` return the best match first
