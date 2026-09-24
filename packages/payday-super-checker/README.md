@@ -69,9 +69,9 @@ The [receipt amount evaluation](evaluation/receipt_amount/README.md) records wha
 0.1.7 does when a fund-receipt date has no amount, a part amount or only a
 remitted amount, and how it refuses a payday before 1 July 2026.
 
-The [OpenAccountants handoff](docs/openaccountants-handoff.md) takes a fabricated
-quarterly remittance that a 2024-25 quarterly working paper marks as paid on time and
-shows 0.1.7 finding all 7 of its 2026-27 paydays late.
+The [OpenAccountants handoff](docs/openaccountants-handoff.md) runs a fabricated
+quarterly remittance through the OpenAccountants Payday Super working paper and 0.1.7,
+which agree that all 7 of its 2026-27 paydays are late.
 
 ## Try one contribution without cloning
 

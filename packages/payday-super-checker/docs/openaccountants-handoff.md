@@ -1,41 +1,43 @@
 # From an OpenAccountants guide to a Payday Super check
 
 A worked handoff on fabricated data. The OpenAccountants
-[`au-super-guarantee` guide](https://github.com/openaccountants/openaccountants/blob/c4c1212ce5dac374ceda90abd7b12a7f1558a0b3/agent-skills/au-super-guarantee/SKILL.md)
-(read at commit `c4c1212`, 25 September 2026) helps a preparer gather the facts for
-super guarantee work. This checker then tests the timing of each contribution against
-the Payday Super deadlines. The guide is linked, not copied: its content carries the
-OpenAccountants Guide License, separate from this repository's MIT licence.
+[`au-super-guarantee` guide](https://github.com/openaccountants/openaccountants/blob/c4c1212ce5dac374ceda90abd7b12a7f1558a0b3/skills/international/australia/au-super-guarantee.md)
+(version 3.3, read at commit `c4c1212` on 25 September 2026) sets out the Payday Super
+rules and a per-payday working paper. This checker takes the same facts and computes
+each contribution's due date, lateness and experimental SG charge estimate. The guide is
+linked, not copied: its content carries the OpenAccountants Guide License, separate from
+this repository's MIT licence.
 
-## Why the handoff matters for 2026-27
-
-At that commit the guide is written for 2024-25. Its quick reference notes that
-Payday Super commences on 1 July 2026, but its deadline rule and working paper still
-test each quarter's contributions against the quarterly due date (28 October for July
-to September). From 1 July 2026 the deadline runs from each payday instead: usually 7
-business days to fund receipt. A working paper that follows the quarterly rule can mark
-a 2026-27 contribution as paid on time when it is not.
-
-The guide's own disclaimer and "Validated by: Pending" status apply. Nothing here
+The guide's own disclaimer and `review_status: pending_review` apply. Nothing here
 reviews or certifies the guide.
+
+## Which copy of the guide
+
+Read the maintained guide under `skills/`. At the same commit the repository also holds
+an [Agent Skills export](https://github.com/openaccountants/openaccountants/blob/c4c1212ce5dac374ceda90abd7b12a7f1558a0b3/agent-skills/au-super-guarantee/SKILL.md),
+generated on 21 July 2026 and not regenerated since. That copy is version 2.0, written
+for 2024-25, and still tests contributions against quarterly due dates. An agent that
+loads the export gets the old rule; the maintained guide says never to apply quarterly
+due dates to earnings paid from 1 July 2026.
 
 ## The fabricated case
 
 EMP101 is paid fortnightly from 2 July 2026, with $480.00 super guarantee on each of 7
 paydays in the July to September quarter. The employer pays the whole quarter in one
-remittance on 20 October 2026, and the fund receives it on 22 October, before 28 October.
+remittance on 20 October 2026, and the fund receives it on 22 October. Under the old
+quarterly rule that would have met the 28 October due date.
 
 | Guide working paper field | Value from the case | Checker column |
 | --- | --- | --- |
-| Employee name | EMP101 (pseudonym) | `employee_id` |
+| Employee | EMP101 (pseudonym) | `employee_id` |
+| Payday | each of the 7 paydays | `payment_date` |
 | SG contribution | $480.00 per payday | `sg_amount` |
-| Due date | 28 October 2026 (quarterly rule) | derived per payday, not supplied |
-| Paid on time | YES under the quarterly rule | `verdict`, derived |
-| (evidence behind "paid") | remitted 20 October, received 22 October | `remitted_date`, `fund_received_date`, `matched_amount` |
+| Fund receipt deadline (QE day + 7 business days) | worked out per payday | `due_date`, derived |
+| Fund receipt confirmed | received 22 October, $480.00 per payday | `fund_received_date`, `matched_amount` |
 
 The case is in [`examples/quarterly_remittance_2026_27.csv`](../examples/quarterly_remittance_2026_27.csv).
-The checker needs each payday as its own row, which the guide's per-quarter working
-paper does not record. Collecting pay dates is the main extra step in the handoff.
+The guide's bank statement notes flag a quarterly-sized lump after June 2026 as possible
+regime confusion; this case is that pattern.
 
 ## Run it
 
@@ -56,8 +58,10 @@ before any assessment, the final shortfall is nil, and what remains is notional 
 and uplift: `experimental estimated SG charge $62.49 - $99.98` across the 7 lines. The
 checker labels these figures experimental estimates; the ATO assesses the charge.
 
-So the same facts give two answers: on time under the guide's quarterly working paper,
-late on all 7 paydays under Payday Super.
+The maintained guide and the checker agree that all 7 contributions are late. The guide
+gives the rule and the working paper; the checker adds the per-payday dates, the day
+counts and the estimate. The outdated Agent Skills export would have marked the quarter
+as paid on time.
 
 ## What stays with the reviewer
 
@@ -68,7 +72,6 @@ late on all 7 paydays under Payday Super.
   checker's report says how the last payday changes if it was.
 - What to do about the late contributions, including any voluntary disclosure. The
   estimate range depends on facts the checker does not have.
-- Whether the guide should be updated for 2026-27. That is a matter for its maintainers.
 
 `tests/test_openaccountants_handoff.py` reruns this case against the engine in this
 directory and checks the figures above.
