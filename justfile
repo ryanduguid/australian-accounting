@@ -35,7 +35,7 @@ test: setup
     #!/usr/bin/env bash
     set -euo pipefail
     echo "==> repository boundaries"
-    uv run --no-sync python -m unittest -v tests/test_boundaries.py
+    uv run --no-sync python -m unittest -v tests/test_boundaries.py tests/test_shared_blocks.py
     for entry in {{ components }}; do
         directory="${entry%%:*}"
         echo "==> ${directory}"

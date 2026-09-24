@@ -54,12 +54,20 @@ GROUPS = {
 
 def _definitions(path: Path) -> dict[str, str]:
     """Every top-level definition and simple assignment, by name, as written."""
-    text = path.read_text(encoding="utf-8")
+    return _definitions_in(path.read_text(encoding="utf-8"))
+
+
+def _definitions_in(text: str) -> dict[str, str]:
+    lines = text.splitlines(keepends=True)
     found: dict[str, str] = {}
     for node in ast.parse(text).body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-            name: str | None = node.name
-        elif (
+            # A decorator such as @contextmanager changes behaviour, so the
+            # compared source starts at the first decorator, not at `def`.
+            start = min([node.lineno, *(d.lineno for d in node.decorator_list)])
+            found[node.name] = "".join(lines[start - 1 : node.end_lineno])
+            continue
+        if (
             isinstance(node, ast.Assign)
             and len(node.targets) == 1
             and isinstance(node.targets[0], ast.Name)
@@ -93,6 +101,16 @@ def _executable(source: str) -> str:
 
 
 class SharedBlockTests(unittest.TestCase):
+    def test_a_decorator_is_part_of_the_compared_definition(self) -> None:
+        plain = "def writer():\n    yield\n"
+        decorated = "@contextmanager\n" + plain
+        self.assertNotEqual(
+            _definitions_in(plain)["writer"], _definitions_in(decorated)["writer"]
+        )
+        self.assertNotEqual(
+            _executable(_definitions_in(plain)["writer"]),
+            _executable(_definitions_in(decorated)["writer"]),
+        )
     def test_every_pinned_name_is_still_defined_in_every_copy(self) -> None:
         """A renamed or deleted helper must fail here, not quietly stop being compared."""
         for group, spec in GROUPS.items():
