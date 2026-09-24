@@ -68,7 +68,7 @@ uv run --locked --extra dev ruff check .
 uv run --locked --extra dev mypy
 uv run --locked --extra dev pytest --cov --cov-branch --cov-report=term-missing --cov-report=xml
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
-uv run --locked --extra dev --python 3.12 python -m build
+uv run --locked --extra dev --python 3.14 python -m build
 ```
 
 CI also checks that the engine's own `uv.lock` still resolves on its own. Inside the
@@ -131,7 +131,7 @@ release callers require that test job; no second pytest run is needed.
 - `ci-package.yml` gives every engine the same gates from the engine's own directory,
   the same definition `ryanduguid/accounting-review-pipeline` uses for its components: a
   check that the engine's own `uv.lock` resolves on its own, `ruff`, `mypy`, `pytest` with
-  branch coverage on Python 3.10, 3.12 and 3.13 (the floor and ceiling of the declared
+  branch coverage on Python 3.10, 3.12, 3.13 and 3.14 (the floor and ceiling of the declared
   `requires-python`), a `pip-audit` dependency audit, and a build of the distribution
   followed by an install of the one built wheel into a clean environment, an import of
   the engine from it, and the engine's own wheel smoke script. `ato-benchmark-compare`,
