@@ -1,4 +1,4 @@
-# Unreleased
+# v0.2.8
 
 - `search_tax_legislation` and `search_tax_rates` return the best match first
   instead of in corpus file order: the query as a phrase in a heading, then every
@@ -22,6 +22,9 @@
 - `aus-accounting-mcp --version` and `--help` print and exit instead of starting
   the server; an unknown argument is refused.
 - Two evaluation cases cover ranking and reading a long provision in parts.
+- Retain the `ato-benchmark-compare` 0.1.9, `payday-super-checker` 0.1.7,
+  `div7a-loan-review` 0.1.4 and `australian-tax-calculators` 0.1.5 pins.
+- Align the release, citation, compatibility and MCP Registry metadata to 0.2.8.
 
 # v0.2.7
 
