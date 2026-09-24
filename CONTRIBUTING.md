@@ -91,7 +91,7 @@ The 2 applications and the repository boundary checks use their own commands:
 |---|---|---|
 | Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev mypy aus_accounting_mcp` |
 | LodgeiT calculator adapter | `apps/lodgeit-calculator-adapter/` | `uv run --locked --extra dev pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check lodgeitadapter tests`; `uv run --locked --extra dev mypy lodgeitadapter`. Its gates run from `.github/workflows/ci-lodgeit-adapter.yml`, not `ci.yml`. |
-| Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py` |
+| Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py tests/test_shared_blocks.py` |
 
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,
 so a gate behaves the same wherever it runs, and the workspace resolution takes the same
