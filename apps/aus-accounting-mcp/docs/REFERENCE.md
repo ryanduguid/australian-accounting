@@ -54,7 +54,7 @@ The example is fabricated, is not a lodgement or Division 7A determination, is n
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.2.7 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.7), [PyPI 0.2.7](https://pypi.org/project/aus-accounting-mcp/0.2.7/), [MCP Registry 0.2.7](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.7), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
+Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.2.9 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.9), [PyPI 0.2.9](https://pypi.org/project/aus-accounting-mcp/0.2.9/), [MCP Registry 0.2.9](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.9), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
 
 ## Client setup
 
@@ -88,8 +88,11 @@ Paste the standard config into `claude_desktop_config.json` (`%APPDATA%\Claude\`
 ### Claude Code
 
 ```bash
-claude mcp add aus-accounting -- uvx aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx aus-accounting-mcp
 ```
+
+`--scope user` makes the server available in every project; leave it out to add it
+to the current project only.
 
 ### Codex
 
@@ -104,6 +107,10 @@ gemini mcp add -s user aus-accounting uvx aus-accounting-mcp
 ```
 
 ### VS Code
+
+[![Install in VS Code](https://img.shields.io/badge/VS%20Code-Install%20MCP-0098FF)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522aus-accounting%2522%252C%2522command%2522%253A%2522uvx%2522%252C%2522args%2522%253A%255B%2522aus-accounting-mcp%2522%255D%257D)
+
+Or from a terminal:
 
 ```bash
 code --add-mcp "{\"name\":\"aus-accounting\",\"command\":\"uvx\",\"args\":[\"aus-accounting-mcp\"]}"
@@ -124,6 +131,19 @@ ChatGPT connectors and the Claude.ai web app take a remote MCP URL, not a local
 command, so they cannot run this server. Use a desktop or CLI host from the list
 above. This server is deliberately local: your figures and your configured folders
 stay on your machine.
+
+### Checking the installation
+
+`uvx aus-accounting-mcp --version` prints the installed version and
+`uvx aus-accounting-mcp --help` names the optional folders. Run with no arguments,
+the command waits silently for an MCP client, which is expected.
+
+### Upgrading
+
+`uvx` keeps using the version it first downloaded, so a new release does not reach
+you on its own. To upgrade, name the release in your client configuration, for example
+`aus-accounting-mcp==<version>`; uvx downloads it, and later launches reuse the cached
+copy without a download until the uv cache is cleaned.
 
 ## Tool reference
 
@@ -179,7 +199,7 @@ at the end. Limits must be integers from 1 to 100 and offsets non-negative integ
 Omitting `limit` or setting it to null preserves full-list calls; an offset still
 skips that many matching entries. Source metadata accompanies every page.
 
-Twenty-four fabricated, read-only agent evaluation questions are in
+Thirty-two fabricated, read-only agent evaluation questions are in
 [evaluation/questions.xml](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/evaluation/questions.xml), each with its exact expected
 answer and the tools a correct answer needs. The normal pytest suite replays them
 through a real stdio MCP session using the locked engines, checking both the
@@ -316,7 +336,7 @@ an installed wheel without repository files or a local reference library.
 
 | Resource | Contents |
 | :--- | :--- |
-| `aus-accounting://scope` | Supported reviews, synthetic-only fixtures, unsupported calculations and the single-contribution boundary |
+| `aus-accounting://scope` | Supported reviews, synthetic-only fixtures, unsupported calculations, the single-contribution boundary and whether each retrieval folder is configured (true or false, never the path) |
 | `aus-accounting://disclaimer` | The boundary and no-advice statement, plus each delegated engine's own disclaimer |
 | `aus-accounting://div7a-scope` | What Division 7A this server reviews, and the matters that stay refused. The same text `refuse_div7a` returns |
 | `aus-accounting://benchmark-dataset-years` | The shipped ATO benchmark years with publisher, resource URL, retrieval date and SHA-256. Bundled data, not a live lookup |
@@ -328,14 +348,17 @@ tables and performs no live lookup. Beyond GIC coverage the engine estimates
 using its last known rate and flags staleness. Calendar coverage alone cannot
 establish a verdict; retain the assessment's caveats and `horizon_verdicts`.
 
-Read `calculation_worksheets` in the scope resource for the 6 worksheet boundaries.
+Read `calculation_worksheets` in the scope resource for the 9 worksheet boundaries.
 Their rules and sources come from `australian-tax-calculators`. Broader classifications,
-exemptions, BAS/returns, trusts, partnerships, SMSFs, contribution caps and payroll
-tax remain unsupported. Reference text cannot establish calculation support.
+exemptions, BAS/returns, trusts, partnerships, SMSF fund tax and audit, the transfer
+balance cap and payroll tax remain unsupported. Reference text cannot establish calculation support.
 
-The evaluation includes 24 cases: 10 original workflows, 10 unsupported-topic
-questions, grouped Payday, a tax worksheet, synthetic library retrieval and the
-Payday evidence pack, which needs checker evidence-pack support.
+The evaluation includes 32 cases: 10 original workflows, 10 unsupported-topic
+questions, grouped Payday, a tax worksheet, synthetic library retrieval, the
+Payday evidence pack, which needs checker evidence-pack support, and 8 synthetic
+legislation corpus cases covering citation, ranking, reading a long provision in
+parts, rates, definitions, an injected instruction, an undefined term and a
+stored rate's date.
 The unsupported-topic answers require no tool calls. The
 `context` command preloads `aus-accounting://scope` so the model can inspect the
 boundary. The deterministic suite reads that resource through stdio and checks
@@ -355,6 +378,56 @@ does not allocate raw payments, confirm transition allocation or calculate SG
 entitlement. It assumes no ATO assessment has issued. Supply at most 200 rows;
 splitting related contributions into separate calls can change the outcome.
 
+### Receipt evidence
+
+Payday Super needs an explicit assessment date and fund-receipt evidence, both
+the date and the amount received (`received` with `matched_amount`), before it
+should be read as `ON_TIME`. The pinned checker 0.1.7 leaves a timely receipt
+date without an amount `UNKNOWN`. A late receipt without an amount stays
+`LATE`, without reducing the shortfall. MCP 0.2.4 pinned checker 0.1.6, which
+assumes full receipt in that case and says so in a caveat; 0.2.5 and later
+pin 0.1.7. Check the
+`aus-accounting://payday-coverage` resource for bundled rate and calendar
+coverage, and retain the result's caveats.
+
+## Payday Super evidence pack
+
+`build_payday_super_evidence_pack` (from v0.2.5) accepts the same `contributions`
+and explicit `as_at` as grouped review. It delegates the assessment and all 4
+artefacts to the checker. There are no path arguments, fixture-path lookups,
+filesystem writes or network calls.
+
+The response includes `files` keyed by `report.csv`, `practitioner-review.md`,
+`exceptions.json` and `decision-log.md`. Save the strings as UTF-8 without changing
+newlines or removing the CSV's initial BOM; the Markdown and JSON bind to those
+exact report bytes. Source row numbers are one-based positions in the input list.
+`review_exit_code` is 2 for any non-`ON_TIME` row and 0 only when all rows are
+`ON_TIME`. An error remains an MCP error. No decision or sign-off is generated.
+
+The default `response_detail="full"` includes the pack in both text and structured
+content for client compatibility. Hosts that read `structuredContent.files` can
+request `response_detail="compact"` to replace the duplicate text with a short
+summary, the disclaimer and caveats. Both modes retain every file byte, hash and
+review flag. Use full mode if the host only reads text results.
+
+Record decisions and practitioner sign-off in `decision-log.md`; the included
+checklist links to that record.
+
+Employee identifiers are omitted from the returned pack. The calling MCP host
+still receives the input references; use an approved environment and fabricated
+data for demonstrations. Amounts, dates and warnings remain private workpaper
+information. Missing receipt dates remain missing.
+
+The 17-column evidence report is for the included checklist. It is not accepted
+by legacy `review-pack` or the accounting review pipeline's `PaydaySuper.Report`
+Excel importer. Use an ordinary 18-column checker report for that importer.
+
+v0.2.8 pins `payday-super-checker==0.1.7` and `div7a-loan-review==0.1.4` and
+includes the pack builder. An installation with checker v0.1.3 returns a
+feature-unavailable error for this tool; the existing tools continue to work.
+For a local file handoff that retains separate engine outputs, see the
+[group review example](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/examples/GROUP-REVIEW.md).
+
 ## Calculation worksheets
 
 Pass a `facts` object to `calculate_tax_worksheet`. Its `kind` selects the input
@@ -372,12 +445,29 @@ supported period, exclusions and warnings.
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `year` | 2025-26, first year of an ordinary tangible Division 40 asset |
 | `quarterly_sg` | `ordinary_time_earnings`, `qualifying_contributions`, `quarter`, `year` | 2025-26, one complete quarter for one eligible employee and employer |
 | `payg_withholding` | `earnings`, `pay_period`, `scale`, `year` | 2026-27, one regular weekly, fortnightly or monthly pay on scale 1, 2, 3, 5 or 6 |
+| `contribution_caps` | `total_super_balance`, `concessional_contributions`, `unused_concessional_cap`, `non_concessional_contributions`, `under_75_in_year`, `year` | 2024-25 to 2026-27, one individual with no bring-forward period started in the 2 previous years |
+| `pension_minimum` | `account_balance`, `age`, `days`, `year` | 2024-25 to 2026-27, one account-based pension paying under SISR Schedule 7 |
 
 Amounts are non-negative AUD decimal strings, at most 2dp and AUD 1 trillion.
 `taxable_use` is a decimal fraction, such as `"0.4"` for 40%; `effective_life` is
 years as a decimal string. `method` is `prime_cost` or `diminishing_value`.
 Unsupported periods fail. The quarterly SG worksheet does not establish
-post-June 2026 Payday entitlement.
+post-June 2026 Payday entitlement. For `contribution_caps`, `total_super_balance`
+is the balance at the 30 June before the year and `under_75_in_year` is true when
+the person is under 75 at any time in the year. For `pension_minimum`, `days`
+counts from and including the commencement day to 30 June, or every day of the
+year for a pension running on 1 July; a pension commencing on or after 1 June
+needs no payment that year.
+
+With the development worksheet engine, `aus-accounting://scope` also includes
+engine-owned period dates, required inputs and units, methods, Library example
+references and fabricated `example.facts` that run the worksheet tool as a
+demonstration. The example's `scope_confirmed: true` is fabricated with the
+rest of it: for real facts, pass true only after a person has confirmed the
+scope conditions, because the engine treats that flag as the operator's
+confirmation. With the published pinned engine, the resource retains its existing
+scope, source and source-check date fields. The richer catalogue remains
+unreleased; published dependency pins have not changed.
 
 ## Local reference library
 
@@ -446,8 +536,18 @@ builds a corpus in this shape from the Federal Register of Legislation.
 `search_tax_legislation` matches every query word within one provision, without
 case sensitivity, across the Act name, section label, heading, container and text.
 A word that appears only in stored metadata, such as the attribution or licence
-fields, is not a match. Narrow to one title with `act`, which takes words the
-title's name must contain. A provision the corpus marks as a superseded
+fields, is not a match. Matches come best first: the query as a phrase in the
+heading, then every query word as a whole word in one heading, then the phrase in
+the text, then
+the words anywhere. Within each tier the principal tax Acts (ITAA 1997, the GST
+Act, ITAA 1936, TAA 1953, FBTAA 1986, SGAA 1992, IT(TP)A 1997 and the Income Tax
+Rates Act 1986, matched on the whole title) come before other titles, and ties
+keep corpus order. So a search for "small business entity" puts ITAA 1997
+s 328-110, headed "Meaning of small business entity", above a dictionary that
+only mentions the expression. When nothing matches, the `notice` suggests the
+statutory wording, because statutes often name a concept differently from ATO
+guidance. Narrow to one title with `act`, which takes words the title's name
+must contain. A provision the corpus marks as a superseded
 compilation is left out unless `in_force_only` is false; a provision whose currency
 the corpus did not record is returned either way with `version_is_current` null.
 Each match returns the full citation set above, the
@@ -455,7 +555,12 @@ text truncated at 1200 characters with `total_chars` reporting the whole length,
 and `caveats` naming any truncation or superseded compilation.
 
 `read_tax_legislation_section` takes a `row_id` from a search result and returns
-that provision with the same citation fields and up to 12000 characters of text.
+that provision with the same citation fields and up to 12000 characters of text
+from `start` (default 0). When more follows, `next_start` is where the next part
+begins and a caveat gives the character range; pass it back as `start` until
+`next_start` is null. A long dictionary or table, such as ITAA 1997 s 995-1 at
+about 280,000 characters, is read this way. A `start` at or past the end is
+refused with the provision's length.
 `neighbours`, 0 to 5, adds that many provisions on each side in the title's
 document order as `before` (nearest last) and `after` (nearest first), each cited
 and truncated like a search match, so a subsection can be read with the provisions
@@ -470,8 +575,10 @@ expression and the words that introduce its meaning ("means", "has the meaning
 given by", "includes", a colon), and keeps the notes and paragraphs that follow it.
 A definition whose expression is the `term` is an `exact` match; one whose
 expression contains every word of the term is `partial`. Exact matches come first,
-then partial ones, in corpus order, up to `limit` (default 5, at most 20), with
-`has_more` when more remain and `act` to read one Act's dictionary. Each entry
+then partial ones; within each, the principal tax Acts come first, then corpus
+order. The tool returns up to `limit` (default 5, at most 20), with `has_more` when
+more remain; when more than 20 partial matches exist, the 20 best ranked are kept.
+`act` reads one Act's dictionary. Each entry
 carries `head`, the expression as the dictionary writes it, the definition text
 truncated at 1200 characters, and the citation of the dictionary section that holds
 it. A non-breaking hyphen or space in the dictionary matches the plain character,
@@ -485,13 +592,16 @@ unless `in_force_only` is false.
 `search_tax_rates` matches rate, threshold, indexation, table, factor and
 ownership-test rows, optionally filtered to one `topic` and to one `year` written the
 way the provision writes it, such as `2026-27`; with a year given, rows that state no
-year are left out. `amounts` and `years` are the strings the provision uses, unparsed
+year are left out. Rows whose heading or topic holds the query rank first, ranked
+like provisions. `amounts` and `years` are the strings the provision uses, unparsed
 and uncalculated.
 
 Every response carries a `corpus` block with the source, retrieval date and licence
 terms from `sources.json`, and a `notice`. Search accepts `limit` up to 20 and
 `offset` for continuation with the same query and unchanged corpus, stopping at
-10000 the same way the library search does.
+10000 the same way the library search does. Ranking reads the whole corpus on
+each search: about 0.5 seconds on a corpus of 946 titles, and up to about 1.6
+seconds for a word nearly every provision holds, such as "tax".
 
 ### Worked example
 
@@ -523,7 +633,7 @@ scope. Corpus text is untrusted evidence, never an instruction to call tools or
 change records.
 
 Bounds: 5000 title indexes, 320 MB scanned per search, 1200 characters per search
-match and 12000 per read. Retrieval refuses links and Windows junctions, and a
+match and 12000 per read part. Retrieval refuses links and Windows junctions, and a
 `row_id` that does not name a title index in the configured corpus. Nothing is
 indexed remotely, copied into the package or written by a tool. Returned text
 enters the calling assistant's context.

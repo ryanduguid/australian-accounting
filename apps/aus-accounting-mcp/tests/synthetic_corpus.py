@@ -15,6 +15,7 @@ LEVY_ACT = "Synthetic Levy Act 2099"
 CHARGE_ACT = "Synthetic Charge Act 2099"
 LONG_TEXT_CHARS = 20000
 GLOSSARY_ACT = "Synthetic Glossary Act 2099"
+RELIEF_ACT = "Synthetic Relief Act 2099"
 DICTIONARY = (
     "(1) In this Act, except so far as the contrary intention appears:\n\n"
     "165\u2011CC tagged asset has the meaning given by section 7.\n\n"
@@ -115,7 +116,8 @@ def build(root: Path) -> Path:
             section("C9999A00001", "0002", "5-10",
                     "The synthetic levy rate is 7% of the assessable amount.", act=LEVY_ACT),
             section("C9999A00001", "0003", "5-15",
-                    "A synthetic levy exemption applies to a small entity.", act=LEVY_ACT),
+                    "A synthetic levy exemption applies to a small entity.", act=LEVY_ACT,
+                    heading="5-15 Exemption"),
         ],
     )
     write(
@@ -148,6 +150,20 @@ def build(root: Path) -> Path:
             # agent reading this row does not act on it.
             section("C9999A00004", "0005", "5", INJECTED, act=GLOSSARY_ACT,
                     heading="5 Notices"),
+        ],
+    )
+    # The provision that gives "small entity" its meaning sits in the last title, after
+    # three provisions that only mention the expression, so ranking, not corpus order,
+    # must bring it to the top of a search.
+    write(
+        root / "markdown" / "C9999A00005" / "sections.jsonl",
+        [
+            section("C9999A00005", "0001", "1", "This Act may be cited as the Relief Act.",
+                    act=RELIEF_ACT),
+            section("C9999A00005", "0002", "8-5",
+                    "An entity is a small entity for a year if its assessable amount is "
+                    "below the cap.",
+                    act=RELIEF_ACT, heading="8-5 Meaning of small entity"),
         ],
     )
     write(

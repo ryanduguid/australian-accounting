@@ -67,7 +67,8 @@ async def _answer(session, case):
 
     if case in {"grouped-payday", "worksheet-gst", "library-reference", "payday-evidence-pack",
                 "legislation-citation", "legislated-rate", "statutory-definition",
-                "injected-instruction", "undefined-term", "stored-rate-date"}:
+                "injected-instruction", "undefined-term", "stored-rate-date",
+                "ranked-provision", "long-provision"}:
         reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
         results = [await call(c["name"], **c["arguments"])
                    for c in json.loads(reference.text)]
@@ -90,6 +91,14 @@ async def _answer(session, case):
             return results[0]["section"]["section"]
         if case == "undefined-term":
             return "NONE_FOUND" if not results[0]["definitions"] else "FOUND"
+        if case == "ranked-provision":
+            return results[0]["matches"][0]["section"]
+        if case == "long-provision":
+            # Every part was read, in order, and together they are the whole provision.
+            assert [part["next_start"] for part in results] == [12000, None]
+            total = results[-1]["section"]["total_chars"]
+            assert sum(len(part["section"]["text"]) for part in results) == total
+            return str(total)
         if case == "stored-rate-date":
             return results[0]["matches"][0]["compilation_date"]
         return results[-1]["text"]

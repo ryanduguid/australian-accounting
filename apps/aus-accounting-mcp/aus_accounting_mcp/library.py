@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from .errors import InputError
+from .errors import NOT_CONFIGURED, InputError
 
 MAX_FILE_BYTES = 8_000_000
 MAX_LIBRARY_BYTES = 64_000_000
@@ -30,10 +30,14 @@ NOTICE = (
 def _root() -> Path:
     configured = os.environ.get("AUS_ACCOUNTING_LIBRARY_ROOT")
     if not configured:
-        raise InputError("Set AUS_ACCOUNTING_LIBRARY_ROOT to an authorised Markdown folder.")
+        raise InputError(
+            "Set AUS_ACCOUNTING_LIBRARY_ROOT to an authorised Markdown folder. " + NOT_CONFIGURED
+        )
     root = Path(configured).resolve()
     if not root.is_dir():
-        raise InputError("AUS_ACCOUNTING_LIBRARY_ROOT must name an existing folder.")
+        raise InputError(
+            "AUS_ACCOUNTING_LIBRARY_ROOT must name an existing folder. " + NOT_CONFIGURED
+        )
     return root
 
 

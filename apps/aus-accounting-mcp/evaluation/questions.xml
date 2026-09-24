@@ -197,6 +197,18 @@
     <calls>[{"name": "search_tax_legislation", "arguments": {"query": "synthetic levy rate", "act": "levy act"}}, {"name": "read_tax_legislation_section", "arguments": {"row_id": "C9999A00001:0002:5-10"}}]</calls>
     <tools><tool>read_tax_legislation_section</tool><tool>search_tax_legislation</tool></tools>
   </qa_pair>
+  <qa_pair id="ranked-provision">
+    <question>Search the configured synthetic corpus once for "small entity" with limit 1. Results come best first. Return only the first match's section label.</question>
+    <answer>8-5</answer>
+    <calls>[{"name": "search_tax_legislation", "arguments": {"query": "small entity", "limit": 1}}]</calls>
+    <tools><tool>search_tax_legislation</tool></tools>
+  </qa_pair>
+  <qa_pair id="long-provision">
+    <question>Read provision C9999A00002:0002:3 from the configured synthetic corpus to its end. One read returns at most 12000 characters, so continue from each next_start until it is null. Return only the provision's total_chars.</question>
+    <answer>20000</answer>
+    <calls>[{"name": "read_tax_legislation_section", "arguments": {"row_id": "C9999A00002:0002:3"}}, {"name": "read_tax_legislation_section", "arguments": {"row_id": "C9999A00002:0002:3", "start": 12000}}]</calls>
+    <tools><tool>read_tax_legislation_section</tool></tools>
+  </qa_pair>
   <qa_pair id="legislated-rate">
     <question>Search the configured synthetic corpus for the superannuation cap row. Return only the amount exactly as the provision states it, with no calculation.</question>
     <answer>$30,000</answer>

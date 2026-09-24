@@ -10,9 +10,10 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 Distribution `australian-tax-calculators`, import package `austaxcalc`. Library
 only: this component ships no command.
 
-Seven calculation worksheets for established facts: ordinary GST, resident basic income
+Nine calculation worksheets for established facts: ordinary GST, resident basic income
 tax, CGT losses and discount, ordinary employer FBT, first-year depreciation,
-quarterly super guarantee and Schedule 1 PAYG withholding. These are experimental
+quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps and
+account-based pension minimums. These are experimental
 review aids, not advice or return preparation. Callers must establish every scope condition before calculating.
 
 The Python functions in `austaxcalc.calculations` accept `Decimal` amounts and an
@@ -75,11 +76,13 @@ Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 | FBT | Year ended 31 March 2026; established type 1 and type 2 taxable values, ordinary employer |
 | Depreciation | 2025-26, first year of an ordinary tangible Division 40 asset; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
+| Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
+| Pension minimum | 2024-25 to 2026-27; one account-based pension paying under SISR Schedule 7 |
 
 Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
-liability. Contribution caps, SMSF tax, trusts, payroll tax, HELP and Medicare
-calculations remain outside these worksheets.
+liability. SMSF fund tax, Division 293 and 296 tax, the transfer balance cap, trusts, payroll
+tax, HELP and Medicare calculations remain outside these worksheets.
 
 ## PAYG withholding
 
@@ -95,14 +98,32 @@ the ATO's published sample data; see
 [calculation evidence](docs/calculation-evidence.md#payg-withholding).
 This worksheet is published in the 0.1.5 wheel.
 
+## Super contribution caps and pension minimums
+
+`contribution_caps` tests one year's classified contributions against the caps.
+Unused concessional cap carries forward only when the total super balance at the
+previous 30 June is below $500,000. The non-concessional cap is 4 times the
+concessional cap, nil at or above the general transfer balance cap, and otherwise
+1, 2 or 3 times the annual cap by the balance bands in ITAA 1997 s 292-85. Bring-forward
+needs the person to be under 75 at any time in the year. The result gives room and
+excess under each cap, the multiple of the annual cap available and the
+bring-forward period the contributions started. A period started in an earlier
+year is outside the worksheet.
+
+`pension_minimum` applies SISR Schedule 7 to one account-based pension: the age
+factor on the balance at 1 July, pro-rated by days in the first year, nil when the
+pension starts on or after 1 June, and rounded to the nearest $10 with an exact $5
+rounding up. The tests check every band boundary against the ATO's published
+tables; see [calculation evidence](docs/calculation-evidence.md#contribution-caps).
+These worksheets are published in the 0.1.6 wheel.
+
 ## Worksheet discovery
 
-The development source adds `austaxcalc.calculations.worksheet_catalogue()`.
-It returns supported periods with inclusive dates, required inputs and units,
+`austaxcalc.calculations.worksheet_catalogue()`, published from the 0.1.4 wheel,
+returns supported periods with inclusive dates, required inputs and units,
 available methods, scope exclusions and a fabricated example for each worksheet.
 Money in the catalogue uses decimal strings. Python callers convert these to
 `Decimal`; MCP clients can send `example.facts` to `calculate_tax_worksheet`.
-This addition is published in the 0.1.4 wheel.
 
 The engine owns the supported periods for both discovery and calculation.
 Returned dictionaries can be edited without changing later calls or engine rules.

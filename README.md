@@ -4,6 +4,7 @@
 [![CodeQL](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
 [![licence: MIT](https://img.shields.io/badge/licence-MIT-5C2D91.svg?labelColor=04001F)](LICENSE)
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ryanduguid/australian-accounting)
+[![Glama MCP server score](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/score.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
 
 Seven independently released Python engines that apply Australian tax and payroll
 rules to figures you supply, plus **Aus Accounting MCP**, a local Model Context
@@ -12,7 +13,7 @@ accountants and bookkeepers, and the developers who build tooling for them.
 
 Each tool returns a calculation, the facts it used and the matters it refuses to
 decide. The engines and the MCP server run locally: they read files you point them at, contact no
-service, write to no ledger and lodge nothing. Two boundaries sit outside that: an MCP host sends every tool argument and result to its model provider, and the optional LodgeiT adapter below makes bounded HTTP calls only when you enable it. Missing facts stay unknown: a Payday Super row with a fund-receipt date but no matched_amount or remitted_amount evidences when the fund received something, not how much, so the checker leaves it UNKNOWN rather than ON_TIME and names the amount it needs (unreleased; released versions read that receipt as covering the whole SG amount and say so in a caveat). Supply the amount the fund received with every receipt date. A person reviews every output before it is relied on.
+service, write to no ledger and lodge nothing. Two boundaries sit outside that: an MCP host sends every tool argument and result to its model provider, and the optional LodgeiT adapter below makes bounded HTTP calls only when you enable it. Missing facts stay unknown: a Payday Super row with a fund-receipt date but no matched_amount or remitted_amount evidences when the fund received something, not how much, so the checker leaves it UNKNOWN rather than ON_TIME and names the amount it needs (from payday-super-checker 0.1.7; 0.1.6 and earlier read that receipt as covering the whole SG amount and say so in a caveat). Supply the amount the fund received with every receipt date. A person reviews every output before it is relied on.
 
 **Start here:** [what each component is](#components) ·
 [MCP client setup](apps/aus-accounting-mcp/README.md#client-integration) ·
@@ -108,7 +109,7 @@ The tools list ATO benchmark industries, compare supplied expense buckets,
 review Payday Super timing, look up reviewed Division 7A rates, review an
 operator-supplied Division 7A loan, refuse unsupported Division 7A matters, and
 generate synthetic CTR/BAS fixtures. They also assess related Payday contributions,
-calculate 7 bounded tax worksheets and retrieve cited local Markdown excerpts.
+calculate 9 bounded tax and super worksheets and retrieve cited local Markdown excerpts.
 Division 7A review is limited to the delegated
 engine's s 109N/s 109E scope; it does not form amalgamated loans or classify
 repayments under s 109R. Outputs are review aids, not advice or lodgements.
