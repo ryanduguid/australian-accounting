@@ -12,8 +12,8 @@ only: this component ships no command.
 
 Seven calculation worksheets for established facts: ordinary GST, resident basic income
 tax, CGT losses and discount, ordinary employer FBT, first-year depreciation,
-quarterly super guarantee and Schedule 1 PAYG withholding. These are experimental review aids, not advice or return
-preparation. Callers must establish every scope condition before calculating.
+quarterly super guarantee and Schedule 1 PAYG withholding. These are experimental
+review aids, not advice or return preparation. Callers must establish every scope condition before calculating.
 
 The Python functions in `austaxcalc.calculations` accept `Decimal` amounts and an
 explicit period. Results include amounts, scope exclusions, official source URLs,
@@ -80,6 +80,20 @@ Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
 liability. Contribution caps, SMSF tax, trusts, payroll tax, HELP and Medicare
 calculations remain outside these worksheets.
+
+## PAYG withholding
+
+`payg_withholding` applies the Schedule 1 (NAT 1004) formulas to one regular
+weekly, fortnightly or monthly pay made from 1 July 2026, on scale 1, 2, 3, 5
+or 6 as the operator established from the payee's declarations. Earnings
+include allowances subject to withholding. The result gives the weekly
+earnings used, the weekly amount and the amount for the pay period, with the
+coefficients applied. Scale 4, tax offsets, Medicare levy adjustments, study
+and training support loans, extra amounts for 53 or 27 pays, quarterly pays
+and the other schedules are outside it. The tests reproduce every amount in
+the ATO's published sample data; see
+[calculation evidence](docs/calculation-evidence.md#payg-withholding).
+This worksheet is published in the 0.1.5 wheel.
 
 ## Worksheet discovery
 
