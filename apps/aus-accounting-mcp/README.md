@@ -135,6 +135,13 @@ The [checked text transcript](https://github.com/ryanduguid/australian-accountin
 and [proof and provenance](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#demonstration-and-provenance)
 record the expected output, limitations and asset source.
 
+## Conformance cases
+
+[`conformance/cases.json`](conformance/cases.json) holds eight Payday Super and
+Division 7A calls with the results this server returns, including the cases it
+leaves `UNKNOWN` or refuses. Another implementation can replay them; see
+[conformance/README.md](conformance/README.md).
+
 ## Licence and releases
 
 MIT License. Created by Ryan Duguid.
