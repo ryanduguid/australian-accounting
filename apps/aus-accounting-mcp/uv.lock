@@ -116,7 +116,7 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.2.6"
+version = "0.2.7"
 source = { editable = "." }
 dependencies = [
     { name = "ato-benchmark-compare" },
@@ -141,7 +141,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "ato-benchmark-compare", specifier = "==0.1.9" },
-    { name = "australian-tax-calculators", specifier = "==0.1.4" },
+    { name = "australian-tax-calculators", specifier = "==0.1.5" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.6.1" },
     { name = "div7a-loan-review", specifier = "==0.1.4" },
     { name = "mcp", specifier = ">=2.1.1,<3" },
@@ -158,11 +158,11 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "australian-tax-calculators"
-version = "0.1.4"
+version = "0.1.5"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/29/79/cfb07cbc7a5b952219e300c3e7c961f4a75b26485fa601f56741dc3f2fb3/australian_tax_calculators-0.1.4.tar.gz", hash = "sha256:1e544de5168fa8979b0b0160f1b3a420a487b03dcfed2625a4870c1e5616cc1f", size = 66769, upload-time = "2026-09-22T10:47:06.058Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b0/1b/b29b7ed0a97483215df0c41f2cea4fc001ff5b381b347c784a558916b71c/australian_tax_calculators-0.1.5.tar.gz", hash = "sha256:691bacb9d10d8d49127ba4799e31ce166e20d268dc53bec567832330f319eed0", size = 72153, upload-time = "2026-09-24T01:23:14.069Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/dc/0b/971475cb17cd196af11bb05c73b585e19c863d9e8afc78948cf6921365e9/australian_tax_calculators-0.1.4-py3-none-any.whl", hash = "sha256:f22add4f28b376a3836b22afb67d05230e07408c4c06afc509f4542ef82a05f3", size = 11194, upload-time = "2026-09-22T10:47:04.952Z" },
+    { url = "https://files.pythonhosted.org/packages/20/01/4ebdf243f16779b53856c7004d6d1ce9ff96c07d518121087b1e01f5cb5c/australian_tax_calculators-0.1.5-py3-none-any.whl", hash = "sha256:902408a1d01509b67d2ae21d96c88cf5de1040b900444a13cd4558b56a966171", size = 13286, upload-time = "2026-09-24T01:23:12.871Z" },
 ]
 
 [[package]]

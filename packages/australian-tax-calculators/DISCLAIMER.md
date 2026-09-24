@@ -2,10 +2,10 @@
 
 Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
 
-Australian tax calculators runs 6 bounded worksheets on facts the caller has
+Australian tax calculators runs 7 bounded worksheets on facts the caller has
 already established: ordinary GST, resident basic income tax, CGT losses and
-the discount, ordinary employer FBT, first-year depreciation and quarterly
-super guarantee. It is not tax, legal, accounting, financial, investment,
+the discount, ordinary employer FBT, first-year depreciation, quarterly super
+guarantee and PAYG withholding. It is not tax, legal, accounting, financial, investment,
 BAS-agent, registered-tax-agent, or assurance advice. It is not an assessment,
 a private ruling, or a determination.
 

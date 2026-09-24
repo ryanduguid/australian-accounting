@@ -54,7 +54,7 @@ The example is fabricated, is not a lodgement or Division 7A determination, is n
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.2.6 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.6), [PyPI 0.2.6](https://pypi.org/project/aus-accounting-mcp/0.2.6/), [MCP Registry 0.2.6](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.6), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
+Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.2.7 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.7), [PyPI 0.2.7](https://pypi.org/project/aus-accounting-mcp/0.2.7/), [MCP Registry 0.2.7](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.7), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
 
 ## Client setup
 
@@ -134,7 +134,7 @@ stay on your machine.
 | `calc_payday_super_deadline` | Review one contribution against Payday Super timing | payday-super-checker |
 | `review_payday_super_contributions` | Assess up to 200 related contributions for one employer | payday-super-checker |
 | `build_payday_super_evidence_pack` | Return 4 in-memory review files for supplied contributions; requires checker evidence-pack support | payday-super-checker |
-| `calculate_tax_worksheet` | Run one of 6 bounded worksheets with established scope | australian-tax-calculators |
+| `calculate_tax_worksheet` | Run one of 7 bounded worksheets with established scope | australian-tax-calculators |
 | `search_accounting_library` | Search explicitly configured local Markdown files | local read-only retrieval |
 | `read_accounting_library` | Read bounded lines with file, line, page and hash citations | local read-only retrieval |
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page | local read-only retrieval |
