@@ -103,7 +103,7 @@ jobs:
       matrix:
         # The floor and the ceiling of the declared requires-python, plus the
         # version the rest of the gates run on.
-        python: ["3.10", "3.12", "3.13"]
+        python: ["3.10", "3.12", "3.13", "3.14"]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -199,7 +199,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
@@ -251,7 +251,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
@@ -278,7 +278,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
@@ -287,7 +287,7 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - name: build the distribution
-        run: uv run --locked --extra dev --python 3.12 python -m build
+        run: uv run --locked --extra dev --python 3.14 python -m build
       - name: install the wheel into a clean environment, import it and run the smoke checks
         # Exactly one wheel, installed by path with --no-index, or pip is free
         # to resolve the name from PyPI and test a release nobody built in this
