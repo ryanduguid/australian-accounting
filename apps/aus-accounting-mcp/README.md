@@ -35,6 +35,10 @@ folders you explicitly configure, locally, without contacting services or changi
 records. It does not fetch documents from the ATO or the Federal Register, and it
 does not lodge.
 
+`uvx` keeps using the version it first downloaded, so a new release does not reach
+you on its own. To upgrade, name the release in your client configuration, for example
+`aus-accounting-mcp==<version>`; uvx downloads it once and later launches stay offline.
+
 ## Client integration
 
 For Claude Desktop, Cursor and other clients that support local stdio servers:

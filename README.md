@@ -80,6 +80,23 @@ the tools then use bundled data without network requests or record writes. The
 MCP host you connect it to is a separate boundary: it sends every tool argument
 and result to its model provider, so use fabricated data with a hosted model.
 
+`uvx` keeps using the version it first downloaded, so a new release does not reach
+you on its own. To move to a release, name it in your client configuration, for
+example `aus-accounting-mcp==<version>` from [PyPI](https://pypi.org/project/aus-accounting-mcp/);
+uvx downloads that version once and later launches stay offline.
+
+![Static terminal demonstration of synthetic BAS output and Division 7A loan review](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/apps/aus-accounting-mcp/docs/quick-proof.webp)
+
+Once it is connected, ask your assistant in plain English. Each of these fabricated
+requests resolves to one tool call:
+
+| Ask | Tool |
+|---|---|
+| "Compare a hairdresser with $180,000 sales, $60,000 wages, $30,000 rent and $40,000 other expenses to the ATO benchmarks." | `get_ato_benchmarks` |
+| "Super for a 6 August 2026 payday was $120 and was sent on 14 August. As at 20 August, is it on time?" | `calc_payday_super_deadline` |
+| "What is the Division 7A benchmark interest rate for 2026-27?" | `get_div7a_benchmark_rate` |
+| "How much PAYG should be withheld from a $1,000 weekly pay on scale 2 in 2026-27?" | `calculate_tax_worksheet` |
+
 [Client setup and examples](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#client-integration)
 · [Tool reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#tools)
 · [PyPI](https://pypi.org/project/aus-accounting-mcp/)
@@ -89,7 +106,7 @@ The tools list ATO benchmark industries, compare supplied expense buckets,
 review Payday Super timing, look up reviewed Division 7A rates, review an
 operator-supplied Division 7A loan, refuse unsupported Division 7A matters, and
 generate synthetic CTR/BAS fixtures. They also assess related Payday contributions,
-calculate 6 bounded tax worksheets and retrieve cited local Markdown excerpts.
+calculate 7 bounded tax worksheets and retrieve cited local Markdown excerpts.
 Division 7A review is limited to the delegated
 engine's s 109N/s 109E scope; it does not form amalgamated loans or classify
 repayments under s 109R. Outputs are review aids, not advice or lodgements.
