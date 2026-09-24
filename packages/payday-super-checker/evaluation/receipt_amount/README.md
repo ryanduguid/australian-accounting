@@ -80,7 +80,7 @@ does, treat the table as the checker's recorded behaviour, not a benchmark.
 ## Product and fixture version
 
 Product release `0.1.7`: every result above was reproduced with the published
-0.1.7 package on 25 September 2026 (AEST). Fixture version `1`. The legal content is the
+0.1.7 package on 24 September 2026 UTC (25 September AEST). Fixture version `1`. The legal content is the
 checker's own, current at 15 August 2026. This evaluation adds no legal
 interpretation. The [evidence boundary evaluation](../payday_super_evidence/README.md)
 stays pinned to release 0.1.3.
