@@ -9,7 +9,7 @@ About, repository topics, README, `pyproject.toml`, `glama.json`, and
 Description:
 
 ```text
-Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, seven bounded tax worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice.
+Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, nine bounded tax and super worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice.
 ```
 
 Website:

@@ -348,10 +348,10 @@ tables and performs no live lookup. Beyond GIC coverage the engine estimates
 using its last known rate and flags staleness. Calendar coverage alone cannot
 establish a verdict; retain the assessment's caveats and `horizon_verdicts`.
 
-Read `calculation_worksheets` in the scope resource for the 7 worksheet boundaries.
+Read `calculation_worksheets` in the scope resource for the 9 worksheet boundaries.
 Their rules and sources come from `australian-tax-calculators`. Broader classifications,
-exemptions, BAS/returns, trusts, partnerships, SMSFs, contribution caps and payroll
-tax remain unsupported. Reference text cannot establish calculation support.
+exemptions, BAS/returns, trusts, partnerships, SMSF fund tax and audit, the transfer
+balance cap and payroll tax remain unsupported. Reference text cannot establish calculation support.
 
 The evaluation includes 32 cases: 10 original workflows, 10 unsupported-topic
 questions, grouped Payday, a tax worksheet, synthetic library retrieval, the
@@ -445,12 +445,19 @@ supported period, exclusions and warnings.
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `year` | 2025-26, first year of an ordinary tangible Division 40 asset |
 | `quarterly_sg` | `ordinary_time_earnings`, `qualifying_contributions`, `quarter`, `year` | 2025-26, one complete quarter for one eligible employee and employer |
 | `payg_withholding` | `earnings`, `pay_period`, `scale`, `year` | 2026-27, one regular weekly, fortnightly or monthly pay on scale 1, 2, 3, 5 or 6 |
+| `contribution_caps` | `total_super_balance`, `concessional_contributions`, `unused_concessional_cap`, `non_concessional_contributions`, `under_75_in_year`, `year` | 2024-25 to 2026-27, one individual with no bring-forward period started in the 2 previous years |
+| `pension_minimum` | `account_balance`, `age`, `days`, `year` | 2024-25 to 2026-27, one account-based pension paying under SISR Schedule 7 |
 
 Amounts are non-negative AUD decimal strings, at most 2dp and AUD 1 trillion.
 `taxable_use` is a decimal fraction, such as `"0.4"` for 40%; `effective_life` is
 years as a decimal string. `method` is `prime_cost` or `diminishing_value`.
 Unsupported periods fail. The quarterly SG worksheet does not establish
-post-June 2026 Payday entitlement.
+post-June 2026 Payday entitlement. For `contribution_caps`, `total_super_balance`
+is the balance at the 30 June before the year and `under_75_in_year` is true when
+the person is under 75 at any time in the year. For `pension_minimum`, `days`
+counts from and including the commencement day to 30 June, or every day of the
+year for a pension running on 1 July; a pension commencing on or after 1 June
+needs no payment that year.
 
 With the development worksheet engine, `aus-accounting://scope` also includes
 engine-owned period dates, required inputs and units, methods, Library example

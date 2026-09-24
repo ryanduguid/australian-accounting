@@ -1,3 +1,20 @@
+# v0.1.6
+
+- Add `contribution_caps` for 2024-25 to 2026-27. It tests one year's
+  classified contributions against the concessional cap, with unused cap
+  carried forward below a $500,000 total super balance at the previous
+  30 June, and the non-concessional cap: 4 times the concessional cap, nil at
+  or above the general transfer balance cap, otherwise 1, 2 or 3 annual caps
+  by the ITAA 1997 s 292-85(5) balance bands. Bring-forward needs the person
+  to be under 75 at any time in the year. A period started in an earlier year
+  is out of scope.
+- Add `pension_minimum` for the same years. It applies SISR Schedule 7 to one
+  account-based pension: the age factor on the 1 July or commencement-day
+  balance, pro-rated in the first year, nil from 1 June, and rounded once to
+  the nearest $10 with an exact $5 rounding up.
+- Check every bring-forward band a cent either side of the ATO's published
+  tables, and freeze Library example 7-278 as evidence.
+
 # v0.1.5
 
 - Add `payg_withholding`, a Schedule 1 (NAT 1004) worksheet for one regular

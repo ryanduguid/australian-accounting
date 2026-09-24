@@ -2,15 +2,19 @@
 
 from __future__ import annotations
 
+from datetime import date
 from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal, localcontext
 from typing import Any
 
 from . import __version__
 from .metadata import (
+    CARRY_FORWARD_BALANCE_LIMIT,
+    CONTRIBUTION_CAPS,
     EXAMPLES,
     INPUT_UNITS,
     LIBRARY_EVIDENCE,
     PAYG_WITHHOLDING_COEFFICIENTS,
+    PENSION_MINIMUM_FACTORS,
     RESIDENT_TAX_SCALES,
     SOURCE_REVIEWS,
     SUPPORTED_PERIODS,
@@ -28,6 +32,8 @@ SOURCES = {
     "depreciation": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/general-depreciation-rules-capital-allowances/prime-cost-straight-line-and-diminishing-value-methods",
     "quarterly_sg": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
     "payg_withholding": "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
+    "contribution_caps": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
+    "pension_minimum": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/paying-smsf-benefits/income-stream-pension-rules-and-payments",
 }
 SCOPES = {
     "gst": "One ordinary taxable supply at 10%, already classified by the operator. "
@@ -63,6 +69,22 @@ SCOPES = {
            "subject to withholding. Excludes scale 4, tax offsets, Medicare levy adjustments, "
            "study and training support loans, extra amounts for 53 or 27 pays, quarterly and "
            "bi-monthly pays, back payments, bonuses, termination and other schedules.",
+    "contribution_caps": "One individual's contributions received by all their funds in the "
+           "income year, already classified by the operator as concessional or "
+           "non-concessional, with no bring-forward period started in either of the 2 "
+           "previous years. Total super balance is at the 30 June before the year; unused "
+           "concessional cap is the established total of unexpired amounts from the previous "
+           "5 years. Excludes classification, fund acceptance and work-test rules, "
+           "deductibility, the CGT cap, downsizer and other excluded contributions, excess "
+           "concessional amounts counting as non-concessional, determinations, release "
+           "elections, Division 293 tax and the transfer balance cap.",
+    "pension_minimum": "One account-based pension that started on or after 1 July 2007 and "
+           "pays under SISR Schedule 7. Established account balance on 1 July, or on the "
+           "commencement day in the first year, or the withdrawal benefit if higher, and the "
+           "member's age on that day. Excludes pensions under the pre-2007 schedules, "
+           "market-linked, lifetime and life expectancy pensions, the transition to "
+           "retirement 10% maximum, commutations, death and reversion, and whether payments "
+           "made meet the standard.",
 }
 
 
@@ -280,3 +302,79 @@ def payg_withholding(earnings: Decimal, pay_period: str, scale: int, year: str,
             "weekly_earnings_used": x, "weekly_withholding": weekly_amount,
             "withholding": amount,
         }, {"scale": str(scale), "a": str(a), "b": str(b)})
+
+
+def contribution_caps(total_super_balance: Decimal, concessional_contributions: Decimal,
+                      unused_concessional_cap: Decimal, non_concessional_contributions: Decimal,
+                      under_75_in_year: bool, year: str,
+                      scope_confirmed: bool) -> dict[str, Any]:
+    """Cap room and excess for one year's established contributions."""
+    _scope(scope_confirmed, year, "contribution_caps")
+    for value in (total_super_balance, concessional_contributions, unused_concessional_cap,
+                  non_concessional_contributions):
+        _money(value)
+    if type(under_75_in_year) is not bool:
+        raise ValueError("under_75_in_year must be a boolean.")
+    concessional_cap, transfer_cap = (D(value) for value in CONTRIBUTION_CAPS[year])
+    annual = concessional_cap * 4
+    carried = unused_concessional_cap if total_super_balance < D(
+        CARRY_FORWARD_BALANCE_LIMIT) else D(0)
+    concessional_available = concessional_cap + carried
+    # s 292-85: nil at or above the transfer balance cap; otherwise the balance
+    # band sets how many annual caps the first year can bring forward.
+    if total_super_balance >= transfer_cap:
+        multiple = 0
+    elif not under_75_in_year or total_super_balance >= transfer_cap - annual:
+        multiple = 1
+    elif total_super_balance >= transfer_cap - 2 * annual:
+        multiple = 2
+    else:
+        multiple = 3
+    available = annual * multiple
+    triggered = multiple > 1 and non_concessional_contributions > annual
+    return _result("contribution_caps", year, {
+        "carry_forward_applied": carried,
+        "concessional_available": concessional_available,
+        "concessional_remaining": max(D(0), concessional_available - concessional_contributions),
+        "excess_concessional": max(D(0), concessional_contributions - concessional_available),
+        "non_concessional_available": available,
+        "non_concessional_remaining": max(D(0), available - non_concessional_contributions),
+        "excess_non_concessional": max(D(0), non_concessional_contributions - available),
+    }, {
+        "concessional_cap": str(concessional_cap), "non_concessional_cap": str(annual),
+        "general_transfer_balance_cap": str(transfer_cap),
+        "carry_forward_balance_limit": CARRY_FORWARD_BALANCE_LIMIT,
+        "non_concessional_cap_multiple": str(multiple),
+        "bring_forward_period_years": str(multiple if triggered else 0),
+    })
+
+
+def pension_minimum(account_balance: Decimal, age: int, days: int, year: str,
+                    scope_confirmed: bool) -> dict[str, Any]:
+    """SISR Schedule 7 minimum annual payment for one account-based pension."""
+    _scope(scope_confirmed, year, "pension_minimum")
+    _money(account_balance)
+    if type(age) is not int or not 0 <= age <= 150:
+        raise ValueError("age must be an integer number of years from 0 to 150.")
+    start = int(year[:4])
+    year_end = date(start + 1, 6, 30)
+    days_in_year = (year_end - date(start, 7, 1)).days + 1
+    if type(days) is not int or not 1 <= days <= days_in_year:
+        raise ValueError(f"days must be an integer from 1 to {days_in_year} for {year}.")
+    factor = next(D(rate) for lowest, rate in PENSION_MINIMUM_FACTORS if age >= lowest)
+    commenced = date.fromordinal(year_end.toordinal() - days + 1)
+    with localcontext() as context:
+        context.prec = 40
+        # cl 4: nothing is required for a pension commencing on or after 1 June.
+        if commenced >= date(start + 1, 6, 1):
+            exact = D(0)
+        else:
+            # cl 3 pro-rates the factor itself, so rounding happens once, under cl 5:
+            # to the nearest $10, with an exact $5 rounding up.
+            exact = account_balance * factor * days / days_in_year
+        minimum = (exact / 10).quantize(D(1), rounding=ROUND_HALF_UP) * 10
+        return _result("pension_minimum", year, {
+            "account_balance_used": account_balance, "minimum_before_rounding": exact,
+            "minimum_payment": minimum,
+        }, {"percentage_factor": str(factor), "days": str(days),
+            "days_in_year": str(days_in_year)})
