@@ -3,6 +3,7 @@
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
 [![licence: MIT](https://img.shields.io/badge/licence-MIT-5C2D91.svg?labelColor=04001F)](LICENSE)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ryanduguid/australian-accounting)
 
 Seven independently released Python engines that apply Australian tax and payroll
 rules to figures you supply, plus **Aus Accounting MCP**, a local Model Context
@@ -122,6 +123,10 @@ workspace, uv resolves those 4 dependencies to their checked-out sources.
 Change into the component directory and use the commands its own `README.md`,
 `AGENTS.md` or `CONTRIBUTING.md` documents. The root `CONTRIBUTING.md` routes the
 common commands and names the root workflow that runs them.
+
+To skip local setup, [open the repository in GitHub Codespaces](https://codespaces.new/ryanduguid/australian-accounting).
+The devcontainer installs uv and runs `uv sync --locked`, so the fabricated examples
+above run as written. Codespaces usage counts against your own GitHub quota.
 
 ## Boundaries
 

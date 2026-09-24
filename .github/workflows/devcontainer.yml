@@ -1,0 +1,39 @@
+name: devcontainer
+
+# Runs the devcontainer's setup command inside its image, then the fabricated
+# MCP demonstration, so a broken Codespaces setup fails here instead of for a
+# visitor.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".devcontainer/**"
+      - ".github/workflows/devcontainer.yml"
+      - "uv.lock"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devcontainer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container: mcr.microsoft.com/devcontainers/python:1-3.12-bookworm
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run the devcontainer setup command
+        run: |
+          command=$(python -c "import json; print(json.load(open('.devcontainer/devcontainer.json'))['postCreateCommand'])")
+          sh -c "$command"
+      - name: Run the fabricated demonstration
+        working-directory: apps/aus-accounting-mcp
+        run: uv run --locked aus-accounting-mcp-demo > /dev/null
