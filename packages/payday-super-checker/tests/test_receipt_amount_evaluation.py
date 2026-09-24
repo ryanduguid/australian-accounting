@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import csv
 import json
-import re
 from pathlib import Path
 
 import pytest
@@ -48,12 +47,13 @@ def test_every_fixture_is_declared_once() -> None:
     assert sorted(declared) == sorted(path.name for path in (PACK / "fixtures").iterdir())
 
 
-def test_contract_tracks_the_checker_version_and_pending_review() -> None:
-    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    version = re.search(r'(?m)^version = "([^"]+)"$', pyproject).group(1)
+def test_contract_keeps_its_recorded_release_and_pending_review() -> None:
+    # The expected results were reproduced with published 0.1.7. A later
+    # release does not change which checker recorded them, so this pin is fixed.
     readme = (PACK / "README.md").read_text(encoding="utf-8")
-    assert CONTRACT["product_release"] == version
-    assert f"Product release `{version}`" in readme
+    assert CONTRACT["product_release"] == "0.1.7"
+    assert "Product release `0.1.7`" in readme
+    assert "uvx --from payday-super-checker==0.1.7 " in readme
     assert CONTRACT["practitioner_review"] == "pending"
     assert CONTRACT["human_decision"] in readme
 

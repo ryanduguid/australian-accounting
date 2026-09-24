@@ -29,7 +29,7 @@ Assessed as at 20 August 2026. The due date for a 6 August payday is
 | `timely_receipt_no_amount` | 17 Aug | none | `UNKNOWN` | 2 | not assessed |
 | `late_receipt_no_amount` | 18 Aug | none | `LATE` | 2 | 120.00, a maximum |
 | `timely_part_receipt` | 17 Aug | remitted 100.00, matched 100.00 | `UNPAID` | 2 | 20.00 |
-| `timely_receipt_remitted_amount_only` | 17 Aug | remitted 120.00 | `ON_TIME` | 0 | none |
+| `timely_receipt_remitted_amount_only` | 17 Aug | remitted 120.00, ten-column file | `ON_TIME` | 0 | none |
 | `timely_receipt_matched_amount` | 17 Aug | matched 120.00 | `ON_TIME` | 0 | none |
 
 - **No amount, on time.** The checker cannot tell whether the fund received
@@ -40,8 +40,9 @@ Assessed as at 20 August 2026. The due date for a 6 August payday is
   amount the checker cannot apply the reduction for a late payment, so the
   final shortfall shown is the whole $120.00 and is a maximum.
 - **Part receipt.** $100.00 received on time reduces the shortfall to $20.00.
-- **Remitted amount only.** In the ten-column layout, `remitted_amount` on a
-  row with a receipt date is read as the amount that receipt covers. The
+- **Remitted amount only.** This fixture uses the older ten-column layout,
+  which has no `matched_amount` column. There, `remitted_amount` on a row with
+  a receipt date is read as the amount that receipt covers. The
   result is `ON_TIME`, which rests on that reading: confirm the fund
   received $120.00 before relying on it.
 - **Matched amount.** The explicit association the checker prefers.
@@ -54,13 +55,18 @@ the checker covers Payday Super only.
 
 ## Reproduce the result
 
+These fixtures are newer than the 0.1.7 release tag, but the published 0.1.7
+package reproduces every row. From the component directory, with
+[uv](https://docs.astral.sh/uv/) installed:
+
 ```bash
-uv sync --locked --all-extras
-uv run --locked payday-super-check evaluation/receipt_amount/fixtures/timely_receipt_no_amount.csv --as-at 2026-08-20 -o ../../../payday-demo/timely-no-amount.csv
+uvx --from payday-super-checker==0.1.7 payday-super-check evaluation/receipt_amount/fixtures/timely_receipt_no_amount.csv --as-at 2026-08-20 -o timely-no-amount.csv
 uv run --locked --extra dev pytest tests/test_receipt_amount_evaluation.py -q
 ```
 
-Run both from the component directory.
+The first command runs the published package; the second runs the checked-out
+source. The report CSV is written in the component directory, where the
+repository ignores CSV output.
 
 ## Human decision
 
@@ -73,7 +79,8 @@ does, treat the table as the checker's recorded behaviour, not a benchmark.
 
 ## Product and fixture version
 
-Product release `0.1.7`; fixture version `1`. The legal content is the
+Product release `0.1.7`: every result above was reproduced with the published
+0.1.7 package on 25 September 2026. Fixture version `1`. The legal content is the
 checker's own, current at 15 August 2026. This evaluation adds no legal
 interpretation. The [evidence boundary evaluation](../payday_super_evidence/README.md)
 stays pinned to release 0.1.3.
