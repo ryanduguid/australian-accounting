@@ -125,6 +125,13 @@ command, so they cannot run this server. Use a desktop or CLI host from the list
 above. This server is deliberately local: your figures and your configured folders
 stay on your machine.
 
+### Upgrading
+
+`uvx` keeps using the version it first downloaded, so a new release does not reach
+you on its own. To upgrade, name the release in your client configuration, for example
+`aus-accounting-mcp==<version>`; uvx downloads it, and later launches reuse the cached
+copy without a download until the uv cache is cleaned.
+
 ## Tool reference
 
 | Tool | Job | Engine |
@@ -328,7 +335,7 @@ tables and performs no live lookup. Beyond GIC coverage the engine estimates
 using its last known rate and flags staleness. Calendar coverage alone cannot
 establish a verdict; retain the assessment's caveats and `horizon_verdicts`.
 
-Read `calculation_worksheets` in the scope resource for the 6 worksheet boundaries.
+Read `calculation_worksheets` in the scope resource for the 7 worksheet boundaries.
 Their rules and sources come from `australian-tax-calculators`. Broader classifications,
 exemptions, BAS/returns, trusts, partnerships, SMSFs, contribution caps and payroll
 tax remain unsupported. Reference text cannot establish calculation support.
@@ -355,6 +362,55 @@ does not allocate raw payments, confirm transition allocation or calculate SG
 entitlement. It assumes no ATO assessment has issued. Supply at most 200 rows;
 splitting related contributions into separate calls can change the outcome.
 
+### Receipt evidence
+
+Payday Super needs an explicit assessment date and fund-receipt evidence, both
+the date and the amount received (`received` with `matched_amount`), before it
+should be read as `ON_TIME`. The pinned checker 0.1.7 leaves a timely receipt
+date without an amount `UNKNOWN`. A late receipt without an amount stays
+`LATE`, without reducing the shortfall. MCP 0.2.4 pins checker 0.1.6, which
+assumes full receipt in that case and says so in a caveat. Check the
+`aus-accounting://payday-coverage` resource for bundled rate and calendar
+coverage, and retain the result's caveats.
+
+## Payday Super evidence pack
+
+`build_payday_super_evidence_pack` (from v0.2.5) accepts the same `contributions`
+and explicit `as_at` as grouped review. It delegates the assessment and all 4
+artefacts to the checker. There are no path arguments, fixture-path lookups,
+filesystem writes or network calls.
+
+The response includes `files` keyed by `report.csv`, `practitioner-review.md`,
+`exceptions.json` and `decision-log.md`. Save the strings as UTF-8 without changing
+newlines or removing the CSV's initial BOM; the Markdown and JSON bind to those
+exact report bytes. Source row numbers are one-based positions in the input list.
+`review_exit_code` is 2 for any non-`ON_TIME` row and 0 only when all rows are
+`ON_TIME`. An error remains an MCP error. No decision or sign-off is generated.
+
+The default `response_detail="full"` includes the pack in both text and structured
+content for client compatibility. Hosts that read `structuredContent.files` can
+request `response_detail="compact"` to replace the duplicate text with a short
+summary, the disclaimer and caveats. Both modes retain every file byte, hash and
+review flag. Use full mode if the host only reads text results.
+
+Record decisions and practitioner sign-off in `decision-log.md`; the included
+checklist links to that record.
+
+Employee identifiers are omitted from the returned pack. The calling MCP host
+still receives the input references; use an approved environment and fabricated
+data for demonstrations. Amounts, dates and warnings remain private workpaper
+information. Missing receipt dates remain missing.
+
+The 17-column evidence report is for the included checklist. It is not accepted
+by legacy `review-pack` or the accounting review pipeline's `PaydaySuper.Report`
+Excel importer. Use an ordinary 18-column checker report for that importer.
+
+v0.2.7 pins `payday-super-checker==0.1.7` and `div7a-loan-review==0.1.4` and
+includes the pack builder. An installation with checker v0.1.3 returns a
+feature-unavailable error for this tool; the existing tools continue to work.
+For a local file handoff that retains separate engine outputs, see the
+[group review example](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/examples/GROUP-REVIEW.md).
+
 ## Calculation worksheets
 
 Pass a `facts` object to `calculate_tax_worksheet`. Its `kind` selects the input
@@ -378,6 +434,16 @@ Amounts are non-negative AUD decimal strings, at most 2dp and AUD 1 trillion.
 years as a decimal string. `method` is `prime_cost` or `diminishing_value`.
 Unsupported periods fail. The quarterly SG worksheet does not establish
 post-June 2026 Payday entitlement.
+
+With the development worksheet engine, `aus-accounting://scope` also includes
+engine-owned period dates, required inputs and units, methods, Library example
+references and fabricated `example.facts` that run the worksheet tool as a
+demonstration. The example's `scope_confirmed: true` is fabricated with the
+rest of it: for real facts, pass true only after a person has confirmed the
+scope conditions, because the engine treats that flag as the operator's
+confirmation. With the published pinned engine, the resource retains its existing
+scope, source and source-check date fields. The richer catalogue remains
+unreleased; published dependency pins have not changed.
 
 ## Local reference library
 
