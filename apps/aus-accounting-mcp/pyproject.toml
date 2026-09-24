@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aus-accounting-mcp"
-version = "0.2.7"
+version = "0.2.8"
 description = "Local accounting reviews, seven bounded tax worksheets and cited retrieval from your configured local Markdown folder. uvx from PyPI; not advice."
 readme = "README.md"
 requires-python = ">=3.10"

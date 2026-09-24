@@ -54,7 +54,7 @@ The example is fabricated, is not a lodgement or Division 7A determination, is n
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.2.7 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.7), [PyPI 0.2.7](https://pypi.org/project/aus-accounting-mcp/0.2.7/), [MCP Registry 0.2.7](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.7), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
+Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.2.8 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.8), [PyPI 0.2.8](https://pypi.org/project/aus-accounting-mcp/0.2.8/), [MCP Registry 0.2.8](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.8), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
 
 ## Client setup
 
@@ -421,7 +421,7 @@ The 17-column evidence report is for the included checklist. It is not accepted
 by legacy `review-pack` or the accounting review pipeline's `PaydaySuper.Report`
 Excel importer. Use an ordinary 18-column checker report for that importer.
 
-v0.2.7 pins `payday-super-checker==0.1.7` and `div7a-loan-review==0.1.4` and
+v0.2.8 pins `payday-super-checker==0.1.7` and `div7a-loan-review==0.1.4` and
 includes the pack builder. An installation with checker v0.1.3 returns a
 feature-unavailable error for this tool; the existing tools continue to work.
 For a local file handoff that retains separate engine outputs, see the
