@@ -154,7 +154,7 @@ def test_paying_the_figure_every_year_clears_the_loan_to_rounding(principal, rat
     balance = Fraction(str(principal))
     for _ in range(term):
         balance = balance * (1 + r) - payment
-    tolerance = Fraction(1, 200) * term * (1 + r) ** term
+    tolerance = Fraction(1, 200) * sum((1 + r) ** k for k in range(term))
     assert abs(balance) <= tolerance
 
 
