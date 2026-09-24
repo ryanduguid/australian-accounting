@@ -8,6 +8,7 @@ downloaded or written, and a row is a point-in-time copy, never a statement of c
 
 from __future__ import annotations
 
+import heapq
 import json
 import os
 import re
@@ -15,7 +16,7 @@ from collections import deque
 from pathlib import Path
 from typing import Any, Callable, Iterator
 
-from .errors import InputError
+from .errors import NOT_CONFIGURED, InputError
 
 # A published Commonwealth tax corpus is about 950 titles and 60 MB of index, so these
 # bounds sit above that shape and still refuse an unbounded folder.
@@ -45,6 +46,30 @@ NOT_CURRENT_CAVEAT = (
 TRUNCATED_CAVEAT = (
     "Text is truncated at {kept} of {total} characters. Read the register page for "
     "the whole provision."
+)
+PART_CAVEAT = (
+    "This part holds characters {start} to {end} of {total}. Pass next_start as start "
+    "to read the next part; the register page has the whole provision."
+)
+NO_MATCH_HINT = (
+    "No provision holds every word. Statutes often word a concept differently from "
+    "ATO guidance or everyday usage, so try fewer or different words, the statutory "
+    "expression (define_tax_term finds defined ones) or a section number. No match is "
+    "not evidence that the law is silent."
+)
+# Commonwealth tax law's principal Acts, in the order a search presents them when the
+# other ranking signals tie. A title must equal one of these names, so an instrument
+# named after an Act ("... in accordance with the Income Tax Assessment Act 1936") is
+# not lifted, and a corpus without these titles ranks on the other signals alone.
+PRINCIPAL_ACTS = (
+    "income tax assessment act 1997",
+    "a new tax system (goods and services tax) act 1999",
+    "income tax assessment act 1936",
+    "taxation administration act 1953",
+    "fringe benefits tax assessment act 1986",
+    "superannuation guarantee (administration) act 1992",
+    "income tax (transitional provisions) act 1997",
+    "income tax rates act 1986",
 )
 DEFINITION_NOTICE = (
     "Only a definition found in a dictionary or interpretation section is returned. "
@@ -80,11 +105,14 @@ def _root() -> Path:
     configured = os.environ.get("AUS_ACCOUNTING_CORPUS_ROOT")
     if not configured:
         raise InputError(
-            "Set AUS_ACCOUNTING_CORPUS_ROOT to an authorised legislation corpus folder."
+            "Set AUS_ACCOUNTING_CORPUS_ROOT to an authorised legislation corpus folder. "
+            + NOT_CONFIGURED
         )
     root = Path(configured).resolve()
     if not root.is_dir():
-        raise InputError("AUS_ACCOUNTING_CORPUS_ROOT must name an existing folder.")
+        raise InputError(
+            "AUS_ACCOUNTING_CORPUS_ROOT must name an existing folder. " + NOT_CONFIGURED
+        )
     return root
 
 
@@ -129,9 +157,8 @@ def _rows(path: Path, prefilter: list[str]) -> Iterator[dict[str, Any]]:
     match; the caller still confirms each parsed row against the fields themselves.
 
     ponytail: no index. Measured against a 946-title, 60 MB, 21916-row corpus, a
-    search that matches nothing still reads every line and returns in about 0.4 s,
-    and a typical query in under 0.1 s. Add an index only if a measured corpus is
-    slow enough to need one.
+    whole-corpus read returns in about 0.5 s. Add an index only if a measured corpus
+    is slow enough to need one.
     """
     with path.open(encoding="utf-8") as stream:
         for line in stream:
@@ -166,6 +193,48 @@ def _holds(row: dict[str, Any], fields: tuple[str, ...], terms: list[str]) -> bo
     values = [row.get(field) for field in fields]
     joined = " ".join(value for value in values if isinstance(value, str)).casefold()
     return all(term in joined for term in terms)
+
+
+def _priority(row: dict[str, Any]) -> int:
+    """A principal Act's place in PRINCIPAL_ACTS; every other title ranks after them."""
+    act = (_string(row, "act") or "").casefold()
+    return PRINCIPAL_ACTS.index(act) if act in PRINCIPAL_ACTS else len(PRINCIPAL_ACTS)
+
+
+def _ranking(
+    terms: list[str], heading: tuple[str, ...], body: tuple[str, ...]
+) -> Callable[[dict[str, Any]], tuple[int, int]]:
+    """The sort key for a matching row, lower first.
+
+    Tier 0 holds the words as a phrase in one heading field, tier 1 every word in
+    one heading field, tier 2 the phrase in one body field and tier 3 every word
+    somewhere. A "Meaning of small business entity" heading therefore outranks a
+    dictionary that only mentions the expression, and within a tier a principal Act
+    comes first. Tiers 0 to 2 match whole words within a single field, so "scar
+    limitation" is no heading match for "car limit", and a rate heading ending in
+    one query word does not join the topic that starts with the next into a phrase.
+    """
+    # Punctuation and the U+2011 hyphen statutes print sit between the words, so a
+    # query for "40-230" or "write-off" still meets its phrase.
+    phrase = re.compile(r"\b" + r"\W+".join(map(re.escape, terms)) + r"\b")
+    words = [re.compile(rf"\b{re.escape(term)}\b") for term in terms]
+
+    def values(row: dict[str, Any], fields: tuple[str, ...]) -> list[str]:
+        return [value.casefold() for field in fields if isinstance(value := row.get(field), str)]
+
+    def rank(row: dict[str, Any]) -> tuple[int, int]:
+        titles = values(row, heading)
+        if any(phrase.search(title) for title in titles):
+            tier = 0
+        elif any(all(word.search(title) for word in words) for title in titles):
+            tier = 1
+        elif any(phrase.search(text) for text in values(row, body)):
+            tier = 2
+        else:
+            tier = 3
+        return tier, _priority(row)
+
+    return rank
 
 
 def _text(row: dict[str, Any], field: str, cap: int) -> tuple[str, int, list[str]]:
@@ -291,34 +360,45 @@ def _scan(
     prefilter: list[str],
     confirm: Callable[[dict[str, Any]], bool],
     build: Callable[[dict[str, Any]], dict[str, Any]],
+    rank: Callable[[dict[str, Any]], tuple[int, int]],
     limit: int,
     offset: int,
     corpus: dict[str, Any],
 ) -> dict[str, Any]:
-    """Walk the indexes in order, paging on every eligible match, matched or skipped."""
-    matches: list[dict[str, Any]] = []
-    seen = 0
-    for path in _within_bounds(files):
-        try:
-            for row in _rows(path, prefilter):
-                if not confirm(row):
-                    continue
-                if seen < offset:
-                    seen += 1
-                    continue
-                if len(matches) >= limit:
-                    return _page(matches, seen, corpus, has_more=True)
-                seen += 1
-                matches.append(build(row))
-        except (OSError, UnicodeError) as exc:
-            raise InputError("Cannot read a UTF-8 JSONL index in the configured corpus.") from exc
-    return _page(matches, seen, corpus, has_more=False)
+    """Rank every eligible match, best first, and return the requested page.
+
+    Ties keep corpus order, so pages stay consistent while the corpus is unchanged.
+    Only the best offset + limit + 1 matches are kept, already cut to search length,
+    which is enough to tell whether more follow.
+
+    ponytail: ranking reads the whole corpus on every search rather than stopping at
+    the first full page. Measured on the 946-title corpus that takes about 0.5 s, and
+    about 1.6 s for a word nearly every row holds such as "tax"; add an index only
+    if a measured corpus needs one.
+    """
+
+    def ranked() -> Iterator[tuple[tuple[int, int], int, dict[str, Any]]]:
+        order = 0
+        for path in _within_bounds(files):
+            try:
+                for row in _rows(path, prefilter):
+                    if confirm(row):
+                        yield rank(row), order, build(row)
+                        order += 1
+            except (OSError, UnicodeError) as exc:
+                raise InputError(
+                    "Cannot read a UTF-8 JSONL index in the configured corpus."
+                ) from exc
+
+    best = heapq.nsmallest(offset + limit + 1, ranked(), key=lambda item: item[:2])
+    matches = [entry for _, _, entry in best[offset:offset + limit]]
+    return _page(matches, offset + limit, corpus, has_more=len(best) > offset + limit)
 
 
 def search_sections(
     query: str, limit: int, offset: int, act: str | None = None, in_force_only: bool = True
 ) -> dict[str, Any]:
-    """Search the configured corpus for sections holding every supplied word.
+    """Search the configured corpus for sections holding every supplied word, best first.
 
     A superseded compilation is left out unless in_force_only is False; a row
     whose currency the corpus did not record is kept either way, with its
@@ -336,23 +416,44 @@ def search_sections(
             return False
         return _holds(row, SECTION_FIELDS, terms)
 
-    return _scan(
+    page = _scan(
         files,
         terms + act_terms,
         confirm,
         lambda row: _section(row, SEARCH_TEXT_CHARS),
+        _ranking(terms, ("heading",), ("text",)),
         limit,
         offset,
         _provenance(root),
     )
+    if not page["matches"] and not offset:
+        page["notice"] += " " + NO_MATCH_HINT
+    return page
 
 
-def read_section(row_id: str, neighbours: int = 0) -> dict[str, Any]:
+def _part(row: dict[str, Any], start: int) -> tuple[dict[str, Any], int | None]:
+    """The cited provision from character start at read length, and where the next part begins."""
+    whole = _string(row, "text") or ""
+    if start and start >= len(whole):
+        raise InputError(
+            f"start is past the end of this provision, which has {len(whole)} characters."
+        )
+    end = min(start + READ_TEXT_CHARS, len(whole))
+    section = _section({**row, "text": whole[start:end]}, READ_TEXT_CHARS)
+    section["total_chars"] = len(whole)
+    if start or end < len(whole):
+        section["caveats"].insert(0, PART_CAVEAT.format(start=start, end=end, total=len(whole)))
+    return section, end if end < len(whole) else None
+
+
+def read_section(row_id: str, neighbours: int = 0, start: int = 0) -> dict[str, Any]:
     """Read one cited section from the title index that owns it.
 
-    neighbours adds up to that many provisions on each side in the title's
-    document order, at search length, so a subsection can be read with the
-    provisions around it without guessing their labels.
+    start is the character to read from, so a provision longer than one read is
+    taken in parts by passing each part's next_start back. neighbours adds up to
+    that many provisions on each side in the title's document order, at search
+    length, so a subsection can be read with the provisions around it without
+    guessing their labels.
     """
     if not ROW_ID.match(row_id):
         raise InputError("Use a row_id returned by search_tax_legislation.")
@@ -406,8 +507,11 @@ def read_section(row_id: str, neighbours: int = 0) -> dict[str, Any]:
         raise InputError("Cannot read that UTF-8 JSONL index in the configured corpus.") from exc
     if found is None:
         raise InputError("No section with that row_id in the configured corpus.")
+    section, next_start = _part(found, start)
     return {
-        "section": _section(found, READ_TEXT_CHARS),
+        "section": section,
+        "start": start,
+        "next_start": next_start,
         "before": [_section(near, SEARCH_TEXT_CHARS) for near in before],
         "after": [_section(near, SEARCH_TEXT_CHARS) for near in after],
         "corpus": _provenance(root),
@@ -462,15 +566,19 @@ def define_term(
 
     An exact match is a definition whose defined expression is the term; a
     partial match is one whose expression contains every word of the term.
-    Exact matches come first, then partial ones, both in corpus order.
+    Exact matches come first, then partial ones; within each, the principal
+    Acts come first in PRINCIPAL_ACTS order, then other titles in corpus order.
+    At most MAX_DEFINITIONS partial matches are kept, the best ranked first.
     """
     words = _terms(term, "term")
     wanted = _plain(term)
     act_terms = _terms(act, "act") if act else []
     root = _root()
-    exact: list[dict[str, Any]] = []
-    partial: list[dict[str, Any]] = []
-    dropped = False
+    exact: list[tuple[int, dict[str, Any]]] = []
+    # One heap entry per partial match, keyed like the final order, so the cap keeps
+    # the best partial matches rather than the first ones the scan meets.
+    partial: list[tuple[int, int, dict[str, Any]]] = []
+    order = 0
     for path in _within_bounds(_index_files(root)):
         try:
             for row in _rows(path, words + act_terms):
@@ -480,18 +588,25 @@ def define_term(
                     continue
                 if act_terms and not _holds(row, ("act",), act_terms):
                     continue
+                priority = _priority(row)
                 for head, body in _definitions(_string(row, "text") or ""):
                     key = _plain(head)
                     if key.split(",")[0].strip() == wanted:
-                        exact.append(_entry(row, head, body, "exact"))
+                        exact.append((priority, _entry(row, head, body, "exact")))
                     elif all(re.search(rf"\b{re.escape(word)}\b", key) for word in words):
-                        if len(partial) < MAX_DEFINITIONS:
-                            partial.append(_entry(row, head, body, "partial"))
+                        # Negated so the heap's smallest item is the worst match kept.
+                        item = (-priority, -order, _entry(row, head, body, "partial"))
+                        order += 1
+                        if len(partial) < MAX_DEFINITIONS + 1:
+                            heapq.heappush(partial, item)
                         else:
-                            dropped = True
+                            heapq.heappushpop(partial, item)
         except (OSError, UnicodeError) as exc:
             raise InputError("Cannot read a UTF-8 JSONL index in the configured corpus.") from exc
-    found = exact + partial
+    exact.sort(key=lambda item: item[0])
+    ranked = [entry for *_, entry in sorted(partial, key=lambda item: item[:2], reverse=True)]
+    dropped = len(ranked) > MAX_DEFINITIONS
+    found = [entry for _, entry in exact] + ranked[:MAX_DEFINITIONS]
     return {
         "term": term,
         "definitions": found[:limit],
@@ -504,7 +619,7 @@ def define_term(
 def search_rates(
     query: str, limit: int, offset: int, topic: str | None = None, year: str | None = None
 ) -> dict[str, Any]:
-    """Search the configured corpus for legislated rate, threshold and factor rows.
+    """Search the configured corpus for legislated rate, threshold and factor rows, best first.
 
     year keeps only rows whose stated years include it, written the way the
     provision writes it, such as '2026-27'; a row that states no year is left out.
@@ -528,4 +643,13 @@ def search_rates(
                 return False
         return _holds(row, RATE_FIELDS, terms)
 
-    return _scan([path], terms + topic_terms, confirm, _rate, limit, offset, _provenance(root))
+    return _scan(
+        [path],
+        terms + topic_terms,
+        confirm,
+        _rate,
+        _ranking(terms, ("heading", "topic"), ("content",)),
+        limit,
+        offset,
+        _provenance(root),
+    )

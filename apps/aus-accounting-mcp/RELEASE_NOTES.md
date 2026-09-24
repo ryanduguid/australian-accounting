@@ -1,3 +1,28 @@
+# Unreleased
+
+- `search_tax_legislation` and `search_tax_rates` return the best match first
+  instead of in corpus file order: the query as a phrase in a heading, then every
+  word in a heading, then the phrase in the text, then the words anywhere, with the
+  principal tax Acts first within each tier. On a 946-title corpus "small business
+  entity" previously led with Excise Act 1901 s 4 and "general deductions" did not
+  reach ITAA 1997 s 8-1 in the first five results. Ranking reads the whole corpus
+  on each search: about 0.5 seconds on that corpus, up to about 1.6 seconds for
+  a word nearly every provision holds.
+- `define_tax_term` puts the principal tax Acts first within exact and partial
+  matches, and its 20-entry partial cap keeps the best-ranked entries rather than
+  the first ones the scan meets.
+- `read_tax_legislation_section` takes `start` and returns `start` and
+  `next_start`, so a provision longer than 12000 characters can be read in parts.
+  165 of 21,916 rows in that corpus were cut off with no way to read further,
+  including ITAA 1997 s 995-1.
+- A search with no match adds a notice suggesting statutory wording.
+- A missing or invalid retrieval folder error tells the caller to ask the user
+  rather than retry, and the scope resource reports whether each retrieval folder
+  is configured, without its path.
+- `aus-accounting-mcp --version` and `--help` print and exit instead of starting
+  the server; an unknown argument is refused.
+- Two evaluation cases cover ranking and reading a long provision in parts.
+
 # v0.2.7
 
 - Pin `australian-tax-calculators` 0.1.5 and add its `payg_withholding`
