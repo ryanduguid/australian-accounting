@@ -554,6 +554,9 @@ def test_a_principal_act_comes_first_within_a_tier(corpus, monkeypatch):
         # Statutes print U+2011 in labels; a caller types a plain hyphen.
         ("40-230 car limit", {"heading": "40\u2011230 Car limit"}, 0),
         ("write-off", {"heading": "1 Other", "text": "the write\u2011off applies"}, 2),
+        # A heading word that only contains a query word is no heading match.
+        ("car limit", {"heading": "9 Scar limitation", "text": "a car limit applies"}, 2),
+        ("car limit", {"heading": "9 Scar limitation", "text": "scar limitation"}, 3),
     ],
 )
 def test_ranking_tiers(query, row, tier):
@@ -682,3 +685,40 @@ def test_an_index_that_is_not_utf8_is_an_input_error_while_ranking(corpus):
 
     with pytest.raises(ToolError, match="UTF-8"):
         call("search_tax_legislation", query="small entity")
+
+
+def test_a_rate_phrase_is_not_formed_across_heading_and_topic(corpus):
+    """Heading and topic were joined before phrase matching, so a heading ending in
+    "cap" and a topic starting with "rate" made a tier-0 phrase that neither holds."""
+    path = corpus / "rates" / "rates.jsonl"
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    straddle = synthetic_corpus.rate(
+        "R00003", "rate review", "No figure is stated here.",
+        amounts=[], years=[], section_label="9-30",
+    )
+    straddle["heading"] = "9-30 Synthetic cap"
+    phrase = synthetic_corpus.rate(
+        "R00004", "levies", "The cap rate is 5% of the assessable amount.",
+        amounts=["5%"], years=["2098-99"], section_label="9-40",
+    )
+    phrase["heading"] = "9-40 Other"
+    synthetic_corpus.write(path, rows + [straddle, phrase])
+
+    ranked = [row["rate_id"] for row in call("search_tax_rates", query="cap rate")["matches"]]
+
+    assert ranked[0] == "R00004"
+    assert set(ranked) == {"R00002", "R00003", "R00004"}
+
+
+@pytest.mark.parametrize(
+    ("row", "tier"),
+    [
+        ({"heading": "9-30 Synthetic cap", "topic": "rate review"}, 3),
+        ({"heading": "9-30 Synthetic cap", "topic": "cap rate review"}, 0),
+        ({"heading": "9-30 Rate of the cap", "topic": "levies"}, 1),
+    ],
+)
+def test_rate_heading_fields_rank_separately(row, tier):
+    rank = corpus_module._ranking(["cap", "rate"], ("heading", "topic"), ("content",))
+
+    assert rank(row)[0] == tier

@@ -189,13 +189,9 @@ def _row(line: str, prefilter: list[str]) -> dict[str, Any] | None:
     return row if isinstance(row, dict) else None
 
 
-def _joined(row: dict[str, Any], fields: tuple[str, ...]) -> str:
-    values = [row.get(field) for field in fields]
-    return " ".join(value for value in values if isinstance(value, str)).casefold()
-
-
 def _holds(row: dict[str, Any], fields: tuple[str, ...], terms: list[str]) -> bool:
-    joined = _joined(row, fields)
+    values = [row.get(field) for field in fields]
+    joined = " ".join(value for value in values if isinstance(value, str)).casefold()
     return all(term in joined for term in terms)
 
 
@@ -210,22 +206,29 @@ def _ranking(
 ) -> Callable[[dict[str, Any]], tuple[int, int]]:
     """The sort key for a matching row, lower first.
 
-    Tier 0 holds the words as a phrase in the heading, tier 1 every word in the
-    heading, tier 2 the phrase in the body and tier 3 every word somewhere. A
-    "Meaning of small business entity" heading therefore outranks a dictionary that
-    only mentions the expression, and within a tier a principal Act comes first.
+    Tier 0 holds the words as a phrase in one heading field, tier 1 every word in
+    one heading field, tier 2 the phrase in one body field and tier 3 every word
+    somewhere. A "Meaning of small business entity" heading therefore outranks a
+    dictionary that only mentions the expression, and within a tier a principal Act
+    comes first. Tiers 0 to 2 match whole words within a single field, so "scar
+    limitation" is no heading match for "car limit", and a rate heading ending in
+    one query word does not join the topic that starts with the next into a phrase.
     """
     # Punctuation and the U+2011 hyphen statutes print sit between the words, so a
     # query for "40-230" or "write-off" still meets its phrase.
     phrase = re.compile(r"\b" + r"\W+".join(map(re.escape, terms)) + r"\b")
+    words = [re.compile(rf"\b{re.escape(term)}\b") for term in terms]
+
+    def values(row: dict[str, Any], fields: tuple[str, ...]) -> list[str]:
+        return [value.casefold() for field in fields if isinstance(value := row.get(field), str)]
 
     def rank(row: dict[str, Any]) -> tuple[int, int]:
-        title = _joined(row, heading)
-        if phrase.search(title):
+        titles = values(row, heading)
+        if any(phrase.search(title) for title in titles):
             tier = 0
-        elif all(term in title for term in terms):
+        elif any(all(word.search(title) for word in words) for title in titles):
             tier = 1
-        elif phrase.search(_joined(row, body)):
+        elif any(phrase.search(text) for text in values(row, body)):
             tier = 2
         else:
             tier = 3
@@ -369,9 +372,9 @@ def _scan(
     which is enough to tell whether more follow.
 
     ponytail: ranking reads the whole corpus on every search rather than stopping at
-    the first full page. Measured on the 946-title corpus that takes 0.5 to 1 s, the
-    longer for a word nearly every row holds; add an index only if a measured corpus
-    needs one.
+    the first full page. Measured on the 946-title corpus that takes about 0.5 s, and
+    about 1.6 s for a word nearly every row holds such as "tax"; add an index only
+    if a measured corpus needs one.
     """
 
     def ranked() -> Iterator[tuple[tuple[int, int], int, dict[str, Any]]]:

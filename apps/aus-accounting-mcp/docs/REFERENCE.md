@@ -529,7 +529,8 @@ builds a corpus in this shape from the Federal Register of Legislation.
 case sensitivity, across the Act name, section label, heading, container and text.
 A word that appears only in stored metadata, such as the attribution or licence
 fields, is not a match. Matches come best first: the query as a phrase in the
-heading, then every query word in the heading, then the phrase in the text, then
+heading, then every query word as a whole word in one heading, then the phrase in
+the text, then
 the words anywhere. Within each tier the principal tax Acts (ITAA 1997, the GST
 Act, ITAA 1936, TAA 1953, FBTAA 1986, SGAA 1992, IT(TP)A 1997 and the Income Tax
 Rates Act 1986, matched on the whole title) come before other titles, and ties
@@ -591,7 +592,8 @@ Every response carries a `corpus` block with the source, retrieval date and lice
 terms from `sources.json`, and a `notice`. Search accepts `limit` up to 20 and
 `offset` for continuation with the same query and unchanged corpus, stopping at
 10000 the same way the library search does. Ranking reads the whole corpus on
-each search: 0.5 to 1 second on a corpus of 946 titles.
+each search: about 0.5 seconds on a corpus of 946 titles, and up to about 1.6
+seconds for a word nearly every provision holds, such as "tax".
 
 ### Worked example
 

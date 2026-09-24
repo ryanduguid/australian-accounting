@@ -6,7 +6,8 @@
   principal tax Acts first within each tier. On a 946-title corpus "small business
   entity" previously led with Excise Act 1901 s 4 and "general deductions" did not
   reach ITAA 1997 s 8-1 in the first five results. Ranking reads the whole corpus
-  on each search: 0.5 to 1 second on that corpus.
+  on each search: about 0.5 seconds on that corpus, up to about 1.6 seconds for
+  a word nearly every provision holds.
 - `define_tax_term` puts the principal tax Acts first within exact and partial
   matches, and its 20-entry partial cap keeps the best-ranked entries rather than
   the first ones the scan meets.
