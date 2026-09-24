@@ -100,7 +100,7 @@ class PensionMinimumFacts(Worksheet):
         description="Balance on 1 July, or on the commencement day in the first year.")
     age: Annotated[int, Field(ge=0, le=150,
         description="Age on the day the account balance is taken.")]
-    days: Annotated[int, Field(ge=1, le=366,
+    days: Annotated[int, Field(ge=1, le=365,
         description="Days in the year from and including the commencement day; every day "
                     "of the year for a pension running on 1 July.")]
 
