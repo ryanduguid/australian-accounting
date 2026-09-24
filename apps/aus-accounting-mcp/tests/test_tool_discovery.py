@@ -1,9 +1,14 @@
 """Check the discovery contract clients receive through MCP tools/list."""
 
+import ast
 import asyncio
+import io
+import tokenize
+from pathlib import Path
 
 import pytest
 
+from aus_accounting_mcp import server
 from aus_accounting_mcp.server import mcp
 
 TOOLS = asyncio.run(mcp.list_tools())
@@ -17,6 +22,35 @@ def test_every_input_has_a_description_in_the_public_schema(tool) -> None:
     assert properties or tool.name == "refuse_div7a"
     missing = [name for name, schema in properties.items() if not schema.get("description")]
     assert not missing, f"{tool.name} has undocumented inputs: {missing}"
+
+
+def _plain_string_literal(token: str) -> str | None:
+    try:
+        value = ast.literal_eval(token)
+    except (ValueError, SyntaxError):
+        return None
+    return value if isinstance(value, str) else None
+
+
+def test_no_description_fuses_two_words_across_a_line_break() -> None:
+    # Descriptions are wrapped as adjacent string literals. A literal ending in a
+    # letter followed by one starting with a letter reaches the model as a single
+    # run-together word, such as "ratiodenominator".
+    source = Path(server.__file__).read_text(encoding="utf-8")
+    tokens = [
+        token for token in tokenize.generate_tokens(io.StringIO(source).readline)
+        if token.type not in (tokenize.NL, tokenize.COMMENT)
+    ]
+    fused = [
+        first.start[0]
+        for first, second in zip(tokens, tokens[1:])
+        if first.type == second.type == tokenize.STRING
+        and (left := _plain_string_literal(first.string)) is not None
+        and (right := _plain_string_literal(second.string)) is not None
+        and left[-1:].isalnum()
+        and right[:1].isalnum()
+    ]
+    assert not fused, f"literals joined without a space at lines {fused}"
 
 
 @pytest.mark.parametrize("tool", TOOLS, ids=lambda tool: tool.name)
