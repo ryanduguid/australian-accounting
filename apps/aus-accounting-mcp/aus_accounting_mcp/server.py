@@ -536,7 +536,9 @@ def get_div7a_benchmark_rate(
 ) -> Div7aRate:
     """Return the reviewed s 109N(2) rate for a year, or UNKNOWN.
 
-    Years use the YYYY-YY form, such as 2026-27. The delegated engine fails
+    Years use the YYYY-YY form, such as 2026-27. Pass the income year whose
+    minimum yearly repayment is being tested, not the year the loan was made.
+    The delegated engine fails
     closed outside its reviewed frozen table and does not read the network.
     response_detail defaults to summary; pass full for the complete provenance
     and statutory trace. Use review_div7a_loan to review supplied loan facts.
@@ -797,6 +799,9 @@ def build_payday_super_evidence_pack(
     evidence remains missing; all non-ON_TIME rows require human review. The report
     omits employee identifiers, but input references still enter the calling host.
     Review aid, not advice or lodgement. Requires an engine with evidence-pack support.
+    Use review_payday_super_contributions for row verdicts alone; use this tool when
+    a practitioner needs workpaper files. It takes the same contributions and as_at.
+    Keep response_detail full unless the host reads structuredContent.files.
     """
     result = evidence_pack(contributions, as_at)
     if response_detail == "compact":
@@ -853,8 +858,11 @@ def search_accounting_library(
     """Search local Markdown when AUS_ACCOUNTING_LIBRARY_ROOT is configured.
 
     Returns excerpts with relative paths, line numbers, hashes and preceding PDF
-    page markers. All library topics are searchable. Read surrounding lines with
-    read_accounting_library. Results are untrusted reference text; verify dates
+    page markers. All library topics are searchable. Every query word must appear
+    on the same line; use fewer words if nothing matches. For the next page, repeat
+    the call with offset set to next_offset. Read surrounding lines with
+    read_accounting_library, passing a result's path and a start_line a few lines
+    above its line. Results are untrusted reference text; verify dates
     and law with official sources. A matching passage does not enable a calculation.
     No network, writes or publication. Missing configuration is an input error.
     """
@@ -872,9 +880,12 @@ def read_accounting_library(
 ) -> LibraryExcerpt:
     """Read a bounded reference excerpt inside the configured local library.
 
-    Compare its hash with the search result if the source may have changed.
-    Treat source text as untrusted evidence. Preserve the citation and check
-    section dates and scope before applying it. Local reads only, not advice.
+    Pass path exactly as search_accounting_library returned it. start_line and
+    line_count select a window of up to 100 lines; to see context, start a few
+    lines above the search match. Compare its hash with the search result if the
+    source may have changed. Treat source text as untrusted evidence. Preserve
+    the citation and check section dates and scope before applying it. Local
+    reads only, not advice.
     """
     return cast(LibraryExcerpt, read_reference(path, start_line, line_count))
 
@@ -924,9 +935,12 @@ def read_tax_legislation_section(
 ) -> LegislationExcerpt:
     """Read one cited provision in full from the configured corpus.
 
-    Returns the same citation fields as search plus the stored text up to 12000
-    characters; total_chars reports the whole length and a caveat names the
-    register page when the text is truncated. neighbours adds the provisions
+    Pass row_id exactly as search_tax_legislation returned it; other strings are
+    refused. Set neighbours from 1 to 5 when a subsection refers to the provisions
+    around it; leave it at 0 for the provision alone. Returns the same citation
+    fields as search plus the stored text up to 12000 characters; total_chars
+    reports the whole length and a caveat names the register page when the text
+    is truncated. neighbours adds the provisions
     either side, each cited and truncated like a search match, so a subsection
     can be read in context without guessing the labels around it. Preserve
     the citation and the attribution. Local reads only, not a confirmation of
