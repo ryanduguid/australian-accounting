@@ -35,13 +35,13 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         "distribution": "aus-accounting-mcp",
         "version": server_metadata["version"],
         "repository": CANONICAL_REPOSITORY,
-        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.2.6/",
+        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.2.7/",
         "registry_identity": "io.github.ryanduguid/aus-accounting",
         "registry": (
             "https://registry.modelcontextprotocol.io/v0.1/servers/"
-            "io.github.ryanduguid%2Faus-accounting/versions/0.2.6"
+            "io.github.ryanduguid%2Faus-accounting/versions/0.2.7"
         ),
-        "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v0.2.6",
+        "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v0.2.7",
     }
     assert record["engines"] == [
         {
@@ -64,9 +64,9 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         },
         {
             "distribution": "australian-tax-calculators",
-            "version": "0.1.4",
+            "version": "0.1.5",
             "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/australian-tax-calculators",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/australian-tax-calculators/v0.1.4",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/australian-tax-calculators/v0.1.5",
         },
     ]
     distribution = record["server"]["distribution"]

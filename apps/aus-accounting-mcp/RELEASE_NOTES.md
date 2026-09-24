@@ -1,3 +1,21 @@
+# v0.2.7
+
+- Pin `australian-tax-calculators` 0.1.5 and add its `payg_withholding`
+  worksheet to `calculate_tax_worksheet`: one regular weekly, fortnightly or
+  monthly pay from 1 July 2026 on Schedule 1 scale 1, 2, 3, 5 or 6. Retain the
+  `ato-benchmark-compare` 0.1.9, `payday-super-checker` 0.1.7 and
+  `div7a-loan-review` 0.1.4 pins.
+- Resolve each worksheet's engine function when it is called, so a kind the
+  installed engine lacks is refused with a message and the other kinds keep
+  working.
+- Put the missing space back in eight input descriptions for
+  `get_ato_benchmarks`, `calc_payday_super_deadline` and `review_div7a_loan`,
+  which reached clients as run-together words such as "ratiodenominator".
+- State in the scope resource, README and disclaimer that the author is not a
+  registered tax or BAS agent, and limit support to software issues reproduced
+  with fabricated data.
+- Align the release, citation, compatibility and MCP Registry metadata to 0.2.7.
+
 # v0.2.6
 
 - Pin `ato-benchmark-compare` 0.1.9 and `australian-tax-calculators` 0.1.4.

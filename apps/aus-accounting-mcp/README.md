@@ -9,7 +9,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 Local Australian accounting tools for AI assistants. Compare business figures with
 ATO benchmarks, review Payday Super timing and check limited Division 7A loan terms
-and repayments. Calculate 6 bounded tax worksheets, search a configured local
+and repayments. Calculate 7 bounded tax worksheets, search a configured local
 Markdown library with file and line citations, and search a configured legislation
 corpus for provisions, rates and thresholds cited to their Act, section and
 compilation. Includes synthetic CTR/BAS fixtures for integration testing.
@@ -91,7 +91,7 @@ command, so they cannot run this server.
 | `calc_payday_super_deadline` | Review timing for one super contribution. |
 | `review_payday_super_contributions` | Review related contributions together for one employer. |
 | `build_payday_super_evidence_pack` | Return 4 review files in memory using the pinned Payday Super checker. |
-| `calculate_tax_worksheet` | Calculate one of 6 worksheets with established scope and period. |
+| `calculate_tax_worksheet` | Calculate one of 7 worksheets with established scope and period. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
 | `search_tax_legislation` | Find in-force provisions in a configured local legislation corpus, cited to Act, section, compilation and register page; `in_force_only=false` includes superseded compilations. |
@@ -190,9 +190,9 @@ The 17-column evidence report is for the included checklist. It is not accepted
 by legacy `review-pack` or the accounting review pipeline's `PaydaySuper.Report`
 Excel importer. Use an ordinary 18-column checker report for that importer.
 
-This documentation describes v0.2.6, which pins `payday-super-checker==0.1.7`
+This documentation describes v0.2.7, which pins `payday-super-checker==0.1.7`
 and `div7a-loan-review==0.1.4` and includes the pack builder. Run
-`uvx aus-accounting-mcp==0.2.6` for this version. Check the
+`uvx aus-accounting-mcp==0.2.7` for this version. Check the
 release and compatibility references below before treating a source version as published. An installation with
 checker v0.1.3 returns a feature-unavailable error for this tool; the existing
 tools continue to work. See the [website guide](https://duguid.com.au/tools/australian-tax-ai-agents/)
@@ -216,7 +216,7 @@ record the expected output, limitations and asset source.
 
 MIT License. Created by Ryan Duguid.
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.2.6 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.6),
+[v0.2.7 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.7),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <!-- mcp-name: io.github.ryanduguid/aus-accounting -->
