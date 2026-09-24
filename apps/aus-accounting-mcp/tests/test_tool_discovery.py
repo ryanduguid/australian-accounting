@@ -24,6 +24,14 @@ def test_every_input_has_a_description_in_the_public_schema(tool) -> None:
     assert not missing, f"{tool.name} has undocumented inputs: {missing}"
 
 
+def _plain_string_literal(token: str) -> str | None:
+    try:
+        value = ast.literal_eval(token)
+    except (ValueError, SyntaxError):
+        return None
+    return value if isinstance(value, str) else None
+
+
 def test_no_description_fuses_two_words_across_a_line_break() -> None:
     # Descriptions are wrapped as adjacent string literals. A literal ending in a
     # letter followed by one starting with a letter reaches the model as a single
@@ -37,9 +45,10 @@ def test_no_description_fuses_two_words_across_a_line_break() -> None:
         first.start[0]
         for first, second in zip(tokens, tokens[1:])
         if first.type == second.type == tokenize.STRING
-        and isinstance(left := ast.literal_eval(first.string), str)
+        and (left := _plain_string_literal(first.string)) is not None
+        and (right := _plain_string_literal(second.string)) is not None
         and left[-1:].isalnum()
-        and ast.literal_eval(second.string)[:1].isalnum()
+        and right[:1].isalnum()
     ]
     assert not fused, f"literals joined without a space at lines {fused}"
 
