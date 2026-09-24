@@ -1,3 +1,17 @@
+# v0.1.5
+
+- Add `payg_withholding`, a Schedule 1 (NAT 1004) worksheet for one regular
+  weekly, fortnightly or monthly pay from 1 July 2026 on scales 1, 2, 3, 5 or
+  6. It applies the published coefficients to the whole-dollar weekly
+  equivalent plus 99 cents and rounds to the dollar as the schedule directs.
+  It reproduces all 720 amounts in the ATO's sample data published on
+  17 June 2026. Scale 4, tax offsets, Medicare levy adjustments, study and
+  training support loans, 53 and 27 pay years and quarterly pays are refused
+  or out of scope.
+- State in the README and disclaimer that the author is not a registered tax
+  or BAS agent, and limit support to software issues reproduced with
+  fabricated data.
+
 # v0.1.4
 
 - Compute every worksheet in its own decimal context. A caller's context no

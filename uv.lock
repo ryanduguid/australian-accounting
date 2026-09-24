@@ -208,7 +208,7 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "australian-tax-calculators"
-version = "0.1.4"
+version = "0.1.5"
 source = { editable = "packages/australian-tax-calculators" }
 
 [package.optional-dependencies]
@@ -824,6 +824,7 @@ source = { editable = "packages/div7a-loan-review" }
 dev = [
     { name = "build" },
     { name = "coverage" },
+    { name = "hypothesis" },
     { name = "mypy" },
     { name = "openpyxl" },
     { name = "pytest" },
@@ -835,6 +836,7 @@ dev = [
 requires-dist = [
     { name = "build", marker = "extra == 'dev'", specifier = "==1.6.1" },
     { name = "coverage", marker = "extra == 'dev'", specifier = "==7.16.0" },
+    { name = "hypothesis", marker = "extra == 'dev'", specifier = "==6.167.1" },
     { name = "mypy", marker = "extra == 'dev'", specifier = "==2.3.1" },
     { name = "openpyxl", marker = "extra == 'dev'", specifier = "==3.1.5" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
