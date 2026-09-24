@@ -17,6 +17,7 @@ REQUIRED = {
         ".github/workflows/ci.yml: ato-benchmark-compare / test (3.10)",
         ".github/workflows/ci.yml: ato-benchmark-compare / test (3.12)",
         ".github/workflows/ci.yml: ato-benchmark-compare / test (3.13)",
+        ".github/workflows/ci.yml: ato-benchmark-compare / test (3.14)",
         ".github/workflows/ci.yml: ato-benchmark-compare / test-windows",
         ".github/workflows/boundaries.yml: boundaries",
         ".github/workflows/codeql.yml: Analyze Python"
@@ -28,6 +29,7 @@ REQUIRED = {
         ".github/workflows/ci.yml: test (ubuntu-latest, 3.10)",
         ".github/workflows/ci.yml: test (ubuntu-latest, 3.12)",
         ".github/workflows/ci.yml: test (ubuntu-latest, 3.13)",
+        ".github/workflows/ci.yml: test (ubuntu-latest, 3.14)",
         ".github/workflows/ci.yml: test (windows-latest, 3.12)",
         ".github/workflows/boundaries.yml: boundaries",
         ".github/workflows/codeql.yml: Analyze Python"
@@ -40,6 +42,7 @@ REQUIRED = {
         ".github/workflows/ci.yml: australian-tax-calculators / test (3.10)",
         ".github/workflows/ci.yml: australian-tax-calculators / test (3.12)",
         ".github/workflows/ci.yml: australian-tax-calculators / test (3.13)",
+        ".github/workflows/ci.yml: australian-tax-calculators / test (3.14)",
         ".github/workflows/ci.yml: australian-tax-calculators / test-windows",
         ".github/workflows/boundaries.yml: boundaries",
         ".github/workflows/codeql.yml: Analyze Python"
@@ -52,6 +55,7 @@ REQUIRED = {
         ".github/workflows/ci.yml: div7a-loan-review / test (3.10)",
         ".github/workflows/ci.yml: div7a-loan-review / test (3.12)",
         ".github/workflows/ci.yml: div7a-loan-review / test (3.13)",
+        ".github/workflows/ci.yml: div7a-loan-review / test (3.14)",
         ".github/workflows/boundaries.yml: boundaries",
         ".github/workflows/codeql.yml: Analyze Python"
     ],
@@ -63,6 +67,7 @@ REQUIRED = {
         ".github/workflows/ci.yml: payday-super-checker / test (3.10)",
         ".github/workflows/ci.yml: payday-super-checker / test (3.12)",
         ".github/workflows/ci.yml: payday-super-checker / test (3.13)",
+        ".github/workflows/ci.yml: payday-super-checker / test (3.14)",
         ".github/workflows/ci.yml: payday-super-checker / test-windows",
         ".github/workflows/boundaries.yml: boundaries",
         ".github/workflows/codeql.yml: Analyze Python"
@@ -75,6 +80,7 @@ REQUIRED = {
         ".github/workflows/ci.yml: solomons-sword / test (3.10)",
         ".github/workflows/ci.yml: solomons-sword / test (3.12)",
         ".github/workflows/ci.yml: solomons-sword / test (3.13)",
+        ".github/workflows/ci.yml: solomons-sword / test (3.14)",
         ".github/workflows/boundaries.yml: boundaries",
         ".github/workflows/codeql.yml: Analyze Python"
     ],
@@ -86,6 +92,7 @@ REQUIRED = {
         ".github/workflows/ci.yml: the-exchequer-tally / test (3.10)",
         ".github/workflows/ci.yml: the-exchequer-tally / test (3.12)",
         ".github/workflows/ci.yml: the-exchequer-tally / test (3.13)",
+        ".github/workflows/ci.yml: the-exchequer-tally / test (3.14)",
         ".github/workflows/boundaries.yml: boundaries",
         ".github/workflows/codeql.yml: Analyze Python"
     ],
@@ -97,6 +104,7 @@ REQUIRED = {
         ".github/workflows/ci.yml: the-wip-tally / test (3.10)",
         ".github/workflows/ci.yml: the-wip-tally / test (3.12)",
         ".github/workflows/ci.yml: the-wip-tally / test (3.13)",
+        ".github/workflows/ci.yml: the-wip-tally / test (3.14)",
         ".github/workflows/ci.yml: the-wip-tally / test-windows",
         ".github/workflows/boundaries.yml: boundaries",
         ".github/workflows/codeql.yml: Analyze Python"
