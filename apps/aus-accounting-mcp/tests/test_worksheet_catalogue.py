@@ -5,6 +5,7 @@ import json
 
 import pytest
 from austaxcalc import calculations
+from mcp.server.mcpserver.exceptions import ToolError
 from pydantic import TypeAdapter
 
 from aus_accounting_mcp import resources
@@ -44,6 +45,22 @@ def test_pinned_older_engine_keeps_legacy_discovery(monkeypatch):
     for kind, entry in catalogue.items():
         assert entry == {"scope": resources.SCOPES[kind], "source": resources.SOURCES[kind],
                          "source_checked": resources.SOURCE_CHECKED}
+
+
+def test_pinned_engine_without_a_newer_kind_still_runs_the_others(monkeypatch):
+    # The published server pins an engine release that may predate a kind the
+    # workspace engine has; only that kind may fail, and it must say why.
+    monkeypatch.delattr(calculations, "payg_withholding", raising=False)
+    gst = {"kind": "gst", "scope_confirmed": True, "year": "2025-26",
+           "amount": "110.00", "gst_inclusive": True}
+    payg = {"kind": "payg_withholding", "scope_confirmed": True, "year": "2026-27",
+            "earnings": "1000.00", "pay_period": "weekly", "scale": 2}
+
+    async def check():
+        assert not (await mcp.call_tool("calculate_tax_worksheet", {"facts": gst})).is_error
+        with pytest.raises(ToolError, match="newer australian-tax-calculators"):
+            await mcp.call_tool("calculate_tax_worksheet", {"facts": payg})
+    asyncio.run(check())
 
 
 @pytest.mark.parametrize("kind", calculations.SCOPES)

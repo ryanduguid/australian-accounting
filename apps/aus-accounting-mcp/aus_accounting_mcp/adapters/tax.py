@@ -101,12 +101,12 @@ def calculate(facts: TaxFacts) -> dict[str, Any]:
         for name in ("effective_life", "taxable_use"):
             if name in arguments:
                 arguments[name] = Decimal(arguments[name])
-        functions: dict[str, Callable[..., dict[str, Any]]] = {
-            "gst": calculations.gst, "resident_tax": calculations.resident_tax,
-            "capital_gains": calculations.capital_gains, "fbt": calculations.fbt,
-            "depreciation": calculations.depreciation, "quarterly_sg": calculations.quarterly_sg,
-            "payg_withholding": calculations.payg_withholding,
-        }
-        return functions[kind](**arguments)
+        # Each kind is its engine function's name. Resolving it per call keeps the
+        # other kinds working when the pinned engine predates a newer kind.
+        function: Callable[..., dict[str, Any]] | None = getattr(calculations, kind, None)
+        if function is None:
+            raise InputError(
+                f"{kind} needs a newer australian-tax-calculators than the one installed.")
+        return function(**arguments)
     except (ValueError, InvalidOperation) as exc:
         raise InputError(str(exc)) from exc
