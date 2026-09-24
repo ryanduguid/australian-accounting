@@ -1,6 +1,6 @@
 # GitHub discovery metadata
 
-Description: Australian tax calculators: 7 bounded worksheets for GST, resident income tax, CGT, employer FBT, first-year depreciation, quarterly super guarantee and PAYG withholding, each stating its own scope, exclusions and sources. Review aid, not advice.
+Description: Australian tax calculators: 9 bounded worksheets for GST, resident income tax, CGT, employer FBT, first-year depreciation, quarterly super guarantee, PAYG withholding, super contribution caps and account-based pension minimums, each stating its own scope, exclusions and sources. Review aid, not advice.
 
 Homepage: https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators
 
