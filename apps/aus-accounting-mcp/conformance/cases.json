@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "matching": "Each key in expect is a JSON Pointer (RFC 6901) into the tool's structured result; the value is the exact JSON value expected there. Fields not named are not part of the case. A case with expect_error_contains expects the call to fail with an error message containing that text.",
+  "cases": [
+    {
+      "id": "payday_nothing_received",
+      "tool": "calc_payday_super_deadline",
+      "arguments": {"qe_day": "2026-08-06", "sg_amount": "120.00", "as_at": "2026-08-20"},
+      "expect": {
+        "/result/due": "2026-08-17",
+        "/result/verdict": "UNPAID",
+        "/result/days_late": 3,
+        "/result/final_shortfall": "120.00"
+      }
+    },
+    {
+      "id": "payday_receipt_without_amount",
+      "tool": "calc_payday_super_deadline",
+      "arguments": {"qe_day": "2026-08-06", "sg_amount": "120.00", "as_at": "2026-08-20", "received": "2026-08-17"},
+      "expect": {
+        "/result/due": "2026-08-17",
+        "/result/verdict": "UNKNOWN",
+        "/result/horizon_verdicts": ["UNPAID", "ON_TIME"],
+        "/result/final_shortfall": null
+      }
+    },
+    {
+      "id": "payday_receipt_with_matched_amount",
+      "tool": "calc_payday_super_deadline",
+      "arguments": {"qe_day": "2026-08-06", "sg_amount": "120.00", "as_at": "2026-08-20", "received": "2026-08-17", "matched_amount": "120.00"},
+      "expect": {
+        "/result/due": "2026-08-17",
+        "/result/verdict": "ON_TIME",
+        "/result/final_shortfall": null
+      }
+    },
+    {
+      "id": "payday_before_1_july_2026_refused",
+      "tool": "calc_payday_super_deadline",
+      "arguments": {"qe_day": "2026-06-25", "sg_amount": "120.00", "as_at": "2026-08-20"},
+      "expect_error_contains": "QE day before 1 Jul 2026"
+    },
+    {
+      "id": "div7a_rate_known_year",
+      "tool": "get_div7a_benchmark_rate",
+      "arguments": {"year_of_income": "2026-27"},
+      "expect": {
+        "/verdict": "KNOWN",
+        "/benchmark_rate": "0.0877"
+      }
+    },
+    {
+      "id": "div7a_rate_unsupported_year",
+      "tool": "get_div7a_benchmark_rate",
+      "arguments": {"year_of_income": "2031-32"},
+      "expect": {
+        "/verdict": "UNKNOWN",
+        "/benchmark_rate": null
+      }
+    },
+    {
+      "id": "div7a_minimum_repayment_met",
+      "tool": "review_div7a_loan",
+      "arguments": {
+        "year_of_income": "2026-27",
+        "year_loan_made": "2025-26",
+        "written_agreement": true,
+        "terms_in_place_before_lodgment_day": true,
+        "maximum_term_years": "7",
+        "secured_by_registered_mortgage_over_real_property": false,
+        "interest_rate_for_years_after_year_loan_made": "0.0837",
+        "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
+        "remaining_term_years": "1",
+        "payments_applied_during_the_year": "108770.00",
+        "loan_id": "synthetic-conformance-loan"
+      },
+      "expect": {
+        "/gate/verdict": "COMPLYING",
+        "/minimum_yearly_repayment/verdict": "MYR_MET",
+        "/minimum_yearly_repayment/benchmark_rate": "0.0877",
+        "/minimum_yearly_repayment/myr_required": "108770.00",
+        "/minimum_yearly_repayment/shortfall": "0.00"
+      }
+    },
+    {
+      "id": "div7a_written_agreement_not_established",
+      "tool": "review_div7a_loan",
+      "arguments": {
+        "year_of_income": "2026-27",
+        "year_loan_made": "2025-26",
+        "written_agreement": null,
+        "terms_in_place_before_lodgment_day": true,
+        "maximum_term_years": "7",
+        "secured_by_registered_mortgage_over_real_property": false,
+        "interest_rate_for_years_after_year_loan_made": "0.0837",
+        "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
+        "remaining_term_years": "1",
+        "payments_applied_during_the_year": "108770.00",
+        "loan_id": "synthetic-conformance-loan"
+      },
+      "expect": {
+        "/gate/verdict": "UNKNOWN",
+        "/gate/reason_codes/0": "GATE_WRITTEN_AGREEMENT_UNKNOWN",
+        "/minimum_yearly_repayment/verdict": "REFUSED",
+        "/minimum_yearly_repayment/myr_required": null,
+        "/minimum_yearly_repayment/reason_codes/0": "REFUSED_GATE_UNKNOWN"
+      }
+    }
+  ]
+}

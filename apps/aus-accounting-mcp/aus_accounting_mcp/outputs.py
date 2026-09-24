@@ -373,6 +373,14 @@ class LegislationSearch(ResultObject):
 
 class LegislationExcerpt(ResultObject):
     section: LegislationSection
+    start: Annotated[
+        int, Field(ge=0, description="Character of the stored provision this part starts at.")
+    ]
+    next_start: Annotated[
+        int | None,
+        Field(ge=1, description="Where the next part begins; pass it as start to continue. "
+                                "null when this part reaches the end of the provision."),
+    ]
     before: Annotated[
         list[LegislationSection],
         Field(description="Up to neighbours provisions before the cited one in document "

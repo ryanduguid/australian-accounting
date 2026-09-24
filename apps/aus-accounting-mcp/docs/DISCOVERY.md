@@ -9,7 +9,7 @@ About, repository topics, README, `pyproject.toml`, `glama.json`, and
 Description:
 
 ```text
-Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, seven bounded tax worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice.
+Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, nine bounded tax and super worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice.
 ```
 
 Website:
@@ -96,7 +96,7 @@ anything a later edit added.
   Use **Sync Server** after a source change lands. Profile name and description
   are separate fields under **Admin → Profile**. Review generated FAQs and TDQS
   explanations after syncing: cached text may still describe an earlier tool set.
-  Version 0.2.0 exposes 11 tools. Do not claim a new grade until
+  Version 0.2.9 exposes 16 tools. Do not claim a new grade until
   Glama actually recomputes it.
 - Official MCP registry: listed as `io.github.ryanduguid/aus-accounting` since
   25 August 2026. Record:
@@ -122,7 +122,7 @@ anything a later edit added.
 Copy prepared for the next authorised profile update:
 
 ```text
-Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, seven bounded tax worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice.
+Local MCP for Australian accountants: ATO benchmarks, Payday Super timing, limited Division 7A reviews, 7 bounded tax worksheets and cited legislation search. Synthetic CTR/BAS test data. Not advice.
 ```
 
 The package contains no reference library. Retrieval requires an authorised local

@@ -52,8 +52,8 @@ for the receipt-amount migration and workbook corrections. Check
 [GitHub releases](https://github.com/ryanduguid/australian-accounting/releases)
 for available distributions; a checkout version alone does not establish publication.
 
-`aus-accounting-mcp` 0.2.4 pins checker 0.1.6, so publishing checker 0.1.7
-does not update that MCP release. The monorepo workspace substitutes the
+`aus-accounting-mcp` 0.2.5 and later pin checker 0.1.7; 0.2.4 pins 0.1.6,
+which assumes full receipt as described above. The monorepo workspace substitutes the
 checked-out engine source when testing. Check the installed engine version
 when comparing CLI and MCP results.
 
@@ -64,6 +64,14 @@ The frozen PyPI 0.1.6 description still links release 0.1.4 and calls evidence
 packs unreleased. Editing this README does not change that published metadata.
 The [22 September verification](docs/release-parity-review-2026-09-22.md) records
 the package, MCP and workbook results separately.
+
+The [receipt amount evaluation](evaluation/receipt_amount/README.md) records what
+0.1.7 does when a fund-receipt date has no amount, a part amount or only a
+remitted amount, and how it refuses a payday before 1 July 2026.
+
+The [OpenAccountants handoff](docs/openaccountants-handoff.md) takes a fabricated
+quarterly remittance that a 2024-25 quarterly working paper marks as paid on time and
+shows 0.1.7 finding all 7 of its 2026-27 paydays late.
 
 ## Try one contribution without cloning
 

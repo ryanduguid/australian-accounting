@@ -44,6 +44,27 @@ PAYG_WITHHOLDING_COEFFICIENTS: dict[str, dict[int, tuple[tuple[int | None, str, 
     },
 }
 
+# Per income year: (general concessional contributions cap, general transfer
+# balance cap), whole dollars, from the ATO contributions caps and
+# non-concessional contributions cap pages. The non-concessional cap is 4 times
+# the concessional cap (ITAA 1997 s 292-85(2)) and the bring-forward bands are
+# derived from both caps (s 292-85(5)), so neither is stored separately.
+CONTRIBUTION_CAPS: dict[str, tuple[str, str]] = {
+    "2024-25": ("30000", "1900000"),
+    "2025-26": ("30000", "2000000"),
+    "2026-27": ("32500", "2100000"),
+}
+# Unused concessional cap carries forward only below this total super balance
+# on the previous 30 June (ITAA 1997 s 291-20(3)).
+CARRY_FORWARD_BALANCE_LIMIT = "500000"
+
+# SISR Schedule 7 percentage factors as (lowest age, factor), oldest band first.
+# The 50% reductions ended with 2022-23; these apply from 2023-24.
+PENSION_MINIMUM_FACTORS: tuple[tuple[int, str], ...] = (
+    (95, "0.14"), (90, "0.11"), (85, "0.09"), (80, "0.07"),
+    (75, "0.06"), (65, "0.05"), (0, "0.04"),
+)
+
 SUPPORTED_PERIODS = {
     "gst": ("2025-26",),
     "resident_tax": tuple(RESIDENT_TAX_SCALES),
@@ -52,6 +73,8 @@ SUPPORTED_PERIODS = {
     "depreciation": ("2025-26",),
     "quarterly_sg": ("2025-26",),
     "payg_withholding": tuple(PAYG_WITHHOLDING_COEFFICIENTS),
+    "contribution_caps": tuple(CONTRIBUTION_CAPS),
+    "pension_minimum": ("2024-25", "2025-26", "2026-27"),
 }
 
 # Preserve the existing rule-review baseline. A Library example check does not
@@ -68,7 +91,7 @@ SOURCE_REVIEWS = {
     },
     "fbt": {"checked": "2026-09-10", "passage": "Calculating your FBT, steps 3 to 7"},
     "depreciation": {
-        "checked": "2026-09-10",
+        "checked": "2026-09-24",
         "passage": "Decline in value: diminishing value and prime cost methods; taxable use",
     },
     "quarterly_sg": {
@@ -79,6 +102,16 @@ SOURCE_REVIEWS = {
         "checked": "2026-09-24",
         "passage": "Schedule 1 (NAT 1004) for payments from 1 July 2026: weekly coefficients, "
                    "using a formula, working out the weekly earnings",
+    },
+    "contribution_caps": {
+        "checked": "2026-09-24",
+        "passage": "Contributions caps, tables 1.1 and 4 and unused concessional cap carry "
+                   "forward; Non-concessional contributions cap, bring-forward arrangement",
+    },
+    "pension_minimum": {
+        "checked": "2026-09-24",
+        "passage": "Income stream (pension) rules and payments: how to calculate the minimum "
+                   "annual payment; SISR Schedule 7 clauses 1 to 5",
     },
 }
 
@@ -116,6 +149,14 @@ LIBRARY_EVIDENCE = {
         "paragraphs": "weekly, fortnightly and monthly tables",
         "reviewed": "2026-06-17", "checked": "2026-09-24",
     },
+    "contribution_caps": {
+        "document": "tax-examples-individuals", "paragraphs": "7-278",
+        "reviewed": "2025-06-30", "checked": "2026-09-24",
+    },
+    "pension_minimum": {
+        "document": "superannuation-instant-reference-rates-thresholds-and-checklists",
+        "paragraphs": "18-500", "reviewed": "2026-06-30", "checked": "2026-09-24",
+    },
 }
 
 INPUT_UNITS = {
@@ -140,6 +181,19 @@ INPUT_UNITS = {
         "pay_period": "weekly, fortnightly or monthly",
         "scale": "integer 1, 2, 3, 5 or 6",
     },
+    "contribution_caps": {
+        "total_super_balance": "AUD, total super balance at 30 June before the income year",
+        "concessional_contributions": "AUD",
+        "unused_concessional_cap": "AUD, unexpired unused amounts from the previous 5 years",
+        "non_concessional_contributions": "AUD",
+        "under_75_in_year": "boolean, under 75 at any time in the income year",
+    },
+    "pension_minimum": {
+        "account_balance": "AUD, at 1 July or on the commencement day in the first year",
+        "age": "integer years on the same day as the account balance",
+        "days": "integer days in the income year from and including the commencement day, "
+                "or all days in the year for a pension running on 1 July",
+    },
 }
 
 EXAMPLES: dict[str, dict[str, Any]] = {
@@ -159,6 +213,12 @@ EXAMPLES: dict[str, dict[str, Any]] = {
         "quarter": 1,
     },
     "payg_withholding": {"earnings": "1000.00", "pay_period": "weekly", "scale": 2},
+    "contribution_caps": {
+        "total_super_balance": "450000.00", "concessional_contributions": "40000.00",
+        "unused_concessional_cap": "15000.00", "non_concessional_contributions": "150000.00",
+        "under_75_in_year": True,
+    },
+    "pension_minimum": {"account_balance": "600000.00", "age": 67, "days": 365},
 }
 
 

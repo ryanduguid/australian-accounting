@@ -1,3 +1,44 @@
+# v0.2.9
+
+- Pin `australian-tax-calculators` 0.1.6 and add its `contribution_caps` and
+  `pension_minimum` worksheets to `calculate_tax_worksheet`, for 2024-25 to
+  2026-27: cap room, excess and bring-forward for one person's classified
+  contributions, and the SISR Schedule 7 minimum for one account-based
+  pension. Retain the `ato-benchmark-compare` 0.1.9, `payday-super-checker`
+  0.1.7 and `div7a-loan-review` 0.1.4 pins.
+- Count nine worksheets in the server instructions, scope resource, README,
+  reference and registry descriptions, and narrow the unsupported SMSF and
+  contribution-cap topics to what the worksheets leave out.
+- Align the release, citation, compatibility and MCP Registry metadata to 0.2.9.
+
+# v0.2.8
+
+- `search_tax_legislation` and `search_tax_rates` return the best match first
+  instead of in corpus file order: the query as a phrase in a heading, then every
+  word in a heading, then the phrase in the text, then the words anywhere, with the
+  principal tax Acts first within each tier. On a 946-title corpus "small business
+  entity" previously led with Excise Act 1901 s 4 and "general deductions" did not
+  reach ITAA 1997 s 8-1 in the first five results. Ranking reads the whole corpus
+  on each search: about 0.5 seconds on that corpus, up to about 1.6 seconds for
+  a word nearly every provision holds.
+- `define_tax_term` puts the principal tax Acts first within exact and partial
+  matches, and its 20-entry partial cap keeps the best-ranked entries rather than
+  the first ones the scan meets.
+- `read_tax_legislation_section` takes `start` and returns `start` and
+  `next_start`, so a provision longer than 12000 characters can be read in parts.
+  165 of 21,916 rows in that corpus were cut off with no way to read further,
+  including ITAA 1997 s 995-1.
+- A search with no match adds a notice suggesting statutory wording.
+- A missing or invalid retrieval folder error tells the caller to ask the user
+  rather than retry, and the scope resource reports whether each retrieval folder
+  is configured, without its path.
+- `aus-accounting-mcp --version` and `--help` print and exit instead of starting
+  the server; an unknown argument is refused.
+- Two evaluation cases cover ranking and reading a long provision in parts.
+- Retain the `ato-benchmark-compare` 0.1.9, `payday-super-checker` 0.1.7,
+  `div7a-loan-review` 0.1.4 and `australian-tax-calculators` 0.1.5 pins.
+- Align the release, citation, compatibility and MCP Registry metadata to 0.2.8.
+
 # v0.2.7
 
 - Pin `australian-tax-calculators` 0.1.5 and add its `payg_withholding`
