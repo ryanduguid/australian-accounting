@@ -31,6 +31,16 @@ from austaxcalc import calculations as c
     pytest.param(c.quarterly_sg, (D("62500"), D("7500"), "2025-26", 4, True),
                  {"earnings_used": "62500.00", "minimum_sg": "7500.00",
                   "additional_contribution": "0.00"}, id="sg-derived-18-600-and-18-620"),
+    pytest.param(c.contribution_caps, (D("1500000"), D("0"), D("0"), D("240000"), True,
+                                       "2024-25", True),
+                 {"carry_forward_applied": "0.00", "concessional_available": "30000.00",
+                  "concessional_remaining": "30000.00", "excess_concessional": "0.00",
+                  "non_concessional_available": "360000.00",
+                  "non_concessional_remaining": "120000.00", "excess_non_concessional": "0.00"},
+                 id="caps-library-7-278-first-year-only"),
+    pytest.param(c.pension_minimum, (D("250000"), 66, 181, "2024-25", True),
+                 {"account_balance_used": "250000.00", "minimum_before_rounding": "6198.63",
+                  "minimum_payment": "6200.00"}, id="pension-derived-18-500"),
 ])
 def test_independently_derived_library_results(function, arguments, expected):
     result = function(*arguments)

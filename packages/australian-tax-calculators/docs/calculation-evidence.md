@@ -31,6 +31,8 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
+| Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
+| Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
 coverage. Its existing 2026–27 regression and statutory source remain unchanged.
@@ -133,6 +135,46 @@ transcription; it does not establish that a payee's scale, allowances or
 declarations are right. Scale 4, tax offsets, Medicare levy adjustments, study
 and training support loans, 53 and 27 pay years, quarterly pays and the other
 schedules are outside this worksheet.
+
+## Contribution caps
+
+In ¶7-278, Jane is 55, her total super balance at 30 June 2024 is $1.5 million
+and she makes a $240,000 non-concessional contribution in 2024–25 with no earlier
+bring-forward. The worksheet gives her `3 × 120000 = 360000` available, triggers
+a 3-year period and leaves `360000 - 240000 = 120000`. The example's 2025–26
+consequence, a nil cap at a $1.9 million balance, depends on a later year's
+balance and period tracking, so it is not tested here.
+
+The example states its 2024–25 band ceilings as $1.68 million and $1.79 million.
+Those are the 2023–24 figures. The ATO's table for 2024–25 gives $1.66 million
+and $1.78 million, which is `1900000 - 2 × 120000` and `1900000 - 120000` under
+ITAA 1997 s 292-85(5). The engine follows the ATO table; Jane's outcome is the
+same under both.
+
+The ATO's contributions caps and non-concessional contributions cap pages,
+read on 24 September 2026, supply the concessional caps ($30,000, $30,000 and
+$32,500), the general transfer balance caps ($1.9 million, $2 million and
+$2.1 million) and the $500,000 carry-forward limit. `tests/test_super_worksheets.py`
+types in the ATO's published bring-forward tables for each year and checks every
+band boundary a cent either side. The age condition follows the ATO's "Age
+eligibility" section and s 292-85(3): under 75 at any time in the year. The
+non-concessional cap page's bullet that refers to age on 1 July is not used.
+
+## Pension minimum
+
+Paragraph ¶18-500 gives the Schedule 7 factors from 4% under 65 to 14% at 95 or
+more. The ATO's worked example (Thavi, pension from 1 January 2023, $250,000,
+age 66) pro-rates by 181 of 365 days and rounds $3,099 up to $3,100, using the
+halved 2022–23 factor. The adapted case applies the same dates a year later at
+the full 5%: `250000 × 0.05 × 181 / 365 = 6198.63`, rounded to $6,200.
+
+SISR Schedule 7 in compilation 159 (in force from 1 July 2026), read on
+24 September 2026, sets the balance and age day (cl 1), pro-rates the factor
+from the commencement day (cl 3), requires nothing for a pension starting on or
+after 1 June (cl 4) and rounds any amount under the Schedule to the nearest $10,
+an exact $5 rounding up (cl 5). Because cl 3 pro-rates the factor, the engine
+rounds once, after pro-rating. The transition to retirement 10% maximum and the
+other pension schedules are outside this worksheet.
 
 ## Rechecking the evidence
 

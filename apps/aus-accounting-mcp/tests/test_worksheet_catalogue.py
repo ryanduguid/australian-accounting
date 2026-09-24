@@ -71,3 +71,18 @@ def test_advertised_required_fields_match_the_mcp_discriminator(kind):
     assert set(entry["required_inputs"]) == {
         name for name, field in model.model_fields.items() if field.is_required()
     }
+
+
+@pytest.mark.parametrize("year", ["2024-25", "2025-26", "2026-27"])
+def test_pension_days_bound_matches_the_engine(year):
+    # Every supported year has 365 days; the schema and engine must agree.
+    facts = {"kind": "pension_minimum", "scope_confirmed": True, "year": year,
+             "account_balance": "100000.00", "age": 70}
+    adapter = TypeAdapter(TaxFacts)
+
+    async def check():
+        result = await mcp.call_tool("calculate_tax_worksheet", {"facts": {**facts, "days": 365}})
+        assert not result.is_error
+    asyncio.run(check())
+    with pytest.raises(ValueError):
+        adapter.validate_python({**facts, "days": 366})
