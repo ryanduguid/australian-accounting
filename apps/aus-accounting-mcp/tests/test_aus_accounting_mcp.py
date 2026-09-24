@@ -1091,6 +1091,8 @@ def test_server_metadata_publishes_exact_pypi_release() -> None:
     server = json.loads((root / "server.json").read_text(encoding="utf-8"))
 
     assert server["version"] == "0.2.7"
+    # The MCP Registry refuses a description over 100 characters with a 422.
+    assert len(server["description"]) <= 100
     assert server["packages"] == [
         {
             "registryType": "pypi",
