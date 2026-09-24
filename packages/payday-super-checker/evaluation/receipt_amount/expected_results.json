@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "product_release": "0.1.7",
+  "fixture_version": "1",
+  "as_at": "2026-08-20",
+  "practitioner_review": "pending",
+  "scenarios": [
+    {
+      "id": "timely_receipt_no_amount",
+      "fixture": "timely_receipt_no_amount.csv",
+      "expected_exit": 2,
+      "expected_due_date": "2026-08-17",
+      "expected_verdict": "UNKNOWN",
+      "expected_final_shortfall": ""
+    },
+    {
+      "id": "late_receipt_no_amount",
+      "fixture": "late_receipt_no_amount.csv",
+      "expected_exit": 2,
+      "expected_due_date": "2026-08-17",
+      "expected_verdict": "LATE",
+      "expected_final_shortfall": "120.00"
+    },
+    {
+      "id": "timely_part_receipt",
+      "fixture": "timely_part_receipt.csv",
+      "expected_exit": 2,
+      "expected_due_date": "2026-08-17",
+      "expected_verdict": "UNPAID",
+      "expected_final_shortfall": "20.00"
+    },
+    {
+      "id": "timely_receipt_remitted_amount_only",
+      "fixture": "timely_receipt_remitted_amount_only.csv",
+      "expected_exit": 0,
+      "expected_due_date": "2026-08-17",
+      "expected_verdict": "ON_TIME",
+      "expected_final_shortfall": ""
+    },
+    {
+      "id": "timely_receipt_matched_amount",
+      "fixture": "timely_receipt_matched_amount.csv",
+      "expected_exit": 0,
+      "expected_due_date": "2026-08-17",
+      "expected_verdict": "ON_TIME",
+      "expected_final_shortfall": ""
+    }
+  ],
+  "refusals": [
+    {
+      "id": "payday_before_1_july_2026",
+      "fixture": "payday_before_1_july_2026.csv",
+      "expected_exit": 1,
+      "expected_error": "QE day before 1 Jul 2026"
+    }
+  ],
+  "human_decision": "A fund-receipt date shows when the fund received something, not how much. A human must confirm the amount received and its allocation from the fund or clearing-house confirmation before relying on ON_TIME."
+}

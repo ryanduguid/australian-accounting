@@ -65,6 +65,10 @@ packs unreleased. Editing this README does not change that published metadata.
 The [22 September verification](docs/release-parity-review-2026-09-22.md) records
 the package, MCP and workbook results separately.
 
+The [receipt amount evaluation](evaluation/receipt_amount/README.md) records what
+0.1.7 does when a fund-receipt date has no amount, a part amount or only a
+remitted amount, and how it refuses a payday before 1 July 2026.
+
 ## Try one contribution without cloning
 
 With [uv](https://docs.astral.sh/uv/) installed, [download the synthetic CSV](https://duguid.com.au/assets/examples/payday/timely_remittance_no_receipt.csv) as `timely_remittance_no_receipt.csv`. Open a terminal in that folder and run:
