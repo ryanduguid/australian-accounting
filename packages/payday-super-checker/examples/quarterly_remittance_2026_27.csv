@@ -1,0 +1,8 @@
+employee_id,payment_date,sg_amount,remitted_date,fund_received_date,first_contribution_to_fund,out_of_cycle,next_standard_payday,defined_benefit,remitted_amount,matched_amount
+EMP101,2026-07-02,480.00,2026-10-20,2026-10-22,no,no,,no,,480.00
+EMP101,2026-07-16,480.00,2026-10-20,2026-10-22,no,no,,no,,480.00
+EMP101,2026-07-30,480.00,2026-10-20,2026-10-22,no,no,,no,,480.00
+EMP101,2026-08-13,480.00,2026-10-20,2026-10-22,no,no,,no,,480.00
+EMP101,2026-08-27,480.00,2026-10-20,2026-10-22,no,no,,no,,480.00
+EMP101,2026-09-10,480.00,2026-10-20,2026-10-22,no,no,,no,,480.00
+EMP101,2026-09-24,480.00,2026-10-20,2026-10-22,no,no,,no,,480.00

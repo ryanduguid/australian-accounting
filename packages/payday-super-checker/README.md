@@ -69,6 +69,10 @@ The [receipt amount evaluation](evaluation/receipt_amount/README.md) records wha
 0.1.7 does when a fund-receipt date has no amount, a part amount or only a
 remitted amount, and how it refuses a payday before 1 July 2026.
 
+The [OpenAccountants handoff](docs/openaccountants-handoff.md) takes a fabricated
+quarterly remittance that a 2024-25 quarterly working paper marks as paid on time and
+shows 0.1.7 finding all 7 of its 2026-27 paydays late.
+
 ## Try one contribution without cloning
 
 With [uv](https://docs.astral.sh/uv/) installed, [download the synthetic CSV](https://duguid.com.au/assets/examples/payday/timely_remittance_no_receipt.csv) as `timely_remittance_no_receipt.csv`. Open a terminal in that folder and run:
