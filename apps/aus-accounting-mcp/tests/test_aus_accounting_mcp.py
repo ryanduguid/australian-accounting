@@ -36,7 +36,7 @@ def test_proof_package_surface_is_versioned_and_keeps_stdio_separate() -> None:
     root = Path(__file__).resolve().parents[1]
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     assert project["name"] == "aus-accounting-mcp"
-    assert project["version"] == "0.2.8"
+    assert project["version"] == "0.2.9"
     assert project["scripts"] == {
         "aus-accounting-mcp": "aus_accounting_mcp.cli:main",
         "aus-accounting-mcp-demo": "aus_accounting_mcp.demo:main",
@@ -977,7 +977,7 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
     assert CANONICAL_REPOSITORY in citation
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
-    assert 'version = "0.2.8"' in pyproject
+    assert 'version = "0.2.9"' in pyproject
     assert "uvx from PyPI" in pyproject
     # The engines stay pinned to an exact version, which is what the commit pins
     # used to buy. They cannot be pinned by URL: PyPI rejects a distribution
@@ -999,14 +999,14 @@ def test_release_metadata_matches_the_candidate_version() -> None:
     server = json.loads((root / "server.json").read_text(encoding="utf-8"))
     published_version = server["version"]
 
-    assert project["version"] == "0.2.8"
-    assert re.search(r"(?m)^version: 0\.2\.8$", citation)
+    assert project["version"] == "0.2.9"
+    assert re.search(r"(?m)^version: 0\.2\.9$", citation)
     assert "date-released:" not in citation
-    assert re.findall(r"(?m)^# (v\S+)$", release_notes)[0] == "v0.2.8"
+    assert re.findall(r"(?m)^# (v\S+)$", release_notes)[0] == "v0.2.9"
     assert "ato-benchmark-compare` 0.1.9" in release_notes
     assert "payday-super-checker` 0.1.7" in release_notes
     assert "div7a-loan-review` 0.1.4" in release_notes
-    assert published_version == server["packages"][0]["version"] == "0.2.8"
+    assert published_version == server["packages"][0]["version"] == "0.2.9"
     assert project["version"] == published_version
 
 
@@ -1050,8 +1050,8 @@ def test_readme_has_stable_proof_anchor_and_mapping() -> None:
         "aus-accounting-mcp",
         "aus-accounting-mcp-demo",
         "io.github.ryanduguid/aus-accounting",
-        "https://pypi.org/project/aus-accounting-mcp/0.2.8/",
-        "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.8",
+        "https://pypi.org/project/aus-accounting-mcp/0.2.9/",
+        "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.9",
         "[compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json)",
     ):
         assert text in readme + reference
@@ -1090,14 +1090,14 @@ def test_server_metadata_publishes_exact_pypi_release() -> None:
     root = Path(__file__).resolve().parents[1]
     server = json.loads((root / "server.json").read_text(encoding="utf-8"))
 
-    assert server["version"] == "0.2.8"
+    assert server["version"] == "0.2.9"
     # The MCP Registry refuses a description over 100 characters with a 422.
     assert len(server["description"]) <= 100
     assert server["packages"] == [
         {
             "registryType": "pypi",
             "identifier": "aus-accounting-mcp",
-            "version": "0.2.8",
+            "version": "0.2.9",
             "transport": {"type": "stdio"},
         }
     ]
@@ -1173,8 +1173,8 @@ def test_readme_links_to_release_records() -> None:
         "main/apps/aus-accounting-mcp/CITATION.cff)" in readme
     )
     assert (
-        f"[v0.2.8 release record]({CANONICAL_REPOSITORY}/releases/tag/"
-        "aus-accounting-mcp/v0.2.8)"
+        f"[v0.2.9 release record]({CANONICAL_REPOSITORY}/releases/tag/"
+        "aus-accounting-mcp/v0.2.9)"
         in readme
     )
 
