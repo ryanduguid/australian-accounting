@@ -18,6 +18,8 @@ from div7aloan.myr import (
 from div7aloan.rates import load_override
 from div7aloan.verdicts import GateVerdict, MyrVerdict, ReasonCode
 from div7aloan.years import parse_year
+from hypothesis import given, seed, settings
+from hypothesis import strategies as st
 
 D = Decimal
 YEAR = parse_year("2026-27")
@@ -117,6 +119,63 @@ def test_formula_agrees_with_exact_rational_arithmetic(principal, rate, term):
     assert minimum_yearly_repayment_amount(D(principal), D(rate), D(term)) == _exact(
         principal, rate, term
     )
+
+
+def test_formula_agrees_with_an_independent_implementation():
+    # imranfca/Div7A_Engine (Apache-2.0), tests/ato_fixtures/
+    # canon_610_worked_example_expected.json: $70,000 at 8.77% with 6 years
+    # remaining. A separately written engine reaching the same cent.
+    assert minimum_yearly_repayment_amount(D("70000"), D("0.0877"), D(6)) == D("15497.53")
+
+
+PROPERTY_SETTINGS = settings(max_examples=200, database=None, deadline=None)
+PRINCIPALS = st.decimals(min_value=D("0.01"), max_value=D("100000000"), places=2)
+RATES = st.decimals(min_value=D("0.0001"), max_value=D("0.2500"), places=4)
+TERMS = st.integers(min_value=1, max_value=25)
+
+
+@seed(0xD17A)
+@PROPERTY_SETTINGS
+@given(principal=PRINCIPALS, rate=RATES, term=TERMS)
+def test_formula_matches_exact_arithmetic_everywhere(principal, rate, term):
+    assert minimum_yearly_repayment_amount(principal, rate, D(term)) == _exact(
+        str(principal), str(rate), term
+    )
+
+
+@seed(0xD17B)
+@PROPERTY_SETTINGS
+@given(principal=PRINCIPALS, rate=RATES, term=TERMS)
+def test_paying_the_figure_every_year_clears_the_loan_to_rounding(principal, rate, term):
+    """s 109E(6) is a level annuity: n payments at the benchmark rate retire
+    the base. Cent rounding of each payment is the only permitted residue."""
+    payment = Fraction(str(minimum_yearly_repayment_amount(principal, rate, D(term))))
+    r = Fraction(str(rate))
+    balance = Fraction(str(principal))
+    for _ in range(term):
+        balance = balance * (1 + r) - payment
+    tolerance = Fraction(1, 200) * term * (1 + r) ** term
+    assert abs(balance) <= tolerance
+
+
+@seed(0xD17C)
+@PROPERTY_SETTINGS
+@given(principal=PRINCIPALS, rate=RATES, term=st.integers(min_value=1, max_value=24))
+def test_a_longer_term_never_raises_the_figure(principal, rate, term):
+    shorter = minimum_yearly_repayment_amount(principal, rate, D(term))
+    longer = minimum_yearly_repayment_amount(principal, rate, D(term + 1))
+    assert longer <= shorter
+
+
+@seed(0xD17D)
+@PROPERTY_SETTINGS
+@given(principal=PRINCIPALS, rate=RATES, term=TERMS)
+def test_the_figure_covers_interest_and_a_straight_line_share(principal, rate, term):
+    figure = Fraction(str(minimum_yearly_repayment_amount(principal, rate, D(term))))
+    p, r = Fraction(str(principal)), Fraction(str(rate))
+    half_cent = Fraction(1, 200)
+    assert figure >= p * r - half_cent
+    assert figure >= p / term - half_cent
 
 
 def test_a_single_remaining_year_is_principal_plus_one_year_of_interest():
