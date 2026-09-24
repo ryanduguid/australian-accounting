@@ -10,9 +10,9 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 Distribution `australian-tax-calculators`, import package `austaxcalc`. Library
 only: this component ships no command.
 
-Six calculation worksheets for established facts: ordinary GST, resident basic income
-tax, CGT losses and discount, ordinary employer FBT, first-year depreciation and
-quarterly super guarantee. These are experimental review aids, not advice or return
+Seven calculation worksheets for established facts: ordinary GST, resident basic income
+tax, CGT losses and discount, ordinary employer FBT, first-year depreciation,
+quarterly super guarantee and Schedule 1 PAYG withholding. These are experimental review aids, not advice or return
 preparation. Callers must establish every scope condition before calculating.
 
 The Python functions in `austaxcalc.calculations` accept `Decimal` amounts and an

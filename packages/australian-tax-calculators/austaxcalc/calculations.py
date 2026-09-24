@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import ROUND_HALF_UP, Decimal, localcontext
+from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal, localcontext
 from typing import Any
 
 from . import __version__
@@ -10,6 +10,7 @@ from .metadata import (
     EXAMPLES,
     INPUT_UNITS,
     LIBRARY_EVIDENCE,
+    PAYG_WITHHOLDING_COEFFICIENTS,
     RESIDENT_TAX_SCALES,
     SOURCE_REVIEWS,
     SUPPORTED_PERIODS,
@@ -26,6 +27,7 @@ SOURCES = {
     "fbt": "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/calculating-your-fbt",
     "depreciation": "https://www.ato.gov.au/law/view/document?DocNum=0215000005&FullDocument=true&PiT=99991231235958",
     "quarterly_sg": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+    "payg_withholding": "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
 }
 SCOPES = {
     "gst": "One ordinary taxable supply at 10%, already classified by the operator. "
@@ -55,6 +57,12 @@ SCOPES = {
            "caps, Norfolk Island transitional rates, special certificates, salary-sacrifice "
            "offsets, award entitlements and SGC. "
            "Does not test timeliness. From July 2026 Payday rules require a separate calculation.",
+    "payg_withholding": "One regular weekly, fortnightly or monthly payment of salary or wages "
+           "made from 1 July 2026 to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the "
+           "operator established from the payee's declarations. Earnings include allowances "
+           "subject to withholding. Excludes scale 4, tax offsets, Medicare levy adjustments, "
+           "study and training support loans, extra amounts for 53 or 27 pays, quarterly and "
+           "bi-monthly pays, back payments, bonuses, termination and other schedules.",
 }
 
 
@@ -234,3 +242,41 @@ def quarterly_sg(ordinary_time_earnings: Decimal, qualifying_contributions: Deci
             "earnings_used": earnings, "minimum_sg": minimum,
             "additional_contribution": max(D(0), minimum - paid),
         }, {"sg_rate": "0.12", "maximum_quarterly_base": "62500.00"})
+
+
+def payg_withholding(earnings: Decimal, pay_period: str, scale: int, year: str,
+                     scope_confirmed: bool) -> dict[str, Any]:
+    """Schedule 1 formula y = a * x - b on the weekly equivalent of earnings."""
+    _scope(scope_confirmed, year, "payg_withholding")
+    _money(earnings)
+    if pay_period not in ("weekly", "fortnightly", "monthly"):
+        raise ValueError("pay_period must be weekly, fortnightly or monthly.")
+    coefficients = PAYG_WITHHOLDING_COEFFICIENTS[year]
+    if type(scale) is not int or scale not in coefficients:
+        raise ValueError("scale must be 1, 2, 3, 5 or 6; scale 4 is not supported.")
+    whole = D(1)
+    with localcontext() as context:
+        context.prec = 40
+        if pay_period == "weekly":
+            weekly = earnings
+        elif pay_period == "fortnightly":
+            weekly = earnings / 2
+        else:
+            # Schedule 1: a monthly amount ending in 33 cents gains a cent first.
+            if earnings % 1 == D("0.33"):
+                earnings += D("0.01")
+            weekly = earnings * 3 / 13
+        x = weekly.quantize(whole, rounding=ROUND_DOWN) + D("0.99")
+        a, b = next((D(a), D(b)) for limit, a, b in coefficients[scale]
+                    if limit is None or x < limit)
+        # Rounded straight to the dollar, 50 cents up, with no cent rounding first.
+        weekly_amount = max(D(0), (a * x - b).quantize(whole, rounding=ROUND_HALF_UP))
+        amount = {
+            "weekly": weekly_amount,
+            "fortnightly": weekly_amount * 2,
+            "monthly": (weekly_amount * 13 / 3).quantize(whole, rounding=ROUND_HALF_UP),
+        }[pay_period]
+        return _result("payg_withholding", f"{year} {pay_period}", {
+            "weekly_earnings_used": x, "weekly_withholding": weekly_amount,
+            "withholding": amount,
+        }, {"scale": str(scale), "a": str(a), "b": str(b)})

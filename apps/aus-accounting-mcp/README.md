@@ -106,8 +106,8 @@ command, so they cannot run this server.
 Missing figures remain unknown. Preserve `UNKNOWN`, `REFUSED`, `not_supplied` and
 `null` results; `ok: true` means the tool ran, not that a review passed.
 
-The 6 worksheets cover bounded GST, resident basic tax, CGT, FBT, first-year
-depreciation and quarterly SG cases. Read `aus-accounting://scope` before supplying
+The 7 worksheets cover bounded GST, resident basic tax, CGT, FBT, first-year
+depreciation, quarterly SG and Schedule 1 PAYG withholding cases. Read `aus-accounting://scope` before supplying
 scope confirmation. Most support 2025-26; see the reference for periods and exclusions.
 
 With the development worksheet engine, `aus-accounting://scope` also includes

@@ -820,11 +820,12 @@ def calculate_tax_worksheet(
         "Read calculation_worksheets in aus-accounting://scope before confirming scope. "
         "Supply established zero amounts explicitly; do not infer missing facts.")],
 ) -> TaxCalculation:
-    """Calculate GST, resident basic tax, CGT, FBT, depreciation or quarterly SG.
+    """Calculate GST, resident basic tax, CGT, FBT, depreciation, quarterly SG or PAYG withholding.
 
     Each kind has a bounded scope and period in aus-accounting://scope. Most cover
     2025-26; resident basic tax also covers 2024-25 and 2026-27. FBT covers the year
-    ended 31 March 2026. Require operator-established classifications and eligibility.
+    ended 31 March 2026. PAYG withholding covers regular pays from 1 July 2026.
+    Require operator-established classifications and eligibility.
     Pass scope_confirmed true only after establishing every scope condition listed
     in calculation_worksheets for the kind; resolve missing or uncertain scope first.
     Scope confirmation is not evidence of eligibility. Never invent it. Every money

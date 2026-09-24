@@ -371,6 +371,7 @@ supported period, exclusions and warnings.
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended` | FBT year ended 31 March 2026, ordinary taxable employer |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `year` | 2025-26, first year of an ordinary tangible Division 40 asset |
 | `quarterly_sg` | `ordinary_time_earnings`, `qualifying_contributions`, `quarter`, `year` | 2025-26, one complete quarter for one eligible employee and employer |
+| `payg_withholding` | `earnings`, `pay_period`, `scale`, `year` | 2026-27, one regular weekly, fortnightly or monthly pay on scale 1, 2, 3, 5 or 6 |
 
 Amounts are non-negative AUD decimal strings, at most 2dp and AUD 1 trillion.
 `taxable_use` is a decimal fraction, such as `"0.4"` for 40%; `effective_life` is

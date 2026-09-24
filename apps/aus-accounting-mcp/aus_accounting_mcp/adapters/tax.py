@@ -71,14 +71,24 @@ class SgFacts(Worksheet):
     qualifying_contributions: Money
 
 
+class PaygWithholdingFacts(Worksheet):
+    kind: Literal["payg_withholding"]
+    year: Literal["2026-27"]
+    earnings: Money
+    pay_period: Literal["weekly", "fortnightly", "monthly"]
+    scale: Literal[1, 2, 3, 5, 6] = Field(
+        description="Schedule 1 scale from the payee's declarations; scale 4 is not supported.")
+
+
 TaxFacts = Annotated[
-    GstFacts | ResidentTaxFacts | CapitalGainsFacts | FbtFacts | DepreciationFacts | SgFacts,
+    GstFacts | ResidentTaxFacts | CapitalGainsFacts | FbtFacts | DepreciationFacts | SgFacts
+    | PaygWithholdingFacts,
     Field(discriminator="kind"),
 ]
 MONEY_FIELDS = {
     "amount", "taxable_income", "other_gains", "discount_gains", "current_losses",
     "prior_losses", "type_one_value", "type_two_value", "cost", "ordinary_time_earnings",
-    "qualifying_contributions",
+    "qualifying_contributions", "earnings",
 }
 
 
@@ -91,11 +101,12 @@ def calculate(facts: TaxFacts) -> dict[str, Any]:
         for name in ("effective_life", "taxable_use"):
             if name in arguments:
                 arguments[name] = Decimal(arguments[name])
-        functions: dict[str, Callable[..., dict[str, Any]]] = {
-            "gst": calculations.gst, "resident_tax": calculations.resident_tax,
-            "capital_gains": calculations.capital_gains, "fbt": calculations.fbt,
-            "depreciation": calculations.depreciation, "quarterly_sg": calculations.quarterly_sg,
-        }
-        return functions[kind](**arguments)
+        # Each kind is its engine function's name. Resolving it per call keeps the
+        # other kinds working when the pinned engine predates a newer kind.
+        function: Callable[..., dict[str, Any]] | None = getattr(calculations, kind, None)
+        if function is None:
+            raise InputError(
+                f"{kind} needs a newer australian-tax-calculators than the one installed.")
+        return function(**arguments)
     except (ValueError, InvalidOperation) as exc:
         raise InputError(str(exc)) from exc
