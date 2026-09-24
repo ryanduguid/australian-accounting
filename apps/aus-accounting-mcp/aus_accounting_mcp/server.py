@@ -281,7 +281,7 @@ def get_ato_benchmarks(
     other_income: Annotated[
         str | None,
         Field(max_length=60, description=(
-            'Non-sales business income, e.g. interest or grants. Required to establish any ratio'
+            'Non-sales business income, e.g. interest or grants. Required to establish any ratio '
             'denominator.'
         )),
     ] = None,
@@ -294,14 +294,14 @@ def get_ato_benchmarks(
     cost_of_sales_labour: Annotated[
         str | None,
         Field(max_length=60, description=(
-            'Salary and wages within cost of sales, excluding separately bucketed payments to'
+            'Salary and wages within cost of sales, excluding separately bucketed payments to '
             'associated persons.'
         )),
     ] = None,
     salary_wages: Annotated[
         str | None,
         Field(max_length=60, description=(
-            'Salary and wages outside cost of sales, excluding separately bucketed payments to'
+            'Salary and wages outside cost of sales, excluding separately bucketed payments to '
             'associated persons.'
         )),
     ] = None,
@@ -314,8 +314,8 @@ def get_ato_benchmarks(
     associated_persons: Annotated[
         str | None,
         Field(max_length=60, description=(
-            'Payments to associated persons, kept separate from salary/wage buckets to avoid double'
-            'counting. Needed for labour comparison when w1 is supplied.'
+            'Payments to associated persons, kept separate from salary/wage buckets to avoid '
+            'double counting. Needed for labour comparison when w1 is supplied.'
         )),
     ] = None,
     rent: Annotated[
@@ -333,14 +333,14 @@ def get_ato_benchmarks(
     other_expense: Annotated[
         str | None,
         Field(max_length=60, description=(
-            'Other expenses, including superannuation and depreciation; exclude amounts already in'
+            'Other expenses, including superannuation and depreciation; exclude amounts already in '
             'another bucket and income tax expense.'
         )),
     ] = None,
     w1: Annotated[
         str | None,
         Field(max_length=60, description=(
-            'Activity statement W1 total for the same period; used by the engine when greater than'
+            'Activity statement W1 total for the same period; used by the engine when greater than '
             'the reconstructed salary and wages label. Supply associated_persons too.'
         )),
     ] = None,
@@ -400,8 +400,8 @@ def calc_payday_super_deadline(
     sg_amount: Annotated[
         str,
         Field(max_length=60, description=(
-            'Superannuation guarantee contribution amount for this employee and qualifying-earnings'
-            'payment.'
+            'Superannuation guarantee contribution amount for this employee and '
+            'qualifying-earnings payment.'
         )),
     ],
     as_at: Annotated[
@@ -618,7 +618,7 @@ def review_div7a_loan(
     payments_applied_during_the_year: Annotated[
         str | None,
         Field(max_length=60, description=(
-            'Amount the operator establishes as applied during the income year. The tool does not'
+            'Amount the operator establishes as applied during the income year. The tool does not '
             'classify payments under s 109R; omit if not established.'
         )),
     ] = None,
