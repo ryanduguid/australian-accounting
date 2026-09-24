@@ -37,7 +37,8 @@ does not lodge.
 
 `uvx` keeps using the version it first downloaded, so a new release does not reach
 you on its own. To upgrade, name the release in your client configuration, for example
-`aus-accounting-mcp==<version>`; uvx downloads it once and later launches stay offline.
+`aus-accounting-mcp==<version>`; uvx downloads it, and later launches reuse the cached
+copy without a download until the uv cache is cleaned.
 
 ## Client integration
 

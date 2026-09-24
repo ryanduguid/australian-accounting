@@ -83,7 +83,8 @@ and result to its model provider, so use fabricated data with a hosted model.
 `uvx` keeps using the version it first downloaded, so a new release does not reach
 you on its own. To move to a release, name it in your client configuration, for
 example `aus-accounting-mcp==<version>` from [PyPI](https://pypi.org/project/aus-accounting-mcp/);
-uvx downloads that version once and later launches stay offline.
+uvx downloads it, and later launches reuse the cached copy without a download until
+the uv cache is cleaned.
 
 ![Static terminal demonstration of synthetic BAS output and Division 7A loan review](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/apps/aus-accounting-mcp/docs/quick-proof.webp)
 
@@ -92,10 +93,10 @@ requests resolves to one tool call:
 
 | Ask | Tool |
 |---|---|
-| "Compare a hairdresser with $180,000 sales, $60,000 wages, $30,000 rent and $40,000 other expenses to the ATO benchmarks." | `get_ato_benchmarks` |
+| "Compare a hairdresser with $180,000 sales, no other income, $60,000 wages, $30,000 rent and $40,000 other expenses to the ATO benchmarks." | `get_ato_benchmarks` |
 | "Super for a 6 August 2026 payday was $120 and was sent on 14 August. As at 20 August, is it on time?" | `calc_payday_super_deadline` |
 | "What is the Division 7A benchmark interest rate for 2026-27?" | `get_div7a_benchmark_rate` |
-| "How much PAYG should be withheld from a $1,000 weekly pay on scale 2 in 2026-27?" | `calculate_tax_worksheet` |
+| "An employee who gave a TFN and claims the tax-free threshold (scale 2) is paid a regular $1,000 weekly wage in 2026-27, with no offsets, loans, bonuses or other adjustments. How much PAYG should be withheld?" | `calculate_tax_worksheet` |
 
 [Client setup and examples](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#client-integration)
 · [Tool reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#tools)
