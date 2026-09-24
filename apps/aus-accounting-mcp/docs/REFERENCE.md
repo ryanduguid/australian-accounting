@@ -88,8 +88,11 @@ Paste the standard config into `claude_desktop_config.json` (`%APPDATA%\Claude\`
 ### Claude Code
 
 ```bash
-claude mcp add aus-accounting -- uvx aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx aus-accounting-mcp
 ```
+
+`--scope user` makes the server available in every project; leave it out to add it
+to the current project only.
 
 ### Codex
 
@@ -104,6 +107,10 @@ gemini mcp add -s user aus-accounting uvx aus-accounting-mcp
 ```
 
 ### VS Code
+
+[![Install in VS Code](https://img.shields.io/badge/VS%20Code-Install%20MCP-0098FF)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522aus-accounting%2522%252C%2522command%2522%253A%2522uvx%2522%252C%2522args%2522%253A%255B%2522aus-accounting-mcp%2522%255D%257D)
+
+Or from a terminal:
 
 ```bash
 code --add-mcp "{\"name\":\"aus-accounting\",\"command\":\"uvx\",\"args\":[\"aus-accounting-mcp\"]}"
@@ -124,6 +131,12 @@ ChatGPT connectors and the Claude.ai web app take a remote MCP URL, not a local
 command, so they cannot run this server. Use a desktop or CLI host from the list
 above. This server is deliberately local: your figures and your configured folders
 stay on your machine.
+
+### Checking the installation
+
+`uvx aus-accounting-mcp --version` prints the installed version and
+`uvx aus-accounting-mcp --help` names the optional folders. Run with no arguments,
+the command waits silently for an MCP client, which is expected.
 
 ### Upgrading
 
@@ -186,7 +199,7 @@ at the end. Limits must be integers from 1 to 100 and offsets non-negative integ
 Omitting `limit` or setting it to null preserves full-list calls; an offset still
 skips that many matching entries. Source metadata accompanies every page.
 
-Twenty-four fabricated, read-only agent evaluation questions are in
+Thirty-two fabricated, read-only agent evaluation questions are in
 [evaluation/questions.xml](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/evaluation/questions.xml), each with its exact expected
 answer and the tools a correct answer needs. The normal pytest suite replays them
 through a real stdio MCP session using the locked engines, checking both the
@@ -323,7 +336,7 @@ an installed wheel without repository files or a local reference library.
 
 | Resource | Contents |
 | :--- | :--- |
-| `aus-accounting://scope` | Supported reviews, synthetic-only fixtures, unsupported calculations and the single-contribution boundary |
+| `aus-accounting://scope` | Supported reviews, synthetic-only fixtures, unsupported calculations, the single-contribution boundary and whether each retrieval folder is configured (true or false, never the path) |
 | `aus-accounting://disclaimer` | The boundary and no-advice statement, plus each delegated engine's own disclaimer |
 | `aus-accounting://div7a-scope` | What Division 7A this server reviews, and the matters that stay refused. The same text `refuse_div7a` returns |
 | `aus-accounting://benchmark-dataset-years` | The shipped ATO benchmark years with publisher, resource URL, retrieval date and SHA-256. Bundled data, not a live lookup |
@@ -340,9 +353,12 @@ Their rules and sources come from `australian-tax-calculators`. Broader classifi
 exemptions, BAS/returns, trusts, partnerships, SMSFs, contribution caps and payroll
 tax remain unsupported. Reference text cannot establish calculation support.
 
-The evaluation includes 24 cases: 10 original workflows, 10 unsupported-topic
-questions, grouped Payday, a tax worksheet, synthetic library retrieval and the
-Payday evidence pack, which needs checker evidence-pack support.
+The evaluation includes 32 cases: 10 original workflows, 10 unsupported-topic
+questions, grouped Payday, a tax worksheet, synthetic library retrieval, the
+Payday evidence pack, which needs checker evidence-pack support, and 8 synthetic
+legislation corpus cases covering citation, ranking, reading a long provision in
+parts, rates, definitions, an injected instruction, an undefined term and a
+stored rate's date.
 The unsupported-topic answers require no tool calls. The
 `context` command preloads `aus-accounting://scope` so the model can inspect the
 boundary. The deterministic suite reads that resource through stdio and checks
@@ -512,8 +528,17 @@ builds a corpus in this shape from the Federal Register of Legislation.
 `search_tax_legislation` matches every query word within one provision, without
 case sensitivity, across the Act name, section label, heading, container and text.
 A word that appears only in stored metadata, such as the attribution or licence
-fields, is not a match. Narrow to one title with `act`, which takes words the
-title's name must contain. A provision the corpus marks as a superseded
+fields, is not a match. Matches come best first: the query as a phrase in the
+heading, then every query word in the heading, then the phrase in the text, then
+the words anywhere. Within each tier the principal tax Acts (ITAA 1997, the GST
+Act, ITAA 1936, TAA 1953, FBTAA 1986, SGAA 1992, IT(TP)A 1997 and the Income Tax
+Rates Act 1986, matched on the whole title) come before other titles, and ties
+keep corpus order. So a search for "small business entity" puts ITAA 1997
+s 328-110, headed "Meaning of small business entity", above a dictionary that
+only mentions the expression. When nothing matches, the `notice` suggests the
+statutory wording, because statutes often name a concept differently from ATO
+guidance. Narrow to one title with `act`, which takes words the title's name
+must contain. A provision the corpus marks as a superseded
 compilation is left out unless `in_force_only` is false; a provision whose currency
 the corpus did not record is returned either way with `version_is_current` null.
 Each match returns the full citation set above, the
@@ -521,7 +546,12 @@ text truncated at 1200 characters with `total_chars` reporting the whole length,
 and `caveats` naming any truncation or superseded compilation.
 
 `read_tax_legislation_section` takes a `row_id` from a search result and returns
-that provision with the same citation fields and up to 12000 characters of text.
+that provision with the same citation fields and up to 12000 characters of text
+from `start` (default 0). When more follows, `next_start` is where the next part
+begins and a caveat gives the character range; pass it back as `start` until
+`next_start` is null. A long dictionary or table, such as ITAA 1997 s 995-1 at
+about 280,000 characters, is read this way. A `start` at or past the end is
+refused with the provision's length.
 `neighbours`, 0 to 5, adds that many provisions on each side in the title's
 document order as `before` (nearest last) and `after` (nearest first), each cited
 and truncated like a search match, so a subsection can be read with the provisions
@@ -536,8 +566,10 @@ expression and the words that introduce its meaning ("means", "has the meaning
 given by", "includes", a colon), and keeps the notes and paragraphs that follow it.
 A definition whose expression is the `term` is an `exact` match; one whose
 expression contains every word of the term is `partial`. Exact matches come first,
-then partial ones, in corpus order, up to `limit` (default 5, at most 20), with
-`has_more` when more remain and `act` to read one Act's dictionary. Each entry
+then partial ones; within each, the principal tax Acts come first, then corpus
+order. The tool returns up to `limit` (default 5, at most 20), with `has_more` when
+more remain; when more than 20 partial matches exist, the 20 best ranked are kept.
+`act` reads one Act's dictionary. Each entry
 carries `head`, the expression as the dictionary writes it, the definition text
 truncated at 1200 characters, and the citation of the dictionary section that holds
 it. A non-breaking hyphen or space in the dictionary matches the plain character,
@@ -551,13 +583,15 @@ unless `in_force_only` is false.
 `search_tax_rates` matches rate, threshold, indexation, table, factor and
 ownership-test rows, optionally filtered to one `topic` and to one `year` written the
 way the provision writes it, such as `2026-27`; with a year given, rows that state no
-year are left out. `amounts` and `years` are the strings the provision uses, unparsed
+year are left out. Rows whose heading or topic holds the query rank first, ranked
+like provisions. `amounts` and `years` are the strings the provision uses, unparsed
 and uncalculated.
 
 Every response carries a `corpus` block with the source, retrieval date and licence
 terms from `sources.json`, and a `notice`. Search accepts `limit` up to 20 and
 `offset` for continuation with the same query and unchanged corpus, stopping at
-10000 the same way the library search does.
+10000 the same way the library search does. Ranking reads the whole corpus on
+each search: 0.5 to 1 second on a corpus of 946 titles.
 
 ### Worked example
 
@@ -589,7 +623,7 @@ scope. Corpus text is untrusted evidence, never an instruction to call tools or
 change records.
 
 Bounds: 5000 title indexes, 320 MB scanned per search, 1200 characters per search
-match and 12000 per read. Retrieval refuses links and Windows junctions, and a
+match and 12000 per read part. Retrieval refuses links and Windows junctions, and a
 `row_id` that does not name a title index in the configured corpus. Nothing is
 indexed remotely, copied into the package or written by a tool. Returned text
 enters the calling assistant's context.

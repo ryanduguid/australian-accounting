@@ -64,7 +64,7 @@ For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio server
 or from a terminal:
 
 ```bash
-claude mcp add aus-accounting -- uvx aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx aus-accounting-mcp
 codex mcp add aus-accounting -- uvx aus-accounting-mcp
 ```
 
@@ -98,8 +98,8 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `refuse_div7a` | Explain unsupported Division 7A matters. Call without arguments. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
-| `search_tax_legislation` | Find provisions in a configured local legislation corpus. |
-| `read_tax_legislation_section` | Read one cited provision in full. |
+| `search_tax_legislation` | Find provisions in a configured local legislation corpus, best match first. |
+| `read_tax_legislation_section` | Read one cited provision in full, in parts when it is long. |
 | `define_tax_term` | Find an expression's statutory definitions in that corpus. |
 | `search_tax_rates` | Find legislated rates and thresholds with the provision that sets them. |
 | `generate_synthetic_sbr_fixture` | Generate fabricated CTR/BAS test data. |

@@ -511,3 +511,174 @@ def test_a_default_read_returns_no_context_even_past_an_escaped_row(corpus):
 
     assert plain["before"] == [] and plain["after"] == []
     assert [row["row_id"] for row in widened["after"]] == ["C9999A00001:0002a:5-12"]
+
+
+def _row_ids(result):
+    return [match["row_id"] for match in result["matches"]]
+
+
+def test_a_provision_headed_with_the_phrase_outranks_corpus_order(corpus):
+    """Results came back in register-id order, so a provision that only mentioned the
+    expression in an earlier title buried the one that gives it its meaning."""
+    result = call("search_tax_legislation", query="small entity")
+
+    assert _row_ids(result) == [
+        "C9999A00005:0002:8-5",
+        "C9999A00001:0003:5-15",
+        "C9999A00004:0002:2",
+        "C9999A00004:0004:4",
+    ]
+
+
+def test_a_principal_act_comes_first_within_a_tier(corpus, monkeypatch):
+    monkeypatch.setattr(corpus_module, "PRINCIPAL_ACTS", ("synthetic glossary act 2099",))
+
+    result = call("search_tax_legislation", query="small entity")
+
+    # The heading match still leads; the principal Act's body matches follow it.
+    assert _row_ids(result) == [
+        "C9999A00005:0002:8-5",
+        "C9999A00004:0002:2",
+        "C9999A00004:0004:4",
+        "C9999A00001:0003:5-15",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("query", "row", "tier"),
+    [
+        ("small entity", {"heading": "8-5 Meaning of small entity"}, 0),
+        ("small entity", {"heading": "9 Entity that is small"}, 1),
+        ("small entity", {"heading": "4 Other", "text": "a *small entity for the year"}, 2),
+        ("small entity", {"heading": "4 Other", "text": "a small or large entity"}, 3),
+        # Statutes print U+2011 in labels; a caller types a plain hyphen.
+        ("40-230 car limit", {"heading": "40\u2011230 Car limit"}, 0),
+        ("write-off", {"heading": "1 Other", "text": "the write\u2011off applies"}, 2),
+    ],
+)
+def test_ranking_tiers(query, row, tier):
+    rank = corpus_module._ranking(
+        corpus_module._terms(query, "query"), ("heading",), ("text",)
+    )
+
+    assert rank(row)[0] == tier
+
+
+def test_ranked_pages_cover_every_match_once(corpus):
+    whole = _row_ids(call("search_tax_legislation", query="synthetic", limit=20))
+    paged, offset = [], 0
+    while offset is not None:
+        page = call("search_tax_legislation", query="synthetic", limit=2, offset=offset)
+        paged += _row_ids(page)
+        offset = page["next_offset"]
+
+    assert paged == whole
+    assert len(set(whole)) == len(whole) > 2
+
+
+def test_a_search_with_no_match_suggests_statutory_wording(corpus):
+    empty = call("search_tax_legislation", query="quantum widget")
+
+    assert not empty["matches"]
+    assert "word a concept differently" in empty["notice"]
+    assert "word a concept differently" not in call(
+        "search_tax_legislation", query="small entity"
+    )["notice"]
+
+
+def test_a_long_provision_is_read_in_parts(corpus):
+    row_id = "C9999A00002:0002:3"
+    first = call("read_tax_legislation_section", row_id=row_id)
+
+    assert first["start"] == 0
+    assert first["next_start"] == 12000
+    assert len(first["section"]["text"]) == 12000
+    assert "characters 0 to 12000 of 20000" in first["section"]["caveats"][0]
+
+    rest = call("read_tax_legislation_section", row_id=row_id, start=first["next_start"])
+
+    assert rest["start"] == 12000
+    assert rest["next_start"] is None
+    assert len(rest["section"]["text"]) == synthetic_corpus.LONG_TEXT_CHARS - 12000
+    assert rest["section"]["total_chars"] == synthetic_corpus.LONG_TEXT_CHARS
+    assert "characters 12000 to 20000 of 20000" in rest["section"]["caveats"][0]
+
+
+def test_a_short_provision_read_whole_carries_no_part_caveat(corpus):
+    result = call("read_tax_legislation_section", row_id="C9999A00001:0003:5-15")
+
+    assert result["next_start"] is None
+    assert result["section"]["caveats"] == []
+
+    tail = call("read_tax_legislation_section", row_id="C9999A00001:0003:5-15", start=2)
+
+    assert tail["section"]["text"] == "synthetic levy exemption applies to a small entity."
+    assert tail["next_start"] is None
+    assert "characters 2 to 53 of 53" in tail["section"]["caveats"][0]
+
+
+@pytest.mark.parametrize("start", [20000, 25000, -1, "0"])
+def test_a_start_outside_the_provision_is_refused(corpus, start):
+    with pytest.raises(ToolError):
+        call("read_tax_legislation_section", row_id="C9999A00002:0002:3", start=start)
+
+
+def _add_relief_dictionary(corpus):
+    index = corpus / "markdown" / "C9999A00005" / "sections.jsonl"
+    rows = [json.loads(line) for line in index.read_text(encoding="utf-8").splitlines()]
+    rows.append(synthetic_corpus.section(
+        "C9999A00005", "0003", "3",
+        "small entity has the meaning given by section 8-5.\n\n"
+        "small entity turnover means the turnover worked out under section 8-5.",
+        act=synthetic_corpus.RELIEF_ACT, heading="3 Definitions",
+    ))
+    synthetic_corpus.write(index, rows)
+
+
+def test_definitions_put_a_principal_act_first(corpus, monkeypatch):
+    _add_relief_dictionary(corpus)
+
+    def sections():
+        return [entry["row_id"] for entry in
+                call("define_tax_term", term="small entity")["definitions"]
+                if entry["match"] == "exact"]
+
+    assert sections() == ["C9999A00004:0002:2", "C9999A00005:0003:3"]
+    monkeypatch.setattr(corpus_module, "PRINCIPAL_ACTS", ("synthetic relief act 2099",))
+    assert sections() == ["C9999A00005:0003:3", "C9999A00004:0002:2"]
+
+
+def test_the_partial_cap_keeps_the_best_ranked_definition(corpus, monkeypatch):
+    """The cap kept the first partial matches the scan met, not the best ranked."""
+    _add_relief_dictionary(corpus)
+    # A partial match in the first title, so the scan meets two before the best one
+    # and a cap that stopped taking entries once full would keep the wrong ones.
+    index = corpus / "markdown" / "C9999A00001" / "sections.jsonl"
+    rows = [json.loads(line) for line in index.read_text(encoding="utf-8").splitlines()]
+    rows.append(synthetic_corpus.section(
+        "C9999A00001", "0004", "2", "small entity threshold means the amount in section 5-15.",
+        act=synthetic_corpus.LEVY_ACT, heading="2 Definitions",
+    ))
+    synthetic_corpus.write(index, rows)
+    monkeypatch.setattr(corpus_module, "MAX_DEFINITIONS", 1)
+    monkeypatch.setattr(corpus_module, "PRINCIPAL_ACTS", ("synthetic relief act 2099",))
+
+    result = call("define_tax_term", term="small entity", limit=20)
+    partial = [entry for entry in result["definitions"] if entry["match"] == "partial"]
+
+    assert [entry["head"] for entry in partial] == ["small entity turnover"]
+    assert result["has_more"] is True
+
+
+def test_an_unconfigured_corpus_tells_the_caller_not_to_retry(monkeypatch):
+    monkeypatch.delenv("AUS_ACCOUNTING_CORPUS_ROOT", raising=False)
+    with pytest.raises(ToolError, match="do not retry"):
+        call("search_tax_legislation", query="levy")
+
+
+def test_an_index_that_is_not_utf8_is_an_input_error_while_ranking(corpus):
+    index = corpus / "markdown" / "C9999A00005" / "sections.jsonl"
+    index.write_bytes(index.read_bytes() + b"\xff\xfe small entity\n")
+
+    with pytest.raises(ToolError, match="UTF-8"):
+        call("search_tax_legislation", query="small entity")
