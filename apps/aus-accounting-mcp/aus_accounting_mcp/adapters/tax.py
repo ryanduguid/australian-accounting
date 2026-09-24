@@ -80,15 +80,41 @@ class PaygWithholdingFacts(Worksheet):
         description="Schedule 1 scale from the payee's declarations; scale 4 is not supported.")
 
 
+class ContributionCapsFacts(Worksheet):
+    kind: Literal["contribution_caps"]
+    year: Literal["2024-25", "2025-26", "2026-27"]
+    total_super_balance: Money = Field(
+        description="Total super balance at the 30 June before the year.")
+    concessional_contributions: Money
+    unused_concessional_cap: Money = Field(
+        description="Unexpired unused concessional cap from the previous 5 years; 0.00 if none.")
+    non_concessional_contributions: Money
+    under_75_in_year: bool = Field(description="Whether the person is under 75 at any time "
+                                               "in the income year.")
+
+
+class PensionMinimumFacts(Worksheet):
+    kind: Literal["pension_minimum"]
+    year: Literal["2024-25", "2025-26", "2026-27"]
+    account_balance: Money = Field(
+        description="Balance on 1 July, or on the commencement day in the first year.")
+    age: Annotated[int, Field(ge=0, le=150,
+        description="Age on the day the account balance is taken.")]
+    days: Annotated[int, Field(ge=1, le=365,
+        description="Days in the year from and including the commencement day; every day "
+                    "of the year for a pension running on 1 July.")]
+
+
 TaxFacts = Annotated[
     GstFacts | ResidentTaxFacts | CapitalGainsFacts | FbtFacts | DepreciationFacts | SgFacts
-    | PaygWithholdingFacts,
+    | PaygWithholdingFacts | ContributionCapsFacts | PensionMinimumFacts,
     Field(discriminator="kind"),
 ]
 MONEY_FIELDS = {
     "amount", "taxable_income", "other_gains", "discount_gains", "current_losses",
     "prior_losses", "type_one_value", "type_two_value", "cost", "ordinary_time_earnings",
-    "qualifying_contributions", "earnings",
+    "qualifying_contributions", "earnings", "total_super_balance", "concessional_contributions",
+    "unused_concessional_cap", "non_concessional_contributions", "account_balance",
 }
 
 

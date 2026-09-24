@@ -119,8 +119,10 @@ def scope() -> dict[str, Any]:
             "fbt": "Benefit valuation, exemptions, rebates and special employer concessions.",
             "depreciation": "Selecting effective lives, later years, pools and special allowances.",
             "trusts_partnerships": "Trust or partnership income, allocations and distributions.",
-            "smsf": "SMSF compliance, pensions and fund taxation.",
-            "super_contribution_caps": "Contribution caps, deductions and excess contributions.",
+            "smsf": "SMSF compliance, fund taxation, the transfer balance cap and pension rules "
+                    "beyond the Schedule 7 minimum.",
+            "super_contribution_caps": "Contribution classification, deductions, earlier "
+                                       "bring-forward periods, determinations and releases.",
             "sg_entitlement": "Worker/earnings classification and post-June 2026 SG entitlement.",
             "payroll_tax": "State and territory payroll tax.",
         },

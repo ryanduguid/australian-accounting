@@ -15,8 +15,9 @@ network calls once installed.
   and build a 4-file evidence pack for a practitioner's workpaper.
 - **Division 7A:** get the benchmark interest rate and review s 109N loan terms and
   s 109E minimum yearly repayments for one loan. Matters outside that scope are refused.
-- **7 tax worksheets:** GST, resident basic tax, CGT, FBT, first-year depreciation,
-  quarterly SG and Schedule 1 PAYG withholding, each within a stated period and scope.
+- **9 tax and super worksheets:** GST, resident basic tax, CGT, FBT, first-year
+  depreciation, quarterly SG, Schedule 1 PAYG withholding, super contribution caps and
+  account-based pension minimums, each within a stated period and scope.
 - **Cited research:** search your own Markdown library, or a local copy of federal tax
   legislation, with every result cited to its file and line, or its Act, section and
   compilation.
@@ -92,7 +93,7 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `calc_payday_super_deadline` | Review timing for one super contribution. |
 | `review_payday_super_contributions` | Review related contributions together for one employer. |
 | `build_payday_super_evidence_pack` | Return 4 review files in memory for a practitioner's workpaper. |
-| `calculate_tax_worksheet` | Calculate one of 7 worksheets with established scope and period. |
+| `calculate_tax_worksheet` | Calculate one of 9 worksheets with established scope and period. |
 | `get_div7a_benchmark_rate` | Get a reviewed Division 7A benchmark rate, or `UNKNOWN`. |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayments for one supplied amalgamated loan. |
 | `refuse_div7a` | Explain unsupported Division 7A matters. Call without arguments. |

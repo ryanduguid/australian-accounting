@@ -109,7 +109,7 @@ The tools list ATO benchmark industries, compare supplied expense buckets,
 review Payday Super timing, look up reviewed Division 7A rates, review an
 operator-supplied Division 7A loan, refuse unsupported Division 7A matters, and
 generate synthetic CTR/BAS fixtures. They also assess related Payday contributions,
-calculate 7 bounded tax worksheets and retrieve cited local Markdown excerpts.
+calculate 9 bounded tax and super worksheets and retrieve cited local Markdown excerpts.
 Division 7A review is limited to the delegated
 engine's s 109N/s 109E scope; it does not form amalgamated loans or classify
 repayments under s 109R. Outputs are review aids, not advice or lodgements.
