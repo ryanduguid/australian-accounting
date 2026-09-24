@@ -52,8 +52,8 @@ for the receipt-amount migration and workbook corrections. Check
 [GitHub releases](https://github.com/ryanduguid/australian-accounting/releases)
 for available distributions; a checkout version alone does not establish publication.
 
-`aus-accounting-mcp` 0.2.4 pins checker 0.1.6, so publishing checker 0.1.7
-does not update that MCP release. The monorepo workspace substitutes the
+`aus-accounting-mcp` 0.2.5 and later pin checker 0.1.7; 0.2.4 pins 0.1.6,
+which assumes full receipt as described above. The monorepo workspace substitutes the
 checked-out engine source when testing. Check the installed engine version
 when comparing CLI and MCP results.
 
