@@ -54,7 +54,7 @@ The example is fabricated, is not a lodgement or Division 7A determination, is n
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.2.8 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.8), [PyPI 0.2.8](https://pypi.org/project/aus-accounting-mcp/0.2.8/), [MCP Registry 0.2.8](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.8), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
+Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.2.9 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.9), [PyPI 0.2.9](https://pypi.org/project/aus-accounting-mcp/0.2.9/), [MCP Registry 0.2.9](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.9), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
 
 ## Client setup
 
@@ -384,8 +384,9 @@ Payday Super needs an explicit assessment date and fund-receipt evidence, both
 the date and the amount received (`received` with `matched_amount`), before it
 should be read as `ON_TIME`. The pinned checker 0.1.7 leaves a timely receipt
 date without an amount `UNKNOWN`. A late receipt without an amount stays
-`LATE`, without reducing the shortfall. MCP 0.2.4 pins checker 0.1.6, which
-assumes full receipt in that case and says so in a caveat. Check the
+`LATE`, without reducing the shortfall. MCP 0.2.4 pinned checker 0.1.6, which
+assumes full receipt in that case and says so in a caveat; 0.2.5 and later
+pin 0.1.7. Check the
 `aus-accounting://payday-coverage` resource for bundled rate and calendar
 coverage, and retain the result's caveats.
 

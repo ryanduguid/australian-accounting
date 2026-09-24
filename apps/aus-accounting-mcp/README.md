@@ -146,7 +146,7 @@ leaves `UNKNOWN` or refuses. Another implementation can replay them; see
 
 MIT License. Created by Ryan Duguid.
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.2.8 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.8),
+[v0.2.9 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.9),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <!-- mcp-name: io.github.ryanduguid/aus-accounting -->

@@ -96,7 +96,7 @@ anything a later edit added.
   Use **Sync Server** after a source change lands. Profile name and description
   are separate fields under **Admin → Profile**. Review generated FAQs and TDQS
   explanations after syncing: cached text may still describe an earlier tool set.
-  Version 0.2.8 exposes 16 tools. Do not claim a new grade until
+  Version 0.2.9 exposes 16 tools. Do not claim a new grade until
   Glama actually recomputes it.
 - Official MCP registry: listed as `io.github.ryanduguid/aus-accounting` since
   25 August 2026. Record:
