@@ -40,6 +40,14 @@ GROUPS = {
         "identical": ("CENTS", "_NUMBER", "_ACCOUNTING_NUMBER"),
         "same_logic": ("parse_amount",),
     },
+    "csvsafe.py": {
+        "files": (
+            PACKAGES / "ato-benchmark-compare" / "atobenchmark" / "csvsafe.py",
+            PACKAGES / "the-wip-tally" / "wiptally" / "csvsafe.py",
+        ),
+        "identical": ("ALWAYS", "CONDITIONAL", "_NUMBER_RE"),
+        "same_logic": ("guard",),
+    },
     "tools/build_workbook.py": {
         "files": (
             PACKAGES / "div7a-loan-review" / "tools" / "build_workbook.py",
