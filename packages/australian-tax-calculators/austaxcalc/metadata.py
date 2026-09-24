@@ -68,7 +68,7 @@ SOURCE_REVIEWS = {
     },
     "fbt": {"checked": "2026-09-10", "passage": "Calculating your FBT, steps 3 to 7"},
     "depreciation": {
-        "checked": "2026-09-10",
+        "checked": "2026-09-24",
         "passage": "Decline in value: diminishing value and prime cost methods; taxable use",
     },
     "quarterly_sg": {
