@@ -1,0 +1,43 @@
+name: devcontainer
+
+# Builds the devcontainer with the Dev Containers CLI, which runs its lifecycle
+# commands with the same semantics as Codespaces, then runs the fabricated MCP
+# demonstration inside it. A broken Codespaces setup fails here instead of for
+# a visitor. The push run on main also catches drift in the image tag.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - ".devcontainer/**"
+      - ".github/workflows/devcontainer.yml"
+      - "uv.lock"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devcontainer-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEVCONTAINER_CLI: "@devcontainers/cli@0.89.0"
+
+jobs:
+  setup:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the devcontainer and run its setup
+        run: npx --yes "$DEVCONTAINER_CLI" up --workspace-folder .
+      - name: Run the fabricated demonstration inside it
+        run: >-
+          npx --yes "$DEVCONTAINER_CLI" exec --workspace-folder .
+          sh -c 'cd apps/aus-accounting-mcp && uv run --locked aus-accounting-mcp-demo > /dev/null'
