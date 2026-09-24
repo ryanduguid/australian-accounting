@@ -115,7 +115,7 @@ factor on the balance at 1 July, pro-rated by days in the first year, nil when t
 pension starts on or after 1 June, and rounded to the nearest $10 with an exact $5
 rounding up. The tests check every band boundary against the ATO's published
 tables; see [calculation evidence](docs/calculation-evidence.md#contribution-caps).
-These worksheets are not yet in a published wheel.
+These worksheets are published in the 0.1.6 wheel.
 
 ## Worksheet discovery
 
