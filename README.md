@@ -31,7 +31,7 @@ Synthetic examples. Review aid, not professional advice; accounting decisions st
 With [uv](https://docs.astral.sh/uv/) installed, [download the synthetic CSV](https://duguid.com.au/assets/examples/payday/timely_remittance_no_receipt.csv) as `timely_remittance_no_receipt.csv`. Open a terminal in that folder and run:
 
 ```bash
-uvx --from payday-super-checker==0.1.4 payday-super-check timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o payday-report.csv
+uvx --from payday-super-checker==0.1.7 payday-super-check timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o payday-report.csv
 ```
 
 This downloads the pinned PyPI package without cloning the repository. It writes `payday-report.csv` in the current folder, replacing that file if it exists. Open the report to see the due date and verdict.
@@ -43,11 +43,11 @@ The confirmation acknowledges the missing receipt; it does not establish payment
 | Evidence | Result | Human decision |
 | --- | --- | --- |
 | Remitted before the deadline; receipt missing | `AT_RISK` | Obtain fund receipt evidence before concluding it was on time. |
-| Fund receipt recorded on 17 August | `ON_TIME` on supplied facts | Confirm the evidence and any applicable timing exception. |
+| Fund receipt recorded on 17 August for the full $120 contribution | `ON_TIME` on supplied facts | Confirm the evidence and any applicable timing exception. |
 
 [Read the 5-minute Payday Super case](packages/payday-super-checker/docs/manager-case-study.md) · [Division 7A repayment case](packages/div7a-loan-review/docs/manager-case-study.md) · [MCP setup](apps/aus-accounting-mcp/README.md#client-integration)
 
-The [recorded public evaluation](https://duguid.com.au/evaluate/payday-super-evidence/) uses release 0.1.3. Follow its fixed revision and commands to reproduce that historical run; the quick trial above uses release 0.1.4.
+The [recorded public evaluation](https://duguid.com.au/evaluate/payday-super-evidence/) uses release 0.1.3. Follow its fixed revision and commands to reproduce that historical run; the quick trial above uses release 0.1.7, which requires an evidenced amount alongside a fund-receipt date.
 
 ## Choose the next example
 
