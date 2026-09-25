@@ -159,6 +159,20 @@ release callers require that test job; no second pytest run is needed.
 
 ## Rules
 
+`joined-fixtures.yml` checks the close-to-forecast, quarter and WIP-to-cash examples
+on pull requests, pushes to `main` and manual runs, on Linux and Windows.
+It uses this repository's proposed
+checkout with full commit pins for Accounting Review Pipeline and au-fpa-pack.
+Update companion pins deliberately when adopting compatible changes.
+
+The existing [joined example driver](https://github.com/ryanduguid/accounting-review-pipeline/blob/3dcb5304f4c67c01de98b34638999b5f274d1810/packages/monthly-close-control-plane/docs/utility-workflows.md)
+checks both fabricated thirteen-week cash scenarios and retains REVIEW findings.
+Processes and fresh environments stay separate; workspace locks remain authoritative.
+Separate operating-system artefacts retain fabricated results, failure diagnostics,
+the escaped summary, success manifest and replay record for seven days. No private
+checkout or secret is needed. Linux keeps the `public-fixtures` check name; configure
+the added `public-fixtures (Windows)` check separately if it should block merges.
+
 - Keep a change inside one component unless it is a root policy or workflow change.
 - Do not move, rename or refactor a component in the same change that alters its
   behaviour.
