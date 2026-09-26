@@ -22,6 +22,10 @@ ALL_FACTS_NEGATIVE = dict(
     beneficiary_actually_received_funds=False,
     funds_used_for_beneficiary_direct_benefit=False,
     commercial_loan_agreement_in_place=False,
+    entitlement_applied_to_pre_18_expenses=False,
+    received_within_two_years=False,
+    retention_scenario_conditions_met=False,
+    paragraph_32_exclusion_present=False,
 )
 
 
@@ -104,12 +108,13 @@ def test_negative_franking_credit_pool_is_refused():
         calculate_proportionate_share(assessment)
 
 def test_section100a_risk_zones():
-    # Red Zone: Adult child distribution retained by parents without loan
+    # Red zone scenario 1 (PCG 2022/2 paragraph 34): an adult child's
+    # entitlement paid to a parent for expenses incurred before age 18.
     red_res = evaluate_section100a_risk(
         beneficiary_name="Charlie (Adult Child)",
         distribution_amount=Decimal("45000.00"),
         beneficiary_is_adult_child=True,
-        funds_retained_by_parents_without_loan=True,
+        entitlement_applied_to_pre_18_expenses=True,
     )
     assert red_res.risk_zone == Section100ARiskZone.RED
     assert red_res.is_ordinary_family_dealing is None
@@ -126,6 +131,7 @@ def test_section100a_risk_zones():
             **ALL_FACTS_NEGATIVE,
             "beneficiary_is_adult_child": True,
             "beneficiary_actually_received_funds": True,
+            "received_within_two_years": True,
         },
     )
     assert green_res.risk_zone == Section100ARiskZone.GREEN
@@ -155,6 +161,8 @@ def test_trust_resolution_validation():
         streaming_powers_in_deed=True,
         default_beneficiary_clause_exists=True,
         allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     is_valid, issues = validate_trust_resolution(valid_sched)
     assert is_valid is True
@@ -169,6 +177,8 @@ def test_trust_resolution_validation():
         streaming_powers_in_deed=True,
         default_beneficiary_clause_exists=True,
         allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     is_valid_late, issues_late = validate_trust_resolution(late_sched)
     assert is_valid_late is False
@@ -225,9 +235,10 @@ def test_an_unstated_fact_cannot_reach_the_green_zone():
     assert established.unestablished_facts == ()
 
 
-def test_a_red_zone_trigger_is_not_asserted_on_an_unstated_mitigator():
-    # A corporate UPE is a red-zone pattern only where no complying loan is in
-    # place. With the loan unstated the answer is the gap, not the red zone.
+def test_a_corporate_upe_without_a_loan_is_outside_green_not_red():
+    # PCG 2022/2 has no red zone scenario for a corporate UPE left unpaid, and
+    # after Bendel [2026] HCA 18 the UPE is not itself a Division 7A loan. It
+    # fails green zone scenario 3B, which leaves the arrangement unzoned.
     unstated_loan = evaluate_section100a_risk(
         beneficiary_name="Family Co",
         distribution_amount=Decimal("80000.00"),
@@ -242,8 +253,53 @@ def test_a_red_zone_trigger_is_not_asserted_on_an_unstated_mitigator():
         distribution_amount=Decimal("80000.00"),
         **{**ALL_FACTS_NEGATIVE, "corporate_beneficiary_unpaid_present_entitlement": True},
     )
-    assert stated.risk_zone == Section100ARiskZone.RED
-    assert any("Corporate beneficiary UPE" in f for f in stated.risk_factors_identified)
+    assert stated.risk_zone == Section100ARiskZone.OUTSIDE_GREEN
+    assert any("Corporate beneficiary UPE" in f and "Bendel" in f
+               for f in stated.risk_factors_identified)
+
+    # A green route elsewhere does not survive the unpaid, unlent entitlement.
+    with_direct_benefit = evaluate_section100a_risk(
+        beneficiary_name="Family Co",
+        distribution_amount=Decimal("80000.00"),
+        **{**ALL_FACTS_NEGATIVE, "corporate_beneficiary_unpaid_present_entitlement": True,
+           "funds_used_for_beneficiary_direct_benefit": True},
+    )
+    assert with_direct_benefit.risk_zone == Section100ARiskZone.OUTSIDE_GREEN
+
+
+def test_parental_retention_alone_is_outside_green_not_red():
+    # Red zone scenario 1 is narrower than retention in general: it needs the
+    # entitlement applied to expenses incurred before the beneficiary turned 18.
+    result = evaluate_section100a_risk(
+        beneficiary_name="Charlie",
+        distribution_amount=Decimal("45000.00"),
+        **{**ALL_FACTS_NEGATIVE, "beneficiary_is_adult_child": True,
+           "funds_retained_by_parents_without_loan": True},
+    )
+    assert result.risk_zone == Section100ARiskZone.OUTSIDE_GREEN
+    assert any("retained by parents" in f for f in result.risk_factors_identified)
+
+
+@pytest.mark.parametrize(
+    "facts",
+    [
+        # Receipt after the 2-year window fails green zone scenario 2.
+        {"beneficiary_actually_received_funds": True},
+        # A loan on commercial terms without the rest of scenario 3A or 3B.
+        {"commercial_loan_agreement_in_place": True},
+        # Any paragraph 32 exclusion defeats every green scenario.
+        {"funds_used_for_beneficiary_direct_benefit": True, "paragraph_32_exclusion_present": True},
+        {"beneficiary_actually_received_funds": True, "received_within_two_years": True,
+         "paragraph_32_exclusion_present": True},
+    ],
+)
+def test_a_green_scenario_needs_every_condition_its_paragraph_names(facts):
+    result = evaluate_section100a_risk(
+        beneficiary_name="A",
+        distribution_amount=Decimal("50000.00"),
+        **{**ALL_FACTS_NEGATIVE, **facts},
+    )
+    assert result.risk_zone == Section100ARiskZone.OUTSIDE_GREEN
 
 
 def test_an_established_red_zone_trigger_stands_while_other_facts_are_unstated():
@@ -304,6 +360,8 @@ def test_trust_resolution_rejects_zero_percent_and_missing_deed_facts():
         streaming_powers_in_deed=False,
         default_beneficiary_clause_exists=False,
         allocated_percentages_total=Decimal("0.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     is_valid, issues = validate_trust_resolution(schedule)
     assert is_valid is False
@@ -350,7 +408,7 @@ def test_franking_credits_are_not_added_on_top_of_the_net_income_share():
         financial_year=2025, trust_name="T",
         trust_accounting_income=Decimal("100000.00"),
         section95_net_taxable_income=Decimal("130000.00"),
-        franked_dividends=Decimal("70000.00"), franking_credits=Decimal("30000.00"),
+        franking_credits=Decimal("30000.00"),
         beneficiaries=[resident_adult("A", percentage_entitlement=Decimal("100.00"))],
     )
     share = calculate_proportionate_share(t)[0]
@@ -418,7 +476,8 @@ def test_green_zone_does_not_claim_the_ordinary_family_dealing_exception():
     from louisgoldberg.section100a import Section100ARiskZone, evaluate_section100a_risk
     res = evaluate_section100a_risk(
         beneficiary_name="A", distribution_amount=Decimal("50000.00"),
-        **{**ALL_FACTS_NEGATIVE, "beneficiary_actually_received_funds": True})
+        **{**ALL_FACTS_NEGATIVE, "beneficiary_actually_received_funds": True,
+           "received_within_two_years": True})
     assert res.risk_zone == Section100ARiskZone.GREEN
     assert res.is_ordinary_family_dealing is None
     assert "not a determination" in res.tax_consequence_summary
@@ -554,6 +613,8 @@ def test_resolution_before_the_income_year_started_is_refused():
         streaming_powers_in_deed=True,
         default_beneficiary_clause_exists=True,
         allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     is_valid, issues = validate_trust_resolution(schedule)
     assert is_valid is False
@@ -581,7 +642,8 @@ def test_funds_not_received_is_recorded_as_a_risk_factor():
 
     lent_commercially = evaluate_section100a_risk(
         beneficiary_name="A", distribution_amount=Decimal("50000.00"),
-        **{**ALL_FACTS_NEGATIVE, "commercial_loan_agreement_in_place": True})
+        **{**ALL_FACTS_NEGATIVE, "commercial_loan_agreement_in_place": True,
+           "retention_scenario_conditions_met": True})
     assert lent_commercially.risk_zone == Section100ARiskZone.GREEN
     assert any("did not receive the funds" in f for f in lent_commercially.risk_factors_identified)
 
@@ -638,6 +700,8 @@ def test_an_unestablished_resolution_fact_is_neither_valid_nor_a_breach():
         streaming_powers_in_deed=None,
         default_beneficiary_clause_exists=None,
         allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     is_valid, issues = validate_trust_resolution(schedule)
     assert is_valid is None
@@ -645,7 +709,7 @@ def test_an_unestablished_resolution_fact_is_neither_valid_nor_a_breach():
     assert any("Not established: streaming_powers_in_deed, "
                "default_beneficiary_clause_exists" in issue for issue in issues)
     # The unestablished facts are not reported as deed defects.
-    assert not any("Deed does not record streaming powers" in issue for issue in issues)
+    assert not any("the deed does not record streaming powers" in issue for issue in issues)
 
     # Stated as False, the same facts are breaches and the result is False.
     stated = TrustResolutionSchedule(
@@ -656,10 +720,12 @@ def test_an_unestablished_resolution_fact_is_neither_valid_nor_a_breach():
         streaming_powers_in_deed=False,
         default_beneficiary_clause_exists=False,
         allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     stated_valid, stated_issues = validate_trust_resolution(stated)
     assert stated_valid is False
-    assert any("Deed does not record streaming powers" in issue for issue in stated_issues)
+    assert any("the deed does not record streaming powers" in issue for issue in stated_issues)
     assert not any("Not established" in issue for issue in stated_issues)
 
 
@@ -729,3 +795,88 @@ def test_s99b_names_an_omitted_corpus_add_back_in_the_caveat():
         beneficiary_name="A", gross_amount_received_aud=Decimal("100000.00"),
         beneficiary_was_resident_during_year=True))
     assert "corpus_attributable" not in no_corpus.caveats[0]
+
+
+def trust_resolution(**facts):
+    stated = dict(
+        trust_name="Smith Family Trust",
+        financial_year=2025,
+        resolution_date=date(2025, 6, 25),
+        is_signed_by_trustee=True,
+        streaming_powers_in_deed=False,
+        default_beneficiary_clause_exists=True,
+        allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=False,
+        deed_resolution_deadline=date(2025, 6, 30),
+    )
+    stated.update(facts)
+    return validate_trust_resolution(TrustResolutionSchedule(**stated))
+
+
+def test_an_ordinary_resolution_needs_no_streaming_powers():
+    assert trust_resolution() == (True, [])
+
+
+def test_missing_streaming_powers_is_a_breach_only_when_the_resolution_streams():
+    is_valid, issues = trust_resolution(uses_specific_streaming=True)
+    assert is_valid is False
+    assert any("streams specific income" in issue for issue in issues)
+
+    # Unknown whether it streams: the missing power may or may not matter.
+    is_valid, issues = trust_resolution(uses_specific_streaming=None)
+    assert is_valid is None
+    assert any("Not established: uses_specific_streaming." in issue for issue in issues)
+
+    # A deed with streaming powers settles it whether or not the resolution streams.
+    assert trust_resolution(uses_specific_streaming=None, streaming_powers_in_deed=True) == (True, [])
+
+
+def test_a_resolution_after_the_deeds_earlier_deadline_is_late():
+    is_valid, issues = trust_resolution(deed_resolution_deadline=date(2025, 5, 31))
+    assert is_valid is False
+    assert any("after the deed's deadline of 2025-05-31" in issue for issue in issues)
+    # A deed date after 30 June does not extend the statutory deadline.
+    is_valid, issues = trust_resolution(resolution_date=date(2025, 7, 5),
+                                        deed_resolution_deadline=date(2025, 8, 31))
+    assert is_valid is False
+    assert any("after 30 June 2025 deadline" in issue for issue in issues)
+
+
+def test_an_unread_deed_deadline_is_not_established():
+    is_valid, issues = trust_resolution(deed_resolution_deadline=None)
+    assert is_valid is None
+    assert any("Not established: deed_resolution_deadline." in issue for issue in issues)
+    # After 30 June the resolution is late whatever the deed says.
+    is_valid, issues = trust_resolution(resolution_date=date(2025, 7, 5), deed_resolution_deadline=None)
+    assert is_valid is False
+    assert not any("Not established" in issue for issue in issues)
+
+
+@pytest.mark.parametrize("amounts", [
+    {"net_capital_gains": Decimal("0.01")},
+    {"franked_dividends": Decimal("70000.00"), "franking_credits": Decimal("30000.00")},
+])
+def test_unstreamed_division_6e_amounts_are_refused(amounts):
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("130000.00"),
+        beneficiaries=[resident_adult("A", percentage_entitlement=Decimal("100.00"))],
+        **amounts,
+    )
+    with pytest.raises(ValueError, match="whether or not they are streamed"):
+        calculate_proportionate_share(t)
+
+
+@pytest.mark.parametrize("name", ["net_capital_gains", "franked_dividends"])
+@pytest.mark.parametrize("value", ["NaN", "Infinity"])
+def test_non_finite_division_6e_amounts_are_refused_as_value_errors(name, value):
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("100000.00"),
+        beneficiaries=[resident_adult("A", percentage_entitlement=Decimal("100.00"))],
+        **{name: Decimal(value)},
+    )
+    with pytest.raises(ValueError, match=f"{name} must be a finite amount"):
+        calculate_proportionate_share(t)
