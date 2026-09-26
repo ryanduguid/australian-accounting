@@ -22,6 +22,10 @@ ALL_FACTS_NEGATIVE = dict(
     beneficiary_actually_received_funds=False,
     funds_used_for_beneficiary_direct_benefit=False,
     commercial_loan_agreement_in_place=False,
+    entitlement_applied_to_pre_18_expenses=False,
+    received_within_two_years=False,
+    retention_scenario_conditions_met=False,
+    paragraph_32_exclusion_present=False,
 )
 
 
@@ -104,12 +108,13 @@ def test_negative_franking_credit_pool_is_refused():
         calculate_proportionate_share(assessment)
 
 def test_section100a_risk_zones():
-    # Red Zone: Adult child distribution retained by parents without loan
+    # Red zone scenario 1 (PCG 2022/2 paragraph 34): an adult child's
+    # entitlement paid to a parent for expenses incurred before age 18.
     red_res = evaluate_section100a_risk(
         beneficiary_name="Charlie (Adult Child)",
         distribution_amount=Decimal("45000.00"),
         beneficiary_is_adult_child=True,
-        funds_retained_by_parents_without_loan=True,
+        entitlement_applied_to_pre_18_expenses=True,
     )
     assert red_res.risk_zone == Section100ARiskZone.RED
     assert red_res.is_ordinary_family_dealing is None
@@ -126,6 +131,7 @@ def test_section100a_risk_zones():
             **ALL_FACTS_NEGATIVE,
             "beneficiary_is_adult_child": True,
             "beneficiary_actually_received_funds": True,
+            "received_within_two_years": True,
         },
     )
     assert green_res.risk_zone == Section100ARiskZone.GREEN
@@ -225,9 +231,10 @@ def test_an_unstated_fact_cannot_reach_the_green_zone():
     assert established.unestablished_facts == ()
 
 
-def test_a_red_zone_trigger_is_not_asserted_on_an_unstated_mitigator():
-    # A corporate UPE is a red-zone pattern only where no complying loan is in
-    # place. With the loan unstated the answer is the gap, not the red zone.
+def test_a_corporate_upe_without_a_loan_is_outside_green_not_red():
+    # PCG 2022/2 has no red zone scenario for a corporate UPE left unpaid, and
+    # after Bendel [2026] HCA 18 the UPE is not itself a Division 7A loan. It
+    # fails green zone scenario 3B, which leaves the arrangement unzoned.
     unstated_loan = evaluate_section100a_risk(
         beneficiary_name="Family Co",
         distribution_amount=Decimal("80000.00"),
@@ -242,8 +249,53 @@ def test_a_red_zone_trigger_is_not_asserted_on_an_unstated_mitigator():
         distribution_amount=Decimal("80000.00"),
         **{**ALL_FACTS_NEGATIVE, "corporate_beneficiary_unpaid_present_entitlement": True},
     )
-    assert stated.risk_zone == Section100ARiskZone.RED
-    assert any("Corporate beneficiary UPE" in f for f in stated.risk_factors_identified)
+    assert stated.risk_zone == Section100ARiskZone.OUTSIDE_GREEN
+    assert any("Corporate beneficiary UPE" in f and "Bendel" in f
+               for f in stated.risk_factors_identified)
+
+    # A green route elsewhere does not survive the unpaid, unlent entitlement.
+    with_direct_benefit = evaluate_section100a_risk(
+        beneficiary_name="Family Co",
+        distribution_amount=Decimal("80000.00"),
+        **{**ALL_FACTS_NEGATIVE, "corporate_beneficiary_unpaid_present_entitlement": True,
+           "funds_used_for_beneficiary_direct_benefit": True},
+    )
+    assert with_direct_benefit.risk_zone == Section100ARiskZone.OUTSIDE_GREEN
+
+
+def test_parental_retention_alone_is_outside_green_not_red():
+    # Red zone scenario 1 is narrower than retention in general: it needs the
+    # entitlement applied to expenses incurred before the beneficiary turned 18.
+    result = evaluate_section100a_risk(
+        beneficiary_name="Charlie",
+        distribution_amount=Decimal("45000.00"),
+        **{**ALL_FACTS_NEGATIVE, "beneficiary_is_adult_child": True,
+           "funds_retained_by_parents_without_loan": True},
+    )
+    assert result.risk_zone == Section100ARiskZone.OUTSIDE_GREEN
+    assert any("retained by parents" in f for f in result.risk_factors_identified)
+
+
+@pytest.mark.parametrize(
+    "facts",
+    [
+        # Receipt after the 2-year window fails green zone scenario 2.
+        {"beneficiary_actually_received_funds": True},
+        # A loan on commercial terms without the rest of scenario 3A or 3B.
+        {"commercial_loan_agreement_in_place": True},
+        # Any paragraph 32 exclusion defeats every green scenario.
+        {"funds_used_for_beneficiary_direct_benefit": True, "paragraph_32_exclusion_present": True},
+        {"beneficiary_actually_received_funds": True, "received_within_two_years": True,
+         "paragraph_32_exclusion_present": True},
+    ],
+)
+def test_a_green_scenario_needs_every_condition_its_paragraph_names(facts):
+    result = evaluate_section100a_risk(
+        beneficiary_name="A",
+        distribution_amount=Decimal("50000.00"),
+        **{**ALL_FACTS_NEGATIVE, **facts},
+    )
+    assert result.risk_zone == Section100ARiskZone.OUTSIDE_GREEN
 
 
 def test_an_established_red_zone_trigger_stands_while_other_facts_are_unstated():
@@ -418,7 +470,8 @@ def test_green_zone_does_not_claim_the_ordinary_family_dealing_exception():
     from louisgoldberg.section100a import Section100ARiskZone, evaluate_section100a_risk
     res = evaluate_section100a_risk(
         beneficiary_name="A", distribution_amount=Decimal("50000.00"),
-        **{**ALL_FACTS_NEGATIVE, "beneficiary_actually_received_funds": True})
+        **{**ALL_FACTS_NEGATIVE, "beneficiary_actually_received_funds": True,
+           "received_within_two_years": True})
     assert res.risk_zone == Section100ARiskZone.GREEN
     assert res.is_ordinary_family_dealing is None
     assert "not a determination" in res.tax_consequence_summary
@@ -581,7 +634,8 @@ def test_funds_not_received_is_recorded_as_a_risk_factor():
 
     lent_commercially = evaluate_section100a_risk(
         beneficiary_name="A", distribution_amount=Decimal("50000.00"),
-        **{**ALL_FACTS_NEGATIVE, "commercial_loan_agreement_in_place": True})
+        **{**ALL_FACTS_NEGATIVE, "commercial_loan_agreement_in_place": True,
+           "retention_scenario_conditions_met": True})
     assert lent_commercially.risk_zone == Section100ARiskZone.GREEN
     assert any("did not receive the funds" in f for f in lent_commercially.risk_factors_identified)
 
