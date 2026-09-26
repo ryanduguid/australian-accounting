@@ -92,11 +92,12 @@ The estimate retains gross-up precision until final presentation.
 The `return_item` figures follow the FBT return 2026 instructions instead. Their
 example enters 14A as $11,000 × 2.0802 = $22,882.20, written as $22,882; item 15 is
 the sum of 14A and 14B and item 16 is item 15 × 47%. The instructions show whole
-dollars but do not say whether cents are dropped or rounded; the engine drops them.
-For $16,500/$6,000 that gives 14A $34,323, 14B $11,320, item 15 $45,643 and item 16
-$21,452.21, against the $21,452.73 estimate. Rounding to the nearest dollar would
-give 14B $11,321 and item 16 $21,452.68. The optional rounding of item 16 down to a
-multiple of 5 cents is left to the preparer.
+dollars without saying how cents are removed. The ATO's Calculating your FBT page
+works the same $16,500/$6,000 values in its MantCo example and rounds each gross-up
+to the nearest dollar, so the engine does too: 14A $34,323, 14B $11,321 (from
+$11,320.80), item 15 $45,644 and item 16 $21,452.68, against the $21,452.73 estimate.
+The optional rounding of item 16 down to a multiple of 5 cents is left to the
+preparer.
 
 ## Depreciation
 
