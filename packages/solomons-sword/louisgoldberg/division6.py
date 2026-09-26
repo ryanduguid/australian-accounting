@@ -70,8 +70,8 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
     Refuses, rather than guesses, the cases this model does not implement:
     nil income of the trust estate, a s 95 net loss, no presently entitled
     beneficiary, non-resident beneficiaries, a beneficiary whose legal
-    disability was not established, specifically streamed capital gains
-    or franked dividends (Division 6E with Subdivisions 115-C and 207-B),
+    disability was not established, trust net capital gains or franked
+    dividends, streamed or not (Division 6E with Subdivisions 115-C and 207-B),
     entitlements outside the 0 to 100% range, and entitlements that do
     not reconcile exactly to the income of the trust estate.
     """
@@ -98,6 +98,14 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
         )
     if assessment.franking_credits < Decimal("0.00"):
         raise ValueError("franking credits must be non-negative")
+    if assessment.net_capital_gains > Decimal("0.00") or assessment.franked_dividends > Decimal("0.00"):
+        # Division 6E takes these out of the ordinary Division 6 allocation even
+        # when nothing is streamed, so allocating them here would be wrong.
+        raise ValueError(
+            "the trust has net capital gains or franked distributions: Division 6E "
+            "with Subdivisions 115-C and 207-B applies to them whether or not they "
+            "are streamed, and is not implemented"
+        )
     for b in assessment.beneficiaries:
         if not b.is_resident:
             raise ValueError(

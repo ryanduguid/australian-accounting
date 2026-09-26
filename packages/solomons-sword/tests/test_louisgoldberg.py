@@ -161,6 +161,8 @@ def test_trust_resolution_validation():
         streaming_powers_in_deed=True,
         default_beneficiary_clause_exists=True,
         allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     is_valid, issues = validate_trust_resolution(valid_sched)
     assert is_valid is True
@@ -175,6 +177,8 @@ def test_trust_resolution_validation():
         streaming_powers_in_deed=True,
         default_beneficiary_clause_exists=True,
         allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     is_valid_late, issues_late = validate_trust_resolution(late_sched)
     assert is_valid_late is False
@@ -356,6 +360,8 @@ def test_trust_resolution_rejects_zero_percent_and_missing_deed_facts():
         streaming_powers_in_deed=False,
         default_beneficiary_clause_exists=False,
         allocated_percentages_total=Decimal("0.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     is_valid, issues = validate_trust_resolution(schedule)
     assert is_valid is False
@@ -402,7 +408,7 @@ def test_franking_credits_are_not_added_on_top_of_the_net_income_share():
         financial_year=2025, trust_name="T",
         trust_accounting_income=Decimal("100000.00"),
         section95_net_taxable_income=Decimal("130000.00"),
-        franked_dividends=Decimal("70000.00"), franking_credits=Decimal("30000.00"),
+        franking_credits=Decimal("30000.00"),
         beneficiaries=[resident_adult("A", percentage_entitlement=Decimal("100.00"))],
     )
     share = calculate_proportionate_share(t)[0]
@@ -607,6 +613,8 @@ def test_resolution_before_the_income_year_started_is_refused():
         streaming_powers_in_deed=True,
         default_beneficiary_clause_exists=True,
         allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     is_valid, issues = validate_trust_resolution(schedule)
     assert is_valid is False
@@ -692,6 +700,8 @@ def test_an_unestablished_resolution_fact_is_neither_valid_nor_a_breach():
         streaming_powers_in_deed=None,
         default_beneficiary_clause_exists=None,
         allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     is_valid, issues = validate_trust_resolution(schedule)
     assert is_valid is None
@@ -699,7 +709,7 @@ def test_an_unestablished_resolution_fact_is_neither_valid_nor_a_breach():
     assert any("Not established: streaming_powers_in_deed, "
                "default_beneficiary_clause_exists" in issue for issue in issues)
     # The unestablished facts are not reported as deed defects.
-    assert not any("Deed does not record streaming powers" in issue for issue in issues)
+    assert not any("the deed does not record streaming powers" in issue for issue in issues)
 
     # Stated as False, the same facts are breaches and the result is False.
     stated = TrustResolutionSchedule(
@@ -710,10 +720,12 @@ def test_an_unestablished_resolution_fact_is_neither_valid_nor_a_breach():
         streaming_powers_in_deed=False,
         default_beneficiary_clause_exists=False,
         allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
     )
     stated_valid, stated_issues = validate_trust_resolution(stated)
     assert stated_valid is False
-    assert any("Deed does not record streaming powers" in issue for issue in stated_issues)
+    assert any("the deed does not record streaming powers" in issue for issue in stated_issues)
     assert not any("Not established" in issue for issue in stated_issues)
 
 
@@ -783,3 +795,74 @@ def test_s99b_names_an_omitted_corpus_add_back_in_the_caveat():
         beneficiary_name="A", gross_amount_received_aud=Decimal("100000.00"),
         beneficiary_was_resident_during_year=True))
     assert "corpus_attributable" not in no_corpus.caveats[0]
+
+
+def trust_resolution(**facts):
+    stated = dict(
+        trust_name="Smith Family Trust",
+        financial_year=2025,
+        resolution_date=date(2025, 6, 25),
+        is_signed_by_trustee=True,
+        streaming_powers_in_deed=False,
+        default_beneficiary_clause_exists=True,
+        allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=False,
+        deed_resolution_deadline=date(2025, 6, 30),
+    )
+    stated.update(facts)
+    return validate_trust_resolution(TrustResolutionSchedule(**stated))
+
+
+def test_an_ordinary_resolution_needs_no_streaming_powers():
+    assert trust_resolution() == (True, [])
+
+
+def test_missing_streaming_powers_is_a_breach_only_when_the_resolution_streams():
+    is_valid, issues = trust_resolution(uses_specific_streaming=True)
+    assert is_valid is False
+    assert any("streams specific income" in issue for issue in issues)
+
+    # Unknown whether it streams: the missing power may or may not matter.
+    is_valid, issues = trust_resolution(uses_specific_streaming=None)
+    assert is_valid is None
+    assert any("Not established: uses_specific_streaming." in issue for issue in issues)
+
+    # A deed with streaming powers settles it whether or not the resolution streams.
+    assert trust_resolution(uses_specific_streaming=None, streaming_powers_in_deed=True) == (True, [])
+
+
+def test_a_resolution_after_the_deeds_earlier_deadline_is_late():
+    is_valid, issues = trust_resolution(deed_resolution_deadline=date(2025, 5, 31))
+    assert is_valid is False
+    assert any("after the deed's deadline of 2025-05-31" in issue for issue in issues)
+    # A deed date after 30 June does not extend the statutory deadline.
+    is_valid, issues = trust_resolution(resolution_date=date(2025, 7, 5),
+                                        deed_resolution_deadline=date(2025, 8, 31))
+    assert is_valid is False
+    assert any("after 30 June 2025 deadline" in issue for issue in issues)
+
+
+def test_an_unread_deed_deadline_is_not_established():
+    is_valid, issues = trust_resolution(deed_resolution_deadline=None)
+    assert is_valid is None
+    assert any("Not established: deed_resolution_deadline." in issue for issue in issues)
+    # After 30 June the resolution is late whatever the deed says.
+    is_valid, issues = trust_resolution(resolution_date=date(2025, 7, 5), deed_resolution_deadline=None)
+    assert is_valid is False
+    assert not any("Not established" in issue for issue in issues)
+
+
+@pytest.mark.parametrize("amounts", [
+    {"net_capital_gains": Decimal("0.01")},
+    {"franked_dividends": Decimal("70000.00"), "franking_credits": Decimal("30000.00")},
+])
+def test_unstreamed_division_6e_amounts_are_refused(amounts):
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("130000.00"),
+        beneficiaries=[resident_adult("A", percentage_entitlement=Decimal("100.00"))],
+        **amounts,
+    )
+    with pytest.raises(ValueError, match="whether or not they are streamed"):
+        calculate_proportionate_share(t)
