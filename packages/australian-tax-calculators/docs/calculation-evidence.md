@@ -87,8 +87,16 @@ Benefit valuation and the choice of gross-up type must already be established.
 The existing combined $1,000/$1,000 case gives
 `(2080.20 + 1886.80) × 0.47 = 1864.49`. The existing $16,500/$6,000 case gives
 `(34323.30 + 11320.80) × 0.47 = 21452.727`, presented as $21,452.73.
-The worksheet retains gross-up precision until final presentation. These are
-worksheet estimates, not return-entry figures rounded at intermediate steps.
+The estimate retains gross-up precision until final presentation.
+
+The `return_item` figures follow the FBT return 2026 instructions instead. Their
+example enters 14A as $11,000 × 2.0802 = $22,882.20, written as $22,882; item 15 is
+the sum of 14A and 14B and item 16 is item 15 × 47%. The instructions show whole
+dollars but do not say whether cents are dropped or rounded; the engine drops them.
+For $16,500/$6,000 that gives 14A $34,323, 14B $11,320, item 15 $45,643 and item 16
+$21,452.21, against the $21,452.73 estimate. Rounding to the nearest dollar would
+give 14B $11,321 and item 16 $21,452.68. The optional rounding of item 16 down to a
+multiple of 5 cents is left to the preparer.
 
 ## Depreciation
 

@@ -59,6 +59,16 @@ def test_fbt_type_one_and_two():
     assert r["amounts"]["fbt_estimate"] == "21452.73"
 
 
+def test_fbt_return_items_drop_cents_before_adding():
+    amounts = c.fbt(D("16500"), D("6000"), 2026, True)["amounts"]
+    assert amounts["return_item_14a"] == "34323.00"  # 34323.30
+    assert amounts["return_item_14b"] == "11320.00"  # 11320.80, dropped not rounded
+    assert amounts["return_item_15"] == "45643.00"
+    assert amounts["return_item_16"] == "21452.21"
+    # The ATO's own example: $11,000 of type 1 value is $22,882.20, entered as $22,882.
+    assert c.fbt(D("11000"), D("0"), 2026, True)["amounts"]["return_item_14a"] == "22882.00"
+
+
 def test_fbt_retains_gross_up_precision_until_final_presentation():
     r = c.fbt(D("1000"), D("0"), 2026, True)
     assert r["amounts"]["type_one_grossed_up"] == "2080.20"

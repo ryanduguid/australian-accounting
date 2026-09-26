@@ -49,9 +49,13 @@ SCOPES = {
            "collectables, personal-use assets, indexation, exemptions, rollovers, foreign "
            "residency and small-business concessions. The result is a net gain, not CGT payable.",
     "fbt": "Ordinary taxable employer, established type 1 and type 2 taxable values for the "
-           "year ended 31 March 2026. Excludes benefit valuation, exemptions, rebates, "
-           "not-for-profit caps and return preparation. Retains gross-up precision "
-           "when calculating tax, then presents the amounts to cents.",
+           "year ended 31 March 2026. Excludes benefit valuation, exemptions, rebates "
+           "and not-for-profit caps. Retains gross-up precision for the estimate, then "
+           "presents the amounts to cents. The return_item figures follow the FBT return "
+           "instead: items 14A and 14B in whole dollars with cents dropped (the "
+           "instructions show whole dollars but do not say whether cents are dropped or "
+           "rounded), item 15 as their sum and item 16 at 47%, before any optional "
+           "rounding down to 5 cents.",
     "depreciation": "First year only, ordinary tangible Division 40 asset first held on or "
            "after 10 May 2006. Established cost, effective life and taxable-use proportion. "
            "Days run from first use or installation ready for use. No second-element costs, "
@@ -221,9 +225,14 @@ def fbt(type_one_value: Decimal, type_two_value: Decimal, year_ended: int,
         context.prec = 40
         first = _money(type_one_value) * D("2.0802")
         second = _money(type_two_value) * D("1.8868")
+        item_14a = first.quantize(D(1), rounding=ROUND_DOWN)
+        item_14b = second.quantize(D(1), rounding=ROUND_DOWN)
         return _result("fbt", "year ended 31 March 2026", {
             "type_one_grossed_up": first, "type_two_grossed_up": second,
             "fbt_estimate": (first + second) * D("0.47"),
+            "return_item_14a": item_14a, "return_item_14b": item_14b,
+            "return_item_15": item_14a + item_14b,
+            "return_item_16": (item_14a + item_14b) * D("0.47"),
         }, {"type_one": "2.0802", "type_two": "1.8868", "fbt_rate": "0.47"})
 
 
