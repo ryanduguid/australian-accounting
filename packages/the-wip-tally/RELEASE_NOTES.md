@@ -15,6 +15,26 @@ Breaking: `outcome_reasonably_measurable` is required on every contract row.
   callers using the engine directly; `None` raises `ScheduleError` from
   `measure` whichever `progress_method` the row uses.
 
+Other changes:
+
+- `review-pack` rebuilds the schedule for the `as_at` date the schedule
+  records when `--as-at` is omitted, and uses today only when the schedule
+  records none. A schedule made without `--as-at` could not previously be
+  reviewed on a later day. An explicit `--as-at` still wins, and an empty
+  `--as-at ""` is refused.
+- `measure` refuses an `output_percent` outside 0 to 1, or one that is not
+  finite, with `ScheduleError`. CSV input already refused these; a direct
+  caller could reach revenue above the transaction price or below zero.
+- A contract file with more than 20 unreadable rows now ends its error list
+  with `... and more`. Collection previously stopped at exactly 20, so the
+  suffix never appeared.
+- `examples/JOB-TO-CASH.md` and `examples/job_to_cash.py` trace WIP evidence
+  into dated project cash assumptions.
+- `README.md` and `DISCLAIMER.md` state that Ryan Duguid is not a registered
+  tax agent or BAS agent, and limit project support to software issues
+  reproduced with fabricated data.
+- The build backend pin moves from hatchling 1.32.0 to 1.32.3.
+
 # v0.1.1
 
 - Reject malformed numeric grouping and conflicting signs.
