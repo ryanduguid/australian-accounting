@@ -115,11 +115,16 @@ The research tools need a folder you supply: set `AUS_ACCOUNTING_LIBRARY_ROOT` t
 authorised Markdown folder, or `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus,
 such as one built by [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus).
 The package ships neither. A corpus row is a point-in-time copy, not a live lookup.
+Point the library at reference material, or at one engagement at a time, never at a
+folder of mixed client files: every match enters the assistant's context, whichever
+client it came from.
 
 The [reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md)
 covers every exclusion, input rule, prompt, resource, the evidence pack format and
 the evaluation suite. The [website guide](https://duguid.com.au/tools/australian-tax-ai-agents/)
-has further examples.
+has further examples. For a firm's AI register entry and answers to the questions
+buyers put to tax-research tools, see
+[For a firm assessing this server](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/firm-assessment.md).
 
 ## 30-second demonstration
 
