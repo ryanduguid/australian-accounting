@@ -5,6 +5,7 @@
 - Section 100A zones follow PCG 2022/2's own scenarios. A corporate unpaid entitlement without a Division 7A loan and a parent retaining an adult child's entitlement no longer return RED on their own; each now blocks GREEN and leaves the arrangement unzoned. Red zone scenario 1 (an adult child's entitlement applied to expenses from before they turned 18) gains its own fact. GREEN needs receipt within 2 years, the rest of scenario 3A or 3B for a retained loan and no paragraph 32 exclusion; the `s100a-check` command gains a flag for each new fact.
 - Migration: construct `TrustResolutionSchedule` with `uses_specific_streaming` and `deed_resolution_deadline` (30 June where the deed sets no earlier date). A Section 100A call now needs all 11 facts, not 7, to reach `GREEN` or `OUTSIDE_GREEN`. Unlike 0.1.8, results for fully supplied inputs can change: the 2 former RED triggers now leave an arrangement unzoned, and a trust with net capital gains or franked dividends is refused.
 - `calculate_proportionate_share` refuses a non-finite `net_capital_gains` or `franked_dividends` with a `ValueError`.
+- These changes arrived in [#300](https://github.com/ryanduguid/australian-accounting/pull/300), which holds the review record. The first two `solomons-sword/v0.1.9` tags stopped at the release gate before building: the first pointed at a commit behind `main`, and the second at a `main` commit whose push-triggered CI had skipped this package. Nothing was published from either.
 
 # v0.1.8
 
