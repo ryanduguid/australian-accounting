@@ -98,6 +98,9 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
         )
     if assessment.franking_credits < Decimal("0.00"):
         raise ValueError("franking credits must be non-negative")
+    for name in ("net_capital_gains", "franked_dividends"):
+        if not getattr(assessment, name).is_finite():
+            raise ValueError(f"{name} must be a finite amount")
     if assessment.net_capital_gains > Decimal("0.00") or assessment.franked_dividends > Decimal("0.00"):
         # Division 6E takes these out of the ordinary Division 6 allocation even
         # when nothing is streamed, so allocating them here would be wrong.

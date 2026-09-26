@@ -866,3 +866,17 @@ def test_unstreamed_division_6e_amounts_are_refused(amounts):
     )
     with pytest.raises(ValueError, match="whether or not they are streamed"):
         calculate_proportionate_share(t)
+
+
+@pytest.mark.parametrize("name", ["net_capital_gains", "franked_dividends"])
+@pytest.mark.parametrize("value", ["NaN", "Infinity"])
+def test_non_finite_division_6e_amounts_are_refused_as_value_errors(name, value):
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("100000.00"),
+        beneficiaries=[resident_adult("A", percentage_entitlement=Decimal("100.00"))],
+        **{name: Decimal(value)},
+    )
+    with pytest.raises(ValueError, match=f"{name} must be a finite amount"):
+        calculate_proportionate_share(t)
