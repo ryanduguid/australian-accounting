@@ -79,8 +79,10 @@ range, preceding headings and the SHA-256 of the file. Every provision
 `search_tax_legislation` returns carries the Act, section, compilation number and
 date, register page, source URL and attribution. A `search_tax_rates` match carries
 the Act, section, compilation number and date and register page, but not the source
-URL or attribution. Every legislation response also has a `corpus` block recording
-the corpus source, retrieval date and licence terms. The server writes nothing to disk, so any record of what was asked is
+URL or attribution. Every legislation response also has a `corpus` block holding
+whichever of the corpus source, retrieval date and licence terms a readable
+`sources.json` manifest supplies; without one the block is empty. The server
+writes nothing to disk, so any record of what was asked is
 the host's.
 
 **What is on the roadmap?** No roadmap is published. The largest gap is that the
