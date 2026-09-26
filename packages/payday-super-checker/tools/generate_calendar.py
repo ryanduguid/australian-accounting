@@ -47,9 +47,8 @@ NOT_WHOLE_OF_JURISDICTION = {
 
 OFFICIAL_SOURCES = {
     "definition": (
-        "https://www.ato.gov.au/tax-and-super-professionals/"
-        "for-superannuation-professionals/super-funds-newsroom/"
-        "business-days-decoded-why-it-matters-for-your-fund"
+        "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/"
+        "paying-super-on-payday/payment-deadlines-for-payday-super"
     ),
     "ACT": (
         "https://www.act.gov.au/living-in-the-act/"
