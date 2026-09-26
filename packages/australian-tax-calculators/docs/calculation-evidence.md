@@ -87,8 +87,17 @@ Benefit valuation and the choice of gross-up type must already be established.
 The existing combined $1,000/$1,000 case gives
 `(2080.20 + 1886.80) × 0.47 = 1864.49`. The existing $16,500/$6,000 case gives
 `(34323.30 + 11320.80) × 0.47 = 21452.727`, presented as $21,452.73.
-The worksheet retains gross-up precision until final presentation. These are
-worksheet estimates, not return-entry figures rounded at intermediate steps.
+The estimate retains gross-up precision until final presentation.
+
+The `return_item` figures follow the FBT return 2026 instructions instead. Their
+example enters 14A as $11,000 × 2.0802 = $22,882.20, written as $22,882; item 15 is
+the sum of 14A and 14B and item 16 is item 15 × 47%. The instructions show whole
+dollars without saying how cents are removed. The ATO's Calculating your FBT page
+works the same $16,500/$6,000 values in its MantCo example and rounds each gross-up
+to the nearest dollar, so the engine does too: 14A $34,323, 14B $11,321 (from
+$11,320.80), item 15 $45,644 and item 16 $21,452.68, against the $21,452.73 estimate.
+The optional rounding of item 16 down to a multiple of 5 cents is left to the
+preparer.
 
 ## Depreciation
 

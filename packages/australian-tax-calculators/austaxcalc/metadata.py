@@ -89,7 +89,11 @@ SOURCE_REVIEWS = {
         "checked": "2026-09-10",
         "passage": "Capital gains tax guide 2014, step 6: Applying current year capital losses",
     },
-    "fbt": {"checked": "2026-09-10", "passage": "Calculating your FBT, steps 3 to 7"},
+    "fbt": {
+        "checked": "2026-09-27",
+        "passage": "Calculating your FBT, steps 3 to 7 and the MantCo example; FBT return "
+                   "2026 instructions, items 14A to 16",
+    },
     "depreciation": {
         "checked": "2026-09-24",
         "passage": "Decline in value: diminishing value and prime cost methods; taxable use",
