@@ -21,7 +21,7 @@ judgement, and it is not an ATO assessment.
 ## Primary sources and review date
 
 The implementation was written on 31 August 2026 against the
-[*Income Tax Assessment Act 1936*](https://www.legislation.gov.au/C1936A00027/latest/text)
+[*Income Tax Assessment Act 1936*](https://www.legislation.gov.au/C1936A00027/2026-07-01/text)
 as compiled on the Federal Register of Legislation, compilation
 `C1936A00027` in force 1 July 2026, Part III Division 7A. Sections 109D,
 109E, 109N, 109P and 109R were read in full from the compilation text. The

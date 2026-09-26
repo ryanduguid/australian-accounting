@@ -559,7 +559,7 @@ def build() -> None:
         ("Desktop Excel build used to calculate cached values", ""),
         ("Law", "Income Tax Assessment Act 1936 (Cth) Part III Division 7A, C1936A00027, "
                 "compilation in force 1 July 2026: s 109D, 109E, 109N, 109P, 109R"),
-        ("Law source", "https://www.legislation.gov.au/C1936A00027/latest/text"),
+        ("Law source", "https://www.legislation.gov.au/C1936A00027/2026-07-01/text"),
         ("Benchmark rates", "RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS, "
                             "May figure for each year of income (s 109N(2))"),
         ("Rates reviewed until", meta.get("reviewed_until", "")),
