@@ -35,6 +35,16 @@ SOURCES = {
     "contribution_caps": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
     "pension_minimum": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/paying-smsf-benefits/income-stream-pension-rules-and-payments",
 }
+# Sources beyond the per-rule one, returned with it in each result's sources.
+EXTRA_SOURCES = {
+    "fbt": ["https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/fbt-return-2026-calculation-details-for-taxable-employers"],
+}
+
+
+def _sources(kind: str) -> list[str]:
+    return [SOURCES[kind], *EXTRA_SOURCES.get(kind, [])]
+
+
 SCOPES = {
     "gst": "One ordinary taxable supply at 10%, already classified by the operator. "
            "Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice "
@@ -49,9 +59,12 @@ SCOPES = {
            "collectables, personal-use assets, indexation, exemptions, rollovers, foreign "
            "residency and small-business concessions. The result is a net gain, not CGT payable.",
     "fbt": "Ordinary taxable employer, established type 1 and type 2 taxable values for the "
-           "year ended 31 March 2026. Excludes benefit valuation, exemptions, rebates, "
-           "not-for-profit caps and return preparation. Retains gross-up precision "
-           "when calculating tax, then presents the amounts to cents.",
+           "year ended 31 March 2026. Excludes benefit valuation, exemptions, rebates "
+           "and not-for-profit caps. Retains gross-up precision for the estimate, then "
+           "presents the amounts to cents. The return_item figures follow the FBT return "
+           "instead: items 14A and 14B rounded to the nearest dollar, as the ATO's own "
+           "worked example does, item 15 as their sum and item 16 at 47%, before any "
+           "optional rounding down to 5 cents.",
     "depreciation": "First year only, ordinary tangible Division 40 asset first held on or "
            "after 10 May 2006. Established cost, effective life and taxable-use proportion. "
            "Days run from first use or installation ready for use. No second-element costs, "
@@ -109,7 +122,7 @@ def worksheet_catalogue() -> dict[str, Any]:
         supported = periods(kind)
         period_field = "year_ended" if kind == "fbt" else "year"
         result[kind] = {
-            "scope": description, "source": SOURCES[kind],
+            "scope": description, "source": SOURCES[kind], "sources": _sources(kind),
             "source_checked": SOURCE_REVIEWS[kind]["checked"],
             "source_passage": SOURCE_REVIEWS[kind]["passage"],
             "example_evidence": {
@@ -151,7 +164,7 @@ def _result(kind: str, period: str, amounts: dict[str, Decimal],
     return {
         "ok": True, "engine": "australian-tax-calculators", "engine_version": __version__,
         "calculation": kind, "period": period, "amounts": rendered, "rates": rates or {},
-        "scope": SCOPES[kind], "sources": [SOURCES[kind]],
+        "scope": SCOPES[kind], "sources": _sources(kind),
         "source_checked": SOURCE_REVIEWS[kind]["checked"],
         "warnings": [
             "Operator-confirmed facts and scope; eligibility is not independently verified.",
@@ -221,9 +234,14 @@ def fbt(type_one_value: Decimal, type_two_value: Decimal, year_ended: int,
         context.prec = 40
         first = _money(type_one_value) * D("2.0802")
         second = _money(type_two_value) * D("1.8868")
+        item_14a = first.quantize(D(1), rounding=ROUND_HALF_UP)
+        item_14b = second.quantize(D(1), rounding=ROUND_HALF_UP)
         return _result("fbt", "year ended 31 March 2026", {
             "type_one_grossed_up": first, "type_two_grossed_up": second,
             "fbt_estimate": (first + second) * D("0.47"),
+            "return_item_14a": item_14a, "return_item_14b": item_14b,
+            "return_item_15": item_14a + item_14b,
+            "return_item_16": (item_14a + item_14b) * D("0.47"),
         }, {"type_one": "2.0802", "type_two": "1.8868", "fbt_rate": "0.47"})
 
 
