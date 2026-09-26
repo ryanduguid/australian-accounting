@@ -48,7 +48,7 @@ Full boundary statement: [DISCLAIMER.md](https://github.com/ryanduguid/australia
 ## What it checks
 
 - **Division 6 Proportionate Allocation (*Commissioner of Taxation v Bamford* [2010] HCA 10)**: Calculates present entitlement proportions and allocates *s 95(1) ITAA 1936* taxable net income and the franking credits that ride with it. Specifically streamed capital gains and franked dividends are **refused**, not allocated: the Division 6E carve-out with *Subdivision 115-C* (including s 115-220) and *Subdivision 207-B* is not implemented, so a proportionate answer would be wrong. Non-resident beneficiaries (*s 98(2A)/(3)*), nil income of the trust estate and no presently entitled beneficiary (*s 99 / s 99A*) are refused for the same reason. Each beneficiary's residency is a required input and their legal disability is stated as `True` or `False`: those 2 facts select the refused paths, so an unstated one is refused rather than defaulted.
-- **Section 100A Reimbursement Agreement Matrix**: Classifies supplied facts against **ATO PCG 2022/2** as Green, Red, or outside those zones. The final guideline has white, green and red; the draft blue zone did not survive. White zone (income years ending before 1 July 2014) is out of scope because the function does not take an income year. Every fact is `True`, `False` or unstated, and the green zone turns on all 7 of them: while any is unstated the result is `FACTS_NOT_ESTABLISHED`, naming the facts that are missing, because an arrangement nobody has described is not one the ATO has said it will leave alone. An established red-zone trigger still returns `RED`.
+- **Section 100A Reimbursement Agreement Matrix**: Classifies supplied facts against **ATO PCG 2022/2** as Green, Red, or outside those zones. The final guideline has white, green and red; the draft blue zone did not survive. White zone (income years ending before 1 July 2014) is out of scope because the function does not take an income year. Every fact is `True`, `False` or unstated, and the green zone turns on all 11 of them: while any is unstated the result is `FACTS_NOT_ESTABLISHED`, naming the facts that are missing, because an arrangement nobody has described is not one the ATO has said it will leave alone. An established red-zone trigger still returns `RED`. The red zone is the guideline's own scenarios, of which the engine models 2 (paragraph 34(a) and (b), and paragraph 36); parental retention in general and a corporate unpaid present entitlement without a loan keep an arrangement out of the green zone but are not red, and after *Commissioner of Taxation v Bendel* [2026] HCA 18 an unpaid entitlement is not by itself a Division 7A loan.
 - **Section 99B Foreign Trust Receipt Assessment**: Computes assessable amounts under *s 99B(1)* after corpus exemptions (*s 99B(2)(a)*) and prior-taxed income. Residency during the year of income is a required input, stated with `--resident-during-year` or `--not-resident-during-year`, because *s 99B(1)* turns on it: an unstated residency is refused and a non-resident receipt is refused rather than assessed. The 3 exemption amounts default to nil, which gives the largest assessable amount, and the *s 99B(2)(a)* corpus add-back defaults to nil in the other direction, leaving the whole corpus exempt. The result carries one caveat naming each nil it relied on, in both directions, because a nil default cannot be told apart from a figure nobody supplied.
 - **Trust Resolution 30 June Schedule Verifier**: Checks timing, deed-power and percentage-completeness facts the caller supplies. The 3 deed and execution facts are `True`, `False` or unstated; an unstated one returns `None` for validity, naming the fact, rather than reporting compliance or a breach.
 
@@ -64,13 +64,14 @@ pip install solomons-sword
 ### CLI usage
 ```bash
 # Evaluate Section 100A risk zone
-solomons-sword s100a-check --beneficiary "Adult Child" --amount 40000 --adult-child --retained-by-parents
+solomons-sword s100a-check --beneficiary "Adult Child" --amount 40000 --adult-child --pre-18-expenses
 
 # Every fact stated, which is what a green zone needs. Each fact has a
 # --no- form, and a fact left out is reported as not established.
 solomons-sword s100a-check --beneficiary "Adult Child" --amount 40000 \
   --no-adult-child --no-retained-by-parents --no-circular --no-corporate-upe \
-  --received-funds --no-direct-benefit --no-commercial-loan
+  --received-funds --within-two-years --no-direct-benefit --no-commercial-loan \
+  --no-pre-18-expenses --no-retention-conditions --no-para-32-exclusion
 
 # Assess Section 99B receipt from foreign trust with corpus deduction
 solomons-sword s99b-check --beneficiary "Jane Doe" --gross 150000 --corpus 50000 --resident-during-year
