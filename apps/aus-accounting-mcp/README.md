@@ -18,8 +18,9 @@ network calls once installed.
 - **10 tax and super worksheets:** GST, resident basic tax, CGT, FBT, first-year
   depreciation, quarterly SG, Schedule 1 PAYG withholding, super contribution caps,
   account-based pension minimums and study and training loan repayments, each within a
-  stated period and scope. The tenth reaches the installed server with the next
-  australian-tax-calculators release; until then a source checkout serves it.
+  stated period and scope. A source checkout serves the tenth now; an installed
+  server gets it only after the next australian-tax-calculators release and the
+  aus-accounting-mcp release that moves its engine pin.
 - **Cited research:** search your own Markdown library, or a local copy of federal tax
   legislation, with every result cited to its file and line, or its Act, section and
   compilation.
