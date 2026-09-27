@@ -4,8 +4,10 @@ import re
 import unittest
 from pathlib import Path
 
+import tomllib
+
 ROOT = Path(__file__).resolve().parents[1]
-POLICY = "87767ec809dc7f77bcd45808219adaf67841ae7b"
+POLICY = "ec6b0ee76446f11aefb7fa0c203f2e01b4c9a711"
 # These are component jobs from successful main-branch runs, never skip-tolerant
 # aggregate gates. Review the list when a component's CI contract changes.
 REQUIRED = {
@@ -158,6 +160,25 @@ class ReleaseChecksTests(unittest.TestCase):
         )
         release = text.split("\n  release:\n", 1)[1].split("\n  pypi:", 1)[0]
         self.assertRegex(release, r"(?m)^    needs: published-pins$")
+
+    def test_python_components_pin_their_build_backend(self) -> None:
+        # release-python builds without isolation, so each component's backend must
+        # come from its locked dev extra, pinned exactly as [build-system] requires.
+        components = []
+        for path in sorted((ROOT / ".github" / "workflows").glob("release-*.yml")):
+            text = path.read_text(encoding="utf-8")
+            if "release-python.yml@" in text:
+                match = re.search(r"(?m)^      source-directory: (\S+)$", text)
+                assert match is not None, path.name
+                components.append(match.group(1))
+        self.assertEqual(len(components), 8, components)
+        for component in components:
+            with self.subTest(component=component):
+                project = tomllib.loads((ROOT / component / "pyproject.toml").read_text(encoding="utf-8"))
+                requires = project["build-system"]["requires"]
+                self.assertTrue(requires)
+                for requirement in requires:
+                    self.assertIn(requirement, project["project"]["optional-dependencies"]["dev"])
 
 
 if __name__ == "__main__":
