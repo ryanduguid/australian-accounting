@@ -73,10 +73,11 @@ def project_version(package: str, root: Path = ROOT) -> str:
     """The static ``version`` in the package's ``[project]`` table."""
     text = (root / PACKAGE_ROOT / package / "pyproject.toml").read_text(encoding="utf-8")
     table = re.search(r"(?ms)^\[project\]\s*$(.*?)(?=^\[|\Z)", text)
-    match = table and re.search(r'(?m)^version\s*=\s*"([^"]+)"', table.group(1))
+    # TOML allows a basic ("...") or a literal ('...') string here.
+    match = table and re.search(r"""(?m)^version\s*=\s*(["'])([^"'\n]+)\1""", table.group(1))
     if not match:
         raise ValueError(f"{package}: no static [project] version")
-    return match.group(1)
+    return match.group(2)
 
 
 def release_pending(package: str, tags: list[str], root: Path = ROOT) -> bool:

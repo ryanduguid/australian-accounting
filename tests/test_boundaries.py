@@ -20,6 +20,7 @@ from __future__ import annotations
 import ast
 import importlib.util
 import re
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -191,6 +192,16 @@ class BoundaryTests(unittest.TestCase):
                 self.assertFalse(
                     select_package.release_pending(package, [f"{package}/v{version}"])
                 )
+        with tempfile.TemporaryDirectory() as scratch:
+            for quoted in ('"1.2.3"', "'1.2.3'"):
+                project = Path(scratch) / "packages" / "demo"
+                project.mkdir(parents=True, exist_ok=True)
+                (project / "pyproject.toml").write_text(
+                    f'[build-system]\nrequires = ["setuptools"]\n\n[project]\nname = "demo"\nversion = {quoted}\n',
+                    encoding="utf-8",
+                )
+                with self.subTest(quoted=quoted):
+                    self.assertEqual(select_package.project_version("demo", Path(scratch)), "1.2.3")
         reusable = (ROOT / ".github" / "workflows" / "ci-package.yml").read_text(
             encoding="utf-8"
         )
