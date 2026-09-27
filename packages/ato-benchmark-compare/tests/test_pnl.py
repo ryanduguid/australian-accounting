@@ -286,6 +286,22 @@ def test_other_period_headings_are_refused_too(tmp_path: Path, current: str, pri
         pnl.read(write(tmp_path, "p.csv", text))
 
 
+@pytest.mark.parametrize("cell", ["", "-", "n/a"])
+def test_a_current_period_with_no_readable_amount_is_refused(tmp_path: Path, cell: str) -> None:
+    lines = REPORT.splitlines()
+    for n, line in enumerate(lines):
+        parts = line.split(",")
+        if n > 3 and len(parts) == 3 and parts[1]:
+            lines[n] = ",".join([parts[0], cell, parts[2]])
+    with pytest.raises(pnl.PnlError, match=r"column 1 \(30 Jun 2024\) and column 2 \(30 Jun 2023\)"):
+        pnl.read(write(tmp_path, "p.csv", "\n".join(lines) + "\n"))
+
+
+def test_a_description_column_left_of_the_amounts_is_passed_over(tmp_path: Path) -> None:
+    text = "Account,Description,30 Jun 2024\nIncome,,\nSales,Shop takings,850000.00\nRent,Premises,60000.00\n"
+    assert pnl.read(write(tmp_path, "p.csv", text)).amount_column == "column 2 (30 Jun 2024)"
+
+
 def test_a_code_column_left_of_the_amounts_is_not_a_period(tmp_path: Path) -> None:
     text = "Account,Code,30 Jun 2024\nIncome,,\nSales,200,850000.00\nTotal Income,,850000.00\nRent,310,60000.00\n"
     result = pnl.read(write(tmp_path, "p.csv", text))

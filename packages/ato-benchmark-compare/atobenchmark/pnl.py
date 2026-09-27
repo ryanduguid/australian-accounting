@@ -259,11 +259,14 @@ def _amount_column_index(rows: list[list[str]], amount_column: str | None) -> tu
 
     # Another amount column left of the fullest one is usually the current period of
     # a comparative export with a blank, dash or "n/a" in it, which makes last year's
-    # column the fuller one. Only a code, note or reference column there is passed
-    # over; any other heading, or none, is refused rather than guessed.
+    # column the fuller one. A column holding only placeholders is the same case at
+    # its limit. Only a code, note or reference column there is passed over; any
+    # other heading, or none, is refused rather than guessed.
     for index in range(1, best):
         heading = _column_heading(rows, index)
-        if counts[index] and not (heading and LABEL_HEADING.match(heading)):
+        if heading and LABEL_HEADING.match(heading):
+            continue
+        if counts[index] or _only_placeholders(rows, index, heading):
             raise PnlError(
                 f"amounts are in {name(index)} and {name(best)}, and the second is "
                 f"fuller, so the period to compare is ambiguous. Name it with "
@@ -277,6 +280,22 @@ LABEL_HEADING = re.compile(
     r"^(account\s+)?(code|codes|note|notes|ref|reference|no\.?|number|id|gl code)$",
     re.IGNORECASE,
 )
+# Cells that stand in for an amount: dashes, "n/a", "nil", "TBC" and spreadsheet errors.
+PLACEHOLDER = re.compile(r"^[-–—.\s]*$|^(n/?a|nil|tbc|tba|#ref!|#n/a|#value!|#div/0!)$", re.IGNORECASE)
+
+
+def _only_placeholders(rows: list[list[str]], index: int, heading: str | None) -> bool:
+    """True when a headed column, or one with placeholder cells, holds nothing else.
+
+    A text column such as a description is not a period, and a column with no
+    heading and no cells is a spacer; neither is refused.
+    """
+    cells = [row[index].strip() for row in rows if len(row) > index and row[index].strip()]
+    if heading in cells:
+        cells.remove(heading)
+    if not heading and not cells:
+        return False
+    return all(PLACEHOLDER.match(cell) for cell in cells)
 
 
 def _column_heading(rows: list[list[str]], index: int) -> str | None:
