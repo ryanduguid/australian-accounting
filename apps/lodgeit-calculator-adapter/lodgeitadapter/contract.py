@@ -39,7 +39,6 @@ class Contract:
     snapshot_id: str
     read_at: str
     read_by: str
-    source_urls: tuple[str, ...]
     calculators: dict[str, dict]
     response_contract: dict
     notes: tuple[str, ...]
@@ -92,7 +91,6 @@ def load(name: str, *, directory: Path | None = None) -> Contract:
         snapshot_id=data["snapshot_id"],
         read_at=data["read_at"],
         read_by=data["read_by"],
-        source_urls=tuple(data["source_urls"]),
         calculators=data["calculators"],
         response_contract=data["response_contract"],
         notes=tuple(data.get("notes", [])),

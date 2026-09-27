@@ -35,7 +35,6 @@ from ..client import LodgeitClient, Status
 from . import Comparison, Evaluation
 
 RANGE_CALC_URI = "urn:sbrm:calculator:depreciation:range"
-AT_CALC_URI = "urn:sbrm:calculator:depreciation:at"
 PERIOD_URI = "urn:sbrm:period:depreciation:unscoped"
 DAY_COUNTS = ("actual/actual", "actual/365", "monthly")
 

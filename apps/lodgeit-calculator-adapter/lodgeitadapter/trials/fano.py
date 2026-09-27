@@ -38,7 +38,6 @@ TOPOLOGIES = (
     "non_current_liabilities", "equity", "revenue", "expenses",
 )
 MAX_LINES = 500
-MAX_BODY_BYTES = 524288
 
 
 @dataclass(frozen=True)
