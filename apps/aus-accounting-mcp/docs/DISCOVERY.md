@@ -9,7 +9,7 @@ About, repository topics, README, `pyproject.toml`, `glama.json`, and
 Description:
 
 ```text
-Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, nine bounded tax and super worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice.
+Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, ten bounded tax and super worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice.
 ```
 
 Website:
@@ -122,7 +122,7 @@ anything a later edit added.
 Copy prepared for the next authorised profile update:
 
 ```text
-Local MCP for Australian accountants: ATO benchmarks, Payday Super timing, limited Division 7A reviews, 7 bounded tax worksheets and cited legislation search. Synthetic CTR/BAS test data. Not advice.
+Local MCP for Australian accountants: ATO benchmarks, Payday Super timing, limited Division 7A reviews, 10 bounded tax and super worksheets and cited legislation search. Synthetic CTR/BAS test data. Not advice.
 ```
 
 The package contains no reference library. Retrieval requires an authorised local

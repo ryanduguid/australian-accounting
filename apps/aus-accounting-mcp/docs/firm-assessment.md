@@ -18,7 +18,7 @@ Copy this entry into the firm's register and complete the last row.
 | --- | --- |
 | System | Aus Accounting MCP (`aus-accounting-mcp`), a local MCP server of Australian accounting tools |
 | Contains an AI model | No. The MCP host's model calls the tools; the server runs no model. |
-| Role in an AI-assisted workflow | Gives an assistant bounded calculations and reviews (ATO benchmarks, Payday Super timing, Division 7A s 109N and s 109E, 9 worksheets), cited retrieval from folders the firm configures, and synthetic test data |
+| Role in an AI-assisted workflow | Gives an assistant bounded calculations and reviews (ATO benchmarks, Payday Super timing, Division 7A s 109N and s 109E, 10 worksheets), cited retrieval from folders the firm configures, and synthetic test data |
 | Data handled | Tool arguments supplied through the host, a Markdown library, a legislation corpus and ATO rulings runs the firm configures, and bundled reference data. The README asks for fabricated data whenever the host uses a hosted model. |
 | Network access | None once installed. The host still sends tool arguments and results to its model provider. |
 | Where a person decides | Every result needs human review before consequential accounting action. `ok: true` means the tool ran, not that a review passed, and `UNKNOWN` and `REFUSED` results stand. |

@@ -10,10 +10,10 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 Distribution `australian-tax-calculators`, import package `austaxcalc`. Library
 only: this component ships no command.
 
-Nine calculation worksheets for established facts: ordinary GST, resident basic income
+Ten calculation worksheets for established facts: ordinary GST, resident basic income
 tax, CGT losses and discount, ordinary employer FBT, first-year depreciation,
-quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps and
-account-based pension minimums. These are experimental
+quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps,
+account-based pension minimums and study and training loan repayments. These are experimental
 review aids, not advice or return preparation. Callers must establish every scope condition before calculating.
 
 The Python functions in `austaxcalc.calculations` accept `Decimal` amounts and an
@@ -78,11 +78,12 @@ Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
 | Pension minimum | 2024-25 to 2026-27; one account-based pension paying under SISR Schedule 7 |
+| Study loan repayment | 2025-26 and 2026-27; one individual's established repayment income at the marginal rates; the formula amount before the loan-balance limit |
 
 Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
 liability. SMSF fund tax, Division 293 and 296 tax, the transfer balance cap, trusts, payroll
-tax, HELP and Medicare calculations remain outside these worksheets.
+tax and Medicare calculations remain outside these worksheets.
 
 ## PAYG withholding
 
@@ -116,6 +117,25 @@ pension starts on or after 1 June, and rounded to the nearest $10 with an exact 
 rounding up. The tests check every band boundary against the ATO's published
 tables; see [calculation evidence](docs/calculation-evidence.md#contribution-caps).
 These worksheets are published in the 0.1.6 wheel.
+
+## Study and training loan repayment
+
+`study_loan_repayment` applies the marginal repayment rates that apply from
+2025-26 to one individual's established whole-dollar repayment income: nil at or
+below the minimum repayment income, 15% of the excess up to the top of the first
+band, then the 15% band in full plus 17% of the excess, and 10% of the whole
+repayment income once that is the smaller amount. The result gives the marginal
+amount, 10% of income, the compulsory repayment and the rate that applied, with
+the thresholds. Repayment income (taxable income excluding assessable FHSS
+released amounts, plus reportable fringe benefits, total net investment loss,
+reportable super contributions and exempt foreign employment income) is the
+operator's established fact. The formula amount is not limited to the loan
+balance, and whether a debt exists, voluntary repayments, the overseas levy,
+allocation between loan types, indexation and the Schedule 8 withholding
+component are outside it. The tests hold the worksheet to the ATO's worked
+examples, the Gazette that notified the 2026-27 thresholds and every band
+boundary; see [calculation evidence](docs/calculation-evidence.md#study-loan-repayment).
+This worksheet is on `main` and not yet in a published wheel.
 
 ## Worksheet discovery
 
