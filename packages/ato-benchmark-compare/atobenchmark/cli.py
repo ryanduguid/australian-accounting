@@ -217,8 +217,14 @@ def cmd_compare(args: argparse.Namespace) -> int:
         else:
             atomic_write_text(Path(args.json), text, encoding="utf-8", newline="\n")
             print(f"Wrote {args.json}")
+    report = None
     if args.json != "-":
-        print(render_text(comparison, unreviewed=routing.unreviewed, supplied=supplied))
+        report = render_text(comparison, unreviewed=routing.unreviewed, supplied=supplied)
+    # stderr, so `--json -` still writes only JSON, and after every step that can
+    # fail, so an error stays the first line on stderr.
+    print(f"Amounts were read from {source.amount_column}.", file=sys.stderr)
+    if report is not None:
+        print(report)
 
     if routing.unreviewed and not args.accept_unreviewed:
         return EXIT_UNREVIEWED

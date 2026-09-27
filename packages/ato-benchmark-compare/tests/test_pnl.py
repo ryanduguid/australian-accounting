@@ -105,7 +105,7 @@ def test_report_layout_detects_sections_and_totals(tmp_path: Path) -> None:
 
 def test_report_layout_picks_the_first_value_column(tmp_path: Path) -> None:
     result = pnl.read(write(tmp_path, "p.csv", REPORT))
-    assert result.amount_column == "column 1"
+    assert result.amount_column == "column 1 (30 Jun 2024)"
     assert next(row for row in result.rows if row.account == "Sales").amount == Decimal("850000.00")
 
 
@@ -264,3 +264,29 @@ def test_section_headings(label: str, section: str) -> None:
 def test_a_named_account_is_not_treated_as_a_section() -> None:
     assert pnl.section_for("Rent") is None
     assert pnl.section_for("Income protection insurance") is None
+
+
+@pytest.mark.parametrize("cell", ["-", " - ", "", "n/a", "TBC", "#REF!"])
+def test_a_gap_in_the_current_period_is_refused_not_read_from_last_year(tmp_path: Path, cell: str) -> None:
+    """One unreadable current-year cell used to make the prior-year column the fuller one, silently."""
+    text = REPORT.replace("Rent,60000.00,58000.00", f"Rent,{cell},58000.00")
+    with pytest.raises(pnl.PnlError, match=r"column 1 \(30 Jun 2024\) and column 2 \(30 Jun 2023\)"):
+        pnl.read(write(tmp_path, "p.csv", text))
+    chosen = pnl.read(write(tmp_path, "p.csv", text), amount_column="1")
+    assert chosen.amount_column == "column 1"
+
+
+def test_a_code_column_left_of_the_amounts_is_not_a_period(tmp_path: Path) -> None:
+    text = "Account,Code,30 Jun 2024\nIncome,,\nSales,200,850000.00\nTotal Income,,850000.00\nRent,310,60000.00\n"
+    result = pnl.read(write(tmp_path, "p.csv", text))
+    assert result.amount_column == "column 2 (30 Jun 2024)"
+    assert next(row for row in result.rows if row.account == "Sales").amount == Decimal("850000.00")
+
+
+def test_a_note_column_left_of_two_periods_is_passed_over(tmp_path: Path) -> None:
+    text = "Account,Note,2024,2023\nIncome,,,\nSales,3,850000.00,800000.00\nTotal Income,,850000.00,800000.00\nRent,,60000.00,58000.00\n"
+    result = pnl.read(write(tmp_path, "p.csv", text))
+    assert result.amount_column == "column 2 (2024)"
+    gap = text.replace("Rent,,60000.00", "Rent,,-")
+    with pytest.raises(pnl.PnlError, match=r"column 2 \(2024\) and column 3 \(2023\)"):
+        pnl.read(write(tmp_path, "p.csv", gap))
