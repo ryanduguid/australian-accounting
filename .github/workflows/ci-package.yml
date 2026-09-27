@@ -58,7 +58,7 @@ jobs:
   changes:
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     outputs:
       run: ${{ steps.select.outputs.run }}
@@ -104,7 +104,7 @@ jobs:
         # The floor and the ceiling of the declared requires-python, plus the
         # version the rest of the gates run on.
         python: ["3.10", "3.12", "3.13", "3.14"]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     defaults:
       run:
@@ -188,7 +188,7 @@ jobs:
     if: needs.changes.outputs.run == 'true'
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     defaults:
       run:
@@ -240,7 +240,7 @@ jobs:
     if: needs.changes.outputs.run == 'true'
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     defaults:
       run:
@@ -267,7 +267,7 @@ jobs:
     if: needs.changes.outputs.run == 'true'
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     defaults:
       run:
@@ -338,7 +338,7 @@ jobs:
     if: always()
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 2
     steps:
       - name: fail when any gate failed or was cancelled

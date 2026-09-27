@@ -46,7 +46,7 @@ jobs:
   pypi:
     name: publish to PyPI
     needs: release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     environment:
       name: pypi-div7a-loan-review
