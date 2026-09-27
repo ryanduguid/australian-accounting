@@ -222,6 +222,7 @@ def _append_case_variant(manifest) -> None:
     [
         (lambda m: m.update(stage="other"), "stage must be 'rulings'"),
         (lambda m: m.update(fetched_on="01/01/2099"), "fetched_on must be"),
+        (lambda m: m.update(fetched_on="2099-13-01"), "fetched_on must be"),
         (lambda m: m.update(rows=m["rows"] + 1), "rows does not equal"),
         (lambda m: m["documents"][0].update(fetched_on="2099-01-02"), "different date"),
         (lambda m: m["documents"][0].update(family="Opinion"), "unsupported family"),

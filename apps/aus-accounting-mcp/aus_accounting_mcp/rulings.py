@@ -32,6 +32,7 @@ import os
 import re
 from collections import deque
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -232,6 +233,11 @@ def _manifest(
     fetched_on = data.get("fetched_on")
     if not isinstance(fetched_on, str) or not ISO_DATE.fullmatch(fetched_on):
         raise invalid("fetched_on must be a YYYY-MM-DD date")
+    try:
+        # The pattern admits 2099-13-01, and the date decides which copy is served.
+        date.fromisoformat(fetched_on)
+    except ValueError:
+        raise invalid("fetched_on must be a YYYY-MM-DD date") from None
     notice, notice_url = data.get("reuse_notice"), data.get("reuse_notice_url")
     if (
         not isinstance(notice, str) or not notice.strip()
