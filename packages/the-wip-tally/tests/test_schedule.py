@@ -337,3 +337,30 @@ def test_output_progress_outside_zero_to_one_is_refused(percent: Decimal) -> Non
 def test_output_progress_at_the_bounds_is_accepted() -> None:
     for percent in (Decimal("0"), Decimal("1")):
         assert measure(_contract(progress_method="output", output_percent=percent)) is not None
+
+
+def test_a_completed_contract_recognises_its_full_price() -> None:
+    """Cost to complete of nil is 100% progress, not an overrun."""
+    position = measure(
+        _contract(
+            costs_incurred=Decimal("800000.00"),
+            estimated_cost_to_complete=ZERO,
+            committed_outstanding=ZERO,
+        )
+    )
+    assert position.percent_complete == Decimal(1)
+    assert position.revenue_to_date == Decimal("1000000.00")
+
+
+def test_a_break_even_contract_is_not_flagged_onerous() -> None:
+    """AASB 137 onerous review starts below nil margin, not at it."""
+    position = measure(
+        _contract(
+            costs_incurred=Decimal("500000.00"),
+            estimated_cost_to_complete=Decimal("500000.00"),
+            committed_outstanding=ZERO,
+        )
+    )
+    assert position.gross_profit_at_completion == ZERO
+    assert "onerous_contract_review_aasb_137" not in position.flags
+    assert "negative_margin_at_completion" not in position.flags

@@ -543,3 +543,22 @@ def test_a_nil_benchmark_rate_is_refused_with_its_code(tmp_path):
     assert result.verdict is MyrVerdict.REFUSED
     assert "REFUSED_BENCHMARK_RATE_NOT_POSITIVE" in result.reason_codes
     assert result.myr_required is None
+
+
+def test_the_final_repayment_year_is_principal_plus_one_year_of_interest():
+    """A remaining term of 1 is the last year, and the formula collapses to
+    principal x (1 + rate); it is not a nil term to refuse."""
+    result = minimum_yearly_repayment(
+        facts(
+            amalgamated_loan_unpaid_at_end_of_previous_year=D("10000.00"),
+            remaining_term_years=D("1"),
+            payments_applied_during_the_year=D("10877.00"),
+        )
+    )
+    assert result.verdict is MyrVerdict.MYR_MET
+    assert result.myr_required == D("10000.00") * (1 + RATE_2026_27)
+
+
+def test_an_exact_half_cent_rounds_up():
+    """1000.02 x 1.25 is 1250.025 exactly; half up gives .03 where half even would give .02."""
+    assert minimum_yearly_repayment_amount(D("1000.02"), D("0.25"), D(1)) == D("1250.03")
