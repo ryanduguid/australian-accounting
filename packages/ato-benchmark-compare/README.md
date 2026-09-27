@@ -217,9 +217,13 @@ A report style export, with a title block, section headings and subtotal rows, i
 also read. Subtotal rows are detected and written into the mapping marked `excluded`
 rather than dropped, so a total can never be quietly added to the figures it totals,
 and nothing vanishes without appearing in a file you can read. Amounts are taken from
-the column with the most cells that parse as amounts, keeping the leftmost on a tie, so
-a comparative export can pick the prior period; `--amount-column` takes a column number
-or a column heading to name the intended period.
+the column with the most cells that parse as amounts, keeping the leftmost on a tie.
+When another amount column sits left of a fuller one, as in a comparative export
+with a blank or dash in the current period, or a headed column there holds only blanks
+or placeholders, the file is refused rather than read from the prior period. Only a
+code, note, reference or text column there is passed over. `--amount-column` takes a column number or a
+column heading to name the intended period. `map` and `compare` both print the column
+they read.
 
 **The report style layout is inferred.** It was written against the shape these
 exports normally take, not verified against a real export from any particular

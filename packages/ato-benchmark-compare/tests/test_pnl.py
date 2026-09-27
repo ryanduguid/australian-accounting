@@ -105,7 +105,7 @@ def test_report_layout_detects_sections_and_totals(tmp_path: Path) -> None:
 
 def test_report_layout_picks_the_first_value_column(tmp_path: Path) -> None:
     result = pnl.read(write(tmp_path, "p.csv", REPORT))
-    assert result.amount_column == "column 1"
+    assert result.amount_column == "column 1 (30 Jun 2024)"
     assert next(row for row in result.rows if row.account == "Sales").amount == Decimal("850000.00")
 
 
@@ -264,3 +264,78 @@ def test_section_headings(label: str, section: str) -> None:
 def test_a_named_account_is_not_treated_as_a_section() -> None:
     assert pnl.section_for("Rent") is None
     assert pnl.section_for("Income protection insurance") is None
+
+
+@pytest.mark.parametrize("cell", ["-", " - ", "", "n/a", "TBC", "#REF!"])
+def test_a_gap_in_the_current_period_is_refused_not_read_from_last_year(tmp_path: Path, cell: str) -> None:
+    """One unreadable current-year cell used to make the prior-year column the fuller one, silently."""
+    text = REPORT.replace("Rent,60000.00,58000.00", f"Rent,{cell},58000.00")
+    with pytest.raises(pnl.PnlError, match=r"column 1 \(30 Jun 2024\) and column 2 \(30 Jun 2023\)"):
+        pnl.read(write(tmp_path, "p.csv", text))
+    chosen = pnl.read(write(tmp_path, "p.csv", text), amount_column="1")
+    assert chosen.amount_column == "column 1"
+
+
+@pytest.mark.parametrize(
+    ("current", "prior"), [("FY24", "FY23"), ("FY2025", "FY2024"), ("Actual", "Budget"), ("This Year", "Last Year")]
+)
+def test_other_period_headings_are_refused_too(tmp_path: Path, current: str, prior: str) -> None:
+    text = REPORT.replace("30 Jun 2024", current).replace("30 Jun 2023", prior)
+    text = text.replace("Rent,60000.00,58000.00", "Rent,-,58000.00")
+    with pytest.raises(pnl.PnlError, match=f"column 1 \\({current}\\) and column 2 \\({prior}\\)"):
+        pnl.read(write(tmp_path, "p.csv", text))
+
+
+@pytest.mark.parametrize("cell", ["", "-", "n/a", "#N/A", "#NAME?", "#NUM!", "#SPILL!"])
+def test_a_current_period_with_no_readable_amount_is_refused(tmp_path: Path, cell: str) -> None:
+    lines = REPORT.splitlines()
+    for n, line in enumerate(lines):
+        parts = line.split(",")
+        if n > 3 and len(parts) == 3 and parts[1]:
+            lines[n] = ",".join([parts[0], cell, parts[2]])
+    with pytest.raises(
+        pnl.PnlError, match=r"column 1 \(30 Jun 2024\) holds no readable amount and column 2 \(30 Jun 2023\) does"
+    ):
+        pnl.read(write(tmp_path, "p.csv", "\n".join(lines) + "\n"))
+
+
+def test_a_column_of_hash_identifiers_is_text_not_placeholders(tmp_path: Path) -> None:
+    text = "Account,Invoice,30 Jun 2024\nSales,#1042,850000.00\nRent,#1043,60000.00\n"
+    assert pnl.read(write(tmp_path, "p.csv", text)).amount_column == "column 2 (30 Jun 2024)"
+
+
+@pytest.mark.parametrize("heading", ["Code", "Invoice", "Invoice No", "Account Number"])
+@pytest.mark.parametrize("totals", ["", "Total Income,,850000.00\n"])
+def test_a_numeric_label_column_is_never_read_as_the_amounts(tmp_path: Path, heading: str, totals: str) -> None:
+    # Level with the dated column, the label column won the leftmost tie and Sales
+    # read 200; one row short, the refusal pointed --amount-column at it.
+    text = f"Account,{heading},30 Jun 2024\nSales,200,850000.00\n{totals}Rent,310,60000.00\n"
+    result = pnl.read(write(tmp_path, "p.csv", text))
+    assert result.amount_column == "column 2 (30 Jun 2024)"
+    assert next(row for row in result.rows if row.account == "Sales").amount == Decimal("850000.00")
+
+
+def test_a_file_whose_only_numbers_are_labels_has_no_amount_column(tmp_path: Path) -> None:
+    with pytest.raises(pnl.PnlError, match="no column in this file parses as amounts"):
+        pnl.read(write(tmp_path, "p.csv", "Account,Code\nSales,200\nRent,310\n"))
+
+
+def test_a_description_column_left_of_the_amounts_is_passed_over(tmp_path: Path) -> None:
+    text = "Account,Description,30 Jun 2024\nIncome,,\nSales,Shop takings,850000.00\nRent,Premises,60000.00\n"
+    assert pnl.read(write(tmp_path, "p.csv", text)).amount_column == "column 2 (30 Jun 2024)"
+
+
+def test_a_code_column_left_of_the_amounts_is_not_a_period(tmp_path: Path) -> None:
+    text = "Account,Code,30 Jun 2024\nIncome,,\nSales,200,850000.00\nTotal Income,,850000.00\nRent,310,60000.00\n"
+    result = pnl.read(write(tmp_path, "p.csv", text))
+    assert result.amount_column == "column 2 (30 Jun 2024)"
+    assert next(row for row in result.rows if row.account == "Sales").amount == Decimal("850000.00")
+
+
+def test_a_note_column_left_of_two_periods_is_passed_over(tmp_path: Path) -> None:
+    text = "Account,Note,2024,2023\nIncome,,,\nSales,3,850000.00,800000.00\nTotal Income,,850000.00,800000.00\nRent,,60000.00,58000.00\n"
+    result = pnl.read(write(tmp_path, "p.csv", text))
+    assert result.amount_column == "column 2 (2024)"
+    gap = text.replace("Rent,,60000.00", "Rent,,-")
+    with pytest.raises(pnl.PnlError, match=r"column 2 \(2024\) and column 3 \(2023\)"):
+        pnl.read(write(tmp_path, "p.csv", gap))

@@ -237,7 +237,14 @@ def _amount_column_index(rows: list[list[str]], amount_column: str | None) -> tu
 
     # No column named, so use the first column that parses as an amount on more rows
     # than any earlier column. Ties keep the leftmost, which is the current period in
-    # a comparative export.
+    # a comparative export. A code, note, reference or invoice column holds numbers
+    # that label a row, so it is never a candidate however full it is: on a tie it
+    # was taken as the amounts.
+    labels = set()
+    for index in range(1, widest):
+        heading = _column_heading(rows, index)
+        if heading and LABEL_HEADING.match(heading):
+            labels.add(index)
     counts = [0] * widest
     for row in rows:
         for index in range(1, min(len(row), widest)):
@@ -249,10 +256,81 @@ def _amount_column_index(rows: list[list[str]], amount_column: str | None) -> tu
             except AmountError:
                 continue
             counts[index] += 1
-    best = max(range(1, widest), key=lambda i: counts[i])
+    # Index 0 is the account column and never counted, so it stands in for "none".
+    best = max((i for i in range(1, widest) if i not in labels), key=lambda i: counts[i], default=0)
     if counts[best] == 0:
         raise PnlError("no column in this file parses as amounts")
-    return best, f"column {best}"
+
+    def name(index: int) -> str:
+        heading = _column_heading(rows, index)
+        return f"column {index} ({heading})" if heading else f"column {index}"
+
+    # Another amount column left of the fullest one is usually the current period of
+    # a comparative export with a blank, dash or "n/a" in it, which makes last year's
+    # column the fuller one. A column holding only placeholders is the same case at
+    # its limit. Only a label column there is passed over; any other heading, or
+    # none, is refused rather than guessed.
+    for index in range(1, best):
+        if index in labels:
+            continue
+        heading = _column_heading(rows, index)
+        if counts[index]:
+            raise PnlError(
+                f"amounts are in {name(index)} and {name(best)}, and the second is fuller, so "
+                f"the period to compare is ambiguous. Name it with --amount-column, for "
+                f"example --amount-column {index}."
+            )
+        if _only_placeholders(rows, index, heading):
+            raise PnlError(
+                f"{name(index)} holds no readable amount and {name(best)} does, so the period "
+                f"to compare is ambiguous. Re-export with the current period filled in, or "
+                f"read {name(best)} deliberately with --amount-column {best}."
+            )
+    return best, name(best)
+
+
+# Headings of numeric columns that label a row rather than hold a period's amounts.
+LABEL_HEADING = re.compile(
+    r"^((account|invoice)\s+)?(code|codes|note|notes|ref|reference|no\.?|number|id|gl code)$|^invoices?$",
+    re.IGNORECASE,
+)
+# Cells that stand in for an amount: dashes, "n/a", "nil", "TBC" and spreadsheet
+# errors (#N/A, or # and a word ending in ! or ?, such as #REF! or #NAME?). A
+# hash-prefixed identifier such as #1042 is not one.
+PLACEHOLDER = re.compile(r"^[-\u2013\u2014.\s]*$|^(n/?a|nil|tbc|tba|#n/a)$|^#[a-z0-9/_]+[!?]$", re.IGNORECASE)
+
+
+def _only_placeholders(rows: list[list[str]], index: int, heading: str | None) -> bool:
+    """True when a headed column, or one with placeholder cells, holds nothing else.
+
+    A text column such as a description is not a period, and a column with no
+    heading and no cells is a spacer; neither is refused.
+    """
+    cells = [row[index].strip() for row in rows if len(row) > index and row[index].strip()]
+    if heading in cells:
+        cells.remove(heading)
+    if not heading and not cells:
+        return False
+    return all(PLACEHOLDER.match(cell) for cell in cells)
+
+
+def _column_heading(rows: list[list[str]], index: int) -> str | None:
+    """A column's heading: its cell on the row labelled "Account", else the text
+    above its first amount, or None when an amount comes first. The first rule
+    matters for a bare year heading such as "2024", which parses as an amount."""
+    for row in rows[:20]:
+        if row and row[0].strip().casefold() == "account":
+            return (row[index].strip() if len(row) > index else "") or None
+    for row in rows[:20]:
+        cell = row[index].strip() if len(row) > index else ""
+        if not cell:
+            continue
+        try:
+            parse_amount(cell)
+        except AmountError:
+            return cell
+        return None
+    return None
 
 
 def _heading_carries_section_total(later: list[list[str]], index: int, amount: Decimal) -> bool | None:
