@@ -112,9 +112,11 @@ received (`received` with `matched_amount`), before reading a Payday Super resul
 as `ON_TIME`.
 
 The research tools need a folder you supply: set `AUS_ACCOUNTING_LIBRARY_ROOT` to an
-authorised Markdown folder, or `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus,
-such as one built by [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus).
-The package ships neither. A corpus row is a point-in-time copy, not a live lookup.
+authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus, or
+`AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by
+[au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus).
+The package ships none of them. A corpus or rulings row is a point-in-time copy, not
+a live lookup, and an edited version of private advice cannot be relied on by anyone.
 Point the library at reference material, or at one engagement at a time, never at a
 folder of mixed client files: every match enters the assistant's context, whichever
 client it came from.

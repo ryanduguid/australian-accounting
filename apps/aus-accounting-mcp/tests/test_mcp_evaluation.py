@@ -13,6 +13,7 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 import synthetic_corpus
+import synthetic_rulings
 from aus_accounting_mcp.server import mcp
 from evaluation import tool_selection
 
@@ -68,7 +69,7 @@ async def _answer(session, case):
     if case in {"grouped-payday", "worksheet-gst", "library-reference", "payday-evidence-pack",
                 "legislation-citation", "legislated-rate", "statutory-definition",
                 "injected-instruction", "undefined-term", "stored-rate-date",
-                "ranked-provision", "long-provision"}:
+                "ranked-provision", "long-provision", "ruling-paragraph"}:
         reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
         results = [await call(c["name"], **c["arguments"])
                    for c in json.loads(reference.text)]
@@ -99,6 +100,11 @@ async def _answer(session, case):
             total = results[-1]["section"]["total_chars"]
             assert sum(len(part["section"]["text"]) for part in results) == total
             return str(total)
+        if case == "ruling-paragraph":
+            # The read is the search's own top match, served from the newer run.
+            assert results[0]["matches"][0]["row_ref"] == results[1]["paragraph"]["row_ref"]
+            assert results[1]["paragraph"]["serving"] is True
+            return results[1]["paragraph"]["paragraph"]
         if case == "stored-rate-date":
             return results[0]["matches"][0]["compilation_date"]
         return results[-1]["text"]
@@ -187,12 +193,13 @@ async def _answer(session, case):
     return str(all(fixture["not_a_lodgment"] for fixture in fixtures)).lower()
 
 
-async def _evaluate(case, library_root, corpus_root):
+async def _evaluate(case, library_root, corpus_root, rulings_root):
     parameters = StdioServerParameters(
         command=sys.executable, args=["-m", "aus_accounting_mcp.cli"],
         env={
             "AUS_ACCOUNTING_LIBRARY_ROOT": library_root,
             "AUS_ACCOUNTING_CORPUS_ROOT": corpus_root,
+            "AUS_ACCOUNTING_RULINGS_ROOT": rulings_root,
         },
     )
     async with stdio_client(parameters) as (reader, writer):
@@ -207,12 +214,16 @@ async def _evaluate(case, library_root, corpus_root):
 )
 def test_evaluation_answer_is_reproducible(case, expected, tools):
     with tempfile.TemporaryDirectory() as library_root, \
-            tempfile.TemporaryDirectory() as corpus_root:
+            tempfile.TemporaryDirectory() as corpus_root, \
+            tempfile.TemporaryDirectory() as rulings_root:
         (Path(library_root) / "example.md").write_text(
             "# Synthetic\nsynthetic credit example\n", encoding="utf-8"
         )
         synthetic_corpus.build(Path(corpus_root))
-        answer, selected, calls = asyncio.run(_evaluate(case, library_root, corpus_root))
+        synthetic_rulings.build(Path(rulings_root))
+        answer, selected, calls = asyncio.run(
+            _evaluate(case, library_root, corpus_root, rulings_root)
+        )
 
     assert answer == expected
     # questions.xml publishes the tools a correct answer needs, and the

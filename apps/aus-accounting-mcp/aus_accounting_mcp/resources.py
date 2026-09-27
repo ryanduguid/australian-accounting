@@ -35,7 +35,11 @@ from .adapters.div7a import DISCLAIMER as DIV7A_DISCLAIMER
 from .adapters.payday import DISCLAIMER as PAYDAY_DISCLAIMER, SINGLE_CONTRIBUTION_CAVEAT
 
 SERVER_DISTRIBUTION = "aus-accounting-mcp"
-RETRIEVAL_FOLDERS = ("AUS_ACCOUNTING_LIBRARY_ROOT", "AUS_ACCOUNTING_CORPUS_ROOT")
+RETRIEVAL_FOLDERS = (
+    "AUS_ACCOUNTING_LIBRARY_ROOT",
+    "AUS_ACCOUNTING_CORPUS_ROOT",
+    "AUS_ACCOUNTING_RULINGS_ROOT",
+)
 ENGINE_DISTRIBUTIONS = (
     "ato-benchmark-compare",
     "div7a-loan-review",
@@ -103,6 +107,11 @@ def scope() -> dict[str, Any]:
             "dictionary sections; no match is not proof the expression is undefined.",
             "search_tax_rates": "Find legislated rate, threshold and factor rows in that corpus; "
             "amounts are quoted text, not a calculation or a current-figure confirmation.",
+            "search_ato_rulings": "Search an explicitly configured local folder of ATO rulings "
+            "runs; returns point-in-time paragraphs with their docid, source page and fetch "
+            "date, never a confirmation of the Commissioner's current view.",
+            "read_ato_ruling": "Read one cited paragraph from the run its row_ref names, "
+            "optionally with the same document's paragraphs either side of it.",
         },
         "calculation_worksheets": calculations.worksheet_catalogue() if callable(
             getattr(calculations, "worksheet_catalogue", None)

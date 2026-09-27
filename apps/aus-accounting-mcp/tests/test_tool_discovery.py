@@ -135,6 +135,9 @@ BOUNDED_STRING_INPUTS = {
     ("define_tax_term", "act"): 200,
     ("search_tax_rates", "query"): 200,
     ("search_tax_rates", "topic"): 100,
+    ("search_ato_rulings", "query"): 200,
+    ("search_ato_rulings", "family"): 100,
+    ("read_ato_ruling", "row_ref"): 300,
 }
 
 
