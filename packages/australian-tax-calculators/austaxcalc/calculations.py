@@ -17,6 +17,8 @@ from .metadata import (
     PENSION_MINIMUM_FACTORS,
     RESIDENT_TAX_SCALES,
     SOURCE_REVIEWS,
+    STUDY_LOAN_REPAYMENT_RATES,
+    STUDY_LOAN_REPAYMENT_THRESHOLDS,
     SUPPORTED_PERIODS,
     periods,
 )
@@ -34,10 +36,12 @@ SOURCES = {
     "payg_withholding": "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
     "contribution_caps": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
     "pension_minimum": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/paying-smsf-benefits/income-stream-pension-rules-and-payments",
+    "study_loan_repayment": "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-support-loans-rates-and-repayment-thresholds",
 }
 # Sources beyond the per-rule one, returned with it in each result's sources.
 EXTRA_SOURCES = {
     "fbt": ["https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/fbt-return-2026-calculation-details-for-taxable-employers"],
+    "study_loan_repayment": ["https://www.legislation.gov.au/C2026G00249/latest/text"],
 }
 
 
@@ -98,6 +102,18 @@ SCOPES = {
            "market-linked, lifetime and life expectancy pensions, the transition to "
            "retirement 10% maximum, commutations, death and reversion, and whether payments "
            "made meet the standard.",
+    "study_loan_repayment": "One individual's compulsory study and training support loan "
+           "repayment for an income year from 2025-26, at the marginal rates the ATO "
+           "publishes, from established whole-dollar repayment income: taxable income "
+           "excluding assessable FHSS released amounts, plus reportable fringe benefits, "
+           "total net investment loss, reportable super contributions and exempt foreign "
+           "employment income, which the operator establishes. The formula amount only: "
+           "the lesser of the marginal amount and 10% of repayment income, not limited to "
+           "the loan balance. Excludes whether a debt exists, voluntary repayments, the "
+           "overseas levy, allocation between loan types, indexation and the Schedule 8 "
+           "withholding component. The ATO table prints the 2026-27 base of the 17% band "
+           "rounded to $9,028 and its example 2 uses that figure; this worksheet applies the "
+           "exact $9,028.35, so that example differs by 35 cents.",
 }
 
 
@@ -320,6 +336,44 @@ def payg_withholding(earnings: Decimal, pay_period: str, scale: int, year: str,
             "weekly_earnings_used": x, "weekly_withholding": weekly_amount,
             "withholding": amount,
         }, {"scale": str(scale), "a": str(a), "b": str(b)})
+
+
+def study_loan_repayment(repayment_income: Decimal, year: str,
+                         scope_confirmed: bool) -> dict[str, Any]:
+    """HESA 2003 Part 4-2 compulsory repayment at the published marginal rates."""
+    _scope(scope_confirmed, year, "study_loan_repayment")
+    income = _money(repayment_income)
+    if income != income.to_integral_value():
+        raise ValueError("Supply established whole-dollar repayment income.")
+    thresholds = STUDY_LOAN_REPAYMENT_THRESHOLDS[year]
+    minimum, step = D(thresholds["minimum"]), D(thresholds["step"])
+    lower, upper, flat = (D(STUDY_LOAN_REPAYMENT_RATES[key]) for key in ("lower", "upper", "flat"))
+    with localcontext() as context:
+        context.prec = 40
+        base = (step - minimum) * lower
+        marginal = max(D(0), min(income, step) - minimum) * lower + max(D(0), income - step) * upper
+        # Above the minimum, the repayment is the smaller of the marginal amount
+        # and 10% of the whole repayment income; the ATO's published tables name
+        # the first whole-dollar income at which 10% wins.
+        whole = income * flat
+        if income <= minimum:
+            band, repayment = "nil", D(0)
+        elif whole <= marginal:
+            band, repayment = "10% of repayment income", whole
+        elif income <= step:
+            band, repayment = "15% over the minimum", marginal
+        else:
+            band, repayment = "17% over the 15% band", marginal
+        return _result("study_loan_repayment", year, {
+            "repayment_income_used": income, "marginal_amount": marginal,
+            "ten_percent_of_income": whole, "compulsory_repayment": repayment,
+        }, {
+            "band": band, "minimum_repayment_income": str(minimum),
+            "lower_rate": str(lower), "lower_band_top": str(step),
+            "upper_band_base": str(base), "upper_band_base_as_printed": thresholds["printed_base"],
+            "upper_rate": str(upper), "flat_rate": str(flat),
+            "flat_from_as_printed": thresholds["flat_from"],
+        })
 
 
 def contribution_caps(total_super_balance: Decimal, concessional_contributions: Decimal,

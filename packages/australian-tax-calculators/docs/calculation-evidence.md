@@ -33,6 +33,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
+| Study loan repayment | Not a Library document: the ATO thresholds page and Gazette C2026G00249 | 30 June 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
 coverage. Its existing 2026–27 regression and statutory source remain unchanged.
@@ -144,6 +145,32 @@ transcription; it does not establish that a payee's scale, allowances or
 declarations are right. Scale 4, tax offsets, Medicare levy adjustments, study
 and training support loans, 53 and 27 pay years, quarterly pays and the other
 schedules are outside this worksheet.
+
+## Study loan repayment
+
+This worksheet's evidence is not a Library document. The thresholds in
+`austaxcalc/metadata.py` were transcribed from the ATO page "Study and training
+loan repayment thresholds and rates" (last updated 30 June 2026, read on 27
+September 2026), tables 1 (2026-27) and 2 (2025-26), and the 2026-27 minimum
+repayment income of $69,528 and replacement indexable amount of $129,717 were
+checked against Gazette C2026G00249 of 20 April 2026, made under HESA 2003
+ss 154-10 and 154-20. `tests/test_study_loan.py` holds the worksheet to the
+page's examples 1 and 3 ($86,380 gives $2,527.80; $254,780 gives $25,478.00)
+and to every band boundary in both years.
+
+Two published figures are derived rather than stored as the rule. The ATO
+prints the base of the 17% band as $9,028 for 2026-27; 15% of ($129,717 minus
+$69,528) is $9,028.35, and the tests require the printed figure to be that
+amount rounded to the dollar. The page's example 2 uses the printed $9,028 and
+reaches $10,276.99 for $137,064; the worksheet applies the exact base and
+returns $10,277.34, and the test pins that 35-cent difference so a reviewer
+sees it. The published crossover to 10% of repayment income ($179,286 for
+2025-26 and $186,051 for 2026-27) is the first whole-dollar income at which
+10% of the whole is the smaller amount; the tests derive it from the exact base
+and require it to equal the printed threshold, which the rounded base would not
+give. Repayment income is the operator's established fact: the worksheet does
+not compute it from its components, limit the repayment to a loan balance, or
+apply the overseas levy.
 
 ## Contribution caps
 
