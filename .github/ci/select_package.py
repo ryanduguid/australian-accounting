@@ -13,11 +13,22 @@ GitHub Actions output line to standard output:
 
 Empty input means the caller could not work out what changed, so every gate
 runs rather than one being skipped by accident.
+
+On a push to `main` the caller adds `--on-main`. A package whose pyproject
+version has no `<package>/v<version>` tag yet then runs as well, whatever
+changed, so its release can be tagged on whichever commit is `main`'s head: the
+release gate needs this package's push checks on that exact commit. Once every
+version is tagged this adds nothing.
 """
 
 from __future__ import annotations
 
+import re
+import subprocess
 import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
 
 # A change to any of these runs every engine, because they govern all of them.
 SHARED_PATHS = frozenset(
@@ -58,12 +69,35 @@ def should_run(package: str, changed_paths: list[str]) -> bool:
     )
 
 
+def project_version(package: str, root: Path = ROOT) -> str:
+    """The static ``version`` in the package's ``[project]`` table."""
+    text = (root / PACKAGE_ROOT / package / "pyproject.toml").read_text(encoding="utf-8")
+    table = re.search(r"(?ms)^\[project\]\s*$(.*?)(?=^\[|\Z)", text)
+    match = table and re.search(r'(?m)^version\s*=\s*"([^"]+)"', table.group(1))
+    if not match:
+        raise ValueError(f"{package}: no static [project] version")
+    return match.group(1)
+
+
+def release_pending(package: str, tags: list[str], root: Path = ROOT) -> bool:
+    """True when this commit's version of ``package`` has no release tag yet."""
+    return f"{package}/v{project_version(package, root)}" not in tags
+
+
 def main(argv: list[str]) -> int:
-    if len(argv) != 2:
-        print(f"usage: {argv[0]} <package>", file=sys.stderr)
+    args = [arg for arg in argv[1:] if arg != "--on-main"]
+    if len(args) != 1:
+        print(f"usage: {argv[0]} <package> [--on-main]", file=sys.stderr)
         return 2
+    package = args[0]
     changed_paths = [line.strip() for line in sys.stdin if line.strip()]
-    run = should_run(argv[1], changed_paths)
+    run = should_run(package, changed_paths)
+    if not run and "--on-main" in argv:
+        tags = subprocess.run(
+            ["git", "tag", "--list", f"{package}/v*"],
+            capture_output=True, text=True, check=True, cwd=ROOT,
+        ).stdout.split()
+        run = release_pending(package, tags)
     print(f"run={'true' if run else 'false'}")
     return 0
 
