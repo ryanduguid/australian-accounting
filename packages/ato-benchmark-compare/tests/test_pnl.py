@@ -293,7 +293,9 @@ def test_a_current_period_with_no_readable_amount_is_refused(tmp_path: Path, cel
         parts = line.split(",")
         if n > 3 and len(parts) == 3 and parts[1]:
             lines[n] = ",".join([parts[0], cell, parts[2]])
-    with pytest.raises(pnl.PnlError, match=r"column 1 \(30 Jun 2024\) and column 2 \(30 Jun 2023\)"):
+    with pytest.raises(
+        pnl.PnlError, match=r"column 1 \(30 Jun 2024\) holds no readable amount and column 2 \(30 Jun 2023\) does"
+    ):
         pnl.read(write(tmp_path, "p.csv", "\n".join(lines) + "\n"))
 
 
