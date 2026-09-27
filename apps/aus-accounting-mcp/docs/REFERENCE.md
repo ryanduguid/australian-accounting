@@ -447,6 +447,7 @@ supported period, exclusions and warnings.
 | `payg_withholding` | `earnings`, `pay_period`, `scale`, `year` | 2026-27, one regular weekly, fortnightly or monthly pay on scale 1, 2, 3, 5 or 6 |
 | `contribution_caps` | `total_super_balance`, `concessional_contributions`, `unused_concessional_cap`, `non_concessional_contributions`, `under_75_in_year`, `year` | 2024-25 to 2026-27, one individual with no bring-forward period started in the 2 previous years |
 | `pension_minimum` | `account_balance`, `age`, `days`, `year` | 2024-25 to 2026-27, one account-based pension paying under SISR Schedule 7 |
+| `study_loan_repayment` | `repayment_income`, `year` | 2025-26 and 2026-27, one individual's established whole-dollar repayment income at the marginal rates; the formula amount before the loan-balance limit |
 
 Amounts are non-negative AUD decimal strings, at most 2dp and AUD 1 trillion.
 `taxable_use` is a decimal fraction, such as `"0.4"` for 40%; `effective_life` is

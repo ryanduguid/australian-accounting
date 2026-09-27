@@ -105,9 +105,20 @@ class PensionMinimumFacts(Worksheet):
                     "of the year for a pension running on 1 July.")]
 
 
+class StudyLoanRepaymentFacts(Worksheet):
+    kind: Literal["study_loan_repayment"]
+    year: Literal["2025-26", "2026-27"]
+    repayment_income: Money = Field(
+        description="Established repayment income for the year in whole dollars: taxable "
+                    "income excluding assessable FHSS released amounts, plus reportable "
+                    "fringe benefits, total net investment loss, reportable super "
+                    "contributions and exempt foreign employment income.")
+
+
 TaxFacts = Annotated[
     GstFacts | ResidentTaxFacts | CapitalGainsFacts | FbtFacts | DepreciationFacts | SgFacts
-    | PaygWithholdingFacts | ContributionCapsFacts | PensionMinimumFacts,
+    | PaygWithholdingFacts | ContributionCapsFacts | PensionMinimumFacts
+    | StudyLoanRepaymentFacts,
     Field(discriminator="kind"),
 ]
 MONEY_FIELDS = {
@@ -115,6 +126,7 @@ MONEY_FIELDS = {
     "prior_losses", "type_one_value", "type_two_value", "cost", "ordinary_time_earnings",
     "qualifying_contributions", "earnings", "total_super_balance", "concessional_contributions",
     "unused_concessional_cap", "non_concessional_contributions", "account_balance",
+    "repayment_income",
 }
 
 

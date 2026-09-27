@@ -354,21 +354,23 @@ def study_loan_repayment(repayment_income: Decimal, year: str,
         marginal = max(D(0), min(income, step) - minimum) * lower + max(D(0), income - step) * upper
         # Above the minimum, the repayment is the smaller of the marginal amount
         # and 10% of the whole repayment income; the ATO's published tables name
-        # the first whole-dollar income at which 10% wins.
+        # the first whole-dollar income at which 10% wins. rate_applied is the
+        # rate of the band the income ends in: 0 below the minimum, the flat
+        # rate once 10% of the whole is the smaller amount.
         whole = income * flat
         if income <= minimum:
-            band, repayment = "nil", D(0)
+            rate_applied, repayment = D(0), D(0)
         elif whole <= marginal:
-            band, repayment = "10% of repayment income", whole
+            rate_applied, repayment = flat, whole
         elif income <= step:
-            band, repayment = "15% over the minimum", marginal
+            rate_applied, repayment = lower, marginal
         else:
-            band, repayment = "17% over the 15% band", marginal
+            rate_applied, repayment = upper, marginal
         return _result("study_loan_repayment", year, {
             "repayment_income_used": income, "marginal_amount": marginal,
             "ten_percent_of_income": whole, "compulsory_repayment": repayment,
         }, {
-            "band": band, "minimum_repayment_income": str(minimum),
+            "rate_applied": str(rate_applied), "minimum_repayment_income": str(minimum),
             "lower_rate": str(lower), "lower_band_top": str(step),
             "upper_band_base": str(base), "upper_band_base_as_printed": thresholds["printed_base"],
             "upper_rate": str(upper), "flat_rate": str(flat),

@@ -125,7 +125,7 @@ These worksheets are published in the 0.1.6 wheel.
 below the minimum repayment income, 15% of the excess up to the top of the first
 band, then the 15% band in full plus 17% of the excess, and 10% of the whole
 repayment income once that is the smaller amount. The result gives the marginal
-amount, 10% of income, the compulsory repayment and the band that applied, with
+amount, 10% of income, the compulsory repayment and the rate that applied, with
 the thresholds. Repayment income (taxable income excluding assessable FHSS
 released amounts, plus reportable fringe benefits, total net investment loss,
 reportable super contributions and exempt foreign employment income) is the

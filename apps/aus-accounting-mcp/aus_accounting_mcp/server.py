@@ -88,7 +88,7 @@ ESCALATE and HARD_STOP govern what you may conclude from a result here.
 A verdict string such as LATE, UNPAID or NOT_COMPLYING is a review-aid
 classification of the facts the operator supplied, not a determination.
 - Read aus-accounting://scope before choosing a workflow. calculate_tax_worksheet
-  covers nine bounded worksheets, each with required scope confirmation and periods.
+  covers ten bounded worksheets, each with required scope confirmation and periods.
   Establish every scope condition before calling. Do not invent confirmation.
   Broader classifications, exemptions, BAS/returns, trusts, partnerships, SMSF fund
   tax and audit, the transfer balance cap and payroll tax remain unsupported.

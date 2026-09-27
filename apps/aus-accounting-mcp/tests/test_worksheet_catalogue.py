@@ -86,3 +86,20 @@ def test_pension_days_bound_matches_the_engine(year):
     asyncio.run(check())
     with pytest.raises(ValueError):
         adapter.validate_python({**facts, "days": 366})
+
+
+@pytest.mark.parametrize("year,income,expected", [
+    ("2025-26", "100000", "4950.00"), ("2026-27", "100000", "4570.80"),
+])
+def test_study_loan_repayment_calls_through_and_refuses_cents(year, income, expected):
+    facts = {"kind": "study_loan_repayment", "scope_confirmed": True, "year": year,
+             "repayment_income": income}
+
+    async def check():
+        result = await mcp.call_tool("calculate_tax_worksheet", {"facts": facts})
+        assert not result.is_error
+        assert result.structured_content["amounts"]["compulsory_repayment"] == expected
+        with pytest.raises(ToolError, match="whole-dollar"):
+            await mcp.call_tool("calculate_tax_worksheet",
+                                {"facts": {**facts, "repayment_income": income + ".50"}})
+    asyncio.run(check())

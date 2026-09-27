@@ -46,24 +46,24 @@ def test_every_band_boundary_matches_the_published_table(year):
     minimum, step, printed_base, flat_from = (D(value) for value in PUBLISHED[year])
     one = D(1)
     assert _repay(year, minimum)["amounts"]["compulsory_repayment"] == "0.00"
-    assert _repay(year, minimum)["rates"]["band"] == "nil"
+    assert _repay(year, minimum)["rates"]["rate_applied"] == "0"
     assert _repay(year, minimum + one)["amounts"]["compulsory_repayment"] == "0.15"
     at_step = _repay(year, step)
     assert at_step["amounts"]["compulsory_repayment"] == f"{(step - minimum) * D('0.15'):.2f}"
-    assert at_step["rates"]["band"] == "15% over the minimum"
+    assert at_step["rates"]["rate_applied"] == "0.15"
     above_step = _repay(year, step + one)
     assert D(above_step["amounts"]["compulsory_repayment"]) == (
         (step - minimum) * D("0.15") + D("0.17"))
-    assert above_step["rates"]["band"] == "17% over the 15% band"
+    assert above_step["rates"]["rate_applied"] == "0.17"
     # The printed base is the exact 15% band rounded to the dollar.
     assert printed_base == ((step - minimum) * D("0.15")).quantize(one)
     # Below the crossover the marginal amount applies; from it, 10% of the whole.
     below = _repay(year, flat_from - one)
-    assert below["rates"]["band"] == "17% over the 15% band"
+    assert below["rates"]["rate_applied"] == "0.17"
     assert D(below["amounts"]["compulsory_repayment"]) < D(
         below["amounts"]["ten_percent_of_income"])
     at_flat = _repay(year, flat_from)
-    assert at_flat["rates"]["band"] == "10% of repayment income"
+    assert at_flat["rates"]["rate_applied"] == "0.10"
     assert at_flat["amounts"]["compulsory_repayment"] == f"{flat_from * D('0.10'):.2f}"
 
 
