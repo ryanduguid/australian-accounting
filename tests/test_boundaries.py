@@ -20,6 +20,7 @@ from __future__ import annotations
 import ast
 import importlib.util
 import re
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -175,6 +176,37 @@ class BoundaryTests(unittest.TestCase):
         for package in ("the-wip-tally", "solomons-sword"):
             with self.subTest(package=package):
                 self.assertTrue(select_package.should_run(package, moved))
+
+    def test_an_untagged_version_runs_on_every_main_push(self) -> None:
+        # The release gate needs the component's own push checks on the tagged
+        # commit, so a version waiting for its tag must run whatever changed.
+        for component in ENGINES:
+            package = Path(component).name
+            version = select_package.project_version(package)
+            with self.subTest(package=package):
+                self.assertRegex(version, r"^\d+\.\d+\.\d+")
+                self.assertTrue(select_package.release_pending(package, []))
+                self.assertTrue(
+                    select_package.release_pending(package, [f"{package}/v0.0.0"])
+                )
+                self.assertFalse(
+                    select_package.release_pending(package, [f"{package}/v{version}"])
+                )
+        with tempfile.TemporaryDirectory() as scratch:
+            for quoted in ('"1.2.3"', "'1.2.3'"):
+                project = Path(scratch) / "packages" / "demo"
+                project.mkdir(parents=True, exist_ok=True)
+                (project / "pyproject.toml").write_text(
+                    f'[build-system]\nrequires = ["setuptools"]\n\n[project]\nname = "demo"\nversion = {quoted}\n',
+                    encoding="utf-8",
+                )
+                with self.subTest(quoted=quoted):
+                    self.assertEqual(select_package.project_version("demo", Path(scratch)), "1.2.3")
+        reusable = (ROOT / ".github" / "workflows" / "ci-package.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('[ "$REF" = "refs/heads/main" ]', reusable)
+        self.assertEqual(reusable.count('"${ON_MAIN[@]}"'), 2)
 
     def test_an_unknown_comparison_point_runs_every_gate(self) -> None:
         # A dispatch, a new branch and a force push give the workflow no list of
