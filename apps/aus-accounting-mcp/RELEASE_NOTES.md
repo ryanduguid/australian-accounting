@@ -1,3 +1,26 @@
+# v0.2.10
+
+- Pin `payday-super-checker` 0.1.8, `ato-benchmark-compare` 0.1.10,
+  `div7a-loan-review` 0.1.5 and `australian-tax-calculators` 0.1.7, the engine
+  versions the workspace already tested. 0.2.9's own pins could not reproduce
+  its quick proof: the published `div7a-loan-review` 0.1.4 carries an older
+  benchmark table digest.
+- `calc_payday_super_deadline` and `review_payday_super_contributions` report
+  notional earnings, both SG-charge estimates and every uplift scenario to the
+  cent, built the way the checker's report builds them, so they match the
+  evidence pack's `report.csv`. They carried up to 27 decimal places, and
+  rounding their sum could land a cent away from the report.
+- Through the new pins: Division 7A results record each benchmark rate's RBA
+  workbook cell and accept amounts written with trailing zeros past the cent;
+  the `fbt` worksheet adds FBT return items 14A to 16; a report-style P&L with
+  amounts in more than one column is refused when a column left of the fullest
+  also holds amounts; and Payday Super evidence packs write caveat and note
+  cells that start like a formula as text.
+- The release workflow installs the built wheel outside the workspace, so its
+  pins resolve from PyPI, and stops before publishing unless its demo matches
+  `docs/quick-proof.txt`.
+- Align the release, citation, compatibility and MCP Registry metadata to 0.2.10.
+
 # v0.2.9
 
 - Pin `australian-tax-calculators` 0.1.6 and add its `contribution_caps` and

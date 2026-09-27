@@ -16,10 +16,10 @@ from typing import Any
 
 from paydaysuper import LAW_CONTENT_DATE, __version__ as PAYDAY_VERSION
 from paydaysuper.calendar import load_calendar
-from paydaysuper.csv_io import CsvError, parse_date_text
+from paydaysuper.csv_io import CsvError, cents, parse_date_text
 from paydaysuper.deadlines import ContribLine, PreRegimeError
 from paydaysuper.rates import GicTable, load_gic
-from paydaysuper.report import Result, assess
+from paydaysuper.report import Result, assess, rounded_figures
 from pydantic import BaseModel, ConfigDict, Field
 
 from aus_accounting_mcp.errors import InputError
@@ -124,10 +124,14 @@ def _money(value: Decimal | None) -> str | None:
 
 def _serialise(result: Result, *, single: bool = True) -> dict[str, Any]:
     due = result.deadline.due
+    # The checker's own cents, so a review agrees with the evidence pack's
+    # report.csv for the same row: the unrounded components carried up to 27
+    # places, and rounding their sum could land a cent away from the report.
+    figures = rounded_figures(result)
     uplift = None
     if result.uplift is not None:
         uplift = {
-            name: {k: str(v) for k, v in scenario.items()}
+            name: {k: str(cents(v)) for k, v in scenario.items()}
             for name, scenario in result.uplift.items()
         }
     return {
@@ -145,9 +149,9 @@ def _serialise(result: Result, *, single: bool = True) -> dict[str, Any]:
         "lateness_basis": result.lateness_basis or None,
         "base_shortfall": _money(result.base_shortfall),
         "final_shortfall": _money(result.final_shortfall),
-        "notional_earnings": _money(result.nec),
-        "experimental_sgc_low": _money(result.sgc_low),
-        "experimental_sgc_high": _money(result.sgc_high),
+        "notional_earnings": _money(figures["nec"]),
+        "experimental_sgc_low": _money(figures["low"]),
+        "experimental_sgc_high": _money(figures["high"]),
         "uplift": uplift,
         "notes": list(result.notes),
         "caveats": [*result.caveats, *([SINGLE_CONTRIBUTION_CAVEAT] if single else [])],
