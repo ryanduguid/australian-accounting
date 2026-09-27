@@ -33,10 +33,10 @@ jobs:
         .github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner
         .github/workflows/ci.yml: dependency-audit
         .github/workflows/ci.yml: lint
-        .github/workflows/ci.yml: test (ubuntu-latest, 3.10)
-        .github/workflows/ci.yml: test (ubuntu-latest, 3.12)
-        .github/workflows/ci.yml: test (ubuntu-latest, 3.13)
-        .github/workflows/ci.yml: test (ubuntu-latest, 3.14)
+        .github/workflows/ci.yml: test (ubuntu-26.04, 3.10)
+        .github/workflows/ci.yml: test (ubuntu-26.04, 3.12)
+        .github/workflows/ci.yml: test (ubuntu-26.04, 3.13)
+        .github/workflows/ci.yml: test (ubuntu-26.04, 3.14)
         .github/workflows/ci.yml: test (windows-latest, 3.12)
         .github/workflows/boundaries.yml: boundaries
         .github/workflows/codeql.yml: Analyze Python

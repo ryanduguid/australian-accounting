@@ -77,13 +77,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             python: "3.10"
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             python: "3.12"
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             python: "3.13"
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             python: "3.14"
           - os: windows-latest
             python: "3.12"
