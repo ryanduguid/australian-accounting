@@ -30,7 +30,7 @@ late.
 Since 1 July 2026, super is generally due within 7 business days of each payday
 instead of quarterly. A missed deadline can create an SG shortfall, notional
 earnings and administrative uplift; the ATO makes the assessment. This tool
-reviews a CSV from payroll, clearing-house and fund records. Version 0.1.7 refuses or marks `UNKNOWN` where the supported checks
+reviews a CSV from payroll, clearing-house and fund records. Versions 0.1.7 and later refuse or mark `UNKNOWN` where the supported checks
 cannot establish the result. Version 0.1.6 assumes full receipt when a
 fund-receipt date has neither `matched_amount` nor `remitted_amount`; its caveat
 discloses that assumption. Supply and reconcile the receipt amount before relying
@@ -46,7 +46,7 @@ Citation: [`CITATION.cff`](CITATION.cff).
 
 ## Release status and examples
 
-This documentation describes checker 0.1.7. See [release notes](RELEASE_NOTES.md)
+This documentation describes checker 0.1.8. See [release notes](RELEASE_NOTES.md)
 for the receipt-amount migration and workbook corrections. Check
 [PyPI](https://pypi.org/project/payday-super-checker/) and
 [GitHub releases](https://github.com/ryanduguid/australian-accounting/releases)
@@ -101,10 +101,10 @@ python tools/render_quick_proof.py --check
 ## Excel workbook
 
 No Python? [`workbooks/payday-super-checker.xlsx`](workbooks/payday-super-checker.xlsx)
-implements the 0.1.7 review in ordinary worksheet formulas: paste the canonical
+implements the 0.1.8 review in ordinary worksheet formulas: paste the canonical
 contributions register, set the as-at date, and read the deadline, verdict,
 shortfall, notional earnings and SG charge estimate range per line, with the
-0.1.7 checker's UNKNOWN outcomes preserved. The tagged 0.1.6 workbook
+0.1.8 checker's UNKNOWN outcomes preserved. The tagged 0.1.6 workbook
 still assumes full receipt without an amount and extrapolates beyond its GIC
 table, unlike the 0.1.6 CLI default. Use the version-specific limits in
 [workbooks/README.md](workbooks/README.md). It is macro-free, needs desktop Excel for
@@ -129,7 +129,7 @@ PyPI. Use the synthetic CSV above for a first run before preparing your own inpu
 
 ## Before you run
 
-Gather these facts first. The 0.1.7 checks can refuse or mark `UNKNOWN`
+Gather these facts first. The 0.1.8 checks can refuse or mark `UNKNOWN`
 when required evidence is missing. The published receipt-amount exception is
 described under [release status](#release-status-and-examples).
 
