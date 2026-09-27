@@ -21,12 +21,12 @@ class Section100ARiskZone(str, Enum):
 
     FACTS_NOT_ESTABLISHED is not a PCG zone. It is this engine reporting that
     it was not given the facts a zone turns on, which is a different answer from
-    OUTSIDE_GREEN: that one means the stated facts meet no green criterion and
-    match no red example.
+    OUTSIDE_GREEN: that one means the stated facts meet no green scenario, or
+    meet one that a green zone exclusion defeats, and match no red scenario.
     """
 
     GREEN = "GREEN"                  # Low risk, ordinary family dealing
-    OUTSIDE_GREEN = "OUTSIDE_GREEN"  # Meets no green criterion, matches no red example
+    OUTSIDE_GREEN = "OUTSIDE_GREEN"  # No green scenario met (or excluded), no red scenario matched
     RED = "RED"                      # High risk, ATO dedicates compliance resources
     FACTS_NOT_ESTABLISHED = "FACTS_NOT_ESTABLISHED"  # A fact a zone turns on was not stated
 
@@ -59,6 +59,10 @@ def evaluate_section100a_risk(
     beneficiary_actually_received_funds: bool | None = None,
     funds_used_for_beneficiary_direct_benefit: bool | None = None,  # for example, education, medical, independent asset
     commercial_loan_agreement_in_place: bool | None = None,
+    entitlement_applied_to_pre_18_expenses: bool | None = None,
+    received_within_two_years: bool | None = None,
+    retention_scenario_conditions_met: bool | None = None,
+    paragraph_32_exclusion_present: bool | None = None,
 ) -> Section100AAssessment:
     """
     Evaluate Section 100A risk zone under PCG 2022/2.
@@ -69,12 +73,28 @@ def evaluate_section100a_risk(
     fact it turns on is unstated, and the result is FACTS_NOT_ESTABLISHED naming
     those facts. An established red-zone trigger still returns RED, because that
     is the guideline's own answer on the facts it was given.
+
+    The red zone is the guideline's own scenarios (paragraphs 34 to 48), of
+    which this function models 2: an adult child's entitlement paid to a parent
+    or caregiver, or set against a debit account, for expenses incurred before
+    the beneficiary turned 18 (paragraph 34(a) and (b)), and income returned to
+    the trust as a franked dividend (paragraph 36, `circular_flow_of_funds`).
+    Parental retention in general and a corporate unpaid present entitlement
+    without a loan keep an arrangement out of the green zone but are not red-zone
+    scenarios.
+
+    `commercial_loan_agreement_in_place` means the entitlement is retained under
+    a loan on the paragraph 25(e) terms. `retention_scenario_conditions_met`
+    means the rest of green zone scenario 3A (paragraph 26) or 3B (paragraph 28)
+    holds, including the trustee working capital condition.
+    `paragraph_32_exclusion_present` is True where any paragraph 32 exclusion
+    applies; every green scenario requires it to be False.
     """
     if not distribution_amount.is_finite() or distribution_amount <= 0:
         raise ValueError("distribution amount must be positive and finite")
 
-    # The green zone turns on all of these: the 3 mitigating facts that can put
-    # an arrangement in it, and the red-zone facts that would keep it out.
+    # The green zone turns on all of these: the facts its 3 modelled scenarios
+    # need, the exclusions that keep an arrangement out, and the red-zone facts.
     facts: dict[str, bool | None] = {
         "beneficiary_is_adult_child": beneficiary_is_adult_child,
         "funds_retained_by_parents_without_loan": funds_retained_by_parents_without_loan,
@@ -85,29 +105,55 @@ def evaluate_section100a_risk(
         "beneficiary_actually_received_funds": beneficiary_actually_received_funds,
         "funds_used_for_beneficiary_direct_benefit": funds_used_for_beneficiary_direct_benefit,
         "commercial_loan_agreement_in_place": commercial_loan_agreement_in_place,
+        "entitlement_applied_to_pre_18_expenses": entitlement_applied_to_pre_18_expenses,
+        "received_within_two_years": received_within_two_years,
+        "retention_scenario_conditions_met": retention_scenario_conditions_met,
+        "paragraph_32_exclusion_present": paragraph_32_exclusion_present,
     }
     unestablished = tuple(name for name, value in facts.items() if value is None)
 
     risk_factors: List[str] = []
     mitigating: List[str] = []
 
-    # Check Red Zone triggers (PCG 2022/2 Appendix 1). Each limb needs every
+    # Red zone scenarios (PCG 2022/2 paragraphs 34 to 48). Each limb needs every
     # fact it reads: a trigger asserted on an unstated fact would be a definite
     # answer drawn from a gap, and the unzoned result below reports the gap.
     if circular_flow_of_funds is True:
-        risk_factors.append("Circular flow of funds detected (e.g. trust -> beneficiary -> company -> trust)")
-    if beneficiary_is_adult_child is True and funds_retained_by_parents_without_loan is True:
-        risk_factors.append("Adult child present entitlement retained by parents for general living costs without commercial terms")
-    if corporate_beneficiary_unpaid_present_entitlement is True and commercial_loan_agreement_in_place is False:
-        risk_factors.append("Corporate beneficiary UPE without Div 7A compliant loan agreement or sub-trust")
+        risk_factors.append(
+            "Trust income returned to the trust as a franked dividend from the beneficiary company "
+            "(PCG 2022/2 red zone scenario 2, paragraph 36)"
+        )
+    if beneficiary_is_adult_child is True and entitlement_applied_to_pre_18_expenses is True:
+        risk_factors.append(
+            "Adult child's entitlement paid to a parent or caregiver, or set against a debit account, "
+            "for expenses incurred before the beneficiary turned 18 "
+            "(PCG 2022/2 red zone scenario 1, paragraph 34(a) and (b))"
+        )
 
-    # Check Green Zone qualifications (PCG 2022/2 Appendix 2)
-    if beneficiary_actually_received_funds is True and funds_retained_by_parents_without_loan is False:
-        mitigating.append("Beneficiary received and retained full economic benefit of entitlement")
+    # Green zone scenarios (PCG 2022/2 paragraphs 20 to 30). Each needs the
+    # facts its own paragraph names, and all of them need no paragraph 32
+    # exclusion, so the blockers below apply to every route.
+    if (beneficiary_actually_received_funds is True and received_within_two_years is True
+            and funds_retained_by_parents_without_loan is False):
+        mitigating.append(
+            "Beneficiary received the entitlement within 2 years and used it (green zone scenario 2, paragraph 22)"
+        )
     if funds_used_for_beneficiary_direct_benefit is True:
-        mitigating.append("Funds applied directly for beneficiary's education, medical, or capital asset acquisition")
-    if commercial_loan_agreement_in_place is True:
-        mitigating.append("Funds lent under documented arm's-length commercial terms with interest paid")
+        mitigating.append(
+            "Funds paid to the beneficiary and used for the beneficiary, their spouse or dependants "
+            "(green zone scenario 1, paragraph 20)"
+        )
+    if commercial_loan_agreement_in_place is True and retention_scenario_conditions_met is True:
+        mitigating.append(
+            "Entitlement retained by the trustee under a loan on paragraph 25(e) commercial terms, "
+            "with the rest of green zone scenario 3A or 3B met"
+        )
+    green_blocked = (
+        paragraph_32_exclusion_present is True
+        or funds_retained_by_parents_without_loan is True
+        or (corporate_beneficiary_unpaid_present_entitlement is True
+            and commercial_loan_agreement_in_place is False)
+    )
 
     # Determine Risk Zone
     if risk_factors:
@@ -131,7 +177,7 @@ def evaluate_section100a_risk(
             "False from the trust's records, or treat the arrangement as unzoned and "
             "make the factual inquiry."
         )
-    elif mitigating:
+    elif mitigating and not green_blocked:
         zone = Section100ARiskZone.GREEN
         # PCG 2022/2's green zone is a compliance-resourcing stance, not a
         # ruling that the s 100A(13) ordinary family dealing exception applies.
@@ -149,8 +195,9 @@ def evaluate_section100a_risk(
         # exception is undecided rather than answered "no" on no facts.
         is_ofd = None
         consequence = (
-            "OUTSIDE THE GREEN ZONE: the arrangement meets no green zone criterion and matches no red zone "
-            "example, so PCG 2022/2 assigns it no zone. Further factual inquiry and contemporaneous "
+            "OUTSIDE THE GREEN ZONE: the arrangement meets no green zone scenario, or a green zone "
+            "exclusion applies, and it matches no red zone scenario, so PCG 2022/2 assigns it no zone. "
+            "Further factual inquiry and contemporaneous "
             "documentation required."
         )
 
@@ -162,6 +209,20 @@ def evaluate_section100a_risk(
     # involve non-receipt by definition, so the fact must not drive the zone.
     if beneficiary_actually_received_funds is False:
         risk_factors.append("Beneficiary did not receive the funds representing the present entitlement")
+    # Recorded after zoning for the same reason: each keeps the arrangement out
+    # of the green zone, but neither is a PCG 2022/2 red zone scenario.
+    if funds_retained_by_parents_without_loan is True:
+        risk_factors.append(
+            "Entitlement retained by parents without a loan: outside the green zone; red only where "
+            "it matches paragraph 34 (expenses incurred before the beneficiary turned 18)"
+        )
+    if corporate_beneficiary_unpaid_present_entitlement is True and commercial_loan_agreement_in_place is False:
+        risk_factors.append(
+            "Corporate beneficiary UPE retained without a loan on commercial terms: outside green zone "
+            "scenario 3B (paragraph 28(f)). Not a red zone scenario. After Commissioner of Taxation v "
+            "Bendel [2026] HCA 18 an unpaid entitlement is not by itself a Division 7A loan; "
+            "Subdivision EA can still reach dealings with the funds"
+        )
 
     return Section100AAssessment(
         beneficiary_name=beneficiary_name,

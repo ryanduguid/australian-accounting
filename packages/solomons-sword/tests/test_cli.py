@@ -20,7 +20,7 @@ def test_s100a_check_reports_the_risk_zone_and_the_factors(monkeypatch, capsys):
         "--beneficiary", "Adult Child",
         "--amount", "40000",
         "--adult-child",
-        "--retained-by-parents",
+        "--pre-18-expenses",
     )
     out = capsys.readouterr().out
 
@@ -66,6 +66,10 @@ def test_s100a_check_takes_the_stated_receipt_from_the_other_flag(monkeypatch, c
         "--no-corporate-upe",
         "--no-direct-benefit",
         "--no-commercial-loan",
+        "--within-two-years",
+        "--no-pre-18-expenses",
+        "--no-retention-conditions",
+        "--no-para-32-exclusion",
     )
     out = capsys.readouterr().out
 

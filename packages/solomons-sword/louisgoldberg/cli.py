@@ -70,14 +70,17 @@ def main() -> int:
     s100a_parser.add_argument("--beneficiary", type=str, required=True, help="Beneficiary name")
     s100a_parser.add_argument("--amount", type=decimal_type, required=True, help="Distribution amount ($)")
     # Every fact PCG 2022/2 zoning turns on, each stated or left unstated. A
-    # green zone needs all 7, so a flag that could only say "yes" would leave the
+    # green zone needs all 11, so a flag that could only say "yes" would leave the
     # green zone unreachable for an operator who has established the facts.
     add_tristate(s100a_parser, "adult_child", "--adult-child", "--no-adult-child",
                  "Beneficiary is an adult child")
     add_tristate(s100a_parser, "retained_by_parents", "--retained-by-parents",
                  "--no-retained-by-parents", "Funds retained by parents without loan")
+    add_tristate(s100a_parser, "pre_18_expenses", "--pre-18-expenses", "--no-pre-18-expenses",
+                 "Entitlement paid to a parent or caregiver, or set against a debit account, "
+                 "for expenses incurred before the beneficiary turned 18 (PCG 2022/2 para 34)")
     add_tristate(s100a_parser, "circular", "--circular", "--no-circular",
-                 "Circular flow of funds present")
+                 "Trust income returned to the trust as a franked dividend (PCG 2022/2 para 36)")
     add_tristate(s100a_parser, "corporate_upe", "--corporate-upe", "--no-corporate-upe",
                  "Corporate beneficiary holds an unpaid present entitlement")
     add_tristate(s100a_parser, "received_funds", "--received-funds", "--funds-not-received",
@@ -85,7 +88,14 @@ def main() -> int:
     add_tristate(s100a_parser, "direct_benefit", "--direct-benefit", "--no-direct-benefit",
                  "Funds applied directly for the beneficiary's benefit")
     add_tristate(s100a_parser, "commercial_loan", "--commercial-loan", "--no-commercial-loan",
-                 "Funds lent under documented arm's-length commercial terms")
+                 "Entitlement retained under a loan on PCG 2022/2 para 25(e) commercial terms")
+    add_tristate(s100a_parser, "within_two_years", "--within-two-years", "--not-within-two-years",
+                 "Entitlement received within 2 years of present entitlement (para 22)")
+    add_tristate(s100a_parser, "retention_conditions", "--retention-conditions",
+                 "--no-retention-conditions",
+                 "Rest of green zone scenario 3A (para 26) or 3B (para 28) met")
+    add_tristate(s100a_parser, "para_32_exclusion", "--para-32-exclusion", "--no-para-32-exclusion",
+                 "A PCG 2022/2 paragraph 32 green zone exclusion applies")
 
     # Command: s99b-check
     s99b_parser = subparsers.add_parser("s99b-check", help="Evaluate Section 99B foreign trust distribution")
@@ -123,6 +133,10 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             beneficiary_actually_received_funds=args.received_funds,
             funds_used_for_beneficiary_direct_benefit=args.direct_benefit,
             commercial_loan_agreement_in_place=args.commercial_loan,
+            entitlement_applied_to_pre_18_expenses=args.pre_18_expenses,
+            received_within_two_years=args.within_two_years,
+            retention_scenario_conditions_met=args.retention_conditions,
+            paragraph_32_exclusion_present=args.para_32_exclusion,
         )
         print("=" * 60)
         print(f"Section 100A Risk Evaluation — {res.beneficiary_name}")

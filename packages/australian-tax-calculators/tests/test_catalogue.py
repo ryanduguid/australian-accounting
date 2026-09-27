@@ -38,7 +38,8 @@ def test_every_advertised_period_and_method_runs(kind, entry):
         for variant in variants:
             result = function(**{**arguments, **variant})
             assert result["source_checked"] == entry["source_checked"]
-            assert result["sources"] == [entry["source"]]
+            assert result["sources"] == entry["sources"]
+            assert result["sources"][0] == entry["source"]
             assert result["scope"] == entry["scope"]
             assert result["warnings"]
 
