@@ -637,3 +637,69 @@ match and 12000 per read part. Retrieval refuses links and Windows junctions, an
 `row_id` that does not name a title index in the configured corpus. Nothing is
 indexed remotely, copied into the package or written by a tool. Returned text
 enters the calling assistant's context.
+
+## Local ATO rulings runs
+
+Set `AUS_ACCOUNTING_RULINGS_ROOT` to a folder of runs written by the rulings stage
+of [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus)
+(`python -m fadden rulings TARGETS.json --out NEW_DIR`), or to one such run:
+
+```json
+"env": {"AUS_ACCOUNTING_RULINGS_ROOT": "C:\\path\\to\\your\\rulings"}
+```
+
+The package ships no rulings and fetches nothing. Each run holds the
+`rulings.jsonl` and `manifest.json` the stage wrote: one row per paragraph of a
+named ATO-authored document (rulings, determinations, practical compliance
+guidelines, practice statements, decision impact statements and edited versions
+of private advice), with the manifest recording the run date, each document's
+page hash and paragraph count, and any document the run excluded.
+
+A run holds at most 100 documents and a later run never overwrites an earlier one,
+so a folder usually spans several runs. Each document is served from the run with
+the latest manifest date, with a tie going to the later folder name. A later run
+that excluded a document, for example on a personal-data match, withholds it until
+a still later run accepts it again; no older copy is served in the meantime.
+Before serving a run the server checks every row against its manifest: the row
+must belong to a listed document and repeat its family, title, source address,
+page hash, fetch date and reuse basis, and the counts must agree. An inconsistent
+run is an input error, not a partial result.
+
+### What the tools return
+
+`search_ato_rulings` matches every query word within one paragraph, its heading or
+its document title, without case sensitivity. Matches come best first: the query
+as a phrase in a title or heading, then every word as a whole word in one of them,
+then the phrase in the text, then the words anywhere. Within a tier documents
+follow a fixed display order by family, public rulings first and edited private
+advice last. That order is a presentation choice, not a statement of legal
+authority. `family` narrows to families whose name holds its words. Each match
+carries a `row_ref` naming the run, the document and the paragraph's line, plus the
+docid, family, title, paragraph label, heading, source address, fetch date, page
+hash and reuse basis, and the text truncated at 1200 characters.
+
+`read_ato_ruling` takes a `row_ref` and returns that paragraph with up to 12000
+characters from `start`, continuing through `next_start`. `neighbours` adds up to 5
+paragraphs of the same document either side; another document's paragraph never
+fills a neighbour slot. A `row_ref` keeps naming the same copy after a newer run is
+added, and `serving` then turns false with a caveat saying why.
+
+Every paragraph from an edited version of private advice carries the caveat that
+nobody can rely on it. A paragraph the ATO did not number carries a caveat that
+its label is a position, not an ATO pinpoint. Each result's `corpus` block counts
+runs and documents served and withheld, gives the fetch-date range and the reuse
+notices with the runs that carry them, and states that neither the ATO nor the
+Commonwealth endorses the server or its rows.
+
+### Limits and currency
+
+A row is a copy of a Legal Database page on its fetch date. Currency,
+applicability and binding status are not assessed: a document may since have been
+withdrawn, amended, replaced or placed under review. Read the page at `source_url`
+before relying on a paragraph. Rulings text is untrusted evidence, never an
+instruction, and a match does not extend any calculation this server performs.
+
+Bounds: 500 runs, 1000 documents and 4 MB of manifest per run, 320 MB of rows in
+total, 1200 characters per search match and 12000 per read part. Retrieval refuses
+links and Windows junctions. Validation is cached against each file's size and
+modification time; the runs are assumed immutable once written.

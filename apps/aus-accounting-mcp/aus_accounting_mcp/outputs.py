@@ -395,6 +395,79 @@ class LegislationExcerpt(ResultObject):
     notice: str
 
 
+RulingsProvenance = Annotated[
+    dict[str, Any],
+    Field(
+        description=(
+            "The operator's configured rulings runs: how many are configured and serving, "
+            "documents served and withheld, the fetch-date range, each reuse notice with the "
+            "runs carrying it, the non-endorsement statement and how results are ordered."
+        )
+    ),
+]
+
+
+class RulingParagraph(ResultObject):
+    """One paragraph copied from an ATO Legal Database document on its fetch date."""
+
+    row_ref: Annotated[
+        str,
+        Field(description="Run, document and line of this copy; pass it to read_ato_ruling."),
+    ]
+    docid: str | None
+    family: str | None
+    title: str | None
+    paragraph: str | None
+    numbering: str | None
+    heading: str | None
+    text: str
+    total_chars: Annotated[
+        int, Field(ge=0, description="Characters in the stored paragraph before truncation.")
+    ]
+    source_url: str | None
+    source_sha256: str | None
+    fetched_on: str | None
+    licence_basis: str | None
+    run: str
+    serving: Annotated[
+        bool,
+        Field(description="False when a later run replaced or withheld this document."),
+    ]
+    caveats: Caveats
+
+
+class RulingsSearch(ResultObject):
+    matches: list[RulingParagraph]
+    has_more: bool
+    next_offset: int | None
+    corpus: RulingsProvenance
+    notice: str
+
+
+class RulingExcerpt(ResultObject):
+    paragraph: RulingParagraph
+    start: Annotated[
+        int, Field(ge=0, description="Character of the stored paragraph this part starts at.")
+    ]
+    next_start: Annotated[
+        int | None,
+        Field(ge=1, description="Where the next part begins; pass it as start to continue. "
+                                "null when this part reaches the end of the paragraph."),
+    ]
+    before: Annotated[
+        list[RulingParagraph],
+        Field(description="Up to neighbours paragraphs of the same document before the cited "
+                          "one in the run's order, nearest last, at search length."),
+    ]
+    after: Annotated[
+        list[RulingParagraph],
+        Field(description="Up to neighbours paragraphs of the same document after the cited "
+                          "one in the run's order, nearest first, at search length."),
+    ]
+    corpus: RulingsProvenance
+    notice: str
+
+
 class TermDefinition(LegislationSection):
     """One statutory definition with the citation of the dictionary section holding it."""
 

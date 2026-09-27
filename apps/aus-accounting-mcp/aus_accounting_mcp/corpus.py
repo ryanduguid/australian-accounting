@@ -204,15 +204,30 @@ def _priority(row: dict[str, Any]) -> int:
 def _ranking(
     terms: list[str], heading: tuple[str, ...], body: tuple[str, ...]
 ) -> Callable[[dict[str, Any]], tuple[int, int]]:
-    """The sort key for a matching row, lower first.
+    """The sort key for a matching row, lower first: its tier, then its principal Act.
+
+    A "Meaning of small business entity" heading therefore outranks a dictionary
+    that only mentions the expression, and within a tier a principal Act comes first.
+    """
+    tier = _tier(terms, heading, body)
+
+    def rank(row: dict[str, Any]) -> tuple[int, int]:
+        return tier(row), _priority(row)
+
+    return rank
+
+
+def _tier(
+    terms: list[str], heading: tuple[str, ...], body: tuple[str, ...]
+) -> Callable[[dict[str, Any]], int]:
+    """Where the words sit in a matching row, lower first.
 
     Tier 0 holds the words as a phrase in one heading field, tier 1 every word in
     one heading field, tier 2 the phrase in one body field and tier 3 every word
-    somewhere. A "Meaning of small business entity" heading therefore outranks a
-    dictionary that only mentions the expression, and within a tier a principal Act
-    comes first. Tiers 0 to 2 match whole words within a single field, so "scar
+    somewhere. Tiers 0 to 2 match whole words within a single field, so "scar
     limitation" is no heading match for "car limit", and a rate heading ending in
     one query word does not join the topic that starts with the next into a phrase.
+    Tier 3 is the substring match every eligible row already passed.
     """
     # Punctuation and the U+2011 hyphen statutes print sit between the words, so a
     # query for "40-230" or "write-off" still meets its phrase.
@@ -222,27 +237,27 @@ def _ranking(
     def values(row: dict[str, Any], fields: tuple[str, ...]) -> list[str]:
         return [value.casefold() for field in fields if isinstance(value := row.get(field), str)]
 
-    def rank(row: dict[str, Any]) -> tuple[int, int]:
+    def tier(row: dict[str, Any]) -> int:
         titles = values(row, heading)
         if any(phrase.search(title) for title in titles):
-            tier = 0
-        elif any(all(word.search(title) for word in words) for title in titles):
-            tier = 1
-        elif any(phrase.search(text) for text in values(row, body)):
-            tier = 2
-        else:
-            tier = 3
-        return tier, _priority(row)
+            return 0
+        if any(all(word.search(title) for word in words) for title in titles):
+            return 1
+        if any(phrase.search(text) for text in values(row, body)):
+            return 2
+        return 3
 
-    return rank
+    return tier
 
 
-def _text(row: dict[str, Any], field: str, cap: int) -> tuple[str, int, list[str]]:
+def _text(
+    row: dict[str, Any], field: str, cap: int, caveat: str = TRUNCATED_CAVEAT
+) -> tuple[str, int, list[str]]:
     value = row.get(field)
     text = value if isinstance(value, str) else ""
     if len(text) <= cap:
         return text, len(text), []
-    return text[:cap], len(text), [TRUNCATED_CAVEAT.format(kept=cap, total=len(text))]
+    return text[:cap], len(text), [caveat.format(kept=cap, total=len(text))]
 
 
 def _string(row: dict[str, Any], field: str) -> str | None:
@@ -322,7 +337,12 @@ def _provenance(root: Path) -> dict[str, Any]:
 
 
 def _page(
-    matches: list[dict[str, Any]], seen: int, corpus: dict[str, Any], *, has_more: bool
+    matches: list[dict[str, Any]],
+    seen: int,
+    corpus: dict[str, Any],
+    *,
+    has_more: bool,
+    notice: str = NOTICE,
 ) -> dict[str, Any]:
     """One search page, emitting a continuation offset only when it is accepted back."""
     page: dict[str, Any] = {
@@ -330,14 +350,14 @@ def _page(
         "has_more": has_more,
         "next_offset": None,
         "corpus": corpus,
-        "notice": NOTICE,
+        "notice": notice,
     }
     if not has_more:
         return page
     if seen > MAX_OFFSET:
         # Emitting an offset the tool refuses would strand the caller, so say what to
         # do instead of returning a value that cannot be passed back.
-        page["notice"] = NOTICE + " " + BOUNDARY_NOTICE
+        page["notice"] = notice + " " + BOUNDARY_NOTICE
         return page
     page["next_offset"] = seen
     return page

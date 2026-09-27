@@ -356,14 +356,18 @@ def test_the_instructions_name_the_guardrail_guide_and_its_outcome_classes() -> 
 def test_scope_reports_which_retrieval_folders_are_configured(tmp_path, monkeypatch):
     monkeypatch.delenv("AUS_ACCOUNTING_LIBRARY_ROOT", raising=False)
     monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path / "missing"))
+    monkeypatch.delenv("AUS_ACCOUNTING_RULINGS_ROOT", raising=False)
 
     assert json.loads(_read("aus-accounting://scope"))["retrieval_folders_configured"] == {
         "AUS_ACCOUNTING_LIBRARY_ROOT": False, "AUS_ACCOUNTING_CORPUS_ROOT": False,
+        "AUS_ACCOUNTING_RULINGS_ROOT": False,
     }
 
     monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    monkeypatch.setenv("AUS_ACCOUNTING_RULINGS_ROOT", str(tmp_path))
     served = _read("aus-accounting://scope")
 
     assert json.loads(served)["retrieval_folders_configured"]["AUS_ACCOUNTING_CORPUS_ROOT"] is True
+    assert json.loads(served)["retrieval_folders_configured"]["AUS_ACCOUNTING_RULINGS_ROOT"] is True
     # The status never discloses the folder itself.
     assert json.dumps(str(tmp_path))[1:-1] not in served

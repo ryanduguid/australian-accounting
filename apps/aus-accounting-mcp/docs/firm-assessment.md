@@ -19,7 +19,7 @@ Copy this entry into the firm's register and complete the last row.
 | System | Aus Accounting MCP (`aus-accounting-mcp`), a local MCP server of Australian accounting tools |
 | Contains an AI model | No. The MCP host's model calls the tools; the server runs no model. |
 | Role in an AI-assisted workflow | Gives an assistant bounded calculations and reviews (ATO benchmarks, Payday Super timing, Division 7A s 109N and s 109E, 9 worksheets), cited retrieval from folders the firm configures, and synthetic test data |
-| Data handled | Tool arguments supplied through the host, a Markdown library and a legislation corpus the firm configures, and bundled reference data. The README asks for fabricated data whenever the host uses a hosted model. |
+| Data handled | Tool arguments supplied through the host, a Markdown library, a legislation corpus and ATO rulings runs the firm configures, and bundled reference data. The README asks for fabricated data whenever the host uses a hosted model. |
 | Network access | None once installed. The host still sends tool arguments and results to its model provider. |
 | Where a person decides | Every result needs human review before consequential accounting action. `ok: true` means the tool ran, not that a review passed, and `UNKNOWN` and `REFUSED` results stand. |
 | Known limits | Not tax advice; Payday Super and Division 7A reviews are experimental; each worksheet holds only within its stated period and scope; retrieval returns point-in-time copies, and no match does not mean no rule; library search does not rank by authority |
@@ -81,7 +81,10 @@ date, register page, source URL and attribution. A `search_tax_rates` match carr
 the Act, section, compilation number and date and register page, but not the source
 URL or attribution. Every legislation response also has a `corpus` block holding
 whichever of the corpus source, retrieval date and licence terms a readable
-`sources.json` manifest supplies; without one the block is empty. The server
+`sources.json` manifest supplies; without one the block is empty. Every
+`search_ato_rulings` paragraph carries a `row_ref` naming its run, its docid,
+source address, fetch date and page hash, and whether that run still serves the
+document. The server
 writes nothing to disk, so any record of what was asked is
 the host's.
 
