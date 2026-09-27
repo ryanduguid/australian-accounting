@@ -15,7 +15,7 @@ error all do nothing over the network, and the test suite asserts that.
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from urllib.parse import unquote, urlsplit
 
 from .errors import ConfigurationError, DisallowedTargetError
@@ -92,9 +92,6 @@ class AdapterConfig:
             # `?x=` swallowed the whole built route into the query and every
             # invocation landed on the discovery route with nothing raised.
             self.check_url(self.base_url, require_route=False)
-
-    def with_base_url(self, base_url: str) -> "AdapterConfig":
-        return replace(self, base_url=base_url)
 
     def require_enabled(self) -> None:
         from .errors import NotEnabledError

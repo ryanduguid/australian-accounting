@@ -70,7 +70,6 @@ NUMBER_COLUMNS = ["maximum_term_years", "security_coverage_at_first_made",
                   "interest_rate_for_years_after_year_loan_made",
                   "amalgamated_loan_unpaid_at_end_of_previous_year", "remaining_term_years",
                   "payments_applied_during_the_year"]
-YEAR_COLUMNS = ["year_loan_made", "year_of_income_being_tested"]
 MONEY_COLUMNS = {"amalgamated_loan_unpaid_at_end_of_previous_year",
                  "payments_applied_during_the_year", "MYR_required", "Shortfall", "Exposure"}
 

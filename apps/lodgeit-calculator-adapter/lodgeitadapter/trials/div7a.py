@@ -82,7 +82,6 @@ class Case:
     repayments: tuple[dict[str, Any], ...]
     remaining_term_years: int
     expected: dict[str, Decimal]
-    derivation: str
     #: The verdict `run_local` reaches for this case. Asserted for every case,
     #: because two fixtures once recorded a verdict nothing ever ran.
     expect_local: str
@@ -125,7 +124,6 @@ def load_cases(path: Path | None = None) -> list[Case]:
                 repayments=tuple(raw["repayments"]),
                 remaining_term_years=raw["remaining_term_years"],
                 expected={key: Decimal(value) for key, value in raw["expected"].items()},
-                derivation=raw["derivation"],
                 expect_local=raw["expect_local"],
                 expect_evaluation=raw["expect_evaluation"],
                 note=raw.get("note", ""),
