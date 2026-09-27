@@ -267,3 +267,12 @@ def test_the_manifest_digest_matches_the_shipped_table():
     ).hexdigest()
     _, document = run_json(["review", "--input", MIXED, "--year", "2026-27"])
     assert document["manifest"]["rate_table_uris"][0]["sha256"] == expected
+
+
+def test_each_myr_line_carries_its_own_loan_id():
+    _, document = run_json(["myr", "--input", MIXED, "--year", "2026-27"])
+    with open(MIXED, encoding="utf-8") as f:
+        expected = [line.split(",", 1)[0] for line in f.read().splitlines()[1:] if line.strip()]
+    got = [line["myr"]["loan_id"] for line in document["lines"] if line.get("myr")]
+    assert got and all(got)
+    assert got == [loan for loan in expected if loan in got]
