@@ -144,6 +144,8 @@ release callers require that test job; no second pytest run is needed.
   `.github/` runs every engine. The root workspace files are in that list because the root
   `uv.lock` is what `uv run --locked` validates from inside every component directory. A
   run with no usable comparison point, such as a dispatch or a new branch, runs every engine.
+  On a push to `main`, an engine whose pyproject version has no `<engine>/v<version>` tag
+  yet also runs, whatever changed, so its release can be tagged on `main`'s head.
 - Branch protection requires one context per engine, `<engine> / gates`, which reports on
   every run: it passes when each gate passed or was skipped by the path filter and fails
   when any gate failed or was cancelled. The individual jobs are not required, because a
@@ -228,4 +230,6 @@ and `actions: read` together. Skipped, missing, cancelled or failed checks block
 publication, including component tests skipped by a path filter. An aggregate
 gates job cannot replace those checks. Before tagging, choose a main-branch
 commit with successful component CI; a successful run for an older commit is
-not evidence for the release. Tags and publication still require explicit approval.
+not evidence for the release. Once the version bump is on `main`, every push to
+`main` runs that component until its tag exists, so `main`'s head carries the
+checks as soon as its push CI passes. Tags and publication still require explicit approval.
