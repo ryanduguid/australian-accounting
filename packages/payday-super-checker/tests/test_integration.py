@@ -2769,6 +2769,23 @@ def test_formula_leading_employee_ids_are_quoted_in_the_report(tmp_path):
     assert ",'-00123," in out.read_text(encoding="utf-8")
 
 
+def test_input_caveats_are_quoted_in_the_report(tmp_path):
+    """join_caveats is copied from the input into the caveats cell."""
+    path = tmp_path / "pay.csv"
+    path.write_text(
+        "employee_id,payment_date,sg_amount,remitted_date,fund_received_date,"
+        "first_contribution_to_fund,out_of_cycle,next_standard_payday,defined_benefit,join_caveats\n"
+        "E1,2026-07-09,100.00,,2026-07-15,no,no,,no, =HYPERLINK(\"x\")\n",
+        encoding="utf-8",
+    )
+    out = tmp_path / "r.csv"
+    main([str(path), "-o", str(out), "--as-at", "2026-08-10"])
+    with open(out, newline="", encoding="utf-8") as f:
+        cells = [cell for row in csv.reader(f) for cell in row]
+    assert any(cell.startswith("'=HYPERLINK") for cell in cells)
+    assert [cell for cell in cells if cell.lstrip()[:1] in ("=", "+", "-", "@")] == []
+
+
 def test_cli_rejects_an_absurd_as_at_date(tmp_path, capsys):
     assert main([str(FIXTURE), "-o", str(tmp_path / "r.csv"), "--as-at", "9999-01-01"]) == 1
     assert "not a real date" in capsys.readouterr().err
