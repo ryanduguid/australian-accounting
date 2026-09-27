@@ -47,6 +47,9 @@ dev = [
     "diff-cover==10.5.1",
     "hypothesis==6.167.1",
     "openpyxl==3.1.5",
+    # release-python builds without isolation, so the backend comes from this
+    # locked extra, pinned exactly as [build-system] requires.
+    "hatchling==1.32.3",
 ]
 
 [tool.hatch.build.targets.wheel]
