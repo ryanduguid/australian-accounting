@@ -835,7 +835,7 @@ def calculate_tax_worksheet(
         "Read calculation_worksheets in aus-accounting://scope before confirming scope. "
         "Supply established zero amounts explicitly; do not infer missing facts.")],
 ) -> TaxCalculation:
-    """Calculate a GST, tax, CGT, FBT, depreciation, SG, PAYG, super cap, pension or study loan worksheet.
+    """Calculate one of ten bounded tax and super worksheets, GST to study loan repayment.
 
     Each kind has a bounded scope and period in aus-accounting://scope. Most cover
     2025-26; resident basic tax also covers 2024-25 and 2026-27. FBT covers the year
