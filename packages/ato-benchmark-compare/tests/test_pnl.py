@@ -286,7 +286,7 @@ def test_other_period_headings_are_refused_too(tmp_path: Path, current: str, pri
         pnl.read(write(tmp_path, "p.csv", text))
 
 
-@pytest.mark.parametrize("cell", ["", "-", "n/a", "#NAME?", "#NUM!", "#SPILL!"])
+@pytest.mark.parametrize("cell", ["", "-", "n/a", "#N/A", "#NAME?", "#NUM!", "#SPILL!"])
 def test_a_current_period_with_no_readable_amount_is_refused(tmp_path: Path, cell: str) -> None:
     lines = REPORT.splitlines()
     for n, line in enumerate(lines):
@@ -297,6 +297,11 @@ def test_a_current_period_with_no_readable_amount_is_refused(tmp_path: Path, cel
         pnl.PnlError, match=r"column 1 \(30 Jun 2024\) holds no readable amount and column 2 \(30 Jun 2023\) does"
     ):
         pnl.read(write(tmp_path, "p.csv", "\n".join(lines) + "\n"))
+
+
+def test_a_column_of_hash_identifiers_is_text_not_placeholders(tmp_path: Path) -> None:
+    text = "Account,Invoice,30 Jun 2024\nSales,#1042,850000.00\nRent,#1043,60000.00\n"
+    assert pnl.read(write(tmp_path, "p.csv", text)).amount_column == "column 2 (30 Jun 2024)"
 
 
 def test_a_description_column_left_of_the_amounts_is_passed_over(tmp_path: Path) -> None:

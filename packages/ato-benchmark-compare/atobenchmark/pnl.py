@@ -267,15 +267,17 @@ def _amount_column_index(rows: list[list[str]], amount_column: str | None) -> tu
         if heading and LABEL_HEADING.match(heading):
             continue
         if counts[index]:
-            found = f"amounts are in {name(index)} and {name(best)}, and the second is fuller"
-        elif _only_placeholders(rows, index, heading):
-            found = f"{name(index)} holds no readable amount and {name(best)} does"
-        else:
-            continue
-        raise PnlError(
-            f"{found}, so the period to compare is ambiguous. Name it with "
-            f"--amount-column, for example --amount-column {index}."
-        )
+            raise PnlError(
+                f"amounts are in {name(index)} and {name(best)}, and the second is fuller, so "
+                f"the period to compare is ambiguous. Name it with --amount-column, for "
+                f"example --amount-column {index}."
+            )
+        if _only_placeholders(rows, index, heading):
+            raise PnlError(
+                f"{name(index)} holds no readable amount and {name(best)} does, so the period "
+                f"to compare is ambiguous. Re-export with the current period filled in, or "
+                f"read {name(best)} deliberately with --amount-column {best}."
+            )
     return best, name(best)
 
 
@@ -284,9 +286,10 @@ LABEL_HEADING = re.compile(
     r"^(account\s+)?(code|codes|note|notes|ref|reference|no\.?|number|id|gl code)$",
     re.IGNORECASE,
 )
-# Cells that stand in for an amount: dashes, "n/a", "nil", "TBC" and any spreadsheet
-# error such as #REF!, #NAME? or #N/A.
-PLACEHOLDER = re.compile(r"^[-\u2013\u2014.\s]*$|^(n/?a|nil|tbc|tba)$|^#[a-z0-9/_]+[!?]?$", re.IGNORECASE)
+# Cells that stand in for an amount: dashes, "n/a", "nil", "TBC" and spreadsheet
+# errors (#N/A, or # and a word ending in ! or ?, such as #REF! or #NAME?). A
+# hash-prefixed identifier such as #1042 is not one.
+PLACEHOLDER = re.compile(r"^[-\u2013\u2014.\s]*$|^(n/?a|nil|tbc|tba|#n/a)$|^#[a-z0-9/_]+[!?]$", re.IGNORECASE)
 
 
 def _only_placeholders(rows: list[list[str]], index: int, heading: str | None) -> bool:
