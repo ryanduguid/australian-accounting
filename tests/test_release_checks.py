@@ -143,6 +143,22 @@ class ReleaseChecksTests(unittest.TestCase):
                     self.assertTrue((ROOT / path).is_file(), path)
                     self.assertFalse(name.endswith(" / gates"), name)
 
+    def test_the_mcp_release_runs_its_demo_against_the_pypi_pins(self) -> None:
+        # The workspace runs the checked-out engines, so only an install outside
+        # it proves the engines the published wheel pins. 0.2.9 shipped a quick
+        # proof its own pins could not reproduce.
+        text = (ROOT / ".github" / "workflows" / "release-aus-accounting-mcp.yml").read_text(
+            encoding="utf-8"
+        )
+        job = text.split("\n  published-pins:\n", 1)[1].split("\n  release:\n", 1)[0]
+        self.assertIn('cd "$RUNNER_TEMP"', job)
+        self.assertIn("uv pip install --python pins/bin/python dist/*.whl", job)
+        self.assertIn(
+            'diff -u "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/docs/quick-proof.txt" demo.txt', job
+        )
+        release = text.split("\n  release:\n", 1)[1].split("\n  pypi:", 1)[0]
+        self.assertRegex(release, r"(?m)^    needs: published-pins$")
+
 
 if __name__ == "__main__":
     unittest.main()
