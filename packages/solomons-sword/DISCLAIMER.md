@@ -35,8 +35,8 @@ amount, and its s 99B(2)(a) corpus add-back defaults to nil in the favourable
 direction; the result names each nil it relied on so none can be mistaken for an
 established figure.
 
-Coverage is deliberately partial. Specifically streamed capital gains and
-franked dividends, non-resident beneficiaries under s 98(2A) and s 98(3), nil
+Coverage is deliberately partial. Trust net capital gains and franked
+dividends, streamed or not, non-resident beneficiaries under s 98(2A) and s 98(3), nil
 income of the trust estate, and s 99 or s 99A cases are refused rather than
 allocated, because the Division 6E carve-out with Subdivision 115-C and
 Subdivision 207-B is not implemented. A refusal is the engine declining to

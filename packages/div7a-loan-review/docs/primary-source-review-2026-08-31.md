@@ -37,7 +37,7 @@ The fail-closed controls this review put in place are:
 ## The compilation that was read
 
 The controlling text is the
-[*Income Tax Assessment Act 1936*](https://www.legislation.gov.au/C1936A00027/latest/text),
+[*Income Tax Assessment Act 1936*](https://www.legislation.gov.au/C1936A00027/2026-07-01/text),
 Federal Register identifier **C1936A00027**, compilation in force **1 July
 2026**. The compiled Act is published in 7 volumes; Part III Division 7A
 (ss 109B to 109ZE) sits in volume 2.

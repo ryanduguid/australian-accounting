@@ -25,6 +25,18 @@ opening franking account balance before relying on the results.
 Migration: supply each required fact and treat `None` outcomes as untested.
 The franking deficit result's outcome fields are now optional.
 
+Other changes:
+
+- `FrankingAccount` refuses an `opening_balance` that is not a `Decimal` with
+  a `ValueError` naming the value, where a value of another type previously
+  failed with an `AttributeError`.
+- The `bre-test` and `dist-statement` headings print a hyphen where they
+  printed an em dash, so the tool's own output is ASCII.
+- `README.md` and `DISCLAIMER.md` state that Ryan Duguid is not a registered
+  tax agent or BAS agent, and limit project support to software issues
+  reproduced with fabricated data.
+- The build backend pin moves from hatchling 1.32.0 to 1.32.3.
+
 # v0.1.6
 
 - Require an explicit ISO payment date.

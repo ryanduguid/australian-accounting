@@ -1,5 +1,5 @@
 """
-Trust Distribution Resolution verification and 30 June deadline compliance.
+Trust Distribution Resolution verification and the 30 June or earlier deed deadline.
 """
 
 from dataclasses import dataclass
@@ -20,12 +20,28 @@ class TrustResolutionSchedule:
     streaming_powers_in_deed: Optional[bool]
     default_beneficiary_clause_exists: Optional[bool]
     allocated_percentages_total: Decimal
+    # Whether the resolution streams capital gains or franked distributions to
+    # specific beneficiaries. Only then does the deed need streaming powers.
+    uses_specific_streaming: Optional[bool]
+    # The deed's own deadline for the resolution, or 30 June of the financial
+    # year where the deed sets none. None means the deed has not been read.
+    deed_resolution_deadline: Optional[date]
 
     @property
-    def is_effective_by_year_end(self) -> bool:
-        # Effective resolution must be made on or before 30 June (or earlier if deed specifies)
-        deadline = date(self.financial_year, 6, 30)
-        return self.resolution_date <= deadline
+    def resolution_deadline(self) -> Optional[date]:
+        # 30 June, or the deed's earlier date. A deed cannot extend 30 June.
+        if self.deed_resolution_deadline is None:
+            return None
+        return min(date(self.financial_year, 6, 30), self.deed_resolution_deadline)
+
+    @property
+    def is_effective_by_year_end(self) -> Optional[bool]:
+        # After 30 June is late whatever the deed says; on or before it, the
+        # answer turns on the deed's own deadline.
+        if self.resolution_date > date(self.financial_year, 6, 30):
+            return False
+        deadline = self.resolution_deadline
+        return None if deadline is None else self.resolution_date <= deadline
 
     @property
     def is_within_income_year(self) -> bool:
@@ -52,8 +68,13 @@ def validate_trust_resolution(
     """
     issues: List[str] = []
 
-    if not schedule.is_effective_by_year_end:
+    if schedule.resolution_date > date(schedule.financial_year, 6, 30):
         issues.append(f"Resolution dated {schedule.resolution_date} is after 30 June {schedule.financial_year} deadline.")
+    elif schedule.is_effective_by_year_end is False:
+        issues.append(
+            f"Resolution dated {schedule.resolution_date} is after the deed's "
+            f"deadline of {schedule.resolution_deadline}."
+        )
     if not schedule.is_within_income_year:
         issues.append(
             f"Resolution dated {schedule.resolution_date} predates the "
@@ -64,17 +85,23 @@ def validate_trust_resolution(
         issues.append("Trustee resolution is not executed/signed.")
     if schedule.allocated_percentages_total != Decimal("100.00"):
         issues.append(f"Allocated income percentages sum to {schedule.allocated_percentages_total}%, not 100%.")
-    if schedule.streaming_powers_in_deed is False:
-        issues.append("Deed does not record streaming powers; specific streaming cannot be assumed.")
+    streams = schedule.uses_specific_streaming
+    if streams is True and schedule.streaming_powers_in_deed is False:
+        issues.append("Resolution streams specific income but the deed does not record streaming powers.")
     if schedule.default_beneficiary_clause_exists is False:
         issues.append("Deed has no default beneficiary clause; unresolved income may be taxed to the trustee.")
 
+    # Streaming powers matter only to a resolution that streams, so neither
+    # streaming fact is needed once either rules the defect out.
+    streaming_settled = streams is False or schedule.streaming_powers_in_deed is True
     unestablished = [
         name
         for name, value in (
             ("is_signed_by_trustee", schedule.is_signed_by_trustee),
-            ("streaming_powers_in_deed", schedule.streaming_powers_in_deed),
+            ("uses_specific_streaming", True if streaming_settled else streams),
+            ("streaming_powers_in_deed", True if streaming_settled else schedule.streaming_powers_in_deed),
             ("default_beneficiary_clause_exists", schedule.default_beneficiary_clause_exists),
+            ("deed_resolution_deadline", schedule.is_effective_by_year_end),
         )
         if value is None
     ]

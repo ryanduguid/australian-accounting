@@ -57,11 +57,12 @@ which assumes full receipt as described above. The monorepo workspace substitute
 checked-out engine source when testing. Check the installed engine version
 when comparing CLI and MCP results.
 
-The quick trial below deliberately stays pinned to 0.1.4. The historical public
-evaluation stays pinned to 0.1.3. Neither is a claim about the latest release.
+The quick trial below pins release 0.1.7. The historical public evaluation
+stays pinned to 0.1.3. Neither is a claim about the latest release.
 Evidence packs are available from checker 0.1.4; 0.1.5 adds exported join warnings.
 The frozen PyPI 0.1.6 description still links release 0.1.4 and calls evidence
-packs unreleased. Editing this README does not change that published metadata.
+packs unreleased, and the frozen 0.1.7 description still pins this quick trial
+to 0.1.4. Editing this README does not change that published metadata.
 The [22 September verification](docs/release-parity-review-2026-09-22.md) records
 the package, MCP and workbook results separately.
 
@@ -78,14 +79,14 @@ which agree that all 7 of its 2026-27 paydays are late.
 With [uv](https://docs.astral.sh/uv/) installed, [download the synthetic CSV](https://duguid.com.au/assets/examples/payday/timely_remittance_no_receipt.csv) as `timely_remittance_no_receipt.csv`. Open a terminal in that folder and run:
 
 ```bash
-uvx --from payday-super-checker==0.1.4 payday-super-check timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o payday-report.csv
+uvx --from payday-super-checker==0.1.7 payday-super-check timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o payday-report.csv
 ```
 
 The pinned PyPI package writes `payday-report.csv` in that folder, replacing that file if it exists. Expected result: one `AT_RISK` contribution, due `2026-08-17`, with exit 0. The $120 contribution was remitted on 14 August, but no fund receipt is recorded as at 20 August.
 
 `--confirm-remittance-only` acknowledges that gap; it does not prove timely receipt. Omit the flag to get the same verdict with exit 2 and a request to resolve or acknowledge the missing evidence. Obtain fund receipt evidence before closing the exception.
 
-The [recorded public evaluation](https://duguid.com.au/evaluate/payday-super-evidence/) uses release 0.1.3 and preserves its original commands and expected exit codes. This quick trial uses release 0.1.4.
+The [recorded public evaluation](https://duguid.com.au/evaluate/payday-super-evidence/) uses release 0.1.3 and preserves its original commands and expected exit codes. This quick trial uses release 0.1.7.
 
 ## Quick proof
 
