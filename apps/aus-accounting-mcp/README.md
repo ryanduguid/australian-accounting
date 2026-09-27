@@ -15,9 +15,11 @@ network calls once installed.
   and build a 4-file evidence pack for a practitioner's workpaper.
 - **Division 7A:** get the benchmark interest rate and review s 109N loan terms and
   s 109E minimum yearly repayments for one loan. Matters outside that scope are refused.
-- **9 tax and super worksheets:** GST, resident basic tax, CGT, FBT, first-year
-  depreciation, quarterly SG, Schedule 1 PAYG withholding, super contribution caps and
-  account-based pension minimums, each within a stated period and scope.
+- **10 tax and super worksheets:** GST, resident basic tax, CGT, FBT, first-year
+  depreciation, quarterly SG, Schedule 1 PAYG withholding, super contribution caps,
+  account-based pension minimums and study and training loan repayments, each within a
+  stated period and scope. The tenth reaches the installed server with the next
+  australian-tax-calculators release; until then a source checkout serves it.
 - **Cited research:** search your own Markdown library, or a local copy of federal tax
   legislation, with every result cited to its file and line, or its Act, section and
   compilation.

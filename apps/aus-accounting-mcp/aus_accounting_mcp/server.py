@@ -835,12 +835,13 @@ def calculate_tax_worksheet(
         "Read calculation_worksheets in aus-accounting://scope before confirming scope. "
         "Supply established zero amounts explicitly; do not infer missing facts.")],
 ) -> TaxCalculation:
-    """Calculate a GST, tax, CGT, FBT, depreciation, SG, PAYG, super cap or pension worksheet.
+    """Calculate a GST, tax, CGT, FBT, depreciation, SG, PAYG, super cap, pension or study loan worksheet.
 
     Each kind has a bounded scope and period in aus-accounting://scope. Most cover
     2025-26; resident basic tax also covers 2024-25 and 2026-27. FBT covers the year
     ended 31 March 2026. PAYG withholding covers regular pays from 1 July 2026.
     Contribution caps and account-based pension minimums cover 2024-25 to 2026-27.
+    Study loan repayments cover 2025-26 and 2026-27 from established repayment income.
     Require operator-established classifications and eligibility.
     Pass scope_confirmed true only after establishing every scope condition listed
     in calculation_worksheets for the kind; resolve missing or uncertain scope first.
@@ -848,8 +849,9 @@ def calculate_tax_worksheet(
     field is a non-negative AUD decimal string, at most 2 decimal places and at most
     1000000000000.00.
     Results include engine version, source-check date, citations and exclusions.
-    These worksheets do not prepare a BAS or return, calculate Medicare/HELP,
-    value benefits or assets, or establish post-June 2026 SG entitlement.
+    These worksheets do not prepare a BAS or return, calculate Medicare, limit a study
+    loan repayment to the loan balance, value benefits or assets, or establish
+    post-June 2026 SG entitlement.
     All maths stays in australian-tax-calculators. Local review aid, not advice.
     """
     return cast(TaxCalculation, calculate(facts))
