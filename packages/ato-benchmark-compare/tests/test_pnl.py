@@ -304,6 +304,22 @@ def test_a_column_of_hash_identifiers_is_text_not_placeholders(tmp_path: Path) -
     assert pnl.read(write(tmp_path, "p.csv", text)).amount_column == "column 2 (30 Jun 2024)"
 
 
+@pytest.mark.parametrize("heading", ["Code", "Invoice", "Invoice No", "Account Number"])
+@pytest.mark.parametrize("totals", ["", "Total Income,,850000.00\n"])
+def test_a_numeric_label_column_is_never_read_as_the_amounts(tmp_path: Path, heading: str, totals: str) -> None:
+    # Level with the dated column, the label column won the leftmost tie and Sales
+    # read 200; one row short, the refusal pointed --amount-column at it.
+    text = f"Account,{heading},30 Jun 2024\nSales,200,850000.00\n{totals}Rent,310,60000.00\n"
+    result = pnl.read(write(tmp_path, "p.csv", text))
+    assert result.amount_column == "column 2 (30 Jun 2024)"
+    assert next(row for row in result.rows if row.account == "Sales").amount == Decimal("850000.00")
+
+
+def test_a_file_whose_only_numbers_are_labels_has_no_amount_column(tmp_path: Path) -> None:
+    with pytest.raises(pnl.PnlError, match="no column in this file parses as amounts"):
+        pnl.read(write(tmp_path, "p.csv", "Account,Code\nSales,200\nRent,310\n"))
+
+
 def test_a_description_column_left_of_the_amounts_is_passed_over(tmp_path: Path) -> None:
     text = "Account,Description,30 Jun 2024\nIncome,,\nSales,Shop takings,850000.00\nRent,Premises,60000.00\n"
     assert pnl.read(write(tmp_path, "p.csv", text)).amount_column == "column 2 (30 Jun 2024)"

@@ -237,7 +237,14 @@ def _amount_column_index(rows: list[list[str]], amount_column: str | None) -> tu
 
     # No column named, so use the first column that parses as an amount on more rows
     # than any earlier column. Ties keep the leftmost, which is the current period in
-    # a comparative export.
+    # a comparative export. A code, note, reference or invoice column holds numbers
+    # that label a row, so it is never a candidate however full it is: on a tie it
+    # was taken as the amounts.
+    labels = set()
+    for index in range(1, widest):
+        heading = _column_heading(rows, index)
+        if heading and LABEL_HEADING.match(heading):
+            labels.add(index)
     counts = [0] * widest
     for row in rows:
         for index in range(1, min(len(row), widest)):
@@ -249,7 +256,8 @@ def _amount_column_index(rows: list[list[str]], amount_column: str | None) -> tu
             except AmountError:
                 continue
             counts[index] += 1
-    best = max(range(1, widest), key=lambda i: counts[i])
+    # Index 0 is the account column and never counted, so it stands in for "none".
+    best = max((i for i in range(1, widest) if i not in labels), key=lambda i: counts[i], default=0)
     if counts[best] == 0:
         raise PnlError("no column in this file parses as amounts")
 
@@ -260,12 +268,12 @@ def _amount_column_index(rows: list[list[str]], amount_column: str | None) -> tu
     # Another amount column left of the fullest one is usually the current period of
     # a comparative export with a blank, dash or "n/a" in it, which makes last year's
     # column the fuller one. A column holding only placeholders is the same case at
-    # its limit. Only a code, note or reference column there is passed over; any
-    # other heading, or none, is refused rather than guessed.
+    # its limit. Only a label column there is passed over; any other heading, or
+    # none, is refused rather than guessed.
     for index in range(1, best):
-        heading = _column_heading(rows, index)
-        if heading and LABEL_HEADING.match(heading):
+        if index in labels:
             continue
+        heading = _column_heading(rows, index)
         if counts[index]:
             raise PnlError(
                 f"amounts are in {name(index)} and {name(best)}, and the second is fuller, so "
@@ -283,7 +291,7 @@ def _amount_column_index(rows: list[list[str]], amount_column: str | None) -> tu
 
 # Headings of numeric columns that label a row rather than hold a period's amounts.
 LABEL_HEADING = re.compile(
-    r"^(account\s+)?(code|codes|note|notes|ref|reference|no\.?|number|id|gl code)$",
+    r"^((account|invoice)\s+)?(code|codes|note|notes|ref|reference|no\.?|number|id|gl code)$|^invoices?$",
     re.IGNORECASE,
 )
 # Cells that stand in for an amount: dashes, "n/a", "nil", "TBC" and spreadsheet
