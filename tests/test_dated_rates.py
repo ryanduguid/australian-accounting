@@ -45,9 +45,10 @@ class DatedRateTests(unittest.TestCase):
     def test_the_concessional_cap_copies_agree(self) -> None:
         payday = json.loads(PAYDAY_RATES.read_text(encoding="utf-8"))["financial_years"]
         calculators = _calculator_caps()
-        shared = sorted(set(payday) & set(calculators))
-        self.assertTrue(shared, "no financial year is in both tables")
-        for year in shared:
+        # Every year payday-super-checker carries must also be in the calculators'
+        # table, so a new year added to one copy cannot skip the comparison.
+        self.assertLessEqual(set(payday), set(calculators))
+        for year in sorted(payday):
             with self.subTest(year=year):
                 self.assertEqual(payday[year]["concessional_cap"], calculators[year][0])
 
@@ -60,10 +61,10 @@ class DatedRateTests(unittest.TestCase):
                 base = Decimal(row["concessional_cap"]) * 100 / Decimal(row["charge_percentage"])
                 self.assertEqual(Decimal(row["max_contributions_base"]), (base // 10) * 10)
 
-    def test_the_gic_warning_fires_inside_21_days_only(self) -> None:
+    def test_the_gic_warning_fires_inside_28_days_only(self) -> None:
         check = _load_expiry_check()
         end = check.last_known()
-        for days_before, code in ((95, 0), (21, 0), (20, 1), (16, 1)):
+        for days_before, code in ((95, 0), (28, 0), (27, 1), (16, 1)):
             today = (end - timedelta(days=days_before)).isoformat()
             with self.subTest(days_before=days_before):
                 out = io.StringIO()

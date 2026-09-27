@@ -1,8 +1,9 @@
 name: rate expiry
 
-# A warning, not a gate: no branch protection requires it. It fails 21 days
-# before payday-super-checker's GIC table ends, while there is still time to add
-# the next quarter and release before estimates are withheld.
+# A warning, not a gate: no branch protection requires it. It fails 28 days
+# before payday-super-checker's GIC table ends, so a weekly run gives at least 21
+# days to add the next quarter and release before estimates are withheld. The
+# failed run is the signal; the portfolio audit reporting it is intended.
 
 on:
   schedule:
