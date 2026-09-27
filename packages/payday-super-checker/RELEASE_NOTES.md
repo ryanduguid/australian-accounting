@@ -1,3 +1,13 @@
+# v0.1.8
+
+- `report.csv` and the evidence pack guard the caveats and notes cells against spreadsheet formulas, as they already guarded the employee id: a cell starting with `=`, `+`, `-` or `@` is written as text.
+- An evidence pack no longer fails on a missing or malformed `rates.json`: the reference rates load only for ordinary console output, while GIC validation and the GIC-only evidence manifest are unchanged.
+- Vendor imports read amounts through the same CSV amount parser as the canonical file, with the same cent rounding and empty-field diagnostics.
+- A timestamp in the Payday Super ISO shape must carry minutes, so one file cannot parse on one Python version and fail on another, and each entry point reconfigures stderr as well as stdout so a name outside the console code page no longer ends the run.
+- The business-day definition cites the ATO page *Payment deadlines for Payday Super*; the newsroom article cited before has moved.
+- `paydaysuper.report.rounded_figures` is public, so the MCP server reports the same cents as the checker's own report.
+- New documentation: a [receipt-amount evaluation](evaluation/receipt_amount/README.md) and a [quarterly SG working paper example](examples/quarterly_remittance_2026_27.csv) run through the checker.
+
 # v0.1.7
 
 Version 0.1.7 corrects receipt-amount handling and incomplete workbook estimates.

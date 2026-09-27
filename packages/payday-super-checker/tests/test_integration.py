@@ -677,7 +677,7 @@ def test_cli_writes_report_and_flags_late(tmp_path, capsys):
     assert "2026-08-15" in note["notes"]
     assert "EXPERIMENTAL ESTIMATES" in note["notes"]
     assert "not advice" in note["notes"]
-    assert "payday-super-checker 0.1.7" in note["notes"]
+    assert "payday-super-checker 0.1.8" in note["notes"]
     assert "sample_payrun.csv" in note["notes"]
     assert "GIC table covers" in note["notes"]
 
@@ -2437,7 +2437,7 @@ def test_the_at_risk_truncation_notice_counts_only_flagged_rows():
 def test_report_columns_add_up(tmp_path):
     """Each figure is rounded once, so a row's parts sum to its totals.
 
-    Read back off disk, not recomputed: comparing _rounded_figures against
+    Read back off disk, not recomputed: comparing rounded_figures against
     the expression that defines it is a tautology, and the property that
     matters is the one a reader sees in the file."""
     out = tmp_path / "report.csv"
