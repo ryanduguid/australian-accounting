@@ -1,3 +1,10 @@
+# v0.1.10
+
+- Breaking for files 0.1.9 read: a report-style P&L with amounts in more than one column is refused when a column left of the fullest one also holds amounts. One blank, dash, `n/a` or spreadsheet error in a comparative export's current period made last year's column the fuller one, and `map` and `compare` reported last year's turnover and ratios with exit 0. The error names both columns and the `--amount-column` fix. A headed column left of the amounts that holds only blanks or placeholders is refused the same way.
+- A code, note, reference, invoice or account-number column is never read as the amounts. Level with the dated column, such a column won the leftmost tie and was read in its place.
+- `map` and `compare` print the column they read, with its heading; `compare` prints it to stderr, so `--json -` still writes only JSON.
+- `compare` reports rows whose amount does not parse on stderr instead of leaving them out of every total without a word.
+
 # v0.1.9
 
 - Refuse a neutral CSV whose header names `account`, `amount` or `section` more than once, instead of reading the first such column silently.
