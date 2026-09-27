@@ -256,8 +256,10 @@ def _write_csv_rows(
                 money(figures["up_high"]),
                 money(figures["low"]),
                 money(figures["high"]),
-                " | ".join(r.caveats),
-                " | ".join(r.notes),
+                # join_caveats comes from the input file, so both cells take
+                # the same guard as the employee id.
+                csv_safe(" | ".join(r.caveats)),
+                csv_safe(" | ".join(r.notes)),
                 " or ".join(r.horizon_verdicts) if r.horizon_verdicts else "",
             ]
         )
