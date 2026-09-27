@@ -218,9 +218,9 @@ also read. Subtotal rows are detected and written into the mapping marked `exclu
 rather than dropped, so a total can never be quietly added to the figures it totals,
 and nothing vanishes without appearing in a file you can read. Amounts are taken from
 the column with the most cells that parse as amounts, keeping the leftmost on a tie.
-When an amount column under a period heading sits left of a fuller one, as in a
-comparative export with a blank or dash in the current period, the file is refused
-rather than read from the prior period. `--amount-column` takes a column number or a
+When another amount column sits left of a fuller one, as in a comparative export
+with a blank or dash in the current period, the file is refused rather than read from
+the prior period; only a code, note or reference column there is passed over. `--amount-column` takes a column number or a
 column heading to name the intended period. `map` and `compare` both print the column
 they read.
 

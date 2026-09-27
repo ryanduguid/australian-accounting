@@ -276,6 +276,16 @@ def test_a_gap_in_the_current_period_is_refused_not_read_from_last_year(tmp_path
     assert chosen.amount_column == "column 1"
 
 
+@pytest.mark.parametrize(
+    ("current", "prior"), [("FY24", "FY23"), ("FY2025", "FY2024"), ("Actual", "Budget"), ("This Year", "Last Year")]
+)
+def test_other_period_headings_are_refused_too(tmp_path: Path, current: str, prior: str) -> None:
+    text = REPORT.replace("30 Jun 2024", current).replace("30 Jun 2023", prior)
+    text = text.replace("Rent,60000.00,58000.00", "Rent,-,58000.00")
+    with pytest.raises(pnl.PnlError, match=f"column 1 \\({current}\\) and column 2 \\({prior}\\)"):
+        pnl.read(write(tmp_path, "p.csv", text))
+
+
 def test_a_code_column_left_of_the_amounts_is_not_a_period(tmp_path: Path) -> None:
     text = "Account,Code,30 Jun 2024\nIncome,,\nSales,200,850000.00\nTotal Income,,850000.00\nRent,310,60000.00\n"
     result = pnl.read(write(tmp_path, "p.csv", text))

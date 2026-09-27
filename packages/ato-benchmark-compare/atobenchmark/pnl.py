@@ -257,13 +257,13 @@ def _amount_column_index(rows: list[list[str]], amount_column: str | None) -> tu
         heading = _column_heading(rows, index)
         return f"column {index} ({heading})" if heading else f"column {index}"
 
-    # An amount column left of the fullest one, under a period heading or no heading
-    # at all, is the usual two-period export with a blank, dash or "n/a" in the
-    # current period. The fuller column is then last year's, so refuse rather than
-    # read it. A code or note column to the left is not a period and is passed over.
+    # Another amount column left of the fullest one is usually the current period of
+    # a comparative export with a blank, dash or "n/a" in it, which makes last year's
+    # column the fuller one. Only a code, note or reference column there is passed
+    # over; any other heading, or none, is refused rather than guessed.
     for index in range(1, best):
         heading = _column_heading(rows, index)
-        if counts[index] and (heading is None or PERIOD_HEADING.search(heading)):
+        if counts[index] and not (heading and LABEL_HEADING.match(heading)):
             raise PnlError(
                 f"amounts are in {name(index)} and {name(best)}, and the second is "
                 f"fuller, so the period to compare is ambiguous. Name it with "
@@ -272,10 +272,9 @@ def _amount_column_index(rows: list[list[str]], amount_column: str | None) -> tu
     return best, name(best)
 
 
-# A heading that names a period: a year, a month or a period word.
-PERIOD_HEADING = re.compile(
-    r"\b(19|20)\d{2}\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b"
-    r"|\b(fy|ytd|year|period|month|quarter|current|prior|previous|last|budget)\b",
+# Headings of numeric columns that label a row rather than hold a period's amounts.
+LABEL_HEADING = re.compile(
+    r"^(account\s+)?(code|codes|note|notes|ref|reference|no\.?|number|id|gl code)$",
     re.IGNORECASE,
 )
 
