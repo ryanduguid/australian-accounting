@@ -13,14 +13,15 @@ Each document is served from the run with the latest manifest date; a tie goes t
 the later run folder name, which is a deterministic choice, not evidence of which
 fetch came last. A later run that excluded a document withholds it until a still
 later run accepts it again, so a document dropped for personal data is never
-served from an older copy.
+served or read from an older copy.
 
-Every run is validated in full before any of its rows is served: each row belongs
-to a document its manifest lists and repeats that document's metadata, and the
-counts agree. Validation is cached against each file's size and modification
-time. The folders are the operator's and are assumed immutable once written; the
-link checks refuse symlinks and junctions but are no defence against a concurrent
-writer.
+The folder's total row size is checked from file metadata before anything is
+parsed. Every run is then validated in full before any of its rows is served:
+each row belongs to a document its manifest lists and repeats that document's
+metadata, and the counts agree. Validation is cached against each file's size and
+modification time. The folders are the operator's and are assumed immutable once
+written; the link checks refuse symlinks and junctions but are no defence against
+a concurrent writer.
 """
 
 from __future__ import annotations
@@ -111,10 +112,6 @@ REPLACED_CAVEAT = (
     "A later rulings run holds a newer copy of this document, so this copy is no longer "
     "served; search again to read the copy that is."
 )
-WITHHELD_CAVEAT = (
-    "A later rulings run excluded this document, so no copy of it is served; this row "
-    "comes from the earlier run its row_ref names."
-)
 TRUNCATED_CAVEAT = (
     "Text is truncated at {kept} of {total} characters. Read the whole paragraph with "
     "read_ato_ruling."
@@ -139,7 +136,6 @@ class _Run:
     excluded: frozenset[str]
     notice: str
     notice_url: str
-    size: int
 
 
 @dataclass(frozen=True)
@@ -336,14 +332,18 @@ def _validate_rows(
             )
 
 
-def _load_run(directory: Path) -> _Run:
+def _members(directory: Path) -> tuple[Path, Path]:
+    """A run folder's manifest and rows, once its name and both files pass the checks."""
     name = directory.name
     if not RUN_NAME.fullmatch(name):
         raise InputError(
             "Rulings run folder names may use only letters, digits, '.', '_' and '-'."
         )
-    manifest_path = _member(directory, "manifest.json", name)
-    rows_path = _member(directory, "rulings.jsonl", name)
+    return _member(directory, "manifest.json", name), _member(directory, "rulings.jsonl", name)
+
+
+def _load_run(directory: Path, manifest_path: Path, rows_path: Path) -> _Run:
+    name = directory.name
     manifest_stat, rows_stat = manifest_path.stat(), rows_path.stat()
     signature = (
         manifest_stat.st_size, manifest_stat.st_mtime_ns, rows_stat.st_size, rows_stat.st_mtime_ns
@@ -353,29 +353,24 @@ def _load_run(directory: Path) -> _Run:
         return cached[1]
     if manifest_stat.st_size > MAX_MANIFEST_BYTES:
         raise InputError(f"Rulings run {name} has a manifest over {MAX_MANIFEST_BYTES} bytes.")
-    if rows_stat.st_size > MAX_CORPUS_BYTES:
-        raise InputError(
-            f"Rulings run {name} exceeds {MAX_CORPUS_BYTES // 1_000_000} MB; configure a "
-            "smaller folder."
-        )
     fetched_on, listed, excluded, notice, notice_url = _manifest(manifest_path, name)
     _validate_rows(rows_path, name, fetched_on, listed)
-    run = _Run(
-        name, rows_path, fetched_on, frozenset(listed), excluded, notice, notice_url,
-        rows_stat.st_size,
-    )
+    run = _Run(name, rows_path, fetched_on, frozenset(listed), excluded, notice, notice_url)
     _VALIDATED[directory] = (signature, run)
     return run
 
 
 def _catalogue() -> _Catalogue:
     """Every configured run, validated, and which run serves or withholds each document."""
-    runs = [_load_run(directory) for directory in _run_directories(_root())]
-    if sum(run.size for run in runs) > MAX_CORPUS_BYTES:
+    members = [(directory, *_members(directory)) for directory in _run_directories(_root())]
+    # File sizes decide the total, so an oversized folder is refused before any
+    # manifest or row is parsed.
+    if sum(rows.stat().st_size for _, _, rows in members) > MAX_CORPUS_BYTES:
         raise InputError(
-            f"The rulings runs exceed {MAX_CORPUS_BYTES // 1_000_000} MB together; configure "
-            "a smaller folder."
+            f"The configured rulings runs hold more than {MAX_CORPUS_BYTES // 1_000_000} MB "
+            "of rows; configure a smaller folder."
         )
+    runs = [_load_run(*member) for member in members]
     ordered = sorted(runs, key=lambda run: (run.fetched_on, run.name))
     owner: dict[str, str] = {}
     withheld: dict[str, str] = {}
@@ -417,7 +412,7 @@ def _paragraph(
     text, total, caveats = _text(row, "text", cap, TRUNCATED_CAVEAT)
     serving = catalogue.owner.get(key) == run.name
     if not serving:
-        caveats.append(WITHHELD_CAVEAT if key in catalogue.withheld else REPLACED_CAVEAT)
+        caveats.append(REPLACED_CAVEAT)
     if row.get("family") == EDITED_FAMILY:
         caveats.append(EDITED_CAVEAT)
     if row.get("numbering") == "sequential":
@@ -518,8 +513,9 @@ def read_ruling(row_ref: str, neighbours: int = 0, start: int = 0) -> dict[str, 
 
     A row_ref names the run, the document and the paragraph's line in that run, so
     it keeps meaning the same copy after a later run is added; the result says
-    whether that run still serves the document. Neighbours are the paragraphs of
-    the same document either side, in the run's order, at search length.
+    whether that run still serves the document. A document a later run excluded
+    cannot be read from any copy. Neighbours are the paragraphs of the same
+    document either side, in the run's order, at search length.
     """
     match = ROW_REF.fullmatch(row_ref)
     if match is None:
@@ -531,6 +527,10 @@ def read_ruling(row_ref: str, neighbours: int = 0, start: int = 0) -> dict[str, 
     key, target = match["docid"], int(match["line"])
     if key not in run.documents:
         raise InputError("That rulings run holds no document with that docid; search again.")
+    if key in catalogue.withheld:
+        raise InputError(
+            "A later rulings run excluded that document, so no copy of it can be read."
+        )
     before: deque[tuple[int, dict[str, Any]]] = deque(maxlen=neighbours)
     found: dict[str, Any] | None = None
     after: list[tuple[int, dict[str, Any]]] = []

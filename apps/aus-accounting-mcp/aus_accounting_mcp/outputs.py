@@ -431,7 +431,7 @@ class RulingParagraph(ResultObject):
     run: str
     serving: Annotated[
         bool,
-        Field(description="False when a later run replaced or withheld this document."),
+        Field(description="False when a later run holds a newer copy of this document."),
     ]
     caveats: Caveats
 

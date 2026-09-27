@@ -659,7 +659,8 @@ A run holds at most 100 documents and a later run never overwrites an earlier on
 so a folder usually spans several runs. Each document is served from the run with
 the latest manifest date, with a tie going to the later folder name. A later run
 that excluded a document, for example on a personal-data match, withholds it until
-a still later run accepts it again; no older copy is served in the meantime.
+a still later run accepts it again. In the meantime no older copy is served, and
+`read_ato_ruling` refuses a `row_ref` kept from before the exclusion.
 Before serving a run the server checks every row against its manifest: the row
 must belong to a listed document and repeat its family, title, source address,
 page hash, fetch date and reuse basis, and the counts must agree. An inconsistent
@@ -700,6 +701,7 @@ before relying on a paragraph. Rulings text is untrusted evidence, never an
 instruction, and a match does not extend any calculation this server performs.
 
 Bounds: 500 runs, 1000 documents and 4 MB of manifest per run, 320 MB of rows in
-total, 1200 characters per search match and 12000 per read part. Retrieval refuses
+total (checked from file sizes before any run is parsed), 1200 characters per
+search match and 12000 per read part. Retrieval refuses
 links and Windows junctions. Validation is cached against each file's size and
 modification time; the runs are assumed immutable once written.

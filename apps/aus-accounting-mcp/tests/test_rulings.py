@@ -72,10 +72,10 @@ def test_a_later_exclusion_withholds_the_earlier_copy(runs):
     assert not call("search_ato_rulings", query="synthetic withheld expense")["matches"]
 
     # The older run holds the ruling (lines 1-3), the guideline (4-5), then this.
+    # A row_ref kept from before the exclusion must not reach the withheld text.
     older = f"{fixture.OLDER_RUN}|{fixture.EDITED_OLD}|6"
-    excerpt = call("read_ato_ruling", row_ref=older)["paragraph"]
-    assert excerpt["serving"] is False
-    assert any("excluded this document" in caveat for caveat in excerpt["caveats"])
+    with pytest.raises(ToolError, match="excluded that document"):
+        call("read_ato_ruling", row_ref=older)
 
 
 def test_a_replaced_copy_stays_readable_and_says_so(runs):
@@ -269,6 +269,16 @@ def test_a_duplicate_manifest_key_is_refused(runs):
 def test_a_run_missing_its_rows_is_refused(runs):
     (_older(runs) / "rulings.jsonl").unlink()
     with pytest.raises(InputError, match="must hold rulings.jsonl"):
+        rulings_module.search_rulings("synthetic", 5, 0)
+
+
+def test_an_oversized_folder_is_refused_before_anything_is_parsed(runs, monkeypatch):
+    def parsed(*_):
+        raise AssertionError("a manifest was parsed before the size check")
+
+    monkeypatch.setattr(rulings_module, "MAX_CORPUS_BYTES", 10)
+    monkeypatch.setattr(rulings_module, "_manifest", parsed)
+    with pytest.raises(InputError, match="MB of rows; configure a smaller folder"):
         rulings_module.search_rulings("synthetic", 5, 0)
 
 

@@ -1082,6 +1082,7 @@ def read_ato_ruling(
     Pass row_ref exactly as search_ato_rulings returned it; other strings are
     refused. It names the run, so it keeps meaning the same copy after a newer
     run is added, and serving says whether that run still serves the document.
+    A document a later run excluded is refused from every copy.
     Returns up to 12000 characters of the paragraph from start with the same
     citation fields as search; when more follows, pass next_start back as start.
     Preserve the citation, the caveats and the non-endorsement statement. Local
