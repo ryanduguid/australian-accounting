@@ -1,3 +1,13 @@
+# v0.1.5
+
+- Refuse a fractional bare remaining term in the minimum yearly repayment: `remaining_term` must be a whole number of years, and a part year goes through `statutory_remaining_term` first.
+- Accept an amount written with trailing zeros past the cent, such as `25000.000` from a ledger or payroll export, while still refusing a real sub-cent amount.
+- Refuse a rate override that gives a year or rate as a JSON number with a message asking for a quoted string, instead of ending in a traceback.
+- Record each benchmark rate's RBA workbook cell, the value read there and the date the row was compared, in the new `workbook_cell`, `workbook_value` and `row_verified_on` columns. No rate value changed, but the table's SHA-256 in every result `manifest` did.
+- Cite the 1 July 2026 compilation of the *Income Tax Assessment Act 1936* instead of the moving latest version, in the README, the evaluation and the workbook.
+- Workbook: the benchmark-year selector reads the Rates table through the `RateYears` name, so a year added to the table can be chosen.
+- Ship the `NOTICE` file in the distribution, and state in the README and `DISCLAIMER.md` that the author is not a registered tax or BAS agent.
+
 # v0.1.4
 
 - Name the primary source behind every benchmark rate: each rate-table manifest now carries `primary_url`, the RBA F5 historical workbook it was read from, `retrieved_on`, the date that workbook was downloaded, and `snapshot_sha256`, the digest of those bytes. `verify_at` stays a convenience link for a human rather than the source of the figure, and an operator's override carries no such claim. A table whose rows do not all make the same claim names none, instead of attributing every row to the last one read.

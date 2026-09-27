@@ -106,9 +106,13 @@ CSV_HEADER = [
 ]
 
 
-def _rounded_figures(r: Result) -> dict[str, Decimal | None]:
+def rounded_figures(r: Result) -> dict[str, Decimal | None]:
     """Round each component once, then build the totals from the rounded
-    parts so the columns of a row always add up."""
+    parts so the columns of a row always add up.
+
+    Public so every surface reports the same cents: the MCP server built its
+    figures from the unrounded components and disagreed with its own evidence
+    pack by a cent."""
     blank: dict[str, Decimal | None] = {
         k: None for k in ("shortfall", "nec", "up_low", "up_high", "low", "high")
     }
@@ -153,7 +157,7 @@ def _exposure_figures(r: Result) -> dict[str, Decimal | None]:
     where the notional earnings period reached past the published GIC
     quarters, which is the one case an exposed row carries no estimate.
     """
-    figures = _rounded_figures(r)
+    figures = rounded_figures(r)
     assert figures["shortfall"] is not None, (
         "exposed result has no final shortfall, so its exposure figures are incomplete"
     )
@@ -238,7 +242,7 @@ def _write_csv_rows(
 
     write_row(CSV_HEADER)
     for r in results:
-        figures = _rounded_figures(r)
+        figures = rounded_figures(r)
         write_row(
             [
                 r.line.row,
