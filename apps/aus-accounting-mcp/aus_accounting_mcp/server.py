@@ -112,7 +112,7 @@ classification of the facts the operator supplied, not a determination.
   date. Remittance does not establish fund receipt. Do not infer receipt dates
   or clearing-house latency, or report ON_TIME without evidence of receipt.
   Supply matched_amount with every received date, partial or full. Omitting
-  the amount leaves a timely receipt UNKNOWN in the pinned checker 0.1.7.
+  the amount leaves a timely receipt UNKNOWN in the pinned checker 0.1.8.
   A late receipt without an amount stays LATE without reducing the shortfall.
   Read aus-accounting://payday-coverage for bundled rate and calendar coverage.
   This reviews one contribution only. Related contributions can change the

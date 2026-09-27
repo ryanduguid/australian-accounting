@@ -20,7 +20,8 @@ CENTS = re.compile(r"\d+\.\d{2}")
 
 
 def _call(tool: str) -> dict:
-    return asyncio.run(mcp.call_tool(tool, {"contributions": [GROUP_ROW], "as_at": AS_AT})).structured_content
+    arguments = {"contributions": [GROUP_ROW], "as_at": AS_AT}
+    return asyncio.run(mcp.call_tool(tool, arguments)).structured_content
 
 
 def test_both_review_tools_match_the_evidence_pack_to_the_cent() -> None:
@@ -36,6 +37,7 @@ def test_both_review_tools_match_the_evidence_pack_to_the_cent() -> None:
         assert result["experimental_sgc_high"] == report["sgc_estimate_high"]
         assert result["uplift"]["clean_history"]["vds_within_30d"] == report["uplift_best_case"]
         assert result["uplift"]["prior_history"]["no_vds"] == report["uplift_worst_case"]
-        money = [result["notional_earnings"], result["experimental_sgc_low"], result["experimental_sgc_high"]]
+        money = [result[key] for key in (
+            "notional_earnings", "experimental_sgc_low", "experimental_sgc_high")]
         money += [value for scenario in result["uplift"].values() for value in scenario.values()]
         assert all(CENTS.fullmatch(value) for value in money), money
