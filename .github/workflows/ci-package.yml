@@ -78,19 +78,26 @@ jobs:
                 && github.event.pull_request.base.sha
                 || github.event.before }}
           HEAD: ${{ github.sha }}
+          REF: ${{ github.ref }}
         run: |
           set -euo pipefail
+          # On a push to main, a package whose version is not tagged yet runs
+          # too, so its release can be tagged on main's head (select_package.py).
+          ON_MAIN=()
+          if [ "$EVENT" = "push" ] && [ "$REF" = "refs/heads/main" ]; then
+            ON_MAIN=(--on-main)
+          fi
           # A dispatch, a new branch and a force push have no usable comparison
           # point. Empty input makes the selector run every gate rather than
           # skip one by accident.
           if [ "$EVENT" = "workflow_dispatch" ] || [ -z "$BASE" ] \
              || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
-            : | python3 .github/ci/select_package.py "$PACKAGE" >> "$GITHUB_OUTPUT"
+            : | python3 .github/ci/select_package.py "$PACKAGE" "${ON_MAIN[@]}" >> "$GITHUB_OUTPUT"
           else
             # --no-renames, or a file moved between packages is reported as its
             # destination alone and the package that lost it never runs.
             git diff --name-only --no-renames "$BASE" "$HEAD" \
-              | python3 .github/ci/select_package.py "$PACKAGE" >> "$GITHUB_OUTPUT"
+              | python3 .github/ci/select_package.py "$PACKAGE" "${ON_MAIN[@]}" >> "$GITHUB_OUTPUT"
           fi
 
   test:
