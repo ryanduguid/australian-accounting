@@ -1,3 +1,15 @@
+# v0.1.7
+
+- Add the FBT return figures to `fbt` results, following the FBT return 2026
+  instructions: `return_item_14a` and `return_item_14b`, the type 1 and type 2
+  grossed-up amounts rounded to the nearest dollar as the ATO's worked example
+  does, `return_item_15`, their sum, and `return_item_16`, item 15 at 47%. The
+  unrounded `fbt_estimate` and grossed-up amounts are unchanged.
+- List the FBT return 2026 instructions after the per-rule source in `fbt`
+  results, and give every worksheet in `worksheet_catalogue()` a `sources` list
+  beside its `source`.
+- Build with hatchling 1.32.3.
+
 # v0.1.6
 
 - Add `contribution_caps` for 2024-25 to 2026-27. It tests one year's
