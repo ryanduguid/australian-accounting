@@ -266,12 +266,16 @@ def _amount_column_index(rows: list[list[str]], amount_column: str | None) -> tu
         heading = _column_heading(rows, index)
         if heading and LABEL_HEADING.match(heading):
             continue
-        if counts[index] or _only_placeholders(rows, index, heading):
-            raise PnlError(
-                f"amounts are in {name(index)} and {name(best)}, and the second is "
-                f"fuller, so the period to compare is ambiguous. Name it with "
-                f"--amount-column, for example --amount-column {index}."
-            )
+        if counts[index]:
+            found = f"amounts are in {name(index)} and {name(best)}, and the second is fuller"
+        elif _only_placeholders(rows, index, heading):
+            found = f"{name(index)} holds no readable amount and {name(best)} does"
+        else:
+            continue
+        raise PnlError(
+            f"{found}, so the period to compare is ambiguous. Name it with "
+            f"--amount-column, for example --amount-column {index}."
+        )
     return best, name(best)
 
 
@@ -280,8 +284,9 @@ LABEL_HEADING = re.compile(
     r"^(account\s+)?(code|codes|note|notes|ref|reference|no\.?|number|id|gl code)$",
     re.IGNORECASE,
 )
-# Cells that stand in for an amount: dashes, "n/a", "nil", "TBC" and spreadsheet errors.
-PLACEHOLDER = re.compile(r"^[-–—.\s]*$|^(n/?a|nil|tbc|tba|#ref!|#n/a|#value!|#div/0!)$", re.IGNORECASE)
+# Cells that stand in for an amount: dashes, "n/a", "nil", "TBC" and any spreadsheet
+# error such as #REF!, #NAME? or #N/A.
+PLACEHOLDER = re.compile(r"^[-\u2013\u2014.\s]*$|^(n/?a|nil|tbc|tba)$|^#[a-z0-9/_]+[!?]?$", re.IGNORECASE)
 
 
 def _only_placeholders(rows: list[list[str]], index: int, heading: str | None) -> bool:

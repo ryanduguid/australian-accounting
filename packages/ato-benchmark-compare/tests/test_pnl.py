@@ -286,7 +286,7 @@ def test_other_period_headings_are_refused_too(tmp_path: Path, current: str, pri
         pnl.read(write(tmp_path, "p.csv", text))
 
 
-@pytest.mark.parametrize("cell", ["", "-", "n/a"])
+@pytest.mark.parametrize("cell", ["", "-", "n/a", "#NAME?", "#NUM!", "#SPILL!"])
 def test_a_current_period_with_no_readable_amount_is_refused(tmp_path: Path, cell: str) -> None:
     lines = REPORT.splitlines()
     for n, line in enumerate(lines):
