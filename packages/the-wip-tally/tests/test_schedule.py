@@ -339,6 +339,76 @@ def test_output_progress_at_the_bounds_is_accepted() -> None:
         assert measure(_contract(progress_method="output", output_percent=percent)) is not None
 
 
+@pytest.mark.parametrize("field", ["constraint_include_ratio", "gst_rate", "output_percent"])
+@pytest.mark.parametrize("ratio", [
+    Decimal("-0.1"), Decimal("1.1"), Decimal("NaN"), Decimal("sNaN"),
+    Decimal("Infinity"), Decimal("-Infinity"),
+])
+def test_public_measurement_rejects_invalid_ratios(field: str, ratio: Decimal) -> None:
+    values = dict(progress_method="output", output_percent=Decimal("0.25"),
+                  unapproved_variations_estimate=Decimal("100"))
+    values[field] = ratio
+    with pytest.raises(ScheduleError) as caught:
+        measure(_contract(**values))
+    assert "row 2 (JOB-1)" in str(caught.value)
+    assert field in str(caught.value)
+
+
+@pytest.mark.parametrize("field", ["constraint_include_ratio", "gst_rate", "output_percent"])
+@pytest.mark.parametrize("ratio", [0.5, 1])
+def test_public_ratios_require_decimal_values(field: str, ratio: object) -> None:
+    values = dict(progress_method="output", output_percent=Decimal("0.25"))
+    values[field] = ratio
+    with pytest.raises(TypeError, match=field + r".*Decimal"):
+        measure(_contract(**values))
+
+
+def test_output_progress_keeps_its_missing_value_error() -> None:
+    with pytest.raises(ScheduleError, match="is required when progress_method is output"):
+        measure(_contract(progress_method="output", output_percent=None))
+
+
+@pytest.mark.parametrize("method", ["cost_to_cost", "right_to_invoice"])
+def test_unused_output_progress_is_not_validated(method: str) -> None:
+    position = measure(_contract(
+        original_contract_sum=Decimal("1000"), costs_incurred=Decimal("250"),
+        estimated_cost_to_complete=Decimal("750"), certified_billings=Decimal("200"),
+        progress_method=method, output_percent=Decimal("NaN"),
+    ))
+    expected = (
+        Decimal("1000") * Decimal("250") / (Decimal("250") + Decimal("750"))
+        if method == "cost_to_cost" else Decimal("200")
+    )
+    assert position.revenue_to_date == expected
+
+
+@pytest.mark.parametrize("ratio", [Decimal("0"), Decimal("0.25"), Decimal("1")])
+def test_public_constraint_ratio_keeps_the_supplied_fraction(ratio: Decimal) -> None:
+    position = measure(_contract(
+        original_contract_sum=Decimal("1000"),
+        unapproved_variations_estimate=Decimal("100"),
+        constraint_include_ratio=ratio,
+        costs_incurred=Decimal("250"),
+        estimated_cost_to_complete=Decimal("750"),
+    ))
+    included = Decimal("100") * ratio
+    price = Decimal("1000") + included
+    progress = Decimal("250") / (Decimal("250") + Decimal("750"))
+    assert position.variable_consideration_included == included
+    assert position.variable_consideration_excluded == Decimal("100") - included
+    assert position.transaction_price == price
+    assert position.revenue_to_date == price * progress
+
+
+@pytest.mark.parametrize("ratio", [Decimal("0"), Decimal("0.25"), Decimal("1")])
+def test_public_gst_ratio_keeps_the_supplied_fraction(ratio: Decimal) -> None:
+    position = measure(_contract(
+        certified_billings=Decimal("200"), retention_withheld=Decimal("20"), gst_rate=ratio,
+    ))
+    assert position.gst_on_certified_billings == Decimal("200") * ratio
+    assert position.gst_on_retention == Decimal("20") * ratio
+
+
 def test_a_completed_contract_recognises_its_full_price() -> None:
     """Cost to complete of nil is 100% progress, not an overrun."""
     position = measure(

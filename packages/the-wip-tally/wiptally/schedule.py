@@ -38,6 +38,17 @@ def _require_non_negative(contract: ContractInput, value: Decimal, field: str) -
         raise ScheduleError(f"{_where(contract, field)} is negative")
 
 
+def _require_ratio(
+    contract: ContractInput, value: Decimal, field: str, description: str,
+) -> None:
+    if not isinstance(value, Decimal):
+        raise TypeError(f"{_where(contract, field)} must be Decimal")
+    if not value.is_finite() or not (ZERO <= value <= Decimal("1")):
+        raise ScheduleError(
+            f"{_where(contract, field)} is {value}; {description} must be between 0 and 1"
+        )
+
+
 def measure(contract: ContractInput) -> ContractPosition:
     """Return the WIP position for one contract."""
     _require_non_negative(contract, contract.original_contract_sum, "original_contract_sum")
@@ -80,6 +91,10 @@ def measure(contract: ContractInput) -> ContractPosition:
         )
 
     approved_price = as_money(contract.original_contract_sum + contract.approved_variations)
+    _require_ratio(
+        contract, contract.constraint_include_ratio,
+        "constraint_include_ratio", "constraint include ratio",
+    )
     variable_included = as_money(
         contract.unapproved_variations_estimate * contract.constraint_include_ratio
     )
@@ -107,14 +122,7 @@ def measure(contract: ContractInput) -> ContractPosition:
                 f"progress_method is output"
             )
         percent_complete = contract.output_percent
-        # CSV ingestion already refuses these; measure() is the public calculation
-        # path and a direct caller reached it with 2 or -0.5, giving revenue above
-        # the transaction price or below zero.
-        if not percent_complete.is_finite() or not (ZERO <= percent_complete <= Decimal(1)):
-            raise ScheduleError(
-                f"{_where(contract, 'output_percent')} is {percent_complete}; "
-                f"output progress must be between 0 and 1"
-            )
+        _require_ratio(contract, percent_complete, "output_percent", "output progress")
         revenue_to_date = as_money(transaction_price * percent_complete)
     elif notes_method == PROGRESS_RIGHT_TO_INVOICE:
         flags.append("progress_method_not_cost_to_cost")
@@ -144,6 +152,7 @@ def measure(contract: ContractInput) -> ContractPosition:
     if contract.prior_revenue_to_date is not None:
         period_revenue = as_money(revenue_to_date - contract.prior_revenue_to_date)
 
+    _require_ratio(contract, contract.gst_rate, "gst_rate", "GST rate")
     gst_on_certified = as_money(contract.certified_billings * contract.gst_rate)
     gst_on_retention = as_money(contract.retention_withheld * contract.gst_rate)
 
