@@ -330,8 +330,11 @@ def test_output_progress_outside_zero_to_one_is_refused(percent: Decimal) -> Non
     # CSV ingestion already refuses these. measure() is the public calculation path,
     # and a direct library caller reached it, producing revenue above the transaction
     # price or below zero.
-    with pytest.raises(ScheduleError):
+    with pytest.raises(ScheduleError) as caught:
         measure(_contract(progress_method="output", output_percent=percent))
+    assert str(caught.value) == (
+        f"row 2 (JOB-1): output_percent is {percent}; output progress must be between 0 and 1"
+    )
 
 
 def test_output_progress_at_the_bounds_is_accepted() -> None:
@@ -369,11 +372,12 @@ def test_output_progress_keeps_its_missing_value_error() -> None:
 
 
 @pytest.mark.parametrize("method", ["cost_to_cost", "right_to_invoice"])
-def test_unused_output_progress_is_not_validated(method: str) -> None:
+@pytest.mark.parametrize("ratio", [Decimal("NaN"), 1, 0.5])
+def test_unused_output_progress_is_not_validated(method: str, ratio: object) -> None:
     position = measure(_contract(
         original_contract_sum=Decimal("1000"), costs_incurred=Decimal("250"),
         estimated_cost_to_complete=Decimal("750"), certified_billings=Decimal("200"),
-        progress_method=method, output_percent=Decimal("NaN"),
+        progress_method=method, output_percent=ratio,
     ))
     expected = (
         Decimal("1000") * Decimal("250") / (Decimal("250") + Decimal("750"))
