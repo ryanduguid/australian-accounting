@@ -26,7 +26,10 @@ Nothing leaves the workbook.
    status of `within`, `below`, `above`, `no benchmark in this dataset` or
    `no turnover band applies`. The overall status is `BLOCKED`, `REVIEW` or `PASS`.
    Blank or an error is never a pass. Sitting outside a range is a review prompt, not
-   a finding.
+   a finding. The Range source column says whether a range is the data.gov.au
+   workbook's (`ato_dataset`) or comes from the ATO's page for the industry
+   (`ato_industry_page`), as labour, rent and motor vehicle ranges do; only the key
+   ratio can move the overall status.
 
 Every rule is visible on the Calculation sheet: turnover falls back to total business
 income when sales are not positive or are less than half of it, payments to

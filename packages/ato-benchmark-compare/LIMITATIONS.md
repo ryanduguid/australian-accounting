@@ -91,6 +91,26 @@ pass `--confirm-other-income-nil` where the business has no other income at all.
 Where a business genuinely has no cost of sales, the mapped nil keeps the ATO's
 own fallback and the result stands.
 
+## ABC-2 A range an industry page prints as one figure is compared as that figure
+
+**Trigger.** The ATO's page for an industry prints a single figure, such as
+`1%`, instead of a range for one band of an other benchmark. In the 2023-24
+pages that happens in 33 of the 691 ranges the tool reads, almost all of them
+motor vehicle expenses.
+
+**Effect.** The tool reads the figure as a range whose minimum and maximum are
+both that figure, so a ratio that is not exactly it reads `below` or `above`.
+The shipped bakery example shows this: motor vehicle expenses of 1.12% of
+turnover read `above` a published `1%`.
+
+**What stays correct.** The key ratio and the exit code, which no industry-page
+range can reach; the figure the tool computed; and every other range, including
+each one the page prints as a span.
+
+**Operator step.** Read a single-figure range as the ATO's rounded figure for that
+band, not as a limit, and remember the page's own caution that these ranges are a
+guide only where the expense applies to the business.
+
 ## Not limitations
 
 Recorded here so they are not re-audited:

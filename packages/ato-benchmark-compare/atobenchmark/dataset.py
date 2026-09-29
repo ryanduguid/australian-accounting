@@ -20,6 +20,16 @@ SUPPORTED_SCHEMA_VERSION = 1
 
 RATIO_KEYS = ("cost_of_sales_to_turnover", "total_expenses_to_turnover")
 
+#: Ranges the ATO publishes only on each industry's page, built by
+#: tools/build_other_benchmarks.py into other-benchmarks-<year>.json. Cost of
+#: sales appears here only where the data.gov.au workbook leaves it out.
+PAGE_RATIO_KEYS = (
+    "cost_of_sales_to_turnover",
+    "labour_to_turnover",
+    "rent_to_turnover",
+    "motor_vehicle_to_turnover",
+)
+
 RATIO_LABELS = {
     "cost_of_sales_to_turnover": "Cost of sales to turnover",
     "total_expenses_to_turnover": "Total expenses to turnover",
@@ -50,6 +60,9 @@ class Band:
     turnover_from_inclusive: bool
     turnover_to: Decimal | None
     ratios: dict[str, Range | None]
+    #: The ratios in `ratios` that came from the ATO's industry page rather
+    #: than the data.gov.au workbook.
+    page_ratios: frozenset[str] = frozenset()
 
     def contains(self, turnover: Decimal) -> bool:
         if self.turnover_from_inclusive:
@@ -67,6 +80,8 @@ class BusinessType:
     name: str
     key_ratio: str
     bands: tuple[Band, ...]
+    #: Provenance of the industry page the page ranges came from, or None.
+    page: dict | None = None
 
     def band_for(self, turnover: Decimal) -> Band | None:
         for band in self.bands:
@@ -80,6 +95,8 @@ class Dataset:
     year: str
     source: dict
     business_types: tuple[BusinessType, ...]
+    #: Source of the industry-page ranges merged into the bands, or None.
+    page_source: dict | None = None
 
     def names(self) -> list[str]:
         return [bt.name for bt in self.business_types]
@@ -155,7 +172,106 @@ def load(year: str | None = None, data_dir: Path | None = None) -> Dataset:
         raise DatasetError(
             f"no dataset for benchmark year {chosen!r}. Available: {', '.join(available)}"
         )
-    return loads(path.read_text(encoding="utf-8"), source_name=str(path))
+    dataset = loads(path.read_text(encoding="utf-8"), source_name=str(path))
+    pages = directory / f"other-benchmarks-{chosen}.json"
+    if pages.is_file():
+        dataset = merge_page_ranges(
+            dataset, pages.read_text(encoding="utf-8"), source_name=str(pages)
+        )
+    return dataset
+
+
+def merge_page_ranges(dataset: Dataset, text: str, source_name: str = "<string>") -> Dataset:
+    """Add the ranges published only on the ATO's industry pages to a loaded year.
+
+    The file must be for the same benchmark year and built against this exact
+    workbook (its recorded sha256), name only known business types and bands, and
+    never replace a range the workbook publishes. A business type the file leaves
+    out keeps "no benchmark in this dataset" for these ratios.
+    """
+    try:
+        raw = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise DatasetError(f"{source_name}: not valid JSON: {exc}") from exc
+    if not isinstance(raw, dict):
+        raise DatasetError(f"{source_name}: expected a JSON object")
+    if raw.get("schema_version") != SUPPORTED_SCHEMA_VERSION:
+        raise DatasetError(
+            f"{source_name}: schema version {raw.get('schema_version')!r} is not supported "
+            f"by this release (expected {SUPPORTED_SCHEMA_VERSION})"
+        )
+    if raw.get("benchmark_year") != dataset.year:
+        raise DatasetError(
+            f"{source_name}: benchmark year {raw.get('benchmark_year')!r} does not match "
+            f"the dataset's {dataset.year!r}"
+        )
+    source = raw.get("source")
+    if not isinstance(source, dict):
+        raise DatasetError(f"{source_name}: source metadata is missing")
+    if source.get("dataset_sha256") != dataset.source.get("sha256"):
+        raise DatasetError(
+            f"{source_name}: built against a different dataset file "
+            f"(sha256 {source.get('dataset_sha256')!r})"
+        )
+    entries = raw.get("business_types")
+    if not isinstance(entries, list):
+        raise DatasetError(f"{source_name}: business_types is missing")
+
+    by_name = {bt.name: bt for bt in dataset.business_types}
+    merged: dict[str, BusinessType] = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise DatasetError(f"{source_name}: a business type is not an object")
+        name = entry.get("name")
+        business_type = by_name.get(name) if isinstance(name, str) else None
+        if business_type is None:
+            raise DatasetError(f"{source_name}: {name!r} is not a business type in {dataset.year}")
+        if business_type.name in merged:
+            raise DatasetError(f"{source_name}: {business_type.name} appears twice")
+        bands_raw = entry.get("turnover_bands")
+        if not isinstance(bands_raw, list) or [
+            b.get("band") if isinstance(b, dict) else None for b in bands_raw
+        ] != [band.band for band in business_type.bands]:
+            raise DatasetError(f"{source_name}: {name}: turnover bands do not match the dataset")
+        bands = []
+        for band, band_raw in zip(business_type.bands, bands_raw):
+            where = f"{source_name}: {name}/{band.band}"
+            added = {}
+            for key in PAGE_RATIO_KEYS:
+                page_range = _range(band_raw.get(key), f"{where}.{key}")
+                if page_range is None:
+                    continue
+                if band.ratios.get(key) is not None:
+                    raise DatasetError(f"{where}: {key} would replace the workbook's own range")
+                added[key] = page_range
+            bands.append(
+                Band(
+                    band=band.band,
+                    label=band.label,
+                    turnover_from=band.turnover_from,
+                    turnover_from_inclusive=band.turnover_from_inclusive,
+                    turnover_to=band.turnover_to,
+                    ratios={**band.ratios, **added},
+                    page_ratios=frozenset(added),
+                )
+            )
+        page = {
+            key: entry.get(key)
+            for key in ("page_title", "page_url", "page_last_updated", "page_reference", "text_sha256")
+        }
+        merged[business_type.name] = BusinessType(
+            name=business_type.name,
+            key_ratio=business_type.key_ratio,
+            bands=tuple(bands),
+            page=page,
+        )
+
+    return Dataset(
+        year=dataset.year,
+        source=dataset.source,
+        business_types=tuple(merged.get(bt.name, bt) for bt in dataset.business_types),
+        page_source=dict(source),
+    )
 
 
 def loads(text: str, source_name: str = "<string>") -> Dataset:
