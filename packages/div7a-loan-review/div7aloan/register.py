@@ -61,7 +61,15 @@ FIRST_REVIEWABLE_YEAR = YearOfIncome(1998)
 
 
 class RegisterError(ValueError):
-    """The register cannot be read, or does not carry the columns required."""
+    """The register or its review options are invalid."""
+
+
+def _validate_review_mode(gate_only: bool, myr_only: bool) -> None:
+    for name, value in (("gate_only", gate_only), ("myr_only", myr_only)):
+        if type(value) is not bool:
+            raise RegisterError(f"{name} must be a boolean")
+    if gate_only and myr_only:
+        raise RegisterError("gate_only and myr_only cannot both be True")
 
 
 @dataclass(frozen=True)
@@ -213,6 +221,8 @@ def review_register(
     the loan was written raises the minimum yearly repayment on an existing
     complying loan, which is the common way a long-standing loan falls short.
     """
+    _validate_review_mode(gate_only, myr_only)
+
     def rate_table() -> BenchmarkTable:
         """The table for this register, read at most once.
 
@@ -322,6 +332,7 @@ def review_register_file(
     table: BenchmarkTable | None = None,
     override: RateOverride | None = None,
 ) -> ReviewReport:
+    _validate_review_mode(gate_only, myr_only)
     needed = list(GATE_COLUMNS)
     if not gate_only:
         needed += list(MYR_COLUMNS)
