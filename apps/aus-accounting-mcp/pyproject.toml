@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aus-accounting-mcp"
-version = "0.2.10"
+version = "0.2.11"
 description = "Local accounting reviews, ten bounded tax and super worksheets and cited retrieval from your configured local Markdown folder. uvx from PyPI; not advice."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -48,9 +48,9 @@ dependencies = [
     # distribution whose metadata carries a direct URL reference, so a git pin
     # here makes the package unpublishable.
     "payday-super-checker==0.1.8",
-    "ato-benchmark-compare==0.1.10",
+    "ato-benchmark-compare==0.1.11",
     "div7a-loan-review==0.1.5",
-    "australian-tax-calculators==0.1.7",
+    "australian-tax-calculators==0.1.8",
 ]
 
 [project.optional-dependencies]
