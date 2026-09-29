@@ -80,7 +80,6 @@ class GateWiringTests(unittest.TestCase):
                 job = gate_job(workflow, gate)
                 self.assertIn("if: always()", job)
                 self.assertIn("fetch-depth: 2", job)
-                self.assertIn("PR_BODY: ${{ github.event.pull_request.body }}", job)
                 call = re.search(r"(?m)^        run: python3 \.github/ci/check_gates\.py (\S+) (\S+)(.*)$", job)
                 assert call is not None, workflow
                 self.assertEqual(call.group(1, 2), (f".github/workflows/{workflow}", gate))
@@ -145,24 +144,50 @@ class CheckGatesTests(unittest.TestCase):
             self.assertEqual(done.returncode, 1, outside)
             self.assertIn("is not a file in .github/workflows", done.stderr)
 
-    def test_a_removed_job_needs_a_declaration_on_a_pull_request(self) -> None:
+    def test_a_removed_job_needs_a_comment_declaring_it_on_a_pull_request(self) -> None:
+        without_test = SAMPLE.replace(
+            "  test:\n    runs-on: ubuntu-latest\n    steps:\n      - run: |\n"
+            '          echo "  looks: like a key"\n',
+            "",
+        ).replace("[lint, test]", "[lint]")
+        lint_only = {"lint": OK["lint"]}
+        for comment, expected in (("", 1), ("# removed-jobs: test\n", 0), ("# removed-jobs: tests\n", 1)):
+            with self.subTest(comment=comment):
+                self.tearDown()
+                self.setUp()
+                self.write(SAMPLE)
+                git(self.root, "add", "-A")
+                git(self.root, "commit", "-q", "-m", "base")
+                git(self.root, "checkout", "-q", "-b", "feature")
+                self.write(comment + without_test)
+                git(self.root, "commit", "-q", "-am", "drop test")
+                git(self.root, "checkout", "-q", "main")
+                git(self.root, "merge", "-q", "--no-ff", "--no-edit", "feature")
+                code, out = self.check(lint_only, event="pull_request")
+                self.assertEqual(code, expected, out)
+                if expected:
+                    self.assertIn(f"These jobs were removed from {SAMPLE_PATH}: test", out)
+                self.assertEqual(self.check(lint_only, event="push")[0], 0)
+
+    def test_a_renamed_workflow_is_compared_with_the_base_workflow_holding_its_gate(self) -> None:
         self.write(SAMPLE)
         git(self.root, "add", "-A")
         git(self.root, "commit", "-q", "-m", "base")
         git(self.root, "checkout", "-q", "-b", "feature")
-        self.write(SAMPLE.replace("  test:\n    runs-on: ubuntu-latest\n    steps:\n      - run: |\n"
-                                  '          echo "  looks: like a key"\n', "").replace("[lint, test]", "[lint]"))
-        git(self.root, "commit", "-q", "-am", "drop test")
+        (self.root / SAMPLE_PATH).unlink()
+        renamed = ".github/workflows/build.yml"
+        without_test = SAMPLE.replace("  test:\n    runs-on: ubuntu-latest\n", "  unit:\n    runs-on: ubuntu-latest\n")
+        (self.root / renamed).write_text(without_test.replace("[lint, test]", "[lint, unit]"), encoding="utf-8")
+        git(self.root, "add", "-A")
+        git(self.root, "commit", "-q", "-m", "rename and drop test")
         git(self.root, "checkout", "-q", "main")
         git(self.root, "merge", "-q", "--no-ff", "--no-edit", "feature")
-        lint_only = {"lint": OK["lint"]}
-        code, out = self.check(lint_only, event="pull_request")
-        self.assertEqual(code, 1)
-        self.assertIn(f"These jobs were removed from {SAMPLE_PATH}: test", out)
-        self.assertEqual(self.check(lint_only, event="pull_request", body=f"removed-jobs: {SAMPLE_PATH}#test")[0], 0)
-        for body in ("removed-jobs: test", f"removed-jobs: {SAMPLE_PATH}#tests"):
-            self.assertEqual(self.check(lint_only, event="pull_request", body=body)[0], 1, body)
-        self.assertEqual(self.check(lint_only, event="push")[0], 0)
+        env = {**os.environ, "RESULTS": json.dumps({"lint": OK["lint"], "unit": OK["test"]}),
+               "GITHUB_EVENT_NAME": "pull_request"}
+        done = subprocess.run([sys.executable, str(CHECK), renamed, "ci-gates"], cwd=self.root, env=env,
+                              capture_output=True, text=True, check=False)
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn(f"These jobs were removed from {renamed}: test", done.stderr)
 
     def test_a_missing_merge_parent_fails_closed(self) -> None:
         self.write(SAMPLE)
