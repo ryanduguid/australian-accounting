@@ -62,6 +62,12 @@ uv run --locked --extra dev lodgeit-adapter invoke \
 Every request you send should carry fabricated figures. The evidence file
 records `synthetic_input`, and the flag travels with the file.
 
+The Python evidence writer requires `synthetic` to be `True` or `False`; it
+refuses strings, numbers and other types. Verification checks the types of
+`synthetic_input` and `validation.accepted` when present, and reports a
+`COMPUTED` record with `validation.accepted=false` as inconsistent. Older records
+that omit these fields keep their existing verification behaviour.
+
 A body file is JSON, and the money in it is written as a decimal string. The
 snapshot's `request_number_fields` names which fields become JSON numbers on
 the wire, and nothing else is converted: a reference of `0012` and an ABN stay

@@ -74,10 +74,12 @@ def build(
     caller can keep it locally, but it says so.
     """
     _check_label(label)
+    if type(synthetic) is not bool:
+        raise ValueError("synthetic must be a boolean")
     calculation = {
         "schema": SCHEMA,
         "label": label,
-        "synthetic_input": bool(synthetic),
+        "synthetic_input": synthetic,
         "provider": {
             "name": "lodgeit-labs",
             "contract_snapshot": outcome.contract_snapshot,
@@ -200,6 +202,15 @@ def verify(record: object) -> list[str]:
     call = _block(calculation, "call", findings)
     upstream = _block(calculation, "upstream", findings)
     provider = _block(calculation, "provider", findings)
+    if "synthetic_input" in calculation and type(calculation["synthetic_input"]) is not bool:
+        findings.append("synthetic_input must be a boolean")
+    validation = calculation.get("validation")
+    if isinstance(validation, dict) and "accepted" in validation:
+        accepted = validation["accepted"]
+        if type(accepted) is not bool:
+            findings.append("validation.accepted must be a boolean")
+        elif accepted is False and call.get("status") == str(Status.COMPUTED):
+            findings.append("a COMPUTED result has validation.accepted=false")
     if call.get("status") == str(Status.COMPUTED):
         # Records written before the provider block carried these flags all
         # came from the calculators snapshot, which requires both, so absent
