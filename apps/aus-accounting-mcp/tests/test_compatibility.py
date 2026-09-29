@@ -35,20 +35,20 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         "distribution": "aus-accounting-mcp",
         "version": server_metadata["version"],
         "repository": CANONICAL_REPOSITORY,
-        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.2.10/",
+        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.2.11/",
         "registry_identity": "io.github.ryanduguid/aus-accounting",
         "registry": (
             "https://registry.modelcontextprotocol.io/v0.1/servers/"
-            "io.github.ryanduguid%2Faus-accounting/versions/0.2.10"
+            "io.github.ryanduguid%2Faus-accounting/versions/0.2.11"
         ),
-        "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v0.2.10",
+        "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v0.2.11",
     }
     assert record["engines"] == [
         {
             "distribution": "ato-benchmark-compare",
-            "version": "0.1.10",
+            "version": "0.1.11",
             "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/ato-benchmark-compare",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/ato-benchmark-compare/v0.1.10",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/ato-benchmark-compare/v0.1.11",
         },
         {
             "distribution": "div7a-loan-review",
@@ -64,9 +64,9 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         },
         {
             "distribution": "australian-tax-calculators",
-            "version": "0.1.7",
+            "version": "0.1.8",
             "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/australian-tax-calculators",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/australian-tax-calculators/v0.1.7",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/australian-tax-calculators/v0.1.8",
         },
     ]
     distribution = record["server"]["distribution"]

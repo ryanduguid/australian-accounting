@@ -1,3 +1,23 @@
+# v0.2.11
+
+- Pin `ato-benchmark-compare` 0.1.11 and `australian-tax-calculators` 0.1.8;
+  `payday-super-checker` 0.1.8 and `div7a-loan-review` 0.1.5 are unchanged.
+- Through the new pins: `get_ato_benchmarks` compares labour, rent and motor
+  vehicle expenses, and cost of sales where it is not the key range, against
+  the ranges the ATO publishes on each industry's page. Each ratio row's
+  `benchmark_source` and the result's `industry_page_source` say where a range
+  came from; these ranges never set the key ratio. `calculate_tax_worksheet`
+  adds the `study_loan_repayment` worksheet for 2025-26 and 2026-27.
+- Add `search_ato_rulings` and `read_ato_ruling`, which serve ATO ruling
+  paragraphs from a configured local folder of rulings runs, bringing the
+  server to 18 tools.
+- Declare `benchmark_source` and `industry_page_source` in the
+  `get_ato_benchmarks` output schema.
+- Share one page builder between the legislation corpus and accounting
+  library tools.
+- Lock the build backend in the dev extra.
+- Align the release, citation, compatibility and MCP Registry metadata to 0.2.11.
+
 # v0.2.10
 
 - Pin `payday-super-checker` 0.1.8, `ato-benchmark-compare` 0.1.10,
