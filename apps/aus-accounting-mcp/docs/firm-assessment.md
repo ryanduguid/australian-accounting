@@ -94,9 +94,10 @@ MCP host and its model provider charge separately.
 **How often is it updated?** The corpus is rebuilt when the firm runs the builder;
 nothing rebuilds it on a schedule. Each provision records its compilation number and
 date, and whether that compilation was current when the corpus was built. A rulings
-run is a copy from the day it was fetched. Once a later run holds a newer copy of a
-document, search returns only that copy, and a citation's `row_ref` still reads the
-earlier copy, marked as no longer served. The library changes when the firm changes it. DrDebits
+run is a copy from the day it was fetched. Search returns a document from the run with
+the latest fetch date or, between runs fetched the same day, the one whose folder name
+sorts last, and a citation's `row_ref` still reads any other copy, marked as no longer
+served. The library changes when the firm changes it. DrDebits
 states at the top of its README when its sources were last checked. Server releases
 are listed in the
 [release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md).
