@@ -26,7 +26,7 @@ def test_the_register_entry_names_the_current_version() -> None:
 
 def test_every_question_count_matches_the_evaluation_set() -> None:
     questions = ET.parse(ROOT / "evaluation" / "questions.xml").getroot().findall("qa_pair")
-    stated = re.findall(r"(\d+) fabricated\s+(?:evaluation\s+)?questions", PAGE)
+    stated = re.findall(r"(\d+) (?:fabricated|evaluation)\s+(?:evaluation\s+)?questions", PAGE)
     assert stated
     assert set(stated) == {str(len(questions))}
 
