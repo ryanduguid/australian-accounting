@@ -1,3 +1,11 @@
+# v0.1.11
+
+- Labour, rent and motor vehicle expenses, and cost of sales where it is not the key range, are now compared against the ranges the ATO publishes on each industry's page (99 of 100 industries for 2023-24, read on 29 September 2026). They are compared like any range but never decide the exit code.
+- Each ratio row carries `benchmark_source` (`ato_dataset` or `ato_industry_page`), the JSON payload gains `industry_page_source`, and notes carry the ATO's guide-only caution and say when a page printed a single figure (LIMITATIONS ABC-2).
+- `show` lists the page ranges, marked as a guide, with the page address.
+- The industry page file binds to the dataset it was checked against; the loader refuses a file for another year, workbook or dataset file, one that replaces a workbook range, or one that does not account for every industry.
+- The Excel workbook reads the same merged ranges and adds a Range source column.
+
 # v0.1.10
 
 - Breaking for files 0.1.9 read: a report-style P&L with amounts in more than one column is refused when a column left of the fullest one also holds amounts. One blank, dash, `n/a` or spreadsheet error in a comparative export's current period made last year's column the fuller one, and `map` and `compare` reported last year's turnover and ratios with exit 0. The error names both columns and the `--amount-column` fix. A headed column left of the amounts that holds only blanks or placeholders is refused the same way.
