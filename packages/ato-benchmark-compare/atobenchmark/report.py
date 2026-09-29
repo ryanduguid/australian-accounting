@@ -177,6 +177,9 @@ class Verdict:
     benchmark: Range | None
     status: str
     is_key: bool
+    #: Where the range came from: SOURCE_DATASET, SOURCE_INDUSTRY_PAGE (an ATO
+    #: other benchmark, a guide only), or None when there is no range.
+    benchmark_source: str | None = None
 
 
 @dataclass
@@ -295,6 +298,11 @@ def compare(
                 benchmark=benchmark,
                 status=status,
                 is_key=(name == key_ratio),
+                benchmark_source=None
+                if benchmark is None
+                else SOURCE_INDUSTRY_PAGE
+                if band is not None and name in band.page_ratios
+                else SOURCE_DATASET,
             )
         )
 
@@ -316,6 +324,21 @@ def compare(
                 s="s" if plural else "",
                 verb="" if plural else "s",
             ),
+            frozenset({"turnover", "other_income"}),
+        )
+    single = [
+        verdict.label.lower()
+        for verdict in verdicts
+        if verdict.benchmark_source == SOURCE_INDUSTRY_PAGE
+        and verdict.benchmark is not None
+        and verdict.benchmark.minimum == verdict.benchmark.maximum
+        and verdict.status in {WITHIN, BELOW, ABOVE}
+    ]
+    if single:
+        add_note(
+            "industry_page_single_figure",
+            f"The ATO printed a single figure, not a range, for {' and '.join(single)}. "
+            "The tool compares against that figure and does not infer wider bounds.",
             frozenset({"turnover", "other_income"}),
         )
 
@@ -491,15 +514,6 @@ def industry_page_source(comparison: Comparison) -> dict | None:
     }
 
 
-def _benchmark_source(comparison: Comparison, verdict: Verdict) -> str | None:
-    if verdict.benchmark is None:
-        return None
-    band = comparison.band
-    if band is not None and verdict.key in band.page_ratios:
-        return SOURCE_INDUSTRY_PAGE
-    return SOURCE_DATASET
-
-
 def to_dict(comparison: Comparison, unreviewed: int = 0) -> dict:
     figures = comparison.figures
     return {
@@ -530,7 +544,7 @@ def to_dict(comparison: Comparison, unreviewed: int = 0) -> dict:
                 "percent": percent(verdict.ratio),
                 "benchmark_min": None if verdict.benchmark is None else str(verdict.benchmark.minimum),
                 "benchmark_max": None if verdict.benchmark is None else str(verdict.benchmark.maximum),
-                "benchmark_source": _benchmark_source(comparison, verdict),
+                "benchmark_source": verdict.benchmark_source,
                 "status": verdict.status,
                 "is_key_ratio": verdict.is_key,
             }

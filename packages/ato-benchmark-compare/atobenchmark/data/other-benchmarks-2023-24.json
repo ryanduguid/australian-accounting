@@ -8,6 +8,7 @@
   "index_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z",
   "retrieved": "2026-09-29",
   "dataset_sha256": "84925348cc6abfdbfb2cd14c62456e02d44057b7c7b444a6839e6179f71440f5",
+  "dataset_json_sha256": "6b07ac82bc2e947adc54dc649d43ac361789b2ddd6445d6806aad9eb57bce980",
   "licence": "ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products",
   "licence_url": "https://www.ato.gov.au/about-ato/using-our-website/copyright-notice",
   "caution": "Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business."

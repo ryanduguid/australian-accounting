@@ -98,18 +98,20 @@ own fallback and the result stands.
 pages that happens in 33 of the 691 ranges the tool reads, almost all of them
 motor vehicle expenses.
 
-**Effect.** The tool reads the figure as a range whose minimum and maximum are
-both that figure, so a ratio that is not exactly it reads `below` or `above`.
-The shipped bakery example shows this: motor vehicle expenses of 1.12% of
-turnover read `above` a published `1%`.
+**Effect.** The tool stores the printed figure as both the minimum and the
+maximum and infers no wider interval, so 1.00% reads `within`, 0.99% `below`
+and 1.01% `above`. The shipped bakery example shows this: motor vehicle
+expenses of 1.12% of turnover read `above` a published `1%`. A note in the
+output says when a single figure was compared.
 
 **What stays correct.** The key ratio and the exit code, which no industry-page
 range can reach; the figure the tool computed; and every other range, including
 each one the page prints as a span.
 
-**Operator step.** Read a single-figure range as the ATO's rounded figure for that
-band, not as a limit, and remember the page's own caution that these ranges are a
-guide only where the expense applies to the business.
+**Operator step.** Read a single-figure range as the one figure the ATO printed
+for that band, not as a limit the tool has confirmed, and remember the page's own
+caution that these ranges are a guide only where the expense applies to the
+business.
 
 ## Not limitations
 

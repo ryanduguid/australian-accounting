@@ -14,12 +14,18 @@ example with a browser's batch text export, into a directory holding
         --retrieved 2026-09-29 \
         --out atobenchmark/data/other-benchmarks-2023-24.json
 
-Every page must state the dataset's benchmark year, list the dataset's turnover
-bands in the same order and publish key ranges equal to the dataset's own. A
-page that disagrees stops the build: a range copied from the wrong page, band or
-year would otherwise sit beside the right key range and read as published. Each
-figure is copied from the page as printed; the only conversion is from a
-whole-number percentage to a ratio.
+Every page must state the dataset's benchmark year, carry a last-updated date
+and a QC reference, list the dataset's turnover bands in the same order, and
+print every range the dataset publishes, equal to the dataset's own. A page
+that disagrees contributes nothing and is named in the output with the reason,
+because a range copied from the wrong page, band or year would otherwise sit
+beside the right key range and read as published. The build fails unless the
+excluded pages are exactly the ones named with --expect-excluded, so a page that
+starts disagreeing later stops the next rebuild instead of vanishing quietly.
+
+Each figure is copied from the page as printed; the only conversion is from a
+whole-number percentage to a ratio. Where a page prints a single figure for a
+band, it is stored as both bounds; no wider interval is inferred.
 """
 
 from __future__ import annotations
@@ -35,7 +41,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from atobenchmark.dataset import normalise  # noqa: E402
+from atobenchmark.dataset import canonical_digest, normalise  # noqa: E402
 
 HEADINGS = {
     "total expenses": "total_expenses_to_turnover",
@@ -57,7 +63,8 @@ HEADING_RE = re.compile(
     r"|(?P<slashed>[A-Za-z ]+?)\s*/\s*(?:annual )?turnover)$",
     re.IGNORECASE,
 )
-# A page prints one figure ("1%") where both ends of a range round to it.
+AVERAGE_RE = re.compile(r"^\d+(?:\.\d+)?%$")
+# A page sometimes prints a single figure ("1%") for a band; it becomes both bounds.
 RANGE_RE = re.compile(r"^(\d+(?:\.\d+)?)%(?: to (\d+(?:\.\d+)?)%)?$")
 BAND_LABEL_RE = re.compile(r"^(\$[\d,]+\s*[-\u2013\u2014]\s*\$[\d,]+|More than \$[\d,]+)$")
 YEAR_RE = re.compile(r"^(Key|Other) benchmarks for (\d{4})[-\u2013](\d{2})$")
@@ -125,6 +132,16 @@ def parse_section(lines: list[str], start: int, where: str) -> tuple[list[str], 
     while i < len(lines):
         heading = HEADING_RE.match(lines[i])
         if heading is None:
+            # A key table prints each range's average ("Average cost of sales",
+            # then one figure per band) before the next range. Step over it.
+            averages = lines[i + 1 : i + 1 + len(labels)]
+            if (
+                lines[i].startswith("Average ")
+                and len(averages) == len(labels)
+                and all(AVERAGE_RE.match(value) for value in averages)
+            ):
+                i += 1 + len(labels)
+                continue
             break
         name = (heading.group("quoted") or heading.group("slashed")).strip().lower()
         key = HEADINGS.get(name)
@@ -183,6 +200,8 @@ def parse_page(text: str, where: str) -> dict:
         raise BuildError(f"{where}: no key benchmark table")
     if financial_year is None:
         raise BuildError(f"{where}: the page does not state which financial year it covers")
+    if updated is None or qc is None:
+        raise BuildError(f"{where}: the page carries no last-updated date or QC reference")
     return {
         "sections": sections,
         "financial_year": financial_year,
@@ -225,7 +244,17 @@ def page_entry(item: dict, business_type: dict, page_name: str, raw: bytes, year
                 f"{[band['label'] for band in bands]}"
             )
 
-    # Every range the dataset also publishes must agree, band by band.
+    # Every range the dataset publishes must be printed on the page too, and
+    # every range the dataset also publishes must agree, band by band.
+    printed_keys = set()
+    for section in page["sections"].values():
+        printed_keys.update(section["ranges"])
+    for band in bands:
+        for key in ("cost_of_sales_to_turnover", "total_expenses_to_turnover"):
+            if band.get(key) is not None and key not in printed_keys:
+                raise PageMismatch(
+                    f"{where}: the page does not print the dataset's {key} range"
+                )
     for kind, section in page["sections"].items():
         for key, values in section["ranges"].items():
             for band, value in zip(bands, values):
@@ -273,8 +302,14 @@ def page_entry(item: dict, business_type: dict, page_name: str, raw: bytes, year
     }
 
 
-def build(pages_dir: Path, dataset_path: Path, retrieved: str) -> dict:
-    dataset = json.loads(dataset_path.read_text(encoding="utf-8"))
+def build(
+    pages_dir: Path,
+    dataset_path: Path,
+    retrieved: str,
+    expect_excluded: frozenset[str] = frozenset(),
+) -> dict:
+    dataset_text = dataset_path.read_text(encoding="utf-8")
+    dataset = json.loads(dataset_text)
     year = dataset["benchmark_year"]
     by_name = {normalise(bt["name"]): bt for bt in dataset["business_types"]}
     by_slug = {slug(bt["name"]): bt for bt in dataset["business_types"]}
@@ -319,6 +354,13 @@ def build(pages_dir: Path, dataset_path: Path, retrieved: str) -> dict:
     missing = sorted(bt["name"] for bt in dataset["business_types"] if bt["name"] not in seen)
     if missing:
         raise BuildError(f"no page for {len(missing)} business types: {missing[:5]}")
+    actual = {item["name"] for item in excluded}
+    if actual != expect_excluded:
+        reasons = "; ".join(item["reason"] for item in excluded if item["name"] not in expect_excluded)
+        raise BuildError(
+            f"excluded pages {sorted(actual)} differ from --expect-excluded "
+            f"{sorted(expect_excluded)}. {reasons}"
+        )
     if len(excluded) > MAX_EXCLUDED:
         reasons = "; ".join(item["reason"] for item in excluded[:3])
         raise BuildError(f"{len(excluded)} pages disagree with the dataset: {reasons}")
@@ -335,6 +377,7 @@ def build(pages_dir: Path, dataset_path: Path, retrieved: str) -> dict:
             "income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z",
             "retrieved": retrieved,
             "dataset_sha256": dataset["source"]["sha256"],
+            "dataset_json_sha256": canonical_digest(dataset_text),
             "licence": "ATO copyright notice: free to copy, adapt, modify, transmit and "
             "distribute, but not in any way that suggests the ATO or the Commonwealth "
             "endorses the user or its products",
@@ -355,9 +398,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dataset", required=True, type=Path)
     parser.add_argument("--retrieved", required=True, help="ISO date the pages were saved")
     parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument(
+        "--expect-excluded",
+        action="append",
+        default=[],
+        metavar="BUSINESS_TYPE",
+        help="a business type whose page is known to disagree; repeat for each one",
+    )
     args = parser.parse_args(argv)
     try:
-        built = build(args.pages_dir, args.dataset, args.retrieved)
+        built = build(
+            args.pages_dir, args.dataset, args.retrieved, frozenset(args.expect_excluded)
+        )
     except BuildError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1

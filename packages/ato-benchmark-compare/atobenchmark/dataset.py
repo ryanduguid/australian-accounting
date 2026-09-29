@@ -7,6 +7,7 @@ string so no binary floating point value ever enters the comparison.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import unicodedata
@@ -172,22 +173,47 @@ def load(year: str | None = None, data_dir: Path | None = None) -> Dataset:
         raise DatasetError(
             f"no dataset for benchmark year {chosen!r}. Available: {', '.join(available)}"
         )
-    dataset = loads(path.read_text(encoding="utf-8"), source_name=str(path))
+    text = path.read_text(encoding="utf-8")
+    dataset = loads(text, source_name=str(path))
     pages = directory / f"other-benchmarks-{chosen}.json"
     if pages.is_file():
         dataset = merge_page_ranges(
-            dataset, pages.read_text(encoding="utf-8"), source_name=str(pages)
+            dataset,
+            pages.read_text(encoding="utf-8"),
+            source_name=str(pages),
+            dataset_digest=canonical_digest(text),
         )
     return dataset
 
 
-def merge_page_ranges(dataset: Dataset, text: str, source_name: str = "<string>") -> Dataset:
+def canonical_digest(text: str) -> str:
+    """SHA-256 of a JSON document's content, whatever its line endings or layout.
+
+    The industry-page file records this for the dataset file it was checked
+    against, so a dataset edited or rebuilt after the pages were read cannot
+    silently acquire ranges that were never checked against it.
+    """
+    try:
+        content = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise DatasetError(f"not valid JSON: {exc}") from exc
+    canonical = json.dumps(content, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(canonical.encode("ascii")).hexdigest()
+
+
+def merge_page_ranges(
+    dataset: Dataset,
+    text: str,
+    source_name: str = "<string>",
+    dataset_digest: str | None = None,
+) -> Dataset:
     """Add the ranges published only on the ATO's industry pages to a loaded year.
 
     The file must be for the same benchmark year and built against this exact
-    workbook (its recorded sha256), name only known business types and bands, and
-    never replace a range the workbook publishes. A business type the file leaves
-    out keeps "no benchmark in this dataset" for these ratios.
+    workbook (its recorded sha256) and, when `dataset_digest` is given, this
+    exact dataset file; it may name only known business types, bands and ratio
+    keys, and never replace a range the workbook publishes. A business type the
+    file leaves out keeps "no benchmark in this dataset" for these ratios.
     """
     try:
         raw = json.loads(text)
@@ -213,6 +239,11 @@ def merge_page_ranges(dataset: Dataset, text: str, source_name: str = "<string>"
             f"{source_name}: built against a different dataset file "
             f"(sha256 {source.get('dataset_sha256')!r})"
         )
+    if dataset_digest is not None and source.get("dataset_json_sha256") != dataset_digest:
+        raise DatasetError(
+            f"{source_name}: built against a different {dataset.year} dataset file; "
+            "rebuild it with tools/build_other_benchmarks.py"
+        )
     entries = raw.get("business_types")
     if not isinstance(entries, list):
         raise DatasetError(f"{source_name}: business_types is missing")
@@ -236,6 +267,9 @@ def merge_page_ranges(dataset: Dataset, text: str, source_name: str = "<string>"
         bands = []
         for band, band_raw in zip(business_type.bands, bands_raw):
             where = f"{source_name}: {name}/{band.band}"
+            unknown = set(band_raw) - {"band", *PAGE_RATIO_KEYS}
+            if unknown:
+                raise DatasetError(f"{where}: unknown ratio key(s) {sorted(unknown)}")
             added = {}
             for key in PAGE_RATIO_KEYS:
                 page_range = _range(band_raw.get(key), f"{where}.{key}")
