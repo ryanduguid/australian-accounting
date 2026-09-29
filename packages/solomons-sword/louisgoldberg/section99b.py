@@ -5,6 +5,8 @@ Section 99B ITAA 1936 Assessment for receipts from non-resident / foreign trusts
 from dataclasses import dataclass
 from decimal import Decimal
 
+from ._validation import validate_boolean_facts
+
 
 @dataclass(frozen=True)
 class ForeignTrustReceipt:
@@ -68,6 +70,9 @@ def evaluate_section99b_liability(receipt: ForeignTrustReceipt) -> Section99BAss
         if not value.is_finite() or value < Decimal("0.00"):
             raise ValueError(f"{name} must be a non-negative finite amount, got {value}")
 
+    validate_boolean_facts(
+        beneficiary_was_resident_during_year=receipt.beneficiary_was_resident_during_year,
+    )
     if receipt.beneficiary_was_resident_during_year is None:
         raise ValueError(
             "residency during the year of income is not established; s 99B(1) ITAA "

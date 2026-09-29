@@ -17,6 +17,8 @@ from dataclasses import dataclass, field, replace
 from decimal import ROUND_HALF_UP, Decimal
 from typing import List, Optional
 
+from ._validation import validate_boolean_facts
+
 
 @dataclass(frozen=True)
 class BeneficiaryEntitlement:
@@ -110,6 +112,10 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
             "are streamed, and is not implemented"
         )
     for b in assessment.beneficiaries:
+        validate_boolean_facts(
+            is_resident=b.is_resident,
+            is_under_legal_disability=b.is_under_legal_disability,
+        )
         if not b.is_resident:
             raise ValueError(
                 f"{b.beneficiary_name} is a non-resident: the trustee is assessed "
