@@ -39,6 +39,7 @@ jobs:
         .github/workflows/ci.yml: the-exchequer-tally / test (3.14)
         .github/workflows/boundaries.yml: boundaries
         .github/workflows/codeql.yml: Analyze Python
+        .github/workflows/codeql.yml: codeql-gates
       source-directory: packages/the-exchequer-tally
       tag-prefix: the-exchequer-tally
       upload-dist-artifact: true

@@ -8,8 +8,9 @@ import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
 POLICY = "ec6b0ee76446f11aefb7fa0c203f2e01b4c9a711"
-# These are component jobs from successful main-branch runs, never skip-tolerant
-# aggregate gates. Review the list when a component's CI contract changes.
+# These are component jobs from successful main-branch runs, plus aggregates that
+# require every job in their workflow to succeed; never a skip-tolerant aggregate
+# gate. Review the list when a component's CI contract changes.
 REQUIRED = {
     "release-ato-benchmark-compare.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
@@ -22,7 +23,8 @@ REQUIRED = {
         ".github/workflows/ci.yml: ato-benchmark-compare / test (3.14)",
         ".github/workflows/ci.yml: ato-benchmark-compare / test-windows",
         ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python"
+        ".github/workflows/codeql.yml: Analyze Python",
+        ".github/workflows/codeql.yml: codeql-gates"
     ],
     "release-aus-accounting-mcp.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
@@ -34,7 +36,8 @@ REQUIRED = {
         ".github/workflows/ci.yml: test (ubuntu-latest, 3.14)",
         ".github/workflows/ci.yml: test (windows-latest, 3.12)",
         ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python"
+        ".github/workflows/codeql.yml: Analyze Python",
+        ".github/workflows/codeql.yml: codeql-gates"
     ],
     "release-australian-tax-calculators.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
@@ -47,7 +50,8 @@ REQUIRED = {
         ".github/workflows/ci.yml: australian-tax-calculators / test (3.14)",
         ".github/workflows/ci.yml: australian-tax-calculators / test-windows",
         ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python"
+        ".github/workflows/codeql.yml: Analyze Python",
+        ".github/workflows/codeql.yml: codeql-gates"
     ],
     "release-div7a-loan-review.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
@@ -59,7 +63,8 @@ REQUIRED = {
         ".github/workflows/ci.yml: div7a-loan-review / test (3.13)",
         ".github/workflows/ci.yml: div7a-loan-review / test (3.14)",
         ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python"
+        ".github/workflows/codeql.yml: Analyze Python",
+        ".github/workflows/codeql.yml: codeql-gates"
     ],
     "release-payday-super-checker.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
@@ -72,7 +77,8 @@ REQUIRED = {
         ".github/workflows/ci.yml: payday-super-checker / test (3.14)",
         ".github/workflows/ci.yml: payday-super-checker / test-windows",
         ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python"
+        ".github/workflows/codeql.yml: Analyze Python",
+        ".github/workflows/codeql.yml: codeql-gates"
     ],
     "release-solomons-sword.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
@@ -84,7 +90,8 @@ REQUIRED = {
         ".github/workflows/ci.yml: solomons-sword / test (3.13)",
         ".github/workflows/ci.yml: solomons-sword / test (3.14)",
         ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python"
+        ".github/workflows/codeql.yml: Analyze Python",
+        ".github/workflows/codeql.yml: codeql-gates"
     ],
     "release-the-exchequer-tally.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
@@ -96,7 +103,8 @@ REQUIRED = {
         ".github/workflows/ci.yml: the-exchequer-tally / test (3.13)",
         ".github/workflows/ci.yml: the-exchequer-tally / test (3.14)",
         ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python"
+        ".github/workflows/codeql.yml: Analyze Python",
+        ".github/workflows/codeql.yml: codeql-gates"
     ],
     "release-the-wip-tally.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
@@ -109,7 +117,8 @@ REQUIRED = {
         ".github/workflows/ci.yml: the-wip-tally / test (3.14)",
         ".github/workflows/ci.yml: the-wip-tally / test-windows",
         ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python"
+        ".github/workflows/codeql.yml: Analyze Python",
+        ".github/workflows/codeql.yml: codeql-gates"
     ]
 }
 

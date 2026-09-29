@@ -39,6 +39,7 @@ jobs:
         .github/workflows/ci.yml: div7a-loan-review / test (3.14)
         .github/workflows/boundaries.yml: boundaries
         .github/workflows/codeql.yml: Analyze Python
+        .github/workflows/codeql.yml: codeql-gates
       source-directory: packages/div7a-loan-review
       tag-prefix: div7a-loan-review
       upload-dist-artifact: true

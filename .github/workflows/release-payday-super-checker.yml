@@ -40,6 +40,7 @@ jobs:
         .github/workflows/ci.yml: payday-super-checker / test-windows
         .github/workflows/boundaries.yml: boundaries
         .github/workflows/codeql.yml: Analyze Python
+        .github/workflows/codeql.yml: codeql-gates
       source-directory: packages/payday-super-checker
       tag-prefix: payday-super-checker
       upload-dist-artifact: true

@@ -124,7 +124,10 @@ job names and a `lodgeit-gates` result check, keeping the MCP application's exis
 release-check names unchanged. Branch protection requires one aggregate per
 workflow, `tests-gates`, `boundaries-gates`, `lodgeit-gates`, `public-fixtures-gates`
 and `codeql-gates`, plus the `CodeQL` results check and `Attribution policy`. Each
-aggregate also fails when a job in its workflow is missing from its `needs`.
+aggregate also fails when a job in its workflow is missing from its `needs`, or when
+a pull request removes a job without a `removed-jobs: <workflow>#<job>` line in its
+description (`.github/ci/check_gates.py`). Release callers select these aggregates
+as well as the named component jobs.
 
 For engines with held files, the Python 3.12 test job filters its existing coverage
 data to those files and applies the 100% changed-line branch-coverage gate. The

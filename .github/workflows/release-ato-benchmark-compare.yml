@@ -40,6 +40,7 @@ jobs:
         .github/workflows/ci.yml: ato-benchmark-compare / test-windows
         .github/workflows/boundaries.yml: boundaries
         .github/workflows/codeql.yml: Analyze Python
+        .github/workflows/codeql.yml: codeql-gates
       source-directory: packages/ato-benchmark-compare
       tag-prefix: ato-benchmark-compare
       upload-dist-artifact: true

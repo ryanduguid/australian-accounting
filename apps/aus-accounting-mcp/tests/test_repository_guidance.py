@@ -50,9 +50,11 @@ def _ci_run_commands() -> list[str]:
     workflow = (repository_root() / ".github" / "workflows" / "ci.yml").read_text(
         encoding="utf-8"
     )
+    # The trailing aggregate job checks job results, not the code, so its
+    # command is not a contributor command.
+    workflow = re.split(r"(?m)^  [\w-]+-gates:$", workflow, maxsplit=1)[0]
     commands = re.findall(r"^\s+(?:-\s+)?run:\s*(\S.*)$", workflow, flags=re.MULTILINE)
-    # A block script (the aggregate gate's result check) is not a contributor command.
-    return list(dict.fromkeys(command for command in commands if command[0] not in "|>"))
+    return list(dict.fromkeys(commands))
 
 
 def _section(document: str, heading: str) -> str:
