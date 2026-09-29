@@ -135,6 +135,16 @@ class CheckGatesTests(unittest.TestCase):
         self.write(SAMPLE + "# note\nenv:\n  FOO: bar\n")
         self.assertEqual(self.check(OK)[0], 0)
 
+    def test_the_workflow_must_be_inside_github_workflows(self) -> None:
+        self.write(SAMPLE)
+        (self.root / "elsewhere.yml").write_text(SAMPLE, encoding="utf-8")
+        for outside in ("elsewhere.yml", ".github/workflows/../../elsewhere.yml"):
+            env = {**os.environ, "RESULTS": json.dumps(OK), "GITHUB_EVENT_NAME": "push", "PR_BODY": ""}
+            done = subprocess.run([sys.executable, str(CHECK), outside, "ci-gates"], cwd=self.root,
+                                  env=env, capture_output=True, text=True, check=False)
+            self.assertEqual(done.returncode, 1, outside)
+            self.assertIn("is not a file in .github/workflows", done.stderr)
+
     def test_a_removed_job_needs_a_declaration_on_a_pull_request(self) -> None:
         self.write(SAMPLE)
         git(self.root, "add", "-A")
