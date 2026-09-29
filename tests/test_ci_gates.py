@@ -151,7 +151,12 @@ class CheckGatesTests(unittest.TestCase):
             "",
         ).replace("[lint, test]", "[lint]")
         lint_only = {"lint": OK["lint"]}
-        for comment, expected in (("", 1), ("# removed-jobs: test\n", 0), ("# removed-jobs: tests\n", 1)):
+        # A declaration naming a job that still exists (lint) would waive a later removal.
+        removed_message = f"These jobs were removed from {SAMPLE_PATH}: test"
+        cases = (("", removed_message), ("# removed-jobs: test\n", ""), ("# removed-jobs: tests\n", removed_message),
+                 ("# removed-jobs: lint, test\n", "declarations name jobs that still exist: lint"))
+        for comment, message in cases:
+            expected = 1 if message else 0
             with self.subTest(comment=comment):
                 self.tearDown()
                 self.setUp()
@@ -165,9 +170,11 @@ class CheckGatesTests(unittest.TestCase):
                 git(self.root, "merge", "-q", "--no-ff", "--no-edit", "feature")
                 code, out = self.check(lint_only, event="pull_request")
                 self.assertEqual(code, expected, out)
-                if expected:
-                    self.assertIn(f"These jobs were removed from {SAMPLE_PATH}: test", out)
-                self.assertEqual(self.check(lint_only, event="push")[0], 0)
+                if message:
+                    self.assertIn(message, out)
+                # A push run never compares with a base, but a live-job declaration fails anywhere.
+                live = "still exist" in message
+                self.assertEqual(self.check(lint_only, event="push")[0], 1 if live else 0)
 
     def test_a_renamed_workflow_is_compared_with_the_base_workflow_holding_its_gate(self) -> None:
         self.write(SAMPLE)
