@@ -1,3 +1,12 @@
+# v0.1.8
+
+- Add a tenth worksheet, `study_loan_repayment`: the compulsory study and
+  training support loan repayment for 2025-26 and 2026-27, the lesser of the
+  marginal amount and 10% of repayment income, with the thresholds, the 17%
+  band base and the figures as the ATO prints them. `worksheet_catalogue()`
+  lists it.
+- Lock the build backend in the dev extra.
+
 # v0.1.7
 
 - Add the FBT return figures to `fbt` results, following the FBT return 2026
