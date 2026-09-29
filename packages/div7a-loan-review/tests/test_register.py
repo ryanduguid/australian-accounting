@@ -47,6 +47,77 @@ def row(**overrides) -> dict:
     return base
 
 
+@pytest.fixture(params=[False, True], ids=["rows", "file"])
+def review_mode(request, tmp_path):
+    short_row = row(payments_applied_during_the_year="20000.00")
+    if request.param:
+        path = tmp_path / "synthetic.csv"
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(short_row))
+            writer.writeheader()
+            writer.writerow(short_row)
+        return lambda **options: review_register_file(path, YEAR, **options)
+    return lambda **options: review_register([short_row], YEAR, **options)
+
+
+@pytest.mark.parametrize("name", ["gate_only", "myr_only"])
+@pytest.mark.parametrize("invalid", ["false", "true", 0, 1, 0.0, 1.0, None, [], {}])
+def test_review_mode_rejects_nonboolean_options(review_mode, name, invalid):
+    with pytest.raises(RegisterError, match=name + ".*boolean"):
+        review_mode(**{name: invalid})
+
+
+def test_review_mode_cannot_suppress_both_results(review_mode):
+    with pytest.raises(RegisterError, match="cannot both be True"):
+        review_mode(gate_only=True, myr_only=True)
+
+
+@pytest.mark.parametrize("gate_only,myr_only", [(False, False), (True, False), (False, True)])
+def test_review_mode_preserves_the_three_literal_choices(review_mode, gate_only, myr_only):
+    report = review_mode(gate_only=gate_only, myr_only=myr_only)
+    line = report.lines[0]
+    assert report.rows_reviewed == 1
+    assert (line.gate is None) is myr_only
+    assert (line.myr is None) is gate_only
+    assert report.summary["COMPLYING"] == int(not myr_only)
+    assert report.summary["MYR_SHORT"] == int(not gate_only)
+    assert report.needs_attention is (not gate_only)
+    assert report.total_exposure == (D("0.00") if gate_only else D("5556.00"))
+
+
+INVALID_MODES = [
+    ({"gate_only": "false"}, "gate_only.*boolean"),
+    ({"myr_only": None}, "myr_only.*boolean"),
+    ({"gate_only": 1, "myr_only": 1}, "gate_only.*boolean"),
+    ({"gate_only": True, "myr_only": True}, "cannot both be True"),
+]
+
+
+@pytest.mark.parametrize("options,message", INVALID_MODES)
+def test_review_mode_is_checked_before_consuming_rows(options, message):
+    def unread_rows():
+        pytest.fail("invalid review options must not consume rows")
+        yield {}
+
+    with pytest.raises(RegisterError, match=message):
+        review_register(unread_rows(), YEAR, **options)
+
+
+@pytest.mark.parametrize("options,message", INVALID_MODES)
+def test_review_mode_is_checked_before_loading_a_file(monkeypatch, tmp_path, options, message):
+    def unread_file(*args):
+        pytest.fail("invalid review options must not read a file")
+
+    monkeypatch.setattr("div7aloan.register.load_rows", unread_file)
+    with pytest.raises(RegisterError, match=message):
+        review_register_file(tmp_path / "missing.csv", YEAR, **options)
+
+
+def test_review_mode_rejects_conflicting_options_for_an_empty_register():
+    with pytest.raises(RegisterError, match="cannot both be True"):
+        review_register([], YEAR, gate_only=True, myr_only=True)
+
+
 # --- required columns --------------------------------------------------
 
 

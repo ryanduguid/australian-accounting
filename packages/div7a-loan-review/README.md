@@ -424,6 +424,15 @@ report = review_register(rows, year)
 Every result carries a verdict, amounts as `Decimal`, provenance, and a
 refusal or unknown reason where one applies.
 
+In direct Python calls to this source tree, `gate_only` and `myr_only` require
+literal booleans. Both default to `False`, which reports both checks. Setting
+one to `True` reports that check alone; setting both to `True` is invalid.
+Strings such as `"false"`, numbers, `None` and containers are also invalid.
+Invalid options raise `RegisterError` in `review_register` and
+`div7aloan.register.review_register_file` before either function consumes rows
+or reads a file.
+The CLI's `review`, `gate` and `myr` commands already select valid modes.
+
 ## Evaluation pack
 
 [`evaluation/div7a_myr/`](evaluation/div7a_myr/) holds fabricated fixtures,
