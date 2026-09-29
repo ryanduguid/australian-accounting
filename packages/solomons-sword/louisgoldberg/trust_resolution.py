@@ -7,6 +7,8 @@ from datetime import date
 from decimal import Decimal
 from typing import List, Optional, Tuple
 
+from ._validation import validate_boolean_facts
+
 
 @dataclass(frozen=True)
 class TrustResolutionSchedule:
@@ -66,6 +68,12 @@ def validate_trust_resolution(
     that treats the result as a boolean reads it as "not validated", which is
     what it is.
     """
+    validate_boolean_facts(
+        is_signed_by_trustee=schedule.is_signed_by_trustee,
+        streaming_powers_in_deed=schedule.streaming_powers_in_deed,
+        default_beneficiary_clause_exists=schedule.default_beneficiary_clause_exists,
+        uses_specific_streaming=schedule.uses_specific_streaming,
+    )
     issues: List[str] = []
 
     if schedule.resolution_date > date(schedule.financial_year, 6, 30):

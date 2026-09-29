@@ -8,6 +8,8 @@ from decimal import Decimal
 from enum import Enum
 from typing import List, Optional
 
+from ._validation import validate_boolean_facts
+
 
 class Section100ARiskZone(str, Enum):
     """PCG 2022/2 zones, the residual case the guideline leaves unzoned, and
@@ -110,6 +112,7 @@ def evaluate_section100a_risk(
         "retention_scenario_conditions_met": retention_scenario_conditions_met,
         "paragraph_32_exclusion_present": paragraph_32_exclusion_present,
     }
+    validate_boolean_facts(**facts)
     unestablished = tuple(name for name, value in facts.items() if value is None)
 
     risk_factors: List[str] = []
