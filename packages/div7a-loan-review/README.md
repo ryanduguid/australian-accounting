@@ -107,6 +107,27 @@ removes the dividend entirely where s 109Q applies. Neither is modelled here,
 and neither is s 109RB. This repository does not write "the ATO will assess
 $X", and neither should anything built on it.
 
+## Next to a commercial Division 7A worksheet
+
+Xero said on 15 July 2026 that Xero Workpapers Plus, an optional paid add-on
+for Australian practices, includes a Division 7A worksheet, with early access
+from August 2026 for a small group of practices and wider access through the
+end of 2026
+([Xero blog](https://blog.xero.com/product-updates/xero-workpapers-updates-2026/)).
+This engine has not been compared with that worksheet, and nothing here
+describes how it calculates.
+
+The two overlap on Division 7A loan review but do different jobs. Workpapers
+Plus sits inside a practice's ledger and compliance workflow, with ATO
+pre-population and AI extraction from bank and loan statements. This engine is
+MIT licensed, runs offline on a register you supply, shows the statutory trace
+behind each figure and returns `REFUSED` or `UNKNOWN` with a reason for the
+cases listed under [What it refuses](#what-it-refuses). A practice that uses a
+commercial worksheet can re-perform a loan with it: run `review` over the same
+register and year of income, then compare the benchmark rate, each s 109N(1)
+limb, the minimum yearly repayment and the shortfall. A difference is a
+question for the reviewer, not proof that either side is wrong.
+
 ## Excel workbook
 
 No Python? [`workbooks/div7a-loan-review.xlsx`](workbooks/div7a-loan-review.xlsx)
