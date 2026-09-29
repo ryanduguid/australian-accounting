@@ -121,8 +121,9 @@ The two overlap on Division 7A loan review but do different jobs. Workpapers
 Plus sits inside a practice's ledger and compliance workflow, with ATO
 pre-population and AI extraction from bank and loan statements. This engine is
 MIT licensed, runs offline on a register you supply, shows the statutory trace
-behind each figure and returns `REFUSED` or `UNKNOWN` with a reason for the
-cases listed under [What it refuses](#what-it-refuses). A practice that uses a
+behind each figure and, for the cases listed under
+[What it refuses](#what-it-refuses), returns `UNKNOWN`, `REFUSED` or `SKIPPED`
+with a reason instead of a figure. A practice that uses a
 commercial worksheet can re-perform a loan with it: run `review` over the same
 register and year of income, then compare the benchmark rate, each s 109N(1)
 limb, the minimum yearly repayment and the shortfall. A difference is a
