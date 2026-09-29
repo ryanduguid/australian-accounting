@@ -98,11 +98,11 @@ wheels = [
 
 [[package]]
 name = "ato-benchmark-compare"
-version = "0.1.10"
+version = "0.1.11"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/11/fe/f3fc470df0350eefcf5e836ecc12ff153cfc6a6bf7e3e224357f498f8e8d/ato_benchmark_compare-0.1.10.tar.gz", hash = "sha256:e4071e6a4db87fd78f450d94ec44423dd0cfa0a2f2ebbed6a5d74c1bc5b513d3", size = 105819, upload-time = "2026-09-27T04:00:08.263Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/55/59/64b893a4281ce53bbd396ca107baf65ae3ab96ae804b71beaf989c4435b4/ato_benchmark_compare-0.1.11.tar.gz", hash = "sha256:3fc2e5e320353a6015c226fa1382229e8c0fa168ce0525e52936777be1abf4cb", size = 133144, upload-time = "2026-09-29T03:37:16.875Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/2d/a5ca00fc5163568f208c9a70dec20ff568029f5d84be4901ef8d4f9e7c2e/ato_benchmark_compare-0.1.10-py3-none-any.whl", hash = "sha256:8d9268ed53e9d5d3dfcbd14a7e6b4772c029a27aaf7cb688c70ade62a5e4871c", size = 58338, upload-time = "2026-09-27T04:00:06.887Z" },
+    { url = "https://files.pythonhosted.org/packages/49/da/281d0f0d62e98d6941952060c6a7357702905e94e492e9e2cb44605e3b99/ato_benchmark_compare-0.1.11-py3-none-any.whl", hash = "sha256:b51d2effe555d308f4e7baf5d3d28a6eadca9b2512582cdb93be5783f28415d4", size = 74453, upload-time = "2026-09-29T03:37:15.661Z" },
 ]
 
 [[package]]
@@ -116,7 +116,7 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.2.10"
+version = "0.2.11"
 source = { editable = "." }
 dependencies = [
     { name = "ato-benchmark-compare" },
@@ -141,8 +141,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ato-benchmark-compare", specifier = "==0.1.10" },
-    { name = "australian-tax-calculators", specifier = "==0.1.7" },
+    { name = "ato-benchmark-compare", specifier = "==0.1.11" },
+    { name = "australian-tax-calculators", specifier = "==0.1.8" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.6.1" },
     { name = "div7a-loan-review", specifier = "==0.1.5" },
     { name = "hatchling", marker = "extra == 'dev'", specifier = "==1.32.3" },
@@ -160,11 +160,11 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "australian-tax-calculators"
-version = "0.1.7"
+version = "0.1.8"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/81/c0/0530df0aaabfdd4348c00de94908d4f8a84648fe08fe6883ba85c897594a/australian_tax_calculators-0.1.7.tar.gz", hash = "sha256:f0435bb6c891190d1c883fc5efd350240c54e6f2f91174f50b378112413a19cd", size = 79336, upload-time = "2026-09-27T05:01:15.982Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5c/c2/ad17618d3b2af9cc7cf95e8db742596977eb964ba673c96bcb3e11eef09b/australian_tax_calculators-0.1.8.tar.gz", hash = "sha256:83b1ace160cc2061d164b136b1a59f9223fedf34b25dfd3cdd219eb09c491375", size = 84178, upload-time = "2026-09-29T03:45:52.708Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/25/f5/42a90e0d69c9db7f69e361dfa61c7b23097bcaae78a6457197d1aee98e68/australian_tax_calculators-0.1.7-py3-none-any.whl", hash = "sha256:7e34a248e770fd6102e6bf92159a194263a1207fd39c9f01da6443007db22bf6", size = 16616, upload-time = "2026-09-27T05:01:14.501Z" },
+    { url = "https://files.pythonhosted.org/packages/88/54/ec1feecd5cd34a5834b6cc9aa4b4112bb6452cc940c9a11b063dc571f2b6/australian_tax_calculators-0.1.8-py3-none-any.whl", hash = "sha256:9531ac3aa60a265bf44d0edf8463319f05b5709b0255a5fb50737e815311df93", size = 18723, upload-time = "2026-09-29T03:45:51.55Z" },
 ]
 
 [[package]]

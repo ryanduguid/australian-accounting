@@ -133,6 +133,15 @@ class BenchmarkRatio(ResultObject):
         ),
     ]
     is_key_ratio: Annotated[bool, Field(description="Whether this is the selected ATO key ratio.")]
+    benchmark_source: Annotated[
+        str | None,
+        Field(
+            description=(
+                "Where the range came from: ato_dataset, or ato_industry_page for an ATO other "
+                "benchmark that is a guide only and never the key ratio; null without a range."
+            )
+        ),
+    ]
 
 
 class BenchmarkComparison(EngineResult):
@@ -164,6 +173,15 @@ class BenchmarkComparison(EngineResult):
         list[str], Field(description="Suggested human checks, not findings of wrongdoing.")
     ]
     source: Provenance
+    industry_page_source: Annotated[
+        dict[str, Any] | None,
+        Field(
+            description=(
+                "The ATO industry page behind any ato_industry_page range in the selected band "
+                "(address, QC reference, retrieval date, text digest, reuse terms), or null."
+            )
+        ),
+    ]
     disclaimer: Annotated[
         str, Field(description="Engine limitations on using benchmark comparisons.")
     ]
