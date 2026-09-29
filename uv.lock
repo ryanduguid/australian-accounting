@@ -125,7 +125,7 @@ wheels = [
 
 [[package]]
 name = "ato-benchmark-compare"
-version = "0.1.10"
+version = "0.1.11"
 source = { editable = "packages/ato-benchmark-compare" }
 
 [package.optional-dependencies]
@@ -212,7 +212,7 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "australian-tax-calculators"
-version = "0.1.7"
+version = "0.1.8"
 source = { editable = "packages/australian-tax-calculators" }
 
 [package.optional-dependencies]

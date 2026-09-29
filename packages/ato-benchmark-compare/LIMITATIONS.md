@@ -6,7 +6,7 @@ face value. Each entry names the condition that triggers it, what it affects,
 
 For scope the tool never claimed, see [DISCLAIMER.md](DISCLAIMER.md).
 
-Applies to ato-benchmark-compare 0.1.10.
+Applies to ato-benchmark-compare 0.1.11.
 
 ## ABC-1 A bucket no account was mapped to is withheld, not read as a nil
 
@@ -90,6 +90,28 @@ require, including a deliberate nil where the business genuinely has none, and
 pass `--confirm-other-income-nil` where the business has no other income at all.
 Where a business genuinely has no cost of sales, the mapped nil keeps the ATO's
 own fallback and the result stands.
+
+## ABC-2 A range an industry page prints as one figure is compared as that figure
+
+**Trigger.** The ATO's page for an industry prints a single figure, such as
+`1%`, instead of a range for one band of an other benchmark. In the 2023-24
+pages that happens in 35 of the 708 ranges the tool reads, almost all of them
+motor vehicle expenses.
+
+**Effect.** The tool stores the printed figure as both the minimum and the
+maximum and infers no wider interval, so 1.00% reads `within`, 0.99% `below`
+and 1.01% `above`. The shipped bakery example shows this: motor vehicle
+expenses of 1.12% of turnover read `above` a published `1%`. A note in the
+output says when a single figure was compared.
+
+**What stays correct.** The key ratio and the exit code, which no industry-page
+range can reach; the figure the tool computed; and every other range, including
+each one the page prints as a span.
+
+**Operator step.** Read a single-figure range as the one figure the ATO printed
+for that band, not as a limit the tool has confirmed, and remember the page's own
+caution that these ranges are a guide only where the expense applies to the
+business.
 
 ## Not limitations
 

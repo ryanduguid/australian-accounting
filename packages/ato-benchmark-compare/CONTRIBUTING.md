@@ -26,7 +26,10 @@ transmit anything.
   the page and QC number each came from.
 - Do not hand edit anything under `atobenchmark/data`. Rebuild it with
   `tools/build_dataset.py` from the ATO workbook so the SHA-256 in the file still
-  matches the file it came from.
+  matches the file it came from, and rebuild the industry-page ranges with
+  `tools/build_other_benchmarks.py` from pages saved as text. The page file binds
+  to the workbook's SHA-256, so rebuild it after any workbook rebuild, and rebuild
+  the Excel workbook after either.
 - When the ATO publishes a new benchmark year, add it as a new dataset file rather
   than replacing an existing one. A comparison run last year should still reproduce.
 - Cross check at least one industry against the ATO's own industry page before

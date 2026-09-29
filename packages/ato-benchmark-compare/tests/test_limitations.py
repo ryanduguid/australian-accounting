@@ -37,8 +37,9 @@ def _register() -> str:
 def test_register_lists_every_documented_entry() -> None:
     register = _register()
     assert "ABC-1" in register
-    # The clause that distinguishes a register from a disclaimer.
-    assert register.count("**What stays correct.**") == 1
+    assert "ABC-2" in register
+    # The clause that distinguishes a register from a disclaimer: every entry has one.
+    assert register.count("**What stays correct.**") == register.count("\n## ABC-")
 
 
 def test_abc_1_serialisers_diverge_on_the_key_ratio() -> None:
@@ -245,3 +246,25 @@ def test_abc_1_compare_withholds_the_verdict_for_a_direct_library_caller() -> No
     assert comparison.outside_key_range is False
     # The key ratio field itself still carries the ATO's nil-triggered fallback.
     assert comparison.key_ratio == "total_expenses_to_turnover"
+
+
+def test_abc_2_a_single_figure_range_reads_outside_but_never_sets_the_exit_code() -> None:
+    data = ds.load("2023-24")
+    bakery = data.get("Bakeries and hot bread shops")
+    figures = compute(
+        totals(
+            turnover="850000", other_income="0", cost_of_sales="270000", motor_vehicle="9520",
+        )
+    )
+    comparison = compare(
+        data, bakery, figures, supplied_fields={"turnover", "other_income", "cost_of_sales",
+                                                "motor_vehicle"}
+    )
+    verdict = {v.key: v for v in comparison.verdicts}["motor_vehicle_to_turnover"]
+    # The bakery page prints "1%" for the top band.
+    assert verdict.benchmark is not None
+    assert verdict.benchmark.minimum == verdict.benchmark.maximum == Decimal("0.01")
+    assert verdict.ratio == Decimal("0.0112")
+    assert verdict.status == "above"
+    assert "motor_vehicle_to_turnover" in comparison.band.page_ratios
+    assert comparison.outside_key_range is False

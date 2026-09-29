@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 from atobenchmark import __version__, dataset, mapping, pnl
 from atobenchmark.ratios import compute
-from atobenchmark.report import compare
+from atobenchmark.report import compare, to_dict
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKBOOK = ROOT / "workbooks" / "ato-benchmark-compare.xlsx"
@@ -90,29 +90,55 @@ def test_bakery_results_match_the_engine(cached):
         if verdict.benchmark is not None:
             assert Decimal(str(results.cell(row=row, column=4).value)) == verdict.benchmark.minimum
             assert Decimal(str(results.cell(row=row, column=5).value)) == verdict.benchmark.maximum
+    # The Range source column is the engine's benchmark_source, row for row.
+    for row, entry in enumerate(to_dict(comparison)["ratios"], 2):
+        got = results.cell(row=row, column=8).value or None
+        assert got == entry["benchmark_source"], entry["ratio"]
 
 
 def test_benchmark_table_matches_the_shipped_data(cached):
+    """Read the JSON directly, not through the engine, so a merge fault in either
+    implementation shows up here as a disagreement."""
+    page_keys = (
+        "cost_of_sales_to_turnover", "labour_to_turnover", "rent_to_turnover",
+        "motor_vehicle_to_turnover",
+    )
+
+    def pair(value):
+        if value is None:
+            return None, None
+        return Decimal(value["min"]), Decimal(value["max"])
+
     expected = []
     for path in sorted((ROOT / "atobenchmark" / "data").glob("benchmarks-*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
+        pages_path = path.with_name(f"other-{path.name}")
+        pages = {}
+        if pages_path.is_file():
+            for entry in json.loads(pages_path.read_text(encoding="utf-8"))["business_types"]:
+                pages[entry["name"]] = entry
         for business_type in data["business_types"]:
-            for band in business_type["turnover_bands"]:
-                cos = band["cost_of_sales_to_turnover"]
-                total = band["total_expenses_to_turnover"]
+            page = pages.get(business_type["name"])
+            for position, band in enumerate(business_type["turnover_bands"]):
+                page_band = page["turnover_bands"][position] if page else {}
+                from_page = [key for key in page_keys if page_band.get(key) is not None]
+                cos = band["cost_of_sales_to_turnover"] or page_band.get("cost_of_sales_to_turnover")
                 expected.append(
                     (
                         data["benchmark_year"], business_type["name"], business_type["key_ratio"],
                         band["band"], Decimal(band["turnover_from"]),
                         None if band["turnover_to"] is None else Decimal(band["turnover_to"]),
-                        None if cos is None else Decimal(cos["min"]),
-                        None if cos is None else Decimal(cos["max"]),
-                        None if total is None else Decimal(total["min"]),
-                        None if total is None else Decimal(total["max"]),
+                        *pair(cos),
+                        *pair(band["total_expenses_to_turnover"]),
                         data["source"]["sha256"],
+                        *pair(page_band.get("labour_to_turnover")),
+                        *pair(page_band.get("rent_to_turnover")),
+                        *pair(page_band.get("motor_vehicle_to_turnover")),
+                        " ".join(from_page) or None,
+                        page["text_sha256"] if from_page else None,
                     )
                 )
-    rows = list(cached["Benchmarks"].iter_rows(min_row=2, max_col=14, values_only=True))
+    rows = list(cached["Benchmarks"].iter_rows(min_row=2, max_col=22, values_only=True))
     rows = [r for r in rows if r[0] is not None]
     assert len(rows) == len(expected)
 
@@ -121,7 +147,8 @@ def test_benchmark_table_matches_the_shipped_data(cached):
 
     for row, want in zip(rows, expected):
         got = (row[0], row[1], row[2], row[3], decimal(row[5]), decimal(row[7]), decimal(row[8]),
-               decimal(row[9]), decimal(row[10]), decimal(row[11]), row[13])
+               decimal(row[9]), decimal(row[10]), decimal(row[11]), row[13],
+               *(decimal(value) for value in row[14:20]), row[20] or None, row[21])
         assert got == want
 
 
