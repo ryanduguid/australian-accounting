@@ -127,8 +127,8 @@ client it came from.
 The [reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md)
 covers every exclusion, input rule, prompt, resource, the evidence pack format and
 the evaluation suite. The [website guide](https://duguid.com.au/tools/australian-tax-ai-agents/)
-has further examples. For a firm's AI register entry and answers to the questions
-buyers put to tax-research tools, see
+has further examples. For the supplier information a firm needs for its AI register,
+and answers to the questions buyers put to tax-research tools, see
 [For a firm assessing this server](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/firm-assessment.md).
 
 ## 30-second demonstration
