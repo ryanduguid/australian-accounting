@@ -18,7 +18,6 @@ Excel stamps into xl/workbook.xml is stripped.
 from __future__ import annotations
 
 import csv
-import json
 import re
 import subprocess
 import sys
@@ -37,6 +36,7 @@ from openpyxl.worksheet.table import Table, TableColumn, TableFormula, TableStyl
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from atobenchmark import __version__  # noqa: E402
+from atobenchmark import dataset as ds  # noqa: E402
 from atobenchmark.mapping import BUCKETS  # noqa: E402
 
 OUT = ROOT / "workbooks" / "ato-benchmark-compare.xlsx"
@@ -75,35 +75,61 @@ def read_bakery() -> tuple[list[tuple[str, Decimal]], list[dict[str, str]]]:
     return pnl, mapping
 
 
-def read_bands() -> tuple[list[list], dict[str, dict]]:
-    rows, sources = [], {}
-    for path in sorted((ROOT / "atobenchmark" / "data").glob("benchmarks-*.json")):
-        data = json.loads(path.read_text(encoding="utf-8"))
-        year, src = data["benchmark_year"], data["source"]
-        sources[year] = src
-        for bt in data["business_types"]:
-            for band in bt["turnover_bands"]:
-                cos = band["cost_of_sales_to_turnover"]
-                te = band["total_expenses_to_turnover"]
+#: Ratios whose ranges tblBands carries, in the Results sheet's row order, with
+#: the table column names that hold each one's minimum and maximum.
+RANGE_COLUMNS = {
+    "cost_of_sales_to_turnover": ("CostOfSalesMin", "CostOfSalesMax"),
+    "total_expenses_to_turnover": ("TotalExpensesMin", "TotalExpensesMax"),
+    "labour_to_turnover": ("LabourMin", "LabourMax"),
+    "rent_to_turnover": ("RentMin", "RentMax"),
+    "motor_vehicle_to_turnover": ("MotorVehicleMin", "MotorVehicleMax"),
+}
+
+
+def _bounds(band: ds.Band, key: str) -> list:
+    value = band.ratios.get(key)
+    if value is None:
+        return [None, None]
+    return [float(value.minimum), float(value.maximum)]
+
+
+def read_bands() -> tuple[list[list], dict[str, dict], dict[str, dict]]:
+    """Every band as the engine loads it, industry-page ranges merged in.
+
+    Reading through ``dataset.load`` rather than the JSON keeps the workbook on
+    the engine's own view: the same merge, the same checks, the same refusals.
+    """
+    rows, sources, page_sources = [], {}, {}
+    for year in ds.available_years():
+        data = ds.load(year)
+        sources[year] = data.source
+        if data.page_source is not None:
+            page_sources[year] = data.page_source
+        for bt in data.business_types:
+            for band in bt.bands:
                 rows.append(
                     [
                         year,
-                        bt["name"],
-                        bt["key_ratio"],
-                        band["band"],
-                        band["label"],
-                        float(band["turnover_from"]),
-                        "Y" if band["turnover_from_inclusive"] else "N",
-                        None if band["turnover_to"] is None else float(band["turnover_to"]),
-                        None if cos is None else float(cos["min"]),
-                        None if cos is None else float(cos["max"]),
-                        None if te is None else float(te["min"]),
-                        None if te is None else float(te["max"]),
-                        src["retrieved"],
-                        src["sha256"],
+                        bt.name,
+                        bt.key_ratio,
+                        band.band,
+                        band.label,
+                        float(band.turnover_from),
+                        "Y" if band.turnover_from_inclusive else "N",
+                        None if band.turnover_to is None else float(band.turnover_to),
+                        *_bounds(band, "cost_of_sales_to_turnover"),
+                        *_bounds(band, "total_expenses_to_turnover"),
+                        data.source["retrieved"],
+                        data.source["sha256"],
+                        *_bounds(band, "labour_to_turnover"),
+                        *_bounds(band, "rent_to_turnover"),
+                        *_bounds(band, "motor_vehicle_to_turnover"),
+                        " ".join(key for key in RANGE_COLUMNS if key in band.page_ratios),
+                        None if not band.page_ratios or bt.page is None
+                        else bt.page["text_sha256"],
                     ]
                 )
-    return rows, sources
+    return rows, sources, page_sources
 
 
 def add_table(ws, name, ref, formulas=None):
@@ -132,7 +158,7 @@ def add_table(ws, name, ref, formulas=None):
 
 def build() -> None:
     pnl, mapping = read_bakery()
-    bands, sources = read_bands()
+    bands, sources, page_sources = read_bands()
     wb = Workbook()
 
     # 1. Start Here
@@ -237,24 +263,29 @@ def build() -> None:
 
     # 4. Benchmarks: tblBands plus the industry list used for validation
     ws = wb.create_sheet("Benchmarks")
+    # Columns A to N keep their original order; the industry-page ranges, the
+    # ratios they cover and that page's text digest follow in O to V.
     cols = [
         "Year", "Industry", "KeyRatio", "Band", "Label", "From", "FromInclusive", "To",
         "CostOfSalesMin", "CostOfSalesMax", "TotalExpensesMin", "TotalExpensesMax",
         "Retrieved", "Sha256",
+        "LabourMin", "LabourMax", "RentMin", "RentMax", "MotorVehicleMin", "MotorVehicleMax",
+        "PageRanges", "PageSha256",
     ]
     header(ws, 1, cols)
     for r, row in enumerate(bands, 2):
         for c, value in enumerate(row, 1):
             ws.cell(row=r, column=c, value=value)
-    add_table(ws, "tblBands", f"A1:N{len(bands) + 1}")
+    add_table(ws, "tblBands", f"A1:V{len(bands) + 1}")
     industries = sorted({row[1] for row in bands})
-    style(ws["P1"], value="Industries", **HEAD)
+    style(ws["X1"], value="Industries", **HEAD)
     for r, name in enumerate(industries, 2):
-        ws.cell(row=r, column=16, value=name)
-    industry_ref = f"Benchmarks!$P$2:$P${len(industries) + 1}"
+        ws.cell(row=r, column=24, value=name)
+    industry_ref = f"Benchmarks!$X$2:$X${len(industries) + 1}"
     ws.column_dimensions["B"].width = 48
     ws.column_dimensions["E"].width = 26
-    ws.column_dimensions["P"].width = 48
+    ws.column_dimensions["U"].width = 40
+    ws.column_dimensions["X"].width = 48
     ws.protection.sheet = True
 
     # 5. Calculation
@@ -342,32 +373,40 @@ def build() -> None:
 
     # 6. Results
     ws = wb.create_sheet("Results")
-    header(ws, 1, ["Ratio", "Label", "Actual", "Benchmark min", "Benchmark max", "Status", "Key"])
+    header(
+        ws,
+        1,
+        ["Ratio", "Label", "Actual", "Benchmark min", "Benchmark max", "Status", "Key",
+         "Range source"],
+    )
+    cells = {
+        "cost_of_sales_to_turnover": "B28",
+        "total_expenses_to_turnover": "B27",
+        "labour_to_turnover": "B31",
+        "rent_to_turnover": "B15",
+        "motor_vehicle_to_turnover": "B16",
+    }
     ratios = [
-        ("cost_of_sales_to_turnover", "Cost of sales to turnover", "B28",
-         "CostOfSalesMin", "CostOfSalesMax"),
-        ("total_expenses_to_turnover", "Total expenses to turnover", "B27",
-         "TotalExpensesMin", "TotalExpensesMax"),
-        ("labour_to_turnover", "Labour to turnover", "B31", None, None),
-        ("rent_to_turnover", "Rent to turnover", "B15", None, None),
-        ("motor_vehicle_to_turnover", "Motor vehicle expenses to turnover", "B16", None, None),
+        (key, ds.RATIO_LABELS[key], cells[key], *RANGE_COLUMNS[key]) for key in RANGE_COLUMNS
     ]
-    # ponytail: the published datasets only carry cost of sales and total expenses ranges,
-    # so the other 3 ratios have no benchmark columns; add columns if the ATO adds ranges.
     for r, (key, label, cell, lo, hi) in enumerate(ratios, 2):
         ws.cell(row=r, column=1, value=key)
         ws.cell(row=r, column=2, value=label)
         actual = f'=IFERROR(ROUND(Calculation!{cell}/Calculation!B23,4),"")'
         style(ws.cell(row=r, column=3, value=actual), number_format=PCT, **CALC)
         for col, name in ((4, lo), (5, hi)):
-            if name:
-                formula = (
-                    f'=IF(OR(Calculation!$B$33=0,INDEX(tblBands[{name}],Calculation!$B$33)=""),'
-                    f'"",INDEX(tblBands[{name}],Calculation!$B$33))'
-                )
-            else:
-                formula = '=""'
+            formula = (
+                f'=IF(OR(Calculation!$B$33=0,INDEX(tblBands[{name}],Calculation!$B$33)=""),'
+                f'"",INDEX(tblBands[{name}],Calculation!$B$33))'
+            )
             style(ws.cell(row=r, column=col, value=formula), number_format=PCT, **CALC)
+        # The engine's benchmark_source: blank without a range, otherwise the
+        # industry page when the band's PageRanges names this ratio.
+        source = (
+            f'=IF(D{r}="","",IF(ISNUMBER(SEARCH(A{r},'
+            f'INDEX(tblBands[PageRanges],Calculation!$B$33))),"ato_industry_page","ato_dataset"))'
+        )
+        style(ws.cell(row=r, column=8, value=source), **CALC)
         status = (
             f'=IF(C{r}="","not calculated",IF(Calculation!$B$33=0,"no turnover band applies",'
             f'IF(D{r}="","no benchmark in this dataset",IF(AND(C{r}>=D{r},C{r}<=E{r}),"within",'
@@ -381,7 +420,7 @@ def build() -> None:
     style(ws["B9"], value="=Calculation!B34", **CALC)
     ws["A10"] = "Benchmark year and industry"
     style(ws["B10"], value='=Calculation!B2&" "&Calculation!B3', **CALC)
-    for col, width in zip("ABCDEFG", (28, 34, 12, 16, 16, 28, 6)):
+    for col, width in zip("ABCDEFGH", (28, 34, 12, 16, 16, 28, 6, 20)):
         ws.column_dimensions[col].width = width
     ws.protection.sheet = True
 
@@ -490,6 +529,10 @@ def build() -> None:
         'is the key range used here.","The ATO says to use total expenses to turnover as the key '
         "range where cost of sales is only a small amount. Both ranges are reported and that "
         'judgement is yours."),"")',
+        '=IF(COUNTIF(Results!H2:H6,"ato_industry_page")>0,"Some ranges on Results come from '
+        "the ATO's page for this industry, not the data.gov.au dataset (Range source column). "
+        "The ATO says not every business reports these expenses and to use these ranges only "
+        'as a guide where they apply.","")',
     ]
     for r, formula in enumerate(notes, 16):
         style(ws.cell(row=r, column=1, value=formula), alignment=Alignment(wrap_text=True), **CALC)
@@ -522,6 +565,12 @@ def build() -> None:
         rows.append((f"{year} retrieved", src["retrieved"]))
         rows.append((f"{year} sha256", src["sha256"]))
         rows.append((f"{year} licence", f'{src["licence"]} {src["licence_url"]}'))
+    for year, src in sorted(page_sources.items()):
+        rows.append((f"{year} industry pages", f'{src["publisher"]}, {src["pages"]}'))
+        rows.append((f"{year} industry page index", src["index_url"]))
+        rows.append((f"{year} industry pages retrieved", src["retrieved"]))
+        rows.append((f"{year} industry pages licence", f'{src["licence"]} {src["licence_url"]}'))
+        rows.append((f"{year} industry pages caution", src["caution"]))
     for r, (k, v) in enumerate(rows, 2):
         ws.cell(row=r, column=1, value=k)
         ws.cell(row=r, column=2, value=v)

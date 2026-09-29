@@ -99,4 +99,8 @@ def percent_compact(value: Decimal) -> str:
 
 
 def percent_range(low: Decimal, high: Decimal) -> str:
+    # An ATO industry page sometimes prints a single figure ("1%") for a band;
+    # it is stored as both bounds, so print it the way it was published.
+    if low == high:
+        return percent_compact(low)
     return f"{percent_compact(low)} to {percent_compact(high)}"

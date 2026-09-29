@@ -1,0 +1,5291 @@
+{
+ "schema_version": 1,
+ "benchmark_year": "2023-24",
+ "business_type_count": 99,
+ "source": {
+  "publisher": "Australian Taxation Office",
+  "pages": "Small business benchmarks, industry pages (in detail)",
+  "index_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z",
+  "retrieved": "2026-09-29",
+  "dataset_sha256": "84925348cc6abfdbfb2cd14c62456e02d44057b7c7b444a6839e6179f71440f5",
+  "dataset_json_sha256": "6b07ac82bc2e947adc54dc649d43ac361789b2ddd6445d6806aad9eb57bce980",
+  "licence": "ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products",
+  "licence_url": "https://www.ato.gov.au/about-ato/using-our-website/copyright-notice",
+  "caution": "Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business."
+ },
+ "business_types": [
+  {
+   "name": "Air conditioning, refrigeration and heating services",
+   "page_title": "Air conditioning, refrigeration and heating services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/air-conditioning-refrigeration-and-heating-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43639",
+   "text_sha256": "d6fb3f5120c0e865d8fd95781144ea0a735f20f510bb34acdfbcb5ec1bdda377",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.26",
+      "max": "0.45"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.1"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.34",
+      "max": "0.49"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.41",
+      "max": "0.53"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Alarm systems installation - fire and security",
+   "page_title": "Alarm installation services – fire and security",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/alarm-systems-installation-fire-and-security",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43654",
+   "text_sha256": "7a719a1436e34164717a5bb7d6efc3c52d750c79cf647d95faff310df34a9557",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.2",
+      "max": "0.4"
+     },
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.39"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.06",
+      "max": "0.1"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.27",
+      "max": "0.41"
+     },
+     "labour_to_turnover": {
+      "min": "0.17",
+      "max": "0.31"
+     },
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.31",
+      "max": "0.43"
+     },
+     "labour_to_turnover": {
+      "min": "0.22",
+      "max": "0.36"
+     },
+     "rent_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Architectural services",
+   "page_title": "Architectural services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/architectural-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43655",
+   "text_sha256": "5313456eaabef9b3401684a651c5d6f64f8b42fc600419e4700e7f6cafc1b28a",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.1"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Automotive electrical services",
+   "page_title": "Automotive electrical services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/automotive-electrical-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43658",
+   "text_sha256": "6ed99642ca0f4414a2a980c6790a9315561ef7908ef583562a1ec2f74ecabb23",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.19",
+      "max": "0.29"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.16",
+      "max": "0.25"
+     },
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.2",
+      "max": "0.28"
+     },
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Bakeries and hot bread shops",
+   "page_title": "Bakeries and hot bread shops",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/bakeries-and-hot-bread-shops",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43659",
+   "text_sha256": "d1d15a43ae5680aaae168b24f40cb72866e38f56d284e78196827c337e64402a",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.14",
+      "max": "0.25"
+     },
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.17"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.15",
+      "max": "0.28"
+     },
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.25",
+      "max": "0.34"
+     },
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Barber and men's hairdressing",
+   "page_title": "Barber and men’s hairdressing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/barber-and-men-s-hairdressing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43660",
+   "text_sha256": "29940c536c68bc9b90d6b83654f733070b80c18d12bdcbbbfeab927d5cc0ac68",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.24",
+      "max": "0.4"
+     },
+     "rent_to_turnover": {
+      "min": "0.17",
+      "max": "0.24"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.32",
+      "max": "0.46"
+     },
+     "rent_to_turnover": {
+      "min": "0.11",
+      "max": "0.17"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Beauty services",
+   "page_title": "Beauty services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/beauty-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43661",
+   "text_sha256": "83e91bdfd75861fd6fe41e1ba693437d6f05f979d04630a824b97560cfd9961f",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.35"
+     },
+     "rent_to_turnover": {
+      "min": "0.13",
+      "max": "0.21"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.25",
+      "max": "0.37"
+     },
+     "rent_to_turnover": {
+      "min": "0.12",
+      "max": "0.19"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.27",
+      "max": "0.39"
+     },
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.16"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Blocklaying services",
+   "page_title": "Blocklaying services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/blocklaying-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43662",
+   "text_sha256": "7f6401c3b7abba89d0f40cd076101fe41620c59b064518781cfc4e09871d4f63",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.1"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Book retailing",
+   "page_title": "Book retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/book-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43663",
+   "text_sha256": "b884e145e59e9201519a12e67f806aad974c5c6c4227be384729d21e49c07273",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.14",
+      "max": "0.19"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Bottle shops and liquor retailing",
+   "page_title": "Bottle shops and liquor retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/bottle-shops-and-liquor-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43823",
+   "text_sha256": "9aea9162731d9991b3d09731db11c6e776c10e4bf7d8a81fdff075bc2a60a52f",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.12",
+      "max": "0.18"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.08",
+      "max": "0.13"
+     },
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.07",
+      "max": "0.1"
+     },
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.04"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Bricklaying services",
+   "page_title": "Bricklaying services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/bricklaying-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43822",
+   "text_sha256": "dc9c93821ed98bab8a7acddf8c0e3a1377a530dca6ddee3af0b699c42fe1cfa4",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.38"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.29",
+      "max": "0.43"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.35",
+      "max": "0.49"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Cabinet makers",
+   "page_title": "Cabinet makers",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/cabinet-makers",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43821",
+   "text_sha256": "ad559bb8572b21268de5f375d921d4df0ce71fb3119984fceed7218cf1ac6740",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.21",
+      "max": "0.4"
+     },
+     "labour_to_turnover": {
+      "min": "0.18",
+      "max": "0.3"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.34",
+      "max": "0.45"
+     },
+     "labour_to_turnover": {
+      "min": "0.16",
+      "max": "0.28"
+     },
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.38",
+      "max": "0.48"
+     },
+     "labour_to_turnover": {
+      "min": "0.22",
+      "max": "0.32"
+     },
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Cake shops and patisseries",
+   "page_title": "Cake shops and patisseries",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/cake-shops-and-patisseries",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43820",
+   "text_sha256": "5b4fa5748078ef9ceacff2105e848fca89e242e21514a690977db2bcbe58dfa5",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.18",
+      "max": "0.27"
+     },
+     "rent_to_turnover": {
+      "min": "0.11",
+      "max": "0.17"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.18",
+      "max": "0.26"
+     },
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.15"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.28"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Carpentry services",
+   "page_title": "Carpentry services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/carpentry-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43819",
+   "text_sha256": "9e09ea2390a94e074b1556def455364c83add8749741ebf0afc28273c92037a1",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.24",
+      "max": "0.39"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.08",
+      "max": "0.12"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.35"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.27",
+      "max": "0.43"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Carpet laying services",
+   "page_title": "Carpet laying services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/carpet-laying-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43818",
+   "text_sha256": "41f83d7fce073ad27a3021519def73035f5c3f8b700ab8fd86974d0a2429b752",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.26",
+      "max": "0.38"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.08",
+      "max": "0.11"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.34"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.26",
+      "max": "0.42"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Catering services",
+   "page_title": "Catering services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/catering-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43816",
+   "text_sha256": "2669653955200501bc2b4115232b1220cf9bc539247894ef55f4855c9bec440b",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.19",
+      "max": "0.28"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.16",
+      "max": "0.27"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.33"
+     },
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Cement rendering",
+   "page_title": "Cement rendering",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/cement-rendering",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43813",
+   "text_sha256": "8b9ee5b1da1acd5dad849fbf55b42920c56a0604695191cefb1f5179698ecb6d",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.2",
+      "max": "0.32"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.25",
+      "max": "0.38"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.32",
+      "max": "0.44"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Chicken shops",
+   "page_title": "Chicken shops",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/chicken-shops",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43812",
+   "text_sha256": "cc4d72482c854026523de172a4d49ce74a6277866348df8161a1e94025606fb8",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.13",
+      "max": "0.2"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.16"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Child care services",
+   "page_title": "Child care services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/child-care-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43811",
+   "text_sha256": "ffc70cc87f6b6db7234d1f71fd768ecdbaa62633e76f39fb4ed9d7895ac03582",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.16"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Chiropractic and osteopathic services",
+   "page_title": "Chiropractic and osteopathic services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/chiropractic-and-osteopathic-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43810",
+   "text_sha256": "f52681ba47e0b91906c1d406f50f096de7326a5d337596eff7c30e52f9156e3c",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.4"
+     },
+     "rent_to_turnover": {
+      "min": "0.13",
+      "max": "0.21"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.38"
+     },
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.26",
+      "max": "0.45"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Cleaning services - building and other industrial",
+   "page_title": "Cleaning services – building and other industrial",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/cleaning-services-building-and-other-industrial",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43801",
+   "text_sha256": "68d59cc9cddc06ed58191f4f50e12e48e0f5765d4dd3da78a5fa58916a5973d6",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.31",
+      "max": "0.48"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.29",
+      "max": "0.47"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.09"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.35",
+      "max": "0.56"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Cleaning services - carpet, rug and furniture upholstery",
+   "page_title": "Cleaning services – carpet, rug and furniture upholstery",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/cleaning-services-carpet-rug-and-furniture-upholstery",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43800",
+   "text_sha256": "55b7f52bb02a36e74ccb97496446ba1c5470be6abb782a3affc67b47574c67c7",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.09",
+      "max": "0.13"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.1"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Clothing retailing",
+   "page_title": "Clothing retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/clothing-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43799",
+   "text_sha256": "f78d505d9d042f9dfcaa44a6aabbf652a0782bc499df17774d39888def74601b",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.14",
+      "max": "0.22"
+     },
+     "rent_to_turnover": {
+      "min": "0.11",
+      "max": "0.19"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.11",
+      "max": "0.19"
+     },
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.12",
+      "max": "0.18"
+     },
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.1"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Coffee shops",
+   "page_title": "Coffee shops",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/coffee-shops",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43798",
+   "text_sha256": "4cd119f86d109a867bf474db7fe8085056a08fe74094f8e4c62d57745059cf24",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.32"
+     },
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.17"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.32"
+     },
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.27",
+      "max": "0.35"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.1"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Computer retailing",
+   "page_title": "Computer retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/computer-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43797",
+   "text_sha256": "8d0fb1873156ba6ff436845887e67c80842cdcbba27073a9434b513de09d6eb1",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Concreting services",
+   "page_title": "Concreting services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/concreting-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43796",
+   "text_sha256": "c804b02523907153bdfd44190f7f7fa3fc8c209b83cc6e2494b904f70b9464f1",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.12"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Confectionery retailing",
+   "page_title": "Confectionery retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/confectionery-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43795",
+   "text_sha256": "da44fc691b08cc8ee7a4fca2baea061a06f1712ad8277f1735653fcc65ca6ec9",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.11",
+      "max": "0.15"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Courier services",
+   "page_title": "Courier services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/courier-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43794",
+   "text_sha256": "00f7155ca38e7cc6a4c67d8596820054a783273acb61ca5547309935e0212ca9",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.15",
+      "max": "0.23"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.14",
+      "max": "0.21"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.17"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Craft shops",
+   "page_title": "Craft shops",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/craft-shops",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43793",
+   "text_sha256": "53dac26ca21fcda46591d14d1707b20ac986b111db60b8484f72c8f6fdc34283",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.13",
+      "max": "0.2"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Delicatessen",
+   "page_title": "Delicatessen",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/delicatessen",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43792",
+   "text_sha256": "1da89288ff79723fdb48e84ab837e488ff1f2c4a156cef657e236c6fd1c8e7d8",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.18"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Delivery services",
+   "page_title": "Delivery services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/delivery-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43791",
+   "text_sha256": "75ce0267158abb158e78a97c6eb52a154003da820406d0827277e35d9b6db141",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.14",
+      "max": "0.21"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.14",
+      "max": "0.21"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.09",
+      "max": "0.2"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Dental specialists",
+   "page_title": "Dental specialists",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/dental-specialists",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43790",
+   "text_sha256": "84329267f96e25c6e8caaf91704353d914a00f17aa9b68e9b524e6cebb924b2a",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Dental surgeons - general",
+   "page_title": "Dental surgeons – general",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/dental-surgeons-general",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43789",
+   "text_sha256": "be498a47beb7ba82a3ae356e2b11e22725cbc6738f9f15ebfe0fc576956b35b6",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.25",
+      "max": "0.41"
+     },
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.15"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.24",
+      "max": "0.37"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.1"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.37"
+     },
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Discount and variety stores",
+   "page_title": "Discount and variety stores",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/discount-and-variety-stores",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43788",
+   "text_sha256": "3510f491db7e7f6ef8314104a6744a1c8f5261901e0770176c33dcbc94517845",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.2",
+      "max": "0.3"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.19",
+      "max": "0.25"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.12",
+      "max": "0.21"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Domestic appliance repair and maintenance",
+   "page_title": "Domestic appliance repair and maintenance",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/domestic-appliance-repair-and-maintenance",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43787",
+   "text_sha256": "15b186ce2b96a2504f48bdbb69a39ee34a4c5f818e1e5087779d57a19e0ab23d",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.2",
+      "max": "0.35"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.29",
+      "max": "0.42"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.36",
+      "max": "0.48"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Driving schools and instructors",
+   "page_title": "Driving schools and instructors",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/driving-schools-and-instructors",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43786",
+   "text_sha256": "9f2fcaf51251354da5d1229708f0605bc364653030d7666f12e2e2feddf3f48e",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.16",
+      "max": "0.22"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.12",
+      "max": "0.18"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.06",
+      "max": "0.14"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Electrical and electronic product retailing",
+   "page_title": "Electrical and electronic product retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/electrical-and-electronic-product-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43785",
+   "text_sha256": "b84c71fbe931f70ce852a29fd291b47205d26525ae48790f04f9276c79f28f61",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.1"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Electrical services",
+   "page_title": "Electrical services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/electrical-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43784",
+   "text_sha256": "7293db71d3eafc752c6d460e0d64d7dcf6bdf4bf61bda4a19ebe4cad603727f2",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.22",
+      "max": "0.34"
+     },
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.35"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.06",
+      "max": "0.1"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.26",
+      "max": "0.36"
+     },
+     "labour_to_turnover": {
+      "min": "0.17",
+      "max": "0.3"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.3",
+      "max": "0.41"
+     },
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.34"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Entertainment media retailing",
+   "page_title": "Entertainment media retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/entertainment-media-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43783",
+   "text_sha256": "d1964f80c66379dded8c27808c9c6f1f4d50c4a57e0980807b25dbfd45702313",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Fence construction",
+   "page_title": "Fence construction",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fence-construction",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43782",
+   "text_sha256": "2ada353f6212f3c627fb4343a8dfce7f47fad98cc7427214fc4144493b6f2d75",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.27",
+      "max": "0.45"
+     },
+     "labour_to_turnover": {
+      "min": "0.16",
+      "max": "0.25"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.33",
+      "max": "0.47"
+     },
+     "labour_to_turnover": {
+      "min": "0.14",
+      "max": "0.23"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.38",
+      "max": "0.49"
+     },
+     "labour_to_turnover": {
+      "min": "0.16",
+      "max": "0.26"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Fish and chips shops",
+   "page_title": "Fish and chips shops",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fish-and-chips-shops",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43781",
+   "text_sha256": "c6145ad6f00712a5ee009b81be9281bd7671279c488a68d644dbbddf63674ea9",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.12",
+      "max": "0.17"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Fish and seafood retailing - fresh",
+   "page_title": "Fish and seafood retailing – fresh",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fish-and-seafood-retailing-fresh",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43780",
+   "text_sha256": "882b8ca16caf8a0454c2c7ccd59e93c9a910c4ddfd56cff24da51ccab60a88e0",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.1"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Floor covering retailing",
+   "page_title": "Floor covering retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/floor-covering-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43779",
+   "text_sha256": "c12be06e63fcfc61a8375a30a8dc5bba6b748f87ae04d022def0d02431d455d5",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Florists",
+   "page_title": "Florists",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/florists",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43778",
+   "text_sha256": "759d839915a7435366404914ec92731bb097046c1e35cc510fe2c0f82945ee4b",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.13",
+      "max": "0.23"
+     },
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.14",
+      "max": "0.22"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.16",
+      "max": "0.23"
+     },
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Footwear retailing",
+   "page_title": "Footwear retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/footwear-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43777",
+   "text_sha256": "f54cb844f220cc786587b2d36c1de1d77bb64a26d73033abb9e637d93ba24e62",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.11",
+      "max": "0.19"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.1"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Fruit and vegetable retailing",
+   "page_title": "Fruit and vegetable retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fruit-and-vegetable-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43776",
+   "text_sha256": "aeea370676377d67631a50ba9e81cdf90b31cd8cc9d098f0b0f7eb83204110c5",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.11",
+      "max": "0.18"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.08",
+      "max": "0.13"
+     },
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.08",
+      "max": "0.13"
+     },
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Fuel retailing",
+   "page_title": "Fuel retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fuel-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43775",
+   "text_sha256": "eadb798fb991e064387bf1bad68632b8b5d2caaaf2554bca4fe84804a6093211",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Furniture removalists",
+   "page_title": "Furniture removalists",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/furniture-removalists",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43774",
+   "text_sha256": "e0ef475d24620a6d632150351c0266739f93ddac7774113c49d3e25183590f32",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.12",
+      "max": "0.2"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.09",
+      "max": "0.16"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.06",
+      "max": "0.12"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Furniture retailing",
+   "page_title": "Furniture retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/furniture-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43773",
+   "text_sha256": "7925078ce24864ffbff8cbaa118627bb113f2d40eba941664f38353bbe34f241",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.12",
+      "max": "0.2"
+     },
+     "rent_to_turnover": {
+      "min": "0.11",
+      "max": "0.19"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.1",
+      "max": "0.17"
+     },
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.1",
+      "max": "0.14"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Garden supplies retailing",
+   "page_title": "Garden supplies retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/garden-supplies-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43772",
+   "text_sha256": "e2e1244a773d8922f6fb843164d6e0c5909cfc561aa35e599a3276f8d0141ae8",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Gift stores",
+   "page_title": "Gift stores",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/gift-stores",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43771",
+   "text_sha256": "ab901a93d18e50c843643efa8758d4cf310fcc7153a215eb1232ec60683f177e",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.13",
+      "max": "0.23"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.18"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.15"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Glazing services",
+   "page_title": "Glazing services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/glazing-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43769",
+   "text_sha256": "06af80f4ff2538f809adbad1dca378c33478404f7a79a12356d281be36b540c0",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.19",
+      "max": "0.36"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.1"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.28",
+      "max": "0.44"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.36",
+      "max": "0.47"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.04"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Grocery retailing and convenience stores",
+   "page_title": "Grocery retailing and convenience stores",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/grocery-retailing-and-convenience-stores",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43768",
+   "text_sha256": "15779fecf9fac873aa8f86d321a5850fdcb17c3da5c021ee1f33eca14e2f1865",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.15"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Hairdressers",
+   "page_title": "Hairdressers",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/hairdressers",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43767",
+   "text_sha256": "adcdba8d9a097c92d04a1be6f34833667dd736cf6a2f724e1d48956ebe712d5e",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.12",
+      "max": "0.18"
+     },
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.36"
+     },
+     "rent_to_turnover": {
+      "min": "0.14",
+      "max": "0.21"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.11",
+      "max": "0.16"
+     },
+     "labour_to_turnover": {
+      "min": "0.25",
+      "max": "0.37"
+     },
+     "rent_to_turnover": {
+      "min": "0.11",
+      "max": "0.17"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.12",
+      "max": "0.16"
+     },
+     "labour_to_turnover": {
+      "min": "0.32",
+      "max": "0.44"
+     },
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Health and fitness centres",
+   "page_title": "Health and fitness centres",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/health-and-fitness-centres",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43765",
+   "text_sha256": "6ed3c26a47460aaa5210bf8882e405f19a948cecd7b85adcb4c15305c0cb7d64",
+   "page_anomalies": [
+    "key table heading says 2022-23; the page and its ranges are 2023-24"
+   ],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.36"
+     },
+     "rent_to_turnover": {
+      "min": "0.14",
+      "max": "0.23"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.22",
+      "max": "0.35"
+     },
+     "rent_to_turnover": {
+      "min": "0.15",
+      "max": "0.23"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.19",
+      "max": "0.33"
+     },
+     "rent_to_turnover": {
+      "min": "0.13",
+      "max": "0.19"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Health food retailing",
+   "page_title": "Health food retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/health-food-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43763",
+   "text_sha256": "1ae312174d151ec3c777c3659e2348fe87761dd3960a354bc0200fac4a64daa3",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.1"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Homewares retailing",
+   "page_title": "Homewares retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/homewares-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43762",
+   "text_sha256": "d24fe633805f919ac8a72723db75ba0d0cf11757a2c0b79fe70028488678bc6f",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.15",
+      "max": "0.2"
+     },
+     "rent_to_turnover": {
+      "min": "0.11",
+      "max": "0.2"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.11",
+      "max": "0.19"
+     },
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.18"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.12",
+      "max": "0.18"
+     },
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Ice cream retailing",
+   "page_title": "Ice-cream retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/ice-cream-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43760",
+   "text_sha256": "4c4c9e49c3ddc5817a8768d2161114be8dea99364fcec0bff850fe093b3a8d3b",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.18"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.09"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.12",
+      "max": "0.15"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Kebab shops",
+   "page_title": "Kebab shops",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/kebab-shops",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43759",
+   "text_sha256": "a6e1b2f1e738963fd195ebf4eeaa6aada095a50672b4f30e764e6e09129791c3",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.14",
+      "max": "0.19"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.12",
+      "max": "0.18"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Landscape construction",
+   "page_title": "Landscape construction",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/landscape-construction",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43758",
+   "text_sha256": "7858b6be86e1d8d5d087eb46687124ae3c942ac5fd116788fa8bfc910863707d",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.15",
+      "max": "0.3"
+     },
+     "labour_to_turnover": {
+      "min": "0.18",
+      "max": "0.29"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.24",
+      "max": "0.36"
+     },
+     "labour_to_turnover": {
+      "min": "0.17",
+      "max": "0.28"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.27",
+      "max": "0.38"
+     },
+     "labour_to_turnover": {
+      "min": "0.24",
+      "max": "0.34"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Laundry and dry-cleaning services",
+   "page_title": "Laundry and dry-cleaning services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/laundry-and-dry-cleaning-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43757",
+   "text_sha256": "8da78efaac80db59b511893eadb79b4319de752f964de39ae3169b45f9a55983",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.21",
+      "max": "0.33"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.14",
+      "max": "0.22"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Lawn mower retailing",
+   "page_title": "Lawn mower retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/lawn-mower-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43756",
+   "text_sha256": "9d9575421934e13bf00551b7957b56c2eafafa508eec576585d9fefceaac3aa7",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Lawn mowing and garden services",
+   "page_title": "Lawn mowing and garden services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/lawn-mowing-and-garden-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43747",
+   "text_sha256": "b19cb3378a33fbe9435ea5e7c2592f8fce031574d53ce43028ab08fbd37fefb3",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.25",
+      "max": "0.37"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.09",
+      "max": "0.14"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.2",
+      "max": "0.32"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.24",
+      "max": "0.37"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Machinery and equipment repairs and maintenance",
+   "page_title": "Machinery and equipment repairs and maintenance",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/machinery-and-equipment-repair-and-maintenance",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43746",
+   "text_sha256": "dcbda4d2c6e0baafbf326551403f9e2384f4a2db8dd23ffc64e2cd11810488ab",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.17",
+      "max": "0.35"
+     },
+     "labour_to_turnover": {
+      "min": "0.22",
+      "max": "0.38"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.06",
+      "max": "0.1"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.19",
+      "max": "0.39"
+     },
+     "labour_to_turnover": {
+      "min": "0.19",
+      "max": "0.36"
+     },
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.31",
+      "max": "0.49"
+     },
+     "labour_to_turnover": {
+      "min": "0.19",
+      "max": "0.34"
+     },
+     "rent_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Manchester and other textile goods retailing",
+   "page_title": "Manchester and other textile goods retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/manchester-and-other-textile-goods-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43744",
+   "text_sha256": "7a3ff1c3c2a6e4c41b31066cecc89bd2e14a2beeb2c0d6325811e5e247b7642c",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.17"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Meat and poultry retailing - fresh",
+   "page_title": "Meat and poultry retailing – fresh",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/meat-and-poultry-retailing-fresh",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43741",
+   "text_sha256": "e5e70efdc72cf52f728982b41c617de1aa3ac22c0f233210d7b032beb8c55a3f",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Motor vehicle parts and batteries retailing",
+   "page_title": "Motor vehicle parts and batteries retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/motor-vehicle-parts-and-batteries-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43737",
+   "text_sha256": "ee4516c71c899f4319d42056bd7ebdce93c50e8754a94c89aef7c7fbef8a5906",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.14",
+      "max": "0.24"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.11",
+      "max": "0.18"
+     },
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.11",
+      "max": "0.16"
+     },
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Motor vehicle retail - new and used car",
+   "page_title": "Motor vehicle retail - new and used",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/motor-vehicle-retail-new-and-used",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43734",
+   "text_sha256": "52fddc3db577c810ee9b325e1371f0aac9d2ad34d6657dcb40ad5d8813c74b63",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Musical instruments retail",
+   "page_title": "Musical instruments retail",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/musical-instruments-retail",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43731",
+   "text_sha256": "b2aeecf9d1d3af30eff0bcafd2a658d42f84f847337d9ab63a687079e01247ba",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Newsagents",
+   "page_title": "Newsagents",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/newsagents",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43706",
+   "text_sha256": "ff6910517c64b93034876d2ee64950e6c53431ac1b400c8a3560267b5a92b5dd",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.16"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Painting services",
+   "page_title": "Painting services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/painting-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43705",
+   "text_sha256": "9e5f4a3405e70097c8ec7dd992283229eede0498d7e4aa6a28d5f9c25d7dde62",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.13",
+      "max": "0.19"
+     },
+     "labour_to_turnover": {
+      "min": "0.22",
+      "max": "0.35"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.14",
+      "max": "0.21"
+     },
+     "labour_to_turnover": {
+      "min": "0.26",
+      "max": "0.4"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.14",
+      "max": "0.21"
+     },
+     "labour_to_turnover": {
+      "min": "0.36",
+      "max": "0.49"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Panel beating and smash repairs",
+   "page_title": "Panel beating and smash repairs",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/panel-beating-and-smash-repairs",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43704",
+   "text_sha256": "150abc83cdfa189fefcf94bea9d9d2ae7d25f05254a9b27b3a9b2cc0dbc1b925",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.17",
+      "max": "0.31"
+     },
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.33"
+     },
+     "rent_to_turnover": {
+      "min": "0.12",
+      "max": "0.19"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.19",
+      "max": "0.35"
+     },
+     "labour_to_turnover": {
+      "min": "0.18",
+      "max": "0.29"
+     },
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.15"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.34",
+      "max": "0.45"
+     },
+     "labour_to_turnover": {
+      "min": "0.2",
+      "max": "0.29"
+     },
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Pest control services",
+   "page_title": "Pest control services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/pest-control-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43703",
+   "text_sha256": "243ccf23553f31abb5a85e8645309f36ced00478ab516482bdaaa559ef76c4fb",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.28",
+      "max": "0.4"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.09",
+      "max": "0.13"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.2",
+      "max": "0.38"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.25",
+      "max": "0.38"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Pets and pet supply retailing",
+   "page_title": "Pets and pet supply retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/pets-and-pet-supply-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43702",
+   "text_sha256": "8bf7e2db411fcf848e185c71f864ac65af70a549a43f850a9a578cae3a764262",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.18"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Pharmacy",
+   "page_title": "Pharmacy",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/pharmacy",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43701",
+   "text_sha256": "74e55f6373a33f9eb60a4a6d3974d80ee202c140c6400186ce5d1649f5484ed1",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.1",
+      "max": "0.15"
+     },
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.1",
+      "max": "0.14"
+     },
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.04"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.1",
+      "max": "0.13"
+     },
+     "rent_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Physiotherapy services",
+   "page_title": "Physiotherapy services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/physiotherapy-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43698",
+   "text_sha256": "43d5b970b7503c9ca96786fe9583dcdbc436a13c92e2d4354d1264b927d5d788",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.24",
+      "max": "0.44"
+     },
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.16"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.29",
+      "max": "0.45"
+     },
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.41",
+      "max": "0.52"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Picture framing retailing",
+   "page_title": "Picture framing retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/picture-framing-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43696",
+   "text_sha256": "d177040473aa3c80b4e128f220856c50cc9de99d9a42a67fe6c7dd03b3ccc345",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.15",
+      "max": "0.22"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.12",
+      "max": "0.18"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Pizza shops - takeaway",
+   "page_title": "Pizza shops - takeaway",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/pizza-shops-takeaway",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43694",
+   "text_sha256": "5305bbc94a9fd4e34d0fe38db0100b2b630df94aa1b8c3a3a078174651ba6030",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.15"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Plastering and ceiling services",
+   "page_title": "Plastering and ceiling services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/plastering-and-ceiling-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43693",
+   "text_sha256": "9665f899b877de72332244f7933839e02796abbb6821b3d8e1ad6d010d4aef73",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.12",
+      "max": "0.22"
+     },
+     "labour_to_turnover": {
+      "min": "0.24",
+      "max": "0.4"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.1"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.19",
+      "max": "0.29"
+     },
+     "labour_to_turnover": {
+      "min": "0.3",
+      "max": "0.45"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.24",
+      "max": "0.33"
+     },
+     "labour_to_turnover": {
+      "min": "0.34",
+      "max": "0.5"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Plumbing services",
+   "page_title": "Plumbing services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/plumbing-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43692",
+   "text_sha256": "55ed6ce6a02c55e4790638c8a423ef2c7564d3dbc0719d911ff1b345081dcdd6",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.2",
+      "max": "0.33"
+     },
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.34"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.26",
+      "max": "0.35"
+     },
+     "labour_to_turnover": {
+      "min": "0.16",
+      "max": "0.27"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.29",
+      "max": "0.38"
+     },
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.33"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Printing",
+   "page_title": "Printing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/printing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43690",
+   "text_sha256": "39b72db9c16f98b20def69446cf2db5e11b37af9a7f011be176579c747d7ffcd",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.22",
+      "max": "0.34"
+     },
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.18",
+      "max": "0.29"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.19",
+      "max": "0.28"
+     },
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Printing support services",
+   "page_title": "Printing support services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/printing-support-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43688",
+   "text_sha256": "0da114f12aabce001cf0c4f055b45fcedd0a3d5d14f7a1dfd116c690aee3e2bf",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.26",
+      "max": "0.44"
+     },
+     "labour_to_turnover": {
+      "min": "0.19",
+      "max": "0.3"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.3",
+      "max": "0.44"
+     },
+     "labour_to_turnover": {
+      "min": "0.16",
+      "max": "0.27"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.35",
+      "max": "0.51"
+     },
+     "labour_to_turnover": {
+      "min": "0.18",
+      "max": "0.28"
+     },
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Pubs, taverns and bars",
+   "page_title": "Pubs, taverns and bars",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/pubs-taverns-and-bars",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43685",
+   "text_sha256": "2c199549b6f8b36fba2821d16b0d1ddc3774fa922bbd4981c8f5d659dfcc7ad6",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.18",
+      "max": "0.28"
+     },
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.32"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.1"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.2",
+      "max": "0.27"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Restaurants",
+   "page_title": "Restaurants",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/restaurants",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43683",
+   "text_sha256": "ab97fdc84c879c16d1ae799abf7a5ce91e6f0507c94a650a543a79ec02ad743d",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.18",
+      "max": "0.3"
+     },
+     "rent_to_turnover": {
+      "min": "0.11",
+      "max": "0.17"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.32"
+     },
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.27",
+      "max": "0.34"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Road freight transport services",
+   "page_title": "Road freight transport services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/road-freight-transport-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43681",
+   "text_sha256": "025f9042e4b48976f20538dd3dbe8c85c11f1a490ab81243d7e12904218ad90d",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.25",
+      "max": "0.37"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.14",
+      "max": "0.25"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.18",
+      "max": "0.31"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.12",
+      "max": "0.28"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.32"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.26"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Roofing services, including roof tiling, guttering and metal roofing",
+   "page_title": "Roofing services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/roofing-services-includes-roof-tiling-guttering-and-metal-roofing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43680",
+   "text_sha256": "5ac308bc362d3e0decd6c4a020de174f251dfd42995bbee1894046a2f1f389f8",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.2",
+      "max": "0.33"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.06",
+      "max": "0.1"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.22",
+      "max": "0.35"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.23",
+      "max": "0.33"
+     },
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Sports and physical recreation instruction",
+   "page_title": "Sports and physical recreation instruction",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/sports-and-physical-recreation-instruction",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43677",
+   "text_sha256": "277161e21229e3abf7f8f0b25746957e5450a25b9f2ffc2d3f87ceb798c701a0",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.11",
+      "max": "0.2"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.18"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Sports, camping and fishing retailing",
+   "page_title": "Sports, camping and fishing retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/sports-camping-and-fishing-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43679",
+   "text_sha256": "6b3ab160c29327b68595bd9358cce522a621e8ef3673ad098d7f4629b2de2a7e",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.14",
+      "max": "0.22"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.11",
+      "max": "0.19"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.1"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.1",
+      "max": "0.16"
+     },
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Stationery goods retailing",
+   "page_title": "Stationery goods retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/stationery-goods-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43676",
+   "text_sha256": "28f18a013d2006458911dbb8eec249a86bdab456455c074d07a9307564529baa",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Takeaway food services",
+   "page_title": "Takeaway food services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/takeaway-food-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43675",
+   "text_sha256": "01b92ebf219f4fa033628b5e306ed5e9f445c6a869ae507aeaa7032a2a00cb92",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.16",
+      "max": "0.26"
+     },
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.17"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.15",
+      "max": "0.24"
+     },
+     "rent_to_turnover": {
+      "min": "0.1",
+      "max": "0.15"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.19",
+      "max": "0.27"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.12"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Tiling services - floor and wall",
+   "page_title": "Tiling services – floor and wall",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/tiling-services-floor-and-wall",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43673",
+   "text_sha256": "c261256c79f66895b71eb9f9176b6a63c01c639e70059e806c3dca73c18c498a",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.12",
+      "max": "0.19"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.11"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.14",
+      "max": "0.21"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.15",
+      "max": "0.25"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Timber floor sanding",
+   "page_title": "Timber floor sanding",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/timber-floor-sanding",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43672",
+   "text_sha256": "61f8fafdd74da5d1bf86a07d4e7e8deea5d278a5abb7ec2d74976e5f192db782",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.17",
+      "max": "0.26"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.07",
+      "max": "0.12"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.19",
+      "max": "0.27"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.06",
+      "max": "0.09"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.2",
+      "max": "0.28"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": null,
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Tobacco retailing",
+   "page_title": "Tobacco retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/tobacco-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43671",
+   "text_sha256": "b177f3d645356cd33522f35774e9e38b5330c8d6f79130b394495d39ba5273bd",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Towing services",
+   "page_title": "Towing services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/towing-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43670",
+   "text_sha256": "fe2746729b7af0d683cc68f55d71193fa65d968e62bd22937705ea5db3e58131",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.35"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.19",
+      "max": "0.3"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.16",
+      "max": "0.28"
+     },
+     "rent_to_turnover": {
+      "min": "0.04",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.13",
+      "max": "0.24"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.21",
+      "max": "0.32"
+     },
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.1",
+      "max": "0.2"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Toy and game retailing",
+   "page_title": "Toy and game retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/toy-and-game-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43669",
+   "text_sha256": "0220ab956eab909a25ace045a294dfd9372714612d42b48889a6c3550c341a14",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.16"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.13"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Tutoring and coaching",
+   "page_title": "Tutoring and coaching",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/tutoring-and-coaching",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43668",
+   "text_sha256": "eae154cd25cb8eb4f091e3a7836d664c61800595ac93ba81d49133630fb8ac38",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.26",
+      "max": "0.43"
+     },
+     "rent_to_turnover": {
+      "min": "0.08",
+      "max": "0.16"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.06"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.25",
+      "max": "0.41"
+     },
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.25",
+      "max": "0.43"
+     },
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.09"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Tyre retailing",
+   "page_title": "Tyre retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/tyre-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43667",
+   "text_sha256": "03f5d057e835768a3e1582a8509eb4c16bcf3a002339dcdeeb27d2a6ef806fbc",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.11",
+      "max": "0.17"
+     },
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.07"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.03"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.12",
+      "max": "0.16"
+     },
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.12",
+      "max": "0.16"
+     },
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.04"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Veterinary services",
+   "page_title": "Veterinary services",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/veterinary-services",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43666",
+   "text_sha256": "90ec95e1d48c6813bd7842f5040ba737d39ced0e7dc195064393668121156c78",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": {
+      "min": "0.18",
+      "max": "0.28"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.06",
+      "max": "0.11"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.04",
+      "max": "0.07"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": {
+      "min": "0.2",
+      "max": "0.27"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.08"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.02",
+      "max": "0.04"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": {
+      "min": "0.21",
+      "max": "0.25"
+     },
+     "labour_to_turnover": null,
+     "rent_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.01"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Watch and jewellery retailing",
+   "page_title": "Watch and jewellery retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/watch-and-jewellery-retailing",
+   "page_last_updated": "16 March 2026",
+   "page_reference": "QC43664",
+   "text_sha256": "b70e502e9b330b343d2c13f0ac2d7c38eff778d12328bd7e38a2db045b588840",
+   "page_anomalies": [],
+   "turnover_bands": [
+    {
+     "band": "low",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.15",
+      "max": "0.26"
+     },
+     "rent_to_turnover": {
+      "min": "0.09",
+      "max": "0.19"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.03",
+      "max": "0.05"
+     }
+    },
+    {
+     "band": "medium",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.13",
+      "max": "0.21"
+     },
+     "rent_to_turnover": {
+      "min": "0.07",
+      "max": "0.14"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0.01",
+      "max": "0.02"
+     }
+    },
+    {
+     "band": "high",
+     "cost_of_sales_to_turnover": null,
+     "labour_to_turnover": {
+      "min": "0.12",
+      "max": "0.2"
+     },
+     "rent_to_turnover": {
+      "min": "0.05",
+      "max": "0.1"
+     },
+     "motor_vehicle_to_turnover": {
+      "min": "0",
+      "max": "0.01"
+     }
+    }
+   ]
+  }
+ ],
+ "excluded_pages": [
+  {
+   "name": "Hardware and building supplies retailing",
+   "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/hardware-and-building-supplies-retailing",
+   "reason": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/hardware-and-building-supplies-retailing: cost_of_sales_to_turnover for medium is ('0.56', '0.66') on the page but {'min': '0.55', 'max': '0.66'} in the dataset"
+  }
+ ]
+}

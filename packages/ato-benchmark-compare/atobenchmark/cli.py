@@ -32,6 +32,9 @@ from .ratios import RatioError, compute
 from .report import compare as compare_ratios
 from .report import evidenced_ratio, render_text, to_evidenced_dict
 
+#: The ratios only the ATO's industry pages publish ranges for, in report order.
+OTHER_RATIO_KEYS = ("labour_to_turnover", "rent_to_turnover", "motor_vehicle_to_turnover")
+
 EXIT_OK = 0
 EXIT_ERROR = 1
 EXIT_OUTSIDE = 2
@@ -85,14 +88,21 @@ def cmd_show(args: argparse.Namespace) -> int:
     print()
     for band in business_type.bands:
         print(f"  {band.label}")
-        for name in RATIO_KEYS:
+        for name in (*RATIO_KEYS, *OTHER_RATIO_KEYS):
             benchmark = band.ratios.get(name)
-            shown = (
-                percent_range(benchmark.minimum, benchmark.maximum) if benchmark else "not published"
-            )
-            print(f"    {RATIO_LABELS[name]:<30} {shown}")
+            if benchmark is None:
+                # Only the workbook's two ranges were ever listed as unpublished;
+                # a missing page range is simply absent from the page.
+                if name in RATIO_KEYS:
+                    print(f"    {RATIO_LABELS[name]:<36} not published")
+                continue
+            shown = percent_range(benchmark.minimum, benchmark.maximum)
+            page = " (ATO industry page, a guide only)" if name in band.page_ratios else ""
+            print(f"    {RATIO_LABELS[name]:<36} {shown}{page}")
     print()
     print(f"Source: {data.source.get('resource_url')}")
+    if business_type.page is not None and any(band.page_ratios for band in business_type.bands):
+        print(f"Industry page: {business_type.page.get('page_url')}")
     return EXIT_OK
 
 

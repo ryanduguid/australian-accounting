@@ -154,9 +154,9 @@ Ratio                                   This business  ATO range         Result
 ---------------------------------------------------------------------------------
 Cost of sales to turnover (key)         31.76%         29% to 36%        within
 Total expenses to turnover              83.17%         82% to 90%        within
-Labour to turnover                      32.68%         -                 no benchmark in this dataset
-Rent to turnover                        7.29%          -                 no benchmark in this dataset
-Motor vehicle expenses to turnover      1.12%          -                 no benchmark in this dataset
+Labour to turnover                      32.68%         25% to 34%        within
+Rent to turnover                        7.29%          5% to 8%          within
+Motor vehicle expenses to turnover      1.12%          1%                above
 
 Figures used
   Sales of goods and services   $850,000.00
@@ -169,8 +169,16 @@ Figures used
   Labour                        $277,800.00
 ```
 
+The labour, rent and motor vehicle ranges come from the ATO's page for bakeries, not
+the data.gov.au workbook, so the output also carries a note with the ATO's own caution
+and a Source entry naming that page. The `1%` motor vehicle range is printed that way
+on the page; [LIMITATIONS.md](LIMITATIONS.md) ABC-2 explains why 1.12% reads `above`
+it.
+
 Add `--json result.json` for the same result as structured data, including every
-bucket total and the source metadata.
+bucket total and the source metadata. Each ratio row's `benchmark_source` says
+whether its range came from the workbook (`ato_dataset`) or an industry page
+(`ato_industry_page`), and `industry_page_source` names that page.
 
 Library callers that distinguish an omitted figure from an evidenced zero can use
 `atobenchmark.to_evidenced_dict(comparison, supplied_fields)`; include `w1` in that
@@ -259,9 +267,11 @@ and use `--amount-column` if it picked the wrong period.
 
 - It is not tax advice, and sitting outside a range is not a finding that anything is
   wrong. The ATO publishes ranges precisely because businesses differ.
-- The bulk dataset the ATO publishes carries the 2 key ratios only. Labour, rent
-  and motor vehicle ratios are calculated and shown, but the ranges for them are on
-  the ATO's individual industry pages and are not in this dataset yet.
+- The bulk dataset the ATO publishes carries the key ranges only. Labour, rent and
+  motor vehicle ranges, and cost of sales where it is not the key range, come from
+  the ATO's individual industry pages, read into a separate data file. They are
+  compared like any other range but never decide the exit code, and the ATO says to
+  use them only as a guide where the expense applies to the business.
 - Activity statement benchmarks are not covered. The ATO has not produced them since
   1 July 2017.
 - It reads a profit and loss. It does not read a tax return, so it cannot see the
@@ -310,6 +320,37 @@ Replace the placeholders with the actual observed resource metadata for the buil
 The builder refuses a workbook whose columns are not where it expects them, rather
 than quietly producing a dataset with the ratios in the wrong places.
 
+### Industry page ranges
+
+| Year | Business types | Source |
+| --- | --- | --- |
+| 2023-24 | 99 of 100 | [ATO industry pages](https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z), retrieved 29 September 2026 |
+
+`atobenchmark/data/other-benchmarks-2023-24.json` holds the labour, rent and motor
+vehicle ranges, and cost of sales where the workbook has none, as each industry page
+prints them. For every page it records the address, the page's last-updated date and
+QC reference, and the SHA-256 of the saved page text. The loader merges the file only
+into the year and workbook it was built against, and never lets it replace a
+workbook range.
+
+`tools/build_other_benchmarks.py` builds it from pages saved as text. A page must
+state the workbook's benchmark year, carry a last-updated date and QC reference,
+list the workbook's turnover bands and print every range the workbook publishes,
+equal to the workbook's own; a page that disagrees contributes nothing, and the
+file names it and why. The build fails unless the excluded pages are exactly the
+ones named with `--expect-excluded`, so a page that starts disagreeing stops the
+next rebuild. In 2023-24 the hardware and building supplies retailing page is left
+out: its medium-band cost of sales range starts at 56%, the workbook's at 55%.
+
+```bash
+uv run python tools/build_other_benchmarks.py \
+  --pages-dir <saved pages> \
+  --dataset atobenchmark/data/benchmarks-2023-24.json \
+  --retrieved <actual retrieval date YYYY-MM-DD> \
+  --expect-excluded "Hardware and building supplies retailing" \
+  --out atobenchmark/data/other-benchmarks-2023-24.json
+```
+
 ### Attribution
 
 The benchmark figures are derived from Australian Taxation Office data, [Small
@@ -318,6 +359,13 @@ used under [CC BY 2.5 AU](https://creativecommons.org/licenses/by/2.5/au/). The 
 has been converted from the ATO's spreadsheet into JSON, and turnover band bounds
 have been made adjoining as described above. No published ratio has been altered.
 The ATO has not endorsed this tool and has nothing to do with it.
+
+The industry page ranges are reproduced from the ATO's website under its
+[copyright notice](https://www.ato.gov.au/about-ato/using-our-website/copyright-notice),
+which permits copying and adaptation provided nothing suggests the ATO or the
+Commonwealth endorses the user or its products. Published percentages are converted
+to ratio bounds, and a single printed figure is stored as equal bounds, with no wider
+interval inferred.
 
 The code in this repository is MIT licensed. The data attribution is also
 recorded in [NOTICE](NOTICE), which ships inside the wheel and the sdist.

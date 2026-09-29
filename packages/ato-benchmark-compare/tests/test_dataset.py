@@ -103,17 +103,24 @@ def test_every_published_range_is_plausible() -> None:
     for year in ds.available_years():
         for business_type in ds.load(year).business_types:
             for band in business_type.bands:
-                for benchmark in band.ratios.values():
+                for key, benchmark in band.ratios.items():
                     if benchmark is None:
                         continue
-                    assert Decimal(0) < benchmark.minimum <= benchmark.maximum <= Decimal(1)
+                    # An industry page can print "0% to 1%" for an expense many
+                    # businesses do not have; the workbook's ranges never start at 0.
+                    floor = Decimal(0) if key in band.page_ratios else Decimal("0.0001")
+                    assert floor <= benchmark.minimum <= benchmark.maximum <= Decimal(1)
 
 
 def test_key_ratio_follows_whether_cost_of_sales_is_published() -> None:
     for year in ds.available_years():
         for business_type in ds.load(year).business_types:
+            # The rule reads the workbook; a cost of sales range an industry page
+            # adds is an other benchmark and never makes it the key ratio.
             has_cost_of_sales = any(
-                band.ratios["cost_of_sales_to_turnover"] for band in business_type.bands
+                band.ratios["cost_of_sales_to_turnover"]
+                and "cost_of_sales_to_turnover" not in band.page_ratios
+                for band in business_type.bands
             )
             expected = "cost_of_sales_to_turnover" if has_cost_of_sales else "total_expenses_to_turnover"
             assert business_type.key_ratio == expected

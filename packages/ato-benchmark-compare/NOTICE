@@ -8,3 +8,12 @@ Creative Commons Attribution 2.5 Australia
 from the published spreadsheet into JSON and turnover band bounds have been made
 adjoining; no published ratio has been altered. The Australian Taxation Office
 has not endorsed this software.
+
+The labour, rent, motor vehicle and supplementary cost of sales ranges in
+atobenchmark/data/other-benchmarks-*.json are reproduced from the Australian
+Taxation Office's small business benchmark industry pages under the ATO's
+copyright notice (https://www.ato.gov.au/about-ato/using-our-website/copyright-notice),
+which permits copying and adaptation provided nothing suggests the ATO or the
+Commonwealth endorses the user or its products. Published percentages are
+converted to ratio bounds, and a single printed figure is stored as equal
+bounds, with no wider interval inferred.

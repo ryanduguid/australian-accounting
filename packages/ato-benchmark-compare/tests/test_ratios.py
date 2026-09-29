@@ -373,9 +373,10 @@ def test_compare_withholds_a_ratio_built_on_a_bucket_nobody_supplied() -> None:
     assert statuses["cost_of_sales_to_turnover"] == "not_supplied"
     assert statuses["labour_to_turnover"] == "not_supplied"
     assert statuses["total_expenses_to_turnover"] == "not_supplied"
-    # rent was supplied, so the row still reports the dataset's own answer
-    # rather than being withheld. This dataset publishes no rent range.
-    assert statuses["rent_to_turnover"] == "no benchmark in this dataset"
+    # rent was supplied, so the row is compared rather than withheld: 4.71% of
+    # turnover against the 5% to 8% the ATO's bakery page publishes for this
+    # band. It is not the key ratio, so it cannot decide the exit code.
+    assert statuses["rent_to_turnover"] == "below"
     assert comparison.outside_key_range is False
 
 

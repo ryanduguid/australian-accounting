@@ -18,6 +18,16 @@ ABOVE = "above"
 NO_BENCHMARK = "no benchmark in this dataset"
 NO_BAND = "no turnover band applies"
 
+#: Where a printed range came from, for each ratio row of the JSON payload.
+SOURCE_DATASET = "ato_dataset"
+SOURCE_INDUSTRY_PAGE = "ato_industry_page"
+
+INDUSTRY_PAGE_NOTE = (
+    "The {ratios} range{s} come{verb} from the ATO's page for this industry, not the "
+    "data.gov.au dataset. The ATO says not every business reports these expenses and "
+    "to use these ranges only as a guide where they apply."
+)
+
 DISCLAIMER = (
     "The ATO publishes these benchmarks as ranges, and sitting outside a range is not "
     "of itself a finding that anything is wrong. This tool reports a comparison. It is "
@@ -167,6 +177,9 @@ class Verdict:
     benchmark: Range | None
     status: str
     is_key: bool
+    #: Where the range came from: SOURCE_DATASET, SOURCE_INDUSTRY_PAGE (an ATO
+    #: other benchmark, a guide only), or None when there is no range.
+    benchmark_source: str | None = None
 
 
 @dataclass
@@ -285,7 +298,48 @@ def compare(
                 benchmark=benchmark,
                 status=status,
                 is_key=(name == key_ratio),
+                benchmark_source=None
+                if benchmark is None
+                else SOURCE_INDUSTRY_PAGE
+                if band is not None and name in band.page_ratios
+                else SOURCE_DATASET,
             )
+        )
+
+    page_used = [
+        verdict.label
+        for verdict in verdicts
+        if band is not None
+        and verdict.key in band.page_ratios
+        and verdict.status in {WITHIN, BELOW, ABOVE}
+    ]
+    if page_used:
+        plural = len(page_used) > 1
+        named = [label.lower() for label in page_used]
+        listed = named[0] if not plural else ", ".join(named[:-1]) + " and " + named[-1]
+        add_note(
+            "industry_page_ranges",
+            INDUSTRY_PAGE_NOTE.format(
+                ratios=listed,
+                s="s" if plural else "",
+                verb="" if plural else "s",
+            ),
+            frozenset({"turnover", "other_income"}),
+        )
+    single = [
+        verdict.label.lower()
+        for verdict in verdicts
+        if verdict.benchmark_source == SOURCE_INDUSTRY_PAGE
+        and verdict.benchmark is not None
+        and verdict.benchmark.minimum == verdict.benchmark.maximum
+        and verdict.status in {WITHIN, BELOW, ABOVE}
+    ]
+    if single:
+        add_note(
+            "industry_page_single_figure",
+            f"The ATO printed a single figure, not a range, for {' and '.join(single)}. "
+            "The tool compares against that figure and does not infer wider bounds.",
+            frozenset({"turnover", "other_income"}),
         )
 
     return Comparison(
@@ -427,9 +481,37 @@ def render_text(
     add(f"  {source.get('resource_url')}")
     add(f"  Retrieved {source.get('retrieved')}, sha256 {source.get('sha256')}")
     add(f"  Licensed {source.get('licence')} ({source.get('licence_url')})")
+    page_source = industry_page_source(comparison)
+    if page_source is not None and (presence is None or presence.income_evidenced):
+        labels = ", ".join(RATIO_LABELS[key] for key in page_source["ratios"])
+        add(f"  {labels}: ATO industry page")
+        add(f"  {page_source['page_url']}")
+        add(
+            f"  Page last updated {page_source['page_last_updated']}, "
+            f"{page_source['page_reference']}, retrieved {page_source['retrieved']}, "
+            f"text sha256 {page_source['text_sha256']}"
+        )
+        add(f"  Reused under the ATO copyright notice ({page_source['licence_url']})")
     add("")
     add(DISCLAIMER)
     return "\n".join(lines)
+
+
+def industry_page_source(comparison: Comparison) -> dict | None:
+    """The industry page behind any range in the selected band, or None."""
+    band = comparison.band
+    page = comparison.business_type.page
+    source = comparison.dataset.page_source
+    if band is None or not band.page_ratios or page is None or source is None:
+        return None
+    return {
+        **page,
+        "retrieved": source.get("retrieved"),
+        "licence": source.get("licence"),
+        "licence_url": source.get("licence_url"),
+        "caution": source.get("caution"),
+        "ratios": [key for key in RATIO_ORDER if key in band.page_ratios],
+    }
 
 
 def to_dict(comparison: Comparison, unreviewed: int = 0) -> dict:
@@ -462,6 +544,7 @@ def to_dict(comparison: Comparison, unreviewed: int = 0) -> dict:
                 "percent": percent(verdict.ratio),
                 "benchmark_min": None if verdict.benchmark is None else str(verdict.benchmark.minimum),
                 "benchmark_max": None if verdict.benchmark is None else str(verdict.benchmark.maximum),
+                "benchmark_source": verdict.benchmark_source,
                 "status": verdict.status,
                 "is_key_ratio": verdict.is_key,
             }
@@ -471,6 +554,7 @@ def to_dict(comparison: Comparison, unreviewed: int = 0) -> dict:
         "notes": list(comparison.notes),
         "checks_to_make": list(figures.warnings),
         "source": dict(comparison.dataset.source),
+        "industry_page_source": industry_page_source(comparison),
         "disclaimer": DISCLAIMER,
     }
 
@@ -512,6 +596,7 @@ def to_evidenced_dict(
                 "percent": None,
                 "benchmark_min": row["benchmark_min"] if presence.income_evidenced else None,
                 "benchmark_max": row["benchmark_max"] if presence.income_evidenced else None,
+                "benchmark_source": row["benchmark_source"] if presence.income_evidenced else None,
                 "status": NOT_SUPPLIED,
                 "is_key_ratio": is_key_ratio,
             }
@@ -530,6 +615,7 @@ def to_evidenced_dict(
         payload["turnover"] = None
         payload["turnover_basis"] = None
         payload["turnover_band"] = None
+        payload["industry_page_source"] = None
     if not presence.expense_complete:
         payload["figures"]["total_expenses"] = None
         payload["figures"]["total_expenses_for_ratio"] = None
