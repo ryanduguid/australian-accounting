@@ -51,7 +51,8 @@ def _ci_run_commands() -> list[str]:
         encoding="utf-8"
     )
     commands = re.findall(r"^\s+(?:-\s+)?run:\s*(\S.*)$", workflow, flags=re.MULTILINE)
-    return list(dict.fromkeys(commands))
+    # A block script (the aggregate gate's result check) is not a contributor command.
+    return list(dict.fromkeys(command for command in commands if command[0] not in "|>"))
 
 
 def _section(document: str, heading: str) -> str:
