@@ -247,6 +247,16 @@ def merge_page_ranges(
     entries = raw.get("business_types")
     if not isinstance(entries, list):
         raise DatasetError(f"{source_name}: business_types is missing")
+    if raw.get("business_type_count") != len(entries):
+        raise DatasetError(f"{source_name}: business_type_count does not match business_types")
+    # Every business type is either included or named as excluded, so a file
+    # that lost an entry cannot quietly drop that industry's page ranges.
+    excluded_raw = raw.get("excluded_pages")
+    if not isinstance(excluded_raw, list) or not all(
+        isinstance(item, dict) and isinstance(item.get("name"), str) for item in excluded_raw
+    ):
+        raise DatasetError(f"{source_name}: excluded_pages is missing or malformed")
+    excluded = [item["name"] for item in excluded_raw]
 
     by_name = {bt.name: bt for bt in dataset.business_types}
     merged: dict[str, BusinessType] = {}
@@ -298,6 +308,17 @@ def merge_page_ranges(
             key_ratio=business_type.key_ratio,
             bands=tuple(bands),
             page=page,
+        )
+
+    known = {bt.name for bt in dataset.business_types}
+    if (
+        len(set(excluded)) != len(excluded)
+        or set(excluded) & set(merged)
+        or set(excluded) | set(merged) != known
+    ):
+        raise DatasetError(
+            f"{source_name}: included and excluded business types do not account for "
+            f"the {len(known)} in {dataset.year}"
         )
 
     return Dataset(

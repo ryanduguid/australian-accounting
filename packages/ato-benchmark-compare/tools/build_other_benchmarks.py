@@ -59,7 +59,7 @@ OTHER_KEYS = (
 # Pages print a ratio heading as "'Rent' divided by 'Annual turnover'", sometimes
 # with a space inside the quotes or without "by", or as "Rent/turnover".
 HEADING_RE = re.compile(
-    r"^(?:'\s*(?P<quoted>[^']+?)\s*' divided (?:by )?'\s*Annual turnover\s*'"
+    r"^(?:'?\s*(?P<quoted>[A-Za-z ]+?)\s*'?\s+divided\s+(?:by\s+)?'?\s*Annual turnover\s*'?"
     r"|(?P<slashed>[A-Za-z ]+?)\s*/\s*(?:annual )?turnover)$",
     re.IGNORECASE,
 )
@@ -118,6 +118,8 @@ def parse_section(lines: list[str], start: int, where: str) -> tuple[list[str], 
     """
     i = start + 1
     while i < len(lines) and lines[i] != "Annual turnover range":
+        if YEAR_RE.match(lines[i]):
+            raise BuildError(f"{where}: the next table starts before this one's bands")
         i += 1
     if i == len(lines):
         raise BuildError(f"{where}: no 'Annual turnover range' after the year heading")
@@ -142,6 +144,12 @@ def parse_section(lines: list[str], start: int, where: str) -> tuple[list[str], 
             ):
                 i += 1 + len(labels)
                 continue
+            # A line followed by a full set of ranges is a ratio heading this
+            # builder does not recognise, not the end of the table: stop rather
+            # than keep the ratios read so far and drop the rest.
+            following = lines[i + 1 : i + 1 + len(labels)]
+            if len(following) == len(labels) and all(RANGE_RE.match(v) for v in following):
+                raise BuildError(f"{where}: unrecognised benchmark heading {lines[i]!r}")
             break
         name = (heading.group("quoted") or heading.group("slashed")).strip().lower()
         key = HEADINGS.get(name)
@@ -175,8 +183,10 @@ def parse_section(lines: list[str], start: int, where: str) -> tuple[list[str], 
 def parse_page(text: str, where: str) -> dict:
     # The pages print no-break spaces inside ranges ("54%\xa0to\xa073%"); str
     # patterns treat every Unicode space as \s, so one pass flattens them.
-    # Some headings use curly quotes as well.
-    text = text.replace(chr(0x2018), "'").replace(chr(0x2019), "'")
+    # Some headings use curly quotes, and one closes a quote with an acute
+    # accent ("'Motor vehicle expenses(U+00B4) divided by ...").
+    for quote in (0x2018, 0x2019, 0x00B4, 0x0060):
+        text = text.replace(chr(quote), "'")
     lines = [re.sub(r"\s+", " ", line).strip() for line in text.splitlines()]
     lines = [line for line in lines if line]
     sections = {}

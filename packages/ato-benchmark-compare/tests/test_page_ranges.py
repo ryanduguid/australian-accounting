@@ -258,8 +258,8 @@ def test_the_shipped_page_file_counts() -> None:
         if key != "band" and value is not None
     ]
     assert len(pages["business_types"]) == 99
-    assert len(ranges) == 691
-    assert sum(1 for value in ranges if value["min"] == value["max"]) == 33
+    assert len(ranges) == 708
+    assert sum(1 for value in ranges if value["min"] == value["max"]) == 35
 
 
 def test_the_loader_refuses_an_unknown_ratio_key() -> None:
@@ -353,3 +353,25 @@ def test_show_lists_the_page_ranges_and_their_page(capsys: pytest.CaptureFixture
     assert "Labour to turnover" in out
     assert "14% to 25% (ATO industry page, a guide only)" in out
     assert "Industry page: https://www.ato.gov.au/" in out
+
+
+def test_an_unrecognised_heading_above_ranges_stops_the_build() -> None:
+    builder = _builder()
+    with pytest.raises(builder.BuildError, match="unrecognised benchmark heading"):
+        builder.parse_page(PAGE.replace("Rent/turnover", "Rent as a share of turnover"), "fabricated")
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        (lambda p: p.update(business_type_count=p["business_type_count"] + 1), "business_type_count"),
+        (lambda p: (p["business_types"].pop(), p.update(business_type_count=98)), "do not account for"),
+        (lambda p: p["excluded_pages"].append({"name": p["business_types"][0]["name"]}), "do not account for"),
+        (lambda p: p.update(excluded_pages="none"), "excluded_pages"),
+    ],
+)
+def test_the_loader_refuses_a_page_file_that_does_not_account_for_every_industry(change, message) -> None:
+    workbook, pages = _year()
+    change(pages)
+    with pytest.raises(ds.DatasetError, match=message):
+        ds.merge_page_ranges(workbook, json.dumps(pages))

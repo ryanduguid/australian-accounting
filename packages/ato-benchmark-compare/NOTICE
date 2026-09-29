@@ -14,5 +14,6 @@ atobenchmark/data/other-benchmarks-*.json are reproduced from the Australian
 Taxation Office's small business benchmark industry pages under the ATO's
 copyright notice (https://www.ato.gov.au/about-ato/using-our-website/copyright-notice),
 which permits copying and adaptation provided nothing suggests the ATO or the
-Commonwealth endorses the user or its products. Whole-number percentages have
-been converted to ratios; nothing else has been changed.
+Commonwealth endorses the user or its products. Published percentages are
+converted to ratio bounds, and a single printed figure is stored as equal
+bounds, with no wider interval inferred.

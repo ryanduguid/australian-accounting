@@ -363,8 +363,9 @@ The ATO has not endorsed this tool and has nothing to do with it.
 The industry page ranges are reproduced from the ATO's website under its
 [copyright notice](https://www.ato.gov.au/about-ato/using-our-website/copyright-notice),
 which permits copying and adaptation provided nothing suggests the ATO or the
-Commonwealth endorses the user or its products. Whole-number percentages have been
-converted to ratios; nothing else has been changed.
+Commonwealth endorses the user or its products. Published percentages are converted
+to ratio bounds, and a single printed figure is stored as equal bounds, with no wider
+interval inferred.
 
 The code in this repository is MIT licensed. The data attribution is also
 recorded in [NOTICE](NOTICE), which ships inside the wheel and the sdist.

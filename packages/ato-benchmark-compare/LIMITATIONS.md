@@ -95,7 +95,7 @@ own fallback and the result stands.
 
 **Trigger.** The ATO's page for an industry prints a single figure, such as
 `1%`, instead of a range for one band of an other benchmark. In the 2023-24
-pages that happens in 33 of the 691 ranges the tool reads, almost all of them
+pages that happens in 35 of the 708 ranges the tool reads, almost all of them
 motor vehicle expenses.
 
 **Effect.** The tool stores the printed figure as both the minimum and the
