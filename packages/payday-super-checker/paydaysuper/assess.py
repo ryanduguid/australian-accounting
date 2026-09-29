@@ -240,6 +240,11 @@ def assess(
     if problems:
         raise ValueError("; ".join(problems))
 
+    if type(transition_allocation_confirmed) is not bool:
+        raise ValueError("transition_allocation_confirmed must be a boolean")
+    if type(allow_stale_gic) is not bool:
+        raise ValueError("allow_stale_gic must be a boolean")
+
     _flag_duplicates(lines)
 
     # Report every pre-regime row at once, not one per run.

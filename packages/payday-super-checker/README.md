@@ -127,6 +127,19 @@ Cloning first means you have the sample file the next command uses. To skip
 the clone, `pip install payday-super-checker` installs the tool alone from
 PyPI. Use the synthetic CSV above for a first run before preparing your own input.
 
+### Python control options
+
+In direct Python calls to this source tree, confirmation flags, stale-rate
+options and `include_employee_ids` require literal `True` or `False` values.
+Strings such as `"false"`, numbers, `None` and containers are rejected. Valid
+booleans and defaults keep their existing behaviour, including identifier omission
+when `include_employee_ids=False`.
+
+Invalid controls raise `ValueError`, or its `RatesError` and `CsvError` subclasses
+for rate lookups and imports. Validation also applies when no assessment row or
+interest-accrual day would otherwise use the option. The command-line switches
+already supply booleans and retain their existing behaviour.
+
 ## Before you run
 
 Gather these facts first. The 0.1.8 checks can refuse or mark `UNKNOWN`

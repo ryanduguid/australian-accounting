@@ -129,6 +129,8 @@ class GicTable:
         into both SG-charge exposure totals, on the strength of a caveat the
         reader had to notice; the operator now has to ask for it.
         """
+        if type(allow_stale) is not bool:
+            raise RatesError("allow_stale must be a boolean")
         divisor = Decimal(days_in_year(d))
         for q in self._quarters:
             if q.start <= d <= q.end:

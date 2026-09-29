@@ -689,6 +689,8 @@ def import_files(
                 f"the output would overwrite {source}. Choose a different path with -o."
             )
 
+    if type(statutory_allocation_confirmed) is not bool:
+        raise CsvError("statutory_allocation_confirmed must be a boolean")
     payroll_rows, payroll_profile, payroll_resolved = read_payroll(payroll_path, vendor)
     super_rows, super_profile, super_resolved = read_super(super_path, vendor)
 

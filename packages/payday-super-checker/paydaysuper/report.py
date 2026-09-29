@@ -68,6 +68,8 @@ def needs_attention(
     """True where the run must not exit 0: real exposure, a line the
     supplied deadline facts could not decide, or a file that cannot
     produce ON_TIME because no fund-receipt date was supplied."""
+    if type(remittance_only_confirmed) is not bool:
+        raise ValueError("remittance_only_confirmed must be a boolean")
     if any(r.verdict in EXPOSED for r in results) or bool(
         horizon_indeterminate(results)
     ):
@@ -212,6 +214,8 @@ def render_csv(
     *,
     include_employee_ids: bool = True,
 ) -> str:
+    if type(include_employee_ids) is not bool:
+        raise ValueError("include_employee_ids must be a boolean")
     with io.StringIO(newline="") as stream:
         _write_csv_rows(
             results, stream, as_at, law_date, assessment_date, source, gic_provenance,
@@ -322,6 +326,8 @@ def console_summary(
     assessment_date: date | None = None,
     remittance_only_confirmed: bool = False,
 ) -> str:
+    if type(remittance_only_confirmed) is not bool:
+        raise ValueError("remittance_only_confirmed must be a boolean")
     counts: dict[str, int] = {}
     for r in results:
         counts[r.verdict] = counts.get(r.verdict, 0) + 1
