@@ -33,6 +33,8 @@ def build_evidence_pack(
     Supply results from the engine, not caller-written caveats or provenance.
     The report contains no input path. Missing receipts remain missing facts.
     """
+    if type(remittance_only_confirmed) is not bool:
+        raise ValueError("remittance_only_confirmed must be a boolean")
     report = "\ufeff" + render_csv(
         results, as_at, LAW_CONTENT_DATE, assessment_date,
         gic_provenance=gic_provenance, include_employee_ids=False,

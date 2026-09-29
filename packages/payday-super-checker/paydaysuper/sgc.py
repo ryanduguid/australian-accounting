@@ -59,6 +59,8 @@ def notional_earnings(
     reaching past the last published quarter raises rather than estimating."""
     if shortfall < 0:
         raise ValueError("shortfall cannot be negative")
+    if type(allow_stale) is not bool:
+        raise ValueError("allow_stale must be a boolean")
     nec = Decimal("0")
     d = due + timedelta(days=1)
     while d <= end:
