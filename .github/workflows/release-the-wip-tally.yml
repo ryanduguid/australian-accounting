@@ -40,6 +40,7 @@ jobs:
         .github/workflows/ci.yml: the-wip-tally / test-windows
         .github/workflows/boundaries.yml: boundaries
         .github/workflows/codeql.yml: Analyze Python
+        .github/workflows/codeql.yml: codeql-gates
       source-directory: packages/the-wip-tally
       tag-prefix: the-wip-tally
       upload-dist-artifact: true

@@ -121,8 +121,13 @@ reusable `ci-package.yml` for each engine, from a package-name matrix.
 The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, mypy and
 pytest commands on Ubuntu with Python 3.12. The adapter uses distinct `lodgeit`
 job names and a `lodgeit-gates` result check, keeping the MCP application's existing
-release-check names unchanged. Require `lodgeit-gates` after its first successful
-hosted run.
+release-check names unchanged. Branch protection requires one aggregate per
+workflow, `tests-gates`, `boundaries-gates`, `lodgeit-gates`, `public-fixtures-gates`
+and `codeql-gates`, plus the `CodeQL` results check and `Attribution policy`. Each
+aggregate also fails when a job in its workflow is missing from its `needs`, or when
+a pull request removes a job without adding a `# removed-jobs: <job>` comment to that
+workflow (`.github/ci/check_gates.py`). Release callers select these aggregates as
+well as the named component jobs.
 
 For engines with held files, the Python 3.12 test job filters its existing coverage
 data to those files and applies the 100% changed-line branch-coverage gate. The
@@ -146,9 +151,10 @@ release callers require that test job; no second pytest run is needed.
   run with no usable comparison point, such as a dispatch or a new branch, runs every engine.
   On a push to `main`, an engine whose pyproject version has no `<engine>/v<version>` tag
   yet also runs, whatever changed, so its release can be tagged on `main`'s head.
-- Branch protection requires one context per engine, `<engine> / gates`, which reports on
-  every run: it passes when each gate passed or was skipped by the path filter and fails
-  when any gate failed or was cancelled. The individual jobs are not required, because a
+- Each engine's `<engine> / gates` job reports on every run: it passes when each gate
+  passed or was skipped by the path filter and fails when any gate failed or was
+  cancelled. `tests-gates` needs every engine's call, so branch protection requires it
+  rather than the per-engine contexts. The individual jobs are not required, because a
   skipped matrix job never reports under its matrix names and would block every pull
   request the path filter skips.
 - The MCP application's tests run on every change, because `ci.yml` has no path filter.

@@ -40,6 +40,7 @@ jobs:
         .github/workflows/ci.yml: australian-tax-calculators / test-windows
         .github/workflows/boundaries.yml: boundaries
         .github/workflows/codeql.yml: Analyze Python
+        .github/workflows/codeql.yml: codeql-gates
       source-directory: packages/australian-tax-calculators
       tag-prefix: australian-tax-calculators
       upload-dist-artifact: true
