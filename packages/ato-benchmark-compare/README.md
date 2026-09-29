@@ -334,17 +334,20 @@ into the year and workbook it was built against, and never lets it replace a
 workbook range.
 
 `tools/build_other_benchmarks.py` builds it from pages saved as text. A page must
-state the workbook's benchmark year, list the workbook's turnover bands and print
-key ranges equal to the workbook's own; a page that disagrees contributes nothing,
-and the file names it and why. In 2023-24 the hardware and building supplies
-retailing page is left out: its medium-band cost of sales range starts at 56%, the
-workbook's at 55%.
+state the workbook's benchmark year, carry a last-updated date and QC reference,
+list the workbook's turnover bands and print every range the workbook publishes,
+equal to the workbook's own; a page that disagrees contributes nothing, and the
+file names it and why. The build fails unless the excluded pages are exactly the
+ones named with `--expect-excluded`, so a page that starts disagreeing stops the
+next rebuild. In 2023-24 the hardware and building supplies retailing page is left
+out: its medium-band cost of sales range starts at 56%, the workbook's at 55%.
 
 ```bash
 uv run python tools/build_other_benchmarks.py \
   --pages-dir <saved pages> \
   --dataset atobenchmark/data/benchmarks-2023-24.json \
   --retrieved <actual retrieval date YYYY-MM-DD> \
+  --expect-excluded "Hardware and building supplies retailing" \
   --out atobenchmark/data/other-benchmarks-2023-24.json
 ```
 
