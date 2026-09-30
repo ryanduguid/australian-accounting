@@ -1,3 +1,8 @@
+# v0.1.3
+
+- The public WIP calculation API applies the ratio contract the CSV reader already enforced: each active ratio must be a finite `Decimal` from 0 to 1. In 0.1.2 a direct caller could pass a constraint ratio of 2 for an unapproved estimate of 100 and receive included consideration of 200 and excluded consideration of -100, and a `NaN` GST ratio could reach the returned amount. Formulas, output diagnostics and CSV and command line behaviour are unchanged ([#318](https://github.com/ryanduguid/australian-accounting/pull/318)).
+- Tests now pin two money-path boundaries that one-operator mutants survived: a nil cost to complete recognises the full contract price, and nil gross profit carries no onerous or negative-margin flag ([#307](https://github.com/ryanduguid/australian-accounting/pull/307)). No calculation changed.
+
 # v0.1.2
 
 Breaking: `outcome_reasonably_measurable` is required on every contract row.

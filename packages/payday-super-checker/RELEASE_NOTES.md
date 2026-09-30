@@ -1,3 +1,8 @@
+# v0.1.9
+
+- The nine public control arguments (the confirmation, stale-rate and identifier-output options) accept only literal booleans. Version 0.1.8 treated a string such as `"false"` as permission, which could suppress review warnings or include identifiers. Strings, numbers, `None` and containers now raise an error naming the argument; valid booleans, defaults and command line switches behave as before ([#328](https://github.com/ryanduguid/australian-accounting/pull/328)).
+- Three report invariant checks also hold under `python -O`: missing exposure data raises the same `AssertionError` instead of producing monetary output or a different exception ([#330](https://github.com/ryanduguid/australian-accounting/pull/330)).
+
 # v0.1.8
 
 - `report.csv` and the evidence pack guard the caveats and notes cells against spreadsheet formulas, as they already guarded the employee id: a cell starting with `=`, `+`, `-` or `@` is written as text.
