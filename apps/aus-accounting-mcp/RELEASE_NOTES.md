@@ -1,3 +1,19 @@
+# v0.2.12
+
+- Pin `payday-super-checker` 0.1.9 and `div7a-loan-review` 0.1.6;
+  `ato-benchmark-compare` 0.1.11 and `australian-tax-calculators` 0.1.8 are
+  unchanged.
+- Through the new pins: the payday checker's nine control arguments and the
+  Division 7A engine's mode flags accept only literal booleans, and the
+  Division 7A engine refuses conflicting modes. The tools already took strict
+  booleans and set no Division 7A mode flag, so tool behaviour is unchanged;
+  results report `engine_version` 0.1.9 (payday) and 0.1.6 (Division 7A). The
+  payday checker's report invariant checks also hold under `python -O`.
+- Raise the declared `mcp` requirement to `>=2.2.0,<3` (#331). The lock
+  records `mcp` and `mcp-types` 2.2.0, `pyjwt` 2.14.0 and `urllib3` 2.8.0.
+- Align the release, citation, compatibility and MCP Registry metadata to
+  0.2.12.
+
 # v0.2.11
 
 - Pin `ato-benchmark-compare` 0.1.11 and `australian-tax-calculators` 0.1.8;
