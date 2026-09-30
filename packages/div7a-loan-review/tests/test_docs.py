@@ -241,7 +241,7 @@ def test_current_release_metadata_points_to_the_canonical_monorepo():
     assert notes.startswith("# v0.1.6\n")
     assert "https://github.com/ryanduguid/australian-accounting" in citation
     assert "https://github.com/ryanduguid/australian-accounting" in pyproject
-    # The README cites the latest published release, v0.1.6, the same version as
+    # The README cites the release it describes, v0.1.6, the same version as
     # CITATION.cff. It stayed on v0.1.1 through 3 later releases.
     assert "div7a-loan-review/v0.1.6" in README
 
