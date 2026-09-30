@@ -1,3 +1,8 @@
+# v0.1.6
+
+- Refuse malformed or conflicting review modes before reading input: both Python entry points take only literal booleans for the mode flags and refuse `gate_only=True` with `myr_only=True`. In 0.1.5 that pair produced a reviewed row with neither result and no attention flag, even when the normal review reported a shortfall, and a textual `"false"` silently selected a restricted mode. The three valid modes and the command line commands behave as before ([#329](https://github.com/ryanduguid/australian-accounting/pull/329)).
+- The README compares the engine with the Division 7A worksheet in Xero Workpapers Plus ([#325](https://github.com/ryanduguid/australian-accounting/pull/325)).
+
 # v0.1.5
 
 - Refuse a fractional bare remaining term in the minimum yearly repayment: `remaining_term` must be a whole number of years, and a part year goes through `statutory_remaining_term` first.

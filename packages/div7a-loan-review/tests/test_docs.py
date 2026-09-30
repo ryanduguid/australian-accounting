@@ -237,13 +237,13 @@ def test_current_release_metadata_points_to_the_canonical_monorepo():
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
     notes = Path("RELEASE_NOTES.md").read_text(encoding="utf-8")
 
-    assert __version__ == "0.1.5"
-    assert notes.startswith("# v0.1.5\n")
+    assert __version__ == "0.1.6"
+    assert notes.startswith("# v0.1.6\n")
     assert "https://github.com/ryanduguid/australian-accounting" in citation
     assert "https://github.com/ryanduguid/australian-accounting" in pyproject
-    # The README cites the latest published release, v0.1.5, the same version as
+    # The README cites the latest published release, v0.1.6, the same version as
     # CITATION.cff. It stayed on v0.1.1 through 3 later releases.
-    assert "div7a-loan-review/v0.1.5" in README
+    assert "div7a-loan-review/v0.1.6" in README
 
 
 def test_the_package_records_the_compilation_it_was_written_against():

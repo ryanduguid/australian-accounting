@@ -17,7 +17,7 @@ def test_published_distribution_uses_the_project_identity() -> None:
     llms = (ROOT / "llms.txt").read_text(encoding="utf-8")
     release_notes = (ROOT / "RELEASE_NOTES.md").read_text(encoding="utf-8")
 
-    assert version("the-wip-tally") == wiptally.__version__ == "0.1.2"
+    assert version("the-wip-tally") == wiptally.__version__ == "0.1.3"
     assert f'version = "{wiptally.__version__}"' in pyproject
     assert 'name = "the-wip-tally"' in pyproject
     assert 'wip-tally = "wiptally.cli:main"' in pyproject
@@ -34,7 +34,7 @@ def test_published_distribution_uses_the_project_identity() -> None:
     ) in readme
     assert "release-the-wip-tally.yml" in release_notes
     # The current version heads the notes; prior released sections remain.
-    assert release_notes.startswith("# v0.1.2\n")
+    assert release_notes.startswith("# v0.1.3\n")
     assert "\n# v0.1.1\n" in release_notes
     assert "first PyPI release" in release_notes
     assert "date-released:" not in citation

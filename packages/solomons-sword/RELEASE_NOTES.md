@@ -1,3 +1,7 @@
+# v0.1.10
+
+- The four public trust calculation and validation functions accept only `True`, `False` or `None` (unknown) for each boolean fact, and raise a `ValueError` naming the field for anything else. In 0.1.9, `is_signed_by_trustee="False"` or `default_beneficiary_clause_exists=0` could produce a valid resolution, a textual circular-flow flag could produce `GREEN`, and textual residency flags could produce allocations or assessments. Unknown facts are handled as before ([#326](https://github.com/ryanduguid/australian-accounting/pull/326)).
+
 # v0.1.9
 
 - Breaking: `TrustResolutionSchedule` gains 2 required facts. `uses_specific_streaming` says whether the resolution streams capital gains or franked distributions; missing streaming powers are now a defect only when it does, so an ordinary proportionate resolution under a deed without streaming powers validates. `deed_resolution_deadline` is the deed's own deadline, or 30 June where the deed sets none; a resolution after an earlier deed date is late, and a later deed date does not extend 30 June. Either fact passed as `None` is reported as not established where the answer turns on it.
