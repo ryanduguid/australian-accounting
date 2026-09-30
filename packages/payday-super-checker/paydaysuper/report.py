@@ -132,12 +132,10 @@ def rounded_figures(r: Result) -> dict[str, Decimal | None]:
         return {**blank, "shortfall": shortfall}
     # The 4 stand or fall together. A partial set is a broken result, and
     # rendering it would print an estimate built from a missing component.
-    assert raw_nec is not None and uplift is not None, (
-        "exposed result has a partial SG charge estimate"
-    )
-    assert r.sgc_low is not None and r.sgc_high is not None, (
-        "exposed result has a partial SG charge estimate"
-    )
+    if raw_nec is None or uplift is None:
+        raise AssertionError("exposed result has a partial SG charge estimate")
+    if r.sgc_low is None or r.sgc_high is None:
+        raise AssertionError("exposed result has a partial SG charge estimate")
     nec = cents(raw_nec)
     up_low = cents(uplift["clean_history"]["vds_within_30d"])
     up_high = cents(uplift["prior_history"]["no_vds"])
@@ -160,9 +158,10 @@ def _exposure_figures(r: Result) -> dict[str, Decimal | None]:
     quarters, which is the one case an exposed row carries no estimate.
     """
     figures = rounded_figures(r)
-    assert figures["shortfall"] is not None, (
-        "exposed result has no final shortfall, so its exposure figures are incomplete"
-    )
+    if figures["shortfall"] is None:
+        raise AssertionError(
+            "exposed result has no final shortfall, so its exposure figures are incomplete"
+        )
     return figures
 
 
