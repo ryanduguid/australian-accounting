@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling==1.32.3"]
+requires = ["hatchling==1.32.4"]
 build-backend = "hatchling.build"
 
 [project]
@@ -53,7 +53,7 @@ dev = [
     "hypothesis==6.167.1",
     # release-python builds without isolation, so the backend comes from this
     # locked extra, pinned exactly as [build-system] requires.
-    "hatchling==1.32.3",
+    "hatchling==1.32.4",
 ]
 
 [project.scripts]
