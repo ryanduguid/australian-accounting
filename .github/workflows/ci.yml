@@ -2,7 +2,7 @@ name: tests
 
 # The repository's anchor workflow. It carries no path filter, so the required
 # checks always report, and it runs two things: the MCP application's own gates
-# (ruff, mypy, pytest under branch coverage on 3.10, 3.12 and 3.13 plus a Windows
+# (ruff, mypy, pytest under branch coverage on 3.10, 3.12, 3.13 and 3.14 plus a Windows
 # leg, and a dependency audit, the same set ci-package.yml gives the engines),
 # and one call of the reusable ci-package.yml for each engine under packages/.
 # Each call applies its own package's path filter, so a change to one engine
@@ -22,6 +22,19 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      run: ${{ steps.select.outputs.run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - id: select
+        run: python3 .github/ci/app_ci.py select aus-accounting-mcp >> "$GITHUB_OUTPUT"
+
   packages:
     name: ${{ matrix.package }}
     permissions:
@@ -70,6 +83,8 @@ jobs:
       changed-line-coverage: ${{ matrix.changed-line-coverage }}
 
   test:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     permissions:
       contents: read
     timeout-minutes: 15
@@ -111,6 +126,8 @@ jobs:
           UV_PYTHON: ${{ matrix.python }}
 
   dependency-audit:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -134,6 +151,8 @@ jobs:
         working-directory: apps/aus-accounting-mcp
 
   lint:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -159,10 +178,11 @@ jobs:
 
   tests-gates:
     # The one context branch protection requires from this workflow. It fails
-    # unless every job it needs succeeded, when a job in this file is missing
+    # unless every selected job succeeded and only unselected app jobs skipped,
+    # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [packages, test, dependency-audit, lint]
+    needs: [changes, packages, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -175,7 +195,11 @@ jobs:
           # The merge commit's first parent holds the base branch's workflow.
           fetch-depth: 2
           sparse-checkout: .github
-      - name: Require every job to be listed, kept and successful
+      - name: Require selected checks to succeed and unselected checks to skip
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python3 .github/ci/check_gates.py .github/workflows/ci.yml tests-gates
+        run: python3 .github/ci/app_ci.py gate
+      - name: Require every job to be listed and kept
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: python3 .github/ci/check_gates.py .github/workflows/ci.yml tests-gates --no-results

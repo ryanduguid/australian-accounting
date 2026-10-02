@@ -26,7 +26,22 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      run: ${{ steps.select.outputs.run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - id: select
+        run: python3 .github/ci/app_ci.py select lodgeit-calculator-adapter >> "$GITHUB_OUTPUT"
+
   test:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     name: lodgeit tests (${{ matrix.os }}, ${{ matrix.python }})
     permissions:
       contents: read
@@ -67,6 +82,8 @@ jobs:
           UV_PYTHON: ${{ matrix.python }}
 
   lint:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     name: lodgeit lint
     permissions:
       contents: read
@@ -92,6 +109,8 @@ jobs:
         working-directory: apps/lodgeit-calculator-adapter
 
   dependency-audit:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     name: lodgeit dependency audit
     permissions:
       contents: read
@@ -116,30 +135,23 @@ jobs:
         working-directory: apps/lodgeit-calculator-adapter
 
   lodgeit-gates:
-    needs: [test, lint, dependency-audit]
+    needs: [changes, test, lint, dependency-audit]
     if: always()
     permissions:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Require every adapter check to succeed
-        shell: python
-        env:
-          RESULTS: ${{ toJSON(needs) }}
-        run: |
-          import json, os
-          results = json.loads(os.environ["RESULTS"])
-          expected = ("test", "lint", "dependency-audit")
-          failed = [name for name in expected if results.get(name, {}).get("result") != "success"]
-          if failed:
-              raise SystemExit("Adapter checks did not succeed: " + ", ".join(failed))
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           # The merge commit's first parent holds the base branch's workflow.
           fetch-depth: 2
           sparse-checkout: .github
+      - name: Require selected checks to succeed and unselected checks to skip
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: python3 .github/ci/app_ci.py gate
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}
