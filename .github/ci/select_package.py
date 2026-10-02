@@ -6,10 +6,10 @@ on the workflow trigger: a change under `packages/<name>/` runs that engine, a
 change to a root policy file or to anything under `.github/` runs every engine,
 and anything else runs none of them.
 
-Read the changed paths from standard input, one per line, and write the
+Read NUL-delimited Git paths from standard input, and write the
 GitHub Actions output line to standard output:
 
-    git diff --name-only "$BASE" "$HEAD" | python3 .github/ci/select_package.py wiptally
+    git diff --name-only --no-renames -z "$BASE" "$HEAD" -- | python3 .github/ci/select_package.py wiptally
 
 Empty input means the caller could not work out what changed, so every gate
 runs rather than one being skipped by accident.
@@ -59,6 +59,20 @@ def is_shared(path: str) -> bool:
     return path in SHARED_PATHS or path.startswith(SHARED_PREFIXES)
 
 
+def parse_changed_paths(raw: bytes) -> list[str]:
+    """Parse Git -z output without stripping filenames; uncertainty runs all."""
+    if not raw or not raw.endswith(b"\0"):
+        return []
+    try:
+        paths = raw[:-1].decode("utf-8").split("\0")
+    except UnicodeDecodeError:
+        return []
+    if any(not path or any(part in {"", ".", ".."} for part in path.split("/"))
+           for path in paths):
+        return []
+    return paths
+
+
 def should_run(package: str, changed_paths: list[str]) -> bool:
     """True when ``package`` must run its gates for this set of changed paths."""
     if not changed_paths:
@@ -91,7 +105,7 @@ def main(argv: list[str]) -> int:
         print(f"usage: {argv[0]} <package> [--on-main]", file=sys.stderr)
         return 2
     package = args[0]
-    changed_paths = [line.strip() for line in sys.stdin if line.strip()]
+    changed_paths = parse_changed_paths(sys.stdin.buffer.read())
     run = should_run(package, changed_paths)
     if not run and "--on-main" in argv:
         tags = subprocess.run(

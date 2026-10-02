@@ -77,6 +77,121 @@ def application_ci():
     return app_ci
 
 
+class EngineSelectionTests(unittest.TestCase):
+    def setUp(self) -> None:
+        application_ci()
+        from select_package import parse_changed_paths, should_run
+
+        self.parse = parse_changed_paths
+        self.should_run = should_run
+
+    def test_nul_parser_preserves_names_and_rejects_the_whole_malformed_stream(self) -> None:
+        names = ["packages/solomons-sword/café.py", "packages/solomons-sword/a\nb\t.py",
+                 "packages/solomons-sword/ leading space .py", "packages/solomons-sword/-option.py"]
+        self.assertEqual(self.parse("\0".join(names).encode() + b"\0"), names)
+        malformed = [b"", b"unterminated", b"bad\xff\0", b"\0", b"a\0\0",
+                     b"/absolute/file\0", b"../file\0", b"packages//file\0",
+                     b"packages/./file\0", b"packages/solomons-sword/../file\0"]
+        streams = malformed + [b"packages/solomons-sword/valid.py\0" + raw
+                               for raw in malformed if raw]
+        for stream in streams:
+            with self.subTest(stream=stream):
+                self.assertEqual(self.parse(stream), [])
+                for package in application_ci().PACKAGES:
+                    self.assertTrue(self.should_run(package, self.parse(stream)))
+
+
+class EngineGitTests(unittest.TestCase):
+    def setUp(self) -> None:
+        application_ci()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.selector = self.root / ".github/ci/select_package.py"
+        self.selector.parent.mkdir(parents=True)
+        shutil.copyfile(CHECK.parent / "select_package.py", self.selector)
+        self.own = "packages/solomons-sword/module.py"
+        self.other = "packages/the-wip-tally/module.py"
+        for name in (self.own, self.other):
+            path = self.root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("synthetic\n", encoding="utf-8")
+        (self.root / "packages/solomons-sword/pyproject.toml").write_text(
+            '[project]\nname = "solomons-sword"\nversion = "1.2.3"\n', encoding="utf-8",
+        )
+        git(self.root, "init", "-q")
+        git(self.root, "add", "-A")
+        git(self.root, "commit", "-q", "-m", "base")
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def select(self, raw: bytes, package: str = "solomons-sword", *args: str) -> str:
+        # Fixed fixture arguments run the current interpreter and copied selector without a shell.
+        # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+        done = subprocess.run(  # nosec B603
+            [sys.executable, str(self.selector), package, *args], cwd=self.root,
+            input=raw, capture_output=True, check=False,
+        )
+        self.assertEqual(done.returncode, 0, done.stderr.decode())
+        return done.stdout.decode().strip()
+
+    def diff(self) -> bytes:
+        git(self.root, "add", "-A")
+        return git(self.root, "-c", "core.quotePath=true", "diff", "--name-only",
+                   "--no-renames", "-z", "HEAD", "--")
+
+    def test_unicode_and_ascii_paths_select_only_the_owner(self) -> None:
+        for name in ("plain.py", "café.py", " leading space .py", "-option.py"):
+            path = self.root / "packages/solomons-sword" / name
+            path.write_text("synthetic\n", encoding="utf-8")
+            raw = self.diff()
+            with self.subTest(name=name):
+                self.assertEqual(self.select(raw), "run=true")
+                self.assertEqual(self.select(raw, "the-wip-tally"), "run=false")
+                from select_package import parse_changed_paths
+
+                self.assertEqual(parse_changed_paths(raw), [f"packages/solomons-sword/{name}"])
+            path.unlink()
+
+    def test_cli_selects_an_owner_after_an_unrelated_nul_record(self) -> None:
+        raw = b"apps/lodgeit-calculator-adapter/notes.md\0" + self.own.encode() + b"\0"
+        self.assertEqual(self.select(raw), "run=true")
+        self.assertEqual(self.select(raw, "the-wip-tally"), "run=false")
+
+    @unittest.skipIf(os.name == "nt", "Windows cannot create tab or newline filenames")
+    def test_real_git_tab_and_newline_names_are_preserved(self) -> None:
+        names = ["packages/solomons-sword/tab\tfile.py", "packages/solomons-sword/line\nfile.py"]
+        for name in names:
+            (self.root / name).write_text("synthetic\n", encoding="utf-8")
+        raw = self.diff()
+        from select_package import parse_changed_paths
+
+        self.assertCountEqual(parse_changed_paths(raw), names)
+        self.assertEqual(self.select(raw), "run=true")
+        self.assertEqual(self.select(raw, "the-wip-tally"), "run=false")
+
+    def test_real_cross_engine_move_selects_both_owners(self) -> None:
+        moved = "packages/the-wip-tally/moved.py"
+        (self.root / self.own).rename(self.root / moved)
+        raw = self.diff()
+        from select_package import parse_changed_paths
+
+        self.assertCountEqual(parse_changed_paths(raw), [self.own, moved])
+        self.assertEqual(self.select(raw), "run=true")
+        self.assertEqual(self.select(raw, "the-wip-tally"), "run=true")
+
+    def test_main_release_pending_and_malformed_input(self) -> None:
+        raw = self.other.encode() + b"\0"
+        self.assertEqual(self.select(raw), "run=false")
+        self.assertEqual(self.select(raw, "solomons-sword", "--on-main"), "run=true")
+        git(self.root, "-c", "tag.gpgSign=false", "tag", "solomons-sword/v1.2.3")
+        self.assertEqual(self.select(raw, "solomons-sword", "--on-main"), "run=false")
+        for malformed in (b"", b"unterminated", b"bad\xff\0", b"valid\0\0"):
+            with self.subTest(malformed=malformed):
+                self.assertEqual(self.select(malformed), "run=true")
+                self.assertEqual(self.select(malformed, "solomons-sword", "--on-main"), "run=true")
+
+
 class ApplicationSelectionTests(unittest.TestCase):
     def setUp(self) -> None:
         self.ci = application_ci()
@@ -270,6 +385,14 @@ class ApplicationGateTests(unittest.TestCase):
 
 
 class GateWiringTests(unittest.TestCase):
+    def test_engine_diff_uses_nul_paths_and_root_retains_all_component_suites(self) -> None:
+        package = (WORKFLOWS / "ci-package.yml").read_text(encoding="utf-8")
+        self.assertIn('git diff --name-only --no-renames -z "$BASE" "$HEAD" --', package)
+        self.assertEqual(package.count('"${ON_MAIN[@]}"'), 2)
+        root = job_block((WORKFLOWS / "boundaries.yml").read_text(encoding="utf-8"), "root-checks")
+        self.assertIn("run: uv run --locked --group dev pytest\n", root)
+        self.assertNotIn("--ignore", root)
+
     def test_application_selection_wiring_preserves_required_guards(self) -> None:
         for workflow, app in (("ci.yml", "aus-accounting-mcp"),
                               ("ci-lodgeit-adapter.yml", "lodgeit-calculator-adapter")):

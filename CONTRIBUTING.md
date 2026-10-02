@@ -119,7 +119,7 @@ The existing component lock checks remain required.
 report, and it runs 2 things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
 The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, mypy and
-pytest commands on Ubuntu with Python 3.12. The adapter uses distinct `lodgeit`
+pytest commands on Ubuntu with Python 3.14. The adapter uses distinct `lodgeit`
 job names and a `lodgeit-gates` result check, keeping the MCP application's existing
 release-check names unchanged. Branch protection requires one aggregate per
 workflow, `tests-gates`, `boundaries-gates`, `lodgeit-gates`, `public-fixtures-gates`
@@ -149,6 +149,8 @@ release callers require that test job; no second pytest run is needed.
   `.github/` runs every engine. The root workspace files are in that list because the root
   `uv.lock` is what `uv run --locked` validates from inside every component directory. A
   run with no usable comparison point, such as a dispatch or a new branch, runs every engine.
+  Git paths use NUL delimiters so Unicode, tabs and newlines remain intact; malformed
+  input also runs every engine.
   On a push to `main`, an engine whose pyproject version has no `<engine>/v<version>` tag
   yet also runs, whatever changed, so its release can be tagged on `main`'s head.
 - Each engine's `<engine> / gates` job reports on every run: it passes when each gate

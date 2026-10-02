@@ -8,7 +8,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from select_package import is_shared
+from select_package import is_shared, parse_changed_paths
 
 # Root pytest checks these lists against the manifests. Its required
 # boundaries-gates owner runs on every change, including a skipped app.
@@ -59,10 +59,8 @@ def changed_paths(root: Path) -> list[str]:
             ["git", "diff", "--name-only", "--no-renames", "-z", "HEAD^1..HEAD", "--"],
             cwd=root, check=True, capture_output=True,
         ).stdout
-        if not diff or not diff.endswith(b"\0"):
-            return []
-        return diff[:-1].decode("utf-8").split("\0")
-    except (OSError, subprocess.CalledProcessError, UnicodeDecodeError):
+        return parse_changed_paths(diff)
+    except (OSError, subprocess.CalledProcessError):
         return []
 
 
