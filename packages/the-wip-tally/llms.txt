@@ -1,11 +1,13 @@
 # TheWIPTally
-> AASB 15 construction WIP schedule: review aid, not a determination.
+
+> Deterministic AASB 15 work-in-progress schedule for Australian construction, civil, mining-services and power-station contracts. A review aid, not a determination or advice.
 
 ## Package overview
 - **Repository**: https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally
 - **Distribution**: `the-wip-tally`
-- **Import Package**: `wiptally`
-- **CLI Command**: `wip-tally`
+- **Install**: `pip install the-wip-tally` (published on PyPI; Python 3.10 or later).
+- **Import package**: `wiptally`
+- **CLI command**: `wip-tally`
 - **Domain**: Deterministic work-in-progress schedule for Australian construction, civil, mining-services and power-station packages.
 - **Primary standards**: AASB 15 (arithmetic for progress, constrained variable consideration, contract asset/liability). AASB 137 is flagged, not measured.
 
@@ -20,6 +22,12 @@
 2. **B19 exclusions change progress, not whether the cost exists.** Wasted cost stays in EAC/margin. Uninstalled materials earn zero margin.
 3. **Judgement stays human.** Over-time versus point in time, enforceability of claims, retention classification and onerous-contract provisions are flags, not postings.
 4. **Review aid policy.** Not accounting, tax or legal advice. Tax does not follow this schedule.
+
+## Docs
+- [README](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/README.md): CSV schema, worked example and review pack.
+- [AASB 15 source notes](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/docs/aasb-15-source-notes-2026-08-25.md)
+- [Sample contracts](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/examples/sample_contracts.csv) and the [job-to-cash example](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/examples/JOB-TO-CASH.md)
+- [Disclaimer](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/DISCLAIMER.md)
 
 ## Companion
 - The [`wip-over-under-billing` skill](https://github.com/ryanduguid/australian-accounting-skills/blob/main/.claude/skills/wip-over-under-billing/SKILL.md) in Australian Accounting Skills owns the WIP *workflow*. This engine owns the arithmetic that workflow consumes.
