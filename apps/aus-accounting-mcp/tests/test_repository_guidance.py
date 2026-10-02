@@ -80,7 +80,9 @@ def test_ci_commands_exclude_root_helpers_but_keep_non_uv_component_checks() -> 
     steps:
       - run: python3 .github/ci/app_ci.py gate
 """
-    assert _ci_run_commands(workflow) == ["python custom_check.py", "uv run --locked pytest"]
+    commands = _ci_run_commands(workflow)
+    if commands != ["python custom_check.py", "uv run --locked pytest"]:
+        raise AssertionError(commands)
 
 
 def _section(document: str, heading: str) -> str:

@@ -10,6 +10,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import tomllib
@@ -49,14 +50,22 @@ def gate_job(workflow: str, gate: str) -> str:
 
 def job_block(text: str, name: str) -> str:
     match = re.search(rf"(?ms)^  {re.escape(name)}:\n(.*?)(?=^  [\w-]+:|\Z)", text)
-    assert match is not None, name
+    if match is None:
+        raise AssertionError(name)
     return match.group(1)
 
 
-def git(cwd: Path, *args: str) -> None:
+def git(cwd: Path, *args: str) -> bytes:
+    executable = shutil.which("git")
+    if executable is None:
+        raise FileNotFoundError("Git is required for the repository fixtures")
     identity = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@example.invalid",
                 "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@example.invalid"}
-    subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, env={**os.environ, **identity})
+    # Fixed test arguments run the resolved Git executable without a shell.
+    # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+    return subprocess.run(  # nosec B603
+        [executable, *args], cwd=cwd, check=True, capture_output=True, env={**os.environ, **identity},
+    ).stdout
 
 
 def application_ci():
@@ -99,7 +108,7 @@ class ApplicationSelectionTests(unittest.TestCase):
             unrelated += [f"apps/{name}/docs/notes.md" for name in self.ci.DEPENDENCIES if name != app]
             self.assertFalse(self.ci.should_run(app, unrelated))
             for path in relevant + ["new.py", "docs/new.md", "apps/new/module.py",
-                                    "packages/new/module.py", "/tmp/file", "../notes", "",
+                                    "packages/new/module.py", "/absolute/file", "../notes", "",
                                     "packages/solomons-sword/../module.py", "packages//file"]:
                 with self.subTest(app=app, path=path):
                     self.assertTrue(self.ci.should_run(app, [*unrelated, path]))
@@ -111,17 +120,17 @@ class ApplicationSelectionTests(unittest.TestCase):
         for output, expected in (("\0".join(names).encode() + b"\0", names),
                                  (b"bad\xff\0", []), (b"unterminated", []), (b"", [])):
             with self.subTest(output=output), patch.object(self.ci.subprocess, "run", side_effect=[
-                subprocess.CompletedProcess([], 0, header),
-                subprocess.CompletedProcess([], 0, output),
+                SimpleNamespace(stdout=header),
+                SimpleNamespace(stdout=output),
             ]):
                 self.assertEqual(self.ci.changed_paths(ROOT), expected)
         with patch.object(self.ci.subprocess, "run", side_effect=[
-            subprocess.CompletedProcess([], 0, header), subprocess.CalledProcessError(128, "git"),
+            SimpleNamespace(stdout=header), subprocess.CalledProcessError(128, "git"),
         ]):
             self.assertTrue(self.ci.should_run("aus-accounting-mcp", self.ci.changed_paths(ROOT)))
         for header in (b"tree t\n\nroot", b"tree t\nparent a\n\nsingle",
                        b"tree t\nparent a\nparent b\nparent c\n\noctopus"):
-            with patch.object(self.ci.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, header)):
+            with patch.object(self.ci.subprocess, "run", return_value=SimpleNamespace(stdout=header)):
                 self.assertEqual(self.ci.changed_paths(ROOT), [])
 
 
@@ -150,7 +159,9 @@ class ApplicationGitTests(unittest.TestCase):
         git(self.root, "merge", "-q", "--no-ff", "--no-edit", "feature")
 
     def select(self, event: str) -> str:
-        done = subprocess.run(
+        # The current interpreter runs the repository selector with fixed arguments and no shell.
+        # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+        done = subprocess.run(  # nosec B603
             [sys.executable, str(CHECK.parent / "app_ci.py"), "select", "aus-accounting-mcp"],
             cwd=self.root, env={**os.environ, "GITHUB_EVENT_NAME": event},
             capture_output=True, text=True, check=False,
@@ -174,7 +185,7 @@ class ApplicationGitTests(unittest.TestCase):
                 self.assertEqual(self.select(event), "run=true")
         # The merge object still lists its parents, but a shallow checkout has no base.
         (self.root / ".git/shallow").write_text(
-            subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root).decode()
+            git(self.root, "rev-parse", "HEAD").decode()
         )
         self.assertEqual(self.select("pull_request"), "run=true")
 
@@ -248,7 +259,9 @@ class ApplicationGateTests(unittest.TestCase):
             results = {name: {"result": "skipped"} for name in application_ci().APP_JOBS}
             results["changes"] = {"result": "success", "outputs": {"run": "false"}}
             for raw, expected in ((json.dumps(results), 0), ("{invalid", 1), ("null", 1)):
-                done = subprocess.run(
+                # The current interpreter runs the copied repository gate with no shell.
+                # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+                done = subprocess.run(  # nosec B603
                     [sys.executable, str(root / ".github/ci/app_ci.py"), "gate"], cwd=root,
                     env={**os.environ, "RESULTS": raw, "GITHUB_EVENT_NAME": "pull_request"},
                     capture_output=True, text=True, check=False,
