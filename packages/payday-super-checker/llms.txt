@@ -1,16 +1,17 @@
 # payday-super-checker
-> Experimental Payday Super review aid: not a compliance determination.
+
+> Experimental Payday Super review aid for Australian employers' super contribution timing and potential SG charge exposure. Not a compliance determination, tax advice or an ATO assessment.
 
 ## Package overview
 - **Explainer**: https://duguid.com.au/tools/payday-super/
 - **MCP facade**: https://duguid.com.au/tools/australian-tax-ai-agents/
 - **Repository**: https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker
-- **Evidence Evaluation**: evaluation/payday_super_evidence/README.md
+- **Evidence evaluation**: [evaluation/payday_super_evidence/README.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/evaluation/payday_super_evidence/README.md)
 - **Distribution**: `payday-super-checker`
-- **Import Package**: `paydaysuper`
-- **CLI Command**: `payday-super-check`
+- **Import package**: `paydaysuper`
+- **CLI command**: `payday-super-check`
 - **Domain**: Experimental evaluation of Australian superannuation contribution timelines against Payday Super 2026 deadlines and estimation of potential Superannuation Guarantee (SG) charge exposure.
-- **Primary Legislation**: *Superannuation Guarantee (Administration) Act 1992 (Cth)* (*SGAA 1992*), Treasury Laws Amendment (Payday Superannuation) reforms.
+- **Primary legislation**: *Superannuation Guarantee (Administration) Act 1992 (Cth)* (*SGAA 1992*), Treasury Laws Amendment (Payday Superannuation) reforms.
 
 ## Core modules and APIs
 - `paydaysuper.deadlines`: Calculates the usual 7-business-day window and supported statutory extensions.
@@ -20,14 +21,14 @@
 - `paydaysuper.csv_io`: Strict CSV schema parsing with atomic IO validation.
 
 ## Release and evidence limits
-- This documentation describes checker 0.1.9. Check PyPI and GitHub releases for available distributions; a checkout version alone does not establish publication. aus-accounting-mcp 0.2.10 and later pin checker 0.1.8 (0.2.5 to 0.2.9 pin 0.1.7, 0.2.4 pins 0.1.6); the workspace uses the checked-out source.
+- This documentation describes checker 0.1.9, published on PyPI (https://pypi.org/project/payday-super-checker/). aus-accounting-mcp 0.2.12 pins checker 0.1.9 (0.2.10 and 0.2.11 pin 0.1.8, 0.2.5 to 0.2.9 pin 0.1.7, 0.2.4 pins 0.1.6); the workspace uses the checked-out source. Check the installed engine version when comparing CLI and MCP results.
 - Published 0.1.6 assumes full receipt when a fund-receipt date has neither matched_amount nor remitted_amount. Versions 0.1.7 and later leave a timely date without an amount UNKNOWN; a late date remains LATE with no shortfall reduction and a maximum estimate measured to the as-at date.
 - The tagged 0.1.6 workbook extrapolates beyond the GIC table ending 31 December 2026. The 0.1.6 CLI withholds those estimates by default and offers --allow-stale-gic. Workbooks from 0.1.7 withhold them and mark incomplete rate-dependent Summary totals Not assessed; they have no stale-rate opt-in.
 - Matching, receipt evidence and rate coverage remain separate limits. Arithmetic does not establish that a payment matched the right payday or reached the fund.
-- Receipt amount evaluation for 0.1.7 (no amount, part amount, remitted amount only, pre-1 July 2026 refusal): evaluation/receipt_amount/README.md
-- Evidence packs are published from 0.1.4. The README quick trial uses 0.1.7 and the historical evaluation uses 0.1.3. See README.md, LIMITATIONS.md and docs/release-parity-review-2026-09-22.md for scope and reproduction evidence.
+- Receipt amount evaluation for 0.1.7 (no amount, part amount, remitted amount only, pre-1 July 2026 refusal): https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/evaluation/receipt_amount/README.md
+- Evidence packs are published from 0.1.4. The README quick trial uses 0.1.7 and the historical evaluation uses 0.1.3. See the [README](https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/README.md), [LIMITATIONS.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/LIMITATIONS.md) and the [release parity review](https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/docs/release-parity-review-2026-09-22.md) for scope and reproduction evidence.
 
 ## Architectural boundaries
-1. **National Business-Day Rule**: One calendar applies to every employer. It excludes weekends and the union of public holidays applying throughout any one State, the ACT, or the NT; regional, part-day, and locally substitutable holidays do not stop the clock.
-2. **No Location Selector**: The rule does not choose a calendar from an employer's, employee's, or payroll location. A whole-of-jurisdiction holiday in any covered jurisdiction is a non-business day nationally.
-3. **Review Aid Policy**: The software is an experimental review tool, not tax advice, a binding ATO assessment, or a legal determination.
+1. **National business-day rule**: One calendar applies to every employer. It excludes weekends and the union of public holidays applying throughout any one State, the ACT, or the NT; regional, part-day, and locally substitutable holidays do not stop the clock.
+2. **No location selector**: The rule does not choose a calendar from an employer's, employee's, or payroll location. A whole-of-jurisdiction holiday in any covered jurisdiction is a non-business day nationally.
+3. **Review aid policy**: The software is an experimental review tool, not tax advice, a binding ATO assessment, or a legal determination.
