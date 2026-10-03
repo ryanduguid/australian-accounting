@@ -9,7 +9,8 @@ from austaxcalc import calculations as c
 
 SAMPLE = Path(__file__).with_name("payg_withholding_sample_2026_27.csv")
 SCALES = (1, 2, 3, 5, 6)
-ROWS = list(csv.DictReader(SAMPLE.open(encoding="utf-8", newline="")))
+with SAMPLE.open(encoding="utf-8", newline="") as sample:
+    ROWS = list(csv.DictReader(sample))
 
 
 def test_the_sample_is_complete():
