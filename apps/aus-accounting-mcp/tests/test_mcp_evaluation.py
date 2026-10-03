@@ -193,7 +193,7 @@ async def _answer(session, case):
     return str(all(fixture["not_a_lodgment"] for fixture in fixtures)).lower()
 
 
-async def _evaluate(case, library_root, corpus_root, rulings_root):
+async def _evaluate_all(library_root, corpus_root, rulings_root):
     parameters = StdioServerParameters(
         command=sys.executable, args=["-m", "aus_accounting_mcp.cli"],
         env={
@@ -202,17 +202,26 @@ async def _evaluate(case, library_root, corpus_root, rulings_root):
             "AUS_ACCOUNTING_RULINGS_ROOT": rulings_root,
         },
     )
+    # One server answers every question, as a host keeps one server for a whole
+    # conversation. Starting a process per question cost a second each. Each
+    # question still gets its own recorder, and a failure stays with its case.
+    replays = {}
     async with stdio_client(parameters) as (reader, writer):
         async with ClientSession(reader, writer) as session:
             await session.initialize()
-            recorder = _RecordingSession(session)
-            return await _answer(recorder, case), recorder.selected, recorder.calls
+            for case, _, _ in CASES:
+                recorder = _RecordingSession(session)
+                try:
+                    answer = await _answer(recorder, case)
+                except Exception as error:
+                    replays[case] = error  # re-raised by that case's test
+                else:
+                    replays[case] = (answer, recorder.selected, recorder.calls)
+    return replays
 
 
-@pytest.mark.parametrize(
-    "case,expected,tools", CASES, ids=[case for case, _, _ in CASES]
-)
-def test_evaluation_answer_is_reproducible(case, expected, tools):
+@pytest.fixture(scope="module")
+def replays():
     with tempfile.TemporaryDirectory() as library_root, \
             tempfile.TemporaryDirectory() as corpus_root, \
             tempfile.TemporaryDirectory() as rulings_root:
@@ -221,9 +230,17 @@ def test_evaluation_answer_is_reproducible(case, expected, tools):
         )
         synthetic_corpus.build(Path(corpus_root))
         synthetic_rulings.build(Path(rulings_root))
-        answer, selected, calls = asyncio.run(
-            _evaluate(case, library_root, corpus_root, rulings_root)
-        )
+        return asyncio.run(_evaluate_all(library_root, corpus_root, rulings_root))
+
+
+@pytest.mark.parametrize(
+    "case,expected,tools", CASES, ids=[case for case, _, _ in CASES]
+)
+def test_evaluation_answer_is_reproducible(replays, case, expected, tools):
+    replay = replays[case]
+    if isinstance(replay, Exception):
+        raise replay
+    answer, selected, calls = replay
 
     assert answer == expected
     # questions.xml publishes the tools a correct answer needs, and the
