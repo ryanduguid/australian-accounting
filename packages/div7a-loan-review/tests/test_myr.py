@@ -113,6 +113,10 @@ def test_formula_regression(principal, rate, term, expected):
         ("1000000.00", "0.0837", 25),
         ("7.13", "0.0537", 2),
         ("999999999.99", "0.0452", 24),
+        # Longer than any complying loan, but accepted and computed today:
+        # the Decimal exponent must give the figure the int exponent gave.
+        ("100000.00", "0.0877", 30),
+        ("100000.00", "0.0877", 1000),
     ],
 )
 def test_formula_agrees_with_exact_rational_arithmetic(principal, rate, term):
@@ -184,6 +188,16 @@ def test_a_single_remaining_year_is_principal_plus_one_year_of_interest():
     principal, rate = D("123456.78"), D("0.0877")
     expected = (principal * (1 + rate)).quantize(D("0.01"))
     assert minimum_yearly_repayment_amount(principal, rate, D(1)) == expected
+
+
+def test_an_astronomical_term_reaches_the_interest_only_limit_at_once():
+    """As the term grows, 1/(1+r)^n vanishes and the figure tends to P x r.
+    The power used to go through int(term), which never finished for a term
+    such as 1E+999999999 read from a register cell."""
+    principal, rate = D("123456.78"), D("0.0877")
+    expected = (principal * rate).quantize(D("0.01"))
+    for term in (D("1E+30"), D("1E+999999999")):
+        assert minimum_yearly_repayment_amount(principal, rate, term) == expected
 
 
 def test_the_result_is_a_decimal_quantised_to_cents():

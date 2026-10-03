@@ -11,6 +11,7 @@ import contextlib
 import hashlib
 import io
 import json
+from pathlib import Path
 
 import pytest
 from div7aloan.cli import main
@@ -138,6 +139,45 @@ def test_a_missing_file_exits_one_without_a_traceback():
     code, out, err = run(["review", "--input", "no-such-file.csv", "--year", "2026-27"])
     assert code == 1
     assert err.startswith("error: ")
+    assert "Traceback" not in err
+
+
+@pytest.mark.parametrize("encoding", ["utf-16", "cp1252"])
+@pytest.mark.parametrize("command", [
+    ["gate"], ["myr", "--year", "2026-27"], ["review", "--year", "2026-27"],
+], ids=["gate", "myr", "review"])
+def test_a_register_that_is_not_utf8_exits_one_with_one_error_line(tmp_path, command, encoding):
+    register = tmp_path / f"{encoding}.csv"
+    text = Path(MIXED).read_text(encoding="utf-8-sig").replace("SYN", "SYN café", 1)
+    register.write_text(text, encoding=encoding)
+    code, out, err = run([command[0], "--input", str(register), *command[1:]])
+    assert code == 1
+    assert out == ""
+    assert err.startswith(f"error: {register} is not valid UTF-8 text")
+    assert err.count("\n") == 1
+    assert "Traceback" not in err
+
+
+@pytest.mark.parametrize("command", [
+    ["gate"], ["myr", "--year", "2026-27"], ["review", "--year", "2026-27"],
+], ids=["gate", "myr", "review"])
+def test_a_register_the_csv_reader_refuses_exits_one_with_one_error_line(tmp_path, command):
+    import csv
+
+    register = tmp_path / "oversized.csv"
+    text = Path(MIXED).read_text(encoding="utf-8-sig").replace("SYN", "SYN" + "x" * 3000, 1)
+    register.write_text(text, encoding="utf-8")
+    # A lowered limit stands in for a field past the default 131,072 characters.
+    # It stays above the bundled rates table's longest field, which is read first.
+    limit = csv.field_size_limit(2000)
+    try:
+        code, out, err = run([command[0], "--input", str(register), *command[1:]])
+    finally:
+        csv.field_size_limit(limit)
+    assert code == 1
+    assert out == ""
+    assert err.startswith(f"error: cannot parse the loan register at {register}")
+    assert err.count("\n") == 1
     assert "Traceback" not in err
 
 

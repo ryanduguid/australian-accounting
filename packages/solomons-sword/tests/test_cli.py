@@ -146,6 +146,116 @@ def test_decimal_type_refuses_the_non_finite_amounts(raw):
         decimal_type(raw)
 
 
+def test_an_s100a_amount_too_large_to_print_is_one_error_line(monkeypatch, capsys):
+    code = run(
+        monkeypatch,
+        "s100a-check",
+        "--beneficiary", "Adult Child",
+        "--amount", "1e1000000",
+        "--adult-child",
+    )
+
+    captured = capsys.readouterr()
+    assert code == 2
+    assert captured.out == ""
+    assert captured.err == (
+        "error: distribution amount 1E+1000000 is outside the supported range; "
+        "amounts must be below 1E+1000000\n"
+    )
+
+
+@pytest.mark.parametrize("amount", ["1e1000000", "1e999999999"])
+def test_an_s99b_add_back_that_cancels_the_corpus_is_still_range_checked(monkeypatch, capsys, amount):
+    # Equal amounts cancel without a decimal signal, and the basis would write the
+    # add-back out in fixed point.
+    code = run(
+        monkeypatch,
+        "s99b-check",
+        "--beneficiary", "X",
+        "--gross", "0",
+        "--corpus", amount,
+        "--corpus-attributable", amount,
+        "--resident-during-year",
+    )
+
+    captured = capsys.readouterr()
+    assert code == 2
+    assert captured.out == ""
+    assert captured.err == (
+        f"error: corpus_attributable_to_notional_assessable_income_aud {Decimal(amount)} "
+        "is outside the supported range; amounts must be below 1E+1000000\n"
+    )
+
+
+def test_a_cancelling_add_back_at_the_supported_limit_still_evaluates(monkeypatch, capsys):
+    code = run(
+        monkeypatch,
+        "s99b-check",
+        "--beneficiary", "X",
+        "--gross", "0",
+        "--corpus", "9e999999",
+        "--corpus-attributable", "9e999999",
+        "--resident-during-year",
+    )
+
+    assert code == 0
+    assert "Assessable under s99B:   $0.00" in capsys.readouterr().out
+
+
+def test_amounts_whose_arithmetic_overflows_are_one_error_line(monkeypatch, capsys):
+    # Each amount is finite and accepted; their sum is not representable.
+    code = run(
+        monkeypatch,
+        "s99b-check",
+        "--beneficiary", "Jane Doe",
+        "--gross", "9e999999",
+        "--corpus", "9e999999",
+        "--not-assessable-to-resident", "9e999999",
+        "--resident-during-year",
+    )
+
+    captured = capsys.readouterr()
+    assert code == 2
+    assert captured.out == ""
+    assert captured.err == (
+        "error: the supplied amounts produce a value outside the decimal arithmetic "
+        "range this command supports\n"
+    )
+
+
+@pytest.mark.parametrize("argv,message", [
+    (("s100a-check", "--beneficiary", "X", "--amount", "-1e999999999", "--adult-child"),
+     "error: distribution amount must be positive and finite"),
+    (("s99b-check", "--beneficiary", "X", "--gross", "1e999999999"),
+     "error: residency during the year of income is not established"),
+    (("s99b-check", "--beneficiary", "X", "--gross", "1e999999999", "--not-resident-during-year"),
+     "error: s 99B(1) ITAA 1936 applies only where the beneficiary was a resident"),
+    (("s99b-check", "--beneficiary", "X", "--gross", "0", "--corpus", "0",
+      "--corpus-attributable", "1e999999999", "--resident-during-year"),
+     "error: corpus attributable to notionally assessable income cannot exceed the corpus amount"),
+    (("s99b-check", "--beneficiary", "X", "--gross", "0", "--corpus", "1e999999999",
+      "--corpus-attributable", "1e999999999", "--not-assessable-to-resident", "1",
+      "--resident-during-year"),
+     "error: exemptions ($1.00) exceed the gross receipt ($0.00)"),
+], ids=["negative-s100a", "residency-unstated", "not-resident", "attributable-over-corpus",
+        "exemptions-over-gross"])
+def test_existing_validation_still_answers_first_for_astronomical_amounts(monkeypatch, capsys, argv, message):
+    assert run(monkeypatch, *argv) == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err.startswith(message)
+    assert captured.err.count("\n") == 1
+
+
+@pytest.mark.parametrize("argv", [
+    ("s100a-check", "--beneficiary", "Adult Child", "--amount", "1000000000000.01", "--adult-child"),
+    ("s99b-check", "--beneficiary", "Jane Doe", "--gross", "1000000000000.01", "--resident-during-year"),
+], ids=["s100a-amount", "s99b-gross"])
+def test_amounts_above_one_trillion_still_evaluate(monkeypatch, capsys, argv):
+    assert run(monkeypatch, *argv) == 0
+    assert "1,000,000,000,000.01" in capsys.readouterr().out
+
+
 def test_decimal_type_keeps_the_exact_decimal():
     value = decimal_type("40000.50")
     assert value == Decimal("40000.50")
