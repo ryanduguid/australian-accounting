@@ -171,6 +171,15 @@ def test_a_byte_order_mark_does_not_break_the_first_column(tmp_path):
     assert load_rows(path, GATE_COLUMNS)[0]["loan_id"] == "L-1"
 
 
+@pytest.mark.parametrize("encoding", ["utf-16", "cp1252"])
+def test_a_register_that_is_not_utf8_is_refused_with_a_reason(tmp_path, encoding):
+    path = tmp_path / f"{encoding}.csv"
+    path.write_text(",".join(GATE_COLUMNS) + "\nL-1,true,true,7,false,unknown,0.0827,2023-24 café\n",
+                    encoding=encoding)
+    with pytest.raises(RegisterError, match="is not valid UTF-8 text .*CSV UTF-8"):
+        load_rows(path, GATE_COLUMNS)
+
+
 def test_a_quoted_multiline_value_preserves_its_newline(tmp_path):
     path = tmp_path / "multiline.csv"
     with path.open("w", encoding="utf-8", newline="") as handle:

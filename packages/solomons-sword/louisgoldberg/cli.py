@@ -4,8 +4,9 @@ CLI interface for Solomon's Sword (import package louisgoldberg).
 
 import argparse
 import sys
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, DecimalException, InvalidOperation
 
+from ._validation import validate_printable_amount
 from .section99b import ForeignTrustReceipt, evaluate_section99b_liability
 from .section100a import evaluate_section100a_risk
 
@@ -118,6 +119,14 @@ def main() -> int:
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
+    except DecimalException:
+        # Individually accepted finite amounts can still overflow when combined.
+        print(
+            "error: the supplied amounts produce a value outside the decimal arithmetic "
+            "range this command supports",
+            file=sys.stderr,
+        )
+        return 2
 
 
 def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
@@ -138,6 +147,8 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             retention_scenario_conditions_met=args.retention_conditions,
             paragraph_32_exclusion_present=args.para_32_exclusion,
         )
+        # After the engine, so a zero or negative amount keeps its own error.
+        validate_printable_amount("distribution amount", res.distribution_amount)
         print("=" * 60)
         print(f"Section 100A Risk Evaluation — {res.beneficiary_name}")
         print("=" * 60)

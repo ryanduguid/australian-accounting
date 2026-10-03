@@ -210,6 +210,11 @@ Booleans are `true`, `false` or `unknown`. A blank cell is `unknown`. Amounts
 and rates are decimal strings. Rates are fractions, so 8.77% is
 `0.0877`, not `8.77`. Years of income are written `2026-27`.
 
+The file is read as UTF-8, with or without a byte order mark. A register saved
+in another encoding, such as UTF-16 or Windows-1252, is refused with exit 1 and
+a message naming the first invalid byte; re-save it from Excel as CSV UTF-8
+(Comma delimited).
+
 **Required by `gate`, `myr` and `review`:**
 
 | Column | What it asserts |

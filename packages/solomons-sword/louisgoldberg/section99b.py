@@ -5,7 +5,7 @@ Section 99B ITAA 1936 Assessment for receipts from non-resident / foreign trusts
 from dataclasses import dataclass
 from decimal import Decimal
 
-from ._validation import validate_boolean_facts
+from ._validation import validate_boolean_facts, validate_printable_amount
 
 
 @dataclass(frozen=True)
@@ -103,6 +103,17 @@ def evaluate_section99b_liability(receipt: ForeignTrustReceipt) -> Section99BAss
             "check the inputs rather than assuming a nil assessable amount"
         )
     assessable = gross - exemptions
+    # A corpus and add-back of the same size cancel without a decimal signal however
+    # large they are, so check every figure the basis writes out in fixed point.
+    for name, value in (
+        ("gross_amount_received_aud", gross),
+        ("corpus_exemption", corpus_exempt),
+        ("corpus_attributable_to_notional_assessable_income_aud", attributable),
+        ("not_assessable_to_resident_aud", not_assessable),
+        ("already_assessed_under_div6_aud", prior_taxed),
+        ("assessable_income_under_s99b", assessable),
+    ):
+        validate_printable_amount(name, value)
 
     # A nil exemption is the largest assessable amount this section can produce,
     # so a figure nobody supplied and a figure established as nil reach the same

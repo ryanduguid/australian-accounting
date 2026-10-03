@@ -199,7 +199,9 @@ def minimum_yearly_repayment_amount(
     with localcontext() as ctx:
         ctx.prec = FORMULA_PRECISION
         numerator = principal * rate
-        denominator = Decimal(1) - (Decimal(1) / (Decimal(1) + rate)) ** int(remaining_term)
+        # Keep the already-integral term as Decimal. Converting a compact value
+        # such as 1E+999999999 to int would materialise an enormous Python integer.
+        denominator = Decimal(1) - (Decimal(1) / (Decimal(1) + rate)) ** remaining_term
         raw = numerator / denominator
     return to_cents(raw)
 

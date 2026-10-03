@@ -179,6 +179,13 @@ def load_rows(path: Path | str, needed: Iterable[str]) -> list[dict]:
             rows = list(reader)
     except OSError as exc:
         raise RegisterError(f"cannot read the loan register at {path}: {exc}")
+    except csv.Error as exc:
+        raise RegisterError(f"cannot parse the loan register at {path}: {exc}") from exc
+    except UnicodeDecodeError as exc:
+        raise RegisterError(
+            f"{path} is not valid UTF-8 text (invalid byte {exc.object[exc.start]:#04x}). "
+            "Re-save it as 'CSV UTF-8 (Comma delimited)' and run again."
+        ) from exc
     if not rows:
         raise RegisterError(f"{path} carries a header but no loan rows")
     return rows
