@@ -96,7 +96,7 @@ jobs:
           else
             # --no-renames, or a file moved between packages is reported as its
             # destination alone and the package that lost it never runs.
-            git diff --name-only --no-renames "$BASE" "$HEAD" \
+            git diff --name-only --no-renames -z "$BASE" "$HEAD" -- \
               | python3 .github/ci/select_package.py "$PACKAGE" "${ON_MAIN[@]}" >> "$GITHUB_OUTPUT"
           fi
 

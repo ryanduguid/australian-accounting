@@ -46,15 +46,43 @@ SUPPLEMENTARY_COMMANDS = [
 ]
 
 
-def _ci_run_commands() -> list[str]:
-    workflow = (repository_root() / ".github" / "workflows" / "ci.yml").read_text(
-        encoding="utf-8"
-    )
-    # The trailing aggregate job checks job results, not the code, so its
-    # command is not a contributor command.
-    workflow = re.split(r"(?m)^  [\w-]+-gates:$", workflow, maxsplit=1)[0]
-    commands = re.findall(r"^\s+(?:-\s+)?run:\s*(\S.*)$", workflow, flags=re.MULTILINE)
+def _ci_run_commands(workflow: str | None = None) -> list[str]:
+    if workflow is None:
+        workflow = (repository_root() / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+    # Only jobs running from this component own its contributor commands.
+    jobs = re.split(r"(?m)^  [\w-]+:\s*$", workflow.split("jobs:\n", 1)[1])[1:]
+    commands = [
+        command for job in jobs
+        if re.search(r"(?m)^\s+working-directory: apps/aus-accounting-mcp\s*$", job)
+        for command in re.findall(r"^\s+(?:-\s+)?run:\s*(\S.*)$", job, flags=re.MULTILINE)
+    ]
     return list(dict.fromkeys(commands))
+
+
+def test_ci_commands_exclude_root_helpers_but_keep_non_uv_component_checks() -> None:
+    workflow = """jobs:
+  changes:
+    steps:
+      - run: python3 .github/ci/app_ci.py select aus-accounting-mcp
+  component-checks:
+    steps:
+      - run: python custom_check.py
+        working-directory: apps/aus-accounting-mcp
+      - run: uv run --locked pytest
+        working-directory: apps/aus-accounting-mcp
+  other-app:
+    steps:
+      - run: uv run --locked other-check
+        working-directory: apps/another-app
+  tests-gates:
+    steps:
+      - run: python3 .github/ci/app_ci.py gate
+"""
+    commands = _ci_run_commands(workflow)
+    if commands != ["python custom_check.py", "uv run --locked pytest"]:
+        raise AssertionError(commands)
 
 
 def _section(document: str, heading: str) -> str:

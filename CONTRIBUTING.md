@@ -119,7 +119,7 @@ The existing component lock checks remain required.
 report, and it runs 2 things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
 The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, mypy and
-pytest commands on Ubuntu with Python 3.12. The adapter uses distinct `lodgeit`
+pytest commands on Ubuntu with Python 3.14. The adapter uses distinct `lodgeit`
 job names and a `lodgeit-gates` result check, keeping the MCP application's existing
 release-check names unchanged. Branch protection requires one aggregate per
 workflow, `tests-gates`, `boundaries-gates`, `lodgeit-gates`, `public-fixtures-gates`
@@ -149,6 +149,8 @@ release callers require that test job; no second pytest run is needed.
   `.github/` runs every engine. The root workspace files are in that list because the root
   `uv.lock` is what `uv run --locked` validates from inside every component directory. A
   run with no usable comparison point, such as a dispatch or a new branch, runs every engine.
+  Git paths use NUL delimiters so Unicode, tabs and newlines remain intact; malformed
+  input also runs every engine.
   On a push to `main`, an engine whose pyproject version has no `<engine>/v<version>` tag
   yet also runs, whatever changed, so its release can be tagged on `main`'s head.
 - Each engine's `<engine> / gates` job reports on every run: it passes when each gate
@@ -157,9 +159,14 @@ release callers require that test job; no second pytest run is needed.
   rather than the per-engine contexts. The individual jobs are not required, because a
   skipped matrix job never reports under its matrix names and would block every pull
   request the path filter skips.
-- The MCP application's tests run on every change, because `ci.yml` has no path filter.
-  Inside the workspace they import the checked-out engines, so an engine change is proved
-  against the application before the engine is published.
+- Application jobs use `.github/ci/app_ci.py` to select PR changes. An application's own
+  files, its engine dependencies, root tests, shared policy and workspace files, and any
+  unknown path or comparison run its complete checks. Only known unrelated component
+  paths can skip them. The MCP application includes its 4 engine dependencies; the
+  adapter includes the 2 engines used by its comparison tests. Root pytest checks these
+  dependency lists against both manifests on every change. The aggregate requires a
+  successful selection and exactly the corresponding successful or skipped app jobs.
+  Every main push and manual run executes all app checks, preserving release evidence.
 - `.github/ci/<engine>/checks.sh` holds an engine's own source guards, and
   `.github/ci/<engine>/smoke.sh` its checks against the built wheel. Both are optional.
 - `boundaries.yml` and `codeql.yml` run on every change.
