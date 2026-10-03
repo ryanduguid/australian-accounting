@@ -224,7 +224,8 @@ def test_amounts_whose_arithmetic_overflows_are_one_error_line(monkeypatch, caps
 
 
 @pytest.mark.parametrize("argv,message", [
-    (("s100a-check", "--beneficiary", "X", "--amount", "-1e999999999", "--adult-child"),
+    # Before Python 3.14, argparse reads a separate "-1e999999999" as an option flag.
+    (("s100a-check", "--beneficiary", "X", "--amount=-1e999999999", "--adult-child"),
      "error: distribution amount must be positive and finite"),
     (("s99b-check", "--beneficiary", "X", "--gross", "1e999999999"),
      "error: residency during the year of income is not established"),
