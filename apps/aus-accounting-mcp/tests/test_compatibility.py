@@ -30,45 +30,35 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
     record = json.loads((root / "compatibility.json").read_text(encoding="utf-8"))
     server_metadata = json.loads((root / "server.json").read_text(encoding="utf-8"))
     assert record["schema_version"] == 1
-    assert server_metadata["version"] == server_metadata["packages"][0]["version"]
+    version = server_metadata["version"]
+    assert version == server_metadata["packages"][0]["version"]
     assert record["server"] == {
         "distribution": "aus-accounting-mcp",
-        "version": server_metadata["version"],
+        "version": version,
         "repository": CANONICAL_REPOSITORY,
-        "pypi": "https://pypi.org/project/aus-accounting-mcp/0.2.12/",
+        "pypi": f"https://pypi.org/project/aus-accounting-mcp/{version}/",
         "registry_identity": "io.github.ryanduguid/aus-accounting",
         "registry": (
             "https://registry.modelcontextprotocol.io/v0.1/servers/"
-            "io.github.ryanduguid%2Faus-accounting/versions/0.2.12"
+            f"io.github.ryanduguid%2Faus-accounting/versions/{version}"
         ),
-        "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v0.2.12",
+        "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v{version}",
     }
-    assert record["engines"] == [
-        {
-            "distribution": "ato-benchmark-compare",
-            "version": "0.1.11",
-            "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/ato-benchmark-compare",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/ato-benchmark-compare/v0.1.11",
-        },
-        {
-            "distribution": "div7a-loan-review",
-            "version": "0.1.6",
-            "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/div7a-loan-review",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/div7a-loan-review/v0.1.6",
-        },
-        {
-            "distribution": "payday-super-checker",
-            "version": "0.1.9",
-            "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/payday-super-checker",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/payday-super-checker/v0.1.9",
-        },
-        {
-            "distribution": "australian-tax-calculators",
-            "version": "0.1.8",
-            "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/australian-tax-calculators",
-            "release": f"{CANONICAL_REPOSITORY}/releases/tag/australian-tax-calculators/v0.1.8",
-        },
+    # Each engine's version is held to the exact pin in pyproject.toml below.
+    assert [engine["distribution"] for engine in record["engines"]] == [
+        "ato-benchmark-compare",
+        "div7a-loan-review",
+        "payday-super-checker",
+        "australian-tax-calculators",
     ]
+    for engine in record["engines"]:
+        name, engine_version = engine["distribution"], engine["version"]
+        assert engine == {
+            "distribution": name,
+            "version": engine_version,
+            "repository": f"{CANONICAL_REPOSITORY}/tree/main/packages/{name}",
+            "release": f"{CANONICAL_REPOSITORY}/releases/tag/{name}/v{engine_version}",
+        }
     distribution = record["server"]["distribution"]
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     assert importlib.metadata.version(distribution) == project["version"]
