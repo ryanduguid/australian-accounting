@@ -1,3 +1,9 @@
+# v0.2.0
+
+- Require Python 3.11 or later. CPython 3.10 reached end of life on 1 October 2026; 0.1.6 remains the last release that installs on Python 3.10 ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).
+- Read the loan register as UTF-8. A register in another encoding, or with a field longer than the CSV module's field size limit, ends `gate`, `myr` and `review` with one `error:` line and exit 1 instead of a traceback ([#344](https://github.com/ryanduguid/australian-accounting/pull/344)).
+- Finish a review whose remaining term is astronomically large, such as `1e999999999` years. The s 109E(6) calculation raises the discount factor to the already whole `Decimal` term instead of first converting it to an integer, so the minimum yearly repayment reaches the interest-only limit instead of the command hanging ([#344](https://github.com/ryanduguid/australian-accounting/pull/344)).
+
 # v0.1.6
 
 - Refuse malformed or conflicting review modes before reading input: both Python entry points take only literal booleans for the mode flags and refuse `gate_only=True` with `myr_only=True`. In 0.1.5 that pair produced a reviewed row with neither result and no attention flag, even when the normal review reported a shortfall, and a textual `"false"` silently selected a restricted mode. The three valid modes and the command line commands behave as before ([#329](https://github.com/ryanduguid/australian-accounting/pull/329)).

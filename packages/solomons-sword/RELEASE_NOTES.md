@@ -1,3 +1,9 @@
+# v0.2.0
+
+- Require Python 3.11 or later. CPython 3.10 reached end of life on 1 October 2026; 0.1.10 remains the last release that installs on Python 3.10 ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).
+- `s99b-check` reports arithmetic that overflows, or a figure too large to write out (`1E+1000000` or more), with one `error:` line and exit 2. It used to end in a `decimal.Overflow` traceback or write the figure in full: 1.33 MB of digits at `1e1000000` ([#344](https://github.com/ryanduguid/australian-accounting/pull/344)).
+- `s100a-check` refuses an amount of `1E+1000000` or more with one `error:` line and exit 2 instead of printing it in full ([#344](https://github.com/ryanduguid/australian-accounting/pull/344)). The README states the supported amount range.
+
 # v0.1.10
 
 - The four public trust calculation and validation functions accept only `True`, `False` or `None` (unknown) for each boolean fact, and raise a `ValueError` naming the field for anything else. In 0.1.9, `is_signed_by_trustee="False"` or `default_beneficiary_clause_exists=0` could produce a valid resolution, a textual circular-flow flag could produce `GREEN`, and textual residency flags could produce allocations or assessments. Unknown facts are handled as before ([#326](https://github.com/ryanduguid/australian-accounting/pull/326)).
