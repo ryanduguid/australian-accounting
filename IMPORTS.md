@@ -178,7 +178,8 @@ commit. The imported subtree must have the same tree id as the source commit.
   repository archived after the move, at commit `3307b991dbde54f3a5d90da63b509c8740d745ae`
   (tree `f550a19ec9b0bcecf4221484a52664a6bc942428`, tracked-tree SHA-256
   `7ade9f0d3c9dc77d27700e3fc4210aab2c884c65ee89ca3a0a1b4a59a7223483`, no source release or
-  tag). Its commit history stays in that repository.
+  tag). Its original commit history is preserved in the owner's private retirement archive
+  dated 4 October 2026; it is not part of this snapshot import.
 - Command: `git subtree add --prefix=packages/au-tax-rates-data https://github.com/ryanduguid/au-tax-rates-data.git 3307b991dbde54f3a5d90da63b509c8740d745ae --squash`.
   On the import branch, before any other commit, `git rev-parse HEAD:packages/au-tax-rates-data`
   equalled the source tree and the source commit was not reachable.
