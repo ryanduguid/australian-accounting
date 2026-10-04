@@ -87,8 +87,8 @@ jobs:
           enable-cache: true
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
-      - run: uv run --locked pytest -q
-      - run: uv run --locked python rates.py validate
+      - run: uv run --locked --no-build pytest -q
+      - run: uv run --locked --no-build python rates.py validate
 
   boundaries-gates:
     # The one context branch protection requires from this workflow. It fails
