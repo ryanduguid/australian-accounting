@@ -26,6 +26,7 @@ commit. The imported subtree must have the same tree id as the source commit.
 | `https://github.com/ryanduguid/TheExchequerTally.git` | `1e89aebc9611f1e87114290dc13f3434ac6f5d88` | `a6c50adda17a8ef97f2f439bb64da5761c712880` | `b099a7cddaf55c14ad042445d28b507a3a697e0e47c217a44c508967b08e20ca` | v0.1.2 (2026-08-22) | `packages/the-exchequer-tally/` | imported: squash `02245924342f78dcce110c9872ca576999f1fb2b`, merge `089eda33cc5f5a97ac052491d7d831a30ab2d196` |
 | `https://github.com/ryanduguid/SolomonsSword.git` | `af988a45f777559116ec3e59d5abdb0ee7771f90` | `66422d183637058701546a7a1d7ac8aa1254206b` | `b66aa69e69e1589c7864d4d01b60e5f5314c36a5eac344a3749b4faf4cdf4a3e` | v0.1.2 (2026-08-22) | `packages/solomons-sword/` | imported: squash `cb757df10d70be0e490a6f9e5303de9c2394a9d1`, merge `849e8ffffa7e7b7b3e848f9129f14ca0a2a93f1b` |
 | `https://github.com/ryanduguid/TheWIPTally.git` | `f6dcdd702d9344745e95174c8783c0b77b5f9dd2` | `578a0419d959801c36ba429969c96d2585f7ab93` | `9549f0ce2f08063cfc5a39ce1febe630dcb0ebbf60a70bcabef3a3e484c1548a` | none | `packages/the-wip-tally/` | imported: squash `36b535c3ea5d096e72a4a29b11168a0721885bc3`, merge `6c8acfecfa770d1df4c3390c92763a2ee577e7c4` |
+| `https://github.com/ryanduguid/au-tax-rates-data.git` | `3307b991dbde54f3a5d90da63b509c8740d745ae` | `f550a19ec9b0bcecf4221484a52664a6bc942428` | `7ade9f0d3c9dc77d27700e3fc4210aab2c884c65ee89ca3a0a1b4a59a7223483` | none, never released | `packages/au-tax-rates-data/` | imported 2026-10-04 by a squash-merged pull request (see its record) |
 
 ## Import records
 
@@ -170,6 +171,30 @@ commit. The imported subtree must have the same tree id as the source commit.
   `wip-tally schedule examples/sample_contracts.csv --as-at 2026-08-31 -o <tmp>` (exit 2 by
   design, output contains `221,000.00`); `ruff check wiptally tests`; `mypy wiptally`;
   `uv lock --check`. All passed.
+
+### au-tax-rates-data
+
+- Imported 2026-10-04 from `https://github.com/ryanduguid/au-tax-rates-data.git`, a private
+  repository archived after the move, at commit `3307b991dbde54f3a5d90da63b509c8740d745ae`
+  (tree `f550a19ec9b0bcecf4221484a52664a6bc942428`, tracked-tree SHA-256
+  `7ade9f0d3c9dc77d27700e3fc4210aab2c884c65ee89ca3a0a1b4a59a7223483`, no source release or
+  tag). Its commit history stays in that repository.
+- Command: `git subtree add --prefix=packages/au-tax-rates-data https://github.com/ryanduguid/au-tax-rates-data.git 3307b991dbde54f3a5d90da63b509c8740d745ae --squash`.
+  On the import branch, before any other commit, `git rev-parse HEAD:packages/au-tax-rates-data`
+  equalled the source tree and the source commit was not reachable.
+- This repository merges pull requests by squash only, so the branch's subtree squash and
+  merge commits were collapsed into the one commit of the importing pull request. That pull
+  request is the durable import identity; the branch commits it names are not on `main`.
+- Imported files edited for location: `pyproject.toml` gains `license`, `license-files` and
+  the component `[tool.ruff]` and `[tool.mypy]` blocks; `LICENSE` and `NOTICE` are added; the
+  inert `.github/workflows/ci.yml` and `no-ai-attribution.yml` are removed, as #115 removed
+  the earlier imports' nested workflows. The records, snapshots, `rates.py` and tests are
+  unchanged.
+- It is not an engine and is never released. `tests/test_boundaries.py` lists it under
+  `DATASETS`, `tests/test_components.py` runs its suite, and the `rates-dataset` job in
+  `.github/workflows/boundaries.yml` runs `uv run --locked pytest -q` and
+  `uv run --locked python rates.py validate` on Python 3.10 and 3.14, as the source
+  repository's CI did.
 
 ## Release policy prerequisites
 
