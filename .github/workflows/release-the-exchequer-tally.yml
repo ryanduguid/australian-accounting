@@ -33,7 +33,7 @@ jobs:
         .github/workflows/ci.yml: the-exchequer-tally / build
         .github/workflows/ci.yml: the-exchequer-tally / dependency-audit
         .github/workflows/ci.yml: the-exchequer-tally / lint
-        .github/workflows/ci.yml: the-exchequer-tally / test (3.10)
+        .github/workflows/ci.yml: the-exchequer-tally / test (3.11)
         .github/workflows/ci.yml: the-exchequer-tally / test (3.12)
         .github/workflows/ci.yml: the-exchequer-tally / test (3.13)
         .github/workflows/ci.yml: the-exchequer-tally / test (3.14)

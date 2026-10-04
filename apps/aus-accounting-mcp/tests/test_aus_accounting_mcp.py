@@ -4,15 +4,11 @@ import hashlib
 import importlib
 import json
 import re
+import tomllib
 from decimal import Decimal
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 from xml.etree import ElementTree
-
-try:
-    import tomllib
-except ModuleNotFoundError:
-    import tomli as tomllib
 
 import pytest
 from atobenchmark.mapping import BUCKETS
@@ -49,7 +45,6 @@ def test_proof_package_surface_is_versioned_and_keeps_stdio_separate() -> None:
     dev_dependencies = project["optional-dependencies"]["dev"]
     assert "Pillow==12.3.0" in dev_dependencies
     assert "twine==7.0.0" in dev_dependencies
-    assert 'tomli>=2.0.1; python_version < "3.11"' in dev_dependencies
 
 
 def test_pypi_facets_are_declared_without_contradicting_the_licence_field() -> None:
@@ -59,8 +54,8 @@ def test_pypi_facets_are_declared_without_contradicting_the_licence_field() -> N
 
     # Every Python this package declares support for is a facet a searcher can
     # filter on, so the floor in requires-python has to appear among them.
-    assert "Programming Language :: Python :: 3.10" in classifiers
-    assert project["requires-python"] == ">=3.10"
+    assert "Programming Language :: Python :: 3.11" in classifiers
+    assert project["requires-python"] == ">=3.11"
     assert "Intended Audience :: Financial and Insurance Industry" in classifiers
     assert "Topic :: Office/Business :: Financial :: Accounting" in classifiers
 

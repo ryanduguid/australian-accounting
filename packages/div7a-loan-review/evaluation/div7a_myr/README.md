@@ -189,7 +189,7 @@ last year repays too little this year without changing anything.
 
 ## Reproduce the result
 
-The engine needs Python 3.10 or later and has no runtime dependencies. The
+The engine needs Python 3.11 or later and has no runtime dependencies. The
 [repository README](../../README.md) carries the install step and the
 definition of every register column used by the fixtures.
 

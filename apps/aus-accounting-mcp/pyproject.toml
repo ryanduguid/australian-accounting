@@ -7,7 +7,7 @@ name = "aus-accounting-mcp"
 version = "0.2.12"
 description = "Local accounting reviews, ten bounded tax and super worksheets and cited retrieval from your configured local Markdown folder. uvx from PyPI; not advice."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
@@ -36,7 +36,6 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -61,7 +60,6 @@ dev = [
     "pytest-cov>=4.0.0",
     "Pillow==12.3.0",
     "twine==7.0.0",
-    'tomli>=2.0.1; python_version < "3.11"',
     # release-python builds without isolation, so the backend comes from this
     # locked extra, pinned exactly as [build-system] requires.
     "hatchling==1.32.4",
@@ -108,7 +106,7 @@ combine-as-imports = true
 known-first-party = ["aus_accounting_mcp", "evaluation"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 packages = ["aus_accounting_mcp"]
 ignore_missing_imports = true
 pretty = true

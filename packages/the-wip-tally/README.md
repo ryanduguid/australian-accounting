@@ -19,7 +19,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/the-wip-tally.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/the-wip-tally/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
 
 Project name The WIP Tally. Distribution `the-wip-tally`, import package `wiptally`, command `wip-tally`.
 
@@ -49,7 +49,7 @@ Full boundary statement: [DISCLAIMER.md](https://github.com/ryanduguid/australia
 
 ## Install
 
-Python 3.10 or later. No runtime dependencies.
+Python 3.11 or later. No runtime dependencies.
 
 ```bash
 pip install the-wip-tally

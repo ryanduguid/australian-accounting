@@ -18,7 +18,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 ![payday-super-checker](assets/banner.svg)
 
-[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml) [![PyPI](https://img.shields.io/pypi/v/payday-super-checker.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/payday-super-checker/) [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE) [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
+[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml) [![PyPI](https://img.shields.io/pypi/v/payday-super-checker.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/payday-super-checker/) [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE) [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
 
 Distribution `payday-super-checker`, import package `paydaysuper`, command `payday-super-check`.
 
@@ -113,7 +113,7 @@ Microsoft 365 or Excel 2024, and is held to this engine's answer by
 
 ## Install
 
-Python 3.10 or later. No runtime dependencies.
+Python 3.11 or later. No runtime dependencies.
 
 ```bash
 git clone https://github.com/ryanduguid/australian-accounting.git

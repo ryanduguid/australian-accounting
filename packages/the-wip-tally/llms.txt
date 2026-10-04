@@ -5,7 +5,7 @@
 ## Package overview
 - **Repository**: https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally
 - **Distribution**: `the-wip-tally`
-- **Install**: `pip install the-wip-tally` (published on PyPI; Python 3.10 or later).
+- **Install**: `pip install the-wip-tally` (published on PyPI; Python 3.11 or later).
 - **Import package**: `wiptally`
 - **CLI command**: `wip-tally`
 - **Domain**: Deterministic work-in-progress schedule for Australian construction, civil, mining-services and power-station packages.

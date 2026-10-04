@@ -201,11 +201,11 @@ def test_the_offset_refusal_reaches_the_row_reader_with_a_row_number(tmp_path):
     "text",
     [
         # .NET DateTime and SQL Server datetime2 stamp 7 fractional-second
-        # digits; the last case is a 9-digit nanosecond stamp. Python 3.10,
-        # the declared floor, refuses a fraction longer than 6 digits that
-        # 3.11+ truncates itself, so these are the cases that exercise the
-        # parser's own truncation on the floor version. Zone-less stamps
-        # only: an offset-carrying stamp is refused outright, see above.
+        # digits; the last case is a 9-digit nanosecond stamp. Python 3.10
+        # refused a fraction longer than 6 digits that 3.11+ truncates itself,
+        # so these are the cases that exercise the parser's own truncation.
+        # Zone-less stamps only: an offset-carrying stamp is refused outright,
+        # see above.
         "2026-07-09T00:00:00.0000000",
         "2026-07-09 00:00:00.0000000",
         "2026-07-09 00:00:00.000000000",
@@ -226,9 +226,9 @@ def test_dotnet_timestamp_is_accepted_as_its_calendar_day(tmp_path):
         "20260709",
         "2026-W28-4",
         "2026-07",
-        # Shapes newer interpreters read but 3.10, the declared floor,
-        # refuses: comma decimal seconds, compact times, hour-only offsets.
-        # The shape gate refuses them on every version.
+        # Shapes newer interpreters read but 3.10 refused: comma decimal
+        # seconds, compact times, hour-only offsets. The shape gate refuses
+        # them on every version.
         "2026-07-09T00:00:00,1234567",
         "2026-07-09T000000",
         "2026-07-09T00:00:00+10",

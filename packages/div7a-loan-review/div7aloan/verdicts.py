@@ -11,8 +11,8 @@ from enum import Enum
 
 
 class StrEnum(str, Enum):
-    """str-valued Enum. Python 3.11 has enum.StrEnum, 3.10 does not, and this
-    package supports 3.10."""
+    """str-valued Enum whose str() is its stored value, kept as the package's own
+    class so its verdict enums behave as they always have."""
 
     def __str__(self) -> str:
         return str(self.value)

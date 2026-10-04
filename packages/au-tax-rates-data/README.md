@@ -46,7 +46,7 @@ These are review prompts: a successful check does not establish that a value and
 
 After a real change, update the record, run `python rates.py snapshot`, then `validate` and the tests, and commit.
 
-GitHub Actions runs the tests and `uv run --locked python rates.py validate` on Python 3.10 and 3.14 for pull requests and pushes to `main`. These checks use committed snapshots and do not fetch live ATO pages or refresh the data.
+GitHub Actions runs the tests and `uv run --locked python rates.py validate` on Python 3.11 and 3.14 for pull requests and pushes to `main`. These checks use committed snapshots and do not fetch live ATO pages or refresh the data.
 
 The instant asset write-off record retains the source table's $20,000 limit from 1 July 2023. A separate [ATO legislation update](https://www.ato.gov.au/about-ato/new-legislation/in-detail/businesses/20000-dollars-instant-asset-write-off), checked on 28 September 2026, confirms that the limit is permanent from 1 July 2026 for eligible small businesses. For the full-cost deduction, each eligible depreciating asset must cost less than $20,000. Separate rules cover later additions to an asset's cost; other conditions and exclusions apply.
 
