@@ -1,3 +1,15 @@
+# v0.3.0
+
+- Breaking: requires Python 3.11 or later. CPython 3.10 reached end of life on 1 October 2026; 0.2.12 remains the last release that installs on Python 3.10 ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).
+- Pin `div7a-loan-review` 0.2.0; `payday-super-checker` 0.1.9, `ato-benchmark-compare` 0.1.11 and
+  `australian-tax-calculators` 0.1.8 are unchanged.
+- Through the new pin: `review_div7a_loan` with an astronomically large `remaining_term_years`, such as
+  `1e999999999`, returns its result instead of hanging, because the engine no longer converts the term to an
+  integer before the s 109E(6) calculation ([#344](https://github.com/ryanduguid/australian-accounting/pull/344)). Results report `engine_version` 0.2.0.
+- The supplementary tool-selection scorer rejects duplicate JSON keys and non-finite numbers and compares
+  decoded types exactly ([#352](https://github.com/ryanduguid/australian-accounting/pull/352)); the server and its tools are unchanged.
+- Align the release, citation, compatibility and MCP Registry metadata to 0.3.0.
+
 # v0.2.12
 
 - Pin `payday-super-checker` 0.1.9 and `div7a-loan-review` 0.1.6;

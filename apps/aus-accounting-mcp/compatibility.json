@@ -2,12 +2,12 @@
   "schema_version": 1,
   "server": {
     "distribution": "aus-accounting-mcp",
-    "version": "0.2.12",
+    "version": "0.3.0",
     "repository": "https://github.com/ryanduguid/australian-accounting",
-    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.2.12/",
+    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.3.0/",
     "registry_identity": "io.github.ryanduguid/aus-accounting",
-    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.2.12",
-    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.2.12"
+    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.3.0",
+    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.3.0"
   },
   "engines": [
     {
@@ -18,9 +18,9 @@
     },
     {
       "distribution": "div7a-loan-review",
-      "version": "0.1.6",
+      "version": "0.2.0",
       "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/div7a-loan-review",
-      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.1.6"
+      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.2.0"
     },
     {
       "distribution": "payday-super-checker",
