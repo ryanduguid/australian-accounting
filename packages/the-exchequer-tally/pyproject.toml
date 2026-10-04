@@ -7,7 +7,7 @@ name = "the-exchequer-tally"
 version = "0.1.7"
 description = "Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian companies."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
@@ -19,7 +19,7 @@ classifiers = [
     "Intended Audience :: Financial and Insurance Industry",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Office/Business :: Financial :: Accounting",
@@ -68,7 +68,7 @@ src = ["edwinnixon", "tests"]
 select = ["E4", "E7", "E9", "F", "I"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 packages = ["edwinnixon"]
 pretty = true
 

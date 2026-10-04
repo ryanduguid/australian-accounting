@@ -3,12 +3,8 @@ from __future__ import annotations
 import asyncio
 import importlib.metadata
 import json
+import tomllib
 from pathlib import Path
-
-try:
-    import tomllib
-except ModuleNotFoundError:
-    import tomli as tomllib
 
 from atobenchmark.dataset import load
 from div7aloan import __version__ as DIV7A_VERSION

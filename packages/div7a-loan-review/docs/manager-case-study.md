@@ -21,7 +21,7 @@ This is a full-year hypothetical, not a claim that the 2026-27 repayment deadlin
 
 ## Reproduce
 
-From `packages/div7a-loan-review`, using Python 3.10 or later:
+From `packages/div7a-loan-review`, using Python 3.11 or later:
 
 ```bash
 python -m div7aloan.cli review --input evaluation/div7a_myr/fixtures/myr_met_exact.csv --year 2026-27

@@ -33,7 +33,7 @@ jobs:
         .github/workflows/ci.yml: solomons-sword / build
         .github/workflows/ci.yml: solomons-sword / dependency-audit
         .github/workflows/ci.yml: solomons-sword / lint
-        .github/workflows/ci.yml: solomons-sword / test (3.10)
+        .github/workflows/ci.yml: solomons-sword / test (3.11)
         .github/workflows/ci.yml: solomons-sword / test (3.12)
         .github/workflows/ci.yml: solomons-sword / test (3.13)
         .github/workflows/ci.yml: solomons-sword / test (3.14)

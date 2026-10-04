@@ -47,7 +47,6 @@ dev = [
     "Pillow>=12.3",
     "pytest>=8",
     "ruff>=0.11",
-    'tomli>=2.0.1; python_version < "3.11"',
 ]
 
 # Lint configuration for the files the root owns, which is tests/ and this file.
@@ -68,7 +67,7 @@ testpaths = ["tests"]
 
 # Runtime packages only. Components retain their own configuration and CI gates.
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 files = [
     "packages/australian-tax-calculators/austaxcalc",
     "packages/ato-benchmark-compare/atobenchmark",

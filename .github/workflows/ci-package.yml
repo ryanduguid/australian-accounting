@@ -110,7 +110,7 @@ jobs:
       matrix:
         # The floor and the ceiling of the declared requires-python, plus the
         # version the rest of the gates run on.
-        python: ["3.10", "3.12", "3.13", "3.14"]
+        python: ["3.11", "3.12", "3.13", "3.14"]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:

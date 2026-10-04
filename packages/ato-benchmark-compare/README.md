@@ -21,7 +21,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/ato-benchmark-compare.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/ato-benchmark-compare/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE)
-[![python](https://img.shields.io/badge/python-3.10%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
+[![python](https://img.shields.io/badge/python-3.11%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 
 Distribution `ato-benchmark-compare`, import package `atobenchmark`, command `ato-benchmark-compare`.
 
@@ -80,7 +80,7 @@ cd australian-accounting/packages/ato-benchmark-compare
 pip install .
 ```
 
-Python 3.10 or later. The runtime has no dependencies at all: the benchmark data
+Python 3.11 or later. The runtime has no dependencies at all: the benchmark data
 ships inside the package and nothing is fetched at run time.
 
 `pip install ato-benchmark-compare` installs the same package from PyPI; clone the

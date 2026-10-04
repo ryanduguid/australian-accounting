@@ -33,7 +33,7 @@ jobs:
         .github/workflows/ci.yml: payday-super-checker / build
         .github/workflows/ci.yml: payday-super-checker / dependency-audit
         .github/workflows/ci.yml: payday-super-checker / lint
-        .github/workflows/ci.yml: payday-super-checker / test (3.10)
+        .github/workflows/ci.yml: payday-super-checker / test (3.11)
         .github/workflows/ci.yml: payday-super-checker / test (3.12)
         .github/workflows/ci.yml: payday-super-checker / test (3.13)
         .github/workflows/ci.yml: payday-super-checker / test (3.14)

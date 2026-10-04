@@ -39,7 +39,7 @@ conformance counts move without this page.
 | Key stakeholders affected | May include the firm's clients, whose tax, super and Division 7A positions can rest on a result; employees, where Payday Super timing is reviewed; and the practitioners who remain responsible for the advice |
 | Contains an AI model | No. The MCP host's model calls the tools; the server runs no model. |
 | Datasets and training | Bundled reference data: the ATO's 2023-24 small business benchmarks (data.gov.au, CC BY 2.5 AU), the ranges on the ATO's industry pages, and the dated rates and thresholds in the calculation engines; a worksheet result names its official sources and the date they were checked. The evaluation questions and conformance cases are fabricated. It trains and fine-tunes no model. |
-| Technical requirements | Python 3.10 or later, [uv](https://docs.astral.sh/uv/) and an MCP host that runs local stdio servers |
+| Technical requirements | Python 3.11 or later, [uv](https://docs.astral.sh/uv/) and an MCP host that runs local stdio servers |
 | Network access | None once installed. The host still sends tool arguments and results to its model provider. |
 | Where a person decides | Every result needs human review before consequential accounting action. `ok: true` means the tool ran, not that a review passed, and `UNKNOWN` and `REFUSED` results stand. |
 | Acceptance and testing | A change reaches `main` only when the required CI checks pass. The test suite replays 33 fabricated evaluation questions, each with an exact expected answer, through a real stdio session, and 8 conformance cases for Payday Super and Division 7A. |

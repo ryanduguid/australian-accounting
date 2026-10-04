@@ -33,7 +33,7 @@ jobs:
         .github/workflows/ci.yml: australian-tax-calculators / build
         .github/workflows/ci.yml: australian-tax-calculators / dependency-audit
         .github/workflows/ci.yml: australian-tax-calculators / lint
-        .github/workflows/ci.yml: australian-tax-calculators / test (3.10)
+        .github/workflows/ci.yml: australian-tax-calculators / test (3.11)
         .github/workflows/ci.yml: australian-tax-calculators / test (3.12)
         .github/workflows/ci.yml: australian-tax-calculators / test (3.13)
         .github/workflows/ci.yml: australian-tax-calculators / test (3.14)
