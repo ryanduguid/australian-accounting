@@ -7,7 +7,7 @@ name = "aus-accounting-mcp"
 version = "0.3.0"
 description = "Local accounting reviews, ten bounded tax and super worksheets and cited retrieval from your configured local Markdown folder. uvx from PyPI; not advice."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
@@ -36,9 +36,7 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Office/Business :: Financial :: Accounting",
 ]
 dependencies = [
@@ -85,6 +83,7 @@ python_files = ["test_*.py"]
 pythonpath = ["."]
 
 [tool.ruff]
+target-version = "py314"
 line-length = 100
 src = ["aus_accounting_mcp", "tests"]
 
@@ -106,7 +105,7 @@ combine-as-imports = true
 known-first-party = ["aus_accounting_mcp", "evaluation"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 packages = ["aus_accounting_mcp"]
 ignore_missing_imports = true
 pretty = true

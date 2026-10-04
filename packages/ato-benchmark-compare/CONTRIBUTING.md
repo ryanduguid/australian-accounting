@@ -37,17 +37,17 @@ transmit anything.
 
 ## Local verification
 
-Python 3.11 or newer. The runtime imports nothing outside the standard library.
+Python 3.14 or newer. The runtime imports nothing outside the standard library.
 `uv` manages the development environment and the lock file is committed.
 
 ```bash
-uv sync --locked --extra dev --python 3.12
-uv run --locked --extra dev --python 3.12 pytest
-uv run --locked --extra dev --python 3.12 python -m build
+uv sync --locked --extra dev --python 3.14
+uv run --locked --extra dev --python 3.14 pytest
+uv run --locked --extra dev --python 3.14 python -m build
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 ```
 
-CI repeats this on Ubuntu with Python 3.11, 3.13 and 3.14, and on Windows with 3.12. Keep
+CI repeats this on Ubuntu with Python 3.14, and on Windows with 3.14. Keep
 runtime strings ASCII: on Windows, redirected stdout uses the machine's ANSI codepage
 rather than UTF-8.
 

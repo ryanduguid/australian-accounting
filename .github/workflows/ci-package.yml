@@ -7,7 +7,7 @@ name: package
 # locked environment, and a build of the distribution with an installed-wheel
 # import smoke plus the engine's own wheel smoke script. Engines that already
 # prove their Windows behaviour add a Windows test leg, and engines with a
-# risk-scoped file list check changed-line coverage in the Python 3.12 test job.
+# risk-scoped file list check changed-line coverage in the Python 3.14 test job.
 #
 # ruff, mypy and coverage read their scope from the engine's own configuration
 # ([tool.ruff], [tool.mypy] and [tool.coverage.run] in its pyproject.toml), so
@@ -43,7 +43,7 @@ on:
         description: >-
           Comma-separated files, relative to the package directory, held to
           complete changed-line branch coverage against origin/main. Empty
-          disables the gate. The Python 3.12 report is filtered to these files;
+          disables the gate. The Python 3.14 report is filtered to these files;
           the first file is the baseline sentinel.
         type: string
         default: ""
@@ -52,6 +52,7 @@ permissions:
   contents: read
 
 env:
+  UV_PYTHON: "3.14"
   UV_VERSION: "0.12.0"
 
 jobs:
@@ -63,6 +64,9 @@ jobs:
     outputs:
       run: ${{ steps.select.outputs.run }}
     steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # The comparison point has to be in the checkout for the diff below.
@@ -108,9 +112,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The floor and the ceiling of the declared requires-python, plus the
-        # version the rest of the gates run on.
-        python: ["3.11", "3.12", "3.13", "3.14"]
+        # The declared minimum and the version used by the other gates.
+        python: ["3.14"]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -121,7 +124,7 @@ jobs:
         with:
           persist-credentials: false
           # Only the changed-line check needs the main-branch comparison.
-          fetch-depth: ${{ matrix.python == '3.12' && inputs.changed-line-coverage != '' && '0' || '1' }}
+          fetch-depth: ${{ matrix.python == '3.14' && inputs.changed-line-coverage != '' && '0' || '1' }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
@@ -144,7 +147,7 @@ jobs:
           UV_PYTHON: ${{ matrix.python }}
 
       - name: require complete changed-line coverage in the held modules
-        if: matrix.python == '3.12' && inputs.changed-line-coverage != ''
+        if: matrix.python == '3.14' && inputs.changed-line-coverage != ''
         env:
           INCLUDE: ${{ inputs.changed-line-coverage }}
           PACKAGE: ${{ inputs.package }}
@@ -153,7 +156,7 @@ jobs:
           uv run --locked --extra dev coverage xml --include="$INCLUDE" -o coverage.xml
           sentinel="packages/$PACKAGE/${INCLUDE%%,*}"
           if git cat-file -e "origin/main:$sentinel"; then
-            uv run --locked --extra dev --python 3.12 diff-cover coverage.xml \
+            uv run --locked --extra dev --python 3.14 diff-cover coverage.xml \
               --compare-branch=origin/main --branch-coverage --fail-under=100
           else
             echo "::notice::Changed-line coverage starts after the imported package has a mainline baseline."
@@ -348,6 +351,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
       - name: fail when any gate failed or was cancelled
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         env:

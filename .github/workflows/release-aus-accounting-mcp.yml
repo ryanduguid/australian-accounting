@@ -20,6 +20,10 @@ concurrency:
   group: release-aus-accounting-mcp-${{ github.ref }}
   cancel-in-progress: false
 
+# CI follows Python 3.14 maintenance releases; local development pins the patch.
+env:
+  UV_PYTHON: "3.14"
+
 jobs:
   # CI and the release policy run the MCP inside the workspace, which redirects
   # every engine to its checked-out source, so neither runs the engines this
@@ -37,7 +41,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - name: Install the locked toolchain
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
@@ -49,7 +53,7 @@ jobs:
           set -euo pipefail
           uv build --wheel --out-dir "$RUNNER_TEMP/dist" apps/aus-accounting-mcp
           cd "$RUNNER_TEMP"
-          uv venv --python 3.12 pins
+          uv venv --python 3.14 pins
           uv pip install --python pins/bin/python dist/*.whl
           pins/bin/aus-accounting-mcp-demo > demo.txt
           diff -u "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/docs/quick-proof.txt" demo.txt
@@ -61,17 +65,14 @@ jobs:
       attestations: write # Record provenance and SBOM attestations for release assets.
       contents: write # Create the draft release, upload assets and publish it.
       id-token: write # Obtain the OIDC identity required to sign attestations.
-    uses: ryanduguid/release-policy/.github/workflows/release-python.yml@ec6b0ee76446f11aefb7fa0c203f2e01b4c9a711
+    uses: ryanduguid/release-policy/.github/workflows/release-python.yml@f068fb4f1d8f90e07429ded7cfb85bdbcc2960fe
     with:
       required-checks: |
         .github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner
         .github/workflows/ci.yml: dependency-audit
         .github/workflows/ci.yml: lint
-        .github/workflows/ci.yml: test (ubuntu-latest, 3.11)
-        .github/workflows/ci.yml: test (ubuntu-latest, 3.12)
-        .github/workflows/ci.yml: test (ubuntu-latest, 3.13)
         .github/workflows/ci.yml: test (ubuntu-latest, 3.14)
-        .github/workflows/ci.yml: test (windows-latest, 3.12)
+        .github/workflows/ci.yml: test (windows-latest, 3.14)
         .github/workflows/boundaries.yml: boundaries
         .github/workflows/codeql.yml: Analyze Python
         .github/workflows/codeql.yml: codeql-gates
@@ -93,6 +94,9 @@ jobs:
       contents: read # Read the pinned policy.
       id-token: write # Mint the OIDC token PyPI Trusted Publishing verifies.
     steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
       - name: Check out the policy that built the candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

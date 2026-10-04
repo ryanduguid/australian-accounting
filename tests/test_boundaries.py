@@ -250,7 +250,7 @@ class BoundaryTests(unittest.TestCase):
             "--cov --cov-branch --cov-report=term-missing --cov-report=xml",
             'pip-audit --local --strict',
             "python -m build",
-            'python: ["3.11", "3.12", "3.13", "3.14"]',
+            'python: ["3.14"]',
         ):
             with self.subTest(gate=gate):
                 self.assertIn(gate, reusable)
@@ -295,10 +295,10 @@ class BoundaryTests(unittest.TestCase):
         self.assertIn("--compare-branch=origin/main", reusable)
         self.assertIn("--branch-coverage", reusable)
         self.assertIn("--fail-under=100", reusable)
-        # Release callers now rely on the Python 3.12 test result to enforce
+        # Release callers now rely on the Python 3.14 test result to enforce
         # both the suite and its held-file coverage. Keep the check in that job.
         test_job = reusable.split("\n  test:\n", 1)[1].split("\n  test-windows:\n", 1)[0]
-        self.assertIn("matrix.python == '3.12' && inputs.changed-line-coverage != ''", test_job)
+        self.assertIn("matrix.python == '3.14' && inputs.changed-line-coverage != ''", test_job)
         self.assertIn('coverage xml --include="$INCLUDE" -o coverage.xml', test_job)
         self.assertIn("--branch-coverage --fail-under=100", test_job)
         self.assertNotIn("\n  changed-line-coverage:\n", reusable)

@@ -7,7 +7,7 @@ name = "lodgeit-calculator-adapter"
 version = "0.1.0"
 description = "Optional, explicitly enabled adapter for the LodgeiT Labs calculator constellation, with independent comparison trials. Never called by an offline engine."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Ryan Duguid" }]
@@ -16,6 +16,7 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Financial and Insurance Industry",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Office/Business :: Financial :: Accounting",
 ]
 # No runtime dependency. The transport is urllib from the standard library, so
@@ -68,6 +69,7 @@ addopts = "-q"
 pythonpath = ["."]
 
 [tool.ruff]
+target-version = "py314"
 line-length = 100
 src = ["lodgeitadapter", "tests"]
 
@@ -78,7 +80,7 @@ select = ["E", "F", "W", "I"]
 known-first-party = ["lodgeitadapter"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 packages = ["lodgeitadapter"]
 ignore_missing_imports = true
 pretty = true

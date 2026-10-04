@@ -21,7 +21,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/div7a-loan-review.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/div7a-loan-review/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
+[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
 
 Distribution `div7a-loan-review`, import package `div7aloan`, command `div7a-loan-review`.
 
@@ -145,7 +145,7 @@ UNKNOWN. It is macro-free, needs desktop Excel for Microsoft 365 or Excel
 pip install div7a-loan-review
 ```
 
-Python 3.11 or later. No runtime dependencies. To run the examples from a
+Python 3.14 or later. No runtime dependencies. To run the examples from a
 source checkout:
 
 ```bash

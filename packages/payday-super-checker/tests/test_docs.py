@@ -17,7 +17,7 @@ GENERATOR = (
     Path(__file__).resolve().parents[1] / "tools" / "generate_calendar.py"
 )
 LOCKED_CALENDAR_COMMAND = (
-    "uv run --locked --extra dev --python 3.12 "
+    "uv run --locked --extra dev --python 3.14 "
     "python tools/generate_calendar.py > paydaysuper/data/business_days.json"
 )
 
