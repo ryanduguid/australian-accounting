@@ -57,7 +57,9 @@ jobs:
       - run: uv run --locked --group dev pytest
 
   # The rates dataset's own checks on the floor and ceiling of its declared Python,
-  # as its source repository ran them before the import.
+  # as its source repository ran them before the import. They run from a copy outside
+  # the workspace, so uv checks the dataset's own uv.lock rather than the root lock;
+  # tests/test_components.py runs the same suite inside the workspace.
   rates-dataset:
     name: rates-dataset (${{ matrix.python }})
     permissions:
@@ -68,9 +70,6 @@ jobs:
       fail-fast: false
       matrix:
         python: ["3.10", "3.14"]
-    defaults:
-      run:
-        working-directory: packages/au-tax-rates-data
     env:
       UV_PYTHON: ${{ matrix.python }}
     steps:
@@ -87,8 +86,12 @@ jobs:
           enable-cache: true
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
+      - name: Copy the dataset outside the workspace
+        run: cp -R packages/au-tax-rates-data "$RUNNER_TEMP/au-tax-rates-data"
       - run: uv run --locked --no-build pytest -q
+        working-directory: ${{ runner.temp }}/au-tax-rates-data
       - run: uv run --locked --no-build python rates.py validate
+        working-directory: ${{ runner.temp }}/au-tax-rates-data
 
   boundaries-gates:
     # The one context branch protection requires from this workflow. It fails
