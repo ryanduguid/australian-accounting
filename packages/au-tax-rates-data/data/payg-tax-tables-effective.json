@@ -1,0 +1,13 @@
+{
+  "id": "payg-tax-tables-effective",
+  "label": "PAYG withholding tax tables index, current tables apply from",
+  "value": "2026-07-01",
+  "unit": "date",
+  "period": {
+    "effective_from": "2026-07-01"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/tax-tables-overview",
+  "retrieved_at": "2026-09-28T21:00:53+10:00",
+  "quote": "Tax tables that were updated and apply from 1 July 2026 Regular payments",
+  "pattern": "Tax tables that were updated and apply from (\\d{1,2} \\w+ \\d{4}) Regular payments"
+}

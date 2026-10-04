@@ -1,0 +1,15 @@
+{
+  "id": "medicare-low-income-upper-threshold-2025-26",
+  "label": "Medicare levy low-income upper threshold, single, not SAPTO",
+  "value": 35013,
+  "unit": "AUD",
+  "period": {
+    "income_year": "2025-26"
+  },
+  "source_url": "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners",
+  "retrieved_at": "2026-09-28T20:59:41+10:00",
+  "quote": "All other taxpayers $28,011 $35,013",
+  "period_quote": "In 2025–26, you don't have to pay the Medicare levy if your taxable income is equal to or less than the lower Medicare levy threshold.",
+  "pattern": "All other taxpayers \\$[\\d,]+ (\\$[\\d,]+)",
+  "notes": "2026-27 thresholds were not on the page at retrieval."
+}

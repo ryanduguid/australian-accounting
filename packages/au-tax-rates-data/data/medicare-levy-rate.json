@@ -1,0 +1,14 @@
+{
+  "id": "medicare-levy-rate",
+  "label": "Medicare levy rate",
+  "value": 2,
+  "unit": "percent",
+  "period": {
+    "as_at": "2026-09-24"
+  },
+  "source_url": "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/what-is-the-medicare-levy",
+  "retrieved_at": "2026-09-28T20:59:55+10:00",
+  "quote": "The Medicare levy is 2% of your taxable income.",
+  "pattern": "The Medicare levy is ([\\d.]+%) of your taxable income",
+  "notes": "The page states no income year, so the period is the retrieval date."
+}
