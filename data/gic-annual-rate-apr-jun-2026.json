@@ -1,0 +1,15 @@
+{
+  "id": "gic-annual-rate-apr-jun-2026",
+  "label": "General interest charge (GIC) annual rate",
+  "value": 10.96,
+  "unit": "percent",
+  "period": {
+    "effective_from": "2026-04-01",
+    "effective_to": "2026-06-30"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/general-interest-charge-rates",
+  "retrieved_at": "2026-09-28T21:00:16+10:00",
+  "quote": "April – June 2026 10.96% 0.03002740%",
+  "pattern": "April – June 2026 ([\\d.]+%)",
+  "notes": "Quarterly rate under Taxation Administration Act 1953 s 8AAD; the page lists it under the 2025–26 income year. The daily rate is the annual rate divided by the days in the calendar year. payday-super-checker's gic_rates.json carries the same quarter."
+}

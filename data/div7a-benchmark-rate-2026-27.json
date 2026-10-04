@@ -1,0 +1,14 @@
+{
+  "id": "div7a-benchmark-rate-2026-27",
+  "label": "Division 7A benchmark interest rate",
+  "value": 8.77,
+  "unit": "percent",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/division-7a-benchmark-interest-rate",
+  "retrieved_at": "2026-09-28T21:00:02+10:00",
+  "quote": "2027 8.77% This is the 'Indicator Lending Rates - Bank variable housing loans interest rate' published by the Reserve Bank of Australia on 5 June 2026.",
+  "pattern": "ATO reference 2027 ([\\d.]+%)",
+  "notes": "The page labels it income year ended 30 June 2027."
+}

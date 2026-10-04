@@ -1,0 +1,15 @@
+{
+  "id": "gic-annual-rate-oct-dec-2026",
+  "label": "General interest charge (GIC) annual rate",
+  "value": 11.51,
+  "unit": "percent",
+  "period": {
+    "effective_from": "2026-10-01",
+    "effective_to": "2026-12-31"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/general-interest-charge-rates",
+  "retrieved_at": "2026-09-28T21:00:16+10:00",
+  "quote": "October – December 2026 11.51% 0.03153425%",
+  "pattern": "October – December 2026 ([\\d.]+%)",
+  "notes": "Quarterly rate under Taxation Administration Act 1953 s 8AAD, published 4 September 2026. The January to March 2027 rate is expected in early December 2026; the weekly check reports the page's changed wording when it appears. payday-super-checker's gic_rates.json carries the same quarter."
+}
