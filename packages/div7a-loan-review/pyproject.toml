@@ -7,7 +7,7 @@ name = "div7a-loan-review"
 version = "0.1.6"
 description = "Experimental review aid for ITAA 1936 Division 7A complying loan terms and minimum yearly repayments"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Ryan Duguid" }]
@@ -16,7 +16,7 @@ classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Financial and Insurance Industry",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "Topic :: Office/Business :: Financial :: Accounting",
 ]
 dependencies = []
@@ -66,7 +66,7 @@ src = ["div7aloan", "tests"]
 select = ["E4", "E7", "E9", "F", "I"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 packages = ["div7aloan"]
 ignore_missing_imports = true
 pretty = true

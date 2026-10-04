@@ -33,7 +33,7 @@ jobs:
         .github/workflows/ci.yml: the-wip-tally / build
         .github/workflows/ci.yml: the-wip-tally / dependency-audit
         .github/workflows/ci.yml: the-wip-tally / lint
-        .github/workflows/ci.yml: the-wip-tally / test (3.10)
+        .github/workflows/ci.yml: the-wip-tally / test (3.11)
         .github/workflows/ci.yml: the-wip-tally / test (3.12)
         .github/workflows/ci.yml: the-wip-tally / test (3.13)
         .github/workflows/ci.yml: the-wip-tally / test (3.14)

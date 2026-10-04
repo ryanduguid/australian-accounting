@@ -2,7 +2,7 @@
 name = "au-tax-rates-data"
 version = "0.1.0"
 description = "Key ATO rates and thresholds with verbatim source quotes, a validator and a weekly change check"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE", "NOTICE"]
 dependencies = []
@@ -23,6 +23,6 @@ src = [".", "tests"]
 select = ["E4", "E7", "E9", "F", "I"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 files = ["rates.py"]
 pretty = true

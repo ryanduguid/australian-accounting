@@ -216,8 +216,8 @@ LATEST_SANE_YEAR = 2200
 
 # .NET and SQL Server timestamps carry 7 fractional-second digits
 # (2026-07-09T00:00:00.0000000). fromisoformat on Python 3.11+ truncates a
-# long fraction itself; 3.10, the declared floor, refuses it, so the same
-# export parsed on one interpreter and was refused on another. Truncated to
+# long fraction itself; 3.10 refused it, so the same export parsed on one
+# interpreter and was refused on another. Truncated to
 # microseconds here, anchored to the seconds field so a digit run elsewhere
 # in a malformed string cannot be rewritten into something parseable.
 FRACTION_OVERFLOW = re.compile(r"(:\d{2}\.\d{6})\d+")
@@ -230,7 +230,7 @@ FRACTION_PAD = re.compile(r"(:\d{2})\.(\d{1,5})(?!\d)")
 
 # The ISO surface this tool accepts: a hyphenated calendar date, alone or
 # followed by a colon-separated ZONE-LESS time. This is the grammar Python
-# 3.10, the declared floor, itself parses once the fraction is normalised.
+# 3.10 itself parsed once the fraction was normalised.
 # fromisoformat on 3.11+ additionally reads compact dates (20260709), week
 # dates (2026-W28-4), bare year-months (2026-07, as its FIRST day), compact
 # times (T000000), comma decimal seconds and hour-only offsets; the
