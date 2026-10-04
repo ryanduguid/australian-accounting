@@ -26,11 +26,14 @@ calls (name and arguments) and final answer:
 
 `score` compares these with the reference calls and answers in `questions.xml`.
 The stdio replay verifies the reference. Comparison is exact, including decimal
-strings, omitted fields, call order and repetitions; only surrounding answer
+strings, decoded argument types, omitted fields, call order and repetitions;
+integer and floating-point inputs remain distinct. Only surrounding answer
 whitespace is ignored. Equivalent alternative workflows may differ from this
 reference, so a mismatch needs human review and is not proof of a bad answer.
 Legacy lists of tool names remain accepted, with arguments and answers explicitly
 marked NOT EVALUATED. No recording is executed by the scorer.
+Recordings reject duplicate keys and non-finite numbers. Retain the answer-key
+digest with a run and pass --reference-sha256 when scoring that frozen trial.
 
 This is a supplementary check and deliberately not a CI gate. Steps one and 2
 are deterministic; the step in the middle is a model, and a gate whose result
@@ -41,9 +44,12 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import json
+import math
 import sys
 import xml.etree.ElementTree as ET
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -53,12 +59,58 @@ from mcp.client.stdio import stdio_client
 QUESTIONS = Path(__file__).resolve().parent / "questions.xml"
 
 
+def _strict_json(text: str) -> Any:
+    def unique(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"duplicate JSON key: {key}")
+            result[key] = value
+        return result
+
+    def finite(text: str) -> Decimal:
+        value = Decimal(text)
+        if not math.isfinite(float(value)):
+            raise ValueError("non-finite JSON number")
+        return value
+
+    def reject_constant(text: str) -> Any:
+        raise ValueError(f"non-finite JSON number: {text}")
+
+    return json.loads(text, object_pairs_hook=unique, parse_float=finite,
+                      parse_constant=reject_constant)
+
+
+def _references() -> tuple[dict[str, Any], str]:
+    snapshot = QUESTIONS.read_bytes()
+    references: dict[str, Any] = {}
+    for pair in ET.fromstring(snapshot).findall("qa_pair"):
+        case = pair.attrib.get("id", "")
+        if not case or case in references:
+            raise ValueError("reference question IDs must be present and unique")
+        if any(len(pair.findall(tag)) != 1 for tag in ("question", "calls", "answer")):
+            raise ValueError(f"{case}: reference question, calls and answer must appear once")
+        if not (pair.findtext("question") or "").strip():
+            raise ValueError(f"{case}: reference question must not be blank")
+        entry = {"calls": _strict_json(pair.findtext("calls") or ""),
+                 "answer": pair.findtext("answer") or ""}
+        _validate_recording({case: entry})
+        declared = [tool.text or "" for tool in pair.findall("tools/tool")]
+        called = {call["name"] for call in entry["calls"]}
+        if set(declared) != called or len(declared) != len(set(declared)):
+            raise ValueError(f"{case}: reference tool set differs from calls")
+        references[case] = entry
+    if not references:
+        raise ValueError("reference must contain questions")
+    return references, hashlib.sha256(snapshot).hexdigest()
+
+
 def _published() -> dict[str, list[str]]:
     """The tool selection each question needs, from the checked answer key."""
-    root = ET.parse(QUESTIONS).getroot()
+    references, _ = _references()
     return {
-        pair.attrib["id"]: sorted({tool.text or "" for tool in pair.findall("tools/tool")})
-        for pair in root.findall("qa_pair")
+        case: sorted({call["name"] for call in entry["calls"]})
+        for case, entry in references.items()
     }
 
 
@@ -80,7 +132,12 @@ async def _describe() -> str:
             tools = (await session.list_tools()).tools
             scope = await session.read_resource("aus-accounting://scope")
 
-    lines = ["# Server instructions", "", initialized.instructions or "", "", "# Tools", ""]
+    return _format_context(initialized.instructions or "", tools, scope.contents[0].text)
+
+
+def _format_context(instructions: str, tools: list[Any], scope_text: str) -> str:
+    """Render the complete context used by this supplementary evaluation."""
+    lines = ["# Server instructions", "", instructions, "", "# Tools", ""]
     for tool in tools:
         # The whole schema, not a summary of it. A host hands the model the
         # tool definition as it stands, and most of what decides both the
@@ -103,7 +160,7 @@ async def _describe() -> str:
         lines.append("")
     lines.extend([
         "# Preloaded scope resource", "", "aus-accounting://scope", "",
-        scope.contents[0].text, "",
+        scope_text, "",
     ])
     return "\n".join(lines)
 
@@ -131,16 +188,28 @@ def _validate_recording(recorded: Any) -> None:
                 )
 
 
-def _score(recorded: dict[str, Any]) -> int:
+def _same_value(left: Any, right: Any) -> bool:
+    """Compare decoded JSON values without numeric coercion or float rounding."""
+    if type(left) is not type(right):
+        return False
+    if isinstance(left, dict):
+        return left.keys() == right.keys() and all(
+            _same_value(value, right[key]) for key, value in left.items()
+        )
+    if isinstance(left, list):
+        return len(left) == len(right) and all(
+            _same_value(a, b) for a, b in zip(left, right)
+        )
+    return bool(left == right)
+
+
+def _score(recorded: dict[str, Any], reference_sha256: str | None = None) -> int:
     _validate_recording(recorded)
-    published = _published()
-    references = {
-        pair.attrib["id"]: {
-            "calls": json.loads(pair.findtext("calls") or "[]"),
-            "answer": pair.findtext("answer") or "",
-        }
-        for pair in ET.parse(QUESTIONS).getroot().findall("qa_pair")
-    }
+    references, digest = _references()
+    if reference_sha256 is not None and reference_sha256 != digest:
+        raise ValueError("reference digest differs from the frozen trial")
+    published = {case: sorted({call["name"] for call in entry["calls"]})
+                 for case, entry in references.items()}
     unknown = sorted(set(recorded) - set(published))
     if unknown:
         print(f"not questions in this evaluation: {', '.join(unknown)}", file=sys.stderr)
@@ -166,9 +235,9 @@ def _score(recorded: dict[str, Any]) -> int:
         if extra:
             detail.append(f"also called {', '.join(extra)}")
         if detailed:
-            if entry["calls"] != references[case]["calls"]:
+            if not _same_value(entry["calls"], references[case]["calls"]):
                 detail.append("calls differ (arguments, order or count)")
-            if entry["answer"].strip() != references[case]["answer"]:
+            if entry["answer"].strip() != references[case]["answer"].strip():
                 detail.append("answer differs")
             if not detail:
                 verified += 1
@@ -176,7 +245,8 @@ def _score(recorded: dict[str, Any]) -> int:
             detail.append("arguments and answer NOT EVALUATED")
         print(f"{case.ljust(width)}  {'; '.join(detail) if detail else 'calls and answer match'}")
 
-    print(f"\n{exact} of {len(published)} questions selected exactly the published tools.")
+    print(f"\nreference_sha256 {digest}")
+    print(f"{exact} of {len(published)} questions selected exactly the published tools.")
     print(f"{verified} of {len(published)} recorded calls and answers match the reference.")
     # A reported score is the whole output. Exiting non-zero on an imperfect run
     # would turn a measurement into a gate, which is what this deliberately is not.
@@ -192,6 +262,7 @@ def main(argv: list[str] | None = None) -> int:
     scorer.add_argument(
         "recorded", type=Path, help="JSON keyed by question id, with calls and answer"
     )
+    scorer.add_argument("--reference-sha256", help="require the frozen answer-key SHA-256")
     args = parser.parse_args(argv)
 
     if args.command == "context":
@@ -202,8 +273,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{case}: {question}")
         return 0
     try:
-        return _score(json.loads(args.recorded.read_text(encoding="utf-8")))
-    except (ValueError, OSError) as exc:
+        return _score(_strict_json(args.recorded.read_text(encoding="utf-8")),
+                      args.reference_sha256)
+    except (ValueError, OSError, ET.ParseError) as exc:
         print(f"invalid recording: {exc}", file=sys.stderr)
         return 2
 
