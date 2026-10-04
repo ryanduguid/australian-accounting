@@ -193,8 +193,9 @@ commit. The imported subtree must have the same tree id as the source commit.
 - It is not an engine and is never released. `tests/test_boundaries.py` lists it under
   `DATASETS`, `tests/test_components.py` runs its suite, and the `rates-dataset` job in
   `.github/workflows/boundaries.yml` runs `uv run --locked pytest -q` and
-  `uv run --locked python rates.py validate` on Python 3.10 and 3.14, as the source
-  repository's CI did.
+  `uv run --locked python rates.py validate` on Python 3.10 and 3.14 from a copy outside
+  the workspace, so they check the dataset's own `uv.lock` as the source repository's CI
+  did.
 
 ## Release policy prerequisites
 
