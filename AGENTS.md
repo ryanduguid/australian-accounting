@@ -9,8 +9,10 @@ checks from its own directory.
   is the whole setup for a fresh clone. `just` comes from `uv tool install rust-just`.
 - Components: `apps/aus-accounting-mcp/` (the MCP application),
   `apps/lodgeit-calculator-adapter/` (an optional adapter for a third-party calculator
-  service, off by default and imported by nothing else here) and
-  `packages/<distribution>/` (one directory per engine).
+  service, off by default and imported by nothing else here),
+  `packages/<distribution>/` (one directory per engine) and `packages/au-tax-rates-data/`
+  (sourced ATO rates and thresholds with their validator; not an engine, imported by
+  nothing and never released).
 - Dependency direction: the MCP application depends on engines only through their
   published distributions. The root workspace redirects those 4 dependencies to the
   checked-out sources so the application is developed and tested against the tree, but
@@ -22,7 +24,7 @@ checks from its own directory.
 - Every component keeps its own `pyproject.toml`, lockfile, version, release notes,
   tests, commands and licence, and is released on its own from its own directory. A
   component's lockfile stays the authority for building and releasing that component
-  alone.
+  alone. The rates dataset is the exception: it has no release workflow or release notes.
 - The root `pyproject.toml`, `uv.lock` and `justfile` are a development entrypoint
   only. The root is a virtual uv workspace: it declares no package, no version and no
   runtime dependency, and publishes nothing. Do not add a root distribution, shared

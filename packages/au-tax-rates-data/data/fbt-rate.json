@@ -1,0 +1,15 @@
+{
+  "id": "fbt-rate",
+  "label": "Fringe benefits tax rate",
+  "value": 47,
+  "unit": "percent",
+  "period": {
+    "effective_from": "2022-04-01",
+    "effective_to": "2027-03-31"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds",
+  "retrieved_at": "2026-09-28T21:00:09+10:00",
+  "quote": "A fringe benefits tax (FBT) rate of 47% applies across the 31 March 2023 to 31 March 2027 FBT years.",
+  "pattern": "fringe benefits tax \\(FBT\\) rate of ([\\d.]+%) applies",
+  "notes": "Period covers the FBT years ending 31 March 2023 to 31 March 2027."
+}

@@ -1,0 +1,44 @@
+{
+  "id": "resident-tax-rates-2026-27",
+  "label": "Resident individual income tax rates",
+  "value": [
+    {
+      "from": 0,
+      "to": 18200,
+      "base_tax": 0,
+      "marginal_rate": 0
+    },
+    {
+      "from": 18201,
+      "to": 45000,
+      "base_tax": 0,
+      "marginal_rate": 15
+    },
+    {
+      "from": 45001,
+      "to": 135000,
+      "base_tax": 4020,
+      "marginal_rate": 30
+    },
+    {
+      "from": 135001,
+      "to": 190000,
+      "base_tax": 31020,
+      "marginal_rate": 37
+    },
+    {
+      "from": 190001,
+      "to": null,
+      "base_tax": 51370,
+      "marginal_rate": 45
+    }
+  ],
+  "unit": "tax_scale",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents",
+  "retrieved_at": "2026-09-28T21:00:45+10:00",
+  "quote": "Resident tax rates 2026–27 Taxable income Tax on this income 0 – $18,200 Nil $18,201 – $45,000 15c for each $1 over $18,200 $45,001 – $135,000 $4,020 plus 30c for each $1 over $45,000 $135,001 – $190,000 $31,020 plus 37c for each $1 over $135,000 $190,001 and over $51,370 plus 45c for each $1 over $190,000",
+  "notes": "Firecrawl JSON extraction returned the 2025-26 scale (16c, $4,288) for 2026-27; the page text and snapshot show 15c and $4,020. Rates exclude the Medicare levy."
+}

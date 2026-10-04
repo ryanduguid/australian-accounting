@@ -5,10 +5,10 @@ import sys
 
 import pytest
 
-from test_boundaries import APPLICATIONS, ENGINES, ROOT
+from test_boundaries import APPLICATIONS, DATASETS, ENGINES, ROOT
 
 
-@pytest.mark.parametrize("component", sorted(ENGINES | APPLICATIONS))
+@pytest.mark.parametrize("component", sorted(ENGINES | APPLICATIONS | DATASETS))
 def test_component_suite(component: str) -> None:
     result = subprocess.run(
         [sys.executable, "-m", "pytest"],

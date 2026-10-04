@@ -1,0 +1,28 @@
+[project]
+name = "au-tax-rates-data"
+version = "0.1.0"
+description = "Key ATO rates and thresholds with verbatim source quotes, a validator and a weekly change check"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+src = [".", "tests"]
+
+[tool.ruff.lint]
+# The shared workspace baseline: ruff's default correctness set plus import sorting.
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["rates.py"]
+pretty = true

@@ -130,8 +130,9 @@ For an editable source installation, run `pip install -e .` from
 | `packages/solomons-sword/` | `solomons-sword` | `louisgoldberg` | `solomons-sword` |
 | `packages/the-wip-tally/` | `the-wip-tally` | `wiptally` | `wip-tally` |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` | `lodgeitadapter` | optional adapter for a third-party calculator service; off by default, makes HTTP calls only when `LODGEIT_ADAPTER_ENABLED=1` |
+| `packages/au-tax-rates-data/` | `au-tax-rates-data` (never released) | `rates` (module) | `python rates.py validate`, `snapshot` and `check`: ATO rates and thresholds with verbatim source quotes, validated offline |
 
-`IMPORTS.md` records the source repository, commit and tree of every imported engine. The
+`IMPORTS.md` records the source repository, commit and tree of every imported component. The
 MCP application is the `io.github.ryanduguid/aus-accounting` MCP Registry server; it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
 `div7a-loan-review` and `australian-tax-calculators` distributions. In the development
@@ -161,9 +162,10 @@ above run as written. Codespaces usage counts against your own GitHub quota.
 Each component is released on its own namespaced tag `<component>/vX.Y.Z` by its own root
 workflow `.github/workflows/release-<component>.yml`, which calls the pinned Release Policy
 reusable workflow for that component directory only. `CONTRIBUTING.md` has the table.
+The rates dataset in `packages/au-tax-rates-data/` is never released.
 
 Each component's `LICENSE` applies to that component, and
-`packages/ato-benchmark-compare/NOTICE` covers its bundled ATO data. Outputs are review
-aids, not advice.
+`packages/ato-benchmark-compare/NOTICE` and `packages/au-tax-rates-data/NOTICE` cover their
+ATO material. Outputs are review aids, not advice.
 
 </details>

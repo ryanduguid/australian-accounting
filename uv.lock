@@ -12,6 +12,7 @@ resolution-markers = [
 [manifest]
 members = [
     "ato-benchmark-compare",
+    "au-tax-rates-data",
     "aus-accounting-mcp",
     "australian-tax-calculators",
     "div7a-loan-review",
@@ -165,6 +166,21 @@ sdist = { url = "https://files.pythonhosted.org/packages/9a/8e/82a0fe20a541c0314
 wheels = [
     { url = "https://files.pythonhosted.org/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl", hash = "sha256:c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309", size = 67548, upload-time = "2026-03-19T14:22:23.645Z" },
 ]
+
+[[package]]
+name = "au-tax-rates-data"
+version = "0.1.0"
+source = { virtual = "packages/au-tax-rates-data" }
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8" }]
 
 [[package]]
 name = "aus-accounting-mcp"

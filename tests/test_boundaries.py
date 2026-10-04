@@ -66,6 +66,11 @@ APPLICATIONS = {
     # engines, and no engine may consume it.
     "apps/lodgeit-calculator-adapter": "lodgeitadapter",
 }
+# Sourced records with their validator. Not an engine or an application: nothing
+# imports it, and it is never released.
+DATASETS = {
+    "packages/au-tax-rates-data": "rates",
+}
 
 # The files the changed-line coverage gate holds to complete branch coverage,
 # and the engine that owns each set.

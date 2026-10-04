@@ -1,0 +1,13 @@
+Third-party data notice
+
+The values, quotations and patterns in data/ and the page text in snapshots/ are
+reproduced from Australian Taxation Office web pages under the ATO's copyright notice
+(https://www.ato.gov.au/about-ato/using-our-website/copyright-notice), which permits
+copying and adaptation provided nothing suggests the ATO or the Commonwealth endorses
+the user or its products. Each record names its source page and retrieval time.
+Snapshots keep each page's visible text with non-breaking and other Unicode spaces
+turned into plain spaces.
+
+That material is not licensed under the MIT licence in LICENSE, which covers the code
+and the other original material in this directory. The Australian Taxation Office has
+not endorsed this software.

@@ -20,6 +20,7 @@ packages/the-exchequer-tally:edwinnixon
 packages/the-wip-tally:wiptally
 apps/aus-accounting-mcp:aus_accounting_mcp
 apps/lodgeit-calculator-adapter:lodgeitadapter
+packages/au-tax-rates-data:rates
 ''', "\n", " "))
 
 # List the available recipes.
