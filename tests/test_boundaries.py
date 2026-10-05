@@ -25,7 +25,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE_POLICY_SHA = "ec6b0ee76446f11aefb7fa0c203f2e01b4c9a711"
+RELEASE_POLICY_SHA = "f068fb4f1d8f90e07429ded7cfb85bdbcc2960fe"
 
 
 def _load_select_package():
@@ -323,7 +323,7 @@ class BoundaryTests(unittest.TestCase):
             with self.subTest(control=control):
                 self.assertTrue(trigger_path_filters(control))
 
-    def test_release_callers_pin_the_landed_policy_and_matching_identity(self) -> None:
+    def test_release_callers_pin_the_reviewed_policy_and_matching_identity(self) -> None:
         for component, source_directory in RELEASE_CALLERS.items():
             workflow = (
                 ROOT / ".github" / "workflows" / f"release-{component}.yml"
