@@ -8,11 +8,12 @@ from austaxcalc import calculations
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..errors import InputError
-from ..money import parse_amount
+from ..money import MONEY_SCHEMA, parse_amount
 
 # The money and scope rules are stated once in the calculate_tax_worksheet description;
 # a sentence here is repeated for every field of every worksheet kind in the schema.
-Money = Annotated[str, Field(max_length=60, description="AUD decimal string.")]
+Money = Annotated[str, Field(max_length=60, description="AUD decimal string.",
+                             json_schema_extra=MONEY_SCHEMA)]
 Ratio = Annotated[str, Field(max_length=30, description="Finite decimal string, not a percentage.")]
 
 
