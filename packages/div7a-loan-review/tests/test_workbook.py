@@ -210,7 +210,7 @@ def test_the_year_guard_matches_the_engine_grammar_and_bounds(builder):
     from div7aloan.years import _EARLIEST, _LATEST
 
     guard = builder.year_bad("year_loan_made")
-    assert 'TRIM(tblLoans[[#This Row],[year_loan_made]]&"")' in guard
+    assert builder.year_text("year_loan_made") in guard
     assert f">={_EARLIEST}" in guard and f"<={_LATEST}" in guard
     # Every one of the 6 digit positions is tested, so VALUE cannot read 20e2 as 2000.
     for position in (1, 2, 3, 4, 6, 7):
@@ -255,16 +255,83 @@ def test_scope_and_lookup_read_the_trimmed_year(builder):
     calc = builder.formulas()
     for name in ("Status", "Floor_year"):
         assert 'LEFT(tblLoans[[#This Row],[year_loan_made]]' not in calc[name]
-    assert 'TRIM(tblLoans[[#This Row],[year_loan_made]]&"")' in calc["Floor_year"]
+    assert builder.year_text("year_loan_made") in calc["Floor_year"]
     # The repayment verdict compares the same trimmed label. Comparing the raw cell
     # with the trimmed Floor_year made ` 2023-24 ` REFUSED for a benchmark-year
     # mismatch against itself, where the engine trims and returns MYR_MET, exit 0.
-    raw = 'tblLoans[[#This Row],[year_loan_made]]&""'
     for name in ("MYR_verdict", "MYR_reason"):
         formula = calc[name]
-        assert f"TRIM({raw})" in formula
-        # Every reading of the label goes through TRIM, none of them the raw cell.
-        at = formula.find(raw)
-        while at != -1:
-            assert formula[at - 5:at] == "TRIM(", (name, formula[at - 40:at + 40])
-            at = formula.find(raw, at + 1)
+        assert builder.year_text("year_loan_made") in formula
+        assert builder.T("year_loan_made") not in formula
+
+
+def test_year_whitespace_matches_python_without_erasing_internal_gaps(builder):
+    from div7aloan.facts import UNKNOWN_TOKENS, optional_year_of_income
+
+    whitespace = {chr(code) for code in range(0x110000) if chr(code).isspace()}
+    assert set(builder.YEAR_WHITESPACE) == whitespace
+    for character in whitespace:
+        assert parse_year(character + "2023-24" + character) == parse_year("2023-24")
+        for token in UNKNOWN_TOKENS:
+            assert optional_year_of_income(character + token + character, "year") is None
+        for bad in ("20" + character + "23-24", "2023-" + character + "24",
+                    "un" + character + "known", "n" + character + "/a"):
+            with pytest.raises(ValueError):
+                optional_year_of_income(bad, "year")
+    for column in builder.YEAR_HELPERS:
+        formula = builder.normalise_year(column)
+        assert "CLEAN(" not in formula
+        for character in whitespace - {" "}:
+            assert f'UNICHAR({ord(character)})," ")' in formula
+    for character in ("\u200b", "\ufeff"):
+        assert character not in whitespace
+        with pytest.raises(ValueError):
+            parse_year(character + "2023-24" + character)
+
+
+def test_every_semantic_year_read_uses_the_shared_helper(builder):
+    for name, formula in builder.formulas().items():
+        for column, helper in builder.YEAR_HELPERS.items():
+            if name in ("Guard", helper):
+                continue
+            assert builder.T(column) not in formula, (name, column)
+
+
+def test_missing_floor_year_precedes_gate_failures_and_maximum_term(builder):
+    calc = builder.formulas()
+    no_year = builder.unknown(builder.T("Floor_year"))
+    gate = calc["Gate_verdict"]
+    assert f'IF({no_year},"UNKNOWN",' in gate
+    assert gate.index(no_year) < gate.index(builder.T("Limb_a_written"))
+    maximum = calc["Max_term_allowed"]
+    assert no_year in maximum
+    assert maximum.index(no_year) < maximum.index(builder.T("Allowed_term_raw"))
+    # An unreviewed rate is different: the maximum term can still be established.
+    assert builder.T("Floor_rate") not in maximum
+
+
+def test_year_helpers_extend_the_table_without_moving_public_columns(builder):
+    if not WORKBOOK.is_file():
+        pytest.skip("workbook is not included in the source distribution")
+    openpyxl = pytest.importorskip("openpyxl")
+    book = openpyxl.load_workbook(WORKBOOK)
+    ws = book["Register"]
+    titles = [cell.value for cell in ws[1]]
+    assert titles == builder.INPUT_COLUMNS + builder.CALC_ORDER + list(builder.YEAR_HELPERS.values())
+    # These established positions are used by existing native probes and consumers.
+    assert len(builder.INPUT_COLUMNS) == 14
+    assert titles.index("Gate_verdict") == 23
+    assert titles.index("Max_term_allowed") == 24
+    assert titles.index("Input_problem") == 34
+    for helper in builder.YEAR_HELPERS.values():
+        column = titles.index(helper) + 1
+        # Excel can combine adjacent hidden columns into one dimension range.
+        assert any(dimension.hidden and dimension.min <= column <= dimension.max
+                   for dimension in ws.column_dimensions.values())
+        assert ws.tables["tblLoans"].tableColumns[column - 1].calculatedColumnFormula is not None
+        assert all(ws.cell(row, column).data_type == "f" for row in range(2, ws.max_row + 1))
+    book.close()
+
+
+def test_changed_formulas_fit_excels_formula_limit(builder):
+    assert all(len(formula) <= 8192 for formula in builder.formulas().values())

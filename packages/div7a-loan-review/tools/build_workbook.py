@@ -70,6 +70,17 @@ NUMBER_COLUMNS = ["maximum_term_years", "security_coverage_at_first_made",
                   "interest_rate_for_years_after_year_loan_made",
                   "amalgamated_loan_unpaid_at_end_of_previous_year", "remaining_term_years",
                   "payments_applied_during_the_year"]
+YEAR_HELPERS = {
+    "year_loan_made": "Year_made_text",
+    "year_of_income_being_tested": "Year_tested_text",
+}
+# Python str.strip() whitespace. Replace it with spaces rather than deleting it:
+# an internal tab must keep a malformed label such as 2023-\t24 invalid.
+YEAR_WHITESPACE = (
+    "\t\n\v\f\r\x1c\x1d\x1e\x1f \x85\xa0\u1680"
+    "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a"
+    "\u2028\u2029\u202f\u205f\u3000"
+)
 MONEY_COLUMNS = {"amalgamated_loan_unpaid_at_end_of_previous_year",
                  "payments_applied_during_the_year", "MYR_required", "Shortfall", "Exposure"}
 
@@ -149,8 +160,17 @@ def tristate(column):
 
 
 def year_text(column):
-    """The year label as the engine reads it: surrounding whitespace stripped."""
-    return f'TRIM({T(column)}&"")'
+    """Read the shared normalised year instead of repeating its formula."""
+    return T(YEAR_HELPERS[column])
+
+
+def normalise_year(column):
+    """Match strip() for year labels and unknown tokens, preserving internal gaps."""
+    text = f'{T(column)}&""'
+    for character in YEAR_WHITESPACE:
+        if character != " ":
+            text = f'SUBSTITUTE({text},_xlfn.UNICHAR({ord(character)})," ")'
+    return f'TRIM({text})'
 
 
 def year_bad(column):
@@ -167,7 +187,7 @@ def year_bad(column):
     y = year_text(column)
     digits = ",".join(f'ISNUMBER(VALUE(MID({y},{k},1)))' for k in (1, 2, 3, 4, 6, 7))
     return (
-        f"AND(NOT({unknown(T(column))}),NOT(IFERROR(AND(LEN({y})=7,MID({y},5,1)=\"-\","
+        f"AND(NOT({unknown(y)}),NOT(IFERROR(AND(LEN({y})=7,MID({y},5,1)=\"-\","
         f"{digits},"
         f"VALUE(RIGHT({y},2))=MOD(VALUE(LEFT({y},4))+1,100),"
         f"VALUE(LEFT({y},4))>={_EARLIEST},VALUE(LEFT({y},4))<={_LATEST}),FALSE)))"
@@ -217,6 +237,7 @@ def formulas():
     fails = ",".join(f'{x}="FAIL"' for x in limbs)
     unknowns = ",".join(f'{x}="UNKNOWN"' for x in limbs)
     v = T("MYR_verdict")
+    no_floor_year = unknown(T("Floor_year"))
     return {
         # register._skip_reason skips ANY nonblank out_of_scope_reason before it
         # parses a single loan fact. Passing the cell through the unknown-token
@@ -228,7 +249,7 @@ def formulas():
             f'IF(IFERROR({year_start}<{FIRST_REVIEWABLE_YEAR.start_year},FALSE),"SKIPPED","REVIEWED"))'
         ),
         "Floor_year": (
-            f'=IF({unknown(T("year_of_income_being_tested"))},{year_text("year_loan_made")},'
+            f'=IF({unknown(year_text("year_of_income_being_tested"))},{year_text("year_loan_made")},'
             f'{year_text("year_of_income_being_tested")})'
         ),
         "Floor_rate": (
@@ -252,11 +273,12 @@ def formulas():
             f'IF({term}<=7,"PASS","UNKNOWN"),IF({term}<={T("Allowed_term_raw")},"PASS","FAIL")))'
         ),
         "Gate_verdict": (
-            f'=IF({T("Status")}="SKIPPED","",IF(OR({fails}),"NOT_COMPLYING",'
-            f'IF(OR({unknowns}),"UNKNOWN","COMPLYING")))'
+            f'=IF({T("Status")}="SKIPPED","",IF({no_floor_year},"UNKNOWN",'
+            f'IF(OR({fails}),"NOT_COMPLYING",IF(OR({unknowns}),"UNKNOWN","COMPLYING"))))'
         ),
         "Max_term_allowed": (
-            f'=IF({T("Status")}="SKIPPED","",IF({T("Allowed_term_raw")}<>"",{T("Allowed_term_raw")},'
+            f'=IF(OR({T("Status")}="SKIPPED",{no_floor_year}),"",'
+            f'IF({T("Allowed_term_raw")}<>"",{T("Allowed_term_raw")},'
             f'IF(AND(ISNUMBER({term}),{term}<=7),7,"")))'
         ),
         "Term_used": (
@@ -270,11 +292,11 @@ def formulas():
         ),
         "MYR_verdict": (
             f'=IF({T("Status")}="SKIPPED","",IF(OR({T("Gate_verdict")}<>"COMPLYING",'
-            f'AND(NOT({unknown(T("year_loan_made"))}),{T("Floor_year")}<>{year_text("year_loan_made")}),'
+            f'AND(NOT({unknown(year_text("year_loan_made"))}),{T("Floor_year")}<>{year_text("year_loan_made")}),'
             f'{year_text("year_loan_made")}={YEAR},IFERROR({year_start}>{YEAR_START},FALSE),'
             f'AND(ISNUMBER({T("Term_used")}),{T("Term_used")}<=0),'
             f'AND(ISNUMBER({YEAR_RATE}),{YEAR_RATE}<=0)),"REFUSED",'
-            f'IF(OR({unknown(T("year_loan_made"))},NOT(ISNUMBER({YEAR_RATE})),NOT(ISNUMBER({principal})),NOT(ISNUMBER({payments})),'
+            f'IF(OR({unknown(year_text("year_loan_made"))},NOT(ISNUMBER({YEAR_RATE})),NOT(ISNUMBER({principal})),NOT(ISNUMBER({payments})),'
             f'NOT(ISNUMBER({T("Term_used")}))),"UNKNOWN",'
             f'IF({T("MYR_raw")}-ROUND({payments},2)<=0,"MYR_MET","MYR_SHORT"))))'
         ),
@@ -285,7 +307,7 @@ def formulas():
             f'IF(IFERROR({year_start}>{YEAR_START},FALSE),"loan made after the year of income",'
             f'IF(AND(ISNUMBER({T("Term_used")}),{T("Term_used")}<=0),"nil remaining term under s 109E(6)",'
             f'"nil benchmark rate"))))),IF({v}="UNKNOWN",'
-            f'IF({unknown(T("year_loan_made"))},"year_loan_made not established",'
+            f'IF({unknown(year_text("year_loan_made"))},"year_loan_made not established",'
             f'IF(NOT(ISNUMBER({YEAR_RATE})),"no reviewed benchmark rate for the year of income",'
             f'IF(NOT(ISNUMBER({principal})),"unpaid balance at end of previous year not established",'
             f'IF(NOT(ISNUMBER({payments})),"payments applied not established",'
@@ -323,8 +345,9 @@ def formulas():
         # A fabricated loan left in the register would count in the summary; flag the
         # loan_id and year pairs the shipped sample carries (filled in by build()).
         "Sample_row": (
-            f'=IF(SUMPRODUCT(({T("loan_id")}&""={{SAMPLE_IDS}})*({T("year_loan_made")}&""={{SAMPLE_YEARS}}))>0,1,0)'
+            f'=IF(SUMPRODUCT(({T("loan_id")}&""={{SAMPLE_IDS}})*({year_text("year_loan_made")}&""={{SAMPLE_YEARS}}))>0,1,0)'
         ),
+        **{helper: "=" + normalise_year(column) for column, helper in YEAR_HELPERS.items()},
     }
 
 
@@ -344,7 +367,8 @@ def build() -> None:
     sample_years = ",".join(f'"{r["year_loan_made"]}"' for r in rows)
     calc["Sample_row"] = (calc["Sample_row"].replace("{SAMPLE_IDS}", "{" + sample_ids + "}")
                           .replace("{SAMPLE_YEARS}", "{" + sample_years + "}"))
-    assert set(calc) == set(CALC_ORDER), set(calc) ^ set(CALC_ORDER)
+    all_calcs = CALC_ORDER + list(YEAR_HELPERS.values())
+    assert set(calc) == set(all_calcs), set(calc) ^ set(all_calcs)
     wb = Workbook()
 
     # 1. Start Here
@@ -381,7 +405,7 @@ def build() -> None:
 
     # 2. Register: inputs then calculated columns in one table
     ws = wb.create_sheet("Register")
-    titles = INPUT_COLUMNS + CALC_ORDER
+    titles = INPUT_COLUMNS + all_calcs
     header(ws, 1, titles)
     for r, row in enumerate(rows, 2):
         for c, column in enumerate(INPUT_COLUMNS, 1):
@@ -391,7 +415,7 @@ def build() -> None:
                 cell.number_format = TEXT
             elif column in MONEY_COLUMNS:
                 cell.number_format = MONEY
-        for c, column in enumerate(CALC_ORDER, len(INPUT_COLUMNS) + 1):
+        for c, column in enumerate(all_calcs, len(INPUT_COLUMNS) + 1):
             cell = style(ws.cell(row=r, column=c, value=calc[column]), **CALC)
             if column in MONEY_COLUMNS:
                 cell.number_format = MONEY
@@ -405,6 +429,8 @@ def build() -> None:
         ws.add_data_validation(dv)
     for c, column in enumerate(titles, 1):
         ws.column_dimensions[get_column_letter(c)].width = 14 if column in MONEY_COLUMNS else 12
+        if column in YEAR_HELPERS.values():
+            ws.column_dimensions[get_column_letter(c)].hidden = True
     ws.column_dimensions["A"].width = 10
     ws.column_dimensions[get_column_letter(titles.index("MYR_reason") + 1)].width = 40
     ws.column_dimensions[get_column_letter(titles.index("out_of_scope_reason") + 1)].width = 24
