@@ -38,15 +38,18 @@ uv run --locked pytest -q     # schema, units, tax-scale arithmetic and brackets
 python rates.py validate      # the same record checks, printed per record
 python rates.py snapshot      # refresh snapshots (needs the local nodriver browser in C:\Tools\nodriver-browser)
 python rates.py check [--out DIR]   # weekly check, writes au-tax-rates-check-YYYY-MM-DD.md
+python rates.py ato-tables    # compare figures with the tables the ATO's own calculators read
 ```
 
 `check` re-fetches every source page and reports a finding for a changed value, a page that is missing or unreadable, or a quote or pattern that no longer matches. An invalid pattern or a captured value that cannot be parsed is also a finding; the report retains it and continues checking the remaining records. A record whose `effective_to` has passed or falls within 14 days is a finding unless a record with the same label starts the next day. The report also lists pages whose body changed since the committed snapshot, which is where a new year's figure usually first appears. Where present, the ATO site menu and QC reference mark the comparison boundaries. Header or footer text outside those boundaries is ignored; navigation and contents lists inside them can still produce wording alerts. It exits 1 when there are findings.
 
 These are review prompts: a successful check does not establish that a value and its period come from the same table. Check the year, row and column against the source before relying on a figure. Links in `notes` provide supplementary context; `check` fetches only each record's `source_url`.
 
+`ato-tables` downloads `TC2TAXRTE` and `TC9GENTAC`, the rate tables the ATO's online calculators read from `https://onlineservices.ato.gov.au/cdn/static-data/codes-tables/`. It compares each record those tables also hold, using the row in force on the first day of the record's period: the resident tax scales, the Medicare levy rate and low-income thresholds, the FBT rate, the general SG rate and the Division 7A benchmark rate. The other records have no counterpart there and are listed by id. A different figure, a missing or doubled row, or an unreadable table is a finding, and the command exits 1 when there are findings. The tables are undocumented and can change shape without notice, so check a finding against the record's source page before changing a figure.
+
 After a real change, update the record, run `python rates.py snapshot`, then `validate` and the tests, and commit.
 
-GitHub Actions runs the tests and `uv run --locked python rates.py validate` on Python 3.11 and 3.14 for pull requests and pushes to `main`. These checks use committed snapshots and do not fetch live ATO pages or refresh the data.
+GitHub Actions runs the tests and `uv run --locked python rates.py validate` on Python 3.11 and 3.14 for pull requests and pushes to `main`. These checks use committed snapshots and do not fetch live ATO pages or tables, or refresh the data.
 
 The instant asset write-off record retains the source table's $20,000 limit from 1 July 2023. A separate [ATO legislation update](https://www.ato.gov.au/about-ato/new-legislation/in-detail/businesses/20000-dollars-instant-asset-write-off), checked on 28 September 2026, confirms that the limit is permanent from 1 July 2026 for eligible small businesses. For the full-cost deduction, each eligible depreciating asset must cost less than $20,000. Separate rules cover later additions to an asset's cost; other conditions and exclusions apply.
 
