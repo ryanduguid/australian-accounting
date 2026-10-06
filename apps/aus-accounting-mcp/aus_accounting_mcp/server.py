@@ -145,11 +145,12 @@ boundary and no-advice statement, aus-accounting://div7a-scope for what Division
 for the ATO years shipped with the installed engine, and
 aus-accounting://component-versions for the engine versions producing results
 here. Prompts cover the three documented workflows.
-Money uses plain decimal strings such as 1234.56: digits, an optional leading
-minus and at most 2 decimal places, with no plus sign, separators, currency
-symbols or exponent. Rates use decimal strings; dates use YYYY-MM-DD and income
-years YYYY-YY. Boolean facts require JSON true/false, never strings or numbers.
-Use null or omit an unknown amount or Division 7A fact; never send a blank string.
+Money uses plain decimal strings such as 1234.56: ASCII digits, an optional
+leading minus and at most 2 decimal places, with no plus sign, separators,
+currency symbols or exponent. Rates use decimal strings; dates use YYYY-MM-DD
+and income years YYYY-YY. Boolean facts require JSON true/false, never strings
+or numbers. Use null or omit an unknown optional amount or Division 7A fact;
+never send a blank string.
 Preserve UNKNOWN, REFUSED, not_supplied and null outcomes. ok=true means
 execution succeeded, not that a review passed. For Division 7A, summary is the
 default; request response_detail="full" when the full audit trail is needed.

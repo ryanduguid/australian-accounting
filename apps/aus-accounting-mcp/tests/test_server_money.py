@@ -414,6 +414,12 @@ def test_parse_amount_accepts_plain_notation(raw):
         ("NaN", "is not a finite amount"),
         ("Infinity", "is not a finite amount"),
         ("-Infinity", "is not a finite amount"),
+        # Non-finite takes precedence over notation, so a signed non-finite value keeps
+        # the finite message rather than the plus-sign one.
+        ("+Infinity", "is not a finite amount"),
+        ("+NaN", "is not a finite amount"),
+        ("-NaN", "is not a finite amount"),
+        ("sNaN", "is not a finite amount"),
         ("0.001", "must have no more than 2 decimal places"),
         ("1000000000000.01", "must not exceed"),
         ("", "amount is required"),
@@ -444,3 +450,69 @@ def test_published_pattern_matches_the_runtime_grammar():
         parse_amount(raw, "amount")
     for raw in ["1e3", "+12", "1_000", ".5", "12.", "0.001", "1,000"]:
         assert not re.fullmatch(MONEY_PATTERN, raw)
+
+
+_OPTIONAL_DIRECT_MONEY_FIELDS = [
+    ("get_ato_benchmarks", field) for field in _DIRECT_MONEY_FIELDS["get_ato_benchmarks"]
+    if field != "turnover"
+] + [
+    ("calc_payday_super_deadline", "remitted_amount"),
+    ("calc_payday_super_deadline", "matched_amount"),
+    ("review_div7a_loan", "amalgamated_loan_unpaid_at_end_of_previous_year"),
+    ("review_div7a_loan", "payments_applied_during_the_year"),
+]
+
+
+@pytest.mark.parametrize(("tool_name", "field_name"), _OPTIONAL_DIRECT_MONEY_FIELDS)
+@pytest.mark.parametrize("blank", ["", "   "])
+def test_every_optional_direct_amount_refuses_a_blank_string(tool_name, field_name, blank):
+    with pytest.raises(ToolError, match=rf"{field_name}: omit an unknown amount or send null"):
+        _call_tool_with_monetary_value(tool_name, field_name, blank)
+
+
+@pytest.mark.parametrize("tool_name", _CONTRIBUTION_TOOLS)
+@pytest.mark.parametrize("field_name", ["remitted_amount", "matched_amount"])
+@pytest.mark.parametrize("blank", ["", "   "])
+def test_every_optional_contribution_amount_refuses_a_blank_string(tool_name, field_name, blank):
+    row = {
+        "employee_id": "fabricated-1", "qe_day": "2026-08-06", "sg_amount": "800.00",
+        "first_to_fund": False, "out_of_cycle": False, "db_interest": False,
+        "received": "2026-08-10", "matched_amount": "800.00",
+        field_name: blank,
+    }
+    with pytest.raises(ToolError, match=rf"{field_name}: omit an unknown amount or send null"):
+        _call_tool(tool_name, {"contributions": [row], "as_at": "2026-08-21"})
+
+
+def test_a_draft_2020_12_validator_reads_the_published_schemas_as_intended():
+    # A host that validates arguments against the published schema refuses the same
+    # notation the server refuses, still accepts null for an optional amount and does
+    # not apply the money pattern to a rate.
+    jsonschema = pytest.importorskip("jsonschema")
+    tools = {tool.name: tool.input_schema for tool in asyncio.run(mcp.list_tools())}
+
+    def valid(tool_name, arguments):
+        validator = jsonschema.Draft202012Validator(tools[tool_name])
+        return validator.is_valid(arguments)
+
+    benchmarks = {"industry": "Bakeries and hot bread shops", "turnover": "850000.00"}
+    for raw, expected in [(" 12.30 ", True), ("12.30", True), ("+12", False), ("1e3", False),
+                          ("0.001", False), ("", False), ("1,000.00", False)]:
+        assert valid("get_ato_benchmarks", {**benchmarks, "turnover": raw}) is expected, raw
+        assert valid("get_ato_benchmarks", {**benchmarks, "cost_of_sales": raw}) is expected, raw
+    assert valid("get_ato_benchmarks", {**benchmarks, "cost_of_sales": None})
+
+    row = {"employee_id": "fabricated-1", "qe_day": "2026-08-06", "sg_amount": "800.00",
+           "first_to_fund": False, "out_of_cycle": False, "db_interest": False}
+    contributions = {"contributions": [row], "as_at": "2026-08-21"}
+    assert valid("review_payday_super_contributions", contributions)
+    assert not valid("review_payday_super_contributions",
+                     {**contributions, "contributions": [{**row, "sg_amount": "1e3"}]})
+
+    facts = {"kind": "gst", "scope_confirmed": True, **_WORKSHEET_FACTS["gst"]}
+    assert valid("calculate_tax_worksheet", {"facts": facts})
+    assert not valid("calculate_tax_worksheet", {"facts": {**facts, "amount": "+1100.00"}})
+    depreciation = {
+        "kind": "depreciation", "scope_confirmed": True, **_WORKSHEET_FACTS["depreciation"],
+    }
+    assert valid("calculate_tax_worksheet", {"facts": {**depreciation, "taxable_use": "0.375"}})
