@@ -368,7 +368,8 @@ def build() -> None:
     calc["Sample_row"] = (calc["Sample_row"].replace("{SAMPLE_IDS}", "{" + sample_ids + "}")
                           .replace("{SAMPLE_YEARS}", "{" + sample_years + "}"))
     all_calcs = CALC_ORDER + list(YEAR_HELPERS.values())
-    assert set(calc) == set(all_calcs), set(calc) ^ set(all_calcs)
+    if set(calc) != set(all_calcs):
+        raise SystemExit(f"calculated columns and formulas differ: {sorted(set(calc) ^ set(all_calcs))}")
     wb = Workbook()
 
     # 1. Start Here
