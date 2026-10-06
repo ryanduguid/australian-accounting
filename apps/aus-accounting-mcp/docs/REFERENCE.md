@@ -275,7 +275,7 @@ does not determine worker eligibility, qualifying earnings or SG entitlement.
 
 Omitted ATO expense buckets are `not_supplied`, not zero. Every ATO ratio divides by turnover, which the ATO rule takes from sales or from total business income, so omitting `other_income` leaves every ratio `not_supplied` until you establish that figure. Pass `0` where you have established there is none. Withholding covers the engine's prose as well as the structured fields: each engine `notes` and `checks_to_make` entry declares the figures needed to state it, and an entry resting on a bucket you omitted is withheld rather than published beside that bucket's `null`. `notes` records how many were withheld. `key_ratio` is withheld the same way, so an omitted `cost_of_sales` does not trigger the ATO's total-expenses fallback.
 
-Amounts, including Division 7A loan balances and payments, are decimal strings, finite, at most 2 decimal places, and no greater than AUD 1,000,000,000,000.00. Dates are ISO-8601. Payday Super uses payday-super-checker's national SGAA 1992 s 6(1) calendar.
+Amounts, including Division 7A loan balances and payments, are decimal strings in plain notation, such as `1234.56`: digits, an optional leading minus and at most 2 decimal places, no greater than AUD 1,000,000,000,000.00. Exponents, a leading plus sign, underscores, separators and currency symbols are refused; omit an unknown amount or send `null` rather than a blank string. Every amount's schema carries the same pattern. Dates are ISO-8601. Payday Super uses payday-super-checker's national SGAA 1992 s 6(1) calendar.
 
 Payday Super dates come out of a payroll or clearing-house export, so
 `calc_payday_super_deadline` reads the shapes those exports hold, through the
@@ -450,7 +450,7 @@ supported period, exclusions and warnings.
 | `pension_minimum` | `account_balance`, `age`, `days`, `year` | 2024-25 to 2026-27, one account-based pension paying under SISR Schedule 7 |
 | `study_loan_repayment` | `repayment_income`, `year` | 2025-26 and 2026-27, one individual's established whole-dollar repayment income at the marginal rates; the formula amount before the loan-balance limit |
 
-Amounts are non-negative AUD decimal strings, at most 2dp and AUD 1 trillion.
+Amounts are non-negative AUD decimal strings in plain notation, at most 2dp and AUD 1 trillion.
 `taxable_use` is a decimal fraction, such as `"0.4"` for 40%; `effective_life` is
 years as a decimal string. `method` is `prime_cost` or `diminishing_value`.
 Unsupported periods fail. The quarterly SG worksheet does not establish

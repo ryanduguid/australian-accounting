@@ -51,7 +51,7 @@ from .fixtures.synthetic_sbr import (
     generate_synthetic_ctr_payload,
 )
 from .library import MAX_OFFSET, read_reference, search_references
-from .money import parse_amount
+from .money import MONEY_SCHEMA, parse_amount
 from .outputs import (
     BenchmarkComparison,
     Div7aRate,
@@ -145,9 +145,11 @@ boundary and no-advice statement, aus-accounting://div7a-scope for what Division
 for the ATO years shipped with the installed engine, and
 aus-accounting://component-versions for the engine versions producing results
 here. Prompts cover the three documented workflows.
-Money and rates use decimal strings; dates use YYYY-MM-DD and income years
-YYYY-YY. Boolean facts require JSON true/false, never strings or numbers. Use
-null or omit an unknown Division 7A fact.
+Money uses plain decimal strings such as 1234.56: digits, an optional leading
+minus and at most 2 decimal places, with no plus sign, separators, currency
+symbols or exponent. Rates use decimal strings; dates use YYYY-MM-DD and income
+years YYYY-YY. Boolean facts require JSON true/false, never strings or numbers.
+Use null or omit an unknown amount or Division 7A fact; never send a blank string.
 Preserve UNKNOWN, REFUSED, not_supplied and null outcomes. ok=true means
 execution succeeded, not that a review passed. For Division 7A, summary is the
 default; request response_detail="full" when the full audit trail is needed.
@@ -284,72 +286,72 @@ def get_ato_benchmarks(
     ],
     turnover: Annotated[
         str,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Sales of goods and services, excluding other income.'
         )),
     ],
     other_income: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Non-sales business income, e.g. interest or grants. Required to establish any ratio '
             'denominator.'
         )),
     ] = None,
     cost_of_sales: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Cost of sales excluding salary and wages; put that labour in cost_of_sales_labour.'
         )),
     ] = None,
     cost_of_sales_labour: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Salary and wages within cost of sales, excluding separately bucketed payments to '
             'associated persons.'
         )),
     ] = None,
     salary_wages: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Salary and wages outside cost of sales, excluding separately bucketed payments to '
             'associated persons.'
         )),
     ] = None,
     contractor_commission: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Contractor, subcontractor and commission expenses.'
         )),
     ] = None,
     associated_persons: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Payments to associated persons, kept separate from salary/wage buckets to avoid '
             'double counting. Needed for labour comparison when w1 is supplied.'
         )),
     ] = None,
     rent: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Business rent expenses for the comparison period.'
         )),
     ] = None,
     motor_vehicle: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Business motor vehicle expenses for the comparison period.'
         )),
     ] = None,
     other_expense: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Other expenses, including superannuation and depreciation; exclude amounts already in '
             'another bucket and income tax expense.'
         )),
     ] = None,
     w1: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Activity statement W1 total for the same period; used by the engine when greater than '
             'the reconstructed salary and wages label. Supply associated_persons too.'
         )),
@@ -409,7 +411,7 @@ def calc_payday_super_deadline(
     ],
     sg_amount: Annotated[
         str,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Superannuation guarantee contribution amount for this employee and '
             'qualifying-earnings payment.'
         )),
@@ -476,7 +478,7 @@ def calc_payday_super_deadline(
     ] = False,
     remitted_amount: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Amount sent for this contribution, as an AUD decimal string with at most '
             '2 decimal places. Requires remitted; cannot exceed sg_amount. Omit or null '
             'preserves the engine full-remittance convention when remitted is supplied.'
@@ -484,7 +486,7 @@ def calc_payday_super_deadline(
     ] = None,
     matched_amount: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Amount associated with this payday, as an AUD decimal string with at most '
             '2 decimal places; cannot exceed sg_amount. Supply partial amounts even without '
             'a remittance date. Caps evidenced receipt and takes precedence over '
@@ -615,7 +617,7 @@ def review_div7a_loan(
     ] = None,
     amalgamated_loan_unpaid_at_end_of_previous_year: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Operator-established amalgamated-loan balance at the end of the preceding income year.'
             'The tool does not form amalgamated loans.'
         )),
@@ -629,7 +631,7 @@ def review_div7a_loan(
     ] = None,
     payments_applied_during_the_year: Annotated[
         str | None,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Amount the operator establishes as applied during the income year. The tool does not '
             'classify payments under s 109R; omit if not established.'
         )),
@@ -729,7 +731,7 @@ def generate_synthetic_sbr_fixture(
     ] = "Synthetix Pty Ltd",
     revenue_or_sales: Annotated[
         str,
-        Field(max_length=60, description=(
+        Field(max_length=60, json_schema_extra=MONEY_SCHEMA, description=(
             'Fabricated gross revenue (CTR) or total sales G1 (BAS); defaults to "1000000.00".'
             'Other figures use fixed demonstration assumptions.'
         )),
@@ -846,8 +848,8 @@ def calculate_tax_worksheet(
     Pass scope_confirmed true only after establishing every scope condition listed
     in calculation_worksheets for the kind; resolve missing or uncertain scope first.
     Scope confirmation is not evidence of eligibility. Never invent it. Every money
-    field is a non-negative AUD decimal string, at most 2 decimal places and at most
-    1000000000000.00.
+    field is a non-negative AUD amount in plain decimal notation, such as 1234.56,
+    with at most 2 decimal places and at most 1000000000000.00.
     Results include engine version, source-check date, citations and exclusions.
     These worksheets do not prepare a BAS or return, calculate Medicare, limit a study
     loan repayment to the loan balance, value benefits or assets, or establish
