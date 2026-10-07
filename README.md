@@ -54,10 +54,19 @@ The [recorded public evaluation](https://duguid.com.au/evaluate/payday-super-evi
 | Your task | Start here |
 | --- | --- |
 | BAS pack review | [Two synthetic packs with expected findings](https://duguid.com.au/evaluate/manager-review-gate/) |
+| Xero Activity Statement transaction GST review | [BAS workflow and transaction procedure](https://github.com/ryanduguid/australian-accounting-skills/blob/main/docs/bas-walkthrough.md#transaction-gst-review-in-codex-chatgpt-or-copilot) |
 | Month-end close | [Balanced trial balance with unresolved exceptions](https://duguid.com.au/tools/monthly-close-controls/#worked-example) |
 | GST planning | [Browser planning calculators](https://duguid.com.au/tools/business-calculators/) |
 | Division 7A | [Repayment assertions and the review boundary](packages/div7a-loan-review/docs/manager-case-study.md) |
 | Other engines and agent workflows | [Examples and reproduction routes](https://duguid.com.au/evaluate/#example-routes) |
+
+For transaction GST coding, load the linked `bas-preparation` skill and its
+bundled transaction reference. They require row coverage and separate evidence
+for supply treatment, buyer credits and BAS attribution. Aus Accounting MCP does
+not provide a transaction GST classifier; its calculations or a control-account
+tie-out cannot establish correct tax coding. Missing facts remain unresolved for
+the authorised reviewer. The walkthrough explains instruction-file delivery to
+Codex, ChatGPT and Copilot without claiming equivalent tested behaviour.
 
 <details>
 <summary>Installation, component identities, integration and reference</summary>
