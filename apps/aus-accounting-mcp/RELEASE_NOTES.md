@@ -1,3 +1,16 @@
+# Unreleased
+
+- Breaking: money arguments accept plain decimal notation only: ASCII digits, an
+  optional leading minus and at most 2 decimal places, with surrounding whitespace
+  ignored. Exponents such as `1e3`, a leading plus sign, underscores, non-ASCII digits,
+  `.5` and `12.` are now refused with the existing "is not a decimal amount" error;
+  `1e30` no longer reaches the magnitude check. An optional amount must be omitted or
+  `null`; a blank string is refused instead of being read as omitted. The AUD
+  1000000000000.00 and 2 decimal place limits are unchanged. Every money argument's
+  schema, including the contribution rows and worksheet facts, now publishes the pattern
+  `^\s*-?[0-9]+(?:\.[0-9]{1,2})?\s*$`, so a client that validates schemas refuses these
+  forms before calling.
+
 # v0.3.0
 
 - Breaking: requires Python 3.11 or later. CPython 3.10 reached end of life on 1 October 2026; 0.2.12 remains the last release that installs on Python 3.10 ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).
