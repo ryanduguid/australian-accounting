@@ -1,8 +1,9 @@
 """Snapshot, validate and re-check the AU tax rates dataset.
 
-    python rates.py snapshot   fetch every source page into snapshots/
-    python rates.py validate   check data/*.json against the schema and snapshots
-    python rates.py check      re-fetch the pages and write a Markdown change report
+    python rates.py snapshot     fetch every source page into snapshots/
+    python rates.py validate     check data/*.json against the schema and snapshots
+    python rates.py check        re-fetch the pages and write a Markdown change report
+    python rates.py ato-tables   compare figures with the tables the ATO's calculators read
 """
 import argparse
 import datetime as dt
@@ -14,6 +15,7 @@ import subprocess
 import sys
 import time
 from decimal import Decimal, InvalidOperation
+from http.client import HTTPException, HTTPSConnection
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -361,6 +363,119 @@ def cmd_check(args):
     return 1 if findings else 0
 
 
+# The ATO's online calculators read their rates from these undocumented tables, which can
+# change shape without notice. Columns per table: lower bound, upper bound, base amount, rate.
+ATO_TABLE_URL = "https://onlineservices.ato.gov.au/cdn/static-data/codes-tables/{}.json"
+ATO_TABLE_COLUMNS = {"TC2TAXRTE": ("AM_INC_MIN", "AM_INC_MAX", "AM_OFFSET", "PC_TAX_RATE"),
+                     "TC9GENTAC": ("AM_MIN_INCOME", "AM_MAX_INCOME", None, "PC_TAX_RATE_A")}
+OPEN_ENDED = Decimal(99999999999)  # the tables' upper bound for a bracket with no limit
+
+
+def only_rate(brackets):
+    if len(brackets) != 1:
+        raise ValueError(f"{len(brackets)} rows in force, expected 1")
+    return brackets[0][3]
+
+
+# Record label: (table, values a row must have, how to read the figure from the rows in force).
+# Every other label has no counterpart in these tables.
+ATO_TABLE_FIGURES = {
+    "Resident individual income tax rates":
+        ("TC2TAXRTE", {"TX_DESC": "Resident Full Year"}, list),
+    "Medicare levy rate":
+        ("TC2TAXRTE", {"TX_DESC": "Medicare Basic Levy"}, lambda brackets: brackets[-1][3]),
+    "Medicare levy low-income lower threshold, single, not SAPTO":
+        ("TC2TAXRTE", {"TX_DESC": "Medicare Basic Levy"}, lambda brackets: brackets[0][1]),
+    "Medicare levy low-income upper threshold, single, not SAPTO":
+        ("TC2TAXRTE", {"TX_DESC": "Medicare Basic Levy"}, lambda brackets: brackets[1][1]),
+    "Fringe benefits tax rate": ("TC2TAXRTE", {"TX_DESC": "FBT rate"}, only_rate),
+    "Super guarantee percentage (general)":
+        ("TC2TAXRTE", {"TX_DESC": "Superannuation Guarantee Rate"}, only_rate),
+    "Division 7A benchmark interest rate": ("TC9GENTAC", {"NM_CALCN_TYPE": "DIV7A"}, only_rate),
+}
+
+
+def ato_brackets(table, name, match, on):
+    """Rows of one ATO table in force on `on` that carry the `match` values, lowest first,
+    as (from, to, base amount, percentage rate) with `to` None for an open bracket."""
+    low, high, base, rate = ATO_TABLE_COLUMNS[name]
+    columns = [c["name"] for c in table["columns"]]
+    brackets = []
+    for values in table["rows"]:
+        row = dict(zip(columns, values))
+        if row["DT_EFFECT"] <= on <= row["DT_END"] and all(row[k] == v for k, v in match.items()):
+            top = Decimal(row[high])
+            brackets.append((max(Decimal(row[low]), Decimal(0)), None if top >= OPEN_ENDED else top,
+                             Decimal(row[base]) if base else Decimal(0), Decimal(row[rate]) * 100))
+    if not brackets:
+        raise ValueError(f"no row in force on {on}")
+    return sorted(brackets, key=lambda b: b[0])
+
+
+def record_figure(record):
+    """A record's value in the same form as ato_brackets gives it."""
+    if record["unit"] == "tax_scale":
+        return [(Decimal(b["from"]), None if b["to"] is None else Decimal(b["to"]),
+                 Decimal(str(b["base_tax"])), Decimal(str(b["marginal_rate"]))) for b in record["value"]]
+    return Decimal(str(record["value"]))
+
+
+def show(figure):
+    if isinstance(figure, list):
+        return "; ".join(scale_renderings([{"from": int(b[0]), "base_tax": b[2], "marginal_rate": b[3]}
+                                           for b in figure]))
+    return f"{figure.normalize():f}"
+
+
+def ato_table_report(records, tables):
+    """Compare every record whose figure the ATO tables also hold. Returns (lines, findings)."""
+    lines, findings, absent = [], [], []
+    for record in records:
+        if record["label"] not in ATO_TABLE_FIGURES:
+            absent.append(record["id"])
+            continue
+        name, match, read = ATO_TABLE_FIGURES[record["label"]]
+        period = record["period"]
+        try:
+            # The figure in force on the first day the record applies.
+            on = period.get("effective_from") or (
+                f"{period['income_year'][:4]}-07-01" if "income_year" in period else period["as_at"])
+            figure = read(ato_brackets(tables[name], name, match, on))
+        except (KeyError, IndexError, TypeError, ValueError, InvalidOperation) as exc:
+            findings.append(f"{record['id']}: cannot read {name} {match}: {exc}")
+            continue
+        expected = record_figure(record)
+        if figure == expected:
+            lines.append(f"{record['id']}: matches {name}")
+        else:
+            findings.append(f"{record['id']}: {name} shows {show(figure)}; the record has {show(expected)}")
+    return lines + findings + [
+        f"{len(records) - len(absent)} record(s) compared, {len(findings)} finding(s). "
+        f"Not in the ATO tables: {', '.join(absent) or 'none'}"], findings
+
+
+def cmd_ato_tables(_args):
+    try:
+        tables = {}
+        for name in ATO_TABLE_COLUMNS:
+            url = urlparse(ATO_TABLE_URL.format(name))
+            connection = HTTPSConnection("onlineservices.ato.gov.au", timeout=60)
+            try:
+                connection.request("GET", url.path)
+                response = connection.getresponse()
+                if response.status != 200:
+                    raise OSError(f"{name}: HTTP {response.status}")
+                tables[name] = json.loads(response.read())
+            finally:
+                connection.close()
+    except (OSError, HTTPException, ValueError) as exc:
+        print(f"cannot read the ATO tables: {exc}")
+        return 1
+    lines, findings = ato_table_report(load_records(), tables)
+    print("\n".join(lines))
+    return 1 if findings else 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -369,6 +484,7 @@ def main(argv=None):
     check = sub.add_parser("check")
     check.add_argument("--out", default=str(ROOT / "reports"), help="folder for the Markdown report")
     check.set_defaults(func=cmd_check)
+    sub.add_parser("ato-tables").set_defaults(func=cmd_ato_tables)
     args = parser.parse_args(argv)
     return args.func(args)
 
