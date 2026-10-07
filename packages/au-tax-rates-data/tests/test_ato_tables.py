@@ -98,25 +98,66 @@ class ATOTablesTest(unittest.TestCase):
 
     def test_the_command_reads_both_tables_and_exits_1_on_a_finding(self):
         served = tables(("2017-04-01", "9999-03-31", "FBT rate", "0", "0", "0", "0.5"))
-        urls = []
+        connections = []
 
-        def fake_urlopen(url, timeout):
-            urls.append(url)
-            return io.BytesIO(json.dumps(served[url.rsplit("/", 1)[1][:-5]]).encode())
+        def fake_connection(host, timeout):
+            self.assertEqual(host, "onlineservices.ato.gov.au")
+            self.assertEqual(timeout, 60)
+            connection = mock.Mock()
+            name = list(served)[len(connections)]
+            connection.getresponse.return_value.status = 200
+            connection.getresponse.return_value.read.return_value = json.dumps(served[name]).encode()
+            connections.append(connection)
+            return connection
 
         output = io.StringIO()
-        with mock.patch.object(rates, "urlopen", side_effect=fake_urlopen), mock.patch.object(
+        with mock.patch.object(rates, "HTTPSConnection", side_effect=fake_connection), mock.patch.object(
             rates, "load_records", return_value=[
                 record("fbt", "Fringe benefits tax rate", "percent", 47,
                        effective_from="2026-04-01")]), redirect_stdout(output):
             self.assertEqual(rates.main(["ato-tables"]), 1)
-        self.assertEqual(urls, [rates.ATO_TABLE_URL.format(name)
-                                for name in ("TC2TAXRTE", "TC9GENTAC")])
+        for connection, name in zip(connections, ("TC2TAXRTE", "TC9GENTAC"), strict=True):
+            connection.request.assert_called_once_with(
+                "GET", f"/cdn/static-data/codes-tables/{name}.json")
+            connection.close.assert_called_once_with()
         self.assertIn("fbt: TC2TAXRTE shows 50; the record has 47", output.getvalue())
 
     def test_an_unreadable_table_ends_the_command_with_exit_1(self):
         output = io.StringIO()
-        with mock.patch.object(rates, "urlopen", side_effect=OSError("network unreachable")), \
+        with mock.patch.object(rates, "HTTPSConnection", side_effect=OSError("network unreachable")), \
                 redirect_stdout(output):
             self.assertEqual(rates.main(["ato-tables"]), 1)
         self.assertEqual(output.getvalue(), "cannot read the ATO tables: network unreachable\n")
+
+    def test_redirects_and_http_errors_end_the_command_without_following_them(self):
+        for status in (301, 302, 404, 500):
+            with self.subTest(status=status), mock.patch.object(rates, "HTTPSConnection") as factory:
+                connection = factory.return_value
+                response = connection.getresponse.return_value
+                response.status = status
+                output = io.StringIO()
+                with redirect_stdout(output):
+                    self.assertEqual(rates.main(["ato-tables"]), 1)
+                self.assertEqual(output.getvalue(),
+                                 f"cannot read the ATO tables: TC2TAXRTE: HTTP {status}\n")
+                factory.assert_called_once_with("onlineservices.ato.gov.au", timeout=60)
+                connection.request.assert_called_once_with(
+                    "GET", "/cdn/static-data/codes-tables/TC2TAXRTE.json")
+                response.read.assert_not_called()
+                connection.close.assert_called_once_with()
+
+    def test_failed_requests_and_invalid_json_close_the_connection(self):
+        for failed_request in (True, False):
+            with self.subTest(failed_request=failed_request), \
+                    mock.patch.object(rates, "HTTPSConnection") as factory:
+                connection = factory.return_value
+                if failed_request:
+                    connection.request.side_effect = rates.HTTPException("invalid response")
+                else:
+                    connection.getresponse.return_value.status = 200
+                    connection.getresponse.return_value.read.return_value = b"invalid JSON"
+                output = io.StringIO()
+                with redirect_stdout(output):
+                    self.assertEqual(rates.main(["ato-tables"]), 1)
+                self.assertTrue(output.getvalue().startswith("cannot read the ATO tables: "))
+                connection.close.assert_called_once_with()

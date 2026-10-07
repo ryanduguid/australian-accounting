@@ -15,9 +15,9 @@ import subprocess
 import sys
 import time
 from decimal import Decimal, InvalidOperation
+from http.client import HTTPException, HTTPSConnection
 from pathlib import Path
 from urllib.parse import urlparse
-from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -458,9 +458,17 @@ def cmd_ato_tables(_args):
     try:
         tables = {}
         for name in ATO_TABLE_COLUMNS:
-            with urlopen(ATO_TABLE_URL.format(name), timeout=60) as response:
+            url = urlparse(ATO_TABLE_URL.format(name))
+            connection = HTTPSConnection("onlineservices.ato.gov.au", timeout=60)
+            try:
+                connection.request("GET", url.path)
+                response = connection.getresponse()
+                if response.status != 200:
+                    raise OSError(f"{name}: HTTP {response.status}")
                 tables[name] = json.loads(response.read())
-    except (OSError, ValueError) as exc:
+            finally:
+                connection.close()
+    except (OSError, HTTPException, ValueError) as exc:
         print(f"cannot read the ATO tables: {exc}")
         return 1
     lines, findings = ato_table_report(load_records(), tables)
