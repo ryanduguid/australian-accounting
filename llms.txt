@@ -1,0 +1,38 @@
+# Australian accounting engines and MCP server
+
+> Seven independently released Python engines that apply Australian tax and payroll
+> rules to figures you supply, plus Aus Accounting MCP, a local Model Context Protocol
+> server that hands those engines to an AI assistant. The engines and the server run
+> locally, contact no service, write to no ledger and lodge nothing. A person reviews
+> every output before it is relied on.
+
+Ryan Duguid is not a registered tax agent or BAS agent. Fixtures and examples are
+fabricated. Nothing here is tax, legal or financial advice. An MCP host sends every
+tool argument and result to its model provider.
+
+## Start
+
+- [README](https://github.com/ryanduguid/australian-accounting#readme): what each component does, a one-contribution Payday Super trial and the evidence boundary.
+- [Scope, limits and examples](https://duguid.com.au/tools/australian-tax-ai-agents/): the maintained guide to the MCP server, its install commands, supported periods and refusals.
+- [MCP client setup](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#client-integration): run `uvx aus-accounting-mcp` as a local stdio server. It needs Python 3.11 or later and no API key. Official MCP registry name: io.github.ryanduguid/aus-accounting.
+- [Tool reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#tools): every MCP tool, its inputs and what it refuses.
+
+## Components
+
+Each component keeps its own distribution, version, release notes, tests and `CITATION.cff`, and is released on the tag `<component>/vX.Y.Z`.
+
+- [aus-accounting-mcp](https://github.com/ryanduguid/australian-accounting/tree/main/apps/aus-accounting-mcp): the MCP server.
+- [payday-super-checker](https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker): Payday Super contribution timing review from supplied payroll and fund-receipt evidence.
+- [ato-benchmark-compare](https://github.com/ryanduguid/australian-accounting/tree/main/packages/ato-benchmark-compare): ATO small business benchmark ratio comparison.
+- [div7a-loan-review](https://github.com/ryanduguid/australian-accounting/tree/main/packages/div7a-loan-review): experimental Division 7A loan-term and minimum yearly repayment review. Not a Division 7A determination.
+- [australian-tax-calculators](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators): bounded Australian tax calculation worksheets with explicit scope and sources.
+- [the-exchequer-tally](https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-exchequer-tally): company tax rate, franking account and Division 203 benchmark rule checks.
+- [solomons-sword](https://github.com/ryanduguid/australian-accounting/tree/main/packages/solomons-sword): trust distribution allocation and Division 6, section 100A and section 99B review checks.
+- [the-wip-tally](https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally): a deterministic AASB 15 construction WIP schedule.
+- [au-tax-rates-data](https://github.com/ryanduguid/australian-accounting/tree/main/packages/au-tax-rates-data): key ATO rates and thresholds with verbatim source quotes and a validator. Never released.
+
+## Related
+
+- [Australian Accounting Skills](https://github.com/ryanduguid/australian-accounting-skills): preparation-only agent workflows that can call this server.
+- [Release history](https://github.com/ryanduguid/australian-accounting/releases): one release per component tag.
+- [Security policy](https://github.com/ryanduguid/australian-accounting/blob/main/SECURITY.md)
