@@ -23,7 +23,8 @@ relevant years before relying on the result. See the
    same order and with the same meanings (see the package README). Booleans are
    `true`, `false` or `unknown`; a blank is unknown. Rates are fractions, so
    8.77% is `0.0877`. Years of income are written `2026-27` in Text cells,
-   so Excel does not turn them into dates. Rows pasted below the example pick up the
+   so Excel does not turn them into dates. Surrounding whitespace is ignored;
+   whitespace within a year label is refused. Rows pasted below the example pick up the
    calculated columns on their own. Delete any example rows you did not overwrite:
    Review Checks flags a fabricated example loan that is still in the register,
    because it would otherwise count in the summary.
@@ -53,12 +54,16 @@ relevant years before relying on the result. See the
    Each year label must occur once in the rate table. Duplicate labels block the
    workbook, even when their rates agree.
 
-The rules are the engine's: a loan that fails any limb is NOT_COMPLYING and gets no
+The rules are the engine's: once a benchmark year is known, a loan that fails any
+limb is NOT_COMPLYING and gets no
 repayment figure; an unestablished limb is UNKNOWN and never coerced to a verdict;
 a term of 7 years or less passes s 109N(1)(c) even when the security facts are
 unknown; the year the loan was made, a year before it, a nil remaining term and a
 nil rate are REFUSED; a missing balance, payments, remaining term or rate is
 UNKNOWN. A loan year before 1998-99 or any `out_of_scope_reason` skips the row.
+When neither register year is known, the gate is `UNKNOWN` and the maximum term
+is blank. A valid year with no reviewed benchmark rate can still have a known
+maximum term.
 
 ## How it is kept honest
 

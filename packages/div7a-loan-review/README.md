@@ -129,6 +129,37 @@ register and year of income, then compare the benchmark rate, each s 109N(1)
 limb, the minimum yearly repayment and the shortfall. A difference is a
 question for the reviewer, not proof that either side is wrong.
 
+## Next to the ATO calculator
+
+On 7 October 2026 the minimum yearly repayment function of the ATO's
+[Division 7A calculator and decision tool](https://www.ato.gov.au/calculators-and-tools/division-7a-calculator-and-decision-tool)
+was run in its own web page against this engine on 12,800 fabricated cases:
+the years of income 2019-20 to 2026-27, remaining terms of 1 to 25 years and
+50 balances from $0.01 to $99,999,999.99. Every figure agreed to the cent. For
+those years the calculator holds the same benchmark rates as this engine, and
+it rounds its result half up to cents.
+[docs/ato-calculator-comparison-2026-10-07.md](docs/ato-calculator-comparison-2026-10-07.md)
+records the method, the files compared and what the comparison does not
+establish.
+
+In the first year after the loan year, the calculator's opening balance can be
+lower than the balance at the end of the loan year. The ATO's guidance on
+[loans by private companies](https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/private-company-benefits-division-7a-dividends/in-detail/division-7a-loans)
+and its calculator take the amount not repaid by the end of the loan year as
+the original loan less the principal repaid before the company's lodgment day
+for that year. Both still count every repayment made in the first year,
+including those made before that lodgment day, towards that year's minimum
+yearly repayment. This engine does not form the amalgamated loan (s 109E(3))
+and takes both figures from you. To reproduce the calculator, put the reduced
+balance in `amalgamated_loan_unpaid_at_end_of_previous_year` and include the
+earlier repayments in `payments_applied_during_the_year`.
+
+For example, take a $100,000 loan made in 2025-26 on a 7-year term, with
+$20,000 repaid on 1 October 2026 and a lodgment day of 15 May 2027. For
+2026-27 the calculator works on $80,000 and requires $15,772.78, which this
+engine also gives on that balance. On the 30 June 2026 balance of $100,000 it
+gives $19,715.97. Which balance applies is for the reviewer to decide.
+
 ## Excel workbook
 
 No Python? [`workbooks/div7a-loan-review.xlsx`](workbooks/div7a-loan-review.xlsx)
@@ -378,7 +409,8 @@ Money is quantised to cents with **`ROUND_HALF_UP`**. The Act prescribes no
 rounding for the s 109E(6) amount, so this is the engine's documented choice
 rather than a statutory rule, and it is not the ATO calculator's rounding
 adopted silently. Every result says so, in its statutory trace and in the JSON
-`rounding` field.
+`rounding` field. The ATO calculator also rounds half up to cents; see
+[Next to the ATO calculator](#next-to-the-ato-calculator).
 
 JSON amounts are quoted decimal strings, never JSON numbers. Dates are
 ISO 8601. Verdicts are enums. The emitter refuses to write a float, and the

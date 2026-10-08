@@ -23,7 +23,7 @@ from paydaysuper.report import Result, assess, rounded_figures
 from pydantic import BaseModel, ConfigDict, Field
 
 from aus_accounting_mcp.errors import InputError
-from aus_accounting_mcp.money import parse_amount, parse_optional_amount
+from aus_accounting_mcp.money import MONEY_SCHEMA, parse_amount, parse_optional_amount
 
 #: A purely numeric slash or dash date, captured to its first 2 components.
 #: The engine reads these day first, as the Australian calendar is written, and
@@ -250,7 +250,8 @@ class ContributionInput(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, str_strip_whitespace=True)
     employee_id: str = Field(min_length=1, max_length=120, description="Stable employee reference.")
     qe_day: str = Field(description="Wage payment date, preferably YYYY-MM-DD.")
-    sg_amount: str = Field(description="Established SG liability, AUD decimal string.")
+    sg_amount: str = Field(description="Established SG liability, AUD decimal string.",
+                           json_schema_extra=MONEY_SCHEMA)
     first_to_fund: bool = Field(description="Established first-to-fund eligibility; required.")
     out_of_cycle: bool = Field(description="Established out-of-cycle status; required.")
     db_interest: bool = Field(description="Established defined-benefit status; required.")
@@ -263,9 +264,11 @@ class ContributionInput(BaseModel):
         "checker 0.1.6 assumes full receipt and says so in a caveat.",
     )
     next_standard_qe_day: str | None = Field(default=None, description="Next standard payday.")
-    remitted_amount: str | None = Field(default=None, description="AUD remitted for this row.")
+    remitted_amount: str | None = Field(default=None, description="AUD remitted for this row.",
+                                        json_schema_extra=MONEY_SCHEMA)
     matched_amount: str | None = Field(
         default=None,
+        json_schema_extra=MONEY_SCHEMA,
         description="AUD the fund received for this row. Supply it with every received date: "
         "a receipt date alone evidences no amount, and an engine with the receipt-amount "
         "rule will not assess a full receipt as ON_TIME without it.",

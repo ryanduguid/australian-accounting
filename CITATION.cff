@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "To cite the repository, use this metadata. To rely on one component, cite that component's own CITATION.cff and its release tag."
+title: "Australian accounting engines and MCP server"
+type: software
+authors:
+  - family-names: Duguid
+    given-names: Ryan
+abstract: "Local engines for ATO small-business benchmarks, Payday Super 2026 and Division 7A loan review, available through the aus-accounting-mcp server. Synthetic fixtures only."
+repository-code: "https://github.com/ryanduguid/australian-accounting"
+url: "https://duguid.com.au/tools/australian-tax-ai-agents/"
+license: MIT
+keywords:
+  - accounting
+  - accounting-ai
+  - agent-skills
+  - ato
+  - ato-benchmarks
+  - australian-accounting
+  - australian-tax
+  - australian-taxation
+  - claude-code
+  - codex
+  - cursor
+  - mcp
+  - mcp-server
+  - model-context-protocol
+  - payday-super
+  - python
+  - tax-prep
