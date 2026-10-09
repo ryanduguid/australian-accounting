@@ -20,10 +20,28 @@ from __future__ import annotations
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Mapping
 from dataclasses import dataclass
+from typing import Protocol
 
-from .config import AdapterConfig
-from .errors import DisallowedTargetError, TransportError
+from .errors import ConfigurationError, DisallowedTargetError, TransportError
+
+
+class _RequestConfig(Protocol):
+    @property
+    def read_timeout(self) -> float: ...
+    @property
+    def max_response_bytes(self) -> int: ...
+    @property
+    def max_attempts(self) -> int: ...
+    @property
+    def retry_backoff_seconds(self) -> float: ...
+    @property
+    def user_agent(self) -> str: ...
+    @property
+    def extra_headers(self) -> Mapping[str, str]: ...
+    def require_enabled(self) -> None: ...
+    def check_url(self, url: str, *, require_route: bool = True) -> str: ...
 
 
 @dataclass(frozen=True)
@@ -81,13 +99,14 @@ def _read_bounded(response, limit: int, url: str) -> bytes:
 
 
 def request(
-    config: AdapterConfig,
+    config: _RequestConfig,
     method: str,
     url: str,
     *,
     body: bytes | None = None,
     content_type: str | None = None,
     retry_safe: bool = False,
+    bearer_token: str | None = None,
     sleep=time.sleep,
 ) -> RawResponse:
     """One HTTP request, with every bound the config sets.
@@ -104,6 +123,17 @@ def request(
         "User-Agent": config.user_agent,
         **config.extra_headers,
     }
+    if bearer_token is not None:
+        import re
+
+        if (
+            type(bearer_token) is not str
+            or len(bearer_token) > 8192
+            or not re.fullmatch(r"[A-Za-z0-9._~+/-]+=*", bearer_token)
+            or any(key.lower() == "authorization" for key in config.extra_headers)
+        ):
+            raise ConfigurationError("Invalid per-call bearer authentication.")
+        headers["Authorization"] = "Bearer " + bearer_token
     if content_type:
         headers["Content-Type"] = content_type
     attempts = config.max_attempts if retry_safe else 1
