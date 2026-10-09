@@ -181,6 +181,19 @@ found that the live advisory block is shaped differently from the published
 standard. What it found, and the caveat that it is a point-in-time reading, are
 in that document. Fano was not probed and its live compatibility is unverified.
 
+## Core client catalogue preview
+
+The separate `lodgeitadapter.core` library reads one page of non-archived client
+identities through a fixed Core API route. It requires explicit enablement and a
+host-managed bearer token on each call. It requests no profile expansion, returns
+immutable client summaries and makes no automatic pagination or retry. It is
+available only through the Python library.
+
+Read [Core security and usage](docs/core-security.md) before using it. Returned
+UUIDs, custom codes, private flags and continuations are sensitive. The public
+preview reference was captured on 9 October 2026; offline fabricated tests pass,
+and live tenant compatibility remains unverified.
+
 ## Boundary
 
 This adapter calls a third-party service that says of itself: "Response shapes

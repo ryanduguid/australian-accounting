@@ -56,11 +56,12 @@ Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 packages = ["lodgeitadapter"]
 
 [tool.hatch.build.targets.sdist]
-include = ["lodgeitadapter", "contracts", "fixtures", "tests", "README.md", "AGENTS.md", "SECURITY.md", "LICENSE"]
+include = ["lodgeitadapter", "contracts", "fixtures", "tests", "docs/core-security.md", "README.md", "AGENTS.md", "SECURITY.md", "LICENSE"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "contracts" = "lodgeitadapter/contracts"
 "fixtures" = "lodgeitadapter/fixtures"
+"docs/core-security.md" = "lodgeitadapter/docs/core-security.md"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
