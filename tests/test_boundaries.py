@@ -250,7 +250,7 @@ class BoundaryTests(unittest.TestCase):
             "--cov --cov-branch --cov-report=term-missing --cov-report=xml",
             'pip-audit --local --strict',
             "python -m build",
-            'python: ["3.11", "3.12", "3.13", "3.14"]',
+            'python: ["3.11", "3.12", "3.13", "3.14", "3.15"]',
         ):
             with self.subTest(gate=gate):
                 self.assertIn(gate, reusable)

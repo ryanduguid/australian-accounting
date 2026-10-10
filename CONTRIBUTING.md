@@ -92,7 +92,7 @@ commands:
 |---|---|---|
 | Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev mypy aus_accounting_mcp` |
 | LodgeiT calculator adapter | `apps/lodgeit-calculator-adapter/` | `uv run --locked --extra dev pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check lodgeitadapter tests`; `uv run --locked --extra dev mypy lodgeitadapter`. Its gates run from `.github/workflows/ci-lodgeit-adapter.yml`, not `ci.yml`. |
-| AU tax rates data | `packages/au-tax-rates-data/` | `uv run --locked pytest -q`; `uv run --locked python rates.py validate`. These run in the `rates-dataset` job of `.github/workflows/boundaries.yml` on Python 3.11 and 3.14, from a copy outside the workspace so that the dataset's own `uv.lock` is the one checked. The dataset is never released. |
+| AU tax rates data | `packages/au-tax-rates-data/` | `uv run --locked pytest -q`; `uv run --locked python rates.py validate`. These run in the `rates-dataset` job of `.github/workflows/boundaries.yml` on Python 3.11, 3.14 and 3.15, from a copy outside the workspace so that the dataset's own `uv.lock` is the one checked. The dataset is never released. |
 | Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py tests/test_shared_blocks.py` |
 
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,
@@ -121,8 +121,8 @@ The existing component lock checks remain required.
 report, and it runs 2 things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
 The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, mypy and
-pytest commands on Ubuntu with Python 3.14, and its `rates-dataset` job runs the rates
-dataset's own checks on Python 3.11 and 3.14. The adapter uses distinct `lodgeit`
+pytest commands on Ubuntu with Python 3.15, and its `rates-dataset` job runs the rates
+dataset's own checks on Python 3.11, 3.14 and 3.15. The adapter uses distinct `lodgeit`
 job names and a `lodgeit-gates` result check, keeping the MCP application's existing
 release-check names unchanged. Branch protection requires one aggregate per
 workflow, `tests-gates`, `boundaries-gates`, `lodgeit-gates`, `public-fixtures-gates`
@@ -139,7 +139,7 @@ release callers require that test job; no second pytest run is needed.
 - `ci-package.yml` gives every engine the same gates from the engine's own directory,
   the same definition `ryanduguid/accounting-review-pipeline` uses for its components: a
   check that the engine's own `uv.lock` resolves on its own, `ruff`, `mypy`, `pytest` with
-  branch coverage on Python 3.11, 3.12, 3.13 and 3.14 (the floor and ceiling of the declared
+  branch coverage on Python 3.11, 3.12, 3.13, 3.14 and 3.15 (the floor and ceiling of the declared
   `requires-python`), a `pip-audit` dependency audit, and a build of the distribution
   followed by an install of the one built wheel into a clean environment, an import of
   the engine from it, and the engine's own wheel smoke script. `ato-benchmark-compare`,
