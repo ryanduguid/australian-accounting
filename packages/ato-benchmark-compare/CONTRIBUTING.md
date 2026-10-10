@@ -47,7 +47,7 @@ uv run --locked --extra dev --python 3.12 python -m build
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 ```
 
-CI repeats this on Ubuntu with Python 3.11, 3.13 and 3.14, and on Windows with 3.12. Keep
+CI repeats this on Ubuntu with Python 3.11, 3.13, 3.14 and 3.15, and on Windows with 3.12. Keep
 runtime strings ASCII: on Windows, redirected stdout uses the machine's ANSI codepage
 rather than UTF-8.
 
