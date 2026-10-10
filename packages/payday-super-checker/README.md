@@ -18,7 +18,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 ![payday-super-checker](assets/banner.svg)
 
-[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml) [![PyPI](https://img.shields.io/pypi/v/payday-super-checker.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/payday-super-checker/) [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE) [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
+[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml) [![PyPI](https://img.shields.io/pypi/v/payday-super-checker.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/payday-super-checker/) [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE) [![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
 
 Distribution `payday-super-checker`, import package `paydaysuper`, command `payday-super-check`.
 
@@ -113,7 +113,7 @@ Microsoft 365 or Excel 2024, and is held to this engine's answer by
 
 ## Install
 
-Python 3.11 or later. No runtime dependencies.
+Python 3.14 or later. No runtime dependencies.
 
 ```bash
 git clone https://github.com/ryanduguid/australian-accounting.git
@@ -579,7 +579,7 @@ Everything that goes stale lives in `paydaysuper/data/`.
 
 - `gic_rates.json` : the general interest charge rate, which the ATO resets every quarter. Each entry records where the figure came from and when that was checked. Update it each quarter. A row whose notional earnings period runs past the last quarter in the file keeps its verdict, its days late and its shortfall, which are decided without a GIC rate, and carries no SG charge estimate: the notional earnings, both uplift figures and both SG charge columns are left empty, and the row's caveat names the last quarter on record. Pass `--allow-stale-gic` to estimate those days at the last known rate instead; the report then says it did, and the estimate compounds a rate the ATO has not published.
 - `rates.json` : SG rate, concessional cap, maximum contributions base, per financial year, with the same source and checked-date fields.
-- `business_days.json` : national non-business days plus the 8 official jurisdiction URLs and their check date. Regenerate with `uv run --locked --extra dev --python 3.12 python tools/generate_calendar.py > paydaysuper/data/business_days.json`, which uses the lock-pinned development environment, then check every line against those official pages before shipping. Raw generator output deliberately sets `verified_until` to 1 July 2026 and `official_sources.checked` to null; a human reviewer must record the check date and raise the horizon only as far as every jurisdiction's official material supports. Regional, part-day and locally substitutable dates are excluded. Unconfirmed dates are reference-only and do not extend a deadline until an official override confirms them.
+- `business_days.json` : national non-business days plus the 8 official jurisdiction URLs and their check date. Regenerate with `uv run --locked --extra dev --python 3.14 python tools/generate_calendar.py > paydaysuper/data/business_days.json`, which uses the lock-pinned development environment, then check every line against those official pages before shipping. Raw generator output deliberately sets `verified_until` to 1 July 2026 and `official_sources.checked` to null; a human reviewer must record the check date and raise the horizon only as far as every jurisdiction's official material supports. Regional, part-day and locally substitutable dates are excluded. Unconfirmed dates are reference-only and do not extend a deadline until an official override confirms them.
 
 Part-day holidays, such as Christmas Eve evening in South Australia, Queensland and the Northern Territory, are treated as business days because applying them as a full day would extend the statutory deadline without authority. Melbourne Cup Day and WA's default King's Birthday date are also business days for this definition because the official pages permit regional substitution, so neither applies throughout its State. The override exists for newly proclaimed whole-of-jurisdiction dates and for an operator who has completed a later official calendar.
 

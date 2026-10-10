@@ -6,7 +6,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 | --- | --- | --- |
 | `solomons-sword` | `louisgoldberg` | `solomons-sword` |
 
-[![Python](https://img.shields.io/badge/Python-3.11+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.14+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/solomons-sword.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/solomons-sword/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)

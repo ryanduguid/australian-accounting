@@ -7,7 +7,7 @@ name = "solomons-sword"
 version = "0.2.0"
 description = "Trust distribution allocation, Section 100A / 99B risk evaluation, and Division 6 ITAA 1936 compliance for Australian trusts."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
@@ -27,9 +27,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Financial and Insurance Industry",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Office/Business :: Financial :: Accounting",
 ]
 dependencies = []
@@ -69,6 +67,7 @@ python_files = ["test_*.py"]
 addopts = "-q"
 
 [tool.ruff]
+target-version = "py314"
 line-length = 100
 src = ["louisgoldberg", "tests"]
 
@@ -78,7 +77,7 @@ src = ["louisgoldberg", "tests"]
 select = ["E4", "E7", "E9", "F", "I"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 packages = ["louisgoldberg"]
 pretty = true
 

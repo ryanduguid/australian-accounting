@@ -54,8 +54,8 @@ def test_pypi_facets_are_declared_without_contradicting_the_licence_field() -> N
 
     # Every Python this package declares support for is a facet a searcher can
     # filter on, so the floor in requires-python has to appear among them.
-    assert "Programming Language :: Python :: 3.11" in classifiers
-    assert project["requires-python"] == ">=3.11"
+    assert "Programming Language :: Python :: 3.14" in classifiers
+    assert project["requires-python"] == ">=3.14"
     assert "Intended Audience :: Financial and Insurance Industry" in classifiers
     assert "Topic :: Office/Business :: Financial :: Accounting" in classifiers
 
@@ -1190,7 +1190,7 @@ def test_release_uses_the_hardened_shared_policy_contract() -> None:
 
     assert (
         "uses: ryanduguid/release-policy/.github/workflows/release-python.yml@"
-        "ec6b0ee76446f11aefb7fa0c203f2e01b4c9a711"
+        "f068fb4f1d8f90e07429ded7cfb85bdbcc2960fe"
     ) in release_mapping
     assert "source-directory: apps/aus-accounting-mcp" in release_mapping
     assert "tag-prefix: aus-accounting-mcp" in release_mapping

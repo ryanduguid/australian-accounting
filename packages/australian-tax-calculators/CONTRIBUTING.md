@@ -10,7 +10,7 @@ uv run --locked --extra dev pytest --cov --cov-branch --cov-report=term-missing 
 uv run --locked --extra dev ruff check .
 uv run --locked --extra dev mypy
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
-uv run --locked --extra dev --python 3.12 python -m build
+uv run --locked --extra dev --python 3.14 python -m build
 ```
 
 Retain the standalone lockfile as well as the root workspace lock. Release this

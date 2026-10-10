@@ -24,7 +24,7 @@ The first row has enough evidence to say the employer remitted before the deadli
 From `packages/payday-super-checker`, with uv installed:
 
 ```bash
-uv run --locked --extra dev --python 3.12 payday-super-check evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only
+uv run --locked --extra dev --python 3.14 payday-super-check evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only
 ```
 
 This prints AT_RISK and writes `report.csv`. With `--confirm-remittance-only`, it exits 0 because the operator has acknowledged the evidence gap. Without that flag it exits 2. The flag cannot turn AT_RISK into ON_TIME. Replace the fixture filename with another row above to reproduce it; the receipt-on-deadline case exits 0 and the late cases exit 2 when any required remittance-only acknowledgement is supplied.

@@ -79,7 +79,7 @@ shared runtime library or combined version.
 
 ## Use Aus Accounting MCP
 
-For the MCP server, install Python 3.11+ and [uv](https://docs.astral.sh/uv/), then
+For the MCP server, install Python 3.14+ and [uv](https://docs.astral.sh/uv/), then
 configure your MCP client to run:
 
 ```bash

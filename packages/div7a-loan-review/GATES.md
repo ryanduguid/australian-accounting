@@ -2,7 +2,7 @@
 
 OWNS: div7aloan/**, tests/**, examples/**, evaluation/**, .github/**, *.md, *.toml, *.cff, LICENSE
 
-Scope: the complete v1 engine reviewing ITAA 1936 s 109N loan terms and the s 109E minimum yearly repayment, against every "Done when" criterion and every required test in the build brief. Declared prerequisites: Node.js, an installed Unlazy skill with `UNLAZY_SKILL` set to its directory (this repository does not vendor `gate-lint.mjs`), Python 3.11+ on PATH, and a POSIX shell (run with `--shell bash`); commands use `&&` chains and single-quoted `python -c`, which stock `cmd.exe` does not parse.
+Scope: the complete v1 engine reviewing ITAA 1936 s 109N loan terms and the s 109E minimum yearly repayment, against every "Done when" criterion and every required test in the build brief. Declared prerequisites: Node.js, an installed Unlazy skill with `UNLAZY_SKILL` set to its directory (this repository does not vendor `gate-lint.mjs`), Python 3.14+ on PATH, and a POSIX shell (run with `--shell bash`); commands use `&&` chains and single-quoted `python -c`, which stock `cmd.exe` does not parse.
 
 Commands G0, G1 and G13 were made portable on 12 September 2026. Historical evidence below predates those edits; rerun the amended commands before relying on it. G1 leaves its new temporary environment for inspection.
 
