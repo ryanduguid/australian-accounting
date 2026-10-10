@@ -34,6 +34,7 @@ MODULES = (
     "lodgeitadapter", "lodgeitadapter.client", "lodgeitadapter.config",
     "lodgeitadapter.contract", "lodgeitadapter.decimals", "lodgeitadapter.evidence",
     "lodgeitadapter.transport", "lodgeitadapter.cli", "lodgeitadapter.trials",
+    "lodgeitadapter.core",
     "lodgeitadapter.trials.div7a", "lodgeitadapter.trials.fbt",
     "lodgeitadapter.trials.depreciation", "lodgeitadapter.trials.fano",
 )

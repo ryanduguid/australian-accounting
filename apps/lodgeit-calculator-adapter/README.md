@@ -12,6 +12,15 @@ anything.
 
 Unreleased development source. Not on PyPI, not published anywhere.
 
+This application also has an [opt-in Core client catalogue](docs/core-security.md)
+through a fixed read-only listing route. The [Core Clients API preview note](docs/core-clients-api-preview.md)
+records the broader public documentation inspected on 9 October 2026 and the
+boundaries for any additional client or workspace operations.
+
+The [public transform interface note](docs/public-transform-surfaces.md) records
+separate document, journal and asset migration interfaces discovered through
+LodgeiT's subdomains, including their observed availability and input patterns.
+
 ## Three switches, not one
 
 A request is sent only when all three are true:
@@ -180,6 +189,19 @@ published pre-acquisition limitation was reproduced and refused, and the probe
 found that the live advisory block is shaped differently from the published
 standard. What it found, and the caveat that it is a point-in-time reading, are
 in that document. Fano was not probed and its live compatibility is unverified.
+
+## Core client catalogue preview
+
+The separate `lodgeitadapter.core` library reads one page of non-archived client
+identities through a fixed Core API route. It requires explicit enablement and a
+host-managed bearer token on each call. It requests no profile expansion, returns
+immutable client summaries and makes no automatic pagination or retry. It is
+available only through the Python library.
+
+Read [Core security and usage](docs/core-security.md) before using it. Returned
+UUIDs, custom codes, private flags and continuations are sensitive. The public
+preview reference was captured on 9 October 2026; offline fabricated tests pass,
+and live tenant compatibility remains unverified.
 
 ## Boundary
 
