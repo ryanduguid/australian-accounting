@@ -12,6 +12,15 @@ anything.
 
 Unreleased development source. Not on PyPI, not published anywhere.
 
+This application also has an [opt-in Core client catalogue](docs/core-security.md)
+through a fixed read-only listing route. The [Core Clients API preview note](docs/core-clients-api-preview.md)
+records the broader public documentation inspected on 9 October 2026 and the
+boundaries for any additional client or workspace operations.
+
+The [public transform interface note](docs/public-transform-surfaces.md) records
+separate document, journal and asset migration interfaces discovered through
+LodgeiT's subdomains, including their observed availability and input patterns.
+
 ## Three switches, not one
 
 A request is sent only when all three are true:
