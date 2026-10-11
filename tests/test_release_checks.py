@@ -1,10 +1,9 @@
 """Require the reviewed component checks before a release can publish."""
 
 import re
+import tomllib
 import unittest
 from pathlib import Path
-
-import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
 POLICY = "ec6b0ee76446f11aefb7fa0c203f2e01b4c9a711"

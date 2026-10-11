@@ -8,12 +8,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
-
-import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github/workflows"

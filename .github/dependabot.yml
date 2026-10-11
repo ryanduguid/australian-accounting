@@ -20,9 +20,8 @@ updates:
       # audit instead.
       - dependency-name: "ryanduguid/release-policy/.github/workflows/*"
 
-  # uv resolves all workspace members together. Start at the shared lockfile so
-  # an update can change every occurrence of an exact toolchain pin together.
-  # Component release locks still need the checks in CONTRIBUTING.md.
+  # uv resolves all workspace members together. Component release locks still
+  # need the checks in CONTRIBUTING.md.
   - package-ecosystem: uv
     directory: /
     schedule:
@@ -34,3 +33,16 @@ updates:
       python:
         patterns:
           - "*"
+    # Each engine pins the shared toolchain exactly, and the workspace cannot
+    # hold two exact pins of one tool. Dependabot rewrites one manifest at a
+    # time, so its toolchain updates never resolve (job 1619379035, 9 October
+    # 2026). Bump these by hand in every engine at once, as CONTRIBUTING.md
+    # describes.
+    ignore:
+      - dependency-name: build
+      - dependency-name: coverage
+      - dependency-name: hypothesis
+      - dependency-name: mypy
+      - dependency-name: pytest
+      - dependency-name: pytest-cov
+      - dependency-name: ruff
