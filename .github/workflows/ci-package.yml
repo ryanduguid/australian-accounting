@@ -160,10 +160,10 @@ jobs:
           PACKAGE: ${{ inputs.package }}
         run: |
           set -euo pipefail
-          uv run --locked --extra dev coverage xml --include="$INCLUDE" -o coverage.xml  # NOSONAR: unprivileged job; uv installs the hash-locked set
+          uv run --locked --no-build --extra dev coverage xml --include="$INCLUDE" -o coverage.xml
           sentinel="packages/$PACKAGE/${INCLUDE%%,*}"
           if git cat-file -e "origin/main:$sentinel"; then
-            uv run --locked --extra dev --python 3.12 diff-cover coverage.xml --compare-branch=origin/main --branch-coverage --fail-under=100  # NOSONAR: unprivileged job; uv installs the hash-locked set
+            uv run --locked --no-build --extra dev --python 3.12 diff-cover coverage.xml --compare-branch=origin/main --branch-coverage --fail-under=100
           else
             echo "::notice::Changed-line coverage starts after the imported package has a mainline baseline."
           fi
