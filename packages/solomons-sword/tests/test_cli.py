@@ -1,6 +1,7 @@
 """Command-line behaviour for the 2 subcommands the README quick start runs."""
 
 import argparse
+import io
 from decimal import Decimal
 
 import pytest
@@ -328,3 +329,20 @@ def test_s99b_check_names_the_nil_exemptions_it_was_given(monkeypatch, capsys):
     assert code == 0
     assert "Caveat:" in out
     assert "not_assessable_to_resident_aud" in out
+
+
+class _FixedStream(io.StringIO):
+    """A text stream whose error handler cannot be changed."""
+
+    def reconfigure(self, **kwargs):
+        raise ValueError("this stream cannot be reconfigured")
+
+
+def test_streams_that_cannot_be_reconfigured_still_receive_the_report(monkeypatch):
+    # io.StringIO has no reconfigure at all; _FixedStream refuses it.
+    stdout, stderr = io.StringIO(), _FixedStream()
+    monkeypatch.setattr("sys.stdout", stdout)
+    monkeypatch.setattr("sys.stderr", stderr)
+    code = run(monkeypatch, "s100a-check", "--beneficiary", "Adult Child", "--amount", "100")
+    assert code == 0  # nosec B101: pytest outcome assertion
+    assert "Section 100A Risk Evaluation" in stdout.getvalue()  # nosec B101: pytest outcome assertion

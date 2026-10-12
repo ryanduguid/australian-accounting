@@ -478,3 +478,10 @@ def test_a_row_with_no_receipt_at_all_gets_no_receipt_amount_caveat(cal):
     unfunded = line(sg_amount=Decimal("540.00"), received=None)
     result = assess([unfunded], cal, load_gic(), date(2026, 9, 10))[0]
     assert not any("carries no amount" in caveat for caveat in result.caveats), result.caveats
+
+
+def test_the_prepayment_window_before_a_leap_day_falls_back_to_28_february():
+    from paydaysuper.deadlines import earliest_prepayment_day
+
+    # The window ends on 29 February 2028, which has no date a year earlier.
+    assert earliest_prepayment_day(date(2028, 3, 1)) == date(2027, 3, 1)  # nosec B101: pytest outcome assertion

@@ -126,3 +126,10 @@ def test_legacy_div7a_tool_refuses_only_the_unsupported_scope() -> None:
     assert payload["reviewed_engine"] is True
     assert payload["code"] == "ERR_POLICY_DIV7A_SCOPE_REFUSED"
     assert "unpaid present entitlements" in payload["reason"]
+
+
+def test_a_year_label_the_engine_cannot_read_is_an_input_error() -> None:
+    from aus_accounting_mcp.adapters.div7a import get_benchmark_rate
+
+    with pytest.raises(InputError, match="2026-27"):
+        get_benchmark_rate("2026-2027")

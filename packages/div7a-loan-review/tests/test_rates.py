@@ -310,3 +310,109 @@ def test_every_row_cites_a_primary_source_on_an_official_host(year):
     ), f"{year} cites {host!r}, which is not an RBA, ATO or legislation host"
     assert entry.retrieved_on, f"{year} does not say when its primary source was read"
     assert len(entry.snapshot_sha256) == 64, f"{year} has no digest of what was read"
+
+
+# --- unreadable and malformed tables and overrides ----------------------
+
+COLUMNS = "year_of_income,rate,rba_table,rba_series,rba_month,source,verify_at,seen\n"
+ROW = "2019-20,0.0537,F5,FILRHLBVS,2019-05,src,url,2026-08-28\n"
+
+
+def _write_table(tmp_path, text):
+    path = tmp_path / "rates.csv"
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+def test_a_missing_table_is_refused(tmp_path):
+    path = tmp_path / "absent.csv"
+    with pytest.raises(RatesError, match="cannot read the benchmark rate table at"):
+        load_table(path)
+
+
+def test_a_table_without_its_reviewed_on_header_is_refused(tmp_path):
+    path = _write_table(tmp_path, "# reviewed_until: 2019-20\n" + COLUMNS + ROW)
+    with pytest.raises(RatesError, match="missing its '# reviewed_on:' header line"):
+        load_table(path)
+
+
+def test_a_table_whose_reviewed_until_is_not_a_year_is_refused(tmp_path):
+    path = _write_table(
+        tmp_path, "# reviewed_until: 2019\n# reviewed_on: 2026-08-28\n" + COLUMNS + ROW
+    )
+    with pytest.raises(RatesError, match="reviewed_until"):
+        load_table(path)
+
+
+def test_a_table_with_no_rows_is_refused(tmp_path):
+    path = _write_table(tmp_path, "# reviewed_until: 2019-20\n# reviewed_on: 2026-08-28\n" + COLUMNS)
+    with pytest.raises(RatesError, match="holds no benchmark rates"):
+        load_table(path)
+
+
+@pytest.mark.parametrize("row", [
+    "2019-20,0.0537\n",  # a short row: the reader fills the rest with None
+    "2019-20,0.0537,,FILRHLBVS,2019-05,src,url,2026-08-28\n",
+])
+def test_a_row_without_its_rba_table_is_refused(tmp_path, row):
+    path = _write_table(
+        tmp_path, "# reviewed_until: 2019-20\n# reviewed_on: 2026-08-28\n" + COLUMNS + row
+    )
+    with pytest.raises(RatesError, match="benchmark rate row 1 in .* is missing 'rba_table'"):
+        load_table(path)
+
+
+def test_a_missing_override_is_refused(tmp_path):
+    with pytest.raises(RatesError, match="cannot read the rate override at"):
+        load_override(tmp_path / "absent.json")
+
+
+def test_an_override_that_is_not_json_is_refused(tmp_path):
+    path = tmp_path / "override.json"
+    path.write_text("{not json", encoding="utf-8")
+    with pytest.raises(RatesError, match="is not valid JSON"):
+        load_override(path)
+
+
+def test_an_override_that_is_not_an_object_is_refused(tmp_path):
+    path = _write_override(tmp_path, ["2027-28", "0.0850"])
+    with pytest.raises(RatesError, match="must be a JSON object .* it holds a list"):
+        load_override(path)
+
+
+def test_an_override_whose_verified_until_is_not_a_year_is_refused(tmp_path):
+    path = _write_override(
+        tmp_path,
+        {"verified_until": "2027", "citation": "x",
+         "rates": [{"year_of_income": "2027-28", "rate": "0.0850"}]},
+    )
+    with pytest.raises(RatesError, match="verified_until"):
+        load_override(path)
+
+
+def test_an_override_rate_that_is_not_an_object_is_refused(tmp_path):
+    path = _write_override(
+        tmp_path, {"verified_until": "2027-28", "citation": "x", "rates": ["0.0850"]}
+    )
+    with pytest.raises(RatesError, match="override rate 1 in .* is not an object"):
+        load_override(path)
+
+
+def test_an_override_rate_written_as_a_json_number_is_refused(tmp_path):
+    path = _write_override(
+        tmp_path,
+        {"verified_until": "2027-28", "citation": "x",
+         "rates": [{"year_of_income": "2027-28", "rate": 0.085}]},
+    )
+    with pytest.raises(RatesError, match="gives 'rate' as 0.085. Write it as a quoted string"):
+        load_override(path)
+
+
+def test_an_override_rate_that_is_not_a_number_is_refused(tmp_path):
+    path = _write_override(
+        tmp_path,
+        {"verified_until": "2027-28", "citation": "x",
+         "rates": [{"year_of_income": "2027-28", "rate": "eight"}]},
+    )
+    with pytest.raises(RatesError, match="'eight', which is not a number"):
+        load_override(path)

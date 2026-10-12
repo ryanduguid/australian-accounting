@@ -605,3 +605,49 @@ def test_partial_matched_amount_with_a_date_requires_remitted_amount(
         CsvError, match="matched_amount below sg_amount requires remitted_amount"
     ):
         parse_rows(path, *load_mapping(None))
+
+
+@pytest.mark.parametrize("text", ["", "   ", "2026-02-30"])
+def test_parse_date_text_reads_blank_and_impossible_dates_as_none(text):
+    assert parse_date_text(text) is None  # nosec B101: pytest outcome assertion
+
+
+def _mapping_file(tmp_path: Path, text: str) -> Path:
+    path = tmp_path / "mapping.json"
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        ("{not json", "mapping.json is not valid JSON"),
+        ('["employee_id"]', "must be a JSON object of field: column pairs"),
+        ('{"employee": "Staff ID"}', r"mapping file has unknown fields: \['employee'\]"),
+        ('{"employee_id": " "}', r"maps \['employee_id'\] to something that is not a column name"),
+    ],
+)
+def test_a_malformed_mapping_file_is_refused(tmp_path, text, message):
+    with pytest.raises(CsvError, match=message):
+        load_mapping(_mapping_file(tmp_path, text))
+
+
+def test_a_file_with_no_header_row_is_refused(tmp_path):
+    path = tmp_path / "pay.csv"
+    path.write_text("", encoding="utf-8")
+    with pytest.raises(CsvError, match="pay.csv has no header row$"):
+        parse_rows(path, *load_mapping(None))
+
+
+def test_a_file_that_is_not_utf8_names_the_byte(tmp_path):
+    path = tmp_path / "pay.csv"
+    path.write_bytes((HEADER + "EMPLOYÉ,2026-07-09,612.00,,,no,no,,no\n").encode("cp1252"))
+    with pytest.raises(CsvError, match=r"pay.csv is not UTF-8 text \(byte 0xc9 at position"):
+        parse_rows(path, *load_mapping(None))
+
+
+def test_an_importer_amount_cell_that_is_empty_is_named():
+    from paydaysuper.csv_io import _parse_amount
+
+    with pytest.raises(CsvError, match="^row 4: amount is empty$"):
+        _parse_amount("  ", "amount", 4, empty_is_error=True)

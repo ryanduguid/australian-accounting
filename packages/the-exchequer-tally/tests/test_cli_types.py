@@ -27,3 +27,8 @@ def test_percentage_type_rejects_values_outside_domain(raw: str) -> None:
 def test_rate_type_rejects_values_outside_domain(raw: str) -> None:
     with pytest.raises(argparse.ArgumentTypeError):
         rate_type(raw)
+
+
+def test_decimal_types_name_the_text_they_cannot_parse() -> None:
+    with pytest.raises(argparse.ArgumentTypeError, match="not a decimal amount: 'abc'"):
+        money_type("abc")

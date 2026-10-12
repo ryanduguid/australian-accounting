@@ -46,13 +46,16 @@ def _path(root: Path, name: str) -> Path:
         raise InputError("Use a relative .md path inside the configured library.")
     candidate = root / relative
     # Reject links and Windows junctions in every component, including links inside the root.
-    for part in (candidate, *candidate.parents):
+    # pragma reason: candidate is built under root, so the walk always reaches root and breaks.
+    for part in (candidate, *candidate.parents):  # pragma: no branch
         if part == root:
             break
         if part.is_symlink() or bool(getattr(part.lstat(), "st_file_attributes", 0) & 1024):
             raise InputError("Library links and junctions are not read.")
+    # pragma reason: defence in depth; with no "..", no link and no junction in any
+    # component, the resolved path cannot leave the root.
     if not candidate.resolve().is_relative_to(root):
-        raise InputError("The file must remain inside the configured library.")
+        raise InputError("The file must remain inside the configured library.")  # pragma: no cover
     return candidate
 
 

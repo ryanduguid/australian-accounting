@@ -434,7 +434,8 @@ def _review_task(row: ReportRow) -> str:
         )
     if row.verdict == "SKIPPED":
         return "Assess the defined-benefit interest outside this tool."
-    raise AssertionError(f"no review task for {row.verdict}")
+    # pragma reason: only non-ON_TIME rows reach here and each has a task above.
+    raise AssertionError(f"no review task for {row.verdict}")  # pragma: no cover
 
 
 def render_practitioner_pack(snapshot: ReportSnapshot, *, decision_log: bool = False) -> str:
