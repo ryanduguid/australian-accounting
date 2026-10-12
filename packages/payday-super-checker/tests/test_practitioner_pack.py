@@ -374,8 +374,11 @@ def test_every_report_field_is_checked_before_a_pack_is_written(tmp_path, rows, 
 
 
 def test_an_exposed_row_with_the_charge_estimate_withheld_is_accepted(tmp_path):
-    withheld = dict(NO_EXPOSURE, final_shortfall="100.00")
-    source = _write_report(Path("report.csv"), [_row(verdict="UNPAID", **withheld), _note()])
+    withheld = _row(
+        verdict="UNPAID", final_shortfall="100.00", notional_earnings="",
+        uplift_best_case="", uplift_worst_case="", sgc_estimate_low="", sgc_estimate_high="",
+    )
+    source = _write_report(Path("report.csv"), [withheld, _note()])
     [row] = load_report_snapshot(source).rows
     assert row.final_shortfall == 100  # nosec B101: pytest outcome assertion
     assert row.sgc_estimate_low is None and row.sgc_estimate_high is None  # nosec B101: pytest outcome assertion
