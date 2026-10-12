@@ -43,9 +43,9 @@ def test_regenerated_static_proof_matches_committed_image(
     assert image_format == "WEBP"
     assert size == (WIDTH, HEIGHT) == (1200, 720)
     assert frame_count == 1
-    assert BACKGROUND == (4, 0, 31)
-    assert FOREGROUND == (244, 239, 255)
-    assert PROMPT == (192, 132, 252)
+    assert BACKGROUND == (0, 0, 0)
+    assert FOREGROUND == (229, 228, 226)
+    assert PROMPT == (255, 255, 240)
     assert LEFT_MARGIN == 40
     assert TOP_MARGIN == 32
     assert BOTTOM_MARGIN == 32
