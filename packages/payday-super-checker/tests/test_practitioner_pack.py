@@ -327,3 +327,93 @@ def test_report_path_must_be_csv(tmp_path):
     source.write_text("not csv", encoding="utf-8")
     with pytest.raises(PractitionerPackError, match=".csv"):
         load_report_snapshot(source)
+
+
+NO_EXPOSURE = dict(
+    final_shortfall="", notional_earnings="", uplift_best_case="", uplift_worst_case="",
+    sgc_estimate_low="", sgc_estimate_high="",
+)
+
+
+@pytest.mark.parametrize(
+    "rows, message",
+    [
+        ([_row(qe_day=""), _note()], "source row 2 has a blank qe_day$"),
+        ([_row(qe_day="20260806"), _note()], "source row 2 qe_day must be an ISO date, got '20260806'$"),
+        ([_row(sg_amount=""), _note()], "source row 2 has a blank sg_amount$"),
+        ([_row(sg_amount="lots"), _note()], "source row 2 sg_amount must be a decimal amount, got 'lots'$"),
+        ([_row(sg_amount="-1.00"), _note()], "source row 2 sg_amount must not be negative$"),
+        ([_row(sg_amount="100.0"), _note()], "source row 2 sg_amount must use two decimal places$"),
+        ([_row(row="0"), _note()], "source row 0 row must be a positive integer$"),
+        ([_row(days_late="three"), _note()], "source row 2 days_late must be a non-negative integer$"),
+        ([_row(days_late="-1"), _note()], "source row 2 days_late must be a non-negative integer$"),
+        ([_row(), _row(), _note()], "^duplicate source row 2$"),
+        ([_row(employee_id=""), _note()], "source row 2 has a blank employee_id$"),
+        ([_row(pathway=""), _note()], "source row 2 has a blank pathway$"),
+        ([_row(final_shortfall=""), _note()], "source row 2 exposed verdict has no final shortfall$"),
+        ([_row(notional_earnings=""), _note()], "source row 2 exposed verdict has incomplete exposure amounts$"),
+        ([_row(sgc_estimate_high="1.61"), _note()], "source row 2 high SG-charge estimate does not add up$"),
+        (
+            [_row(uplift_best_case="0.60", uplift_worst_case="0.20", sgc_estimate_low="1.60",
+                  sgc_estimate_high="1.20"), _note()],
+            "source row 2 exposure range is reversed$",
+        ),
+        ([_row(verdict="ON_TIME", days_late=""), _note()], "source row 2 non-exposed verdict carries exposure amounts$"),
+        ([_row(unassessable_between="LATE or ON_TIME"), _note()], "source row 2 carries candidate verdicts but is not UNKNOWN$"),
+        (
+            [_row(verdict="UNKNOWN", days_late="", unassessable_between="LATE", **NO_EXPOSURE), _note()],
+            "source row 2 has malformed candidate verdicts$",
+        ),
+        ([_row(days_late=""), _note()], "source row 2 exposed verdict has no days_late$"),
+    ],
+)
+def test_every_report_field_is_checked_before_a_pack_is_written(tmp_path, rows, message):
+    source = _write_report(Path("report.csv"), rows)
+    with pytest.raises(PractitionerPackError, match=message):
+        load_report_snapshot(source)
+
+
+def test_an_exposed_row_with_the_charge_estimate_withheld_is_accepted(tmp_path):
+    withheld = dict(NO_EXPOSURE, final_shortfall="100.00")
+    source = _write_report(Path("report.csv"), [_row(verdict="UNPAID", **withheld), _note()])
+    [row] = load_report_snapshot(source).rows
+    assert row.final_shortfall == 100  # nosec B101: pytest outcome assertion
+    assert row.sgc_estimate_low is None and row.sgc_estimate_high is None  # nosec B101: pytest outcome assertion
+
+
+@pytest.mark.parametrize(
+    ("name", "message"),
+    [("report\x00.csv", "^path contains a NUL byte$"), ("report.txt", "^report.txt must be a .csv checker report$")],
+)
+def test_the_report_path_must_be_a_csv_file_name(tmp_path, name, message):
+    with pytest.raises(PractitionerPackError, match=message):
+        load_report_snapshot(name)
+
+
+def test_a_report_that_is_not_utf8_is_refused(tmp_path):
+    from paydaysuper.practitioner_pack import parse_report_snapshot
+
+    with pytest.raises(PractitionerPackError, match="report.csv is not UTF-8 CSV$"):
+        parse_report_snapshot("row,employee_id\n2,Employé\n".encode("cp1252"), Path("report.csv"))
+
+
+def test_a_report_the_strict_csv_reader_refuses_is_malformed(tmp_path):
+    from paydaysuper.practitioner_pack import parse_report_snapshot
+
+    with pytest.raises(PractitionerPackError, match="report.csv is malformed CSV: "):
+        parse_report_snapshot(b'row,"employee"_id\n', Path("report.csv"))
+
+
+def test_a_projected_report_row_must_keep_every_field(tmp_path):
+    from paydaysuper.practitioner_pack import parse_report_snapshot
+
+    header = ",".join(name for name in EXPECTED_REPORT_HEADER if name != "employee_id")
+    data = f"{header}\n2,2026-08-06\n".encode()
+    with pytest.raises(PractitionerPackError, match="^projected report row must have 17 fields$"):
+        parse_report_snapshot(data, Path("report.csv"), identifiers_omitted=True)
+
+
+def test_a_report_row_missing_fields_is_refused(tmp_path):
+    source = _write_report(Path("report.csv"), [["2", "000123"], _note()])
+    with pytest.raises(PractitionerPackError, match="^CSV row 2 has 2 fields; expected 18$"):
+        load_report_snapshot(source)

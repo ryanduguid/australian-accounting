@@ -1,7 +1,8 @@
 from decimal import Decimal
 
 import pytest
-from div7aloan.money import MoneyError, parse_money
+from div7aloan.facts import FactError, optional_years
+from div7aloan.money import MoneyError, parse_money, parse_ratio
 
 
 @pytest.mark.parametrize("raw", ["1.001", "1000000000000.01"])
@@ -38,3 +39,24 @@ def test_parse_money_accepts_an_exact_cent_amount_written_with_trailing_zeros(ra
 def test_parse_money_still_refuses_a_real_sub_cent_amount(raw: str) -> None:
     with pytest.raises(MoneyError):
         parse_money(raw, "amount")
+
+
+@pytest.mark.parametrize("raw", ["", "   "])
+def test_parse_money_refuses_an_empty_field(raw: str) -> None:
+    with pytest.raises(MoneyError, match="amount is empty; supply a number or the word 'unknown'"):
+        parse_money(raw, "amount")
+
+
+def test_parse_money_refuses_a_negative_amount() -> None:
+    with pytest.raises(MoneyError, match="a negative amount here inverts the shortfall"):
+        parse_money("-0.01", "amount")
+
+
+def test_parse_ratio_refuses_a_negative_ratio() -> None:
+    with pytest.raises(MoneyError, match="cover is '-1.10'; a coverage ratio cannot be negative"):
+        parse_ratio("-1.10", "cover")
+
+
+def test_an_unusable_term_is_a_fact_error() -> None:
+    with pytest.raises(FactError, match="remaining_term_years is 'four', which is not a number"):
+        optional_years("four", "remaining_term_years")

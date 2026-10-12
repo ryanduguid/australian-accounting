@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from decimal import Decimal
 
 import pytest
@@ -415,3 +416,89 @@ def test_an_unknown_supplied_field_is_refused_by_compare() -> None:
     figures = compute(totals(turnover="1000000", other_income="0", cost_of_sales="365000"))
     with pytest.raises(ValueError, match="unknown supplied field"):
         compare(data, bakery, figures, supplied_fields={"turnover", "nonsense"})
+
+
+def _negative_labour(figures) -> frozenset[str]:
+    [detail] = [d for d in figures.warning_details if d.code == "negative_labour"]
+    return detail.required_fields
+
+
+def test_negative_labour_is_flagged_on_the_mapped_wage_buckets() -> None:
+    figures = compute(totals(turnover="100000", salary_wages="-500"))
+    assert figures.labour == Decimal("-500")  # nosec B101: pytest outcome assertion
+    assert _negative_labour(figures) == {  # nosec B101: pytest outcome assertion
+        "salary_wages", "cost_of_sales_labour", "contractor_commission",
+    }
+
+
+def test_negative_labour_with_w1_also_depends_on_w1_and_associates() -> None:
+    figures = compute(
+        totals(turnover="100000", associated_persons="1000", contractor_commission="-200"),
+        w1=Decimal("0"),
+    )
+    assert figures.labour == Decimal("-200")  # nosec B101: pytest outcome assertion
+    assert _negative_labour(figures) == {  # nosec B101: pytest outcome assertion
+        "salary_wages", "cost_of_sales_labour", "contractor_commission", "w1", "associated_persons",
+    }
+
+
+EVERY_FIELD = frozenset(BUCKETS) | {"w1"}
+
+
+def test_a_hand_built_figure_set_without_the_key_ratio_has_no_key_verdict() -> None:
+    from dataclasses import replace
+
+    bakery = ds.load("2023-24").get("Bakeries and hot bread shops")
+    figures = compute(totals(turnover="500000", other_income="0", cost_of_sales="170000"))
+    partial = replace(figures, ratios={"labour_to_turnover": figures.ratios["labour_to_turnover"]})
+    comparison = compare(ds.load("2023-24"), bakery, partial, EVERY_FIELD)
+    assert [verdict.key for verdict in comparison.verdicts] == ["labour_to_turnover"]  # nosec B101: pytest outcome assertion
+    assert comparison.key_verdict is None  # nosec B101: pytest outcome assertion
+    assert comparison.outside_key_range is False  # nosec B101: pytest outcome assertion
+
+
+def test_turnover_below_every_band_has_no_band_to_compare_against() -> None:
+    from atobenchmark.report import NO_BAND
+
+    data = ds.load("2023-24")
+    bakery = data.get("Bakeries and hot bread shops")
+    figures = compute(totals(turnover="1000", other_income="0", cost_of_sales="300"))
+    comparison = compare(data, bakery, figures, EVERY_FIELD)
+    assert comparison.band is None  # nosec B101: pytest outcome assertion
+    assert {verdict.status for verdict in comparison.verdicts} == {NO_BAND}  # nosec B101: pytest outcome assertion
+    assert "below the lowest published range" in comparison.notes[0]  # nosec B101: pytest outcome assertion
+
+
+def test_turnover_above_a_capped_top_band_falls_in_no_range() -> None:
+    capped = ds.loads(json.dumps({
+        "schema_version": 1,
+        "benchmark_year": "2023-24",
+        "source": {"sha256": "ab" * 32},
+        "business_types": [{
+            "name": "Fabricated services",
+            "key_ratio": "total_expenses_to_turnover",
+            "turnover_bands": [{
+                "band": "only", "label": "$50,000 - $150,000", "turnover_from": "50000",
+                "turnover_from_inclusive": True, "turnover_to": "150000",
+                "total_expenses_to_turnover": {"min": "0.54", "max": "0.73"},
+                "cost_of_sales_to_turnover": None,
+            }],
+        }],
+    }))
+    figures = compute(totals(turnover="200000", other_income="0", other_expense="100000"))
+    comparison = compare(capped, capped.business_types[0], figures, EVERY_FIELD)
+    assert comparison.notes == [  # nosec B101: pytest outcome assertion
+        "Turnover of $200,000.00 does not fall in any published range for this industry."
+    ]
+
+
+def test_text_without_a_supplied_set_prints_every_figure_and_no_empty_notes() -> None:
+    from atobenchmark.report import render_text
+
+    data = ds.load("2023-24")
+    architects = data.get("Architectural services")
+    figures = compute(totals(turnover="300000", other_income="0", other_expense="150000"))
+    text = render_text(compare(data, architects, figures))
+    assert "Turnover:       $300,000.00" in text  # nosec B101: pytest outcome assertion
+    assert "\nNotes\n" not in text  # nosec B101: pytest outcome assertion
+    assert "Checks to make" in text  # nosec B101: pytest outcome assertion

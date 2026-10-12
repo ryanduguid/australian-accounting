@@ -306,3 +306,97 @@ def test_a_changed_run_is_validated_again(runs):
     _rewrite_manifest(_older(runs), lambda m: m.update(stage="other"))
     with pytest.raises(InputError, match="stage must be"):
         rulings_module.search_rulings("synthetic", 5, 0)
+
+
+@pytest.mark.parametrize(
+    "change, message",
+    [
+        (lambda m: m.update(reuse_notice_url="http://www.ato.gov.au/notice"),
+         "reuse notice and its https address"),
+        (lambda m: m.update(documents={}), "documents must be a list of at most"),
+        (lambda m: m.update(excluded={}), "excluded must be a list"),
+        (lambda m: m.update(rows=-1), "rows must be a non-negative integer"),
+        (lambda m: m["documents"][0].update(docid="not a docid"),
+         "document 1 has no supported docid"),
+        (lambda m: m["documents"][0].update(paragraphs=0),
+         "document 1 must count at least one paragraph"),
+        (lambda m: m["documents"][0].update(sha256="abc"),
+         "document 1 needs the SHA-256 of its page"),
+        (lambda m: m["documents"][0].update(licence_basis="fair dealing"),
+         "document 1 records no supported reuse basis"),
+        (lambda m: m["documents"][0].pop("title"), "document 1 needs a title and a source_url"),
+        (lambda m: m["excluded"].append({"reason": "x"}), "excluded entry 1 needs a docid"),
+    ],
+)
+def test_a_manifest_missing_a_required_fact_is_refused(runs, change, message):
+    _rewrite_manifest(_older(runs), change)
+    with pytest.raises(InputError, match=message):
+        rulings_module.search_rulings("synthetic", 5, 0)
+
+
+def test_a_root_that_is_not_a_folder_is_refused(tmp_path, monkeypatch):
+    monkeypatch.setenv("AUS_ACCOUNTING_RULINGS_ROOT", str(tmp_path / "absent"))
+    with pytest.raises(InputError, match="must name an existing folder"):
+        rulings_module.search_rulings("synthetic", 5, 0)
+
+
+def test_a_folder_with_too_many_runs_is_refused(runs, monkeypatch):
+    monkeypatch.setattr(rulings_module, "MAX_RUNS", 1)
+    with pytest.raises(InputError, match="holds more than 1 runs"):
+        rulings_module.search_rulings("synthetic", 5, 0)
+
+
+def test_a_run_folder_name_outside_the_safe_characters_is_refused(runs):
+    _older(runs).rename(runs / "run 2099-01-01")
+    with pytest.raises(InputError, match="may use only letters, digits"):
+        rulings_module.search_rulings("synthetic", 5, 0)
+
+
+@pytest.mark.parametrize(
+    "rows_text, message",
+    [
+        ("{not json\n", "has a malformed row at line 1"),
+        ("[]\n", "row 1 lacks a required field"),
+    ],
+)
+def test_an_unparsable_row_is_refused(runs, rows_text, message):
+    (_older(runs) / "rulings.jsonl").write_text(rows_text, encoding="utf-8")
+    with pytest.raises(InputError, match=message):
+        rulings_module.search_rulings("synthetic", 5, 0)
+
+
+def test_rows_that_are_not_utf8_are_refused(runs):
+    rows = _older(runs) / "rulings.jsonl"
+    rows.write_bytes(b"\xff\xfe" + rows.read_bytes())
+    with pytest.raises(InputError, match="as UTF-8 JSONL"):
+        rulings_module.search_rulings("synthetic", 5, 0)
+
+
+def test_a_family_word_only_in_the_title_does_not_satisfy_the_family_filter(runs):
+    # "approach" is in the guideline's title, never in a family name.
+    assert call("search_ato_rulings", query="synthetic", family="approach")["matches"] == []  # nosec B101: pytest outcome assertion
+
+
+def _run_removed_after_validation(monkeypatch, runs, replacement):
+    real_catalogue = rulings_module._catalogue
+
+    def catalogue_then_change():
+        catalogue = real_catalogue()
+        replacement(runs / fixture.NEWER_RUN / "rulings.jsonl")
+        return catalogue
+
+    monkeypatch.setattr(rulings_module, "_catalogue", catalogue_then_change)
+
+
+def test_a_run_removed_during_a_search_is_an_input_error(runs, monkeypatch):
+    _run_removed_after_validation(monkeypatch, runs, lambda rows: rows.unlink())
+    with pytest.raises(InputError, match="Cannot read a UTF-8 rulings run"):
+        rulings_module.search_rulings("synthetic", 5, 0)
+
+
+def test_a_run_rewritten_during_a_read_is_an_input_error(runs, monkeypatch):
+    _run_removed_after_validation(
+        monkeypatch, runs, lambda rows: rows.write_text("{not json\n" * 3, encoding="utf-8")
+    )
+    with pytest.raises(InputError, match="Cannot read that rulings run as UTF-8 JSONL"):
+        rulings_module.read_ruling(f"{fixture.NEWER_RUN}|{fixture.RULING}|2")

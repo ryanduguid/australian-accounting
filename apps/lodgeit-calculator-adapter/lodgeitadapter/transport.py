@@ -117,7 +117,8 @@ class _HTTPResponse(http.client.HTTPResponse):
     def begin(self) -> None:
         original = self.fp
         reader = _HeaderReader(original) if original is not None else None
-        if reader is not None:
+        # pragma reason: the stdlib opens fp in __init__, before begin() runs.
+        if reader is not None:  # pragma: no branch
             self.fp = reader  # type: ignore[assignment]  # Temporary readline/close delegate.
         completed = False
         try:
@@ -154,7 +155,8 @@ class _HTTPResponse(http.client.HTTPResponse):
             raise _ResponseFailed(status) from None
         finally:
             self._begin_failed = not completed
-            if self.fp is reader:
+            # pragma reason: nothing between the swap above and here replaces fp.
+            if self.fp is reader:  # pragma: no branch
                 self.fp = original
 
     def close(self) -> None:
@@ -390,7 +392,9 @@ def _consume(response, limit: int, url: str, started: float) -> RawResponse | _A
                 raise
         except BaseException:
             # Cancellation raised by close wins unless one is already active.
-            if not primary_cancelled:
+            # pragma reason: with a primary cancellation active it propagates after this
+            # handler, so the line after the try statement is never reached that way.
+            if not primary_cancelled:  # pragma: no branch
                 raise
     if failure is not None:
         return failure
@@ -458,7 +462,8 @@ def request(
         headers["Content-Type"] = content_type
     attempts = config.max_attempts if retry_safe else 1
     limit = config.max_response_bytes
-    for attempt in range(1, attempts + 1):
+    # pragma reason: the last attempt always returns or breaks, so the loop never runs out.
+    for attempt in range(1, attempts + 1):  # pragma: no branch
         result = _attempt(method, url, body, headers, config.read_timeout, limit)
         status = result.status
         server_error = status is not None and status >= 500

@@ -316,3 +316,100 @@ def test_each_myr_line_carries_its_own_loan_id():
     for line in lines:
         assert line["loan_id"]
         assert line["myr"]["loan_id"] == line["loan_id"]
+
+
+# --- paths the sample registers do not reach ---------------------------
+
+HEADER = Path(MET).read_text(encoding="utf-8-sig").splitlines()[0]
+UNKNOWN_YEAR_ROW = "L-201,,unknown,true,true,7,false,unknown,0.0477,60000.00,4,18426.71,"
+KNOWN_YEAR_ROW = "L-202,,2022-23,true,true,7,false,unknown,0.0477,60000.00,4,18426.71,"
+
+
+def _register(tmp_path, *rows):
+    path = tmp_path / "register.csv"
+    path.write_text("\n".join([HEADER, *rows]) + "\n", encoding="utf-8")
+    return str(path)
+
+
+def test_stdout_is_switched_to_utf8_where_it_can_be(monkeypatch):
+    class Console(io.StringIO):
+        settings: dict = {}
+
+        def reconfigure(self, **kwargs):
+            self.settings = kwargs
+
+    console = Console()
+    monkeypatch.setattr("sys.stdout", console)
+    assert main(["rate", "--year", "2026-27"]) == 0  # nosec B101: pytest outcome assertion
+    assert console.settings == {"encoding": "utf-8", "errors": "backslashreplace"}  # nosec B101: pytest outcome assertion
+    assert "2026-27 benchmark interest rate: 0.0877" in console.getvalue()  # nosec B101: pytest outcome assertion
+
+
+def test_a_row_without_a_borrower_reference_is_labelled_by_its_loan_id(tmp_path):
+    _, out, _ = run(["gate", "--input", _register(tmp_path, KNOWN_YEAR_ROW)])
+    assert "\n[1] L-202\n" in out  # nosec B101: pytest outcome assertion
+
+
+def test_the_myr_command_prints_no_gate_block_in_text():
+    code, out, _ = run(["myr", "--input", MET, "--year", "2026-27"])
+    assert code == 0  # nosec B101: pytest outcome assertion
+    assert "s 109E MYR: MYR_MET" in out  # nosec B101: pytest outcome assertion
+    assert "s 109N gate" not in out  # nosec B101: pytest outcome assertion
+
+
+def test_a_gate_run_labels_the_report_with_the_first_known_loan_year(tmp_path):
+    _, out, _ = run(["gate", "--input", _register(tmp_path, UNKNOWN_YEAR_ROW, KNOWN_YEAR_ROW)])
+    assert "Loan register review for 2022-23" in out  # nosec B101: pytest outcome assertion
+
+
+def test_a_gate_run_with_no_known_loan_year_uses_the_table_coverage(tmp_path):
+    code, out, _ = run(["gate", "--input", _register(tmp_path, UNKNOWN_YEAR_ROW)])
+    assert code == 2  # nosec B101: pytest outcome assertion
+    assert "Loan register review for 2026-27" in out  # nosec B101: pytest outcome assertion
+    assert "s 109N gate: UNKNOWN" in out  # nosec B101: pytest outcome assertion
+
+
+def test_the_trace_prints_whichever_result_a_report_carries(capsys):
+    from div7aloan.cli import _print_report
+    from div7aloan.register import review_register_file
+    from div7aloan.years import parse_year
+
+    year = parse_year("2026-27")
+    _print_report(review_register_file(MET, year, gate_only=True), show_trace=True)
+    gate_trace = capsys.readouterr().out
+    _print_report(review_register_file(MET, year, myr_only=True), show_trace=True)
+    myr_trace = capsys.readouterr().out
+    assert "s 109N gate" in gate_trace and "s 109E MYR" not in gate_trace  # nosec B101: pytest outcome assertion
+    assert "s 109E(6) formula" in myr_trace and "s 109N gate" not in myr_trace  # nosec B101: pytest outcome assertion
+
+
+def test_a_review_applies_the_rates_override_to_every_row(tmp_path):
+    path = tmp_path / "override.json"
+    path.write_text(
+        json.dumps(
+            {
+                "verified_until": "2027-28",
+                "citation": "RBA F5 FILRHLBVS May 2027, read 2027-07-02",
+                "rates": [{"year_of_income": "2027-28", "rate": "0.0850"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    code, document = run_json(
+        ["review", "--input", MET, "--year", "2027-28", "--rates-override", str(path)]
+    )
+    assert code == 0  # nosec B101: pytest outcome assertion
+    assert [entry["uri"] for entry in document["manifest"]["rate_table_uris"]] == [  # nosec B101: pytest outcome assertion
+        "div7aloan/data/benchmark_rates.csv",
+        "override:override.json",
+    ]
+    assert document["summary"]["MYR_MET"] == 3  # nosec B101: pytest outcome assertion
+
+
+def test_an_operating_system_error_exits_one_with_one_error_line(monkeypatch):
+    def unreadable(*args, **kwargs):
+        raise OSError("device not ready")
+
+    monkeypatch.setattr("div7aloan.cli.review_register_file", unreadable)
+    code, out, err = run(["review", "--input", MET, "--year", "2026-27"])
+    assert (code, out, err) == (1, "", "error: device not ready\n")  # nosec B101: pytest outcome assertion

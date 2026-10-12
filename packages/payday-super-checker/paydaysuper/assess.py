@@ -380,7 +380,9 @@ def _assessment_facts(
 
     credit = remitted_credit(line, remitted)
     operational_unremitted = cents(line.sg_amount) - credit
-    if operational_unremitted < 0:
+    # pragma reason: sg_amount is refused when negative and remitted_credit never
+    # credits more than it, so the difference is never below zero.
+    if operational_unremitted < 0:  # pragma: no cover
         operational_unremitted = Decimal("0")
     fully_remitted = operational_unremitted == 0
     receipt_credit = _received_credit(line, settled)
@@ -806,8 +808,10 @@ def _assess_without_receipt(
                 + ", ".join(d.isoformat() for d in _ignored)
                 + ") is after the as-at date and is ignored here"
             )
+        # pragma reason: a row past the calendar horizon returned UNKNOWN above, so
+        # this branch is never taken.
         if past_horizon:
-            result.caveats.append(
+            result.caveats.append(  # pragma: no cover
                 f"{_none_recorded}, and the deadline "
                 f"shown ({dl.due.isoformat()}) runs past the calendar's coverage, so "
                 "it may fall later than shown and may not have passed yet. Figures "

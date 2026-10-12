@@ -117,3 +117,51 @@ def test_a_provider_refusal_does_not_reach_the_worksheet(stub, stub_config, cont
     comparison = trial.evaluate(BENEFIT, LodgeitClient(stub_config, contract))
     assert comparison.evaluation is Evaluation.SCOPE_MISMATCH
     assert comparison.local == {}
+
+
+def test_without_a_client_the_provider_is_not_called():
+    comparison = trial.evaluate(BENEFIT, client=None)
+    assert comparison.evaluation is Evaluation.NOT_RUN  # nosec B101: pytest outcome assertion
+    assert comparison.reasons == ("No client supplied; the provider was not called.",)  # nosec B101: pytest outcome assertion
+
+
+def _outcome(status, **fields):
+    from lodgeitadapter.client import Outcome
+
+    return Outcome(status=status, findings=("fabricated finding",), **fields)
+
+
+@pytest.mark.parametrize(("status", "expected"), [
+    ("UPSTREAM_NOT_FOUND", Evaluation.UNSUPPORTED_PERIOD),
+    ("UPSTREAM_UNAVAILABLE", Evaluation.UPSTREAM_UNAVAILABLE),
+    ("UPSTREAM_THROTTLED", Evaluation.UPSTREAM_UNAVAILABLE),
+    ("REFUSED_TO_SEND", Evaluation.UPSTREAM_UNAVAILABLE),
+    ("UPSTREAM_REJECTED", Evaluation.CONTRACT_FAILURE),
+])
+def test_a_call_that_produced_no_figure_is_named_for_why(status, expected):
+    from lodgeitadapter import Status
+
+    comparison = trial.evaluate_outcome(BENEFIT, _outcome(Status(status)))
+    assert comparison.evaluation is expected  # nosec B101: pytest outcome assertion
+    assert comparison.reasons == ("fabricated finding",)  # nosec B101: pytest outcome assertion
+
+
+def test_a_computed_outcome_without_a_taxable_value_reaches_no_worksheet():
+    from lodgeitadapter import Status
+
+    comparison = trial.evaluate_outcome(BENEFIT, _outcome(Status.COMPUTED, values={}))
+    assert comparison.evaluation is Evaluation.CONTRACT_FAILURE  # nosec B101: pytest outcome assertion
+    assert comparison.reasons[0].startswith("the response carries no taxable_value")  # nosec B101: pytest outcome assertion
+
+
+def test_a_figure_only_the_provider_returned_is_named(monkeypatch):
+    from lodgeitadapter import Status
+
+    monkeypatch.setattr(trial, "run_local_aggregate", lambda arguments, year: {})
+    values = {"taxable_value": Decimal("8000.00"), "grossed_up_taxable_value": Decimal("15094.40")}
+    comparison = trial.evaluate_outcome(BENEFIT, _outcome(Status.COMPUTED, values=values))
+    assert (  # nosec B101: pytest outcome assertion
+        "grossed_up_taxable_value: the provider returned a figure and the local worksheet "
+        "produced no type_two_grossed_up"
+    ) in comparison.reasons
+    assert not any("fbt_payable" in reason for reason in comparison.reasons)  # nosec B101: pytest outcome assertion

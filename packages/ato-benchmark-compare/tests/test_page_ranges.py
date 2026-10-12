@@ -375,3 +375,35 @@ def test_the_loader_refuses_a_page_file_that_does_not_account_for_every_industry
     change(pages)
     with pytest.raises(ds.DatasetError, match=message):
         ds.merge_page_ranges(workbook, json.dumps(pages))
+
+
+def _duplicate_first_entry(pages: dict) -> None:
+    pages["business_types"].append(pages["business_types"][0])
+    pages["business_type_count"] += 1
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        (lambda p: p.update(schema_version=99), "schema version 99 is not supported"),
+        (lambda p: p.pop("source"), "source metadata is missing$"),
+        (lambda p: p.update(business_types=None), "business_types is missing$"),
+        (lambda p: p["business_types"].__setitem__(0, "oops"), "a business type is not an object$"),
+        (_duplicate_first_entry, "appears twice$"),
+    ],
+)
+def test_the_loader_refuses_a_malformed_page_file(change, message) -> None:
+    workbook, pages = _year()
+    change(pages)
+    with pytest.raises(ds.DatasetError, match=message):
+        ds.merge_page_ranges(workbook, json.dumps(pages))
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [("{not json", "pages: not valid JSON"), ("[]", "pages: expected a JSON object$")],
+)
+def test_the_loader_refuses_a_page_file_that_is_not_a_json_object(text: str, message: str) -> None:
+    workbook, _ = _year()
+    with pytest.raises(ds.DatasetError, match=message):
+        ds.merge_page_ranges(workbook, text, source_name="pages")

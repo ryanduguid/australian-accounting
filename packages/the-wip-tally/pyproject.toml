@@ -100,3 +100,8 @@ pretty = true
 [tool.coverage.run]
 # The source pytest --cov measures; CI adds --cov-branch and the reports.
 source = ["wiptally"]
+
+[tool.coverage.report]
+# CI fails the test job below complete line and branch coverage.
+fail_under = 100
+exclude_also = ['if __name__ == "__main__":']

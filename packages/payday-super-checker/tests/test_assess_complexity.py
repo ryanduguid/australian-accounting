@@ -202,3 +202,52 @@ def test_exposure_phase_keeps_horizon_and_new_starter_boundaries() -> None:
         False,
     )
     assert not any("first_contribution_to_fund" in value for value in result.caveats)
+
+
+def test_a_partial_prepayment_past_its_deadline_is_unpaid_when_nothing_is_uncertain() -> None:
+    line = _line()
+    past_due = Deadline(date(2027, 7, 10), USUAL_7BD)
+    result = Result(line, past_due, UNKNOWN)
+
+    credit, stale, finished = _assess_received(
+        result, line, past_due, date(2027, 7, 12), _facts()
+    )
+
+    assert (credit, stale, finished) == (Decimal("100"), False, False)  # nosec B101: pytest outcome assertion
+    assert result.verdict == "UNPAID"  # nosec B101: pytest outcome assertion
+
+
+def test_a_partial_prepayment_names_only_the_uncertainty_that_applies() -> None:
+    line = _line()
+    past_due = Deadline(date(2027, 7, 10), USUAL_7BD)
+
+    item4_only = Result(line, past_due, UNKNOWN)
+    _assess_received(
+        item4_only, line, past_due, date(2027, 7, 12),
+        _facts(possible_item4_due=date(2027, 7, 20), item4_uncertain=True),
+    )
+    assert item4_only.horizon_verdicts == ("UNPAID", "NOT_YET_DUE")  # nosec B101: pytest outcome assertion
+    assert item4_only.caveats == ["item 4 unknown"]  # nosec B101: pytest outcome assertion
+
+    horizon_only = Result(line, past_due, UNKNOWN)
+    _assess_received(
+        horizon_only, line, past_due, date(2027, 7, 12), _facts(past_horizon=True)
+    )
+    assert len(horizon_only.caveats) == 1  # nosec B101: pytest outcome assertion
+    assert "calendar's coverage" in horizon_only.caveats[0]  # nosec B101: pytest outcome assertion
+
+
+def test_no_receipt_past_a_deadline_item4_may_extend_is_left_unknown() -> None:
+    line = _line()
+    due = Deadline(date(2027, 7, 10), USUAL_7BD)
+    result = Result(line, due, UNKNOWN)
+    facts = _facts(
+        settled=None,
+        possible_item4_due=date(2027, 7, 20),
+        item4_uncertain=True,
+    )
+
+    assert _assess_without_receipt(result, line, due, date(2027, 7, 12), facts) is True  # nosec B101: pytest outcome assertion
+    assert result.verdict == UNKNOWN  # nosec B101: pytest outcome assertion
+    assert result.horizon_verdicts == ("UNPAID", "NOT_YET_DUE")  # nosec B101: pytest outcome assertion
+    assert result.caveats == ["item 4 unknown"]  # nosec B101: pytest outcome assertion

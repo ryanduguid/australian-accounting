@@ -1,3 +1,5 @@
+import importlib
+import importlib.metadata
 import subprocess
 import sys
 from importlib.metadata import version
@@ -56,3 +58,16 @@ def test_published_distribution_uses_the_project_identity() -> None:
     )
     assert help_result.returncode == 0
     assert help_result.stdout.startswith("usage: solomons-sword")
+
+
+def test_source_tree_without_installation_reports_a_development_version(monkeypatch) -> None:
+    def not_installed(name: str) -> str:
+        raise importlib.metadata.PackageNotFoundError(name)
+
+    monkeypatch.setattr(importlib.metadata, "version", not_installed)
+    try:
+        assert importlib.reload(louisgoldberg).__version__ == "0.0.0.dev0"  # nosec B101: pytest outcome assertion
+    finally:
+        monkeypatch.undo()
+        importlib.reload(louisgoldberg)
+    assert louisgoldberg.__version__ == version("solomons-sword")  # nosec B101: pytest outcome assertion
