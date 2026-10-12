@@ -40,7 +40,7 @@ class PreflightError(Exception):
 
 def project_metadata(pyproject: str) -> tuple[str, str]:
     """The distribution name and static version from the [project] table."""
-    match = re.search(r"(?ms)^\[project\]\n(.*?)(?=^\[|\Z)", pyproject)
+    match = re.search(r"(?ms)^\[project\]\n(.*?)(?=(?:^\[)|\Z)", pyproject)
     if match is None:
         raise PreflightError("pyproject.toml has no [project] table")
     fields = dict(_PROJECT_FIELD.findall(match.group(1)))

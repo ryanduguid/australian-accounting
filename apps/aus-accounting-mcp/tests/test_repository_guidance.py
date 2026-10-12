@@ -53,8 +53,9 @@ def _ci_run_commands(workflow: str | None = None) -> list[str]:
         )
     # Only jobs running from this component own its contributor commands.
     jobs = re.split(r"(?m)^  [\w-]+:\s*$", workflow.split("jobs:\n", 1)[1])[1:]
+    # A trailing "# NOSONAR: reason" is a YAML comment, not part of the command.
     commands = [
-        command for job in jobs
+        re.sub(r"[ \t]+# NOSONAR[^\n]*", "", command) for job in jobs
         if re.search(r"(?m)^\s+working-directory: apps/aus-accounting-mcp\s*$", job)
         for command in re.findall(r"^\s+(?:-\s+)?run:\s*(\S.*)$", job, flags=re.MULTILINE)
     ]

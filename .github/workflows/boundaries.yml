@@ -54,9 +54,9 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - run: uv lock --check
-      - run: uv run --locked --group dev ruff check .
-      - run: uv run --locked --group dev mypy
-      - run: uv run --locked --group dev pytest
+      - run: uv run --locked --group dev ruff check .  # NOSONAR: unprivileged job; uv installs the hash-locked set
+      - run: uv run --locked --group dev mypy  # NOSONAR: unprivileged job; uv installs the hash-locked set
+      - run: uv run --locked --group dev pytest  # NOSONAR: unprivileged job; uv installs the hash-locked set
 
   # The rates dataset's own checks on the floor and ceiling of its declared Python,
   # as its source repository ran them before the import. They run from a copy outside

@@ -38,7 +38,8 @@ def run(output: Path, *, extra_cost_to_complete: Decimal = Decimal(0)) -> dict:
         raise ValueError("Cash or commitment assumptions do not reconcile")
     # The committed amount is already inside remaining cost; never add it twice.
     future_cost = contract.estimated_cost_to_complete * Decimal(assumptions["future_cost_cash_multiplier"])
-    output.mkdir(parents=True, exist_ok=False)
+    # Local CLI; the path is the operator's own argument.
+    output.mkdir(parents=True, exist_ok=False)  # NOSONAR
     # Persist the exact scenario source so the existing pack verifier can rebuild it.
     with source.open(encoding="utf-8", newline="") as stream:
         reader = csv.DictReader(stream)

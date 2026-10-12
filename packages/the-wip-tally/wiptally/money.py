@@ -20,7 +20,7 @@ _ACCOUNTING_NUMBER = re.compile(
     rf"\$?\s*\(\s*(?:{_NUMBER})\s*\)|\(\s*\$?(?:{_NUMBER})\s*\)|"
     rf"\$?\s*(?:{_NUMBER})\s*(?:CR|DR))", re.IGNORECASE,
 )
-_PERCENT_RE = re.compile(r"^([+-]?\d*\.?\d+)\s*%$")
+_PERCENT_RE = re.compile(r"^([+-]?(?:\d*+\.\d++|\d++))\s*+%$")
 _YES = frozenset({"yes", "y", "true", "1"})
 _NO = frozenset({"no", "n", "false", "0"})
 

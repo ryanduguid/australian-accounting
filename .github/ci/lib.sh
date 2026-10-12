@@ -20,7 +20,7 @@ expect_contains() {
 expect_ok_or_findings() {
   local status=0
   "$@" || status=$?
-  if [ "$status" -ne 0 ] && [ "$status" -ne 2 ]; then
+  if [[ "$status" -ne 0 ]] && [[ "$status" -ne 2 ]]; then
     printf '%s exited %d, expected 0 or 2\n' "$1" "$status" >&2
     return 1
   fi

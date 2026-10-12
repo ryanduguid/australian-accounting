@@ -26,7 +26,8 @@ def _json_value(value: Any) -> str:
 
 
 def proof_lines(transcript_path: Path) -> list[str]:
-    lines = transcript_path.read_text(encoding="utf-8").splitlines()
+    # Local CLI; the path is the operator's own argument.
+    lines = transcript_path.read_text(encoding="utf-8").splitlines()  # NOSONAR
     if len(lines) < 2 or not lines[0].startswith("$ "):
         raise ValueError("quick-proof transcript must start with its command")
 
@@ -63,7 +64,8 @@ def render_image(transcript_path: Path, output_path: Path) -> None:
 
     image = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(image)
-    font = ImageFont.load_default(size=FONT_SIZE)
+    # Pillow 10.1 and later take a size argument; the scanner's stub is older.
+    font = ImageFont.load_default(size=FONT_SIZE)  # NOSONAR
     for line in lines:
         if LEFT_MARGIN + draw.textlength(line, font=font) > WIDTH - LEFT_MARGIN:
             raise ValueError("quick-proof summary does not fit the image width")

@@ -227,6 +227,8 @@ class BoundaryTests(unittest.TestCase):
         reusable = (ROOT / ".github" / "workflows" / "ci-package.yml").read_text(
             encoding="utf-8"
         )
+        # A trailing "# NOSONAR: reason" is a YAML comment, not part of the command.
+        reusable = re.sub(r"[ \t]+# NOSONAR[^\n]*", "", reusable)
 
         self.assertIn("uses: ./.github/workflows/ci-package.yml", caller)
         called = set(re.findall(r"(?m)^          - package: (\S+)$", caller))

@@ -86,7 +86,7 @@ def should_run(package: str, changed_paths: list[str]) -> bool:
 def project_version(package: str, root: Path = ROOT) -> str:
     """The static ``version`` in the package's ``[project]`` table."""
     text = (root / PACKAGE_ROOT / package / "pyproject.toml").read_text(encoding="utf-8")
-    table = re.search(r"(?ms)^\[project\]\s*$(.*?)(?=^\[|\Z)", text)
+    table = re.search(r"(?ms)^\[project\]\s*$(.*?)(?=(?:^\[)|\Z)", text)
     # TOML allows a basic ("...") or a literal ('...') string here.
     match = table and re.search(r"""(?m)^version\s*=\s*(["'])([^"'\n]+)\1""", table.group(1))
     if not match:
@@ -108,7 +108,8 @@ def main(argv: list[str]) -> int:
     changed_paths = parse_changed_paths(sys.stdin.buffer.read())
     run = should_run(package, changed_paths)
     if not run and "--on-main" in argv:
-        tags = subprocess.run(
+        # CI helper; git gets an argument list from the workflow's package name, with no shell.
+        tags = subprocess.run(  # NOSONAR
             ["git", "tag", "--list", f"{package}/v*"],
             capture_output=True, text=True, check=True, cwd=ROOT,
         ).stdout.split()
