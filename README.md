@@ -10,6 +10,7 @@
 [![SonarCloud](https://img.shields.io/sonar/quality_gate/ryanduguid_australian-accounting?server=https%3A%2F%2Fsonarcloud.io&label=SonarCloud&labelColor=000000)](https://sonarcloud.io/summary/new_code?id=ryanduguid_australian-accounting)
 [![VirusTotal](https://img.shields.io/badge/VirusTotal-release%20files%20scanned-66023C?labelColor=000000&logo=virustotal&logoColor=FFFFF0)](https://github.com/ryanduguid/australian-accounting/releases)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ryanduguid/australian-accounting/badge)](https://scorecard.dev/viewer/?uri=github.com/ryanduguid/australian-accounting)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://github.com/ryanduguid/australian-accounting/attestations)
 
 Seven independently released Python engines that apply Australian tax and payroll
 rules to figures you supply, plus **Aus Accounting MCP**, a local Model Context
