@@ -1,6 +1,7 @@
 # Australian accounting engines and MCP server
 
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
+[![Codecov](https://codecov.io/gh/ryanduguid/australian-accounting/graph/badge.svg)](https://codecov.io/gh/ryanduguid/australian-accounting)
 [![CodeQL](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
 [![Snyk](https://github.com/ryanduguid/australian-accounting/actions/workflows/snyk.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/snyk.yml)
 [![licence: MIT](https://img.shields.io/badge/licence-MIT-5C2D91.svg?labelColor=04001F)](LICENSE)
