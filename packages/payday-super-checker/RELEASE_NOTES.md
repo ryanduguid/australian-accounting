@@ -1,3 +1,9 @@
+# v0.1.10
+
+- Requires Python 3.11 or newer; Python 3.10 is no longer supported ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).
+
+No check changed. The Excel workbook is rebuilt to report engine 0.1.10.
+
 # v0.1.9
 
 - The nine public control arguments (the confirmation, stale-rate and identifier-output options) accept only literal booleans. Version 0.1.8 treated a string such as `"false"` as permission, which could suppress review warnings or include identifiers. Strings, numbers, `None` and containers now raise an error naming the argument; valid booleans, defaults and command line switches behave as before ([#328](https://github.com/ryanduguid/australian-accounting/pull/328)).
