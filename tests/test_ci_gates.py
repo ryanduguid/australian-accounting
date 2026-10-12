@@ -51,7 +51,8 @@ def job_block(text: str, name: str) -> str:
     match = re.search(rf"(?ms)^  {re.escape(name)}:\n(.*?)(?=^  [\w-]+:|\Z)", text)
     if match is None:
         raise AssertionError(name)
-    return match.group(1)
+    # A trailing "# NOSONAR: reason" is a YAML comment, not part of the command.
+    return re.sub(r"[ \t]+# NOSONAR[^\n]*", "", match.group(1))
 
 
 def git(cwd: Path, *args: str) -> bytes:

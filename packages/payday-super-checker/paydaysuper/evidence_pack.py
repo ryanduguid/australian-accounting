@@ -108,7 +108,8 @@ def write_evidence_pack(files: dict[str, str], path: str | Path) -> None:
     if set(files) != {"report.csv", "practitioner-review.md", "exceptions.json", "decision-log.md"}:
         raise ValueError("evidence pack must contain exactly the four fixed filenames")
     destination = evidence_destination(path)
-    destination.mkdir(mode=0o700)
+    # Library API; the caller chooses the file.
+    destination.mkdir(mode=0o700)  # NOSONAR
     # Never unlink on failure: a completed file may already have been edited.
     for name, text in files.items():
         with (destination / name).open("xb") as stream:

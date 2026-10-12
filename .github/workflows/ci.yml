@@ -124,7 +124,7 @@ jobs:
       # The same branch-coverage gate ci-package.yml runs for the engines, through
       # the pytest-cov the application already pins in its dev extra.
       - name: run tests with branch coverage
-        run: uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing
+        run: uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing  # NOSONAR: unprivileged job; uv installs the hash-locked set
         working-directory: apps/aus-accounting-mcp
         env:
           UV_PYTHON: ${{ matrix.python }}
@@ -161,7 +161,7 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - name: audit the locked project environment
-        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict  # NOSONAR: unprivileged job; uv installs the hash-locked set
         working-directory: apps/aus-accounting-mcp
 
   lint:
@@ -186,9 +186,9 @@ jobs:
           enable-cache: true
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
-      - run: uv run --locked --extra dev ruff check aus_accounting_mcp tests
+      - run: uv run --locked --extra dev ruff check aus_accounting_mcp tests  # NOSONAR: unprivileged job; uv installs the hash-locked set
         working-directory: apps/aus-accounting-mcp
-      - run: uv run --locked --extra dev mypy aus_accounting_mcp
+      - run: uv run --locked --extra dev mypy aus_accounting_mcp  # NOSONAR: unprivileged job; uv installs the hash-locked set
         working-directory: apps/aus-accounting-mcp
 
   # The upload runs apart from the tests so the OIDC token is never available

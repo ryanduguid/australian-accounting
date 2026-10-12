@@ -223,7 +223,8 @@ def load_calendar(override_path: str | Path | None = None) -> BusinessCalendar:
 
     declared_until: date | None = None
     if override_path is not None:
-        with open(override_path, encoding="utf-8") as f:
+        # Library API; the caller chooses the file.
+        with open(override_path, encoding="utf-8") as f:  # NOSONAR
             try:
                 override = json.load(f)
             except json.JSONDecodeError as exc:

@@ -121,7 +121,8 @@ def _check_duplicate_headers(headers: list[str], path: str | Path) -> None:
 
 def _read_dicts(path: str | Path) -> tuple[list[str], list[dict[str, str]]]:
     try:
-        with open(path, newline="", encoding="utf-8-sig") as f:
+        # Library API; the caller chooses the file.
+        with open(path, newline="", encoding="utf-8-sig") as f:  # NOSONAR
             reader = csv.DictReader(f, restval=cast(Any, MISSING))
             if reader.fieldnames is None:
                 raise CsvError(f"{path} has no header row")

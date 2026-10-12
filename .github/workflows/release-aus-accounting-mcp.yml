@@ -50,7 +50,7 @@ jobs:
           uv build --wheel --out-dir "$RUNNER_TEMP/dist" apps/aus-accounting-mcp
           cd "$RUNNER_TEMP"
           uv venv --python 3.12 pins
-          uv pip install --python pins/bin/python dist/*.whl
+          uv pip install --python pins/bin/python dist/*.whl  # NOSONAR: unprivileged job; it installs the published PyPI pins on purpose, to test what users get
           pins/bin/aus-accounting-mcp-demo > demo.txt
           diff -u "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/docs/quick-proof.txt" demo.txt
 

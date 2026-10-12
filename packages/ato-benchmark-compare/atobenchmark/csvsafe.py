@@ -23,7 +23,7 @@ import re
 ALWAYS = ("=", "@")
 CONDITIONAL = ("+", "-")
 
-_NUMBER_RE = re.compile(r"^[\d,]*\.?\d+$")
+_NUMBER_RE = re.compile(r"^[\d,]*+(?:\.\d++|(?<=\d))$")
 
 
 def guard(value: object) -> str:
