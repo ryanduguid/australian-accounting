@@ -378,7 +378,7 @@ def load_override(path: Path | str) -> RateOverride:
     """
     path = Path(path)
     try:
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8")  # NOSONAR: local CLI path chosen by the operator
     except OSError as exc:
         raise RatesError(f"cannot read the rate override at {path}: {exc}")
     try:

@@ -23,6 +23,7 @@ import re
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE_POLICY_SHA = "a601f1d8b143f92b0517f709216993660d21f480"
@@ -220,6 +221,18 @@ class BoundaryTests(unittest.TestCase):
             with self.subTest(package=Path(component).name):
                 self.assertTrue(select_package.should_run(Path(component).name, []))
 
+    def test_the_selector_refuses_a_package_name_that_is_not_a_directory_leaf(self) -> None:
+        # The name reaches a git argument list and a path under packages/, so an
+        # option-shaped or path-shaped value is a usage error before either.
+        for package in ("--points-at=HEAD", "-l", "../apps", "the-wip-tally/x", "", "A"):
+            with self.subTest(package=package):
+                with mock.patch.object(select_package.subprocess, "run") as run:
+                    self.assertEqual(select_package.main(["select", package, "--on-main"]), 2)
+                run.assert_not_called()
+        for component in ENGINES:
+            with self.subTest(package=Path(component).name):
+                self.assertTrue(select_package.PACKAGE_NAME.fullmatch(Path(component).name))
+
     def test_every_engine_is_called_with_the_same_gates(self) -> None:
         caller = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
             encoding="utf-8"
@@ -241,19 +254,21 @@ class BoundaryTests(unittest.TestCase):
 
         # The gate set every engine gets, and the declared Python floor and ceiling.
         # ruff, mypy and coverage read their scope from the engine's own
-        # configuration, so the commands are identical for every engine.
+        # configuration, so the commands are identical for every engine. A trailing
+        # NOSONAR justification is a YAML comment, not part of the command.
+        commands = re.sub(r"  # NOSONAR: [^\n]*", "", reusable)
         for gate in (
             'uv lock --check',
             "ruff check .\n",
             "uv run --locked --extra dev mypy\n",
-            "uv run --locked --extra dev pytest\n",
-            "--cov --cov-branch --cov-report=term-missing --cov-report=xml",
+            "uv run --locked --extra dev pytest"
+            " --cov --cov-branch --cov-report=term-missing --cov-report=xml\n",
             'pip-audit --local --strict',
             "python -m build",
             'python: ["3.11", "3.12", "3.13", "3.14", "3.15"]',
         ):
             with self.subTest(gate=gate):
-                self.assertIn(gate, reusable)
+                self.assertIn(gate, commands)
 
         # The wheel smoke installs the one built wheel by path, never by name.
         self.assertIn("wheels=(dist/*.whl)", reusable)

@@ -389,7 +389,8 @@ class GateWiringTests(unittest.TestCase):
         self.assertIn('git diff --name-only --no-renames -z "$BASE" "$HEAD" --', package)
         self.assertEqual(package.count('"${ON_MAIN[@]}"'), 2)
         root = job_block((WORKFLOWS / "boundaries.yml").read_text(encoding="utf-8"), "root-checks")
-        self.assertIn("run: uv run --locked --group dev pytest\n", root)
+        # A trailing NOSONAR justification is a YAML comment, not a pytest argument.
+        self.assertRegex(root, r"run: uv run --locked --group dev pytest(?:  # NOSONAR: [^\n]*)?\n")
         self.assertNotIn("--ignore", root)
 
     def test_application_selection_wiring_preserves_required_guards(self) -> None:

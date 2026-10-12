@@ -53,10 +53,13 @@ def _ci_run_commands(workflow: str | None = None) -> list[str]:
         )
     # Only jobs running from this component own its contributor commands.
     jobs = re.split(r"(?m)^  [\w-]+:\s*$", workflow.split("jobs:\n", 1)[1])[1:]
+    # A trailing NOSONAR justification is a YAML comment, not part of the command.
     commands = [
         command for job in jobs
         if re.search(r"(?m)^\s+working-directory: apps/aus-accounting-mcp\s*$", job)
-        for command in re.findall(r"^\s+(?:-\s+)?run:\s*(\S.*)$", job, flags=re.MULTILINE)
+        for command in re.findall(
+            r"^\s+(?:-\s+)?run:\s*(\S.*?)(?:\s+# NOSONAR: .*)?$", job, flags=re.MULTILINE
+        )
     ]
     return list(dict.fromkeys(commands))
 
@@ -70,7 +73,7 @@ def test_ci_commands_exclude_root_helpers_but_keep_non_uv_component_checks() -> 
     steps:
       - run: python custom_check.py
         working-directory: apps/aus-accounting-mcp
-      - run: uv run --locked pytest
+      - run: uv run --locked pytest  # NOSONAR: justification
         working-directory: apps/aus-accounting-mcp
   other-app:
     steps:

@@ -223,7 +223,7 @@ def load_calendar(override_path: str | Path | None = None) -> BusinessCalendar:
 
     declared_until: date | None = None
     if override_path is not None:
-        with open(override_path, encoding="utf-8") as f:
+        with open(override_path, encoding="utf-8") as f:  # NOSONAR: local CLI path chosen by the operator
             try:
                 override = json.load(f)
             except json.JSONDecodeError as exc:

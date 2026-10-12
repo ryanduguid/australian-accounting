@@ -79,7 +79,7 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - name: run tests with branch coverage
-        run: uv run --locked --extra dev --extra mcp pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing
+        run: uv run --locked --extra dev --extra mcp pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing  # NOSONAR: uv builds only this workspace's packages; dependencies install from wheels
         working-directory: apps/lodgeit-calculator-adapter
         env:
           UV_PYTHON: ${{ matrix.python }}
@@ -116,9 +116,9 @@ jobs:
           enable-cache: true
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
-      - run: uv run --locked --extra dev ruff check lodgeitadapter tests
+      - run: uv run --locked --extra dev ruff check lodgeitadapter tests  # NOSONAR: uv builds only this workspace's packages; dependencies install from wheels
         working-directory: apps/lodgeit-calculator-adapter
-      - run: uv run --locked --extra dev mypy lodgeitadapter
+      - run: uv run --locked --extra dev mypy lodgeitadapter  # NOSONAR: uv builds only this workspace's packages; dependencies install from wheels
         working-directory: apps/lodgeit-calculator-adapter
 
   dependency-audit:
@@ -145,7 +145,7 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - name: audit the locked project environment
-        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict  # NOSONAR: uv builds only this workspace's packages; dependencies install from wheels
         working-directory: apps/lodgeit-calculator-adapter
 
   # The upload runs apart from the tests so the OIDC token is never available

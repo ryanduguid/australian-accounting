@@ -26,7 +26,8 @@ def _json_value(value: Any) -> str:
 
 
 def proof_lines(transcript_path: Path) -> list[str]:
-    lines = transcript_path.read_text(encoding="utf-8").splitlines()
+    text = transcript_path.read_text(encoding="utf-8")  # NOSONAR: CLI path chosen by the operator
+    lines = text.splitlines()
     if len(lines) < 2 or not lines[0].startswith("$ "):
         raise ValueError("quick-proof transcript must start with its command")
 

@@ -138,9 +138,7 @@ jobs:
       # Without the count a test file that stops being collected leaves every
       # leg green. --cov takes its source from the engine's [tool.coverage.run].
       - name: run tests with branch coverage
-        run: >-
-          uv run --locked --extra dev pytest
-          --cov --cov-branch --cov-report=term-missing --cov-report=xml
+        run: uv run --locked --extra dev pytest --cov --cov-branch --cov-report=term-missing --cov-report=xml  # NOSONAR: uv builds only this workspace's packages; dependencies install from wheels
         env:
           UV_PYTHON: ${{ matrix.python }}
 
@@ -162,11 +160,10 @@ jobs:
           PACKAGE: ${{ inputs.package }}
         run: |
           set -euo pipefail
-          uv run --locked --extra dev coverage xml --include="$INCLUDE" -o coverage.xml
+          uv run --locked --extra dev coverage xml --include="$INCLUDE" -o coverage.xml  # NOSONAR: uv builds only this workspace's packages; dependencies install from wheels
           sentinel="packages/$PACKAGE/${INCLUDE%%,*}"
           if git cat-file -e "origin/main:$sentinel"; then
-            uv run --locked --extra dev --python 3.12 diff-cover coverage.xml \
-              --compare-branch=origin/main --branch-coverage --fail-under=100
+            uv run --locked --extra dev --python 3.12 diff-cover coverage.xml --compare-branch=origin/main --branch-coverage --fail-under=100  # NOSONAR: uv builds only this workspace's packages; dependencies install from wheels
           else
             echo "::notice::Changed-line coverage starts after the imported package has a mainline baseline."
           fi
@@ -240,9 +237,9 @@ jobs:
           rm -rf "${standalone}/.venv"
           (cd "${standalone}" && uv lock --check)
       - name: ruff
-        run: uv run --locked --extra dev ruff check .
+        run: uv run --locked --extra dev ruff check .  # NOSONAR: uv builds only this workspace's packages; dependencies install from wheels
       - name: mypy
-        run: uv run --locked --extra dev mypy
+        run: uv run --locked --extra dev mypy  # NOSONAR: uv builds only this workspace's packages; dependencies install from wheels
       - name: run the package's own source guards
         env:
           PACKAGE: ${{ inputs.package }}
@@ -281,7 +278,7 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - name: audit the locked project environment
-        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict  # NOSONAR: uv builds only this workspace's packages; dependencies install from wheels
 
   build:
     needs: changes
@@ -309,7 +306,7 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - name: build the distribution
-        run: uv run --locked --extra dev --python 3.14 python -m build
+        run: uv run --locked --extra dev --python 3.14 python -m build  # NOSONAR: uv builds only this workspace's packages; dependencies install from wheels
       - name: install the wheel into a clean environment, import it and run the smoke checks
         # Exactly one wheel, installed by path with --no-index, or pip is free
         # to resolve the name from PyPI and test a release nobody built in this

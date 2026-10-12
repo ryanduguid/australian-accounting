@@ -17,7 +17,7 @@ def unique_object(pairs):
 
 
 def build_index(manifest_path: Path) -> dict:
-    content = manifest_path.read_bytes()
+    content = manifest_path.read_bytes()  # NOSONAR: local CLI path chosen by the operator
     manifest = json.loads(content, object_pairs_hook=unique_object)
     if not isinstance(manifest, dict) or set(manifest) != {"schema_version", "reports"}:
         raise ValueError("Expected schema_version and reports")

@@ -153,7 +153,7 @@ def load_mapping(
     mapping = dict(DEFAULT_MAPPING)
     explicit: set[str] = set()
     if path is not None:
-        with open(path, encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:  # NOSONAR: local CLI path chosen by the operator
             try:
                 user = json.load(f)
             except json.JSONDecodeError as exc:
@@ -489,7 +489,7 @@ def parse_rows(
 def _parse_rows(
     path: str | Path, mapping: dict[str, str], explicit: set[str]
 ) -> list[ContribLine]:
-    with open(path, newline="", encoding="utf-8-sig") as f:
+    with open(path, newline="", encoding="utf-8-sig") as f:  # NOSONAR: local CLI path chosen by the operator
         reader = csv.DictReader(f, restval=cast(Any, MISSING))
         if reader.fieldnames is None:
             raise CsvError(f"{path} has no header row")

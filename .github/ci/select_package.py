@@ -52,6 +52,9 @@ SHARED_PATHS = frozenset(
 )
 SHARED_PREFIXES = (".github/",)
 PACKAGE_ROOT = "packages/"
+# A distribution directory name under packages/. Anything else, such as a value
+# starting with "-" or holding "/", could become a git option or leave packages/.
+PACKAGE_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
 def is_shared(path: str) -> bool:
@@ -101,7 +104,7 @@ def release_pending(package: str, tags: list[str], root: Path = ROOT) -> bool:
 
 def main(argv: list[str]) -> int:
     args = [arg for arg in argv[1:] if arg != "--on-main"]
-    if len(args) != 1:
+    if len(args) != 1 or not PACKAGE_NAME.fullmatch(args[0]):
         print(f"usage: {argv[0]} <package> [--on-main]", file=sys.stderr)
         return 2
     package = args[0]
@@ -109,7 +112,7 @@ def main(argv: list[str]) -> int:
     run = should_run(package, changed_paths)
     if not run and "--on-main" in argv:
         tags = subprocess.run(
-            ["git", "tag", "--list", f"{package}/v*"],
+            ["git", "tag", "--list", "--", f"{package}/v*"],
             capture_output=True, text=True, check=True, cwd=ROOT,
         ).stdout.split()
         run = release_pending(package, tags)

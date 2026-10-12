@@ -241,10 +241,11 @@ def _block(calculation: dict, name: str, findings: list[str]) -> dict:
 def write(record: dict, path: Path) -> Path:
     """Write an evidence record as pretty JSON with a trailing newline."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(record, indent=2, ensure_ascii=False, allow_nan=False) + "\n",
-                    encoding="utf-8")
+    text = json.dumps(record, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
+    path.write_text(text, encoding="utf-8")  # NOSONAR: local CLI path chosen by the operator
     return path
 
 
 def read(path: Path) -> dict:
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    text = Path(path).read_text(encoding="utf-8")  # NOSONAR: local CLI path chosen by the operator
+    return json.loads(text)
