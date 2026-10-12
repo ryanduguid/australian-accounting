@@ -18,10 +18,10 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 +----------------------------------+-----------------------------------+
 ```
 
-[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/div7a-loan-review.svg?color=66023C&labelColor=000000)](https://pypi.org/project/div7a-loan-review/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-66023C.svg?labelColor=000000)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-66023C.svg?logo=python&logoColor=white&labelColor=000000)](https://www.python.org/downloads/)
+[![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
+[![PyPI](https://img.shields.io/pypi/v/div7a-loan-review.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/div7a-loan-review/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-66023C?labelColor=000000&style=flat-square)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/downloads/)
 
 Distribution `div7a-loan-review`, import package `div7aloan`, command `div7a-loan-review`.
 
