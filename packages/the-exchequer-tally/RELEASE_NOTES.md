@@ -1,3 +1,10 @@
+# v0.1.8
+
+- Requires Python 3.11 or newer; Python 3.10 is no longer supported ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).
+- The build backend moves from hatchling 1.32.3 to 1.32.4 ([#337](https://github.com/ryanduguid/australian-accounting/pull/337)).
+
+No calculation changed.
+
 # v0.1.7
 
 Breaking: callers must supply the entity's corporate tax rate and establish the

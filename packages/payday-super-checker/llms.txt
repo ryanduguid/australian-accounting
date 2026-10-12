@@ -21,7 +21,7 @@
 - `paydaysuper.csv_io`: Strict CSV schema parsing with atomic IO validation.
 
 ## Release and evidence limits
-- This documentation describes checker 0.1.9, published on PyPI (https://pypi.org/project/payday-super-checker/). aus-accounting-mcp 0.2.12 pins checker 0.1.9 (0.2.10 and 0.2.11 pin 0.1.8, 0.2.5 to 0.2.9 pin 0.1.7, 0.2.4 pins 0.1.6); the workspace uses the checked-out source. Check the installed engine version when comparing CLI and MCP results.
+- This documentation describes checker 0.1.10, published on PyPI (https://pypi.org/project/payday-super-checker/). aus-accounting-mcp 0.2.12 pins checker 0.1.9 (0.2.10 and 0.2.11 pin 0.1.8, 0.2.5 to 0.2.9 pin 0.1.7, 0.2.4 pins 0.1.6); the workspace uses the checked-out source. Check the installed engine version when comparing CLI and MCP results.
 - Published 0.1.6 assumes full receipt when a fund-receipt date has neither matched_amount nor remitted_amount. Versions 0.1.7 and later leave a timely date without an amount UNKNOWN; a late date remains LATE with no shortfall reduction and a maximum estimate measured to the as-at date.
 - The tagged 0.1.6 workbook extrapolates beyond the GIC table ending 31 December 2026. The 0.1.6 CLI withholds those estimates by default and offers --allow-stale-gic. Workbooks from 0.1.7 withhold them and mark incomplete rate-dependent Summary totals Not assessed; they have no stale-rate opt-in.
 - Matching, receipt evidence and rate coverage remain separate limits. Arithmetic does not establish that a payment matched the right payday or reached the fund.
