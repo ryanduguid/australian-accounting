@@ -20,7 +20,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/div7a-loan-review.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/div7a-loan-review/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-4F485E.svg?labelColor=04001F)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
 
 Distribution `div7a-loan-review`, import package `div7aloan`, command `div7a-loan-review`.
@@ -120,7 +120,7 @@ describes how it calculates.
 The two overlap on Division 7A loan review but do different jobs. Workpapers
 Plus sits inside a practice's ledger and compliance workflow, with ATO
 pre-population and AI extraction from bank and loan statements. This engine is
-MIT licensed, runs offline on a register you supply, shows the statutory trace
+Apache-2.0 licensed, runs offline on a register you supply, shows the statutory trace
 behind each figure and, for the cases listed under
 [What it refuses](#what-it-refuses), returns `UNKNOWN`, `REFUSED` or `SKIPPED`
 with a reason instead of a figure. A practice that uses a
@@ -530,4 +530,4 @@ Ryan Duguid. Written independently, in his own time, on his own equipment.
 Provisional member of Chartered Accountants Australia and New Zealand; that
 membership is not an endorsement of this software by CA ANZ.
 
-MIT. See [LICENSE](LICENSE).
+Apache-2.0. See [LICENSE](LICENSE). If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).

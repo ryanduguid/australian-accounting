@@ -8,8 +8,8 @@ version = "0.1.0"
 description = "Optional, explicitly enabled adapter for the LodgeiT Labs calculator constellation, with independent comparison trials. Never called by an offline engine."
 readme = "README.md"
 requires-python = ">=3.11"
-license = "MIT"
-license-files = ["LICENSE"]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Ryan Duguid" }]
 keywords = ["australian-tax", "division-7a", "fbt", "depreciation", "interoperability"]
 classifiers = [
@@ -56,7 +56,7 @@ Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 packages = ["lodgeitadapter"]
 
 [tool.hatch.build.targets.sdist]
-include = ["lodgeitadapter", "contracts", "fixtures", "tests", "docs/core-security.md", "docs/core-clients-api-preview.md", "docs/public-transform-surfaces.md", "README.md", "AGENTS.md", "SECURITY.md", "LICENSE"]
+include = ["lodgeitadapter", "contracts", "fixtures", "tests", "docs/core-security.md", "docs/core-clients-api-preview.md", "docs/public-transform-surfaces.md", "README.md", "AGENTS.md", "SECURITY.md", "LICENSE", "NOTICE"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "contracts" = "lodgeitadapter/contracts"

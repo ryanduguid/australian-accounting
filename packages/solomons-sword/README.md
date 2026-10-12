@@ -9,7 +9,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 [![Python](https://img.shields.io/badge/Python-3.11+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/solomons-sword.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/solomons-sword/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-4F485E.svg?labelColor=04001F)](https://www.apache.org/licenses/LICENSE-2.0)
 [![ITAA 1936](https://img.shields.io/badge/Legislation-ITAA%201936%20Division%206-5C2D91?labelColor=04001F)](https://www.legislation.gov.au/C1936A00027/latest/text)
 
 Project name Solomon's Sword. Distribution `solomons-sword`, import package `louisgoldberg`, command `solomons-sword`.
@@ -108,4 +108,4 @@ All allocation and threshold algorithms use exact `decimal.Decimal` calculations
 ---
 
 ## Licence
-MIT License. Created by Ryan Duguid.
+Apache-2.0 licensed. Created by Ryan Duguid. If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).
