@@ -1,3 +1,9 @@
+au-tax-rates-data
+Copyright 2026 Ryan Duguid
+
+This product includes work by Ryan Duguid
+(https://github.com/ryanduguid/australian-accounting/tree/main/packages/au-tax-rates-data).
+
 Third-party data notice
 
 The values, quotations and patterns in data/ and the page text in snapshots/ are
@@ -8,6 +14,6 @@ the user or its products. Each record names its source page and retrieval time.
 Snapshots keep each page's visible text with non-breaking and other Unicode spaces
 turned into plain spaces.
 
-That material is not licensed under the MIT licence in LICENSE, which covers the code
+That material is not licensed under the Apache License 2.0 in LICENSE, which covers the code
 and the other original material in this directory. The Australian Taxation Office has
 not endorsed this software.

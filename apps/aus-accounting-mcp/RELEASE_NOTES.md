@@ -1,5 +1,8 @@
 # Unreleased
 
+- Licence: Apache-2.0 replaces MIT. Anyone who redistributes this package or a
+  derivative must keep the attribution in `NOTICE`. Versions already released stay
+  under MIT.
 - Breaking: money arguments accept plain decimal notation only: ASCII digits, an
   optional leading minus and at most 2 decimal places, with surrounding whitespace
   ignored. Exponents such as `1e3`, a leading plus sign, underscores, non-ASCII digits,

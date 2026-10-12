@@ -8,7 +8,7 @@ version = "0.1.12"
 description = "Compare profit and loss figures against the ATO small business benchmarks"
 readme = "README.md"
 requires-python = ">=3.11"
-license = "MIT"
+license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Ryan Duguid" }]
 keywords = ["ato", "australia", "accounting", "benchmarks", "tax", "small business"]
