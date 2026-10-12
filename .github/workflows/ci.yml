@@ -39,6 +39,7 @@ jobs:
     name: ${{ matrix.package }}
     permissions:
       contents: read
+      id-token: write # ci-package.yml's codecov job authenticates its upload with OIDC.
     strategy:
       fail-fast: false
       matrix:
@@ -123,10 +124,17 @@ jobs:
       # The same branch-coverage gate ci-package.yml runs for the engines, through
       # the pytest-cov the application already pins in its dev extra.
       - name: run tests with branch coverage
-        run: uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing
+        run: uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing --cov-report=xml:coverage-codecov.xml
         working-directory: apps/aus-accounting-mcp
         env:
           UV_PYTHON: ${{ matrix.python }}
+      - name: keep the coverage report for the Codecov upload
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-codecov
+          path: apps/aus-accounting-mcp/coverage-codecov.xml
+          retention-days: 1
 
   dependency-audit:
     needs: changes
@@ -181,6 +189,33 @@ jobs:
       - run: uv run --locked --extra dev mypy aus_accounting_mcp
         working-directory: apps/aus-accounting-mcp
 
+  # The upload runs apart from the tests so the OIDC token is never available
+  # while test code runs. It is exempt from tests-gates: a Codecov outage must not
+  # block merges.
+  codecov:
+    name: upload coverage to Codecov
+    needs: test
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write # Authenticate the Codecov upload with OIDC; no stored token.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage-codecov
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          use_oidc: true
+          files: coverage-codecov.xml
+          disable_search: true
+          fail_ci_if_error: true
+          flags: aus-accounting-mcp
+
   tests-gates:
     # The one context branch protection requires from this workflow. It fails
     # unless every selected job succeeded and only unselected app jobs skipped,
@@ -207,4 +242,4 @@ jobs:
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python3 .github/ci/check_gates.py .github/workflows/ci.yml tests-gates --no-results
+        run: python3 .github/ci/check_gates.py .github/workflows/ci.yml tests-gates --no-results --exempt codecov
