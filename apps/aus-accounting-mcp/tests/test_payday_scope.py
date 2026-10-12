@@ -34,3 +34,16 @@ def test_single_contribution_warns_when_the_engine_can_align_related_paydays():
     assert single["assessment_scope"] == "single_contribution"
     assert any("s 18C(2) item 4" in caveat for caveat in single["result"]["caveats"])
     assert any("related contributions" in caveat for caveat in single["result"]["caveats"])
+
+
+def test_a_blank_required_date_is_named_and_a_blank_optional_date_is_absent():
+    import pytest
+
+    from aus_accounting_mcp.adapters.payday import review_contribution
+    from aus_accounting_mcp.errors import InputError
+
+    facts = dict(employee_id="synthetic", qe_day="2027-07-08", sg_amount="120.00")
+    with pytest.raises(InputError, match=r"^as_at is required \(YYYY-MM-DD\)$"):
+        review_contribution(as_at="  ", **facts)
+    payload = review_contribution(as_at="2027-08-01", received="  ", **facts)
+    assert payload["result"]["verdict"] == "UNPAID"  # nosec B101: pytest outcome assertion

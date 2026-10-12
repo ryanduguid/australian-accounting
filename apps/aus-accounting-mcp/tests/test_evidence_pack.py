@@ -201,3 +201,21 @@ def test_an_unreadable_rate_table_is_an_adapter_error_not_a_raw_one(tmp_path, mo
 
     with pytest.raises(InputError):
         payday.evidence_pack([payday.ContributionInput(**ROW)], "2026-08-20")
+
+
+def test_a_missing_dependency_of_the_engine_module_is_not_reported_as_an_old_engine(monkeypatch):
+    import builtins
+
+    real_import = builtins.__import__
+
+    def missing_dependency(name, *args, **kwargs):
+        if name == "paydaysuper.evidence_pack":
+            raise ModuleNotFoundError(
+                "No module named 'synthetic_dependency'", name="synthetic_dependency"
+            )
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", missing_dependency)
+    with pytest.raises(ModuleNotFoundError) as exc_info:
+        payday.evidence_pack([payday.ContributionInput(**ROW)], "2026-08-20")
+    assert exc_info.value.name == "synthetic_dependency"  # nosec B101: pytest outcome assertion

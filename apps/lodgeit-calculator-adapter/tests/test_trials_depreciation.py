@@ -6,7 +6,8 @@ from decimal import Decimal
 
 import pytest
 
-from lodgeitadapter import LodgeitClient
+from lodgeitadapter import LodgeitClient, Status
+from lodgeitadapter.client import Outcome
 from lodgeitadapter.trials import Evaluation
 from lodgeitadapter.trials import depreciation as trial
 
@@ -147,3 +148,37 @@ def test_a_pooled_asset_refusal_stays_a_scope_mismatch(stub, stub_config, contra
                                       LodgeitClient(stub_config, contract))
     assert comparison.evaluation is Evaluation.SCOPE_MISMATCH
     assert comparison.upstream == {}
+
+
+def test_without_a_client_the_provider_is_not_called():
+    comparison = trial.evaluate_range(ASSET, "2024-07-01", "2025-06-30", "actual/actual")
+    assert comparison.evaluation is Evaluation.NOT_RUN  # nosec B101: pytest outcome assertion
+    assert comparison.reasons == ("No client supplied; the provider was not called.",)  # nosec B101: pytest outcome assertion
+
+
+@pytest.mark.parametrize(("status", "expected"), [
+    (Status.UPSTREAM_NOT_FOUND, Evaluation.UNSUPPORTED_PERIOD),
+    (Status.UPSTREAM_UNAVAILABLE, Evaluation.UPSTREAM_UNAVAILABLE),
+    (Status.UPSTREAM_THROTTLED, Evaluation.UPSTREAM_UNAVAILABLE),
+    (Status.REFUSED_TO_SEND, Evaluation.UPSTREAM_UNAVAILABLE),
+    (Status.UPSTREAM_REJECTED, Evaluation.CONTRACT_FAILURE),
+    (Status.CONTRACT_FAILURE, Evaluation.CONTRACT_FAILURE),
+])
+def test_a_call_that_produced_no_figure_is_named_for_why(status, expected):
+    outcome = Outcome(status=status, findings=("fabricated finding",))
+    comparison = trial.evaluate_outcome(ASSET, "2024-07-01", "DEP-1", outcome)
+    assert comparison.evaluation is expected  # nosec B101: pytest outcome assertion
+    assert comparison.reasons == ("fabricated finding",)  # nosec B101: pytest outcome assertion
+    assert comparison.upstream_status == str(status)  # nosec B101: pytest outcome assertion
+
+
+def test_a_movement_after_acquisition_that_does_not_close_names_no_limitation(
+    stub, stub_config, contract,
+):
+    _, state = stub
+    state.respond(provider_range(opening="120000.00", closing="90000.00", depreciation="24000.00"))
+    comparison = trial.evaluate_range(ASSET, "2024-07-01", "2025-06-30", "actual/actual",
+                                      LodgeitClient(stub_config, contract))
+    assert comparison.evaluation is Evaluation.CONTRACT_FAILURE  # nosec B101: pytest outcome assertion
+    assert any("does not close" in reason for reason in comparison.reasons)  # nosec B101: pytest outcome assertion
+    assert not any("pre-acquisition" in reason for reason in comparison.reasons)  # nosec B101: pytest outcome assertion

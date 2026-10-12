@@ -546,8 +546,9 @@ def write_canonical(result: JoinResult, path: str | Path) -> None:
             if credited is not None and cents(credited) > cents(row.sg_amount):
                 credited = row.sg_amount
             matched = outcome.matched_amount
+            # pragma reason: join already caps matched_amount at the amount owed.
             if matched is not None and cents(matched) > cents(row.sg_amount):
-                matched = row.sg_amount
+                matched = row.sg_amount  # pragma: no cover
             values = [
                 label,
                 _iso(row.payday),

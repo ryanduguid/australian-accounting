@@ -10,7 +10,7 @@ from wiptally.csv_io import CANONICAL_FIELDS, CsvError, load_mapping, read_contr
 from wiptally.csvsafe import guard
 from wiptally.model import Schedule
 from wiptally.report import OUTPUT_COLUMNS, build_review_pack, write_schedule_csv
-from wiptally.schedule import measure
+from wiptally.schedule import ScheduleError, measure
 
 ROOT = Path(__file__).resolve().parents[1]
 SAMPLE = ROOT / "examples" / "sample_contracts.csv"
@@ -256,3 +256,16 @@ def test_surplus_row_is_rejected(tmp_path: Path) -> None:
     with pytest.raises(CsvError) as caught:
         read_contracts(source, load_mapping(None))
     assert f"row 2: has {width + 1} field(s) but the header has {width}" in str(caught.value)
+
+
+def test_a_review_pack_bound_to_a_source_needs_its_bytes(tmp_path: Path) -> None:
+    contracts = read_contracts(SAMPLE, load_mapping(None))
+    schedule = Schedule(
+        as_at="2026-08-31",
+        positions=[measure(contract) for contract in contracts],
+        source_name=SAMPLE.name,
+    )
+    out = tmp_path / "wip-schedule.csv"
+    write_schedule_csv(out, schedule)
+    with pytest.raises(ScheduleError, match="^source_bytes must be the snapshot used to rebuild the schedule$"):
+        build_review_pack(out, SAMPLE, schedule, source_bytes=None)

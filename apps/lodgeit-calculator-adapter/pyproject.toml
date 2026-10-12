@@ -86,3 +86,8 @@ pretty = true
 
 [tool.coverage.run]
 source = ["lodgeitadapter"]
+
+[tool.coverage.report]
+# CI fails the test job below complete line and branch coverage.
+fail_under = 100
+exclude_also = ['if __name__ == "__main__":']

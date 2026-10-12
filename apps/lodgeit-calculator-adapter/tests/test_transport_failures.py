@@ -1280,3 +1280,80 @@ def test_non_io_header_cleanup_preserves_known_status(wire_sockets, status):
     assert len(sockets) == (3 if status == 503 else 1)
     assert all(sock.released for sock in sockets)
     assert_detached(error.value)
+
+
+# -- framing paths the cases above do not reach ------------------------------
+
+@pytest.mark.parametrize("coding", [b"chunked, identity", b"gzip, , chunked"],
+                         ids=["chunked-not-last", "empty-coding"])
+def test_an_invalid_transfer_coding_list_is_not_completion(wire_sockets, coding):
+    sockets = wire_sockets(
+        b"HTTP/1.1 200 OK\r\nTransfer-Encoding: " + coding + b"\r\n\r\n2\r\n[]\r\n0\r\n\r\n"
+    )
+    with pytest.raises(TransportError) as error:
+        transport.request(config(), "GET", URL)
+    assert len(sockets) == 1 and sockets[0].released  # nosec B101: pytest outcome assertion
+    assert_detached(error.value)
+
+
+def test_a_chunk_size_line_past_the_line_limit_is_not_completion(wire_sockets):
+    oversized = b"0" * (http.client._MAXLINE + 1) + b"2\r\n"
+    sockets = wire_sockets(
+        b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n" + oversized + b"[]\r\n0\r\n\r\n"
+    )
+    with pytest.raises(TransportError):
+        transport.request(config(), "GET", URL)
+    assert len(sockets) == 1 and sockets[0].released  # nosec B101: pytest outcome assertion
+
+
+def test_a_chunk_larger_than_one_read_is_read_across_reads(wire_sockets):
+    body = b"x" * 70000
+    sockets = wire_sockets(
+        b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n"
+        + f"{len(body):x}\r\n".encode() + body + b"\r\n0\r\n\r\n"
+    )
+    raw = transport.request(config(), "GET", URL)
+    assert raw.status == 200 and raw.body == body  # nosec B101: pytest outcome assertion
+    assert len(sockets) == 1 and sockets[0].released  # nosec B101: pytest outcome assertion
+
+
+@pytest.mark.parametrize("trailers", [
+    b"X-Trailer: " + b"t" * (http.client._MAXLINE + 1) + b"\r\n\r\n",
+    b"X-Trailer: t\r\n" * (http.client._MAXHEADERS + 1) + b"\r\n",
+], ids=["line-too-long", "too-many-trailers"])
+def test_an_oversized_or_endless_trailer_is_not_completion(wire_sockets, trailers):
+    sockets = wire_sockets(
+        b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n2\r\n[]\r\n0\r\n" + trailers
+    )
+    with pytest.raises(TransportError) as error:
+        transport.request(config(), "GET", URL)
+    assert len(sockets) == 1 and sockets[0].released  # nosec B101: pytest outcome assertion
+    assert_detached(error.value)
+
+
+def test_a_primary_cancellation_survives_a_socket_close_cancellation(wire_sockets):
+    sockets = wire_sockets(
+        b"HTTP/1.1 200 OK\r\n\r\n", read_failure=KeyboardInterrupt,
+        socket_close_failure=SystemExit,
+    )
+    with pytest.raises(KeyboardInterrupt, match=CANARY):
+        transport.request(config(), "GET", URL, retry_safe=True,
+                          sleep=lambda _: pytest.fail("cancellation retry"))
+    assert len(sockets) == 1  # nosec B101: pytest outcome assertion
+
+
+def test_a_response_without_a_status_is_treated_as_no_response(monkeypatch):
+    class Opener:
+        def __init__(self):
+            self.bodies = []
+
+        def open(self, request, timeout):
+            stream = io.BytesIO(b"[]")
+            self.bodies.append(stream)
+            raise urllib.error.HTTPError(URL, None, "no status", Message(), stream)
+
+    opener = Opener()
+    monkeypatch.setattr(transport, "_opener", lambda: opener)
+    with pytest.raises(TransportError, match="^no response after 3 attempt"):
+        transport.request(config(), "GET", URL, retry_safe=True, sleep=lambda _: None)
+    assert len(opener.bodies) == 3 and all(stream.closed for stream in opener.bodies)  # nosec B101: pytest outcome assertion

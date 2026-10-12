@@ -7,6 +7,8 @@ branch.
 
 ## Reporting a vulnerability
 
+Report privately at <https://github.com/ryanduguid/australian-accounting/security/advisories/new>.
+
 Use this repository's private vulnerability-reporting feature. Do not open a public
 issue for a suspected vulnerability. Include a clear description, reproduction steps
 with fabricated data, the likely impact and any suggested mitigation. A valid report is

@@ -44,3 +44,7 @@ packages = ["austaxcalc"]
 [tool.coverage.run]
 # The source pytest --cov measures; CI adds --cov-branch and the reports.
 source = ["austaxcalc"]
+
+[tool.coverage.report]
+# CI fails the test job below complete line and branch coverage.
+fail_under = 100

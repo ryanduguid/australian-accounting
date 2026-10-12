@@ -574,3 +574,44 @@ def test_a_mistyped_header_is_refused_not_read_as_legacy(tmp_path: Path) -> None
         mapping.read_mapping(path)
     assert "the source column is missing" in str(excinfo.value)
     assert "sourse" in str(excinfo.value)
+
+
+def test_an_empty_mapping_file_is_refused(tmp_path: Path) -> None:
+    path = tmp_path / "m.csv"
+    path.write_bytes(b"")
+    with pytest.raises(MappingError, match="m.csv: file is empty$"):
+        mapping.read_mapping(path)
+
+
+def test_a_mapping_with_a_header_and_no_rows_is_refused(tmp_path: Path) -> None:
+    path = tmp_path / "m.csv"
+    path.write_text("account,bucket,source\n,,\n", encoding="utf-8")
+    with pytest.raises(MappingError, match="m.csv: no mapping rows found$"):
+        mapping.read_mapping(path)
+
+
+def test_blank_mapping_rows_are_passed_over(tmp_path: Path) -> None:
+    path = tmp_path / "m.csv"
+    path.write_text("account,bucket,source\nSales,turnover,reviewed\n,,\nRent,rent,reviewed\n", encoding="utf-8")
+    rows = mapping.read_mapping(path)
+    assert sorted(row.account for row in rows.values()) == ["Rent", "Sales"]  # nosec B101: pytest outcome assertion
+
+
+def test_a_keyed_account_that_really_starts_with_an_apostrophe_is_read_as_written(tmp_path: Path) -> None:
+    path = tmp_path / "m.csv"
+    _write_keyed_rows(path, [["'Rent", _digest("'rent"), "rent", "reviewed", "1", ""]])
+    [row] = mapping.read_mapping(path).values()
+    assert row.account == "'Rent"  # nosec B101: pytest outcome assertion
+
+
+def test_a_key_both_spellings_of_a_guarded_account_match_is_refused_as_ambiguous(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # "'=Rent" is either an account named that or the guarded spelling of "=Rent".
+    # Only a hash collision gives both the same key, so one is simulated here.
+    colliding = "a" * 64
+    monkeypatch.setattr(mapping, "account_key", lambda _account: colliding)
+    path = tmp_path / "m.csv"
+    _write_keyed_rows(path, [["'=Rent", colliding, "rent", "reviewed", "1", ""]])
+    with pytest.raises(MappingError, match="line 2: account display and account_key are ambiguous"):
+        mapping.read_mapping(path)

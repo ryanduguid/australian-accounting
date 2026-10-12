@@ -434,7 +434,8 @@ class GateWiringTests(unittest.TestCase):
                 assert needs is not None, workflow
                 listed = {name.strip() for name in needs.group(1).split(",")}
                 text = (WORKFLOWS / workflow).read_text(encoding="utf-8")
-                self.assertEqual(check_gates.job_ids(text) - {gate}, listed)
+                exempt = set(re.findall(r"--exempt (\S+)", call.group(3)))
+                self.assertEqual(check_gates.job_ids(text) - {gate} - exempt, listed)
 
 
 class CheckGatesTests(unittest.TestCase):

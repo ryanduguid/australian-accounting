@@ -438,3 +438,68 @@ def test_a_break_even_contract_is_not_flagged_onerous() -> None:
     assert position.gross_profit_at_completion == ZERO
     assert "onerous_contract_review_aasb_137" not in position.flags
     assert "negative_margin_at_completion" not in position.flags
+
+
+def test_an_unsupported_progress_method_is_refused() -> None:
+    with pytest.raises(ScheduleError, match="progress_method 'units' is not supported"):
+        measure(_contract(progress_method="units"))
+
+
+def test_right_to_invoice_with_no_cost_base_reports_nil_progress() -> None:
+    position = measure(
+        _contract(
+            progress_method="right_to_invoice",
+            costs_incurred=ZERO,
+            estimated_cost_to_complete=ZERO,
+            prior_costs_incurred=None,
+        )
+    )
+    assert position.percent_complete == ZERO  # nosec B101: pytest outcome assertion
+    assert position.revenue_to_date == Decimal("450000.00")  # nosec B101: pytest outcome assertion
+
+
+def test_cost_to_cost_needs_a_positive_progress_base() -> None:
+    with pytest.raises(ScheduleError, match="progress_eac is 0.00 after B19 exclusions"):
+        measure(_contract(costs_incurred=ZERO, estimated_cost_to_complete=ZERO))
+
+
+def test_progress_cost_cannot_exceed_the_progress_base() -> None:
+    # Sub-cent inputs from a library caller round the 2 sides apart: 1.0144 less
+    # 0.0094 is 1.005, which rounds up, while the estimate at completion is rounded
+    # to 1.01 before the exclusion comes off and lands on 1.00.
+    with pytest.raises(ScheduleError, match="progress_cost 1.01 exceeds progress EAC 1.00"):
+        measure(
+            _contract(
+                costs_incurred=Decimal("1.0144"),
+                inefficiency_rework_wastage=Decimal("0.0094"),
+                estimated_cost_to_complete=ZERO,
+            )
+        )
+
+
+def test_uninstalled_materials_cannot_exceed_the_transaction_price() -> None:
+    with pytest.raises(ScheduleError, match="uninstalled_materials 1000001.00 exceeds transaction price"):
+        measure(_contract(uninstalled_materials=Decimal("1000001.00"), costs_incurred=Decimal("1400000.00")))
+
+
+def test_a_nil_transaction_price_has_no_margin() -> None:
+    position = measure(_contract(original_contract_sum=ZERO))
+    assert position.margin_at_completion is None  # nosec B101: pytest outcome assertion
+    assert position.profit_fade_points is None  # nosec B101: pytest outcome assertion
+
+
+def test_a_nil_prior_transaction_price_has_no_prior_margin() -> None:
+    position = measure(_contract(prior_transaction_price=ZERO))
+    assert position.prior_margin_at_completion is None  # nosec B101: pytest outcome assertion
+
+
+def test_retention_presented_as_a_receivable_is_flagged_for_para_108() -> None:
+    position = measure(_contract(retention_classification="receivable"))
+    assert "retention_presented_as_receivable_confirm_para_108" in position.flags  # nosec B101: pytest outcome assertion
+
+
+@pytest.mark.parametrize("carrying", [None, ZERO])
+def test_an_onerous_contract_without_contract_assets_has_no_impairment_step(carrying) -> None:
+    position = measure(_contract(estimated_cost_to_complete=Decimal("700000.00"), assets_used_carrying=carrying))
+    assert "onerous_contract_review_aasb_137" in position.flags  # nosec B101: pytest outcome assertion
+    assert "impair_contract_assets_before_provision_aasb_137_69" not in position.flags  # nosec B101: pytest outcome assertion

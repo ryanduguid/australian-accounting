@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 from edwinnixon.benchmark_rule import BenchmarkRuleValidator, DistributionEvent
-from edwinnixon.cli import main
+from edwinnixon.cli import NOT_ADVICE, main
 from edwinnixon.corporate_tax import (
     BaseRateEntityTest,
     determine_corporate_tax_rate,
@@ -577,6 +577,27 @@ def test_cli_distribution_statement_states_the_acn(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "ACN/ABN:                 123 456 789" in out
     assert "Payment Date:            2025-03-14" in out
+
+
+def test_cli_base_rate_entity_test_prints_the_evaluation(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", [
+        "the-exchequer-tally", "bre-test", "--fy", "2025",
+        "--turnover", "1000000", "--assessable", "500000", "--passive", "100000",
+    ])
+    assert main() == 0  # nosec B101: pytest outcome assertion
+    out = capsys.readouterr().out
+    assert "Base Rate Entity (BRE) Evaluation - FY2025" in out  # nosec B101: pytest outcome assertion
+    assert "Aggregated Turnover:     $1,000,000.00 (< $50M: True)" in out  # nosec B101: pytest outcome assertion
+    assert "Passive Income Ratio:    20.00% (<= 80%: True)" in out  # nosec B101: pytest outcome assertion
+    assert "Base Rate Entity:        True" in out  # nosec B101: pytest outcome assertion
+    assert "Applicable Tax Rate:     25.0%" in out  # nosec B101: pytest outcome assertion
+    assert NOT_ADVICE in out  # nosec B101: pytest outcome assertion
+
+
+def test_cli_without_a_command_prints_help_and_fails(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["the-exchequer-tally"])
+    assert main() == 1  # nosec B101: pytest outcome assertion
+    assert capsys.readouterr().out.startswith("usage: the-exchequer-tally")  # nosec B101: pytest outcome assertion
 
 
 def test_sub_cent_total_distribution_is_refused():

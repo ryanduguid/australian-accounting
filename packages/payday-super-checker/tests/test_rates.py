@@ -433,3 +433,23 @@ def test_a_withheld_estimate_does_not_also_claim_the_rate_was_carried_forward():
         [line], load_calendar(), load_gic(), date(2027, 6, 30), allow_stale_gic=True
     )[0]
     assert any("use the last known rate" in c for c in estimated.caveats)
+
+
+def test_an_empty_gic_table_is_refused():
+    from paydaysuper.rates import GicTable
+
+    with pytest.raises(RatesError, match="^GIC table is empty$"):
+        GicTable([])
+
+
+def test_a_gic_quarter_that_is_not_an_object_is_refused(tmp_path, monkeypatch):
+    monkeypatch.setattr(rates_module, "DATA_DIR", write_table(tmp_path, [GOOD, "2026-10-01"]))
+    with pytest.raises(RatesError, match="^GIC quarter 2 in .*gic_rates.json is not an object$"):
+        load_gic()
+
+
+def test_a_rates_file_that_is_not_an_object_is_refused(tmp_path, monkeypatch):
+    (tmp_path / "rates.json").write_text("[]", encoding="utf-8")
+    monkeypatch.setattr(rates_module, "DATA_DIR", tmp_path)
+    with pytest.raises(RatesError, match="must be a JSON object with a 'financial_years' map; it holds a list instead"):
+        rates_module.load_rates()

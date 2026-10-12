@@ -331,3 +331,152 @@ def test_review_pack_hashes_the_bytes_used_even_if_source_changes(tmp_path, monk
     assert main(["review-pack", str(schedule), "--source", str(source), "-o", str(pack), "--as-at", "2026-08-31"]) == 2
     assert hashlib.sha256(original).hexdigest() in pack.read_text()
     assert hashlib.sha256(source.read_bytes()).hexdigest() not in pack.read_text()
+
+
+def _clean_schedule(tmp_path: Path) -> tuple[Path, Path]:
+    source = tmp_path / "contracts.csv"
+    source.write_text(
+        f"{HEADER},committed_outstanding,outcome_reasonably_measurable\n"
+        "STATED-1,1000.00,400.00,400.00,450.00,380.00,yes\n",
+        encoding="utf-8",
+    )
+    schedule = tmp_path / "wip-schedule.csv"
+    assert main(["schedule", str(source), "-o", str(schedule), "--as-at", "2026-08-31"]) == 0  # nosec B101: pytest outcome assertion
+    return source, schedule
+
+
+def test_review_pack_takes_the_date_the_schedule_records(tmp_path: Path) -> None:
+    source, schedule = _clean_schedule(tmp_path)
+    pack = tmp_path / "practitioner-review.md"
+    assert main(["review-pack", str(schedule), "--source", str(source), "-o", str(pack)]) == 0  # nosec B101: pytest outcome assertion
+    text = pack.read_text(encoding="utf-8")
+    assert "- As at: 2026-08-31" in text  # nosec B101: pytest outcome assertion
+    assert "No review flags were raised. Sign-off is still required." in text  # nosec B101: pytest outcome assertion
+
+
+@pytest.mark.parametrize(
+    "schedule_text",
+    [
+        "as_at,contract_id\n",
+        "as_at,contract_id\n,JOB-1\n",
+        "as_at,contract_id\n2026-31-08,JOB-1\n",
+        "contract_id\nJOB-1\n",
+    ],
+    ids=["no rows", "blank date", "invalid date", "no date column"],
+)
+def test_a_schedule_without_a_readable_date_records_none(tmp_path: Path, schedule_text: str) -> None:
+    from wiptally.cli import _schedule_as_at
+
+    schedule = tmp_path / "wip-schedule.csv"
+    schedule.write_text(schedule_text, encoding="utf-8")
+    assert _schedule_as_at(schedule) is None  # nosec B101: pytest outcome assertion
+
+
+def test_an_unreadable_schedule_records_no_date(tmp_path: Path) -> None:
+    from wiptally.cli import _schedule_as_at
+
+    assert _schedule_as_at(tmp_path / "absent.csv") is None  # nosec B101: pytest outcome assertion
+
+
+def test_review_pack_refuses_an_empty_source(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _, schedule = _clean_schedule(tmp_path)
+    pack = tmp_path / "practitioner-review.md"
+    assert main(["review-pack", str(schedule), "--source", "", "-o", str(pack)]) == 1  # nosec B101: pytest outcome assertion
+    assert capsys.readouterr().err.startswith("error: review-pack needs --source (the contract CSV)")  # nosec B101: pytest outcome assertion
+    assert not pack.exists()  # nosec B101: pytest outcome assertion
+
+
+def test_review_pack_needs_the_schedule_to_exist(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    source, _ = _clean_schedule(tmp_path)
+    missing = tmp_path / "missing.csv"
+    pack = tmp_path / "practitioner-review.md"
+    assert main(["review-pack", str(missing), "--source", str(source), "-o", str(pack)]) == 1  # nosec B101: pytest outcome assertion
+    assert capsys.readouterr().err.startswith(f"error: {missing} does not exist.")  # nosec B101: pytest outcome assertion
+
+
+@pytest.mark.parametrize(
+    ("command", "suffix"),
+    [(["schedule", str(SAMPLE)], ".csv"), (["review-pack", str(SAMPLE), "--source", str(SAMPLE)], ".md")],
+)
+def test_outputs_must_carry_their_own_suffix(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], command: list[str], suffix: str
+) -> None:
+    out = tmp_path / "result.txt"
+    assert main([*command, "-o", str(out)]) == 1  # nosec B101: pytest outcome assertion
+    assert capsys.readouterr().err == f"error: {out} must have a {suffix} filename\n"  # nosec B101: pytest outcome assertion
+
+
+def test_schedule_refuses_when_an_input_path_cannot_be_resolved(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    def unresolvable(self: Path, strict: bool = False) -> Path:
+        raise OSError("too many levels of symbolic links")
+
+    out = tmp_path / "wip-schedule.csv"
+    monkeypatch.setattr(Path, "resolve", unresolvable)
+    code = main(["schedule", str(SAMPLE), "-o", str(out)])
+    monkeypatch.undo()
+    assert code == 1  # nosec B101: pytest outcome assertion
+    assert capsys.readouterr().err == (  # nosec B101: pytest outcome assertion
+        f"error: refusing to write {out}: cannot resolve {SAMPLE} "
+        "(too many levels of symbolic links)\n"
+    )
+
+
+def test_a_schedule_into_a_folder_that_is_a_file_exits_one_with_one_error_line(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    blocker = tmp_path / "blocker"
+    blocker.write_text("not a folder", encoding="utf-8")
+    code = main(["schedule", str(SAMPLE), "-o", str(blocker / "wip-schedule.csv")])
+    err = capsys.readouterr().err
+    assert code == 1  # nosec B101: pytest outcome assertion
+    assert err.startswith("error: ") and err.count("\n") == 1  # nosec B101: pytest outcome assertion
+
+
+class _FixedStream:
+    """A text stream whose error handler cannot be changed."""
+
+    def __init__(self) -> None:
+        self.written: list[str] = []
+
+    def reconfigure(self, **kwargs: str) -> None:
+        raise OSError("this stream cannot be reconfigured")
+
+    def write(self, text: str) -> int:
+        self.written.append(text)
+        return len(text)
+
+    def flush(self) -> None:
+        pass
+
+
+class _PlainStream(_FixedStream):
+    reconfigure = None  # type: ignore[assignment]
+
+
+def test_streams_that_cannot_be_reconfigured_still_receive_the_output(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stdout, stderr = _PlainStream(), _FixedStream()
+    monkeypatch.setattr("sys.stdout", stdout)
+    monkeypatch.setattr("sys.stderr", stderr)
+    out = tmp_path / "wip-schedule.csv"
+    assert main(["schedule", str(SAMPLE), "-o", str(out), "--as-at", "2026-08-31"]) == 2  # nosec B101: pytest outcome assertion
+    assert f"Wrote {out}\n" in "".join(stdout.written)  # nosec B101: pytest outcome assertion
+
+
+def test_python_dash_m_runs_the_command_line(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    import runpy
+
+    monkeypatch.setattr("sys.argv", ["wip-tally", "--version"])
+    with pytest.raises(SystemExit) as exit_info:
+        runpy.run_module("wiptally", run_name="__main__")
+    assert exit_info.value.code == 0  # nosec B101: pytest outcome assertion
+    assert capsys.readouterr().out.startswith("wip-tally ")  # nosec B101: pytest outcome assertion

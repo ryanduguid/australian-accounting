@@ -181,3 +181,64 @@ def test_library_internal_excerpt_rejects_non_positive_start():
     for start in (0, -1):
         with pytest.raises(InputError, match="at least 1"):
             _excerpt("fixture.md", ["first", "second"], "digest", start, 1)
+
+
+def test_library_root_must_be_an_existing_folder(tmp_path, monkeypatch):
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path / "absent"))
+    with pytest.raises(ToolError, match="must name an existing folder"):
+        call("search_accounting_library", query="GST")
+
+
+def test_library_search_needs_a_word(tmp_path, monkeypatch):
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    with pytest.raises(ToolError, match="Supply at least one word to search for"):
+        call("search_accounting_library", query="!!!")
+
+
+def test_library_read_refuses_a_start_past_the_end_and_an_oversized_file(tmp_path, monkeypatch):
+    from aus_accounting_mcp import library
+
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    (tmp_path / "example.md").write_text("# One\nGST two\n", encoding="utf-8")
+    with pytest.raises(ToolError, match="start_line is beyond the end of the document"):
+        call("read_accounting_library", path="example.md", start_line=3, line_count=1)
+    monkeypatch.setattr(library, "MAX_FILE_BYTES", 5)
+    with pytest.raises(ToolError, match="exceeds the 8 MB retrieval limit"):
+        call("read_accounting_library", path="example.md", start_line=1, line_count=1)
+
+
+def test_library_read_of_a_file_that_is_not_utf8_is_an_input_error(tmp_path, monkeypatch):
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    (tmp_path / "invalid.md").write_bytes(b"\xffGST")
+    with pytest.raises(ToolError, match="Cannot read that UTF-8 Markdown file"):
+        call("read_accounting_library", path="invalid.md", start_line=1, line_count=1)
+
+
+def test_library_with_too_many_files_is_refused(tmp_path, monkeypatch):
+    from aus_accounting_mcp import library
+
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    monkeypatch.setattr(library, "MAX_FILES", 1)
+    for name in ("a.md", "b.md"):
+        (tmp_path / name).write_text("GST", encoding="utf-8")
+    with pytest.raises(ToolError, match="Library exceeds 1000 Markdown files"):
+        call("search_accounting_library", query="GST")
+
+
+def test_library_search_counts_a_file_it_cannot_open_as_skipped(tmp_path, monkeypatch):
+    from aus_accounting_mcp import library
+
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    (tmp_path / "locked.md").write_text("GST locked", encoding="utf-8")
+    (tmp_path / "open.md").write_text("GST open", encoding="utf-8")
+    real_document = library._document
+
+    def locked(path, *args):
+        if path.name == "locked.md":
+            raise PermissionError(13, "Permission denied", str(path))
+        return real_document(path, *args)
+
+    monkeypatch.setattr(library, "_document", locked)
+    result = call("search_accounting_library", query="GST")
+    assert result["skipped_files"] == 1  # nosec B101: pytest outcome assertion
+    assert [match["path"] for match in result["matches"]] == ["open.md"]  # nosec B101: pytest outcome assertion

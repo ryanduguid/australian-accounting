@@ -113,3 +113,8 @@ def test_all_formatters_remove_negative_zero_only():
     assert percent(Decimal("-0.000001")) == "0.00%"
     assert percent_compact(Decimal("-0.000001")) == "0%"
     assert percent_range(Decimal("-0.000001"), Decimal("-0.01")) == "0% to -1%"
+
+
+def test_parse_amount_refuses_a_missing_cell() -> None:
+    with pytest.raises(AmountError, match="^line 4: no amount given$"):
+        parse_amount(None, "line 4")  # type: ignore[arg-type]

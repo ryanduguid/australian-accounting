@@ -136,7 +136,8 @@ class AdapterConfig:
                 )
         if parts.scheme not in ("https", "http"):
             raise DisallowedTargetError(f"{url}: scheme {parts.scheme!r} is refused")
-        if parts.scheme == "http" and not loopback:
+        # pragma reason: off loopback the scheme was already required to be https above.
+        if parts.scheme == "http" and not loopback:  # pragma: no cover
             raise DisallowedTargetError(f"{url}: plaintext http is refused off loopback")
         try:
             port = parts.port

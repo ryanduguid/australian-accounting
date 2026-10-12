@@ -215,3 +215,62 @@ def test_band_requires_identity_and_explicit_boolean(field, value):
         band[field] = value
     with pytest.raises(ds.DatasetError, match=field):
         ds.loads(json.dumps(payload))
+
+
+def _payload() -> dict:
+    return json.loads((ds.DATA_DIR / "benchmarks-2023-24.json").read_text(encoding="utf-8"))
+
+
+def _first_band(payload: dict) -> dict:
+    return payload["business_types"][0]["turnover_bands"][0]
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        (lambda p: _first_band(p).update(turnover_from="abc"), r"turnover_from: 'abc' is not a number$"),
+        (lambda p: _first_band(p).update(turnover_from="NaN"), r"turnover_from: 'NaN' is not a finite number$"),
+        (lambda p: _first_band(p).update(total_expenses_to_turnover="0.5"),
+         r"total_expenses_to_turnover: expected an object with min and max$"),
+        (lambda p: p.update(benchmark_year=""), r"<string>: benchmark_year is missing$"),
+        (lambda p: p.update(business_types=[]), r"<string>: business_types is missing or empty$"),
+        (lambda p: p["business_types"][0].update(name=" "), r"<string>: a business type has no name$"),
+        (lambda p: p["business_types"][0].update(key_ratio="profit"), r"unknown key_ratio 'profit'$"),
+        (lambda p: p["business_types"][0].update(turnover_bands=[]), r": no turnover bands$"),
+        (lambda p: p.pop("source"), r"<string>: source metadata is missing$"),
+    ],
+)
+def test_a_malformed_dataset_is_refused_with_its_reason(change, message) -> None:
+    payload = _payload()
+    change(payload)
+    with pytest.raises(ds.DatasetError, match=message):
+        ds.loads(json.dumps(payload))
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [("{not json", "<string>: not valid JSON"), ("[]", "<string>: expected a JSON object$")],
+)
+def test_a_dataset_that_is_not_a_json_object_is_refused(text: str, message: str) -> None:
+    with pytest.raises(ds.DatasetError, match=message):
+        ds.loads(text)
+
+
+def test_canonical_digest_refuses_text_that_is_not_json() -> None:
+    with pytest.raises(ds.DatasetError, match="^not valid JSON: "):
+        ds.canonical_digest("{not json")
+
+
+def test_a_folder_without_benchmark_files_is_refused(tmp_path) -> None:
+    with pytest.raises(ds.DatasetError, match="no benchmark data files found in"):
+        ds.load(data_dir=tmp_path)
+
+
+def test_a_missing_data_folder_offers_no_years(tmp_path) -> None:
+    assert ds.available_years(tmp_path / "absent") == []  # nosec B101: pytest outcome assertion
+
+
+def test_names_lists_every_business_type_in_dataset_order() -> None:
+    data = ds.load("2023-24")
+    assert data.names() == [bt.name for bt in data.business_types]  # nosec B101: pytest outcome assertion
+    assert "Bakeries and hot bread shops" in data.names()  # nosec B101: pytest outcome assertion

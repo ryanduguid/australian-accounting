@@ -1,11 +1,17 @@
 # Australian accounting engines and MCP server
 
-[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
-[![licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-5C2D91.svg?labelColor=04001F)](LICENSE)
+[![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
+[![Codecov](https://img.shields.io/codecov/c/github/ryanduguid/australian-accounting?label=coverage&labelColor=000000&style=flat-square)](https://codecov.io/gh/ryanduguid/australian-accounting)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/codeql.yml?branch=main&label=CodeQL&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
+[![Snyk](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/snyk.yml?branch=main&label=Snyk&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/snyk.yml)
+[![SonarCloud](https://img.shields.io/sonar/quality_gate/ryanduguid_australian-accounting?server=https%3A%2F%2Fsonarcloud.io&label=SonarCloud&labelColor=000000&style=flat-square)](https://sonarcloud.io/summary/new_code?id=ryanduguid_australian-accounting)
+[![Codacy code quality](https://img.shields.io/codacy/grade/657574ca064f48499b4839693bafd4bf?label=Codacy&labelColor=000000&style=flat-square)](https://app.codacy.com/gh/ryanduguid/australian-accounting/dashboard)<br>
+[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/ryanduguid/australian-accounting?label=Scorecard&labelColor=000000&style=flat-square)](https://scorecard.dev/viewer/?uri=github.com/ryanduguid/australian-accounting)
+[![SLSA 3](https://img.shields.io/badge/SLSA-level%203-990024?labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/attestations)
+[![VirusTotal](https://img.shields.io/badge/VirusTotal-scanned-990024?labelColor=000000&style=flat-square&logo=virustotal&logoColor=FFFFF0)](https://github.com/ryanduguid/australian-accounting/releases)<br>
+[![licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-66023C?labelColor=000000&style=flat-square)](LICENSE)
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ryanduguid/australian-accounting)
 [![Glama MCP server score](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/score.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
-[![Codacy code quality](https://app.codacy.com/project/badge/Grade/657574ca064f48499b4839693bafd4bf?branch=main)](https://app.codacy.com/gh/ryanduguid/australian-accounting/dashboard)
 
 Seven independently released Python engines that apply Australian tax and payroll
 rules to figures you supply, plus **Aus Accounting MCP**, a local Model Context

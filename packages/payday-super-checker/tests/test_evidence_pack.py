@@ -342,3 +342,10 @@ def test_a_crlf_checkout_and_an_lf_checkout_agree(tmp_path, monkeypatch):
         monkeypatch.setattr(rates, "DATA_DIR", folder)
         digests.append(load_gic().source.sha256)
     assert digests[0] == digests[1]
+
+
+def test_the_exception_queue_refuses_a_value_it_cannot_write():
+    from paydaysuper.evidence_pack import _json_value
+
+    with pytest.raises(TypeError, match="^unsupported evidence value: float$"):
+        _json_value(1.5)

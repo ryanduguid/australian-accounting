@@ -191,3 +191,32 @@ def test_the_suggestion_record_never_carries_an_applied_mapping(fano_client):
     assert '"applied": false' in serialised
     assert '"applied": true' not in serialised
     assert any("awaiting review" in note for note in notes)
+
+
+def test_a_line_with_an_unknown_topology_is_refused_before_sending():
+    line = trial.Line("Bank account", "assets", Decimal("1.00"))
+    with pytest.raises(ContractError, match="'assets' is not one of"):
+        line.payload()
+
+
+def test_without_a_client_the_classifier_is_not_called():
+    status, suggestions, notes = trial.classify("company", LINES)
+    assert (status, suggestions) == ("NOT_RUN", [])  # nosec B101: pytest outcome assertion
+    assert notes == ("No client supplied; the classifier was not called.",)  # nosec B101: pytest outcome assertion
+
+
+def test_a_response_without_a_results_array_proposes_nothing(fano_client):
+    client, state = fano_client
+    state.respond(response_for(LINES, results={"rows": []}))
+    status, suggestions, notes = trial.classify("company", LINES, client)
+    assert (status, suggestions) == ("CONTRACT_FAILURE", [])  # nosec B101: pytest outcome assertion
+    assert notes == ("the response carries no results array",)  # nosec B101: pytest outcome assertion
+
+
+def test_an_echoed_description_that_differs_is_flagged(fano_client):
+    client, state = fano_client
+    payload = response_for(LINES)
+    payload["results"][0]["description"] = "Something else"
+    state.respond(payload)
+    _, suggestions, _ = trial.classify("company", LINES, client)
+    assert any("rows may be out of order" in finding for finding in suggestions[0].findings)  # nosec B101: pytest outcome assertion

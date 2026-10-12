@@ -880,3 +880,65 @@ def test_non_finite_division_6e_amounts_are_refused_as_value_errors(name, value)
     )
     with pytest.raises(ValueError, match=f"{name} must be a finite amount"):
         calculate_proportionate_share(t)
+
+
+def _single_beneficiary_trust(beneficiary: BeneficiaryEntitlement) -> TrustIncomeAssessment:
+    return TrustIncomeAssessment(
+        financial_year=2026, trust_name="Synthetic Trust",
+        trust_accounting_income=Decimal("1000.00"), section95_net_taxable_income=Decimal("1000.00"),
+        beneficiaries=[beneficiary],
+    )
+
+
+@pytest.mark.parametrize("streamed", [
+    {"specifically_streamed_capital_gains": Decimal("10.00")},
+    {"specifically_streamed_franked_dividends": Decimal("10.00")},
+])
+def test_a_beneficiary_with_streamed_amounts_is_refused(streamed):
+    beneficiary = resident_adult("Streamed", percentage_entitlement=Decimal("100"), **streamed)
+    with pytest.raises(ValueError, match="Streamed has specifically streamed amounts"):
+        calculate_proportionate_share(_single_beneficiary_trust(beneficiary))
+
+
+@pytest.mark.parametrize("amount", ["0.00", "-1000.00"])
+def test_a_fixed_entitlement_must_be_positive(amount):
+    beneficiary = resident_adult("Fixed", fixed_entitlement_amount=Decimal(amount))
+    with pytest.raises(ValueError, match=f"Fixed has a fixed entitlement of {amount}; it must be positive"):
+        calculate_proportionate_share(_single_beneficiary_trust(beneficiary))
+
+
+def test_a_beneficiary_needs_a_percentage_or_a_fixed_entitlement():
+    with pytest.raises(ValueError, match="Unstated has neither a percentage nor a fixed entitlement"):
+        calculate_proportionate_share(_single_beneficiary_trust(resident_adult("Unstated")))
+
+
+def test_the_last_share_in_order_absorbs_the_rounding_residual():
+    # 99.999% of $1.00 reconciles to the cent, but 99.999% of a $1,000 pool is
+    # $999.99, leaving a cent the one share absorbs on the loops' last pass.
+    assessment = TrustIncomeAssessment(
+        financial_year=2026, trust_name="Synthetic Trust",
+        trust_accounting_income=Decimal("1.00"), section95_net_taxable_income=Decimal("1000.00"),
+        franking_credits=Decimal("1000.00"),
+        beneficiaries=[resident_adult("Sole", percentage_entitlement=Decimal("99.999"))],
+    )
+    [share] = calculate_proportionate_share(assessment)
+    assert share.section95_net_income_share == Decimal("1000.00")  # nosec B101: pytest outcome assertion
+    assert share.total_taxable_component == Decimal("1000.00")  # nosec B101: pytest outcome assertion
+    assert share.franking_credit_grossup == Decimal("1000.00")  # nosec B101: pytest outcome assertion
+
+
+def test_an_unsigned_resolution_is_reported():
+    unsigned = TrustResolutionSchedule(
+        trust_name="Smith Family Trust",
+        financial_year=2025,
+        resolution_date=date(2025, 6, 25),
+        is_signed_by_trustee=False,
+        streaming_powers_in_deed=True,
+        default_beneficiary_clause_exists=True,
+        allocated_percentages_total=Decimal("100.00"),
+        uses_specific_streaming=True,
+        deed_resolution_deadline=date(2025, 6, 30),
+    )
+    is_valid, issues = validate_trust_resolution(unsigned)
+    assert is_valid is False  # nosec B101: pytest outcome assertion
+    assert issues == ["Trustee resolution is not executed/signed."]  # nosec B101: pytest outcome assertion
