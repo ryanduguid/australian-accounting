@@ -124,10 +124,12 @@ jobs:
       # The same branch-coverage gate ci-package.yml runs for the engines, through
       # the pytest-cov the application already pins in its dev extra.
       - name: run tests with branch coverage
-        run: uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing --cov-report=xml:coverage-codecov.xml
+        run: uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing
         working-directory: apps/aus-accounting-mcp
         env:
           UV_PYTHON: ${{ matrix.python }}
+          # The Codecov leg also writes XML; the documented command stays unchanged.
+          PYTEST_ADDOPTS: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.13' && '--cov-report=xml:coverage-codecov.xml' || '' }}
       - name: keep the coverage report for the Codecov upload
         if: matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
