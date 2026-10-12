@@ -6,6 +6,7 @@
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ryanduguid/australian-accounting)
 [![Glama MCP server score](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/score.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
 [![Codacy code quality](https://app.codacy.com/project/badge/Grade/657574ca064f48499b4839693bafd4bf?branch=main)](https://app.codacy.com/gh/ryanduguid/australian-accounting/dashboard)
+[![SonarCloud](https://img.shields.io/sonar/quality_gate/ryanduguid_australian-accounting?server=https%3A%2F%2Fsonarcloud.io&label=SonarCloud&labelColor=000000)](https://sonarcloud.io/summary/new_code?id=ryanduguid_australian-accounting)
 
 Seven independently released Python engines that apply Australian tax and payroll
 rules to figures you supply, plus **Aus Accounting MCP**, a local Model Context
