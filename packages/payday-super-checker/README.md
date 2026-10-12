@@ -20,7 +20,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
 [![PyPI](https://img.shields.io/pypi/v/payday-super-checker.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/payday-super-checker/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-66023C?labelColor=000000&style=flat-square)](LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/downloads/)
 
 Distribution `payday-super-checker`, import package `paydaysuper`, command `payday-super-check`.
@@ -602,4 +602,4 @@ The suite pins the ATO's own worked examples: a first payday of 9 July 2026 fall
 
 This is an educational tool, not tax, legal or financial advice, and using it creates no professional relationship. The ATO assesses the SG charge; figures here are experimental estimates that exclude components listed above. LCR 2026/1, 2026/2 and 2026/3 are final, while LCR 2026/D1 remains draft and may change after the pending appeal. Check anything material against current ATO guidance and calculators, and get advice for your circumstances.
 
-MIT licensed.
+Apache-2.0 licensed. If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).

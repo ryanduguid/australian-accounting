@@ -6,7 +6,7 @@ A worked handoff on fabricated data. The OpenAccountants
 rules and a per-payday working paper. This checker takes the same facts and computes
 each contribution's due date, lateness and experimental SG charge estimate. The guide is
 linked, not copied: its content carries the OpenAccountants Guide License, separate from
-this repository's MIT licence.
+this repository's Apache License 2.0.
 
 The guide's own disclaimer and `review_status: pending_review` apply. Nothing here
 reviews or certifies the guide.

@@ -20,7 +20,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
 [![PyPI](https://img.shields.io/pypi/v/ato-benchmark-compare.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/ato-benchmark-compare/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-66023C?labelColor=000000&style=flat-square)](LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.11%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/)
 
 Distribution `ato-benchmark-compare`, import package `atobenchmark`, command `ato-benchmark-compare`.
@@ -367,7 +367,7 @@ Commonwealth endorses the user or its products. Published percentages are conver
 to ratio bounds, and a single printed figure is stored as equal bounds, with no wider
 interval inferred.
 
-The code in this repository is MIT licensed. The data attribution is also
+The code in this repository is Apache-2.0 licensed. The data attribution is also
 recorded in [NOTICE](NOTICE), which ships inside the wheel and the sdist.
 
 ## Author

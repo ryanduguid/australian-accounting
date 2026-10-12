@@ -18,7 +18,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
 [![PyPI](https://img.shields.io/pypi/v/the-wip-tally.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/the-wip-tally/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-66023C?labelColor=000000&style=flat-square)](https://opensource.org/licenses/MIT)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/downloads/)
 
 Project name The WIP Tally. Distribution `the-wip-tally`, import package `wiptally`, command `wip-tally`.
@@ -231,4 +231,4 @@ or unsuitable for a given set of facts. Check anything material against the
 current standards and the entity's facts, and leave sign-off with a registered
 practitioner.
 
-MIT licensed.
+Apache-2.0 licensed. If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).

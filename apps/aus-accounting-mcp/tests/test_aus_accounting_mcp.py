@@ -61,7 +61,7 @@ def test_pypi_facets_are_declared_without_contradicting_the_licence_field() -> N
 
     # PEP 639: the SPDX license expression replaces the licence classifier, and
     # a distribution carrying both is rejected at build or upload.
-    assert project["license"] == "MIT"
+    assert project["license"] == "Apache-2.0"
     assert not [entry for entry in classifiers if entry.startswith("License ::")]
 
     # "Typed" is a claim about a shipped py.typed marker, and this distribution
@@ -1068,7 +1068,7 @@ def test_committed_binary_assets_have_current_provenance() -> None:
     assert hashlib.sha256(proof.read_bytes()).hexdigest() in reference
     assert "scripts/render_demo_image.py" in reference
     assert "docs/quick-proof.txt" in reference
-    assert "MIT" in reference
+    assert "Apache-2.0" in reference
     assert "static WebP proof" in release_notes
     assert "animated GIF" not in release_notes
     assert not (root / "docs" / "quick-proof.gif").exists()

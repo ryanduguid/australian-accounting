@@ -9,7 +9,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
 [![PyPI](https://img.shields.io/pypi/v/solomons-sword.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/solomons-sword/)
 [![Python](https://img.shields.io/badge/Python-3.11+-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-66023C?labelColor=000000&style=flat-square)](https://opensource.org/licenses/MIT)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0)
 [![ITAA 1936](https://img.shields.io/badge/Legislation-ITAA%201936%20Division%206-66023C?labelColor=000000&style=flat-square)](https://www.legislation.gov.au/C1936A00027/latest/text)
 
 Project name Solomon's Sword. Distribution `solomons-sword`, import package `louisgoldberg`, command `solomons-sword`.
@@ -108,4 +108,4 @@ All allocation and threshold algorithms use exact `decimal.Decimal` calculations
 ---
 
 ## Licence
-MIT License. Created by Ryan Duguid.
+Apache-2.0 licensed. Created by Ryan Duguid. If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).

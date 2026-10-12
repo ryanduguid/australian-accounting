@@ -8,8 +8,8 @@ version = "0.1.9"
 description = "Bounded Australian tax calculation worksheets with explicit scope and sources."
 readme = "README.md"
 requires-python = ">=3.11"
-license = "MIT"
-license-files = ["LICENSE"]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 authors = [{name = "Ryan Duguid"}]
 dependencies = []
 
