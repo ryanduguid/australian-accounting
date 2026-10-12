@@ -99,18 +99,23 @@ def release_pending(package: str, tags: list[str], root: Path = ROOT) -> bool:
     return f"{package}/v{project_version(package, root)}" not in tags
 
 
+# A distribution directory name under packages/. Anything else, such as a value
+# starting with "-" or holding "/", could reach git as an option or leave packages/.
+PACKAGE_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+
+
 def main(argv: list[str]) -> int:
     args = [arg for arg in argv[1:] if arg != "--on-main"]
-    if len(args) != 1:
+    if len(args) != 1 or not PACKAGE_NAME.fullmatch(args[0]):
         print(f"usage: {argv[0]} <package> [--on-main]", file=sys.stderr)
         return 2
     package = args[0]
     changed_paths = parse_changed_paths(sys.stdin.buffer.read())
     run = should_run(package, changed_paths)
     if not run and "--on-main" in argv:
-        # CI helper; git gets an argument list from the workflow's package name, with no shell.
+        # The package name is checked above, and "--" ends git's options; no shell runs.
         tags = subprocess.run(  # NOSONAR
-            ["git", "tag", "--list", f"{package}/v*"],
+            ["git", "tag", "--list", "--", f"{package}/v*"],
             capture_output=True, text=True, check=True, cwd=ROOT,
         ).stdout.split()
         run = release_pending(package, tags)

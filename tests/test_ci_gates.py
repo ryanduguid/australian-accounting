@@ -153,6 +153,18 @@ class EngineGitTests(unittest.TestCase):
                 self.assertEqual(parse_changed_paths(raw), [f"packages/solomons-sword/{name}"])
             path.unlink()
 
+    def test_cli_refuses_a_package_name_that_is_not_a_directory_name(self) -> None:
+        for name in ("--output=x", "-h", "../solomons-sword", "Solomons-Sword", "solomons-sword/"):
+            with self.subTest(name=name):
+                # Fixed fixture arguments run the current interpreter and copied selector without a shell.
+                # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+                done = subprocess.run(  # nosec B603
+                    [sys.executable, str(self.selector), name, "--on-main"], cwd=self.root,
+                    input=b"", capture_output=True, check=False,
+                )
+                self.assertEqual(done.returncode, 2, done.stdout.decode())
+                self.assertIn(b"usage:", done.stderr)
+
     def test_cli_selects_an_owner_after_an_unrelated_nul_record(self) -> None:
         raw = b"apps/lodgeit-calculator-adapter/notes.md\0" + self.own.encode() + b"\0"
         self.assertEqual(self.select(raw), "run=true")
