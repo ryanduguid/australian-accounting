@@ -161,8 +161,9 @@ class ReleaseChecksTests(unittest.TestCase):
             encoding="utf-8"
         )
         job = text.split("\n  published-pins:\n", 1)[1].split("\n  release:\n", 1)[0]
-        self.assertIn('cd "$RUNNER_TEMP"', job)
-        self.assertIn("uv pip install --python pins/bin/python dist/*.whl", job)
+        self.assertIn('uv venv --python 3.12 "$RUNNER_TEMP/pins"', job)
+        self.assertEqual(job.count("working-directory: ${{ runner.temp }}"), 2)
+        self.assertIn("uv pip install --python pins/bin/python --only-binary ':all:' dist/*.whl", job)
         self.assertIn(
             'diff -u "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/docs/quick-proof.txt" demo.txt', job
         )

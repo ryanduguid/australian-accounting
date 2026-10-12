@@ -36,6 +36,6 @@ jobs:
         with:
           persist-credentials: false
       - name: Build the devcontainer and run its setup
-        run: npx --yes "$DEVCONTAINER_CLI" up --workspace-folder .  # NOSONAR: unprivileged job; npx runs the pinned devcontainer CLI version
+        run: npx --yes --ignore-scripts "$DEVCONTAINER_CLI" up --workspace-folder .
       - name: Run the fabricated demonstration inside it
-        run: npx --yes "$DEVCONTAINER_CLI" exec --workspace-folder . sh -c 'cd apps/aus-accounting-mcp && uv run --locked aus-accounting-mcp-demo > /dev/null'  # NOSONAR: unprivileged job; npx runs the pinned devcontainer CLI version
+        run: npx --yes --ignore-scripts "$DEVCONTAINER_CLI" exec --workspace-folder . sh -c 'cd apps/aus-accounting-mcp && uv run --locked aus-accounting-mcp-demo > /dev/null'

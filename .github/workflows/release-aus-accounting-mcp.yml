@@ -43,14 +43,23 @@ jobs:
         with:
           version: "0.12.0"
           enable-cache: false
-      - name: build the wheel and diff its demo against docs/quick-proof.txt
+      - name: build the wheel into a fresh environment
         shell: bash
         run: |
           set -euo pipefail
           uv build --wheel --out-dir "$RUNNER_TEMP/dist" apps/aus-accounting-mcp
-          cd "$RUNNER_TEMP"
-          uv venv --python 3.12 pins
-          uv pip install --python pins/bin/python dist/*.whl  # NOSONAR: unprivileged job; it installs the published PyPI pins on purpose, to test what users get
+          uv venv --python 3.12 "$RUNNER_TEMP/pins"
+      # The pins resolve from PyPI on purpose, to test what users install, so this
+      # step has no lock; it takes wheels only, so no install runs a build script.
+      - name: install the wheel and its published pins
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        run: uv pip install --python pins/bin/python --only-binary ':all:' dist/*.whl  # NOSONAR: resolves the published pins from PyPI on purpose, from wheels only
+      - name: diff its demo against docs/quick-proof.txt
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
           pins/bin/aus-accounting-mcp-demo > demo.txt
           diff -u "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/docs/quick-proof.txt" demo.txt
 
