@@ -25,6 +25,8 @@
 - The supplementary tool-selection scorer rejects duplicate JSON keys and non-finite numbers and compares
   decoded types exactly ([#352](https://github.com/ryanduguid/australian-accounting/pull/352)); the server and its tools are unchanged.
 - Align the release, citation, compatibility and MCP Registry metadata to 0.3.0.
+- Security: ships PyJWT 2.15.1, which fixes CVE-2026-101918 (GHSA-42vr-xj54-vc7v, medium), published on
+  30 September 2026. 0.2.12 and earlier lock PyJWT 2.14.0.
 
 # v0.2.12
 
