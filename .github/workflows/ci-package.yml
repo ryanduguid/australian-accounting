@@ -112,8 +112,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The declared minimum and the version used by the other gates.
-        python: ["3.14"]
+        # The floor and the ceiling of the declared requires-python, plus the
+        # version the rest of the gates run on.
+        python: ["3.14", "3.15"]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -128,6 +129,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
+          allow-prereleases: true
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
@@ -140,11 +142,20 @@ jobs:
       # Without the count a test file that stops being collected leaves every
       # leg green. --cov takes its source from the engine's [tool.coverage.run].
       - name: run tests with branch coverage
-        run: >-
-          uv run --locked --extra dev pytest
-          --cov --cov-branch --cov-report=term-missing --cov-report=xml
+        run: uv run --locked --extra dev pytest --cov --cov-branch --cov-report=term-missing --cov-report=xml  # NOSONAR: unprivileged job; uv installs the hash-locked set
         env:
           UV_PYTHON: ${{ matrix.python }}
+
+      - name: copy the whole-package coverage for Codecov
+        if: matrix.python == '3.14'
+        run: cp coverage.xml coverage-codecov.xml
+      - name: keep the coverage report for the Codecov upload
+        if: matrix.python == '3.14'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-codecov-${{ inputs.package }}
+          path: packages/${{ inputs.package }}/coverage-codecov.xml
+          retention-days: 1
 
       - name: require complete changed-line coverage in the held modules
         if: matrix.python == '3.14' && inputs.changed-line-coverage != ''
@@ -153,11 +164,10 @@ jobs:
           PACKAGE: ${{ inputs.package }}
         run: |
           set -euo pipefail
-          uv run --locked --extra dev coverage xml --include="$INCLUDE" -o coverage.xml
+          uv run --no-sync --no-build coverage xml --include="$INCLUDE" -o coverage.xml
           sentinel="packages/$PACKAGE/${INCLUDE%%,*}"
           if git cat-file -e "origin/main:$sentinel"; then
-            uv run --locked --extra dev --python 3.14 diff-cover coverage.xml \
-              --compare-branch=origin/main --branch-coverage --fail-under=100
+            uv run --no-sync --no-build --python 3.14 diff-cover coverage.xml --compare-branch=origin/main --branch-coverage --fail-under=100
           else
             echo "::notice::Changed-line coverage starts after the imported package has a mainline baseline."
           fi
@@ -194,6 +204,8 @@ jobs:
           UV_PYTHON: ${{ inputs.windows-python }}
 
   lint:
+    env:
+      UV_PYTHON: "3.15"
     needs: changes
     if: needs.changes.outputs.run == 'true'
     permissions:
@@ -209,7 +221,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.14"
+          python-version: "3.15"
+          allow-prereleases: true
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
@@ -230,9 +243,9 @@ jobs:
           rm -rf "${standalone}/.venv"
           (cd "${standalone}" && uv lock --check)
       - name: ruff
-        run: uv run --locked --extra dev ruff check .
+        run: uv run --locked --extra dev ruff check .  # NOSONAR: unprivileged job; uv installs the hash-locked set
       - name: mypy
-        run: uv run --locked --extra dev mypy
+        run: uv run --locked --extra dev mypy  # NOSONAR: unprivileged job; uv installs the hash-locked set
       - name: run the package's own source guards
         env:
           PACKAGE: ${{ inputs.package }}
@@ -246,6 +259,8 @@ jobs:
           fi
 
   dependency-audit:
+    env:
+      UV_PYTHON: "3.15"
     needs: changes
     if: needs.changes.outputs.run == 'true'
     permissions:
@@ -261,7 +276,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.14"
+          python-version: "3.15"
+          allow-prereleases: true
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
@@ -270,9 +286,11 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - name: audit the locked project environment
-        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+        run: uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict  # NOSONAR: unprivileged job; uv installs the hash-locked set
 
   build:
+    env:
+      UV_PYTHON: "3.15"
     needs: changes
     if: needs.changes.outputs.run == 'true'
     permissions:
@@ -288,7 +306,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.14"
+          python-version: "3.15"
+          allow-prereleases: true
       - name: install the locked toolchain
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
@@ -297,7 +316,7 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - name: build the distribution
-        run: uv run --locked --extra dev --python 3.14 python -m build
+        run: uv run --locked --extra dev --python 3.15 python -m build  # NOSONAR: unprivileged job; uv installs the hash-locked set
       - name: install the wheel into a clean environment, import it and run the smoke checks
         # Exactly one wheel, installed by path with --no-index, or pip is free
         # to resolve the name from PyPI and test a release nobody built in this
@@ -339,6 +358,36 @@ jobs:
             echo "::notice::packages/$PACKAGE declares no wheel smoke checks."
           fi
 
+  # The upload runs apart from the tests so the OIDC token is never available
+  # while test code runs. It is exempt from gates: a Codecov outage must not
+  # block merges.
+  codecov:
+    name: upload coverage to Codecov
+    needs: test
+    # A failed job in a called workflow fails the caller's job and its gate;
+    # the upload reports here without blocking merges.
+    continue-on-error: true
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write # Authenticate the Codecov upload with OIDC; no stored token.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage-codecov-${{ inputs.package }}
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          use_oidc: true
+          files: coverage-codecov.xml
+          disable_search: true
+          fail_ci_if_error: true
+          flags: ${{ inputs.package }}
+
   gates:
     # The one context branch protection requires for this engine. It passes
     # when every gate above passed or was skipped by the path filter, and fails
@@ -370,4 +419,4 @@ jobs:
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python3 .github/ci/check_gates.py .github/workflows/ci-package.yml gates --no-results
+        run: python3 .github/ci/check_gates.py .github/workflows/ci-package.yml gates --no-results --exempt codecov

@@ -22,35 +22,46 @@ Before tagging:
 4. Create an annotated tag on the current remote `main` commit and push that tag:
 
    ```bash
-   git tag -a payday-super-checker/v0.1.9 \
-     -m "payday-super-checker v0.1.9"
-   git push origin refs/tags/payday-super-checker/v0.1.9
+   git tag -a payday-super-checker/v0.1.11 \
+     -m "payday-super-checker v0.1.11"
+   git push origin refs/tags/payday-super-checker/v0.1.11
    ```
 
 The workflow runs the locked tests, builds the wheel and source distribution,
 records provenance and SBOM attestations, publishes an immutable GitHub release,
 and uploads the same distribution files to PyPI through OIDC.
 
-Verify the release before installing it:
+Verify the release before installing it. `signer` is the release-policy commit
+the release workflow pins, which signs the next release.
 
 ```bash
-tag=payday-super-checker/v0.1.9
+tag=payday-super-checker/v0.1.11
+signer=a601f1d8b143f92b0517f709216993660d21f480
 repo=ryanduguid/australian-accounting
 release_commit=$(git ls-remote "https://github.com/$repo.git" \
   "refs/tags/$tag^{}" | cut -f1)
 test -n "$release_commit"
-gh release download "$tag" -R "$repo" --dir payday-super-checker-v0.1.9
-cd payday-super-checker-v0.1.9
+gh release download "$tag" -R "$repo" --dir payday-super-checker-v0.1.11
+cd payday-super-checker-v0.1.11
 sha256sum --check SHA256SUMS
 gh release verify "$tag" -R "$repo"
-gh release verify-asset "$tag" payday_super_checker-0.1.9-py3-none-any.whl \
+gh release verify-asset "$tag" payday_super_checker-0.1.11-py3-none-any.whl \
   -R "$repo"
-gh attestation verify payday_super_checker-0.1.9-py3-none-any.whl \
+gh attestation verify payday_super_checker-0.1.11-py3-none-any.whl \
   -R "$repo" \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest 2adf9e19b7c73970a1dd6703afb3f9c27b7972d7
+  --signer-digest "$signer"
 ```
+
+Earlier monorepo releases carry the digest pinned when they were cut. Set
+`signer` to:
+
+- `3ff09b654a17b9a3b55548e25e6108ee582b00c4` for v0.1.3
+- `c24612618f177f6dccb7ed9ee2a8648959b87e2e` for v0.1.4
+- `2adf9e19b7c73970a1dd6703afb3f9c27b7972d7` for v0.1.5 to v0.1.7
+- `87767ec809dc7f77bcd45808219adaf67841ae7b` for v0.1.8
+- `ec6b0ee76446f11aefb7fa0c203f2e01b4c9a711` for v0.1.9 and v0.1.10
 
 Inspect a failed gate before changing remote state. Published tags stay fixed.

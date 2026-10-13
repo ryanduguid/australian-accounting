@@ -339,3 +339,68 @@ def test_a_note_column_left_of_two_periods_is_passed_over(tmp_path: Path) -> Non
     gap = text.replace("Rent,,60000.00", "Rent,,-")
     with pytest.raises(pnl.PnlError, match=r"column 2 \(2024\) and column 3 \(2023\)"):
         pnl.read(write(tmp_path, "p.csv", gap))
+
+
+def test_neutral_layout_passes_over_blank_rows_and_notes_rows_without_a_name(tmp_path: Path) -> None:
+    text = "account,amount\nSales,850000\n,,\n,120\nRent,60000\n"
+    result = pnl.read(write(tmp_path, "p.csv", text))
+    assert [row.account for row in result.rows] == ["Sales", "Rent"]  # nosec B101: pytest outcome assertion
+    assert result.skipped == ("line 4: no account name",)  # nosec B101: pytest outcome assertion
+
+
+def test_neutral_layout_with_no_named_account_is_refused(tmp_path: Path) -> None:
+    with pytest.raises(pnl.PnlError, match="p.csv: no account rows found$"):
+        pnl.read(write(tmp_path, "p.csv", "account,amount\n,100\n"))
+
+
+def test_a_single_column_report_is_refused(tmp_path: Path) -> None:
+    with pytest.raises(pnl.PnlError, match="^report style export needs at least two columns$"):
+        pnl.read(write(tmp_path, "p.csv", "Sales\nRent\n"))
+
+
+def test_a_spacer_column_beside_the_amounts_is_not_a_period(tmp_path: Path) -> None:
+    result = pnl.read(write(tmp_path, "p.csv", "Sales,,850000\nRent,,60000\n"))
+    assert result.amount_column == "column 2"  # nosec B101: pytest outcome assertion
+    assert [row.amount for row in result.rows] == [Decimal("850000"), Decimal("60000")]  # nosec B101: pytest outcome assertion
+
+
+def test_a_column_heading_above_the_amounts_names_the_column(tmp_path: Path) -> None:
+    result = pnl.read(write(tmp_path, "p.csv", "Name,This year\nSales,850000\nRent,60000\n"))
+    assert result.amount_column == "column 1 (This year)"  # nosec B101: pytest outcome assertion
+
+
+def test_a_headless_placeholder_column_left_of_the_amounts_is_refused() -> None:
+    # A column with no heading in its first 20 rows still counts as placeholders after them.
+    rows = [["Sales", "", "850000"]] * 20 + [["Rent", "-", "60000"]]
+    assert pnl._only_placeholders(rows, 1, None) is True  # nosec B101: pytest outcome assertion
+
+
+def test_a_section_heading_with_an_unreadable_amount_still_opens_its_section(tmp_path: Path) -> None:
+    text = "Account,This year\nIncome,n/a\nSales,850000\nExpenses,\nRent,60000\n"
+    result = pnl.read(write(tmp_path, "p.csv", text))
+    assert [(row.account, row.section) for row in result.rows] == [  # nosec B101: pytest outcome assertion
+        ("Sales", "income"),
+        ("Rent", "expense"),
+    ]
+    assert result.skipped == (  # nosec B101: pytest outcome assertion
+        "line 1: 'Account' has no readable amount in column 1 (This year)",
+        "line 2: 'Income' has no readable amount in column 1 (This year)",
+    )
+
+
+def test_a_section_total_check_passes_over_blank_and_unlabelled_rows(tmp_path: Path) -> None:
+    # The heading carries 900: Sales and Fees add up to it across a blank row and an
+    # unlabelled amount, so it is read as the section total, not as an account.
+    text = "Income,900\nSales,850\n,,\n,5\nFees,50\n"
+    result = pnl.read(write(tmp_path, "p.csv", text))
+    assert [(row.account, row.is_total) for row in result.rows] == [  # nosec B101: pytest outcome assertion
+        ("Income", True),
+        ("Sales", False),
+        ("Fees", False),
+    ]
+    assert result.skipped == ("line 4: amount with no account name",)  # nosec B101: pytest outcome assertion
+
+
+def test_a_report_with_only_unnamed_amounts_is_refused(tmp_path: Path) -> None:
+    with pytest.raises(pnl.PnlError, match="no account rows found. If this is a two column file"):
+        pnl.read(write(tmp_path, "p.csv", ",100\n,200\n"))

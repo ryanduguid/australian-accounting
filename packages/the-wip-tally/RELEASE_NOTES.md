@@ -1,3 +1,10 @@
+# v0.1.4
+
+- Requires Python 3.11 or newer; Python 3.10 is no longer supported ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).
+- The build backend moves from hatchling 1.32.3 to 1.32.4 ([#337](https://github.com/ryanduguid/australian-accounting/pull/337)).
+
+No calculation changed.
+
 # v0.1.3
 
 - The public WIP calculation API applies the ratio contract the CSV reader already enforced: each active ratio must be a finite `Decimal` from 0 to 1. In 0.1.2 a direct caller could pass a constraint ratio of 2 for an unapproved estimate of 100 and receive included consideration of 200 and excluded consideration of -100, and a `NaN` GST ratio could reach the returned amount. Formulas, output diagnostics and CSV and command line behaviour are unchanged ([#318](https://github.com/ryanduguid/australian-accounting/pull/318)).

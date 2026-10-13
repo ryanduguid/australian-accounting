@@ -164,7 +164,13 @@ $69,528) is $9,028.35, and the tests require the printed figure to be that
 amount rounded to the dollar. The page's example 2 uses the printed $9,028 and
 reaches $10,276.99 for $137,064; the worksheet applies the exact base and
 returns $10,277.34, and the test pins that 35-cent difference so a reviewer
-sees it. The published crossover to 10% of repayment income ($179,286 for
+sees it. The ATO's own calculators also start the 17% band from the printed
+$9,028. On 7 October 2026 their HELP repayment routine, run in an ATO
+calculator page, returned $9,028.35 at $129,717 of repayment income and
+$9,028.17 at $129,718, where this worksheet gives $9,028.52. The calculators'
+figure therefore falls by 18 cents as income rises by $1, and stays 35 cents
+below the worksheet up to $186,050. For 2025-26 the printed base of $8,700 is
+exact, and the two agreed at the 5 incomes checked. The published crossover to 10% of repayment income ($179,286 for
 2025-26 and $186,051 for 2026-27) is the first whole-dollar income at which
 10% of the whole is the smaller amount; the tests derive it from the exact base
 and require it to equal the printed threshold, which the rounded base would not

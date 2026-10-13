@@ -16,10 +16,10 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 +----------------------------------+-----------------------------------+
 ```
 
-[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/the-wip-tally.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/the-wip-tally/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
-[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
+[![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
+[![PyPI](https://img.shields.io/pypi/v/the-wip-tally.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/the-wip-tally/)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/downloads/)
 
 Project name The WIP Tally. Distribution `the-wip-tally`, import package `wiptally`, command `wip-tally`.
 
@@ -33,7 +33,7 @@ The `australian-accounting` repository contains the maintained source. The
 `the-wip-tally` distribution, `wip-tally` command and `wiptally` import package
 are the install identifiers.
 
-In-repo version: `0.1.3`; see [release notes](RELEASE_NOTES.md).
+In-repo version: `0.1.4`; see [release notes](RELEASE_NOTES.md).
 
 Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written independently, in his own time and on his own equipment.
 
@@ -231,4 +231,4 @@ or unsuitable for a given set of facts. Check anything material against the
 current standards and the entity's facts, and leave sign-off with a registered
 practitioner.
 
-MIT licensed.
+Apache-2.0 licensed. If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).

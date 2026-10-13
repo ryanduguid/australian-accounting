@@ -443,3 +443,65 @@ def test_data_files_ship_inside_the_package():
 
     pyproject = (package_root.parent / "pyproject.toml").read_text(encoding="utf-8")
     assert 'paydaysuper = ["data/*.json", "data/profiles/*.json", "py.typed"]' in pyproject
+
+
+def _write_override(tmp_path, payload, text=None):
+    override = tmp_path / "override.json"
+    override.write_text(json.dumps(payload) if text is None else text, encoding="utf-8")
+    return override
+
+
+HOLIDAY = {"date": "2029-03-30", "name": "Good Friday", "jurisdictions": ["ALL"]}
+
+
+@pytest.mark.parametrize(
+    ("payload", "message"),
+    [
+        (["2029-03-30"], "must be an object with 'add' and 'remove' lists"),
+        ({"add": HOLIDAY}, "'add' must be a list of entries"),
+        ({"remove": "2026-09-25"}, "'remove' must be a list of dates"),
+        ({"add": ["2029-03-30"]}, "add entry 1 must be an object with 'date' and 'name'"),
+        ({"add": [dict(HOLIDAY, date="2029-02-30")]}, "add entry 1 has date '2029-02-30'; write it as YYYY-MM-DD"),
+        ({"add": [dict(HOLIDAY, date="20290330")]}, "add entry 1 has date '20290330'; write it as YYYY-MM-DD"),
+        ({"remove": ["2026-02-30"]}, "remove entry 1 is '2026-02-30'; write it as YYYY-MM-DD"),
+        ({"remove": ["20260925"]}, "remove entry 1 is '20260925'; write it as YYYY-MM-DD"),
+    ],
+)
+def test_a_malformed_override_is_refused_with_its_reason(tmp_path, payload, message):
+    with pytest.raises(CalendarError, match=message):
+        load_calendar(_write_override(tmp_path, payload))
+
+
+def test_an_override_that_is_not_json_is_refused(tmp_path):
+    override = _write_override(tmp_path, None, text="{not json")
+    with pytest.raises(CalendarError, match="override.json is not valid JSON"):
+        load_calendar(override)
+
+
+def _bundled_copy(tmp_path, change):
+    from paydaysuper import calendar as calendar_module
+
+    text = (calendar_module.DATA_DIR / "business_days.json").read_text(encoding="utf-8")
+    (tmp_path / "business_days.json").write_text(change(text), encoding="utf-8")
+    return tmp_path
+
+
+def test_a_bundled_calendar_that_is_not_json_is_refused(tmp_path, monkeypatch):
+    from paydaysuper import calendar as calendar_module
+
+    monkeypatch.setattr(calendar_module, "DATA_DIR", _bundled_copy(tmp_path, lambda text: text[:-5]))
+    with pytest.raises(CalendarError, match="business_days.json is not valid JSON"):
+        load_calendar()
+
+
+def test_a_bundled_calendar_with_a_repeated_date_is_refused(tmp_path, monkeypatch):
+    from paydaysuper import calendar as calendar_module
+
+    def repeat_first_entry(text):
+        doc = json.loads(text)
+        doc["non_business_days"].append(doc["non_business_days"][0])
+        return json.dumps(doc)
+
+    monkeypatch.setattr(calendar_module, "DATA_DIR", _bundled_copy(tmp_path, repeat_first_entry))
+    with pytest.raises(CalendarError, match="^bundled calendar contains duplicate date 2026-01-01$"):
+        load_calendar()

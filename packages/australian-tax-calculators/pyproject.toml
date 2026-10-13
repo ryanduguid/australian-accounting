@@ -4,12 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "australian-tax-calculators"
-version = "0.1.8"
+version = "0.1.9"
 description = "Bounded Australian tax calculation worksheets with explicit scope and sources."
 readme = "README.md"
 requires-python = ">=3.14"
-license = "MIT"
-license-files = ["LICENSE"]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 authors = [{name = "Ryan Duguid"}]
 dependencies = []
 
@@ -17,8 +17,8 @@ dependencies = []
 Repository = "https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators"
 
 [project.optional-dependencies]
-dev = ["ruff==0.16.6", "mypy==2.3.1", "pytest==9.1.1", "coverage==7.16.0",
-       "pytest-cov==7.1.0", "build==1.6.1", "hypothesis==6.167.1",
+dev = ["ruff==0.17.0", "mypy==2.4.0", "pytest==9.1.1", "coverage==7.16.2",
+       "pytest-cov==7.1.0", "build==1.6.1", "hypothesis==6.169.0",
        # release-python builds without isolation, so the backend comes from this
        # locked extra, pinned exactly as [build-system] requires.
        "hatchling==1.32.4"]
@@ -45,3 +45,7 @@ packages = ["austaxcalc"]
 [tool.coverage.run]
 # The source pytest --cov measures; CI adds --cov-branch and the reports.
 source = ["austaxcalc"]
+
+[tool.coverage.report]
+# CI fails the test job below complete line and branch coverage.
+fail_under = 100

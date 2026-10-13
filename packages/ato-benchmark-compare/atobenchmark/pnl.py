@@ -128,7 +128,8 @@ def read(path: Path, amount_column: str | None = None) -> PnlFile:
     # newline, and splitlines() would cut the row in half inside the quotes. newline=""
     # for the same reason a file handle would be given it.
     rows = list(csv.reader(io.StringIO(text, newline="")))
-    if not rows:
+    # pragma reason: the text holds a non-blank character, so the reader yields a row.
+    if not rows:  # pragma: no cover
         raise PnlError(f"{path}: file is empty")
 
     header = [cell.strip().casefold() for cell in rows[0]]

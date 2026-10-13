@@ -332,3 +332,75 @@ def test_remitted_status_with_a_status_in_both_lists_raises_csv_error(tmp_path, 
     )
     with pytest.raises(CsvError, match="both"):
         profiles.load_profiles()
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"role": 5}, "'role' must be str, got int"),
+        ({"role": "bank"}, "role 'bank' is not one of"),
+        ({"columns": {"employee_code": ["Code"]}}, r"maps unknown field\(s\) \['employee_code'\]"),
+        ({"columns": {"employee_id": []}}, "'employee_id' must be a non-empty list of headings"),
+        ({"sg_filter": {"column": "contribution_type"}}, "sg_filter needs 'column' and 'include'"),
+        ({"sg_filter": {"column": "amount", "include": ["SG"]}}, "sg_filter column 'amount' is not one of the mapped columns"),
+        ({"remitted_status": {"column": "contribution_type"}}, "remitted_status needs 'column', 'sent' and 'not_sent'"),
+        (
+            {"remitted_status": {"column": "amount", "sent": ["Paid"], "not_sent": ["Draft"]}},
+            "remitted_status column 'amount' is not one of the mapped columns",
+        ),
+    ],
+)
+def test_a_malformed_profile_is_refused_with_its_reason(tmp_path, monkeypatch, overrides, message):
+    monkeypatch.setattr(profiles, "PROFILE_DIR", tmp_path)
+    _write_profile(tmp_path, overrides)
+    with pytest.raises(CsvError, match=message):
+        profiles.load_profiles()
+
+
+def test_a_profile_without_a_role_is_refused(tmp_path, monkeypatch):
+    monkeypatch.setattr(profiles, "PROFILE_DIR", tmp_path)
+    path = _write_profile(tmp_path, {})
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    del raw["role"]
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    with pytest.raises(CsvError, match="^profile test-profile.json has no 'role'$"):
+        profiles.load_profiles()
+
+
+def test_an_unknown_role_is_refused():
+    with pytest.raises(CsvError, match="^unknown profile role 'bank'$"):
+        load_profiles("bank")
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [("{not json", "profile broken.json is not valid JSON"), ("[]", "profile broken.json must be a JSON object$")],
+)
+def test_a_profile_file_that_is_not_a_json_object_is_refused(tmp_path, monkeypatch, text, message):
+    monkeypatch.setattr(profiles, "PROFILE_DIR", tmp_path)
+    (tmp_path / "broken.json").write_text(text, encoding="utf-8")
+    with pytest.raises(CsvError, match=message):
+        load_profiles()
+
+
+def test_two_profiles_with_one_key_are_refused(tmp_path, monkeypatch):
+    monkeypatch.setattr(profiles, "PROFILE_DIR", tmp_path)
+    first = _write_profile(tmp_path, {})
+    first.rename(tmp_path / "first.json")
+    _write_profile(tmp_path, {})
+    with pytest.raises(CsvError, match=r"^duplicate profile key\(s\): \['test-profile'\]$"):
+        load_profiles()
+
+
+def test_blank_and_repeated_headings_resolve_to_the_first_real_one():
+    profile = next(p for p in load_profiles("super") if p.key == "xero-super")
+    headers = [None, "", "Employee Number", "employee number", "Amount"]
+    assert resolve_columns(profile, headers) == {  # nosec B101: pytest outcome assertion
+        "employee_id": "Employee Number",
+        "amount": "Amount",
+    }
+
+
+def test_a_long_vendor_name_is_advised_to_use_its_shared_stem():
+    with pytest.raises(CsvError, match="name the stem both of a vendor's profiles start with -- 'myob-ar', not 'myob-ar-payroll-2'"):
+        detect(["anything"], "super", vendor="myob-ar-payroll-2")

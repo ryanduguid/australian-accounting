@@ -1,0 +1,315 @@
+{
+  "source": "https://api.lodgeit.com/core.lodgeit.openapi.json",
+  "captured": "2026-10-09",
+  "openapi": "3.1.1",
+  "paths": {
+    "/core/clients/v1-preview/list": {
+      "post": {
+        "tags": [
+          "Clients · V1 Preview"
+        ],
+        "summary": "List clients",
+        "description": "Lists all clients of the caller's workspace.\n\n> [!note]\n> **User** `optional` — only the scopes are checked\n> - **Personal data** `optional` — unlocked by: `unlock:tfn` | `unlock:director-id` | `unlock:dob`",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListClientsRequestV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientPageV1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                },
+                "examples": {
+                  "validation": {
+                    "summary": "One or more validation errors occurred.",
+                    "description": "Every offending value is keyed by its JSON path.",
+                    "value": {
+                      "type": "/core/$problems/validation",
+                      "title": "One or more validation errors occurred.",
+                      "status": 400,
+                      "errors": {
+                        "<property.path>": [
+                          "The value is invalid."
+                        ],
+                        "<array.property.path>[1]": [
+                          "The array item is invalid."
+                        ]
+                      },
+                      "traceId": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.2",
+                  "title": "Unauthorized",
+                  "status": 401,
+                  "traceId": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.4",
+                  "title": "Forbidden",
+                  "status": 403,
+                  "detail": "<what the operation demanded: a user token, a covering scope, or a workspace role or permission>",
+                  "traceId": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "examples": {
+                  "page-token-invalid": {
+                    "summary": "The page token does not match the requested listing.",
+                    "description": "A page token continues the listing it was issued for; the filter must not change between pages.",
+                    "value": {
+                      "type": "/core/$problems/page-token-invalid",
+                      "title": "The page token does not match the requested listing.",
+                      "status": 422,
+                      "traceId": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01"
+                    }
+                  },
+                  "workspace-not-found": {
+                    "summary": "The tenant has no workspace.",
+                    "value": {
+                      "type": "/core/$problems/workspace-not-found",
+                      "title": "The tenant has no workspace.",
+                      "status": 422,
+                      "traceId": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2-Client-Credentials": [
+              "read:core"
+            ]
+          },
+          {
+            "OAuth2-Client-Credentials": [
+              "read:core.clients"
+            ]
+          },
+          {
+            "OAuth2-Client-Credentials": [
+              "manage:core"
+            ]
+          },
+          {
+            "OAuth2-Client-Credentials": [
+              "manage:core.clients"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "schemas": {
+    "ListClientsRequestV1": {
+      "type": "object",
+      "properties": {
+        "archived": {
+          "type": [
+            "null",
+            "boolean"
+          ],
+          "description": "The archived flag filter:\nif `true`, lists archived clients only;\nif `false` - lists non-archived clients only;\nif `null` (default) - lists both."
+        },
+        "expansion": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "$ref": "#/components/schemas/ClientExpansionPathV1"
+          },
+          "description": "The expansion paths, or `null` to expand nothing."
+        },
+        "paging": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "description": "The paging arguments, or `null` for the first page of the default size.",
+              "$ref": "#/components/schemas/ClientPagingArgsV1"
+            }
+          ]
+        }
+      },
+      "description": "Represents an object that requests a page of clients."
+    },
+    "ClientPageV1": {
+      "required": [
+        "items"
+      ],
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ClientV1"
+          }
+        },
+        "nextPageToken": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      },
+      "description": "Represents a single page of workspace clients."
+    },
+    "ClientV1": {
+      "required": [
+        "id",
+        "archived",
+        "private",
+        "profile"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The client unique identifier.",
+          "format": "uuid"
+        },
+        "code": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "description": "The custom code referencing the client in an external system."
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Whether the client is archived."
+        },
+        "private": {
+          "type": "boolean",
+          "description": "Whether the client is private:\nvisible only to the workspace owners and the assigned members and teams."
+        },
+        "profile": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "description": "The object providing the client profile, or `null` when the profile was not requested.\nA personal field is present only when its unlock scope is granted.",
+              "$ref": "#/components/schemas/ClientProfileInfoV1"
+            }
+          ]
+        },
+        "assignments": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "description": "The workspace members and teams assigned to the client,\nor `null` when neither was requested.",
+              "$ref": "#/components/schemas/ClientAssignmentsV1"
+            }
+          ]
+        },
+        "groups": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "$ref": "#/components/schemas/ClientGroupV1"
+          },
+          "description": "The client groups the client belongs to,\nor `null` when groups were not requested."
+        },
+        "relations": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "$ref": "#/components/schemas/ClientRelationInfoV1"
+          },
+          "description": "The client relations to other clients,\nor `null` when relations were not requested."
+        }
+      },
+      "description": "Represents an object that provides information about a client."
+    },
+    "ClientPagingArgsV1": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "examples": [
+            100
+          ],
+          "maximum": 500,
+          "minimum": 1,
+          "pattern": "^-?(?:0|[1-9]\\d*)$",
+          "type": [
+            "null",
+            "integer",
+            "string"
+          ],
+          "description": "The size of the page to return, or `null` for the default size.",
+          "format": "int32"
+        },
+        "token": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "description": "The opaque token of the page to return, as issued by the previous response,\nor `null` for the first page."
+        }
+      },
+      "description": "Represents the paging arguments of a request for a page of clients."
+    }
+  },
+  "capture_method": "Automated anonymous public schema read; reference for human review",
+  "source_sha256": "d921deb98f36cfb3ba5d134d3782b910d1cfb783879e23611cbca8ca9cf0d227"
+}

@@ -1,3 +1,11 @@
+# v0.1.9
+
+- Requires Python 3.11 or newer; Python 3.10 is no longer supported ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).
+- The build backend moves from hatchling 1.32.3 to 1.32.4 ([#337](https://github.com/ryanduguid/australian-accounting/pull/337)).
+- Seeded property tests cover GST, resident tax, PAYG withholding across each bracket edge, study loan repayment, pension minimum, capital losses and contribution cap room ([#350](https://github.com/ryanduguid/australian-accounting/pull/350)).
+
+No calculation changed.
+
 # v0.1.8
 
 - Add a tenth worksheet, `study_loan_repayment`: the compulsory study and

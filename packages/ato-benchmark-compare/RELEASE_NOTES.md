@@ -1,3 +1,10 @@
+# v0.1.12
+
+- Requires Python 3.11 or newer; Python 3.10 is no longer supported ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).
+- The build backend moves from hatchling 1.32.3 to 1.32.4 ([#337](https://github.com/ryanduguid/australian-accounting/pull/337)).
+
+No comparison changed. The Excel workbook is rebuilt to report engine 0.1.12.
+
 # v0.1.11
 
 - Labour, rent and motor vehicle expenses, and cost of sales where it is not the key range, are now compared against the ranges the ATO publishes on each industry's page (99 of 100 industries for 2023-24, read on 29 September 2026). They are compared like any range but never decide the exit code.

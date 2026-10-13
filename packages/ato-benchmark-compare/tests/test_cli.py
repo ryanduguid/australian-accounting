@@ -793,3 +793,124 @@ def test_comparison_rejects_a_forced_digest_collision_before_routing_amounts(
     rows = {"a" * 64: MappingRow("Sales", "turnover", "reviewed")}
     with pytest.raises(MappingError, match="collision"):
         mapping_module.route(source, rows, flip=False)
+
+
+def _twelve_unreadable_rows(tmp_path: Path) -> Path:
+    pnl = tmp_path / "p.csv"
+    unreadable = "".join(f"Sundry {n},-\n" for n in range(1, 13))
+    pnl.write_text("Sales,850000\nPurchases,290000\n" + unreadable, encoding="utf-8")
+    return pnl
+
+
+def test_map_lists_ten_unreadable_rows_and_counts_the_rest(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    pnl = _twelve_unreadable_rows(tmp_path)
+    assert main(["map", "--profit-and-loss", str(pnl), "--out", str(tmp_path / "m.csv")]) == EXIT_OK  # nosec B101: pytest outcome assertion
+    out = capsys.readouterr().out
+    assert "12 row(s) carried no readable amount and were left out:" in out  # nosec B101: pytest outcome assertion
+    assert "'Sundry 10'" in out and "'Sundry 11'" not in out  # nosec B101: pytest outcome assertion
+    assert "  ... and 2 more\n" in out  # nosec B101: pytest outcome assertion
+
+
+def test_compare_lists_ten_unreadable_rows_and_counts_the_rest(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    pnl = _twelve_unreadable_rows(tmp_path)
+    mapping = tmp_path / "m.csv"
+    assert main(["map", "--profit-and-loss", str(pnl), "--out", str(mapping)]) == EXIT_OK  # nosec B101: pytest outcome assertion
+    capsys.readouterr()
+    main(["compare", "--profit-and-loss", str(pnl), "--mapping", str(mapping),
+          "--industry", "bakeries", "--json", "-"])
+    err = capsys.readouterr().err
+    assert "12 row(s) carried no readable amount and are not in these totals" in err  # nosec B101: pytest outcome assertion
+    assert "  ... and 2 more\n" in err  # nosec B101: pytest outcome assertion
+
+
+def test_show_names_no_industry_page_for_a_year_without_page_ranges(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert main(["show", "bakeries", "--year", "2022-23"]) == EXIT_OK  # nosec B101: pytest outcome assertion
+    out = capsys.readouterr().out
+    assert "Benchmark year: 2022-23" in out  # nosec B101: pytest outcome assertion
+    assert "Industry page:" not in out  # nosec B101: pytest outcome assertion
+
+
+def test_the_overwrite_guard_skips_an_input_that_was_not_given(tmp_path: Path) -> None:
+    from atobenchmark.cli import _refuse_to_write_over_an_input
+
+    out = tmp_path / "result.json"
+    # The absent input is passed over and the other is a different file, so nothing is refused.
+    assert _refuse_to_write_over_an_input(out, [None, str(tmp_path / "p.csv")]) is None  # nosec B101: pytest outcome assertion
+
+
+def test_map_refuses_when_an_input_path_cannot_be_resolved(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    def unresolvable(self: Path, strict: bool = False) -> Path:
+        raise OSError("too many levels of symbolic links")
+
+    monkeypatch.setattr(Path, "resolve", unresolvable)
+    out = tmp_path / "m.csv"
+    code = main(["map", "--profit-and-loss", str(BAKERY_PNL), "--out", str(out)])
+    monkeypatch.undo()
+    assert code == EXIT_ERROR  # nosec B101: pytest outcome assertion
+    assert capsys.readouterr().err == (  # nosec B101: pytest outcome assertion
+        f"error: refusing to write {out}: cannot resolve {BAKERY_PNL} "
+        "(too many levels of symbolic links)\n"
+    )
+    assert not out.exists()  # nosec B101: pytest outcome assertion
+
+
+def test_map_into_a_folder_that_is_a_file_exits_one_with_one_error_line(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    blocker = tmp_path / "blocker"
+    blocker.write_text("not a folder", encoding="utf-8")
+    code = main(["map", "--profit-and-loss", str(BAKERY_PNL), "--out", str(blocker / "m.csv")])
+    err = capsys.readouterr().err
+    assert code == EXIT_ERROR  # nosec B101: pytest outcome assertion
+    assert err.startswith("error: ") and err.count("\n") == 1  # nosec B101: pytest outcome assertion
+
+
+class _FixedStream:
+    """A text stream whose error handler cannot be changed."""
+
+    def __init__(self) -> None:
+        self.written: list[str] = []
+
+    def reconfigure(self, **kwargs: str) -> None:
+        raise ValueError("this stream cannot be reconfigured")
+
+    def write(self, text: str) -> int:
+        self.written.append(text)
+        return len(text)
+
+    def flush(self) -> None:
+        pass
+
+
+class _PlainStream(_FixedStream):
+    reconfigure = None  # type: ignore[assignment]
+
+
+def test_streams_that_cannot_be_reconfigured_still_receive_the_output(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    stdout, stderr = _PlainStream(), _FixedStream()
+    monkeypatch.setattr("sys.stdout", stdout)
+    monkeypatch.setattr("sys.stderr", stderr)
+    assert main(["buckets"]) == EXIT_OK  # nosec B101: pytest outcome assertion
+    assert "associated_persons" in "".join(stdout.written)  # nosec B101: pytest outcome assertion
+
+
+def test_python_dash_m_runs_the_command_line(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    import runpy
+
+    monkeypatch.setattr("sys.argv", ["ato-benchmark-compare", "buckets"])
+    with pytest.raises(SystemExit) as exit_info:
+        runpy.run_module("atobenchmark", run_name="__main__")
+    assert exit_info.value.code == EXIT_OK  # nosec B101: pytest outcome assertion
+    assert "associated_persons" in capsys.readouterr().out  # nosec B101: pytest outcome assertion

@@ -378,7 +378,8 @@ def load_override(path: Path | str) -> RateOverride:
     """
     path = Path(path)
     try:
-        text = path.read_text(encoding="utf-8")
+        # Library API; the caller chooses the file.
+        text = path.read_text(encoding="utf-8")  # NOSONAR
     except OSError as exc:
         raise RatesError(f"cannot read the rate override at {path}: {exc}")
     try:

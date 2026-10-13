@@ -86,7 +86,7 @@ def should_run(package: str, changed_paths: list[str]) -> bool:
 def project_version(package: str, root: Path = ROOT) -> str:
     """The static ``version`` in the package's ``[project]`` table."""
     text = (root / PACKAGE_ROOT / package / "pyproject.toml").read_text(encoding="utf-8")
-    table = re.search(r"(?ms)^\[project\]\s*$(.*?)(?=^\[|\Z)", text)
+    table = re.search(r"(?ms)^\[project\]\s*$(.*?)(?=(?:^\[)|\Z)", text)
     # TOML allows a basic ("...") or a literal ('...') string here.
     match = table and re.search(r"""(?m)^version\s*=\s*(["'])([^"'\n]+)\1""", table.group(1))
     if not match:
@@ -99,17 +99,23 @@ def release_pending(package: str, tags: list[str], root: Path = ROOT) -> bool:
     return f"{package}/v{project_version(package, root)}" not in tags
 
 
+# A distribution directory name under packages/. Anything else, such as a value
+# starting with "-" or holding "/", could reach git as an option or leave packages/.
+PACKAGE_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+
+
 def main(argv: list[str]) -> int:
     args = [arg for arg in argv[1:] if arg != "--on-main"]
-    if len(args) != 1:
+    if len(args) != 1 or not PACKAGE_NAME.fullmatch(args[0]):
         print(f"usage: {argv[0]} <package> [--on-main]", file=sys.stderr)
         return 2
     package = args[0]
     changed_paths = parse_changed_paths(sys.stdin.buffer.read())
     run = should_run(package, changed_paths)
     if not run and "--on-main" in argv:
-        tags = subprocess.run(
-            ["git", "tag", "--list", f"{package}/v*"],
+        # The package name is checked above, and "--" ends git's options; no shell runs.
+        tags = subprocess.run(  # NOSONAR
+            ["git", "tag", "--list", "--", f"{package}/v*"],
             capture_output=True, text=True, check=True, cwd=ROOT,
         ).stdout.split()
         run = release_pending(package, tags)

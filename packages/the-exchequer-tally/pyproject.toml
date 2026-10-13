@@ -4,12 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "the-exchequer-tally"
-version = "0.1.7"
+version = "0.1.8"
 description = "Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian companies."
 readme = "README.md"
 requires-python = ">=3.14"
-license = "MIT"
-license-files = ["LICENSE"]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 authors = [
     { name = "Ryan Duguid", email = "ryan@duguid.com.au" }
 ]
@@ -32,10 +32,10 @@ Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 # Shared toolchain, pinned to the same versions in every component so a gate
 # behaves the same wherever it runs.
 dev = [
-    "ruff==0.16.6",
-    "mypy==2.3.1",
+    "ruff==0.17.0",
+    "mypy==2.4.0",
     "pytest==9.1.1",
-    "coverage==7.16.0",
+    "coverage==7.16.2",
     "pytest-cov==7.1.0",
     "build==1.6.1",
     # release-python builds without isolation, so the backend comes from this
@@ -74,3 +74,8 @@ pretty = true
 [tool.coverage.run]
 # The source pytest --cov measures; CI adds --cov-branch and the reports.
 source = ["edwinnixon"]
+
+[tool.coverage.report]
+# CI fails the test job below complete line and branch coverage.
+fail_under = 100
+exclude_also = ['if __name__ == "__main__":']

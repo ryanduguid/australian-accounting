@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-POLICY = "f068fb4f1d8f90e07429ded7cfb85bdbcc2960fe"
+POLICY = "a601f1d8b143f92b0517f709216993660d21f480"
 # These are component jobs from successful main-branch runs, plus aggregates that
 # require every job in their workflow to succeed; never a skip-tolerant aggregate
 # gate. Review the list when a component's CI contract changes.
@@ -137,8 +137,9 @@ class ReleaseChecksTests(unittest.TestCase):
             encoding="utf-8"
         )
         job = text.split("\n  published-pins:\n", 1)[1].split("\n  release:\n", 1)[0]
-        self.assertIn('cd "$RUNNER_TEMP"', job)
-        self.assertIn("uv pip install --python pins/bin/python dist/*.whl", job)
+        self.assertIn('uv venv --python 3.14 "$RUNNER_TEMP/pins"', job)
+        self.assertEqual(job.count("working-directory: ${{ runner.temp }}"), 2)
+        self.assertIn("uv pip install --python pins/bin/python --only-binary ':all:' dist/*.whl", job)
         self.assertIn(
             'diff -u "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/docs/quick-proof.txt" demo.txt', job
         )

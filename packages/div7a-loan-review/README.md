@@ -18,10 +18,10 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 +----------------------------------+-----------------------------------+
 ```
 
-[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/div7a-loan-review.svg?color=5C2D91&labelColor=04001F)](https://pypi.org/project/div7a-loan-review/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](LICENSE)
-[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-5C2D91.svg?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/downloads/)
+[![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
+[![PyPI](https://img.shields.io/pypi/v/div7a-loan-review.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/div7a-loan-review/)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](LICENSE)
+[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/downloads/)
 
 Distribution `div7a-loan-review`, import package `div7aloan`, command `div7a-loan-review`.
 
@@ -120,7 +120,7 @@ describes how it calculates.
 The two overlap on Division 7A loan review but do different jobs. Workpapers
 Plus sits inside a practice's ledger and compliance workflow, with ATO
 pre-population and AI extraction from bank and loan statements. This engine is
-MIT licensed, runs offline on a register you supply, shows the statutory trace
+Apache-2.0 licensed, runs offline on a register you supply, shows the statutory trace
 behind each figure and, for the cases listed under
 [What it refuses](#what-it-refuses), returns `UNKNOWN`, `REFUSED` or `SKIPPED`
 with a reason instead of a figure. A practice that uses a
@@ -128,6 +128,37 @@ commercial worksheet can re-perform a loan with it: run `review` over the same
 register and year of income, then compare the benchmark rate, each s 109N(1)
 limb, the minimum yearly repayment and the shortfall. A difference is a
 question for the reviewer, not proof that either side is wrong.
+
+## Next to the ATO calculator
+
+On 7 October 2026 the minimum yearly repayment function of the ATO's
+[Division 7A calculator and decision tool](https://www.ato.gov.au/calculators-and-tools/division-7a-calculator-and-decision-tool)
+was run in its own web page against this engine on 12,800 fabricated cases:
+the years of income 2019-20 to 2026-27, remaining terms of 1 to 25 years and
+50 balances from $0.01 to $99,999,999.99. Every figure agreed to the cent. For
+those years the calculator holds the same benchmark rates as this engine, and
+it rounds its result half up to cents.
+[docs/ato-calculator-comparison-2026-10-07.md](docs/ato-calculator-comparison-2026-10-07.md)
+records the method, the files compared and what the comparison does not
+establish.
+
+In the first year after the loan year, the calculator's opening balance can be
+lower than the balance at the end of the loan year. The ATO's guidance on
+[loans by private companies](https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/private-company-benefits-division-7a-dividends/in-detail/division-7a-loans)
+and its calculator take the amount not repaid by the end of the loan year as
+the original loan less the principal repaid before the company's lodgment day
+for that year. Both still count every repayment made in the first year,
+including those made before that lodgment day, towards that year's minimum
+yearly repayment. This engine does not form the amalgamated loan (s 109E(3))
+and takes both figures from you. To reproduce the calculator, put the reduced
+balance in `amalgamated_loan_unpaid_at_end_of_previous_year` and include the
+earlier repayments in `payments_applied_during_the_year`.
+
+For example, take a $100,000 loan made in 2025-26 on a 7-year term, with
+$20,000 repaid on 1 October 2026 and a lodgment day of 15 May 2027. For
+2026-27 the calculator works on $80,000 and requires $15,772.78, which this
+engine also gives on that balance. On the 30 June 2026 balance of $100,000 it
+gives $19,715.97. Which balance applies is for the reviewer to decide.
 
 ## Excel workbook
 
@@ -378,7 +409,8 @@ Money is quantised to cents with **`ROUND_HALF_UP`**. The Act prescribes no
 rounding for the s 109E(6) amount, so this is the engine's documented choice
 rather than a statutory rule, and it is not the ATO calculator's rounding
 adopted silently. Every result says so, in its statutory trace and in the JSON
-`rounding` field.
+`rounding` field. The ATO calculator also rounds half up to cents; see
+[Next to the ATO calculator](#next-to-the-ato-calculator).
 
 JSON amounts are quoted decimal strings, never JSON numbers. Dates are
 ISO 8601. Verdicts are enums. The emitter refuses to write a float, and the
@@ -498,4 +530,4 @@ Ryan Duguid. Written independently, in his own time, on his own equipment.
 Provisional member of Chartered Accountants Australia and New Zealand; that
 membership is not an endorsement of this software by CA ANZ.
 
-MIT. See [LICENSE](LICENSE).
+Apache-2.0. See [LICENSE](LICENSE). If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).

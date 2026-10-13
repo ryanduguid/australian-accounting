@@ -692,3 +692,13 @@ def test_malformed_supported_periods_are_a_finding_not_a_crash(stub, contract, p
         assert any("no longer accepts" in item for item in findings)
     else:
         assert any("not a list of strings" in item for item in findings)
+
+
+def test_a_figure_only_the_provider_returned_is_a_scope_difference():
+    evaluation, differences, reasons = compare_values({}, {}, {"shortfall": Decimal("1.00")})
+    assert evaluation is Evaluation.SCOPE_MISMATCH  # nosec B101: pytest outcome assertion
+    assert differences == {}  # nosec B101: pytest outcome assertion
+    assert reasons == (  # nosec B101: pytest outcome assertion
+        "shortfall: the provider returned a figure and the local engine did not",
+        "no field is present on both sides, so nothing was compared",
+    )

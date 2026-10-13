@@ -33,10 +33,13 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.14"
+          python-version: "3.15"
+          allow-prereleases: true
       - run: python -m unittest -v tests/test_boundaries.py tests/test_release_checks.py
 
   root-checks:
+    env:
+      UV_PYTHON: "3.15"
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -47,7 +50,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.14"
+          python-version: "3.15"
+          allow-prereleases: true
       - name: Install the locked toolchain
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
@@ -56,9 +60,9 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - run: uv lock --check
-      - run: uv run --locked --group dev ruff check .
-      - run: uv run --locked --group dev mypy
-      - run: uv run --locked --group dev pytest
+      - run: uv run --locked --group dev ruff check .  # NOSONAR: unprivileged job; uv installs the hash-locked set
+      - run: uv run --locked --group dev mypy  # NOSONAR: unprivileged job; uv installs the hash-locked set
+      - run: uv run --locked --group dev pytest  # NOSONAR: unprivileged job; uv installs the hash-locked set
 
   # The rates dataset's own checks on the floor and ceiling of its declared Python,
   # as its source repository ran them before the import. They run from a copy outside
@@ -73,7 +77,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.14"]
+        python: ["3.14", "3.15"]
     env:
       UV_PYTHON: ${{ matrix.python }}
     steps:
@@ -83,6 +87,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
+          allow-prereleases: true
       - name: Install the locked toolchain
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:

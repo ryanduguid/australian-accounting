@@ -173,7 +173,8 @@ def require_columns(fieldnames: Sequence[str] | None, needed: Iterable[str], whe
 def load_rows(path: Path | str, needed: Iterable[str]) -> list[dict]:
     path = Path(path)
     try:
-        with path.open(encoding="utf-8-sig", newline="") as handle:
+        # Library API; the caller chooses the file.
+        with path.open(encoding="utf-8-sig", newline="") as handle:  # NOSONAR
             reader = csv.DictReader(handle)
             require_columns(reader.fieldnames, needed, str(path))
             rows = list(reader)

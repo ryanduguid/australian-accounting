@@ -50,11 +50,13 @@ def parse_amount(raw: str, where: str = "amount") -> Decimal:
     negative = "(" in text or text.upper().endswith("CR")
     cleaned = re.sub(r"[\s$,()]|CR$|DR$", "", text, flags=re.IGNORECASE)
 
+    # pragma reason: the grammar above leaves only an optional sign, digits and one
+    # decimal point, which Decimal always parses to a finite value.
     try:
         value = Decimal(cleaned)
-    except InvalidOperation as exc:
+    except InvalidOperation as exc:  # pragma: no cover
         raise AmountError(f"{where}: {raw!r} is not an amount") from exc
-    if not value.is_finite():
+    if not value.is_finite():  # pragma: no cover
         raise AmountError(f"{where}: {raw!r} is not a finite amount")
     return -value if negative else value
 

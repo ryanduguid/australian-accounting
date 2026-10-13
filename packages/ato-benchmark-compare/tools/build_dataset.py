@@ -155,7 +155,8 @@ def build(xlsx: Path, args: argparse.Namespace) -> dict:
             "openpyxl is required to rebuild the dataset: uv run --with openpyxl ..."
         ) from exc
 
-    payload = xlsx.read_bytes()
+    # Local CLI; the path is the operator's own argument.
+    payload = xlsx.read_bytes()  # NOSONAR
     workbook = openpyxl.load_workbook(xlsx, data_only=True)
     sheet = workbook.worksheets[0]
     rows = list(sheet.iter_rows(values_only=True))
@@ -238,7 +239,8 @@ def main(argv: list[str] | None = None) -> int:
     dataset = build(args.xlsx, args)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(dataset, indent=1, ensure_ascii=False) + "\n"
-    args.out.write_text(text, encoding="utf-8", newline="\n")
+    # Local CLI; the path is the operator's own argument.
+    args.out.write_text(text, encoding="utf-8", newline="\n")  # NOSONAR
     print(
         f"wrote {args.out}: {dataset['business_type_count']} business types, "
         f"sha256 {dataset['source']['sha256'][:16]}"

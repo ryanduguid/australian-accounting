@@ -51,7 +51,8 @@ def job_block(text: str, name: str) -> str:
     match = re.search(rf"(?ms)^  {re.escape(name)}:\n(.*?)(?=^  [\w-]+:|\Z)", text)
     if match is None:
         raise AssertionError(name)
-    return match.group(1)
+    # A trailing "# NOSONAR: reason" is a YAML comment, not part of the command.
+    return re.sub(r"[ \t]+# NOSONAR[^\n]*", "", match.group(1))
 
 
 def git(cwd: Path, *args: str) -> bytes:
@@ -151,6 +152,18 @@ class EngineGitTests(unittest.TestCase):
 
                 self.assertEqual(parse_changed_paths(raw), [f"packages/solomons-sword/{name}"])
             path.unlink()
+
+    def test_cli_refuses_a_package_name_that_is_not_a_directory_name(self) -> None:
+        for name in ("--output=x", "-h", "../solomons-sword", "Solomons-Sword", "solomons-sword/"):
+            with self.subTest(name=name):
+                # Fixed fixture arguments run the current interpreter and copied selector without a shell.
+                # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+                done = subprocess.run(  # nosec B603
+                    [sys.executable, str(self.selector), name, "--on-main"], cwd=self.root,
+                    input=b"", capture_output=True, check=False,
+                )
+                self.assertEqual(done.returncode, 2, done.stdout.decode())
+                self.assertIn(b"usage:", done.stderr)
 
     def test_cli_selects_an_owner_after_an_unrelated_nul_record(self) -> None:
         raw = b"apps/lodgeit-calculator-adapter/notes.md\0" + self.own.encode() + b"\0"
@@ -384,6 +397,16 @@ class ApplicationGateTests(unittest.TestCase):
 
 
 class GateWiringTests(unittest.TestCase):
+    def test_application_coverage_producers_select_a_retained_interpreter(self) -> None:
+        for filename in ("ci.yml", "ci-lodgeit-adapter.yml"):
+            with self.subTest(workflow=filename):
+                test = job_block((WORKFLOWS / filename).read_text(encoding="utf-8"), "test")
+                self.assertIn('python: "3.14"', test)
+                self.assertIn("matrix.python == '3.14' && '--cov-report=xml:coverage-codecov.xml'", test)
+                upload = test.split("      - name: keep the coverage report", 1)[1]
+                self.assertIn("if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'", upload)
+                self.assertNotIn("matrix.python == '3.13'", test)
+
     def test_engine_diff_uses_nul_paths_and_root_retains_all_component_suites(self) -> None:
         package = (WORKFLOWS / "ci-package.yml").read_text(encoding="utf-8")
         self.assertIn('git diff --name-only --no-renames -z "$BASE" "$HEAD" --', package)
@@ -434,7 +457,8 @@ class GateWiringTests(unittest.TestCase):
                 assert needs is not None, workflow
                 listed = {name.strip() for name in needs.group(1).split(",")}
                 text = (WORKFLOWS / workflow).read_text(encoding="utf-8")
-                self.assertEqual(check_gates.job_ids(text) - {gate}, listed)
+                exempt = set(re.findall(r"--exempt (\S+)", call.group(3)))
+                self.assertEqual(check_gates.job_ids(text) - {gate} - exempt, listed)
 
 
 class CheckGatesTests(unittest.TestCase):

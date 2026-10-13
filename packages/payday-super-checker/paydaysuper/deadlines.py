@@ -413,8 +413,10 @@ def apply_item4(
                     dl.due = confirmed_latest
                     dl.pathway = ITEM4_ALIGNED
 
+                # pragma reason: pairs without a due day were left out of by_employee
+                # above, and alignment only ever sets a date.
                 if dl.due is None:
-                    continue
+                    continue  # pragma: no cover
                 widest_due = dl.due
                 if possible_latest is not None and possible_latest > widest_due:
                     widest_due = possible_latest

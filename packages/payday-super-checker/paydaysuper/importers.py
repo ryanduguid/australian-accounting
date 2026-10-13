@@ -121,7 +121,8 @@ def _check_duplicate_headers(headers: list[str], path: str | Path) -> None:
 
 def _read_dicts(path: str | Path) -> tuple[list[str], list[dict[str, str]]]:
     try:
-        with open(path, newline="", encoding="utf-8-sig") as f:
+        # Library API; the caller chooses the file.
+        with open(path, newline="", encoding="utf-8-sig") as f:  # NOSONAR
             reader = csv.DictReader(f, restval=cast(Any, MISSING))
             if reader.fieldnames is None:
                 raise CsvError(f"{path} has no header row")
@@ -546,8 +547,9 @@ def write_canonical(result: JoinResult, path: str | Path) -> None:
             if credited is not None and cents(credited) > cents(row.sg_amount):
                 credited = row.sg_amount
             matched = outcome.matched_amount
+            # pragma reason: join already caps matched_amount at the amount owed.
             if matched is not None and cents(matched) > cents(row.sg_amount):
-                matched = row.sg_amount
+                matched = row.sg_amount  # pragma: no cover
             values = [
                 label,
                 _iso(row.payday),

@@ -63,6 +63,26 @@ typecheck: setup
         (cd "${directory}" && uv run --no-sync mypy)
     done
 
+# Regenerate the root lock and every component's own release lock. Run it after
+# any dependency change, including on a Dependabot branch before merging. Inside
+# the workspace `uv lock` writes only the root lock, so each component is relocked
+# from a copy outside the checkout, as CONTRIBUTING.md describes.
+relock:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "==> root"
+    uv lock
+    for lock in packages/*/uv.lock apps/*/uv.lock; do
+        directory="$(dirname "${lock}")"
+        [ -f "${directory}/pyproject.toml" ] || continue
+        echo "==> ${directory}"
+        standalone="$(mktemp -d)"
+        tar -C "${directory}" --exclude=.venv -cf - . | tar -C "${standalone}" -xf -
+        (cd "${standalone}" && uv lock)
+        cp "${standalone}/uv.lock" "${lock}"
+        rm -rf "${standalone}"
+    done
+
 # Not a CI equivalent. The component workflows also check each engine's own
 # lockfile, run a dependency audit, a distribution build, installed-wheel and
 # sdist smoke tests, and changed-line coverage, and none of those run here. A

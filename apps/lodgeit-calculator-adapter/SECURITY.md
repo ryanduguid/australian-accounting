@@ -1,9 +1,11 @@
 # Security
 
-This component makes outbound HTTPS requests to a third-party service when it
-is explicitly enabled. Everything below is about that.
+This application has separate calculator and Core client catalogue boundaries.
+Each makes outbound HTTPS requests only when explicitly enabled. The controls
+below describe calculators; [Core security](docs/core-security.md) defines the
+fixed read route, per-call authentication and sensitive client-data projection.
 
-## What it does and does not hold
+## Calculator credentials
 
 No credentials, no tokens, no API keys, no account. The provider's calculator
 surface is open access. If a provider later requires a key, adding one is a
@@ -33,8 +35,8 @@ evidence file records whether its input was synthetic.
 Nothing is logged by the package itself: no request body, no response body, no
 amount. The CLI prints what you asked it for, to your terminal.
 
-Do not send client payroll, client loans or any identifier through this
-component. A third-party service is outside any engagement, privacy or
+Do not send client payroll, client loans or any identifier through the
+calculator interface. A third-party service is outside any engagement, privacy or
 retention arrangement this repository knows about.
 
 ## Reporting

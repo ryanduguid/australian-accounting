@@ -318,7 +318,8 @@ def build(
     retrieved: str,
     expect_excluded: frozenset[str] = frozenset(),
 ) -> dict:
-    dataset_text = dataset_path.read_text(encoding="utf-8")
+    # Local CLI; the path is the operator's own argument.
+    dataset_text = dataset_path.read_text(encoding="utf-8")  # NOSONAR
     dataset = json.loads(dataset_text)
     year = dataset["benchmark_year"]
     by_name = {normalise(bt["name"]): bt for bt in dataset["business_types"]}
@@ -424,7 +425,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 1
     text = json.dumps(built, indent=1, ensure_ascii=False) + "\n"
-    args.out.write_text(text, encoding="utf-8", newline="\n")
+    # Local CLI; the path is the operator's own argument.
+    args.out.write_text(text, encoding="utf-8", newline="\n")  # NOSONAR
     filled = sum(
         1
         for entry in built["business_types"]

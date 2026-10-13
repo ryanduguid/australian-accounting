@@ -1,3 +1,5 @@
+import importlib
+import importlib.metadata
 import subprocess
 import sys
 from importlib.metadata import version
@@ -22,7 +24,7 @@ def test_published_distribution_uses_the_project_identity() -> None:
     assert 'name = "edwinnixon"' not in lockfile
     assert '_dist_version("the-exchequer-tally")' in package_init
     assert 'prog="the-exchequer-tally"' in cli
-    assert version("the-exchequer-tally") == edwinnixon.__version__ == "0.1.7"
+    assert version("the-exchequer-tally") == edwinnixon.__version__ == "0.1.8"
     assert not (ROOT / ".github" / "workflows" / "release.yml").exists()
     assert "**Package lifecycle:** published." in readme
     assert "pip install the-exchequer-tally" in readme
@@ -32,7 +34,7 @@ def test_published_distribution_uses_the_project_identity() -> None:
     assert "the-exchequer-tally bre-test" in readme
     assert "edwinnixon bre-test" not in readme
     # The current version heads the notes; prior released sections remain.
-    assert release_notes.startswith("# v0.1.7\n")
+    assert release_notes.startswith("# v0.1.8\n")
     assert "\n# v0.1.6\n" in release_notes
     assert "first PyPI release" in release_notes
     assert "release-the-exchequer-tally.yml" in release_notes
@@ -46,3 +48,16 @@ def test_published_distribution_uses_the_project_identity() -> None:
     )
     assert help_result.returncode == 0
     assert help_result.stdout.startswith("usage: the-exchequer-tally")
+
+
+def test_source_tree_without_installation_reports_a_development_version(monkeypatch) -> None:
+    def not_installed(name: str) -> str:
+        raise importlib.metadata.PackageNotFoundError(name)
+
+    monkeypatch.setattr(importlib.metadata, "version", not_installed)
+    try:
+        assert importlib.reload(edwinnixon).__version__ == "0.0.0.dev0"  # nosec B101: pytest outcome assertion
+    finally:
+        monkeypatch.undo()
+        importlib.reload(edwinnixon)
+    assert edwinnixon.__version__ == version("the-exchequer-tally")  # nosec B101: pytest outcome assertion

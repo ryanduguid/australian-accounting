@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "payday-super-checker"
-version = "0.1.9"
+version = "0.1.10"
 description = "Experimental review aid for Australian payday-super deadlines and SG charge estimates"
 readme = "README.md"
 requires-python = ">=3.14"
-license = "MIT"
-license-files = ["LICENSE"]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Ryan Duguid" }]
 keywords = ["australia", "superannuation", "payday-super", "accounting", "ato"]
 classifiers = [
@@ -27,14 +27,14 @@ Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 # Shared toolchain first, pinned to the same versions in every component so a
 # gate behaves the same wherever it runs. Package-specific test libraries follow.
 dev = [
-    "ruff==0.16.6",
-    "mypy==2.3.1",
+    "ruff==0.17.0",
+    "mypy==2.4.0",
     "pytest==9.1.1",
-    "coverage==7.16.0",
+    "coverage==7.16.2",
     "pytest-cov==7.1.0",
     "build==1.6.1",
-    "diff-cover==10.5.1",
-    "hypothesis==6.167.1",
+    "diff-cover==10.6.0",
+    "hypothesis==6.169.0",
     "holidays==0.105",
     "openpyxl==3.1.5",
     "setuptools==84.0.0",
@@ -72,3 +72,8 @@ pretty = true
 [tool.coverage.run]
 # The source pytest --cov measures; CI adds --cov-branch and the reports.
 source = ["paydaysuper"]
+
+[tool.coverage.report]
+# CI fails the test job below complete line and branch coverage.
+fail_under = 100
+exclude_also = ['if __name__ == "__main__":']

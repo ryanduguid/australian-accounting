@@ -16,14 +16,15 @@ Before tagging:
 
     Do not push the tag unless the output is exactly `true`. The Actions `GITHUB_TOKEN` cannot be granted repository Administration read access, so the tag workflow cannot perform this preflight itself.
 4. Bump `[project].version` in `pyproject.toml`, the version source of truth. Keep `__version__` in `atobenchmark/__init__.py` aligned with it; the version test checks both copies. Update the release-note heading and lockfiles in the same commit. The release gate reads `pyproject.toml` and rejects a tag that disagrees.
-5. Create the namespaced annotated tag on current remote `main`, for example `git tag -a ato-benchmark-compare/v0.1.11 -m "ato-benchmark-compare v0.1.11"` (or `-s` when signing is configured), then push only that tag.
+5. Create the namespaced annotated tag on current remote `main`, for example `git tag -a ato-benchmark-compare/v0.1.13 -m "ato-benchmark-compare v0.1.13"` (or `-s` when signing is configured), then push only that tag.
 
 The workflow runs the locked tests, builds the wheel and source distribution once, generates an SPDX 2.3 SBOM for the wheel and `SHA256SUMS`, records GitHub provenance and an SBOM attestation, then publishes the completed draft. An existing release is never overwritten.
 
-Verify the downloaded release with:
+Verify the downloaded release with the checks below. `signer` is the release-policy commit the release workflow pins, which signs the next release.
 
 ```bash
-tag=ato-benchmark-compare/v0.1.11
+tag=ato-benchmark-compare/v0.1.13
+signer=a601f1d8b143f92b0517f709216993660d21f480
 repo=ryanduguid/australian-accounting
 version="${tag#ato-benchmark-compare/v}"
 wheel="ato_benchmark_compare-${version}-py3-none-any.whl"
@@ -37,16 +38,24 @@ gh attestation verify "$wheel" -R "$repo" \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest c24612618f177f6dccb7ed9ee2a8648959b87e2e
+  --signer-digest "$signer"
 gh attestation verify "$wheel" -R "$repo" \
   --predicate-type https://spdx.dev/Document/v2.3 \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest c24612618f177f6dccb7ed9ee2a8648959b87e2e
+  --signer-digest "$signer"
 gh release view "$tag" -R "$repo" --json isImmutable
 gh release verify "$tag" -R "$repo"
 gh release verify-asset "$tag" "$wheel" -R "$repo"
 ```
+
+Earlier monorepo releases carry the digest pinned when they were cut. Set `signer` to:
+
+- `3ff09b654a17b9a3b55548e25e6108ee582b00c4` for v0.1.6
+- `c24612618f177f6dccb7ed9ee2a8648959b87e2e` for v0.1.7
+- `2adf9e19b7c73970a1dd6703afb3f9c27b7972d7` for v0.1.8 and v0.1.9
+- `87767ec809dc7f77bcd45808219adaf67841ae7b` for v0.1.10
+- `ec6b0ee76446f11aefb7fa0c203f2e01b4c9a711` for v0.1.11 and v0.1.12
 
 If any gate fails, inspect it before touching the tag or draft. Never move a published tag.

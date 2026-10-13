@@ -8,8 +8,8 @@ version = "0.3.0"
 description = "Local accounting reviews, ten bounded tax and super worksheets and cited retrieval from your configured local Markdown folder. uvx from PyPI; not advice."
 readme = "README.md"
 requires-python = ">=3.14"
-license = "MIT"
-license-files = ["LICENSE"]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 authors = [
     { name = "Ryan Duguid", email = "ryan@duguid.com.au" }
 ]
@@ -40,7 +40,7 @@ classifiers = [
     "Topic :: Office/Business :: Financial :: Accounting",
 ]
 dependencies = [
-    "mcp>=2.2.0,<3",
+    "mcp>=2.3.0,<3",
     # Exact pins, same intent as the commit pins these replace. PyPI rejects a
     # distribution whose metadata carries a direct URL reference, so a git pin
     # here makes the package unpublishable.
@@ -109,3 +109,8 @@ python_version = "3.14"
 packages = ["aus_accounting_mcp"]
 ignore_missing_imports = true
 pretty = true
+
+[tool.coverage.report]
+# CI fails the test job below complete line and branch coverage.
+fail_under = 100
+exclude_also = ['if __name__ == "__main__":']

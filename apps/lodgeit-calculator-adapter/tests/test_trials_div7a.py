@@ -205,3 +205,73 @@ def test_an_evaluation_outcome_is_not_an_accounting_state():
     assert payload["evaluation"] == "NOT_RUN"
     assert "approves nothing" in payload["boundary"]
     assert payload["evaluation"] not in ("PASS", "REVIEW", "BLOCKED", "READY", "NOT_READY")
+
+
+def test_the_case_file_falls_back_to_the_source_checkout_path(tmp_path, monkeypatch):
+    first, second = tmp_path / "source", tmp_path / "wheel"
+    monkeypatch.setattr(trial, "_FIXTURE_DIRS", (first, second))
+    assert trial.cases_path() == first / "div7a-cases.json"  # nosec B101: pytest outcome assertion
+    second.mkdir()
+    (second / "div7a-cases.json").write_text("{}", encoding="utf-8")
+    assert trial.cases_path() == second / "div7a-cases.json"  # nosec B101: pytest outcome assertion
+
+
+def test_the_local_side_carries_only_the_figures_the_engine_produced(monkeypatch):
+    from types import SimpleNamespace
+
+    from div7aloan import myr
+
+    unknown = SimpleNamespace(verdict="UNKNOWN", myr_required=None, payments_applied=None,
+                              shortfall=None, benchmark=None, reasons=("fabricated gap",))
+    monkeypatch.setattr(myr, "minimum_yearly_repayment", lambda facts: unknown)
+    verdict, values, reasons = trial.run_local(CASES["D7A-1-met-first-real-year"])
+    assert (verdict, values) == ("UNKNOWN", {})  # nosec B101: pytest outcome assertion
+    assert reasons[-1] == "fabricated gap"  # nosec B101: pytest outcome assertion
+
+
+def test_only_the_figures_the_provider_returned_are_extracted():
+    assert trial.extract_upstream({"statutory_myr": "1.00", "is_complying": True}) == {  # nosec B101: pytest outcome assertion
+        "statutory_myr": Decimal("1.00"),
+    }
+
+
+def _outcome(status, **fields):
+    from lodgeitadapter.client import Outcome
+
+    return Outcome(status=status, findings=("fabricated finding",), **fields)
+
+
+@pytest.mark.parametrize(("status", "expected"), [
+    ("UPSTREAM_NOT_FOUND", Evaluation.UNSUPPORTED_PERIOD),
+    ("UPSTREAM_REFUSED", Evaluation.SCOPE_MISMATCH),
+    ("UPSTREAM_REJECTED", Evaluation.CONTRACT_FAILURE),
+])
+def test_a_provider_answer_without_a_figure_is_named_for_why(status, expected):
+    from lodgeitadapter import Status
+
+    case = CASES["D7A-1-met-first-real-year"]
+    local_verdict, local_values, local_reasons = trial.run_local(case)
+    comparison = trial.evaluate_outcome(
+        case, local_verdict, local_values, local_reasons, _outcome(Status(status)),
+    )
+    assert comparison.evaluation is expected  # nosec B101: pytest outcome assertion
+    assert "fabricated finding" in comparison.reasons  # nosec B101: pytest outcome assertion
+    assert comparison.upstream == {}  # nosec B101: pytest outcome assertion
+
+
+def test_a_refusal_without_a_class_says_so():
+    from lodgeitadapter import Status
+
+    case = CASES["D7A-1-met-first-real-year"]
+    comparison = trial.evaluate_outcome(case, "MYR_MET", {}, (), _outcome(Status.UPSTREAM_REFUSED))
+    assert comparison.reasons[0] == "the provider refused this case: no class given"  # nosec B101: pytest outcome assertion
+
+
+def test_a_computed_answer_without_a_compliance_label_records_none(stub, stub_config, contract):
+    _, state = stub
+    case = CASES["D7A-1-met-first-real-year"]
+    body = provider_body(case)
+    del body["is_complying"]
+    state.respond(body)
+    comparison = trial.evaluate(case, LodgeitClient(stub_config, contract))
+    assert not any("is_complying" in reason for reason in comparison.reasons)  # nosec B101: pytest outcome assertion

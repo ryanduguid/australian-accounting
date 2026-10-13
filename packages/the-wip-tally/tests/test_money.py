@@ -75,3 +75,26 @@ def test_the_ordinary_grouped_forms_still_parse() -> None:
     # The pair held identical across every engine that reads an accounting cell.
     assert parse_amount("1,234.50") == Decimal("1234.50")
     assert parse_amount("(1,234.50)") == Decimal("-1234.50")
+
+
+@pytest.mark.parametrize("raw", [None, "", "   "])
+def test_parse_amount_refuses_a_missing_amount(raw: str | None) -> None:
+    with pytest.raises(AmountError, match="^cost: no amount given$"):
+        parse_amount(raw, "cost")  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("raw", [None, "", "   "])
+def test_parse_ratio_refuses_a_missing_ratio(raw: str | None) -> None:
+    with pytest.raises(AmountError, match="^gst_rate: no ratio given$"):
+        parse_ratio(raw, "gst_rate")  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("raw", ["-0.1", "-5%", "150%"])
+def test_parse_ratio_refuses_a_ratio_outside_the_unit_interval(raw: str) -> None:
+    with pytest.raises(AmountError, match=f"^gst_rate: '{raw}' is not between 0 and 1$"):
+        parse_ratio(raw, "gst_rate")
+
+
+def test_parse_bool_refuses_a_missing_flag() -> None:
+    with pytest.raises(AmountError, match="^measurable: no yes/no value given$"):
+        parse_bool(None, "measurable")  # type: ignore[arg-type]

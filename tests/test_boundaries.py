@@ -25,7 +25,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE_POLICY_SHA = "f068fb4f1d8f90e07429ded7cfb85bdbcc2960fe"
+RELEASE_POLICY_SHA = "a601f1d8b143f92b0517f709216993660d21f480"
 
 
 def _load_select_package():
@@ -227,6 +227,8 @@ class BoundaryTests(unittest.TestCase):
         reusable = (ROOT / ".github" / "workflows" / "ci-package.yml").read_text(
             encoding="utf-8"
         )
+        # A trailing "# NOSONAR: reason" is a YAML comment, not part of the command.
+        reusable = re.sub(r"[ \t]+# NOSONAR[^\n]*", "", reusable)
 
         self.assertIn("uses: ./.github/workflows/ci-package.yml", caller)
         called = set(re.findall(r"(?m)^          - package: (\S+)$", caller))
@@ -250,7 +252,7 @@ class BoundaryTests(unittest.TestCase):
             "--cov --cov-branch --cov-report=term-missing --cov-report=xml",
             'pip-audit --local --strict',
             "python -m build",
-            'python: ["3.14"]',
+            'python: ["3.14", "3.15"]',
         ):
             with self.subTest(gate=gate):
                 self.assertIn(gate, reusable)

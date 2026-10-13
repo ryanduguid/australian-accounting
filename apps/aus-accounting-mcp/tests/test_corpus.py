@@ -722,3 +722,56 @@ def test_rate_heading_fields_rank_separately(row, tier):
     rank = corpus_module._ranking(["cap", "rate"], ("heading", "topic"), ("content",))
 
     assert rank(row)[0] == tier
+
+
+def test_hidden_folders_and_stray_files_under_markdown_are_passed_over(corpus):
+    (corpus / "markdown" / ".cache").mkdir()
+    (corpus / "markdown" / ".cache" / "sections.jsonl").write_text("{}\n", encoding="utf-8")
+    (corpus / "markdown" / "README.txt").write_text("Synthetic levy rate notes.", encoding="utf-8")
+
+    result = call("search_tax_legislation", query="synthetic levy rate")
+
+    assert result["matches"][0]["row_id"] == "C9999A00001:0002:5-10"  # nosec B101: pytest outcome assertion
+
+
+def test_a_manifest_that_is_not_an_object_carries_no_provenance(corpus):
+    (corpus / "sources.json").write_text("[]", encoding="utf-8")
+
+    assert call("search_tax_legislation", query="synthetic levy rate")["corpus"] == {}  # nosec B101: pytest outcome assertion
+
+
+def test_a_manifest_without_attribution_keeps_its_other_facts(corpus):
+    (corpus / "sources.json").write_text(
+        json.dumps({"corpus": "Synthetic statutes", "retrieved": "2099-01-01"}), encoding="utf-8"
+    )
+
+    provenance = call("search_tax_legislation", query="synthetic levy rate")["corpus"]
+
+    assert provenance == {"corpus": "Synthetic statutes", "retrieved": "2099-01-01"}  # nosec B101: pytest outcome assertion
+
+
+def test_reading_an_index_that_is_not_utf8_is_an_input_error(corpus):
+    index = corpus / "markdown" / "C9999A00001" / "sections.jsonl"
+    index.write_bytes(b"\xff\xfe" + index.read_bytes())
+
+    with pytest.raises(ToolError, match="Cannot read that UTF-8 JSONL index"):
+        call("read_tax_legislation_section", row_id="C9999A00001:0002:5-10")
+
+
+def test_a_definition_lookup_over_an_index_that_is_not_utf8_is_an_input_error(corpus):
+    index = corpus / "markdown" / "C9999A00004" / "sections.jsonl"
+    index.write_bytes(index.read_bytes() + b"\xff\xfe small entity\n")
+
+    with pytest.raises(ToolError, match="Cannot read a UTF-8 JSONL index"):
+        call("define_tax_term", term="small entity")
+
+
+def test_the_act_filter_for_definitions_is_not_satisfied_by_the_heading(corpus):
+    # "Dictionary" is in the dictionary section's heading, never in its act.
+    assert call("define_tax_term", term="entity", act="dictionary")["definitions"] == []  # nosec B101: pytest outcome assertion
+
+
+def test_a_dictionary_paragraph_before_the_first_definition_is_not_part_of_one():
+    text = "This Act uses the following expressions.\n\nlevy means the synthetic levy."
+
+    assert list(corpus_module._definitions(text)) == [("levy", "levy means the synthetic levy.")]  # nosec B101: pytest outcome assertion

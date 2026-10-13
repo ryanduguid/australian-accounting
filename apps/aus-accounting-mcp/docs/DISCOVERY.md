@@ -146,14 +146,16 @@ the FAQ as corrected.
 
 Release `v0.1.5` predates the repository rename. Its certificate therefore
 retains the historical `au-tax-mcp-server` source identity. Verify it with an
-owner-scoped lookup that is then bound to the exact source and signer:
+owner-scoped lookup that is then bound to the exact source and signer. The
+monorepo import rewrote history, so the `v0.1.5` tag now resolves to
+`5f40beffd15be54a975619d9dabacf0d1a5d128e`. That commit has the same tree
+(`13698f0`) as the attested source commit, which the check names directly:
 
 ```bash
 tag=v0.1.5
 repo=ryanduguid/aus-accounting-mcp
 wheel="aus_accounting_mcp-${tag#v}-py3-none-any.whl"
-release_commit="$(git ls-remote "https://github.com/$repo.git" "refs/tags/$tag^{}" | cut -f1)"
-test -n "$release_commit"
+release_commit=965b4a57353c24efb978fdaff948d9b60e0158fc
 gh release download "$tag" -R "$repo" --dir "release-$tag"
 cd "release-$tag"
 sha256sum --check SHA256SUMS
@@ -170,13 +172,15 @@ gh attestation verify "$wheel" --owner ryanduguid \
   --signer-digest 3b8a377207cab2c7c808fcc96b66578f4695beea
 ```
 
-Releases cut after the rename and shared Python-policy migration use the
-current repository identity and hardened policy digest. For the next release,
-update `tag` if the intended version changes and run these checks after
+Releases cut after the rename use the current repository identity. The next
+release is signed by release-policy commit
+`a601f1d8b143f92b0517f709216993660d21f480`, the commit the release workflow
+pins. Update `tag` if the intended version changes and run these checks after
 downloading the assets and checking `SHA256SUMS`:
 
 ```bash
-tag=aus-accounting-mcp/v0.2.5
+tag=aus-accounting-mcp/v0.3.1
+signer=a601f1d8b143f92b0517f709216993660d21f480
 repo=ryanduguid/australian-accounting
 wheel="aus_accounting_mcp-${tag#aus-accounting-mcp/v}-py3-none-any.whl"
 release_commit="$(git ls-remote "https://github.com/$repo.git" "refs/tags/$tag^{}" | cut -f1)"
@@ -185,11 +189,22 @@ gh attestation verify "$wheel" -R "$repo" \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest 2adf9e19b7c73970a1dd6703afb3f9c27b7972d7
+  --signer-digest "$signer"
 gh attestation verify "$wheel" -R "$repo" \
   --predicate-type https://spdx.dev/Document/v2.3 \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \
   --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
-  --signer-digest 2adf9e19b7c73970a1dd6703afb3f9c27b7972d7
+  --signer-digest "$signer"
 ```
+
+Earlier monorepo releases carry the digest pinned when they were cut. Set
+`signer` to:
+
+- `3ff09b654a17b9a3b55548e25e6108ee582b00c4` for v0.1.7
+- `d487b1a854bc7a6f97cc114fc68cf3fe3989ce7e` for v0.1.9
+- `ff86e30038ca4fd028ce3663646ee03ae5e94692` for v0.2.0 and v0.2.1
+- `c24612618f177f6dccb7ed9ee2a8648959b87e2e` for v0.2.2
+- `2adf9e19b7c73970a1dd6703afb3f9c27b7972d7` for v0.2.3 to v0.2.6
+- `87767ec809dc7f77bcd45808219adaf67841ae7b` for v0.2.7 to v0.2.10
+- `ec6b0ee76446f11aefb7fa0c203f2e01b4c9a711` for v0.2.11 to v0.3.0

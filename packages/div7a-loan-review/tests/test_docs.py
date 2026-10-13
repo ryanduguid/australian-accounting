@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pytest
 from div7aloan.money import ROUNDING
+from div7aloan.myr import minimum_yearly_repayment_amount
 from div7aloan.rates import benchmark_rate, load_table
 from div7aloan.register import GATE_COLUMNS, MYR_COLUMNS, OPTIONAL_COLUMNS
 
@@ -260,6 +261,21 @@ REVIEW = REVIEW_PATH.read_text(encoding="utf-8")
 FLAT_REVIEW = flat(REVIEW)
 RATES_REVIEW_PATH = Path("docs/primary-source-review-2026-09-20.md")
 RATES_REVIEW = RATES_REVIEW_PATH.read_text(encoding="utf-8")
+ATO_COMPARISON_PATH = Path("docs/ato-calculator-comparison-2026-10-07.md")
+
+
+def test_the_readme_links_the_ato_calculator_comparison():
+    assert str(ATO_COMPARISON_PATH).replace("\\", "/") in README
+    assert "12,800" in flat(ATO_COMPARISON_PATH.read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize("balance,amount", [("80000", "15,772.78"), ("100000", "19,715.97")])
+def test_the_ato_calculator_example_is_this_engines_arithmetic(balance, amount):
+    """The README's first-year example for 2026-27: the calculator's $80,000
+    balance and the $100,000 balance at the end of the loan year, 7 years left."""
+    rate = benchmark_rate("2026-27").rate
+    assert f"{minimum_yearly_repayment_amount(Decimal(balance), rate, Decimal(7)):,}" == amount
+    assert f"${amount}" in FLAT_README
 
 
 def test_the_rates_review_is_linked_and_reads_the_rba_table():
