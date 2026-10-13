@@ -16,6 +16,7 @@ classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Financial and Insurance Industry",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Office/Business :: Financial :: Accounting",
 ]
 dependencies = []
