@@ -25,6 +25,10 @@ concurrency:
 permissions:
   contents: read
 
+# CI follows Python 3.14 maintenance releases; local development pins the patch.
+env:
+  UV_PYTHON: "3.14"
+
 jobs:
   changes:
     runs-on: ubuntu-latest
@@ -32,6 +36,9 @@ jobs:
     outputs:
       run: ${{ steps.select.outputs.run }}
     steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -51,17 +58,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            python: "3.11"
-          - os: ubuntu-latest
-            python: "3.12"
-          - os: ubuntu-latest
-            python: "3.13"
-          - os: ubuntu-latest
             python: "3.14"
           - os: ubuntu-latest
             python: "3.15"
           - os: windows-latest
-            python: "3.12"
+            python: "3.14"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -84,9 +85,9 @@ jobs:
         env:
           UV_PYTHON: ${{ matrix.python }}
           # The Codecov leg also writes XML; the documented command stays unchanged.
-          PYTEST_ADDOPTS: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.13' && '--cov-report=xml:coverage-codecov.xml' || '' }}
+          PYTEST_ADDOPTS: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.14' && '--cov-report=xml:coverage-codecov.xml' || '' }}
       - name: keep the coverage report for the Codecov upload
-        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-codecov
@@ -94,6 +95,8 @@ jobs:
           retention-days: 1
 
   lint:
+    env:
+      UV_PYTHON: "3.15"
     needs: changes
     if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     name: lodgeit lint
@@ -122,6 +125,8 @@ jobs:
         working-directory: apps/lodgeit-calculator-adapter
 
   dependency-audit:
+    env:
+      UV_PYTHON: "3.15"
     needs: changes
     if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     name: lodgeit dependency audit
@@ -183,6 +188,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false

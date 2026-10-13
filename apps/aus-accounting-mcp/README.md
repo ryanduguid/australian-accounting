@@ -3,7 +3,7 @@
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
 [![PyPI](https://img.shields.io/pypi/v/aus-accounting-mcp.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/aus-accounting-mcp/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/downloads/)
+[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/downloads/)
 
 Australian accounting tools for Claude, Cursor, Codex and other MCP clients. The
 server runs on your machine over stdio, needs no API key or account, and makes no
@@ -35,7 +35,7 @@ network calls once installed.
 
 ## Install
 
-Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/):
+Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
 uvx aus-accounting-mcp

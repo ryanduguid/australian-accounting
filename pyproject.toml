@@ -53,6 +53,7 @@ dev = [
 # Every component keeps its own [tool.ruff] block, and ruff resolves the closest
 # one per file, so this does not govern anything under packages/ or apps/.
 [tool.ruff]
+target-version = "py314"
 line-length = 100
 src = ["tests"]
 
@@ -67,7 +68,7 @@ testpaths = ["tests"]
 
 # Runtime packages only. Components retain their own configuration and CI gates.
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 files = [
     "packages/australian-tax-calculators/austaxcalc",
     "packages/ato-benchmark-compare/atobenchmark",
