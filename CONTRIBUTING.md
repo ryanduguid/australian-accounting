@@ -143,7 +143,7 @@ release callers require that test job; no second pytest run is needed.
   `requires-python`), a `pip-audit` dependency audit, and a build of the distribution
   followed by an install of the one built wheel into a clean environment, an import of
   the engine from it, and the engine's own wheel smoke script. `ato-benchmark-compare`,
-  `payday-super-checker` and `the-wip-tally` add a Windows leg on 3.12.
+  `payday-super-checker` and `the-wip-tally` add a Windows leg on 3.14.
 - The path filter is applied inside each call, by `.github/ci/select_package.py`, rather
   than on the trigger. A change under `packages/<engine>/` runs that engine and skips the
   rest; a change to a root policy file (`AGENTS.md`, `CONTRIBUTING.md`, `README.md`,
