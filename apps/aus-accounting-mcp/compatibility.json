@@ -2,12 +2,12 @@
   "schema_version": 1,
   "server": {
     "distribution": "aus-accounting-mcp",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "repository": "https://github.com/ryanduguid/australian-accounting",
-    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.3.0/",
+    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.4.0/",
     "registry_identity": "io.github.ryanduguid/aus-accounting",
-    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.3.0",
-    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.3.0"
+    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.4.0",
+    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.4.0"
   },
   "engines": [
     {

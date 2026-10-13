@@ -1,5 +1,7 @@
-# Unreleased
+# v0.4.0
 
+- Breaking: requires Python 3.14 or later. 0.3.0 remains the last release for Python 3.11 to 3.13 ([#355](https://github.com/ryanduguid/australian-accounting/pull/355)).
+- Requires `mcp` 2.3.0 or later ([#370](https://github.com/ryanduguid/australian-accounting/pull/370)).
 - Licence: Apache-2.0 replaces MIT. Anyone who redistributes this package or a
   derivative must keep the attribution in `NOTICE`. Versions already released stay
   under MIT.
@@ -13,6 +15,9 @@
   schema, including the contribution rows and worksheet facts, now publishes the pattern
   `^\s*-?[0-9]+(?:\.[0-9]{1,2})?\s*$`, so a client that validates schemas refuses these
   forms before calling.
+- The pins of `div7a-loan-review` 0.2.0, `payday-super-checker` 0.1.9, `ato-benchmark-compare` 0.1.11 and
+  `australian-tax-calculators` 0.1.8 are unchanged.
+- Align the release, citation, compatibility and MCP Registry metadata to 0.4.0.
 
 # v0.3.0
 

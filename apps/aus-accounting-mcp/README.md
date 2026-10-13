@@ -156,7 +156,7 @@ leaves `UNKNOWN` or refuses. Another implementation can replay them; see
 
 Apache-2.0 licensed. Created by Ryan Duguid. If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.3.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.3.0),
+[v0.4.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.4.0),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <!-- mcp-name: io.github.ryanduguid/aus-accounting -->

@@ -96,7 +96,7 @@ anything a later edit added.
   Use **Sync Server** after a source change lands. Profile name and description
   are separate fields under **Admin → Profile**. Review generated FAQs and TDQS
   explanations after syncing: cached text may still describe an earlier tool set.
-  Version 0.3.0 exposes 18 tools. Do not claim a new grade until
+  Version 0.4.0 exposes 18 tools. Do not claim a new grade until
   Glama actually recomputes it.
 - Official MCP registry: listed as `io.github.ryanduguid/aus-accounting` since
   25 August 2026. Record:
@@ -179,7 +179,7 @@ pins. Update `tag` if the intended version changes and run these checks after
 downloading the assets and checking `SHA256SUMS`:
 
 ```bash
-tag=aus-accounting-mcp/v0.3.1
+tag=aus-accounting-mcp/v0.4.0
 signer=a601f1d8b143f92b0517f709216993660d21f480
 repo=ryanduguid/australian-accounting
 wheel="aus_accounting_mcp-${tag#aus-accounting-mcp/v}-py3-none-any.whl"
