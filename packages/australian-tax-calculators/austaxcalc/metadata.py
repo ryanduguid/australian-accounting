@@ -102,6 +102,18 @@ MEDICARE_LOW_INCOME_THRESHOLDS: dict[str, tuple[str, str]] = {
 # of taxable income over the threshold amount, up to the phase-in limit.
 MEDICARE_LEVY_RATES = {"levy": "0.02", "shade_in": "0.10"}
 
+# Low income tax offset, ITAA 1997 s 61-115(1) table, whole dollars and rates:
+# the full offset up to the first step, less 5% of the excess to the second
+# step, then the second-step amount less 1.5% of the excess. Entitlement ends
+# above the cut-out (s 61-110(1)(b)). The provisions apply from 2020-21; each
+# supported year is listed so a new year is a deliberate addition.
+LOW_INCOME_TAX_OFFSET = {
+    "maximum": "700", "first_step": "37500", "first_rate": "0.05",
+    "second_step": "45000", "second_amount": "325", "second_rate": "0.015",
+    "cut_out": "66667",
+}
+LOW_INCOME_TAX_OFFSET_YEARS = ("2024-25", "2025-26", "2026-27")
+
 # Unused concessional cap carries forward only below this total super balance
 # on the previous 30 June (ITAA 1997 s 291-20(3)).
 CARRY_FORWARD_BALANCE_LIMIT = "500000"
@@ -126,6 +138,7 @@ SUPPORTED_PERIODS = {
     "study_loan_repayment": tuple(STUDY_LOAN_REPAYMENT_THRESHOLDS),
     "study_loan_withholding": tuple(STUDY_LOAN_WITHHOLDING_COEFFICIENTS),
     "medicare_levy": tuple(MEDICARE_LOW_INCOME_THRESHOLDS),
+    "low_income_tax_offset": LOW_INCOME_TAX_OFFSET_YEARS,
 }
 
 # Preserve the existing rule-review baseline. A Library example check does not
@@ -185,6 +198,11 @@ SOURCE_REVIEWS = {
         "passage": "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; ATO "
                    "Medicare levy reduction for low-income earners (2025-26) and myTax 2025 "
                    "table 2 (2024-25)",
+    },
+    "low_income_tax_offset": {
+        "checked": "2026-10-15",
+        "passage": "ITAA 1997 ss 61-110 and 61-115, compilation 266 (1 July 2026); ATO Low "
+                   "income tax offset page",
     },
 }
 
@@ -250,6 +268,12 @@ LIBRARY_EVIDENCE = {
         "paragraphs": "table of single thresholds, example (Angie)",
         "reviewed": "2026-06-30", "checked": "2026-10-15",
     },
+    # Not a Library document: the ATO's worked example of the same table.
+    "low_income_tax_offset": {
+        "document": "ATO low and middle income earner tax offsets",
+        "paragraphs": "example: taxable income over $37,000 but under $48,000",
+        "reviewed": "2025-06-16", "checked": "2026-10-15",
+    },
 }
 
 INPUT_UNITS = {
@@ -296,6 +320,7 @@ INPUT_UNITS = {
         "scale": "integer 1, 2, 3, 5 or 6",
     },
     "medicare_levy": {"taxable_income": "AUD, whole dollars"},
+    "low_income_tax_offset": {"taxable_income": "AUD, whole dollars"},
 }
 
 EXAMPLES: dict[str, dict[str, Any]] = {
@@ -324,6 +349,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "study_loan_repayment": {"repayment_income": "86380"},
     "study_loan_withholding": {"earnings": "2000.00", "pay_period": "weekly", "scale": 2},
     "medicare_levy": {"taxable_income": "30000"},
+    "low_income_tax_offset": {"taxable_income": "40000"},
 }
 
 
