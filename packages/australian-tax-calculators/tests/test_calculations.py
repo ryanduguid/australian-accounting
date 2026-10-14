@@ -140,9 +140,14 @@ def test_depreciation_rejects_invalid_scope_inputs(field, value):
         c.depreciation(**args)
 
 
-@pytest.mark.parametrize("precision", [4, 6, 28, 40])
+@pytest.mark.parametrize("precision", [2, 4, 6, 28, 40])
 def test_worksheets_do_not_inherit_the_callers_decimal_precision(precision):
-    """At precision 4 the basic tax came back as 56140.00 and the FBT estimate as 21450.00."""
+    """At precision 4 the basic tax came back as 56140.00 and the FBT estimate as 21450.00.
+
+    At precision 5 the contribution caps worksheet applied a 0.01 carry-forward but
+    reported 30000.00 available; at precision 2 its bring-forward band boundaries
+    rounded, giving a balance just below the transfer balance cap two annual caps.
+    """
     with localcontext() as context:
         context.prec = precision
         tax = c.resident_tax(D("200000"), "2025-26", True)
@@ -155,4 +160,15 @@ def test_worksheets_do_not_inherit_the_callers_decimal_precision(precision):
         sg = c.quarterly_sg(D("41576.15"), D("0"), "2025-26", 1, True)
         assert sg["amounts"]["additional_contribution"] == "4989.14"
         assert c.gst(D("1100"), True, True, "2025-26")["amounts"]["gst"] == "100.00"
+        caps = c.contribution_caps(D("100000"), D("0"), D("0.01"), D("0"), True,
+                                   "2025-26", True)
+        assert caps["amounts"]["carry_forward_applied"] == "0.01"
+        assert caps["amounts"]["concessional_available"] == "30000.01"
+        assert caps["amounts"]["concessional_remaining"] == "30000.01"
+        # 2026-27: one annual cap from $1,970,000, two from $1,840,000.
+        for balance, multiple in (("1980000", "1"), ("1969999.99", "2"),
+                                  ("1840000", "2"), ("1839999.99", "3")):
+            band = c.contribution_caps(D(balance), D("0"), D("0"), D("0"), True,
+                                       "2026-27", True)
+            assert band["rates"]["non_concessional_cap_multiple"] == multiple, balance
         assert getcontext().prec == precision, "the caller's context is left alone"

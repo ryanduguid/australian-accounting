@@ -325,6 +325,112 @@ def test_stated_measurability_keeps_its_figures() -> None:
     assert "outcome_not_reasonably_measurable" in not_measurable.flags
 
 
+@pytest.mark.parametrize(
+    "method,overrides",
+    [
+        ("cost_to_cost", {}),
+        ("output", {"output_percent": Decimal("0.50")}),
+        ("output", {}),
+        ("right_to_invoice", {}),
+    ],
+)
+def test_para_45_limits_revenue_under_every_progress_method(
+    method: str, overrides: dict[str, object]
+) -> None:
+    # Output at 50% booked 500,000 and right to invoice booked the 450,000
+    # billed, both ignoring a stated "no" that cost-to-cost honoured.
+    position = measure(
+        _contract(
+            outcome_reasonably_measurable=False,
+            recoverable_costs=Decimal("320000.00"),
+            progress_method=method,
+            **overrides,
+        )
+    )
+    assert position.revenue_to_date == Decimal("320000.00")
+    assert position.percent_complete == ZERO
+    assert position.contract_liability == Decimal("130000.00")
+    assert "outcome_not_reasonably_measurable" in position.flags
+    assert ("progress_method_not_cost_to_cost" in position.flags) is (
+        method != "cost_to_cost"
+    )
+
+
+@pytest.mark.parametrize("percent", [
+    Decimal("-0.5"), Decimal("1.5"), Decimal("NaN"), Decimal("Infinity"),
+])
+def test_a_supplied_output_percent_is_checked_when_para_45_applies(percent: Decimal) -> None:
+    with pytest.raises(ScheduleError, match="output_percent is"):
+        measure(
+            _contract(
+                outcome_reasonably_measurable=False,
+                recoverable_costs=Decimal("320000.00"),
+                progress_method="output",
+                output_percent=percent,
+            )
+        )
+
+
+def test_a_supplied_output_percent_must_be_decimal_when_para_45_applies() -> None:
+    with pytest.raises(TypeError, match="output_percent must be Decimal"):
+        measure(
+            _contract(
+                outcome_reasonably_measurable=False,
+                progress_method="output",
+                output_percent=0.5,
+            )
+        )
+
+
+@pytest.mark.parametrize("method", ["cost_to_cost", "output", "right_to_invoice"])
+@pytest.mark.parametrize("recoverable", [Decimal("100.01"), None])
+def test_para_45_refuses_recoverable_cost_above_the_transaction_price(
+    method: str, recoverable: Decimal | None,
+) -> None:
+    # Price 100, costs 200: recognising 100.01 or the 200 default would book
+    # revenue above the transaction price.
+    with pytest.raises(ScheduleError, match="exceeds the transaction price 100.00"):
+        measure(
+            _contract(
+                original_contract_sum=Decimal("100.00"),
+                costs_incurred=Decimal("200.00"),
+                certified_billings=Decimal("0.00"),
+                outcome_reasonably_measurable=False,
+                recoverable_costs=recoverable,
+                progress_method=method,
+                output_percent=Decimal("0.50"),
+            )
+        )
+
+
+def test_para_45_accepts_recoverable_cost_equal_to_the_transaction_price() -> None:
+    position = measure(
+        _contract(
+            original_contract_sum=Decimal("100.00"),
+            costs_incurred=Decimal("200.00"),
+            certified_billings=Decimal("0.00"),
+            outcome_reasonably_measurable=False,
+            recoverable_costs=Decimal("100.00"),
+        )
+    )
+    assert position.revenue_to_date == Decimal("100.00")
+
+
+@pytest.mark.parametrize("method", ["output", "right_to_invoice"])
+def test_para_45_refuses_recoverable_cost_above_cost_under_every_method(
+    method: str,
+) -> None:
+    with pytest.raises(ScheduleError, match="exceeds costs incurred"):
+        measure(
+            _contract(
+                outcome_reasonably_measurable=False,
+                recoverable_costs=Decimal("400000.01"),
+                progress_method=method,
+                output_percent=Decimal("0.50"),
+            )
+        )
+
+
 @pytest.mark.parametrize("percent", [Decimal("-0.5"), Decimal("2"), Decimal("1.0001")])
 def test_output_progress_outside_zero_to_one_is_refused(percent: Decimal) -> None:
     # CSV ingestion already refuses these. measure() is the public calculation path,
