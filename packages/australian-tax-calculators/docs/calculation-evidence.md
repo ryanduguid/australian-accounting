@@ -34,6 +34,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
 | Medicare levy | Not a Library document: Medicare Levy Act 1986 compilation 53 and the ATO's single thresholds | 30 June 2026 (ATO page) | Single person without SAPTO, the 2% rate and the s 7 low-income reduction for 2024-25 and 2025-26 |
+| Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO thresholds page and Gazette C2026G00249 | 30 June 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -169,6 +170,27 @@ Each published phase-in limit is 1.25 times the threshold amount, rounded down
 to the dollar: that is the income at which 10% of the excess reaches 2% of the
 whole, and the tests derive it. The family income reduction (s 8), exemptions,
 the surcharge, trustees and part-year residence are outside the worksheet.
+
+## Low income tax offset
+
+This worksheet's evidence is not a Library document. The table was read on 15
+October 2026 in ITAA 1997 s 61-115(1) as compiled at 1 July 2026 (compilation
+266, volume 2): $700 where taxable income does not exceed $37,500, $700 less 5%
+of the excess up to $45,000, and $325 less 1.5% of the excess up to $66,667.
+Section 61-110(1) gives the offset for 2020-21 and later income years to an
+individual who is an Australian resident at any time in the year with taxable
+income of no more than $66,667. The ATO page "Low income tax offset" (last
+updated 8 June 2026) states the same bands, and its page on low and middle
+income earner tax offsets works the $45,000 case to $325, which
+`tests/test_low_income_tax_offset.py` holds. The tests also derive the $325
+from the first band and the $66,667 cut-out as the first whole dollar at which
+the third item reaches nil.
+
+The provision states no rounding. Whole-dollar taxable income in the 1.5% band
+can leave half a cent, which the worksheet rounds half up like its other
+amounts. At $66,667 the third item gives minus half a cent and the worksheet
+returns nil. The cap for minors in s 61-115(2), trustees under s 61-110(2) and
+applying the offset against tax payable are outside the worksheet.
 
 ## Study loan withholding
 

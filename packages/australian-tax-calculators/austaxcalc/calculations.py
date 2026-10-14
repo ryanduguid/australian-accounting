@@ -13,6 +13,7 @@ from .metadata import (
     EXAMPLES,
     INPUT_UNITS,
     LIBRARY_EVIDENCE,
+    LOW_INCOME_TAX_OFFSET,
     MEDICARE_LEVY_RATES,
     MEDICARE_LOW_INCOME_THRESHOLDS,
     PAYG_WITHHOLDING_COEFFICIENTS,
@@ -43,6 +44,7 @@ SOURCES = {
     "study_loan_repayment": "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-support-loans-rates-and-repayment-thresholds",
     "study_loan_withholding": "https://www.ato.gov.au/tax-rates-and-codes/schedule-8-statement-of-formulas-for-calculating-study-and-training-support-loans-components",
     "medicare_levy": "https://www.legislation.gov.au/C2004A03351/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+    "low_income_tax_offset": "https://www.legislation.gov.au/C2004A05138/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
 }
 # Sources beyond the per-rule one, returned with it in each result's sources.
 EXTRA_SOURCES = {
@@ -53,6 +55,7 @@ EXTRA_SOURCES = {
         "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners",
         "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/mytax-instructions/2025/medicare-and-private-health-insurance/medicare-levy-reduction-or-exemption",
     ],
+    "low_income_tax_offset": ["https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset"],
 }
 
 
@@ -144,6 +147,14 @@ SCOPES = {
            "to the phase-in limit no more than 10% of the excess over it. Excludes the "
            "family income reduction, SAPTO thresholds, exemptions, the Medicare levy "
            "surcharge, trustees and part-year residence.",
+    "low_income_tax_offset": "Individual who was an Australian resident at some time in the "
+           "income year, not a trustee, and not a minor whose offset s 61-115(2) caps because "
+           "Division 6AA of Part III of the 1936 Act applies to part of their income. Supply "
+           "established whole-dollar taxable income. Gives the offset amount under ITAA 1997 "
+           "s 61-115(1): $700 to $37,500, less 5% of the excess to $45,000, then $325 less "
+           "1.5% of the excess, nil above $66,667. The 1.5% band can leave half a cent, "
+           "rounded half up. The offset is non-refundable; this worksheet does not apply it "
+           "against tax payable or combine it with other offsets.",
 }
 
 
@@ -425,6 +436,31 @@ def medicare_levy(taxable_income: Decimal, year: str, scope_confirmed: bool) -> 
             "low_income_reduction": full - levy, "medicare_levy": levy,
         }, {"levy_rate": str(rate), "shade_in_rate": str(shade_in),
             "threshold_amount": str(threshold), "phase_in_limit": str(limit)})
+
+
+def low_income_tax_offset(taxable_income: Decimal, year: str,
+                          scope_confirmed: bool) -> dict[str, Any]:
+    """ITAA 1997 s 61-115(1) low income tax offset for a resident individual."""
+    _scope(scope_confirmed, year, "low_income_tax_offset")
+    income = _money(taxable_income)
+    if income != income.to_integral_value():
+        raise ValueError("Supply established whole-dollar taxable income.")
+    rule = {key: D(value) for key, value in LOW_INCOME_TAX_OFFSET.items()}
+    with localcontext() as context:
+        context.prec = 40
+        if income <= rule["first_step"]:
+            offset = rule["maximum"]
+        elif income <= rule["second_step"]:
+            offset = rule["maximum"] - (income - rule["first_step"]) * rule["first_rate"]
+        elif income <= rule["cut_out"]:
+            # At the cut-out the table gives minus half a cent; the offset is nil.
+            offset = max(D(0), rule["second_amount"]
+                         - (income - rule["second_step"]) * rule["second_rate"])
+        else:
+            offset = D(0)
+        return _result("low_income_tax_offset", year, {
+            "taxable_income_used": income, "low_income_tax_offset": offset,
+        }, dict(LOW_INCOME_TAX_OFFSET))
 
 
 def study_loan_repayment(repayment_income: Decimal, year: str,
