@@ -1,0 +1,13 @@
+{
+  "id": "base-rate-entity-turnover-threshold",
+  "label": "Base rate entity aggregated turnover threshold",
+  "value": 50000000,
+  "unit": "AUD",
+  "period": {
+    "effective_from": "2021-07-01"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rate-changes",
+  "retrieved_at": "2026-10-15T00:30:39+11:00",
+  "quote": "2021–22 and future years $50m 25.0% 30.0%",
+  "notes": "Aggregated turnover must be less than this amount. The page prints $50m, so the record has no pattern, and shows $50m from 2018–19. A base rate entity also needs base rate entity passive income of 80% or less of its assessable income."
+}

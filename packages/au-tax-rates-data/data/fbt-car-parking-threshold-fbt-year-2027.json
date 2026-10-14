@@ -1,0 +1,15 @@
+{
+  "id": "fbt-car-parking-threshold-fbt-year-2027",
+  "label": "FBT car parking threshold (daily)",
+  "value": 11.48,
+  "unit": "AUD",
+  "period": {
+    "effective_from": "2026-04-01",
+    "effective_to": "2027-03-31"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds",
+  "retrieved_at": "2026-10-15T00:31:57+11:00",
+  "quote": "Car parking threshold FBT year ending Threshold 31 March 2027 $11.48",
+  "pattern": "Car parking threshold FBT year ending Threshold 31 March 2027 (\\$[\\d.]+)",
+  "notes": "FBT year ending 31 March 2027."
+}

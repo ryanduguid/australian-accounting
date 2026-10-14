@@ -1,0 +1,14 @@
+{
+  "id": "company-tax-rate-full",
+  "label": "Company tax rate, full rate",
+  "value": 30,
+  "unit": "percent",
+  "period": {
+    "effective_from": "2021-07-01"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rate-changes",
+  "retrieved_at": "2026-10-15T00:30:39+11:00",
+  "quote": "2021–22 and future years $50m 25.0% 30.0%",
+  "pattern": "2021–22 and future years \\$50m [\\d.]+% ([\\d.]+%)",
+  "notes": "Applies to companies that are not base rate entities. The page shows 30% for every year from 2017–18."
+}

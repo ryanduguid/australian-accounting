@@ -6,7 +6,7 @@ import pytest
 import rates
 
 
-@pytest.mark.parametrize("unit", ["AUD", "percent", "cents_per_km"])
+@pytest.mark.parametrize("unit", ["AUD", "percent", "cents_per_km", "factor"])
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
 def test_non_finite_values_are_refused(unit, value):
     assert rates.check_value(unit, value)
@@ -14,7 +14,7 @@ def test_non_finite_values_are_refused(unit, value):
 
 @pytest.mark.parametrize("unit, value", [("AUD", 0), ("AUD", 7483.05),
                                         ("percent", 0), ("percent", 100),
-                                        ("cents_per_km", 91), ("AUD", 10 ** 400)])
+                                        ("cents_per_km", 91), ("factor", 2.0802), ("AUD", 10 ** 400)])
 def test_finite_non_negative_values_remain_valid(unit, value):
     assert rates.check_value(unit, value) == []
 

@@ -9,7 +9,7 @@ Key ATO rates and thresholds, one JSON file per figure in `data/`. Each record c
 | `id` | File name without `.json` |
 | `label` | What the figure is |
 | `value` | Number, ISO date, or a list of brackets for `tax_scale` |
-| `unit` | `AUD`, `percent`, `cents_per_km`, `date` or `tax_scale` |
+| `unit` | `AUD`, `percent`, `cents_per_km`, `factor` (a plain multiplier such as an FBT gross-up rate), `date` or `tax_scale` |
 | `period` | Any of `income_year` (like `2026-27`), `effective_from`, `effective_to`, `as_at` (ISO dates). `as_at` means the page gives no year, so the retrieval date is used |
 | `source_url` | Public ato.gov.au page |
 | `retrieved_at` | When the snapshot the quote was checked against was taken |
@@ -20,7 +20,7 @@ Key ATO rates and thresholds, one JSON file per figure in `data/`. Each record c
 
 Income years must name consecutive calendar years, including century rollover such as `2099-00`. When both effective dates are present, the end cannot precede the start. Open-ended periods remain valid. The retrieval marker `as_at` does not set an effective-period boundary.
 
-Numeric values must be finite and non-negative, with percentages between 0 and 100. Tax-scale bounds are whole dollar amounts, starting at zero and continuing without gaps or overlaps. Only the final bracket has no upper limit. Base tax and marginal rates follow the same numeric checks before the validator checks the arithmetic.
+Numeric values must be finite and non-negative, with percentages between 0 and 100. Tax-scale bounds are whole dollar amounts, starting at zero and continuing without gaps or overlaps. Only the final bracket has no upper limit. A scale taxed from the first dollar, such as the foreign resident rates, is checked against the page wording "30c for each $1". Base tax and marginal rates follow the same numeric checks before the validator checks the arithmetic.
 
 ## How the data was built
 
@@ -28,6 +28,7 @@ Numeric values must be finite and non-negative, with percentages between 0 and 1
 2. Firecrawl JSON extraction pulled each value and a supporting quote.
 3. `python rates.py snapshot` saved each page's visible text through the local Camofox browser.
 4. Every value, quote and pattern was checked against those snapshots. Where Firecrawl's extraction and the page text disagreed, the page text won and the record's `notes` say so.
+5. On 15 October 2026, 30 more figures were added. The figure list in [au-accounting](https://github.com/darrentmorgan/au-accounting) (MIT) suggested which figures to look for; no values were taken from it. Each page was saved with `fetch_text`, the same browser call `snapshot` uses, and each value and quote was read from that snapshot. Pages already in `snapshots/` were saved again, and their records' `retrieved_at` updated.
 
 Snapshots store the page's `innerText` with non-breaking and other Unicode spaces turned into plain spaces. Quote checks collapse all whitespace, so table cells compare as plain text.
 
@@ -56,4 +57,6 @@ The instant asset write-off record retains the source table's $20,000 limit from
 ## Known gaps
 
 - The car cost limit record uses an ATO newsroom item; next year's figure may be published at a different URL.
-- Medicare levy low-income thresholds for 2026-27 were not published on the page at retrieval.
+- Medicare levy low-income thresholds for 2026-27 were not on the ATO page when it was checked on 15 October 2026.
+- The ATO foreign resident rates page lists tables up to 2025-26 only, so there is no 2026-27 foreign resident record.
+- Figures quoted in words or millions (`$2 million`, `$50m`, `2.1` in a `($m)` column) have no `pattern`. For those records `check` reports a change only when the quote no longer matches.

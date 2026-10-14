@@ -39,13 +39,16 @@ def test_pattern_reads_the_committed_value_from_the_snapshot(record):
     ("percent", "12.00", Decimal("12")),
     ("cents_per_km", "91 cents", Decimal("91")),
     ("cents_per_km", "70c", Decimal("70")),
+    ("factor", "2.0802", Decimal("2.0802")),
+    ("factor", "2", Decimal("2")),
     ("date", "1\xa0July 2026", "2026-07-01"),
 ])
 def test_parse_text_units(unit, text, expected):
     assert rates.parse_text(unit, text) == expected
 
 
-@pytest.mark.parametrize("unit, text", [("AUD", "about $30k"), ("percent", "47 per cent"), ("date", "2026-07-01")])
+@pytest.mark.parametrize("unit, text", [("AUD", "about $30k"), ("percent", "47 per cent"), ("date", "2026-07-01"),
+                                        ("factor", "2.08%"), ("factor", ".5")])
 def test_parse_text_rejects_other_formats(unit, text):
     with pytest.raises(ValueError):
         rates.parse_text(unit, text)
@@ -179,6 +182,21 @@ def test_a_scale_must_match_the_brackets_its_quote_prints():
     problems = rates.validate_record(dict(current, value=copy.deepcopy(previous["value"])))
     assert "quote does not show the bracket '16c for each $1 over $18,200'" in problems
     assert len(problems) == 4
+
+
+def test_a_scale_taxed_from_the_first_dollar_renders_without_an_over_amount():
+    foreign = next(r for r in RECORDS if r["id"] == "foreign-resident-tax-rates-2025-26")
+    assert rates.scale_renderings(foreign["value"]) == [
+        "30c for each $1",
+        "$40,500 plus 37c for each $1 over $135,000",
+        "$60,850 plus 45c for each $1 over $190,000"]
+    shifted = copy.deepcopy(foreign["value"])
+    shifted[0]["marginal_rate"] = 32.5
+    shifted[1]["base_tax"] = 43875
+    shifted[2]["base_tax"] = 64225
+    assert rates.check_scale(shifted) == []
+    assert "quote does not show the bracket '32.5c for each $1'" in rates.validate_record(
+        dict(foreign, value=shifted))
 
 
 def test_data_files_are_stable_json():

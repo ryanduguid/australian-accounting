@@ -26,7 +26,7 @@ NODRIVER = [r"C:\Tools\nodriver-browser\.venv\Scripts\python.exe", r"C:\Tools\no
 
 FIELDS = {"id": str, "label": str, "unit": str, "period": dict,
           "source_url": str, "retrieved_at": str, "quote": str}
-UNITS = {"AUD", "percent", "cents_per_km", "date", "tax_scale"}
+UNITS = {"AUD", "percent", "cents_per_km", "factor", "date", "tax_scale"}
 PERIOD_KEYS = {"income_year", "effective_from", "effective_to", "as_at"}
 INCOME_YEAR = re.compile(r"^\d{4}-\d{2}$")
 
@@ -42,12 +42,13 @@ def norm(text):
 
 
 def parse_text(unit, text):
-    """Parse a figure as printed on the page ("$32,500", "8.77%", "91 cents", "1 July 2026")."""
+    """Parse a figure as printed on the page ("$32,500", "8.77%", "91 cents", "2.0802", "1 July 2026")."""
     text = norm(text)
     if unit == "date":
         return dt.datetime.strptime(text, "%d %B %Y").date().isoformat()
     number = {"AUD": r"^\$?([\d,]+(?:\.\d+)?)$",
               "percent": r"^([\d.]+)\s?%?$",
+              "factor": r"^(\d+(?:\.\d+)?)$",
               "cents_per_km": r"^([\d.]+)\s?(?:c|cents)(?: per (?:kilometre|km))?$"}[unit]
     m = re.match(number, text)
     if not m:
@@ -122,7 +123,10 @@ def scale_renderings(rows):
     for row in rows:
         if row["marginal_rate"] == 0:
             continue
-        rate = f"{Decimal(str(row['marginal_rate'])).normalize():f}c for each $1 over {dollars(row['from'] - 1)}"
+        rate = f"{Decimal(str(row['marginal_rate'])).normalize():f}c for each $1"
+        # A scale taxed from the first dollar (foreign residents) prints "30c for each $1".
+        if row["from"]:
+            rate += f" over {dollars(row['from'] - 1)}"
         renderings.append(rate if row["base_tax"] == 0 else f"{dollars(row['base_tax'])} plus {rate}")
     return renderings
 

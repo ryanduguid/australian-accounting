@@ -1,0 +1,14 @@
+{
+  "id": "lito-income-limit",
+  "label": "Low income tax offset, highest taxable income eligible",
+  "value": 66667,
+  "unit": "AUD",
+  "period": {
+    "as_at": "2026-10-15"
+  },
+  "source_url": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset",
+  "retrieved_at": "2026-10-15T00:31:17+11:00",
+  "quote": "You may be eligible for the low income tax offset (LITO) if you earn up to $66,667.",
+  "pattern": "\\(LITO\\) if you earn up to (\\$[\\d,]+)",
+  "notes": "The page names no income year, so the period is the retrieval date."
+}

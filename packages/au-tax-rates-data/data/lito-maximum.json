@@ -1,0 +1,14 @@
+{
+  "id": "lito-maximum",
+  "label": "Low income tax offset, maximum",
+  "value": 700,
+  "unit": "AUD",
+  "period": {
+    "as_at": "2026-10-15"
+  },
+  "source_url": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset",
+  "retrieved_at": "2026-10-15T00:31:17+11:00",
+  "quote": "$37,500 or less, you will get the maximum offset of $700",
+  "pattern": "maximum offset of (\\$[\\d,]+)",
+  "notes": "The page names no income year, so the period is the retrieval date."
+}
