@@ -28,6 +28,7 @@ Numeric values must be finite and non-negative, with percentages between 0 and 1
 2. Firecrawl JSON extraction pulled each value and a supporting quote.
 3. `python rates.py snapshot` saved each page's visible text through the local Camofox browser.
 4. Every value, quote and pattern was checked against those snapshots. Where Firecrawl's extraction and the page text disagreed, the page text won and the record's `notes` say so.
+5. On 15 October 2026, 30 more figures were added. The figure list in [au-accounting](https://github.com/darrentmorgan/au-accounting) (MIT) suggested which figures to look for; no values were taken from it. Each page was saved with `fetch_text`, the same browser call `snapshot` uses, and each value and quote was read from that snapshot. Pages already in `snapshots/` were saved again, and their records' `retrieved_at` updated.
 
 Snapshots store the page's `innerText` with non-breaking and other Unicode spaces turned into plain spaces. Quote checks collapse all whitespace, so table cells compare as plain text.
 
@@ -56,4 +57,6 @@ The instant asset write-off record retains the source table's $20,000 limit from
 ## Known gaps
 
 - The car cost limit record uses an ATO newsroom item; next year's figure may be published at a different URL.
-- Medicare levy low-income thresholds for 2026-27 were not published on the page at retrieval.
+- Medicare levy low-income thresholds for 2026-27 were not on the ATO page when it was checked on 15 October 2026.
+- The ATO foreign resident rates page lists tables up to 2025-26 only, so there is no 2026-27 foreign resident record.
+- Figures quoted in words or millions (`$2 million`, `$50m`, `2.1` in a `($m)` column) have no `pattern`. For those records `check` reports a change only when the quote no longer matches.
