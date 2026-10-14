@@ -33,6 +33,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
+| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilation 53 and the ATO's single thresholds | 30 June 2026 (ATO page) | Single person without SAPTO, the 2% rate and the s 7 low-income reduction for 2024-25 and 2025-26 |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO thresholds page and Gazette C2026G00249 | 30 June 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -146,6 +147,28 @@ transcription; it does not establish that a payee's scale, allowances or
 declarations are right. Scale 4, tax offsets, Medicare levy adjustments, study
 and training support loans, 53 and 27 pay years, quarterly pays and the other
 schedules are outside this worksheet.
+
+## Medicare levy
+
+This worksheet's evidence is not a Library document. The rate and the
+low-income reduction were read on 15 October 2026 in the Medicare Levy Act 1986
+as compiled at 1 July 2026 (compilation 53): s 6(1) sets the rate at 2%, s 7(1)
+removes the levy at or below the threshold amount, and s 7(2) limits it to 10%
+of the excess up to the phase-in limit. For a person not entitled to the seniors
+and pensioners tax offset, s 3(1) sets those at $28,011 and $35,013, which the
+ATO page "Medicare levy reduction for low-income earners" (last updated 30 June
+2026) gives for 2025-26. The 2024-25 figures, $27,222 and $34,027, are from
+table 2 of the ATO's myTax 2025 instructions, which apply to 1 July 2024 to 30
+June 2025. `tests/test_medicare_levy.py` holds the worksheet to the ATO page's
+example ($29,000 in 2025-26 gives $98.90), to each threshold and phase-in limit
+and to the dollar either side of them. The 2026-27 thresholds were not
+published when the worksheet was written, so 2026-27 is refused rather than
+given the 2025-26 figures.
+
+Each published phase-in limit is 1.25 times the threshold amount, rounded down
+to the dollar: that is the income at which 10% of the excess reaches 2% of the
+whole, and the tests derive it. The family income reduction (s 8), exemptions,
+the surcharge, trustees and part-year residence are outside the worksheet.
 
 ## Study loan withholding
 

@@ -88,6 +88,20 @@ STUDY_LOAN_REPAYMENT_THRESHOLDS: dict[str, dict[str, str]] = {
 }
 STUDY_LOAN_REPAYMENT_RATES = {"lower": "0.15", "upper": "0.17", "flat": "0.10"}
 
+# Medicare levy low-income thresholds for a person not entitled to the seniors
+# and pensioners tax offset, whole dollars: (threshold amount, phase-in limit),
+# Medicare Levy Act 1986 s 3(1). The 2025-26 figures are in compilation 53 (1
+# July 2026) and on the ATO's 2025-26 page; the 2024-25 figures are from the ATO's
+# myTax 2025 instructions. Later years are added only once the thresholds for
+# that year are published, so a year never borrows another year's thresholds.
+MEDICARE_LOW_INCOME_THRESHOLDS: dict[str, tuple[str, str]] = {
+    "2024-25": ("27222", "34027"),
+    "2025-26": ("28011", "35013"),
+}
+# s 6(1): the levy rate; s 7(2): the levy cannot exceed this share of the excess
+# of taxable income over the threshold amount, up to the phase-in limit.
+MEDICARE_LEVY_RATES = {"levy": "0.02", "shade_in": "0.10"}
+
 # Unused concessional cap carries forward only below this total super balance
 # on the previous 30 June (ITAA 1997 s 291-20(3)).
 CARRY_FORWARD_BALANCE_LIMIT = "500000"
@@ -111,6 +125,7 @@ SUPPORTED_PERIODS = {
     "pension_minimum": ("2024-25", "2025-26", "2026-27"),
     "study_loan_repayment": tuple(STUDY_LOAN_REPAYMENT_THRESHOLDS),
     "study_loan_withholding": tuple(STUDY_LOAN_WITHHOLDING_COEFFICIENTS),
+    "medicare_levy": tuple(MEDICARE_LOW_INCOME_THRESHOLDS),
 }
 
 # Preserve the existing rule-review baseline. A Library example check does not
@@ -164,6 +179,12 @@ SOURCE_REVIEWS = {
         "passage": "Schedule 8 (NAT 3539) for payments from 1 July 2026: study and training "
                    "support loans component rates, calculating fortnightly and monthly amounts, "
                    "examples 1 to 3, rounding",
+    },
+    "medicare_levy": {
+        "checked": "2026-10-15",
+        "passage": "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; ATO "
+                   "Medicare levy reduction for low-income earners (2025-26) and myTax 2025 "
+                   "table 2 (2024-25)",
     },
 }
 
@@ -223,6 +244,12 @@ LIBRARY_EVIDENCE = {
         "paragraphs": "component rates, examples 1 to 3",
         "reviewed": "2026-06-17", "checked": "2026-10-15",
     },
+    # Not a Library document: the ATO page's own example and the Act's thresholds.
+    "medicare_levy": {
+        "document": "ATO Medicare levy reduction for low-income earners",
+        "paragraphs": "table of single thresholds, example (Angie)",
+        "reviewed": "2026-06-30", "checked": "2026-10-15",
+    },
 }
 
 INPUT_UNITS = {
@@ -268,6 +295,7 @@ INPUT_UNITS = {
         "pay_period": "weekly, fortnightly or monthly",
         "scale": "integer 1, 2, 3, 5 or 6",
     },
+    "medicare_levy": {"taxable_income": "AUD, whole dollars"},
 }
 
 EXAMPLES: dict[str, dict[str, Any]] = {
@@ -295,6 +323,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "pension_minimum": {"account_balance": "600000.00", "age": 67, "days": 365},
     "study_loan_repayment": {"repayment_income": "86380"},
     "study_loan_withholding": {"earnings": "2000.00", "pay_period": "weekly", "scale": 2},
+    "medicare_levy": {"taxable_income": "30000"},
 }
 
 
