@@ -88,7 +88,7 @@ ESCALATE and HARD_STOP govern what you may conclude from a result here.
 A verdict string such as LATE, UNPAID or NOT_COMPLYING is a review-aid
 classification of the facts the operator supplied, not a determination.
 - Read aus-accounting://scope before choosing a workflow. calculate_tax_worksheet
-  covers thirteen bounded worksheets, each with required scope confirmation and periods.
+  covers fourteen bounded worksheets, each with required scope confirmation and periods.
   Establish every scope condition before calling. Do not invent confirmation.
   Broader classifications, exemptions, BAS/returns, trusts, partnerships, SMSF fund
   tax and audit, the transfer balance cap and payroll tax remain unsupported.
@@ -838,7 +838,7 @@ def calculate_tax_worksheet(
         "Read calculation_worksheets in aus-accounting://scope before confirming scope. "
         "Supply established zero amounts explicitly; do not infer missing facts.")],
 ) -> TaxCalculation:
-    """Calculate one of thirteen bounded tax and super worksheets, GST to Medicare levy.
+    """Calculate one of fourteen bounded tax and super worksheets, GST to Division 293.
 
     Each kind has a bounded scope and period in aus-accounting://scope. Most cover
     2025-26; resident basic tax also covers 2024-25 and 2026-27. FBT covers the year
@@ -847,7 +847,7 @@ def calculate_tax_worksheet(
     Study loan repayments cover 2025-26 and 2026-27 from established repayment income.
     Study loan withholding adds the Schedule 8 component to regular pays from 1 July 2026.
     The single Medicare levy covers 2024-25 and 2025-26; the low income tax offset
-    covers 2024-25 to 2026-27.
+    and Division 293 tax cover 2024-25 to 2026-27.
     Require operator-established classifications and eligibility.
     Pass scope_confirmed true only after establishing every scope condition listed
     in calculation_worksheets for the kind; resolve missing or uncertain scope first.

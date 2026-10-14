@@ -270,6 +270,15 @@ _WORKSHEET_FACTS = {
     },
     "pension_minimum": {"year": "2025-26", "account_balance": "500000.00", "age": 66, "days": 365},
     "study_loan_repayment": {"year": "2025-26", "repayment_income": "80000.00"},
+    "study_loan_withholding": {
+        "year": "2026-27", "earnings": "2000.00", "pay_period": "weekly", "scale": 2,
+    },
+    "medicare_levy": {"year": "2025-26", "taxable_income": "30000.00"},
+    "low_income_tax_offset": {"year": "2025-26", "taxable_income": "40000.00"},
+    "division_293": {
+        "year": "2025-26", "division_293_income": "240000.00",
+        "low_tax_contributions": "15000.00",
+    },
 }
 _WORKSHEET_MONEY_FIELDS = {
     "gst": ["amount"],
@@ -285,6 +294,10 @@ _WORKSHEET_MONEY_FIELDS = {
     ],
     "pension_minimum": ["account_balance"],
     "study_loan_repayment": ["repayment_income"],
+    "study_loan_withholding": ["earnings"],
+    "medicare_levy": ["taxable_income"],
+    "low_income_tax_offset": ["taxable_income"],
+    "division_293": ["division_293_income", "low_tax_contributions"],
 }
 _NOT_PLAIN = ["1e3", "1_000.50", "+12"]
 
@@ -327,7 +340,7 @@ def test_every_money_argument_and_only_money_publishes_the_plain_pattern():
         ("calculate_tax_worksheet", "facts", field)
         for fields in _WORKSHEET_MONEY_FIELDS.values() for field in fields
     }
-    assert len(expected) == 41
+    assert len(expected) == 43
     assert _money_pattern_paths() == expected
 
 
