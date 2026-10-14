@@ -10,6 +10,7 @@ from . import __version__
 from .metadata import (
     CARRY_FORWARD_BALANCE_LIMIT,
     CONTRIBUTION_CAPS,
+    DIVISION_293,
     EXAMPLES,
     INPUT_UNITS,
     LIBRARY_EVIDENCE,
@@ -45,6 +46,7 @@ SOURCES = {
     "study_loan_withholding": "https://www.ato.gov.au/tax-rates-and-codes/schedule-8-statement-of-formulas-for-calculating-study-and-training-support-loans-components",
     "medicare_levy": "https://www.legislation.gov.au/C2004A03351/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
     "low_income_tax_offset": "https://www.legislation.gov.au/C2004A05138/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+    "division_293": "https://www.legislation.gov.au/C2004A05138/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_6/document_6.html",
 }
 # Sources beyond the per-rule one, returned with it in each result's sources.
 EXTRA_SOURCES = {
@@ -56,6 +58,11 @@ EXTRA_SOURCES = {
         "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/mytax-instructions/2025/medicare-and-private-health-insurance/medicare-levy-reduction-or-exemption",
     ],
     "low_income_tax_offset": ["https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset"],
+    "division_293": [
+        "https://www.legislation.gov.au/C2013A00087/2013-06-28/2013-06-28/text/original/epub/OEBPS/document_1/document_1.html",
+        "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/division-293-tax",
+        "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/division-293-tax-on-concessional-contributions-by-high-income-earners",
+    ],
 }
 
 
@@ -155,6 +162,15 @@ SCOPES = {
            "1.5% of the excess, nil above $66,667. The 1.5% band can leave half a cent, "
            "rounded half up. The offset is non-refundable; this worksheet does not apply it "
            "against tax payable or combine it with other offsets.",
+    "division_293": "One individual's Division 293 tax for an income year from established "
+           "Division 293 income (income for surcharge purposes disregarding reportable super "
+           "contributions) and low tax contributions for the corresponding financial year "
+           "(low tax contributed amounts less excess concessional contributions). Taxable "
+           "contributions are the lesser of the low tax contributions and the excess of the "
+           "sum over $250,000; the tax is 15% of them. Excludes working out either input, "
+           "defined benefit interests and deferred debt accounts, constitutionally protected "
+           "funds, State higher level office holders and Commonwealth justices, releasing "
+           "money from super, interest and the assessment itself.",
 }
 
 
@@ -461,6 +477,25 @@ def low_income_tax_offset(taxable_income: Decimal, year: str,
         return _result("low_income_tax_offset", year, {
             "taxable_income_used": income, "low_income_tax_offset": offset,
         }, dict(LOW_INCOME_TAX_OFFSET))
+
+
+def division_293(division_293_income: Decimal, low_tax_contributions: Decimal, year: str,
+                 scope_confirmed: bool) -> dict[str, Any]:
+    """ITAA 1997 s 293-20 taxable contributions and the 15% Division 293 tax."""
+    _scope(scope_confirmed, year, "division_293")
+    income, contributions = _money(division_293_income), _money(low_tax_contributions)
+    threshold, rate = D(DIVISION_293["threshold"]), D(DIVISION_293["rate"])
+    with localcontext() as context:
+        context.prec = 40
+        combined = income + contributions
+        excess = max(D(0), combined - threshold)
+        # s 293-20(2): nil low tax contributions mean nil taxable contributions,
+        # which the lesser of the two already gives.
+        taxable = min(contributions, excess)
+        return _result("division_293", year, {
+            "combined_income_and_contributions": combined, "excess_over_threshold": excess,
+            "taxable_contributions": taxable, "division_293_tax": taxable * rate,
+        }, {"threshold": str(threshold), "rate": str(rate)})
 
 
 def study_loan_repayment(repayment_income: Decimal, year: str,

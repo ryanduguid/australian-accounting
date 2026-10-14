@@ -35,6 +35,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
 | Medicare levy | Not a Library document: Medicare Levy Act 1986 compilation 53 and the ATO's single thresholds | 30 June 2026 (ATO page) | Single person without SAPTO, the 2% rate and the s 7 low-income reduction for 2024-25 and 2025-26 |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
+| Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO thresholds page and Gazette C2026G00249 | 30 June 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -191,6 +192,29 @@ can leave half a cent, which the worksheet rounds half up like its other
 amounts. At $66,667 the third item gives minus half a cent and the worksheet
 returns nil. The cap for minors in s 61-115(2), trustees under s 61-110(2) and
 applying the offset against tax payable are outside the worksheet.
+
+## Division 293
+
+This worksheet's evidence is not a Library document. ITAA 1997 s 293-20(1), as
+compiled at 1 July 2026 (compilation 266, volume 6) and read on 15 October
+2026, gives taxable contributions equal to the lesser of the low tax
+contributions and the excess when Division 293 income (income for surcharge
+purposes disregarding reportable super contributions) and low tax contributions
+together exceed $250,000; s 293-20(2) makes them nil when the low tax
+contributions are nil, and s 293-25 defines low tax contributions as low tax
+contributed amounts less excess concessional contributions. Section 5 of the
+Superannuation (Sustaining the Superannuation Contribution Concession)
+Imposition Act 2013 sets the tax at 15%. The ATO's key superannuation rates
+table gives the $250,000 threshold for 2017-18 onwards (last updated 7 August
+2026), and its Division 293 page (last updated 24 August 2026) works Jan's
+example: $240,000 and $15,000 give taxable contributions of $5,000 and tax of
+$750, which `tests/test_division_293.py` holds.
+
+Both inputs are the operator's established figures; the worksheet does not
+build Division 293 income from its components or classify contributions.
+Defined benefit interests and their deferred debt accounts, constitutionally
+protected funds, State higher level office holders and Commonwealth justices
+are outside it.
 
 ## Study loan withholding
 
