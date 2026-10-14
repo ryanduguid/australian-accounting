@@ -48,7 +48,6 @@ def test_ato_worked_examples(earnings, period, scale, component):
 def test_example_1_shows_the_coefficients_and_the_total():
     result = _withhold("2608.36", "weekly", 2)
     assert result["amounts"]["weekly_earnings_used"] == "2608.99"
-    assert result["rates"]["component_table"] == "threshold_or_foreign"
     assert (result["rates"]["component_a"], result["rates"]["component_b"]) == ("0.17", "250.4527")
     # Schedule 1 scale 2 from $2,596: 0.39 x 2608.99 - 363.4627 is 654.04, so $654.
     assert result["amounts"]["schedule_1_withholding"] == "654.00"

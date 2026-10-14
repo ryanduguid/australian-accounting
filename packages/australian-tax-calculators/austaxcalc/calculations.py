@@ -410,7 +410,7 @@ def study_loan_withholding(earnings: Decimal, pay_period: str, scale: int, year:
         return _result("study_loan_withholding", f"{year} {pay_period}", {
             "weekly_earnings_used": x, "schedule_1_withholding": tax,
             "study_loan_component": component, "withholding": tax + component,
-        }, {"scale": str(scale), "a": str(a), "b": str(b), "component_table": table,
+        }, {"scale": str(scale), "a": str(a), "b": str(b),
             "component_a": str(loan_a), "component_b": str(loan_b)})
 
 
