@@ -98,7 +98,9 @@ def test_without_section_9a_the_standard_levy_applies():
 
 def test_section_9a_flag_is_required_and_boolean():
     with pytest.raises(TypeError):
-        c.medicare_levy(D("40000"), year="2025-26", scope_confirmed=True)
+        # The flag is left out on purpose; a dict keeps the call legal for linters.
+        c.medicare_levy(**{"taxable_income": D("40000"), "year": "2025-26",
+                           "scope_confirmed": True})
     for flag in (None, 0, "false"):
         with pytest.raises(ValueError, match="section_9a_adjustment_applies"):
             c.medicare_levy(D("40000"), flag, "2025-26", True)

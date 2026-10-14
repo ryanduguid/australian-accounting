@@ -367,7 +367,9 @@ def _payg_checks(kind: str, earnings: Decimal, pay_period: str, scale: int, year
     _money(earnings)
     if pay_period not in ("weekly", "fortnightly", "monthly"):
         raise ValueError("pay_period must be weekly, fortnightly or monthly.")
-    if type(scale) is not int or scale not in PAYG_WITHHOLDING_COEFFICIENTS[year]:
+    # bool is a subclass of int; True is not a scale.
+    if (isinstance(scale, bool) or not isinstance(scale, int)
+            or scale not in PAYG_WITHHOLDING_COEFFICIENTS[year]):
         raise ValueError("scale must be 1, 2, 3, 5 or 6; scale 4 is not supported.")
 
 
@@ -441,7 +443,7 @@ def medicare_levy(taxable_income: Decimal, section_9a_adjustment_applies: bool, 
     income = _money(taxable_income)
     if income != income.to_integral_value():
         raise ValueError("Supply established whole-dollar taxable income.")
-    if type(section_9a_adjustment_applies) is not bool:
+    if not isinstance(section_9a_adjustment_applies, bool):
         raise ValueError("section_9a_adjustment_applies must be a boolean.")
     if section_9a_adjustment_applies:
         # The adjustment needs the arrears amount, normal taxable income and the
