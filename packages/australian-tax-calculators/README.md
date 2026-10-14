@@ -10,11 +10,12 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 Distribution `australian-tax-calculators`, import package `austaxcalc`. Library
 only: this component ships no command.
 
-Thirteen calculation worksheets for established facts: ordinary GST, resident basic income
+Fourteen calculation worksheets for established facts: ordinary GST, resident basic income
 tax, CGT losses and discount, ordinary employer FBT, first-year depreciation,
 quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
-loan withholding, a single person's Medicare levy and the low income tax offset. These are experimental
+loan withholding, a single person's Medicare levy, the low income tax offset and
+Division 293 tax. These are experimental
 review aids, not advice or return preparation. Callers must establish every scope condition before calculating.
 
 The Python functions in `austaxcalc.calculations` accept `Decimal` amounts and an
@@ -83,10 +84,11 @@ Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 | Study loan withholding | Regular weekly, fortnightly or monthly pays from 1 July 2026 on scale 1, 2, 3, 5 or 6; the Schedule 1 amount plus the Schedule 8 component |
 | Medicare levy | 2024-25 and 2025-26; full-year resident single without SAPTO, spouse, dependants or exemption; the 2% rate and the low-income reduction |
 | Low income tax offset | 2024-25, 2025-26 and 2026-27; resident individual's established taxable income; the offset amount, not applied against tax |
+| Division 293 | 2024-25, 2025-26 and 2026-27; established Division 293 income and low tax contributions; no defined benefit interests |
 
 Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
-liability. SMSF fund tax, Division 293 and 296 tax, the transfer balance cap, trusts, payroll
+liability. SMSF fund tax, Division 296 tax, the transfer balance cap, trusts, payroll
 tax, the Medicare levy surcharge and Medicare levy reductions other than the single
 low-income reduction remain outside these worksheets.
 
@@ -167,7 +169,16 @@ established taxable income for 2024-25 to 2026-27. Neither applies the result
 against tax payable. See
 [calculation evidence](docs/calculation-evidence.md#medicare-levy).
 
-These three worksheets are on `main` and not yet in a published wheel.
+## Division 293
+
+`division_293` applies ITAA 1997 s 293-20 to one individual's established
+Division 293 income and low tax contributions: when their sum exceeds $250,000,
+taxable contributions are the lesser of the contributions and the excess, taxed
+at 15%. It covers 2024-25 to 2026-27 and holds the ATO's worked example. Working
+out either input, defined benefit interests and deferred debt accounts are
+outside it. See [calculation evidence](docs/calculation-evidence.md#division-293).
+
+These four worksheets are on `main` and not yet in a published wheel.
 
 ## Worksheet discovery
 

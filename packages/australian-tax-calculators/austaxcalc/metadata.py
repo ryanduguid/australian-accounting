@@ -114,6 +114,13 @@ LOW_INCOME_TAX_OFFSET = {
 }
 LOW_INCOME_TAX_OFFSET_YEARS = ("2024-25", "2025-26", "2026-27")
 
+# Division 293 tax: the threshold in ITAA 1997 s 293-20(1), whole dollars, and
+# the rate in s 5 of the Superannuation (Sustaining the Superannuation
+# Contribution Concession) Imposition Act 2013. The ATO's table gives the
+# threshold for 2017-18 onwards.
+DIVISION_293 = {"threshold": "250000", "rate": "0.15"}
+DIVISION_293_YEARS = ("2024-25", "2025-26", "2026-27")
+
 # Unused concessional cap carries forward only below this total super balance
 # on the previous 30 June (ITAA 1997 s 291-20(3)).
 CARRY_FORWARD_BALANCE_LIMIT = "500000"
@@ -139,6 +146,7 @@ SUPPORTED_PERIODS = {
     "study_loan_withholding": tuple(STUDY_LOAN_WITHHOLDING_COEFFICIENTS),
     "medicare_levy": tuple(MEDICARE_LOW_INCOME_THRESHOLDS),
     "low_income_tax_offset": LOW_INCOME_TAX_OFFSET_YEARS,
+    "division_293": DIVISION_293_YEARS,
 }
 
 # Preserve the existing rule-review baseline. A Library example check does not
@@ -203,6 +211,11 @@ SOURCE_REVIEWS = {
         "checked": "2026-10-15",
         "passage": "ITAA 1997 ss 61-110 and 61-115, compilation 266 (1 July 2026); ATO Low "
                    "income tax offset page",
+    },
+    "division_293": {
+        "checked": "2026-10-15",
+        "passage": "ITAA 1997 ss 293-15 to 293-25, compilation 266 (1 July 2026); Imposition "
+                   "Act 2013 s 5; ATO Key superannuation rates, table 7",
     },
 }
 
@@ -274,6 +287,12 @@ LIBRARY_EVIDENCE = {
         "paragraphs": "example: taxable income over $37,000 but under $48,000",
         "reviewed": "2025-06-16", "checked": "2026-10-15",
     },
+    # Not a Library document: the ATO page's own worked example.
+    "division_293": {
+        "document": "ATO Division 293 tax on concessional contributions by high-income earners",
+        "paragraphs": "example: Division 293 tax calculation",
+        "reviewed": "2026-08-24", "checked": "2026-10-15",
+    },
 }
 
 INPUT_UNITS = {
@@ -321,6 +340,12 @@ INPUT_UNITS = {
     },
     "medicare_levy": {"taxable_income": "AUD, whole dollars"},
     "low_income_tax_offset": {"taxable_income": "AUD, whole dollars"},
+    "division_293": {
+        "division_293_income": "AUD, income for surcharge purposes disregarding reportable "
+                               "super contributions",
+        "low_tax_contributions": "AUD, low tax contributed amounts less excess concessional "
+                                 "contributions for the financial year",
+    },
 }
 
 EXAMPLES: dict[str, dict[str, Any]] = {
@@ -350,6 +375,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "study_loan_withholding": {"earnings": "2000.00", "pay_period": "weekly", "scale": 2},
     "medicare_levy": {"taxable_income": "30000"},
     "low_income_tax_offset": {"taxable_income": "40000"},
+    "division_293": {"division_293_income": "240000.00", "low_tax_contributions": "20000.00"},
 }
 
 
