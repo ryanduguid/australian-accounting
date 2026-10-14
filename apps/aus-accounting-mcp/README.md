@@ -19,7 +19,8 @@ network calls once installed.
   depreciation, quarterly SG, Schedule 1 PAYG withholding, super contribution caps,
   account-based pension minimums, study and training loan repayments, Schedule 8 study
   loan withholding, a single person's Medicare levy, the low income tax offset and
-  Division 293 tax, each within a stated period and scope. A source checkout serves the
+  Division 293 tax, each within a stated period and scope. The Medicare levy worksheet
+  refuses a person to whom s 9A (lump sum payments in arrears) applies. A source checkout serves the
   last four now; an installed server gets them only after the next
   australian-tax-calculators release and the aus-accounting-mcp release that moves its
   engine pin.

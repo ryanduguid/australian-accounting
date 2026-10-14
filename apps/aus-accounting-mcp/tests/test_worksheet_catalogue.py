@@ -108,8 +108,10 @@ def test_study_loan_repayment_calls_through_and_refuses_cents(year, income, expe
 @pytest.mark.parametrize("facts,amount,expected", [
     ({"kind": "study_loan_withholding", "year": "2026-27", "earnings": "2608.36",
       "pay_period": "weekly", "scale": 2}, "study_loan_component", "193.00"),
-    ({"kind": "medicare_levy", "year": "2025-26", "taxable_income": "29000"},
-     "medicare_levy", "98.90"),
+    ({"kind": "medicare_levy", "year": "2025-26", "taxable_income": "29000",
+      "section_9a_adjustment_applies": False}, "medicare_levy", "98.90"),
+    ({"kind": "medicare_levy", "year": "2025-26", "taxable_income": "40000",
+      "section_9a_adjustment_applies": False}, "medicare_levy", "800.00"),
     ({"kind": "low_income_tax_offset", "year": "2026-27", "taxable_income": "45000"},
      "low_income_tax_offset", "325.00"),
     ({"kind": "division_293", "year": "2025-26", "division_293_income": "240000.00",
@@ -129,4 +131,17 @@ def test_medicare_levy_refuses_a_year_without_published_thresholds():
     with pytest.raises(ValueError):
         TypeAdapter(TaxFacts).validate_python(
             {"kind": "medicare_levy", "scope_confirmed": True, "year": "2026-27",
-             "taxable_income": "50000"})
+             "taxable_income": "50000", "section_9a_adjustment_applies": False})
+
+
+def test_medicare_levy_refuses_section_9a_and_requires_the_flag():
+    facts = {"kind": "medicare_levy", "scope_confirmed": True, "year": "2025-26",
+             "taxable_income": "40000"}
+
+    async def check():
+        with pytest.raises(ToolError, match="s 9A"):
+            await mcp.call_tool("calculate_tax_worksheet",
+                                {"facts": {**facts, "section_9a_adjustment_applies": True}})
+        with pytest.raises(ToolError, match="section_9a_adjustment_applies"):
+            await mcp.call_tool("calculate_tax_worksheet", {"facts": facts})
+    asyncio.run(check())

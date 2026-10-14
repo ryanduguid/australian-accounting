@@ -450,7 +450,7 @@ supported period, exclusions and warnings.
 | `pension_minimum` | `account_balance`, `age`, `days`, `year` | 2024-25 to 2026-27, one account-based pension paying under SISR Schedule 7 |
 | `study_loan_repayment` | `repayment_income`, `year` | 2025-26 and 2026-27, one individual's established whole-dollar repayment income at the marginal rates; the formula amount before the loan-balance limit |
 | `study_loan_withholding` | `earnings`, `pay_period`, `scale`, `year` | 2026-27, one regular weekly, fortnightly or monthly pay on scale 1, 2, 3, 5 or 6 to a payee with a study and training support loan debt; the Schedule 1 amount plus the Schedule 8 component |
-| `medicare_levy` | Whole-dollar `taxable_income`, `year` | 2024-25 and 2025-26, full-year resident single without SAPTO, spouse, dependants or exemption; the 2% rate and the low-income reduction |
+| `medicare_levy` | Whole-dollar `taxable_income`, `section_9a_adjustment_applies`, `year` | 2024-25 and 2025-26, full-year resident single without SAPTO, spouse, dependants or exemption; the 2% rate and the low-income reduction; refused when s 9A (lump sum payments in arrears) applies |
 | `low_income_tax_offset` | Whole-dollar `taxable_income`, `year` | 2024-25 to 2026-27, resident individual; the offset amount, not applied against tax payable |
 | `division_293` | `division_293_income`, `low_tax_contributions`, `year` | 2024-25 to 2026-27, one individual's established figures; no defined benefit interests |
 

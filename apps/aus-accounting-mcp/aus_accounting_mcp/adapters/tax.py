@@ -129,6 +129,9 @@ class MedicareLevyFacts(Worksheet):
     kind: Literal["medicare_levy"]
     year: Literal["2024-25", "2025-26"]
     taxable_income: Money
+    section_9a_adjustment_applies: bool = Field(
+        description="Whether Medicare Levy Act 1986 s 9A takes lump sums in arrears out of "
+                    "taxable income; true is refused.")
 
 
 class LowIncomeTaxOffsetFacts(Worksheet):
