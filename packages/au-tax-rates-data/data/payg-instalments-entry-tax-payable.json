@@ -1,0 +1,14 @@
+{
+  "id": "payg-instalments-entry-tax-payable",
+  "label": "PAYG instalments automatic entry, individual or trust: tax payable on latest assessment",
+  "value": 1000,
+  "unit": "AUD",
+  "period": {
+    "as_at": "2026-10-15"
+  },
+  "source_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/payg-instalments/starting-payg-instalments",
+  "retrieved_at": "2026-10-15T00:31:10+11:00",
+  "quote": "tax payable on your latest notice of assessment of $1,000 or more",
+  "pattern": "latest notice of assessment of (\\$[\\d,]+) or more",
+  "notes": "Individuals and trusts enter when all three entry thresholds are met."
+}

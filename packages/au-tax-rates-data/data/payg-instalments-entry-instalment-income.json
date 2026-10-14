@@ -1,0 +1,14 @@
+{
+  "id": "payg-instalments-entry-instalment-income",
+  "label": "PAYG instalments automatic entry, individual or trust: instalment income",
+  "value": 4000,
+  "unit": "AUD",
+  "period": {
+    "as_at": "2026-10-15"
+  },
+  "source_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/payg-instalments/starting-payg-instalments",
+  "retrieved_at": "2026-10-15T00:31:10+11:00",
+  "quote": "instalment income from your latest tax return of $4,000 or more",
+  "pattern": "instalment income from your latest tax return of (\\$[\\d,]+) or more tax payable",
+  "notes": "Individuals and trusts enter when all three entry thresholds are met. Companies and super funds use different tests."
+}

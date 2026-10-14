@@ -1,0 +1,14 @@
+{
+  "id": "gst-registration-threshold-non-profit",
+  "label": "GST registration turnover threshold (non-profit)",
+  "value": 150000,
+  "unit": "AUD",
+  "period": {
+    "as_at": "2026-10-15"
+  },
+  "source_url": "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst",
+  "retrieved_at": "2026-10-15T00:31:40+11:00",
+  "quote": "totals $75,000 or more ($150,000 or more for non-profit organisations)",
+  "pattern": "\\((\\$[\\d,]+) or more for non-profit organisations\\)",
+  "notes": "The page states no start date."
+}

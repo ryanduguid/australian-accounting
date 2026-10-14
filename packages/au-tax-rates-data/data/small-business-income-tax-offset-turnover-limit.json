@@ -1,0 +1,13 @@
+{
+  "id": "small-business-income-tax-offset-turnover-limit",
+  "label": "Small business income tax offset, aggregated turnover limit",
+  "value": 5000000,
+  "unit": "AUD",
+  "period": {
+    "as_at": "2026-10-15"
+  },
+  "source_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/concessions",
+  "retrieved_at": "2026-10-15T00:33:59+11:00",
+  "quote": "$5 million, you can access the small business income tax offset",
+  "notes": "Turnover must be less than this amount. The page prints $5 million, so the record has no pattern."
+}
