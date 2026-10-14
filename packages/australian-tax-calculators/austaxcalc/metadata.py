@@ -22,7 +22,8 @@ RESIDENT_TAX_SCALES: dict[str, tuple[tuple[int, int | None, str], ...]] = {
 # Schedule 1 (NAT 1004), "Coefficients to use in formulas for withholding from
 # weekly payments", for payments made from 1 July 2026. The scale 2, 5 and 6
 # rows at a = b = 0 are the ATO's nil rows below the tax-free threshold.
-PAYG_WITHHOLDING_COEFFICIENTS: dict[str, dict[int, tuple[tuple[int | None, str, str], ...]]] = {
+CoefficientRows = tuple[tuple[int | None, str, str], ...]
+PAYG_WITHHOLDING_COEFFICIENTS: dict[str, dict[int, CoefficientRows]] = {
     "2026-27": {
         1: ((188, "0.1500", "0.1500"), (371, "0.2084", "11.0185"),
             (515, "0.1790", "0.1066"), (932, "0.3227", "74.1674"),
@@ -41,6 +42,20 @@ PAYG_WITHHOLDING_COEFFICIENTS: dict[str, dict[int, tuple[tuple[int | None, str, 
             (908, "0.3027", "185.1923"), (1135, "0.3527", "230.6135"),
             (1282, "0.3127", "185.1923"), (2596, "0.3100", "181.7308"),
             (3653, "0.3800", "363.4615"), (None, "0.4600", "655.7692")),
+    },
+}
+
+# Study and training support loan (STSL) component coefficients per income
+# year, in the same (limit, a, b) form, transcribed from Schedule 8 (NAT 3539),
+# "Study and training support loans component rates", for payments made from
+# 1 July 2026. One table is for a payee who claimed the tax-free threshold or is
+# a foreign resident, the other for a payee who did not claim it.
+STUDY_LOAN_WITHHOLDING_COEFFICIENTS: dict[str, dict[str, CoefficientRows]] = {
+    "2026-27": {
+        "threshold_or_foreign": ((1337, "0", "0"), (2494, "0.15", "200.5615"),
+                                 (3577, "0.17", "250.4527"), (None, "0.10", "0")),
+        "no_threshold": ((987, "0", "0"), (2144, "0.15", "148.0615"),
+                         (2727, "0.17", "190.9527"), (None, "0.10", "0")),
     },
 }
 
@@ -95,6 +110,7 @@ SUPPORTED_PERIODS = {
     "contribution_caps": tuple(CONTRIBUTION_CAPS),
     "pension_minimum": ("2024-25", "2025-26", "2026-27"),
     "study_loan_repayment": tuple(STUDY_LOAN_REPAYMENT_THRESHOLDS),
+    "study_loan_withholding": tuple(STUDY_LOAN_WITHHOLDING_COEFFICIENTS),
 }
 
 # Preserve the existing rule-review baseline. A Library example check does not
@@ -142,6 +158,12 @@ SOURCE_REVIEWS = {
         "passage": "Study and training loan repayment thresholds and rates: tables 1 and 2, "
                    "repayment income, examples 1 to 3; Gazette C2026G00249 for the 2026-27 "
                    "minimum repayment income and replacement indexable amount",
+    },
+    "study_loan_withholding": {
+        "checked": "2026-10-15",
+        "passage": "Schedule 8 (NAT 3539) for payments from 1 July 2026: study and training "
+                   "support loans component rates, calculating fortnightly and monthly amounts, "
+                   "examples 1 to 3, rounding",
     },
 }
 
@@ -194,6 +216,13 @@ LIBRARY_EVIDENCE = {
         "paragraphs": "tables 1 and 2, examples 1 to 3",
         "reviewed": "2026-06-30", "checked": "2026-09-27",
     },
+    # Not a Library document: the ATO schedule carries its own worked examples,
+    # and tests/test_study_loan_withholding.py holds the worksheet to them.
+    "study_loan_withholding": {
+        "document": "ATO Schedule 8 statement of formulas for STSL components",
+        "paragraphs": "component rates, examples 1 to 3",
+        "reviewed": "2026-06-17", "checked": "2026-10-15",
+    },
 }
 
 INPUT_UNITS = {
@@ -234,6 +263,11 @@ INPUT_UNITS = {
     "study_loan_repayment": {
         "repayment_income": "AUD, whole dollars, established repayment income for the year",
     },
+    "study_loan_withholding": {
+        "earnings": "AUD, gross earnings and allowances subject to withholding for the pay period",
+        "pay_period": "weekly, fortnightly or monthly",
+        "scale": "integer 1, 2, 3, 5 or 6",
+    },
 }
 
 EXAMPLES: dict[str, dict[str, Any]] = {
@@ -260,6 +294,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     },
     "pension_minimum": {"account_balance": "600000.00", "age": 67, "days": 365},
     "study_loan_repayment": {"repayment_income": "86380"},
+    "study_loan_withholding": {"earnings": "2000.00", "pay_period": "weekly", "scale": 2},
 }
 
 

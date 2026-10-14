@@ -19,7 +19,9 @@ from .metadata import (
     SOURCE_REVIEWS,
     STUDY_LOAN_REPAYMENT_RATES,
     STUDY_LOAN_REPAYMENT_THRESHOLDS,
+    STUDY_LOAN_WITHHOLDING_COEFFICIENTS,
     SUPPORTED_PERIODS,
+    CoefficientRows,
     periods,
 )
 
@@ -37,11 +39,13 @@ SOURCES = {
     "contribution_caps": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
     "pension_minimum": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/paying-smsf-benefits/income-stream-pension-rules-and-payments",
     "study_loan_repayment": "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-support-loans-rates-and-repayment-thresholds",
+    "study_loan_withholding": "https://www.ato.gov.au/tax-rates-and-codes/schedule-8-statement-of-formulas-for-calculating-study-and-training-support-loans-components",
 }
 # Sources beyond the per-rule one, returned with it in each result's sources.
 EXTRA_SOURCES = {
     "fbt": ["https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/fbt-return-2026-calculation-details-for-taxable-employers"],
     "study_loan_repayment": ["https://www.legislation.gov.au/C2026G00249/latest/text"],
+    "study_loan_withholding": [SOURCES["payg_withholding"]],
 }
 
 
@@ -114,6 +118,17 @@ SCOPES = {
            "withholding component. The ATO table prints the 2026-27 base of the 17% band "
            "rounded to $9,028 and its example 2 uses that figure; this worksheet applies the "
            "exact $9,028.35, so that example differs by 35 cents.",
+    "study_loan_withholding": "One regular weekly, fortnightly or monthly payment of salary "
+           "or wages made from 1 July 2026 to a payee who gave a TFN declaration or withholding "
+           "declaration saying they have a study and training support loan debt, on scale 1, 2, "
+           "3, 5 or 6 as the operator established. Scale 1 uses the Schedule 8 component for a "
+           "payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for "
+           "a payee who claimed it or is a foreign resident. Earnings include allowances subject "
+           "to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, "
+           "each rounded to the dollar; the ATO's combined coefficients can differ by a dollar "
+           "and it accepts either method. Excludes scale 4, a Medicare levy variation for a "
+           "spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, "
+           "lump sum termination payments, back payments, bonuses and other schedules.",
 }
 
 
@@ -300,42 +315,77 @@ def quarterly_sg(ordinary_time_earnings: Decimal, qualifying_contributions: Deci
         }, {"sg_rate": "0.12", "maximum_quarterly_base": "62500.00"})
 
 
-def payg_withholding(earnings: Decimal, pay_period: str, scale: int, year: str,
-                     scope_confirmed: bool) -> dict[str, Any]:
-    """Schedule 1 formula y = a * x - b on the weekly equivalent of earnings."""
-    _scope(scope_confirmed, year, "payg_withholding")
+def _payg_checks(kind: str, earnings: Decimal, pay_period: str, scale: int, year: str,
+                 scope_confirmed: bool) -> None:
+    _scope(scope_confirmed, year, kind)
     _money(earnings)
     if pay_period not in ("weekly", "fortnightly", "monthly"):
         raise ValueError("pay_period must be weekly, fortnightly or monthly.")
-    coefficients = PAYG_WITHHOLDING_COEFFICIENTS[year]
-    if type(scale) is not int or scale not in coefficients:
+    if type(scale) is not int or scale not in PAYG_WITHHOLDING_COEFFICIENTS[year]:
         raise ValueError("scale must be 1, 2, 3, 5 or 6; scale 4 is not supported.")
-    whole = D(1)
+
+
+# The helpers below run inside the caller's 40-digit decimal context.
+def _weekly_earnings(earnings: Decimal, pay_period: str) -> Decimal:
+    """Schedule 1 and 8: the weekly equivalent in whole dollars plus 99 cents."""
+    if pay_period == "weekly":
+        weekly = earnings
+    elif pay_period == "fortnightly":
+        weekly = earnings / 2
+    else:
+        # Schedule 1: a monthly amount ending in 33 cents gains a cent first.
+        if earnings % 1 == D("0.33"):
+            earnings += D("0.01")
+        weekly = earnings * 3 / 13
+    return weekly.quantize(D(1), rounding=ROUND_DOWN) + D("0.99")
+
+
+def _weekly_formula(x: Decimal, rows: CoefficientRows) -> tuple[Decimal, Decimal, Decimal]:
+    a, b = next((D(a), D(b)) for limit, a, b in rows if limit is None or x < limit)
+    # Rounded straight to the dollar, 50 cents up, with no cent rounding first.
+    return a, b, max(D(0), (a * x - b).quantize(D(1), rounding=ROUND_HALF_UP))
+
+
+def _for_pay_period(weekly_amount: Decimal, pay_period: str) -> Decimal:
+    return {
+        "weekly": weekly_amount,
+        "fortnightly": weekly_amount * 2,
+        "monthly": (weekly_amount * 13 / 3).quantize(D(1), rounding=ROUND_HALF_UP),
+    }[pay_period]
+
+
+def payg_withholding(earnings: Decimal, pay_period: str, scale: int, year: str,
+                     scope_confirmed: bool) -> dict[str, Any]:
+    """Schedule 1 formula y = a * x - b on the weekly equivalent of earnings."""
+    _payg_checks("payg_withholding", earnings, pay_period, scale, year, scope_confirmed)
     with localcontext() as context:
         context.prec = 40
-        if pay_period == "weekly":
-            weekly = earnings
-        elif pay_period == "fortnightly":
-            weekly = earnings / 2
-        else:
-            # Schedule 1: a monthly amount ending in 33 cents gains a cent first.
-            if earnings % 1 == D("0.33"):
-                earnings += D("0.01")
-            weekly = earnings * 3 / 13
-        x = weekly.quantize(whole, rounding=ROUND_DOWN) + D("0.99")
-        a, b = next((D(a), D(b)) for limit, a, b in coefficients[scale]
-                    if limit is None or x < limit)
-        # Rounded straight to the dollar, 50 cents up, with no cent rounding first.
-        weekly_amount = max(D(0), (a * x - b).quantize(whole, rounding=ROUND_HALF_UP))
-        amount = {
-            "weekly": weekly_amount,
-            "fortnightly": weekly_amount * 2,
-            "monthly": (weekly_amount * 13 / 3).quantize(whole, rounding=ROUND_HALF_UP),
-        }[pay_period]
+        x = _weekly_earnings(earnings, pay_period)
+        a, b, weekly_amount = _weekly_formula(x, PAYG_WITHHOLDING_COEFFICIENTS[year][scale])
         return _result("payg_withholding", f"{year} {pay_period}", {
             "weekly_earnings_used": x, "weekly_withholding": weekly_amount,
-            "withholding": amount,
+            "withholding": _for_pay_period(weekly_amount, pay_period),
         }, {"scale": str(scale), "a": str(a), "b": str(b)})
+
+
+def study_loan_withholding(earnings: Decimal, pay_period: str, scale: int, year: str,
+                           scope_confirmed: bool) -> dict[str, Any]:
+    """Schedule 1 withholding plus the Schedule 8 study and training support loan component."""
+    _payg_checks("study_loan_withholding", earnings, pay_period, scale, year, scope_confirmed)
+    table = "no_threshold" if scale == 1 else "threshold_or_foreign"
+    with localcontext() as context:
+        context.prec = 40
+        x = _weekly_earnings(earnings, pay_period)
+        a, b, weekly_tax = _weekly_formula(x, PAYG_WITHHOLDING_COEFFICIENTS[year][scale])
+        loan_a, loan_b, weekly_loan = _weekly_formula(
+            x, STUDY_LOAN_WITHHOLDING_COEFFICIENTS[year][table])
+        tax = _for_pay_period(weekly_tax, pay_period)
+        component = _for_pay_period(weekly_loan, pay_period)
+        return _result("study_loan_withholding", f"{year} {pay_period}", {
+            "weekly_earnings_used": x, "schedule_1_withholding": tax,
+            "study_loan_component": component, "withholding": tax + component,
+        }, {"scale": str(scale), "a": str(a), "b": str(b), "component_table": table,
+            "component_a": str(loan_a), "component_b": str(loan_b)})
 
 
 def study_loan_repayment(repayment_income: Decimal, year: str,

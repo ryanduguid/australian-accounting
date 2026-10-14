@@ -33,6 +33,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
+| Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO thresholds page and Gazette C2026G00249 | 30 June 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
@@ -145,6 +146,33 @@ transcription; it does not establish that a payee's scale, allowances or
 declarations are right. Scale 4, tax offsets, Medicare levy adjustments, study
 and training support loans, 53 and 27 pay years, quarterly pays and the other
 schedules are outside this worksheet.
+
+## Study loan withholding
+
+This worksheet's evidence is not a Library document. The component rates in
+`austaxcalc/metadata.py` were transcribed from the ATO page "Schedule 8 -
+Statement of formulas for calculating study and training support loans
+components" (NAT 3539, published 17 June 2026, for payments made from 1 July
+2026), read on 15 October 2026, together with its rules for the weekly
+equivalent of fortnightly and monthly earnings and for rounding to the dollar.
+The ATO publishes no Schedule 8 sample data. `tests/test_study_loan_withholding.py`
+holds the component to the page's examples 1 to 3 ($2,608.36 weekly gives $193,
+$4,409.75 fortnightly gives $260 and $10,627.88 monthly without the tax-free
+threshold gives $979) and to the published starting earnings for each pay
+period ($1,337, $2,674 and $5,793.67 with the tax-free threshold; $987, $1,974
+and $4,277 without it).
+
+The worksheet adds the component to the Schedule 1 amount, which comes from the
+PAYG withholding worksheet above. The schedule also publishes combined
+coefficients for each scale and says the two methods can differ slightly
+through rounding, accepting either. The tests type in the combined scale 1 and
+2 coefficients, require each to equal the Schedule 1 row plus the component
+row to 4 decimal places, and require the worksheet to stay within $1 of them
+for every whole-dollar weekly amount to $4,000. The published scale 3 combined
+rows from $1,337 to below $2,596 omit the 30 cent constant of the Schedule 1
+scale 3 row; the worksheet follows the component method and does not use them. Quarterly
+pays, scale 4 and a Medicare levy variation for a spouse or dependants are
+outside the worksheet.
 
 ## Study loan repayment
 
