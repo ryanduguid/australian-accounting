@@ -1,0 +1,15 @@
+{
+  "id": "fbt-type-2-gross-up-rate",
+  "label": "FBT type 2 gross-up rate",
+  "value": 1.8868,
+  "unit": "factor",
+  "period": {
+    "effective_from": "2022-04-01",
+    "effective_to": "2027-03-31"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds",
+  "retrieved_at": "2026-10-15T00:31:57+11:00",
+  "quote": "Ending 31 March 2023, 2024, 2025, 2026 and 2027 47% 1.8868",
+  "pattern": "Type 2 gross-up rate FBT year FBT rate Type 2 gross-up rate Ending 31 March 2023, 2024, 2025, 2026 and 2027 [\\d.]+% ([\\d.]+)",
+  "notes": "Used where the benefit provider cannot claim a GST credit. Period covers the FBT years ending 31 March 2023 to 31 March 2027."
+}
