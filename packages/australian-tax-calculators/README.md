@@ -163,7 +163,8 @@ of them for scales 1 and 2, and to the schedule's three worked examples. See
 Medicare Levy Act 1986 to a full-year resident single who is not entitled to
 the seniors and pensioners tax offset and has no exemption: nil at or below the
 threshold amount, and no more than 10% of the excess up to the phase-in limit.
-It covers 2024-25 and 2025-26; 2026-27 is refused until its thresholds are
+The caller states whether s 9A (lump sum payments in arrears) applies, and the
+worksheet refuses when it does. It covers 2024-25 and 2025-26; 2026-27 is refused until its thresholds are
 published. `low_income_tax_offset` gives the ITAA 1997 s 61-115 offset from
 established taxable income for 2024-25 to 2026-27. Neither applies the result
 against tax payable. See

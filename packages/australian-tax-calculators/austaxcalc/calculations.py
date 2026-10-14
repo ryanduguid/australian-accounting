@@ -56,6 +56,7 @@ EXTRA_SOURCES = {
     "medicare_levy": [
         "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners",
         "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/mytax-instructions/2025/medicare-and-private-health-insurance/medicare-levy-reduction-or-exemption",
+        "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/lump-sum-payment-in-arrears-tax-offsets",
     ],
     "low_income_tax_offset": ["https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset"],
     "division_293": [
@@ -149,11 +150,14 @@ SCOPES = {
     "medicare_levy": "Australian resident individual for the full income year, single with "
            "no spouse or dependants at any time in the year, not entitled to the seniors and "
            "pensioners tax offset, and not entitled to any full or half Medicare levy "
-           "exemption. Supply established whole-dollar taxable income. Applies the 2% rate "
-           "and the low-income reduction: no levy at or below the threshold amount, and up "
-           "to the phase-in limit no more than 10% of the excess over it. Excludes the "
-           "family income reduction, SAPTO thresholds, exemptions, the Medicare levy "
-           "surcharge, trustees and part-year residence.",
+           "exemption. The operator must also establish whether s 9A applies: from 2024-25 "
+           "it takes eligible lump sums in arrears out of taxable income when they are at "
+           "least 10% of normal taxable income and its accrual-year tests are met. A person "
+           "to whom s 9A applies is refused. Supply established whole-dollar taxable "
+           "income. Applies the 2% rate and the low-income reduction: no levy at or below "
+           "the threshold amount, and up to the phase-in limit no more than 10% of the "
+           "excess over it. Excludes the family income reduction, SAPTO thresholds, "
+           "exemptions, the Medicare levy surcharge, trustees and part-year residence.",
     "low_income_tax_offset": "Individual who was an Australian resident at some time in the "
            "income year, not a trustee, and not a minor whose offset s 61-115(2) caps because "
            "Division 6AA of Part III of the 1936 Act applies to part of their income. Supply "
@@ -430,12 +434,21 @@ def study_loan_withholding(earnings: Decimal, pay_period: str, scale: int, year:
             "component_a": str(loan_a), "component_b": str(loan_b)})
 
 
-def medicare_levy(taxable_income: Decimal, year: str, scope_confirmed: bool) -> dict[str, Any]:
+def medicare_levy(taxable_income: Decimal, section_9a_adjustment_applies: bool, year: str,
+                  scope_confirmed: bool) -> dict[str, Any]:
     """Medicare Levy Act 1986 s 6(1) rate with the s 7 low-income reduction for a single."""
     _scope(scope_confirmed, year, "medicare_levy")
     income = _money(taxable_income)
     if income != income.to_integral_value():
         raise ValueError("Supply established whole-dollar taxable income.")
+    if type(section_9a_adjustment_applies) is not bool:
+        raise ValueError("section_9a_adjustment_applies must be a boolean.")
+    if section_9a_adjustment_applies:
+        # The adjustment needs the arrears amount, normal taxable income and the
+        # accrual-year tests in s 9A(1); the worksheet does not estimate them.
+        raise ValueError(
+            "Medicare Levy Act 1986 s 9A (lump sum payments in arrears) applies, and this "
+            f"worksheet does not make that adjustment. See {EXTRA_SOURCES['medicare_levy'][2]}")
     threshold, limit = (D(value) for value in MEDICARE_LOW_INCOME_THRESHOLDS[year])
     rate, shade_in = D(MEDICARE_LEVY_RATES["levy"]), D(MEDICARE_LEVY_RATES["shade_in"])
     with localcontext() as context:
