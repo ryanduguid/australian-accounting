@@ -15,12 +15,15 @@ network calls once installed.
   and build a 4-file evidence pack for a practitioner's workpaper.
 - **Division 7A:** get the benchmark interest rate and review s 109N loan terms and
   s 109E minimum yearly repayments for one loan. Matters outside that scope are refused.
-- **10 tax and super worksheets:** GST, resident basic tax, CGT, FBT, first-year
+- **14 tax and super worksheets:** GST, resident basic tax, CGT, FBT, first-year
   depreciation, quarterly SG, Schedule 1 PAYG withholding, super contribution caps,
-  account-based pension minimums and study and training loan repayments, each within a
-  stated period and scope. A source checkout serves the tenth now; an installed
-  server gets it only after the next australian-tax-calculators release and the
-  aus-accounting-mcp release that moves its engine pin.
+  account-based pension minimums, study and training loan repayments, Schedule 8 study
+  loan withholding, a single person's Medicare levy, the low income tax offset and
+  Division 293 tax, each within a stated period and scope. The Medicare levy worksheet
+  refuses a person to whom s 9A (lump sum payments in arrears) applies. A source checkout serves the
+  last four now; an installed server gets them only after the next
+  australian-tax-calculators release and the aus-accounting-mcp release that moves its
+  engine pin.
 - **Cited research:** search your own Markdown library, or a local copy of federal tax
   legislation, with every result cited to its file and line, or its Act, section and
   compilation.
@@ -96,7 +99,7 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `calc_payday_super_deadline` | Review timing for one super contribution. |
 | `review_payday_super_contributions` | Review related contributions together for one employer. |
 | `build_payday_super_evidence_pack` | Return 4 review files in memory for a practitioner's workpaper. |
-| `calculate_tax_worksheet` | Calculate one of 10 worksheets with established scope and period. |
+| `calculate_tax_worksheet` | Calculate one of 14 worksheets with established scope and period. |
 | `get_div7a_benchmark_rate` | Get a reviewed Division 7A benchmark rate, or `UNKNOWN`. |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayments for one supplied amalgamated loan. |
 | `refuse_div7a` | Explain unsupported Division 7A matters. Call without arguments. |

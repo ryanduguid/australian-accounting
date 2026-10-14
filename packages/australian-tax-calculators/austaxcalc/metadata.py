@@ -22,7 +22,8 @@ RESIDENT_TAX_SCALES: dict[str, tuple[tuple[int, int | None, str], ...]] = {
 # Schedule 1 (NAT 1004), "Coefficients to use in formulas for withholding from
 # weekly payments", for payments made from 1 July 2026. The scale 2, 5 and 6
 # rows at a = b = 0 are the ATO's nil rows below the tax-free threshold.
-PAYG_WITHHOLDING_COEFFICIENTS: dict[str, dict[int, tuple[tuple[int | None, str, str], ...]]] = {
+CoefficientRows = tuple[tuple[int | None, str, str], ...]
+PAYG_WITHHOLDING_COEFFICIENTS: dict[str, dict[int, CoefficientRows]] = {
     "2026-27": {
         1: ((188, "0.1500", "0.1500"), (371, "0.2084", "11.0185"),
             (515, "0.1790", "0.1066"), (932, "0.3227", "74.1674"),
@@ -41,6 +42,20 @@ PAYG_WITHHOLDING_COEFFICIENTS: dict[str, dict[int, tuple[tuple[int | None, str, 
             (908, "0.3027", "185.1923"), (1135, "0.3527", "230.6135"),
             (1282, "0.3127", "185.1923"), (2596, "0.3100", "181.7308"),
             (3653, "0.3800", "363.4615"), (None, "0.4600", "655.7692")),
+    },
+}
+
+# Study and training support loan (STSL) component coefficients per income
+# year, in the same (limit, a, b) form, transcribed from Schedule 8 (NAT 3539),
+# "Study and training support loans component rates", for payments made from
+# 1 July 2026. One table is for a payee who claimed the tax-free threshold or is
+# a foreign resident, the other for a payee who did not claim it.
+STUDY_LOAN_WITHHOLDING_COEFFICIENTS: dict[str, dict[str, CoefficientRows]] = {
+    "2026-27": {
+        "threshold_or_foreign": ((1337, "0", "0"), (2494, "0.15", "200.5615"),
+                                 (3577, "0.17", "250.4527"), (None, "0.10", "0")),
+        "no_threshold": ((987, "0", "0"), (2144, "0.15", "148.0615"),
+                         (2727, "0.17", "190.9527"), (None, "0.10", "0")),
     },
 }
 
@@ -73,6 +88,39 @@ STUDY_LOAN_REPAYMENT_THRESHOLDS: dict[str, dict[str, str]] = {
 }
 STUDY_LOAN_REPAYMENT_RATES = {"lower": "0.15", "upper": "0.17", "flat": "0.10"}
 
+# Medicare levy low-income thresholds for a person not entitled to the seniors
+# and pensioners tax offset, whole dollars: (threshold amount, phase-in limit),
+# Medicare Levy Act 1986 s 3(1). The 2025-26 figures are in compilation 53 (1
+# July 2026) and on the ATO's 2025-26 page; the 2024-25 figures are from the ATO's
+# myTax 2025 instructions. Later years are added only once the thresholds for
+# that year are published, so a year never borrows another year's thresholds.
+MEDICARE_LOW_INCOME_THRESHOLDS: dict[str, tuple[str, str]] = {
+    "2024-25": ("27222", "34027"),
+    "2025-26": ("28011", "35013"),
+}
+# s 6(1): the levy rate; s 7(2): the levy cannot exceed this share of the excess
+# of taxable income over the threshold amount, up to the phase-in limit.
+MEDICARE_LEVY_RATES = {"levy": "0.02", "shade_in": "0.10"}
+
+# Low income tax offset, ITAA 1997 s 61-115(1) table, whole dollars and rates:
+# the full offset up to the first step, less 5% of the excess to the second
+# step, then the second-step amount less 1.5% of the excess. Entitlement ends
+# above the cut-out (s 61-110(1)(b)). The provisions apply from 2020-21; each
+# supported year is listed so a new year is a deliberate addition.
+LOW_INCOME_TAX_OFFSET = {
+    "maximum": "700", "first_step": "37500", "first_rate": "0.05",
+    "second_step": "45000", "second_amount": "325", "second_rate": "0.015",
+    "cut_out": "66667",
+}
+LOW_INCOME_TAX_OFFSET_YEARS = ("2024-25", "2025-26", "2026-27")
+
+# Division 293 tax: the threshold in ITAA 1997 s 293-20(1), whole dollars, and
+# the rate in s 5 of the Superannuation (Sustaining the Superannuation
+# Contribution Concession) Imposition Act 2013. The ATO's table gives the
+# threshold for 2017-18 onwards.
+DIVISION_293 = {"threshold": "250000", "rate": "0.15"}
+DIVISION_293_YEARS = ("2024-25", "2025-26", "2026-27")
+
 # Unused concessional cap carries forward only below this total super balance
 # on the previous 30 June (ITAA 1997 s 291-20(3)).
 CARRY_FORWARD_BALANCE_LIMIT = "500000"
@@ -95,6 +143,10 @@ SUPPORTED_PERIODS = {
     "contribution_caps": tuple(CONTRIBUTION_CAPS),
     "pension_minimum": ("2024-25", "2025-26", "2026-27"),
     "study_loan_repayment": tuple(STUDY_LOAN_REPAYMENT_THRESHOLDS),
+    "study_loan_withholding": tuple(STUDY_LOAN_WITHHOLDING_COEFFICIENTS),
+    "medicare_levy": tuple(MEDICARE_LOW_INCOME_THRESHOLDS),
+    "low_income_tax_offset": LOW_INCOME_TAX_OFFSET_YEARS,
+    "division_293": DIVISION_293_YEARS,
 }
 
 # Preserve the existing rule-review baseline. A Library example check does not
@@ -142,6 +194,28 @@ SOURCE_REVIEWS = {
         "passage": "Study and training loan repayment thresholds and rates: tables 1 and 2, "
                    "repayment income, examples 1 to 3; Gazette C2026G00249 for the 2026-27 "
                    "minimum repayment income and replacement indexable amount",
+    },
+    "study_loan_withholding": {
+        "checked": "2026-10-15",
+        "passage": "Schedule 8 (NAT 3539) for payments from 1 July 2026: study and training "
+                   "support loans component rates, calculating fortnightly and monthly amounts, "
+                   "examples 1 to 3, rounding",
+    },
+    "medicare_levy": {
+        "checked": "2026-10-15",
+        "passage": "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; ATO "
+                   "Medicare levy reduction for low-income earners (2025-26) and myTax 2025 "
+                   "table 2 (2024-25)",
+    },
+    "low_income_tax_offset": {
+        "checked": "2026-10-15",
+        "passage": "ITAA 1997 ss 61-110 and 61-115, compilation 266 (1 July 2026); ATO Low "
+                   "income tax offset page",
+    },
+    "division_293": {
+        "checked": "2026-10-15",
+        "passage": "ITAA 1997 ss 293-15 to 293-25, compilation 266 (1 July 2026); Imposition "
+                   "Act 2013 s 5; ATO Key superannuation rates, table 7",
     },
 }
 
@@ -194,6 +268,31 @@ LIBRARY_EVIDENCE = {
         "paragraphs": "tables 1 and 2, examples 1 to 3",
         "reviewed": "2026-06-30", "checked": "2026-09-27",
     },
+    # Not a Library document: the ATO schedule carries its own worked examples,
+    # and tests/test_study_loan_withholding.py holds the worksheet to them.
+    "study_loan_withholding": {
+        "document": "ATO Schedule 8 statement of formulas for STSL components",
+        "paragraphs": "component rates, examples 1 to 3",
+        "reviewed": "2026-06-17", "checked": "2026-10-15",
+    },
+    # Not a Library document: the ATO page's own example and the Act's thresholds.
+    "medicare_levy": {
+        "document": "ATO Medicare levy reduction for low-income earners",
+        "paragraphs": "table of single thresholds, example (Angie)",
+        "reviewed": "2026-06-30", "checked": "2026-10-15",
+    },
+    # Not a Library document: the ATO's worked example of the same table.
+    "low_income_tax_offset": {
+        "document": "ATO low and middle income earner tax offsets",
+        "paragraphs": "example: taxable income over $37,000 but under $48,000",
+        "reviewed": "2025-06-16", "checked": "2026-10-15",
+    },
+    # Not a Library document: the ATO page's own worked example.
+    "division_293": {
+        "document": "ATO Division 293 tax on concessional contributions by high-income earners",
+        "paragraphs": "example: Division 293 tax calculation",
+        "reviewed": "2026-08-24", "checked": "2026-10-15",
+    },
 }
 
 INPUT_UNITS = {
@@ -234,6 +333,23 @@ INPUT_UNITS = {
     "study_loan_repayment": {
         "repayment_income": "AUD, whole dollars, established repayment income for the year",
     },
+    "study_loan_withholding": {
+        "earnings": "AUD, gross earnings and allowances subject to withholding for the pay period",
+        "pay_period": "weekly, fortnightly or monthly",
+        "scale": "integer 1, 2, 3, 5 or 6",
+    },
+    "medicare_levy": {
+        "taxable_income": "AUD, whole dollars",
+        "section_9a_adjustment_applies": "boolean, whether Medicare Levy Act 1986 s 9A "
+                                         "removes lump sums in arrears; true is refused",
+    },
+    "low_income_tax_offset": {"taxable_income": "AUD, whole dollars"},
+    "division_293": {
+        "division_293_income": "AUD, income for surcharge purposes disregarding reportable "
+                               "super contributions",
+        "low_tax_contributions": "AUD, low tax contributed amounts less excess concessional "
+                                 "contributions for the financial year",
+    },
 }
 
 EXAMPLES: dict[str, dict[str, Any]] = {
@@ -260,6 +376,10 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     },
     "pension_minimum": {"account_balance": "600000.00", "age": 67, "days": 365},
     "study_loan_repayment": {"repayment_income": "86380"},
+    "study_loan_withholding": {"earnings": "2000.00", "pay_period": "weekly", "scale": 2},
+    "medicare_levy": {"taxable_income": "30000", "section_9a_adjustment_applies": False},
+    "low_income_tax_offset": {"taxable_income": "40000"},
+    "division_293": {"division_293_income": "240000.00", "low_tax_contributions": "20000.00"},
 }
 
 

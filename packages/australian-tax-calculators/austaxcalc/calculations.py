@@ -10,16 +10,22 @@ from . import __version__
 from .metadata import (
     CARRY_FORWARD_BALANCE_LIMIT,
     CONTRIBUTION_CAPS,
+    DIVISION_293,
     EXAMPLES,
     INPUT_UNITS,
     LIBRARY_EVIDENCE,
+    LOW_INCOME_TAX_OFFSET,
+    MEDICARE_LEVY_RATES,
+    MEDICARE_LOW_INCOME_THRESHOLDS,
     PAYG_WITHHOLDING_COEFFICIENTS,
     PENSION_MINIMUM_FACTORS,
     RESIDENT_TAX_SCALES,
     SOURCE_REVIEWS,
     STUDY_LOAN_REPAYMENT_RATES,
     STUDY_LOAN_REPAYMENT_THRESHOLDS,
+    STUDY_LOAN_WITHHOLDING_COEFFICIENTS,
     SUPPORTED_PERIODS,
+    CoefficientRows,
     periods,
 )
 
@@ -37,11 +43,27 @@ SOURCES = {
     "contribution_caps": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
     "pension_minimum": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/paying-smsf-benefits/income-stream-pension-rules-and-payments",
     "study_loan_repayment": "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-support-loans-rates-and-repayment-thresholds",
+    "study_loan_withholding": "https://www.ato.gov.au/tax-rates-and-codes/schedule-8-statement-of-formulas-for-calculating-study-and-training-support-loans-components",
+    "medicare_levy": "https://www.legislation.gov.au/C2004A03351/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+    "low_income_tax_offset": "https://www.legislation.gov.au/C2004A05138/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+    "division_293": "https://www.legislation.gov.au/C2004A05138/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_6/document_6.html",
 }
 # Sources beyond the per-rule one, returned with it in each result's sources.
 EXTRA_SOURCES = {
     "fbt": ["https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/fbt-return-2026-calculation-details-for-taxable-employers"],
     "study_loan_repayment": ["https://www.legislation.gov.au/C2026G00249/latest/text"],
+    "study_loan_withholding": [SOURCES["payg_withholding"]],
+    "medicare_levy": [
+        "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners",
+        "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/mytax-instructions/2025/medicare-and-private-health-insurance/medicare-levy-reduction-or-exemption",
+        "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/lump-sum-payment-in-arrears-tax-offsets",
+    ],
+    "low_income_tax_offset": ["https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset"],
+    "division_293": [
+        "https://www.legislation.gov.au/C2013A00087/2013-06-28/2013-06-28/text/original/epub/OEBPS/document_1/document_1.html",
+        "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/division-293-tax",
+        "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/division-293-tax-on-concessional-contributions-by-high-income-earners",
+    ],
 }
 
 
@@ -114,6 +136,45 @@ SCOPES = {
            "withholding component. The ATO table prints the 2026-27 base of the 17% band "
            "rounded to $9,028 and its example 2 uses that figure; this worksheet applies the "
            "exact $9,028.35, so that example differs by 35 cents.",
+    "study_loan_withholding": "One regular weekly, fortnightly or monthly payment of salary "
+           "or wages made from 1 July 2026 to a payee who gave a TFN declaration or withholding "
+           "declaration saying they have a study and training support loan debt, on scale 1, 2, "
+           "3, 5 or 6 as the operator established. Scale 1 uses the Schedule 8 component for a "
+           "payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for "
+           "a payee who claimed it or is a foreign resident. Earnings include allowances subject "
+           "to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, "
+           "each rounded to the dollar; the ATO's combined coefficients can differ by a dollar "
+           "and it accepts either method. Excludes scale 4, a Medicare levy variation for a "
+           "spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, "
+           "lump sum termination payments, back payments, bonuses and other schedules.",
+    "medicare_levy": "Australian resident individual for the full income year, single with "
+           "no spouse or dependants at any time in the year, not entitled to the seniors and "
+           "pensioners tax offset, and not entitled to any full or half Medicare levy "
+           "exemption. The operator must also establish whether s 9A applies: from 2024-25 "
+           "it takes eligible lump sums in arrears out of taxable income when they are at "
+           "least 10% of normal taxable income and its accrual-year tests are met. A person "
+           "to whom s 9A applies is refused. Supply established whole-dollar taxable "
+           "income. Applies the 2% rate and the low-income reduction: no levy at or below "
+           "the threshold amount, and up to the phase-in limit no more than 10% of the "
+           "excess over it. Excludes the family income reduction, SAPTO thresholds, "
+           "exemptions, the Medicare levy surcharge, trustees and part-year residence.",
+    "low_income_tax_offset": "Individual who was an Australian resident at some time in the "
+           "income year, not a trustee, and not a minor whose offset s 61-115(2) caps because "
+           "Division 6AA of Part III of the 1936 Act applies to part of their income. Supply "
+           "established whole-dollar taxable income. Gives the offset amount under ITAA 1997 "
+           "s 61-115(1): $700 to $37,500, less 5% of the excess to $45,000, then $325 less "
+           "1.5% of the excess, nil above $66,667. The 1.5% band can leave half a cent, "
+           "rounded half up. The offset is non-refundable; this worksheet does not apply it "
+           "against tax payable or combine it with other offsets.",
+    "division_293": "One individual's Division 293 tax for an income year from established "
+           "Division 293 income (income for surcharge purposes disregarding reportable super "
+           "contributions) and low tax contributions for the corresponding financial year "
+           "(low tax contributed amounts less excess concessional contributions). Taxable "
+           "contributions are the lesser of the low tax contributions and the excess of the "
+           "sum over $250,000; the tax is 15% of them. Excludes working out either input, "
+           "defined benefit interests and deferred debt accounts, constitutionally protected "
+           "funds, State higher level office holders and Commonwealth justices, releasing "
+           "money from super, interest and the assessment itself.",
 }
 
 
@@ -300,42 +361,156 @@ def quarterly_sg(ordinary_time_earnings: Decimal, qualifying_contributions: Deci
         }, {"sg_rate": "0.12", "maximum_quarterly_base": "62500.00"})
 
 
-def payg_withholding(earnings: Decimal, pay_period: str, scale: int, year: str,
-                     scope_confirmed: bool) -> dict[str, Any]:
-    """Schedule 1 formula y = a * x - b on the weekly equivalent of earnings."""
-    _scope(scope_confirmed, year, "payg_withholding")
+def _payg_checks(kind: str, earnings: Decimal, pay_period: str, scale: int, year: str,
+                 scope_confirmed: bool) -> None:
+    _scope(scope_confirmed, year, kind)
     _money(earnings)
     if pay_period not in ("weekly", "fortnightly", "monthly"):
         raise ValueError("pay_period must be weekly, fortnightly or monthly.")
-    coefficients = PAYG_WITHHOLDING_COEFFICIENTS[year]
-    if type(scale) is not int or scale not in coefficients:
+    # bool is a subclass of int; True is not a scale.
+    if (isinstance(scale, bool) or not isinstance(scale, int)
+            or scale not in PAYG_WITHHOLDING_COEFFICIENTS[year]):
         raise ValueError("scale must be 1, 2, 3, 5 or 6; scale 4 is not supported.")
-    whole = D(1)
+
+
+# The helpers below run inside the caller's 40-digit decimal context.
+def _weekly_earnings(earnings: Decimal, pay_period: str) -> Decimal:
+    """Schedule 1 and 8: the weekly equivalent in whole dollars plus 99 cents."""
+    if pay_period == "weekly":
+        weekly = earnings
+    elif pay_period == "fortnightly":
+        weekly = earnings / 2
+    else:
+        # Schedule 1: a monthly amount ending in 33 cents gains a cent first.
+        if earnings % 1 == D("0.33"):
+            earnings += D("0.01")
+        weekly = earnings * 3 / 13
+    return weekly.quantize(D(1), rounding=ROUND_DOWN) + D("0.99")
+
+
+def _weekly_formula(x: Decimal, rows: CoefficientRows) -> tuple[Decimal, Decimal, Decimal]:
+    a, b = next((D(a), D(b)) for limit, a, b in rows if limit is None or x < limit)
+    # Rounded straight to the dollar, 50 cents up, with no cent rounding first.
+    return a, b, max(D(0), (a * x - b).quantize(D(1), rounding=ROUND_HALF_UP))
+
+
+def _for_pay_period(weekly_amount: Decimal, pay_period: str) -> Decimal:
+    return {
+        "weekly": weekly_amount,
+        "fortnightly": weekly_amount * 2,
+        "monthly": (weekly_amount * 13 / 3).quantize(D(1), rounding=ROUND_HALF_UP),
+    }[pay_period]
+
+
+def payg_withholding(earnings: Decimal, pay_period: str, scale: int, year: str,
+                     scope_confirmed: bool) -> dict[str, Any]:
+    """Schedule 1 formula y = a * x - b on the weekly equivalent of earnings."""
+    _payg_checks("payg_withholding", earnings, pay_period, scale, year, scope_confirmed)
     with localcontext() as context:
         context.prec = 40
-        if pay_period == "weekly":
-            weekly = earnings
-        elif pay_period == "fortnightly":
-            weekly = earnings / 2
-        else:
-            # Schedule 1: a monthly amount ending in 33 cents gains a cent first.
-            if earnings % 1 == D("0.33"):
-                earnings += D("0.01")
-            weekly = earnings * 3 / 13
-        x = weekly.quantize(whole, rounding=ROUND_DOWN) + D("0.99")
-        a, b = next((D(a), D(b)) for limit, a, b in coefficients[scale]
-                    if limit is None or x < limit)
-        # Rounded straight to the dollar, 50 cents up, with no cent rounding first.
-        weekly_amount = max(D(0), (a * x - b).quantize(whole, rounding=ROUND_HALF_UP))
-        amount = {
-            "weekly": weekly_amount,
-            "fortnightly": weekly_amount * 2,
-            "monthly": (weekly_amount * 13 / 3).quantize(whole, rounding=ROUND_HALF_UP),
-        }[pay_period]
+        x = _weekly_earnings(earnings, pay_period)
+        a, b, weekly_amount = _weekly_formula(x, PAYG_WITHHOLDING_COEFFICIENTS[year][scale])
         return _result("payg_withholding", f"{year} {pay_period}", {
             "weekly_earnings_used": x, "weekly_withholding": weekly_amount,
-            "withholding": amount,
+            "withholding": _for_pay_period(weekly_amount, pay_period),
         }, {"scale": str(scale), "a": str(a), "b": str(b)})
+
+
+def study_loan_withholding(earnings: Decimal, pay_period: str, scale: int, year: str,
+                           scope_confirmed: bool) -> dict[str, Any]:
+    """Schedule 1 withholding plus the Schedule 8 study and training support loan component."""
+    _payg_checks("study_loan_withholding", earnings, pay_period, scale, year, scope_confirmed)
+    table = "no_threshold" if scale == 1 else "threshold_or_foreign"
+    with localcontext() as context:
+        context.prec = 40
+        x = _weekly_earnings(earnings, pay_period)
+        a, b, weekly_tax = _weekly_formula(x, PAYG_WITHHOLDING_COEFFICIENTS[year][scale])
+        loan_a, loan_b, weekly_loan = _weekly_formula(
+            x, STUDY_LOAN_WITHHOLDING_COEFFICIENTS[year][table])
+        tax = _for_pay_period(weekly_tax, pay_period)
+        component = _for_pay_period(weekly_loan, pay_period)
+        return _result("study_loan_withholding", f"{year} {pay_period}", {
+            "weekly_earnings_used": x, "schedule_1_withholding": tax,
+            "study_loan_component": component, "withholding": tax + component,
+        }, {"scale": str(scale), "a": str(a), "b": str(b),
+            "component_a": str(loan_a), "component_b": str(loan_b)})
+
+
+def medicare_levy(taxable_income: Decimal, section_9a_adjustment_applies: bool, year: str,
+                  scope_confirmed: bool) -> dict[str, Any]:
+    """Medicare Levy Act 1986 s 6(1) rate with the s 7 low-income reduction for a single."""
+    _scope(scope_confirmed, year, "medicare_levy")
+    income = _money(taxable_income)
+    if income != income.to_integral_value():
+        raise ValueError("Supply established whole-dollar taxable income.")
+    if not isinstance(section_9a_adjustment_applies, bool):
+        raise ValueError("section_9a_adjustment_applies must be a boolean.")
+    if section_9a_adjustment_applies:
+        # The adjustment needs the arrears amount, normal taxable income and the
+        # accrual-year tests in s 9A(1); the worksheet does not estimate them.
+        raise ValueError(
+            "Medicare Levy Act 1986 s 9A (lump sum payments in arrears) applies, and this "
+            f"worksheet does not make that adjustment. See {EXTRA_SOURCES['medicare_levy'][2]}")
+    threshold, limit = (D(value) for value in MEDICARE_LOW_INCOME_THRESHOLDS[year])
+    rate, shade_in = D(MEDICARE_LEVY_RATES["levy"]), D(MEDICARE_LEVY_RATES["shade_in"])
+    with localcontext() as context:
+        context.prec = 40
+        full = income * rate
+        if income <= threshold:
+            levy = D(0)
+        elif income <= limit:
+            levy = min(full, (income - threshold) * shade_in)
+        else:
+            levy = full
+        return _result("medicare_levy", year, {
+            "taxable_income_used": income, "levy_at_full_rate": full,
+            "low_income_reduction": full - levy, "medicare_levy": levy,
+        }, {"levy_rate": str(rate), "shade_in_rate": str(shade_in),
+            "threshold_amount": str(threshold), "phase_in_limit": str(limit)})
+
+
+def low_income_tax_offset(taxable_income: Decimal, year: str,
+                          scope_confirmed: bool) -> dict[str, Any]:
+    """ITAA 1997 s 61-115(1) low income tax offset for a resident individual."""
+    _scope(scope_confirmed, year, "low_income_tax_offset")
+    income = _money(taxable_income)
+    if income != income.to_integral_value():
+        raise ValueError("Supply established whole-dollar taxable income.")
+    rule = {key: D(value) for key, value in LOW_INCOME_TAX_OFFSET.items()}
+    with localcontext() as context:
+        context.prec = 40
+        if income <= rule["first_step"]:
+            offset = rule["maximum"]
+        elif income <= rule["second_step"]:
+            offset = rule["maximum"] - (income - rule["first_step"]) * rule["first_rate"]
+        elif income <= rule["cut_out"]:
+            # At the cut-out the table gives minus half a cent; the offset is nil.
+            offset = max(D(0), rule["second_amount"]
+                         - (income - rule["second_step"]) * rule["second_rate"])
+        else:
+            offset = D(0)
+        return _result("low_income_tax_offset", year, {
+            "taxable_income_used": income, "low_income_tax_offset": offset,
+        }, dict(LOW_INCOME_TAX_OFFSET))
+
+
+def division_293(division_293_income: Decimal, low_tax_contributions: Decimal, year: str,
+                 scope_confirmed: bool) -> dict[str, Any]:
+    """ITAA 1997 s 293-20 taxable contributions and the 15% Division 293 tax."""
+    _scope(scope_confirmed, year, "division_293")
+    income, contributions = _money(division_293_income), _money(low_tax_contributions)
+    threshold, rate = D(DIVISION_293["threshold"]), D(DIVISION_293["rate"])
+    with localcontext() as context:
+        context.prec = 40
+        combined = income + contributions
+        excess = max(D(0), combined - threshold)
+        # s 293-20(2): nil low tax contributions mean nil taxable contributions,
+        # which the lesser of the two already gives.
+        taxable = min(contributions, excess)
+        return _result("division_293", year, {
+            "combined_income_and_contributions": combined, "excess_over_threshold": excess,
+            "taxable_contributions": taxable, "division_293_tax": taxable * rate,
+        }, {"threshold": str(threshold), "rate": str(rate)})
 
 
 def study_loan_repayment(repayment_income: Decimal, year: str,

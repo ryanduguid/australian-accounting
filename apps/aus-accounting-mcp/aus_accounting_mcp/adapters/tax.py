@@ -116,10 +116,44 @@ class StudyLoanRepaymentFacts(Worksheet):
                     "contributions and exempt foreign employment income.")
 
 
+class StudyLoanWithholdingFacts(Worksheet):
+    kind: Literal["study_loan_withholding"]
+    year: Literal["2026-27"]
+    earnings: Money
+    pay_period: Literal["weekly", "fortnightly", "monthly"]
+    scale: Literal[1, 2, 3, 5, 6] = Field(
+        description="Schedule 1 scale from the payee's declarations; scale 4 is not supported.")
+
+
+class MedicareLevyFacts(Worksheet):
+    kind: Literal["medicare_levy"]
+    year: Literal["2024-25", "2025-26"]
+    taxable_income: Money
+    section_9a_adjustment_applies: bool = Field(
+        description="Whether Medicare Levy Act 1986 s 9A takes lump sums in arrears out of "
+                    "taxable income; true is refused.")
+
+
+class LowIncomeTaxOffsetFacts(Worksheet):
+    kind: Literal["low_income_tax_offset"]
+    year: Literal["2024-25", "2025-26", "2026-27"]
+    taxable_income: Money
+
+
+class Division293Facts(Worksheet):
+    kind: Literal["division_293"]
+    year: Literal["2024-25", "2025-26", "2026-27"]
+    division_293_income: Money = Field(
+        description="Income for surcharge purposes, disregarding reportable super contributions.")
+    low_tax_contributions: Money = Field(
+        description="Low tax contributed amounts less excess concessional contributions.")
+
+
 TaxFacts = Annotated[
     GstFacts | ResidentTaxFacts | CapitalGainsFacts | FbtFacts | DepreciationFacts | SgFacts
     | PaygWithholdingFacts | ContributionCapsFacts | PensionMinimumFacts
-    | StudyLoanRepaymentFacts,
+    | StudyLoanRepaymentFacts | StudyLoanWithholdingFacts | MedicareLevyFacts
+    | LowIncomeTaxOffsetFacts | Division293Facts,
     Field(discriminator="kind"),
 ]
 MONEY_FIELDS = {
@@ -127,7 +161,7 @@ MONEY_FIELDS = {
     "prior_losses", "type_one_value", "type_two_value", "cost", "ordinary_time_earnings",
     "qualifying_contributions", "earnings", "total_super_balance", "concessional_contributions",
     "unused_concessional_cap", "non_concessional_contributions", "account_balance",
-    "repayment_income",
+    "repayment_income", "division_293_income", "low_tax_contributions",
 }
 
 

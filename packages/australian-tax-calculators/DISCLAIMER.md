@@ -2,11 +2,12 @@
 
 Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
 
-Australian tax calculators runs 10 bounded worksheets on facts the caller has
+Australian tax calculators runs 14 bounded worksheets on facts the caller has
 already established: ordinary GST, resident basic income tax, CGT losses and
 the discount, ordinary employer FBT, first-year depreciation, quarterly super
 guarantee, PAYG withholding, super contribution caps, account-based pension
-minimums and study and training loan repayments. It is not tax, legal, accounting, financial, investment,
+minimums, study and training loan repayments and withholding, a single
+person's Medicare levy, the low income tax offset and Division 293 tax. It is not tax, legal, accounting, financial, investment,
 BAS-agent, registered-tax-agent, or assurance advice. It is not an assessment,
 a private ruling, or a determination.
 
@@ -38,8 +39,9 @@ figure calculated on an unmet scope condition is arithmetic, not an answer.
 The worksheets are deliberately narrow. Unsupported periods fail rather than
 extrapolate. The super guarantee worksheet does not implement the post-June
 2026 Payday entitlement rules; the separate Payday engine reviews timing on a
-supplied liability. Contribution caps, SMSF tax, trusts, payroll tax, HELP and
-Medicare calculations remain outside these worksheets.
+supplied liability. SMSF tax, trusts, payroll tax, the Medicare levy surcharge
+and the family and exemption rules of the Medicare levy remain outside these
+worksheets.
 
 Nothing here lodges a return or any other official form, posts journals, pays
 tax, or contacts the ATO. The package performs no network calls and no writes.

@@ -154,7 +154,7 @@ copy without a download until the uv cache is cleaned.
 | `calc_payday_super_deadline` | Review one contribution against Payday Super timing | payday-super-checker |
 | `review_payday_super_contributions` | Assess up to 200 related contributions for one employer | payday-super-checker |
 | `build_payday_super_evidence_pack` | Return 4 in-memory review files for supplied contributions; requires checker evidence-pack support | payday-super-checker |
-| `calculate_tax_worksheet` | Run one of 10 bounded worksheets with established scope | australian-tax-calculators |
+| `calculate_tax_worksheet` | Run one of 14 bounded worksheets with established scope | australian-tax-calculators |
 | `search_accounting_library` | Search explicitly configured local Markdown files | local read-only retrieval |
 | `read_accounting_library` | Read bounded lines with file, line, page and hash citations | local read-only retrieval |
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page | local read-only retrieval |
@@ -449,6 +449,10 @@ supported period, exclusions and warnings.
 | `contribution_caps` | `total_super_balance`, `concessional_contributions`, `unused_concessional_cap`, `non_concessional_contributions`, `under_75_in_year`, `year` | 2024-25 to 2026-27, one individual with no bring-forward period started in the 2 previous years |
 | `pension_minimum` | `account_balance`, `age`, `days`, `year` | 2024-25 to 2026-27, one account-based pension paying under SISR Schedule 7 |
 | `study_loan_repayment` | `repayment_income`, `year` | 2025-26 and 2026-27, one individual's established whole-dollar repayment income at the marginal rates; the formula amount before the loan-balance limit |
+| `study_loan_withholding` | `earnings`, `pay_period`, `scale`, `year` | 2026-27, one regular weekly, fortnightly or monthly pay on scale 1, 2, 3, 5 or 6 to a payee with a study and training support loan debt; the Schedule 1 amount plus the Schedule 8 component |
+| `medicare_levy` | Whole-dollar `taxable_income`, `section_9a_adjustment_applies`, `year` | 2024-25 and 2025-26, full-year resident single without SAPTO, spouse, dependants or exemption; the 2% rate and the low-income reduction; refused when s 9A (lump sum payments in arrears) applies |
+| `low_income_tax_offset` | Whole-dollar `taxable_income`, `year` | 2024-25 to 2026-27, resident individual; the offset amount, not applied against tax payable |
+| `division_293` | `division_293_income`, `low_tax_contributions`, `year` | 2024-25 to 2026-27, one individual's established figures; no defined benefit interests |
 
 Amounts are non-negative AUD decimal strings in plain notation, at most 2dp and AUD 1 trillion.
 `taxable_use` is a decimal fraction, such as `"0.4"` for 40%; `effective_life` is

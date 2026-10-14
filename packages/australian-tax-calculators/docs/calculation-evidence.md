@@ -33,6 +33,10 @@ example evidence; it does not claim a fresh review of every supported period.
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
+| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilation 53 and the ATO's single thresholds | 30 June 2026 (ATO page) | Single person without SAPTO, the 2% rate and the s 7 low-income reduction for 2024-25 and 2025-26 |
+| Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
+| Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
+| Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO thresholds page and Gazette C2026G00249 | 30 June 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
@@ -145,6 +149,112 @@ transcription; it does not establish that a payee's scale, allowances or
 declarations are right. Scale 4, tax offsets, Medicare levy adjustments, study
 and training support loans, 53 and 27 pay years, quarterly pays and the other
 schedules are outside this worksheet.
+
+## Medicare levy
+
+This worksheet's evidence is not a Library document. The rate and the
+low-income reduction were read on 15 October 2026 in the Medicare Levy Act 1986
+as compiled at 1 July 2026 (compilation 53): s 6(1) sets the rate at 2%, s 7(1)
+removes the levy at or below the threshold amount, and s 7(2) limits it to 10%
+of the excess up to the phase-in limit. For a person not entitled to the seniors
+and pensioners tax offset, s 3(1) sets those at $28,011 and $35,013, which the
+ATO page "Medicare levy reduction for low-income earners" (last updated 30 June
+2026) gives for 2025-26. The 2024-25 figures, $27,222 and $34,027, are from
+table 2 of the ATO's myTax 2025 instructions, which apply to 1 July 2024 to 30
+June 2025. `tests/test_medicare_levy.py` holds the worksheet to the ATO page's
+example ($29,000 in 2025-26 gives $98.90), to each threshold and phase-in limit
+and to the dollar either side of them. The 2026-27 thresholds were not
+published when the worksheet was written, so 2026-27 is refused rather than
+given the 2025-26 figures.
+
+Each published phase-in limit is 1.25 times the threshold amount, rounded down
+to the dollar: that is the income at which 10% of the excess reaches 2% of the
+whole, and the tests derive it. The family income reduction (s 8), exemptions,
+the surcharge, trustees and part-year residence are outside the worksheet.
+
+Section 9A, read in the same compilation on 15 October 2026, takes the total
+arrears amount out of taxable income for ss 6(1) and 7 when a person's
+assessable income includes eligible lump sums in arrears of at least 10% of
+normal taxable income and the accrual-year tests in s 9A(1)(c) are met; the
+terms come from ITAA 1936 s 159ZR(1). The ATO page "Lump sum payment in arrears
+tax offsets" (last updated 8 June 2026, read on 15 October 2026) says the
+Medicare levy exemption on the arrears amount applies from 1 July 2024. The
+worksheet takes `section_9a_adjustment_applies` as an operator-established
+fact and refuses when it is true rather than estimate the adjustment. In the
+tests, $40,000 for 2025-26 that includes $12,000 of arrears from two earlier
+years is refused, because s 9A would leave $28,000, below the threshold, and
+nil levy; the same income without s 9A gives $800.
+
+## Low income tax offset
+
+This worksheet's evidence is not a Library document. The table was read on 15
+October 2026 in ITAA 1997 s 61-115(1) as compiled at 1 July 2026 (compilation
+266, volume 2): $700 where taxable income does not exceed $37,500, $700 less 5%
+of the excess up to $45,000, and $325 less 1.5% of the excess up to $66,667.
+Section 61-110(1) gives the offset for 2020-21 and later income years to an
+individual who is an Australian resident at any time in the year with taxable
+income of no more than $66,667. The ATO page "Low income tax offset" (last
+updated 8 June 2026) states the same bands, and its page on low and middle
+income earner tax offsets works the $45,000 case to $325, which
+`tests/test_low_income_tax_offset.py` holds. The tests also derive the $325
+from the first band and the $66,667 cut-out as the first whole dollar at which
+the third item reaches nil.
+
+The provision states no rounding. Whole-dollar taxable income in the 1.5% band
+can leave half a cent, which the worksheet rounds half up like its other
+amounts. At $66,667 the third item gives minus half a cent and the worksheet
+returns nil. The cap for minors in s 61-115(2), trustees under s 61-110(2) and
+applying the offset against tax payable are outside the worksheet.
+
+## Division 293
+
+This worksheet's evidence is not a Library document. ITAA 1997 s 293-20(1), as
+compiled at 1 July 2026 (compilation 266, volume 6) and read on 15 October
+2026, gives taxable contributions equal to the lesser of the low tax
+contributions and the excess when Division 293 income (income for surcharge
+purposes disregarding reportable super contributions) and low tax contributions
+together exceed $250,000; s 293-20(2) makes them nil when the low tax
+contributions are nil, and s 293-25 defines low tax contributions as low tax
+contributed amounts less excess concessional contributions. Section 5 of the
+Superannuation (Sustaining the Superannuation Contribution Concession)
+Imposition Act 2013 sets the tax at 15%. The ATO's key superannuation rates
+table gives the $250,000 threshold for 2017-18 onwards (last updated 7 August
+2026), and its Division 293 page (last updated 24 August 2026) works Jan's
+example: $240,000 and $15,000 give taxable contributions of $5,000 and tax of
+$750, which `tests/test_division_293.py` holds.
+
+Both inputs are the operator's established figures; the worksheet does not
+build Division 293 income from its components or classify contributions.
+Defined benefit interests and their deferred debt accounts, constitutionally
+protected funds, State higher level office holders and Commonwealth justices
+are outside it.
+
+## Study loan withholding
+
+This worksheet's evidence is not a Library document. The component rates in
+`austaxcalc/metadata.py` were transcribed from the ATO page "Schedule 8 -
+Statement of formulas for calculating study and training support loans
+components" (NAT 3539, published 17 June 2026, for payments made from 1 July
+2026), read on 15 October 2026, together with its rules for the weekly
+equivalent of fortnightly and monthly earnings and for rounding to the dollar.
+The ATO's sample data page, checked the same day, lists no Schedule 8 data. `tests/test_study_loan_withholding.py`
+holds the component to the page's examples 1 to 3 ($2,608.36 weekly gives $193,
+$4,409.75 fortnightly gives $260 and $10,627.88 monthly without the tax-free
+threshold gives $979) and to the published starting earnings for each pay
+period ($1,337, $2,674 and $5,793.67 with the tax-free threshold; $987, $1,974
+and $4,277 without it).
+
+The worksheet adds the component to the Schedule 1 amount, which comes from the
+PAYG withholding worksheet above. The schedule also publishes combined
+coefficients for each scale and says the two methods can differ slightly
+through rounding, accepting either. The tests type in the combined scale 1 and
+2 coefficients, require each to equal the Schedule 1 row plus the component
+row to 4 decimal places, and require the worksheet to stay within $1 of them
+for every whole-dollar weekly amount to $4,000. The published scale 3 combined
+rows from $1,337 to below $2,596 omit the 30 cent constant of the Schedule 1
+scale 3 row; the worksheet follows the component method and does not use them. Quarterly
+pays, scale 4 and a Medicare levy variation for a spouse or dependants are
+outside the worksheet.
 
 ## Study loan repayment
 
