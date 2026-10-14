@@ -9,7 +9,7 @@ Key ATO rates and thresholds, one JSON file per figure in `data/`. Each record c
 | `id` | File name without `.json` |
 | `label` | What the figure is |
 | `value` | Number, ISO date, or a list of brackets for `tax_scale` |
-| `unit` | `AUD`, `percent`, `cents_per_km`, `date` or `tax_scale` |
+| `unit` | `AUD`, `percent`, `cents_per_km`, `factor` (a plain multiplier such as an FBT gross-up rate), `date` or `tax_scale` |
 | `period` | Any of `income_year` (like `2026-27`), `effective_from`, `effective_to`, `as_at` (ISO dates). `as_at` means the page gives no year, so the retrieval date is used |
 | `source_url` | Public ato.gov.au page |
 | `retrieved_at` | When the snapshot the quote was checked against was taken |
@@ -20,7 +20,7 @@ Key ATO rates and thresholds, one JSON file per figure in `data/`. Each record c
 
 Income years must name consecutive calendar years, including century rollover such as `2099-00`. When both effective dates are present, the end cannot precede the start. Open-ended periods remain valid. The retrieval marker `as_at` does not set an effective-period boundary.
 
-Numeric values must be finite and non-negative, with percentages between 0 and 100. Tax-scale bounds are whole dollar amounts, starting at zero and continuing without gaps or overlaps. Only the final bracket has no upper limit. Base tax and marginal rates follow the same numeric checks before the validator checks the arithmetic.
+Numeric values must be finite and non-negative, with percentages between 0 and 100. Tax-scale bounds are whole dollar amounts, starting at zero and continuing without gaps or overlaps. Only the final bracket has no upper limit. A scale taxed from the first dollar, such as the foreign resident rates, is checked against the page wording "30c for each $1". Base tax and marginal rates follow the same numeric checks before the validator checks the arithmetic.
 
 ## How the data was built
 
