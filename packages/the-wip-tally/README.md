@@ -138,7 +138,7 @@ para 44 is a judgement about the contract, not a default this engine can pick.
 | `outcome_reasonably_measurable` | `yes` or `no`, per row. There is no default: a blank refuses the contract, because paras 44-45 decide between percentage-of-completion revenue and revenue limited to recoverable cost. `no` applies para 45 recoverable-cost-only revenue |
 | `recoverable_costs` | Required in substance when the outcome is not measurable; defaults to progress cost, and is refused above `costs_incurred` |
 | `progress_method` | `cost_to_cost` (default), `output`, or `right_to_invoice` |
-| `output_percent` | Required for `output`, as `0.40` or `40%` |
+| `output_percent` | Required for `output` when the outcome is measurable, as `0.40` or `40%` |
 | `prior_*` | Prior-period transaction price, EAC, cost, ETC and revenue, for fade and period revenue |
 | `gst_rate` | Default `0.10`. Used only to *show* GST on certified billings and retention |
 | `assets_used_carrying` | If the job is underwater, flags AASB 137 para 69 (impair first) |

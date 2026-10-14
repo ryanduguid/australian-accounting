@@ -325,6 +325,52 @@ def test_stated_measurability_keeps_its_figures() -> None:
     assert "outcome_not_reasonably_measurable" in not_measurable.flags
 
 
+@pytest.mark.parametrize(
+    "method,overrides",
+    [
+        ("cost_to_cost", {}),
+        ("output", {"output_percent": Decimal("0.50")}),
+        ("output", {}),
+        ("right_to_invoice", {}),
+    ],
+)
+def test_para_45_limits_revenue_under_every_progress_method(
+    method: str, overrides: dict[str, object]
+) -> None:
+    # Output at 50% booked 500,000 and right to invoice booked the 450,000
+    # billed, both ignoring a stated "no" that cost-to-cost honoured.
+    position = measure(
+        _contract(
+            outcome_reasonably_measurable=False,
+            recoverable_costs=Decimal("320000.00"),
+            progress_method=method,
+            **overrides,
+        )
+    )
+    assert position.revenue_to_date == Decimal("320000.00")
+    assert position.percent_complete == ZERO
+    assert position.contract_liability == Decimal("130000.00")
+    assert "outcome_not_reasonably_measurable" in position.flags
+    assert ("progress_method_not_cost_to_cost" in position.flags) is (
+        method != "cost_to_cost"
+    )
+
+
+@pytest.mark.parametrize("method", ["output", "right_to_invoice"])
+def test_para_45_refuses_recoverable_cost_above_cost_under_every_method(
+    method: str,
+) -> None:
+    with pytest.raises(ScheduleError, match="exceeds costs incurred"):
+        measure(
+            _contract(
+                outcome_reasonably_measurable=False,
+                recoverable_costs=Decimal("400000.01"),
+                progress_method=method,
+                output_percent=Decimal("0.50"),
+            )
+        )
+
+
 @pytest.mark.parametrize("percent", [Decimal("-0.5"), Decimal("2"), Decimal("1.0001")])
 def test_output_progress_outside_zero_to_one_is_refused(percent: Decimal) -> None:
     # CSV ingestion already refuses these. measure() is the public calculation path,
