@@ -131,6 +131,26 @@ def test_a_failure_status_keeps_its_outcome_when_its_body_is_not_json(
     assert outcome.raw_response == body.decode("utf-8", "replace")
 
 
+@pytest.mark.parametrize(
+    "status,expected,refusal",
+    [(503, Status.UPSTREAM_UNAVAILABLE, None), (400, Status.UPSTREAM_REFUSED, "out_of_scope")],
+)
+def test_a_large_json_failure_body_is_kept_whole_with_its_outcome(
+    stub, stub_config, contract, status, expected, refusal,
+):
+    # The evidence record keeps the provider's JSON unaltered, and the transport's
+    # response ceiling is what bounds it. Only a body that is not JSON is cut to
+    # a 2,048-byte excerpt.
+    _, state = stub
+    payload = {"detail": "x" * 3000, **({"refusal_class": refusal} if refusal else {})}
+    state.respond(payload, status=status)
+    outcome = call(LodgeitClient(stub_config, contract))
+    assert outcome.status is expected
+    assert outcome.upstream_refusal_class == refusal
+    assert outcome.raw_response == payload
+    assert outcome.values == {} and outcome.result is None
+
+
 def test_a_period_the_snapshot_does_not_record_never_reaches_the_network(
     stub,
     stub_config,
