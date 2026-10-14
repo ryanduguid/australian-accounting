@@ -224,7 +224,7 @@ Statement of formulas for calculating study and training support loans
 components" (NAT 3539, published 17 June 2026, for payments made from 1 July
 2026), read on 15 October 2026, together with its rules for the weekly
 equivalent of fortnightly and monthly earnings and for rounding to the dollar.
-The ATO publishes no Schedule 8 sample data. `tests/test_study_loan_withholding.py`
+The ATO's sample data page, checked the same day, lists no Schedule 8 data. `tests/test_study_loan_withholding.py`
 holds the component to the page's examples 1 to 3 ($2,608.36 weekly gives $193,
 $4,409.75 fortnightly gives $260 and $10,627.88 monthly without the tax-free
 threshold gives $979) and to the published starting earnings for each pay
