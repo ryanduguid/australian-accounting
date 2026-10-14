@@ -10,10 +10,11 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 Distribution `australian-tax-calculators`, import package `austaxcalc`. Library
 only: this component ships no command.
 
-Ten calculation worksheets for established facts: ordinary GST, resident basic income
+Thirteen calculation worksheets for established facts: ordinary GST, resident basic income
 tax, CGT losses and discount, ordinary employer FBT, first-year depreciation,
 quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps,
-account-based pension minimums and study and training loan repayments. These are experimental
+account-based pension minimums, study and training loan repayments, Schedule 8 study
+loan withholding, a single person's Medicare levy and the low income tax offset. These are experimental
 review aids, not advice or return preparation. Callers must establish every scope condition before calculating.
 
 The Python functions in `austaxcalc.calculations` accept `Decimal` amounts and an
@@ -79,11 +80,15 @@ Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
 | Pension minimum | 2024-25 to 2026-27; one account-based pension paying under SISR Schedule 7 |
 | Study loan repayment | 2025-26 and 2026-27; one individual's established repayment income at the marginal rates; the formula amount before the loan-balance limit |
+| Study loan withholding | Regular weekly, fortnightly or monthly pays from 1 July 2026 on scale 1, 2, 3, 5 or 6; the Schedule 1 amount plus the Schedule 8 component |
+| Medicare levy | 2024-25 and 2025-26; full-year resident single without SAPTO, spouse, dependants or exemption; the 2% rate and the low-income reduction |
+| Low income tax offset | 2024-25, 2025-26 and 2026-27; resident individual's established taxable income; the offset amount, not applied against tax |
 
 Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
 liability. SMSF fund tax, Division 293 and 296 tax, the transfer balance cap, trusts, payroll
-tax and Medicare calculations remain outside these worksheets.
+tax, the Medicare levy surcharge and Medicare levy reductions other than the single
+low-income reduction remain outside these worksheets.
 
 ## PAYG withholding
 
@@ -136,6 +141,33 @@ component are outside it. The tests hold the worksheet to the ATO's worked
 examples, the Gazette that notified the 2026-27 thresholds and every band
 boundary; see [calculation evidence](docs/calculation-evidence.md#study-loan-repayment).
 This worksheet is on `main` and not yet in a published wheel.
+
+## Study loan withholding
+
+`study_loan_withholding` adds the Schedule 8 (NAT 3539) study and training
+support loan component to the Schedule 1 amount for one regular weekly,
+fortnightly or monthly pay made from 1 July 2026 to a payee who declared a
+study and training support loan debt. Scale 1 takes the component for a payee
+who did not claim the tax-free threshold; scales 2, 3, 5 and 6 take the one for
+a payee who claimed it or is a foreign resident. The result gives the Schedule
+1 amount, the component and their total. The ATO also publishes combined
+coefficients and accepts either method; the tests hold the worksheet within $1
+of them for scales 1 and 2, and to the schedule's three worked examples. See
+[calculation evidence](docs/calculation-evidence.md#study-loan-withholding).
+
+## Medicare levy and low income tax offset
+
+`medicare_levy` applies the 2% rate and the low-income reduction in s 7 of the
+Medicare Levy Act 1986 to a full-year resident single who is not entitled to
+the seniors and pensioners tax offset and has no exemption: nil at or below the
+threshold amount, and no more than 10% of the excess up to the phase-in limit.
+It covers 2024-25 and 2025-26; 2026-27 is refused until its thresholds are
+published. `low_income_tax_offset` gives the ITAA 1997 s 61-115 offset from
+established taxable income for 2024-25 to 2026-27. Neither applies the result
+against tax payable. See
+[calculation evidence](docs/calculation-evidence.md#medicare-levy).
+
+These three worksheets are on `main` and not yet in a published wheel.
 
 ## Worksheet discovery
 
