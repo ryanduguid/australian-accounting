@@ -82,6 +82,33 @@ class ATOTablesTest(unittest.TestCase):
             fbt, fbt, tc9_rows=[("DIV7A", "2026-07-01", "2027-06-30", "0", "0", "0.0877")]))
         self.assertEqual(findings, [
             "div7a: cannot read TC9GENTAC {'NM_CALCN_TYPE': 'DIV7A'}: no row in force on 2027-07-01",
+            "fbt: cannot read TC2TAXRTE {'TX_DESC': 'FBT rate'}: rows in force overlap from 0"])
+
+
+    def test_a_doubled_or_overlapping_medicare_row_is_a_finding(self):
+        # Doubling the highest bracket left every positional reader on a plausible
+        # figure, and the comparison reported 3 matches and 0 findings.
+        records = [record("lower", "Medicare levy low-income lower threshold, single, not SAPTO", "AUD",
+                          28011, income_year="2025-26"),
+                   record("upper", "Medicare levy low-income upper threshold, single, not SAPTO", "AUD",
+                          35013, income_year="2025-26"),
+                   record("rate", "Medicare levy rate", "percent", 2, as_at="2026-09-24")]
+        overlap = ("2025-07-01", "9999-12-31", "Medicare Basic Levy", "35000", "35013", "0", "0.1")
+        for extra, start in ((LEVY_ROWS[0], 35014), (overlap, 35000)):
+            with self.subTest(start=start):
+                lines, findings = rates.ato_table_report(records, tables(*LEVY_ROWS, extra))
+                self.assertEqual(findings, [
+                    f"{rid}: cannot read TC2TAXRTE {{'TX_DESC': 'Medicare Basic Levy'}}: "
+                    f"rows in force overlap from {start}" for rid in ("lower", "upper", "rate")])
+                self.assertTrue(lines[-1].startswith("3 record(s) compared, 3 finding(s)."))
+
+
+    def test_two_separate_rows_for_a_single_rate_are_a_finding(self):
+        records = [record("fbt", "Fringe benefits tax rate", "percent", 47, effective_from="2026-04-01")]
+        _, findings = rates.ato_table_report(records, tables(
+            ("2017-04-01", "9999-03-31", "FBT rate", "0", "0", "0", "0.47"),
+            ("2017-04-01", "9999-03-31", "FBT rate", "1", "1", "0", "0.47")))
+        self.assertEqual(findings, [
             "fbt: cannot read TC2TAXRTE {'TX_DESC': 'FBT rate'}: 2 rows in force, expected 1"])
 
 

@@ -409,7 +409,13 @@ def ato_brackets(table, name, match, on):
                              Decimal(row[base]) if base else Decimal(0), Decimal(row[rate]) * 100))
     if not brackets:
         raise ValueError(f"no row in force on {on}")
-    return sorted(brackets, key=lambda b: b[0])
+    brackets.sort(key=lambda b: b[0])
+    # A doubled or overlapping row would leave a positional reader such as the
+    # Medicare thresholds pointing at plausible figures, so it is refused here.
+    for below, above in zip(brackets, brackets[1:]):
+        if below[1] is None or above[0] <= below[1]:
+            raise ValueError(f"rows in force overlap from {above[0]}")
+    return brackets
 
 
 def record_figure(record):
