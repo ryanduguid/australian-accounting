@@ -13,6 +13,8 @@ from .metadata import (
     EXAMPLES,
     INPUT_UNITS,
     LIBRARY_EVIDENCE,
+    MEDICARE_LEVY_RATES,
+    MEDICARE_LOW_INCOME_THRESHOLDS,
     PAYG_WITHHOLDING_COEFFICIENTS,
     PENSION_MINIMUM_FACTORS,
     RESIDENT_TAX_SCALES,
@@ -40,12 +42,17 @@ SOURCES = {
     "pension_minimum": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/paying-smsf-benefits/income-stream-pension-rules-and-payments",
     "study_loan_repayment": "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-support-loans-rates-and-repayment-thresholds",
     "study_loan_withholding": "https://www.ato.gov.au/tax-rates-and-codes/schedule-8-statement-of-formulas-for-calculating-study-and-training-support-loans-components",
+    "medicare_levy": "https://www.legislation.gov.au/C2004A03351/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
 }
 # Sources beyond the per-rule one, returned with it in each result's sources.
 EXTRA_SOURCES = {
     "fbt": ["https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/fbt-return-2026-calculation-details-for-taxable-employers"],
     "study_loan_repayment": ["https://www.legislation.gov.au/C2026G00249/latest/text"],
     "study_loan_withholding": [SOURCES["payg_withholding"]],
+    "medicare_levy": [
+        "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners",
+        "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/mytax-instructions/2025/medicare-and-private-health-insurance/medicare-levy-reduction-or-exemption",
+    ],
 }
 
 
@@ -129,6 +136,14 @@ SCOPES = {
            "and it accepts either method. Excludes scale 4, a Medicare levy variation for a "
            "spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, "
            "lump sum termination payments, back payments, bonuses and other schedules.",
+    "medicare_levy": "Australian resident individual for the full income year, single with "
+           "no spouse or dependants at any time in the year, not entitled to the seniors and "
+           "pensioners tax offset, and not entitled to any full or half Medicare levy "
+           "exemption. Supply established whole-dollar taxable income. Applies the 2% rate "
+           "and the low-income reduction: no levy at or below the threshold amount, and up "
+           "to the phase-in limit no more than 10% of the excess over it. Excludes the "
+           "family income reduction, SAPTO thresholds, exemptions, the Medicare levy "
+           "surcharge, trustees and part-year residence.",
 }
 
 
@@ -386,6 +401,30 @@ def study_loan_withholding(earnings: Decimal, pay_period: str, scale: int, year:
             "study_loan_component": component, "withholding": tax + component,
         }, {"scale": str(scale), "a": str(a), "b": str(b), "component_table": table,
             "component_a": str(loan_a), "component_b": str(loan_b)})
+
+
+def medicare_levy(taxable_income: Decimal, year: str, scope_confirmed: bool) -> dict[str, Any]:
+    """Medicare Levy Act 1986 s 6(1) rate with the s 7 low-income reduction for a single."""
+    _scope(scope_confirmed, year, "medicare_levy")
+    income = _money(taxable_income)
+    if income != income.to_integral_value():
+        raise ValueError("Supply established whole-dollar taxable income.")
+    threshold, limit = (D(value) for value in MEDICARE_LOW_INCOME_THRESHOLDS[year])
+    rate, shade_in = D(MEDICARE_LEVY_RATES["levy"]), D(MEDICARE_LEVY_RATES["shade_in"])
+    with localcontext() as context:
+        context.prec = 40
+        full = income * rate
+        if income <= threshold:
+            levy = D(0)
+        elif income <= limit:
+            levy = min(full, (income - threshold) * shade_in)
+        else:
+            levy = full
+        return _result("medicare_levy", year, {
+            "taxable_income_used": income, "levy_at_full_rate": full,
+            "low_income_reduction": full - levy, "medicare_levy": levy,
+        }, {"levy_rate": str(rate), "shade_in_rate": str(shade_in),
+            "threshold_amount": str(threshold), "phase_in_limit": str(limit)})
 
 
 def study_loan_repayment(repayment_income: Decimal, year: str,
