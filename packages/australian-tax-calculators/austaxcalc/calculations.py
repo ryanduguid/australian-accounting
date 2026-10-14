@@ -389,38 +389,41 @@ def contribution_caps(total_super_balance: Decimal, concessional_contributions: 
         _money(value)
     if type(under_75_in_year) is not bool:
         raise ValueError("under_75_in_year must be a boolean.")
-    concessional_cap, transfer_cap = (D(value) for value in CONTRIBUTION_CAPS[year])
-    annual = concessional_cap * 4
-    carried = unused_concessional_cap if total_super_balance < D(
-        CARRY_FORWARD_BALANCE_LIMIT) else D(0)
-    concessional_available = concessional_cap + carried
-    # s 292-85: nil at or above the transfer balance cap; otherwise the balance
-    # band sets how many annual caps the first year can bring forward.
-    if total_super_balance >= transfer_cap:
-        multiple = 0
-    elif not under_75_in_year or total_super_balance >= transfer_cap - annual:
-        multiple = 1
-    elif total_super_balance >= transfer_cap - 2 * annual:
-        multiple = 2
-    else:
-        multiple = 3
-    available = annual * multiple
-    triggered = multiple > 1 and non_concessional_contributions > annual
-    return _result("contribution_caps", year, {
-        "carry_forward_applied": carried,
-        "concessional_available": concessional_available,
-        "concessional_remaining": max(D(0), concessional_available - concessional_contributions),
-        "excess_concessional": max(D(0), concessional_contributions - concessional_available),
-        "non_concessional_available": available,
-        "non_concessional_remaining": max(D(0), available - non_concessional_contributions),
-        "excess_non_concessional": max(D(0), non_concessional_contributions - available),
-    }, {
-        "concessional_cap": str(concessional_cap), "non_concessional_cap": str(annual),
-        "general_transfer_balance_cap": str(transfer_cap),
-        "carry_forward_balance_limit": CARRY_FORWARD_BALANCE_LIMIT,
-        "non_concessional_cap_multiple": str(multiple),
-        "bring_forward_period_years": str(multiple if triggered else 0),
-    })
+    with localcontext() as context:
+        context.prec = 40
+        concessional_cap, transfer_cap = (D(value) for value in CONTRIBUTION_CAPS[year])
+        annual = concessional_cap * 4
+        carried = unused_concessional_cap if total_super_balance < D(
+            CARRY_FORWARD_BALANCE_LIMIT) else D(0)
+        concessional_available = concessional_cap + carried
+        # s 292-85: nil at or above the transfer balance cap; otherwise the balance
+        # band sets how many annual caps the first year can bring forward.
+        if total_super_balance >= transfer_cap:
+            multiple = 0
+        elif not under_75_in_year or total_super_balance >= transfer_cap - annual:
+            multiple = 1
+        elif total_super_balance >= transfer_cap - 2 * annual:
+            multiple = 2
+        else:
+            multiple = 3
+        available = annual * multiple
+        triggered = multiple > 1 and non_concessional_contributions > annual
+        return _result("contribution_caps", year, {
+            "carry_forward_applied": carried,
+            "concessional_available": concessional_available,
+            "concessional_remaining": max(D(0),
+                                          concessional_available - concessional_contributions),
+            "excess_concessional": max(D(0), concessional_contributions - concessional_available),
+            "non_concessional_available": available,
+            "non_concessional_remaining": max(D(0), available - non_concessional_contributions),
+            "excess_non_concessional": max(D(0), non_concessional_contributions - available),
+        }, {
+            "concessional_cap": str(concessional_cap), "non_concessional_cap": str(annual),
+            "general_transfer_balance_cap": str(transfer_cap),
+            "carry_forward_balance_limit": CARRY_FORWARD_BALANCE_LIMIT,
+            "non_concessional_cap_multiple": str(multiple),
+            "bring_forward_period_years": str(multiple if triggered else 0),
+        })
 
 
 def pension_minimum(account_balance: Decimal, age: int, days: int, year: str,
