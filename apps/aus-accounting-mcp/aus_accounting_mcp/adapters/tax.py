@@ -116,10 +116,32 @@ class StudyLoanRepaymentFacts(Worksheet):
                     "contributions and exempt foreign employment income.")
 
 
+class StudyLoanWithholdingFacts(Worksheet):
+    kind: Literal["study_loan_withholding"]
+    year: Literal["2026-27"]
+    earnings: Money
+    pay_period: Literal["weekly", "fortnightly", "monthly"]
+    scale: Literal[1, 2, 3, 5, 6] = Field(
+        description="Schedule 1 scale from the payee's declarations; scale 4 is not supported.")
+
+
+class MedicareLevyFacts(Worksheet):
+    kind: Literal["medicare_levy"]
+    year: Literal["2024-25", "2025-26"]
+    taxable_income: Money
+
+
+class LowIncomeTaxOffsetFacts(Worksheet):
+    kind: Literal["low_income_tax_offset"]
+    year: Literal["2024-25", "2025-26", "2026-27"]
+    taxable_income: Money
+
+
 TaxFacts = Annotated[
     GstFacts | ResidentTaxFacts | CapitalGainsFacts | FbtFacts | DepreciationFacts | SgFacts
     | PaygWithholdingFacts | ContributionCapsFacts | PensionMinimumFacts
-    | StudyLoanRepaymentFacts,
+    | StudyLoanRepaymentFacts | StudyLoanWithholdingFacts | MedicareLevyFacts
+    | LowIncomeTaxOffsetFacts,
     Field(discriminator="kind"),
 ]
 MONEY_FIELDS = {
