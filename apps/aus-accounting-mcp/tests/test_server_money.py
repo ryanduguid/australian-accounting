@@ -273,7 +273,9 @@ _WORKSHEET_FACTS = {
     "study_loan_withholding": {
         "year": "2026-27", "earnings": "2000.00", "pay_period": "weekly", "scale": 2,
     },
-    "medicare_levy": {"year": "2025-26", "taxable_income": "30000.00"},
+    "medicare_levy": {
+        "year": "2025-26", "taxable_income": "30000.00", "section_9a_adjustment_applies": False,
+    },
     "low_income_tax_offset": {"year": "2025-26", "taxable_income": "40000.00"},
     "division_293": {
         "year": "2025-26", "division_293_income": "240000.00",
