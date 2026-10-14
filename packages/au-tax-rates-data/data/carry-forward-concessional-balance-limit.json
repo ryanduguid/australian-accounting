@@ -1,0 +1,14 @@
+{
+  "id": "carry-forward-concessional-balance-limit",
+  "label": "Total super balance limit for carrying forward unused concessional cap",
+  "value": 500000,
+  "unit": "AUD",
+  "period": {
+    "effective_from": "2018-07-01"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
+  "retrieved_at": "2026-10-15T00:31:30+11:00",
+  "quote": "From 1 July 2018, if you have a total superannuation balance of less than $500,000 on 30 June of the previous financial year, you may be entitled to contribute more than the general concessional contributions cap",
+  "pattern": "total superannuation balance of less than (\\$[\\d,]+) on 30 June of the previous financial year",
+  "notes": "The balance must be below this amount on 30 June of the previous financial year."
+}

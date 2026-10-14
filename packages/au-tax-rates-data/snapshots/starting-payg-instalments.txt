@@ -1,0 +1,226 @@
+Skip to main content
+Skip To search
+Skip To Alex Virtual Assistant
+ATO Community
+Legal Database
+What's New
+Log in to online services
+Search
+Menu
+Home
+Individuals and families
+Businesses and organisations
+Tax and super professionals
+Business income, losses, deductions and concessions
+Income and deductions for business
+Depreciation and capital expenses and allowances
+PAYG instalments
+Losses
+Primary producers concessions
+Personal services income
+Sharing economy and tax
+Incentives and concessions
+Small business benchmarks
+PAYG instalments
+Starting PAYG instalments
+Calculate your PAYG instalments
+When are PAYG instalments due
+Lodging and paying PAYG instalments
+How to vary your PAYG instalments
+Stopping PAYG instalments
+PAYG instalments for consolidated groups
+Businesses and organisations
+Business income, losses, deductions and concessions
+PAYG instalments
+Starting PAYG instalments
+Starting PAYG instalments
+
+You may be required to make pay as you go (PAYG) instalments when you earn business and investment income.
+
+Last updated 17 December 2024
+
+Print or Download
+On this page
+Using PAYG instalments to manage your tax
+Automatic entry to PAYG instalments
+Voluntary entry to PAYG instalments
+Using PAYG instalments to manage your tax
+
+Whether you run your own business or earn investment income, planning ahead for your income tax is important to help you keep a healthy cash flow.
+
+PAYG instalments help you do this, this is how it works.
+
+You enter the PAYG instalments system. We may enter you automatically, or you can voluntarily enter.
+You make regular payments (instalments) during the year, usually once every 3 months. The amount you pay is based on your business and investment income.
+When you lodge your tax return, the PAYG instalments you have paid during the year are offset against your tax, leaving you with little or no tax to pay.
+
+PAYG instalments are different to PAYG withholding. With PAYG withholding, employers collect tax from the payments they make to their employees, and send it to the ATO, so employees don't have a big tax bill at the end of the year.
+
+Automatic entry to PAYG instalments
+
+If you lodge a tax return with instalment income above the entry threshold, you may be required to pay PAYG instalments.
+
+Entry thresholds
+
+We work out whether you need to pay PAYG instalments based on information you reported in your latest tax return.
+
+One of the things we look at is your instalment income. This is your gross business and investment income, excluding GST and any capital gains.
+
+If you are an individual (including a sole trader) or trust, you will automatically enter the PAYG instalments system if you have all of the following:
+
+instalment income from your latest tax return of $4,000 or more
+tax payable on your latest notice of assessment of $1,000 or more
+estimated (notional) tax of $500 or more.
+
+A company or super fund will automatically enter the PAYG instalments system if any of the following apply; it:
+
+has instalment income from its latest tax return of $2 million or more
+has estimated (notional) tax of $500 or more
+is the head company of a consolidated group.
+How you start paying instalments
+
+We will let you know when you have entered the PAYG instalments system.
+
+If you are registered for myGov with a linked ATO account, you will receive a letter in your myGov Inbox.
+If you have Online services for business, or Standard Business Reporting software, you will receive your instalment information 21 days before the due date.
+If none of the above applies, you will receive a paper letter in the mail.
+
+If we have your mobile phone number we will also remind you via SMS.
+
+When we contact you, we will let you know:
+
+when to pay
+how often to pay – this depends on your circumstances, but most people pay quarterly
+how much to pay, including your options for calculating your instalments.
+
+You will start making payments once we send you an activity statement or instalment notice.
+
+Voluntary entry to PAYG instalments
+
+If you are new to business, or you think you will earn business and investment income over the threshold, it's a good idea to voluntarily enter PAYG instalments.
+
+Prepaying your tax through PAYG instalments will help you smooth out your cashflow and avoid a large tax bill when you lodge your tax return.
+
+How to start voluntary PAYG instalments
+
+To get started with voluntary PAYG instalments:
+
+Estimate the amount of tax to pay
+Make a request to enter the PAYG instalments system
+Pay your instalments
+Step 1: Estimate the amount of tax to pay
+
+You need to estimate your annual business and investment income, and your allowable tax deductions, so you can work out the amount of tax to pay by instalments.
+
+To do this you can use the PAYG instalments calculator.
+
+PAYG instalments calculator
+
+If you prefer, you can manually estimate the tax on your instalment income.
+
+Once you have worked out your PAYG instalment amount, you can work out how much money to put aside to cover your tax instalments.
+
+How often you pay depends on your circumstances.
+
+Example 1: voluntary entry for individuals with investment income – estimating PAYG instalments
+
+Rob owns 3 investment properties. He estimates this financial year, he will earn gross investment income of $55,000 from the rent he receives. He doesn't earn income from any other sources. He also has allowable deductions for repairs to the properties, real estate fees and gardening totalling $5,500.
+
+Rob uses the PAYG instalments individuals calculator to see if he is eligible to voluntarily enter the system. He enters his:
+
+total investment income of $55,000
+taxable income of $49,500 (investment income less tax deductions for his investment properties.
+
+The calculator estimates Rob needs to pay $7,544 tax this financial year on his investment income. He is eligible to voluntarily enter PAYG instalments. If he chooses not to enter, he will receive a tax bill when he lodges his next tax return and will automatically be entered into the system for the following financial year.
+
+Rob wants to plan ahead so he doesn’t end up with a large tax bill. To work out how much he needs to pay in instalments each quarter, Rob divides his total estimated tax liability from the calculator by 4 to calculate quarterly instalments:
+
+$7,544 ÷ 4 = $1,886.
+
+He will pay this when he receives his quarterly instalment activity statement if he chooses to voluntarily enter the PAYG instalment system.
+
+Example 2: estimating PAYG instalments
+
+Danielle runs a business as a sole trader. She estimates she will earn business income of $100,000 for the financial year, with allowable business tax deductions of $10,000.
+
+Danielle uses the PAYG instalments individuals calculator and enters her:
+
+estimated business income of $100,000
+estimated taxable income of $90,000 (business income less business tax deductions).
+
+The calculator estimates her PAYG instalment amount to be $20,437 per year.
+
+Danielle divides her estimated instalment amount by 52 to work out how much to put aside each week for PAYG instalments: $20,437 ÷ 52 weeks = $393.02
+
+When she receives her quarterly business activity statement (BAS), Danielle has enough money put aside to pay her PAYG instalment for the quarter.
+
+When Danielle lodges her tax return, the PAYG instalments she has paid throughout the year will be offset against her tax liability, meaning she has little or no extra tax to pay.
+
+End of example
+Step 2: Make a request to enter the PAYG instalments system
+Individuals, including sole traders
+
+If you are an individual taxpayer or sole trader, you can make a request to start PAYG instalments using your myGov account linked to the ATO's Online services.
+
+Sign in to myGov (individuals and sole traders)
+
+Select Tax > Manage > Tax Registrations > Add New Registration, then select PAYG instalments from the drop down menu.
+
+You can also request voluntary entry through your registered tax agent or you can phone us on 13 28 61.
+
+All businesses
+
+You can request voluntary entry using Online services for business.
+
+Log in to Online services for business
+
+You can also request voluntary entry through your registered tax agent or you can phone us on 13 28 66.
+
+If you or your agent phones us, we will ask a few questions about your circumstances.
+
+Step 3: Pay your instalments
+
+Once you have entered the PAYG instalments system, you will receive activity statements or instalment notices showing your instalment rate or amount.
+
+You can view, manage and pay your instalments online.
+
+Sign in to myGov (individuals and sole traders)
+
+ 
+
+Log in to Online services for business
+
+Make sure you pay your instalments by the due date.
+
+If you think you might end up paying too much (or too little) for the year you can vary your PAYG instalments.
+
+QC45456
+
+Print or Download
+Tools
+Media centre
+Forms and instructions
+Tax rates and codes
+Calculators and tools
+Tax information for
+People with disability
+Aboriginal and Torres Strait Islander peoples
+Norfolk Island
+Other languages
+Help and support
+Top call centre questions
+Contact us
+Identity security and scams
+Financial difficulties and disasters
+About ATO
+Careers
+Privacy policy
+ATOtv
+Other languages
+facebook Opens in a new window
+Linkedin Opens in a new window
+Instagram Opens in a new window
+
+We acknowledge the Traditional Owners and Custodians of Country throughout Australia and their continuing connection to land, waters and community. We pay our respects to them, their cultures, and Elders past and present.
+
+© Commonwealth of Australia | View related websites

@@ -1,0 +1,312 @@
+Skip to main content
+Skip To search
+Skip To Alex Virtual Assistant
+ATO Community
+Legal Database
+What's New
+Log in to online services
+Search
+Menu
+Home
+Individuals and families
+Businesses and organisations
+Tax and super professionals
+Individuals and families
+Businesses and organisations
+Tax and super professionals
+ATO Community
+Legal database
+What's New
+Individuals and families
+Businesses and organisations
+Tax and super professionals
+ATO Community
+Legal database
+What's New
+Individuals and families
+Businesses and organisations
+Tax and super professionals
+ATO Community
+Legal database
+What's New
+Changes to company tax rates
+
+When to apply the lower company tax rate and how to work out franking credits.
+
+Last updated 4 September 2026
+
+Print or Download
+On this page
+Company tax rates
+Base rate entity company tax rate
+Small business entity company tax rate
+Multinational businesses
+Not-for-profit companies
+Maximum franking credits
+Company tax rates
+
+Company tax rates apply to entities, including:
+
+companies
+corporate unit trusts
+public trading trusts.
+
+The full company tax rate of 30% applies to all companies that are not eligible for the lower company tax rate. Eligibility for the lower company tax rate depends on whether you are a base rate entity from the 2017–18 income year and onwards.
+
+Base rate entity company tax rate
+
+From the 2021–22 income year onwards, companies that are base rate entities must apply the 25% company tax rate.
+
+A company is a base rate entity for an income year if:
+
+the company’s aggregated turnover for that income year is less than the aggregated turnover threshold for that income year, and
+it has 80% or less of their assessable income in that income year that is base rate entity passive income – this replaces the requirement to be carrying on a business from the 2017–18 income year onwards.
+
+The aggregated turnover from any prior income year is irrelevant when working out if a company is a base rate entity for any particular income year.
+
+Base rate entity passive income is:
+
+corporate distributions and franking credits on these distributions
+royalties and rent
+interest income (some exceptions apply)
+gains on qualifying securities
+a net capital gain
+an amount included in the assessable income of a partner in a partnership or a beneficiary of a trust, to the extent it is traceable (either directly or indirectly) to an amount that is otherwise base rate entity passive income.
+Progressive changes to the company tax rate
+
+Income year
+
+	
+
+Aggregated turnover threshold
+
+	
+
+Tax rate for base rate entities under the threshold
+
+	
+
+Tax rate for all other companies
+
+
+
+
+2017–18
+
+	
+
+$25m
+
+	
+
+27.5%
+
+	
+
+30.0%
+
+
+
+
+2018–19 to 2019–20
+
+	
+
+$50m
+
+	
+
+27.5%
+
+	
+
+30.0%
+
+
+
+
+2020–21
+
+	
+
+$50m
+
+	
+
+26.0%
+
+	
+
+30.0%
+
+
+
+
+2021–22 and future years
+
+	
+
+$50m
+
+	
+
+25.0%
+
+	
+
+30.0%
+
+ 
+
+Example: base rate entity
+
+Happy Feet Pty Ltd is a company that sells socks online.
+
+Its owner, Lloyd Chan, wants to expand the business into running shoes as well. The capital he needs to expand the business is put into a term deposit while he negotiates with suppliers.
+
+In the 2025–26 income year, Happy Feet Pty Ltd has an aggregated turnover under the $50 million aggregated turnover threshold. Its assessable income is $104,000, comprising:
+
+$100,000 trading income from running the business
+$4,000 of interest income.
+
+The interest income is base rate entity passive income. Because this income is only 3.8% of its assessable income, Happy Feet Pty Ltd is a base rate entity for the 2025–26 income year and the 25% company tax rate applies.
+
+End of example
+
+ 
+
+Example: base rate entity
+
+Coffee and Cake Pty Ltd is the owner of a small cafe. It is also the beneficiary of a trust which owns the premises from which the cafe operates and the premises next door.
+
+Above the cafe, there is a large studio space which the trust rents out to a very successful yoga school. Next door is rented to a high-end retail store. All rental income earned by the trust is distributed to Coffee and Cake Pty Ltd.
+
+In the 2025–26 income year, Coffee and Cake Pty Ltd has an aggregated turnover under the $50 million aggregated turnover threshold. Its assessable income is $700,000, comprising:
+
+$500,000 of trading income from running the business
+$200,000 of gross rental income attributable to the trust distribution.
+
+The rental income is base rate entity passive income. Because this income is only 28.6% of its assessable income, Coffee and Cake Pty Ltd is a base rate entity for the 2025–26 income year and the 25% company tax rate applies.
+
+End of example
+
+ 
+
+Example: not a base rate entity because passive income is too high
+
+Best Equity Pty Ltd is a listed investment company which invests in Australian shares.
+
+In the 2025–26 income year, Best Equity Pty Ltd has an aggregated turnover under the $50 million aggregated turnover threshold. Its assessable income is $5 million, comprising:
+
+$1 million of interest income
+$4 million in dividends.
+
+100% of Best Equity Pty Ltd's assessable income is base rate entity passive income. As a result, they are not a base rate entity for the 2025–26 income year and the 30% company tax rate applies.
+
+End of example
+
+ 
+
+Example: not a base rate entity because passive income is too high
+
+SoftDev Pty Ltd is a company that develops and licenses custom software.
+
+Four years ago, it acquired an office building used by its staff as its primary place of business. The office building was an 'active' business asset. In the 2025–26 income year, SoftDev Pty Ltd sold the office building and made a net capital gain of $850,000 after all relevant CGT concessions were applied.
+
+In the 2025–26 income year, SoftDev Pty Ltd had an aggregated turnover under the $50 million aggregated turnover threshold. It's assessable income was $1 million, comprising:
+
+$150,000 of trading income from running the business
+$850,000 net capital gain from the sale of the office building.
+
+The net capital gain is base rate entity passive income. Because this is 85% of its assessable income, SoftDev Pty Ltd is not a base rate entity for the 2025–26 income year and the 30% company tax rate applies.
+
+End of example
+
+For more information on base rate entities, see Law Companion Ruling LCR 2019/5 Base rate entities and base rate entity passive income.
+
+To work out your aggregated turnover, refer to Calculate your aggregated turnover. Ensure that your calculations are based only on your actual turnover for the income year that you are working out your base rate entity status, not on previous year turnover or estimated turnover.
+
+Small business entity company tax rate
+
+For the 2017–18 income year and onwards, you need to be a base rate entity, rather than a small business entity to be eligible for the lower tax rate.
+
+For more information on when a company carries on a business, refer to Taxation Ruling TR 2019/1 Income tax: when does a company carry on a business?
+
+Multinational businesses
+
+If you're part of a multinational business your aggregated turnover includes:
+
+your annual turnover
+the annual turnover of business entities that are your affiliates or connected with you, even if they are foreign residents.
+
+For more information refer to grouping for aggregated turnover purposes.
+
+Example: not a base rate entity due to being connected with a foreign resident
+
+Hats 4 Cats Pty Ltd is a company that manufactures and sells pet accessories.
+
+It is controlled by General Industries LLC, a multinational entity registered in the US, which holds 100% of the shares in Hats 4 Cats Pty Ltd.
+
+Hats 4 Cats Pty Ltd has an annual turnover of $20 million in the 2025–26 income year.
+
+General Industries LLC has an annual turnover of $150 million all derived from sales made entirely outside Australia.
+
+There are no amounts from dealings between Hats 4 Cats Pty Ltd and its affiliates or connected entities in the income year that need to be excluded when calculating Hats 4 Cats Pty Ltd's aggregated turnover.
+
+In the 2025–26 income year, the aggregated turnover of Hats 4 Cats Pty Ltd is $170 million, comprising:
+
+$20 million annual turnover of Hats 4 Cats Pty Ltd
+$150 million annual turnover of General Industries LLC.
+
+Because Hats 4 Cats Pty Ltd's aggregated turnover exceeds the $50 million aggregated turnover threshold, it is not a base rate entity for the 2025–26 income year, and the 30% company tax rate applies.
+
+End of example
+Not-for-profit companies
+
+If you're a not-for-profit company, you don't pay tax on the first $416 of your taxable income. Tax is then payable at a rate of 55% of the excess over $416 until the tax on your taxable income effectively equals the company tax rate. You are then taxed at the company tax rate.
+
+If you are a base rate entity, the shade in limit for not-for-profit companies is:
+
+$788 for the 2020–21 income year
+$762 for the 2021–22 income year and later years.
+Maximum franking credits
+
+To work out the company tax rate for franking your distributions, otherwise referred to as corporate tax rate for imputation purposes, you need to assume your aggregated turnover, assessable income, and base rate entity passive income will be the same as the previous income year.
+
+You're a base rate entity if either of the following apply:
+
+your aggregated turnover in the previous income year was less than $50 million, and 80% or less of your assessable income was base rate entity passive income
+the entity didn't exist in the previous income year.
+
+Otherwise, your corporate tax rate for imputation purposes is 30%.
+
+QC54063
+
+Print or Download
+Tools
+Media centre
+Forms and instructions
+Tax rates and codes
+Calculators and tools
+Tax information for
+People with disability
+Aboriginal and Torres Strait Islander peoples
+Norfolk Island
+Other languages
+Help and support
+Top call centre questions
+Contact us
+Identity security and scams
+Financial difficulties and disasters
+About ATO
+Careers
+Privacy policy
+ATOtv
+Other languages
+facebook Opens in a new window
+Linkedin Opens in a new window
+Instagram Opens in a new window
+
+We acknowledge the Traditional Owners and Custodians of Country throughout Australia and their continuing connection to land, waters and community. We pay our respects to them, their cultures, and Elders past and present.
+
+© Commonwealth of Australia | View related websites

@@ -1,0 +1,13 @@
+{
+  "id": "concessional-cap-2025-26",
+  "label": "General concessional contributions cap",
+  "value": 30000,
+  "unit": "AUD",
+  "period": {
+    "income_year": "2025-26"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
+  "retrieved_at": "2026-10-15T00:31:30+11:00",
+  "quote": "2025–26 n/a All ages $30,000",
+  "pattern": "2025–26 n/a All ages (\\$[\\d,]+)"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "small-business-cgt-concessions-turnover-limit",
+  "label": "Small business CGT concessions, aggregated turnover limit",
+  "value": 2000000,
+  "unit": "AUD",
+  "period": {
+    "as_at": "2026-10-15"
+  },
+  "source_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/concessions",
+  "retrieved_at": "2026-10-15T00:33:59+11:00",
+  "quote": "If you have an aggregated turnover less than: $2 million, you can access the small business CGT concessions",
+  "notes": "Turnover must be less than this amount. The page prints $2 million, so the record has no pattern. Other eligibility conditions apply."
+}
