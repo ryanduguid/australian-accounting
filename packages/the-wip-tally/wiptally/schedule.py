@@ -116,12 +116,15 @@ def measure(contract: ContractInput) -> ContractPosition:
         )
     if notes_method != PROGRESS_COST_TO_COST:
         flags.append("progress_method_not_cost_to_cost")
+    # A supplied output percentage is checked even where para 45 leaves it unused.
+    if notes_method == PROGRESS_OUTPUT and contract.output_percent is not None:
+        _require_ratio(contract, contract.output_percent, "output_percent", "output progress")
 
     # Para 45 limits revenue to recoverable cost whatever measure of progress the
     # row states, so it is applied before any method's arithmetic.
     if not contract.outcome_reasonably_measurable:
         percent_complete, revenue_to_date = _recoverable_cost_revenue(
-            contract, progress_cost, flags
+            contract, transaction_price, progress_cost, flags
         )
     elif notes_method == PROGRESS_COST_TO_COST:
         percent_complete, revenue_to_date = _cost_to_cost_revenue(
@@ -134,7 +137,6 @@ def measure(contract: ContractInput) -> ContractPosition:
                 f"progress_method is output"
             )
         percent_complete = contract.output_percent
-        _require_ratio(contract, percent_complete, "output_percent", "output progress")
         revenue_to_date = as_money(transaction_price * percent_complete)
     else:
         if progress_eac <= 0:
@@ -190,7 +192,8 @@ def measure(contract: ContractInput) -> ContractPosition:
 
 
 def _recoverable_cost_revenue(
-    contract: ContractInput, progress_cost: Decimal, flags: list[str],
+    contract: ContractInput, transaction_price: Decimal, progress_cost: Decimal,
+    flags: list[str],
 ) -> tuple[Decimal, Decimal]:
     flags.append("outcome_not_reasonably_measurable")
     recoverable = (
@@ -206,6 +209,14 @@ def _recoverable_cost_revenue(
             f"{_where(contract, 'recoverable_costs')} {recoverable} exceeds "
             f"costs incurred {contract.costs_incurred}; para 45 recognises "
             f"revenue only to the extent of the costs incurred"
+        )
+    # Para 46 recognises revenue from the transaction price, so recoverable cost
+    # above it is refused for the same reason rather than capped.
+    if recoverable > transaction_price:
+        raise ScheduleError(
+            f"{_where(contract, 'recoverable_costs')} {recoverable} exceeds the "
+            f"transaction price {transaction_price}; revenue is recognised only "
+            f"from the transaction price"
         )
     # The default is progress cost, which has the B19 exclusions taken out.
     # Uninstalled material cost that is in fact recoverable therefore has to

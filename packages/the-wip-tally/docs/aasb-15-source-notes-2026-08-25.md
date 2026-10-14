@@ -18,11 +18,11 @@ Checked against the public AASB 15 text as cited in the
 | Cost-to-cost input method | 39-40, B18 | Progress = progress cost / progress EAC. |
 | Exclude wasted cost from the progress measure | B19(a), 98(b) | `inefficiency_rework_wastage` is stripped from numerator and denominator and left in EAC / margin. |
 | Uninstalled materials at cost | B19(b) | `uninstalled_materials` recognised at cost (zero margin); remainder of transaction price follows POC. |
-| Outcome not reasonably measurable | 44-45 | Revenue limited to `recoverable_costs` (defaulting to progress cost) under every progress method, before that method's arithmetic. A `recoverable_costs` above `costs_incurred` is refused with a `ScheduleError` naming the row, not silently reduced to it, because para 45 recognises revenue only to the extent of the costs incurred and an excess is a mapping error for the operator to resolve. Per cent complete is reported as zero. |
+| Outcome not reasonably measurable | 44-45 | Revenue limited to `recoverable_costs` (defaulting to progress cost) under every progress method, before that method's arithmetic. A `recoverable_costs` above `costs_incurred` is refused with a `ScheduleError` naming the row, not silently reduced to it, because para 45 recognises revenue only to the extent of the costs incurred and an excess is a mapping error for the operator to resolve. A `recoverable_costs` above the transaction price is refused the same way. Per cent complete is reported as zero. |
 | Contract asset versus contract liability | 105-107 | Per contract, revenue minus certified billings. Positive = asset. Negative = liability. No cross-contract offset. |
 | Change in estimate | 43, AASB 108 | Period revenue = current revenue to date minus prior revenue to date. Comparatives are not restated, because this tool has no comparatives. |
-| Right-to-invoice expedient | B16 | If selected, revenue equals certified billings. Flagged as not cost-to-cost. |
-| Output method | 41, B14-B15 | If selected, revenue = transaction price x `output_percent`. Flagged as not cost-to-cost. |
+| Right-to-invoice expedient | B16 | If selected and the outcome is reasonably measurable, revenue equals certified billings. Flagged as not cost-to-cost. |
+| Output method | 41, B14-B15 | If selected and the outcome is reasonably measurable, revenue = transaction price x `output_percent`. A supplied `output_percent` outside 0 to 1 is refused either way. Flagged as not cost-to-cost. |
 
 ## Flagged, not decided
 
