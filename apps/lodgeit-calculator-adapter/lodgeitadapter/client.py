@@ -206,13 +206,18 @@ class LodgeitClient:
                 parse_constant=_refuse_constant,
             )
         except (TransportError, json.JSONDecodeError, ValueError) as exc:
-            return Outcome(
-                status=Status.CONTRACT_FAILURE, raw_response=raw.body[:2048].decode(
-                    "utf-8",
-                    "replace"),
-                findings=(f"response body is not JSON: {exc}",), **common,
-            )
-        common["raw_response"] = parsed
+            bounded = raw.body[:2048].decode("utf-8", "replace")
+            if raw.status == 200:
+                return Outcome(
+                    status=Status.CONTRACT_FAILURE, raw_response=bounded,
+                    findings=(f"response body is not JSON: {exc}",), **common,
+                )
+            # Only a 200 has to be JSON. A failure status keeps its own outcome
+            # whatever its body is, such as a proxy's HTML page on a 503.
+            parsed = None
+            common["raw_response"] = bounded
+        else:
+            common["raw_response"] = parsed
 
         if raw.status >= 500:
             return Outcome(status=Status.UPSTREAM_UNAVAILABLE,
