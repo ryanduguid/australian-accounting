@@ -172,6 +172,19 @@ to the dollar: that is the income at which 10% of the excess reaches 2% of the
 whole, and the tests derive it. The family income reduction (s 8), exemptions,
 the surcharge, trustees and part-year residence are outside the worksheet.
 
+Section 9A, read in the same compilation on 15 October 2026, takes the total
+arrears amount out of taxable income for ss 6(1) and 7 when a person's
+assessable income includes eligible lump sums in arrears of at least 10% of
+normal taxable income and the accrual-year tests in s 9A(1)(c) are met; the
+terms come from ITAA 1936 s 159ZR(1). The ATO page "Lump sum payment in arrears
+tax offsets" (last updated 8 June 2026, read on 15 October 2026) says the
+Medicare levy exemption on the arrears amount applies from 1 July 2024. The
+worksheet takes `section_9a_adjustment_applies` as an operator-established
+fact and refuses when it is true rather than estimate the adjustment. In the
+tests, $40,000 for 2025-26 that includes $12,000 of arrears from two earlier
+years is refused, because s 9A would leave $28,000, below the threshold, and
+nil levy; the same income without s 9A gives $800.
+
 ## Low income tax offset
 
 This worksheet's evidence is not a Library document. The table was read on 15

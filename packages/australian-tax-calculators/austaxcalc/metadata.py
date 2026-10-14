@@ -338,7 +338,11 @@ INPUT_UNITS = {
         "pay_period": "weekly, fortnightly or monthly",
         "scale": "integer 1, 2, 3, 5 or 6",
     },
-    "medicare_levy": {"taxable_income": "AUD, whole dollars"},
+    "medicare_levy": {
+        "taxable_income": "AUD, whole dollars",
+        "section_9a_adjustment_applies": "boolean, whether Medicare Levy Act 1986 s 9A "
+                                         "removes lump sums in arrears; true is refused",
+    },
     "low_income_tax_offset": {"taxable_income": "AUD, whole dollars"},
     "division_293": {
         "division_293_income": "AUD, income for surcharge purposes disregarding reportable "
@@ -373,7 +377,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "pension_minimum": {"account_balance": "600000.00", "age": 67, "days": 365},
     "study_loan_repayment": {"repayment_income": "86380"},
     "study_loan_withholding": {"earnings": "2000.00", "pay_period": "weekly", "scale": 2},
-    "medicare_levy": {"taxable_income": "30000"},
+    "medicare_levy": {"taxable_income": "30000", "section_9a_adjustment_applies": False},
     "low_income_tax_offset": {"taxable_income": "40000"},
     "division_293": {"division_293_income": "240000.00", "low_tax_contributions": "20000.00"},
 }
