@@ -112,6 +112,8 @@ def test_study_loan_repayment_calls_through_and_refuses_cents(year, income, expe
      "medicare_levy", "98.90"),
     ({"kind": "low_income_tax_offset", "year": "2026-27", "taxable_income": "45000"},
      "low_income_tax_offset", "325.00"),
+    ({"kind": "division_293", "year": "2025-26", "division_293_income": "240000.00",
+      "low_tax_contributions": "15000.00"}, "division_293_tax", "750.00"),
 ])
 def test_new_worksheets_call_through_to_the_engine(facts, amount, expected):
     facts = {**facts, "scope_confirmed": True}
