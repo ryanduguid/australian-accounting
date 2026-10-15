@@ -123,6 +123,10 @@ authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus
 [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus).
 The package ships none of them. A corpus or rulings row is a point-in-time copy, not
 a live lookup, and an edited version of private advice cannot be relied on by anyone.
+Legislation results preserve a row's capture date and recorded successor date when
+available. Rulings results expose a captured withdrawal notice; `UNKNOWN` means
+withdrawal status was not established, including in older runs. Notice presence
+does not decide its effect for an earlier period or establish today's status.
 Point the library at reference material, or at one engagement at a time, never at a
 folder of mixed client files: every match enters the assistant's context, whichever
 client it came from.

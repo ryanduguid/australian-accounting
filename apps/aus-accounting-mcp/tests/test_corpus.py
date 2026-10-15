@@ -60,6 +60,26 @@ def test_a_superseded_compilation_is_left_out_unless_asked_for(corpus):
     assert any("not the current version" in caveat for caveat in hit["caveats"])
 
 
+def test_retrieval_preserves_the_captured_version_window_without_inventing_dates(corpus):
+    path = corpus / "markdown" / "C9999A00001" / "sections.jsonl"
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    rows[1].update(retrieved="2099-01-01", superseded_from="2098-12-01",
+                   version_is_current=False)
+    synthetic_corpus.write(path, rows)
+    hit = call("search_tax_legislation", query="synthetic levy rate",
+               in_force_only=False)["matches"][0]
+    assert hit["retrieved"] == "2099-01-01"
+    assert hit["superseded_from"] == "2098-12-01"
+    excerpt = call("read_tax_legislation_section", row_id=hit["row_id"])
+    assert excerpt["section"]["retrieved"] == "2099-01-01"
+
+
+def test_unrecorded_row_dates_remain_unknown(corpus):
+    hit = call("search_tax_legislation", query="synthetic levy rate")["matches"][0]
+    assert hit["retrieved"] is None
+    assert hit["superseded_from"] is None
+
+
 def test_in_force_only_keeps_a_row_with_unrecorded_currency(corpus):
     path = corpus / "markdown" / "C9999A00001" / "sections.jsonl"
     rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]

@@ -71,6 +71,7 @@ FAMILIES = (
 )
 EDITED_FAMILY = "Edited version of private advice"
 LICENCE_BASES = frozenset({"document-notice", "site-notice-via-dc-rights"})
+WITHDRAWAL_STATUSES = frozenset({"UNKNOWN", "NOTICE_PRESENT"})
 NUMBERING = frozenset({"document", "sequential"})
 ROW_FIELDS = (
     "docid", "family", "title", "paragraph", "numbering", "heading", "text",
@@ -215,6 +216,17 @@ def _count(value: Any) -> int | None:
     return value if isinstance(value, int) and not isinstance(value, bool) else None
 
 
+def _withdrawal(record: dict[str, Any]) -> tuple[str, str]:
+    """Observed notice metadata; older captures establish no withdrawal status."""
+    status = record.get("withdrawal_status", "UNKNOWN")
+    notice = record.get("withdrawal_notice", "")
+    if (not isinstance(status, str) or status not in WITHDRAWAL_STATUSES
+            or not isinstance(notice, str)
+            or (status == "NOTICE_PRESENT") != bool(notice.strip())):
+        raise InputError("Rulings record has inconsistent withdrawal metadata.")
+    return status, notice
+
+
 def _manifest(
     path: Path, run: str
 ) -> tuple[str, dict[str, dict[str, Any]], frozenset[str], str, str]:
@@ -275,6 +287,7 @@ def _manifest(
             raise invalid(f"document {index} records no supported reuse basis")
         if not all(isinstance(document.get(field), str) for field in ("title", "source_url")):
             raise invalid(f"document {index} needs a title and a source_url")
+        _withdrawal(document)
         listed[key] = document
 
     withheld = set()
@@ -323,6 +336,7 @@ def _validate_rows(
                     or row["licence_basis"] != document["licence_basis"]
                     or row["fetched_on"] != fetched_on
                     or row["numbering"] not in NUMBERING
+                    or _withdrawal(row) != _withdrawal(document)
                 ):
                     raise InputError(
                         f"Rulings run {run} row {line} disagrees with its manifest record."
@@ -416,6 +430,17 @@ def _paragraph(
     row: dict[str, Any], run: _Run, key: str, line: int, catalogue: _Catalogue, cap: int
 ) -> dict[str, Any]:
     text, total, caveats = _text(row, "text", cap, TRUNCATED_CAVEAT)
+    withdrawal_status, _ = _withdrawal(row)
+    withdrawal_notice, _, notice_caveats = _text(
+        row, "withdrawal_notice", cap,
+        "Withdrawal notice is truncated at {kept} of {total} characters. Read source_url.",
+    )
+    caveats.extend(notice_caveats)
+    if withdrawal_status == "NOTICE_PRESENT":
+        caveats.append(
+            f"A withdrawal notice was present in the page captured on {row['fetched_on']}. "
+            "Check its effect and applicable period on the ATO Legal Database before reliance."
+        )
     serving = catalogue.owner.get(key) == run.name
     if not serving:
         caveats.append(REPLACED_CAVEAT)
@@ -437,6 +462,8 @@ def _paragraph(
         "source_sha256": _string(row, "source_sha256"),
         "fetched_on": _string(row, "fetched_on"),
         "licence_basis": _string(row, "licence_basis"),
+        "withdrawal_status": withdrawal_status,
+        "withdrawal_notice": withdrawal_notice,
         "run": run.name,
         "serving": serving,
         "caveats": caveats,

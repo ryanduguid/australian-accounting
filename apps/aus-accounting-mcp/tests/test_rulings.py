@@ -57,6 +57,8 @@ def test_search_returns_a_citable_paragraph_from_the_serving_run(runs):
     assert top["family"] == "Taxation Ruling"
     assert top["serving"] is True
     assert top["fetched_on"] == "2099-02-01"
+    assert top["withdrawal_status"] == "UNKNOWN"
+    assert top["withdrawal_notice"] == ""
     assert top["source_url"].endswith(fixture.RULING)
     assert "OLDER COPY" not in json.dumps(result["matches"])
     corpus = result["corpus"]
@@ -76,6 +78,56 @@ def test_a_later_exclusion_withholds_the_earlier_copy(runs):
     older = f"{fixture.OLDER_RUN}|{fixture.EDITED_OLD}|6"
     with pytest.raises(ToolError, match="excluded that document"):
         call("read_ato_ruling", row_ref=older)
+
+
+def _withdrawal_run(runs, notice):
+    record, rows = fixture.ruling("2099-03-01", second="synthetic withdrawal evidence")
+    metadata = {"withdrawal_status": "NOTICE_PRESENT", "withdrawal_notice": notice}
+    record.update(metadata)
+    for row in rows:
+        row.update(metadata)
+    return fixture.write_run(runs / "run-2099-03-01", "2099-03-01", [(record, rows)])
+
+
+def test_captured_withdrawal_notice_is_citable_and_never_live_status(runs):
+    notice = "This fabricated ruling is withdrawn from the stated date; earlier facts differ."
+    _withdrawal_run(runs, notice)
+    match = call("search_ato_rulings", query="synthetic withdrawal evidence")["matches"][0]
+    assert match["withdrawal_status"] == "NOTICE_PRESENT"
+    assert match["withdrawal_notice"] == notice
+    assert match["fetched_on"] == "2099-03-01"
+    assert any("applicable period" in caveat for caveat in match["caveats"])
+    read = call("read_ato_ruling", row_ref=match["row_ref"])["paragraph"]
+    assert read["withdrawal_status"] == "NOTICE_PRESENT"
+    assert read["withdrawal_notice"] == notice
+
+
+def test_long_withdrawal_notice_reports_truncation(runs):
+    notice = "withdrawal evidence " * 800
+    _withdrawal_run(runs, notice)
+    match = call("search_ato_rulings", query="synthetic withdrawal evidence")["matches"][0]
+    assert match["withdrawal_notice"] == notice[:rulings_module.SEARCH_TEXT_CHARS]
+    assert any("Withdrawal notice is truncated" in caveat for caveat in match["caveats"])
+
+
+@pytest.mark.parametrize("metadata", [
+    {"withdrawal_status": None},
+    {"withdrawal_status": "CURRENT"},
+    {"withdrawal_status": "NOTICE_PRESENT", "withdrawal_notice": ""},
+    {"withdrawal_status": "UNKNOWN", "withdrawal_notice": "withdrawn"},
+    {"withdrawal_notice": False},
+])
+def test_invalid_withdrawal_metadata_is_refused(runs, metadata):
+    _rewrite_manifest(_older(runs), lambda m: m["documents"][0].update(metadata))
+    with pytest.raises(InputError, match="withdrawal metadata"):
+        rulings_module.search_rulings("synthetic", 5, 0)
+
+
+def test_withdrawal_metadata_must_agree_with_the_manifest(runs):
+    _rewrite_rows(_older(runs), lambda rows: [dict(
+        rows[0], withdrawal_status="NOTICE_PRESENT", withdrawal_notice="A notice."), *rows[1:]])
+    with pytest.raises(InputError, match="disagrees with its manifest"):
+        rulings_module.search_rulings("synthetic", 5, 0)
 
 
 def test_a_replaced_copy_stays_readable_and_says_so(runs):
