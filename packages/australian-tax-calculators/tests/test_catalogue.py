@@ -17,8 +17,11 @@ def _arguments(kind, entry, period):
     return facts
 
 
-@pytest.mark.parametrize("kind,entry", c.worksheet_catalogue().items())
-def test_every_advertised_period_and_method_runs(kind, entry):
+# The catalogue is built inside each test, not at collection, so a mutation
+# test run checks the catalogue it is mutating rather than the original.
+@pytest.mark.parametrize("kind", c.SCOPES)
+def test_every_advertised_period_and_method_runs(kind):
+    entry = c.worksheet_catalogue()[kind]
     function = getattr(c, kind)
     assert set(entry["required_inputs"]) - {"kind"} == set(signature(function).parameters)
     assert entry["example"]["synthetic"] is True
@@ -44,8 +47,9 @@ def test_every_advertised_period_and_method_runs(kind, entry):
             assert result["warnings"]
 
 
-@pytest.mark.parametrize("kind,entry", c.worksheet_catalogue().items())
-def test_unsupported_period_and_unconfirmed_scope_remain_refused(kind, entry):
+@pytest.mark.parametrize("kind", c.SCOPES)
+def test_unsupported_period_and_unconfirmed_scope_remain_refused(kind):
+    entry = c.worksheet_catalogue()[kind]
     arguments = _arguments(kind, entry, entry["supported_periods"][0])
     period_field = "year_ended" if kind == "fbt" else "year"
     unsupported = 2027 if kind == "fbt" else "2027-28"
@@ -81,3 +85,36 @@ def test_result_date_belongs_to_the_selected_rule(monkeypatch):
     monkeypatch.setitem(c.SOURCE_REVIEWS, "gst", {"checked": "2099-01-01", "passage": "fixture"})
     assert c.gst(Decimal("110"), True, True, "2025-26")["source_checked"] == "2099-01-01"
     assert c.resident_tax(Decimal("0"), "2025-26", True)["source_checked"] != "2099-01-01"
+
+
+def test_discovery_fields_a_client_reads():
+    catalogue = c.worksheet_catalogue()
+    for kind, entry in catalogue.items():
+        assert entry["source_passage"] == c.SOURCE_REVIEWS[kind]["passage"]
+        # Each anchor is the section heading in docs/calculation-evidence.md.
+        assert entry["example_evidence"]["note"] == (
+            "docs/calculation-evidence.md#" + kind.replace("_", "-"))
+        inputs = entry["required_inputs"]
+        assert inputs["scope_confirmed"] == "boolean true; establish every scope condition"
+        if kind == "fbt":
+            assert inputs["year_ended"] == "integer"
+        else:
+            assert inputs["year"] == "income-year string"
+        assert entry["money_format"] == (
+            "Non-negative finite AUD decimal strings, at most 2 decimal places "
+            "and 1000000000000.00. Resident taxable income must be whole dollars.")
+        assert entry["methods"] == (
+            ["prime_cost", "diminishing_value"] if kind == "depreciation" else [])
+    assert catalogue["quarterly_sg"]["example_evidence"]["note"] == (
+        "docs/calculation-evidence.md#quarterly-sg")
+
+
+def test_income_year_and_quarter_periods():
+    assert c.worksheet_catalogue()["gst"]["supported_periods"] == [{
+        "id": "2025-26", "basis": "income year", "start": "2025-07-01",
+        "end": "2026-06-30", "arguments": {"year": "2025-26"},
+    }]
+    period = c.worksheet_catalogue()["quarterly_sg"]["supported_periods"][0]
+    assert period["id"] == "2025-26"
+    assert period["basis"] == "complete quarter within income year"
+    assert [quarter["quarter"] for quarter in period["quarters"]] == [1, 2, 3, 4]
