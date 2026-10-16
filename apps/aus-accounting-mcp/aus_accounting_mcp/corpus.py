@@ -278,6 +278,8 @@ def _section(row: dict[str, Any], cap: int) -> dict[str, Any]:
         "kind": _string(row, "kind"),
         "compilation_number": _string(row, "compilation_number"),
         "compilation_date": _string(row, "compilation_date"),
+        "retrieved": _string(row, "retrieved"),
+        "superseded_from": _string(row, "superseded_from"),
         "version_is_current": current if isinstance(current, bool) else None,
         "register_page": _string(row, "register_page"),
         "source_url": _string(row, "source_url"),

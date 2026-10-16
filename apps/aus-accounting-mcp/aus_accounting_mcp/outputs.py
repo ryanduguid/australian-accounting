@@ -17,7 +17,7 @@ from pydantic import (
     model_validator,
     with_config,
 )
-from typing_extensions import TypedDict
+from typing_extensions import NotRequired, TypedDict
 
 DecimalText = Annotated[
     str,
@@ -369,6 +369,13 @@ class LegislationSection(ResultObject):
     kind: str | None
     compilation_number: str | None
     compilation_date: str | None
+    retrieved: NotRequired[Annotated[
+        str | None, Field(description="Date this stored text was captured, not a live check."),
+    ]]
+    superseded_from: NotRequired[Annotated[
+        str | None, Field(description="Recorded successor-version start, when supplied by "
+                                      "the corpus; not the application date of every provision."),
+    ]]
     version_is_current: bool | None
     register_page: str | None
     source_url: str | None
@@ -446,6 +453,14 @@ class RulingParagraph(ResultObject):
     source_sha256: str | None
     fetched_on: str | None
     licence_basis: str | None
+    withdrawal_status: NotRequired[Annotated[
+        Literal["UNKNOWN", "NOTICE_PRESENT"],
+        Field(description="Notice observed in the stored page on fetched_on, not live status. "
+                          "UNKNOWN includes older captures and never means not withdrawn."),
+    ]]
+    withdrawal_notice: NotRequired[Annotated[
+        str, Field(description="Captured withdrawal notice text; truncation appears in caveats."),
+    ]]
     run: str
     serving: Annotated[
         bool,
