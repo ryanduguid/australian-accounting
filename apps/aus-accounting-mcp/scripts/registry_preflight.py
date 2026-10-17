@@ -16,21 +16,24 @@ failure exits 1 and names the first mismatch.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
-from typing import Callable
+from typing import Callable, cast
 
 SERVER_NAME = "io.github.ryanduguid/aus-accounting"
 REPOSITORY = "ryanduguid/australian-accounting"
 RELEASE_WORKFLOW = "release-aus-accounting-mcp.yml"
 PYPI_ENVIRONMENT = "pypi-aus-accounting-mcp"
 PYPI = "https://pypi.org"
+REGISTRY = "https://registry.modelcontextprotocol.io/v0.1/servers"
 _PROJECT_FIELD = re.compile(r'^(name|version)\s*=\s*"([^"]+)"\s*$', re.M)
 
 
@@ -142,7 +145,75 @@ def verify_provenance(
             raise PreflightError(f"{filename}: provenance bundle carries no attestation")
 
 
-def run(root: Path, fetch_json: Callable[[str], object]) -> list[str]:
+def verify_github_release(fetch_json: Callable[[str], object], name: str, version: str) -> str:
+    """Require the exact published stable release; return its namespaced tag."""
+    tag = f"{name}/v{version}"
+    release = fetch_json(
+        f"https://api.github.com/repos/{REPOSITORY}/releases/tags/"
+        f"{urllib.parse.quote(tag, safe='')}"
+    )
+    if (
+        not isinstance(release, dict)
+        or release.get("tag_name") != tag
+        or release.get("draft") is not False
+        or release.get("prerelease") is not False
+        or not isinstance(release.get("published_at"), str)
+        or not release["published_at"]
+    ):
+        raise PreflightError(f"GitHub has no published stable release for {tag}")
+    return tag
+
+
+def verify_readback(
+    fetch_json: Callable[[str], object], server: dict[str, object], name: str, version: str
+) -> list[str]:
+    """After publication, the active latest Registry record and release must agree."""
+    query = urllib.parse.urlencode({"search": SERVER_NAME, "version": "latest"})
+    response = fetch_json(f"{REGISTRY}?{query}")
+    entries = response.get("servers") if isinstance(response, dict) else None
+    if not isinstance(entries, list):
+        raise PreflightError("Registry response has no server list")
+    matches = [
+        entry
+        for entry in entries
+        if isinstance(entry, dict)
+        and isinstance(entry.get("server"), dict)
+        and entry["server"].get("name") == SERVER_NAME
+    ]
+    if len(matches) != 1:
+        raise PreflightError(f"Registry returned {len(matches)} exact-name records, not 1")
+    entry = matches[0]
+    registered = entry["server"]
+    registry_package(registered, name, version)
+    expected_repository = f"https://github.com/{REPOSITORY}"
+    for document in (server, registered):
+        repository = document.get("repository")
+        if not isinstance(repository, dict) or repository.get("url") != expected_repository:
+            raise PreflightError("Registry and server.json must name the expected repository")
+        packages = cast(list[dict[str, object]], document["packages"])
+        transport = packages[0].get("transport")
+        if not isinstance(transport, dict) or transport.get("type") != "stdio":
+            raise PreflightError("Registry and server.json must both use stdio transport")
+    metadata = entry.get("_meta")
+    official = (
+        metadata.get("io.modelcontextprotocol.registry/official")
+        if isinstance(metadata, dict)
+        else None
+    )
+    if not isinstance(official, dict) or official.get("status") != "active":
+        raise PreflightError("Registry record is not active")
+    if official.get("isLatest") is not True:
+        raise PreflightError("Registry record is not marked latest")
+    tag = verify_github_release(fetch_json, name, version)
+    return [
+        f"Registry latest is active: {SERVER_NAME} {version}, matching package/repository/stdio",
+        f"GitHub holds the published stable release {tag}",
+    ]
+
+
+def run(
+    root: Path, fetch_json: Callable[[str], object], *, readback: bool = False
+) -> list[str]:
     """Every check, in order; returns the lines a passing run prints."""
     name, version = project_metadata((root / "pyproject.toml").read_text(encoding="utf-8"))
     server_bytes = (root / "server.json").read_bytes()
@@ -153,11 +224,13 @@ def run(root: Path, fetch_json: Callable[[str], object]) -> list[str]:
     wheel, sdist = verify_pypi(fetch_json, identifier, version)
     for filename in (wheel, sdist):
         verify_provenance(fetch_json, identifier, version, filename)
+    published = verify_readback(fetch_json, server, name, version) if readback else []
     digest = hashlib.sha256(server_bytes).hexdigest()
     return [
         f"server.json names {SERVER_NAME} -> PyPI {identifier} {version}, matching pyproject.toml",
         f"PyPI holds {wheel} and {sdist} with the mcp-name marker",
         f"provenance for both files names {REPOSITORY} {RELEASE_WORKFLOW} ({PYPI_ENVIRONMENT})",
+        *published,
         f"server-json-sha256={digest}",
     ]
 
@@ -173,9 +246,14 @@ def _fetch_json(url: str) -> object:
         raise PreflightError(f"{url}: {error}") from error
 
 
-def main(root: Path | None = None, fetch_json: Callable[[str], object] = _fetch_json) -> int:
+def main(
+    root: Path | None = None,
+    fetch_json: Callable[[str], object] = _fetch_json,
+    *,
+    readback: bool = False,
+) -> int:
     try:
-        lines = run(root or Path.cwd(), fetch_json)
+        lines = run(root or Path.cwd(), fetch_json, readback=readback)
     except (PreflightError, OSError, json.JSONDecodeError) as error:
         print(f"FAIL {error}", file=sys.stderr)
         return 1
@@ -189,4 +267,10 @@ def main(root: Path | None = None, fetch_json: Callable[[str], object] = _fetch_
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--readback",
+        action="store_true",
+        help="after publication, also verify the active latest Registry entry and GitHub release",
+    )
+    raise SystemExit(main(readback=parser.parse_args().readback))

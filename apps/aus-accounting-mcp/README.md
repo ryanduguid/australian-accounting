@@ -17,6 +17,10 @@ Australian accounting tools for Claude, Cursor, Codex and other MCP clients. The
 server runs on your machine over stdio, needs no API key or account, and makes no
 network calls once installed.
 
+Find its published identity in the
+[MCP Registry](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest).
+The listing identifies the distribution; it does not prove a client's installed transport works.
+
 - **ATO small business benchmarks:** compare a business's P&L figures with the
   benchmark ranges for its industry.
 - **Payday Super:** review contribution timing for one payday or a whole employer,

@@ -295,3 +295,121 @@ def test_the_ref_guard_admits_only_main(ref: str, expected: int, tmp_path: Path)
         check=False,
     )
     assert completed.returncode == expected, completed.stderr
+
+
+class FakePublished(FakePyPI):
+    """Public Registry and GitHub responses, without any network request."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.document = server(repository={"url": f"https://github.com/{preflight.REPOSITORY}"})
+        self.entry = {
+            "server": json.loads(json.dumps(self.document)),
+            "_meta": {
+                "io.modelcontextprotocol.registry/official": {"status": "active", "isLatest": True}
+            },
+        }
+        self.registry: object = {"servers": [self.entry]}
+        self.github: object = {
+            "tag_name": f"{NAME}/v{VERSION}",
+            "draft": False,
+            "prerelease": False,
+            "published_at": "2026-10-17T00:00:00Z",
+        }
+
+    def __call__(self, url: str) -> object:
+        if url.startswith(preflight.REGISTRY):
+            self.urls.append(url)
+            return self.registry
+        if url.startswith("https://api.github.com/"):
+            self.urls.append(url)
+            return self.github
+        return super().__call__(url)
+
+
+def test_readback_checks_published_identity_without_changing_the_default(tmp_path: Path) -> None:
+    published = FakePublished()
+    root = write_tree(tmp_path, published.document)
+    assert len(preflight.run(root, published)) == 4
+    assert all("registry.modelcontextprotocol.io" not in url for url in published.urls)
+    published.urls.clear()
+    lines = preflight.run(root, published, readback=True)
+    assert len(lines) == 6
+    assert "Registry latest is active" in lines[3]
+    assert "published stable release" in lines[4]
+    assert re.fullmatch(r"server-json-sha256=[0-9a-f]{64}", lines[-1])
+    assert published.urls[-2].endswith(
+        "?search=io.github.ryanduguid%2Faus-accounting&version=latest"
+    )
+    assert published.urls[-1].endswith(f"/releases/tags/{NAME}%2Fv{VERSION}")
+    assert preflight.main(root, published, readback=True) == 0
+
+
+@pytest.mark.parametrize("response", [None, {}, {"servers": None}, {"servers": []}])
+def test_readback_refuses_absent_or_malformed_registry(response: object, tmp_path: Path) -> None:
+    published = FakePublished()
+    published.registry = response
+    with pytest.raises(preflight.PreflightError, match="Registry"):
+        preflight.run(write_tree(tmp_path, published.document), published, readback=True)
+
+
+def test_readback_refuses_ambiguous_records_and_does_not_match_substrings(tmp_path: Path) -> None:
+    published = FakePublished()
+    root = write_tree(tmp_path, published.document)
+    published.registry = {"servers": [published.entry, published.entry]}
+    with pytest.raises(preflight.PreflightError, match="2 exact-name"):
+        preflight.run(root, published, readback=True)
+    published.registry = {"servers": [{"server": server(name=preflight.SERVER_NAME + "-other")}]}
+    with pytest.raises(preflight.PreflightError, match="0 exact-name"):
+        preflight.run(root, published, readback=True)
+
+
+@pytest.mark.parametrize(
+    "overrides, message",
+    [
+        ({"version": "0.0.1"}, "version"),
+        ({"packages": [package(version="0.0.1")]}, "package version"),
+        ({"packages": [package(identifier="other-package")]}, "package"),
+        ({"repository": {"url": "https://github.com/other/repo"}}, "repository"),
+        ({"packages": [package(transport={"type": "streamable-http"})]}, "stdio"),
+    ],
+)
+def test_readback_refuses_registry_identity_drift(
+    overrides: dict[str, object], message: str, tmp_path: Path
+) -> None:
+    published = FakePublished()
+    root = write_tree(tmp_path, published.document)
+    published.entry["server"].update(overrides)
+    with pytest.raises(preflight.PreflightError, match=message):
+        preflight.run(root, published, readback=True)
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    [None, {}, {"status": "deleted", "isLatest": True}, {"status": "active", "isLatest": False}],
+)
+def test_readback_requires_active_latest_metadata(metadata: object, tmp_path: Path) -> None:
+    published = FakePublished()
+    published.entry["_meta"] = {"io.modelcontextprotocol.registry/official": metadata}
+    with pytest.raises(preflight.PreflightError, match="Registry record"):
+        preflight.run(write_tree(tmp_path, published.document), published, readback=True)
+
+
+@pytest.mark.parametrize(
+    "release",
+    [
+        None,
+        {},
+        {"tag_name": "different", "draft": False, "prerelease": False, "published_at": "date"},
+        {"tag_name": f"{NAME}/v{VERSION}", "draft": True},
+        {"tag_name": f"{NAME}/v{VERSION}", "draft": False, "prerelease": True},
+        {"tag_name": f"{NAME}/v{VERSION}", "draft": False, "prerelease": False},
+    ],
+)
+def test_readback_requires_a_published_matching_stable_release(
+    release: object, tmp_path: Path
+) -> None:
+    published = FakePublished()
+    published.github = release
+    with pytest.raises(preflight.PreflightError, match="published stable release"):
+        preflight.run(write_tree(tmp_path, published.document), published, readback=True)

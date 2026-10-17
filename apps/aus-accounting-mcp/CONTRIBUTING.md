@@ -42,3 +42,9 @@ verified. The environment's required reviewer and `main`-only deployment branch 
 repository settings; the workflow cannot prove they are configured, so check them before
 relying on the approval boundary. Run the preflight locally with
 `uv run --locked python scripts/registry_preflight.py`; it makes public reads only.
+
+After publication, run `uv run --locked python scripts/registry_preflight.py --readback`.
+This also requires one exact-name active latest Registry entry matching the package,
+version, repository and stdio transport, plus the published stable namespaced GitHub
+release. It reports mismatches without writing to the Registry or starting a workflow.
+Run it against the published version's source, rather than an unreleased candidate.

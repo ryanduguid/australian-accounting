@@ -150,7 +150,7 @@ For an editable source installation, run `pip install -e .` from
 | `packages/au-tax-rates-data/` | `au-tax-rates-data` (never released) | `rates` (module) | `python rates.py validate`, `snapshot` and `check`: ATO rates and thresholds with verbatim source quotes, validated offline |
 
 `IMPORTS.md` records the source repository, commit and tree of every imported component. The
-MCP application is the `io.github.ryanduguid/aus-accounting` MCP Registry server; it
+MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest); it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
 `div7a-loan-review` and `australian-tax-calculators` distributions. In the development
 workspace, uv resolves those 4 dependencies to their checked-out sources.
