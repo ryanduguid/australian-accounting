@@ -1,0 +1,9 @@
+# Preserve the source distribution shipped by the previous backend.
+include NOTICE
+include CONTRIBUTING.md LIMITATIONS.md SECURITY.md .gitignore LICENSE README.md
+graft atobenchmark
+graft docs
+graft examples
+graft tests
+graft tools
+global-exclude *.py[cod]

@@ -53,7 +53,7 @@ and it does so only when switched on. Read [README.md](README.md) first.
 ```bash
 uv run --locked --extra dev pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing
 uv run --locked --extra dev ruff check lodgeitadapter tests
-uv run --locked --extra dev mypy lodgeitadapter
+uv run --locked --extra dev pyright lodgeitadapter
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 ```
 

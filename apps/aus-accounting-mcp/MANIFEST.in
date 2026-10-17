@@ -1,0 +1,13 @@
+# Preserve the source distribution shipped by the previous backend.
+include NOTICE
+include .gitignore
+include .python-version AGENTS.md CITATION.cff CLAUDE.md CONTEXT.md CONTRIBUTING.md DISCLAIMER.md RELEASE_NOTES.md SECURITY.md compatibility.json server.json uv.lock LICENSE README.md
+graft aus_accounting_mcp
+graft clients
+graft conformance
+graft docs
+graft evaluation
+graft examples
+graft scripts
+graft tests
+global-exclude *.py[cod]

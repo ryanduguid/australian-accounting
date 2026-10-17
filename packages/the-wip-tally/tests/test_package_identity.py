@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_published_distribution_uses_the_project_identity() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
     lockfile = (ROOT / "uv.lock").read_text(encoding="utf-8")
     readme = " ".join((ROOT / "README.md").read_text(encoding="utf-8").split())
     citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
@@ -22,8 +23,8 @@ def test_published_distribution_uses_the_project_identity() -> None:
     assert 'name = "the-wip-tally"' in pyproject
     assert 'wip-tally = "wiptally.cli:main"' in pyproject
     assert 'name = "the-wip-tally"' in lockfile
-    assert "/RELEASE_NOTES.md" in pyproject
-    assert "/uv.lock" in pyproject
+    assert "RELEASE_NOTES.md" in manifest
+    assert "uv.lock" in manifest
     assert "**Package lifecycle:** published." in readme
     assert "pip install the-wip-tally" in readme
     assert "github.com/ryanduguid/australian-accounting" in readme

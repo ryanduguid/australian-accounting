@@ -1,0 +1,7 @@
+# Preserve the source distribution shipped by the previous backend.
+include NOTICE
+include .python-version DISCLAIMER.md RELEASE_NOTES.md SECURITY.md uv.lock .gitignore LICENSE README.md
+graft docs
+graft louisgoldberg
+graft tests
+global-exclude *.py[cod]

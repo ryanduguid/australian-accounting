@@ -103,9 +103,9 @@ def test_build_backend_is_exactly_pinned_for_reproducible_wheels() -> None:
     # is reviewed in the pyproject diff of the bump that changes it, so freezing
     # the number here only fails every upgrade against a stale literal.
     assert set(build_system) == {"build-backend", "requires"}
-    assert build_system["build-backend"] == "hatchling.build"
+    assert build_system["build-backend"] == "setuptools.build_meta"
     assert len(build_system["requires"]) == 1
-    assert re.fullmatch(r"hatchling==\d+(?:\.\d+)+", build_system["requires"][0])
+    assert re.fullmatch(r"setuptools==\d+(?:\.\d+)+", build_system["requires"][0])
 
 
 # Root workflows named ci-<component>.yml or release-<component>.yml belong to the

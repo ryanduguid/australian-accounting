@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import http.client
+import ssl
 import sys
 import time
 import urllib.error
@@ -254,7 +255,7 @@ class _HTTPSConnection(_HTTPConnection, http.client.HTTPSConnection):
         super().connect()
         # A TLS truncation must not become the normal EOF of a close-delimited body.
         if self.sock is not None and hasattr(self.sock, "suppress_ragged_eofs"):
-            self.sock.suppress_ragged_eofs = False
+            setattr(self.sock, "suppress_ragged_eofs", False)
 
 
 def _open(connection_class, req, **connection_options):
@@ -303,6 +304,8 @@ class _HTTPHandler(urllib.request.HTTPHandler):
 
 
 class _HTTPSHandler(urllib.request.HTTPSHandler):
+    _context: ssl.SSLContext | None
+
     def https_open(self, req):  # noqa: ANN001, ANN201
         return _open(_HTTPSConnection, req, context=self._context)
 
@@ -483,6 +486,9 @@ def request(
                 break
             del result, failure
         sleep(config.retry_backoff_seconds * attempt)
+    else:
+        del config, method, url, body, content_type, bearer_token, headers, sleep
+        _raise_detached(TransportError("request attempt limit must be positive"))
     # The attempt has returned without retaining its exception or resource.
     # Drop direct and indirect request carriers before the public traceback.
     del config, method, url, body, content_type, bearer_token, headers, sleep, result

@@ -387,11 +387,11 @@ def read_mapping(path: Path) -> dict[str, MappingRow]:
     """Read a mapping file into a dict keyed by stable account digest."""
     if not path.is_file():
         raise MappingError(f"mapping file not found: {path}")
+    data = path.read_bytes()
     try:
         # Decoded from bytes rather than read_text() so that no newline translation
         # happens: an account name can carry a quoted newline, and the reader is given
         # newline="" for the same reason a file handle would be.
-        data = path.read_bytes()
         text = data.decode("utf-8-sig")
     except UnicodeDecodeError as exc:
         # UnicodeDecodeError is a ValueError, not a MappingError, so left alone it ends

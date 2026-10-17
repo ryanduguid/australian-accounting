@@ -242,12 +242,12 @@ class BoundaryTests(unittest.TestCase):
                 )
 
         # The gate set every engine gets, and the declared Python floor and ceiling.
-        # ruff, mypy and coverage read their scope from the engine's own
+        # ruff, pyright and coverage read their scope from the engine's own
         # configuration, so the commands are identical for every engine.
         for gate in (
             'uv lock --check',
             "ruff check .\n",
-            "uv run --locked --extra dev mypy\n",
+            "uv run --locked --extra dev pyright\n",
             "uv run --locked --extra dev pytest\n",
             "--cov --cov-branch --cov-report=term-missing --cov-report=xml",
             'pip-audit --local --strict',
@@ -263,13 +263,14 @@ class BoundaryTests(unittest.TestCase):
         self.assertNotIn("--find-links", reusable)
 
     def test_every_engine_configures_the_shared_gate_scope(self) -> None:
-        # ruff check ., mypy and pytest --cov take their scope from the engine's
+        # ruff check ., pyright and pytest --cov take their scope from the engine's
         # pyproject.toml, so each engine has to declare all 3.
         for component, import_name in ENGINES.items():
             pyproject = (ROOT / component / "pyproject.toml").read_text(encoding="utf-8")
             with self.subTest(component=component):
                 self.assertIn("[tool.ruff]", pyproject)
-                self.assertIn(f'packages = ["{import_name}"]', pyproject)
+                self.assertIn("[tool.pyright]", pyproject)
+                self.assertIn(f'include = ["{import_name}"]', pyproject)
                 self.assertIn(
                     f'[tool.coverage.run]\n'
                     f'# The source pytest --cov measures; CI adds --cov-branch and the reports.\n'

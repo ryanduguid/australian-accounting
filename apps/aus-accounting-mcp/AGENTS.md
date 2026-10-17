@@ -28,7 +28,7 @@ lockfile behaviour and the additional packaging and release checks:
 uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 uv run --locked --extra dev ruff check aus_accounting_mcp tests
-uv run --locked --extra dev mypy aus_accounting_mcp
+uv run --locked --extra dev pyright aus_accounting_mcp
 ```
 
 ## Supplementary local and release-readiness checks
