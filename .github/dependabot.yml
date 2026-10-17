@@ -41,7 +41,6 @@ updates:
     ignore:
       - dependency-name: build
       - dependency-name: coverage
-      - dependency-name: hypothesis
       - dependency-name: pyright
       - dependency-name: nodejs-wheel-binaries
       - dependency-name: pytest

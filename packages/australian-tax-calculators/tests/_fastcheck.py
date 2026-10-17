@@ -224,7 +224,7 @@ def fastcheck_property(*, seed: int, runs: int, examples=(), context=None, types
         check.__doc__ = test.__doc__
         check.__module__ = test.__module__
         check.__signature__ = inspect.Signature()
-        # What the root parity tooling reads, as Hypothesis exposes `.hypothesis`.
+        # The property's settings, for tooling that inspects or replays it.
         setattr(
             check,
             "fastcheck",
