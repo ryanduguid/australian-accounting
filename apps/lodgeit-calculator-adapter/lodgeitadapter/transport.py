@@ -25,7 +25,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import BinaryIO, Literal, NoReturn, Protocol
+from typing import BinaryIO, Literal, NoReturn, Protocol, cast
 
 from .errors import ConfigurationError, DisallowedTargetError, TransportError
 
@@ -250,12 +250,16 @@ class _HTTPConnection(http.client.HTTPConnection):
             self.response_class = response_class
 
 
+class _RaggedEOFControl(Protocol):
+    suppress_ragged_eofs: bool
+
+
 class _HTTPSConnection(_HTTPConnection, http.client.HTTPSConnection):
     def connect(self) -> None:
         super().connect()
         # A TLS truncation must not become the normal EOF of a close-delimited body.
         if self.sock is not None and hasattr(self.sock, "suppress_ragged_eofs"):
-            setattr(self.sock, "suppress_ragged_eofs", False)
+            cast(_RaggedEOFControl, self.sock).suppress_ragged_eofs = False
 
 
 def _open(connection_class, req, **connection_options):
