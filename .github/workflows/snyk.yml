@@ -112,7 +112,7 @@ jobs:
               uv:.)
                 # Accept only the reviewed development graph, as in au-fpa-pack #209.
                 printf '%s\n' \
-                  '4996d09758a6f81d2c394f5f5fb88b1334d537fbecec29a8e658350e5d68cacc  uv.lock' \
+                  '5b006aa4c91b22acce30fde31f56d03f53ac11f78f9cadbebed952e6aa20841a  uv.lock' \
                   'd47fb3b138889285b343ee6ad400dbdd4db103d53dddfd370df52b22087c8c8f  pyproject.toml' \
                   | sha256sum --check --status \
                   || { echo "::error::Review the MPL-2.0 licence policy for the changed development graph."; status=1; continue; }

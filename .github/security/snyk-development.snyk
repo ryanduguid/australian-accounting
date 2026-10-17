@@ -13,11 +13,3 @@ ignore:
           tests in the hash-bound root development graph only. Review before
           modification, redistribution or use outside this scope.
         expires: '2026-11-15T00:00:00.000Z'
-  'snyk:lic:pip:certifi:MPL-2.0':
-    - '* > certifi@2026.7.22':
-        reason: >-
-          Accept MPL-2.0 for unmodified certifi 2026.7.22 used through requests
-          by twine development release tooling in the hash-bound root graph
-          only. It is absent from the runtime-only export. Review before
-          modification, redistribution or use outside this scope.
-        expires: '2026-11-15T00:00:00.000Z'
