@@ -148,7 +148,6 @@ allocation between loan types, indexation and the Schedule 8 withholding
 component are outside it. The tests hold the worksheet to the ATO's worked
 examples, the Gazette that notified the 2026-27 thresholds and every band
 boundary; see [calculation evidence](docs/calculation-evidence.md#study-loan-repayment).
-This worksheet is included from release 0.2.0.
 
 ## Study loan withholding
 
