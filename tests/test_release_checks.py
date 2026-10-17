@@ -1,5 +1,6 @@
 """Require the reviewed component checks before a release can publish."""
 
+import hashlib
 import re
 import tomllib
 import unittest
@@ -99,6 +100,28 @@ REQUIRED = {
 
 
 class ReleaseChecksTests(unittest.TestCase):
+    def test_snyk_licence_acceptance_is_exact_expiring_and_bound_to_the_development_graph(self):
+        policy_path = ROOT / ".github/security/snyk-development.snyk"
+        policy = policy_path.read_text(encoding="utf-8")
+        versions = {"pathspec": "1.1.1", "hypothesis": "6.169.0"}
+        self.assertCountEqual(
+            re.findall(r"^  '([^']+)':$", policy, re.MULTILINE),
+            [f"snyk:lic:pip:{name}:MPL-2.0" for name in versions],
+        )
+        self.assertCountEqual(
+            re.findall(r"^    - '([^']+)':$", policy, re.MULTILINE),
+            [f"* > {name}@{version}" for name, version in versions.items()],
+        )
+        self.assertEqual(policy.count("expires: '2026-11-15T00:00:00.000Z'"), 2)
+        workflow = (ROOT / ".github/workflows/snyk.yml").read_text(encoding="utf-8")
+        for filename in ("uv.lock", "pyproject.toml"):
+            digest = hashlib.sha256((ROOT / filename).read_bytes()).hexdigest()
+            self.assertIn(f"'{digest}  {filename}'", workflow)
+        self.assertIn('sha256sum --check --status', workflow)
+        self.assertIn('uv:.)', workflow)
+        self.assertEqual(workflow.count('policy=(--policy-path='), 1)
+        self.assertNotIn('--skip-unresolved', workflow)
+
     def test_every_release_caller_requires_its_component_checks(self) -> None:
         workflows = ROOT / ".github" / "workflows"
         callers = sorted(

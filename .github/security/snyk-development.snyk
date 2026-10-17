@@ -1,0 +1,15 @@
+ignore:
+  'snyk:lic:pip:pathspec:MPL-2.0':
+    - '* > pathspec@1.1.1':
+        reason: >-
+          Accept MPL-2.0 for unmodified pathspec 1.1.1 used by mypy and
+          hatchling in the hash-bound root development graph only. Review
+          before modification, redistribution or use outside this scope.
+        expires: '2026-11-15T00:00:00.000Z'
+  'snyk:lic:pip:hypothesis:MPL-2.0':
+    - '* > hypothesis@6.169.0':
+        reason: >-
+          Accept MPL-2.0 for unmodified hypothesis 6.169.0 used for property
+          tests in the hash-bound root development graph only. Review before
+          modification, redistribution or use outside this scope.
+        expires: '2026-11-15T00:00:00.000Z'
