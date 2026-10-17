@@ -27,9 +27,17 @@ packages/au-tax-rates-data:rates
 default:
     @just --list
 
-# Install every component and the shared toolchain into one workspace .venv.
+# Install every component and the shared toolchain into one workspace .venv,
+# then each fast-check worker's locked npm dependencies. The bootstrap runs
+# `npm ci --ignore-scripts` with the Node pinned in the locked toolchain.
 setup:
+    #!/usr/bin/env bash
+    set -euo pipefail
     uv sync
+    for bootstrap in packages/*/tests/fastcheck/bootstrap.py; do
+        echo "==> ${bootstrap}"
+        uv run --no-sync python "${bootstrap}"
+    done
 
 # Run every component's test suite, plus the repository boundary checks.
 test: setup

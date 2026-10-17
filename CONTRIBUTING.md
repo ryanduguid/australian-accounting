@@ -13,6 +13,9 @@ uv sync        # install every component and the shared toolchain
 just test      # every component's suite, plus the repository boundary checks
 ```
 
+`just test` runs `just setup` first, which repeats `uv sync` and then installs
+each fast-check worker described below.
+
 `uv sync` creates one `.venv` at the root and installs all 9 components into it
 as editable workspace members. `apps/aus-accounting-mcp` therefore imports
 `atobenchmark`, `paydaysuper`, `div7aloan` and `austaxcalc` from the checked-out tree
@@ -28,7 +31,8 @@ pytest. CI additionally runs, per component, the dependency audit, the distribut
 build, the installed-wheel and sdist smoke tests and changed-line coverage listed in
 that table and in `ci-package.yml`. A green `just check` is not a green CI.
 
-The same locked environment also supports these commands from the repository root:
+The same locked environment also supports these commands from the repository root,
+after `just setup` or the fast-check bootstrap below:
 
 ```bash
 uv run --locked --group dev ruff check .
@@ -70,6 +74,26 @@ uv run --locked --extra dev pytest --cov --cov-branch --cov-report=term-missing 
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 uv run --locked --extra dev --python 3.14 python -m build
 ```
+
+Five engines (`australian-tax-calculators`, `ato-benchmark-compare`, `payday-super-checker`,
+`div7a-loan-review` and `solomons-sword`) generate their property-test inputs with
+fast-check. Their assertions, Decimal arithmetic and coverage stay in pytest; a small
+Node worker under `tests/fastcheck/` generates, shrinks and replays the inputs. Install
+the worker's locked npm dependencies before running their tests:
+
+```bash
+uv run --locked --extra dev python tests/fastcheck/bootstrap.py
+```
+
+The bootstrap runs `npm ci --ignore-scripts` with the Node and npm of the
+`nodejs-wheel-binaries` pin in the dev extra, never a global installation. Repeat it
+when `tests/fastcheck/package-lock.json` changes. Tests never install anything: a
+missing or stale worker fails them. The bridge (`tests/_fastcheck.py`), its controls,
+the runner, the bootstrap and the npm manifest and lock are identical in all 5 engines,
+and `tests/test_shared_blocks.py` fails when a copy drifts; only
+`tests/fastcheck/properties.cjs`, the input domains, differs. Each engine's sdist ships
+them without `node_modules`. To replay a reported counterexample, set `FASTCHECK_REPLAY`
+to the JSON the failure prints and rerun that test.
 
 CI also checks that the engine's own `uv.lock` still resolves on its own. Inside the
 workspace `uv lock --check` validates the root lock, so run it from a copy of the engine

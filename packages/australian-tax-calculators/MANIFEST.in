@@ -5,4 +5,6 @@ graft austaxcalc
 graft docs
 graft scripts
 graft tests
+# The fast-check worker for the property tests; npm installs node_modules.
+prune tests/fastcheck/node_modules
 global-exclude *.py[cod]

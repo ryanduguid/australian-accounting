@@ -3,18 +3,15 @@
 from decimal import ROUND_DOWN, Decimal
 
 import pytest
-from hypothesis import assume, example, given, seed, settings
-from hypothesis import strategies as st
 from louisgoldberg.division6 import (
     BeneficiaryEntitlement,
     TrustIncomeAssessment,
     calculate_proportionate_share,
 )
 
-PROPERTY_SETTINGS = settings(max_examples=100, database=None, deadline=None)
-CENTS = st.decimals(min_value=Decimal("0.01"), max_value=Decimal("100000000.00"), places=2)
-CREDITS = st.decimals(min_value=Decimal("0.00"), max_value=Decimal("100000000.00"), places=2)
-WEIGHTS = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=8)
+from _fastcheck import fastcheck_property, require_case
+
+# Input domains live in tests/fastcheck/properties.cjs under each test's name.
 
 
 def resident_adult(*args, **kwargs) -> BeneficiaryEntitlement:
@@ -126,14 +123,13 @@ def test_a_sub_cent_fixed_entitlement_is_refused_rather_than_rounded():
         calculate_proportionate_share(assessment)
 
 
-@seed(0x5010)
-@PROPERTY_SETTINGS
-@given(weights=WEIGHTS, trust_income=CENTS, s95_net=CENTS, credits=CREDITS)
-@example(weights=[3333, 3333, 3334], trust_income=Decimal("10.00"), s95_net=Decimal("10.00"), credits=Decimal("0.00"))
-@example(weights=[1] * 7, trust_income=Decimal("1.00"), s95_net=Decimal("1.00"), credits=Decimal("1.00"))
+@fastcheck_property(seed=0x5010, runs=100, examples=[
+    dict(weights=[3333, 3333, 3334], trust_income=Decimal("10.00"), s95_net=Decimal("10.00"), credits=Decimal("0.00")),
+    dict(weights=[1] * 7, trust_income=Decimal("1.00"), s95_net=Decimal("1.00"), credits=Decimal("1.00")),
+])
 def test_every_allocated_column_foots_to_its_pool(weights, trust_income, s95_net, credits):
     percentages = percentages_from(weights)
-    assume(all(pct > Decimal("0.00") for pct in percentages))
+    require_case(all(pct > Decimal("0.00") for pct in percentages))
     shares = calculate_proportionate_share(assessment_for(percentages, trust_income, s95_net, credits))
 
     assert sum(s.trust_income_entitlement for s in shares) == trust_income

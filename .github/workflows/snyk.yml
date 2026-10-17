@@ -51,6 +51,11 @@ jobs:
         uv:packages/solomons-sword
         uv:packages/the-exchequer-tally
         uv:packages/the-wip-tally
+        npm:packages/ato-benchmark-compare/tests/fastcheck/package-lock.json
+        npm:packages/australian-tax-calculators/tests/fastcheck/package-lock.json
+        npm:packages/div7a-loan-review/tests/fastcheck/package-lock.json
+        npm:packages/payday-super-checker/tests/fastcheck/package-lock.json
+        npm:packages/solomons-sword/tests/fastcheck/package-lock.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -78,6 +83,16 @@ jobs:
           while IFS=: read -r kind target; do
             [ -n "$kind" ] || continue
             if [ "$kind" = npm ]; then
+              # The fast-check workers share one manifest and lock; a graph is
+              # its package.json and package-lock.json, and each distinct graph
+              # is tested once.
+              manifest="$(dirname "$target")/package.json"
+              if ! digest=$(cat "$manifest" "$target" | sha256sum); then
+                echo "::error::Cannot read $target"; status=1; continue
+              fi
+              digest=${digest%% *}
+              case " $seen " in *" $digest "*) echo "$kind:$target repeats an earlier set"; continue ;; esac
+              seen="$seen $digest"
               [ -z "$SNYK_TOKEN" ] || snyk test --file="$target" --project-name="$target" || status=1
               continue
             fi

@@ -62,6 +62,14 @@ jobs:
       - run: uv lock --check
       - run: uv run --locked --group dev ruff check .  # NOSONAR: unprivileged job; uv installs the hash-locked set
       - run: uv run --locked --group dev pyright  # NOSONAR: unprivileged job; uv installs the hash-locked set
+      # Root pytest runs every component suite, so the fast-check workers are
+      # installed first, as `just setup` does.
+      - name: install the fast-check workers
+        run: |
+          set -euo pipefail
+          for bootstrap in packages/*/tests/fastcheck/bootstrap.py; do
+            uv run --locked --group dev python "$bootstrap"  # NOSONAR: unprivileged job; npm ci installs the hash-locked set
+          done
       - run: uv run --locked --group dev pytest  # NOSONAR: unprivileged job; uv installs the hash-locked set
 
   # The rates dataset's own checks on the floor and ceiling of its declared Python,
