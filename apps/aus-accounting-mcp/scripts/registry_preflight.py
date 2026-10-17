@@ -145,6 +145,25 @@ def verify_provenance(
             raise PreflightError(f"{filename}: provenance bundle carries no attestation")
 
 
+def verify_github_release(fetch_json: Callable[[str], object], name: str, version: str) -> str:
+    """Require the exact published stable release; return its namespaced tag."""
+    tag = f"{name}/v{version}"
+    release = fetch_json(
+        f"https://api.github.com/repos/{REPOSITORY}/releases/tags/"
+        f"{urllib.parse.quote(tag, safe='')}"
+    )
+    if (
+        not isinstance(release, dict)
+        or release.get("tag_name") != tag
+        or release.get("draft") is not False
+        or release.get("prerelease") is not False
+        or not isinstance(release.get("published_at"), str)
+        or not release["published_at"]
+    ):
+        raise PreflightError(f"GitHub has no published stable release for {tag}")
+    return tag
+
+
 def verify_readback(
     fetch_json: Callable[[str], object], server: dict[str, object], name: str, version: str
 ) -> list[str]:
@@ -185,20 +204,7 @@ def verify_readback(
         raise PreflightError("Registry record is not active")
     if official.get("isLatest") is not True:
         raise PreflightError("Registry record is not marked latest")
-    tag = f"{name}/v{version}"
-    release = fetch_json(
-        f"https://api.github.com/repos/{REPOSITORY}/releases/tags/"
-        f"{urllib.parse.quote(tag, safe='')}"
-    )
-    if (
-        not isinstance(release, dict)
-        or release.get("tag_name") != tag
-        or release.get("draft") is not False
-        or release.get("prerelease") is not False
-        or not isinstance(release.get("published_at"), str)
-        or not release["published_at"]
-    ):
-        raise PreflightError(f"GitHub has no published stable release for {tag}")
+    tag = verify_github_release(fetch_json, name, version)
     return [
         f"Registry latest is active: {SERVER_NAME} {version}, matching package/repository/stdio",
         f"GitHub holds the published stable release {tag}",
