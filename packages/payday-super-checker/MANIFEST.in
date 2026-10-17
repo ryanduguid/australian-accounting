@@ -21,3 +21,6 @@ include assets/quick-proof.md
 include assets/quick-proof.svg
 global-exclude __pycache__/*
 global-exclude *.py[cod]
+# The fast-check worker for the property tests; npm installs node_modules.
+recursive-include tests/fastcheck *.cjs *.json
+prune tests/fastcheck/node_modules

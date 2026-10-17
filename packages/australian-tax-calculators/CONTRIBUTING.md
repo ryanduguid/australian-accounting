@@ -6,12 +6,17 @@ tests and official sources. Preserve scope refusals and source metadata.
 Run the engine commands documented in the root CONTRIBUTING.md from this directory:
 
 ```sh
+uv run --locked --extra dev python tests/fastcheck/bootstrap.py
 uv run --locked --extra dev pytest --cov --cov-branch --cov-report=term-missing --cov-report=xml
 uv run --locked --extra dev ruff check .
 uv run --locked --extra dev pyright
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 uv run --locked --extra dev --python 3.14 python -m build
 ```
+
+The bootstrap installs the property tests' locked fast-check worker with the
+Node pinned in the dev extra. Repeat it whenever `tests/fastcheck/package-lock.json`
+changes.
 
 Retain the standalone lockfile as well as the root workspace lock. Release this
 component through its namespaced release workflow after the applicable gates pass.

@@ -483,8 +483,12 @@ common practice, and why the Act was followed.
 ## Tests
 
 ```bash
+python tests/fastcheck/bootstrap.py
 python -m pytest -q
 ```
+
+Install the dev extra first. The bootstrap installs the locked fast-check
+worker that generates the property tests' inputs, using the Node it pins.
 
 Every frozen rate year, every verdict, every refusal, the 2025-26 May-vs-June
 trap, the formula against exact rational arithmetic, and a check that no

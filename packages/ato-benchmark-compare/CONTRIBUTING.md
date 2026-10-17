@@ -42,11 +42,14 @@ Python 3.14 or newer. The runtime imports nothing outside the standard library.
 
 ```bash
 uv sync --locked --extra dev --python 3.14
+uv run --locked --extra dev --python 3.14 python tests/fastcheck/bootstrap.py
 uv run --locked --extra dev --python 3.14 pytest
 uv run --locked --extra dev --python 3.14 python -m build
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 ```
 
+The bootstrap installs the property tests' locked fast-check worker with the Node
+pinned in the dev extra; repeat it whenever `tests/fastcheck/package-lock.json` changes.
 CI repeats this on Ubuntu with Python 3.14 and 3.15, and on Windows with 3.14. Keep
 runtime strings ASCII: on Windows, redirected stdout uses the machine's ANSI codepage
 rather than UTF-8.

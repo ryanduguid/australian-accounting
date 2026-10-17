@@ -9,3 +9,7 @@ include tools/build_workbook.py
 recursive-include docs *.md
 recursive-include evaluation *.csv *.json *.md
 recursive-include examples *.csv
+# The fast-check bridge and worker for the property tests; npm installs node_modules.
+recursive-include tests *.py
+recursive-include tests/fastcheck *.cjs *.json
+prune tests/fastcheck/node_modules

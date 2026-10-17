@@ -3,30 +3,23 @@
 from datetime import date, timedelta
 from decimal import Decimal
 
-from hypothesis import example, given, seed, settings
-from hypothesis import strategies as st
 from paydaysuper.calendar import load_calendar
 from paydaysuper.sgc import exposure_range, uplift_scenarios
 
+from _fastcheck import fastcheck_property
+
 CALENDAR = load_calendar()
-PROPERTY_SETTINGS = settings(max_examples=100, database=None, deadline=None)
-NONNEGATIVE_MONEY = st.decimals(
-    min_value=Decimal("0"),
-    max_value=Decimal("1000000000"),
-    places=2,
-    allow_nan=False,
-    allow_infinity=False,
-)
+# Input domains live in tests/fastcheck/properties.cjs under each test's name.
 
 
-@seed(0xDA7E)
-@PROPERTY_SETTINGS
-@example(date(2026, 12, 24), 7)
-@example(date(2027, 3, 25), 7)
-@example(date(2026, 8, 1), 0)
-@given(
-    start=st.dates(min_value=date(2026, 7, 1), max_value=date(2027, 7, 1)),
-    count=st.integers(min_value=0, max_value=40),
+@fastcheck_property(
+    seed=0xDA7E,
+    runs=100,
+    examples=[
+        dict(start=date(2026, 12, 24), count=7),
+        dict(start=date(2027, 3, 25), count=7),
+        dict(start=date(2026, 8, 1), count=0),
+    ],
 )
 def test_business_day_addition_counts_only_days_after_the_start(
     start: date, count: int
@@ -53,11 +46,14 @@ def test_business_day_addition_counts_only_days_after_the_start(
     assert before_result == count - 1
 
 
-@seed(0x5AC)
-@PROPERTY_SETTINGS
-@example(Decimal("0"), Decimal("0"))
-@example(Decimal("1000"), Decimal("100"))
-@given(final_shortfall=NONNEGATIVE_MONEY, nec=NONNEGATIVE_MONEY)
+@fastcheck_property(
+    seed=0x5AC,
+    runs=100,
+    examples=[
+        dict(final_shortfall=Decimal("0"), nec=Decimal("0")),
+        dict(final_shortfall=Decimal("1000"), nec=Decimal("100")),
+    ],
+)
 def test_exposure_scenarios_conserve_the_shortfall_plus_nec_base(
     final_shortfall: Decimal, nec: Decimal
 ) -> None:

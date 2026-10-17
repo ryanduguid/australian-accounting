@@ -8,7 +8,8 @@ drift fails instead.
 
 `IDENTICAL` names definitions that are the same bytes in every copy. `SAME_LOGIC`
 names definitions whose docstrings or comments have diverged, so only the
-executable code is compared. The first file in each group is the reference.
+executable code is compared. `IDENTICAL_FILES` names whole files that must match
+byte for byte. The first file in each group is the reference.
 
 Standard library only, and no component is imported: the files are read and
 parsed.
@@ -57,6 +58,28 @@ GROUPS = {
         "identical": ("header", "style"),
         "same_logic": ("recalc",),
     },
+}
+
+
+# Whole files copied unchanged into each component that runs fast-check
+# properties. Only tests/fastcheck/properties.cjs, the input domains, differs.
+FASTCHECK_COMPONENTS = (
+    "australian-tax-calculators",
+    "ato-benchmark-compare",
+    "payday-super-checker",
+    "div7a-loan-review",
+    "solomons-sword",
+)
+IDENTICAL_FILES = {
+    relative: tuple(PACKAGES / component / relative for component in FASTCHECK_COMPONENTS)
+    for relative in (
+        "tests/_fastcheck.py",
+        "tests/test_fastcheck_bridge.py",
+        "tests/fastcheck/runner.cjs",
+        "tests/fastcheck/bootstrap.py",
+        "tests/fastcheck/package.json",
+        "tests/fastcheck/package-lock.json",
+    )
 }
 
 
@@ -142,6 +165,13 @@ class SharedBlockTests(unittest.TestCase):
                 for name in spec["same_logic"]:
                     with self.subTest(group=group, name=name, file=str(path.relative_to(ROOT))):
                         self.assertEqual(_executable(reference[name]), _executable(copy[name]))
+
+    def test_the_copied_files_are_byte_identical(self) -> None:
+        for relative, paths in IDENTICAL_FILES.items():
+            reference, *copies = paths
+            for path in copies:
+                with self.subTest(file=str(path.relative_to(ROOT))):
+                    self.assertEqual(reference.read_bytes(), path.read_bytes(), relative)
 
 
 if __name__ == "__main__":  # pragma: no cover
