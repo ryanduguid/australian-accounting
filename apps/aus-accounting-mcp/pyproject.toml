@@ -57,7 +57,6 @@ dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.0.0",
     "Pillow==12.3.0",
-    "twine==7.0.0",
     # release-python builds without isolation, so the backend comes from this
     # locked extra, pinned exactly as [build-system] requires.
     "hatchling==1.32.4",
