@@ -1,12 +1,12 @@
 # Aus Accounting MCP
 
-Published `aus-accounting-mcp==0.4.0` provides ten worksheets through
-`australian-tax-calculators==0.1.8`. The fourteen-worksheet descriptions below
-refer to development source: Schedule 8 study-loan withholding, the bounded
-annual Medicare levy, LITO and Division 293 are not in that published server.
-See the [worksheet release handoff](docs/worksheet-release.md) before installing
-or describing those additions. The annual Medicare worksheet does not apply
-Medicare adjustments to payroll withholding.
+Release `aus-accounting-mcp==0.5.0` provides fourteen worksheets through
+`australian-tax-calculators==0.2.0`, including Schedule 8 study-loan withholding,
+the bounded annual Medicare levy, LITO and Division 293. The preceding 0.4.0
+release provides ten through calculators 0.1.8. See the
+[worksheet release verification](docs/worksheet-release.md) for the installed
+package checks. The annual Medicare worksheet does not apply Medicare
+adjustments to payroll withholding.
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
 [![PyPI](https://img.shields.io/pypi/v/aus-accounting-mcp.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/aus-accounting-mcp/)
@@ -28,10 +28,7 @@ network calls once installed.
   account-based pension minimums, study and training loan repayments, Schedule 8 study
   loan withholding, a single person's Medicare levy, the low income tax offset and
   Division 293 tax, each within a stated period and scope. The Medicare levy worksheet
-  refuses a person to whom s 9A (lump sum payments in arrears) applies. A source checkout serves the
-  last four now; an installed server gets them only after the next
-  australian-tax-calculators release and the aus-accounting-mcp release that moves its
-  engine pin.
+  refuses a person to whom s 9A (lump sum payments in arrears) applies.
 - **Cited research:** search your own Markdown library, or a local copy of federal tax
   legislation, with every result cited to its file and line, or its Act, section and
   compilation.
@@ -173,7 +170,7 @@ leaves `UNKNOWN` or refuses. Another implementation can replay them; see
 
 Apache-2.0 licensed. Created by Ryan Duguid. If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.4.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.4.0),
+[v0.5.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.5.0),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <!-- mcp-name: io.github.ryanduguid/aus-accounting -->

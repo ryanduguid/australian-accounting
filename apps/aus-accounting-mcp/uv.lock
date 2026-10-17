@@ -111,7 +111,7 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.4.0"
+version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "ato-benchmark-compare" },
@@ -136,7 +136,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "ato-benchmark-compare", specifier = "==0.1.11" },
-    { name = "australian-tax-calculators", specifier = "==0.1.8" },
+    { name = "australian-tax-calculators", specifier = "==0.2.0" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.6.1" },
     { name = "div7a-loan-review", specifier = "==0.2.0" },
     { name = "hatchling", marker = "extra == 'dev'", specifier = "==1.32.4" },
@@ -153,11 +153,11 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "australian-tax-calculators"
-version = "0.1.8"
+version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/5c/c2/ad17618d3b2af9cc7cf95e8db742596977eb964ba673c96bcb3e11eef09b/australian_tax_calculators-0.1.8.tar.gz", hash = "sha256:83b1ace160cc2061d164b136b1a59f9223fedf34b25dfd3cdd219eb09c491375", size = 84178, upload-time = "2026-09-29T03:45:52.708Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/81/2e/961ff7a6d0c67440691428be9975dc3aacb8dc3a0f06181ff337535aa2a2/australian_tax_calculators-0.2.0.tar.gz", hash = "sha256:5446fb6ad6a0f36252c7832c8fdb5677f7974e4559dc4c9d17cb452789e07536", size = 90384, upload-time = "2026-10-17T07:42:40.229Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/88/54/ec1feecd5cd34a5834b6cc9aa4b4112bb6452cc940c9a11b063dc571f2b6/australian_tax_calculators-0.1.8-py3-none-any.whl", hash = "sha256:9531ac3aa60a265bf44d0edf8463319f05b5709b0255a5fb50737e815311df93", size = 18723, upload-time = "2026-09-29T03:45:51.55Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/59/680cf6701d6646bc6aad4b7edea5d773ef33ea3baae9514304c00da5e763/australian_tax_calculators-0.2.0-py3-none-any.whl", hash = "sha256:6a174d1396f2a8f4950c9d0fefea33dd687a3528d152b00bc36bd6da422a807d", size = 27699, upload-time = "2026-10-17T07:42:38.949Z" },
 ]
 
 [[package]]

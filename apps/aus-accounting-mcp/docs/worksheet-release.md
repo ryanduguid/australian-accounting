@@ -1,14 +1,15 @@
-# Existing worksheet release handoff
+# Fourteen-worksheet release verification
 
-This is preparation for two releases, not a publication record. No new tax
-calculation is proposed here. The four existing development additions are
+This describes the calculator 0.2.0 and MCP 0.5.0 release pair; verify their
+publication at the named release records. No tax calculation changes here.
+The four already merged additions are
 Schedule 8 study-loan withholding, a bounded annual Medicare levy, LITO and
 Division 293. Annual study-loan repayment and payroll withholding are distinct;
 the Medicare worksheet does not apply withholding variations.
 
-## Published and candidate identities
+## Release identities
 
-| Component | Published | Prepared candidate |
+| Component | Previous release | Release pair |
 | --- | --- | --- |
 | australian-tax-calculators | 0.1.9, ten worksheets, Python 3.11+ | 0.2.0, fourteen worksheets, Python 3.14+ |
 | aus-accounting-mcp | 0.4.0, pins calculators 0.1.8 | 0.5.0, pins calculators 0.2.0 |
@@ -34,6 +35,9 @@ tools, and checks returned engine versions and warnings. It must also pass
 before a future facade publication; the historical BAS demonstration alone
 does not exercise the new kinds.
 
+The facade's existing release workflow now runs this check after installing
+its wheel and exact published engine pins in a fresh environment.
+
 ## Publication order, after explicit authorisation
 
 1. Update engine version, release notes, smoke expectation and standalone/root
@@ -45,7 +49,7 @@ does not exercise the new kinds.
    the engine now on PyPI, then regenerate the workspace lock. The standalone
    lock cannot honestly be finalised against an unpublished PyPI version.
 4. Prepare the matching `server.json` and `compatibility.json` in the release
-   handoff. Until then, retain their verified published 0.4.0 records. Repeat
+   handoff. Unreleased metadata does not prove publication. Repeat
    installed-wheel verification using the actual published engine.
 5. Publish the facade, verify PyPI, then pass the existing Registry preflight
    before publishing its exact Registry record. Update website and plugin pins

@@ -9,7 +9,7 @@ About, repository topics, README, `pyproject.toml`, `glama.json`, and
 Description:
 
 ```text
-Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, ten bounded tax and super worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice.
+Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, fourteen bounded tax and super worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice.
 ```
 
 Website:
@@ -122,7 +122,7 @@ anything a later edit added.
 Copy prepared for the next authorised profile update:
 
 ```text
-Local MCP for Australian accountants: ATO benchmarks, Payday Super timing, limited Division 7A reviews, 10 bounded tax and super worksheets and cited legislation search. Synthetic CTR/BAS test data. Not advice.
+Local MCP for Australian accountants: ATO benchmarks, Payday Super timing, limited Division 7A reviews, 14 bounded tax and super worksheets and cited legislation search. Synthetic CTR/BAS test data. Not advice.
 ```
 
 The package contains no reference library. Retrieval requires an authorised local
@@ -179,7 +179,7 @@ pins. Update `tag` if the intended version changes and run these checks after
 downloading the assets and checking `SHA256SUMS`:
 
 ```bash
-tag=aus-accounting-mcp/v0.4.0
+tag=aus-accounting-mcp/v0.5.0
 signer=a601f1d8b143f92b0517f709216993660d21f480
 repo=ryanduguid/australian-accounting
 wheel="aus_accounting_mcp-${tag#aus-accounting-mcp/v}-py3-none-any.whl"

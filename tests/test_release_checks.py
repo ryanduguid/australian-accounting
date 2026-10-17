@@ -138,10 +138,14 @@ class ReleaseChecksTests(unittest.TestCase):
         )
         job = text.split("\n  published-pins:\n", 1)[1].split("\n  release:\n", 1)[0]
         self.assertIn('uv venv --python 3.14 "$RUNNER_TEMP/pins"', job)
-        self.assertEqual(job.count("working-directory: ${{ runner.temp }}"), 2)
+        self.assertEqual(job.count("working-directory: ${{ runner.temp }}"), 3)
         self.assertIn("uv pip install --python pins/bin/python --only-binary ':all:' dist/*.whl", job)
         self.assertIn(
             'diff -u "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/docs/quick-proof.txt" demo.txt', job
+        )
+        self.assertIn(
+            'pins/bin/python -I "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/scripts/check_installed_worksheets.py"',
+            job,
         )
         release = text.split("\n  release:\n", 1)[1].split("\n  pypi:", 1)[0]
         self.assertRegex(release, r"(?m)^    needs: published-pins$")

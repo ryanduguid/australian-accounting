@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.14"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -179,7 +179,7 @@ dev = [{ name = "pytest", specifier = ">=8" }]
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.4.0"
+version = "0.5.0"
 source = { editable = "apps/aus-accounting-mcp" }
 dependencies = [
     { name = "ato-benchmark-compare" },
