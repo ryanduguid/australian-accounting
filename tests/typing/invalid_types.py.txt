@@ -1,0 +1,26 @@
+
+
+# Deliberate errors used only by the isolated typing parity check.
+from decimal import Decimal as _ParityDecimal
+from typing import Literal as _ParityLiteral, Protocol as _ParityProtocol, TypedDict as _ParityTypedDict
+
+_parity_money: _ParityDecimal = 1.25
+def _parity_result(value: _ParityDecimal) -> _ParityDecimal:
+    return "not money"
+_parity_result("100")
+_parity_values: list[int] = ["wrong"]
+_parity_optional: str | None = None
+_parity_optional.upper()
+_parity_kind: _ParityLiteral["approved"] = "refused"
+class _ParityRecord(_ParityTypedDict):
+    amount: _ParityDecimal
+_parity_row: _ParityRecord = {"amount": "1"}
+_parity_row["missing"]
+class _ParityReader(_ParityProtocol):
+    def read(self) -> bytes: ...
+class _ParityWrongReader:
+    def read(self) -> str:
+        return "not bytes"
+_parity_reader: _ParityReader = _ParityWrongReader()
+_parity_int: int = 1
+_parity_int.missing_attribute()

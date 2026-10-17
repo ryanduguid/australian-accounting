@@ -1,0 +1,10 @@
+# Preserve the source distribution shipped by the previous backend.
+include NOTICE
+include .python-version CONTRIBUTING.md DISCLAIMER.md RELEASE_NOTES.md SECURITY.md uv.lock .gitignore LICENSE README.md
+graft austaxcalc
+graft docs
+graft scripts
+graft tests
+# The fast-check worker for the property tests; npm installs node_modules.
+prune tests/fastcheck/node_modules
+global-exclude *.py[cod]

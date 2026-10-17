@@ -31,13 +31,12 @@ Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 # gate behaves the same wherever it runs. Package-specific test libraries follow.
 dev = [
     "ruff==0.17.0",
-    "mypy==2.4.0",
+    "pyright[nodejs]==1.1.414", "nodejs-wheel-binaries==24.19.0",
     "pytest==9.1.1",
     "coverage==7.16.2",
     "pytest-cov==7.1.0",
     "build==1.6.1",
     "openpyxl==3.1.5",
-    "hypothesis==6.169.0",
     # release-python builds without isolation, so the backend comes from this
     # locked extra, pinned exactly as [build-system] requires.
     "setuptools==84.0.0",
@@ -66,11 +65,11 @@ src = ["div7aloan", "tests"]
 # sorting. Money literals stay exactly as written: no rule here rewrites one.
 select = ["E4", "E7", "E9", "F", "I"]
 
-[tool.mypy]
-python_version = "3.14"
-packages = ["div7aloan"]
-ignore_missing_imports = true
-pretty = true
+[tool.pyright]
+pythonVersion = "3.14"
+include = ["div7aloan"]
+typeCheckingMode = "standard"
+reportMissingImports = "none"
 
 [tool.coverage.run]
 # The source pytest --cov measures; CI adds --cov-branch and the reports.

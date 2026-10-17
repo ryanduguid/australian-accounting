@@ -102,6 +102,7 @@ All allocation and threshold algorithms use exact `decimal.Decimal` calculations
 | **Trust Resolution Timing** | Caller-supplied deed and execution facts | Refuses incomplete percentages, reports stated deed defects, and returns not-established where a deed fact was never stated. This is not a substitute for current ATO guidance. |
 
 ### Automated test suite
+- Install the dev extra and the property tests' locked fast-check worker: `pip install -e ".[dev]"`, then `python tests/fastcheck/bootstrap.py`.
 - Run the suite: `pytest tests/`
 - The suite covers proportionate streaming, Section 100A zones the engine implements, Section 99B corpus deductions, and resolution gates. Do not treat a badge as a live coverage certificate.
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from decimal import Decimal, InvalidOperation
 
-from pydantic.json_schema import JsonDict
+from pydantic.config import JsonDict
 
 from .errors import InputError
 

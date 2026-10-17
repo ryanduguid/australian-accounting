@@ -35,5 +35,9 @@ run_sdist_tests() {
   python3 -m venv "$work/sdist-venv"
   "$work/sdist-venv/bin/pip" install --quiet --upgrade pip
   "$work/sdist-venv/bin/pip" install --quiet -e "$sdist[dev]"
+  # The sdist's fast-check worker, installed with the Node its dev extra pins.
+  if [ -f "$sdist/tests/fastcheck/bootstrap.py" ]; then
+    "$work/sdist-venv/bin/python" "$sdist/tests/fastcheck/bootstrap.py"
+  fi
   (cd "$sdist" && "$work/sdist-venv/bin/pytest" -q)
 }

@@ -18,13 +18,14 @@
 from __future__ import annotations
 
 import http.client
+import ssl
 import sys
 import time
 import urllib.error
 import urllib.request
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import BinaryIO, Literal, NoReturn, Protocol
+from typing import BinaryIO, Literal, NoReturn, Protocol, cast
 
 from .errors import ConfigurationError, DisallowedTargetError, TransportError
 
@@ -249,12 +250,16 @@ class _HTTPConnection(http.client.HTTPConnection):
             self.response_class = response_class
 
 
+class _RaggedEOFControl(Protocol):
+    suppress_ragged_eofs: bool
+
+
 class _HTTPSConnection(_HTTPConnection, http.client.HTTPSConnection):
     def connect(self) -> None:
         super().connect()
         # A TLS truncation must not become the normal EOF of a close-delimited body.
         if self.sock is not None and hasattr(self.sock, "suppress_ragged_eofs"):
-            self.sock.suppress_ragged_eofs = False
+            cast(_RaggedEOFControl, self.sock).suppress_ragged_eofs = False
 
 
 def _open(connection_class, req, **connection_options):
@@ -303,6 +308,8 @@ class _HTTPHandler(urllib.request.HTTPHandler):
 
 
 class _HTTPSHandler(urllib.request.HTTPSHandler):
+    _context: ssl.SSLContext | None
+
     def https_open(self, req):  # noqa: ANN001, ANN201
         return _open(_HTTPSConnection, req, context=self._context)
 
@@ -483,6 +490,9 @@ def request(
                 break
             del result, failure
         sleep(config.retry_backoff_seconds * attempt)
+    else:
+        del config, method, url, body, content_type, bearer_token, headers, sleep
+        _raise_detached(TransportError("request attempt limit must be positive"))
     # The attempt has returned without retaining its exception or resource.
     # Drop direct and indirect request carriers before the public traceback.
     del config, method, url, body, content_type, bearer_token, headers, sleep, result

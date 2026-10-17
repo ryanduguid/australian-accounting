@@ -16,16 +16,16 @@ from austaxcalc.metadata import (
     RESIDENT_TAX_SCALES,
     SUPPORTED_PERIODS,
 )
-from hypothesis import example, given, seed, settings
-from hypothesis import strategies as st
 
-PROPERTY_SETTINGS = settings(max_examples=100, database=None, deadline=None)
-MONEY = st.decimals(min_value=Decimal("0"), max_value=Decimal("100000000.00"), places=2)
-DOLLARS = st.integers(min_value=0, max_value=2_000_000).map(Decimal)
-AGES = st.integers(min_value=0, max_value=150)
-PAY = st.decimals(min_value=Decimal("0"), max_value=Decimal("100000.00"), places=2)
+from _fastcheck import fastcheck_property
+
+# Input domains live in tests/fastcheck/properties.cjs under each test's name.
 PAYG_SCALES = [(year, scale) for year in SUPPORTED_PERIODS["payg_withholding"]
                for scale in sorted(PAYG_WITHHOLDING_COEFFICIENTS[year])]
+
+
+def years(worksheet: str) -> dict[str, list[str]]:
+    return {"years": list(SUPPORTED_PERIODS[worksheet])}
 
 
 def amounts(result: dict) -> dict[str, Decimal]:
@@ -36,11 +36,10 @@ def tax(income: Decimal, year: str) -> Decimal:
     return amounts(resident_tax(income, year, True))["basic_income_tax"]
 
 
-@seed(0x6571)
-@PROPERTY_SETTINGS
-@given(amount=MONEY, inclusive=st.booleans())
-@example(amount=Decimal("0.06"), inclusive=True)
-@example(amount=Decimal("0.05"), inclusive=False)
+@fastcheck_property(seed=0x6571, runs=100, examples=[
+    dict(amount=Decimal("0.06"), inclusive=True),
+    dict(amount=Decimal("0.05"), inclusive=False),
+])
 def test_gst_and_the_exclusive_amount_add_to_the_inclusive_amount_to_the_cent(amount, inclusive):
     result = amounts(gst(amount, inclusive, True, "2025-26"))
 
@@ -50,11 +49,10 @@ def test_gst_and_the_exclusive_amount_add_to_the_inclusive_amount_to_the_cent(am
     assert abs(result["gst"] - share) <= Decimal("0.005")
 
 
-@seed(0x7A11)
-@PROPERTY_SETTINGS
-@given(year=st.sampled_from(SUPPORTED_PERIODS["resident_tax"]), low=DOLLARS, high=DOLLARS)
-@example(year="2026-27", low=Decimal(18200), high=Decimal(18201))
-@example(year="2026-27", low=Decimal(45000), high=Decimal(45001))
+@fastcheck_property(seed=0x7A11, runs=100, context=years("resident_tax"), examples=[
+    dict(year="2026-27", low=Decimal(18200), high=Decimal(18201)),
+    dict(year="2026-27", low=Decimal(45000), high=Decimal(45001)),
+])
 def test_resident_tax_never_falls_and_its_marginal_rate_never_falls(year, low, high):
     low, high = sorted((low, high))
     scale = RESIDENT_TAX_SCALES[year]
@@ -67,13 +65,10 @@ def test_resident_tax_never_falls_and_its_marginal_rate_never_falls(year, low, h
         assert tax(low, year) == 0
 
 
-@seed(0x9A76)
-@PROPERTY_SETTINGS
-@given(year_scale=st.sampled_from(PAYG_SCALES),
-       period=st.sampled_from(["weekly", "fortnightly", "monthly"]),
-       low=PAY, high=PAY)
-@example(year_scale=("2026-27", 2), period="monthly", low=Decimal("3000.32"),
-         high=Decimal("3000.33"))
+@fastcheck_property(seed=0x9A76, runs=100, context={"scales": PAYG_SCALES}, examples=[
+    dict(year_scale=("2026-27", 2), period="monthly", low=Decimal("3000.32"),
+         high=Decimal("3000.33")),
+])
 def test_payg_withholding_never_falls_as_earnings_rise(year_scale, period, low, high):
     year, scale = year_scale
     low, high = sorted((low, high))
@@ -100,12 +95,10 @@ def test_payg_withholding_never_falls_across_any_bracket_boundary():
                 previous = withheld
 
 
-@seed(0x5714)
-@PROPERTY_SETTINGS
-@given(year=st.sampled_from(SUPPORTED_PERIODS["study_loan_repayment"]), low=DOLLARS,
-       high=DOLLARS)
-@example(year="2026-27", low=Decimal(69528), high=Decimal(69529))
-@example(year="2026-27", low=Decimal(186050), high=Decimal(186051))
+@fastcheck_property(seed=0x5714, runs=100, context=years("study_loan_repayment"), examples=[
+    dict(year="2026-27", low=Decimal(69528), high=Decimal(69529)),
+    dict(year="2026-27", low=Decimal(186050), high=Decimal(186051)),
+])
 def test_study_loan_repayment_never_falls_and_never_exceeds_a_tenth(year, low, high):
     low, high = sorted((low, high))
 
@@ -116,12 +109,10 @@ def test_study_loan_repayment_never_falls_and_never_exceeds_a_tenth(year, low, h
     assert repayment(high) <= high / 10
 
 
-@seed(0x9E45)
-@PROPERTY_SETTINGS
-@given(year=st.sampled_from(SUPPORTED_PERIODS["pension_minimum"]), low=MONEY, high=MONEY,
-       younger=AGES, older=AGES, days=st.integers(min_value=1, max_value=365))
-@example(year="2025-26", low=Decimal("100000.00"), high=Decimal("100000.00"),
-         younger=64, older=65, days=365)
+@fastcheck_property(seed=0x9E45, runs=100, context=years("pension_minimum"), examples=[
+    dict(year="2025-26", low=Decimal("100000.00"), high=Decimal("100000.00"),
+         younger=64, older=65, days=365),
+])
 def test_pension_minimum_never_falls_with_balance_or_age(year, low, high, younger, older, days):
     low, high = sorted((low, high))
     younger, older = sorted((younger, older))
@@ -133,11 +124,10 @@ def test_pension_minimum_never_falls_with_balance_or_age(year, low, high, younge
     assert minimum(high, older) % 10 == 0
 
 
-@seed(0xC671)
-@PROPERTY_SETTINGS
-@given(other=MONEY, discount=MONEY, current=MONEY, prior=MONEY, extra=MONEY)
-@example(other=Decimal("100.00"), discount=Decimal("100.00"), current=Decimal("150.00"),
-         prior=Decimal("0.00"), extra=Decimal("0.01"))
+@fastcheck_property(seed=0xC671, runs=100, examples=[
+    dict(other=Decimal("100.00"), discount=Decimal("100.00"), current=Decimal("150.00"),
+         prior=Decimal("0.00"), extra=Decimal("0.01")),
+])
 def test_capital_losses_are_all_accounted_for_and_more_losses_never_raise_the_gain(
         other, discount, current, prior, extra):
     first = amounts(capital_gains(other, discount, current, prior, True, "2025-26"))
@@ -148,10 +138,7 @@ def test_capital_losses_are_all_accounted_for_and_more_losses_never_raise_the_ga
     assert more["net_capital_gain"] <= first["net_capital_gain"] <= other + discount
 
 
-@seed(0xCA95)
-@PROPERTY_SETTINGS
-@given(year=st.sampled_from(SUPPORTED_PERIODS["contribution_caps"]), balance=MONEY,
-       concessional=MONEY, unused=MONEY, non_concessional=MONEY, under_75=st.booleans())
+@fastcheck_property(seed=0xCA95, runs=100, context=years("contribution_caps"))
 def test_cap_room_and_excess_reconcile_to_the_cap_available(
         year, balance, concessional, unused, non_concessional, under_75):
     result = amounts(contribution_caps(balance, concessional, unused, non_concessional,
