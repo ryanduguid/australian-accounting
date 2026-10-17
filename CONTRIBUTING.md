@@ -23,7 +23,7 @@ are `setup`, `lint`, `typecheck`, `test` and `check` (the last 3 together). Each
 loops over the per-component commands in the table below, which remain the authority;
 `just` runs them from one place, it does not replace them.
 
-`just check` is the fast local pass, not a CI equivalent. It runs ruff, mypy and
+`just check` is the fast local pass, not a CI equivalent. It runs ruff, pyright and
 pytest. CI additionally runs, per component, the dependency audit, the distribution
 build, the installed-wheel and sdist smoke tests and changed-line coverage listed in
 that table and in `ci-package.yml`. A green `just check` is not a green CI.
@@ -32,11 +32,11 @@ The same locked environment also supports these commands from the repository roo
 
 ```bash
 uv run --locked --group dev ruff check .
-uv run --locked --group dev mypy
+uv run --locked --group dev pyright
 uv run --locked --group dev pytest
 ```
 
-Root mypy checks all 9 runtime packages. Root pytest runs the repository checks
+Root pyright checks all 9 runtime packages. Root pytest runs the repository checks
 and each component's existing suite in a separate process, from that component's
 directory. This keeps repeated test module names and relative fixture paths
 independent. Component configuration and CI gates remain authoritative.
@@ -47,7 +47,7 @@ own commands:
 - `uv run --locked` from a component directory now validates the root `uv.lock`,
   not the component's. Regenerate it with `uv lock` at the root after changing any
   component's dependencies, and commit it.
-- The 7 engines pin the shared toolchain (`ruff`, `mypy`, `pytest`, `pytest-cov`,
+- The 7 engines pin the shared toolchain (`ruff`, `pyright`, `pytest`, `pytest-cov`,
   `coverage`, `build`) to one exact version each, so the workspace resolves them without
   an override. One
   workspace cannot hold 2 exact pins of the same tool, so keep the 7 identical when
@@ -59,13 +59,13 @@ Run the checks from the component directory. Inside the workspace, `uv run --loc
 validates the root `uv.lock`; the component's own lockfile is what builds and releases it
 on its own.
 
-Every engine under `packages/` runs the same gates with the same commands. `ruff`, `mypy`
+Every engine under `packages/` runs the same gates with the same commands. `ruff`, `pyright`
 and `pytest --cov` read their scope from the engine's own `pyproject.toml` (`[tool.ruff]`,
-`[tool.mypy]` and `[tool.coverage.run]`), so nothing in the commands names the engine:
+`[tool.pyright]` and `[tool.coverage.run]`), so nothing in the commands names the engine:
 
 ```bash
 uv run --locked --extra dev ruff check .
-uv run --locked --extra dev mypy
+uv run --locked --extra dev pyright
 uv run --locked --extra dev pytest --cov --cov-branch --cov-report=term-missing --cov-report=xml
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 uv run --locked --extra dev --python 3.14 python -m build
@@ -90,8 +90,8 @@ commands:
 
 | Component | Directory | Checks |
 |---|---|---|
-| Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev mypy aus_accounting_mcp` |
-| LodgeiT calculator adapter | `apps/lodgeit-calculator-adapter/` | `uv run --locked --extra dev pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check lodgeitadapter tests`; `uv run --locked --extra dev mypy lodgeitadapter`. Its gates run from `.github/workflows/ci-lodgeit-adapter.yml`, not `ci.yml`. |
+| Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev pyright aus_accounting_mcp` |
+| LodgeiT calculator adapter | `apps/lodgeit-calculator-adapter/` | `uv run --locked --extra dev pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check lodgeitadapter tests`; `uv run --locked --extra dev pyright lodgeitadapter`. Its gates run from `.github/workflows/ci-lodgeit-adapter.yml`, not `ci.yml`. |
 | AU tax rates data | `packages/au-tax-rates-data/` | `uv run --locked pytest -q`; `uv run --locked python rates.py validate`. These run in the `rates-dataset` job of `.github/workflows/boundaries.yml` on Python 3.14 and 3.15, from a copy outside the workspace so that the dataset's own `uv.lock` is the one checked. The dataset is never released. |
 | Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py tests/test_shared_blocks.py` |
 
@@ -120,7 +120,7 @@ The existing component lock checks remain required.
 `ci.yml` is the anchor workflow. It carries no path filter, so its required checks always
 report, and it runs 2 things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
-The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, mypy and
+The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, pyright and
 pytest commands on Ubuntu with Python 3.15, and its `rates-dataset` job runs the rates
 dataset's own checks on Python 3.14 and 3.15. The adapter uses distinct `lodgeit`
 job names and a `lodgeit-gates` result check, keeping the MCP application's existing
@@ -138,7 +138,7 @@ release callers require that test job; no second pytest run is needed.
 
 - `ci-package.yml` gives every engine the same gates from the engine's own directory,
   the same definition `ryanduguid/accounting-review-pipeline` uses for its components: a
-  check that the engine's own `uv.lock` resolves on its own, `ruff`, `mypy`, `pytest` with
+  check that the engine's own `uv.lock` resolves on its own, `ruff`, `pyright`, `pytest` with
   branch coverage on Python 3.14 and 3.15 (the floor and ceiling of the declared
   `requires-python`), a `pip-audit` dependency audit, and a build of the distribution
   followed by an install of the one built wheel into a clean environment, an import of

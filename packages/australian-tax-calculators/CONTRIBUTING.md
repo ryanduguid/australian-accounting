@@ -8,7 +8,7 @@ Run the engine commands documented in the root CONTRIBUTING.md from this directo
 ```sh
 uv run --locked --extra dev pytest --cov --cov-branch --cov-report=term-missing --cov-report=xml
 uv run --locked --extra dev ruff check .
-uv run --locked --extra dev mypy
+uv run --locked --extra dev pyright
 uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
 uv run --locked --extra dev --python 3.14 python -m build
 ```

@@ -1357,3 +1357,16 @@ def test_a_response_without_a_status_is_treated_as_no_response(monkeypatch):
     with pytest.raises(TransportError, match="^no response after 3 attempt"):
         transport.request(config(), "GET", URL, retry_safe=True, sleep=lambda _: None)
     assert len(opener.bodies) == 3 and all(stream.closed for stream in opener.bodies)  # nosec B101: pytest outcome assertion
+
+
+def test_nonpositive_attempt_limit_refuses_before_sending(monkeypatch):
+    """A malformed implementation of the transport protocol still fails closed."""
+    malformed = config()
+    object.__setattr__(malformed, "max_attempts", 0)
+
+    def unexpected_send(*args, **kwargs):
+        raise AssertionError("no attempt may run with a zero limit")
+
+    monkeypatch.setattr(transport, "_attempt", unexpected_send)
+    with pytest.raises(TransportError, match="attempt limit must be positive"):
+        transport.request(malformed, "GET", URL, retry_safe=True)

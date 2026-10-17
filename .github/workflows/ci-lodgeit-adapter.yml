@@ -121,7 +121,7 @@ jobs:
           prune-cache: true
       - run: uv run --locked --extra dev ruff check lodgeitadapter tests  # NOSONAR: unprivileged job; uv installs the hash-locked set
         working-directory: apps/lodgeit-calculator-adapter
-      - run: uv run --locked --extra dev mypy lodgeitadapter  # NOSONAR: unprivileged job; uv installs the hash-locked set
+      - run: uv run --locked --extra dev pyright lodgeitadapter  # NOSONAR: unprivileged job; uv installs the hash-locked set
         working-directory: apps/lodgeit-calculator-adapter
 
   dependency-audit:

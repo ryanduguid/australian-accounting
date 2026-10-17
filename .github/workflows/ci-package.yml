@@ -2,15 +2,15 @@ name: package
 
 # Reusable component CI for one engine under packages/. ci.yml calls this once
 # per engine, so every engine runs the same gates from the same definition, from
-# its own directory: the engine's own lockfile check, ruff, mypy, pytest with
+# its own directory: the engine's own lockfile check, ruff, pyright, pytest with
 # branch coverage on the supported Python versions, a dependency audit over the
 # locked environment, and a build of the distribution with an installed-wheel
 # import smoke plus the engine's own wheel smoke script. Engines that already
 # prove their Windows behaviour add a Windows test leg, and engines with a
 # risk-scoped file list check changed-line coverage in the Python 3.14 test job.
 #
-# ruff, mypy and coverage read their scope from the engine's own configuration
-# ([tool.ruff], [tool.mypy] and [tool.coverage.run] in its pyproject.toml), so
+# ruff, pyright and coverage read their scope from the engine's own configuration
+# ([tool.ruff], [tool.pyright] and [tool.coverage.run] in its pyproject.toml), so
 # every engine runs the same commands.
 #
 # The path filter lives in the changes job rather than on the trigger. A change
@@ -244,8 +244,8 @@ jobs:
           (cd "${standalone}" && uv lock --check)
       - name: ruff
         run: uv run --locked --extra dev ruff check .  # NOSONAR: unprivileged job; uv installs the hash-locked set
-      - name: mypy
-        run: uv run --locked --extra dev mypy  # NOSONAR: unprivileged job; uv installs the hash-locked set
+      - name: pyright
+        run: uv run --locked --extra dev pyright  # NOSONAR: unprivileged job; uv installs the hash-locked set
       - name: run the package's own source guards
         env:
           PACKAGE: ${{ inputs.package }}

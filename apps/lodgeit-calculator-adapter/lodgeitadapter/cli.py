@@ -18,6 +18,7 @@ import json
 import sys
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
+from typing import cast
 
 from . import evidence as evidence_module
 from .client import LodgeitClient, Status
@@ -122,7 +123,7 @@ def _shared_options(*, root: bool) -> argparse.ArgumentParser:
 def build_parser() -> argparse.ArgumentParser:
     shared = _shared_options(root=False)
     parser = argparse.ArgumentParser(
-        prog="lodgeit-adapter", description=__doc__.split("\n")[0],
+        prog="lodgeit-adapter", description=cast(str, __doc__).split("\n")[0],
         parents=[_shared_options(root=True)],
     )
     commands = parser.add_subparsers(dest="command", required=True)

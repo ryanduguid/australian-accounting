@@ -60,7 +60,7 @@ typecheck: setup
     for entry in {{ components }}; do
         directory="${entry%%:*}"
         echo "==> ${directory}"
-        (cd "${directory}" && uv run --no-sync mypy)
+        (cd "${directory}" && uv run --no-sync pyright)
     done
 
 # Regenerate the root lock and every component's own release lock. Run it after

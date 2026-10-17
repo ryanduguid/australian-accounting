@@ -42,7 +42,8 @@ dev = [
     "holidays>=0.106",
     "hypothesis>=6.168.3",
     "jsonschema>=4.0",
-    "mypy>=1.14",
+    "pyright[nodejs]>=1.1.414",
+    "nodejs-wheel-binaries>=24.19.0",
     "openpyxl>=3.1",
     "Pillow>=12.3",
     "pytest>=8",
@@ -67,9 +68,9 @@ select = ["E4", "E7", "E9", "F", "I"]
 testpaths = ["tests"]
 
 # Runtime packages only. Components retain their own configuration and CI gates.
-[tool.mypy]
-python_version = "3.14"
-files = [
+[tool.pyright]
+pythonVersion = "3.14"
+include = [
     "packages/australian-tax-calculators/austaxcalc",
     "packages/ato-benchmark-compare/atobenchmark",
     "packages/payday-super-checker/paydaysuper",
@@ -80,5 +81,16 @@ files = [
     "apps/aus-accounting-mcp/aus_accounting_mcp",
     "apps/lodgeit-calculator-adapter/lodgeitadapter",
 ]
-ignore_missing_imports = true
-pretty = true
+extraPaths = [
+    "packages/australian-tax-calculators",
+    "packages/ato-benchmark-compare",
+    "packages/payday-super-checker",
+    "packages/div7a-loan-review",
+    "packages/solomons-sword",
+    "packages/the-exchequer-tally",
+    "packages/the-wip-tally",
+    "apps/aus-accounting-mcp",
+    "apps/lodgeit-calculator-adapter",
+]
+typeCheckingMode = "standard"
+reportMissingImports = "none"

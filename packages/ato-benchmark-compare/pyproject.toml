@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling==1.32.4"]
-build-backend = "hatchling.build"
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "ato-benchmark-compare"
@@ -36,7 +36,7 @@ ato-benchmark-compare = "atobenchmark.cli:main"
 # gate behaves the same wherever it runs. Package-specific test libraries follow.
 dev = [
     "ruff==0.17.0",
-    "mypy==2.4.0",
+    "pyright[nodejs]==1.1.414", "nodejs-wheel-binaries==24.19.0",
     "pytest==9.1.1",
     "coverage==7.16.2",
     "pytest-cov==7.1.0",
@@ -46,26 +46,15 @@ dev = [
     "openpyxl==3.1.5",
     # release-python builds without isolation, so the backend comes from this
     # locked extra, pinned exactly as [build-system] requires.
-    "hatchling==1.32.4",
+    "setuptools==84.0.0",
 ]
 
-[tool.hatch.build.targets.wheel]
+[tool.setuptools]
 packages = ["atobenchmark"]
+include-package-data = false
 
-[tool.hatch.build.targets.sdist]
-include = [
-  "/atobenchmark",
-  "/tests",
-  "/tools",
-  "/examples",
-  "/docs",
-  "/README.md",
-  "/LICENSE",
-  "/LIMITATIONS.md",
-  "/NOTICE",
-  "/CONTRIBUTING.md",
-  "/SECURITY.md",
-]
+[tool.setuptools.package-data]
+"atobenchmark" = ["data/*.json","py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -81,12 +70,11 @@ src = ["atobenchmark", "tests"]
 # sorting. Money literals stay exactly as written: no rule here rewrites one.
 select = ["E4", "E7", "E9", "F", "I"]
 
-[tool.mypy]
-python_version = "3.14"
-packages = ["atobenchmark"]
-ignore_missing_imports = true
-pretty = true
-
+[tool.pyright]
+pythonVersion = "3.14"
+include = ["atobenchmark"]
+typeCheckingMode = "standard"
+reportMissingImports = "none"
 
 [tool.coverage.run]
 # The source pytest --cov measures; CI adds --cov-branch and the reports.

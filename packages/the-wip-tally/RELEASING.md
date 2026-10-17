@@ -11,7 +11,7 @@ in `docs/aasb-15-source-notes-2026-08-25.md`.
    the same commit as the code.
 2. `uv run --locked --extra dev pytest`
 3. `uv run --locked --extra dev ruff check wiptally tests`
-4. `uv run --locked --extra dev mypy wiptally`
+4. `uv run --locked --extra dev pyright wiptally`
 5. Run the sample:
 
 ```bash
