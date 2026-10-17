@@ -5,9 +5,10 @@ supplier information for its AI register and risk assessment, and answers to the
 questions it would put to any tax-research product. Both describe this server, the
 [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus)
 builder and the [DrDebits](https://github.com/ryanduguid/llm-tax-guardrails) guardrails
-as their documentation stood on 29 September 2026, except the response times, which
-date from 26 September 2026. Neither is a certification, an approval of any use or a
-statement that a firm's use complies with anything.
+as their documentation stood on 29 September 2026. Version and worksheet inventory
+were refreshed on 17 October 2026; response times remain dated 26 September 2026.
+Neither is a certification, an approval of any use or a statement that a firm's
+use complies with anything.
 
 ## Supplier information for the firm's AI register
 
@@ -30,9 +31,9 @@ conformance counts move without this page.
 
 | Field | Entry |
 | --- | --- |
-| Name and version | Aus Accounting MCP (`aus-accounting-mcp`) 0.4.0, a local MCP server of Australian accounting tools |
+| Name and version | Aus Accounting MCP (`aus-accounting-mcp`) 0.5.0, a local MCP server of Australian accounting tools |
 | Source and updates | Ryan Duguid, the sole maintainer, under the Apache License 2.0, with no warranty or support agreement. Each release has [release notes](../RELEASE_NOTES.md). `uvx` keeps the version it first downloaded, so name the release in the client configuration (`aus-accounting-mcp==<version>`) to control which version runs. |
-| Intended use cases | Gives an assistant bounded calculations and reviews (ATO benchmarks, Payday Super timing, Division 7A s 109N and s 109E, 10 worksheets), cited retrieval from folders the firm configures, and synthetic test data |
+| Intended use cases | Gives an assistant bounded calculations and reviews (ATO benchmarks, Payday Super timing, Division 7A s 109N and s 109E, 14 worksheets), cited retrieval from folders the firm configures, and synthetic test data |
 | Known limitations and prohibited use | Not tax advice, and not for use without human review; Payday Super and Division 7A reviews are experimental; each worksheet holds only within its stated period and scope; retrieval returns point-in-time copies, and no match does not mean no rule; library search does not rank by authority |
 | Foreseeable misuse and failure | A figure outside its period or scope, or a superseded provision or ruling, is relied on as current. Each worksheet holds only within its stated period and scope, a result the tools cannot establish stays `UNKNOWN` or `REFUSED`, every provision the legislation tools return carries its compilation date, and every rulings paragraph its fetch date. Client data reaching a hosted model through the host is outside the server's control: it makes no network calls, and the README asks for fabricated data whenever the host uses a hosted model. |
 | Data sources and type | Structured tool arguments supplied through the host, text from a Markdown library, a legislation corpus and ATO rulings runs the firm configures, and bundled reference data. The README asks for fabricated data whenever the host uses a hosted model. |

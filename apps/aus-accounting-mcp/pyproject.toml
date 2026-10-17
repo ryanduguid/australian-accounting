@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aus-accounting-mcp"
-version = "0.4.0"
-description = "Local accounting reviews, ten bounded tax and super worksheets and cited retrieval from your configured local Markdown folder. uvx from PyPI; not advice."
+version = "0.5.0"
+description = "Local accounting reviews, fourteen bounded tax and super worksheets and cited retrieval from your configured local Markdown folder. uvx from PyPI; not advice."
 readme = "README.md"
 requires-python = ">=3.14"
 license = "Apache-2.0"
@@ -47,7 +47,7 @@ dependencies = [
     "payday-super-checker==0.1.9",
     "ato-benchmark-compare==0.1.11",
     "div7a-loan-review==0.2.0",
-    "australian-tax-calculators==0.1.8",
+    "australian-tax-calculators==0.2.0",
 ]
 
 [project.optional-dependencies]

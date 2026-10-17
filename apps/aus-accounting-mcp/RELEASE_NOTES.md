@@ -1,3 +1,20 @@
+# v0.5.0
+
+- Pins the published `australian-tax-calculators` 0.2.0, bringing the catalogue
+  to fourteen worksheets with Schedule 8 study-loan withholding, the bounded
+  annual Medicare levy, low income tax offset and Division 293. Calculation
+  logic, warnings and scope refusals remain owned by the engine.
+- Keeps annual study-loan repayment separate from payroll withholding. The
+  Medicare worksheet does not apply payroll variations or section 9A, and
+  still refuses 2026-27 until its thresholds are published.
+- Checks every advertised worksheet and supported period from installed PyPI
+  pins before publication, in addition to the existing demonstration check.
+- Adds a synthetic corpus-builder/search/read walkthrough with retained
+  provenance and no source-network requests.
+- Aligns citation, compatibility and MCP Registry metadata with 0.5.0.
+- Retains `payday-super-checker` 0.1.9, `ato-benchmark-compare` 0.1.11 and
+  `div7a-loan-review` 0.2.0 unchanged.
+
 # v0.4.0
 
 - Breaking: requires Python 3.14 or later. 0.3.0 remains the last release for Python 3.11 to 3.13 ([#355](https://github.com/ryanduguid/australian-accounting/pull/355)).
