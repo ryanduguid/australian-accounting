@@ -1,5 +1,13 @@
 # Aus Accounting MCP
 
+Published `aus-accounting-mcp==0.4.0` provides ten worksheets through
+`australian-tax-calculators==0.1.8`. The fourteen-worksheet descriptions below
+refer to development source: Schedule 8 study-loan withholding, the bounded
+annual Medicare levy, LITO and Division 293 are not in that published server.
+See the [worksheet release handoff](docs/worksheet-release.md) before installing
+or describing those additions. The annual Medicare worksheet does not apply
+Medicare adjustments to payroll withholding.
+
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
 [![PyPI](https://img.shields.io/pypi/v/aus-accounting-mcp.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/aus-accounting-mcp/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE)
@@ -121,6 +129,8 @@ The research tools need a folder you supply: set `AUS_ACCOUNTING_LIBRARY_ROOT` t
 authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus, or
 `AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by
 [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus).
+The [corpus setup walkthrough](docs/corpus-setup.md) verifies the existing builder
+and MCP tools together using a fabricated page before any live capture.
 The package ships none of them. A corpus or rulings row is a point-in-time copy, not
 a live lookup, and an edited version of private advice cannot be relied on by anyone.
 Legislation results preserve a row's capture date and recorded successor date when
