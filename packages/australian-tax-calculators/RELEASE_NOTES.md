@@ -1,3 +1,11 @@
+# v0.2.0
+
+- Adds the four already merged worksheets for Schedule 8 study-loan withholding,
+  the bounded annual Medicare levy, low income tax offset and Division 293,
+  bringing the catalogue to fourteen worksheets. Existing warnings and scope
+  refusals remain in force.
+- Requires Python 3.14 or later, matching the existing source requirement.
+
 # v0.1.9
 
 - Requires Python 3.11 or newer; Python 3.10 is no longer supported ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).

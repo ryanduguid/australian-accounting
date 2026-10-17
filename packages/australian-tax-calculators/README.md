@@ -1,5 +1,11 @@
 # Australian tax calculators
 
+Release `australian-tax-calculators==0.2.0` contains fourteen worksheets,
+including Schedule 8 withholding, annual Medicare levy, LITO and Division 293.
+Earlier releases through 0.1.9 contain ten. The
+[release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
+keeps the engine release and MCP integration separate.
+
 Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
@@ -142,7 +148,7 @@ allocation between loan types, indexation and the Schedule 8 withholding
 component are outside it. The tests hold the worksheet to the ATO's worked
 examples, the Gazette that notified the 2026-27 thresholds and every band
 boundary; see [calculation evidence](docs/calculation-evidence.md#study-loan-repayment).
-This worksheet is on `main` and not yet in a published wheel.
+This worksheet is included from release 0.2.0.
 
 ## Study loan withholding
 
@@ -179,7 +185,7 @@ at 15%. It covers 2024-25 to 2026-27 and holds the ATO's worked example. Working
 out either input, defined benefit interests and deferred debt accounts are
 outside it. See [calculation evidence](docs/calculation-evidence.md#division-293).
 
-These four worksheets are on `main` and not yet in a published wheel.
+These four worksheets are included from release 0.2.0.
 
 ## Worksheet discovery
 
