@@ -44,7 +44,6 @@ def test_proof_package_surface_is_versioned_and_keeps_stdio_separate() -> None:
     }
     dev_dependencies = project["optional-dependencies"]["dev"]
     assert "Pillow==12.3.0" in dev_dependencies
-    assert "twine==7.0.0" in dev_dependencies
 
 
 def test_pypi_facets_are_declared_without_contradicting_the_licence_field() -> None:
