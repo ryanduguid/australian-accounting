@@ -15,7 +15,6 @@ on:
       - "**/requirements*.txt"
       - "**/package-lock.json"
       - ".github/workflows/snyk.yml"
-      - ".github/security/snyk-development.snyk"
       - "pyproject.toml"
   pull_request:
     paths:
@@ -23,7 +22,6 @@ on:
       - "**/requirements*.txt"
       - "**/package-lock.json"
       - ".github/workflows/snyk.yml"
-      - ".github/security/snyk-development.snyk"
       - "pyproject.toml"
 
 permissions:
@@ -122,20 +120,9 @@ jobs:
             python -m venv "$work/venv"
             "$work/venv/bin/python" -m pip install --quiet --disable-pip-version-check --no-deps \
               --only-binary=:all: --requirement "$work/requirements.txt" || { status=1; continue; }
-            policy=()
-            case "$kind:$target" in
-              uv:.)
-                # Accept only the reviewed development graph, as in au-fpa-pack #209.
-                printf '%s\n' \
-                  '4996d09758a6f81d2c394f5f5fb88b1334d537fbecec29a8e658350e5d68cacc  uv.lock' \
-                  'd47fb3b138889285b343ee6ad400dbdd4db103d53dddfd370df52b22087c8c8f  pyproject.toml' \
-                  | sha256sum --check --status \
-                  || { echo "::error::Review the MPL-2.0 licence policy for the changed development graph."; status=1; continue; }
-                policy=(--policy-path="$GITHUB_WORKSPACE/.github/security/snyk-development.snyk") ;;
-            esac
             [ -z "$SNYK_TOKEN" ] || snyk test --file="$work/requirements.txt" --package-manager=pip \
               --command="$work/venv/bin/python" --project-name="$kind:$target" \
-              "${policy[@]}" --json-file-output="$RUNNER_TEMP/snyk-${kind}-${target//\//_}.json" || status=1
+              --json-file-output="$RUNNER_TEMP/snyk-${kind}-${target//\//_}.json" || status=1
           done <<< "$SNYK_TARGETS"
           [ -n "$SNYK_TOKEN" ] || exit 1
           exit "$status"
