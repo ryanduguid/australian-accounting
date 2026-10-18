@@ -1,6 +1,6 @@
 # Sent before the deadline, received when?
 
-Synthetic case study, reproduced on 6 September 2026. Review aid, not professional advice; a reviewer remains responsible for the conclusion.
+Synthetic case study, reproduced on 6 September 2026. A reviewer remains responsible for the conclusion.
 
 ## The review question
 

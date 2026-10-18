@@ -71,7 +71,7 @@ def test_disclaimer_resource_carries_the_facade_and_every_engine_boundary() -> N
         assert engine in served
     for description in resources.SCOPES.values():
         assert description in served
-    assert "not tax, legal, accounting" in served
+    assert "does not provide professional advice" in served
     assert "human review" in served
 
 

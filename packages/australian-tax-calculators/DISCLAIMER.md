@@ -7,21 +7,10 @@ already established: ordinary GST, resident basic income tax, CGT losses and
 the discount, ordinary employer FBT, first-year depreciation, quarterly super
 guarantee, PAYG withholding, super contribution caps, account-based pension
 minimums, study and training loan repayments and withholding, a single
-person's Medicare levy, the low income tax offset and Division 293 tax. It is not tax, legal, accounting, financial, investment,
-BAS-agent, registered-tax-agent, or assurance advice. It is not an assessment,
+person's Medicare levy, the low income tax offset and Division 293 tax. It does not provide professional advice. It is not an assessment,
 a private ruling, or a determination.
 
-This project is not affiliated with, sponsored by, endorsed by, or approved by:
-
-- the Australian Taxation Office
-- the Commonwealth of Australia
-- any state or territory revenue office
-- Chartered Accountants Australia and New Zealand
-- the Australian Securities and Investments Commission
-- any software vendor
-
-Outputs can be wrong, incomplete, stale, or unsuitable for a given set of
-facts. Rates, thresholds, effective lives, ATO guidance and administrative
+Rates, thresholds, effective lives, ATO guidance and administrative
 practice change, and a worksheet sees only the figures and the period it is
 handed. Sources were checked on 10 September 2026; a source-check date is not
 an assurance that every tax rule or taxpayer circumstance has been reviewed.

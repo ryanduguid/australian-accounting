@@ -4,21 +4,10 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 Solomon's Sword allocates trust income on proportionate entitlement under
 Division 6 of the ITAA 1936 and evaluates caller-supplied facts against
-Section 100A, Section 99B and 30 June resolution requirements. It is not tax,
-legal, accounting, financial, investment, BAS-agent, registered-tax-agent, or
-assurance advice. It is not an assessment, a private ruling, or a
+Section 100A, Section 99B and 30 June resolution requirements. It does not provide professional advice. It is not an assessment, a private ruling, or a
 determination.
 
-This project is not affiliated with, sponsored by, endorsed by, or approved by:
-
-- the Australian Taxation Office
-- the Commonwealth of Australia
-- any state or territory revenue office
-- Chartered Accountants Australia and New Zealand
-- any law firm, court, or tribunal
-
-Outputs can be wrong, incomplete, stale, or unsuitable for a given set of
-facts. Tax law, ATO guidance, practical compliance guidelines, rates and
+Tax law, ATO guidance, practical compliance guidelines, rates and
 thresholds change, and the engine sees only the facts it is handed. Confirm
 every allocation, zone and exemption against the current law, the trust deed
 and the entity's facts before acting, and leave lodgement decisions with a

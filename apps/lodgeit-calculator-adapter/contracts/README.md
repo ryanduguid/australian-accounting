@@ -1,8 +1,6 @@
 # Contract snapshots
 
-What a provider's surface looked like when a person read it. A snapshot is
-reference data: it records a reading, it is not an agreement, and LodgeiT Labs
-has not seen or endorsed any of it.
+A snapshot records what the provider's public service looked like when it was read.
 
 ## What a snapshot holds
 
