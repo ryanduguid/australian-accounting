@@ -15,12 +15,14 @@ on:
       - "**/requirements*.txt"
       - "**/package-lock.json"
       - ".github/workflows/snyk.yml"
+      - "pyproject.toml"
   pull_request:
     paths:
       - "**/uv.lock"
       - "**/requirements*.txt"
       - "**/package-lock.json"
       - ".github/workflows/snyk.yml"
+      - "pyproject.toml"
 
 permissions:
   contents: read
@@ -118,8 +120,17 @@ jobs:
             python -m venv "$work/venv"
             "$work/venv/bin/python" -m pip install --quiet --disable-pip-version-check --no-deps \
               --only-binary=:all: --requirement "$work/requirements.txt" || { status=1; continue; }
-            [ -z "$SNYK_TOKEN" ] || snyk test --file="$work/requirements.txt" --package-manager=pip --skip-unresolved \
-              --command="$work/venv/bin/python" --project-name="$kind:$target" || status=1
+            [ -z "$SNYK_TOKEN" ] || snyk test --file="$work/requirements.txt" --package-manager=pip \
+              --command="$work/venv/bin/python" --project-name="$kind:$target" \
+              --json-file-output="$RUNNER_TEMP/snyk-${kind}-${target//\//_}.json" || status=1
           done <<< "$SNYK_TARGETS"
           [ -n "$SNYK_TOKEN" ] || exit 1
           exit "$status"
+      - name: Retain Snyk scan reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: snyk-scan-reports
+          path: ${{ runner.temp }}/snyk-*.json
+          if-no-files-found: error
+          retention-days: 7

@@ -99,6 +99,15 @@ REQUIRED = {
 
 
 class ReleaseChecksTests(unittest.TestCase):
+    def test_snyk_rejects_unresolved_dependencies_and_retains_scan_reports(self):
+        workflow = (ROOT / ".github/workflows/snyk.yml").read_text(encoding="utf-8")
+        self.assertNotIn('--skip-unresolved', workflow)
+        self.assertNotIn('--policy-path=', workflow)
+        self.assertIn('--json-file-output=', workflow)
+        self.assertIn('path: ${{ runner.temp }}/snyk-*.json', workflow)
+        self.assertIn('if-no-files-found: error', workflow)
+        self.assertIn('retention-days: 7', workflow)
+
     def test_every_release_caller_requires_its_component_checks(self) -> None:
         workflows = ROOT / ".github" / "workflows"
         callers = sorted(
