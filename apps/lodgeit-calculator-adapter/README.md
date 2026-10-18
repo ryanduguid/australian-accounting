@@ -208,6 +208,4 @@ and live tenant compatibility remains unverified.
 This adapter calls a third-party service that says of itself: "Response shapes
 are not yet versioned and may change; nothing here is stable for production
 integration." Figures it returns are calculated on facts you supplied. They are
-not advice, not a lodgement and not a review sign-off. This repository has no
-agreement, listing, partnership or endorsement from LodgeiT Labs, and the
-contract snapshots here are one reading of a public surface on one day.
+not advice, not a lodgement and not a review sign-off. The contract snapshots record a reading of the public service on one day.

@@ -4,21 +4,10 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 The Exchequer Tally tests base rate entity status, tracks a franking account
 ledger, and applies the Division 203 benchmark rule for Australian companies.
-It is not tax, legal, accounting, financial, investment, BAS-agent,
-registered-tax-agent, or assurance advice. It is not an assessment, a private
+It does not provide professional advice. It is not an assessment, a private
 ruling, or a determination.
 
-This project is not affiliated with, sponsored by, endorsed by, or approved by:
-
-- the Australian Taxation Office
-- the Commonwealth of Australia
-- any state or territory revenue office
-- Chartered Accountants Australia and New Zealand
-- the Australian Securities and Investments Commission
-- any software vendor
-
-Outputs can be wrong, incomplete, stale, or unsuitable for a given set of
-facts. Corporate tax rates, aggregated-turnover thresholds, the passive-income
+Corporate tax rates, aggregated-turnover thresholds, the passive-income
 test, ATO guidance and administrative practice change, and the engine sees
 only the facts it is handed. Confirm every rate, threshold and consequence
 against the current law and the entity's facts before acting, and leave

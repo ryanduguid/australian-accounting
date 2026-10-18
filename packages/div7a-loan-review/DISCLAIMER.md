@@ -3,25 +3,13 @@
 Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
 
 `div7a-loan-review` is an experimental review aid for Division 7A of Part III
-of the *Income Tax Assessment Act 1936*. It is not tax, legal, accounting,
-financial, investment, BAS-agent, registered-tax-agent, or assurance advice,
+of the *Income Tax Assessment Act 1936*. It does not provide professional advice,
 and using it creates no professional relationship.
 
 **Its outputs are not a Division 7A determination and not an ATO assessment.**
 
-This repository is not affiliated with, sponsored by, endorsed by, or approved
-by:
-
-- the Australian Taxation Office
-- the Commonwealth of Australia
-- any state or territory revenue office
-- Chartered Accountants Australia and New Zealand
-- Xero, SAP, LodgeiT, or any other software vendor
-
 The author is a provisional member of Chartered Accountants Australia and New
-Zealand. That membership is not an endorsement of this software by CA ANZ.
-This work was written independently, in the author's own time, on the author's
-own equipment.
+Zealand.
 
 ## Division 7A outputs are experimental
 
@@ -43,8 +31,7 @@ statutory test. An `UNKNOWN` is a finding that work remains, not a soft pass.
 
 ## Verify before relying
 
-Outputs can be wrong, incomplete, stale, or unsuitable for a given set of
-facts. Tax law, ATO guidance, rates, thresholds and administrative practice
+Tax law, ATO guidance, rates, thresholds and administrative practice
 change. The benchmark interest rate table in this repository is frozen and
 hand-reviewed; it carries the date it was last checked, and it will be out of
 date at some point after that date. Verify every mutable fact against the

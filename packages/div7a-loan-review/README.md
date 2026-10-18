@@ -530,8 +530,6 @@ Python distributions.
 
 ## Author and licence
 
-Ryan Duguid. Written independently, in his own time, on his own equipment.
-Provisional member of Chartered Accountants Australia and New Zealand; that
-membership is not an endorsement of this software by CA ANZ.
+Ryan Duguid, provisional member of Chartered Accountants Australia and New Zealand.
 
 Apache-2.0. See [LICENSE](LICENSE). If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).

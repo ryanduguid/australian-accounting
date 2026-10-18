@@ -1,6 +1,6 @@
 # The bank credit exists. Does the repayment count?
 
-Synthetic case study, reproduced on 6 September 2026. Review aid, not professional advice; repayment classification remains a human decision.
+Synthetic case study, reproduced on 6 September 2026. Repayment classification remains a human decision.
 
 ## The review question
 

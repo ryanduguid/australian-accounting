@@ -358,7 +358,6 @@ Business Benchmarks](https://data.gov.au/data/dataset/small-business-benchmarks)
 used under [CC BY 2.5 AU](https://creativecommons.org/licenses/by/2.5/au/). The data
 has been converted from the ATO's spreadsheet into JSON, and turnover band bounds
 have been made adjoining as described above. No published ratio has been altered.
-The ATO has not endorsed this tool and has nothing to do with it.
 
 The industry page ranges are reproduced from the ATO's website under its
 [copyright notice](https://www.ato.gov.au/about-ato/using-our-website/copyright-notice),
