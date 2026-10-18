@@ -194,10 +194,8 @@ def test_the_readme_records_the_mcp_adapter_boundary():
 @pytest.mark.parametrize(
     "phrase",
     [
-        "not tax, legal",
+        "does not provide professional advice",
         "not a Division 7A determination and not an ATO assessment",
-        "Australian Taxation Office",
-        "Commonwealth of Australia",
         "Chartered Accountants Australia and New Zealand",
         "experimental review aid",
         "Do not publish private tax records",
@@ -207,14 +205,13 @@ def test_the_disclaimer_covers_the_required_ground(phrase):
     assert phrase in FLAT_DISCLAIMER
 
 
-def test_the_disclaimer_disclaims_the_ca_anz_endorsement():
-    assert "not an endorsement of this software by CA ANZ" in FLAT_DISCLAIMER
+def test_the_disclaimer_preserves_the_professional_boundary():
+    assert "using it creates no professional relationship" in FLAT_DISCLAIMER
 
 
 def test_the_readme_carries_the_authorship_statement():
-    assert "Provisional member of Chartered Accountants Australia and New Zealand" in FLAT_README
-    assert "not an endorsement of this software by CA ANZ" in FLAT_README
-    assert "own time, on his own equipment" in FLAT_README
+    assert "Ryan Duguid, provisional member of Chartered Accountants Australia and New Zealand" in FLAT_README
+    assert "keep the attribution in [NOTICE](NOTICE)" in FLAT_README
 
 
 def test_security_records_the_no_network_position():

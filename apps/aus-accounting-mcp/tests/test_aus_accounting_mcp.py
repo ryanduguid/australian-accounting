@@ -971,7 +971,7 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     assert "<!-- mcp-name: io.github.ryanduguid/aus-accounting -->" in readme
     assert "DISCLAIMER.md" in readme
     assert "docs/REFERENCE.md" in readme
-    assert "not tax" in disclaimer.lower()
+    assert "does not provide professional advice" in disclaimer.lower()
     assert "synthetic: true" in disclaimer
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
     assert CANONICAL_REPOSITORY in citation
