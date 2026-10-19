@@ -116,70 +116,14 @@ def reconcile_bas(
 ) -> dict[str, Any]:
     """Compare ledger-derived label figures with the lodged figures for each period."""
     codes = DEFAULT_BAS_CODES if bas_codes is None else bas_codes
-    _validate(lines, periods, lodged, basis, g1_includes_gst, codes)
+    _validate_options(basis, g1_includes_gst, codes)
+    _validate_periods(periods)
+    _validate_lodged(lodged, {period.label for period in periods})
+    _validate_lines(lines)
 
-    def period_of(day: date | None) -> Period | None:
-        return next((period for period in periods if day and period.holds(day)), None)
-
-    totals = {period.label: {label: Decimal(0) for label in LABELS} for period in periods}
-    contributors: dict[str, dict[str, list[str]]] = {
-        period.label: {label: [] for label in LABELS} for period in periods}
-    attributed: dict[str, list[str]] = {period.label: [] for period in periods}
-    kept_out: dict[str, list[str]] = {period.label: [] for period in periods}
-    timing: dict[str, list[str]] = {period.label: [] for period in periods}
-    line_issues: list[dict[str, str]] = []
-    outside_periods: list[str] = []
-    unpaid: list[str] = []
-
+    tally = _Tally(periods)
     for line in lines:
-        day = _attribution_date(line, basis)
-        period = period_of(day)
-        invoiced_in = period_of(line.invoice_date)
-        if invoiced_in is not None and invoiced_in is not period:
-            timing[invoiced_in.label].append(line.id)
-        if day is None:
-            unpaid.append(line.id)
-            continue
-        if period is None:
-            outside_periods.append(line.id)
-            continue
-        attributed[period.label].append(line.id)
-
-        issue = _issue(line, codes)
-        if issue:
-            line_issues.append({"id": line.id, "issue": issue})
-            kept_out[period.label].append(line.id)
-            continue
-        category = codes[line.gst_code]
-        g_labels = _G_LABELS[(line.side, category)]
-        if not g_labels:
-            kept_out[period.label].append(line.id)
-            continue
-        amount = line.gross if g1_includes_gst else line.gross - line.gst
-        reached = list(g_labels)
-        if category in _CARRIES_GST:
-            reached.append("1A" if line.side == SALE else "1B")
-        for label in reached:
-            totals[period.label][label] += line.gst if label in ("1A", "1B") else amount
-            contributors[period.label][label].append(line.id)
-
-    reconciled = []
-    for period in periods:
-        lodged_labels = lodged.get(period.label)
-        reconciled.append({
-            "period": period.label,
-            "start": period.start.isoformat(),
-            "end": period.end.isoformat(),
-            "lodged": lodged_labels is not None,
-            "labels": {
-                label: _compare(totals[period.label][label],
-                                None if lodged_labels is None else lodged_labels.get(label),
-                                contributors[period.label][label])
-                for label in LABELS
-            },
-            "kept_out": kept_out[period.label],
-            "timing": timing[period.label],
-        })
+        tally.add(line, basis, g1_includes_gst, codes)
 
     return {
         "ok": True,
@@ -187,14 +131,14 @@ def reconcile_bas(
         "engine_version": __version__,
         "review": "bas_reconciliation",
         "basis": basis,
-        "periods": reconciled,
+        "periods": [tally.period_row(period, lodged.get(period.label)) for period in periods],
         "not_lodged": [period.label for period in periods
-                       if attributed[period.label] and period.label not in lodged],
+                       if tally.attributed[period.label] and period.label not in lodged],
         "no_ledger_lines": [period.label for period in periods
-                            if period.label in lodged and not attributed[period.label]],
-        "outside_periods": outside_periods,
-        "unpaid": unpaid,
-        "line_issues": line_issues,
+                            if period.label in lodged and not tally.attributed[period.label]],
+        "outside_periods": tally.outside_periods,
+        "unpaid": tally.unpaid,
+        "line_issues": tally.line_issues,
         "facts_used": {
             "basis": basis,
             "g1_includes_gst": g1_includes_gst,
@@ -210,6 +154,75 @@ def reconcile_bas(
             "Review aid only, not advice, an assessment or a lodgment. Obtain human review.",
         ],
     }
+
+
+class _Tally:
+    """Label totals and line lists per period, built one line at a time."""
+
+    def __init__(self, periods: list[Period]) -> None:
+        self.periods = periods
+        self.totals: dict[str, dict[str, Decimal]] = {
+            period.label: dict.fromkeys(LABELS, Decimal(0)) for period in periods}
+        self.contributors: dict[str, dict[str, list[str]]] = {
+            period.label: {label: [] for label in LABELS} for period in periods}
+        self.attributed: dict[str, list[str]] = {period.label: [] for period in periods}
+        self.kept_out: dict[str, list[str]] = {period.label: [] for period in periods}
+        self.timing: dict[str, list[str]] = {period.label: [] for period in periods}
+        self.line_issues: list[dict[str, str]] = []
+        self.outside_periods: list[str] = []
+        self.unpaid: list[str] = []
+
+    def period_of(self, day: date | None) -> Period | None:
+        return next((period for period in self.periods if day and period.holds(day)), None)
+
+    def add(self, line: LedgerLine, basis: str, g1_includes_gst: bool,
+            codes: dict[str, str]) -> None:
+        day = _attribution_date(line, basis)
+        period = self.period_of(day)
+        invoiced_in = self.period_of(line.invoice_date)
+        if invoiced_in is not None and invoiced_in is not period:
+            self.timing[invoiced_in.label].append(line.id)
+        if day is None:
+            self.unpaid.append(line.id)
+            return
+        if period is None:
+            self.outside_periods.append(line.id)
+            return
+        self.attributed[period.label].append(line.id)
+
+        issue = _issue(line, codes)
+        if issue:
+            self.line_issues.append({"id": line.id, "issue": issue})
+        reached = [] if issue else _labels_reached(line, codes[line.gst_code])
+        if not reached:
+            self.kept_out[period.label].append(line.id)
+        amount = line.gross if g1_includes_gst else line.gross - line.gst
+        for label in reached:
+            self.totals[period.label][label] += line.gst if label in ("1A", "1B") else amount
+            self.contributors[period.label][label].append(line.id)
+
+    def period_row(self, period: Period, lodged: dict[str, Decimal] | None) -> dict[str, Any]:
+        return {
+            "period": period.label,
+            "start": period.start.isoformat(),
+            "end": period.end.isoformat(),
+            "lodged": lodged is not None,
+            "labels": {
+                label: _compare(self.totals[period.label][label],
+                                None if lodged is None else lodged.get(label),
+                                self.contributors[period.label][label])
+                for label in LABELS
+            },
+            "kept_out": self.kept_out[period.label],
+            "timing": self.timing[period.label],
+        }
+
+
+def _labels_reached(line: LedgerLine, category: str) -> list[str]:
+    reached = list(_G_LABELS[(line.side, category)])
+    if category in _CARRIES_GST:
+        reached.append("1A" if line.side == SALE else "1B")
+    return reached
 
 
 def _attribution_date(line: LedgerLine, basis: str) -> date | None:
@@ -252,29 +265,31 @@ def _compare(ledger: Decimal, lodged: Decimal | None, lines: list[str]) -> dict[
     return row
 
 
-def _validate(lines: list[LedgerLine], periods: list[Period],
-              lodged: dict[str, dict[str, Decimal]], basis: str, g1_includes_gst: bool,
-              codes: dict[str, str]) -> None:
+def _validate_options(basis: str, g1_includes_gst: bool, codes: dict[str, str]) -> None:
     if basis not in ("cash", "accruals"):
         raise ValueError("basis must be 'cash' or 'accruals'.")
-    if type(g1_includes_gst) is not bool:
+    if not isinstance(g1_includes_gst, bool):
         raise ValueError("g1_includes_gst must be a boolean.")
     unknown = sorted(set(codes.values()) - CATEGORIES)
     if unknown:
         raise ValueError(f"Unknown BAS categories in the code table: {unknown}.")
 
+
+def _validate_periods(periods: list[Period]) -> None:
     labels = [period.label for period in periods]
     if len(set(labels)) != len(labels) or not all(isinstance(x, str) and x for x in labels):
         raise ValueError("Period labels must be unique non-empty strings.")
-    ordered = sorted(periods, key=lambda period: period.start if is_date(
-        period.start, optional=False) else date.min)
-    for index, period in enumerate(ordered):
+    for period in periods:
         if (not is_date(period.start, optional=False) or not is_date(period.end, optional=False)
                 or period.end < period.start):
             raise ValueError(f"Period {period.label!r} needs a start on or before its end.")
-        if index and ordered[index - 1].end >= period.start:
-            raise ValueError(f"Period {period.label!r} overlaps {ordered[index - 1].label!r}.")
+    ordered = sorted(periods, key=lambda period: period.start)
+    for earlier, later in zip(ordered, ordered[1:]):
+        if earlier.end >= later.start:
+            raise ValueError(f"Period {later.label!r} overlaps {earlier.label!r}.")
 
+
+def _validate_lodged(lodged: dict[str, dict[str, Decimal]], labels: set[str]) -> None:
     for label, figures in lodged.items():
         if label not in labels:
             raise ValueError(f"Lodged figures for unknown period {label!r}.")
@@ -285,15 +300,16 @@ def _validate(lines: list[LedgerLine], periods: list[Period],
                 raise ValueError(f"Lodged {key} for {label!r} must be whole non-negative "
                                  "dollars as a Decimal.")
 
+
+def _validate_lines(lines: list[LedgerLine]) -> None:
     seen: set[str] = set()
     for line in lines:
         if not isinstance(line.id, str) or not line.id or line.id in seen:
             raise ValueError(f"Line ids must be unique non-empty strings: {line.id!r}.")
         seen.add(line.id)
-        if line.side not in (SALE, PURCHASE):
-            raise ValueError(f"Line {line.id!r} side must be 'sale' or 'purchase'.")
-        if not isinstance(line.gst_code, str):
-            raise ValueError(f"Line {line.id!r} needs a GST code.")
+        if line.side not in (SALE, PURCHASE) or not isinstance(line.gst_code, str):
+            raise ValueError(f"Line {line.id!r} needs a side of 'sale' or 'purchase' and a "
+                             "GST code.")
         if not (is_date(line.invoice_date, optional=False)
                 and is_date(line.payment_date, optional=True)):
             raise ValueError(f"Line {line.id!r} needs an invoice date and an optional "
