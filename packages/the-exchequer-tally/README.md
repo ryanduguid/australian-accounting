@@ -48,9 +48,10 @@ listed in [CHANGELOG.md](CHANGELOG.md). Output uses UTF-8, with CRLF on Windows.
 Each API command reads one UTF-8 JSON object from stdin and prints one compact
 JSON result followed by a newline. Decimal amounts, rates and percentages are
 strings throughout, preserving Python Decimal values and scale. Dates use
-`YYYY-MM-DD`. Financial years are integers. An unknown outcome is JSON `null`.
-An invalid request exits 2, writes `error: <reason>` to stderr and writes no
-stdout. `--api-help` lists these commands.
+canonical `YYYY-MM-DD`. Financial years are JSON integers within the signed
+64-bit range. An unknown outcome is JSON `null`. An invalid request exits 2,
+writes `error: <reason>` to stderr and writes no stdout; type and format errors
+name the field. `--api-help` lists these commands.
 
 | Command | Input fields | Result |
 | --- | --- | --- |
@@ -75,7 +76,8 @@ In PowerShell use a single-quoted JSON string piped directly to the executable,
 without `echo`. Non-ASCII input needs a UTF-8 pipe encoding.
 
 Ledger `entries` and `append_entries` are direct entry objects: `entry_date`,
-`entry_type`, decimal `amount`, `description`, optional `statutory_reference`.
+`entry_type`, decimal `amount`, `description`, optional `statutory_reference`
+(omitted means an empty string; an explicit `null` is returned as `null`).
 Direct entries may be zero. `records` invokes the recording methods: each object
 has `entry_date`, `entry_type`, positive decimal `amount` and an optional
 `description`; amounts are rounded half up to cents. A `TAX_REFUND` record also

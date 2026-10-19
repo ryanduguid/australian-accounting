@@ -387,7 +387,8 @@ pub struct Entry {
     pub kind: EntryType,
     pub amount: D,
     pub description: String,
-    pub reference: String,
+    /// `None` is an explicit JSON null, which Python kept as `None`.
+    pub reference: Option<String>,
 }
 impl Entry {
     pub fn new(
@@ -395,7 +396,7 @@ impl Entry {
         kind: EntryType,
         amount: D,
         description: String,
-        reference: String,
+        reference: Option<String>,
     ) -> Result<Self> {
         if !amount.is_finite() || amount < d("0") {
             return Err("amount must be a non-negative finite Decimal".into());
@@ -429,8 +430,14 @@ impl Account {
         self.validate_periods()
     }
     fn validate_periods(&self) -> Result<()> {
-        if !(2..=9999).contains(&self.fy) {
-            return Err("year must be in 1..9999".into());
+        // CPython builds date(fy - 1, 7, 1) then date(fy, 6, 30); report the first failure as it does.
+        for year in [i128::from(self.fy) - 1, i128::from(self.fy)] {
+            if i32::try_from(year).is_err() {
+                return Err("Python int too large to convert to C int".into());
+            }
+            if !(1..=9999).contains(&year) {
+                return Err(format!("year must be in 1..9999, not {year}"));
+            }
         }
         let start = format!("{:04}-07-01", self.fy - 1);
         let end = format!("{:04}-06-30", self.fy);
@@ -466,7 +473,7 @@ impl Account {
             kind,
             cents(&amount)?,
             description.unwrap_or_else(|| desc.into()),
-            reference.into(),
+            Some(reference.into()),
         )?;
         // Validate before posting: a refused entry never changes this ledger.
         let single = Self {

@@ -55,7 +55,15 @@ fn optional_text(v: &Value, key: &str) -> Result<Option<String>> {
     }
 }
 fn date(v: &Value, key: &str) -> Result<Date> {
-    Date::parse(text(v, key)?)
+    Date::parse(text(v, key)?).map_err(|_| format!("{key} must be YYYY-MM-DD"))
+}
+/// Omitted means "" and an explicit null stays null, as `v.get(key, "")` did.
+fn reference(v: &Value) -> Result<Option<String>> {
+    match v.get("statutory_reference") {
+        None => Ok(Some(String::new())),
+        Some(Value::Null) => Ok(None),
+        Some(_) => Ok(Some(text(v, "statutory_reference")?.into())),
+    }
 }
 fn array<'a>(v: &'a Value, key: &str) -> Result<&'a [Value]> {
     match v.get(key) {
@@ -97,7 +105,7 @@ fn account(v: &Value) -> Result<Value> {
             EntryType::parse(text(e, "entry_type")?)?,
             decimal(e, "amount")?,
             text(e, "description")?.into(),
-            optional_text(e, "statutory_reference")?.unwrap_or_default(),
+            reference(e)?,
         )?);
     }
     a.validate()?;
@@ -122,7 +130,7 @@ fn account(v: &Value) -> Result<Value> {
             EntryType::parse(text(e, "entry_type")?)?,
             decimal(e, "amount")?,
             text(e, "description")?.into(),
-            optional_text(e, "statutory_reference")?.unwrap_or_default(),
+            reference(e)?,
         )?);
     }
     a.json()

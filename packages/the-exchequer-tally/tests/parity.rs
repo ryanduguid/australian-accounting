@@ -158,7 +158,7 @@ fn refused_records_do_not_post_and_mutated_entries_are_revalidated() {
             EntryType::DistributionPaid,
             engine::d("100"),
             "Synthetic".into(),
-            String::new(),
+            Some(String::new()),
         )
         .unwrap(),
     );
@@ -179,13 +179,62 @@ fn direct_entries_preserve_ledger_invariants() {
                     kind,
                     engine::d(amount),
                     "Synthetic entry".into(),
-                    String::new()
+                    Some(String::new())
                 )
                 .is_err()
             );
         }
     }
     assert!(EntryType::parse("unrecognised").is_err());
+}
+#[test]
+fn ledger_years_dates_and_null_references_follow_python() {
+    // Expected text recorded from Python 0.1.8 FrankingAccount(fy) on CPython 3.15.
+    for (fy, expected) in [
+        (0, "year must be in 1..9999, not -1"),
+        (-5, "year must be in 1..9999, not -6"),
+        (10000, "year must be in 1..9999, not 10000"),
+        (2147483648, "year must be in 1..9999, not 2147483647"),
+        (-2147483647, "year must be in 1..9999, not -2147483648"),
+        (-2147483648, "Python int too large to convert to C int"),
+        (i64::MAX, "Python int too large to convert to C int"),
+    ] {
+        let input = serde_json::json!({ "financial_year": fy });
+        assert_eq!(
+            api::evaluate("franking-account", &input).unwrap_err(),
+            expected,
+            "FY{fy}"
+        );
+    }
+    let entry = |reference: Value| {
+        let mut e = serde_json::json!({"entry_date":"2026-07-01","entry_type":"PAYG_INSTALMENT","amount":"1","description":"x"});
+        if reference != "omit" {
+            e["statutory_reference"] = reference;
+        }
+        let out = api::evaluate(
+            "franking-account",
+            &serde_json::json!({"financial_year":2027,"opening_balance":"0","entries":[e],"append_entries":[e]}),
+        )
+        .unwrap();
+        let refs: Vec<Value> = out["entries"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|x| x["statutory_reference"].clone())
+            .collect();
+        refs
+    };
+    assert_eq!(entry(Value::Null), vec![Value::Null, Value::Null]);
+    assert_eq!(entry("omit".into()), vec![Value::from(""), Value::from("")]);
+    assert_eq!(
+        entry("s 1".into()),
+        vec![Value::from("s 1"), Value::from("s 1")]
+    );
+    let event = serde_json::json!({"event_date":"20261018","recipient_name":"B","distribution_amount":"1","franking_credit":"0"});
+    assert_eq!(
+        api::evaluate("distribution-event", &event).unwrap_err(),
+        "event_date must be YYYY-MM-DD"
+    );
 }
 #[test]
 fn json_boundary_rejects_wrong_types_and_excessive_numbers() {

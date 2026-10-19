@@ -22,6 +22,14 @@ No money calculation, rate table or statutory text is intentionally changed.
   `validate-value` mirrors the original CLI's raw-string validator and is exempt
   from the per-decimal limits. JSON uses serde_json's nesting limit and refuses
   lone Unicode surrogate escapes; Python object strings could contain them.
+- The JSON boundary checks input types itself, because the Python API took typed
+  objects. A malformed decimal string is refused as `<field>: not a decimal
+  amount`, a date other than canonical `YYYY-MM-DD` (for example `20261018` or a
+  week date) as `<field> must be YYYY-MM-DD`, and a financial year that is not a
+  JSON integer within the signed 64-bit range as `<field> must be an integer`.
+- Arithmetic always uses Python's default Decimal context. A caller-selected
+  context (for example `decimal.localcontext()` with lower precision) could
+  change Python 0.2.0 results and has no equivalent.
 - Python formatting/encoding environment overrides are not supported. Output
   is UTF-8 with native text-mode newlines; argparse colour and width environment
   controls remain supported. Interactive terminal behaviour is locally inspected
