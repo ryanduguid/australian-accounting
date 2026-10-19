@@ -14,12 +14,15 @@ from datetime import date
 from decimal import Decimal
 from typing import Any
 
-from paydaysuper import LAW_CONTENT_DATE, __version__ as PAYDAY_VERSION
+# Result and assess come from the package root, whose __all__ exports them;
+# paydaysuper.report only re-imports them, so Pyright rejects them there
+# against the published wheel.
+from paydaysuper import LAW_CONTENT_DATE, Result, __version__ as PAYDAY_VERSION, assess
 from paydaysuper.calendar import load_calendar
 from paydaysuper.csv_io import CsvError, cents, parse_date_text
 from paydaysuper.deadlines import ContribLine, PreRegimeError
 from paydaysuper.rates import GicTable, load_gic
-from paydaysuper.report import Result, assess, rounded_figures
+from paydaysuper.report import rounded_figures
 from pydantic import BaseModel, ConfigDict, Field
 
 from aus_accounting_mcp.errors import InputError
