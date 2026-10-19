@@ -7,10 +7,11 @@ entity's GST registration dates. It contacts no service and writes nothing.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from typing import Any
 
+from ._checks import is_date, is_money
 from ._version import __version__
 
 SOURCE_CHECKED = "2026-10-19"
@@ -68,7 +69,6 @@ NOT_DECIDED = [
 ]
 
 MAX_MATCH_WINDOW_DAYS = 31
-_MONEY_LIMIT = Decimal("1e12")
 
 
 @dataclass(frozen=True)
@@ -240,7 +240,7 @@ def _validate(lines: list[BankLine], registrations: dict[str, Registration],
         raise ValueError(f"Unknown GST treatments in the code table: {sorted(unknown)}.")
     for entity, registration in registrations.items():
         start, end = registration.registered_from, registration.registered_to
-        if not _is_date(start, optional=True) or not _is_date(end, optional=True):
+        if not is_date(start, optional=True) or not is_date(end, optional=True):
             raise ValueError(f"Registration dates for {entity!r} must be dates or None.")
         if end is not None and (start is None or end < start):
             raise ValueError(f"Registration for {entity!r} ends before it starts.")
@@ -252,11 +252,9 @@ def _validate(lines: list[BankLine], registrations: dict[str, Registration],
         seen.add(line.id)
         if line.entity not in registrations:
             raise ValueError(f"No registration facts for entity {line.entity!r}.")
-        if not _is_date(line.date, optional=False):
+        if not is_date(line.date, optional=False):
             raise ValueError(f"Line {line.id!r} needs a date.")
-        if (not isinstance(line.amount, Decimal) or not line.amount.is_finite()
-                or abs(line.amount) > _MONEY_LIMIT
-                or int(line.amount.as_tuple().exponent) < -2):
+        if not is_money(line.amount):
             raise ValueError(f"Line {line.id!r} amount must be a finite Decimal, at most "
                              "2 decimal places and 1e12.")
         if not isinstance(line.confirmed, bool) or not isinstance(
@@ -264,12 +262,6 @@ def _validate(lines: list[BankLine], registrations: dict[str, Registration],
             raise ValueError(f"Line {line.id!r} flags must be booleans.")
         if line.confirmed and not (line.account and line.gst_code):
             raise ValueError(f"Line {line.id!r} is confirmed without an account and GST code.")
-
-
-def _is_date(value: object, *, optional: bool) -> bool:
-    if value is None:
-        return optional
-    return isinstance(value, date) and not isinstance(value, datetime)
 
 
 def _iso(value: date | None) -> str | None:

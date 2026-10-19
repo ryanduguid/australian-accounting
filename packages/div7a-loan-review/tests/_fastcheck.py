@@ -6,13 +6,15 @@ JSON line and waits for the verdict: pass, fail or discard. Money and rates
 arrive as exact decimal strings and become Decimal here. A discarded input does
 not count towards the accepted-case budget.
 
-Install the worker's locked npm dependencies first, with the Node toolchain
+The worker's locked npm dependencies are installed with the Node toolchain
 pinned in the dev extra:
 
     python tests/fastcheck/bootstrap.py
 
-A missing or stale installation fails the property; nothing is installed or
-skipped while the tests run. To replay a reported counterexample, set
+A missing installation runs that bootstrap once before the first property, so
+a bare `pytest` in a fresh checkout, as the release workflow runs it, still
+checks every property. A failed bootstrap or a stale installation fails the
+property; nothing is skipped. To replay a reported counterexample, set
 FASTCHECK_REPLAY to the JSON object the failure prints.
 
 Each component that uses this keeps an identical copy, because components are
@@ -26,6 +28,7 @@ import inspect
 import json
 import os
 import subprocess
+import sys
 import threading
 from datetime import date
 from decimal import Decimal
@@ -36,6 +39,8 @@ import nodejs_wheel.executable
 WORKER = Path(__file__).with_name("fastcheck")
 # One property's whole run, shrinking included, in seconds.
 WORKER_TIMEOUT = 120
+# The one-off npm install of the locked worker, in seconds.
+BOOTSTRAP_TIMEOUT = 300
 MAX_LINE = 1_000_000
 
 
@@ -96,7 +101,18 @@ def _require_installed() -> None:
     hint = f"run `python {WORKER / 'bootstrap.py'}` to install the locked fast-check worker"
     installed = WORKER / "node_modules" / ".package-lock.json"
     if not installed.is_file():
-        raise RuntimeError(f"fast-check is not installed: {hint}")
+        bootstrap = subprocess.run(
+            [sys.executable, str(WORKER / "bootstrap.py")],
+            capture_output=True,
+            text=True,
+            timeout=BOOTSTRAP_TIMEOUT,
+        )
+        if bootstrap.returncode or not installed.is_file():
+            raise RuntimeError(
+                f"fast-check is not installed and its bootstrap failed: {hint}\n"
+                + bootstrap.stdout
+                + bootstrap.stderr
+            )
 
     def packages(path: Path) -> dict:
         entries = json.loads(path.read_text(encoding="utf-8"))["packages"]
