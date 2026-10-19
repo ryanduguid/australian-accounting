@@ -179,7 +179,7 @@ class ReleaseChecksTests(unittest.TestCase):
                 match = re.search(r"(?m)^      source-directory: (\S+)$", text)
                 assert match is not None, path.name
                 components.append(match.group(1))
-        self.assertEqual(len(components), 8, components)
+        self.assertEqual(len(components), 9, components)
         for component in components:
             with self.subTest(component=component):
                 project = tomllib.loads((ROOT / component / "pyproject.toml").read_text(encoding="utf-8"))
