@@ -12,21 +12,21 @@
   "engines": [
     {
       "distribution": "ato-benchmark-compare",
-      "version": "0.1.11",
+      "version": "0.2.2",
       "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/ato-benchmark-compare",
-      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/ato-benchmark-compare/v0.1.11"
+      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/ato-benchmark-compare/v0.2.2"
     },
     {
       "distribution": "div7a-loan-review",
-      "version": "0.2.0",
+      "version": "0.3.2",
       "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/div7a-loan-review",
-      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.2.0"
+      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.3.2"
     },
     {
       "distribution": "payday-super-checker",
-      "version": "0.1.9",
+      "version": "0.2.2",
       "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker",
-      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.1.9"
+      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.2.2"
     },
     {
       "distribution": "australian-tax-calculators",

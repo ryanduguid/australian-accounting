@@ -7,9 +7,18 @@
   neither classifies a supply or prepares, revises or lodges a BAS.
 - Lists `gst-review` in the component-versions resource, the disclaimer resource
   and the scope resource.
+- Pins the Apache-2.0 releases of three engines: `payday-super-checker` 0.2.2
+  (was 0.1.9), `ato-benchmark-compare` 0.2.2 (was 0.1.11) and
+  `div7a-loan-review` 0.3.2 (was 0.2.0). Each now ships a `NOTICE` file and
+  requires Python 3.14 or later, as this package has since 0.4.0. Their earlier
+  releases stay under MIT.
+- No check, comparison or review changed between the old and new pins. The
+  releases in between (`payday-super-checker` 0.1.10 and `ato-benchmark-compare`
+  0.1.12) raised the Python floor and, for the benchmark engine, changed the
+  build backend. Tool results now report `engine_version` 0.2.2, 0.2.2 and
+  0.3.2.
 - Aligns citation, compatibility and MCP Registry metadata with 0.6.0.
-- Retains `payday-super-checker` 0.1.9, `ato-benchmark-compare` 0.1.11,
-  `div7a-loan-review` 0.2.0 and `australian-tax-calculators` 0.2.0 unchanged.
+- Retains `australian-tax-calculators` 0.2.0 unchanged.
 
 # v0.5.0
 
