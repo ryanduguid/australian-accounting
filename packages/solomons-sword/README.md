@@ -128,7 +128,9 @@ the Python engine did; through the API a trapped signal is refused as
 rounding residuals go to the largest shares first, as before.
 
 The JSON boundary accepts at most 8 MiB, and each decimal field at most 8,192
-UTF-8 bytes. Decimal exponents are not capped: the engine's own range checks
+UTF-8 bytes (`validate-amount` excepted, like the command-line parser it mirrors).
+An optional amount that is omitted or `null` takes its `0.00` default. Text that
+is not a decimal is refused as `error: decimal.InvalidOperation`. Decimal exponents are not capped: the engine's own range checks
 and overflow refusals bound what it writes out. JSON nesting follows serde_json's
 recursion limit.
 

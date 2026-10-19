@@ -21,7 +21,8 @@ fn decimal(v: &Value, key: &str) -> Result<Decimal> {
     if t.len() > 8192 {
         return Err(format!("{key}: decimal input exceeds 8192 bytes"));
     }
-    Decimal::parse(&t).map_err(|_| format!("{key}: not a decimal amount"))
+    // `Decimal(text)` raised InvalidOperation for text it could not read.
+    Decimal::parse(&t).map_err(|s| format!("decimal.{}", s.name()))
 }
 
 fn optional_decimal(v: &Value, key: &str) -> Result<Option<Decimal>> {

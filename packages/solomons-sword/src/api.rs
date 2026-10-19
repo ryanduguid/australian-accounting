@@ -42,7 +42,8 @@ fn decimal(v: &Value, key: &str) -> Result<Decimal> {
     }
     // No exponent cap: the engine range-checks and overflows astronomical amounts
     // itself, and its tests rely on that.
-    Decimal::parse(t).map_err(|_| format!("{key}: not a decimal amount"))
+    // `Decimal(text)` raised InvalidOperation for text it could not read.
+    Decimal::parse(t).map_err(|s| format!("decimal.{}", s.name()))
 }
 
 fn optional_decimal(v: &Value, key: &str) -> Result<Option<Decimal>> {

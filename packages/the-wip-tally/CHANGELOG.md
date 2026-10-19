@@ -16,8 +16,9 @@ intentionally changed.
   version lookup are removed. `--version` prints `wip-tally 1.0.0`.
 - The JSON boundary takes amounts as decimal strings. A JSON number is refused
   as `<field> must be a string`, where the Python API raised `TypeError` for a
-  float ratio. JSON input is limited to 8 MiB and each decimal field to 8,192
-  bytes; JSON uses serde_json's nesting limit and refuses lone surrogate escapes.
+  float ratio. Text that is not a decimal is refused as
+  `decimal.InvalidOperation`, as `Decimal(text)` raised it. JSON input is
+  limited to 8 MiB and each decimal field to 8,192 bytes; JSON uses serde_json's nesting limit and refuses lone surrogate escapes.
 - Where Python raised an uncaught decimal signal (an amount beyond 28
   significant digits reaching a quantisation), the command prints
   `error: decimal.<Signal>` instead of a traceback. Exit 1 and the files already

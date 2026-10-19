@@ -17,7 +17,10 @@ intentionally changed.
   1.0.0.
 - The JSON boundary requires amounts as strings, facts as JSON values and dates
   as `YYYY-MM-DD`, and refuses input over 8 MiB or a decimal field over 8,192
-  bytes. JSON uses serde_json's nesting limit and refuses lone Unicode surrogate
+  bytes (`validate-amount` is exempt, as the command-line parser it mirrors has
+  no limit). An amount that is omitted or `null` takes the function's `0.00`
+  default; Python raised `TypeError` for an explicit `None`. Text that is not a
+  decimal is refused as `decimal.InvalidOperation`, as `Decimal(text)` raised it. JSON uses serde_json's nesting limit and refuses lone Unicode surrogate
   escapes. A `financial_year` outside the 64-bit range is refused as not an
   integer; Python's `date()` raised OverflowError beyond the C int range.
 - Python formatting and encoding environment overrides (`PYTHONIOENCODING`,
