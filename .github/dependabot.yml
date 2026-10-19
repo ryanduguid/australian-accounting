@@ -52,6 +52,7 @@ updates:
       - /packages/the-exchequer-tally
       - /packages/solomons-sword
       - /packages/the-wip-tally
+      - /packages/australian-tax-calculators
     schedule:
       interval: weekly
     open-pull-requests-limit: 2

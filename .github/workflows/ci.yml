@@ -55,10 +55,6 @@ jobs:
         # changed-line-coverage lists the risk-scoped files held to complete
         # changed-line branch coverage against main.
         include:
-          - package: australian-tax-calculators
-            import-name: austaxcalc
-            windows-python: "3.14"
-            changed-line-coverage: ""
           - package: ato-benchmark-compare
             import-name: atobenchmark
             windows-python: "3.14"
@@ -104,6 +100,14 @@ jobs:
     with:
       package: the-wip-tally
       binary: wip-tally
+    permissions:
+      contents: read
+
+  taxcalc:
+    name: australian-tax-calculators
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: australian-tax-calculators
     permissions:
       contents: read
 
@@ -246,7 +250,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, exchequer, solomons, wip, test, dependency-audit, lint]
+    needs: [changes, packages, exchequer, solomons, wip, taxcalc, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

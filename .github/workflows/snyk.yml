@@ -51,12 +51,10 @@ jobs:
         uv:apps/aus-accounting-mcp
         uv:packages/ato-benchmark-compare
         uv:packages/au-tax-rates-data
-        uv:packages/australian-tax-calculators
         uv:packages/div7a-loan-review
         uv:packages/gst-review
         uv:packages/payday-super-checker
         npm:packages/ato-benchmark-compare/tests/fastcheck/package-lock.json
-        npm:packages/australian-tax-calculators/tests/fastcheck/package-lock.json
         npm:packages/div7a-loan-review/tests/fastcheck/package-lock.json
         npm:packages/payday-super-checker/tests/fastcheck/package-lock.json
     steps:
@@ -146,7 +144,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [the-exchequer-tally, solomons-sword, the-wip-tally]
+        package: [the-exchequer-tally, solomons-sword, the-wip-tally, australian-tax-calculators]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

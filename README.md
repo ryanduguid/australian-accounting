@@ -138,7 +138,7 @@ For an editable source installation, run `pip install -e .` from
 
 | Path | Distribution | Import package | Commands |
 |---|---|---|---|
-| `packages/australian-tax-calculators/` | `australian-tax-calculators` | `austaxcalc` | Python worksheet functions |
+| `packages/australian-tax-calculators/` | `australian-tax-calculators` (Rust) | none | `australian-tax-calculators` (JSON stdin worksheets) |
 | `apps/aus-accounting-mcp/` | `aus-accounting-mcp` | `aus_accounting_mcp` | `aus-accounting-mcp`, `aus-accounting-mcp-demo` |
 | `packages/ato-benchmark-compare/` | `ato-benchmark-compare` | `atobenchmark` | `ato-benchmark-compare` |
 | `packages/payday-super-checker/` | `payday-super-checker` | `paydaysuper` | `payday-super-check` |
@@ -154,14 +154,18 @@ For an editable source installation, run `pip install -e .` from
 MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest); it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
 `div7a-loan-review`, `australian-tax-calculators` and `gst-review` distributions. In
-the development workspace, uv resolves those 5 dependencies to their checked-out sources.
+the development workspace, uv resolves 4 of those dependencies to their checked-out
+sources and takes `australian-tax-calculators` 0.2.0, the last Python release, from PyPI.
 
-The Exchequer Tally 1.0.0, Solomon's Sword 1.0.0 and The WIP Tally 1.0.0 are
-unreleased standalone Rust binaries. Build each with Cargo using its README
+The Exchequer Tally 1.0.0, Solomon's Sword 1.0.0, The WIP Tally 1.0.0 and
+Australian Tax Calculators 1.0.0 are unreleased standalone Rust binaries. Build
+each with Cargo using its README
 ([The Exchequer Tally](packages/the-exchequer-tally/README.md),
 [Solomon's Sword](packages/solomons-sword/README.md),
-[The WIP Tally](packages/the-wip-tally/README.md)). The uv workspace continues
-to develop the other engines and applications; the MCP server depends on neither.
+[The WIP Tally](packages/the-wip-tally/README.md),
+[Australian Tax Calculators](packages/australian-tax-calculators/README.md)). The
+uv workspace continues to develop the other engines and applications; the MCP
+server uses none of these crates yet.
 
 ## Working in a component
 

@@ -40,7 +40,6 @@ GROUPS = {
 # Whole files copied unchanged into each component that runs fast-check
 # properties. Only tests/fastcheck/properties.cjs, the input domains, differs.
 FASTCHECK_COMPONENTS = (
-    "australian-tax-calculators",
     "ato-benchmark-compare",
     "payday-super-checker",
     "div7a-loan-review",

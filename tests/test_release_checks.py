@@ -32,17 +32,6 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python",
         ".github/workflows/codeql.yml: codeql-gates"
     ],
-    "release-australian-tax-calculators.yml": [
-        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
-        ".github/workflows/ci.yml: australian-tax-calculators / build",
-        ".github/workflows/ci.yml: australian-tax-calculators / dependency-audit",
-        ".github/workflows/ci.yml: australian-tax-calculators / lint",
-        ".github/workflows/ci.yml: australian-tax-calculators / test (3.14)",
-        ".github/workflows/ci.yml: australian-tax-calculators / test-windows",
-        ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python",
-        ".github/workflows/codeql.yml: codeql-gates"
-    ],
     "release-div7a-loan-review.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: div7a-loan-review / build",
@@ -148,7 +137,7 @@ class ReleaseChecksTests(unittest.TestCase):
                 match = re.search(r"(?m)^      source-directory: (\S+)$", text)
                 assert match is not None, path.name
                 components.append(match.group(1))
-        self.assertEqual(len(components), 6, components)
+        self.assertEqual(len(components), 5, components)
         for component in components:
             with self.subTest(component=component):
                 project = tomllib.loads((ROOT / component / "pyproject.toml").read_text(encoding="utf-8"))

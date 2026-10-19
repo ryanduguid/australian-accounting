@@ -41,7 +41,6 @@ def _load_select_package():
 select_package = _load_select_package()
 
 RELEASE_CALLERS = {
-    "australian-tax-calculators": "packages/australian-tax-calculators",
     "aus-accounting-mcp": "apps/aus-accounting-mcp",
     "ato-benchmark-compare": "packages/ato-benchmark-compare",
     "payday-super-checker": "packages/payday-super-checker",
@@ -50,7 +49,6 @@ RELEASE_CALLERS = {
 }
 
 PYTHON_ENGINES = {
-    "packages/australian-tax-calculators": "austaxcalc",
     "packages/ato-benchmark-compare": "atobenchmark",
     "packages/payday-super-checker": "paydaysuper",
     "packages/div7a-loan-review": "div7aloan",
@@ -60,6 +58,7 @@ RUST_ENGINES = {
     "packages/the-exchequer-tally": "the-exchequer-tally",
     "packages/solomons-sword": "solomons-sword",
     "packages/the-wip-tally": "the-wip-tally",
+    "packages/australian-tax-calculators": "australian-tax-calculators",
 }
 ENGINES = PYTHON_ENGINES | RUST_ENGINES
 APPLICATIONS = {
