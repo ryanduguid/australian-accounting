@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from typing import Any
 
-from ._checks import is_date, is_money
+from ._checks import EXACT, is_date, is_money
 from ._version import __version__
 
 SOURCE_CHECKED = "2026-10-19"
@@ -118,6 +118,12 @@ def review_coding(
     gst_codes: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Return a review state and reason for every line, in input order."""
+    with localcontext(EXACT):
+        return _review(lines, registrations, match_window_days, gst_codes)
+
+
+def _review(lines: list[BankLine], registrations: dict[str, Registration],
+            match_window_days: int, gst_codes: dict[str, str] | None) -> dict[str, Any]:
     codes = DEFAULT_GST_CODES if gst_codes is None else gst_codes
     _validate(lines, registrations, match_window_days, codes)
     counterparts = _match_between_entities(lines, match_window_days)

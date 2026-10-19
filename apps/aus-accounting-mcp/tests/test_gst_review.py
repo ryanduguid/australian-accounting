@@ -141,14 +141,22 @@ def test_reconciliation_on_accruals_matches_and_lists_unlodged_periods():
 
 def test_reconciliation_excludes_gst_and_reads_a_caller_code_table():
     lines = [ledger_line("s-1", "sale", "1100.00", "100.00", "2026-07-14", "2026-07-14", "OUT"),
-             ledger_line("s-2", "sale", "100.00", "0.00", "2026-07-15", "2026-07-15", "ZZZ")]
+             ledger_line("s-2", "sale", "100.00", "0.00", "2026-07-15", "2026-07-15", "N-T")]
     period = {**Q1, "lodged": {"G1": "1000", "1A": "100"}}
     result = call("reconcile_bas", lines=lines, periods=[period], basis="cash",
-                  g1_includes_gst=False, bas_codes={"OUT": "taxable"})
+                  g1_includes_gst=False, bas_codes={"OUT": "taxable", "N-T": "excluded"})
 
     assert result["periods"][0]["labels"]["G1"]["status"] == "matches"
-    assert result["line_issues"] == [
-        {"id": "s-2", "issue": "GST code 'ZZZ' is not in the code table."}]
+    assert result["periods"][0]["kept_out"] == ["s-2"]
+    assert "line_issues" not in result
+
+
+def test_reconciliation_refuses_a_line_it_cannot_place():
+    # Comparing without the line would report G1 as matching a total that omits it.
+    unplaced = ledger_line("s-9", "sale", "110.00", "10.00", "2026-07-01", "2026-07-01", "FRE")
+    with pytest.raises(ToolError, match="'s-9': GST of 10.00 on code 'FRE'"):
+        call("reconcile_bas", lines=[unplaced], periods=[{**Q1, "lodged": {"G1": "0"}}],
+             basis="cash")
 
 
 @pytest.mark.parametrize("periods,message", [
@@ -165,6 +173,8 @@ def test_reconciliation_refuses_periods_the_engine_cannot_use(periods, message):
 
 @pytest.mark.parametrize("change", [
     {"basis": "hybrid"},
+    {"g1_includes_gst": "false"},
+    {"g1_includes_gst": 0},
     {"periods": [{**Q1, "lodged": {"G9": "1"}}]},
     {"periods": [{**Q1, "lodged": {"G1": "1e3"}}]},
     {"lines": [{**LEDGER[0], "side": "income"}]},
