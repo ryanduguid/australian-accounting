@@ -284,6 +284,11 @@ class ReleaseScriptTests(unittest.TestCase):
             selectors = [f"{path}: {job}" for path, job in release.required_checks(workflow)]
             self.assertEqual(selectors, expected, caller)
 
+    def test_runs_only_git_and_gh(self) -> None:
+        with self.assertRaisesRegex(ValueError, "only git and gh, not 'sh'"):
+            release.run_command(["sh", "-c", "true"])
+        self.assertEqual(release.run_command(["git", "--version"]).returncode, 0)
+
     def test_dry_run_checks_everything_and_tags_nothing(self) -> None:
         code, stderr = self.release("--dry-run", "payday-super-checker", "solomons-sword")
         self.assertEqual(code, 0, stderr)

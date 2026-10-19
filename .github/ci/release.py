@@ -85,9 +85,17 @@ def required_checks(workflow: str) -> list[tuple[str, str]]:
 
 
 def run_command(command: Sequence[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        list(command), capture_output=True, text=True, encoding="utf-8", check=False
-    )
+    """Run git or gh, the only programs this script calls."""
+    program, *args = command
+    if program == "git":
+        return subprocess.run(
+            ["git", *args], capture_output=True, text=True, encoding="utf-8", check=False
+        )
+    if program == "gh":
+        return subprocess.run(
+            ["gh", *args], capture_output=True, text=True, encoding="utf-8", check=False
+        )
+    raise ValueError(f"release.py runs only git and gh, not {program!r}")
 
 
 def pypi_status(name: str, version: str) -> int:
