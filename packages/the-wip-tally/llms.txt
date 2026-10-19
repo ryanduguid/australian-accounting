@@ -4,18 +4,15 @@
 
 ## Package overview
 - **Repository**: https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally
-- **Distribution**: `the-wip-tally`
-- **Install**: `pip install the-wip-tally` (published on PyPI; Python 3.14 or later).
-- **Import package**: `wiptally`
+- **Cargo package**: `the-wip-tally` 1.0.0, a standalone Rust binary (unreleased; build with `cargo build --locked --release`). It replaces Python package 0.2.0.
 - **CLI command**: `wip-tally`
 - **Domain**: Deterministic work-in-progress schedule for Australian construction, civil, mining-services and power-station packages.
 - **Primary standards**: AASB 15 (arithmetic for progress, constrained variable consideration, contract asset/liability). AASB 137 is flagged, not measured.
 
 ## Core modules and APIs
-- `wiptally.schedule.measure`: one contract to one position.
-- `wiptally.csv_io.read_contracts`: strict CSV schema, Decimal amounts.
-- `wiptally.cli`: `schedule` and `review-pack` commands.
-- `wiptally.report`: atomic CSV, console summary, SHA-256 review pack.
+- `wip-tally schedule` and `wip-tally review-pack`: the CSV schedule and the SHA-256 review pack.
+- `wip-tally measure`: one contract (JSON on stdin) to one position, replacing `wiptally.measure`.
+- `wip-tally parse-money`: the amount parser, replacing `wiptally.parse_money`.
 
 ## Architectural boundaries
 1. **One row is one unit of account.** Combine contracts under AASB 15 para 17 before the CSV. Never offset one contract against another.

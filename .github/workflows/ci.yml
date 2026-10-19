@@ -71,10 +71,6 @@ jobs:
             import-name: paydaysuper
             windows-python: "3.14"
             changed-line-coverage: paydaysuper/assess.py,paydaysuper/report.py
-          - package: the-wip-tally
-            import-name: wiptally
-            windows-python: "3.14"
-            changed-line-coverage: ""
           - package: gst-review
             import-name: gstreview
             windows-python: ""
@@ -99,6 +95,15 @@ jobs:
     uses: ./.github/workflows/ci-rust.yml
     with:
       package: solomons-sword
+    permissions:
+      contents: read
+
+  wip:
+    name: the-wip-tally
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: the-wip-tally
+      binary: wip-tally
     permissions:
       contents: read
 
@@ -241,7 +246,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, exchequer, solomons, test, dependency-audit, lint]
+    needs: [changes, packages, exchequer, solomons, wip, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

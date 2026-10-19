@@ -5,7 +5,13 @@ import unittest
 from test_boundaries import ROOT, RUST_ENGINES, select_package
 
 # The Python import package each port removed.
-REMOVED_IMPORTS = {"the-exchequer-tally": "edwinnixon", "solomons-sword": "louisgoldberg"}
+REMOVED_IMPORTS = {
+    "the-exchequer-tally": "edwinnixon",
+    "solomons-sword": "louisgoldberg",
+    "the-wip-tally": "wiptally",
+}
+# Runtime crates an engine may use; none is another engine or a path dependency.
+ALLOWED_DEPENDENCIES = {"num-bigint", "num-integer", "num-traits", "serde_json", "chrono", "sha2"}
 
 
 class RustEngineTests(unittest.TestCase):
@@ -24,14 +30,14 @@ class RustEngineTests(unittest.TestCase):
                 self.assertTrue((directory / "src/main.rs").is_file())
                 self.assertIn(component, root["tool"]["uv"]["workspace"]["exclude"])
                 # The engine is standalone: no engine/application/path dependency can sneak in.
-                self.assertEqual(set(cargo["dependencies"]), {"num-bigint", "num-integer", "num-traits", "serde_json"})
+                self.assertLessEqual(set(cargo["dependencies"]), ALLOWED_DEPENDENCIES)
                 for value in cargo["dependencies"].values():
-                    self.assertIsInstance(value, str)
+                    self.assertNotIn("path", value if isinstance(value, dict) else {})
 
     def test_cargo_ci_security_and_publisher_boundary(self):
         workflows = ROOT / ".github/workflows"
         caller = (workflows / "ci.yml").read_text()
-        self.assertIn("needs: [changes, packages, exchequer, solomons, test, dependency-audit, lint]", caller)
+        self.assertIn("needs: [changes, packages, exchequer, solomons, wip, test, dependency-audit, lint]", caller)
         workflow = (workflows / "ci-rust.yml").read_text()
         for gate in ("cargo fmt --check", "cargo clippy --locked --all-targets -- -D warnings", "cargo test --locked", "cargo build --locked --release", "cargo audit --deny warnings"):
             self.assertIn(gate, workflow)

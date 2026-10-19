@@ -15,7 +15,6 @@ packages/australian-tax-calculators:austaxcalc
 packages/ato-benchmark-compare:atobenchmark
 packages/payday-super-checker:paydaysuper
 packages/div7a-loan-review:div7aloan
-packages/the-wip-tally:wiptally
 packages/gst-review:gstreview
 apps/aus-accounting-mcp:aus_accounting_mcp
 apps/lodgeit-calculator-adapter:lodgeitadapter
@@ -106,7 +105,7 @@ release +args:
 check: lint typecheck test
 
 # Standalone Rust engines, outside the virtual Python workspace.
-rust_engines := "packages/the-exchequer-tally packages/solomons-sword"
+rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally"
 
 rust-test:
     #!/usr/bin/env bash

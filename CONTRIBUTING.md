@@ -59,16 +59,16 @@ own commands:
 
 ## Rust engines
 
-The Exchequer Tally and Solomon's Sword are standalone Cargo crates excluded from
-the uv workspace. From `packages/the-exchequer-tally` or `packages/solomons-sword`,
-run `cargo fmt --check`, `cargo clippy --locked --all-targets -- -D warnings` and
+The Exchequer Tally, Solomon's Sword and The WIP Tally are standalone Cargo
+crates excluded from the uv workspace. From `packages/the-exchequer-tally`,
+`packages/solomons-sword` or `packages/the-wip-tally`, run `cargo fmt --check`, `cargo clippy --locked --all-targets -- -D warnings` and
 `cargo test --locked`. `cargo build --locked --release` builds the native command.
 Root `just test` and `just lint` include these checks; typecheck remains
 Python-only. CI calls `ci-rust.yml` once per engine from the anchor workflow on
 Ubuntu and Windows. CodeQL and Dependabot include Cargo. All candidate builds
 have read-only permissions.
 
-The former PyPI publishers of both engines are retired. Native publication is not
+The former PyPI publishers of these engines are retired. Native publication is not
 configured; signing and release-policy integration need a separate authorised
 release change. Other components retain their Python publishers.
 
@@ -122,7 +122,7 @@ outside the checkout, the same way the lockfile is regenerated below.
 | div7a-loan-review | `packages/div7a-loan-review/` | `div7aloan` |
 | the-exchequer-tally (Rust) | `packages/the-exchequer-tally/` | none |
 | solomons-sword (Rust) | `packages/solomons-sword/` | none |
-| the-wip-tally | `packages/the-wip-tally/` | `wiptally` |
+| the-wip-tally (Rust) | `packages/the-wip-tally/` | none |
 | gst-review | `packages/gst-review/` | `gstreview` |
 
 The 2 applications, the rates dataset and the repository boundary checks use their own
@@ -182,8 +182,8 @@ release callers require that test job; no second pytest run is needed.
   branch coverage on Python 3.14 and 3.15 (the floor and ceiling of the declared
   `requires-python`), a `pip-audit` dependency audit, and a build of the distribution
   followed by an install of the one built wheel into a clean environment, an import of
-  the engine from it, and the engine's own wheel smoke script. `ato-benchmark-compare`,
-  `payday-super-checker` and `the-wip-tally` add a Windows leg on 3.14.
+  the engine from it, and the engine's own wheel smoke script. `ato-benchmark-compare`
+  and `payday-super-checker` add a Windows leg on 3.14.
 - The path filter is applied inside each call, by `.github/ci/select_package.py`, rather
   than on the trigger. A change under `packages/<engine>/` runs that engine and skips the
   rest; a change to a root policy file (`AGENTS.md`, `CONTRIBUTING.md`, `README.md`,
@@ -272,7 +272,7 @@ Registry through `publish-mcp.yml`.
 | div7a-loan-review | `div7a-loan-review/vX.Y.Z` | `release-div7a-loan-review.yml` | `pyproject.toml` | `pypi-div7a-loan-review` |
 | the-exchequer-tally (Rust) | reserved `the-exchequer-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | solomons-sword (Rust) | reserved `solomons-sword/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
-| the-wip-tally | `the-wip-tally/vX.Y.Z` | `release-the-wip-tally.yml` | `pyproject.toml` | `pypi-the-wip-tally` |
+| the-wip-tally (Rust) | reserved `the-wip-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | gst-review | `gst-review/vX.Y.Z` | `release-gst-review.yml` | `pyproject.toml` | `pypi-gst-review` |
 
 Tag and push with `just release <component>...` from the repository root, with `gh`

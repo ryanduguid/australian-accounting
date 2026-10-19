@@ -9,9 +9,9 @@ in `docs/aasb-15-source-notes-2026-08-25.md`.
 1. Confirm the operative AASB 15 compilation at standards.aasb.gov.au. If
    paragraph numbers moved, update the source notes and any README citations in
    the same commit as the code.
-2. `uv run --locked --extra dev pytest`
-3. `uv run --locked --extra dev ruff check wiptally tests`
-4. `uv run --locked --extra dev pyright wiptally`
+2. `cargo fmt --check`
+3. `cargo clippy --locked --all-targets -- -D warnings`
+4. `cargo test --locked`
 5. Run the sample:
 
 ```bash
@@ -22,6 +22,7 @@ The sample is supposed to exit 2.
 
 ## Version
 
-The version source is `[project].version` in `pyproject.toml`. Keep `__version__` in
-`wiptally/__init__.py` aligned with it; the version test checks both copies. Update the release-note heading, citation and
-lockfiles in the same commit, and keep the package identity test aligned.
+The version source is `[package].version` in `Cargo.toml`. Update the release-note
+heading, `CITATION.cff` and `Cargo.lock` in the same commit. Native signing and
+publication need a separate authorised release change; no publisher is
+configured for 1.0.0.

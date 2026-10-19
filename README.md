@@ -145,7 +145,7 @@ For an editable source installation, run `pip install -e .` from
 | `packages/div7a-loan-review/` | `div7a-loan-review` | `div7aloan` | `div7a-loan-review` |
 | `packages/the-exchequer-tally/` | `the-exchequer-tally` (Rust) | none | `the-exchequer-tally` |
 | `packages/solomons-sword/` | `solomons-sword` (Rust) | none | `solomons-sword` |
-| `packages/the-wip-tally/` | `the-wip-tally` | `wiptally` | `wip-tally` |
+| `packages/the-wip-tally/` | `the-wip-tally` (Rust) | none | `wip-tally` |
 | `packages/gst-review/` | `gst-review` | `gstreview` | Python review functions: GST coding states against registration, BAS-to-ledger reconciliation |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` | `lodgeitadapter` | optional adapter for a third-party calculator service; off by default, makes HTTP calls only when `LODGEIT_ADAPTER_ENABLED=1` |
 | `packages/au-tax-rates-data/` | `au-tax-rates-data` (never released) | `rates` (module) | `python rates.py validate`, `snapshot` and `check`: ATO rates and thresholds with verbatim source quotes, validated offline |
@@ -156,10 +156,11 @@ depends on the published `ato-benchmark-compare`, `payday-super-checker`,
 `div7a-loan-review`, `australian-tax-calculators` and `gst-review` distributions. In
 the development workspace, uv resolves those 5 dependencies to their checked-out sources.
 
-The Exchequer Tally 1.0.0 and Solomon's Sword 1.0.0 are unreleased standalone Rust
-binaries. Build each with Cargo using its README
+The Exchequer Tally 1.0.0, Solomon's Sword 1.0.0 and The WIP Tally 1.0.0 are
+unreleased standalone Rust binaries. Build each with Cargo using its README
 ([The Exchequer Tally](packages/the-exchequer-tally/README.md),
-[Solomon's Sword](packages/solomons-sword/README.md)). The uv workspace continues
+[Solomon's Sword](packages/solomons-sword/README.md),
+[The WIP Tally](packages/the-wip-tally/README.md)). The uv workspace continues
 to develop the other engines and applications; the MCP server depends on neither.
 
 ## Working in a component

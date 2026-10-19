@@ -51,6 +51,7 @@ updates:
     directories:
       - /packages/the-exchequer-tally
       - /packages/solomons-sword
+      - /packages/the-wip-tally
     schedule:
       interval: weekly
     open-pull-requests-limit: 2

@@ -17,23 +17,24 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 ```
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
-[![PyPI](https://img.shields.io/pypi/v/the-wip-tally.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/the-wip-tally/)
+[![Rust](https://img.shields.io/badge/Rust-1.99-66023C?logo=rust&logoColor=white&labelColor=000000&style=flat-square)](https://www.rust-lang.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/downloads/)
 
-Project name The WIP Tally. Distribution `the-wip-tally`, import package `wiptally`, command `wip-tally`.
+Project name The WIP Tally. Cargo package `the-wip-tally`, command `wip-tally`.
 
 **Deterministic work-in-progress schedule for Australian construction, civil, mining-services and power-station packages.** Review aid. Not a determination.
 
-**Package lifecycle:** published. Install `the-wip-tally` from PyPI.
+**Package lifecycle:** The WIP Tally 1.0.0 is an unreleased standalone Rust
+binary. It replaces the Python `the-wip-tally` 0.2.0 package and its `wiptally`
+import API. PyPI still provides the historical Python release; `pip install`
+does not install this binary.
 
 The [`wip-over-under-billing` skill](https://github.com/ryanduguid/australian-accounting-skills/blob/main/.claude/skills/wip-over-under-billing/SKILL.md) in Australian Accounting Skills (formerly `hardhat-ledger`) already encodes the WIP *workflow*. This engine does the arithmetic that workflow consumes: cost-to-cost progress after AASB 15 para B19 exclusions, constrained variable consideration, per-contract contract assets and contract liabilities, and month-on-month profit fade.
 
-The `australian-accounting` repository contains the maintained source. The
-`the-wip-tally` distribution, `wip-tally` command and `wiptally` import package
-are the install identifiers.
+The `australian-accounting` repository contains the maintained source.
 
-In-repo version: `0.2.0`; see [release notes](RELEASE_NOTES.md).
+In-repo version: `1.0.0`; see [release notes](RELEASE_NOTES.md) and
+[CHANGELOG.md](CHANGELOG.md).
 
 Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written independently, in his own time and on his own equipment.
 
@@ -47,13 +48,17 @@ paragraph number.
 
 Full boundary statement: [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/DISCLAIMER.md).
 
-## Install
+## Build
 
-Python 3.14 or later. No runtime dependencies.
+Install Rust with rustup, then run from this directory:
 
-```bash
-pip install the-wip-tally
+```sh
+cargo build --locked --release
 ```
+
+The toolchain is pinned in `rust-toolchain.toml`. The executable is
+`target/release/wip-tally` (`.exe` on Windows). Add that directory to PATH or
+copy the executable to a directory on PATH. No Python runtime is needed.
 
 Download the [fabricated sample contract CSV](https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/packages/the-wip-tally/examples/sample_contracts.csv)
 as `sample_contracts.csv` to follow the example below.
@@ -210,12 +215,39 @@ read or write; they are not a sandbox. Do not expose the command as a web
 endpoint. Outputs must have an explicit `.csv` or `.md` filename and are
 written atomically.
 
+## Former Python API
+
+`wip-tally measure` and `wip-tally parse-money` replace the removed
+`wiptally.measure` and `wiptally.parse_money`. Each reads one UTF-8 JSON object
+from stdin and prints one compact JSON result followed by a newline; a refusal
+exits 2, writes `error: <reason>` to stderr and writes no stdout. Amounts are
+decimal strings, preserving Python Decimal values and scale. `--api-help`
+lists the commands.
+
+| Command | Input fields | Result |
+| --- | --- | --- |
+| `measure` | Every `ContractInput` field: `contract_id`, `line_number` (integer), `customer`, `description`, the amount and ratio fields as decimal strings, `retention_classification`, `progress_method`, `outcome_reasonably_measurable` (`true`, `false` or `null`), and the optional amounts as strings or `null` | Every computed `ContractPosition` field, `flags` and `needs_review` |
+| `parse-money` | `raw` string, optional `where` (default `amount`) | The cent-quantised amount as a string |
+
+Each JSON input is limited to 8 MiB and each decimal field to 8,192 UTF-8 bytes.
+
+## Job-to-cash example
+
+`examples/job_to_cash.rs` replaces `examples/job_to_cash.py` and writes the same
+files. See [examples/JOB-TO-CASH.md](examples/JOB-TO-CASH.md).
+
 ## Tests
 
-```bash
-pip install -e ".[dev]"
-pytest
+```sh
+cargo fmt --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 ```
+
+The frozen Python corpus in `tests/data/` is replayed by Rust on both platforms,
+including the original command runs with their input files and every file they
+wrote. [tests/BEHAVIOURS.md](tests/BEHAVIOURS.md) maps the original tests to
+these checks.
 
 The suite pins the worked examples in `examples/sample_contracts.csv`: a clean
 underbilling, B19 wastage with profit fade, a constrained mining-services

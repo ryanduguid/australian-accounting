@@ -1,0 +1,27 @@
+[package]
+name = "the-wip-tally"
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.99"
+description = "Deterministic AASB 15 construction WIP schedule and practitioner review pack"
+license = "Apache-2.0"
+publish = false
+
+[[bin]]
+name = "wip-tally"
+path = "src/main.rs"
+
+[dependencies]
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }
+num-bigint = "0.4"
+num-integer = "0.1"
+num-traits = "0.2"
+serde_json = "1"
+sha2 = "0.11.1"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[profile.release]
+lto = true
+codegen-units = 1
