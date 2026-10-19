@@ -57,7 +57,7 @@ wheels = [
 
 [[package]]
 name = "ato-benchmark-compare"
-version = "0.1.12"
+version = "0.2.0"
 source = { editable = "packages/ato-benchmark-compare" }
 
 [package.optional-dependencies]
@@ -441,7 +441,7 @@ wheels = [
 
 [[package]]
 name = "div7a-loan-review"
-version = "0.2.0"
+version = "0.3.0"
 source = { editable = "packages/div7a-loan-review" }
 
 [package.optional-dependencies]
@@ -798,7 +798,7 @@ wheels = [
 
 [[package]]
 name = "payday-super-checker"
-version = "0.1.10"
+version = "0.2.0"
 source = { editable = "packages/payday-super-checker" }
 
 [package.optional-dependencies]
@@ -1194,7 +1194,7 @@ wheels = [
 
 [[package]]
 name = "solomons-sword"
-version = "0.2.0"
+version = "0.3.0"
 source = { editable = "packages/solomons-sword" }
 
 [package.optional-dependencies]
@@ -1249,7 +1249,7 @@ wheels = [
 
 [[package]]
 name = "the-wip-tally"
-version = "0.1.4"
+version = "0.2.0"
 source = { editable = "packages/the-wip-tally" }
 
 [package.optional-dependencies]

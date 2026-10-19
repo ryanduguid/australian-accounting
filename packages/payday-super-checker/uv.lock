@@ -262,7 +262,7 @@ wheels = [
 
 [[package]]
 name = "payday-super-checker"
-version = "0.1.10"
+version = "0.2.0"
 source = { editable = "." }
 
 [package.optional-dependencies]

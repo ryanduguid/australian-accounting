@@ -1,7 +1,7 @@
 # Company tax and franking checks
 
 The Exchequer Tally 1.0.0 is a standalone Rust binary. It replaces the Python
-`the-exchequer-tally` 0.1.8 package and its `edwinnixon` import API.
+`the-exchequer-tally` 0.2.0 package and its `edwinnixon` import API.
 
 Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited
 to software issues reproduced with fabricated data. Do not send taxpayer

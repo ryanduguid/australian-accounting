@@ -2,7 +2,8 @@
 
 ## 1.0.0 (unreleased)
 
-Standalone Rust binary, replacing Python package 0.1.8 and its import API.
+Standalone Rust binary, replacing Python package 0.2.0 (the last Python release;
+its engine source is unchanged since 0.1.8, the parity base) and its import API.
 The two original commands preserve flags, help, validation, output and exits.
 The former API operations are JSON stdin subcommands, documented in README.md.
 No money calculation, rate table or statutory text is intentionally changed.

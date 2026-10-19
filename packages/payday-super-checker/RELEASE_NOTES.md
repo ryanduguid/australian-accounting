@@ -1,3 +1,10 @@
+# v0.2.0
+
+- The package moves from MIT to the Apache-2.0 licence, with a `NOTICE` file whose attribution anyone redistributing the package or a derivative must keep ([#373](https://github.com/ryanduguid/australian-accounting/pull/373)). The package metadata declares Apache-2.0. Releases up to v0.1.10 stay under MIT.
+- Requires Python 3.14 or later; Python 3.11 to 3.13 are no longer supported, and 0.1.10 remains the last release that installs on them ([#355](https://github.com/ryanduguid/australian-accounting/pull/355)).
+
+No check changed. The Excel workbook is rebuilt to report engine 0.2.0.
+
 # v0.1.10
 
 - Requires Python 3.11 or newer; Python 3.10 is no longer supported ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).
