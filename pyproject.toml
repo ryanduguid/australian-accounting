@@ -11,7 +11,7 @@
 [tool.uv.workspace]
 members = ["packages/*", "apps/*"]
 
-# The 7 engines pin the shared toolchain to one exact version each, so the
+# The 8 engines pin the shared toolchain to one exact version each, so the
 # workspace resolves it without an override. Keep those pins identical: a
 # workspace resolves every member together, and cannot hold 2 exact pins of
 # the same tool.
@@ -77,6 +77,7 @@ include = [
     "packages/solomons-sword/louisgoldberg",
     "packages/the-exchequer-tally/edwinnixon",
     "packages/the-wip-tally/wiptally",
+    "packages/gst-review/gstreview",
     "apps/aus-accounting-mcp/aus_accounting_mcp",
     "apps/lodgeit-calculator-adapter/lodgeitadapter",
 ]

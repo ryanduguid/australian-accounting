@@ -59,6 +59,7 @@ ENGINES = {
     "packages/the-exchequer-tally": "edwinnixon",
     "packages/solomons-sword": "louisgoldberg",
     "packages/the-wip-tally": "wiptally",
+    "packages/gst-review": "gstreview",
 }
 APPLICATIONS = {
     "apps/aus-accounting-mcp": "aus_accounting_mcp",

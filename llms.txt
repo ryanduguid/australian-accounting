@@ -29,6 +29,7 @@ Each component keeps its own distribution, version, release notes, tests and `CI
 - [the-exchequer-tally](https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-exchequer-tally): company tax rate, franking account and Division 203 benchmark rule checks.
 - [solomons-sword](https://github.com/ryanduguid/australian-accounting/tree/main/packages/solomons-sword): trust distribution allocation and Division 6, section 100A and section 99B review checks.
 - [the-wip-tally](https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally): a deterministic AASB 15 construction WIP schedule.
+- [gst-review](https://github.com/ryanduguid/australian-accounting/tree/main/packages/gst-review): review states for coded bank lines, flagging GST codes that conflict with registration and likely transfers between entities. Not yet released.
 - [au-tax-rates-data](https://github.com/ryanduguid/australian-accounting/tree/main/packages/au-tax-rates-data): key ATO rates and thresholds with verbatim source quotes and a validator. Never released.
 
 ## Related
