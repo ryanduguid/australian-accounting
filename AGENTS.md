@@ -21,7 +21,10 @@ checks from its own directory.
   another engine, and production code never uses a relative import that leaves its
   component directory. One shared `.venv` makes every component importable from every
   other; `tests/test_boundaries.py` is what keeps that from becoming a dependency.
-- Every component keeps its own `pyproject.toml`, lockfile, version, release notes,
+- The Exchequer Tally is standalone Rust: run its Cargo checks from
+  `packages/the-exchequer-tally/`. Its README documents JSON replacements for
+  the removed Python API. It is excluded from the uv workspace and Python gates.
+- Every Python component keeps its own `pyproject.toml`, lockfile, version, release notes,
   tests, commands and licence, and is released on its own from its own directory. A
   component's lockfile stays the authority for building and releasing that component
   alone. The rates dataset is the exception: it has no release workflow or release notes.

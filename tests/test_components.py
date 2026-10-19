@@ -5,13 +5,14 @@ import sys
 
 import pytest
 
-from test_boundaries import APPLICATIONS, DATASETS, ENGINES, ROOT
+from test_boundaries import APPLICATIONS, DATASETS, ENGINES, ROOT, RUST_ENGINES
 
 
 @pytest.mark.parametrize("component", sorted(ENGINES | APPLICATIONS | DATASETS))
 def test_component_suite(component: str) -> None:
+    command = ["cargo", "test", "--locked"] if component in RUST_ENGINES else [sys.executable, "-m", "pytest"]
     result = subprocess.run(
-        [sys.executable, "-m", "pytest"],
+        command,
         cwd=ROOT / component,
         capture_output=True,
         text=True,

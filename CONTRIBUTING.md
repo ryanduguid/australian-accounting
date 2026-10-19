@@ -16,7 +16,7 @@ just test      # every component's suite, plus the repository boundary checks
 `just test` runs `just setup` first, which repeats `uv sync` and then installs
 each fast-check worker described below.
 
-`uv sync` creates one `.venv` at the root and installs all 9 components into it
+`uv sync` creates one `.venv` at the root and installs the Python components into it
 as editable workspace members. `apps/aus-accounting-mcp` therefore imports
 `atobenchmark`, `paydaysuper`, `div7aloan` and `austaxcalc` from the checked-out tree
 rather than from their last PyPI release, with no per-component install step.
@@ -57,13 +57,27 @@ own commands:
   workspace cannot hold 2 exact pins of the same tool, so keep the 8 identical when
   changing one.
 
+## Rust engine
+
+The Exchequer Tally is a standalone Cargo crate excluded from the uv workspace.
+From `packages/the-exchequer-tally`, run `cargo fmt --check`,
+`cargo clippy --locked --all-targets -- -D warnings` and `cargo test --locked`.
+`cargo build --locked --release` builds its native command. Root `just test` and
+`just lint` include these checks; typecheck remains Python-only. CI calls
+`ci-exchequer.yml` from the anchor workflow on Ubuntu and Windows. CodeQL and
+Dependabot include Cargo. All candidate builds have read-only permissions.
+
+The former Exchequer PyPI publisher is retired. Native publication is not
+configured; signing and release-policy integration need a separate authorised
+release change. Other components retain their Python publishers.
+
 ## Command routing
 
 Run the checks from the component directory. Inside the workspace, `uv run --locked`
 validates the root `uv.lock`; the component's own lockfile is what builds and releases it
 on its own.
 
-Every engine under `packages/` runs the same gates with the same commands. `ruff`, `pyright`
+Every Python engine under `packages/` runs the same gates with the same commands. `ruff`, `pyright`
 and `pytest --cov` read their scope from the engine's own `pyproject.toml` (`[tool.ruff]`,
 `[tool.pyright]` and `[tool.coverage.run]`), so nothing in the commands names the engine:
 
@@ -105,7 +119,7 @@ outside the checkout, the same way the lockfile is regenerated below.
 | ato-benchmark-compare | `packages/ato-benchmark-compare/` | `atobenchmark` |
 | payday-super-checker | `packages/payday-super-checker/` | `paydaysuper` |
 | div7a-loan-review | `packages/div7a-loan-review/` | `div7aloan` |
-| the-exchequer-tally | `packages/the-exchequer-tally/` | `edwinnixon` |
+| the-exchequer-tally (Rust) | `packages/the-exchequer-tally/` | none |
 | solomons-sword | `packages/solomons-sword/` | `louisgoldberg` |
 | the-wip-tally | `packages/the-wip-tally/` | `wiptally` |
 | gst-review | `packages/gst-review/` | `gstreview` |
@@ -244,7 +258,7 @@ directory and the normalised distribution name. The tag triggers only
 reusable workflow with that component's `source-directory` and `tag-prefix`. The policy
 checks the tag, the `main` commit, the clean tree, the component's `RELEASE_NOTES.md`
 header (`# vX.Y.Z` on the first line), the lockfile and the distribution identity, then
-builds, attests and publishes the GitHub release. Every component workflow then publishes the
+builds, attests and publishes the GitHub release. Every Python component workflow then publishes the
 exact attested distribution to PyPI under the component's own `pypi-<component>`
 environment and trusted publisher. The MCP application additionally publishes to the MCP
 Registry through `publish-mcp.yml`.
@@ -255,7 +269,7 @@ Registry through `publish-mcp.yml`.
 | ato-benchmark-compare | `ato-benchmark-compare/vX.Y.Z` | `release-ato-benchmark-compare.yml` | `pyproject.toml` | `pypi-ato-benchmark-compare` |
 | payday-super-checker | `payday-super-checker/vX.Y.Z` | `release-payday-super-checker.yml` | `pyproject.toml` | `pypi-payday-super-checker` |
 | div7a-loan-review | `div7a-loan-review/vX.Y.Z` | `release-div7a-loan-review.yml` | `pyproject.toml` | `pypi-div7a-loan-review` |
-| the-exchequer-tally | `the-exchequer-tally/vX.Y.Z` | `release-the-exchequer-tally.yml` | `pyproject.toml` | `pypi-the-exchequer-tally` |
+| the-exchequer-tally (Rust) | reserved `the-exchequer-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | solomons-sword | `solomons-sword/vX.Y.Z` | `release-solomons-sword.yml` | `pyproject.toml` | `pypi-solomons-sword` |
 | the-wip-tally | `the-wip-tally/vX.Y.Z` | `release-the-wip-tally.yml` | `pyproject.toml` | `pypi-the-wip-tally` |
 

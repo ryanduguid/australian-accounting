@@ -10,7 +10,6 @@ on:
       - Release div7a-loan-review
       - Release payday-super-checker
       - Release solomons-sword
-      - Release the-exchequer-tally
       - Release the-wip-tally
     types: [completed]
   workflow_dispatch:

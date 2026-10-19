@@ -1,3 +1,9 @@
+# v1.0.0
+
+Unreleased standalone Rust major version. Python imports are removed; former API
+operations are JSON subcommands. See [CHANGELOG.md](CHANGELOG.md) for migration,
+verification and documented divergences, and [README.md](README.md) to build it.
+
 # v0.1.8
 
 - Requires Python 3.11 or newer; Python 3.10 is no longer supported ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).
@@ -23,11 +29,11 @@ opening franking account balance before relying on the results.
 - `turnover_threshold_for` refuses years absent from `TURNOVER_THRESHOLDS`
   instead of carrying a threshold forward. `DEFAULT_TURNOVER_THRESHOLD` is
   removed. The supported years, rates and thresholds remain in
-  [the corporate tax source](edwinnixon/corporate_tax.py).
+  [the corporate tax source](https://github.com/ryanduguid/australian-accounting/blob/d401883ecb27fd0672454bdb5b1ffdbdcf1bb8a4/packages/the-exchequer-tally/edwinnixon/corporate_tax.py).
 - Cap stated franking credits at the statutory maximum before comparing them
   with the benchmark credit. An overstated credit no longer creates a false
   benchmark differential. See `validate_distributions` and
-  `maximum_franking_credit` in [the benchmark rule source](edwinnixon/benchmark_rule.py).
+  `maximum_franking_credit` in [the benchmark rule source](https://github.com/ryanduguid/australian-accounting/blob/d401883ecb27fd0672454bdb5b1ffdbdcf1bb8a4/packages/the-exchequer-tally/edwinnixon/benchmark_rule.py).
 
 Migration: supply each required fact and treat `None` outcomes as untested.
 The franking deficit result's outcome fields are now optional.
