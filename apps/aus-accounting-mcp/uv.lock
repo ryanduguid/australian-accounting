@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.14"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -29,11 +29,11 @@ wheels = [
 
 [[package]]
 name = "ato-benchmark-compare"
-version = "0.1.11"
+version = "0.2.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/55/59/64b893a4281ce53bbd396ca107baf65ae3ab96ae804b71beaf989c4435b4/ato_benchmark_compare-0.1.11.tar.gz", hash = "sha256:3fc2e5e320353a6015c226fa1382229e8c0fa168ce0525e52936777be1abf4cb", size = 133144, upload-time = "2026-09-29T03:37:16.875Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/92/78/9d3301b3f118e31922f811153da1fe05ed6f5c1b648a03bb7f059239537b/ato_benchmark_compare-0.2.2.tar.gz", hash = "sha256:69a5cc5b406c09b33d396fafdcaa3e9bba558cccb478e632816bfe09b8480573", size = 171441, upload-time = "2026-10-19T14:04:18.501Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/49/da/281d0f0d62e98d6941952060c6a7357702905e94e492e9e2cb44605e3b99/ato_benchmark_compare-0.1.11-py3-none-any.whl", hash = "sha256:b51d2effe555d308f4e7baf5d3d28a6eadca9b2512582cdb93be5783f28415d4", size = 74453, upload-time = "2026-09-29T03:37:15.661Z" },
+    { url = "https://files.pythonhosted.org/packages/84/f6/fe2f89eaf337b2e7a38d4783012be6f07e340813f12b735b253252be5de8/ato_benchmark_compare-0.2.2-py3-none-any.whl", hash = "sha256:0b2a1ae294cc4889fbf642d8c69dc7126dbfa5cd24781f44b6851d366fc32596", size = 78267, upload-time = "2026-10-19T14:04:17.092Z" },
 ]
 
 [[package]]
@@ -47,12 +47,13 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.5.0"
+version = "0.6.0"
 source = { editable = "." }
 dependencies = [
     { name = "ato-benchmark-compare" },
     { name = "australian-tax-calculators" },
     { name = "div7a-loan-review" },
+    { name = "gst-review" },
     { name = "mcp" },
     { name = "payday-super-checker" },
 ]
@@ -71,13 +72,14 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ato-benchmark-compare", specifier = "==0.1.11" },
+    { name = "ato-benchmark-compare", specifier = "==0.2.2" },
     { name = "australian-tax-calculators", specifier = "==0.2.0" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.6.1" },
-    { name = "div7a-loan-review", specifier = "==0.2.0" },
+    { name = "div7a-loan-review", specifier = "==0.3.2" },
+    { name = "gst-review", specifier = "==0.1.0" },
     { name = "mcp", specifier = ">=2.3.0,<3" },
     { name = "nodejs-wheel-binaries", marker = "extra == 'dev'", specifier = "==24.19.0" },
-    { name = "payday-super-checker", specifier = "==0.1.9" },
+    { name = "payday-super-checker", specifier = "==0.2.2" },
     { name = "pillow", marker = "extra == 'dev'", specifier = "==12.3.0" },
     { name = "pyright", extras = ["nodejs"], marker = "extra == 'dev'", specifier = "==1.1.414" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
@@ -311,11 +313,20 @@ wheels = [
 
 [[package]]
 name = "div7a-loan-review"
-version = "0.2.0"
+version = "0.3.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/4a/d8/8098b7e420a6cdf90714f7a09574e077ec1da5a7807ca6c4d552b0ef470d/div7a_loan_review-0.2.0.tar.gz", hash = "sha256:95a03dfa873aa0e65f20d02271a4b240c43e97826eb9d4fa7967581e0b483e09", size = 160855, upload-time = "2026-10-04T17:30:17.841Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e6/68/0b0263abe54f6a54fb1ff3834e41cbaf82db443f21a41505b4a3a900c6a0/div7a_loan_review-0.3.2.tar.gz", hash = "sha256:1a2da64e71620e5ca6c0ad874e1c343ceb847025e10c4930ce12df9ae69d7322", size = 142866, upload-time = "2026-10-19T14:04:42.942Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/2c/fe16c4130b9b8eca68fb9691d64d20fc2f807924a60dbc2b28863f8d165c/div7a_loan_review-0.2.0-py3-none-any.whl", hash = "sha256:aab981be0c6fdacf9a5ca13b63f238dcc23a2879036f44da51228c5e66c72f6f", size = 47232, upload-time = "2026-10-04T17:30:16.344Z" },
+    { url = "https://files.pythonhosted.org/packages/0e/84/fa73551ebdd512481f4decb754f4b82af10a0d65b6545b397431393110a0/div7a_loan_review-0.3.2-py3-none-any.whl", hash = "sha256:379b7ac6cbb0f913a85f238a2e08225a8b55f7c851c4b5971c1f829cd30e0ae3", size = 51572, upload-time = "2026-10-19T14:04:41.451Z" },
+]
+
+[[package]]
+name = "gst-review"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4b/5b/3d75d9b92e023ac0355cf804a8528349f15310a9cd45f7f04b96f84615c5/gst_review-0.1.0.tar.gz", hash = "sha256:6524ca3a084300294187a542b6eb42bda59a1c9694d40dcc9a896eeddfb47ab6", size = 38340, upload-time = "2026-10-19T14:23:04.001Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ec/c0/648ff3d04461fb0883aadfc084de0ba827e16146fe80d887f44bc16a5516/gst_review-0.1.0-py3-none-any.whl", hash = "sha256:aae5020766ab8c576e912d50ec78f232a1fcf5f2dce4033f0862b0ed5e95edd8", size = 18548, upload-time = "2026-10-19T14:23:02.752Z" },
 ]
 
 [[package]]
@@ -496,11 +507,11 @@ wheels = [
 
 [[package]]
 name = "payday-super-checker"
-version = "0.1.9"
+version = "0.2.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/32/68/a76b9a3fdc310082ab5d0ae5121516c45a75ce3e4ca732dd528f7a92ac12/payday_super_checker-0.1.9.tar.gz", hash = "sha256:ed147432478d0e0ebca804df24f95707fc5ae022c0aeb4e8244b41148f86ae51", size = 375083, upload-time = "2026-09-30T11:11:57.278Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bc/e1/52e8c7cc1aa14695ebbd5c19fbfb9707d285887a5ea69eaab6d63886d6b1/payday_super_checker-0.2.2.tar.gz", hash = "sha256:48d220235c694796f31bb0b27c556f8e5182e1986ad02ee136d0ff6e7df90362", size = 342237, upload-time = "2026-10-19T14:06:45.997Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/05/b5597c1b0b64753424feb947bb49374c278fe420473482da7d9ff963cc44/payday_super_checker-0.1.9-py3-none-any.whl", hash = "sha256:c94a3572e1f7bf76a6060bf081cf0d376bca4c3fa15f07b16a118151409f7b0a", size = 120378, upload-time = "2026-09-30T11:11:55.935Z" },
+    { url = "https://files.pythonhosted.org/packages/4b/78/0faa20845867ba110e6f25bcabe181de5c62c4bd2de94100ef7226d88b2a/payday_super_checker-0.2.2-py3-none-any.whl", hash = "sha256:93a98fb4b1f89299ade87da5584236f790b02628cc206171c8d4f2e4c11409b7", size = 124629, upload-time = "2026-10-19T14:06:44.637Z" },
 ]
 
 [[package]]

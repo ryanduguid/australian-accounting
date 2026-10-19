@@ -382,11 +382,12 @@ splitting related contributions into separate calls can change the outcome.
 
 Payday Super needs an explicit assessment date and fund-receipt evidence, both
 the date and the amount received (`received` with `matched_amount`), before it
-should be read as `ON_TIME`. The pinned checker 0.1.9 leaves a timely receipt
+should be read as `ON_TIME`. The pinned checker 0.2.2 leaves a timely receipt
 date without an amount `UNKNOWN`. A late receipt without an amount stays
 `LATE`, without reducing the shortfall. MCP 0.2.4 pinned checker 0.1.6, which
 assumes full receipt in that case and says so in a caveat; 0.2.5 to 0.2.9
-pin 0.1.7, 0.2.10 and 0.2.11 pin 0.1.8, and 0.2.12 and later pin 0.1.9.
+pin 0.1.7, 0.2.10 and 0.2.11 pin 0.1.8, 0.2.12 to 0.5.0 pin 0.1.9, and
+0.6.0 and later pin 0.2.2.
 Check the
 `aus-accounting://payday-coverage` resource for bundled rate and calendar
 coverage, and retain the result's caveats.
