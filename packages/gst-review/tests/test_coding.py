@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from decimal import Decimal
+from decimal import Decimal, localcontext
 
 import pytest
 from gstreview import BankLine, Registration, __version__, review_coding
@@ -226,3 +226,17 @@ def test_invalid_input_is_refused(lines: list[BankLine], registrations: dict,
                                   kwargs: dict, message: str) -> None:
     with pytest.raises(ValueError, match=message):
         review_coding(lines, registrations, **kwargs)
+
+
+def test_a_callers_decimal_precision_does_not_change_pairing_or_limits() -> None:
+    lines = [line("out", "-110.01"), line("in", "110.01", entity="Birch Trust")]
+    registrations = {"Alder Pty Ltd": REGISTERED, "Birch Trust": NEVER}
+    expected = review_coding(lines, registrations)
+    over = [line("big", "1000000000000.01")]
+    with localcontext() as context:
+        context.prec = 4
+        assert review_coding(lines, registrations) == expected
+        context.prec = 13
+        with pytest.raises(ValueError, match="amount must be a finite Decimal"):
+            review_coding(over, {"Alder Pty Ltd": REGISTERED})
+    assert states(expected) == {"out": "between_entities", "in": "between_entities"}

@@ -894,7 +894,7 @@ def reconcile_bas(
         description="Non-overlapping tax periods, each with its lodged figures if lodged.")],
     basis: Annotated[Literal["cash", "accruals"], Field(
         description="The GST accounting basis the operator established for the entity.")],
-    g1_includes_gst: Annotated[bool, Field(
+    g1_includes_gst: Annotated[bool, Field(strict=True,
         description="Whether the lodged G labels include GST, as chosen at G1.")] = True,
     bas_codes: Annotated[dict[str, BasCategory] | None, Field(
         max_length=200,
@@ -909,8 +909,9 @@ def reconcile_bas(
     matches, differs (with the difference and its lines), not_reported or
     negative_ledger. Lodged figures are whole non-negative dollars. Amounts are AUD
     decimal strings; gross includes GST and both are negative for a credit note.
-    Lines it cannot place are listed in line_issues and kept_out; timing lists
-    lines invoiced in a period but attributed elsewhere. Does not decide whether a
+    A line in a period that it cannot place on a label refuses the call; kept_out
+    lists excluded lines and timing lists lines invoiced in a period but
+    attributed elsewhere. Does not decide whether a
     difference needs a revised BAS, whether a code is right or which basis applies.
     Retain not_decided and warnings. Local review aid, not advice or a BAS.
     """

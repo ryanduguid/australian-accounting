@@ -375,15 +375,10 @@ class BasPeriodReconciliation(ResultObject):
     end: DateText
     lodged: Annotated[bool, Field(description="Whether lodged figures were supplied.")]
     labels: dict[str, BasLabelComparison]
-    kept_out: LineRefs
+    kept_out: Annotated[list[str], Field(description="Lines coded as excluded from the BAS.")]
     timing: Annotated[
         list[str], Field(description="Lines invoiced in this period but attributed elsewhere.")
     ]
-
-
-class BasLineIssue(ResultObject):
-    id: str
-    issue: str
 
 
 class BasReconciliation(EngineResult):
@@ -395,7 +390,6 @@ class BasReconciliation(EngineResult):
     no_ledger_lines: Annotated[list[str], Field(description="Lodged periods with no lines.")]
     outside_periods: LineRefs
     unpaid: LineRefs
-    line_issues: list[BasLineIssue]
     facts_used: Annotated[dict[str, Any], Field(description="Basis, G1 choice, codes, rounding.")]
     not_decided: GstStatements
     sources: list[str]

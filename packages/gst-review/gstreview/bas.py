@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from decimal import ROUND_DOWN, Decimal
+from decimal import ROUND_DOWN, Decimal, localcontext
 from typing import Any
 
-from ._checks import is_date, is_money
+from ._checks import EXACT, is_date, is_money
 from ._version import __version__
 from .coding import GST_ACT, SOURCE_CHECKED
 
@@ -114,7 +114,18 @@ def reconcile_bas(
     g1_includes_gst: bool = True,
     bas_codes: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-    """Compare ledger-derived label figures with the lodged figures for each period."""
+    """Compare ledger-derived label figures with the lodged figures for each period.
+
+    Refuses when a line attributed to a period cannot be placed on a label, because
+    every comparison in that period would then leave it out.
+    """
+    with localcontext(EXACT):
+        return _reconcile(lines, periods, lodged, basis, g1_includes_gst, bas_codes)
+
+
+def _reconcile(lines: list[LedgerLine], periods: list[Period],
+               lodged: dict[str, dict[str, Decimal]], basis: str, g1_includes_gst: bool,
+               bas_codes: dict[str, str] | None) -> dict[str, Any]:
     codes = DEFAULT_BAS_CODES if bas_codes is None else bas_codes
     _validate_options(basis, g1_includes_gst, codes)
     _validate_periods(periods)
@@ -124,6 +135,9 @@ def reconcile_bas(
     tally = _Tally(periods)
     for line in lines:
         tally.add(line, basis, g1_includes_gst, codes)
+    if tally.unplaced:
+        raise ValueError("Lines that cannot be placed on a BAS label: "
+                         + "; ".join(f"{line_id!r}: {issue}" for line_id, issue in tally.unplaced))
 
     return {
         "ok": True,
@@ -138,7 +152,6 @@ def reconcile_bas(
                             if period.label in lodged and not tally.attributed[period.label]],
         "outside_periods": tally.outside_periods,
         "unpaid": tally.unpaid,
-        "line_issues": tally.line_issues,
         "facts_used": {
             "basis": basis,
             "g1_includes_gst": g1_includes_gst,
@@ -168,7 +181,7 @@ class _Tally:
         self.attributed: dict[str, list[str]] = {period.label: [] for period in periods}
         self.kept_out: dict[str, list[str]] = {period.label: [] for period in periods}
         self.timing: dict[str, list[str]] = {period.label: [] for period in periods}
-        self.line_issues: list[dict[str, str]] = []
+        self.unplaced: list[tuple[str, str]] = []
         self.outside_periods: list[str] = []
         self.unpaid: list[str] = []
 
@@ -192,8 +205,9 @@ class _Tally:
 
         issue = _issue(line, codes)
         if issue:
-            self.line_issues.append({"id": line.id, "issue": issue})
-        reached = [] if issue else _labels_reached(line, codes[line.gst_code])
+            self.unplaced.append((line.id, issue))
+            return
+        reached = _labels_reached(line, codes[line.gst_code])
         if not reached:
             self.kept_out[period.label].append(line.id)
         amount = line.gross if g1_includes_gst else line.gross - line.gst

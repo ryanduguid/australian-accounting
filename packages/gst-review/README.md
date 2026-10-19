@@ -93,9 +93,11 @@ exceed sales or purchases; a BAS takes no negative figures).
 - **Codes.** Each line has a side (`sale` or `purchase`) and a GST code, read through
   a code table into a category: `taxable`, `capital`, `gst_free`,
   `capital_gst_free`, `export`, `input_taxed` or `excluded`. The default covers common
-  Xero and MYOB AU codes; pass `bas_codes` to use your own. Excluded lines and lines
-  that cannot be placed (an unknown code, a capital code on a sale, GST on a GST-free
-  code) are listed in `kept_out`, and the second two in `line_issues` with a reason.
+  Xero and MYOB AU codes; pass `bas_codes` to use your own. Excluded lines are listed
+  in each period's `kept_out`. A line in a period that cannot be placed (an unknown
+  code, a capital code on a sale, GST on a GST-free code) refuses the whole
+  reconciliation, naming every such line and the reason, because a label compared
+  without it could show `matches` wrongly.
 
 The result also lists periods with ledger lines but no lodged figures (`not_lodged`),
 lodged periods with no ledger lines (`no_ledger_lines`), lines outside every period
