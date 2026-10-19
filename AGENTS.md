@@ -21,10 +21,11 @@ checks from its own directory.
   another engine, and production code never uses a relative import that leaves its
   component directory. One shared `.venv` makes every component importable from every
   other; `tests/test_boundaries.py` is what keeps that from becoming a dependency.
-- The Exchequer Tally, Solomon's Sword, The WIP Tally and Australian Tax Calculators
-  are standalone Rust: run their Cargo checks from `packages/the-exchequer-tally/`,
-  `packages/solomons-sword/`, `packages/the-wip-tally/` and
-  `packages/australian-tax-calculators/`. Each README documents JSON replacements for the
+- The Exchequer Tally, Solomon's Sword, The WIP Tally, Australian Tax Calculators
+  and Division 7A Loan Review are standalone Rust: run their Cargo checks from
+  `packages/the-exchequer-tally/`, `packages/solomons-sword/`,
+  `packages/the-wip-tally/`, `packages/australian-tax-calculators/` and
+  `packages/div7a-loan-review/`. Each README documents JSON replacements for the
   removed Python API. They are excluded from the uv workspace and Python gates.
 - Every Python component keeps its own `pyproject.toml`, lockfile, version, release notes,
   tests, commands and licence, and is released on its own from its own directory. A

@@ -10,7 +10,7 @@
 
 [tool.uv.workspace]
 members = ["packages/*", "apps/*"]
-exclude = ["packages/the-exchequer-tally", "packages/solomons-sword", "packages/the-wip-tally", "packages/australian-tax-calculators"]
+exclude = ["packages/the-exchequer-tally", "packages/solomons-sword", "packages/the-wip-tally", "packages/australian-tax-calculators", "packages/div7a-loan-review"]
 
 # The 8 engines pin the shared toolchain to one exact version each, so the
 # workspace resolves it without an override. Keep those pins identical: a
@@ -19,24 +19,24 @@ exclude = ["packages/the-exchequer-tally", "packages/solomons-sword", "packages/
 
 # apps/aus-accounting-mcp declares exact pins on the 5 engines it consumes,
 # because a published distribution cannot depend on a path. Inside the
-# workspace 4 of those names resolve to the checked-out sources instead, so
-# the application's tests import atobenchmark, paydaysuper, div7aloan and
-# gstreview from the tree under review rather than from the last PyPI release.
+# workspace 3 of those names resolve to the checked-out sources instead, so
+# the application's tests import atobenchmark, paydaysuper and gstreview from
+# the tree under review rather than from the last PyPI release.
 # The pins stay authoritative for the published wheel; uv sources are development metadata
 # and are not written into built distributions.
 [tool.uv.sources]
 ato-benchmark-compare = { workspace = true }
 payday-super-checker = { workspace = true }
-div7a-loan-review = { workspace = true }
 gst-review = { workspace = true }
 
-# australian-tax-calculators is now a Rust crate outside the workspace. Until
-# the MCP server links it directly, both applications take the last Python
-# release from PyPI, 0.2.0, whose engine code the crate's parity corpus pins.
-# The workspace resolves one version, so this overrides the adapter's 0.1.3
-# pin as the workspace member did; its own uv.lock still holds 0.1.3.
+# australian-tax-calculators and div7a-loan-review are now Rust crates outside
+# the workspace. Until the MCP server links them directly, both applications
+# take each engine's last Python release from PyPI (0.2.0 and 0.3.2), whose
+# engine code the crates' parity corpora pin. The workspace resolves one
+# version of each, so these override the applications' older exact pins as the
+# workspace members did; each application's own uv.lock keeps its pins.
 [tool.uv]
-override-dependencies = ["australian-tax-calculators==0.2.0"]
+override-dependencies = ["australian-tax-calculators==0.2.0", "div7a-loan-review==0.3.2"]
 
 # The shared toolchain for running every component's checks from one
 # environment. Components keep their own `dev` extras, which remain the
@@ -81,7 +81,6 @@ pythonVersion = "3.14"
 include = [
     "packages/ato-benchmark-compare/atobenchmark",
     "packages/payday-super-checker/paydaysuper",
-    "packages/div7a-loan-review/div7aloan",
     "packages/gst-review/gstreview",
     "apps/aus-accounting-mcp/aus_accounting_mcp",
     "apps/lodgeit-calculator-adapter/lodgeitadapter",
@@ -89,7 +88,6 @@ include = [
 extraPaths = [
     "packages/ato-benchmark-compare",
     "packages/payday-super-checker",
-    "packages/div7a-loan-review",
     "packages/gst-review",
     "apps/aus-accounting-mcp",
     "apps/lodgeit-calculator-adapter",

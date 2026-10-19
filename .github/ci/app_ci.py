@@ -13,15 +13,17 @@ from select_package import is_shared, parse_changed_paths
 # Root pytest checks these lists against the manifests. Its required
 # boundaries-gates owner runs on every change, including a skipped app.
 DEPENDENCIES = {
-    # Both apps take australian-tax-calculators 0.2.0 from PyPI until the MCP
-    # server links the Rust crate, so its directory does not select them.
+    # Both apps take australian-tax-calculators and div7a-loan-review from PyPI
+    # until the MCP server links the Rust crates, so their directories do not
+    # select them.
     "aus-accounting-mcp": frozenset({
-        "ato-benchmark-compare", "payday-super-checker", "div7a-loan-review", "gst-review",
+        "ato-benchmark-compare", "payday-super-checker", "gst-review",
     }),
-    "lodgeit-calculator-adapter": frozenset({"div7a-loan-review"}),
+    "lodgeit-calculator-adapter": frozenset(),
 }
 PACKAGES = frozenset().union(*DEPENDENCIES.values(), {
     "solomons-sword", "the-exchequer-tally", "the-wip-tally", "australian-tax-calculators",
+    "div7a-loan-review",
 })
 APP_JOBS = frozenset({"test", "lint", "dependency-audit"})
 KNOWN_PREFIXES = tuple(f"packages/{name}/" for name in PACKAGES) + tuple(

@@ -59,10 +59,6 @@ jobs:
             import-name: atobenchmark
             windows-python: "3.14"
             changed-line-coverage: atobenchmark/mapping.py
-          - package: div7a-loan-review
-            import-name: div7aloan
-            windows-python: ""
-            changed-line-coverage: ""
           - package: payday-super-checker
             import-name: paydaysuper
             windows-python: "3.14"
@@ -108,6 +104,14 @@ jobs:
     uses: ./.github/workflows/ci-rust.yml
     with:
       package: australian-tax-calculators
+    permissions:
+      contents: read
+
+  div7a:
+    name: div7a-loan-review
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: div7a-loan-review
     permissions:
       contents: read
 
@@ -250,7 +254,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, exchequer, solomons, wip, taxcalc, test, dependency-audit, lint]
+    needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

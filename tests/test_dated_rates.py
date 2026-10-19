@@ -29,7 +29,7 @@ PAYDAY_RATES = PACKAGES / "payday-super-checker" / "paydaysuper" / "data" / "rat
 PAYDAY_GIC = PACKAGES / "payday-super-checker" / "paydaysuper" / "data" / "gic_rates.json"
 CALCULATOR_METADATA = PACKAGES / "australian-tax-calculators" / "src" / "metadata.rs"
 CALCULATIONS = PACKAGES / "australian-tax-calculators" / "src" / "engine.rs"
-DIV7A_RATES = PACKAGES / "div7a-loan-review" / "div7aloan" / "data" / "benchmark_rates.csv"
+DIV7A_RATES = PACKAGES / "div7a-loan-review" / "data" / "benchmark_rates.csv"
 DATASET = PACKAGES / "au-tax-rates-data" / "data"
 
 # How many engine copies of dataset figures _dataset_pairs() compares. An engine
@@ -98,7 +98,7 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
     lines = DIV7A_RATES.read_text(encoding="utf-8").splitlines()
     benchmark = {row["year_of_income"]: row["rate"]
                  for row in csv.DictReader(line for line in lines if not line.startswith("#"))}
-    pairs.append(("2026-27 Division 7A benchmark rate (div7aloan benchmark_rates.csv)",
+    pairs.append(("2026-27 Division 7A benchmark rate (div7a-loan-review benchmark_rates.csv)",
                   _value("div7a-benchmark-rate-2026-27"), Decimal(benchmark["2026-27"]) * 100))
     quarters = {(q["from"], q["to"]): q["annual_pct"]
                 for q in json.loads(PAYDAY_GIC.read_text(encoding="utf-8"))["quarters"]}

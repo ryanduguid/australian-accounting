@@ -1,0 +1,570 @@
+//! The Python behaviours the original builder's output depended on.
+//!
+//! The builder was a Python program, and its findings quote Python's own
+//! renderings: `repr` of values, `str` of paths and `OSError`s, the UTF-8
+//! decoder's messages and `str` predicates such as `isspace`. Reproducing
+//! them here keeps every status line byte-for-byte what a maintainer saw.
+
+use std::fmt::Write as _;
+use std::io;
+use std::path::{Path, PathBuf};
+
+use num_bigint::BigInt;
+
+use crate::pyunicode as tables;
+
+fn in_table(cp: u32, table: &[(u32, u32)]) -> bool {
+    table
+        .binary_search_by(|&(lo, hi)| {
+            if hi < cp {
+                std::cmp::Ordering::Less
+            } else if lo > cp {
+                std::cmp::Ordering::Greater
+            } else {
+                std::cmp::Ordering::Equal
+            }
+        })
+        .is_ok()
+}
+
+/// `str.isspace` for one character.
+pub fn is_space(c: char) -> bool {
+    in_table(c as u32, tables::SPACE)
+}
+
+/// `str.isprintable` for one character.
+pub fn is_printable(c: char) -> bool {
+    !in_table(c as u32, tables::NOT_PRINTABLE)
+}
+
+/// `str.isdecimal` for one character: what `\d` matches in a `str` pattern.
+pub fn is_decimal(c: char) -> bool {
+    in_table(c as u32, tables::DECIMAL)
+}
+
+/// The value `int()` gives a decimal digit, ASCII or not.
+pub fn decimal_value(c: char) -> Option<u32> {
+    if !is_decimal(c) {
+        return None;
+    }
+    let cp = c as u32;
+    let index = tables::DECIMAL_ZERO.partition_point(|&zero| zero <= cp);
+    let zero = tables::DECIMAL_ZERO[index.checked_sub(1)?];
+    (cp - zero < 10).then_some(cp - zero)
+}
+
+/// `str.split()` with no separator.
+pub fn split_whitespace(s: &str) -> Vec<&str> {
+    s.split(is_space).filter(|part| !part.is_empty()).collect()
+}
+
+/// `str.casefold()`.
+pub fn casefold(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        let cp = c as u32;
+        match tables::CASEFOLD.binary_search_by_key(&cp, |&(k, _)| k) {
+            Ok(i) => out.push_str(tables::CASEFOLD[i].1),
+            Err(_) => out.push(c),
+        }
+    }
+    out
+}
+
+/// The first `n` characters, as `s[:n]` takes them.
+pub fn prefix_chars(s: &str, n: usize) -> &str {
+    match s.char_indices().nth(n) {
+        Some((i, _)) => &s[..i],
+        None => s,
+    }
+}
+
+/// `len(s)`: a count of code points.
+pub fn char_len(s: &str) -> usize {
+    s.chars().count()
+}
+
+/// `repr(s)` for a `str`.
+pub fn repr_str(s: &str) -> String {
+    let quote = if s.contains('\'') && !s.contains('"') {
+        '"'
+    } else {
+        '\''
+    };
+    let mut out = String::with_capacity(s.len() + 2);
+    out.push(quote);
+    for c in s.chars() {
+        match c {
+            _ if c == quote || c == '\\' => {
+                out.push('\\');
+                out.push(c);
+            }
+            '\t' => out.push_str("\\t"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            _ if (c as u32) < 0x20 || c as u32 == 0x7f => {
+                let _ = write!(out, "\\x{:02x}", c as u32);
+            }
+            _ if (c as u32) < 0x7f => out.push(c),
+            _ if is_printable(c) => out.push(c),
+            _ if (c as u32) <= 0xff => {
+                let _ = write!(out, "\\x{:02x}", c as u32);
+            }
+            _ if (c as u32) <= 0xffff => {
+                let _ = write!(out, "\\u{:04x}", c as u32);
+            }
+            _ => {
+                let _ = write!(out, "\\U{:08x}", c as u32);
+            }
+        }
+    }
+    out.push(quote);
+    out
+}
+
+/// Python refuses to render an `int` of more than this many decimal digits.
+pub const INT_MAX_STR_DIGITS: usize = 4300;
+
+/// The `ValueError` Python raises for an over-long decimal `int`.
+pub fn int_digits_error(digits: usize) -> String {
+    format!(
+        "Exceeds the limit ({INT_MAX_STR_DIGITS} digits) for integer string conversion: value has \
+         {digits} digits; use sys.set_int_max_str_digits() to increase the limit"
+    )
+}
+
+/// Unicode digits to ASCII and Unicode spaces to ' ', as `int()` and `float()` first do.
+fn number_text(s: &str) -> Option<String> {
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        if is_space(c) {
+            out.push(' ');
+        } else if let Some(d) = decimal_value(c) {
+            out.push(char::from_digit(d, 10).expect("digit"));
+        } else if c.is_ascii() {
+            out.push(c);
+        } else {
+            return None;
+        }
+    }
+    Some(out)
+}
+
+/// `int(s, base)`; the error is the `ValueError` message.
+pub fn parse_int(s: &str, base: u32) -> Result<BigInt, String> {
+    let invalid = || {
+        let shown: String = if char_len(s) > 200 {
+            prefix_chars(s, 200).to_string()
+        } else {
+            s.to_string()
+        };
+        format!(
+            "invalid literal for int() with base {base}: {}",
+            repr_str(&shown)
+        )
+    };
+    let text = number_text(s).ok_or_else(invalid)?;
+    let text =
+        text.trim_matches(|c: char| c.is_ascii_whitespace() || ('\x1c'..='\x1f').contains(&c));
+    let (negative, mut body) = match text.as_bytes().first() {
+        Some(b'-') => (true, &text[1..]),
+        Some(b'+') => (false, &text[1..]),
+        _ => (false, text),
+    };
+    let prefix = match base {
+        16 => Some(["0x", "0X"]),
+        8 => Some(["0o", "0O"]),
+        2 => Some(["0b", "0B"]),
+        _ => None,
+    };
+    let mut after_prefix = false;
+    if let Some(prefixes) = prefix {
+        for p in prefixes {
+            if let Some(rest) = body.strip_prefix(p) {
+                body = rest;
+                after_prefix = true;
+                break;
+            }
+        }
+    }
+    // An underscore may follow a digit, or a base prefix, and must precede a digit.
+    let mut digits = String::new();
+    let mut previous_digit = false;
+    let mut previous_underscore = false;
+    for (i, c) in body.chars().enumerate() {
+        if c == '_' {
+            if previous_underscore || !(previous_digit || i == 0 && after_prefix) {
+                return Err(invalid());
+            }
+            previous_underscore = true;
+            previous_digit = false;
+            continue;
+        }
+        if c.to_digit(base).is_none() {
+            return Err(invalid());
+        }
+        digits.push(c);
+        previous_digit = true;
+        previous_underscore = false;
+    }
+    if digits.is_empty() || previous_underscore {
+        return Err(invalid());
+    }
+    if base == 10 && digits.len() > INT_MAX_STR_DIGITS {
+        return Err(int_digits_error(digits.len()));
+    }
+    let value = BigInt::parse_bytes(digits.as_bytes(), base).ok_or_else(invalid)?;
+    Ok(if negative { -value } else { value })
+}
+
+/// A UTF-8 decoding failure, rendered as Python's `UnicodeDecodeError`.
+#[derive(Debug, Clone)]
+pub struct DecodeError {
+    pub start: usize,
+    pub end: usize,
+    pub byte: u8,
+    pub reason: &'static str,
+}
+
+impl std::fmt::Display for DecodeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.end == self.start + 1 {
+            write!(
+                f,
+                "'utf-8' codec can't decode byte 0x{:02x} in position {}: {}",
+                self.byte, self.start, self.reason
+            )
+        } else {
+            write!(
+                f,
+                "'utf-8' codec can't decode bytes in position {}-{}: {}",
+                self.start,
+                self.end - 1,
+                self.reason
+            )
+        }
+    }
+}
+
+/// Decode UTF-8 strictly, failing as `bytes.decode("utf-8")` does.
+pub fn decode_utf8(bytes: &[u8]) -> Result<String, DecodeError> {
+    match std::str::from_utf8(bytes) {
+        Ok(text) => Ok(text.to_string()),
+        Err(e) => {
+            let start = e.valid_up_to();
+            let byte = bytes[start];
+            let (end, reason) = match e.error_len() {
+                None => (bytes.len(), "unexpected end of data"),
+                Some(n) if (0xc2..=0xf4).contains(&byte) => {
+                    (start + n, "invalid continuation byte")
+                }
+                Some(n) => (start + n, "invalid start byte"),
+            };
+            Err(DecodeError {
+                start,
+                end,
+                byte,
+                reason,
+            })
+        }
+    }
+}
+
+/// Text mode's universal newlines: `\r\n` and `\r` both read as `\n`.
+pub fn universal_newlines(text: &str) -> String {
+    if text.contains('\r') {
+        text.replace("\r\n", "\n").replace('\r', "\n")
+    } else {
+        text.to_string()
+    }
+}
+
+/// Why a text read failed.
+#[derive(Debug)]
+pub enum ReadError {
+    Os(io::Error),
+    Decode(DecodeError),
+}
+
+/// `Path.read_text(encoding="utf-8")`.
+pub fn read_text(path: &Path) -> Result<String, ReadError> {
+    let bytes = std::fs::read(path).map_err(ReadError::Os)?;
+    let text = decode_utf8(&bytes).map_err(ReadError::Decode)?;
+    Ok(universal_newlines(&text))
+}
+
+/// How the platform reported an `OSError`, which decides how Python renders it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum OsStyle {
+    /// `open()` and friends: the C runtime's errno, on every platform.
+    Errno,
+    /// Directory and metadata calls, which on Windows report a Win32 error.
+    Native,
+}
+
+fn strip_os_suffix(message: &str) -> &str {
+    match message.rfind(" (os error ") {
+        Some(i) => &message[..i],
+        None => message,
+    }
+}
+
+#[cfg(windows)]
+fn crt_errno(winerror: i32) -> (i32, &'static str) {
+    match winerror {
+        2 | 3 | 15 | 206 => (2, "No such file or directory"),
+        4 => (24, "Too many open files"),
+        5 | 32 | 33 | 1920 => (13, "Permission denied"),
+        6 => (9, "Bad file descriptor"),
+        8 => (12, "Not enough space"),
+        80 | 183 => (17, "File exists"),
+        _ => (22, "Invalid argument"),
+    }
+}
+
+/// `str(OSError)` for an operation on `filename` (already rendered as `str(path)`).
+pub fn oserror_str(error: &io::Error, filename: &str, style: OsStyle) -> String {
+    let Some(code) = error.raw_os_error() else {
+        return error.to_string();
+    };
+    let message = error.to_string();
+    #[cfg(windows)]
+    {
+        if style == OsStyle::Errno {
+            let (errno, text) = crt_errno(code);
+            return format!("[Errno {errno}] {text}: {}", repr_str(filename));
+        }
+        let text = strip_os_suffix(&message).trim_end_matches(|c: char| c == '.' || c <= ' ');
+        format!("[WinError {code}] {text}: {}", repr_str(filename))
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = style;
+        format!(
+            "[Errno {code}] {}: {}",
+            strip_os_suffix(&message),
+            repr_str(filename)
+        )
+    }
+}
+
+/// A path as `pathlib` holds and prints it.
+///
+/// `pathlib` drops `.` components and repeated separators and prints with
+/// the platform separator; a finding that names a file shows that form, so
+/// paths are carried in it alongside the real filesystem path.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PyPath {
+    anchor: String,
+    parts: Vec<String>,
+}
+
+#[cfg(windows)]
+const SEP: &str = "\\";
+#[cfg(not(windows))]
+const SEP: &str = "/";
+
+fn is_sep(c: char) -> bool {
+    c == '/' || cfg!(windows) && c == '\\'
+}
+
+impl PyPath {
+    pub fn new(text: &str) -> Self {
+        let (anchor, rest) = Self::split_anchor(text);
+        let mut path = PyPath {
+            anchor,
+            parts: Vec::new(),
+        };
+        path.push_parts(rest);
+        path
+    }
+
+    #[cfg(windows)]
+    fn split_anchor(text: &str) -> (String, &str) {
+        let bytes = text.as_bytes();
+        let sep = |i: usize| bytes.get(i).is_some_and(|b| *b == b'/' || *b == b'\\');
+        if sep(0) && sep(1) {
+            // \\server\share\ : a UNC anchor.
+            let rest = &text[2..];
+            let mut pieces = rest.splitn(3, ['/', '\\']);
+            let server = pieces.next().unwrap_or("");
+            let share = pieces.next().unwrap_or("");
+            let tail = pieces.next().unwrap_or("");
+            if !server.is_empty() && !share.is_empty() {
+                return (format!("\\\\{server}\\{share}\\"), tail);
+            }
+            return ("\\".into(), rest);
+        }
+        if bytes.len() >= 2 && bytes[1] == b':' && bytes[0].is_ascii_alphabetic() {
+            let drive = &text[..2];
+            if sep(2) {
+                return (format!("{drive}\\"), &text[3..]);
+            }
+            return (drive.to_string(), &text[2..]);
+        }
+        if sep(0) {
+            return ("\\".into(), &text[1..]);
+        }
+        (String::new(), text)
+    }
+
+    #[cfg(not(windows))]
+    fn split_anchor(text: &str) -> (String, &str) {
+        if text.starts_with("//") && !text.starts_with("///") {
+            ("//".into(), &text[2..])
+        } else if text.starts_with('/') {
+            ("/".into(), text.trim_start_matches('/'))
+        } else {
+            (String::new(), text)
+        }
+    }
+
+    fn push_parts(&mut self, rest: &str) {
+        for part in rest.split(is_sep) {
+            if !part.is_empty() && part != "." {
+                self.parts.push(part.to_string());
+            }
+        }
+    }
+
+    /// `self / part`, where `part` is a relative path that may hold separators.
+    pub fn join(&self, part: &str) -> Self {
+        let other = PyPath::new(part);
+        if !other.anchor.is_empty() {
+            return other;
+        }
+        let mut out = self.clone();
+        out.parts.extend(other.parts);
+        out
+    }
+
+    /// `str(path)`.
+    pub fn display(&self) -> String {
+        if self.anchor.is_empty() && self.parts.is_empty() {
+            return ".".into();
+        }
+        format!("{}{}", self.anchor, self.parts.join(SEP))
+    }
+
+    /// The filesystem path to operate on.
+    pub fn fs(&self) -> PathBuf {
+        PathBuf::from(self.display())
+    }
+
+    /// `path.name`.
+    pub fn name(&self) -> &str {
+        self.parts.last().map_or("", String::as_str)
+    }
+
+    /// `path.parent`.
+    pub fn parent(&self) -> Self {
+        let mut out = self.clone();
+        out.parts.pop();
+        out
+    }
+
+    pub fn is_absolute(&self) -> bool {
+        if cfg!(windows) {
+            self.anchor.len() > 2 || self.anchor.starts_with("\\\\")
+        } else {
+            !self.anchor.is_empty()
+        }
+    }
+}
+
+impl std::fmt::Display for PyPath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.display())
+    }
+}
+
+/// `str(Path(path).resolve())`: symlinks resolved through the longest existing
+/// prefix, the rest normalised lexically, as `os.path.realpath` does.
+pub fn resolve_text(path: &Path) -> String {
+    let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
+    let components: Vec<_> = absolute.components().collect();
+    for split in (0..=components.len()).rev() {
+        let prefix: PathBuf = components[..split].iter().collect();
+        let Ok(mut resolved) = std::fs::canonicalize(&prefix) else {
+            continue;
+        };
+        for component in &components[split..] {
+            match component {
+                std::path::Component::ParentDir => {
+                    resolved.pop();
+                }
+                std::path::Component::CurDir => {}
+                other => resolved.push(other.as_os_str()),
+            }
+        }
+        let text = resolved.to_string_lossy().into_owned();
+        return match text.strip_prefix(r"\\?\UNC\") {
+            Some(rest) => format!(r"\\{rest}"),
+            None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
+        };
+    }
+    absolute.to_string_lossy().into_owned()
+}
+
+/// `Path.__eq__` between resolved paths: case-insensitive on Windows.
+pub fn same_resolved(a: &str, b: &str) -> bool {
+    if cfg!(windows) {
+        a.to_lowercase() == b.to_lowercase()
+    } else {
+        a == b
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn repr_matches_python() {
+        assert_eq!(repr_str("a'b"), "\"a'b\"");
+        assert_eq!(repr_str("a'\"b"), "'a\\'\"b'");
+        assert_eq!(
+            repr_str("\t\u{0}\u{7f}é\u{a0}\u{2028}\u{1F600}"),
+            "'\\t\\x00\\x7fé\\xa0\\u2028\u{1F600}'"
+        );
+    }
+
+    #[test]
+    fn decode_errors_match_python() {
+        let e = decode_utf8(b"ab\xff").unwrap_err();
+        assert_eq!(
+            e.to_string(),
+            "'utf-8' codec can't decode byte 0xff in position 2: invalid start byte"
+        );
+        let e = decode_utf8(b"\xe2\x82(").unwrap_err();
+        assert_eq!(
+            e.to_string(),
+            "'utf-8' codec can't decode bytes in position 0-1: invalid continuation byte"
+        );
+        let e = decode_utf8(b"a\xe2\x82").unwrap_err();
+        assert_eq!(
+            e.to_string(),
+            "'utf-8' codec can't decode bytes in position 1-2: unexpected end of data"
+        );
+    }
+
+    #[test]
+    fn string_predicates_match_python() {
+        assert_eq!(split_whitespace("\x1c x \u{3000}y "), vec!["x", "y"]);
+        assert_eq!(casefold("Straße ΣΑΣ"), "strasse σασ");
+        assert_eq!(decimal_value('\u{0663}'), Some(3));
+        assert_eq!(parse_int(" 1\u{0661}", 10).unwrap(), BigInt::from(11));
+        assert_eq!(parse_int("0b101", 2).unwrap(), BigInt::from(5));
+        assert!(parse_int("1__0", 10).is_err());
+    }
+
+    #[test]
+    fn pyath_prints_like_pathlib() {
+        assert_eq!(
+            PyPath::new(".").join("src/data").display(),
+            format!("src{SEP}data")
+        );
+        assert_eq!(PyPath::new("./a//b/.").display(), format!("a{SEP}b"));
+        assert_eq!(PyPath::new("").display(), ".");
+    }
+}

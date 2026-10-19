@@ -5,7 +5,7 @@ This product includes work by Ryan Duguid
 (https://github.com/ryanduguid/australian-accounting/tree/main/packages/div7a-loan-review).
 
 div7a-loan-review bundles eight benchmark interest rate figures in
-div7aloan/data/benchmark_rates.csv. They are Financial Data published by the
+data/benchmark_rates.csv. They are Financial Data published by the
 Reserve Bank of Australia in statistical table F5 (series FILRHLBVS,
 Indicator Lending Rates, standard variable housing loan rate), read from
 https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx on the date each
@@ -22,5 +22,12 @@ implied, the RBA does not administer the figures as a benchmark, and the
 Notice's disclaimers apply. The RBA has not endorsed this software. Nothing
 here alters the figures; the engine applies them to the Division 7A
 benchmark interest rate as the Income Tax Assessment Act 1936 defines it.
+
+Decimal, text, CSV, JSON, path and argparse compatibility helpers are
+adapted from The WIP Tally and Australian Tax Calculators in this repository,
+which adapted them from The Exchequer Tally's port of
+accounting-review-pipeline/packages/elizabeth-anne-alexander and from
+llm-tax-guardrails tools/drdebits_build (Apache-2.0), Copyright 2026 Ryan
+Duguid.
 
 The software itself is licensed under the Apache License 2.0 in LICENSE.

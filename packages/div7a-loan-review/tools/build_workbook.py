@@ -3,13 +3,14 @@
 The workbook restates the engine's rules in ordinary worksheet formulas so an
 accountant with desktop Excel and no Python can paste a loan register, pick the year
 of income and read the s 109N gate and the s 109E minimum yearly repayment per loan.
-It is pinned to the engine by ``tests/test_workbook.py``, which reads the cached
-values desktop Excel wrote and compares them with ``review_register`` on the mixed
-sample.
+It is pinned to the engine by the repository's ``tests/test_div7a_workbook.py``,
+which reads the cached values desktop Excel wrote and compares them with the
+engine's review of the mixed sample, frozen in ``tests/data/workbook-sample.json``
+and held to the Rust engine by ``cargo test``.
 
-Run from the package directory on a machine with desktop Excel:
+Run from the repository root on a machine with desktop Excel:
 
-    uv run --locked --extra dev python tools/build_workbook.py
+    uv run python packages/div7a-loan-review/tools/build_workbook.py
 
 openpyxl writes the formulas; a single desktop Excel pass over COM recalculates the
 workbook so the shipped file carries real cached values, then the build-machine path
@@ -35,16 +36,22 @@ from openpyxl.worksheet.formula import ArrayFormula
 from openpyxl.worksheet.table import Table, TableColumn, TableFormula, TableStyleInfo
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from div7aloan import __version__  # noqa: E402
-from div7aloan.facts import _FALSE, _TRUE, UNKNOWN_TOKENS  # noqa: E402
-from div7aloan.money import MAX_MONEY_DECIMAL_PLACES, MAX_MONEY_MAGNITUDE  # noqa: E402
-from div7aloan.register import FIRST_REVIEWABLE_YEAR  # noqa: E402
-from div7aloan.years import _EARLIEST, _LATEST  # noqa: E402
+
+# The engine rules the formulas restate. The engine is the Rust crate in ROOT;
+# the repository's tests/test_div7a_workbook.py holds these copies to its source.
+__version__ = re.search(r'^version = "([^"]+)"$',
+                        (ROOT / "Cargo.toml").read_text(encoding="utf-8"), re.M).group(1)
+UNKNOWN_TOKENS = frozenset({"", "unknown", "unk", "n/a", "na", "?", "-"})
+_TRUE = frozenset({"true", "t", "yes", "y", "1"})
+_FALSE = frozenset({"false", "f", "no", "n", "0"})
+MAX_MONEY_DECIMAL_PLACES = 2
+MAX_MONEY_MAGNITUDE = "1000000000000.00"
+FIRST_REVIEWABLE_YEAR = 1998
+_EARLIEST, _LATEST = 1900, 2100
 
 OUT = ROOT / "workbooks" / "div7a-loan-review.xlsx"
 SAMPLE = ROOT / "examples" / "sample_loans_mixed.csv"
-RATES = ROOT / "div7aloan" / "data" / "benchmark_rates.csv"
+RATES = ROOT / "data" / "benchmark_rates.csv"
 DEFAULT_YEAR = "2026-27"
 
 PURPLE, LAVENDER, GREY = "5C2D91", "F3F1F6", "E2E0DF"
@@ -246,7 +253,7 @@ def formulas():
         # skipped with exit 0.
         "Status": (
             f'=IF(TRIM({T("out_of_scope_reason")}&"")<>"","SKIPPED",'
-            f'IF(IFERROR({year_start}<{FIRST_REVIEWABLE_YEAR.start_year},FALSE),"SKIPPED","REVIEWED"))'
+            f'IF(IFERROR({year_start}<{FIRST_REVIEWABLE_YEAR},FALSE),"SKIPPED","REVIEWED"))'
         ),
         "Floor_year": (
             f'=IF({unknown(year_text("year_of_income_being_tested"))},{year_text("year_loan_made")},'

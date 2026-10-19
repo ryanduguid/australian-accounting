@@ -44,14 +44,12 @@ RELEASE_CALLERS = {
     "aus-accounting-mcp": "apps/aus-accounting-mcp",
     "ato-benchmark-compare": "packages/ato-benchmark-compare",
     "payday-super-checker": "packages/payday-super-checker",
-    "div7a-loan-review": "packages/div7a-loan-review",
     "gst-review": "packages/gst-review",
 }
 
 PYTHON_ENGINES = {
     "packages/ato-benchmark-compare": "atobenchmark",
     "packages/payday-super-checker": "paydaysuper",
-    "packages/div7a-loan-review": "div7aloan",
     "packages/gst-review": "gstreview",
 }
 RUST_ENGINES = {
@@ -59,6 +57,7 @@ RUST_ENGINES = {
     "packages/solomons-sword": "solomons-sword",
     "packages/the-wip-tally": "the-wip-tally",
     "packages/australian-tax-calculators": "australian-tax-calculators",
+    "packages/div7a-loan-review": "div7a-loan-review",
 }
 ENGINES = PYTHON_ENGINES | RUST_ENGINES
 APPLICATIONS = {

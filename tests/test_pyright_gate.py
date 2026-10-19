@@ -14,7 +14,6 @@ ROOT = Path(__file__).resolve().parents[1]
 SCOPES = {
     "packages/ato-benchmark-compare": "atobenchmark",
     "packages/payday-super-checker": "paydaysuper",
-    "packages/div7a-loan-review": "div7aloan",
     "packages/gst-review": "gstreview",
     "apps/aus-accounting-mcp": "aus_accounting_mcp",
     "apps/lodgeit-calculator-adapter": "lodgeitadapter",

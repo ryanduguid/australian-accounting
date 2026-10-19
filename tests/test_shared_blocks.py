@@ -42,7 +42,6 @@ GROUPS = {
 FASTCHECK_COMPONENTS = (
     "ato-benchmark-compare",
     "payday-super-checker",
-    "div7a-loan-review",
 )
 IDENTICAL_FILES = {
     relative: tuple(PACKAGES / component / relative for component in FASTCHECK_COMPONENTS)

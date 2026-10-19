@@ -21,11 +21,11 @@ This is a full-year hypothetical, not a claim that the 2026-27 repayment deadlin
 
 ## Reproduce
 
-From `packages/div7a-loan-review`, using Python 3.14 or later:
+From `packages/div7a-loan-review`, with the binary built as the README describes:
 
 ```bash
-python -m div7aloan.cli review --input evaluation/div7a_myr/fixtures/myr_met_exact.csv --year 2026-27
-python -m div7aloan.cli review --input examples/repayment_review_excluded.csv --year 2026-27
+div7a-loan-review review --input evaluation/div7a_myr/fixtures/myr_met_exact.csv --year 2026-27
+div7a-loan-review review --input examples/repayment_review_excluded.csv --year 2026-27
 ```
 
 The first command exits 0; the second exits 2. Add `--format json` to inspect decimal amounts and the statutory trace. The second CSV copies the existing synthetic F1 facts, changes the scenario identifier and reduces only the asserted repayment amount by $10,000.
