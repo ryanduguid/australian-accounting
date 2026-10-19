@@ -13,7 +13,7 @@
 
 ## Core APIs
 - `gstreview.review_coding(lines, registrations, *, match_window_days=3, gst_codes=None)`: one state per `BankLine`: `unknown_gst_code`, `gst_differs_from_registration`, `between_entities`, `coded`, `suggested` or `nothing_suggested`.
-- `gstreview.reconcile_bas(lines, periods, lodged, *, basis, g1_includes_gst=True, bas_codes=None)`: G1, G2, G3, G10, G11, 1A and 1B per `Period` from `LedgerLine`s, compared with lodged whole-dollar figures on the cash or accruals basis.
+- `gstreview.reconcile_bas(lines, periods, lodged, *, basis, g1_includes_gst=True, bas_codes=None)`: G1, G2, G3, G10, G11, 1A and 1B per `Period` from `LedgerLine`s, compared with lodged whole-dollar figures on the cash or accruals basis. Refuses when a line in a period cannot be placed on a label.
 - Both return JSON-safe dictionaries with `facts_used`, `not_decided`, `sources`, `source_checked` and `warnings`.
 
 ## Architectural boundaries

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from decimal import Decimal
+from decimal import Decimal, getcontext, localcontext
 
 import pytest
 from gstreview import LedgerLine, Period, __version__, reconcile_bas
@@ -54,7 +54,8 @@ def test_matching_quarter() -> None:
     assert rows["G1"]["lines"] == []
     assert result["periods"][0]["kept_out"] == ["p4"]
     assert result["not_lodged"] == result["no_ledger_lines"] == []
-    assert result["line_issues"] == result["outside_periods"] == result["unpaid"] == []
+    assert result["outside_periods"] == result["unpaid"] == []
+    assert "line_issues" not in result
 
 
 def test_result_contract() -> None:
@@ -148,30 +149,54 @@ def test_credit_notes_reduce_and_a_negative_total_is_not_compared() -> None:
     assert rows["1A"]["lines"] == ["inv", "cn"]
 
 
-def test_lines_that_cannot_be_placed_are_kept_out_with_a_reason() -> None:
+def test_a_line_that_cannot_be_placed_refuses_the_reconciliation() -> None:
+    # Leaving such a line out would let a label "match" a total that omits it.
     lines = [
         sale("unknown", "10.00", "0.00", "ZZZ", date(2026, 7, 1)),
         sale("capital_sale", "110.00", "10.00", "CAP", date(2026, 7, 1)),
         buy("export_buy", "10.00", "0.00", "EXP", date(2026, 7, 1)),
         buy("gst_on_free", "11.00", "1.00", "FRE", date(2026, 7, 1)),
     ]
-    result = reconcile_bas(lines, [Q1], {}, basis="accruals")
-    assert [issue["id"] for issue in result["line_issues"]] == [
-        "unknown", "capital_sale", "export_buy", "gst_on_free"]
-    assert "not in the code table" in result["line_issues"][0]["issue"]
-    assert "cannot be placed on a sale" in result["line_issues"][1]["issue"]
-    assert "carries no GST" in result["line_issues"][3]["issue"]
-    assert result["periods"][0]["kept_out"] == [
-        "unknown", "capital_sale", "export_buy", "gst_on_free"]
-    assert all(row["ledger"] == "0" for row in labels(result).values())
+    with pytest.raises(ValueError) as refusal:
+        reconcile_bas(lines, [Q1], {"2026-Q1": {"G1": D(0)}}, basis="accruals")
+    message = str(refusal.value)
+    assert message.startswith("Lines that cannot be placed on a BAS label: 'unknown': ")
+    assert "not in the code table" in message
+    assert "'capital_sale': GST code 'CAP' (capital) cannot be placed on a sale" in message
+    assert "'export_buy': " in message
+    assert "'gst_on_free': GST of 1.00 on code 'FRE', which carries no GST" in message
+
+
+def test_a_line_no_period_holds_is_not_placed_or_refused() -> None:
+    lines = [sale("old", "10.00", "0.00", "ZZZ", date(2026, 6, 30)),
+             sale("open", "10.00", "0.00", "ZZZ", date(2026, 7, 1))]
+    result = reconcile_bas(lines, [Q1], {}, basis="cash")
+    assert result["outside_periods"] == []
+    assert result["unpaid"] == ["old", "open"]
+    assert reconcile_bas(lines[:1], [Q1], {}, basis="accruals")["outside_periods"] == ["old"]
 
 
 def test_caller_code_table_replaces_the_default() -> None:
-    lines = [buy("a", "55.00", "5.00", "G11X", date(2026, 7, 1)),
-             buy("b", "55.00", "5.00", "GST", date(2026, 7, 1))]
+    lines = [buy("a", "55.00", "5.00", "G11X", date(2026, 7, 1))]
     result = reconcile_bas(lines, [Q1], {}, basis="accruals", bas_codes={"G11X": "taxable"})
     assert labels(result)["1B"]["ledger"] == "5.00"
-    assert [issue["id"] for issue in result["line_issues"]] == ["b"]
+    with pytest.raises(ValueError, match="'b': GST code 'GST' is not in the code table"):
+        reconcile_bas([*lines, buy("b", "55.00", "5.00", "GST", date(2026, 7, 1))], [Q1], {},
+                      basis="accruals", bas_codes={"G11X": "taxable"})
+
+
+def test_a_callers_decimal_precision_does_not_change_the_totals() -> None:
+    lines = [sale("a", "110.99", "0.00", "FRE", date(2026, 7, 1)),
+             sale("b", "999999999.99", "0.00", "FRE", date(2026, 7, 2))]
+    lodged = {"2026-Q1": {"G1": D(1000000110), "G3": D(1000000110)}}
+    expected = reconcile_bas(lines, [Q1], lodged, basis="accruals")
+    with localcontext() as context:
+        context.prec = 4
+        reduced = reconcile_bas(lines, [Q1], lodged, basis="accruals")
+        assert getcontext().prec == 4
+    assert reduced == expected
+    assert labels(expected)["G1"]["ledger"] == "1000000110.98"
+    assert labels(expected)["G1"]["status"] == "matches"
 
 
 GOOD = sale("a", "1.00", "0.00", "FRE", date(2026, 7, 1))
