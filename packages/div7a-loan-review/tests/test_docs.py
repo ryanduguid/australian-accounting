@@ -209,8 +209,18 @@ def test_the_disclaimer_preserves_the_professional_boundary():
     assert "using it creates no professional relationship" in FLAT_DISCLAIMER
 
 
+def test_the_disclaimer_disclaims_the_ca_anz_endorsement():
+    assert "not an endorsement of this software by CA ANZ" in FLAT_DISCLAIMER
+
+
+def test_the_disclaimer_states_the_factual_limits():
+    assert "Outputs can be wrong, incomplete, stale, or unsuitable" in FLAT_DISCLAIMER
+
+
 def test_the_readme_carries_the_authorship_statement():
-    assert "Ryan Duguid, provisional member of Chartered Accountants Australia and New Zealand" in FLAT_README
+    assert "Provisional member of Chartered Accountants Australia and New Zealand" in FLAT_README
+    assert "not an endorsement of this software by CA ANZ" in FLAT_README
+    assert "own time, on his own equipment" in FLAT_README
     assert "keep the attribution in [NOTICE](NOTICE)" in FLAT_README
 
 

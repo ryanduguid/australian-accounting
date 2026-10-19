@@ -7,7 +7,8 @@ ledger, and applies the Division 203 benchmark rule for Australian companies.
 It does not provide professional advice. It is not an assessment, a private
 ruling, or a determination.
 
-Corporate tax rates, aggregated-turnover thresholds, the passive-income
+Outputs can be wrong, incomplete, stale, or unsuitable for a given set of
+facts. Corporate tax rates, aggregated-turnover thresholds, the passive-income
 test, ATO guidance and administrative practice change, and the engine sees
 only the facts it is handed. Confirm every rate, threshold and consequence
 against the current law and the entity's facts before acting, and leave

@@ -72,6 +72,7 @@ def test_disclaimer_resource_carries_the_facade_and_every_engine_boundary() -> N
     for description in resources.SCOPES.values():
         assert description in served
     assert "does not provide professional advice" in served
+    assert "Outputs can be wrong, incomplete, stale" in served
     assert "human review" in served
 
 
