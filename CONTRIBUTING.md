@@ -274,6 +274,26 @@ Registry through `publish-mcp.yml`.
 | the-wip-tally | `the-wip-tally/vX.Y.Z` | `release-the-wip-tally.yml` | `pyproject.toml` | `pypi-the-wip-tally` |
 | gst-review | `gst-review/vX.Y.Z` | `release-gst-review.yml` | `pyproject.toml` | `pypi-gst-review` |
 
+Tag and push with `just release <component>...` from the repository root, with `gh`
+authenticated with Administration read access. Before tagging anything it refuses unless
+release immutability is enabled and every named component has a release workflow, a
+`RELEASE_NOTES.md` header for its pyproject version, no tag locally or on GitHub, no
+GitHub or PyPI release of that version, and a successful job for each of its
+`required-checks` in the push runs of `main`'s head. It then tags `main`'s head and releases the
+components in the order given, pushing each tag on its own: GitHub creates no push event,
+so starts no workflow, for any tag when more than 3 tags arrive in one push ([events that
+trigger
+workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#push)).
+The next tag waits until the previous release run succeeds, and the first failure stops
+the run and lists the components left untagged. Release an engine before an MCP release
+that pins it. `--dry-run` runs the checks and tags nothing.
+
+Do not merge to `main` until `just release` finishes. Every tag is made on the same `main`
+commit, and Release Policy's first job requires that commit to be `main`'s head, so a merge
+before the last tag's run is under way stops the remaining releases. Once a run is past that
+job, a merge stops it only if it changes that component's source directory or its release
+workflow. A stopped version cannot be reused, because a pushed tag cannot be deleted.
+
 `IMPORTS.md` records which components still lack a Release Policy prerequisite; their
 workflows fail closed until a reviewed component change adds it. Nothing publishes from a
 contribution branch, and no tag or release is created without explicit approval.

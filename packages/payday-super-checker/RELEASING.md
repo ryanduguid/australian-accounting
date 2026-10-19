@@ -19,13 +19,14 @@ Before tagging:
    `ryanduguid/australian-accounting`, workflow
    `release-payday-super-checker.yml`, and environment
    `pypi-payday-super-checker`.
-4. Create an annotated tag on the current remote `main` commit and push that tag:
+4. From the repository root, tag the current remote `main` commit, push that tag
+   on its own and wait for its release run:
 
    ```bash
-   git tag -a payday-super-checker/v0.2.2 \
-     -m "payday-super-checker v0.2.2"
-   git push origin refs/tags/payday-super-checker/v0.2.2
+   just release payday-super-checker
    ```
+
+   See Releases in `CONTRIBUTING.md` for what it checks first.
 
 The workflow runs the locked tests, builds the wheel and source distribution,
 records provenance and SBOM attestations, publishes an immutable GitHub release,
