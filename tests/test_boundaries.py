@@ -49,6 +49,7 @@ RELEASE_CALLERS = {
     "the-exchequer-tally": "packages/the-exchequer-tally",
     "solomons-sword": "packages/solomons-sword",
     "the-wip-tally": "packages/the-wip-tally",
+    "gst-review": "packages/gst-review",
 }
 
 ENGINES = {

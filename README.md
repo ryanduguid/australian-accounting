@@ -146,15 +146,15 @@ For an editable source installation, run `pip install -e .` from
 | `packages/the-exchequer-tally/` | `the-exchequer-tally` | `edwinnixon` | `the-exchequer-tally` |
 | `packages/solomons-sword/` | `solomons-sword` | `louisgoldberg` | `solomons-sword` |
 | `packages/the-wip-tally/` | `the-wip-tally` | `wiptally` | `wip-tally` |
-| `packages/gst-review/` | `gst-review` (not yet released) | `gstreview` | Python review functions: GST coding states against registration, BAS-to-ledger reconciliation |
+| `packages/gst-review/` | `gst-review` | `gstreview` | Python review functions: GST coding states against registration, BAS-to-ledger reconciliation |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` | `lodgeitadapter` | optional adapter for a third-party calculator service; off by default, makes HTTP calls only when `LODGEIT_ADAPTER_ENABLED=1` |
 | `packages/au-tax-rates-data/` | `au-tax-rates-data` (never released) | `rates` (module) | `python rates.py validate`, `snapshot` and `check`: ATO rates and thresholds with verbatim source quotes, validated offline |
 
 `IMPORTS.md` records the source repository, commit and tree of every imported component. The
 MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest); it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
-`div7a-loan-review` and `australian-tax-calculators` distributions. In the development
-workspace, uv resolves those 4 dependencies to their checked-out sources.
+`div7a-loan-review`, `australian-tax-calculators` and `gst-review` distributions. In
+the development workspace, uv resolves those 5 dependencies to their checked-out sources.
 
 ## Working in a component
 

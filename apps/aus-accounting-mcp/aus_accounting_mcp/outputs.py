@@ -325,6 +325,84 @@ class PaydayEvidencePack(EngineResult):
     caveats: Caveats
 
 
+GstStatements = Annotated[list[str], Field(description="Retain when presenting the result.")]
+LineRefs = Annotated[list[str], Field(description="Supplied line ids, in input order.")]
+
+
+class GstCodingLine(ResultObject):
+    id: str
+    entity: str
+    date: DateText
+    amount: DecimalText
+    state: Literal[
+        "unknown_gst_code", "gst_differs_from_registration", "between_entities",
+        "coded", "suggested", "nothing_suggested",
+    ]
+    reason: str
+    counterpart: Annotated[
+        str | None, Field(description="Matched line of another entity; null when none.")
+    ]
+    sections: Annotated[list[str], Field(description="GST Act provisions behind the state.")]
+
+
+class GstCodingReview(EngineResult):
+    review: Literal["gst_coding"]
+    disclaimer: str
+    lines: list[GstCodingLine]
+    counts: Annotated[dict[str, int], Field(description="Lines per state, every state listed.")]
+    facts_used: Annotated[dict[str, Any], Field(description="Registrations, window and codes.")]
+    not_decided: GstStatements
+    sources: list[str]
+    source_checked: DateText
+    warnings: GstStatements
+
+
+class BasLabelComparison(ResultObject):
+    status: Literal["matches", "differs", "not_reported", "negative_ledger"]
+    ledger: DecimalText
+    ledger_whole_dollars: DecimalText
+    lodged: MaybeDecimal
+    difference: Annotated[
+        DecimalText | None,
+        Field(description="Ledger whole dollars less lodged; null unless status is differs."),
+    ]
+    lines: Annotated[list[str], Field(description="Lines behind a differing or negative figure.")]
+
+
+class BasPeriodReconciliation(ResultObject):
+    period: str
+    start: DateText
+    end: DateText
+    lodged: Annotated[bool, Field(description="Whether lodged figures were supplied.")]
+    labels: dict[str, BasLabelComparison]
+    kept_out: LineRefs
+    timing: Annotated[
+        list[str], Field(description="Lines invoiced in this period but attributed elsewhere.")
+    ]
+
+
+class BasLineIssue(ResultObject):
+    id: str
+    issue: str
+
+
+class BasReconciliation(EngineResult):
+    review: Literal["bas_reconciliation"]
+    disclaimer: str
+    basis: Literal["cash", "accruals"]
+    periods: list[BasPeriodReconciliation]
+    not_lodged: Annotated[list[str], Field(description="Periods with lines but no figures.")]
+    no_ledger_lines: Annotated[list[str], Field(description="Lodged periods with no lines.")]
+    outside_periods: LineRefs
+    unpaid: LineRefs
+    line_issues: list[BasLineIssue]
+    facts_used: Annotated[dict[str, Any], Field(description="Basis, G1 choice, codes, rounding.")]
+    not_decided: GstStatements
+    sources: list[str]
+    source_checked: DateText
+    warnings: GstStatements
+
+
 class LibraryExcerpt(ResultObject):
     path: str
     sha256: str

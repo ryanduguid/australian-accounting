@@ -1,6 +1,7 @@
 # v0.1.0
 
-Not yet released.
+This is the first PyPI release of `gst-review`, published through
+`release-gst-review.yml`, the monorepo's namespaced, attested release workflow.
 
 - `review_coding` gives each coded bank line one review state with a reason:
   `unknown_gst_code`, `gst_differs_from_registration`, `between_entities`, `coded`,

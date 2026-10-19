@@ -53,6 +53,16 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python",
         ".github/workflows/codeql.yml: codeql-gates"
     ],
+    "release-gst-review.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
+        ".github/workflows/ci.yml: gst-review / build",
+        ".github/workflows/ci.yml: gst-review / dependency-audit",
+        ".github/workflows/ci.yml: gst-review / lint",
+        ".github/workflows/ci.yml: gst-review / test (3.14)",
+        ".github/workflows/boundaries.yml: boundaries",
+        ".github/workflows/codeql.yml: Analyze Python",
+        ".github/workflows/codeql.yml: codeql-gates"
+    ],
     "release-payday-super-checker.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: payday-super-checker / build",

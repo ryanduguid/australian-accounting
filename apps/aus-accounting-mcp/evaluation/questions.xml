@@ -245,4 +245,16 @@
     <calls>[{"name": "search_tax_rates", "arguments": {"query": "rate", "topic": "levies"}}]</calls>
     <tools><tool>search_tax_rates</tool></tools>
   </qa_pair>
+  <qa_pair id="gst-coding">
+    <question>Synthetic Alder Pty Ltd has been registered for GST since 1 July 2024; Synthetic Birch Trust has never been registered. Review the coding of these fabricated bank lines: line 1, Alder, 3 August 2026, -110.00, confirmed to Repairs with code GST, paid to a supplier recorded as not registered; line 2, Alder, 4 August 2026, -5000.00, uncoded; line 3, Birch, 5 August 2026, 5000.00, uncoded. Return only the review state of line 1.</question>
+    <answer>gst_differs_from_registration</answer>
+    <calls>[{"name": "review_gst_coding", "arguments": {"lines": [{"id": "1", "entity": "Synthetic Alder Pty Ltd", "date": "2026-08-03", "amount": "-110.00", "account": "Repairs", "gst_code": "GST", "confirmed": true, "supplier_registered": false}, {"id": "2", "entity": "Synthetic Alder Pty Ltd", "date": "2026-08-04", "amount": "-5000.00"}, {"id": "3", "entity": "Synthetic Birch Trust", "date": "2026-08-05", "amount": "5000.00"}], "registrations": [{"entity": "Synthetic Alder Pty Ltd", "registered_from": "2024-07-01"}, {"entity": "Synthetic Birch Trust", "registered_from": null}]}}]</calls>
+    <tools><tool>review_gst_coding</tool></tools>
+  </qa_pair>
+  <qa_pair id="bas-reconciliation">
+    <question>Reconcile a fabricated lodged BAS for 2026-Q1 (1 July to 30 September 2026), cash basis, lodged G1 1650, 1A 150 and 1B 30, with these ledger lines: sale inv-101, gross 1100.00 with GST 100.00, code GST, invoiced 14 July and paid 30 July 2026; sale inv-102, gross 550.00 with GST 50.00, code GST, invoiced 25 September and paid 6 October 2026; purchase bill-7, gross 330.00 with GST 30.00, code GST, invoiced and paid 2 August 2026. Return only the G1 difference.</question>
+    <answer>-550</answer>
+    <calls>[{"name": "reconcile_bas", "arguments": {"lines": [{"id": "inv-101", "side": "sale", "gross": "1100.00", "gst": "100.00", "gst_code": "GST", "invoice_date": "2026-07-14", "payment_date": "2026-07-30"}, {"id": "inv-102", "side": "sale", "gross": "550.00", "gst": "50.00", "gst_code": "GST", "invoice_date": "2026-09-25", "payment_date": "2026-10-06"}, {"id": "bill-7", "side": "purchase", "gross": "330.00", "gst": "30.00", "gst_code": "GST", "invoice_date": "2026-08-02", "payment_date": "2026-08-02"}], "periods": [{"label": "2026-Q1", "start": "2026-07-01", "end": "2026-09-30", "lodged": {"G1": "1650", "1A": "150", "1B": "30"}}], "basis": "cash"}}]</calls>
+    <tools><tool>reconcile_bas</tool></tools>
+  </qa_pair>
 </evaluation>

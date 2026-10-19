@@ -1,7 +1,11 @@
 # GST review
 
 Distribution `gst-review`, import package `gstreview`. Library only: this component
-ships no command. Not yet published.
+ships no command.
+
+**Package lifecycle:** published. Install `gst-review` from PyPI with
+`pip install gst-review`; see [release notes](RELEASE_NOTES.md) and
+[DISCLAIMER.md](DISCLAIMER.md).
 
 Review aids for Australian GST over bank and ledger lines, for bookkeepers and
 accountants checking a coded bank feed before a BAS and reconciling a lodged BAS after it. The engines read the figures you supply,
@@ -138,7 +142,8 @@ It does not decide whether a difference needs a revised BAS, whether any code is
 or which basis applies (s 29-40). Part payments on the cash basis need one line per
 payment. Labels other than those above, adjustments and GST on imports are out of scope.
 
-## Follow-up
+## Aus Accounting MCP
 
-Not yet wired into Aus Accounting MCP: the application pins published engine
-distributions, so this needs a first release of `gst-review` and a release workflow.
+Aus Accounting MCP exposes both reviews as the `review_gst_coding` and `reconcile_bas`
+tools, taking decimal strings and YYYY-MM-DD dates, from the published distribution
+it pins.

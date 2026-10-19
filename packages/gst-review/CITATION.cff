@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software in research or industry applications, please cite it as below."
+authors:
+  - family-names: Duguid
+    given-names: Ryan
+title: "gst-review: Australian GST coding review and BAS-to-ledger reconciliation. Review aid, not a determination."
+version: 0.1.0
+url: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/gst-review"
+repository-code: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/gst-review"
+license: Apache-2.0
+keywords:
+  - gst
+  - bas
+  - bookkeeping
+  - bank-reconciliation
+  - australia

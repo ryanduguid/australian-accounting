@@ -15,14 +15,14 @@ from select_package import is_shared, parse_changed_paths
 DEPENDENCIES = {
     "aus-accounting-mcp": frozenset({
         "australian-tax-calculators", "ato-benchmark-compare",
-        "payday-super-checker", "div7a-loan-review",
+        "payday-super-checker", "div7a-loan-review", "gst-review",
     }),
     "lodgeit-calculator-adapter": frozenset({
         "australian-tax-calculators", "div7a-loan-review",
     }),
 }
 PACKAGES = frozenset().union(*DEPENDENCIES.values(), {
-    "solomons-sword", "the-exchequer-tally", "the-wip-tally", "gst-review",
+    "solomons-sword", "the-exchequer-tally", "the-wip-tally",
 })
 APP_JOBS = frozenset({"test", "lint", "dependency-audit"})
 KNOWN_PREFIXES = tuple(f"packages/{name}/" for name in PACKAGES) + tuple(

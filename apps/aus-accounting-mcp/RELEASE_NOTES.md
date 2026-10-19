@@ -1,3 +1,16 @@
+# v0.6.0
+
+- Adds `review_gst_coding`, which gives each coded bank line one review state
+  against the supplied GST registration dates, and `reconcile_bas`, which compares
+  lodged G1, G2, G3, G10, G11, 1A and 1B figures with ledger lines per period on
+  the cash or accruals basis. Both delegate to the new `gst-review` 0.1.0 engine;
+  neither classifies a supply or prepares, revises or lodges a BAS.
+- Lists `gst-review` in the component-versions resource, the disclaimer resource
+  and the scope resource.
+- Aligns citation, compatibility and MCP Registry metadata with 0.6.0.
+- Retains `payday-super-checker` 0.1.9, `ato-benchmark-compare` 0.1.11,
+  `div7a-loan-review` 0.2.0 and `australian-tax-calculators` 0.2.0 unchanged.
+
 # v0.5.0
 
 - Pins the published `australian-tax-calculators` 0.2.0, bringing the catalogue
