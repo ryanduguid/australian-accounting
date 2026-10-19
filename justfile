@@ -44,7 +44,7 @@ test: setup rust-test
     #!/usr/bin/env bash
     set -euo pipefail
     echo "==> repository boundaries"
-    uv run --no-sync python -m unittest -v tests/test_boundaries.py tests/test_shared_blocks.py
+    uv run --no-sync python -m unittest -v tests/test_boundaries.py tests/test_shared_blocks.py tests/test_release_script.py
     for entry in {{ components }}; do
         directory="${entry%%:*}"
         echo "==> ${directory}"
@@ -90,6 +90,13 @@ relock:
         cp "${standalone}/uv.lock" "${lock}"
         rm -rf "${standalone}"
     done
+
+# Release the named components from main's head, in order, one tag per push,
+# each after the previous release run succeeds; nothing is tagged if any check
+# refuses. Keep main frozen until it finishes. `--dry-run` checks and tags nothing:
+#     just release --dry-run payday-super-checker solomons-sword
+release +args:
+    uv run --no-project python .github/ci/release.py {{ args }}
 
 # Not a CI equivalent. The component workflows also check each engine's own
 # lockfile, run a dependency audit, a distribution build, installed-wheel and
