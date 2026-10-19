@@ -57,17 +57,18 @@ own commands:
   workspace cannot hold 2 exact pins of the same tool, so keep the 8 identical when
   changing one.
 
-## Rust engine
+## Rust engines
 
-The Exchequer Tally is a standalone Cargo crate excluded from the uv workspace.
-From `packages/the-exchequer-tally`, run `cargo fmt --check`,
-`cargo clippy --locked --all-targets -- -D warnings` and `cargo test --locked`.
-`cargo build --locked --release` builds its native command. Root `just test` and
-`just lint` include these checks; typecheck remains Python-only. CI calls
-`ci-exchequer.yml` from the anchor workflow on Ubuntu and Windows. CodeQL and
-Dependabot include Cargo. All candidate builds have read-only permissions.
+The Exchequer Tally and Solomon's Sword are standalone Cargo crates excluded from
+the uv workspace. From `packages/the-exchequer-tally` or `packages/solomons-sword`,
+run `cargo fmt --check`, `cargo clippy --locked --all-targets -- -D warnings` and
+`cargo test --locked`. `cargo build --locked --release` builds the native command.
+Root `just test` and `just lint` include these checks; typecheck remains
+Python-only. CI calls `ci-rust.yml` once per engine from the anchor workflow on
+Ubuntu and Windows. CodeQL and Dependabot include Cargo. All candidate builds
+have read-only permissions.
 
-The former Exchequer PyPI publisher is retired. Native publication is not
+The former PyPI publishers of both engines are retired. Native publication is not
 configured; signing and release-policy integration need a separate authorised
 release change. Other components retain their Python publishers.
 
@@ -89,8 +90,8 @@ uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --stric
 uv run --locked --extra dev --python 3.14 python -m build
 ```
 
-Five engines (`australian-tax-calculators`, `ato-benchmark-compare`, `payday-super-checker`,
-`div7a-loan-review` and `solomons-sword`) generate their property-test inputs with
+Four engines (`australian-tax-calculators`, `ato-benchmark-compare`, `payday-super-checker`
+and `div7a-loan-review`) generate their property-test inputs with
 fast-check. Their assertions, Decimal arithmetic and coverage stay in pytest; a small
 Node worker under `tests/fastcheck/` generates, shrinks and replays the inputs. Install
 the worker's locked npm dependencies before running their tests:
@@ -120,7 +121,7 @@ outside the checkout, the same way the lockfile is regenerated below.
 | payday-super-checker | `packages/payday-super-checker/` | `paydaysuper` |
 | div7a-loan-review | `packages/div7a-loan-review/` | `div7aloan` |
 | the-exchequer-tally (Rust) | `packages/the-exchequer-tally/` | none |
-| solomons-sword | `packages/solomons-sword/` | `louisgoldberg` |
+| solomons-sword (Rust) | `packages/solomons-sword/` | none |
 | the-wip-tally | `packages/the-wip-tally/` | `wiptally` |
 | gst-review | `packages/gst-review/` | `gstreview` |
 
@@ -270,7 +271,7 @@ Registry through `publish-mcp.yml`.
 | payday-super-checker | `payday-super-checker/vX.Y.Z` | `release-payday-super-checker.yml` | `pyproject.toml` | `pypi-payday-super-checker` |
 | div7a-loan-review | `div7a-loan-review/vX.Y.Z` | `release-div7a-loan-review.yml` | `pyproject.toml` | `pypi-div7a-loan-review` |
 | the-exchequer-tally (Rust) | reserved `the-exchequer-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
-| solomons-sword | `solomons-sword/vX.Y.Z` | `release-solomons-sword.yml` | `pyproject.toml` | `pypi-solomons-sword` |
+| solomons-sword (Rust) | reserved `solomons-sword/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | the-wip-tally | `the-wip-tally/vX.Y.Z` | `release-the-wip-tally.yml` | `pyproject.toml` | `pypi-the-wip-tally` |
 | gst-review | `gst-review/vX.Y.Z` | `release-gst-review.yml` | `pyproject.toml` | `pypi-gst-review` |
 

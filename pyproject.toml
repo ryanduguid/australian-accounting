@@ -10,7 +10,7 @@
 
 [tool.uv.workspace]
 members = ["packages/*", "apps/*"]
-exclude = ["packages/the-exchequer-tally"]
+exclude = ["packages/the-exchequer-tally", "packages/solomons-sword"]
 
 # The 8 engines pin the shared toolchain to one exact version each, so the
 # workspace resolves it without an override. Keep those pins identical: a
@@ -77,7 +77,6 @@ include = [
     "packages/ato-benchmark-compare/atobenchmark",
     "packages/payday-super-checker/paydaysuper",
     "packages/div7a-loan-review/div7aloan",
-    "packages/solomons-sword/louisgoldberg",
     "packages/the-wip-tally/wiptally",
     "packages/gst-review/gstreview",
     "apps/aus-accounting-mcp/aus_accounting_mcp",
@@ -88,7 +87,6 @@ extraPaths = [
     "packages/ato-benchmark-compare",
     "packages/payday-super-checker",
     "packages/div7a-loan-review",
-    "packages/solomons-sword",
     "packages/the-wip-tally",
     "packages/gst-review",
     "apps/aus-accounting-mcp",

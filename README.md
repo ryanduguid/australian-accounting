@@ -144,7 +144,7 @@ For an editable source installation, run `pip install -e .` from
 | `packages/payday-super-checker/` | `payday-super-checker` | `paydaysuper` | `payday-super-check` |
 | `packages/div7a-loan-review/` | `div7a-loan-review` | `div7aloan` | `div7a-loan-review` |
 | `packages/the-exchequer-tally/` | `the-exchequer-tally` (Rust) | none | `the-exchequer-tally` |
-| `packages/solomons-sword/` | `solomons-sword` | `louisgoldberg` | `solomons-sword` |
+| `packages/solomons-sword/` | `solomons-sword` (Rust) | none | `solomons-sword` |
 | `packages/the-wip-tally/` | `the-wip-tally` | `wiptally` | `wip-tally` |
 | `packages/gst-review/` | `gst-review` | `gstreview` | Python review functions: GST coding states against registration, BAS-to-ledger reconciliation |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` | `lodgeitadapter` | optional adapter for a third-party calculator service; off by default, makes HTTP calls only when `LODGEIT_ADAPTER_ENABLED=1` |
@@ -156,10 +156,11 @@ depends on the published `ato-benchmark-compare`, `payday-super-checker`,
 `div7a-loan-review`, `australian-tax-calculators` and `gst-review` distributions. In
 the development workspace, uv resolves those 5 dependencies to their checked-out sources.
 
-The Exchequer Tally 1.0.0 is an unreleased standalone Rust binary. Build it with
-Cargo using its [README](packages/the-exchequer-tally/README.md). The uv workspace
-continues to develop the other engines and applications; the MCP server has no
-dependency on The Exchequer Tally.
+The Exchequer Tally 1.0.0 and Solomon's Sword 1.0.0 are unreleased standalone Rust
+binaries. Build each with Cargo using its README
+([The Exchequer Tally](packages/the-exchequer-tally/README.md),
+[Solomon's Sword](packages/solomons-sword/README.md)). The uv workspace continues
+to develop the other engines and applications; the MCP server depends on neither.
 
 ## Working in a component
 

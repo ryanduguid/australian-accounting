@@ -48,7 +48,9 @@ updates:
       - dependency-name: ruff
 
   - package-ecosystem: cargo
-    directory: /packages/the-exchequer-tally
+    directories:
+      - /packages/the-exchequer-tally
+      - /packages/solomons-sword
     schedule:
       interval: weekly
     open-pull-requests-limit: 2

@@ -1,7 +1,12 @@
-name: Exchequer Rust checks
+name: Rust engine checks
 
 on:
   workflow_call:
+    inputs:
+      package:
+        description: Engine directory under packages/; also its binary name.
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -18,7 +23,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: packages/the-exchequer-tally
+        working-directory: packages/${{ inputs.package }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -30,15 +35,15 @@ jobs:
       - run: cargo test --locked
       - run: cargo build --locked --release
       - name: Smoke the native command
-        run: ./target/release/the-exchequer-tally --api-help
+        run: ./target/release/${{ inputs.package }} --api-help
       - name: Keep native candidate
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: exchequer-${{ matrix.os }}
+          name: ${{ inputs.package }}-${{ matrix.os }}
           if-no-files-found: error
           path: |
-            packages/the-exchequer-tally/target/release/the-exchequer-tally
-            packages/the-exchequer-tally/target/release/the-exchequer-tally.exe
+            packages/${{ inputs.package }}/target/release/${{ inputs.package }}
+            packages/${{ inputs.package }}/target/release/${{ inputs.package }}.exe
           retention-days: 7
 
   dependency-audit:
@@ -49,7 +54,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Audit Cargo lock
-        working-directory: packages/the-exchequer-tally
+        working-directory: packages/${{ inputs.package }}
         run: |
           cargo install cargo-audit --locked --version 0.22.2
           cargo audit --deny warnings

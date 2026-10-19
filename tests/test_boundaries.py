@@ -46,7 +46,6 @@ RELEASE_CALLERS = {
     "ato-benchmark-compare": "packages/ato-benchmark-compare",
     "payday-super-checker": "packages/payday-super-checker",
     "div7a-loan-review": "packages/div7a-loan-review",
-    "solomons-sword": "packages/solomons-sword",
     "the-wip-tally": "packages/the-wip-tally",
     "gst-review": "packages/gst-review",
 }
@@ -56,11 +55,13 @@ PYTHON_ENGINES = {
     "packages/ato-benchmark-compare": "atobenchmark",
     "packages/payday-super-checker": "paydaysuper",
     "packages/div7a-loan-review": "div7aloan",
-    "packages/solomons-sword": "louisgoldberg",
     "packages/the-wip-tally": "wiptally",
     "packages/gst-review": "gstreview",
 }
-RUST_ENGINES = {"packages/the-exchequer-tally": "the-exchequer-tally"}
+RUST_ENGINES = {
+    "packages/the-exchequer-tally": "the-exchequer-tally",
+    "packages/solomons-sword": "solomons-sword",
+}
 ENGINES = PYTHON_ENGINES | RUST_ENGINES
 APPLICATIONS = {
     "apps/aus-accounting-mcp": "aus_accounting_mcp",

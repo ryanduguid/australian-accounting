@@ -16,7 +16,6 @@ SCOPES = {
     "packages/ato-benchmark-compare": "atobenchmark",
     "packages/payday-super-checker": "paydaysuper",
     "packages/div7a-loan-review": "div7aloan",
-    "packages/solomons-sword": "louisgoldberg",
     "packages/the-wip-tally": "wiptally",
     "packages/gst-review": "gstreview",
     "apps/aus-accounting-mcp": "aus_accounting_mcp",

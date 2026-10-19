@@ -16,7 +16,6 @@ members = [
     "gst-review",
     "lodgeit-calculator-adapter",
     "payday-super-checker",
-    "solomons-sword",
     "the-wip-tally",
 ]
 
@@ -1193,36 +1192,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
 ]
-
-[[package]]
-name = "solomons-sword"
-version = "0.3.2"
-source = { editable = "packages/solomons-sword" }
-
-[package.optional-dependencies]
-dev = [
-    { name = "build" },
-    { name = "coverage" },
-    { name = "nodejs-wheel-binaries" },
-    { name = "pyright", extra = ["nodejs"] },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-    { name = "setuptools" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "build", marker = "extra == 'dev'", specifier = "==1.6.1" },
-    { name = "coverage", marker = "extra == 'dev'", specifier = "==7.16.2" },
-    { name = "nodejs-wheel-binaries", marker = "extra == 'dev'", specifier = "==24.19.0" },
-    { name = "pyright", extras = ["nodejs"], marker = "extra == 'dev'", specifier = "==1.1.414" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = "==7.1.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.17.0" },
-    { name = "setuptools", marker = "extra == 'dev'", specifier = "==84.0.0" },
-]
-provides-extras = ["dev"]
 
 [[package]]
 name = "sse-starlette"
