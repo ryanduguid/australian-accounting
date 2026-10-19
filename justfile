@@ -18,6 +18,7 @@ packages/div7a-loan-review:div7aloan
 packages/solomons-sword:louisgoldberg
 packages/the-exchequer-tally:edwinnixon
 packages/the-wip-tally:wiptally
+packages/gst-review:gstreview
 apps/aus-accounting-mcp:aus_accounting_mcp
 apps/lodgeit-calculator-adapter:lodgeitadapter
 packages/au-tax-rates-data:rates

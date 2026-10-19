@@ -22,7 +22,7 @@ DEPENDENCIES = {
     }),
 }
 PACKAGES = frozenset().union(*DEPENDENCIES.values(), {
-    "solomons-sword", "the-exchequer-tally", "the-wip-tally",
+    "solomons-sword", "the-exchequer-tally", "the-wip-tally", "gst-review",
 })
 APP_JOBS = frozenset({"test", "lint", "dependency-audit"})
 KNOWN_PREFIXES = tuple(f"packages/{name}/" for name in PACKAGES) + tuple(
