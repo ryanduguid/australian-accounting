@@ -14,14 +14,14 @@ Q2 = Period("2026-Q2", date(2026, 10, 1), date(2026, 12, 31))
 D = Decimal
 
 
-def sale(id: str, gross: str, gst: str, code: str, invoiced: date,
+def sale(line_id: str, gross: str, gst: str, code: str, invoiced: date,
          paid: date | None = None) -> LedgerLine:
-    return LedgerLine(id, "sale", D(gross), D(gst), code, invoiced, paid)
+    return LedgerLine(line_id, "sale", D(gross), D(gst), code, invoiced, paid)
 
 
-def buy(id: str, gross: str, gst: str, code: str, invoiced: date,
+def buy(line_id: str, gross: str, gst: str, code: str, invoiced: date,
         paid: date | None = None) -> LedgerLine:
-    return LedgerLine(id, "purchase", D(gross), D(gst), code, invoiced, paid)
+    return LedgerLine(line_id, "purchase", D(gross), D(gst), code, invoiced, paid)
 
 
 QUARTER = [
@@ -201,9 +201,9 @@ GOOD = sale("a", "1.00", "0.00", "FRE", date(2026, 7, 1))
         ([LedgerLine("", "sale", D(1), D(0), "FRE", date(2026, 7, 1))], [Q1], {},
          {"basis": "cash"}, "unique"),
         ([LedgerLine("a", "income", D(1), D(0), "FRE", date(2026, 7, 1))], [Q1], {},
-         {"basis": "cash"}, "side"),
+         {"basis": "cash"}, "side of"),
         ([LedgerLine("a", "sale", D(1), D(0), None, date(2026, 7, 1))], [Q1], {},  # type: ignore[arg-type]
-         {"basis": "cash"}, "GST code"),
+         {"basis": "cash"}, "and a GST code"),
         ([LedgerLine("a", "sale", D(1), D(0), "FRE", None)], [Q1], {},  # type: ignore[arg-type]
          {"basis": "cash"}, "invoice date"),
         ([LedgerLine("a", "sale", D(1), D(0), "FRE", date(2026, 7, 1), "2026-07-02")],  # type: ignore[arg-type]
