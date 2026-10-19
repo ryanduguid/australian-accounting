@@ -213,7 +213,8 @@ class ApplicationSelectionTests(unittest.TestCase):
             tomllib.loads(path.read_text(encoding="utf-8"))["project"]["name"]
             for path in ROOT.glob("packages/*/pyproject.toml")
         }
-        self.assertTrue(self.ci.PACKAGES <= packages)
+        rust_packages = {path.parent.name for path in ROOT.glob("packages/*/Cargo.toml")}
+        self.assertTrue(self.ci.PACKAGES <= packages | rust_packages)
         for app, expected in self.ci.DEPENDENCIES.items():
             project = tomllib.loads((ROOT / "apps" / app / "pyproject.toml").read_text())["project"]
             declared = project.get("dependencies", []) + [

@@ -1,214 +1,129 @@
 # Company tax and franking checks
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+The Exchequer Tally 1.0.0 is a standalone Rust binary. It replaces the Python
+`the-exchequer-tally` 0.2.0 package and its `edwinnixon` import API.
 
-| Install distribution | Python import | Command |
-| --- | --- | --- |
-| `the-exchequer-tally` | `edwinnixon` | `the-exchequer-tally` |
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited
+to software issues reproduced with fabricated data. Do not send taxpayer
+information or request advice, return preparation, tax-treatment confirmation or
+lodgement. Outputs are review aids. See [DISCLAIMER.md](DISCLAIMER.md).
 
-[![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
-[![PyPI](https://img.shields.io/pypi/v/the-exchequer-tally.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/the-exchequer-tally/)
-[![Python](https://img.shields.io/badge/Python-3.14+-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/)
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0)
-[![ITAA 1997](https://img.shields.io/badge/Legislation-ITAA%201997%20Part%203--6-66023C?labelColor=000000&style=flat-square)](https://www.legislation.gov.au/C2004A05138/latest/text)
+## Build and check
 
-Project name The Exchequer Tally. Distribution `the-exchequer-tally`, import package `edwinnixon`, command `the-exchequer-tally`.
+Install Rust with rustup, then run from this directory:
 
-**Corporate tax rate verification, franking account ledger tracking, and Division 203 benchmark rule compliance for Australian private and public companies.**
-
-**Package lifecycle:** published. Install `the-exchequer-tally` from PyPI.
-
-The `australian-accounting` repository contains the maintained source. The
-`the-exchequer-tally` distribution and command match the project identity. The
-`edwinnixon` import package remains unchanged, so internal Python imports do not
-need a rename.
-
-In-repo version: `0.2.0`; see [release notes](RELEASE_NOTES.md).
-
----
-
-## What it checks
-
-- **Base Rate Entity (BRE) Testing**: Deterministic assessment under *s 23AA & s 23AB Income Tax Rates Act 1986* (evaluating aggregated turnover thresholds and Base Rate Entity Passive Income ratios).
-- **Franking Account Ledger (FAB)**: Tracks PAYG instalments, company tax payments, dividends paid/received, ordinary income tax refunds, under-franking debits and FDT liability credits.
-- **Franking Deficit Tax (FDT) & Offset Reduction**: Evaluates FDT liability under *s 205-45* and the offset reduction under *s 205-70(2) and (8)* for the supported debit types. Refund-only deficits receive no reduction.
-- **Division 203 Benchmark Rule Engine**: Detects over-franking tax (*s 203-50(1)*) and franking debit shortfalls (*s 203-50(2)*) across distributions in a franking period.
-- **Dividend Distribution Statements**: Builds the statement fields required by *s 202-75 / s 202-80*. This is a review helper, not a lodgement and not a compliance certificate.
-
-## Not advice
-
-Nothing this engine produces is tax, legal or financial advice, an assessment
-or a determination. Outputs are review aids: confirm every rate, threshold and
-consequence against the current law and the entity's facts before acting, and
-leave lodgement decisions with a registered practitioner.
-
-Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
-
----
-
-## Quickstart
-
-### Installation
-```bash
-pip install the-exchequer-tally
+```sh
+cargo build --locked --release
+cargo fmt --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 ```
 
-### CLI usage
-```bash
-# Evaluate Base Rate Entity (BRE) status for FY2025
+The toolchain is pinned in `rust-toolchain.toml`. The executable is
+`target/release/the-exchequer-tally` (`.exe` on Windows). Add that directory to
+PATH or copy the executable to a directory on PATH. No Python runtime is needed.
+The current native version is unreleased. PyPI still provides the historical
+Python release; `pip install` does not install this binary.
+
+## Original commands
+
+```sh
 the-exchequer-tally bre-test --fy 2025 --turnover 4500000 --assessable 800000 --passive 120000
-
-# Generate a dividend distribution statement
-the-exchequer-tally dist-statement --entity "Acme Pty Ltd" --acn "123456789" --recipient "Jane Doe" --payment-date 2025-03-14 --amount 15000 --franking-pct 100 --tax-rate 0.25
+the-exchequer-tally dist-statement --entity "Synthetic Pty Ltd" --acn 123456789 --recipient "Synthetic shareholder" --payment-date 2026-09-01 --amount 10000 --tax-rate 0.25 --franking-pct 100
 ```
 
----
+`--help` and each original command's `--help` preserve the Python help text.
+Money flags accept non-negative AUD amounts up to $1 trillion, with at most two
+decimal places. `dist-statement` requires a positive distribution, an explicit
+payment date and tax rate. Rates are fractions strictly between zero and one;
+percentages are between zero and 100 inclusive.
 
-## Statutory sources and tests
+Successful commands exit 0. Missing or invalid arguments and domain validation
+errors exit 2. Invoking the binary without a command prints help and exits 1.
+An unhandled Decimal calculation failure exits 1; its diagnostic adaptation is
+listed in [CHANGELOG.md](CHANGELOG.md). Output uses UTF-8, with CRLF on Windows.
 
-### Worked example: 2 income years, 2 rates
+## Former Python API
 
-These fabricated figures are independently prepared inputs for an ordinary
-company. Aggregated turnover is a separate tax measure; do not substitute total
-assessable income for it.
+Each API command reads one UTF-8 JSON object from stdin and prints one compact
+JSON result followed by a newline. Decimal amounts, rates and percentages are
+strings throughout, preserving Python Decimal values and scale. Dates use
+canonical `YYYY-MM-DD`. Financial years are JSON integers within the signed
+64-bit range. An unknown outcome is JSON `null`. An invalid request exits 2,
+writes `error: <reason>` to stderr and writes no stdout; type and format errors
+name the field. `--api-help` lists these commands.
 
-| Input | FY2026 | FY2027 |
-|---|---:|---:|
-| Aggregated turnover | $2,000,000 | $3,000,000 |
-| Assessable income | $1,000,000 | $1,000,000 |
-| Base rate entity passive income | $900,000 | $200,000 |
-| Passive share | 90% | 20% |
+| Command | Input fields | Result |
+| --- | --- | --- |
+| `corporate-tax` | `financial_year`, `aggregated_turnover`, `assessable_income`, `passive_income` | CorporateTaxRate fields |
+| `bre-properties` | Same four fields | Passive percentage, turnover eligibility, BREPI eligibility and BRE status |
+| `turnover-threshold` | `financial_year` | Decimal threshold string |
+| `max-franking-rate` | `current_fy`, optional `prior_year_test` containing the four BRE fields | Decimal rate string; missing or wrong-year evidence is refused |
+| `statement` | `entity_name`, `abn_or_acn`, `recipient_name`, `payment_date`, `total_distribution`, `franking_percentage`, `corporate_tax_rate` | Statement fields, total and gross assessable income |
+| `distribution-event` | `event_date`, `recipient_name`, `distribution_amount`, `franking_credit`, optional `corporate_tax_rate` | Event fields, maximum credit, exact ratio and displayed percentage; measurement requires a rate |
+| `benchmark` | `corporate_tax_rate`, optional `distributions` array of event objects | Original-order distributions, benchmark percentage, compliance status and violations |
+| `franking-account` | `financial_year`, optional `opening_balance`, `entries`, `records`, `append_entries` | Entries, totals, closing balance and deficit result |
+| `validate-value` | `kind` (`money`, `percentage`, `rate` or `date`), `value` string | Original CLI validator's parsed value string |
 
-```python
-from decimal import Decimal
-from edwinnixon.corporate_tax import (
-    BaseRateEntityTest,
-    determine_corporate_tax_rate,
-    determine_max_franking_rate,
-)
+For example, in a POSIX shell:
 
-prior = BaseRateEntityTest(2026, Decimal("2000000"), Decimal("1000000"), Decimal("900000"))
-current = BaseRateEntityTest(2027, Decimal("3000000"), Decimal("1000000"), Decimal("200000"))
-assert determine_corporate_tax_rate(current).applicable_rate == Decimal("0.25")
-assert determine_max_franking_rate(2027, prior) == Decimal("0.30")
+```sh
+echo '{"financial_year":2027,"aggregated_turnover":"1000000","assessable_income":"500000","passive_income":"100000"}' | the-exchequer-tally corporate-tax
+echo '{"financial_year":2027,"opening_balance":"0.00","records":[{"entry_date":"2026-09-01","entry_type":"PAYG_INSTALMENT","amount":"1000"},{"entry_date":"2027-03-01","entry_type":"FRANKED_DIST_PAID","amount":"3000"}]}' | the-exchequer-tally franking-account
 ```
 
-The company tax calculation uses FY2027 facts. The imputation calculation uses
-FY2026 amounts with the FY2027 rate scale. Passing `current` as the prior-year
-evidence now raises `ValueError`, as does using an older or future year.
+In PowerShell use a single-quoted JSON string piped directly to the executable,
+without `echo`. Non-ASCII input needs a UTF-8 pipe encoding.
 
-The Library's *Tax Examples / Companies and distributions*, paragraph 10-000,
-prompted this case. Its text and example data are not reproduced. Authority:
-*Income Tax Rates Act 1986* ss 23 and 23AA, and *Income Tax Assessment Act 1997*
-s 995-1, definition of corporate tax rate for imputation purposes. The
-[Rates Act](https://www.legislation.gov.au/C2004A03348/2026-07-01/text) and
-[ITAA dictionary](https://www.legislation.gov.au/C2004A05138/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_10/document_10.html)
-compilations dated 1 July 2026 were checked on 10 September 2026 against this
-FY2027 scenario and the existing rate table. Verify the applicable version
-for any actual distribution.
+Ledger `entries` and `append_entries` are direct entry objects: `entry_date`,
+`entry_type`, decimal `amount`, `description`, optional `statutory_reference`
+(omitted means an empty string; an explicit `null` is returned as `null`).
+Direct entries may be zero. `records` invokes the recording methods: each object
+has `entry_date`, `entry_type`, positive decimal `amount` and an optional
+`description`; amounts are rounded half up to cents. A `TAX_REFUND` record also
+requires `includes_r_and_d_offset: false`. True, null and omission are refused
+before posting. Direct entries retain the original constructor's validation;
+use records when classifying and posting refunds.
 
-Newly formed entities without a prior income year need separate review; this
-helper still requires prior-year evidence and does not implement that statutory
-exception. This test proves arithmetic and period validation, not the supplied
-income classifications or a dividend's approval.
+Entry types are `PAYG_INSTALMENT`, `COMPANY_TAX_PAYMENT`, `FRANKED_DIST_REC`,
+`FDT_LIABILITY`, `FRANKED_DIST_PAID`, `TAX_REFUND` and `UNDER_FRANKING_DEBIT`.
+Every calculation revalidates that all entries belong to the stated financial
+year. `append_entries` exposes this original mutation check without a Python
+object. Omitted opening balance stays unknown; an established nil balance is
+the explicit string `"0.00"`.
 
-`BaseRateEntityTest` rejects passive income greater than assessable income,
-including a positive passive amount against nil assessable income. Both amounts
-may be zero, and passive income may equal assessable income.
+## Arithmetic and limits
 
-With no assessable income the s 23AB passive-income test has no proportion to
-compare, so `is_brepi_eligible` and `is_base_rate_entity` are `None` and
-`determine_corporate_tax_rate` raises rather than returning the base rate.
-Failing the turnover test still settles the status on its own, because both
-limbs of s 23AA must be met. A financial year the rate table and the
-turnover-threshold table do not list is refused; neither table is read forward
-into an unlisted year.
+Arithmetic follows Python's default Decimal context: 28 significant digits,
+half even for intermediate operations, half up where the engine explicitly
+rounds to cents, and round down for statement franking credits. Eligibility and
+benchmark comparisons use the original unrounded operations. Missing facts
+remain unknown. Rate and turnover tables cover only FY2018 through FY2027;
+this port does not update or extend law data.
 
-### Facts the engine will not assume
+The JSON boundary accepts at most 8 MiB. Accounting decimal fields accept at
+most 8,192 UTF-8 bytes each and absolute exponent/adjusted exponent up to 10,000.
+These resource ceilings replace Python's machine-dependent allocation limits.
+`validate-value` intentionally applies the original CLI validator grammar to
+its raw string, including large exponents; it performs no accounting arithmetic
+and is exempt from the accounting decimal-field ceilings. The 8 MiB JSON limit
+still applies. JSON nesting follows serde_json's recursion limit.
 
-The entity's corporate tax rate is a required input everywhere it is used:
-`BenchmarkRuleValidator(corporate_tax_rate=...)`,
-`generate_distribution_statement(..., corporate_tax_rate=...)` and the CLI's
-`--tax-rate`. None of them fall back to the 25% base rate, because scoring a
-30% company at the base rate understates the s 202-60 maximum credit and makes
-fully franked distributions read as under-franked. A `DistributionEvent` may
-still leave its own rate unstated for `add_distribution` to fill from the
-validator; measured on its own it raises instead.
+## Integration and releases
 
-`validate_distributions()` returns `(True, [])` when the benchmark rule is met,
-`(False, violations)` when it is breached, and `(None, [])` when the period
-holds no frankable distribution, so no benchmark was set and nothing was
-tested. `None` is not a finding of compliance.
+The MCP application consumes four other Python engines and has never imported
+this engine. Its current tools and pins remain unchanged. When a Rust MCP server
+later exposes this engine, it can launch the relevant JSON subcommand with stdin
+and consume stdout, using the process exit status to distinguish refusal.
 
-### Refund classification and the FDT offset
+Root `just test` and `just check` include Cargo. CI builds and tests on Ubuntu and
+Windows with read-only repository permissions; CodeQL includes Rust and
+Dependabot monitors this Cargo lock. CI retains native candidates. The former
+Python/PyPI publisher is retired. Native signing, release-policy integration and
+publication require a separate authorised release change; no publisher is
+configured for 1.0.0.
 
-`record_tax_refund` now requires the keyword `includes_r_and_d_offset`.
-Existing callers must confirm the refund's classification and pass `False`
-for an ordinary income tax refund. `True` or an unknown classification raises
-an error before posting. Descriptions do not determine tax treatment.
-
-This fabricated FY2027 example has only an ordinary refund debit:
-
-```python
-from datetime import date
-from decimal import Decimal
-from edwinnixon.franking_account import FrankingAccount
-
-account = FrankingAccount(2027, opening_balance=Decimal("0.00"))
-account.record_payg_instalment(date(2026, 9, 1), Decimal("1000"))
-account.record_tax_refund(
-    date(2027, 3, 1), Decimal("3000"), includes_r_and_d_offset=False,
-)
-result = account.evaluate_franking_deficit()
-assert result.franking_deficit_tax == Decimal("2000")
-assert result.allowable_tax_offset == Decimal("2000")
-assert result.fdt_offset_reduction_applies is False
-```
-
-For supported debits, an item 1 distribution or item 3 under-franking debit
-also brings item 2 refunds into the reduction calculation. The threshold uses
-credits arising during the year, excluding the opening credit balance.
-
-The evaluator assumes residency and no first-year exception or Commissioner's
-discretion. Other debit types, late-balancing rules and prior-year offset
-carry-forwards need separate review. The account accepts entries from 1 July
-to 30 June of its financial year, inclusive. Recording and construction reject
-out-of-year dates; balance calculations also reject entries inserted directly
-into the public list. Bring earlier periods forward through the opening balance.
-
-The opening balance is a required fact. Left unstated it is `None`, and then
-`closing_balance` is `None` and `evaluate_franking_deficit` returns an explicit
-unknown: `has_deficit is None`, no FDT amount, and `unknown_reason` naming the
-missing balance. A `None` result is not a finding of no deficit. State the
-opening balance from the prior year's reconciled account, `Decimal("0.00")`
-included, to get a result.
-
-R&D refunds need separate review in full, including mixed refunds. The R&D
-portion does not create an immediate debit under s 205-30(2); s 205-15(4)
-can reduce later payment credits. This ledger does not track that history.
-Do not use it for an account with outstanding deferred R&D debits, or bypass
-the refund guard by constructing entries directly.
-
-The Library's *Tax Examples / Companies and distributions* prompted these
-cases. No source text or example figures are reproduced. Checked against
-[ITAA 1997 ss 205-15, 205-30 and 205-70](https://www.legislation.gov.au/C2004A05138/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_5/document_5.html)
-on 10 September 2026.
-
-All mathematical operations execute via `decimal.Decimal` fixed-point arithmetic to guarantee zero floating-point drift across corporate tax and franking schedules.
-
-| Statutory Domain | Primary Authority | Verification Invariant |
-| :--- | :--- | :--- |
-| **Base Rate Entity Status** | *Income Tax Rates Act 1986* s 23AA | BRE rate bounded by the year's listed aggregated-turnover threshold ($25M for FY2018, $50M for FY2019 to FY2027) and BREPI <= 80% compared exactly. An unlisted year, or a passive-income test with no assessable income to run against, yields no rate. |
-| **Franking Credits & Debits** | *ITAA 1997* s 205-15, s 205-30 | Cent-exact, order-independent sums of entries within the account's July-to-June financial year. |
-| **FDT Offset Reduction** | *ITAA 1997* s 205-45, s 205-70(2) and (8) | Supported debit types determine whether the 30% reduction applies; see the scope above. |
-| **Benchmark Rule** | *ITAA 1997* ss 203-25 to 203-55 | Benchmark set by the first frankable distribution in the franking period (*s 203-30*), then one deterministic shortfall or over-franking result per later distribution. A period with no frankable distribution is not tested. |
-| **Distribution Statements** | *ITAA 1997* ss 202-75, 202-80 | Precise franking credit formula: `Distribution * (Rate / (1 - Rate)) * Franking%`, at the supplied rate. |
-
-### Automated test suite
-- Run the full suite: `uv run --locked --extra dev pytest` (or `pip install .[dev]` then `pytest`; the configured coverage add-on needs the dev extras)
-- The suite covers BRE eligibility, FDT penalty triggers, benchmark-rule checks, and distribution-statement generation. Do not treat a static badge as live coverage.
-
----
-
-## Licence
-Apache-2.0 licensed. Created by Ryan Duguid. If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).
+The frozen Python corpus in `tests/data/` is replayed by Rust on both platforms.
+[tests/BEHAVIOURS.md](tests/BEHAVIOURS.md) maps the original tests to these checks.
+The archive-based differential harness and qualification receipts are retained
+under the Agent Hub task `rust-port-2026-10-11`, outside this repository.

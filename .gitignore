@@ -28,3 +28,6 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 node_modules/
+
+# Per-component Rust build output. Locks stay tracked.
+**/target/
