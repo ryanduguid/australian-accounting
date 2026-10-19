@@ -1,10 +1,12 @@
-# v0.3.0
+# v0.3.1
 
 - The package moves from MIT to the Apache-2.0 licence, with a `NOTICE` file whose attribution anyone redistributing the package or a derivative must keep ([#373](https://github.com/ryanduguid/australian-accounting/pull/373)). The package metadata declares Apache-2.0. Releases up to v0.2.0 stay under MIT.
 - Requires Python 3.14 or later; Python 3.11 to 3.13 are no longer supported, and 0.2.0 remains the last release that installs on them ([#355](https://github.com/ryanduguid/australian-accounting/pull/355)).
 - The build backend moves from hatchling 1.32.4 to setuptools 84.0.0 ([#410](https://github.com/ryanduguid/australian-accounting/pull/410)).
 
 No calculation changed.
+
+Version 0.3.0 was tagged but never released: its release run stopped at the test gate, before anything was built, because the fast-check worker was not installed ([#419](https://github.com/ryanduguid/australian-accounting/pull/419)). 0.3.1 is the first release with these changes.
 
 # v0.2.0
 
