@@ -13,5 +13,5 @@ Topics:
 - division-203
 - franking-account
 - franking-credits
-- python
+- rust
 - review-aid

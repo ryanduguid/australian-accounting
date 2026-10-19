@@ -75,10 +75,6 @@ jobs:
             import-name: louisgoldberg
             windows-python: ""
             changed-line-coverage: ""
-          - package: the-exchequer-tally
-            import-name: edwinnixon
-            windows-python: ""
-            changed-line-coverage: ""
           - package: the-wip-tally
             import-name: wiptally
             windows-python: "3.14"
@@ -93,6 +89,12 @@ jobs:
       import-name: ${{ matrix.import-name }}
       windows-python: ${{ matrix.windows-python }}
       changed-line-coverage: ${{ matrix.changed-line-coverage }}
+
+  exchequer:
+    name: the-exchequer-tally
+    uses: ./.github/workflows/ci-exchequer.yml
+    permissions:
+      contents: read
 
   test:
     needs: changes
@@ -233,7 +235,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, test, dependency-audit, lint]
+    needs: [changes, packages, exchequer, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

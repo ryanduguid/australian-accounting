@@ -46,22 +46,22 @@ RELEASE_CALLERS = {
     "ato-benchmark-compare": "packages/ato-benchmark-compare",
     "payday-super-checker": "packages/payday-super-checker",
     "div7a-loan-review": "packages/div7a-loan-review",
-    "the-exchequer-tally": "packages/the-exchequer-tally",
     "solomons-sword": "packages/solomons-sword",
     "the-wip-tally": "packages/the-wip-tally",
     "gst-review": "packages/gst-review",
 }
 
-ENGINES = {
+PYTHON_ENGINES = {
     "packages/australian-tax-calculators": "austaxcalc",
     "packages/ato-benchmark-compare": "atobenchmark",
     "packages/payday-super-checker": "paydaysuper",
     "packages/div7a-loan-review": "div7aloan",
-    "packages/the-exchequer-tally": "edwinnixon",
     "packages/solomons-sword": "louisgoldberg",
     "packages/the-wip-tally": "wiptally",
     "packages/gst-review": "gstreview",
 }
+RUST_ENGINES = {"packages/the-exchequer-tally": "the-exchequer-tally"}
+ENGINES = PYTHON_ENGINES | RUST_ENGINES
 APPLICATIONS = {
     "apps/aus-accounting-mcp": "aus_accounting_mcp",
     # The optional remote adapter. An application, not an engine: it may consume
@@ -234,8 +234,8 @@ class BoundaryTests(unittest.TestCase):
 
         self.assertIn("uses: ./.github/workflows/ci-package.yml", caller)
         called = set(re.findall(r"(?m)^          - package: (\S+)$", caller))
-        self.assertEqual(called, {Path(component).name for component in ENGINES})
-        for component, import_name in ENGINES.items():
+        self.assertEqual(called, {Path(component).name for component in PYTHON_ENGINES})
+        for component, import_name in PYTHON_ENGINES.items():
             with self.subTest(component=component):
                 self.assertIn(
                     f"- package: {Path(component).name}\n"
@@ -267,7 +267,7 @@ class BoundaryTests(unittest.TestCase):
     def test_every_engine_configures_the_shared_gate_scope(self) -> None:
         # ruff check ., pyright and pytest --cov take their scope from the engine's
         # pyproject.toml, so each engine has to declare all 3.
-        for component, import_name in ENGINES.items():
+        for component, import_name in PYTHON_ENGINES.items():
             pyproject = (ROOT / component / "pyproject.toml").read_text(encoding="utf-8")
             with self.subTest(component=component):
                 self.assertIn("[tool.ruff]", pyproject)
@@ -353,13 +353,13 @@ class BoundaryTests(unittest.TestCase):
                 )
 
     def test_every_component_has_production_modules(self) -> None:
-        for component, package in {**ENGINES, **APPLICATIONS}.items():
+        for component, package in {**PYTHON_ENGINES, **APPLICATIONS}.items():
             with self.subTest(component=component):
                 self.assertTrue((ROOT / component / "pyproject.toml").is_file())
                 self.assertGreater(len(production_modules(component, package)), 0)
 
     def test_engines_do_not_import_the_application_or_each_other(self) -> None:
-        for component, package in ENGINES.items():
+        for component, package in PYTHON_ENGINES.items():
             forbidden = FORBIDDEN_FOR_ENGINES - {package}
             for path, _depth in production_modules(component, package):
                 with self.subTest(module=str(path.relative_to(ROOT))):
@@ -367,7 +367,7 @@ class BoundaryTests(unittest.TestCase):
                     self.assertEqual(imported_top_levels(tree) & forbidden, set())
 
     def test_no_production_module_escapes_its_package_by_relative_import(self) -> None:
-        for component, package in {**ENGINES, **APPLICATIONS}.items():
+        for component, package in {**PYTHON_ENGINES, **APPLICATIONS}.items():
             for path, depth in production_modules(component, package):
                 with self.subTest(module=str(path.relative_to(ROOT))):
                     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))

@@ -16,7 +16,6 @@ packages/ato-benchmark-compare:atobenchmark
 packages/payday-super-checker:paydaysuper
 packages/div7a-loan-review:div7aloan
 packages/solomons-sword:louisgoldberg
-packages/the-exchequer-tally:edwinnixon
 packages/the-wip-tally:wiptally
 packages/gst-review:gstreview
 apps/aus-accounting-mcp:aus_accounting_mcp
@@ -41,7 +40,7 @@ setup:
     done
 
 # Run every component's test suite, plus the repository boundary checks.
-test: setup
+test: setup rust-test
     #!/usr/bin/env bash
     set -euo pipefail
     echo "==> repository boundaries"
@@ -53,7 +52,7 @@ test: setup
     done
 
 # Lint every component.
-lint: setup
+lint: setup rust-lint
     #!/usr/bin/env bash
     set -euo pipefail
     for entry in {{ components }}; do
@@ -99,3 +98,11 @@ relock:
 
 # The fast local pass: lint, type-check and test every component.
 check: lint typecheck test
+
+# Standalone Rust engine, outside the virtual Python workspace.
+rust-test:
+    cd packages/the-exchequer-tally && cargo test --locked
+
+rust-lint:
+    cd packages/the-exchequer-tally && cargo fmt --check
+    cd packages/the-exchequer-tally && cargo clippy --locked --all-targets -- -D warnings
