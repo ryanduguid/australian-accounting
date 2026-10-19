@@ -80,7 +80,7 @@ jobs:
           set -euo pipefail
           cp -R apps/aus-accounting-mcp "$RUNNER_TEMP/standalone"
           cd "$RUNNER_TEMP/standalone"
-          uv run --locked --extra dev pyright aus_accounting_mcp  # NOSONAR: unprivileged job; uv installs the hash-locked set
+          uv run --locked --extra dev --no-build pyright aus_accounting_mcp
 
   release:
     needs: published-pins
