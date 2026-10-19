@@ -72,6 +72,16 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: pins/bin/python -I "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/scripts/check_installed_worksheets.py"
 
+      # In the checkout, pyright's extraPaths resolve the engines to workspace
+      # source. A copy outside it type-checks against the locked PyPI pins instead.
+      - name: type-check the app against the published pins
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -R apps/aus-accounting-mcp "$RUNNER_TEMP/standalone"
+          cd "$RUNNER_TEMP/standalone"
+          uv run --locked --extra dev --no-build pyright aus_accounting_mcp
+
   release:
     needs: published-pins
     permissions:
