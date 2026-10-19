@@ -49,11 +49,9 @@ jobs:
       SNYK_TARGETS: |
         uv:.
         uv:apps/aus-accounting-mcp
-        uv:packages/ato-benchmark-compare
         uv:packages/au-tax-rates-data
         uv:packages/gst-review
         uv:packages/payday-super-checker
-        npm:packages/ato-benchmark-compare/tests/fastcheck/package-lock.json
         npm:packages/payday-super-checker/tests/fastcheck/package-lock.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -142,7 +140,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [the-exchequer-tally, solomons-sword, the-wip-tally, australian-tax-calculators, div7a-loan-review]
+        package: [the-exchequer-tally, solomons-sword, the-wip-tally, australian-tax-calculators, div7a-loan-review, ato-benchmark-compare]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

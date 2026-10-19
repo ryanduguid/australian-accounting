@@ -54,6 +54,7 @@ updates:
       - /packages/the-wip-tally
       - /packages/australian-tax-calculators
       - /packages/div7a-loan-review
+      - /packages/ato-benchmark-compare
     schedule:
       interval: weekly
     open-pull-requests-limit: 2

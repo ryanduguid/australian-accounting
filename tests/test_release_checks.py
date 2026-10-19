@@ -11,17 +11,6 @@ POLICY = "0f7ca4ce0ba2e7ea52fc611149a42cd5d0a26f6c"
 # require every job in their workflow to succeed; never a skip-tolerant aggregate
 # gate. Review the list when a component's CI contract changes.
 REQUIRED = {
-    "release-ato-benchmark-compare.yml": [
-        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
-        ".github/workflows/ci.yml: ato-benchmark-compare / build",
-        ".github/workflows/ci.yml: ato-benchmark-compare / dependency-audit",
-        ".github/workflows/ci.yml: ato-benchmark-compare / lint",
-        ".github/workflows/ci.yml: ato-benchmark-compare / test (3.14)",
-        ".github/workflows/ci.yml: ato-benchmark-compare / test-windows",
-        ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python",
-        ".github/workflows/codeql.yml: codeql-gates"
-    ],
     "release-aus-accounting-mcp.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: dependency-audit",
@@ -127,7 +116,7 @@ class ReleaseChecksTests(unittest.TestCase):
                 match = re.search(r"(?m)^      source-directory: (\S+)$", text)
                 assert match is not None, path.name
                 components.append(match.group(1))
-        self.assertEqual(len(components), 4, components)
+        self.assertEqual(len(components), 3, components)
         for component in components:
             with self.subTest(component=component):
                 project = tomllib.loads((ROOT / component / "pyproject.toml").read_text(encoding="utf-8"))

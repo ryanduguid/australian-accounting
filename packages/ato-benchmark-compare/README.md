@@ -19,11 +19,11 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 ![ato-benchmark-compare](assets/banner.svg)
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
-[![PyPI](https://img.shields.io/pypi/v/ato-benchmark-compare.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/ato-benchmark-compare/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](LICENSE)
-[![python](https://img.shields.io/badge/python-3.14%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/)
+[![Rust](https://img.shields.io/badge/Rust-1.99-66023C?logo=rust&logoColor=white&labelColor=000000&style=flat-square)](https://www.rust-lang.org/)
 
-Distribution `ato-benchmark-compare`, import package `atobenchmark`, command `ato-benchmark-compare`.
+ATO Benchmark Compare 1.0.0 is a standalone Rust binary, command `ato-benchmark-compare`.
+It replaces the Python `ato-benchmark-compare` 0.2.2 package and its `atobenchmark` import API.
 
 Compare a set of profit and loss figures against the ATO small business benchmarks,
 on your own machine, with the working shown.
@@ -38,8 +38,9 @@ answer can be checked by someone else later.
 Australian tax rules only. Every figure comes from the ATO's own published dataset,
 and the comparison is a comparison, not advice.
 
-The published Python distribution and command remain `ato-benchmark-compare`, and the
-import package remains `atobenchmark`.
+The `ato-benchmark-compare` command name remains; the `atobenchmark` import package is
+removed, and its functions are JSON stdin subcommands (see [JSON API](#json-api)). The
+last Python release, 0.2.2, remains on PyPI; the Rust 1.0.0 binary is unreleased.
 
 ## What it gets right
 
@@ -66,25 +67,31 @@ ratios](https://www.ato.gov.au/businesses-and-organisations/income-deductions-an
 
 ## Excel workbook
 
-No Python? [`workbooks/ato-benchmark-compare.xlsx`](workbooks/ato-benchmark-compare.xlsx)
+No command line? [`workbooks/ato-benchmark-compare.xlsx`](workbooks/ato-benchmark-compare.xlsx)
 is the same comparison in ordinary worksheet formulas: paste the profit and loss,
 review the mapping, pick the industry and read the result. It is macro-free, needs
 desktop Excel for Microsoft 365 or Excel 2024, and is held to this engine's answer
-by `tests/test_workbook.py`. See [workbooks/README.md](workbooks/README.md).
+by the repository's `tests/test_ato_workbook.py`. See
+[workbooks/README.md](workbooks/README.md).
 
-## Install
+## Build and check
 
-```bash
-git clone https://github.com/ryanduguid/australian-accounting.git
-cd australian-accounting/packages/ato-benchmark-compare
-pip install .
+Install Rust with rustup, then run from this directory:
+
+```sh
+cargo build --locked --release
+cargo fmt --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 ```
 
-Python 3.14 or later. The runtime has no dependencies at all: the benchmark data
-ships inside the package and nothing is fetched at run time.
+The toolchain is pinned in `rust-toolchain.toml`. The executable is
+`target/release/ato-benchmark-compare` (`.exe` on Windows); add that directory to
+PATH or copy the executable to a directory on PATH. No Python runtime is needed.
+The benchmark data is compiled into the binary and nothing is fetched at run time.
 
-`pip install ato-benchmark-compare` installs the same package from PyPI; clone the
-repository when you want the example files used below.
+The native version is unreleased. PyPI still provides the historical Python
+release; `pip install` does not install this binary.
 
 ## Use it
 
@@ -180,27 +187,27 @@ bucket total and the source metadata. Each ratio row's `benchmark_source` says
 whether its range came from the workbook (`ato_dataset`) or an industry page
 (`ato_industry_page`), and `industry_page_source` names that page.
 
-Library callers that distinguish an omitted figure from an evidenced zero can use
-`atobenchmark.to_evidenced_dict(comparison, supplied_fields)`; include `w1` in that
-collection when it was supplied.
-The serialiser masks ratios and prose whose required inputs were not supplied and
-returns `supplied_buckets`, `omitted_buckets`, and `complete_buckets` alongside the
+JSON callers that distinguish an omitted figure from an evidenced zero can run
+`compare-figures` with `"output": "evidenced"` and list the fields they can vouch
+for in `output_supplied`; include `w1` there when it was supplied. That payload
+masks ratios and prose whose required inputs were not supplied and returns
+`supplied_buckets`, `omitted_buckets`, and `complete_buckets` alongside the
 ordinary comparison payload.
 
-`compare()` applies the same rule to its own verdicts. `compute()` records which
-buckets the totals you passed actually held, and `compare()` reads that record
-unless you pass `supplied_fields` yourself, so a ratio resting on a bucket you
-omitted comes back with status `not_supplied` rather than `within`, `below` or
-`above`, and `outside_key_range` stays false. Pass a bucket as `Decimal("0")` when
-the operator established it is nil.
+The comparison applies the same rule to its own verdicts. `compute` and
+`compare-figures` record which buckets `totals` actually held, or the buckets in
+`totals_supplied` when it is given, and the comparison reads that record unless
+`supplied` names the fields itself, so a ratio resting on a bucket you omitted
+comes back with status `not_supplied` rather than `within`, `below` or `above`,
+and a withheld key ratio is never reported outside its range. Pass a bucket as
+`"0"` when the operator established it is nil.
 
-Totals from `route()` are the exception to reading the keys, because routing
-zero-fills every bucket and its keys would then vouch for buckets no account was
-mapped to. They carry the routed set themselves, so routing a file and comparing
-it withholds the ratios resting on a bucket no reviewed account reached, with no
-extra argument. Pass `supplied_fields` explicitly where the set you can vouch for
-differs again, which is what the command line does: it adds `w1` and the
-operator's `--confirm-other-income-nil` assertion to the routed set.
+`route` zero-fills every bucket, so its keys would vouch for buckets no account
+was mapped to. It returns the buckets a reviewed account reached as
+`supplied_buckets`; pass them as `totals_supplied` to withhold the ratios resting
+on a bucket no reviewed account reached. Pass `supplied` where the set you can
+vouch for differs again, which is what the command line does: it adds `w1` and
+the operator's `--confirm-other-income-nil` assertion to the routed set.
 
 Other commands:
 
@@ -209,6 +216,50 @@ ato-benchmark-compare industries --search cleaning   # find the ATO business typ
 ato-benchmark-compare show "Bakeries and hot bread shops"
 ato-benchmark-compare buckets
 ```
+
+## JSON API
+
+The Python import API is replaced by JSON stdin subcommands, for scripts and
+for the MCP server. Each reads one JSON object on stdin and writes the result
+the Python function returned, as JSON, or one `error:` line on stderr with exit
+2. Decimals are strings and paths are file paths. A dataset is named by `year`
+and `data_dir` (`null` for the shipped data), or given as `text` with
+`source_name` and, to merge industry-page ranges, `pages_text`, `pages_name`
+and `dataset_digest`.
+
+| Command | Input |
+| --- | --- |
+| `parse-amount` | `raw`, `where` |
+| `money`, `percent`, `percent-compact` | `value` |
+| `percent-range` | `low`, `high` |
+| `guard` | `value` |
+| `normalise`, `normalise-account`, `account-key`, `canonical-digest` | `text` |
+| `suggest` | `account`, `section` |
+| `is-total-row`, `section-for` | `label` |
+| `available-years` | `data_dir` |
+| `load-dataset`, `loads`, `merge-page-ranges` | a dataset |
+| `search` | a dataset, `term`, `exact_only` |
+| `get` | a dataset, `name` |
+| `read-pnl` | `path`, `amount_column` |
+| `suggest-mapping` | `rows` (profit and loss rows as `read-pnl` returns them) |
+| `read-mapping`, `write-mapping` | `path`; `path`, `mapping_rows` |
+| `route` | `rows`, `mapping` (as `read-mapping` returns it), `flip` |
+| `compute` | `totals`, `totals_supplied`, `w1` |
+| `compare-figures` | `dataset`, `industry`, `totals`, `totals_supplied`, `w1`, `supplied`, `routing_notes`, `output`, `unreviewed`, `output_supplied`, `ratio` |
+
+`compare-figures` returns the comparison by default; `output` selects
+`to_dict` (the raw payload), `evidenced` (the evidenced payload described
+above), `text` (the printed report) or `evidenced_ratio` (whether `ratio` rests
+on supplied fields).
+
+```sh
+echo '{"totals": {"turnover": "850000", "cost_of_sales": "270000"}}' \
+  | ato-benchmark-compare compute
+```
+
+`ato-benchmark-compare --api-help` lists the commands. The command line's
+`compare` and the JSON `compare-figures` are different commands: `compare`
+reads files and takes flags.
 
 ## Input formats
 
@@ -285,7 +336,7 @@ value, naming what stays correct in each.
 
 ## Client data
 
-Nothing leaves the machine. There is no network call anywhere in the runtime.
+Nothing leaves the machine. There is no network call anywhere in the binary.
 
 The `.gitignore` blocks the file names a real ledger arrives under, including
 `pnl*.csv`, `mapping*.csv`, spreadsheets, and `client-data/`. The example files are
@@ -302,7 +353,9 @@ Each shipped file records the resource URL, the date it was retrieved, and the S
 of the ATO workbook it was built from. The comparison prints all of that, so a report
 can be traced back to a specific published file.
 
-To add a year when the ATO publishes one:
+The data files under [`data/`](data) are compiled into the binary. To add a year
+when the ATO publishes one, run the Python build tool from this directory and
+rebuild the binary:
 
 ```bash
 uv run --with openpyxl python tools/build_dataset.py \
@@ -312,7 +365,7 @@ uv run --with openpyxl python tools/build_dataset.py \
   --resource-url https://data.gov.au/... \
   --resource-last-modified "<observed resource modification timestamp>" \
   --retrieved "<actual retrieval date YYYY-MM-DD>" \
-  --out atobenchmark/data/benchmarks-2024-25.json
+  --out data/benchmarks-2024-25.json
 ```
 
 Replace the placeholders with the actual observed resource metadata for the build.
@@ -326,7 +379,7 @@ than quietly producing a dataset with the ratios in the wrong places.
 | --- | --- | --- |
 | 2023-24 | 99 of 100 | [ATO industry pages](https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z), retrieved 29 September 2026 |
 
-`atobenchmark/data/other-benchmarks-2023-24.json` holds the labour, rent and motor
+`data/other-benchmarks-2023-24.json` holds the labour, rent and motor
 vehicle ranges, and cost of sales where the workbook has none, as each industry page
 prints them. For every page it records the address, the page's last-updated date and
 QC reference, and the SHA-256 of the saved page text. The loader merges the file only
@@ -345,10 +398,10 @@ out: its medium-band cost of sales range starts at 56%, the workbook's at 55%.
 ```bash
 uv run python tools/build_other_benchmarks.py \
   --pages-dir <saved pages> \
-  --dataset atobenchmark/data/benchmarks-2023-24.json \
+  --dataset data/benchmarks-2023-24.json \
   --retrieved <actual retrieval date YYYY-MM-DD> \
   --expect-excluded "Hardware and building supplies retailing" \
-  --out atobenchmark/data/other-benchmarks-2023-24.json
+  --out data/other-benchmarks-2023-24.json
 ```
 
 ### Attribution
@@ -367,7 +420,7 @@ to ratio bounds, and a single printed figure is stored as equal bounds, with no 
 interval inferred.
 
 The code in this repository is Apache-2.0 licensed. The data attribution is also
-recorded in [NOTICE](NOTICE), which ships inside the wheel and the sdist.
+recorded in [NOTICE](NOTICE); keep it with any copy of the binary or the source.
 
 ## Author
 

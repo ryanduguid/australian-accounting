@@ -1,0 +1,1337 @@
+//! The `ato-benchmark-compare` command line. argparse formatting and option
+//! parsing are reused from The WIP Tally's and Division 7A's ports.
+//!
+//! Exit codes: 0 comparison produced and nothing to flag; 1 the run could not
+//! produce a comparison; 2 the key ratio sits outside the ATO range; 3 accounts
+//! still carry suggested buckets.
+use std::collections::BTreeMap;
+
+use crate::argtheme::{self, Stream, Theme};
+use crate::atomic::atomic_write;
+use crate::dataset::{self, DataDir, RATIO_KEYS, ratio_label};
+use crate::mapping::{self, BUCKETS, REVIEW};
+use crate::money::{parse_amount, percent_range};
+use crate::pnl;
+use crate::py::{self, PyPath};
+use crate::pytext;
+use crate::ratios::{EvidenceMessage, compute};
+use crate::report::{self, evidenced_ratio, render_text, to_evidenced_dict};
+use crate::textwrap::wrap;
+use crate::{Failure, VERSION};
+
+const PROG: &str = "ato-benchmark-compare";
+const DESCRIPTION: &str = "Compare a set of profit and loss figures against the ATO small \
+business benchmarks. Nothing leaves this machine.";
+const HELP_HELP: &str = "show this help message and exit";
+const VERSION_HELP: &str = "show program's version number and exit";
+const EXIT_OK: i32 = 0;
+const EXIT_ERROR: i32 = 1;
+const EXIT_OUTSIDE: i32 = 2;
+const EXIT_UNREVIEWED: i32 = 3;
+/// The ratios only the ATO's industry pages publish ranges for, in report order.
+const OTHER_RATIO_KEYS: [&str; 3] = [
+    "labour_to_turnover",
+    "rent_to_turnover",
+    "motor_vehicle_to_turnover",
+];
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Takes {
+    Value,
+    Flag,
+}
+
+struct Opt {
+    flag: &'static str,
+    dest: &'static str,
+    takes: Takes,
+    required: bool,
+    help: Option<&'static str>,
+}
+
+struct Command {
+    name: &'static str,
+    help: &'static str,
+    positional: Option<&'static str>,
+    options: &'static [Opt],
+}
+
+const fn value(
+    flag: &'static str,
+    dest: &'static str,
+    required: bool,
+    help: Option<&'static str>,
+) -> Opt {
+    Opt {
+        flag,
+        dest,
+        takes: Takes::Value,
+        required,
+        help,
+    }
+}
+
+const fn flag(flag: &'static str, dest: &'static str, help: &'static str) -> Opt {
+    Opt {
+        flag,
+        dest,
+        takes: Takes::Flag,
+        required: false,
+        help: Some(help),
+    }
+}
+
+const YEAR: Opt = Opt {
+    flag: "--year",
+    dest: "year",
+    takes: Takes::Value,
+    required: false,
+    help: None,
+};
+const AMOUNT_COLUMN: Opt = value(
+    "--amount-column",
+    "amount_column",
+    false,
+    Some("column number or heading holding the amounts"),
+);
+
+static COMMANDS: [Command; 5] = [
+    Command {
+        name: "industries",
+        help: "list the ATO business types",
+        positional: None,
+        options: &[
+            value(
+                "--search",
+                "search",
+                false,
+                Some("only show business types containing this text"),
+            ),
+            YEAR,
+        ],
+    },
+    Command {
+        name: "show",
+        help: "show the published ranges for one business type",
+        positional: Some("industry"),
+        options: &[YEAR],
+    },
+    Command {
+        name: "buckets",
+        help: "explain the mapping buckets",
+        positional: None,
+        options: &[],
+    },
+    Command {
+        name: "map",
+        help: "write a reviewable account mapping from a profit and loss export",
+        positional: None,
+        options: &[
+            value("--profit-and-loss", "profit_and_loss", true, None),
+            value("--out", "out", true, None),
+            AMOUNT_COLUMN,
+            flag("--force", "force", "overwrite an existing mapping file"),
+        ],
+    },
+    Command {
+        name: "compare",
+        help: "produce the benchmark comparison",
+        positional: None,
+        options: &[
+            value("--profit-and-loss", "profit_and_loss", true, None),
+            value("--mapping", "mapping", true, None),
+            value("--industry", "industry", true, None),
+            AMOUNT_COLUMN,
+            value(
+                "--w1",
+                "w1",
+                false,
+                Some("activity statement W1 total for the year"),
+            ),
+            flag(
+                "--confirm-other-income-nil",
+                "confirm_other_income_nil",
+                "assert the business had no other income beyond the accounts mapped to the \
+                 other_income bucket. Without this, or a mapped other-income account, every \
+                 ratio is not_supplied because the ATO turnover basis is not established",
+            ),
+            value(
+                "--json",
+                "json",
+                false,
+                Some("write the result as JSON to this path, or - for stdout"),
+            ),
+            flag(
+                "--flip-expense-signs",
+                "flip_expense_signs",
+                "negate expense amounts, for exports that show expenses as negatives",
+            ),
+            flag(
+                "--accept-unreviewed",
+                "accept_unreviewed",
+                "exit 0 even though accounts still carry suggested buckets",
+            ),
+            YEAR,
+        ],
+    },
+];
+
+/// `--year`'s help names the shipped years.
+fn year_help() -> String {
+    format!(
+        "benchmark year. Available: {}",
+        dataset::available_years(&DataDir::Shipped).join(", ")
+    )
+}
+
+fn help_of(option: &Opt) -> Option<String> {
+    if option.dest == "year" {
+        Some(year_help())
+    } else {
+        option.help.map(String::from)
+    }
+}
+
+fn flags(command: &Command) -> Vec<&'static str> {
+    let mut flags = vec!["-h", "--help"];
+    flags.extend(command.options.iter().map(|o| o.flag));
+    flags
+}
+
+fn metavar(option: &Opt) -> String {
+    option.dest.to_uppercase()
+}
+/// argparse's formatter width: `shutil.get_terminal_size().columns` minus 2.
+fn width() -> usize {
+    usize::try_from(crate::termsize::columns() - 2).unwrap_or(0)
+}
+
+/// A usage part or help header: its plain text, which sets every width, and
+/// the coloured text argparse prints.
+#[derive(Clone)]
+struct Part {
+    plain: String,
+    coloured: String,
+}
+
+/// `HelpFormatter._format_usage` for a parser whose usage parts are given.
+fn usage(prog: &str, opt_parts: &[Part], pos_parts: &[Part], t: &Theme) -> String {
+    let prefix = "usage: ";
+    let text_width = width();
+    let plain: Vec<&str> = opt_parts
+        .iter()
+        .chain(pos_parts)
+        .map(|p| p.plain.as_str())
+        .collect();
+    let rest =
+        if prefix.len() + pytext::py_len(&format!("{prog} {}", plain.join(" "))) <= text_width {
+            let coloured: Vec<&str> = opt_parts
+                .iter()
+                .chain(pos_parts)
+                .map(|p| p.coloured.as_str())
+                .collect();
+            format!(" {}", coloured.join(" "))
+        } else {
+            wrapped_usage(prog, opt_parts, pos_parts, text_width)
+        };
+    format!(
+        "{}{prefix}{}{}{prog}{}{rest}",
+        t.usage, t.reset, t.prog, t.reset
+    )
+}
+
+/// The wrapped usage after the program name, as `_format_usage` lays it out.
+fn wrapped_usage(prog: &str, opt_parts: &[Part], pos_parts: &[Part], text_width: usize) -> String {
+    let prefix_len = "usage: ".len();
+    let get_lines = |parts: &[Part], indent: &str, with_prefix: bool| {
+        usage_lines(parts, indent, with_prefix.then_some(prefix_len), text_width)
+    };
+    if (prefix_len + pytext::py_len(prog)) as f64 <= 0.75 * text_width as f64 {
+        let indent = " ".repeat(prefix_len + pytext::py_len(prog) + 1);
+        let mut head = vec![Part {
+            plain: prog.to_string(),
+            coloured: prog.to_string(),
+        }];
+        let lines = if !opt_parts.is_empty() {
+            head.extend(opt_parts.iter().cloned());
+            let mut lines = get_lines(&head, &indent, true);
+            lines.extend(get_lines(pos_parts, &indent, false));
+            lines
+        } else {
+            head.extend(pos_parts.iter().cloned());
+            get_lines(&head, &indent, true)
+        };
+        return lines.join("\n")[prog.len()..].to_string();
+    }
+    let indent = " ".repeat(prefix_len);
+    let all: Vec<Part> = opt_parts.iter().chain(pos_parts).cloned().collect();
+    let mut lines = get_lines(&all, &indent, false);
+    if lines.len() > 1 {
+        lines = get_lines(opt_parts, &indent, false);
+        lines.extend(get_lines(pos_parts, &indent, false));
+    }
+    format!("\n{}", lines.join("\n"))
+}
+
+/// `_format_usage`'s `get_lines`: wrap parts under `indent`; with a prefix
+/// length, the first line starts after the prefix instead of the indent.
+fn usage_lines(
+    parts: &[Part],
+    indent: &str,
+    prefix_len: Option<usize>,
+    text_width: usize,
+) -> Vec<String> {
+    let mut lines = Vec::new();
+    let mut line: Vec<&str> = Vec::new();
+    let indent_length = indent.len();
+    let mut line_len = prefix_len.unwrap_or(indent_length) - 1;
+    for part in parts {
+        let part_len = pytext::py_len(&part.plain);
+        if line_len + 1 + part_len > text_width && !line.is_empty() {
+            lines.push(format!("{indent}{}", line.join(" ")));
+            line.clear();
+            line_len = indent_length - 1;
+        }
+        line.push(&part.coloured);
+        line_len += part_len + 1;
+    }
+    if !line.is_empty() {
+        lines.push(format!("{indent}{}", line.join(" ")));
+    }
+    if prefix_len.is_some() && !lines.is_empty() {
+        lines[0] = lines[0][indent_length..].to_string();
+    }
+    lines
+}
+
+type Row<'a> = (usize, Part, Option<&'a str>);
+
+/// The rows of one help section; argparse aligns help text across every section of a parser.
+fn action_rows(rows: &[Row], all: &[Row]) -> String {
+    let width = width();
+    let max_help_position = 24.min(width.saturating_sub(20).max(4));
+    let action_max = all
+        .iter()
+        .map(|(indent, header, _)| indent + pytext::py_len(&header.plain))
+        .max()
+        .unwrap_or(0);
+    let help_position = (action_max + 2).min(max_help_position);
+    let help_width = width.saturating_sub(help_position).max(11);
+    let mut out = String::new();
+    for (indent, header, help) in rows {
+        let action_width = help_position.saturating_sub(indent + 2);
+        let pad = " ".repeat(*indent);
+        let Some(help) = help else {
+            out.push_str(&format!("{pad}{}\n", header.coloured));
+            continue;
+        };
+        let lines = wrap(help, help_width);
+        if pytext::py_len(&header.plain) <= action_width {
+            // argparse pads the plain header, then swaps the coloured one in.
+            let padded = format!("{pad}{:<action_width$}  {}\n", header.plain, lines[0]);
+            out.push_str(&padded.replacen(&header.plain, &header.coloured, 1));
+        } else {
+            out.push_str(&format!(
+                "{pad}{}\n{}{}\n",
+                header.coloured,
+                " ".repeat(help_position),
+                lines[0]
+            ));
+        }
+        for line in &lines[1..] {
+            out.push_str(&format!("{}{line}\n", " ".repeat(help_position)));
+        }
+    }
+    out
+}
+
+fn coloured(text: &str, colour: &str, t: &Theme) -> Part {
+    Part {
+        plain: text.to_string(),
+        coloured: format!("{colour}{text}{}", t.reset),
+    }
+}
+
+/// `-h, --help` as `_format_action_invocation` colours it.
+fn help_header(t: &Theme) -> Part {
+    Part {
+        plain: "-h, --help".into(),
+        coloured: format!(
+            "{}-h{}, {}--help{}",
+            t.short_option, t.reset, t.long_option, t.reset
+        ),
+    }
+}
+
+/// The ratio difflib.SequenceMatcher(None, a, b).ratio() computes.
+fn sequence_ratio(a: &[u32], b: &[u32]) -> f64 {
+    let mut b2j: BTreeMap<u32, Vec<usize>> = BTreeMap::new();
+    for (j, c) in b.iter().enumerate() {
+        b2j.entry(*c).or_default().push(j);
+    }
+    if b.len() >= 200 {
+        let ntest = b.len() / 100 + 1;
+        b2j.retain(|_, indices| indices.len() <= ntest);
+    }
+    let mut matches = 0;
+    let mut queue = vec![(0, a.len(), 0, b.len())];
+    while let Some(range) = queue.pop() {
+        let (alo, ahi, blo, bhi) = range;
+        let (i, j, k) = longest_match(a, b, &b2j, range);
+        if k > 0 {
+            matches += k;
+            if alo < i && blo < j {
+                queue.push((alo, i, blo, j));
+            }
+            if i + k < ahi && j + k < bhi {
+                queue.push((i + k, ahi, j + k, bhi));
+            }
+        }
+    }
+    let total = a.len() + b.len();
+    if total == 0 {
+        1.0
+    } else {
+        2.0 * matches as f64 / total as f64
+    }
+}
+
+/// `SequenceMatcher.find_longest_match(alo, ahi, blo, bhi)`.
+fn longest_match(
+    a: &[u32],
+    b: &[u32],
+    b2j: &BTreeMap<u32, Vec<usize>>,
+    (alo, ahi, blo, bhi): (usize, usize, usize, usize),
+) -> (usize, usize, usize) {
+    let (mut besti, mut bestj, mut bestsize) = (alo, blo, 0);
+    let mut j2len: BTreeMap<usize, usize> = BTreeMap::new();
+    for (i, ch) in a.iter().enumerate().take(ahi).skip(alo) {
+        let mut new: BTreeMap<usize, usize> = BTreeMap::new();
+        for &j in b2j.get(ch).map(Vec::as_slice).unwrap_or(&[]) {
+            if j < blo {
+                continue;
+            }
+            if j >= bhi {
+                break;
+            }
+            let k = j
+                .checked_sub(1)
+                .and_then(|p| j2len.get(&p))
+                .copied()
+                .unwrap_or(0)
+                + 1;
+            new.insert(j, k);
+            if k > bestsize {
+                (besti, bestj, bestsize) = (i + 1 - k, j + 1 - k, k);
+            }
+        }
+        j2len = new;
+    }
+    // Extend over popular characters the autojunk heuristic dropped from b2j.
+    while besti > alo && bestj > blo && a[besti - 1] == b[bestj - 1] {
+        (besti, bestj, bestsize) = (besti - 1, bestj - 1, bestsize + 1);
+    }
+    while besti + bestsize < ahi
+        && bestj + bestsize < bhi
+        && a[besti + bestsize] == b[bestj + bestsize]
+    {
+        bestsize += 1;
+    }
+    (besti, bestj, bestsize)
+}
+
+/// `difflib.get_close_matches(word, possibilities, n=1)`.
+fn close_match(word: &str, possibilities: &[&'static str]) -> Option<&'static str> {
+    // Python compares code points, so a lone surrogate counts once.
+    let b: Vec<u32> = pytext::code_points(word).collect();
+    possibilities
+        .iter()
+        .map(|p| {
+            (
+                sequence_ratio(&p.chars().map(u32::from).collect::<Vec<_>>(), &b),
+                *p,
+            )
+        })
+        .filter(|(score, _)| *score >= 0.6)
+        .max_by(|x, y| x.0.partial_cmp(&y.0).unwrap().then_with(|| x.1.cmp(y.1)))
+        .map(|(_, p)| p)
+}
+
+/// What argparse does instead of returning a namespace.
+enum Exit {
+    Help(String, i32),
+    Error {
+        usage: String,
+        prog: String,
+        message: String,
+    },
+}
+
+/// How argparse's `_parse_optional` classifies one token against a parser's flags.
+enum Class<'a> {
+    /// A flag, with an explicit argument (`--flag=value`, or `-hvalue` for a short
+    /// flag) and whether `=` introduced it.
+    Flag(&'a str, Option<(String, bool)>),
+    UnknownOption,
+    /// A prefix of several flags. Python 3.15 refuses it only when parsing
+    /// reaches it, so an earlier `-h` still prints help.
+    Ambiguous(String),
+    Positional,
+}
+
+fn classify<'a>(token: &str, flags: &[&'a str]) -> Class<'a> {
+    if token.is_empty() || !token.starts_with('-') {
+        return Class::Positional;
+    }
+    if let Some(exact) = flags.iter().find(|f| **f == token) {
+        return Class::Flag(exact, None);
+    }
+    if pytext::py_len(token) == 1 {
+        return Class::Positional;
+    }
+    if let Some((name, value)) = token.split_once('=')
+        && let Some(exact) = flags.iter().find(|f| **f == name)
+    {
+        return Class::Flag(exact, Some((value.to_string(), true)));
+    }
+    let mut found = option_prefix_matches(token, flags);
+    match found.len() {
+        0 => {}
+        1 => {
+            let (flag, explicit) = found.remove(0);
+            return Class::Flag(flag, explicit);
+        }
+        _ => {
+            let names: Vec<&str> = found.iter().map(|(f, _)| *f).collect();
+            return Class::Ambiguous(format!(
+                "ambiguous option: {token} could match {}",
+                names.join(", ")
+            ));
+        }
+    }
+    if looks_like_negative_number(&token[1..]) || token.contains(' ') {
+        return Class::Positional;
+    }
+    Class::UnknownOption
+}
+
+/// argparse's `_get_option_tuples`: the flags a token abbreviates, with any explicit value.
+fn option_prefix_matches<'a>(
+    token: &str,
+    flags: &[&'a str],
+) -> Vec<(&'a str, Option<(String, bool)>)> {
+    if token.starts_with("--") {
+        let (prefix, explicit) = match token.split_once('=') {
+            Some((name, value)) => (name, Some((value.to_string(), true))),
+            None => (token, None),
+        };
+        return flags
+            .iter()
+            .filter(|f| f.starts_with(prefix))
+            .map(|f| (*f, explicit.clone()))
+            .collect();
+    }
+    let short: String = token.chars().take(2).collect();
+    let rest: String = token.chars().skip(2).collect();
+    flags
+        .iter()
+        .filter_map(|f| {
+            if *f == short {
+                Some((*f, Some((rest.clone(), false))))
+            } else {
+                f.starts_with(token).then_some((*f, None))
+            }
+        })
+        .collect()
+}
+
+/// argparse's `_negative_number_matcher` on the text after the leading '-'.
+fn looks_like_negative_number(body: &str) -> bool {
+    let digit = |c: char| pytext::decimal_value(c as u32).is_some();
+    (!body.is_empty() && body.chars().all(digit))
+        || body.split_once('.').is_some_and(|(int, frac)| {
+            int.chars().all(digit) && !frac.is_empty() && frac.chars().all(digit)
+        })
+}
+
+/// argparse's error for an explicit argument given to a zero-argument flag.
+/// `-hx` is read as further short flags instead, and help runs first.
+fn ignored_argument(flag: &str, explicit: Option<(String, bool)>) -> Result<(), String> {
+    match explicit {
+        None => Ok(()),
+        Some((rest, false)) if flag == "-h" && !rest.is_empty() && !rest.starts_with('-') => Ok(()),
+        Some((rest, _)) => {
+            let name = if flag == "-h" || flag == "--help" {
+                "-h/--help"
+            } else {
+                flag
+            };
+            Err(format!(
+                "argument {name}: ignored explicit argument {}",
+                pytext::repr_os(&rest)
+            ))
+        }
+    }
+}
+
+fn choices() -> String {
+    format!(
+        "{{{}}}",
+        COMMANDS
+            .iter()
+            .map(|c| c.name)
+            .collect::<Vec<_>>()
+            .join(",")
+    )
+}
+
+fn main_usage(prog: &str, t: &Theme) -> String {
+    let parts = [
+        Part {
+            plain: "[-h]".into(),
+            coloured: format!("[{}-h{}]", t.summary_short_option, t.reset),
+        },
+        Part {
+            plain: "[--version]".into(),
+            coloured: format!("[{}--version{}]", t.summary_long_option, t.reset),
+        },
+    ];
+    usage(
+        prog,
+        &parts,
+        &[coloured(&format!("{} ...", choices()), t.summary_action, t)],
+        t,
+    )
+}
+
+fn heading(text: &str, t: &Theme) -> String {
+    format!("{}{text}:{}", t.heading, t.reset)
+}
+
+fn main_help(prog: &str, t: &Theme) -> String {
+    let mut positional: Vec<Row> = vec![(2, coloured(&choices(), t.action, t), None)];
+    positional.extend(
+        COMMANDS
+            .iter()
+            .map(|c| (4, coloured(c.name, t.action, t), Some(c.help))),
+    );
+    let options: Vec<Row> = vec![
+        (2, help_header(t), Some(HELP_HELP)),
+        (
+            2,
+            coloured("--version", t.long_option, t),
+            Some(VERSION_HELP),
+        ),
+    ];
+    let all: Vec<Row> = positional.iter().chain(&options).cloned().collect();
+    format!(
+        "{}\n\n{}\n\n{}\n{}\n{}\n{}",
+        main_usage(prog, t),
+        wrap(DESCRIPTION, width().max(11)).join("\n"),
+        heading("positional arguments", t),
+        action_rows(&positional, &all),
+        heading("options", t),
+        action_rows(&options, &all)
+    )
+}
+
+fn command_usage(prog: &str, command: &Command, t: &Theme) -> String {
+    let mut parts = vec![Part {
+        plain: "[-h]".into(),
+        coloured: format!("[{}-h{}]", t.summary_short_option, t.reset),
+    }];
+    for option in command.options {
+        let (plain, coloured) = match option.takes {
+            Takes::Flag => (
+                option.flag.to_string(),
+                format!("{}{}{}", t.summary_long_option, option.flag, t.reset),
+            ),
+            Takes::Value => {
+                let metavar = metavar(option);
+                (
+                    format!("{} {metavar}", option.flag),
+                    format!(
+                        "{}{} {}{metavar}{}",
+                        t.summary_long_option, option.flag, t.summary_label, t.reset
+                    ),
+                )
+            }
+        };
+        parts.push(if option.required {
+            Part { plain, coloured }
+        } else {
+            Part {
+                plain: format!("[{plain}]"),
+                coloured: format!("[{coloured}]"),
+            }
+        });
+    }
+    let positionals: Vec<Part> = command
+        .positional
+        .iter()
+        .map(|p| coloured(p, t.summary_action, t))
+        .collect();
+    usage(&format!("{prog} {}", command.name), &parts, &positionals, t)
+}
+
+fn command_help(prog: &str, command: &Command, t: &Theme) -> String {
+    let positional: Vec<Row> = command
+        .positional
+        .iter()
+        .map(|p| (2, coloured(p, t.action, t), None))
+        .collect();
+    let helps: Vec<Option<String>> = command.options.iter().map(help_of).collect();
+    let mut options: Vec<Row> = vec![(2, help_header(t), Some(HELP_HELP))];
+    for (option, help) in command.options.iter().zip(&helps) {
+        let header = match option.takes {
+            Takes::Flag => coloured(option.flag, t.long_option, t),
+            Takes::Value => {
+                let metavar = metavar(option);
+                Part {
+                    plain: format!("{} {metavar}", option.flag),
+                    coloured: format!(
+                        "{}{}{} {}{metavar}{}",
+                        t.long_option, option.flag, t.reset, t.label, t.reset
+                    ),
+                }
+            }
+        };
+        options.push((2, header, help.as_deref()));
+    }
+    let all: Vec<Row> = positional.iter().chain(&options).cloned().collect();
+    let mut out = format!("{}\n\n", command_usage(prog, command, t));
+    if !positional.is_empty() {
+        out.push_str(&format!(
+            "{}\n{}\n",
+            heading("positional arguments", t),
+            action_rows(&positional, &all)
+        ));
+    }
+    out.push_str(&format!(
+        "{}\n{}",
+        heading("options", t),
+        action_rows(&options, &all)
+    ));
+    out
+}
+
+fn main_exit(prog: &str, message: String) -> Exit {
+    Exit::Error {
+        usage: main_usage(prog, argtheme::theme(Stream::Stderr)),
+        prog: prog.to_string(),
+        message,
+    }
+}
+
+fn sub_exit(prog: &str, command: &Command, message: String) -> Exit {
+    Exit::Error {
+        usage: command_usage(prog, command, argtheme::theme(Stream::Stderr)),
+        prog: format!("{prog} {}", command.name),
+        message,
+    }
+}
+
+/// argparse's invalid-choice message, with Python 3.15's close-match suggestion.
+fn invalid_choice(token: &str) -> String {
+    let names: Vec<&'static str> = COMMANDS.iter().map(|c| c.name).collect();
+    let quoted: Vec<String> = names.iter().map(|n| pytext::repr(n)).collect();
+    let suggestion = close_match(token, &names)
+        .map(|m| format!(", maybe you meant {}?", pytext::repr(m)))
+        .unwrap_or_default();
+    format!(
+        "argument command: invalid choice: {}{suggestion} (choose from {})",
+        pytext::repr_os(token),
+        quoted.join(", ")
+    )
+}
+
+/// A subcommand's parsed arguments; a flag holds "true".
+struct Parsed {
+    command: &'static Command,
+    values: BTreeMap<&'static str, String>,
+    positional: Option<String>,
+}
+
+impl Parsed {
+    fn get(&self, dest: &str) -> Option<&str> {
+        self.values.get(dest).map(String::as_str)
+    }
+
+    fn flag(&self, dest: &str) -> bool {
+        self.values.contains_key(dest)
+    }
+}
+
+fn parse(prog: &str, args: &[String]) -> Result<Parsed, Exit> {
+    let main_flags = ["-h", "--help", "--version"];
+    let mut extras: Vec<String> = Vec::new();
+    let mut index = 0;
+    let mut command_at = None;
+    while let Some(token) = args.get(index) {
+        if token == "--" {
+            if index + 1 < args.len() {
+                command_at = Some(index + 1);
+            }
+            break;
+        }
+        match classify(token, &main_flags) {
+            Class::Flag(flag, explicit) => {
+                ignored_argument(flag, explicit).map_err(|m| main_exit(prog, m))?;
+                if flag == "--version" {
+                    // The version action formats through the help formatter,
+                    // so a narrow terminal wraps it like any help text.
+                    let text = wrap(&format!("{prog} {VERSION}"), width().max(11)).join("\n");
+                    return Err(Exit::Help(format!("{text}\n"), 0));
+                }
+                return Err(Exit::Help(
+                    main_help(prog, argtheme::theme(Stream::Stdout)),
+                    0,
+                ));
+            }
+            Class::UnknownOption => extras.push(token.clone()),
+            Class::Ambiguous(message) => return Err(main_exit(prog, message)),
+            Class::Positional => {
+                command_at = Some(index);
+                break;
+            }
+        }
+        index += 1;
+    }
+    let Some(at) = command_at else {
+        return Err(main_exit(
+            prog,
+            "the following arguments are required: command".into(),
+        ));
+    };
+    let Some(command) = COMMANDS.iter().find(|c| c.name == args[at]) else {
+        return Err(main_exit(prog, invalid_choice(&args[at])));
+    };
+    let parsed = parse_command(prog, command, &args[at + 1..], &mut extras)?;
+    if !extras.is_empty() {
+        return Err(main_exit(
+            prog,
+            format!("unrecognized arguments: {}", extras.join(" ")),
+        ));
+    }
+    Ok(parsed)
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Pattern {
+    Option(usize),
+    Ambiguous(usize),
+    Unknown,
+    Arg,
+    Marker,
+}
+
+/// A subparser's `_parse_known_args`: options and at most one positional;
+/// positionals follow Python 3.15 (the first `--` marks the rest as
+/// positional and is removed from the span that consumes it).
+fn parse_command(
+    prog: &str,
+    command: &'static Command,
+    args: &[String],
+    extras: &mut Vec<String>,
+) -> Result<Parsed, Exit> {
+    let sub_error = |message: String| sub_exit(prog, command, message);
+    let flags = flags(command);
+    let mut patterns = Vec::with_capacity(args.len());
+    let mut explicit: Vec<Option<(String, bool)>> = vec![None; args.len()];
+    let mut chosen: Vec<&'static str> = vec![""; args.len()];
+    let mut refusals: Vec<String> = vec![String::new(); args.len()];
+    let mut marked = false;
+    for (i, token) in args.iter().enumerate() {
+        if marked {
+            patterns.push(Pattern::Arg);
+        } else if token == "--" {
+            marked = true;
+            patterns.push(Pattern::Marker);
+        } else {
+            patterns.push(match classify(token, &flags) {
+                Class::Flag(flag, value) => {
+                    chosen[i] = flag;
+                    explicit[i] = value;
+                    Pattern::Option(i)
+                }
+                Class::UnknownOption => Pattern::Unknown,
+                Class::Ambiguous(message) => {
+                    refusals[i] = message;
+                    Pattern::Ambiguous(i)
+                }
+                Class::Positional => Pattern::Arg,
+            });
+        }
+    }
+    let is_option = |p: Pattern| {
+        matches!(
+            p,
+            Pattern::Option(_) | Pattern::Ambiguous(_) | Pattern::Unknown
+        )
+    };
+    let last_option = patterns.iter().rposition(|p| is_option(*p));
+    let mut parsed = Parsed {
+        command,
+        values: BTreeMap::new(),
+        positional: None,
+    };
+    let wants_positional = command.positional.is_some();
+    let consume_positional = |start: usize, parsed: &mut Parsed| -> usize {
+        if !wants_positional || parsed.positional.is_some() {
+            return start;
+        }
+        let mut i = start;
+        if patterns.get(i) == Some(&Pattern::Marker) {
+            i += 1;
+        }
+        if patterns.get(i) != Some(&Pattern::Arg) {
+            return start;
+        }
+        let value = args[i].clone();
+        i += 1;
+        if patterns.get(i) == Some(&Pattern::Marker) {
+            i += 1;
+        }
+        parsed.positional = Some(value);
+        i
+    };
+    let mut start = 0;
+    while last_option.is_some_and(|last| start <= last) {
+        let next_option = (start..patterns.len())
+            .find(|&i| is_option(patterns[i]))
+            .unwrap_or(patterns.len());
+        if start != next_option {
+            let end = consume_positional(start, &mut parsed);
+            if end > start {
+                start = end;
+                continue;
+            }
+            extras.extend(args[start..next_option].iter().cloned());
+            start = next_option;
+        }
+        match patterns[start] {
+            Pattern::Unknown => {
+                extras.push(args[start].clone());
+                start += 1;
+            }
+            Pattern::Ambiguous(i) => return Err(sub_error(refusals[i].clone())),
+            Pattern::Option(i) => {
+                let flag = chosen[i];
+                if flag == "-h" || flag == "--help" {
+                    ignored_argument(flag, explicit[i].clone()).map_err(sub_error)?;
+                    return Err(Exit::Help(
+                        command_help(prog, command, argtheme::theme(Stream::Stdout)),
+                        0,
+                    ));
+                }
+                let option = command
+                    .options
+                    .iter()
+                    .find(|o| o.flag == flag)
+                    .expect("known flag");
+                if option.takes == Takes::Flag {
+                    ignored_argument(flag, explicit[i].clone()).map_err(sub_error)?;
+                    parsed.values.insert(option.dest, "true".into());
+                    start += 1;
+                    continue;
+                }
+                let value = match explicit[i].clone() {
+                    Some((value, _)) => {
+                        start += 1;
+                        value
+                    }
+                    None if patterns.get(start + 1) == Some(&Pattern::Arg) => {
+                        start += 2;
+                        args[start - 1].clone()
+                    }
+                    None => {
+                        return Err(sub_error(format!(
+                            "argument {}: expected one argument",
+                            option.flag
+                        )));
+                    }
+                };
+                parsed.values.insert(option.dest, value);
+            }
+            Pattern::Arg | Pattern::Marker => unreachable!("an option starts here"),
+        }
+    }
+    let stop = consume_positional(start, &mut parsed);
+    extras.extend(args[stop..].iter().cloned());
+    let mut missing: Vec<&str> = Vec::new();
+    for option in command.options {
+        if option.required && !parsed.values.contains_key(option.dest) {
+            missing.push(option.flag);
+        }
+    }
+    if let Some(name) = command.positional
+        && parsed.positional.is_none()
+    {
+        missing.push(name);
+    }
+    if !missing.is_empty() {
+        return Err(sub_error(format!(
+            "the following arguments are required: {}",
+            missing.join(", ")
+        )));
+    }
+    Ok(parsed)
+}
+
+/// What a command prints to each stream before it returns or fails.
+#[derive(Default)]
+struct Streams {
+    out: String,
+    err: String,
+}
+
+impl Streams {
+    fn out(&mut self, line: &str) {
+        self.out.push_str(line);
+        self.out.push('\n');
+    }
+
+    fn err(&mut self, line: &str) {
+        self.err.push_str(line);
+        self.err.push('\n');
+    }
+}
+
+fn load(parsed: &Parsed) -> Result<dataset::Dataset, Failure> {
+    dataset::load(parsed.get("year"), &DataDir::Shipped)
+}
+
+/// Stop an output path from destroying a file this run reads.
+fn refuse_to_write_over_an_input(out: &PyPath, inputs: &[Option<&str>]) -> Result<(), Failure> {
+    let target = py::resolve_text(&out.fs());
+    for candidate in inputs.iter().flatten() {
+        let other = PyPath::new(candidate);
+        if py::same_resolved(&target, &py::resolve_text(&other.fs())) {
+            return Err(Failure::Value(format!(
+                "refusing to write {out} because this run reads that same file"
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn cmd_industries(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
+    let data = load(parsed)?;
+    let search = parsed.get("search").filter(|t| !t.is_empty());
+    let matches: Vec<&dataset::BusinessType> = match search {
+        Some(term) => data.search(term, false),
+        None => data.business_types.iter().collect(),
+    };
+    if matches.is_empty() {
+        s.err(&format!(
+            "No business type matches {}.",
+            pytext::repr(search.unwrap_or(""))
+        ));
+        return Ok(EXIT_ERROR);
+    }
+    for bt in &matches {
+        s.out(&format!(
+            "{}  [key range: {}]",
+            bt.name,
+            ratio_label(&bt.key_ratio)
+        ));
+    }
+    s.out(&format!(
+        "\n{} of {} business types, {} benchmarks",
+        matches.len(),
+        data.business_types.len(),
+        data.year
+    ));
+    Ok(EXIT_OK)
+}
+
+fn cmd_show(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
+    let data = load(parsed)?;
+    let bt = data.get(parsed.positional.as_deref().unwrap_or(""))?;
+    s.out(&bt.name);
+    s.out(&format!("Benchmark year: {}", data.year));
+    s.out(&format!("Key range:      {}", ratio_label(&bt.key_ratio)));
+    s.out("");
+    for band in &bt.bands {
+        s.out(&format!("  {}", band.label));
+        for name in RATIO_KEYS.iter().chain(&OTHER_RATIO_KEYS) {
+            let label = ratio_label(name);
+            match band.ratio(name) {
+                None => {
+                    if RATIO_KEYS.contains(name) {
+                        s.out(&format!("    {label:<36} not published"));
+                    }
+                }
+                Some(range) => {
+                    let shown = percent_range(&range.minimum, &range.maximum)
+                        .map_err(|e| Failure::Value(e.0))?;
+                    let page = if band.is_page_ratio(name) {
+                        " (ATO industry page, a guide only)"
+                    } else {
+                        ""
+                    };
+                    s.out(&format!("    {label:<36} {shown}{page}"));
+                }
+            }
+        }
+    }
+    s.out("");
+    s.out(&format!(
+        "Source: {}",
+        data.source
+            .get("resource_url")
+            .map_or("None".into(), crate::raw::Raw::py_str)
+    ));
+    if bt.page.is_some() && bt.bands.iter().any(|b| !b.page_ratios.is_empty()) {
+        s.out(&format!(
+            "Industry page: {}",
+            bt.page_field("page_url").py_str()
+        ));
+    }
+    Ok(EXIT_OK)
+}
+
+fn cmd_buckets(s: &mut Streams) -> Result<i32, Failure> {
+    let width = BUCKETS.iter().map(|(n, _)| n.len()).max().unwrap();
+    for (name, description) in BUCKETS {
+        s.out(&format!("{name:<width$}  {description}"));
+    }
+    Ok(EXIT_OK)
+}
+
+fn cmd_map(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
+    let out = PyPath::new(parsed.get("out").unwrap_or(""));
+    let source_path = parsed.get("profit_and_loss").unwrap_or("");
+    refuse_to_write_over_an_input(&out, &[Some(source_path)])?;
+    if out.fs().exists() && !parsed.flag("force") {
+        s.err(&format!(
+            "{out} already exists. Reviewed mappings are worth keeping, so this will not \
+             overwrite one. Pass --force if you mean to replace it."
+        ));
+        return Ok(EXIT_ERROR);
+    }
+    let source = pnl::read(&PyPath::new(source_path), parsed.get("amount_column"))?;
+    let draft = mapping::suggest_mapping(&source.rows)?;
+    let parent = out.parent();
+    std::fs::create_dir_all(parent.fs())
+        .map_err(|e| Failure::Value(py::oserror_str(&e, &parent.display(), py::OsStyle::Native)))?;
+    mapping::write_mapping(&out, &draft.rows)?;
+    s.out(&format!(
+        "Wrote {out} with {} account(s) from a {} layout export.",
+        draft.rows.len(),
+        source.layout
+    ));
+    s.out(&format!("Amounts were read from {}.", source.amount_column));
+    if !draft.duplicates.is_empty() {
+        let listed: Vec<&str> = draft
+            .duplicates
+            .iter()
+            .take(5)
+            .map(String::as_str)
+            .collect();
+        s.out(&format!(
+            "{} account name(s) appear more than once in the export and share one mapping row: {}",
+            draft.duplicates.len(),
+            listed.join(", ")
+        ));
+        s.out(
+            "Give them distinct names in the export, or combine them into one row. Until then \
+             compare will not run against this export.",
+        );
+    }
+    if !source.skipped.is_empty() {
+        s.out(&format!(
+            "{} row(s) carried no readable amount and were left out:",
+            source.skipped.len()
+        ));
+        for line in source.skipped.iter().take(10) {
+            s.out(&format!("  {line}"));
+        }
+        if source.skipped.len() > 10 {
+            s.out(&format!("  ... and {} more", source.skipped.len() - 10));
+        }
+    }
+    let review = draft.needs_review();
+    if review > 0 {
+        s.out(&format!(
+            "{review} account(s) are marked {REVIEW} and must be given a bucket."
+        ));
+    }
+    s.out("");
+    s.out("Every bucket in that file is a suggestion made from the account name alone.");
+    s.out("Read the ledger, correct the buckets, and change the source column to 'reviewed'.");
+    s.out("Run 'ato-benchmark-compare buckets' for what each bucket means.");
+    Ok(EXIT_OK)
+}
+
+fn cmd_compare(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
+    let data = load(parsed)?;
+    let bt = data.get(parsed.get("industry").unwrap_or(""))?;
+    let pnl_path = parsed.get("profit_and_loss").unwrap_or("");
+    let mapping_path = parsed.get("mapping").unwrap_or("");
+    let source = pnl::read(&PyPath::new(pnl_path), parsed.get("amount_column"))?;
+    if !source.skipped.is_empty() {
+        s.err(&format!(
+            "{} row(s) carried no readable amount and are not in these totals:",
+            source.skipped.len()
+        ));
+        for line in source.skipped.iter().take(10) {
+            s.err(&format!("  {line}"));
+        }
+        if source.skipped.len() > 10 {
+            s.err(&format!("  ... and {} more", source.skipped.len() - 10));
+        }
+    }
+    let mapping = mapping::read_mapping(&PyPath::new(mapping_path))?;
+    let routing = mapping::route(&source.rows, &mapping, parsed.flag("flip_expense_signs"))?;
+    let w1 = match parsed.get("w1") {
+        Some(raw) => Some(parse_amount(Some(raw), "--w1").map_err(|e| Failure::Value(e.0))?),
+        None => None,
+    };
+    let figures = compute(&routing.totals, &routing.supplied_buckets, w1.as_ref())?;
+    let mut supplied: Vec<String> = routing.supplied_buckets.clone();
+    if w1.is_some() {
+        supplied.push("w1".into());
+    }
+    if parsed.flag("confirm_other_income_nil") && !supplied.iter().any(|f| f == "other_income") {
+        supplied.push("other_income".into());
+    }
+    let mut comparison = report::compare(&data, bt, &figures, Some(&supplied))?;
+    comparison.note_details.extend(
+        routing
+            .notes
+            .iter()
+            .map(|note| EvidenceMessage::new("routing", note.clone(), &[])),
+    );
+    let outside = comparison.outside_key_range()
+        && evidenced_ratio(&comparison, &supplied, &comparison.key_ratio)?;
+    let json_target = parsed.get("json").filter(|j| !j.is_empty());
+    if let Some(target) = json_target
+        && target != "-"
+    {
+        refuse_to_write_over_an_input(&PyPath::new(target), &[Some(pnl_path), Some(mapping_path)])?;
+    }
+    if let Some(target) = json_target {
+        let payload = to_evidenced_dict(&comparison, &supplied, Some(routing.unreviewed))?;
+        let text = serde_json::to_string_pretty(&serde_json::Value::Object(payload))
+            .expect("JSON values serialise")
+            + "\n";
+        if target == "-" {
+            s.out.push_str(&text);
+        } else {
+            atomic_write(&PyPath::new(target), text.as_bytes())?;
+            s.out(&format!("Wrote {target}"));
+        }
+    }
+    let report = if json_target != Some("-") {
+        Some(render_text(
+            &comparison,
+            routing.unreviewed,
+            Some(&supplied),
+        )?)
+    } else {
+        None
+    };
+    s.err(&format!("Amounts were read from {}.", source.amount_column));
+    if let Some(report) = report {
+        s.out(&report);
+    }
+    if routing.unreviewed > 0 && !parsed.flag("accept_unreviewed") {
+        return Ok(EXIT_UNREVIEWED);
+    }
+    Ok(if outside { EXIT_OUTSIDE } else { EXIT_OK })
+}
+
+/// (exit code, stdout, stderr), before platform text-mode newline conversion.
+pub fn run(args: &[String]) -> (i32, String, String) {
+    let parsed = match parse(PROG, args) {
+        Err(Exit::Help(text, code)) => return (code, text, String::new()),
+        Err(Exit::Error {
+            usage,
+            prog,
+            message,
+        }) => {
+            let t = argtheme::theme(Stream::Stderr);
+            return (
+                2,
+                String::new(),
+                format!(
+                    "{usage}\n{prog}: {}error:{} {}{message}{}\n",
+                    t.error, t.reset, t.message, t.reset
+                ),
+            );
+        }
+        Ok(parsed) => parsed,
+    };
+    let mut streams = Streams::default();
+    let result = match parsed.command.name {
+        "industries" => cmd_industries(&parsed, &mut streams),
+        "show" => cmd_show(&parsed, &mut streams),
+        "buckets" => cmd_buckets(&mut streams),
+        "map" => cmd_map(&parsed, &mut streams),
+        _ => cmd_compare(&parsed, &mut streams),
+    };
+    match result {
+        Ok(code) => (code, streams.out, streams.err),
+        Err(failure) => {
+            streams.err(&format!("error: {failure}"));
+            (EXIT_ERROR, streams.out, streams.err)
+        }
+    }
+}
+
+pub fn decode_os(text: &std::ffi::OsStr) -> String {
+    let mut out = String::new();
+    #[cfg(unix)]
+    {
+        use std::os::unix::ffi::OsStrExt;
+        for chunk in text.as_bytes().utf8_chunks() {
+            for ch in chunk.valid().chars() {
+                pytext::push_code_point(&mut out, ch as u32);
+            }
+            for &byte in chunk.invalid() {
+                pytext::push_code_point(&mut out, 0xDC00 + u32::from(byte));
+            }
+        }
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::ffi::OsStrExt;
+        for unit in char::decode_utf16(text.encode_wide()) {
+            pytext::push_code_point(
+                &mut out,
+                unit.map_or_else(|e| u32::from(e.unpaired_surrogate()), u32::from),
+            );
+        }
+    }
+    out
+}
+
+/// Encoded output: both streams use `errors="backslashreplace"`, so a lone
+/// surrogate from the command line is written as its escape.
+pub fn output_bytes(text: &str) -> Vec<u8> {
+    let mut out = Vec::new();
+    for cp in pytext::code_points(text) {
+        match char::from_u32(cp) {
+            None => out.extend_from_slice(format!("\\u{cp:04x}").as_bytes()),
+            Some('\n') if cfg!(windows) => out.extend_from_slice(b"\r\n"),
+            Some(ch) => out.extend_from_slice(ch.encode_utf8(&mut [0; 4]).as_bytes()),
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_overwrite_guard_skips_an_input_that_was_not_given() {
+        let dir = std::env::temp_dir();
+        let out = PyPath::new(&dir.join("result.json").to_string_lossy());
+        let other = dir.join("p.csv").to_string_lossy().into_owned();
+        assert!(refuse_to_write_over_an_input(&out, &[None, Some(&other)]).is_ok());
+        let same = dir.join("result.json").to_string_lossy().into_owned();
+        assert!(refuse_to_write_over_an_input(&out, &[None, Some(&same)]).is_err());
+    }
+}

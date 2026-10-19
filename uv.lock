@@ -8,7 +8,6 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "ato-benchmark-compare",
     "au-tax-rates-data",
     "aus-accounting-mcp",
     "gst-review",
@@ -16,6 +15,7 @@ members = [
     "payday-super-checker",
 ]
 overrides = [
+    { name = "ato-benchmark-compare", specifier = "==0.2.2" },
     { name = "australian-tax-calculators", specifier = "==0.2.0" },
     { name = "div7a-loan-review", specifier = "==0.3.2" },
 ]
@@ -58,36 +58,11 @@ wheels = [
 [[package]]
 name = "ato-benchmark-compare"
 version = "0.2.2"
-source = { editable = "packages/ato-benchmark-compare" }
-
-[package.optional-dependencies]
-dev = [
-    { name = "build" },
-    { name = "coverage" },
-    { name = "diff-cover" },
-    { name = "nodejs-wheel-binaries" },
-    { name = "openpyxl" },
-    { name = "pyright", extra = ["nodejs"] },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-    { name = "setuptools" },
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/92/78/9d3301b3f118e31922f811153da1fe05ed6f5c1b648a03bb7f059239537b/ato_benchmark_compare-0.2.2.tar.gz", hash = "sha256:69a5cc5b406c09b33d396fafdcaa3e9bba558cccb478e632816bfe09b8480573", size = 171441, upload-time = "2026-10-19T14:04:18.501Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/84/f6/fe2f89eaf337b2e7a38d4783012be6f07e340813f12b735b253252be5de8/ato_benchmark_compare-0.2.2-py3-none-any.whl", hash = "sha256:0b2a1ae294cc4889fbf642d8c69dc7126dbfa5cd24781f44b6851d366fc32596", size = 78267, upload-time = "2026-10-19T14:04:17.092Z" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "build", marker = "extra == 'dev'", specifier = "==1.6.1" },
-    { name = "coverage", marker = "extra == 'dev'", specifier = "==7.16.2" },
-    { name = "diff-cover", marker = "extra == 'dev'", specifier = "==10.6.0" },
-    { name = "nodejs-wheel-binaries", marker = "extra == 'dev'", specifier = "==24.19.0" },
-    { name = "openpyxl", marker = "extra == 'dev'", specifier = "==3.1.5" },
-    { name = "pyright", extras = ["nodejs"], marker = "extra == 'dev'", specifier = "==1.1.414" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = "==7.1.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.17.0" },
-    { name = "setuptools", marker = "extra == 'dev'", specifier = "==84.0.0" },
-]
-provides-extras = ["dev"]
 
 [[package]]
 name = "attrs"
@@ -140,7 +115,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ato-benchmark-compare", editable = "packages/ato-benchmark-compare" },
+    { name = "ato-benchmark-compare", specifier = "==0.1.11" },
     { name = "australian-tax-calculators", specifier = "==0.2.0" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.6.1" },
     { name = "div7a-loan-review", specifier = "==0.2.0" },

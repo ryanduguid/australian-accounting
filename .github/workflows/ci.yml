@@ -55,10 +55,6 @@ jobs:
         # changed-line-coverage lists the risk-scoped files held to complete
         # changed-line branch coverage against main.
         include:
-          - package: ato-benchmark-compare
-            import-name: atobenchmark
-            windows-python: "3.14"
-            changed-line-coverage: atobenchmark/mapping.py
           - package: payday-super-checker
             import-name: paydaysuper
             windows-python: "3.14"
@@ -112,6 +108,14 @@ jobs:
     uses: ./.github/workflows/ci-rust.yml
     with:
       package: div7a-loan-review
+    permissions:
+      contents: read
+
+  atobench:
+    name: ato-benchmark-compare
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: ato-benchmark-compare
     permissions:
       contents: read
 
@@ -254,7 +258,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, test, dependency-audit, lint]
+    needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

@@ -14,18 +14,18 @@ checks from its own directory.
   (sourced ATO rates and thresholds with their validator; not an engine, imported by
   nothing and never released).
 - Dependency direction: the MCP application depends on engines only through their
-  published distributions. The root workspace redirects those 4 dependencies to the
+  published distributions. The root workspace redirects 2 of those dependencies to the
   checked-out sources so the application is developed and tested against the tree, but
   the exact pins in its `pyproject.toml` stay authoritative and uv sources are never
   written into a built distribution. Engines never import `aus_accounting_mcp` or
   another engine, and production code never uses a relative import that leaves its
   component directory. One shared `.venv` makes every component importable from every
   other; `tests/test_boundaries.py` is what keeps that from becoming a dependency.
-- The Exchequer Tally, Solomon's Sword, The WIP Tally, Australian Tax Calculators
-  and Division 7A Loan Review are standalone Rust: run their Cargo checks from
-  `packages/the-exchequer-tally/`, `packages/solomons-sword/`,
-  `packages/the-wip-tally/`, `packages/australian-tax-calculators/` and
-  `packages/div7a-loan-review/`. Each README documents JSON replacements for the
+- The Exchequer Tally, Solomon's Sword, The WIP Tally, Australian Tax Calculators,
+  Division 7A Loan Review and ATO Benchmark Compare are standalone Rust: run their
+  Cargo checks from `packages/the-exchequer-tally/`, `packages/solomons-sword/`,
+  `packages/the-wip-tally/`, `packages/australian-tax-calculators/`,
+  `packages/div7a-loan-review/` and `packages/ato-benchmark-compare/`. Each README documents JSON replacements for the
   removed Python API. They are excluded from the uv workspace and Python gates.
 - Every Python component keeps its own `pyproject.toml`, lockfile, version, release notes,
   tests, commands and licence, and is released on its own from its own directory. A

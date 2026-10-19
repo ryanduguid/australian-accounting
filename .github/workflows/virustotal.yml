@@ -4,7 +4,6 @@ on:
   # Releases made with GITHUB_TOKEN raise no release event, so follow the release workflows.
   workflow_run:
     workflows:
-      - Release ato-benchmark-compare
       - Release aus-accounting-mcp
       - Release gst-review
       - Release payday-super-checker

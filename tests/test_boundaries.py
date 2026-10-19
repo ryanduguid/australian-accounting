@@ -42,13 +42,11 @@ select_package = _load_select_package()
 
 RELEASE_CALLERS = {
     "aus-accounting-mcp": "apps/aus-accounting-mcp",
-    "ato-benchmark-compare": "packages/ato-benchmark-compare",
     "payday-super-checker": "packages/payday-super-checker",
     "gst-review": "packages/gst-review",
 }
 
 PYTHON_ENGINES = {
-    "packages/ato-benchmark-compare": "atobenchmark",
     "packages/payday-super-checker": "paydaysuper",
     "packages/gst-review": "gstreview",
 }
@@ -58,6 +56,7 @@ RUST_ENGINES = {
     "packages/the-wip-tally": "the-wip-tally",
     "packages/australian-tax-calculators": "australian-tax-calculators",
     "packages/div7a-loan-review": "div7a-loan-review",
+    "packages/ato-benchmark-compare": "ato-benchmark-compare",
 }
 ENGINES = PYTHON_ENGINES | RUST_ENGINES
 APPLICATIONS = {
@@ -75,7 +74,6 @@ DATASETS = {
 # The files the changed-line coverage gate holds to complete branch coverage,
 # and the engine that owns each set.
 CHANGED_LINE_COVERAGE = {
-    "ato-benchmark-compare": "atobenchmark/mapping.py",
     "payday-super-checker": "paydaysuper/assess.py,paydaysuper/report.py",
 }
 FORBIDDEN_FOR_ENGINES = frozenset({*APPLICATIONS.values(), *ENGINES.values()})

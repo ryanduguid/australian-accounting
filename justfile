@@ -11,7 +11,6 @@
 # Component directory : the import package it owns. Adding a component means
 # adding it here and to tests/test_boundaries.py.
 components := trim(replace('''
-packages/ato-benchmark-compare:atobenchmark
 packages/payday-super-checker:paydaysuper
 packages/gst-review:gstreview
 apps/aus-accounting-mcp:aus_accounting_mcp
@@ -103,7 +102,7 @@ release +args:
 check: lint typecheck test
 
 # Standalone Rust engines, outside the virtual Python workspace.
-rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review"
+rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review packages/ato-benchmark-compare"
 
 rust-test:
     #!/usr/bin/env bash
