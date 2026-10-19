@@ -902,8 +902,9 @@ pub fn run(args: &[String]) -> (i32, String, String) {
                 2,
                 String::new(),
                 format!(
-                    "{usage}\n{}{}{}: {}error{}: {}{message}{}\n",
-                    t.prog, prog, t.reset, t.error, t.reset, t.message, t.reset
+                    // Python 3.15 leaves the program name plain and colours "error:" with its colon.
+                    "{usage}\n{prog}: {}error:{} {}{message}{}\n",
+                    t.error, t.reset, t.message, t.reset
                 ),
             )
         }

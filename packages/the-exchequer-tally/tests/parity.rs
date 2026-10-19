@@ -188,6 +188,24 @@ fn direct_entries_preserve_ledger_invariants() {
     assert!(EntryType::parse("unrecognised").is_err());
 }
 #[test]
+fn forced_colour_error_line_matches_python_3_15() {
+    // Final stderr line recorded from Python 0.1.8 on CPython 3.15 with FORCE_COLOR=1.
+    let out = Command::new(env!("CARGO_BIN_EXE_the-exchequer-tally"))
+        .arg("nope")
+        .env_remove("NO_COLOR")
+        .env_remove("PYTHON_COLORS")
+        .env("FORCE_COLOR", "1")
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    let stderr = String::from_utf8(out.stderr).unwrap();
+    let last = stderr.trim_end().rsplit('\n').next().unwrap();
+    assert_eq!(
+        last,
+        "the-exchequer-tally: \x1b[1;35merror:\x1b[0m \x1b[35margument command: invalid choice: 'nope' (choose from 'bre-test', 'dist-statement')\x1b[0m"
+    );
+}
+#[test]
 fn ledger_years_dates_and_null_references_follow_python() {
     // Expected text recorded from Python 0.1.8 FrankingAccount(fy) on CPython 3.15.
     for (fy, expected) in [
