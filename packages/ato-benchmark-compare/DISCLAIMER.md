@@ -4,7 +4,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 ato-benchmark-compare calculates variance analysis against ATO small business benchmark ranges. It does not provide professional advice. It is not an assessment, a private ruling, or a compliance audit determination.
 
-ATO small business benchmarks are statistical guidelines published for risk-assessment purposes; falling outside a benchmark range is not proof of under-reporting, and falling inside is not proof of compliance. Confirm all calculations, industry codes, turnover bands and facts against source records and published ATO data before acting, and leave tax advice and lodgement decisions with a registered tax agent.
+Outputs can be wrong, incomplete, stale, or unsuitable for a given set of facts. ATO small business benchmarks are statistical guidelines published for risk-assessment purposes; falling outside a benchmark range is not proof of under-reporting, and falling inside is not proof of compliance. Confirm all calculations, industry codes, turnover bands and facts against source records and published ATO data before acting, and leave tax advice and lodgement decisions with a registered tax agent.
 
 Do not publish private tax records, TFNs, client-identifying ABNs, bank details, identity documents, or other sensitive personal information in issues, pull requests, examples, tests, or repository content. Fixtures in this repository are fabricated.
 

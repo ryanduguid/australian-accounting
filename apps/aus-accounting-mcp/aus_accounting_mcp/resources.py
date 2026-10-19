@@ -58,7 +58,8 @@ BOUNDARY_PARAGRAPHS = (
     " confirmation, or lodgement.",
     "aus-accounting-mcp is a Model Context Protocol server that exposes reviewed"
     " Australian computational accounting engines. It does not provide professional advice.",
-    "Tax law, ATO guidance, rates, thresholds, and administrative practice"
+    "Outputs can be wrong, incomplete, stale, or unsuitable for a given set of"
+    " facts. Tax law, ATO guidance, rates, thresholds, and administrative practice"
     " change. Verify every mutable fact against current official sources before"
     " relying on an output.",
     "This server does not lodge tax returns, BAS, FBT returns, TPAR, STP reports, or"
