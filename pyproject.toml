@@ -17,11 +17,12 @@ exclude = ["packages/the-exchequer-tally"]
 # workspace resolves every member together, and cannot hold 2 exact pins of
 # the same tool.
 
-# apps/aus-accounting-mcp declares exact pins on the 4 engines it consumes,
+# apps/aus-accounting-mcp declares exact pins on the 5 engines it consumes,
 # because a published distribution cannot depend on a path. Inside the
-# workspace those 4 names resolve to the checked-out sources instead, so
-# the application's tests import atobenchmark, paydaysuper, div7aloan and
-# austaxcalc from the tree under review rather than from the last PyPI release.
+# workspace those 5 names resolve to the checked-out sources instead, so
+# the application's tests import atobenchmark, paydaysuper, div7aloan,
+# austaxcalc and gstreview from the tree under review rather than from the
+# last PyPI release.
 # The pins stay authoritative for the published wheel; uv sources are development metadata
 # and are not written into built distributions.
 [tool.uv.sources]
@@ -29,6 +30,7 @@ ato-benchmark-compare = { workspace = true }
 payday-super-checker = { workspace = true }
 div7a-loan-review = { workspace = true }
 australian-tax-calculators = { workspace = true }
+gst-review = { workspace = true }
 
 # The shared toolchain for running every component's checks from one
 # environment. Components keep their own `dev` extras, which remain the
@@ -88,6 +90,7 @@ extraPaths = [
     "packages/div7a-loan-review",
     "packages/solomons-sword",
     "packages/the-wip-tally",
+    "packages/gst-review",
     "apps/aus-accounting-mcp",
     "apps/lodgeit-calculator-adapter",
 ]

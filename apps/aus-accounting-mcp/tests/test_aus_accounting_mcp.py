@@ -1003,7 +1003,7 @@ def test_release_metadata_matches_the_candidate_version() -> None:
     # The newest section names every engine pin this release ships.
     newest = re.split(r"(?m)^# v", release_notes)[1]
     pins = [pin.split("==") for pin in project["dependencies"] if "==" in pin]
-    assert len(pins) == 4
+    assert len(pins) == 5
     for name, version in pins:
         assert f"{name}` {version}" in newest
     assert published_version == server["packages"][0]["version"] == VERSION

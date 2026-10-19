@@ -69,12 +69,17 @@ async def _answer(session, case):
     if case in {"grouped-payday", "worksheet-gst", "library-reference", "payday-evidence-pack",
                 "legislation-citation", "legislated-rate", "statutory-definition",
                 "injected-instruction", "undefined-term", "stored-rate-date",
-                "ranked-provision", "long-provision", "ruling-paragraph"}:
+                "ranked-provision", "long-provision", "ruling-paragraph",
+                "gst-coding", "bas-reconciliation"}:
         reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
         results = [await call(c["name"], **c["arguments"])
                    for c in json.loads(reference.text)]
         if case == "grouped-payday":
             return results[0]["results"][1]["due"]
+        if case == "gst-coding":
+            return results[0]["lines"][0]["state"]
+        if case == "bas-reconciliation":
+            return results[0]["periods"][0]["labels"]["G1"]["difference"]
         if case == "worksheet-gst":
             return results[0]["amounts"]["gst"]
         if case == "payday-evidence-pack":

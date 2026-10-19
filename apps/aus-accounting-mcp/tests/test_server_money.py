@@ -242,6 +242,7 @@ _DIRECT_MONEY_FIELDS = {
     ],
     "generate_synthetic_sbr_fixture": ["revenue_or_sales"],
 }
+_LINE_MONEY_FIELDS = {"review_gst_coding": ("amount",), "reconcile_bas": ("gross", "gst")}
 _CONTRIBUTION_TOOLS = ("review_payday_super_contributions", "build_payday_super_evidence_pack")
 _CONTRIBUTION_MONEY_FIELDS = ("sg_amount", "remitted_amount", "matched_amount")
 _WORKSHEET_FACTS = {
@@ -342,7 +343,11 @@ def test_every_money_argument_and_only_money_publishes_the_plain_pattern():
         ("calculate_tax_worksheet", "facts", field)
         for fields in _WORKSHEET_MONEY_FIELDS.values() for field in fields
     }
-    assert len(expected) == 43
+    expected |= {
+        (tool, "lines", field)
+        for tool, fields in _LINE_MONEY_FIELDS.items() for field in fields
+    }
+    assert len(expected) == 46
     assert _money_pattern_paths() == expected
 
 

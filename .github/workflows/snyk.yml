@@ -53,6 +53,7 @@ jobs:
         uv:packages/au-tax-rates-data
         uv:packages/australian-tax-calculators
         uv:packages/div7a-loan-review
+        uv:packages/gst-review
         uv:packages/payday-super-checker
         uv:packages/solomons-sword
         uv:packages/the-wip-tally

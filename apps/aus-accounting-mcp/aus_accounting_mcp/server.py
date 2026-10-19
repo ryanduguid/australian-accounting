@@ -30,6 +30,16 @@ except PackageNotFoundError:  # running from a source tree without installation
 
 from .adapters.benchmarks import compare_figures, list_industries
 from .adapters.div7a import get_benchmark_rate, review_loan
+from .adapters.gst import (
+    BankLineInput,
+    BasCategory,
+    BasPeriodInput,
+    GstTreatment,
+    LedgerLineInput,
+    RegistrationInput,
+    bas_reconciliation,
+    coding_review,
+)
 from .adapters.payday import (
     ContributionInput,
     evidence_pack,
@@ -53,9 +63,11 @@ from .fixtures.synthetic_sbr import (
 from .library import MAX_OFFSET, read_reference, search_references
 from .money import MONEY_SCHEMA, parse_amount
 from .outputs import (
+    BasReconciliation,
     BenchmarkComparison,
     Div7aRate,
     Div7aReview,
+    GstCodingReview,
     IndustryList,
     LegislationExcerpt,
     LegislationSearch,
@@ -137,6 +149,12 @@ classification of the facts the operator supplied, not a determination.
   the reviewed s 109N/s 109E facts of one operator-supplied amalgamated loan.
   Use refuse_div7a for unsupported matters. Do not form amalgamated loans,
   classify s 109R payments, or invent eligibility, rates or missing facts.
+- review_gst_coding gives each coded bank line one review state, checking GST codes
+  against the registration dates supplied. reconcile_bas compares lodged BAS figures
+  with ledger lines per period on the stated basis. Supply registration dates, codes,
+  periods, lodged figures and the basis as established; never invent them. A state or
+  difference is a review prompt: neither tool classifies a supply, prepares or revises
+  a BAS, or decides which basis applies.
 - generate_synthetic_sbr_fixture is only for fabricated integration tests.
   Never use its CTR/BAS output as a real calculation or lodgment.
 Resources carry context without a tool call: aus-accounting://disclaimer for the
@@ -830,6 +848,75 @@ def build_payday_super_evidence_pack(
     return CallToolResult(
         content=[TextContent(type="text", text=text)], structured_content=result,
     )
+
+
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Review GST coding of bank lines")
+def review_gst_coding(
+    lines: Annotated[list[BankLineInput], Field(
+        min_length=1, max_length=1000,
+        description="Coded bank lines, up to 1000. Every entity needs a registrations entry.")],
+    registrations: Annotated[list[RegistrationInput], Field(
+        min_length=1, max_length=50,
+        description="One entry per entity: its established GST registration dates.")],
+    match_window_days: Annotated[int, Field(
+        strict=True, ge=0, le=31,
+        description="Days either side to pair opposite amounts between entities.")] = 3,
+    gst_codes: Annotated[dict[str, GstTreatment] | None, Field(
+        max_length=200,
+        description="Code table mapping each GST code to its treatment; omit for the "
+        "engine's common Xero and MYOB AU codes.")] = None,
+) -> GstCodingReview:
+    """Give each bank line one review state, with a reason, from gst-review.
+
+    States, checked in order: unknown_gst_code, gst_differs_from_registration
+    (GST charged or claimed outside the entity's registration, or claimed from a
+    supplier recorded as not registered), between_entities (an opposite amount in
+    another entity within the window), coded, suggested, nothing_suggested.
+    Amounts are AUD decimal strings, negative for money out; dates are YYYY-MM-DD.
+    Registration dates are the operator's facts: a null registered_from means not
+    registered, so never send it for an unknown date. Does not decide whether an
+    entity had to register, how a supply is classified, what a transfer is or
+    whether a suggestion is right. Retain not_decided and warnings. Local review
+    aid, not advice; no network, writes or lodgements.
+    """
+    return cast(GstCodingReview, coding_review(
+        lines, registrations, match_window_days=match_window_days, gst_codes=gst_codes,
+    ))
+
+
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Reconcile lodged BAS figures with the ledger")
+def reconcile_bas(
+    lines: Annotated[list[LedgerLineInput], Field(
+        max_length=2000,
+        description="Ledger sale and purchase lines, up to 2000, with GST codes and dates.")],
+    periods: Annotated[list[BasPeriodInput], Field(
+        min_length=1, max_length=24,
+        description="Non-overlapping tax periods, each with its lodged figures if lodged.")],
+    basis: Annotated[Literal["cash", "accruals"], Field(
+        description="The GST accounting basis the operator established for the entity.")],
+    g1_includes_gst: Annotated[bool, Field(
+        description="Whether the lodged G labels include GST, as chosen at G1.")] = True,
+    bas_codes: Annotated[dict[str, BasCategory] | None, Field(
+        max_length=200,
+        description="Code table mapping each GST code to its BAS category; omit for the "
+        "engine's common Xero and MYOB AU codes.")] = None,
+) -> BasReconciliation:
+    """Compare lodged G1, G2, G3, G10, G11, 1A and 1B with the ledger, per period.
+
+    gst-review attributes each line to a period by payment date on the cash basis,
+    or the earlier of invoice and payment on accruals (GST Act ss 29-5 and 29-10),
+    rounds ledger totals down to whole dollars and gives each label a status:
+    matches, differs (with the difference and its lines), not_reported or
+    negative_ledger. Lodged figures are whole non-negative dollars. Amounts are AUD
+    decimal strings; gross includes GST and both are negative for a credit note.
+    Lines it cannot place are listed in line_issues and kept_out; timing lists
+    lines invoiced in a period but attributed elsewhere. Does not decide whether a
+    difference needs a revised BAS, whether a code is right or which basis applies.
+    Retain not_decided and warnings. Local review aid, not advice or a BAS.
+    """
+    return cast(BasReconciliation, bas_reconciliation(
+        lines, periods, basis=basis, g1_includes_gst=g1_includes_gst, bas_codes=bas_codes,
+    ))
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Calculate a bounded Australian tax worksheet")

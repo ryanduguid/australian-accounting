@@ -8,6 +8,7 @@ on:
       - Release aus-accounting-mcp
       - Release australian-tax-calculators
       - Release div7a-loan-review
+      - Release gst-review
       - Release payday-super-checker
       - Release solomons-sword
       - Release the-wip-tally

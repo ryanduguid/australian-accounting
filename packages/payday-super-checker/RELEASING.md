@@ -22,9 +22,9 @@ Before tagging:
 4. Create an annotated tag on the current remote `main` commit and push that tag:
 
    ```bash
-   git tag -a payday-super-checker/v0.2.0 \
-     -m "payday-super-checker v0.2.0"
-   git push origin refs/tags/payday-super-checker/v0.2.0
+   git tag -a payday-super-checker/v0.2.2 \
+     -m "payday-super-checker v0.2.2"
+   git push origin refs/tags/payday-super-checker/v0.2.2
    ```
 
 The workflow runs the locked tests, builds the wheel and source distribution,
@@ -35,19 +35,19 @@ Verify the release before installing it. `signer` is the release-policy commit
 the release workflow pins, which signs the next release.
 
 ```bash
-tag=payday-super-checker/v0.2.0
+tag=payday-super-checker/v0.2.2
 signer=a601f1d8b143f92b0517f709216993660d21f480
 repo=ryanduguid/australian-accounting
 release_commit=$(git ls-remote "https://github.com/$repo.git" \
   "refs/tags/$tag^{}" | cut -f1)
 test -n "$release_commit"
-gh release download "$tag" -R "$repo" --dir payday-super-checker-v0.2.0
-cd payday-super-checker-v0.2.0
+gh release download "$tag" -R "$repo" --dir payday-super-checker-v0.2.2
+cd payday-super-checker-v0.2.2
 sha256sum --check SHA256SUMS
 gh release verify "$tag" -R "$repo"
-gh release verify-asset "$tag" payday_super_checker-0.2.0-py3-none-any.whl \
+gh release verify-asset "$tag" payday_super_checker-0.2.2-py3-none-any.whl \
   -R "$repo"
-gh attestation verify payday_super_checker-0.2.0-py3-none-any.whl \
+gh attestation verify payday_super_checker-0.2.2-py3-none-any.whl \
   -R "$repo" \
   --source-digest "$release_commit" \
   --source-ref "refs/tags/$tag" \

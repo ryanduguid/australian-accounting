@@ -48,6 +48,7 @@ RELEASE_CALLERS = {
     "div7a-loan-review": "packages/div7a-loan-review",
     "solomons-sword": "packages/solomons-sword",
     "the-wip-tally": "packages/the-wip-tally",
+    "gst-review": "packages/gst-review",
 }
 
 PYTHON_ENGINES = {
