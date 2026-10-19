@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gst-review"
 version = "0.1.0"
-description = "Review aids for Australian GST coding over bank lines. Review aid, not a determination."
+description = "Review aids for Australian GST coding and BAS-to-ledger reconciliation. Review aid, not a determination."
 readme = "README.md"
 requires-python = ">=3.14"
 license = "Apache-2.0"
