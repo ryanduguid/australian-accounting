@@ -32,6 +32,7 @@ from paydaysuper.calendar import load_calendar
 from paydaysuper.rates import load_gic
 
 from .adapters.div7a import DISCLAIMER as DIV7A_DISCLAIMER
+from .adapters.gst import DISCLAIMER as GST_DISCLAIMER
 from .adapters.payday import DISCLAIMER as PAYDAY_DISCLAIMER, SINGLE_CONTRIBUTION_CAVEAT
 
 SERVER_DISTRIBUTION = "aus-accounting-mcp"
@@ -45,6 +46,7 @@ ENGINE_DISTRIBUTIONS = (
     "div7a-loan-review",
     "payday-super-checker",
     "australian-tax-calculators",
+    "gst-review",
 )
 
 #: The facade's own boundary statement, paragraph by paragraph. Every one of
@@ -95,6 +97,10 @@ def scope() -> dict[str, Any]:
             "review_payday_super_contributions": "Assess related contributions for one employer.",
             "build_payday_super_evidence_pack": "Return four review files in memory; requires "
             "checker evidence-pack support. No caller paths or decisions accepted.",
+            "review_gst_coding": "Give each coded bank line a review state against the "
+            "supplied GST registration dates.",
+            "reconcile_bas": "Compare lodged BAS label figures with ledger lines per period; "
+            "not BAS preparation or revision.",
             "calculate_tax_worksheet": "Run one of the bounded calculation_worksheets below.",
             "search_accounting_library": "Search an explicitly configured local Markdown library.",
             "read_accounting_library": "Read bounded lines with a source path and hash.",
@@ -177,6 +183,8 @@ def disclaimer() -> str:
             DIV7A_DISCLAIMER,
             "# australian-tax-calculators",
             "\n".join(f"{kind}: {description}" for kind, description in SCOPES.items()),
+            "# gst-review",
+            GST_DISCLAIMER,
         )
     )
 

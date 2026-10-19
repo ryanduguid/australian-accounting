@@ -12,8 +12,8 @@ EXPECTED_POLICY = """\
 # Agent instructions
 
 This package is an MCP facade. Keep statutory calculations in the delegated
-`payday-super-checker`, `ato-benchmark-compare`, `div7a-loan-review` and
-`australian-tax-calculators` engines;
+`payday-super-checker`, `ato-benchmark-compare`, `div7a-loan-review`,
+`australian-tax-calculators` and `gst-review` engines;
 adapters may validate, translate and serialise, but must not reimplement their law
 or datasets.
 
