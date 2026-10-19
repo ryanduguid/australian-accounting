@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "the-wip-tally"
-version = "0.1.4"
+version = "0.2.0"
 description = "Deterministic AASB 15 construction WIP schedule. Review aid, not a determination."
 readme = "README.md"
 requires-python = ">=3.14"
