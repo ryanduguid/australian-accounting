@@ -15,10 +15,12 @@ Components are then released in the order given. Each tag is annotated, made on
 the `main` commit the checks ran against and pushed on its own: GitHub creates
 no push event, so starts no workflow, for any tag when more than 3 arrive in one
 push. The next tag waits until this tag's release workflow has concluded
-`success`. Release Policy compares the tag with `main` at its test, build and
-publish gates, so `main` must not move until the run finishes; if it has moved
-before a tag is pushed, nothing further is tagged. The first failure stops the
-run and names the components left untagged.
+`success`. Every tag is made on the same commit, and Release Policy's first job
+requires the tag commit to be `main`'s head, so `main` must not move until the
+last run is under way; if it has moved before a tag is pushed, nothing further
+is tagged. Later gates accept an unrelated merge but stop a run whose component
+or release workflow changed. The first failure stops the run and names the
+components left untagged.
 
 `--dry-run` runs every check and prints the plan without tagging. Run from the
 repository root with `gh` authenticated with Administration read access.

@@ -288,9 +288,11 @@ The next tag waits until the previous release run succeeds, and the first failur
 the run and lists the components left untagged. Release an engine before an MCP release
 that pins it. `--dry-run` runs the checks and tags nothing.
 
-Do not merge to `main` until `just release` finishes. Release Policy requires the tag to
-name `main`'s head at its test, build and publish steps, so a merge during a release run
-stops that run, and its version cannot be reused because a pushed tag cannot be deleted.
+Do not merge to `main` until `just release` finishes. Every tag is made on the same `main`
+commit, and Release Policy's first job requires that commit to be `main`'s head, so a merge
+before the last tag's run is under way stops the remaining releases. Once a run is past that
+job, a merge stops it only if it changes that component's source directory or its release
+workflow. A stopped version cannot be reused, because a pushed tag cannot be deleted.
 
 `IMPORTS.md` records which components still lack a Release Policy prerequisite; their
 workflows fail closed until a reviewed component change adds it. Nothing publishes from a
