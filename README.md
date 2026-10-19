@@ -146,7 +146,7 @@ For an editable source installation, run `pip install -e .` from
 | `packages/the-exchequer-tally/` | `the-exchequer-tally` | `edwinnixon` | `the-exchequer-tally` |
 | `packages/solomons-sword/` | `solomons-sword` | `louisgoldberg` | `solomons-sword` |
 | `packages/the-wip-tally/` | `the-wip-tally` | `wiptally` | `wip-tally` |
-| `packages/gst-review/` | `gst-review` (not yet released) | `gstreview` | Python review functions: GST coding states against registration |
+| `packages/gst-review/` | `gst-review` (not yet released) | `gstreview` | Python review functions: GST coding states against registration, BAS-to-ledger reconciliation |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` | `lodgeitadapter` | optional adapter for a third-party calculator service; off by default, makes HTTP calls only when `LODGEIT_ADAPTER_ENABLED=1` |
 | `packages/au-tax-rates-data/` | `au-tax-rates-data` (never released) | `rates` (module) | `python rates.py validate`, `snapshot` and `check`: ATO rates and thresholds with verbatim source quotes, validated offline |
 
