@@ -1,3 +1,10 @@
+# v0.2.0
+
+- The package moves from MIT to the Apache-2.0 licence, with a `NOTICE` file whose attribution anyone redistributing the package or a derivative must keep ([#373](https://github.com/ryanduguid/australian-accounting/pull/373)). The package metadata declares Apache-2.0. Releases up to v0.1.4 stay under MIT.
+- Requires Python 3.14 or later; Python 3.11 to 3.13 are no longer supported, and 0.1.4 remains the last release that installs on them ([#355](https://github.com/ryanduguid/australian-accounting/pull/355)).
+- The build backend moves from hatchling 1.32.4 to setuptools 84.0.0 ([#410](https://github.com/ryanduguid/australian-accounting/pull/410)).
+- When a contract's outcome is not reasonably measurable, AASB 15 para 45 now limits revenue to recoverable cost before any measure of progress is applied, so the output and right to invoice methods no longer recognise revenue that para 45 does not allow. Recoverable cost above the transaction price is refused, as recoverable cost above costs incurred already was, and a supplied `output_percent` is still range-checked. Contracts whose outcome is reasonably measurable are unchanged ([#396](https://github.com/ryanduguid/australian-accounting/pull/396)).
+
 # v0.1.4
 
 - Requires Python 3.11 or newer; Python 3.10 is no longer supported ([#351](https://github.com/ryanduguid/australian-accounting/pull/351)).

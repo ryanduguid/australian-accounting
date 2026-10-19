@@ -10,7 +10,8 @@ minimums, study and training loan repayments and withholding, a single
 person's Medicare levy, the low income tax offset and Division 293 tax. It does not provide professional advice. It is not an assessment,
 a private ruling, or a determination.
 
-Rates, thresholds, effective lives, ATO guidance and administrative
+Outputs can be wrong, incomplete, stale, or unsuitable for a given set of
+facts. Rates, thresholds, effective lives, ATO guidance and administrative
 practice change, and a worksheet sees only the figures and the period it is
 handed. Sources were checked on 10 September 2026; a source-check date is not
 an assurance that every tax rule or taxpayer circumstance has been reviewed.

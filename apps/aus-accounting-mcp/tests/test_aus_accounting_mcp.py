@@ -972,6 +972,7 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     assert "DISCLAIMER.md" in readme
     assert "docs/REFERENCE.md" in readme
     assert "does not provide professional advice" in disclaimer.lower()
+    assert "outputs can be wrong, incomplete, stale" in disclaimer.lower()
     assert "synthetic: true" in disclaimer
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")
     assert CANONICAL_REPOSITORY in citation

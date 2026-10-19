@@ -9,7 +9,9 @@ and using it creates no professional relationship.
 **Its outputs are not a Division 7A determination and not an ATO assessment.**
 
 The author is a provisional member of Chartered Accountants Australia and New
-Zealand.
+Zealand. That membership is not an endorsement of this software by CA ANZ.
+This work was written independently, in the author's own time, on the author's
+own equipment.
 
 ## Division 7A outputs are experimental
 
@@ -31,7 +33,8 @@ statutory test. An `UNKNOWN` is a finding that work remains, not a soft pass.
 
 ## Verify before relying
 
-Tax law, ATO guidance, rates, thresholds and administrative practice
+Outputs can be wrong, incomplete, stale, or unsuitable for a given set of
+facts. Tax law, ATO guidance, rates, thresholds and administrative practice
 change. The benchmark interest rate table in this repository is frozen and
 hand-reviewed; it carries the date it was last checked, and it will be out of
 date at some point after that date. Verify every mutable fact against the

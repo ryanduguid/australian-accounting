@@ -209,8 +209,18 @@ def test_the_disclaimer_preserves_the_professional_boundary():
     assert "using it creates no professional relationship" in FLAT_DISCLAIMER
 
 
+def test_the_disclaimer_disclaims_the_ca_anz_endorsement():
+    assert "not an endorsement of this software by CA ANZ" in FLAT_DISCLAIMER
+
+
+def test_the_disclaimer_states_the_factual_limits():
+    assert "Outputs can be wrong, incomplete, stale, or unsuitable" in FLAT_DISCLAIMER
+
+
 def test_the_readme_carries_the_authorship_statement():
-    assert "Ryan Duguid, provisional member of Chartered Accountants Australia and New Zealand" in FLAT_README
+    assert "Provisional member of Chartered Accountants Australia and New Zealand" in FLAT_README
+    assert "not an endorsement of this software by CA ANZ" in FLAT_README
+    assert "own time, on his own equipment" in FLAT_README
     assert "keep the attribution in [NOTICE](NOTICE)" in FLAT_README
 
 
@@ -235,13 +245,13 @@ def test_current_release_metadata_points_to_the_canonical_monorepo():
     pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
     notes = Path("RELEASE_NOTES.md").read_text(encoding="utf-8")
 
-    assert __version__ == "0.2.0"
-    assert notes.startswith("# v0.2.0\n")
+    assert __version__ == "0.3.0"
+    assert notes.startswith("# v0.3.0\n")
     assert "https://github.com/ryanduguid/australian-accounting" in citation
     assert "https://github.com/ryanduguid/australian-accounting" in pyproject
-    # The README cites the release it describes, v0.2.0, the same version as
+    # The README cites the release it describes, v0.3.0, the same version as
     # CITATION.cff. It stayed on v0.1.1 through 3 later releases.
-    assert "div7a-loan-review/v0.2.0" in README
+    assert "div7a-loan-review/v0.3.0" in README
 
 
 def test_the_package_records_the_compilation_it_was_written_against():

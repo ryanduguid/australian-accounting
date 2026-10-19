@@ -48,7 +48,7 @@ No install, just the rates and the reasoning:
 <https://duguid.com.au/rates/div7a-benchmark-rate/>
 
 Citation: [`CITATION.cff`](CITATION.cff); release:
-[`v0.2.0`](https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.2.0).
+[`v0.3.0`](https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.3.0).
 
 ---
 
@@ -530,6 +530,8 @@ Python distributions.
 
 ## Author and licence
 
-Ryan Duguid, provisional member of Chartered Accountants Australia and New Zealand.
+Ryan Duguid. Written independently, in his own time, on his own equipment.
+Provisional member of Chartered Accountants Australia and New Zealand; that
+membership is not an endorsement of this software by CA ANZ.
 
 Apache-2.0. See [LICENSE](LICENSE). If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).

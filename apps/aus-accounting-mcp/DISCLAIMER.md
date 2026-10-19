@@ -5,7 +5,8 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 aus-accounting-mcp is a Model Context Protocol server that exposes reviewed
 Australian computational accounting engines. It does not provide professional advice.
 
-Tax law, ATO guidance, rates, thresholds, and administrative practice
+Outputs can be wrong, incomplete, stale, or unsuitable for a given set of
+facts. Tax law, ATO guidance, rates, thresholds, and administrative practice
 change. Verify every mutable fact against current official sources before
 relying on an output.
 
