@@ -137,7 +137,6 @@ def review_coding(
             "sections": cited,
         })
 
-    entities = sorted({line.entity for line in lines})
     return {
         "ok": True,
         "engine": "gst-review",
@@ -146,17 +145,7 @@ def review_coding(
         "lines": reviewed,
         "counts": {state: sum(1 for row in reviewed if row["state"] == state)
                    for state in STATES},
-        "facts_used": {
-            "registrations": {
-                entity: {
-                    "registered_from": _iso(registrations[entity].registered_from),
-                    "registered_to": _iso(registrations[entity].registered_to),
-                }
-                for entity in entities
-            },
-            "match_window_days": match_window_days,
-            "gst_codes": dict(codes),
-        },
+        "facts_used": _facts_used(lines, registrations, match_window_days, codes),
         "not_decided": list(NOT_DECIDED),
         "sources": [GST_ACT],
         "source_checked": SOURCE_CHECKED,
@@ -165,6 +154,20 @@ def review_coding(
             "not independently verified.",
             "Review aid only, not advice, an assessment or a lodgment. Obtain human review.",
         ],
+    }
+
+
+def _facts_used(lines: list[BankLine], registrations: dict[str, Registration],
+                window: int, codes: dict[str, str]) -> dict[str, Any]:
+    entities = sorted({line.entity for line in lines})
+    return {
+        "registrations": {
+            entity: {"registered_from": _iso(registrations[entity].registered_from),
+                     "registered_to": _iso(registrations[entity].registered_to)}
+            for entity in entities
+        },
+        "match_window_days": window,
+        "gst_codes": dict(codes),
     }
 
 
@@ -227,7 +230,9 @@ def _match_between_entities(lines: list[BankLine], window: int) -> dict[str, str
 
 def _validate(lines: list[BankLine], registrations: dict[str, Registration],
               window: int, codes: dict[str, str]) -> None:
-    if type(window) is not int or not 0 <= window <= MAX_MATCH_WINDOW_DAYS:
+    # bool is an int subclass, so True would otherwise pass as a 1-day window.
+    if (isinstance(window, bool) or not isinstance(window, int)
+            or not 0 <= window <= MAX_MATCH_WINDOW_DAYS):
         raise ValueError(f"match_window_days must be an integer from 0 to "
                          f"{MAX_MATCH_WINDOW_DAYS}.")
     unknown = {treatment for treatment in codes.values() if treatment not in TREATMENTS}
@@ -252,8 +257,8 @@ def _validate(lines: list[BankLine], registrations: dict[str, Registration],
         if not is_money(line.amount):
             raise ValueError(f"Line {line.id!r} amount must be a finite Decimal, at most "
                              "2 decimal places and 1e12.")
-        if type(line.confirmed) is not bool or (line.supplier_registered is not None
-                                                and type(line.supplier_registered) is not bool):
+        if not isinstance(line.confirmed, bool) or not isinstance(
+                line.supplier_registered, (bool, type(None))):
             raise ValueError(f"Line {line.id!r} flags must be booleans.")
         if line.confirmed and not (line.account and line.gst_code):
             raise ValueError(f"Line {line.id!r} is confirmed without an account and GST code.")

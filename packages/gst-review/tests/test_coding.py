@@ -13,9 +13,9 @@ REGISTERED = Registration(date(2025, 7, 1))
 NEVER = Registration(None)
 
 
-def line(id: str, amount: str, day: date = date(2026, 8, 10), entity: str = "Alder Pty Ltd",
-         **coding: object) -> BankLine:
-    return BankLine(id=id, entity=entity, date=day, amount=Decimal(amount), **coding)  # type: ignore[arg-type]
+def line(line_id: str, amount: str, day: date = date(2026, 8, 10),
+         entity: str = "Alder Pty Ltd", **coding: object) -> BankLine:
+    return BankLine(id=line_id, entity=entity, date=day, amount=Decimal(amount), **coding)  # type: ignore[arg-type]
 
 
 def states(result: dict) -> dict[str, str]:
