@@ -321,3 +321,21 @@ fn the_reason_code_vocabulary_is_exactly_what_the_engine_emits() {
         REASON_CODES.iter().map(|c| c.to_string()).collect();
     assert_eq!(emitted, published);
 }
+
+/// argparse prints the version through the help formatter, so a narrow
+/// terminal wraps it (Python 3.15 at COLUMNS=14 and 20 printed these layouts).
+#[test]
+fn the_version_wraps_like_help_text() {
+    for (columns, expected) in [
+        ("14", "div7a-loan-\nreview 1.0.0\n"),
+        ("20", "div7a-loan-review\n1.0.0\n"),
+        ("80", "div7a-loan-review 1.0.0\n"),
+    ] {
+        let out = binary()
+            .arg("--version")
+            .env("COLUMNS", columns)
+            .output()
+            .unwrap();
+        assert_eq!(lf(&out.stdout), expected, "COLUMNS={columns}");
+    }
+}

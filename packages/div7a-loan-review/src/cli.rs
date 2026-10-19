@@ -727,7 +727,10 @@ fn parse(prog: &str, args: &[String]) -> Result<Parsed, Exit> {
             Class::Flag(flag, explicit) => {
                 ignored_argument(flag, explicit).map_err(|m| main_exit(prog, m))?;
                 if flag == "--version" {
-                    return Err(Exit::Help(format!("{prog} {VERSION}\n"), 0));
+                    // The version action formats through the help formatter,
+                    // so a narrow terminal wraps it like any help text.
+                    let text = wrap(&format!("{prog} {VERSION}"), width().max(11)).join("\n");
+                    return Err(Exit::Help(format!("{text}\n"), 0));
                 }
                 return Err(Exit::Help(
                     main_help(prog, argtheme::theme(Stream::Stdout)),

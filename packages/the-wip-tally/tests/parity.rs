@@ -462,3 +462,16 @@ fn float_amounts_are_refused_not_converted() {
             .contains("cost-to-cost progress is undefined")
     );
 }
+
+/// argparse prints the version through the help formatter, so a narrow
+/// terminal wraps it (Python 3.15 at COLUMNS=10 printed the same layout).
+#[test]
+fn the_version_wraps_like_help_text() {
+    let out = std::process::Command::new(env!("CARGO_BIN_EXE_wip-tally"))
+        .arg("--version")
+        .env("COLUMNS", "10")
+        .output()
+        .unwrap();
+    let text = String::from_utf8(out.stdout).unwrap().replace("\r\n", "\n");
+    assert_eq!(text, "wip-tally\n1.0.0\n");
+}
