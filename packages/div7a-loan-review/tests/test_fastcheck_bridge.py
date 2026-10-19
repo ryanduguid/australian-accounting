@@ -6,6 +6,7 @@ Each component that uses tests/_fastcheck.py keeps an identical copy of this fil
 import json
 import shutil
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -84,9 +85,30 @@ def worker(tmp_path, monkeypatch):
     return directory
 
 
-def test_a_missing_installation_fails_closed(worker):
+def test_a_missing_installation_is_bootstrapped_before_the_property(worker, monkeypatch):
+    # The release workflow runs a bare pytest in a fresh checkout.
     shutil.rmtree(worker / "node_modules")
-    with pytest.raises(RuntimeError, match="not installed.*bootstrap.py"):
+    real_node_modules = Path(_fastcheck.__file__).with_name("fastcheck") / "node_modules"
+    calls = []
+
+    def bootstrap(command, **kwargs):
+        calls.append(command)
+        shutil.copytree(real_node_modules, worker / "node_modules")
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr(_fastcheck.subprocess, "run", bootstrap)
+    assert run(in_range)["numRuns"] == 40
+    assert calls == [[_fastcheck.sys.executable, str(worker / "bootstrap.py")]]
+
+
+def test_a_failed_bootstrap_fails_closed(worker, monkeypatch):
+    shutil.rmtree(worker / "node_modules")
+    monkeypatch.setattr(
+        _fastcheck.subprocess,
+        "run",
+        lambda command, **kwargs: subprocess.CompletedProcess(command, 1, "", "npm ERR! offline"),
+    )
+    with pytest.raises(RuntimeError, match="(?s)bootstrap failed.*bootstrap.py.*npm ERR! offline"):
         run(in_range)
 
 
