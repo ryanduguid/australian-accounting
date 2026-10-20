@@ -90,10 +90,6 @@ fn base64_decode(text: &str) -> Result<Vec<u8>> {
     Ok(out)
 }
 
-fn get<'a>(v: &'a Value, key: &str) -> Option<&'a Value> {
-    v.get(key).filter(|x| !x.is_null())
-}
-
 fn text<'a>(v: &'a Value, key: &str) -> Result<&'a str> {
     v.get(key)
         .and_then(Value::as_str)
@@ -275,14 +271,25 @@ fn line_json(line: &ContribLine) -> Value {
     })
 }
 
+/// A selector for bundled data: absent or `null` selects the bundled table,
+/// a value of the right type supplies one, and any other type is refused.
+fn selector<'a>(v: &'a Value, key: &str, kind: &str) -> Result<Option<&'a Value>> {
+    match v.get(key) {
+        None | Some(Value::Null) => Ok(None),
+        Some(value @ Value::Object(_)) if kind == "an object" => Ok(Some(value)),
+        Some(value @ Value::Array(_)) if kind == "a list" => Ok(Some(value)),
+        Some(_) => Err(format!("{key} must be {kind}")),
+    }
+}
+
 fn calendar_of(v: &Value) -> Result<BusinessCalendar> {
-    let Some(spec) = get(v, "calendar") else {
+    let Some(spec) = selector(v, "calendar", "an object")? else {
         return calendar::load_calendar(None).map_err(failure);
     };
     if let Some(path) = optional_text(spec, "override_path")? {
         return calendar::load_calendar(Some(path)).map_err(failure);
     }
-    let Some(Value::Array(items)) = spec.get("holidays") else {
+    let Some(Value::Array(items)) = selector(spec, "holidays", "a list")? else {
         return calendar::load_calendar(None).map_err(failure);
     };
     let mut holidays = Vec::new();
@@ -317,7 +324,7 @@ fn calendar_json(cal: &BusinessCalendar) -> Value {
 }
 
 fn gic_of(v: &Value) -> Result<GicTable> {
-    let Some(Value::Array(items)) = get(v, "quarters") else {
+    let Some(Value::Array(items)) = selector(v, "quarters", "a list")? else {
         return rates::load_gic().map_err(failure);
     };
     let mut quarters = Vec::new();
@@ -582,7 +589,7 @@ fn join_json(result: &JoinResult) -> Result<Value> {
 }
 
 fn mapping_of(v: &Value) -> Result<Mapping> {
-    if let Some(Value::Array(pairs)) = v.get("mapping") {
+    if let Some(Value::Array(pairs)) = selector(v, "mapping", "a list")? {
         let mut columns = Vec::new();
         for pair in pairs {
             let (Some(field), Some(column)) = (
@@ -625,7 +632,16 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         ))),
         "csv-safe" => Ok(json!(csv_io::csv_safe(text(v, "text")?))),
         "money" => Ok(json!(
-            csv_io::money(optional_decimal(v, "value")?.as_ref()).map_err(failure)?
+            // `money(value)` has no default, though it accepts None.
+            csv_io::money(
+                (if v.get("value").is_some() {
+                    optional_decimal(v, "value")
+                } else {
+                    Err("value must be a string or null".into())
+                })?
+                .as_ref()
+            )
+            .map_err(failure)?
         )),
         "load-mapping" => {
             let mapping = mapping_of(v)?;

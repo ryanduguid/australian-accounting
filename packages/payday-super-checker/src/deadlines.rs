@@ -292,27 +292,18 @@ fn item4_evidence(
 /// Apply SGAA s 18C(2) item 4 without manufacturing its missing facts.
 pub fn apply_item4(pairs: &mut [(ContribLine, Deadline)], as_at: Option<Date>) -> Result<()> {
     // Employees in first-appearance order, each with its pairs' indices.
-    let mut by_employee: Vec<(String, Vec<usize>)> = Vec::new();
+    let mut grouped: crate::Groups<usize> = crate::Groups::default();
     for (i, (line, dl)) in pairs.iter().enumerate() {
-        if dl.due.is_none() {
-            continue;
-        }
-        match by_employee
-            .iter_mut()
-            .find(|(id, _)| *id == line.employee_id)
-        {
-            Some(entry) => entry.1.push(i),
-            None => by_employee.push((line.employee_id.clone(), vec![i])),
+        if dl.due.is_some() {
+            grouped.push(line.employee_id.clone(), i);
         }
     }
-    let mut by_casefold: Vec<(String, Vec<usize>)> = Vec::new();
+    let by_employee = grouped.entries;
+    let mut folded: crate::Groups<usize> = crate::Groups::default();
     for (k, (id, _)) in by_employee.iter().enumerate() {
-        let folded = py::casefold(id);
-        match by_casefold.iter_mut().find(|(f, _)| *f == folded) {
-            Some(entry) => entry.1.push(k),
-            None => by_casefold.push((folded, vec![k])),
-        }
+        folded.push(py::casefold(id), k);
     }
+    let by_casefold = folded.entries;
     for (_, variants) in &by_casefold {
         if variants.len() < 2 {
             continue;

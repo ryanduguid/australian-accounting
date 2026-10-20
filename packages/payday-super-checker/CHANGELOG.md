@@ -21,9 +21,10 @@ message rule is intentionally changed.
 - Dataclass results become JSON objects with the same field names; decimals are
   strings and dates are `YYYY-MM-DD` strings. `import-files` returns the whole
   import report, its profiles and each orphan's super row included. `assess`
-  adds each line's rounded `figures`, the figures the report prints; they are
-  null where a figure cannot be rounded to cents (for example under an
-  astronomical custom GIC rate), since Python's `assess()` did no rounding.
+  adds each line's rounded `figures`, the figures the report prints. The whole
+  `figures` object is null if any component cannot be rounded to cents (for
+  example under an astronomical custom GIC rate), and the raw fields are kept,
+  since Python's `assess()` did no rounding.
 - The bundled data moves from `paydaysuper/data/` to `data/` and is compiled
   into the binary; its contents and digests are unchanged. Rebuild after editing
   it.
@@ -36,7 +37,7 @@ message rule is intentionally changed.
 
 ### Verification
 
-`tests/parity.rs` replays 4,874 frozen cases, each with the files it read: up
+`tests/parity.rs` replays 4,883 frozen cases, each with the files it read: up
 to 60 distinct top-level engine calls and command runs from each Python 0.2.2
 test (those the harness could encode as JSON or command-line input), the final
 reviews' counterexamples and generated calls and runs. Results are compared byte
@@ -74,8 +75,12 @@ root.
   optional, and means `None` there. A `null` anywhere else, a field of another
   JSON type, and an integer outside the signed 64-bit range are refused with the
   field's name and exit 2, where Python's dataclasses carried such a value
-  through or failed later with their own error. Python's literal-boolean checks
-  are kept, and `join` still reads its column flags by truthiness.
+  through or failed later with their own error. A nullable argument Python
+  required, such as `money`'s `value`, must still be given. The `calendar`,
+  `quarters` and `mapping` selectors take the bundled table or the default
+  mapping when absent or null, and are refused when of another type. Python's
+  literal-boolean checks are kept, and `join` still reads its column flags by
+  truthiness.
 - A command name given as the only argument runs that JSON command, so a
   contribution file named exactly like one (for example `assess`) must be
   checked as `./assess`.

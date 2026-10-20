@@ -409,7 +409,7 @@ pub fn join(
         }
     }
 
-    let mut grouped: Vec<(String, Vec<usize>)> = Vec::new();
+    let mut grouped: crate::Groups<usize> = crate::Groups::default();
     for (i, row) in payroll_rows.iter().enumerate() {
         let k = payroll_key(row, key_mode);
         if k.is_empty() {
@@ -418,20 +418,13 @@ pub fn join(
                 row.row
             )));
         }
-        match grouped.iter_mut().find(|(g, _)| *g == k) {
-            Some(entry) => entry.1.push(i),
-            None => grouped.push((k, vec![i])),
-        }
+        grouped.push(k, i);
     }
     let coverage_of: Vec<Vec<usize>> = super_rows
         .iter()
         .map(|s| {
             let k = super_key(s, key_mode);
-            let candidates = grouped
-                .iter()
-                .find(|(g, _)| *g == k)
-                .map(|(_, members)| members.as_slice())
-                .unwrap_or(&[]);
+            let candidates = grouped.get(&k).map_or(&[][..], Vec::as_slice);
             coverage(s, candidates, &payroll_rows)
         })
         .collect();

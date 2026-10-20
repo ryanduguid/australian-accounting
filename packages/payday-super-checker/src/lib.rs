@@ -125,6 +125,12 @@ pub enum Failure {
     Signal(decimal::Signal),
     /// `OverflowError("date value out of range")` from date arithmetic.
     Overflow,
+    /// Any other `ArithmeticError`, named by its class, such as
+    /// `OverflowError: cannot convert float infinity to integer`.
+    Arithmetic {
+        class: &'static str,
+        message: String,
+    },
     Os(OsError),
     /// Any other exception, which Python left uncaught: its traceback's last line.
     Uncaught(String),
@@ -149,6 +155,7 @@ impl Failure {
             Failure::Value(m) | Failure::StaleGic(m) | Failure::Uncaught(m) => m.clone(),
             Failure::Signal(s) => format!("[<class 'decimal.{}'>]", s.name()),
             Failure::Overflow => "date value out of range".into(),
+            Failure::Arithmetic { message, .. } => message.clone(),
             Failure::Os(e) => e.display(),
         }
     }
@@ -157,7 +164,11 @@ impl Failure {
     pub fn is_value_or_arithmetic(&self) -> bool {
         matches!(
             self,
-            Failure::Value(_) | Failure::StaleGic(_) | Failure::Signal(_) | Failure::Overflow
+            Failure::Value(_)
+                | Failure::StaleGic(_)
+                | Failure::Signal(_)
+                | Failure::Overflow
+                | Failure::Arithmetic { .. }
         )
     }
 
@@ -167,6 +178,7 @@ impl Failure {
             Failure::Value(m) | Failure::StaleGic(m) => format!("ValueError: {m}"),
             Failure::Signal(s) => format!("decimal.{}", s.name()),
             Failure::Overflow => "OverflowError: date value out of range".into(),
+            Failure::Arithmetic { class, message } => format!("{class}: {message}"),
             Failure::Os(e) => format!("OSError: {}", e.display()),
             Failure::Uncaught(m) => m.clone(),
         }
@@ -179,6 +191,38 @@ pub type Result<T> = std::result::Result<T, Failure>;
 pub fn repr_list<S: AsRef<str>>(items: &[S]) -> String {
     let parts: Vec<String> = items.iter().map(|s| pytext::repr_os(s.as_ref())).collect();
     format!("[{}]", parts.join(", "))
+}
+
+/// A Python dict of lists keyed by string: groups in first-appearance
+/// order, found by hash.
+pub struct Groups<T> {
+    pub entries: Vec<(String, Vec<T>)>,
+    at: std::collections::HashMap<String, usize>,
+}
+
+impl<T> Default for Groups<T> {
+    fn default() -> Self {
+        Groups {
+            entries: Vec::new(),
+            at: std::collections::HashMap::new(),
+        }
+    }
+}
+
+impl<T> Groups<T> {
+    pub fn push(&mut self, key: String, item: T) {
+        match self.at.get(&key) {
+            Some(&i) => self.entries[i].1.push(item),
+            None => {
+                self.at.insert(key.clone(), self.entries.len());
+                self.entries.push((key, vec![item]));
+            }
+        }
+    }
+
+    pub fn get(&self, key: &str) -> Option<&Vec<T>> {
+        self.at.get(key).map(|&i| &self.entries[i].1)
+    }
 }
 
 /// `sorted(strings)`: Python orders `str` by code point.

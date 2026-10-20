@@ -391,29 +391,22 @@ pub fn classify_outcome(outcome: &MatchOutcome, row: &PayrollRow) -> Result<&'st
 
 /// Refuse an export whose formula guard would write two employees as one.
 fn refuse_merged_identities(result: &JoinResult, labels: &[(String, String)]) -> Result<()> {
-    let mut written: Vec<(String, Vec<String>)> = Vec::new();
+    let mut written: crate::Groups<String> = crate::Groups::default();
     for (key, label) in labels {
-        let value = csv_safe(label);
-        match written.iter_mut().find(|(v, _)| *v == value) {
-            Some(entry) => entry.1.push(key.clone()),
-            None => written.push((value, vec![key.clone()])),
-        }
+        written.push(csv_safe(label), key.clone());
     }
     let mut merged: Vec<(String, Vec<String>)> = written
+        .entries
         .into_iter()
         .filter(|(_, keys)| keys.len() > 1)
         .collect();
     if merged.is_empty() {
         return Ok(());
     }
-    let mut rows: Vec<(String, Vec<i64>)> = Vec::new();
+    let mut rows: crate::Groups<i64> = crate::Groups::default();
     for outcome in &result.outcomes {
         let row = &result.payroll_rows[outcome.payroll];
-        let k = join::payroll_key(row, &result.key_mode);
-        match rows.iter_mut().find(|(r, _)| *r == k) {
-            Some(entry) => entry.1.push(row.row),
-            None => rows.push((k, vec![row.row])),
-        }
+        rows.push(join::payroll_key(row, &result.key_mode), row.row);
     }
     merged.sort_by(|a, b| pytext::code_points(&a.0).cmp(pytext::code_points(&b.0)));
     let label_of = |key: &str| {
@@ -429,11 +422,7 @@ fn refuse_merged_identities(result: &JoinResult, labels: &[(String, String)]) ->
             let people: Vec<String> = sorted_strings(keys)
                 .iter()
                 .map(|key| {
-                    let mut numbers = rows
-                        .iter()
-                        .find(|(k, _)| k == key)
-                        .map(|(_, n)| n.clone())
-                        .unwrap_or_default();
+                    let mut numbers = rows.get(key).cloned().unwrap_or_default();
                     numbers.sort();
                     let numbers: Vec<String> = numbers.iter().map(i64::to_string).collect();
                     format!(
@@ -462,6 +451,7 @@ fn refuse_merged_identities(result: &JoinResult, labels: &[(String, String)]) ->
 /// Each join key's written label, refused where 2 people would share one.
 fn labels_of(result: &JoinResult) -> Result<Vec<(String, String)>> {
     let mut labels: Vec<(String, String)> = Vec::new();
+    let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
     for outcome in &result.outcomes {
         let row = &result.payroll_rows[outcome.payroll];
         // Python's `a or b or c or ""`: an empty string falls through.
@@ -475,7 +465,7 @@ fn labels_of(result: &JoinResult) -> Result<Vec<(String, String)>> {
         .or_else(|| given(&row.employee_name))
         .unwrap_or_default();
         let k = join::payroll_key(row, &result.key_mode);
-        if !labels.iter().any(|(key, _)| *key == k) {
+        if seen.insert(k.clone()) {
             labels.push((k, preferred));
         }
     }
@@ -485,6 +475,10 @@ fn labels_of(result: &JoinResult) -> Result<Vec<(String, String)>> {
 
 pub fn canonical_csv(result: &JoinResult) -> Result<String> {
     let labels = labels_of(result)?;
+    let label_of: std::collections::HashMap<&str, &str> = labels
+        .iter()
+        .map(|(k, l)| (k.as_str(), l.as_str()))
+        .collect();
     let join_note = result.warnings.join(" | ");
     let mut out = String::new();
     csvwrite::row(
@@ -497,11 +491,11 @@ pub fn canonical_csv(result: &JoinResult) -> Result<String> {
     for outcome in &result.outcomes {
         let row = &result.payroll_rows[outcome.payroll];
         let k = join::payroll_key(row, &result.key_mode);
-        let label = labels
-            .iter()
-            .find(|(key, _)| *key == k)
-            .map(|(_, l)| l.clone())
-            .unwrap_or_default();
+        let label = label_of
+            .get(k.as_str())
+            .copied()
+            .unwrap_or_default()
+            .to_string();
         let mut credited = outcome.remitted_amount.clone();
         if let Some(c) = &credited
             && cents(Some(c))?.gt(&cents(Some(&row.sg_amount))?)?
@@ -656,26 +650,24 @@ pub fn import_files(
     } else {
         "name"
     };
-    let mut super_keys: Vec<String> = Vec::new();
+    let mut super_keys: std::collections::HashSet<String> = std::collections::HashSet::new();
     for row in &super_rows {
         if row.amount.gt(&csv_io::zero())? {
-            super_keys.push(join::super_key(row, key_mode));
+            super_keys.insert(join::super_key(row, key_mode));
         }
     }
-    let mut grouped: Vec<(String, Vec<&PayrollRow>)> = Vec::new();
+    let mut grouped: crate::Groups<&PayrollRow> = crate::Groups::default();
     for row in &payroll_rows {
         let k = join::payroll_key(row, key_mode);
         if row.sg_amount.gt(&csv_io::zero())?
             && row.payday >= REGIME_START
             && super_keys.contains(&k)
         {
-            match grouped.iter_mut().find(|(g, _)| *g == k) {
-                Some(entry) => entry.1.push(row),
-                None => grouped.push((k, vec![row])),
-            }
+            grouped.push(k, row);
         }
     }
     let allocation_groups: Vec<&Vec<&PayrollRow>> = grouped
+        .entries
         .iter()
         .map(|(_, rows)| rows)
         .filter(|rows| {

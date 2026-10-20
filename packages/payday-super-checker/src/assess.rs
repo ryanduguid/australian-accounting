@@ -175,8 +175,20 @@ impl DuplicateKey {
     }
 }
 
+/// The key fields compared exactly; amounts are compared as values within
+/// a bucket, as Python's tuple equality compared Decimals.
+type Bucket = (
+    String,
+    Date,
+    Option<Date>,
+    Option<Date>,
+    (bool, bool, Option<Date>, bool),
+);
+
 fn flag_duplicates(lines: &mut [ContribLine]) -> Result<()> {
     let mut groups: Vec<(DuplicateKey, Vec<usize>)> = Vec::new();
+    let mut buckets: std::collections::HashMap<Bucket, Vec<usize>> =
+        std::collections::HashMap::new();
     for (i, line) in lines.iter().enumerate() {
         let key = DuplicateKey {
             employee_id: line.employee_id.clone(),
@@ -196,16 +208,28 @@ fn flag_duplicates(lines: &mut [ContribLine]) -> Result<()> {
                 line.db_interest,
             ),
         };
+        let bucket = buckets
+            .entry((
+                key.employee_id.clone(),
+                key.qe_day,
+                key.remitted,
+                key.received,
+                key.flags,
+            ))
+            .or_default();
         let mut found = None;
-        for (g, (existing, _)) in groups.iter().enumerate() {
-            if existing.same(&key)? {
+        for &g in bucket.iter() {
+            if groups[g].0.same(&key)? {
                 found = Some(g);
                 break;
             }
         }
         match found {
             Some(g) => groups[g].1.push(i),
-            None => groups.push((key, vec![i])),
+            None => {
+                bucket.push(groups.len());
+                groups.push((key, vec![i]));
+            }
         }
     }
     for (_, members) in groups {

@@ -45,6 +45,9 @@ fn rates_error(message: String) -> Failure {
 pub struct GicTable {
     pub source: Option<TableSource>,
     quarters: Vec<GicQuarter>,
+    /// `annual_pct / 100 / days`, by quarter index and days in the year: the
+    /// notional-earnings loop asks for it once per late day.
+    daily: std::cell::RefCell<std::collections::HashMap<(usize, i64), Decimal>>,
 }
 
 impl GicTable {
@@ -77,7 +80,11 @@ impl GicTable {
                 current.end.isoformat()
             )));
         }
-        Ok(GicTable { source, quarters })
+        Ok(GicTable {
+            source,
+            quarters,
+            daily: Default::default(),
+        })
     }
 
     pub fn quarters(&self) -> &[GicQuarter] {
@@ -108,13 +115,25 @@ impl GicTable {
         )
     }
 
+    /// `annual_pct / 100 / days` for quarter `index`, computed once.
+    fn rate_of(&self, index: usize, days: i64) -> Result<Decimal> {
+        if let Some(rate) = self.daily.borrow().get(&(index, days)) {
+            return Ok(rate.clone());
+        }
+        let rate = self.quarters[index]
+            .annual_pct
+            .div(&Decimal::from_int(100))?
+            .div(&Decimal::from_int(days))?;
+        self.daily.borrow_mut().insert((index, days), rate.clone());
+        Ok(rate)
+    }
+
     /// The daily GIC rate for one day; past the last quarter only on request.
     pub fn daily_rate(&self, d: Date, allow_stale: bool) -> Result<Decimal> {
-        let divisor = Decimal::from_int(days_in_year(d));
-        let hundred = Decimal::from_int(100);
-        for q in &self.quarters {
+        let days = days_in_year(d);
+        for (index, q) in self.quarters.iter().enumerate() {
             if q.start <= d && d <= q.end {
-                return Ok(q.annual_pct.div(&hundred)?.div(&divisor)?);
+                return self.rate_of(index, days);
             }
         }
         if d > self.last_known() {
@@ -129,7 +148,7 @@ impl GicTable {
                     self.latest().annual_pct.to_sci_string()
                 )));
             }
-            return Ok(self.latest().annual_pct.div(&hundred)?.div(&divisor)?);
+            return self.rate_of(self.quarters.len() - 1, days);
         }
         Err(rates_error(format!(
             "no GIC rate on record for {}",

@@ -225,7 +225,8 @@ pub fn render_csv(
 }
 
 /// `int(mcb)` with Python's arbitrary precision: TypeError and ValueError
-/// give the unreadable text; an infinite float raises OverflowError uncaught.
+/// give the unreadable text; an infinite float raises OverflowError, which
+/// the caller's ArithmeticError handler reports.
 fn cap_text(entry: Option<&Raw>, fy_label: &str) -> Result<String> {
     use num_traits::FromPrimitive;
     let mcb = entry.and_then(|e| e.get("max_contributions_base"));
@@ -240,9 +241,10 @@ fn cap_text(entry: Option<&Raw>, fy_label: &str) -> Result<String> {
         Some(Raw::Bool(b)) => Some(u8::from(*b).into()),
         Some(Raw::Str(s)) => crate::py::parse_int(s, 10).ok(),
         Some(Raw::Float(f)) if f.is_infinite() => {
-            return Err(Failure::Uncaught(
-                "OverflowError: cannot convert float infinity to integer".into(),
-            ));
+            return Err(Failure::Arithmetic {
+                class: "OverflowError",
+                message: "cannot convert float infinity to integer".into(),
+            });
         }
         Some(Raw::Float(f)) => num_bigint::BigInt::from_f64(f.trunc()),
         Some(_) => None,

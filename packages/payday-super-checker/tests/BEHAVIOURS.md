@@ -4,8 +4,8 @@ Base 55a037c, Python 0.2.2: 672 test functions. The archive pytest suite
 passed before the differential harness captured the top-level engine calls and
 command runs they made, with the files each named. `tests/data/python-cases.json`
 freezes the first 60 distinct cases of each test that the harness could encode
-as JSON or command-line input, 41 counterexamples from the final reviews
-and 3,400 generated API calls and command runs: 4,874 cases in all.
+as JSON or command-line input, 50 counterexamples from the final reviews
+and 3,400 generated API calls and command runs: 4,883 cases in all.
 `tests/parity.rs` replays them and compares complete results, key order, output
 bytes and written files included.
 Results and streams over 4 KiB are stored as an FNV-1a fingerprint and length.
