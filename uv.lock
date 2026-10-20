@@ -115,10 +115,10 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ato-benchmark-compare", specifier = "==0.1.11" },
+    { name = "ato-benchmark-compare", specifier = "==0.2.2" },
     { name = "australian-tax-calculators", specifier = "==0.2.0" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.6.1" },
-    { name = "div7a-loan-review", specifier = "==0.2.0" },
+    { name = "div7a-loan-review", specifier = "==0.3.2" },
     { name = "gst-review", editable = "packages/gst-review" },
     { name = "mcp", specifier = ">=2.3.0,<3" },
     { name = "nodejs-wheel-binaries", marker = "extra == 'dev'", specifier = "==24.19.0" },
