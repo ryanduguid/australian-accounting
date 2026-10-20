@@ -198,7 +198,8 @@ fn py_repr(value: &Value) -> String {
                 text
             }
         }
-        Value::Number(n) => float_repr(n.as_f64().unwrap_or(f64::NAN)),
+        // float(text): an overflowing literal such as 1e400 is infinity.
+        Value::Number(n) => float_repr(n.to_string().parse().unwrap_or(f64::NAN)),
         Value::String(s) => crate::pytext::repr(s),
         Value::Array(items) => format!(
             "[{}]",
