@@ -230,7 +230,7 @@ fn api(command: &str, evaluate: fn(&str, &Value) -> Result<Value, String>, json:
         parse_json(&bytes, json)
             .map_err(|e| format!("invalid JSON: {e}"))
             .and_then(|v| evaluate(command, &v))
-            .and_then(|v| adapt(v, json))
+            .map(|v| order_keys(v, json.preserve_order))
     };
     match result {
         Ok(v) => (0, format!("{v}\n"), String::new()),
@@ -256,7 +256,7 @@ fn parse_json(bytes: &[u8], json: Json) -> Result<Value, String> {
         parser.end().map_err(|e| e.to_string())?;
         value
     };
-    adapt(value, json)
+    Ok(order_keys(value, json.preserve_order))
 }
 
 #[derive(Debug, PartialEq)]
@@ -397,32 +397,29 @@ impl PlainValue<'_> {
     }
 }
 
-/// `value` as an engine built with `json`'s features would hold it.
-fn adapt(value: Value, json: Json) -> Result<Value, String> {
-    Ok(match value {
-        Value::Number(n) if !json.arbitrary_precision => Value::Number(plain_number(&n)?),
-        Value::Array(items) => Value::Array(
-            items
-                .into_iter()
-                .map(|v| adapt(v, json))
-                .collect::<Result<_, _>>()?,
-        ),
+/// Restore the engine's object order without parsing normalised numbers again.
+fn order_keys(value: Value, preserve_order: bool) -> Value {
+    if preserve_order {
+        return value;
+    }
+    match value {
+        Value::Array(items) => {
+            Value::Array(items.into_iter().map(|v| order_keys(v, false)).collect())
+        }
         Value::Object(map) => {
             let mut entries = map
                 .into_iter()
-                .map(|(k, v)| adapt(v, json).map(|v| (k, v)))
-                .collect::<Result<Vec<_>, _>>()?;
-            if !json.preserve_order {
-                entries.sort_by(|a, b| a.0.cmp(&b.0));
-            }
+                .map(|(k, v)| (k, order_keys(v, false)))
+                .collect::<Vec<_>>();
+            entries.sort_by(|a, b| a.0.cmp(&b.0));
             Value::Object(entries.into_iter().collect())
         }
         other => other,
-    })
+    }
 }
 
 /// The number serde_json's default parser reads from `n`'s text: an integer
-/// when it fits u64 or i64 (`-0` is a float), otherwise the nearest finite f64.
+/// when it fits u64 or i64 (`-0` is a float), otherwise its finite f64 conversion.
 fn plain_number(n: &serde_json::Number) -> Result<serde_json::Number, String> {
     let text = n.to_string();
     if !text.bytes().any(|b| b".eE".contains(&b)) {
@@ -434,7 +431,8 @@ fn plain_number(n: &serde_json::Number) -> Result<serde_json::Number, String> {
             _ => {}
         }
     }
-    text.parse::<f64>()
+    // Keep serde_json's decimal conversion, which can round differently from str::parse.
+    serde_json::from_str::<f64>(&text)
         .ok()
         .and_then(serde_json::Number::from_f64)
         .ok_or_else(|| "number out of range".into())

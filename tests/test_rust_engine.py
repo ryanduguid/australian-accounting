@@ -39,7 +39,7 @@ class RustEngineTests(unittest.TestCase):
                     self.assertNotIn("path", value if isinstance(value, dict) else {})
 
     def test_binstall_metadata_names_the_ci_archive_layout(self):
-        # ci-rust.yml packages <crate>-<version>-<target>/<bin> as .tar.gz, or .zip on
+        # ci-rust.yml packages <crate>-<version>-<target>/<bin> as .tgz, or .zip on
         # Windows; every crate's binstall metadata must name that layout.
         expected = {
             "pkg-url": "{ repo }/releases/download/{ name }/v{ version }/{ name }-{ version }-{ target }{ archive-suffix }",
@@ -50,12 +50,29 @@ class RustEngineTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/ci-rust.yml").read_text()
         self.assertIn('base="$CRATE-$version-$target"', workflow)
         self.assertIn('7z a -tzip "$base.zip" "$base"', workflow)
-        self.assertIn('tar -C dist -czf "dist/$base.tar.gz" "$base"', workflow)
+        self.assertIn('tar -C dist -czf "dist/$base.tgz" "$base"', workflow)
         for component in [*RUST_ENGINES, "apps/au-accounting"]:
             with self.subTest(component=component):
-                package = tomllib.loads((ROOT / component / "Cargo.toml").read_text())["package"]
+                manifest = tomllib.loads((ROOT / component / "Cargo.toml").read_text())
+                package = manifest["package"]
                 self.assertEqual(package["repository"], "https://github.com/ryanduguid/australian-accounting")
                 self.assertEqual(package["metadata"]["binstall"], expected)
+                binary = manifest.get("bin", [{"name": package["name"]}])[0]["name"]
+                for target in ("x86_64-unknown-linux-gnu", "aarch64-apple-darwin", "x86_64-pc-windows-msvc"):
+                    metadata = package["metadata"]["binstall"]
+                    fmt = metadata.get("overrides", {}).get(target, {}).get("pkg-fmt", metadata["pkg-fmt"])
+                    suffix = {"tgz": ".tgz", "zip": ".zip"}[fmt]
+                    extension = ".exe" if target.endswith("windows-msvc") else ""
+                    url, binary_path = metadata["pkg-url"], metadata["bin-dir"]
+                    values = {"repo": package["repository"], "name": package["name"],
+                              "version": package["version"], "target": target,
+                              "archive-suffix": suffix, "bin": binary, "binary-ext": extension}
+                    for key, value in values.items():
+                        url = url.replace("{ " + key + " }", value)
+                        binary_path = binary_path.replace("{ " + key + " }", value)
+                    base = f"{package['name']}-{package['version']}-{target}"
+                    self.assertEqual(url, f"{package['repository']}/releases/download/{package['name']}/v{package['version']}/{base}{suffix}")
+                    self.assertEqual(binary_path, f"{base}/{binary}{extension}")
 
     def test_umbrella_links_every_engine_by_path(self):
         cargo = tomllib.loads((ROOT / "apps/au-accounting/Cargo.toml").read_text())

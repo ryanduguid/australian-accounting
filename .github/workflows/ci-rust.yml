@@ -70,8 +70,8 @@ jobs:
             archive="$base.zip"
           else
             cp "target/release/$BINARY" "dist/$base/"
-            tar -C dist -czf "dist/$base.tar.gz" "$base"
-            archive="$base.tar.gz"
+            tar -C dist -czf "dist/$base.tgz" "$base"
+            archive="$base.tgz"
           fi
           echo "path=$archive" >> "$GITHUB_OUTPUT"
       - name: Keep native candidate

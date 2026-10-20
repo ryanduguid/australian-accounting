@@ -171,7 +171,7 @@ jobs:
           for archive in candidates/*; do
             case "$archive" in
               *.zip) 7z x -y -ocandidates "$archive" >/dev/null ;;
-              *.tar.gz) tar -xzf "$archive" -C candidates ;;
+              *.tgz) tar -xzf "$archive" -C candidates ;;
             esac
           done
           find candidates -mindepth 2 -type f -exec cp {} bin/ \;
