@@ -46,6 +46,15 @@ updates:
       - dependency-name: pytest
       - dependency-name: pytest-cov
       - dependency-name: ruff
+      # The Python engines moved to Rust; the MCP keeps their last PyPI
+      # releases through the root override-dependencies until the MCP port
+      # removes them. Dependabot bumps the MCP's exact pins without applying
+      # the overrides, so the update never resolves (job 1638939613,
+      # 20 October 2026).
+      - dependency-name: australian-tax-calculators
+      - dependency-name: div7a-loan-review
+      - dependency-name: ato-benchmark-compare
+      - dependency-name: payday-super-checker
 
   - package-ecosystem: cargo
     directories:
