@@ -13,6 +13,7 @@ ato-benchmark-compare = { path = "../../packages/ato-benchmark-compare" }
 australian-tax-calculators = { path = "../../packages/australian-tax-calculators" }
 div7a-loan-review = { path = "../../packages/div7a-loan-review" }
 payday-super-checker = { path = "../../packages/payday-super-checker" }
+serde = "1"
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
 solomons-sword = { path = "../../packages/solomons-sword" }
 the-exchequer-tally = { path = "../../packages/the-exchequer-tally" }

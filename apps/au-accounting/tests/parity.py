@@ -45,6 +45,17 @@ EDGES = (["{}", "[]", "null", "", "{", '{"b":1,"a":2}', '{"a":1,"a":2}'] + NUMBE
          + [f'{{"value":{n},"amount":{n},"kind":"money"}}' for n in NUMBERS]
          + [f'{{"z":{{"y":{n},"x":[{n}]}},"a":{n}}}' for n in NUMBERS[:6]])
 OUT_OF_RANGE = b"error: invalid JSON: number out of range"
+EDGES += [
+    '{"$serde_json::private::Number":"2026"}',
+    '{"financial_year":{"$serde_json::private::Number":"2026"}}',
+    '{"financial_year":{"$serde_json::private::Number":2026}}',
+    '{"financial_year":{"$serde_json::private::Number":"bad","extra":true}}',
+    '{"financial_year":2026,"ignored":{"$serde_json::private::Number":"bad"}}',
+    '{"a":1e400,"a":2}',
+    '{"12[{":"\\\\\\\"[123{","a":[null,true,false,-1.2e+30,{"n":2}]}',
+    '[' * 127 + '0' + ']' * 127,
+    '[' * 128 + '0' + ']' * 128,
+]
 
 
 def corpus(package: str) -> list[dict]:

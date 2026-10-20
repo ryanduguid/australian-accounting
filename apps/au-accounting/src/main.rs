@@ -2,6 +2,8 @@
 //! hands the remaining arguments to that engine's library exactly as the engine's
 //! own command does: JSON stdin commands, `--api-help` and the engine's CLI.
 
+use serde::Deserialize;
+use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
 use serde_json::Value;
 use std::ffi::OsString;
 use std::io::{Read, Write};
@@ -225,9 +227,7 @@ fn api(command: &str, evaluate: fn(&str, &Value) -> Result<Value, String>, json:
     let result = if bytes.len() > 8 << 20 {
         Err("JSON input exceeds 8 MiB".into())
     } else {
-        serde_json::from_slice(&bytes)
-            .map_err(|e| e.to_string())
-            .and_then(|v| adapt(v, json))
+        parse_json(&bytes, json)
             .map_err(|e| format!("invalid JSON: {e}"))
             .and_then(|v| evaluate(command, &v))
             .and_then(|v| adapt(v, json))
@@ -235,6 +235,165 @@ fn api(command: &str, evaluate: fn(&str, &Value) -> Result<Value, String>, json:
     match result {
         Ok(v) => (0, format!("{v}\n"), String::new()),
         Err(m) => (2, String::new(), format!("error: {m}\n")),
+    }
+}
+
+/// Preserve actual object types when an engine does not enable arbitrary
+/// precision. serde_json otherwise treats a literal object whose first key is
+/// `$serde_json::private::Number` as its internal number representation.
+fn parse_json(bytes: &[u8], json: Json) -> Result<Value, String> {
+    let value = if json.arbitrary_precision {
+        serde_json::from_slice(bytes).map_err(|e| e.to_string())?
+    } else {
+        let tokens = json_tokens(bytes);
+        let mut tokens = tokens.into_iter();
+        let mut parser = serde_json::Deserializer::from_slice(bytes);
+        let value = PlainValue {
+            tokens: &mut tokens,
+        }
+        .deserialize(&mut parser)
+        .map_err(|e| e.to_string())?;
+        parser.end().map_err(|e| e.to_string())?;
+        value
+    };
+    adapt(value, json)
+}
+
+#[derive(Debug, PartialEq)]
+enum Token {
+    Object,
+    Array,
+    Number,
+}
+
+/// Only the token kinds that serde's visitor cannot distinguish. Strings,
+/// including object keys and escaped quotes, contribute no tokens. Serde still
+/// owns all syntax, UTF-8, number and recursion validation.
+fn json_tokens(bytes: &[u8]) -> Vec<Token> {
+    let mut tokens = Vec::new();
+    let mut i = 0;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'"' => {
+                i += 1;
+                while i < bytes.len() && bytes[i] != b'"' {
+                    if bytes[i] == b'\\' {
+                        i += 1;
+                    }
+                    i += 1;
+                }
+            }
+            b'{' => tokens.push(Token::Object),
+            b'[' => tokens.push(Token::Array),
+            b'-' | b'0'..=b'9' => {
+                tokens.push(Token::Number);
+                while i + 1 < bytes.len()
+                    && matches!(bytes[i + 1], b'0'..=b'9' | b'.' | b'e' | b'E' | b'+' | b'-')
+                {
+                    i += 1;
+                }
+            }
+            _ => {}
+        }
+        i += 1;
+    }
+    tokens
+}
+
+struct PlainValue<'a> {
+    tokens: &'a mut std::vec::IntoIter<Token>,
+}
+
+impl<'de> DeserializeSeed<'de> for PlainValue<'_> {
+    type Value = Value;
+
+    fn deserialize<D: de::Deserializer<'de>>(self, parser: D) -> Result<Value, D::Error> {
+        parser.deserialize_any(self)
+    }
+}
+
+impl<'de> Visitor<'de> for PlainValue<'_> {
+    type Value = Value;
+
+    fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str("any valid JSON value")
+    }
+
+    fn visit_bool<E: de::Error>(self, value: bool) -> Result<Value, E> {
+        Ok(Value::Bool(value))
+    }
+
+    fn visit_unit<E: de::Error>(self) -> Result<Value, E> {
+        Ok(Value::Null)
+    }
+
+    fn visit_str<E: de::Error>(self, value: &str) -> Result<Value, E> {
+        Ok(Value::String(value.to_owned()))
+    }
+
+    fn visit_i64<E: de::Error>(self, value: i64) -> Result<Value, E> {
+        self.number(value.into())
+    }
+
+    fn visit_u64<E: de::Error>(self, value: u64) -> Result<Value, E> {
+        self.number(value.into())
+    }
+
+    fn visit_f64<E: de::Error>(self, value: f64) -> Result<Value, E> {
+        self.number(
+            serde_json::Number::from_f64(value).ok_or_else(|| E::custom("number out of range"))?,
+        )
+    }
+
+    fn visit_seq<A: SeqAccess<'de>>(mut self, mut seq: A) -> Result<Value, A::Error> {
+        self.expect(Token::Array)?;
+        let mut values = Vec::new();
+        while let Some(value) = seq.next_element_seed(PlainValue {
+            tokens: self.tokens,
+        })? {
+            values.push(value);
+        }
+        Ok(Value::Array(values))
+    }
+
+    fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Value, A::Error> {
+        match self.tokens.next() {
+            Some(Token::Number) => {
+                let number =
+                    serde_json::Number::deserialize(de::value::MapAccessDeserializer::new(map))?;
+                plain_number(&number)
+                    .map(Value::Number)
+                    .map_err(de::Error::custom)
+            }
+            Some(Token::Object) => {
+                let mut values = serde_json::Map::new();
+                // Validate every value before insertion, including overwritten
+                // duplicate keys, as the standalone parser does.
+                while let Some(key) = map.next_key::<String>()? {
+                    let value = map.next_value_seed(PlainValue {
+                        tokens: self.tokens,
+                    })?;
+                    values.insert(key, value);
+                }
+                Ok(Value::Object(values))
+            }
+            _ => Err(de::Error::custom("unexpected JSON token")),
+        }
+    }
+}
+
+impl PlainValue<'_> {
+    fn expect<E: de::Error>(&mut self, expected: Token) -> Result<(), E> {
+        if self.tokens.next() == Some(expected) {
+            Ok(())
+        } else {
+            Err(E::custom("unexpected JSON token"))
+        }
+    }
+
+    fn number<E: de::Error>(mut self, number: serde_json::Number) -> Result<Value, E> {
+        self.expect(Token::Number)?;
+        Ok(Value::Number(number))
     }
 }
 
@@ -384,7 +543,7 @@ mod tests {
     };
 
     fn adapted(text: &str, json: Json) -> Result<String, String> {
-        adapt(serde_json::from_str(text).unwrap(), json).map(|v| v.to_string())
+        parse_json(text.as_bytes(), json).map(|v| v.to_string())
     }
 
     #[test]
@@ -402,9 +561,10 @@ mod tests {
         ] {
             assert_eq!(adapted(text, DEFAULT_JSON).as_deref(), Ok(want), "{text}");
         }
-        assert_eq!(
-            adapted("[1e309]", DEFAULT_JSON),
-            Err("number out of range".into())
+        assert!(
+            adapted("[1e309]", DEFAULT_JSON)
+                .unwrap_err()
+                .starts_with("number out of range")
         );
         assert_eq!(adapted("1e309", FULL_JSON).as_deref(), Ok("1e+309"));
     }
@@ -415,6 +575,88 @@ mod tests {
         let sorted = r#"{"a":4,"b":{"c":[{"e":3,"f":2}],"d":1}}"#;
         assert_eq!(adapted(text, DEFAULT_JSON).as_deref(), Ok(sorted));
         assert_eq!(adapted(text, FULL_JSON).as_deref(), Ok(text));
+    }
+
+    #[test]
+    fn reserved_number_keys_remain_objects_without_arbitrary_precision() {
+        for text in [
+            r#"{"$serde_json::private::Number":"2026"}"#,
+            r#"{"financial_year":{"$serde_json::private::Number":"2026"}}"#,
+            r#"[{"$serde_json::private::Number":42}]"#,
+            r#"{"a":{"$serde_json::private::Number":"bad","z":1},"b":true}"#,
+            r#"{"$serde_json::private::Number":null}"#,
+            r#"{"$serde_json::private::Number":{"a":1}}"#,
+        ] {
+            let value = parse_json(text.as_bytes(), DEFAULT_JSON).unwrap();
+            let result = value.to_string();
+            assert!(result.contains("$serde_json::private::Number"), "{text}");
+        }
+        let input = parse_json(
+            br#"{"financial_year":{"$serde_json::private::Number":"2026"}}"#,
+            DEFAULT_JSON,
+        )
+        .unwrap();
+        assert_eq!(
+            the_exchequer_tally::api::evaluate("turnover-threshold", &input),
+            Err("financial_year must be an integer".into())
+        );
+        // Engines which enable arbitrary_precision retain their own semantics.
+        assert_eq!(
+            adapted(r#"{"$serde_json::private::Number":"2026"}"#, FULL_JSON).as_deref(),
+            Ok("2026")
+        );
+    }
+
+    #[test]
+    fn token_kinds_ignore_keys_strings_and_escapes() {
+        let text = br#"{"12[{":"\\\"[123{","a":[null,true,false,-1.2e+30,{"n":2}]}"#;
+        assert_eq!(
+            json_tokens(text),
+            vec![
+                Token::Object,
+                Token::Array,
+                Token::Number,
+                Token::Object,
+                Token::Number
+            ]
+        );
+        assert!(parse_json(text, DEFAULT_JSON).is_ok());
+    }
+
+    #[test]
+    fn every_duplicate_value_is_validated_and_last_value_wins() {
+        assert_eq!(
+            adapted(r#"{"a":1,"a":2}"#, DEFAULT_JSON).as_deref(),
+            Ok(r#"{"a":2}"#)
+        );
+        for text in [r#"{"a":1e400,"a":2}"#, r#"{"a":[1e400],"a":null}"#] {
+            assert!(parse_json(text.as_bytes(), DEFAULT_JSON).is_err(), "{text}");
+        }
+    }
+
+    #[test]
+    fn serde_keeps_syntax_utf8_and_recursion_validation() {
+        for text in [
+            b"{\"a\":1,}".as_slice(),
+            b"[1 2]",
+            b"null false",
+            b"\"\xff\"",
+            br#"{"a":"\uD800"}"#,
+        ] {
+            let own = serde_json::from_slice::<Value>(text)
+                .unwrap_err()
+                .to_string();
+            assert_eq!(parse_json(text, DEFAULT_JSON).unwrap_err(), own);
+        }
+        let text = format!("{}0{}", "[".repeat(127), "]".repeat(127));
+        assert!(parse_json(text.as_bytes(), DEFAULT_JSON).is_ok());
+        let text = format!("{}0{}", "[".repeat(128), "]".repeat(128));
+        assert_eq!(
+            parse_json(text.as_bytes(), DEFAULT_JSON).unwrap_err(),
+            serde_json::from_str::<Value>(&text)
+                .unwrap_err()
+                .to_string()
+        );
     }
 
     #[test]
