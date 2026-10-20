@@ -46,7 +46,7 @@ intentionally changed.
   (`load-table` without a path reads the frozen table) and an explicit `null` is
   passed as `None`; an omitted required argument is refused as `<name> is
   required`, where Python raised `TypeError`. Every JSON integer stays exact, as
-  Python's `int` does. The
+  Python's `int` does, up to the 4,300 digits Python's `json.loads` accepted. The
   boundary refuses input over 8 MiB and lone Unicode surrogate escapes; its own
   refusals exit 2.
 - A reason without its code, and comparing a year of income with a bare
