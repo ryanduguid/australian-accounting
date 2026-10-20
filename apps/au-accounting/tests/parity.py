@@ -143,6 +143,8 @@ def main() -> int:
     parser.add_argument("bin_dir", type=Path)
     parser.add_argument("--cap", type=int, default=0)
     options = parser.parse_args()
+    # Each command runs inside a scratch folder; resolve binaries before chdir.
+    options.bin_dir = options.bin_dir.resolve()
     with ThreadPoolExecutor(max_workers=len(ENGINES)) as pool:
         results = list(pool.map(lambda n: check(n, options.bin_dir, options.cap), ENGINES))
     failed = False
