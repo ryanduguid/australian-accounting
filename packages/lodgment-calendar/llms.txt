@@ -1,0 +1,26 @@
+# lodgment-calendar
+
+> Lodgement and payment due dates for BAS, IAS and income tax returns under the ATO's 2026–27 lodgment program, for self-lodgers and registered tax and BAS agents, with each rule's ATO source. Missing facts give UNKNOWN, never a guess. A preparation aid, not a determination or advice.
+
+## Package overview
+- **Repository**: https://github.com/ryanduguid/australian-accounting/tree/main/packages/lodgment-calendar
+- **Distribution**: `lodgment-calendar` (not yet released)
+- **Import package**: `lodgmentcalendar`
+- **CLI command**: none; library only.
+- **Domain**: compliance due dates for BAS and IAS periods in 2026-27 and 2025-26 income tax returns.
+- **Primary sources**: ato.gov.au pages for the 2026–27 registered agent and BAS agent lodgment programs, BAS and IAS due dates and self-lodger return dates.
+
+## Core APIs
+- `lodgmentcalendar.due_dates(obligation, entity_type, financial_year, channel, *, reporting_cycle=None, facts=None)`: rows of `lodgment`, `payment` and `concession` dates, each `DETERMINED` or `UNKNOWN`, with `rule_id`, `summary`, `source_url`, `source_provision`, `source_checked` and `missing`.
+- `lodgmentcalendar.Facts`: the program conditions; each `True`, `False` or `None` for not supplied.
+
+## Architectural boundaries
+1. **Caller's facts.** Lodgement history, thresholds and taxable status are taken as given.
+2. **ATO tables only.** Dates and the holiday calendar come from ato.gov.au pages checked on 20 October 2026; no network access at run time.
+3. **UNKNOWN is a result.** A missing fact, an open question in the ATO pages or a day outside the holiday tables leaves the date UNKNOWN.
+4. **Preparation aid.** Not tax advice. Nothing is lodged.
+
+## Docs
+- [README](https://github.com/ryanduguid/australian-accounting/blob/main/packages/lodgment-calendar/README.md)
+- [Primary-source review](https://github.com/ryanduguid/australian-accounting/blob/main/packages/lodgment-calendar/docs/primary-source-review-2026-10-20.md)
+- [Disclaimer](https://github.com/ryanduguid/australian-accounting/blob/main/packages/lodgment-calendar/DISCLAIMER.md)

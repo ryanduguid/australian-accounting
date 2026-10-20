@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCOPES = {
     "packages/gst-review": "gstreview",
+    "packages/lodgment-calendar": "lodgmentcalendar",
     "apps/aus-accounting-mcp": "aus_accounting_mcp",
     "apps/lodgeit-calculator-adapter": "lodgeitadapter",
     "packages/au-tax-rates-data": "rates.py",

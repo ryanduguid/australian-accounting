@@ -13,7 +13,7 @@ EXPECTED_POLICY = """\
 
 This package is an MCP facade. Keep statutory calculations in the delegated
 `payday-super-checker`, `ato-benchmark-compare`, `div7a-loan-review`,
-`australian-tax-calculators` and `gst-review` engines;
+`australian-tax-calculators`, `gst-review` and `lodgment-calendar` engines;
 adapters may validate, translate and serialise, but must not reimplement their law
 or datasets.
 
@@ -143,7 +143,7 @@ def test_agents_pins_repository_backed_supplementary_commands_as_non_ci() -> Non
     assert 'dev = [' in pyproject
     assert '"build>=1.6.1"' in pyproject
     assert '"pytest>=8.0.0"' in pyproject
-    assert '"Pillow==12.3.0"' in pyproject
+    assert '"Pillow==13.0.0"' in pyproject
     assert 'aus-accounting-mcp-demo = "aus_accounting_mcp.demo:main"' in pyproject
     assert "uv run --locked aus-accounting-mcp-demo" in readme
     assert "docs/REFERENCE.md#demonstration-and-provenance" in readme

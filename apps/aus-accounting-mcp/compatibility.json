@@ -2,12 +2,12 @@
   "schema_version": 1,
   "server": {
     "distribution": "aus-accounting-mcp",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "repository": "https://github.com/ryanduguid/australian-accounting",
-    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.6.0/",
+    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.7.0/",
     "registry_identity": "io.github.ryanduguid/aus-accounting",
-    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.6.0",
-    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.6.0"
+    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.7.0",
+    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.0"
   },
   "engines": [
     {
@@ -39,6 +39,12 @@
       "version": "0.1.0",
       "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/gst-review",
       "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/gst-review/v0.1.0"
+    },
+    {
+      "distribution": "lodgment-calendar",
+      "version": "0.1.0",
+      "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/lodgment-calendar",
+      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/lodgment-calendar/v0.1.0"
     }
   ]
 }
