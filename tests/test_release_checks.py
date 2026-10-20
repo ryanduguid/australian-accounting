@@ -6,7 +6,6 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-POLICY = "0f7ca4ce0ba2e7ea52fc611149a42cd5d0a26f6c"
 # These are component jobs from successful main-branch runs, plus aggregates that
 # require every job in their workflow to succeed; never a skip-tolerant aggregate
 # gate. Review the list when a component's CI contract changes.
@@ -50,15 +49,20 @@ class ReleaseChecksTests(unittest.TestCase):
             path.name for path in workflows.glob("release*") if path.suffix in {".yml", ".yaml"}
         )
         self.assertEqual(callers, sorted(REQUIRED))
+        # The pin is the callers' to set; a re-pin edits the callers and nothing here.
+        pins: set[str] = set()
         for filename, expected in REQUIRED.items():
             with self.subTest(workflow=filename):
                 text = (workflows / filename).read_text(encoding="utf-8")
                 job = text.split("\n  release:\n", 1)[1].split("\n  pypi:", 1)[0]
-                self.assertRegex(
-                    job,
+                pin = re.search(
                     r"(?m)^    uses: ryanduguid/release-policy/\.github/workflows/"
-                    r"release-(?:python|archive|skills)\.yml@" + POLICY + r"$",
+                    r"release-(?:python|archive|skills)\.yml@([0-9a-f]{40})$",
+                    job,
                 )
+                self.assertIsNotNone(pin, "release-policy is not pinned by full commit")
+                assert pin is not None
+                pins.add(pin.group(1))
                 permissions = job.split("    permissions:\n", 1)[1].split("    uses:", 1)[0]
                 self.assertRegex(permissions, r"(?m)^      actions: read(?: #.*)?$")
                 match = re.search(
@@ -73,6 +77,7 @@ class ReleaseChecksTests(unittest.TestCase):
                     path, name = selector.split(": ", 1)
                     self.assertTrue((ROOT / path).is_file(), path)
                     self.assertFalse(name.endswith(" / gates"), name)
+        self.assertEqual(len(pins), 1, f"release callers pin different policies: {pins}")
 
     def test_the_mcp_release_runs_its_demo_against_the_pypi_pins(self) -> None:
         # The workspace runs the checked-out engines, so only an install outside

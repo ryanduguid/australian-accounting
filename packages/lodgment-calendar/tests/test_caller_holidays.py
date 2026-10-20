@@ -48,6 +48,29 @@ def test_holidays_alone_do_not_extend_coverage():
                              "2027-06-30"]
 
 
+@pytest.mark.parametrize("extra,complete,expected", [
+    # The complete span must reach the day the roll lands on, not just the nominal date.
+    ({date(2027, 7, 28): "Synthetic"}, date(2027, 7, 28), ("UNKNOWN", None, "2027-07-29")),
+    ({date(2027, 7, 28): "Synthetic"}, date(2027, 7, 29), ("DETERMINED", "2027-07-29", None)),
+    ({date(2027, 7, 28): "Synthetic", date(2027, 7, 29): "Synthetic"}, date(2027, 7, 28),
+     ("UNKNOWN", None, "2027-07-30")),
+])
+def test_the_complete_span_must_cover_the_rolled_date(extra, complete, expected):
+    q4 = quarter_4(PAPER, extra_holidays=extra, holidays_complete_until=complete)[
+        "obligations"][3]
+    asked = q4["missing"][0].split()[1] if q4["missing"] else None
+    assert (q4["status"], q4["due_date"], asked) == expected
+
+
+def test_rolling_into_the_table_conflict_stays_unknown():
+    extra = {date(2026, 9, day): "Synthetic" for day in (21, 22, 23, 24)}
+    result = due_dates("ias", "company", "2026-27", "self", reporting_cycle="monthly",
+                       extra_holidays=extra, holidays_complete_until=COMPLETE)
+    august = result["obligations"][1]
+    assert (august["nominal_due_date"], august["status"]) == ("2026-09-21", "UNKNOWN")
+    assert august["missing"][0].startswith("the next business day after 2026-09-25")
+
+
 def test_an_earlier_complete_date_cannot_shrink_the_ato_table():
     result = quarter_4(PAPER, holidays_complete_until=date(2027, 1, 31))
     assert result["holiday_calendar"]["covers_to"] == "2027-06-30"
@@ -70,6 +93,9 @@ def test_a_complete_calendar_settles_the_june_monthly_statement():
     ({"extra_holidays": {"2027-07-28": "Synthetic"}}, "each key must be a date"),
     ({"extra_holidays": {date(2027, 7, 28): " "}}, "needs a holiday name"),
     ({"extra_holidays": {date(2027, 7, 28): "Synthetic\nholiday"}}, "needs a holiday name"),
+    ({"extra_holidays": {date(2027, 7, 28): "Synthetic\x7fholiday"}}, "needs a holiday name"),
+    ({"extra_holidays": {date(2027, 7, 28): "Synthetic\x85holiday"}}, "needs a holiday name"),
+    ({"extra_holidays": {date(2027, 7, 28): "Synthetic\u202eholiday"}}, "needs a holiday name"),
     ({"extra_holidays": {date(2027, 7, 28): "x" * 121}}, "needs a holiday name"),
     ({"extra_holidays": {date(2027, 6, 7): "Synthetic"}}, "already in the ATO table"),
     ({"extra_holidays": {date(2026, 9, 25): "Synthetic"}}, "already in the ATO table"),

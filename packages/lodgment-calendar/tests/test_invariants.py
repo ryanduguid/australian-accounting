@@ -46,10 +46,13 @@ def check(result, known_holidays, covers_to):
             nominal = date.fromisoformat(row["nominal_due_date"])
             assert due.weekday() < 5 and due not in known_holidays
             assert COVERS_FROM <= due <= covers_to
-            # The roll only ever moves forward, and passes over only non-business days.
-            assert nominal <= due
-            assert due - nominal == timedelta(days=len((row["holiday_roll"] or {})
-                                                       .get("skipped", [])))
+            # The roll passes over exactly the days from the nominal date to the day before
+            # the due date, each one a weekend or known holiday: the first business day wins.
+            skipped = [date.fromisoformat(day["date"])
+                       for day in (row["holiday_roll"] or {}).get("skipped", [])]
+            assert skipped == [nominal + timedelta(days=n) for n in range((due - nominal).days)]
+            assert all(day.weekday() >= 5 or day in known_holidays for day in skipped)
+            assert date(2026, 9, 25) not in skipped
         else:
             assert row["status"] == "UNKNOWN" and row["due_date"] is None and row["missing"]
         if row["kind"] == "lodgment":
@@ -80,6 +83,7 @@ def test_every_result_holds_its_properties_with_the_ato_table():
 
 def test_every_result_holds_its_properties_with_a_caller_calendar():
     known = {**HOLIDAYS, CALLER_HOLIDAY: "Synthetic test holiday"}
+    past_table = past_caller_holiday = 0
     for request in requests():
         obligation, entity_type, year, channel, cycle = request
         for facts in fact_sets():
@@ -88,6 +92,12 @@ def test_every_result_holds_its_properties_with_a_caller_calendar():
                                extra_holidays={CALLER_HOLIDAY: "Synthetic test holiday"},
                                holidays_complete_until=COMPLETE)
             check(result, known, COMPLETE)
+            for row in result["obligations"]:
+                if row["status"] == "DETERMINED":
+                    past_table += row["due_date"] > "2027-06-30"
+                    past_caller_holiday += row["nominal_due_date"] == CALLER_HOLIDAY.isoformat()
+    # The caller's calendar must settle dates after the ATO table and roll past its holiday.
+    assert past_table > 100 and past_caller_holiday > 10
 
 
 def test_a_fact_the_caller_supplied_is_never_listed_as_missing():
