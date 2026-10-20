@@ -1,3 +1,19 @@
+# v0.7.0
+
+- Adds `get_lodgment_due_dates`, which lists ATO 2026-27 lodgment program due dates
+  for monthly and quarterly BAS and IAS and for 2025-26 income tax returns, by entity
+  type and by self-lodgement or registered tax or BAS agent. Each row carries its rule,
+  ATO source and review date, and a date that depends on a fact not supplied is
+  `UNKNOWN` with that fact named. `extra_holidays` and `holidays_complete_until` let the
+  operator settle dates after the ATO holiday table ends on 30 June 2027. It delegates to the new `lodgment-calendar` 0.1.0
+  engine and lodges nothing.
+- Lists `lodgment-calendar` in the component-versions resource, the disclaimer resource
+  and the scope resource.
+- Retains `payday-super-checker` 0.2.2, `ato-benchmark-compare` 0.2.2,
+  `div7a-loan-review` 0.3.2, `australian-tax-calculators` 0.2.0 and `gst-review` 0.1.0
+  unchanged.
+- Aligns citation, compatibility and MCP Registry metadata with 0.7.0.
+
 # v0.6.0
 
 - Adds `review_gst_coding`, which gives each coded bank line one review state

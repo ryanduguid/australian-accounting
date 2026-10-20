@@ -147,6 +147,7 @@ For an editable source installation, run `pip install -e .` from
 | `packages/solomons-sword/` | `solomons-sword` (Rust) | none | `solomons-sword` |
 | `packages/the-wip-tally/` | `the-wip-tally` (Rust) | none | `wip-tally` |
 | `packages/gst-review/` | `gst-review` | `gstreview` | Python review functions: GST coding states against registration, BAS-to-ledger reconciliation |
+| `packages/lodgment-calendar/` | `lodgment-calendar` (not yet released) | `lodgmentcalendar` | Python function: ATO lodgment program due dates for BAS, IAS and income tax returns, `UNKNOWN` where a fact is missing |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` | `lodgeitadapter` | optional adapter for a third-party calculator service; off by default, makes HTTP calls only when `LODGEIT_ADAPTER_ENABLED=1` |
 | `packages/au-tax-rates-data/` | `au-tax-rates-data` (never released) | `rates` (module) | `python rates.py validate`, `snapshot` and `check`: ATO rates and thresholds with verbatim source quotes, validated offline |
 

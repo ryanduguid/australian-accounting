@@ -53,10 +53,10 @@ own commands:
 - `uv run --locked` from a component directory now validates the root `uv.lock`,
   not the component's. Regenerate it with `uv lock` at the root after changing any
   component's dependencies, and commit it.
-- The 8 engines pin the shared toolchain (`ruff`, `pyright`, `pytest`, `pytest-cov`,
+- The 2 Python engines pin the shared toolchain (`ruff`, `pyright`, `pytest`, `pytest-cov`,
   `coverage`, `build`) to one exact version each, so the workspace resolves them without
   an override. One
-  workspace cannot hold 2 exact pins of the same tool, so keep the 8 identical when
+  workspace cannot hold 2 exact pins of the same tool, so keep the 2 identical when
   changing one.
 
 ## Rust engines
@@ -108,6 +108,7 @@ outside the checkout, the same way the lockfile is regenerated below.
 | ato-benchmark-compare (Rust) | `packages/ato-benchmark-compare/` | none |
 | payday-super-checker (Rust) | `packages/payday-super-checker/` | none |
 | gst-review | `packages/gst-review/` | `gstreview` |
+| lodgment-calendar | `packages/lodgment-calendar/` | `lodgmentcalendar` |
 
 The 2 applications, the rates dataset and the repository boundary checks use their own
 commands:
@@ -121,7 +122,7 @@ commands:
 
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,
 so a gate behaves the same wherever it runs, and the workspace resolution takes the same
-versions for `just`. Changing a pin means changing all 8, then relocking twice: `uv lock`
+versions for `just`. Changing a pin means changing both, then relocking twice: `uv lock`
 at the root, which is what CI validates, and each engine's own lockfile, which is what
 builds and releases it alone. Inside the workspace `uv lock` always writes the root lock,
 so an engine's own lockfile is regenerated from a copy of the engine outside it:
