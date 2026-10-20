@@ -181,12 +181,9 @@ fn replay(prefixes: &[&str]) {
         if expected.get("schema").is_some() {
             // A JSON number where the schema takes a decimal string: the exact
             // refusal the harness checked names a field holding a non-string.
-            assert_eq!(
-                actual["error"].as_str(),
-                expected["error"].as_str(),
-                "{}: {actual}",
-                row["test"]
-            );
+            let want = expected["error"].as_str().expect("a frozen schema refusal");
+            let got = actual["error"].as_str();
+            assert_eq!(got, Some(want), "{}: {actual}", row["test"]);
         } else if expected.get("fnv").is_some() {
             let text = serde_json::to_string(&actual).unwrap();
             assert!(matches(text.as_bytes(), expected), "{}", row["test"]);
@@ -473,4 +470,39 @@ fn the_version_wraps_like_help_text() {
         .unwrap();
     let text = String::from_utf8(out.stdout).unwrap().replace("\r\n", "\n");
     assert_eq!(text, "wip-tally\n1.0.0\n");
+}
+
+/// `where` as `json.loads` read it from literal bytes: the harness serialises a
+/// Python value first, which would normalise `1.2300` before the binary saw it.
+/// Expected strings are Python 0.2.0's `parse_money` on the same literals.
+#[test]
+fn where_prints_as_python_printed_the_decoded_value() {
+    let cases = [
+        (r#"{"raw":"1","where":[]}"#, Ok("1.00")),
+        (r#"{"raw":null,"where":[]}"#, Err("[]: no amount given")),
+        (
+            r#"{"raw":null,"where":1.2300}"#,
+            Err("1.23: no amount given"),
+        ),
+        (
+            r#"{"raw":null,"where":1e3}"#,
+            Err("1000.0: no amount given"),
+        ),
+        (
+            r#"{"raw":null,"where":1.0000000000000001}"#,
+            Err("1.0: no amount given"),
+        ),
+        (
+            r#"{"raw":null,"where":[1,"a",true,null,[2.5]]}"#,
+            Err("[1, 'a', True, None, [2.5]]: no amount given"),
+        ),
+    ];
+    for (input, want) in cases {
+        let value: Value = serde_json::from_str(input).unwrap();
+        let got = the_wip_tally::api::evaluate("parse-money", &value);
+        match want {
+            Ok(text) => assert_eq!(got.unwrap(), serde_json::json!(text), "{input}"),
+            Err(text) => assert_eq!(got.unwrap_err(), text, "{input}"),
+        }
+    }
 }

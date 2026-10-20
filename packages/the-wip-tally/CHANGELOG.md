@@ -20,7 +20,7 @@ intentionally changed.
   `decimal.InvalidOperation`, as `Decimal(text)` raised it. JSON input is
   limited to 8 MiB and each decimal field to 8,192 bytes; JSON uses serde_json's nesting limit and refuses lone surrogate escapes.
   Other fields follow Python: `parse-money`'s `where` defaults to `amount` when
-  omitted and prints as `None` when `null`, a `null` `raw` is `no amount given`,
+  omitted and prints as Python's `str()` of any other value (`None` for `null`, Python's float spelling for a number, Python's list form for a list; an object is refused because its key order is not kept), a `null` `raw` is `no amount given`,
   and `line_number` is any JSON integer, printed exactly. An optional amount
   that is omitted is `None`; the Python dataclass required it explicitly.
 - Where Python raised an uncaught decimal signal (an amount beyond 28
@@ -37,9 +37,12 @@ intentionally changed.
   controls remain supported and are differential-tested. A command-line path
   that is not valid Unicode is not supported.
 - On Unix, a stdout or stderr the binary cannot write (a closed pipe, a full
-  disk) is reported as Python's shutdown reported it: `Exception ignored while
-  flushing sys.stdout:` and the OSError on stderr, with exit 120. On Windows the
-  binary exits 1 without that message.
+  disk) is reported as Python's interpreter shutdown reported it: `Exception
+  ignored while flushing sys.stdout:` and the OSError on stderr, with exit 120.
+  The binary writes its output once, at the end, so this is its policy for every
+  write failure; Python could instead fail inside a command when output passed
+  its 8 KiB buffer, and report that through the command's own error handler. On
+  Windows the binary exits 1 without that message.
 - File errors reproduce Python's `[Errno N] ...` and `[WinError N] ...` text for
   the failures the tests and differential exercise (missing files, unreadable
   inputs, an existing folder). Rarer failures, such as an atomic replacement

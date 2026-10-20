@@ -42,16 +42,92 @@ fn integer(v: &Value, key: &str) -> Result<String> {
     })
 }
 
-/// `str()` of a scalar JSON value, as an f-string prints the Python object.
+/// `str()` of the Python object `json.loads` makes from `value`, as an
+/// f-string prints it. A JSON object is refused: serde_json here does not keep
+/// its key order, which Python's `str()` of a dict would show.
 fn py_str(value: &Value) -> Result<String> {
+    match value {
+        Value::String(s) => Ok(s.clone()),
+        other => py_repr(other),
+    }
+}
+
+/// `repr()` of the Python object `json.loads` makes from `value`.
+fn py_repr(value: &Value) -> Result<String> {
     Ok(match value {
         Value::Null => "None".into(),
         Value::Bool(true) => "True".into(),
         Value::Bool(false) => "False".into(),
-        Value::Number(n) => n.to_string(),
-        Value::String(s) => s.clone(),
-        _ => return Err("where must be a string, number, boolean or null".into()),
+        Value::Number(n) => {
+            let text = n.to_string();
+            let digits = text.strip_prefix('-').unwrap_or(&text);
+            if digits.bytes().all(|b| b.is_ascii_digit()) {
+                // `int("-0")` is 0.
+                if digits.bytes().all(|b| b == b'0') {
+                    "0".into()
+                } else {
+                    text
+                }
+            } else {
+                float_repr(n.as_f64().unwrap_or(f64::NAN))
+            }
+        }
+        Value::String(s) => crate::pytext::repr(s),
+        Value::Array(items) => format!(
+            "[{}]",
+            items
+                .iter()
+                .map(py_repr)
+                .collect::<Result<Vec<_>>>()?
+                .join(", ")
+        ),
+        Value::Object(_) => return Err("where must not be a JSON object".into()),
     })
+}
+
+/// `repr(float)`: the shortest text that reads back as the same double.
+fn float_repr(value: f64) -> String {
+    if value.is_nan() {
+        return "nan".into();
+    }
+    if value.is_infinite() {
+        return if value > 0.0 { "inf" } else { "-inf" }.into();
+    }
+    let sci = format!("{value:e}");
+    let (mantissa, exponent) = sci.split_once('e').expect("exponent form");
+    let exponent: i32 = exponent.parse().expect("exponent digits");
+    let (sign, mantissa) = match mantissa.strip_prefix('-') {
+        Some(rest) => ("-", rest),
+        None => ("", mantissa),
+    };
+    let digits: String = mantissa.chars().filter(|c| *c != '.').collect();
+    let decpt = exponent + 1;
+    if !(-4 < decpt && decpt <= 16) {
+        let rest = &digits[1..];
+        let dot = if rest.is_empty() {
+            String::new()
+        } else {
+            format!(".{rest}")
+        };
+        let esign = if exponent < 0 { '-' } else { '+' };
+        return format!(
+            "{sign}{}{dot}e{esign}{:02}",
+            &digits[..1],
+            exponent.unsigned_abs()
+        );
+    }
+    let body = if decpt <= 0 {
+        format!("0.{}{digits}", "0".repeat((-decpt) as usize))
+    } else if decpt as usize >= digits.len() {
+        format!("{digits}{}.0", "0".repeat(decpt as usize - digits.len()))
+    } else {
+        format!(
+            "{}.{}",
+            &digits[..decpt as usize],
+            &digits[decpt as usize..]
+        )
+    };
+    format!("{sign}{body}")
 }
 
 fn optional_decimal(v: &Value, key: &str) -> Result<Option<Decimal>> {
