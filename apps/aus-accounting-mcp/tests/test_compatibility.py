@@ -47,6 +47,7 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         "payday-super-checker",
         "australian-tax-calculators",
         "gst-review",
+        "lodgment-calendar",
     ]
     for engine in record["engines"]:
         name, engine_version = engine["distribution"], engine["version"]

@@ -59,6 +59,10 @@ jobs:
             import-name: gstreview
             windows-python: ""
             changed-line-coverage: ""
+          - package: lodgment-calendar
+            import-name: lodgmentcalendar
+            windows-python: ""
+            changed-line-coverage: ""
     uses: ./.github/workflows/ci-package.yml
     with:
       package: ${{ matrix.package }}
