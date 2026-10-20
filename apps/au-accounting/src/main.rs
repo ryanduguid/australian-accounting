@@ -111,16 +111,9 @@ fn benchmarks(args: &[OsString]) -> Outcome {
 }
 
 fn div7a(args: &[OsString]) -> Outcome {
-    use div7a_loan_review::{api, cli};
+    use div7a_loan_review::cli;
     let args: Vec<String> = args.iter().map(|a| cli::decode_os(a)).collect();
-    dispatch(
-        &args,
-        &api::COMMANDS,
-        api::evaluate,
-        FULL_JSON,
-        "See README.md for their schemas.",
-        cli::run,
-    )
+    cli::dispatch(&args)
 }
 
 fn exchequer(args: &[OsString]) -> Outcome {
@@ -148,16 +141,9 @@ fn gst_review(args: &[OsString]) -> Outcome {
 }
 
 fn payday_super(args: &[OsString]) -> Outcome {
-    use payday_super_checker::{api, cli};
+    use payday_super_checker::cli;
     let args: Vec<String> = args.iter().map(|a| cli::decode_os(a)).collect();
-    dispatch(
-        &args,
-        &api::COMMANDS,
-        api::evaluate,
-        FULL_JSON,
-        "See README.md for their schemas.",
-        cli::run,
-    )
+    cli::dispatch(&args)
 }
 
 fn solomons(args: &[OsString]) -> Outcome {
