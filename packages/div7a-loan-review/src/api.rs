@@ -164,6 +164,29 @@ fn strings(v: &Value, key: &str) -> Result<Vec<String>> {
     }
 }
 
+/// `for name in value`, as Python iterated a required argument: a string by
+/// character, a dict by key, a list by item; `None` and numbers cannot be.
+fn iterable(v: &Value, key: &str, none_is_empty: bool) -> Result<Vec<String>> {
+    match v.get(key) {
+        None => Err(format!("{key} is required")),
+        Some(Value::Null) if none_is_empty => Ok(vec![]),
+        Some(Value::String(s)) => Ok(s.chars().map(String::from).collect()),
+        Some(Value::Object(items)) => Ok(items.keys().cloned().collect()),
+        Some(Value::Array(items)) => items
+            .iter()
+            .map(|i| {
+                i.as_str()
+                    .map(str::to_string)
+                    .ok_or(format!("{key} must hold strings"))
+            })
+            .collect(),
+        Some(other) => Err(format!(
+            "TypeError: '{}' object is not iterable",
+            Raw::from_value(other).type_name()
+        )),
+    }
+}
+
 fn gate_summary(v: &Value) -> Result<Option<GateSummary>> {
     match v.get("gate_result") {
         None | Some(Value::Null) => Ok(None),
@@ -402,18 +425,15 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             }
         },
         "load-rows" => {
-            let needed = strings(v, "needed")?;
+            let needed = iterable(v, "needed", false)?;
             let needed: Vec<&str> = needed.iter().map(String::as_str).collect();
             let rows = load_rows(&PyPath::new(text(v, "path")?), &needed).map_err(failure)?;
             Ok(json!(rows.iter().map(row_json).collect::<Vec<_>>()))
         }
         "require-columns" => {
-            let fieldnames = strings(v, "fieldnames")?;
-            // `fieldnames or []`, but `needed` is iterated as given.
-            if matches!(v.get("needed"), Some(Value::Null)) {
-                return Err("TypeError: 'NoneType' object is not iterable".into());
-            }
-            let needed = strings(v, "needed")?;
+            // `set(fieldnames or [])`, but `needed` is iterated as given.
+            let fieldnames = iterable(v, "fieldnames", true)?;
+            let needed = iterable(v, "needed", false)?;
             let needed: Vec<&str> = needed.iter().map(String::as_str).collect();
             require_columns(&fieldnames, &needed, text(v, "where")?)?;
             Ok(Value::Null)

@@ -4,7 +4,7 @@ Base 83288b0, Python 0.3.2 (unchanged since the `div7a-loan-review/v0.3.2` tag):
 286 test functions. The archive pytest suite passed before the differential
 harness captured the API calls and command runs they made, with the files each
 named. `tests/data/python-cases.json` freezes the first 60 distinct cases of each
-test plus generated API calls and command runs: 3,612 cases in all, 55 of them the final review's counterexamples.
+test plus generated API calls and command runs: 3,622 cases in all, 65 of them the final review's counterexamples.
 `tests/parity.rs` replays them and compares complete results, key order and
 output bytes included. API results over 4 KiB and command streams over 4 KiB are
 stored as an FNV-1a fingerprint and length.

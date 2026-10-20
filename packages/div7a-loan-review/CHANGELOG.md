@@ -32,16 +32,21 @@ intentionally changed.
   (`PYTHON_COLORS`, `NO_COLOR`, `FORCE_COLOR`) and width (`COLUMNS`) controls
   are, and are differential-tested.
 - On Unix, a stdout or stderr the binary cannot write (a closed pipe, a full
-  disk) is reported as Python's shutdown reported it: `Exception ignored while
-  flushing sys.stdout:` and the OSError on stderr, with exit 120. On Windows the
-  binary exits 1 without that message.
+  disk) is reported as Python's interpreter shutdown reported it: `Exception
+  ignored while flushing sys.stdout:` and the OSError on stderr, with exit 120.
+  The binary writes its output once, at the end, so this is its policy for every
+  write failure; Python could instead fail inside a command when output passed
+  its 8 KiB buffer, and report that through the command's own error handler. On
+  Windows the binary exits 1 without that message.
 - The CSV field size limit is fixed at Python's default, 131,072 characters; a
   library caller could lower it in Python. `load-rows` omits a row's extra
   unnamed cells, which `csv.DictReader` gathered under a `None` key.
 - The JSON stdin commands call each function as Python would have been called
   with the same keyword arguments: an omitted field takes the function's default
   (`load-table` without a path reads the frozen table) and an explicit `null` is
-  passed as `None`. Every JSON integer stays exact, as Python's `int` does. The
+  passed as `None`; an omitted required argument is refused as `<name> is
+  required`, where Python raised `TypeError`. Every JSON integer stays exact, as
+  Python's `int` does. The
   boundary refuses input over 8 MiB and lone Unicode surrogate escapes; its own
   refusals exit 2.
 - A reason without its code, and comparing a year of income with a bare
@@ -68,7 +73,7 @@ and command runs: registers with odd cells, overrides valid and malformed,
 argparse errors, colour and width settings. A deterministic group adds every
 counterexample from the final review (special operands in the formula, gate
 verdicts, non-mapping rows, argument presence, rate-table read order, argparse
-edge cases). All 3,612 results match byte for
+edge cases). All 3,622 results match byte for
 byte after 1,230 documented adaptations (the version, table URI and traceback
 lines above). They
 are frozen in `tests/data/python-cases.json` and replayed by `tests/parity.rs`.

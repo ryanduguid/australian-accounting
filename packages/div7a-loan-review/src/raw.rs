@@ -121,7 +121,8 @@ impl Raw {
             Value::Number(n) if n.is_i64() || n.is_u64() || is_integer_lexeme(&n.to_string()) => {
                 Raw::Int(n.to_string())
             }
-            Value::Number(n) => Raw::Float(n.as_f64().unwrap_or(f64::NAN)),
+            // float(text): an overflowing literal such as 1e400 is infinity.
+            Value::Number(n) => Raw::Float(n.to_string().parse().unwrap_or(f64::NAN)),
             Value::String(s) => Raw::Str(s.clone()),
             Value::Array(items) => Raw::List(items.iter().map(Raw::from_value).collect()),
             Value::Object(items) => Raw::Dict(
