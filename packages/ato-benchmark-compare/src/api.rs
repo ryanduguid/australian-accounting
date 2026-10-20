@@ -276,10 +276,33 @@ fn map_value(m: Map<String, Value>) -> Value {
 }
 
 /// Run one JSON stdin command: the result value, or the refusal message.
+/// `json.loads` refuses an integer token of more than 4,300 digits, as
+/// `int(text)` does under Python's default limit.
+fn int_limit(value: &Value) -> Result<()> {
+    match value {
+        Value::Number(n) => {
+            let text = n.to_string();
+            let digits = text.strip_prefix('-').unwrap_or(&text);
+            if digits.len() > 4300 && digits.bytes().all(|b| b.is_ascii_digit()) {
+                return Err(format!(
+                    "ValueError: Exceeds the limit (4300 digits) for integer string conversion: \
+                     value has {} digits; use sys.set_int_max_str_digits() to increase the limit",
+                    digits.len()
+                ));
+            }
+            Ok(())
+        }
+        Value::Array(items) => items.iter().try_for_each(int_limit),
+        Value::Object(items) => items.values().try_for_each(int_limit),
+        _ => Ok(()),
+    }
+}
+
 pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
     if !v.is_object() {
         return Err("input must be a JSON object".into());
     }
+    int_limit(v)?;
     let amount_err = |e: money::AmountError| e.0;
     match command {
         "parse-amount" => {
@@ -431,10 +454,10 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                 );
             }
             // Each serialiser's own default when absent; the value as given otherwise.
-            // As `json.loads` made it: floats take Python's value and spelling.
-            let unreviewed = v
-                .get("unreviewed")
-                .map(|u| report::raw_json(&Raw::from_value(u)));
+            // As `json.loads` made it. JSON outputs write it back with Python's
+            // float spelling; the text report uses the value itself.
+            let unreviewed = v.get("unreviewed").map(Raw::from_value);
+            let unreviewed_json = unreviewed.as_ref().map(report::raw_json);
             let output_supplied = strings(v, "output_supplied")?;
             let evidenced_output = matches!(
                 optional_text(v, "output")?,
@@ -446,21 +469,19 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             }
             match optional_text(v, "output")?.unwrap_or("comparison") {
                 "comparison" => Ok(comparison_json(&comparison)),
-                "to_dict" => report::to_dict(&comparison, unreviewed.unwrap_or(json!(0)))
+                "to_dict" => report::to_dict(&comparison, unreviewed_json.unwrap_or(json!(0)))
                     .map(map_value)
                     .map_err(failure),
                 "evidenced" => report::to_evidenced_dict(
                     &comparison,
                     &output_supplied.unwrap_or_default(),
-                    unreviewed.unwrap_or(Value::Null),
+                    unreviewed_json.unwrap_or(Value::Null),
                 )
                 .map(map_value)
                 .map_err(failure),
                 "text" => report::render_text(
                     &comparison,
-                    &unreviewed
-                        .as_ref()
-                        .map_or(Raw::Int("0".into()), Raw::from_value),
+                    &unreviewed.unwrap_or(Raw::Int("0".into())),
                     output_supplied.as_deref(),
                 )
                 .map(|t| json!(t))

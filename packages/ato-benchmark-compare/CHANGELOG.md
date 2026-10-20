@@ -73,9 +73,12 @@ the Python build tools, which moved to the repository root.
 - The CSV field size limit is fixed at Python's default, 131,072 characters; a
   library caller could lower it in Python.
 - The JSON boundary keeps every JSON integer exact, as Python's `int` does, and
-  refuses input over 8 MiB and lone Unicode surrogate escapes. A non-finite
-  number (`NaN`, `Infinity`, or a float too large for a double) in a custom
-  dataset's metadata is returned as `null`, because JSON output has no spelling
-  for it; Python's `json.dumps` wrote `NaN` or `Infinity`.
+  refuses input over 8 MiB and lone Unicode surrogate escapes. An integer of more
+  than 4,300 digits is refused as Python's `json.loads` refused it. A non-finite
+  number (`NaN`, `Infinity`, or a float too large for a double) that a JSON
+  result carries, from a custom dataset's metadata or a passed-through
+  `unreviewed` count, is written as `null`, because JSON has no spelling for it;
+  Python's `json.dumps` wrote `NaN` or `Infinity`. The text report prints such a
+  value as Python's `str()` did.
 - Name matching uses Unicode 17.0.0 case folding and decomposition tables, the
   version Python 3.15.0 ships; Python on another version used its own tables.
