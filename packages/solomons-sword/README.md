@@ -129,8 +129,11 @@ rounding residuals go to the largest shares first, as before.
 
 The JSON boundary accepts at most 8 MiB, and each decimal field at most 8,192
 UTF-8 bytes (`validate-amount` excepted, like the command-line parser it mirrors).
-An optional amount that is omitted or `null` takes its `0.00` default. Text that
-is not a decimal is refused as `error: decimal.InvalidOperation`. Decimal exponents are not capped: the engine's own range checks
+An amount field whose default is `0.00` uses that default when omitted or `null`;
+required amounts must be strings, and optional fixed or percentage entitlements
+stay unset. Unreadable strings in engine-command amount fields are refused as
+`error: decimal.InvalidOperation`; `validate-amount` keeps the command-line
+validator's messages. Decimal exponents are not capped: the engine's own range checks
 and overflow refusals bound what it writes out. JSON nesting follows serde_json's
 recursion limit.
 

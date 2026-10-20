@@ -18,9 +18,12 @@ intentionally changed.
 - The JSON boundary requires amounts as strings, facts as JSON values and dates
   as `YYYY-MM-DD`, and refuses input over 8 MiB or a decimal field over 8,192
   bytes (`validate-amount` is exempt, as the command-line parser it mirrors has
-  no limit). An amount that is omitted or `null` takes the function's `0.00`
-  default; Python raised `TypeError` for an explicit `None`. Text that is not a
-  decimal is refused as `decimal.InvalidOperation`, as `Decimal(text)` raised it. JSON uses serde_json's nesting limit and refuses lone Unicode surrogate
+  no limit). Amount fields whose default is `0.00` use that default when omitted or `null`.
+  Required amounts still require strings, and optional fixed or percentage
+  entitlements stay unset when omitted or `null`. Python's dataclass defaults did
+  not replace an explicitly supplied `None`. Unreadable strings in engine-command
+  amount fields are refused as `decimal.InvalidOperation`, as `Decimal(text)`
+  raised it; `validate-amount` keeps the command-line validator's messages. JSON uses serde_json's nesting limit and refuses lone Unicode surrogate
   escapes. A `financial_year` outside the 64-bit range is refused as not an
   integer; Python's `date()` raised OverflowError beyond the C int range.
 - Python formatting and encoding environment overrides (`PYTHONIOENCODING`,
@@ -28,6 +31,10 @@ intentionally changed.
   native text-mode newlines, and lone surrogates are escaped as before.
   argparse colour (`PYTHON_COLORS`, `NO_COLOR`, `FORCE_COLOR`) and width
   (`COLUMNS`) controls remain supported and are differential-tested.
+- On Unix, a stdout or stderr the binary cannot write (a closed pipe, a full
+  disk) is reported as Python's shutdown reported it: `Exception ignored while
+  flushing sys.stdout:` and the OSError on stderr, with exit 120. On Windows the
+  binary exits 1 without that message.
 - The Python/PyPI release workflow and the fast-check property bridge are
   removed. The footing property runs as a seeded Rust test over the same input
   domain. Native candidate builds are available in CI; a signed native
