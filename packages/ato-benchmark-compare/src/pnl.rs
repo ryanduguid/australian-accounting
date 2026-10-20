@@ -302,6 +302,14 @@ fn column_number(text: &str) -> Option<Result<u128, Failure>> {
             pytext::repr(text)
         ))));
     }
+    // int() refuses a string of more than 4,300 digits, leading zeros included.
+    if cps.len() > 4300 {
+        return Some(Err(Failure::Uncaught(format!(
+            "ValueError: Exceeds the limit (4300 digits) for integer string conversion: \
+             value has {} digits; use sys.set_int_max_str_digits() to increase the limit",
+            cps.len()
+        ))));
+    }
     let digits: String = cps
         .iter()
         .map(|cp| char::from_digit(pytext::decimal_value(*cp).unwrap(), 10).unwrap())

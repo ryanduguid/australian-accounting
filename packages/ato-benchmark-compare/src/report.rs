@@ -410,7 +410,14 @@ pub fn raw_json(value: &Raw) -> Value {
         Raw::None => Value::Null,
         Raw::Bool(b) => json!(b),
         Raw::Int(digits) => serde_json::from_str(digits).unwrap_or(Value::Null),
-        Raw::Float(f) => json!(f),
+        // `json.dumps` writes repr(float); JSON has no spelling for NaN or
+        // infinity, which come back as null.
+        Raw::Float(f) if f.is_finite() => Value::Number(
+            crate::raw::float_repr(*f)
+                .parse()
+                .expect("a finite float's repr is a JSON number"),
+        ),
+        Raw::Float(_) => Value::Null,
         Raw::Str(s) => json!(s),
         Raw::List(items) => Value::Array(items.iter().map(raw_json).collect()),
         Raw::Dict(items) => Value::Object(
@@ -630,8 +637,21 @@ pub fn render_text(
     ));
     let page = industry_page_source(comparison);
     if !page.is_null() && income {
-        // An f-string prints `str()` of each value, whatever its type.
-        let text = |key: &str| Raw::from_value(&page[key]).py_str();
+        // An f-string prints `str()` of each value, whatever its type, read
+        // from the loaded values rather than their JSON form.
+        let page_raw = comparison.business_type.page.as_ref();
+        let source_raw = comparison.dataset.page_source.as_ref();
+        // `{**page, "retrieved": source.get("retrieved"), ...}`: those four
+        // keys come from the page source, the rest from the page.
+        let text = |key: &str| {
+            let value = if ["retrieved", "licence", "licence_url", "caution"].contains(&key) {
+                source_raw.and_then(|r| r.get(key))
+            } else {
+                page_raw
+                    .and_then(|items| items.iter().rev().find(|(k, _)| k == key).map(|(_, v)| v))
+            };
+            value.map_or("None".into(), Raw::py_str)
+        };
         let labels: Vec<&str> = page["ratios"]
             .as_array()
             .unwrap()

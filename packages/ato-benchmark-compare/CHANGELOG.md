@@ -29,7 +29,7 @@ intentionally changed.
 
 ### Verification
 
-`tests/parity.rs` replays 3,793 frozen cases: every top-level engine call and
+`tests/parity.rs` replays 3,818 frozen cases: every top-level engine call and
 command run the Python 0.2.2 tests made, and generated calls and runs, each with
 the files it read, compared byte for byte with key order kept, and every file a
 run wrote checked against Python's. `tests/properties.rs` keeps the Python
@@ -64,9 +64,12 @@ the Python build tools, which moved to the repository root.
   (`PYTHON_COLORS`, `NO_COLOR`, `FORCE_COLOR`) and width (`COLUMNS`) controls
   are, and are differential-tested.
 - On Unix, a stdout or stderr the binary cannot write (a closed pipe, a full
-  disk) is reported as Python's shutdown reported it: `Exception ignored while
-  flushing sys.stdout:` and the OSError on stderr, with exit 120. On Windows the
-  binary exits 1 without that message.
+  disk) is reported as Python's interpreter shutdown reported it: `Exception
+  ignored while flushing sys.stdout:` and the OSError on stderr, with exit 120.
+  The binary writes its output once, at the end, so this is its policy for every
+  write failure; Python could instead fail inside a command when output passed
+  its 8 KiB buffer, and report that through the command's own error handler. On
+  Windows the binary exits 1 without that message.
 - The CSV field size limit is fixed at Python's default, 131,072 characters; a
   library caller could lower it in Python.
 - The JSON boundary keeps every JSON integer exact, as Python's `int` does, and

@@ -96,11 +96,19 @@ impl Raw {
     /// `self == other` as Python compares the values `json.loads` builds:
     /// `True == 1 == 1.0`, and dicts compare by their keys, not their order.
     pub fn py_eq(&self, other: &Raw) -> bool {
+        self.eq_at(other, false)
+    }
+
+    /// Inside a container Python compares items by identity first, and
+    /// `json.loads` gives every `NaN` the same float object, so a nested NaN
+    /// equals a nested NaN while a bare one does not.
+    fn eq_at(&self, other: &Raw, nested: bool) -> bool {
         match (self, other) {
             (Raw::None, Raw::None) => true,
+            (Raw::Float(a), Raw::Float(b)) if nested && a.is_nan() && b.is_nan() => true,
             (Raw::Str(a), Raw::Str(b)) => a == b,
             (Raw::List(a), Raw::List(b)) => {
-                a.len() == b.len() && a.iter().zip(b).all(|(x, y)| x.py_eq(y))
+                a.len() == b.len() && a.iter().zip(b).all(|(x, y)| x.eq_at(y, true))
             }
             (Raw::Dict(_), Raw::Dict(_)) => {
                 let (left, right) = (self.keys(), other.keys());
@@ -108,7 +116,7 @@ impl Raw {
                     && left.iter().all(|k| {
                         other
                             .get(k)
-                            .is_some_and(|v| self.get(k).is_some_and(|w| w.py_eq(v)))
+                            .is_some_and(|v| self.get(k).is_some_and(|w| w.eq_at(v, true)))
                     })
             }
             _ => match (self.number(), other.number()) {
@@ -179,7 +187,8 @@ impl Raw {
             Value::Number(n) if n.is_i64() || n.is_u64() || is_integer_lexeme(&n.to_string()) => {
                 Raw::Int(n.to_string())
             }
-            Value::Number(n) => Raw::Float(n.as_f64().unwrap_or(f64::NAN)),
+            // float(text): an overflowing literal such as 1e400 is infinity.
+            Value::Number(n) => Raw::Float(n.to_string().parse().unwrap_or(f64::NAN)),
             Value::String(s) => Raw::Str(s.clone()),
             Value::Array(items) => Raw::List(items.iter().map(Raw::from_value).collect()),
             Value::Object(items) => Raw::Dict(

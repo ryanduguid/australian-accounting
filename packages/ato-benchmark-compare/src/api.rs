@@ -431,8 +431,19 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                 );
             }
             // Each serialiser's own default when absent; the value as given otherwise.
-            let unreviewed = v.get("unreviewed").cloned();
+            // As `json.loads` made it: floats take Python's value and spelling.
+            let unreviewed = v
+                .get("unreviewed")
+                .map(|u| report::raw_json(&Raw::from_value(u)));
             let output_supplied = strings(v, "output_supplied")?;
+            let evidenced_output = matches!(
+                optional_text(v, "output")?,
+                Some("evidenced" | "evidenced_ratio")
+            );
+            if evidenced_output && matches!(v.get("output_supplied"), Some(Value::Null)) {
+                // `frozenset(None)` inside the evidenced serialisers.
+                return Err("TypeError: 'NoneType' object is not iterable".into());
+            }
             match optional_text(v, "output")?.unwrap_or("comparison") {
                 "comparison" => Ok(comparison_json(&comparison)),
                 "to_dict" => report::to_dict(&comparison, unreviewed.unwrap_or(json!(0)))

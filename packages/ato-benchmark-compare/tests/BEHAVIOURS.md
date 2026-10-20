@@ -4,7 +4,7 @@ Base 83288b0, Python 0.2.2 (identical to the PyPI 0.2.2 release): 303 test
 functions. The archive pytest suite passed before the differential harness
 captured the top-level engine calls and command runs they made, with the files
 each named. `tests/data/python-cases.json` freezes the first 60 distinct cases
-of each test plus 2,800 generated API calls and command runs: 3,793 cases in
+of each test plus 2,800 generated API calls and command runs: 3,818 cases in
 all. `tests/parity.rs` replays them and compares complete results, key order,
 output bytes and written files included. Results and streams over 4 KiB are
 stored as an FNV-1a fingerprint and length.
@@ -74,7 +74,7 @@ replaces fast-check's generator, so the random cases differ.
 | `test_cli.py::test_compare_lists_ten_unreadable_rows_and_counts_the_rest` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_show_names_no_industry_page_for_a_year_without_page_ranges` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_the_overwrite_guard_skips_an_input_that_was_not_given` | Unit test in `src/cli.rs` |
-| `test_cli.py::test_map_refuses_when_an_input_path_cannot_be_resolved` | Not reproduced: it monkeypatches `Path.resolve` to fail; Python's non-strict resolve does not fail on real paths (checked on a symlink loop), and the Rust guard falls back the same way |
+| `test_cli.py::test_map_refuses_when_an_input_path_cannot_be_resolved` | Not reproduced: it monkeypatches `Path.resolve` to fail; Python's non-strict resolve did not fail on a symlink loop (checked on Python 3.14), and the Rust guard falls back the same way there; other resolution failures, such as a removed working directory, were not compared |
 | `test_cli.py::test_map_into_a_folder_that_is_a_file_exits_one_with_one_error_line` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_streams_that_cannot_be_reconfigured_still_receive_the_output` | Not applicable: the binary writes bytes to its streams with no reconfigure step |
 | `test_cli.py::test_python_dash_m_runs_the_command_line` | Not applicable: there is no Python module to run |
