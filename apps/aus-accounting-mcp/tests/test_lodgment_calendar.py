@@ -5,6 +5,8 @@ Synthetic Banksia Pty Ltd and Synthetic Grevillea are fabricated.
 
 import asyncio
 import importlib.metadata
+import json
+from datetime import date, timedelta
 
 import pytest
 from lodgmentcalendar.due_dates import FACT_MEANINGS
@@ -145,10 +147,22 @@ def test_invalid_holiday_inputs_reach_the_caller(change, message):
 @pytest.mark.parametrize("change", [
     {"extra_holidays": [{"date": "2027-07-28"}]},
     {"extra_holidays": [{"date": "2027-07-28", "name": "Synthetic", "state": "NT"}]},
-    {"extra_holidays": [{"date": f"2027-08-{day:02d}", "name": "Synthetic"}
-                        for day in range(1, 32)] * 2},
     {"holidays_complete_until": "31/08/2027"},
 ])
 def test_malformed_holiday_inputs_are_rejected(change):
     with pytest.raises(ToolError):
         call(**QUARTER_4, **change)
+
+
+def weekdays_after_the_table(count):
+    days = (date(2027, 7, 1) + timedelta(days=n) for n in range(count * 2))
+    return [{"date": day.isoformat(), "name": "Synthetic"}
+            for day in days if day.weekday() < 5][:count]
+
+
+def test_the_tool_caps_caller_holidays_at_50():
+    tool = next(tool for tool in asyncio.run(mcp.list_tools()) if tool.name == TOOL)
+    assert '"maxItems": 50' in json.dumps(tool.input_schema["properties"]["extra_holidays"])
+    assert call(**QUARTER_4, extra_holidays=weekdays_after_the_table(50))["ok"] is True
+    with pytest.raises(ToolError, match="at most 50 items"):
+        call(**QUARTER_4, extra_holidays=weekdays_after_the_table(51))

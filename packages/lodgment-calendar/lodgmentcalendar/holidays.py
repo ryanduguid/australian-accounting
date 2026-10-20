@@ -110,7 +110,7 @@ def calendar(extra: Mapping[date, str] | None,
         if not _is_date(day):
             raise ValueError(f"extra_holidays has {day!r}; each key must be a date")
         if (not isinstance(name, str) or not name.strip() or len(name) > 120
-                or any(ord(char) < 32 for char in name)):
+                or not name.isprintable()):
             raise ValueError(f"extra_holidays[{day.isoformat()}] needs a holiday name of at "
                              "most 120 printable characters")
         if day in HOLIDAYS or day in CONFLICTS:
