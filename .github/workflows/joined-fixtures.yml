@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ryanduguid/accounting-review-pipeline
-          ref: 5f9730007fd540fd76f3d5a9f6b62162fbc66483
+          ref: a38eaf0705f4d86ef8ae77196649624721421067
           path: sources/accounting-review-pipeline
           persist-credentials: false
       - name: Check out au-fpa-pack
