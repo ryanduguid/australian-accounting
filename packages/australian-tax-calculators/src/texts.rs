@@ -99,7 +99,7 @@ pub const SOURCES: &[(&str, &str)] = &[
     ),
     (
         "study_loan_repayment",
-        "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-support-loans-rates-and-repayment-thresholds",
+        "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates",
     ),
     (
         "study_loan_withholding",
