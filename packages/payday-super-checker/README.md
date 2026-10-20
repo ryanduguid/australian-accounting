@@ -19,11 +19,11 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 ![payday-super-checker](assets/banner.svg)
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
-[![PyPI](https://img.shields.io/pypi/v/payday-super-checker.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/payday-super-checker/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](LICENSE)
-[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/downloads/)
+[![Rust](https://img.shields.io/badge/Rust-1.99-66023C?logo=rust&logoColor=white&labelColor=000000&style=flat-square)](https://www.rust-lang.org/)
 
-Distribution `payday-super-checker`, import package `paydaysuper`, command `payday-super-check`.
+Payday Super Checker 1.0.0 is a standalone Rust binary, command `payday-super-check`.
+It replaces the Python `payday-super-checker` 0.2.2 package and its `paydaysuper` import API.
 
 **Experimental review aid. Not a compliance determination.** Check Australian
 super contributions against the payday-super deadlines and produce an
@@ -39,7 +39,7 @@ fund-receipt date has neither `matched_amount` nor `remitted_amount`; its caveat
 discloses that assumption. Supply and reconcile the receipt amount before relying
 on an `ON_TIME` result. See [release status](#release-status-and-examples).
 
-The `australian-accounting` repository contains the maintained source. The `payday-super-checker` distribution, `payday-super-check` command and `paydaysuper` import package remain compatibility identifiers.
+The `australian-accounting` repository contains the maintained source. The `payday-super-check` command name remains; the `paydaysuper` import package is removed, and its functions are JSON stdin subcommands (see [JSON API](#json-api)). The last Python release, 0.2.2, remains on PyPI; the Rust 1.0.0 binary is unreleased.
 
 Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written independently, in his own time and on his own equipment.
 
@@ -49,16 +49,18 @@ Citation: [`CITATION.cff`](CITATION.cff).
 
 ## Release status and examples
 
-This documentation describes checker 0.2.2. See [release notes](RELEASE_NOTES.md)
-for the receipt-amount migration and workbook corrections. Check
+This documentation describes the Rust checker 1.0.0, which gives the results of
+Python checker 0.2.2 (see [CHANGELOG.md](CHANGELOG.md) for the documented
+differences). See [release notes](RELEASE_NOTES.md) for the receipt-amount
+migration and workbook corrections. Check
 [PyPI](https://pypi.org/project/payday-super-checker/) and
 [GitHub releases](https://github.com/ryanduguid/australian-accounting/releases)
 for available distributions; a checkout version alone does not establish publication.
 
 `aus-accounting-mcp` 0.2.12 pins checker 0.1.9, 0.2.10 and 0.2.11 pin 0.1.8, 0.2.5 to 0.2.9 pin 0.1.7, and 0.2.4 pins 0.1.6,
-which assumes full receipt as described above. The monorepo workspace substitutes the
-checked-out engine source when testing. Check the installed engine version
-when comparing CLI and MCP results.
+which assumes full receipt as described above. Until the MCP server links this
+crate, the monorepo workspace installs Python checker 0.2.2 from PyPI for it.
+Check the installed engine version when comparing CLI and MCP results.
 
 The quick trial below pins release 0.1.7. The historical public evaluation
 stays pinned to 0.1.3. Neither is a claim about the latest release.
@@ -95,15 +97,17 @@ The [recorded public evaluation](https://duguid.com.au/evaluate/payday-super-evi
 
 [![Fabricated Payday Super review](assets/quick-proof.svg)](assets/quick-proof.md)
 
-The card comes from the fabricated sample and links to the complete console transcript. Re-run the sample and confirm that both committed proof files are current:
+The card comes from the fabricated sample and links to the complete console transcript. Re-run the sample and confirm that the committed transcript is current:
 
 ```bash
-python tools/render_quick_proof.py --check
+cargo test --locked --test quick_proof
 ```
+
+`python tools/render_quick_proof.py` rewrites both proof files from a release build.
 
 ## Excel workbook
 
-No Python? [`workbooks/payday-super-checker.xlsx`](workbooks/payday-super-checker.xlsx)
+No command line? [`workbooks/payday-super-checker.xlsx`](workbooks/payday-super-checker.xlsx)
 implements the 0.2.2 review in ordinary worksheet formulas: paste the canonical
 contributions register, set the as-at date, and read the deadline, verdict,
 shortfall, notional earnings and SG charge estimate range per line, with the
@@ -111,37 +115,29 @@ shortfall, notional earnings and SG charge estimate range per line, with the
 still assumes full receipt without an amount and extrapolates beyond its GIC
 table, unlike the 0.1.6 CLI default. Use the version-specific limits in
 [workbooks/README.md](workbooks/README.md). It is macro-free, needs desktop Excel for
-Microsoft 365 or Excel 2024, and is held to this engine's answer by
-`tests/test_workbook.py`. See [workbooks/README.md](workbooks/README.md).
+Microsoft 365 or Excel 2024, and is held to this engine's answer by the
+repository's `tests/test_payday_workbook.py`. See [workbooks/README.md](workbooks/README.md).
 
-## Install
+## Build and check
 
-Python 3.14 or later. No runtime dependencies.
+Install Rust with rustup, clone the repository, then run from this directory:
 
-```bash
-git clone https://github.com/ryanduguid/australian-accounting.git
+```sh
+cargo build --locked --release
+cargo fmt --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 ```
 
-```bash
-cd australian-accounting/packages/payday-super-checker && pip install .
-```
+The toolchain is pinned in `rust-toolchain.toml`. The executable is
+`target/release/payday-super-check` (`.exe` on Windows); add that directory to
+PATH or copy the executable to a directory on PATH. No Python runtime is needed.
+The calendar, the GIC and super rate tables and the vendor profiles are compiled
+into the binary and nothing is fetched at run time.
 
-Cloning first means you have the sample file the next command uses. To skip
-the clone, `pip install payday-super-checker` installs the tool alone from
-PyPI. Use the synthetic CSV above for a first run before preparing your own input.
-
-### Python control options
-
-In direct Python calls to this source tree, confirmation flags, stale-rate
-options and `include_employee_ids` require literal `True` or `False` values.
-Strings such as `"false"`, numbers, `None` and containers are rejected. Valid
-booleans and defaults keep their existing behaviour, including identifier omission
-when `include_employee_ids=False`.
-
-Invalid controls raise `ValueError`, or its `RatesError` and `CsvError` subclasses
-for rate lookups and imports. Validation also applies when no assessment row or
-interest-accrual day would otherwise use the option. The command-line switches
-already supply booleans and retain their existing behaviour.
+The native version is unreleased. PyPI still provides the historical Python
+release; `pip install` does not install this binary. Use the synthetic CSV
+above for a first run before preparing your own input.
 
 ## Before you run
 
@@ -301,11 +297,10 @@ receipt of the whole `sg_amount` and say so in a caveat.
 Available from published checker 0.1.4. The command below runs this checkout;
 its receipt-amount changes are included in 0.1.7.
 
-From the monorepo root, change into the component and run:
+From this directory, with the binary on PATH, run:
 
 ```bash
-cd packages/payday-super-checker
-uv run --locked payday-super-check evidence-pack evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 -o evidence-pack
+payday-super-check evidence-pack evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 -o evidence-pack
 ```
 
 This uses the existing checker and practitioner checklist to write 4 files
@@ -348,9 +343,9 @@ Write failures leave the partial directory for inspection and return exit 1.
 The command never deletes these files, which another process may have edited.
 Choose a new directory for the next run. This feature is not in published v0.1.3.
 
-Use an access-controlled parent directory on every platform. Permissions depend
-on the OS and Python version; older Windows runtimes can inherit the parent's
-access controls despite the requested directory mode. The command does not
+Use an access-controlled parent directory on every platform. On Unix the
+directory is created owner-only; on Windows it gets a protected access-control
+list for SYSTEM, Administrators and its owner. The command does not otherwise
 configure or audit access controls.
 
 ### Build a practitioner review pack
@@ -505,6 +500,63 @@ For a contribution file with one of those names, use `./review-pack` or
 `./evidence-pack` to run the ordinary checker. Qualified paths and `.csv` filenames
 remain unambiguous.
 
+## JSON API
+
+The Python import API is replaced by JSON stdin subcommands, for scripts and
+for the MCP server. Each reads one JSON object on stdin and writes the result
+as JSON, or one `error:` line on stderr with exit 2. Decimals are strings,
+dates are `YYYY-MM-DD` strings and paths are file paths. An omitted field
+takes the Python function's default and a field it required must be given;
+`null` is accepted only where the Python argument was optional. A contribution line
+has the canonical field names (`employee_id`, `qe_day`, `sg_amount`,
+`remitted`, `remitted_amount`, `received`, `first_to_fund`, `out_of_cycle`,
+`next_standard_qe_day`, `db_interest`, `row`, `matched_amount`,
+`join_caveats`). A `calendar` is the bundled table, `{"override_path": ...}`
+for an override file, or explicit `holidays` with `verified_from`,
+`verified_until` and `coverage_until`. `quarters` replaces the bundled GIC
+table with explicit `from`, `to` and `annual_pct` entries.
+
+| Command | Input |
+| --- | --- |
+| `parse-date-text` | `text` |
+| `parse-amount` | `value`, `field` and `row` (required), `empty_is_error` |
+| `csv-safe`, `normalise-header`, `normalise-name` | `text` |
+| `money` | `value` |
+| `load-mapping` | `mapping_file`, `overrides` |
+| `parse-rows` | `path`, and `mapping_file` and `overrides`, or `mapping` and `explicit` |
+| `load-calendar` | `calendar` |
+| `add-business-days` | `calendar`, `date`, `n` (required) |
+| `load-gic` | `quarters` |
+| `daily-rate` | `quarters`, `date`, `allow_stale` |
+| `notional-earnings` | `shortfall`, `due`, `end`, `quarters`, `allow_stale` |
+| `uplift-scenarios`, `exposure-range` | `final_shortfall`, `nec` |
+| `compute-due` | `line`, `calendar` |
+| `assess`, `needs-attention` | `lines`, `calendar`, `quarters`, `as_at`, `assessment_date`, `transition_allocation_confirmed`, `allow_stale_gic`; `needs-attention` adds `remittance_only_confirmed` |
+| `render-csv` | as `assess`, with `law_date` (required), `source`, `gic_provenance`, `include_employee_ids` |
+| `console-summary` | as `assess`, with `csv_path` and `law_date` (required), `remittance_only_confirmed` |
+| `build-evidence-pack` | as `assess`, with `gic_provenance`, `remittance_only_confirmed`, `rate_tables` |
+| `financial-year` | `date` |
+| `parse-report-snapshot`, `render-practitioner-pack` | `path`, or `text` or `data_b64` with `source` (required) and `identifiers_omitted`; `render-practitioner-pack` adds `decision_log` |
+| `load-profiles` | `role` |
+| `detect-profile` | `headers`, `role`, `vendor` |
+| `read-payroll`, `read-super` | `path`, `vendor` |
+| `join` | `payroll_rows`, `super_rows`, `payroll_has_period_end`, `super_has_period_start`, `super_has_period_end` |
+| `import-files` | `payroll`, `super`, `output`, `vendor`, `statutory_allocation_confirmed` |
+
+`assess` returns each line's result with its rounded `figures` (null where a
+figure cannot be rounded to cents); `join` returns the outcomes, orphans and the
+canonical CSV text `import` would write; `import-files` returns the whole
+import report. `build-evidence-pack` names no rate table and no GIC provenance
+unless `rate_tables` and `gic_provenance` are given, as Python's defaults did.
+
+```sh
+echo '{"text": "9 Jul 2026"}' | payday-super-check parse-date-text
+```
+
+`payday-super-check --api-help` lists the commands. A command name given as the
+only argument runs that command, so a contribution file named exactly like one
+(for example `assess`) is checked as `./assess`.
+
 ## Local file boundary
 
 This is a single-user command-line tool. Its positional input, importer input, mapping, calendar override and output arguments designate files the invoking operating-system account has chosen to read or write; they are not a sandbox. The one exception is `review-pack`'s report argument, which must be a bare `.csv` filename in the current directory and is opened there. Do not expose the command as a web endpoint, multi-user service, or automation that accepts path values from a less-trusted caller without adding an appropriate safe-root boundary.
@@ -561,43 +613,37 @@ was read:
 ```json
 "manifest": {
   "rate_table_uris": [
-    { "uri": "paydaysuper/data/gic_rates.json", "sha256": "243e64b5..." }
+    { "uri": "data/gic_rates.json", "sha256": "243e64b5..." }
   ]
 }
 ```
 
-The digest comes from the loader that read the file, not from a later pass
-over the directory, and it is taken over decoded text so a CRLF checkout and
-an LF checkout of the same reviewed table agree. The prose provenance line in
+The table is compiled into the binary. The digest is taken over its decoded
+text, so a CRLF checkout and an LF checkout of the same reviewed table agree,
+and it matches the digest Python checker 0.2.2 recorded for the same table. The prose provenance line in
 the report says which quarters the table covers; the digest says whether it is
 the same table, which is the question a reviewer reopening the pack months
 later actually has. `rates.json` supplies reference values for the ordinary
-CLI console summary. Evidence-pack mode does not use or load that table, so
-it is absent from the manifest. A missing or malformed reference table does
-not block an evidence pack; a missing or malformed GIC table still does.
+CLI console summary. Evidence-pack mode does not use that table, so it is
+absent from the manifest.
 
 ## Keeping it current
 
-Everything that goes stale lives in `paydaysuper/data/`.
+Everything that goes stale lives in `data/` and is compiled into the binary, so rebuild after changing it.
 
-- `gic_rates.json` : the general interest charge rate, which the ATO resets every quarter. Each entry records where the figure came from and when that was checked. Update it each quarter. A row whose notional earnings period runs past the last quarter in the file keeps its verdict, its days late and its shortfall, which are decided without a GIC rate, and carries no SG charge estimate: the notional earnings, both uplift figures and both SG charge columns are left empty, and the row's caveat names the last quarter on record. Pass `--allow-stale-gic` to estimate those days at the last known rate instead; the report then says it did, and the estimate compounds a rate the ATO has not published.
+- `gic_rates.json` : the general interest charge rate, which the ATO resets every quarter. Each entry records where the figure came from and when that was checked. Update it each quarter and rebuild. A row whose notional earnings period runs past the last quarter in the file keeps its verdict, its days late and its shortfall, which are decided without a GIC rate, and carries no SG charge estimate: the notional earnings, both uplift figures and both SG charge columns are left empty, and the row's caveat names the last quarter on record. Pass `--allow-stale-gic` to estimate those days at the last known rate instead; the report then says it did, and the estimate compounds a rate the ATO has not published.
 - `rates.json` : SG rate, concessional cap, maximum contributions base, per financial year, with the same source and checked-date fields.
-- `business_days.json` : national non-business days plus the 8 official jurisdiction URLs and their check date. Regenerate with `uv run --locked --extra dev --python 3.14 python tools/generate_calendar.py > paydaysuper/data/business_days.json`, which uses the lock-pinned development environment, then check every line against those official pages before shipping. Raw generator output deliberately sets `verified_until` to 1 July 2026 and `official_sources.checked` to null; a human reviewer must record the check date and raise the horizon only as far as every jurisdiction's official material supports. Regional, part-day and locally substitutable dates are excluded. Unconfirmed dates are reference-only and do not extend a deadline until an official override confirms them.
+- `business_days.json` : national non-business days plus the 8 official jurisdiction URLs and their check date. Regenerate from the repository root with `uv run --locked python packages/payday-super-checker/tools/generate_calendar.py > packages/payday-super-checker/data/business_days.json`, which uses the lock-pinned development environment, then check every line against those official pages before shipping. Raw generator output deliberately sets `verified_until` to 1 July 2026 and `official_sources.checked` to null; a human reviewer must record the check date and raise the horizon only as far as every jurisdiction's official material supports. Regional, part-day and locally substitutable dates are excluded. Unconfirmed dates are reference-only and do not extend a deadline until an official override confirms them.
 
 Part-day holidays, such as Christmas Eve evening in South Australia, Queensland and the Northern Territory, are treated as business days because applying them as a full day would extend the statutory deadline without authority. Melbourne Cup Day and WA's default King's Birthday date are also business days for this definition because the official pages permit regional substitution, so neither applies throughout its State. The override exists for newly proclaimed whole-of-jurisdiction dates and for an operator who has completed a later official calendar.
 
 ## Tests
 
 ```bash
-pip install -e ".[dev]"
-python tests/fastcheck/bootstrap.py
+cargo test --locked
 ```
 
-```bash
-pytest
-```
-
-The bootstrap installs the locked fast-check worker that generates the property tests' inputs, using the Node pinned in the dev extra.
+`tests/parity.rs` replays the Python 0.2.2 tests' engine calls and command runs, and generated ones, from frozen Python results. `tests/BEHAVIOURS.md` maps each Python test to its Rust coverage. The property tests are seeded Rust tests over the fast-check properties' input domains.
 
 The suite pins the ATO's own worked examples: a first payday of 9 July 2026 falling due 7 August 2026, and notional earnings on a payday whose usual period ends 18 June 2027 starting to accrue on 19 June 2027. It also pins the traps that make this hard, including the Ekka staying a business day, deadlines that must not change when you reorder rows in the CSV, and the leap-year divisor in the interest calculation. Test data is synthetic. Never commit client payroll data to this repository; `.gitignore` blocks the usual formats, case-insensitively.
 

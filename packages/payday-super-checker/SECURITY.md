@@ -27,10 +27,11 @@ workpaper. The in-memory builder accepts assessed engine results, not untrusted
 report text or caller-written provenance. Do not expose its path argument to a
 less-trusted caller without enforcing a safe root.
 
-Use an access-controlled parent directory. The requested mode is `0o700`, but
-older Windows Python versions may ignore it and inherit parent access controls.
-This command does not configure or audit ACLs. See the
-[Python directory-mode contract](https://docs.python.org/3.10/library/os.html#os.mkdir).
+Use an access-controlled parent directory. The directory is created with mode
+`0o700` on Unix; on Windows it gets a protected access-control list granting
+full control to SYSTEM, Administrators and its owner only, as Python 3.13 and
+later applied for the same mode. This command does not otherwise configure or
+audit ACLs.
 
 This is a single-user CLI, not a sandbox or service. Its input, mapping,
 calendar-override and output paths are selected by the invoking operating-system

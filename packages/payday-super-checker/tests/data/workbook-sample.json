@@ -1,0 +1,113 @@
+{
+  "as_at": "2026-08-10",
+  "transition_allocation_confirmed": true,
+  "rows": [
+    {
+      "employee_id": "EMP001",
+      "verdict": "ON_TIME",
+      "pathway": "USUAL_7BD",
+      "final_due": "2026-07-20",
+      "unassessable_between": ""
+    },
+    {
+      "employee_id": "EMP002",
+      "verdict": "LATE",
+      "pathway": "USUAL_7BD",
+      "final_due": "2026-07-20",
+      "unassessable_between": "",
+      "days_late": 15,
+      "lateness_basis": "fund receipt",
+      "shortfall": "0.00",
+      "nec": "2.54",
+      "up_low": "0.00",
+      "up_high": "1.53",
+      "low": "2.54",
+      "high": "4.07"
+    },
+    {
+      "employee_id": "EMP003",
+      "verdict": "AT_RISK",
+      "pathway": "USUAL_7BD",
+      "final_due": "2026-07-20",
+      "unassessable_between": ""
+    },
+    {
+      "employee_id": "EMP004",
+      "verdict": "UNPAID",
+      "pathway": "USUAL_7BD",
+      "final_due": "2026-07-20",
+      "unassessable_between": "",
+      "days_late": 21,
+      "lateness_basis": "as-at date (nothing applied to this payday)",
+      "shortfall": "780.00",
+      "nec": "5.15",
+      "up_low": "0.00",
+      "up_high": "471.09",
+      "low": "785.15",
+      "high": "1256.24"
+    },
+    {
+      "employee_id": "EMP005",
+      "verdict": "ON_TIME",
+      "pathway": "EXTENDED_20BD",
+      "final_due": "2026-08-07",
+      "unassessable_between": ""
+    },
+    {
+      "employee_id": "EMP006",
+      "verdict": "ON_TIME",
+      "pathway": "OUT_OF_CYCLE",
+      "final_due": "2026-08-04",
+      "unassessable_between": ""
+    },
+    {
+      "employee_id": "EMP007",
+      "verdict": "SKIPPED",
+      "pathway": "SKIP_DB",
+      "final_due": null,
+      "unassessable_between": ""
+    },
+    {
+      "employee_id": "EMP001",
+      "verdict": "LATE",
+      "pathway": "USUAL_7BD",
+      "final_due": "2026-08-04",
+      "unassessable_between": "",
+      "days_late": 2,
+      "lateness_basis": "fund receipt",
+      "shortfall": "0.00",
+      "nec": "0.38",
+      "up_low": "0.00",
+      "up_high": "0.23",
+      "low": "0.38",
+      "high": "0.61"
+    },
+    {
+      "employee_id": "EMP002",
+      "verdict": "ON_TIME",
+      "pathway": "USUAL_7BD",
+      "final_due": "2026-08-04",
+      "unassessable_between": ""
+    },
+    {
+      "employee_id": "EMP005",
+      "verdict": "ON_TIME",
+      "pathway": "ITEM4_ALIGNED",
+      "final_due": "2026-08-07",
+      "unassessable_between": ""
+    }
+  ],
+  "summary": {
+    "counts": {
+      "ON_TIME": 5,
+      "AT_RISK": 1,
+      "LATE": 2,
+      "UNPAID": 1,
+      "UNKNOWN": 0,
+      "SKIPPED": 1
+    },
+    "exposed": 3,
+    "low": "788.07",
+    "high": "1260.92"
+  }
+}

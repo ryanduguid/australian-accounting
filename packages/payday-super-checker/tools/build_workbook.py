@@ -3,13 +3,14 @@
 The workbook restates the checker's rules in ordinary worksheet formulas so an
 accountant with desktop Excel and no Python can paste the canonical contributions
 register, set the as-at date and read the deadline, verdict and experimental SG
-charge figures per line. It is pinned to the engine by ``tests/test_workbook.py``,
-which reads the cached values desktop Excel wrote and compares them with ``assess``
-on the shipped sample.
+charge figures per line. It is pinned to the engine by the repository's
+``tests/test_payday_workbook.py``, which reads the cached values desktop Excel wrote
+and compares them with the engine's review of the shipped sample, frozen in
+``tests/data/workbook-sample.json`` and held to the Rust engine by ``cargo test``.
 
-Run from the package directory on a machine with desktop Excel:
+Run from the repository root on a machine with desktop Excel:
 
-    uv run --locked --extra dev python tools/build_workbook.py
+    uv run --locked python packages/payday-super-checker/tools/build_workbook.py
 
 openpyxl writes the formulas; a single desktop Excel pass over COM recalculates the
 workbook so the shipped file carries real cached values, then the build-machine path
@@ -36,16 +37,26 @@ from openpyxl.worksheet.formula import ArrayFormula
 from openpyxl.worksheet.table import Table, TableColumn, TableFormula, TableStyleInfo
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from paydaysuper import __version__  # noqa: E402
-from paydaysuper.assess import TRANSITION_END  # noqa: E402
-from paydaysuper.csv_io import FALSE_WORDS, LATEST_SANE_YEAR, TRUE_WORDS  # noqa: E402
-from paydaysuper.deadlines import REGIME_START  # noqa: E402
-from paydaysuper.rates import days_in_year  # noqa: E402
+
+# The engine is a Rust crate; these mirror its constants (src/assess.rs,
+# src/csv_io.rs, src/deadlines.rs and src/rates.rs) and its Cargo version.
+__version__ = re.search(r'^version = "([^"]+)"', (ROOT / "Cargo.toml").read_text(encoding="utf-8"),
+                        re.MULTILINE).group(1)
+TRANSITION_END = date(2026, 7, 28)
+TRUE_WORDS = {"y", "yes", "true", "1", "t"}
+FALSE_WORDS = {"", "n", "no", "false", "0", "f"}
+LATEST_SANE_YEAR = 2200
+REGIME_START = date(2026, 7, 1)
+
+
+def days_in_year(d: date) -> int:
+    """TAA 1953 s 8AAD divides the annual GIC rate by the days in the calendar year."""
+    return (date(d.year, 12, 31) - date(d.year, 1, 1)).days + 1
+
 
 OUT = ROOT / "workbooks" / "payday-super-checker.xlsx"
 SAMPLE = ROOT / "examples" / "sample_payrun.csv"
-DATA = ROOT / "paydaysuper" / "data"
+DATA = ROOT / "data"
 DEFAULT_AS_AT = date(2026, 8, 10)
 
 PURPLE, LAVENDER, GREY = "5C2D91", "F3F1F6", "E2E0DF"

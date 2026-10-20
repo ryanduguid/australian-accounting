@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import html
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
@@ -21,9 +20,12 @@ def run_example() -> str:
         report = Path(directory) / "report.csv"
         result = subprocess.run(
             [
-                sys.executable,
-                "-m",
-                "paydaysuper.cli",
+                "cargo",
+                "run",
+                "--quiet",
+                "--locked",
+                "--release",
+                "--",
                 SAMPLE,
                 "--as-at",
                 "2026-09-10",

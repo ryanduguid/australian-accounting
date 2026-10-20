@@ -1,9 +1,17 @@
 # Releasing
 
+The Rust 1.0.0 binary is unreleased and has no publisher yet; its tag namespace
+`payday-super-checker/vX.Y.Z` is reserved. Before a native release, run
+`cargo fmt --check`, `cargo clippy --locked --all-targets -- -D warnings` and
+`cargo test --locked` from this directory. The rest of this file describes the
+Python releases through v0.2.2 and how to verify them.
+
+## Python releases
+
 The monorepo's [GitHub Releases](https://github.com/ryanduguid/australian-accounting/releases) page is the canonical release history from `payday-super-checker/v0.1.3` onward. Releases through v0.1.2 were published from the standalone `payday-super-checker` repository, which was retired in September 2026; both remain on [PyPI](https://pypi.org/project/payday-super-checker/#history). A separate changelog is intentionally not maintained.
 
-The root workflow `.github/workflows/release-payday-super-checker.yml` builds
-and publishes this component.
+The root workflow `.github/workflows/release-payday-super-checker.yml` built
+and published the Python releases; it was removed with the Python package.
 
 Before tagging:
 

@@ -137,15 +137,6 @@ jobs:
           enable-cache: true
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
-      # The engines with fast-check properties install the worker's locked npm
-      # dependencies with the Node pinned in their dev extra: npm ci verifies
-      # every integrity hash and --ignore-scripts runs no install script. A
-      # missing worker fails the properties rather than skipping them.
-      - name: install the fast-check worker
-        if: hashFiles(format('packages/{0}/tests/fastcheck/package-lock.json', inputs.package)) != ''
-        run: uv run --locked --extra dev python tests/fastcheck/bootstrap.py  # NOSONAR: unprivileged job; npm ci installs the hash-locked set
-        env:
-          UV_PYTHON: ${{ matrix.python }}
       # No -q here: several engines already set it in their pytest addopts, and
       # a second one is -qq, which drops the "N passed" count from the log.
       # Without the count a test file that stops being collected leaves every
@@ -205,11 +196,6 @@ jobs:
           enable-cache: true
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
-      - name: install the fast-check worker
-        if: hashFiles(format('packages/{0}/tests/fastcheck/package-lock.json', inputs.package)) != ''
-        run: uv run --locked --extra dev python tests/fastcheck/bootstrap.py  # NOSONAR: unprivileged job; npm ci installs the hash-locked set
-        env:
-          UV_PYTHON: ${{ inputs.windows-python }}
       - name: run tests with branch coverage
         run: >-
           uv run --locked --extra dev pytest

@@ -12,7 +12,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCOPES = {
-    "packages/payday-super-checker": "paydaysuper",
     "packages/gst-review": "gstreview",
     "apps/aus-accounting-mcp": "aus_accounting_mcp",
     "apps/lodgeit-calculator-adapter": "lodgeitadapter",

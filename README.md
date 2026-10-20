@@ -141,7 +141,7 @@ For an editable source installation, run `pip install -e .` from
 | `packages/australian-tax-calculators/` | `australian-tax-calculators` (Rust) | none | `australian-tax-calculators` (JSON stdin worksheets) |
 | `apps/aus-accounting-mcp/` | `aus-accounting-mcp` | `aus_accounting_mcp` | `aus-accounting-mcp`, `aus-accounting-mcp-demo` |
 | `packages/ato-benchmark-compare/` | `ato-benchmark-compare` (Rust) | none | `ato-benchmark-compare` |
-| `packages/payday-super-checker/` | `payday-super-checker` | `paydaysuper` | `payday-super-check` |
+| `packages/payday-super-checker/` | `payday-super-checker` (Rust) | none | `payday-super-check` |
 | `packages/div7a-loan-review/` | `div7a-loan-review` (Rust) | none | `div7a-loan-review` |
 | `packages/the-exchequer-tally/` | `the-exchequer-tally` (Rust) | none | `the-exchequer-tally` |
 | `packages/solomons-sword/` | `solomons-sword` (Rust) | none | `solomons-sword` |
@@ -154,9 +154,10 @@ For an editable source installation, run `pip install -e .` from
 MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest); it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
 `div7a-loan-review`, `australian-tax-calculators` and `gst-review` distributions. In
-the development workspace, uv resolves 2 of those dependencies to their checked-out
-sources and takes `australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2 and
-`ato-benchmark-compare` 0.2.2, the last Python releases, from PyPI.
+the development workspace, uv resolves `gst-review` to its checked-out source and
+takes `australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2,
+`ato-benchmark-compare` 0.2.2 and `payday-super-checker` 0.2.2, the last Python
+releases, from PyPI.
 
 The Exchequer Tally 1.0.0, Solomon's Sword 1.0.0, The WIP Tally 1.0.0,
 Australian Tax Calculators 1.0.0 and Division 7A Loan Review 1.0.0 are

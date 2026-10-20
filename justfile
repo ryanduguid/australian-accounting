@@ -11,7 +11,6 @@
 # Component directory : the import package it owns. Adding a component means
 # adding it here and to tests/test_boundaries.py.
 components := trim(replace('''
-packages/payday-super-checker:paydaysuper
 packages/gst-review:gstreview
 apps/aus-accounting-mcp:aus_accounting_mcp
 apps/lodgeit-calculator-adapter:lodgeitadapter
@@ -22,17 +21,9 @@ packages/au-tax-rates-data:rates
 default:
     @just --list
 
-# Install every component and the shared toolchain into one workspace .venv,
-# then each fast-check worker's locked npm dependencies. The bootstrap runs
-# `npm ci --ignore-scripts` with the Node pinned in the locked toolchain.
+# Install every component and the shared toolchain into one workspace .venv.
 setup:
-    #!/usr/bin/env bash
-    set -euo pipefail
     uv sync
-    for bootstrap in packages/*/tests/fastcheck/bootstrap.py; do
-        echo "==> ${bootstrap}"
-        uv run --no-sync python "${bootstrap}"
-    done
 
 # Run every component's test suite, plus the repository boundary checks.
 test: setup rust-test
@@ -102,7 +93,7 @@ release +args:
 check: lint typecheck test
 
 # Standalone Rust engines, outside the virtual Python workspace.
-rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review packages/ato-benchmark-compare"
+rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review packages/ato-benchmark-compare packages/payday-super-checker"
 
 rust-test:
     #!/usr/bin/env bash

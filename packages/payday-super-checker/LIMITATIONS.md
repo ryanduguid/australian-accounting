@@ -18,7 +18,7 @@ tagged workbook retain the exceptions recorded under
 ## PSC-1 An SG-charge estimate dated past the GIC table extrapolates the rate, on request
 
 **Trigger.** Any day in the notional earnings period falls after the last
-quarter recorded in `paydaysuper/data/gic_rates.json`, and the run was started
+quarter recorded in `data/gic_rates.json`, and the run was started
 with `--allow-stale-gic`. Without that flag the row keeps its verdict, its days
 late and its shortfall and carries no SG charge estimate at all, with a caveat
 naming the day, the last quarter on record and the file to update, so nothing
@@ -49,7 +49,7 @@ estimate as a rate-independent floor.
 fund-receipt tests, which never read the GIC table. Deadlines, business-day
 arithmetic, the matched and remitted amounts, and the SG shortfall itself are
 all unaffected. `GicTable.daily_rate` is called from exactly one place, the
-notional earnings loop in `paydaysuper/sgc.py`, so nothing outside the exposure
+notional earnings loop in `src/sgc.rs`, so nothing outside the exposure
 estimate depends on it.
 
 Receipt evidence and matching can still affect a verdict. A sound verdict
@@ -65,7 +65,7 @@ console, unlike notes. On a default run the caveat instead says the notional
 earnings and the SG charge estimate were not assessed for that row, and the 5
 charge columns of `report.csv` are empty rather than nil.
 
-**Operator step.** Update `paydaysuper/data/gic_rates.json` from the ATO
+**Operator step.** Update `data/gic_rates.json` from the ATO
 general interest charge rates page rather than passing `--allow-stale-gic`.
 Re-run and confirm the caveat is gone.
 
@@ -100,8 +100,8 @@ arithmetic cannot establish that a payment was matched to the right payday or
 that the fund received it. Published 0.1.6 also retains the
 [missing-amount assumption](README.md#release-status-and-examples).
 
-**Where it surfaces at runtime.** `paydaysuper/join.py` emits one warning per
-condition. These are structural warnings: `paydaysuper/cli.py` prints them
+**Where it surfaces at runtime.** `src/join.rs` emits one warning per
+condition. These are structural warnings: `src/cli.rs` prints them
 ahead of every row-level warning and never truncates them, because they govern
 whether the whole join can be trusted. The report header also states the key in
 use as `employee matching: by id` or `by name`.
@@ -137,5 +137,5 @@ Recorded here so they are not re-audited:
   on every import.
 - **Components not modelled in the SG charge.** Choice loading under s 20A, the
   post-assessment late payment penalty, and GIC on an unpaid assessment are out
-  of scope and recorded in README.md and the `paydaysuper.sgc` module
+  of scope and recorded in README.md and the `src/sgc.rs` module
   docstring.

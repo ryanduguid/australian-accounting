@@ -1,7 +1,7 @@
 """Warn before payday-super-checker's GIC table runs out.
 
 Past the table's last quarter the engine and the MCP withhold notional earnings
-and SG charge estimates (paydaysuper/rates.py, StaleGicError). The ATO publishes
+and SG charge estimates (src/rates.rs, the stale-GIC refusal). The ATO publishes
 the next quarter about four weeks ahead, and the figure still needs a table
 update, a payday-super-checker release, an MCP pin bump and an MCP release. The
 job runs weekly, so failing inside 28 days gives at least 21 days' notice:
@@ -20,7 +20,7 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-GIC_TABLE = ROOT / "packages" / "payday-super-checker" / "paydaysuper" / "data" / "gic_rates.json"
+GIC_TABLE = ROOT / "packages" / "payday-super-checker" / "data" / "gic_rates.json"
 WARN_DAYS = 28
 
 

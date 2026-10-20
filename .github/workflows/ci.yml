@@ -55,10 +55,6 @@ jobs:
         # changed-line-coverage lists the risk-scoped files held to complete
         # changed-line branch coverage against main.
         include:
-          - package: payday-super-checker
-            import-name: paydaysuper
-            windows-python: "3.14"
-            changed-line-coverage: paydaysuper/assess.py,paydaysuper/report.py
           - package: gst-review
             import-name: gstreview
             windows-python: ""
@@ -116,6 +112,15 @@ jobs:
     uses: ./.github/workflows/ci-rust.yml
     with:
       package: ato-benchmark-compare
+    permissions:
+      contents: read
+
+  payday:
+    name: payday-super-checker
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: payday-super-checker
+      binary: payday-super-check
     permissions:
       contents: read
 
@@ -258,7 +263,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, test, dependency-audit, lint]
+    needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, payday, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

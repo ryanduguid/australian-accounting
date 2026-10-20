@@ -42,12 +42,10 @@ select_package = _load_select_package()
 
 RELEASE_CALLERS = {
     "aus-accounting-mcp": "apps/aus-accounting-mcp",
-    "payday-super-checker": "packages/payday-super-checker",
     "gst-review": "packages/gst-review",
 }
 
 PYTHON_ENGINES = {
-    "packages/payday-super-checker": "paydaysuper",
     "packages/gst-review": "gstreview",
 }
 RUST_ENGINES = {
@@ -57,6 +55,7 @@ RUST_ENGINES = {
     "packages/australian-tax-calculators": "australian-tax-calculators",
     "packages/div7a-loan-review": "div7a-loan-review",
     "packages/ato-benchmark-compare": "ato-benchmark-compare",
+    "packages/payday-super-checker": "payday-super-checker",
 }
 ENGINES = PYTHON_ENGINES | RUST_ENGINES
 APPLICATIONS = {
@@ -73,9 +72,7 @@ DATASETS = {
 
 # The files the changed-line coverage gate holds to complete branch coverage,
 # and the engine that owns each set.
-CHANGED_LINE_COVERAGE = {
-    "payday-super-checker": "paydaysuper/assess.py,paydaysuper/report.py",
-}
+CHANGED_LINE_COVERAGE: dict[str, str] = {}
 FORBIDDEN_FOR_ENGINES = frozenset({*APPLICATIONS.values(), *ENGINES.values()})
 PATH_FILTER_KEY = re.compile(
     r"(?<![\w-])['\"]?(paths(?:-ignore)?)['\"]?\s*:"
@@ -372,12 +369,12 @@ class BoundaryTests(unittest.TestCase):
     def test_positive_control_for_forbidden_imports(self) -> None:
         tree = ast.parse(
             "import aus_accounting_mcp\n"
-            "from paydaysuper.assess import assess\n"
+            "from gstreview.bas import summarise\n"
             "import json\n"
         )
         self.assertEqual(
             imported_top_levels(tree) & FORBIDDEN_FOR_ENGINES,
-            {"aus_accounting_mcp", "paydaysuper"},
+            {"aus_accounting_mcp", "gstreview"},
         )
 
     def test_positive_control_for_escaping_relative_imports(self) -> None:
