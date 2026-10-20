@@ -178,7 +178,8 @@ def _check(obligation: str, entity_type: str, financial_year: object, channel: s
         raise ValueError("facts must be a Facts instance")
     for field in fields(facts):
         value = getattr(facts, field.name)
-        if value is not None and not isinstance(value, bool):
+        # Identity, not isinstance: an object can claim bool as its class.
+        if value is not None and value is not True and value is not False:
             raise ValueError(f"facts.{field.name} must be true, false or null; got {value!r}")
 
 

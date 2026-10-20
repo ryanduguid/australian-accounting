@@ -198,6 +198,20 @@ Every finding was checked against the pages before it was acted on:
   date stays unknown (for example 1 December 2026 for a taxable large or medium company
   whose overdue status is unknown). The payment stays `unknown`, which is conservative.
 
+A second Alcuin final review (GPT-6 with Pro thinking, verified the same way) on the
+same day read the later changes: caller-supplied holidays, the invariant test and the
+split of the engine into modules. It found no wrong due date or status:
+
+- **Accepted and fixed:** the fact check again refuses an object that only claims to
+  be a Boolean; holiday names must be printable, which also refuses DEL and Unicode
+  control and format characters; the invariant test now checks that the roll passes
+  over exactly the non-business days before the due date, and that the caller calendar
+  settles dates after the ATO table; new tests cover a complete span that must reach
+  the rolled date, a roll into the 25 September 2026 conflict and the tool's 50-holiday
+  cap.
+- **Not done:** tracing every decision path the invariant sample reaches. The whole
+  suite keeps 100% branch coverage, which is not the same as covering every path.
+
 ## Cross-checks
 
 - The ATO media release [The final countdown](https://www.ato.gov.au/media-centre/the-final-countdown-ato-reminds-taxpayers-to-lodge-now),

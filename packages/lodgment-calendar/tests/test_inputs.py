@@ -1,6 +1,7 @@
 """Invalid inputs are refused before any date is worked out."""
 
 from datetime import date
+from unittest.mock import Mock
 
 import pytest
 from lodgmentcalendar import Facts, due_dates
@@ -35,6 +36,10 @@ from lodgmentcalendar.due_dates import FACT_MEANINGS, SOURCES
     (("bas", "trust", "2026-27", "self"),
      {"reporting_cycle": "monthly", "facts": Facts(new_registrant="yes")},
      "facts.new_registrant must be true, false or null"),
+    # Passes isinstance(value, bool) without being True or False.
+    (("bas", "trust", "2026-27", "self"),
+     {"reporting_cycle": "quarterly", "facts": Facts(lodges_electronically=Mock(spec=bool))},
+     "facts.lodges_electronically must be true, false or null"),
 ])
 def test_invalid_inputs_are_refused(args, kwargs, message):
     with pytest.raises(ValueError, match=message):
