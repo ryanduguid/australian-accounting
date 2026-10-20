@@ -42,7 +42,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
-| Study loan repayment | Not a Library document: the ATO thresholds page and Gazette C2026G00249 | 30 June 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
+| Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
 coverage. Its existing 2026–27 regression and statutory source remain unchanged.
@@ -269,7 +269,11 @@ loan repayment thresholds and rates" (last updated 30 June 2026, read on 27
 September 2026), tables 1 (2026-27) and 2 (2025-26), and the 2026-27 minimum
 repayment income of $69,528 and replacement indexable amount of $129,717 were
 checked against Gazette C2026G00249 of 20 April 2026, made under HESA 2003
-ss 154-10 and 154-20. `tests/test_study_loan.py` holds the worksheet to the
+ss 154-10 and 154-20. The ATO has since moved and retitled the page "Study and
+training loan minimum repayment income and rates" (last updated 13 October
+2026), which now says "minimum repayment income" where it said "repayment
+threshold". Read again on 20 October 2026, its tables and examples print the
+same figures. `tests/test_study_loan.py` holds the worksheet to the
 page's examples 1 and 3 ($86,380 gives $2,527.80; $254,780 gives $25,478.00)
 and to every band boundary in both years.
 
