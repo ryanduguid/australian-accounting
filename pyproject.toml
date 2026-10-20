@@ -12,7 +12,7 @@
 members = ["packages/*", "apps/*"]
 exclude = ["packages/the-exchequer-tally", "packages/solomons-sword", "packages/the-wip-tally", "packages/australian-tax-calculators", "packages/div7a-loan-review", "packages/ato-benchmark-compare", "packages/payday-super-checker"]
 
-# The 8 engines pin the shared toolchain to one exact version each, so the
+# The 2 Python engines pin the shared toolchain to one exact version each, so the
 # workspace resolves it without an override. Keep those pins identical: a
 # workspace resolves every member together, and cannot hold 2 exact pins of
 # the same tool.
@@ -79,11 +79,13 @@ testpaths = ["tests"]
 pythonVersion = "3.14"
 include = [
     "packages/gst-review/gstreview",
+    "packages/lodgment-calendar/lodgmentcalendar",
     "apps/aus-accounting-mcp/aus_accounting_mcp",
     "apps/lodgeit-calculator-adapter/lodgeitadapter",
 ]
 extraPaths = [
     "packages/gst-review",
+    "packages/lodgment-calendar",
     "apps/aus-accounting-mcp",
     "apps/lodgeit-calculator-adapter",
 ]

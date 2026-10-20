@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lodgment-calendar"
+version = "0.1.0"
+description = "ATO lodgment program due dates for BAS, IAS and income tax returns, with cited rules and UNKNOWN for missing facts. Preparation aid, not a determination."
+readme = "README.md"
+requires-python = ">=3.14"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Ryan Duguid" }]
+keywords = ["australia", "ato", "lodgment-program", "bas", "tax-agent", "bas-agent", "due-dates"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Financial and Insurance Industry",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Office/Business :: Financial :: Accounting",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/ryanduguid/australian-accounting/tree/main/packages/lodgment-calendar"
+Repository = "https://github.com/ryanduguid/australian-accounting/tree/main/packages/lodgment-calendar"
+Issues = "https://github.com/ryanduguid/australian-accounting/issues"
+
+[project.optional-dependencies]
+# Shared toolchain, pinned to the same versions in every component so a gate
+# behaves the same wherever it runs.
+dev = [
+    "ruff==0.17.0",
+    "pyright[nodejs]==1.1.414", "nodejs-wheel-binaries==24.19.0",
+    "pytest==9.1.1",
+    "coverage==7.16.2",
+    "pytest-cov==7.1.0",
+    "build==1.6.1",
+    # release-python builds without isolation, so the backend comes from this
+    # locked extra, pinned exactly as [build-system] requires.
+    "setuptools==84.0.0",
+]
+
+[tool.setuptools]
+packages = ["lodgmentcalendar"]
+include-package-data = false
+
+[tool.setuptools.package-data]
+"lodgmentcalendar" = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+src = ["lodgmentcalendar", "tests"]
+
+[tool.ruff.lint]
+# The shared workspace baseline: ruff's default correctness set plus import sorting.
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.pyright]
+pythonVersion = "3.14"
+include = ["lodgmentcalendar"]
+typeCheckingMode = "standard"
+reportMissingImports = "none"
+
+[tool.coverage.run]
+# The source pytest --cov measures; CI adds --cov-branch and the reports.
+source = ["lodgmentcalendar"]
+
+[tool.coverage.report]
+# CI fails the test job below complete line and branch coverage.
+fail_under = 100

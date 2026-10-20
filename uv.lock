@@ -12,6 +12,7 @@ members = [
     "aus-accounting-mcp",
     "gst-review",
     "lodgeit-calculator-adapter",
+    "lodgment-calendar",
 ]
 overrides = [
     { name = "ato-benchmark-compare", specifier = "==0.2.2" },
@@ -546,6 +547,36 @@ requires-dist = [
     { name = "setuptools", marker = "extra == 'dev'", specifier = "==84.0.0" },
 ]
 provides-extras = ["mcp", "trials", "dev"]
+
+[[package]]
+name = "lodgment-calendar"
+version = "0.1.0"
+source = { editable = "packages/lodgment-calendar" }
+
+[package.optional-dependencies]
+dev = [
+    { name = "build" },
+    { name = "coverage" },
+    { name = "nodejs-wheel-binaries" },
+    { name = "pyright", extra = ["nodejs"] },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "setuptools" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "build", marker = "extra == 'dev'", specifier = "==1.6.1" },
+    { name = "coverage", marker = "extra == 'dev'", specifier = "==7.16.2" },
+    { name = "nodejs-wheel-binaries", marker = "extra == 'dev'", specifier = "==24.19.0" },
+    { name = "pyright", extras = ["nodejs"], marker = "extra == 'dev'", specifier = "==1.1.414" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = "==7.1.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.17.0" },
+    { name = "setuptools", marker = "extra == 'dev'", specifier = "==84.0.0" },
+]
+provides-extras = ["dev"]
 
 [[package]]
 name = "mcp"
