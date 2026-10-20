@@ -18,8 +18,11 @@ each fast-check worker described below.
 
 `uv sync` creates one `.venv` at the root and installs the Python components into it
 as editable workspace members. `apps/aus-accounting-mcp` therefore imports
-`atobenchmark`, `paydaysuper`, `div7aloan` and `austaxcalc` from the checked-out tree
-rather than from their last PyPI release, with no per-component install step.
+`paydaysuper` and `gstreview` from the checked-out tree rather than from their
+last PyPI release, with no per-component install step. Australian Tax
+Calculators, Division 7A Loan Review and ATO Benchmark Compare are Rust crates
+now; until the MCP server links them, the workspace installs their last Python
+releases, 0.2.0, 0.3.2 and 0.2.2, from PyPI.
 
 `just` is optional tooling; install it with `uv tool install rust-just`. The recipes
 are `setup`, `lint`, `typecheck`, `test` and `check` (the last 3 together). Each
@@ -57,17 +60,20 @@ own commands:
   workspace cannot hold 2 exact pins of the same tool, so keep the 8 identical when
   changing one.
 
-## Rust engine
+## Rust engines
 
-The Exchequer Tally is a standalone Cargo crate excluded from the uv workspace.
-From `packages/the-exchequer-tally`, run `cargo fmt --check`,
-`cargo clippy --locked --all-targets -- -D warnings` and `cargo test --locked`.
-`cargo build --locked --release` builds its native command. Root `just test` and
-`just lint` include these checks; typecheck remains Python-only. CI calls
-`ci-exchequer.yml` from the anchor workflow on Ubuntu and Windows. CodeQL and
-Dependabot include Cargo. All candidate builds have read-only permissions.
+The Exchequer Tally, Solomon's Sword, The WIP Tally, Australian Tax Calculators
+and Division 7A Loan Review are standalone Cargo crates excluded from the uv
+workspace. From `packages/the-exchequer-tally`, `packages/solomons-sword`,
+`packages/the-wip-tally`, `packages/australian-tax-calculators` or
+`packages/div7a-loan-review`, run `cargo fmt --check`, `cargo clippy --locked --all-targets -- -D warnings` and
+`cargo test --locked`. `cargo build --locked --release` builds the native command.
+Root `just test` and `just lint` include these checks; typecheck remains
+Python-only. CI calls `ci-rust.yml` once per engine from the anchor workflow on
+Ubuntu and Windows. CodeQL and Dependabot include Cargo. All candidate builds
+have read-only permissions.
 
-The former Exchequer PyPI publisher is retired. Native publication is not
+The former PyPI publishers of these engines are retired. Native publication is not
 configured; signing and release-policy integration need a separate authorised
 release change. Other components retain their Python publishers.
 
@@ -89,8 +95,7 @@ uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --stric
 uv run --locked --extra dev --python 3.14 python -m build
 ```
 
-Five engines (`australian-tax-calculators`, `ato-benchmark-compare`, `payday-super-checker`,
-`div7a-loan-review` and `solomons-sword`) generate their property-test inputs with
+One engine (`payday-super-checker`) generates its property-test inputs with
 fast-check. Their assertions, Decimal arithmetic and coverage stay in pytest; a small
 Node worker under `tests/fastcheck/` generates, shrinks and replays the inputs. Install
 the worker's locked npm dependencies before running their tests:
@@ -103,8 +108,8 @@ The bootstrap runs `npm ci --ignore-scripts` with the Node and npm of the
 `nodejs-wheel-binaries` pin in the dev extra, never a global installation. Repeat it
 when `tests/fastcheck/package-lock.json` changes. Tests never install anything: a
 missing or stale worker fails them. The bridge (`tests/_fastcheck.py`), its controls,
-the runner, the bootstrap and the npm manifest and lock are identical in all 5 engines,
-and `tests/test_shared_blocks.py` fails when a copy drifts; only
+the runner, the bootstrap and the npm manifest and lock are listed in
+`tests/test_shared_blocks.py`, which fails when copies drift; only
 `tests/fastcheck/properties.cjs`, the input domains, differs. Each engine's sdist ships
 them without `node_modules`. To replay a reported counterexample, set `FASTCHECK_REPLAY`
 to the JSON the failure prints and rerun that test.
@@ -115,13 +120,13 @@ outside the checkout, the same way the lockfile is regenerated below.
 
 | Component | Directory | Import package |
 |---|---|---|
-| australian-tax-calculators | `packages/australian-tax-calculators/` | `austaxcalc` |
-| ato-benchmark-compare | `packages/ato-benchmark-compare/` | `atobenchmark` |
 | payday-super-checker | `packages/payday-super-checker/` | `paydaysuper` |
-| div7a-loan-review | `packages/div7a-loan-review/` | `div7aloan` |
 | the-exchequer-tally (Rust) | `packages/the-exchequer-tally/` | none |
-| solomons-sword | `packages/solomons-sword/` | `louisgoldberg` |
-| the-wip-tally | `packages/the-wip-tally/` | `wiptally` |
+| solomons-sword (Rust) | `packages/solomons-sword/` | none |
+| the-wip-tally (Rust) | `packages/the-wip-tally/` | none |
+| australian-tax-calculators (Rust) | `packages/australian-tax-calculators/` | none |
+| div7a-loan-review (Rust) | `packages/div7a-loan-review/` | none |
+| ato-benchmark-compare (Rust) | `packages/ato-benchmark-compare/` | none |
 | gst-review | `packages/gst-review/` | `gstreview` |
 
 The 2 applications, the rates dataset and the repository boundary checks use their own
@@ -151,7 +156,7 @@ tmp=$(mktemp -d) && cp -r packages/<engine>/. "$tmp" && (cd "$tmp" && uv lock) \
 Dependabot runs one Python update job at the workspace root. All 10 components
 share that resolution, so separate component jobs can propose conflicting exact
 toolchain pins or fail to update the root lockfile. Keep Python updates grouped
-at `/`, including `div7a-loan-review`, which is also a uv workspace member.
+at `/`.
 Dependabot updates the workspace lock; before merging a dependency PR, regenerate
 each affected component's standalone release lock using the procedure above.
 The existing component lock checks remain required.
@@ -181,8 +186,8 @@ release callers require that test job; no second pytest run is needed.
   branch coverage on Python 3.14 and 3.15 (the floor and ceiling of the declared
   `requires-python`), a `pip-audit` dependency audit, and a build of the distribution
   followed by an install of the one built wheel into a clean environment, an import of
-  the engine from it, and the engine's own wheel smoke script. `ato-benchmark-compare`,
-  `payday-super-checker` and `the-wip-tally` add a Windows leg on 3.14.
+  the engine from it, and the engine's own wheel smoke script. `payday-super-checker`
+  adds a Windows leg on 3.14.
 - The path filter is applied inside each call, by `.github/ci/select_package.py`, rather
   than on the trigger. A change under `packages/<engine>/` runs that engine and skips the
   rest; a change to a root policy file (`AGENTS.md`, `CONTRIBUTING.md`, `README.md`,
@@ -266,12 +271,13 @@ Registry through `publish-mcp.yml`.
 | Component | Tag | Workflow | Version source | PyPI environment |
 |---|---|---|---|---|
 | aus-accounting-mcp | `aus-accounting-mcp/vX.Y.Z` | `release-aus-accounting-mcp.yml` | `pyproject.toml` | `pypi-aus-accounting-mcp` |
-| ato-benchmark-compare | `ato-benchmark-compare/vX.Y.Z` | `release-ato-benchmark-compare.yml` | `pyproject.toml` | `pypi-ato-benchmark-compare` |
 | payday-super-checker | `payday-super-checker/vX.Y.Z` | `release-payday-super-checker.yml` | `pyproject.toml` | `pypi-payday-super-checker` |
-| div7a-loan-review | `div7a-loan-review/vX.Y.Z` | `release-div7a-loan-review.yml` | `pyproject.toml` | `pypi-div7a-loan-review` |
 | the-exchequer-tally (Rust) | reserved `the-exchequer-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
-| solomons-sword | `solomons-sword/vX.Y.Z` | `release-solomons-sword.yml` | `pyproject.toml` | `pypi-solomons-sword` |
-| the-wip-tally | `the-wip-tally/vX.Y.Z` | `release-the-wip-tally.yml` | `pyproject.toml` | `pypi-the-wip-tally` |
+| solomons-sword (Rust) | reserved `solomons-sword/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
+| the-wip-tally (Rust) | reserved `the-wip-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
+| australian-tax-calculators (Rust) | reserved `australian-tax-calculators/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
+| div7a-loan-review (Rust) | reserved `div7a-loan-review/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
+| ato-benchmark-compare (Rust) | reserved `ato-benchmark-compare/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | gst-review | `gst-review/vX.Y.Z` | `release-gst-review.yml` | `pyproject.toml` | `pypi-gst-review` |
 
 Tag and push with `just release <component>...` from the repository root, with `gh`

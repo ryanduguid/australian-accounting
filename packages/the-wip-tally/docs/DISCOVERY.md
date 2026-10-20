@@ -11,7 +11,7 @@ Topics:
 - australia
 - cli
 - construction
-- python
+- rust
 - revenue-recognition
 - review-aid
 - work-in-progress

@@ -16,9 +16,9 @@ timeline will be agreed with the reporter.
 ## What this tool does and does not do
 
 It reads 2 CSV files, writes a CSV or JSON file, and prints a report. It makes no
-network call at any point, holds no credentials, and has no runtime dependencies
-outside the Python standard library. The benchmark data is shipped inside the package
-and is never fetched.
+network call at any point, holds no credentials, and is a single executable with
+no runtime dependencies. The benchmark data is compiled into the binary and is never
+fetched.
 
 ## Local path trust boundary
 

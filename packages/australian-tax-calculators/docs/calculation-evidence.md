@@ -11,10 +11,15 @@ The repository includes original arithmetic and fabricated test inputs, with
 selected established amounts from Library worked examples. It does not reproduce
 the Library documents or require access to them at runtime.
 
-`tests/test_library_evidence.py` freezes the expected amounts below. It does not
+`tests/test_library_evidence.py` froze the expected amounts below. It did not
 call another engine to generate its expectations. `tests/test_calculations.py`
-covers the smaller examples, rounding, boundaries and refusals. Neither test set
+covered the smaller examples, rounding, boundaries and refusals. Neither test set
 establishes eligibility, classification or a complete tax liability.
+
+The Python tests named in this file were removed when the engine moved to Rust
+in 1.0.0. Every call they made replays from `tests/data/python-api.json` in
+`tests/parity.rs`, the table and ATO sample checks are in `tests/tables.rs`,
+and `tests/BEHAVIOURS.md` maps each original test to its Rust coverage.
 
 ## Dates and coverage
 
@@ -141,7 +146,7 @@ weekly, fortnightly and monthly tables published on 17 June 2026: 48 earnings
 points for each period on scales 1, 2, 3, 5 and 6, 720 amounts in all.
 `tests/test_payg_withholding.py` requires the worksheet to reproduce each one.
 
-The coefficients in `austaxcalc/metadata.py` were transcribed from the ATO page
+The coefficients in `src/metadata.rs` were transcribed from the ATO page
 "Coefficients to use in formulas for withholding from weekly payments", and the
 earnings conversion and rounding rules from "Using a formula" and "Working out
 the weekly earnings", all read on 24 September 2026. The sample data checks the
@@ -232,7 +237,7 @@ are outside it.
 ## Study loan withholding
 
 This worksheet's evidence is not a Library document. The component rates in
-`austaxcalc/metadata.py` were transcribed from the ATO page "Schedule 8 -
+`src/metadata.rs` were transcribed from the ATO page "Schedule 8 -
 Statement of formulas for calculating study and training support loans
 components" (NAT 3539, published 17 June 2026, for payments made from 1 July
 2026), read on 15 October 2026, together with its rules for the weekly
@@ -259,7 +264,7 @@ outside the worksheet.
 ## Study loan repayment
 
 This worksheet's evidence is not a Library document. The thresholds in
-`austaxcalc/metadata.py` were transcribed from the ATO page "Study and training
+`src/metadata.rs` were transcribed from the ATO page "Study and training
 loan repayment thresholds and rates" (last updated 30 June 2026, read on 27
 September 2026), tables 1 (2026-27) and 2 (2025-26), and the 2026-27 minimum
 repayment income of $69,528 and replacement indexable amount of $129,717 were

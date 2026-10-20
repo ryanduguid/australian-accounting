@@ -1,7 +1,7 @@
 """Pin dated figures that more than one copy keeps, and the GIC expiry warning.
 
 The 2026-27 concessional cap sits in payday-super-checker's rates.json and in
-australian-tax-calculators' metadata.py, and the maximum contributions base is
+australian-tax-calculators' metadata.rs, and the maximum contributions base is
 derived from it. Nothing compared the copies, so an update to one would leave
 the other silently stale. The engines' copies of figures that
 packages/au-tax-rates-data records, with their ATO sources, are held to those
@@ -17,6 +17,7 @@ import csv
 import importlib.util
 import io
 import json
+import re
 import unittest
 from datetime import timedelta
 from decimal import Decimal
@@ -26,9 +27,9 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGES = ROOT / "packages"
 PAYDAY_RATES = PACKAGES / "payday-super-checker" / "paydaysuper" / "data" / "rates.json"
 PAYDAY_GIC = PACKAGES / "payday-super-checker" / "paydaysuper" / "data" / "gic_rates.json"
-CALCULATOR_METADATA = PACKAGES / "australian-tax-calculators" / "austaxcalc" / "metadata.py"
-CALCULATIONS = PACKAGES / "australian-tax-calculators" / "austaxcalc" / "calculations.py"
-DIV7A_RATES = PACKAGES / "div7a-loan-review" / "div7aloan" / "data" / "benchmark_rates.csv"
+CALCULATOR_METADATA = PACKAGES / "australian-tax-calculators" / "src" / "metadata.rs"
+CALCULATIONS = PACKAGES / "australian-tax-calculators" / "src" / "engine.rs"
+DIV7A_RATES = PACKAGES / "div7a-loan-review" / "data" / "benchmark_rates.csv"
 DATASET = PACKAGES / "au-tax-rates-data" / "data"
 
 # How many engine copies of dataset figures _dataset_pairs() compares. An engine
@@ -37,11 +38,13 @@ DATASET_PAIRS = 25
 
 
 def _metadata_literal(name: str):
-    tree = ast.parse(CALCULATOR_METADATA.read_text(encoding="utf-8"))
-    for node in tree.body:
-        if isinstance(node, ast.AnnAssign) and getattr(node.target, "id", None) == name:
-            return ast.literal_eval(node.value)
-    raise AssertionError(f"{name} not found in austaxcalc/metadata.py")
+    """A `pub const` table in metadata.rs as the dict the Python engine kept."""
+    text = CALCULATOR_METADATA.read_text(encoding="utf-8")
+    match = re.search(rf"^pub const {name}: [^=]*= &(\[.*?\]);$", text, re.S | re.M)
+    if match is None:
+        raise AssertionError(f"{name} not found in src/metadata.rs")
+    literal = re.sub(r"Some\((\d+)\)", r"\1", match.group(1).replace("&[", "["))
+    return dict(ast.literal_eval(literal))
 
 
 def _calculator_caps() -> dict[str, tuple[str, str]]:
@@ -49,16 +52,11 @@ def _calculator_caps() -> dict[str, tuple[str, str]]:
 
 
 def _fbt_rate() -> str:
-    """The rate fbt() reports in its working, read from calculations.py."""
-    tree = ast.parse(CALCULATIONS.read_text(encoding="utf-8"))
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and node.name == "fbt":
-            for inner in ast.walk(node):
-                if isinstance(inner, ast.Dict):
-                    for key, value in zip(inner.keys, inner.values):
-                        if isinstance(key, ast.Constant) and key.value == "fbt_rate":
-                            return ast.literal_eval(value)
-    raise AssertionError("fbt() reports no fbt_rate in austaxcalc/calculations.py")
+    """The rate fbt() reports in its working, read from engine.rs."""
+    match = re.search(r'rate\("fbt_rate", "([^"]+)"\)', CALCULATIONS.read_text(encoding="utf-8"))
+    if match is None:
+        raise AssertionError("fbt() reports no fbt_rate in src/engine.rs")
+    return match.group(1)
 
 
 def _record(name: str) -> dict:
@@ -80,7 +78,7 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
     for year in ("2025-26", "2026-27"):
         taxed = [row for row in _record(f"resident-tax-rates-{year}")["value"] if row["marginal_rate"]]
         for row, (low, _high, rate) in zip(taxed, scales[year]):
-            where = f"{year} resident scale over {low} (austaxcalc RESIDENT_TAX_SCALES)"
+            where = f"{year} resident scale over {low} (metadata.rs RESIDENT_TAX_SCALES)"
             pairs.append((f"{where} threshold", Decimal(row["from"]) - 1, Decimal(low)))
             pairs.append((f"{where} rate", Decimal(str(row["marginal_rate"])), Decimal(rate) * 100))
     payday = json.loads(PAYDAY_RATES.read_text(encoding="utf-8"))["financial_years"]["2026-27"]
@@ -90,17 +88,17 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
          _value("super-guarantee-rate-2026-27"), Decimal(payday["charge_percentage"])),
         ("2026-27 concessional cap (paydaysuper rates.json)",
          _value("concessional-cap-2026-27"), Decimal(payday["concessional_cap"])),
-        ("2026-27 concessional cap (austaxcalc CONTRIBUTION_CAPS)",
+        ("2026-27 concessional cap (metadata.rs CONTRIBUTION_CAPS)",
          _value("concessional-cap-2026-27"), Decimal(caps[0])),
-        # ITAA 1997 s 292-85(2): four times the concessional cap, as austaxcalc derives it.
-        ("2026-27 non-concessional cap (austaxcalc, 4 x CONTRIBUTION_CAPS)",
+        # ITAA 1997 s 292-85(2): four times the concessional cap, as the calculators derive it.
+        ("2026-27 non-concessional cap (metadata.rs, 4 x CONTRIBUTION_CAPS)",
          _value("non-concessional-cap-2026-27"), Decimal(caps[0]) * 4),
-        ("FBT rate (austaxcalc fbt())", _value("fbt-rate"), Decimal(_fbt_rate()) * 100),
+        ("FBT rate (engine.rs fbt())", _value("fbt-rate"), Decimal(_fbt_rate()) * 100),
     ]
     lines = DIV7A_RATES.read_text(encoding="utf-8").splitlines()
     benchmark = {row["year_of_income"]: row["rate"]
                  for row in csv.DictReader(line for line in lines if not line.startswith("#"))}
-    pairs.append(("2026-27 Division 7A benchmark rate (div7aloan benchmark_rates.csv)",
+    pairs.append(("2026-27 Division 7A benchmark rate (div7a-loan-review benchmark_rates.csv)",
                   _value("div7a-benchmark-rate-2026-27"), Decimal(benchmark["2026-27"]) * 100))
     quarters = {(q["from"], q["to"]): q["annual_pct"]
                 for q in json.loads(PAYDAY_GIC.read_text(encoding="utf-8"))["quarters"]}

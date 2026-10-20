@@ -3,7 +3,7 @@
 Generate the supplied contract evidence in the `the-wip-tally` component of `australian-accounting`:
 
 ```powershell
-uv run --locked --extra dev python examples/job_to_cash.py --output path/to/new-job-pack
+cargo run --locked --example job_to_cash -- --output path/to/new-job-pack
 ```
 
 Then, from the `au-fpa-pack` repository:

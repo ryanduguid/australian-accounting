@@ -13,6 +13,6 @@ Topics:
 - australian-tax
 - benchmarks
 - cli
-- python
+- rust
 - review-aid
 - small-business

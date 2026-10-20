@@ -3,3 +3,9 @@ Copyright 2026 Ryan Duguid
 
 This product includes work by Ryan Duguid
 (https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators).
+
+Decimal and text compatibility helpers are adapted from The WIP Tally in this
+repository, which adapted them from The Exchequer Tally's port of
+accounting-review-pipeline/packages/elizabeth-anne-alexander (Apache-2.0),
+Copyright 2026 Ryan Duguid. Reference checkout revision at reuse:
+01d1e83352708c43029c0f229fc22aa929767b49.

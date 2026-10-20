@@ -29,7 +29,7 @@ standard output, and redirecting that output is the caller's decision.
 
 Nothing in this repository makes a network request, at runtime or in tests.
 The benchmark interest rate table is frozen in
-`div7aloan/data/benchmark_rates.csv` and reviewed by hand. A year outside its
+`data/benchmark_rates.csv`, compiled into the binary and reviewed by hand. A year outside its
 coverage is reported as `UNKNOWN` rather than fetched. A reviewed override is
 read from a local file the operator supplies.
 

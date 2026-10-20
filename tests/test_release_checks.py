@@ -11,44 +11,12 @@ POLICY = "0f7ca4ce0ba2e7ea52fc611149a42cd5d0a26f6c"
 # require every job in their workflow to succeed; never a skip-tolerant aggregate
 # gate. Review the list when a component's CI contract changes.
 REQUIRED = {
-    "release-ato-benchmark-compare.yml": [
-        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
-        ".github/workflows/ci.yml: ato-benchmark-compare / build",
-        ".github/workflows/ci.yml: ato-benchmark-compare / dependency-audit",
-        ".github/workflows/ci.yml: ato-benchmark-compare / lint",
-        ".github/workflows/ci.yml: ato-benchmark-compare / test (3.14)",
-        ".github/workflows/ci.yml: ato-benchmark-compare / test-windows",
-        ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python",
-        ".github/workflows/codeql.yml: codeql-gates"
-    ],
     "release-aus-accounting-mcp.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: dependency-audit",
         ".github/workflows/ci.yml: lint",
         ".github/workflows/ci.yml: test (ubuntu-latest, 3.14)",
         ".github/workflows/ci.yml: test (windows-latest, 3.14)",
-        ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python",
-        ".github/workflows/codeql.yml: codeql-gates"
-    ],
-    "release-australian-tax-calculators.yml": [
-        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
-        ".github/workflows/ci.yml: australian-tax-calculators / build",
-        ".github/workflows/ci.yml: australian-tax-calculators / dependency-audit",
-        ".github/workflows/ci.yml: australian-tax-calculators / lint",
-        ".github/workflows/ci.yml: australian-tax-calculators / test (3.14)",
-        ".github/workflows/ci.yml: australian-tax-calculators / test-windows",
-        ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python",
-        ".github/workflows/codeql.yml: codeql-gates"
-    ],
-    "release-div7a-loan-review.yml": [
-        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
-        ".github/workflows/ci.yml: div7a-loan-review / build",
-        ".github/workflows/ci.yml: div7a-loan-review / dependency-audit",
-        ".github/workflows/ci.yml: div7a-loan-review / lint",
-        ".github/workflows/ci.yml: div7a-loan-review / test (3.14)",
         ".github/workflows/boundaries.yml: boundaries",
         ".github/workflows/codeql.yml: Analyze Python",
         ".github/workflows/codeql.yml: codeql-gates"
@@ -70,27 +38,6 @@ REQUIRED = {
         ".github/workflows/ci.yml: payday-super-checker / lint",
         ".github/workflows/ci.yml: payday-super-checker / test (3.14)",
         ".github/workflows/ci.yml: payday-super-checker / test-windows",
-        ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python",
-        ".github/workflows/codeql.yml: codeql-gates"
-    ],
-    "release-solomons-sword.yml": [
-        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
-        ".github/workflows/ci.yml: solomons-sword / build",
-        ".github/workflows/ci.yml: solomons-sword / dependency-audit",
-        ".github/workflows/ci.yml: solomons-sword / lint",
-        ".github/workflows/ci.yml: solomons-sword / test (3.14)",
-        ".github/workflows/boundaries.yml: boundaries",
-        ".github/workflows/codeql.yml: Analyze Python",
-        ".github/workflows/codeql.yml: codeql-gates"
-    ],
-    "release-the-wip-tally.yml": [
-        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
-        ".github/workflows/ci.yml: the-wip-tally / build",
-        ".github/workflows/ci.yml: the-wip-tally / dependency-audit",
-        ".github/workflows/ci.yml: the-wip-tally / lint",
-        ".github/workflows/ci.yml: the-wip-tally / test (3.14)",
-        ".github/workflows/ci.yml: the-wip-tally / test-windows",
         ".github/workflows/boundaries.yml: boundaries",
         ".github/workflows/codeql.yml: Analyze Python",
         ".github/workflows/codeql.yml: codeql-gates"
@@ -169,7 +116,7 @@ class ReleaseChecksTests(unittest.TestCase):
                 match = re.search(r"(?m)^      source-directory: (\S+)$", text)
                 assert match is not None, path.name
                 components.append(match.group(1))
-        self.assertEqual(len(components), 8, components)
+        self.assertEqual(len(components), 3, components)
         for component in components:
             with self.subTest(component=component):
                 project = tomllib.loads((ROOT / component / "pyproject.toml").read_text(encoding="utf-8"))

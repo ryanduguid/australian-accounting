@@ -95,7 +95,6 @@ pythonVersion = "3.14"
 include = ["lodgeitadapter"]
 typeCheckingMode = "standard"
 reportMissingImports = "none"
-extraPaths = ["../../packages/div7a-loan-review", "../../packages/australian-tax-calculators"]
 
 [tool.coverage.run]
 source = ["lodgeitadapter"]

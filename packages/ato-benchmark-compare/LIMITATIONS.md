@@ -46,6 +46,12 @@ serialiser and the raw key-ratio field:
   comparison does not get that revert, and the withheld status on the fallback
   row is what stops the choice reaching a verdict.
 
+In the Rust 1.0.0 binary the library is the JSON API, and the same split holds:
+`compare-figures` with `"output": "to_dict"` is the raw serialiser above, its
+default output carries the raw `key_ratio`, and `"output": "evidenced"` or
+`"text"` give the reverted payloads. `route` returns the routed set as
+`supplied_buckets` for `totals_supplied`.
+
 **Since 0.1.8 every command-line output withholds what was not supplied.** The
 `route()` step now records which buckets received at least one reviewed
 account, `compare` passes that set into the same presence gate the exported

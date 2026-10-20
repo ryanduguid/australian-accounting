@@ -1,20 +1,18 @@
 # Australian tax calculators
 
-Release `australian-tax-calculators==0.2.0` contains fourteen worksheets,
-including Schedule 8 withholding, annual Medicare levy, LITO and Division 293.
-Earlier releases through 0.1.9 contain ten. The
+Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
+Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
+API, with the same fourteen worksheets, results and refusals. Python releases
+through 0.1.9 contain ten worksheets. Until the MCP server links this crate,
+it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
 keeps the engine release and MCP integration separate.
 
 Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
 
-[![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
-[![PyPI](https://img.shields.io/pypi/v/australian-tax-calculators.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/australian-tax-calculators/)
+[![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
+[![Rust](https://img.shields.io/badge/Rust-1.99-66023C?logo=rust&logoColor=white&labelColor=000000&style=flat-square)](https://www.rust-lang.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/downloads/)
-
-Distribution `australian-tax-calculators`, import package `austaxcalc`. Library
-only: this component ships no command.
 
 Fourteen calculation worksheets for established facts: ordinary GST, resident basic income
 tax, CGT losses and discount, ordinary employer FBT, first-year depreciation,
@@ -24,55 +22,83 @@ loan withholding, a single person's Medicare levy, the low income tax offset and
 Division 293 tax. These are experimental
 review aids, not advice or return preparation. Callers must establish every scope condition before calculating.
 
-The Python functions in `austaxcalc.calculations` accept `Decimal` amounts and an
-explicit period. Results include amounts, scope exclusions, official source URLs,
-the source-check date and engine version. They perform no network calls or writes.
-Amounts must be non-negative, finite, at most 2 decimal places and no more than
-AUD 1 trillion. Rounding uses half-up to cents at output; individual worksheets
-state additional conventions.
+Each worksheet is a subcommand that reads one JSON object on stdin and writes
+one JSON result on stdout. Results include amounts, scope exclusions, official
+source URLs, the source-check date and engine version. The binary makes no
+network calls and writes no files. Amounts must be non-negative, finite, at most
+2 decimal places and no more than AUD 1 trillion. Rounding uses half-up to cents
+at output; individual worksheets state additional conventions.
 
-## Install
+## Build and check
 
-Python 3.14 or later. No runtime dependencies.
+Install Rust with rustup, then run from this directory:
 
-```bash
-pip install australian-tax-calculators
+```sh
+cargo build --locked --release
+cargo fmt --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 ```
+
+The toolchain is pinned in `rust-toolchain.toml`. The executable is
+`target/release/australian-tax-calculators` (`.exe` on Windows). No Python
+runtime is needed. The native version is unreleased. PyPI still provides the
+historical Python release; `pip install` does not install this binary.
 
 ## Use
 
-Every worksheet takes `Decimal` amounts, an explicit period, and a
+Every worksheet takes its amounts as decimal strings, an explicit period, and a
 `scope_confirmed` flag the caller sets only once it has established the scope
 conditions the worksheet states. Splitting $1,100.00 GST-inclusive into its
 exclusive amount and its GST:
 
-```python
-from decimal import Decimal
-
-from austaxcalc.calculations import gst
-
-result = gst(Decimal("1100.00"), gst_inclusive=True, scope_confirmed=True, year="2025-26")
-print(result["amounts"], result["source_checked"])
+```sh
+echo '{"amount": "1100.00", "gst_inclusive": true, "scope_confirmed": true, "year": "2025-26"}' \
+  | australian-tax-calculators gst
 ```
 
-```
-{'gst': '100.00', 'exclusive': '1000.00', 'inclusive': '1100.00'} 2026-09-10
+```json
+{"ok":true,"engine":"australian-tax-calculators","engine_version":"1.0.0","calculation":"gst","period":"2025-26","amounts":{"gst":"100.00","exclusive":"1000.00","inclusive":"1100.00"},"rates":{"gst_rate":"0.10"},"scope":"One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.","sources":["https://smallbusiness.taxsuperandyou.gov.au/goods-and-services-tax/fast-facts"],"source_checked":"2026-09-10","warnings":["Operator-confirmed facts and scope; eligibility is not independently verified.","Worksheet only, not advice, an assessment or a lodgment. Obtain human review."]}
 ```
 
 Amounts come back as quoted decimal strings rather than numbers, so an amount
-that leaves a worksheet cannot arrive at a JSON reader as a float.
-
-The full result also carries `scope`, the official `sources` the figures came
-from, the engine version and the warnings that travel with every worksheet:
-
-```python
->>> result["scope"]
-'One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.'
->>> result["warnings"]
-['Operator-confirmed facts and scope; eligibility is not independently verified.', 'Worksheet only, not advice, an assessment or a lodgment. Obtain human review.']
-```
+that leaves a worksheet cannot arrive at a JSON reader as a float. The result
+also carries `scope`, the official `sources` the figures came from, the engine
+version and the warnings that travel with every worksheet. A refusal writes one
+`error:` line to stderr and exits 2, with the original worksheet's message.
 
 Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
+
+## Commands
+
+Each command takes the original function's keyword arguments, in this order, as
+one JSON object. Amounts and ratios are decimal strings; a JSON number, `null`
+or text that is not a decimal is refused, as the Python function refused a
+value that was not a `Decimal`. Flags are JSON booleans and counts, ages, days,
+quarters and scales are JSON integers. `australian-tax-calculators --api-help`
+lists the commands.
+
+| Command | Arguments |
+| --- | --- |
+| `gst` | `amount`, `gst_inclusive`, `scope_confirmed`, `year` |
+| `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
+| `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
+| `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
+| `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year` |
+| `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
+| `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
+| `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
+| `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed` |
+| `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
+| `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
+| `study-loan-repayment` | `repayment_income`, `year`, `scope_confirmed` |
+| `contribution-caps` | `total_super_balance`, `concessional_contributions`, `unused_concessional_cap`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed` |
+| `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
+| `worksheet-catalogue` | none: send `{}` |
+| `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
+
+Every argument is required, as the Python functions had no defaults. Input over 8 MiB,
+or a decimal string over 8,192 bytes, is refused.
 
 ## Supported periods
 
@@ -188,14 +214,14 @@ These four worksheets are included from release 0.2.0.
 
 ## Worksheet discovery
 
-`austaxcalc.calculations.worksheet_catalogue()`, published from the 0.1.4 wheel,
+The `worksheet-catalogue` command, `worksheet_catalogue()` from the 0.1.4 wheel,
 returns supported periods with inclusive dates, required inputs and units,
 available methods, scope exclusions and a fabricated example for each worksheet.
-Money in the catalogue uses decimal strings. Python callers convert these to
-`Decimal`; MCP clients can send `example.facts` to `calculate_tax_worksheet`.
+Money in the catalogue uses decimal strings, as the commands take them; MCP
+clients can send `example.facts` to `calculate_tax_worksheet`.
 
 The engine owns the supported periods for both discovery and calculation.
-Returned dictionaries can be edited without changing later calls or engine rules.
+Each call builds its own result, so a caller cannot change later calls or engine rules.
 
 ## Calculation evidence
 
@@ -204,7 +230,7 @@ document review dates, independent arithmetic and the limits of each example.
 `example_evidence` in the catalogue points to these records. It requires no local
 Library installation or network access at runtime.
 
-Source URLs and exact exclusions remain in `austaxcalc/calculations.py` and every
+Source URLs and exact exclusions remain in `src/texts.rs` and every
 result. The existing 10 September 2026 source-check baseline is now stored per
 worksheet. A later check of one worksheet cannot refresh another's date. The
 15 September Library example check does not extend that baseline to other periods

@@ -25,30 +25,6 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGES = ROOT / "packages"
 
 GROUPS = {
-    "atomic_io.py": {
-        "files": (
-            PACKAGES / "ato-benchmark-compare" / "atobenchmark" / "atomic_io.py",
-            PACKAGES / "the-wip-tally" / "wiptally" / "atomic_io.py",
-        ),
-        "identical": ("atomic_text_writer", "atomic_write_text"),
-        "same_logic": (),
-    },
-    "money.py": {
-        "files": (
-            PACKAGES / "ato-benchmark-compare" / "atobenchmark" / "money.py",
-            PACKAGES / "the-wip-tally" / "wiptally" / "money.py",
-        ),
-        "identical": ("CENTS", "_NUMBER", "_ACCOUNTING_NUMBER"),
-        "same_logic": ("parse_amount",),
-    },
-    "csvsafe.py": {
-        "files": (
-            PACKAGES / "ato-benchmark-compare" / "atobenchmark" / "csvsafe.py",
-            PACKAGES / "the-wip-tally" / "wiptally" / "csvsafe.py",
-        ),
-        "identical": ("ALWAYS", "CONDITIONAL", "_NUMBER_RE"),
-        "same_logic": ("guard",),
-    },
     "tools/build_workbook.py": {
         "files": (
             PACKAGES / "div7a-loan-review" / "tools" / "build_workbook.py",
@@ -64,11 +40,7 @@ GROUPS = {
 # Whole files copied unchanged into each component that runs fast-check
 # properties. Only tests/fastcheck/properties.cjs, the input domains, differs.
 FASTCHECK_COMPONENTS = (
-    "australian-tax-calculators",
-    "ato-benchmark-compare",
     "payday-super-checker",
-    "div7a-loan-review",
-    "solomons-sword",
 )
 IDENTICAL_FILES = {
     relative: tuple(PACKAGES / component / relative for component in FASTCHECK_COMPONENTS)

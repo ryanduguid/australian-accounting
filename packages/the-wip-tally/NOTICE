@@ -3,3 +3,14 @@ Copyright 2026 Ryan Duguid
 
 This product includes work by Ryan Duguid
 (https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally).
+
+Decimal, text, argparse and terminal compatibility helpers are adapted from
+The Exchequer Tally and Solomon's Sword in this repository, which adapted them
+from accounting-review-pipeline/packages/elizabeth-anne-alexander (Apache-2.0),
+Copyright 2026 Ryan Duguid. Reference checkout revision at reuse:
+01d1e83352708c43029c0f229fc22aa929767b49.
+
+Python string, path, OSError, date, UTF-8 decoding and JSON compatibility
+helpers are adapted from llm-tax-guardrails tools/drdebits_build (Apache-2.0),
+Copyright 2026 Ryan Duguid, at revision
+bff347b74f1fd73454e5e210dabda0f4b2b9c41a.

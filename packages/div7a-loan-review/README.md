@@ -19,11 +19,11 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 ```
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat-square)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
-[![PyPI](https://img.shields.io/pypi/v/div7a-loan-review.svg?color=66023C&labelColor=000000&style=flat-square)](https://pypi.org/project/div7a-loan-review/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat-square)](LICENSE)
-[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-66023C?logo=python&logoColor=white&labelColor=000000&style=flat-square)](https://www.python.org/downloads/)
+[![Rust](https://img.shields.io/badge/Rust-1.99-66023C?logo=rust&logoColor=white&labelColor=000000&style=flat-square)](https://www.rust-lang.org/)
 
-Distribution `div7a-loan-review`, import package `div7aloan`, command `div7a-loan-review`.
+Division 7A Loan Review 1.0.0 is a standalone Rust binary, command `div7a-loan-review`.
+It replaces the Python `div7a-loan-review` 0.3.2 package and its `div7aloan` import API.
 
 **Experimental review aid. Not a Division 7A determination.**
 
@@ -33,8 +33,8 @@ form amalgamated loans, does not classify payments, does not do unpaid present
 entitlements, and does not apply s 109RB.
 
 The `australian-accounting` repository contains the maintained source. The
-`div7a-loan-review` distribution, command and `div7aloan` import package remain
-compatibility identifiers.
+`div7a-loan-review` command name remains; the `div7aloan` import package is
+removed, and its functions are JSON stdin subcommands (see [JSON API](#json-api)).
 
 **A rising benchmark rate raises the minimum yearly repayment on existing
 complying loans, not just on new ones.** s 109E(6) uses the *current* year's
@@ -47,8 +47,9 @@ for 4 years can fall short in the fifth on unchanged terms.
 No install, just the rates and the reasoning:
 <https://duguid.com.au/rates/div7a-benchmark-rate/>
 
-Citation: [`CITATION.cff`](CITATION.cff); release:
+Citation: [`CITATION.cff`](CITATION.cff); last Python release:
 [`v0.3.2`](https://github.com/ryanduguid/australian-accounting/releases/tag/div7a-loan-review/v0.3.2).
+The Rust 1.0.0 binary is unreleased.
 
 ---
 
@@ -167,23 +168,26 @@ runs the same review in ordinary worksheet formulas: paste the register, pick
 the year of income, read each s 109N(1) limb, the gate verdict, the s 109E(6)
 repayment and the shortfall per loan. REFUSED and UNKNOWN stay REFUSED and
 UNKNOWN. It is macro-free, needs desktop Excel for Microsoft 365 or Excel
-2024, and is held to this engine's answer by `tests/test_workbook.py`. See
+2024, and is held to this engine's answer by the repository's
+`tests/test_div7a_workbook.py`. See
 [workbooks/README.md](workbooks/README.md).
 
-## Install
+## Build and check
 
-```bash
-pip install div7a-loan-review
+Install Rust with rustup, then run from this directory:
+
+```sh
+cargo build --locked --release
+cargo fmt --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 ```
 
-Python 3.14 or later. No runtime dependencies. To run the examples from a
-source checkout:
-
-```bash
-git clone https://github.com/ryanduguid/australian-accounting.git
-cd australian-accounting/packages/div7a-loan-review
-pip install .
-```
+The toolchain is pinned in `rust-toolchain.toml`. The executable is
+`target/release/div7a-loan-review` (`.exe` on Windows); add that directory to
+PATH or copy the executable to a directory on PATH. No Python runtime is needed.
+The native version is unreleased. PyPI still provides the historical Python
+release; `pip install` does not install this binary.
 
 ## Use
 
@@ -309,7 +313,7 @@ and is the usual wrong rate. For 2025-26, May 2025 was 8.37% and June
 | 2019-20 | 5.37% | May 2019 |
 
 The table lives in
-[`div7aloan/data/benchmark_rates.csv`](div7aloan/data/benchmark_rates.csv)
+[`data/benchmark_rates.csv`](data/benchmark_rates.csv), compiled into the binary,
 with its own `reviewed_until` and `reviewed_on` header, last reviewed
 28 August 2026. Nothing in this repository reads the network, in tests or at
 runtime.
@@ -349,7 +353,7 @@ actually computed from and the SHA-256 of what was read:
 ```json
 "manifest": {
   "rate_table_uris": [
-    { "uri": "div7aloan/data/benchmark_rates.csv", "sha256": "84264b28..." }
+    { "uri": "data/benchmark_rates.csv", "sha256": "84264b28..." }
   ]
 }
 ```
@@ -390,20 +394,18 @@ A gate result carries one `GATE_*` code per limb that did not pass, so a
 caller can tell a loan that fails the interest limb from one whose term was
 never supplied without reading the prose.
 
-The vocabulary is `ReasonCode` in `div7aloan/verdicts.py`; a code is not
-removed without a version bump, and a reason built without one fails at
-construction rather than reaching a caller with nothing to branch on.
-`tests/test_reason_codes.py` holds the other half of that contract: every
-published code is reachable from some scenario, so the vocabulary cannot
-promise a token no engine emits.
+The codes are built beside their reasons in `src/gate.rs` and `src/myr.rs`,
+as pairs, so a reason cannot reach a caller without its code; a code is not
+removed without a version bump. `tests/parity.rs` holds the other half of that
+contract: the frozen corpus reaches every published code from some scenario,
+so the vocabulary cannot promise a token no engine emits.
 
 ## Arithmetic
 
-`decimal.Decimal` throughout, built from strings. No float, no numpy, no
-pandas. Intermediate arithmetic in the s 109E(6) formula runs at 60
-significant digits in a local decimal context, so a result never depends on
-the ambient context a caller happens to have set, and is quantised once at the
-end.
+Exact decimal arithmetic throughout, a port of Python's `decimal` semantics,
+built from strings. No floating point. Intermediate arithmetic in the s 109E(6)
+formula runs at 60 significant digits, so a result never depends on any other
+precision setting, and is quantised once at the end.
 
 Money is quantised to cents with **`ROUND_HALF_UP`**. The Act prescribes no
 rounding for the s 109E(6) amount, so this is the engine's documented choice
@@ -413,82 +415,64 @@ adopted silently. Every result says so, in its statutory trace and in the JSON
 [Next to the ATO calculator](#next-to-the-ato-calculator).
 
 JSON amounts are quoted decimal strings, never JSON numbers. Dates are
-ISO 8601. Verdicts are enums. The emitter refuses to write a float, and the
-test suite fails if one ever appears.
+ISO 8601. Verdicts are fixed tokens. The JSON writer has no floating-point
+value to write, and the parity tests compare every output with the Python
+engine's.
 
-## Library API
+## JSON API
 
-The surface the MCP adapter will import. Stable; the modules behind it are
-not.
+The Python import API is replaced by JSON stdin subcommands, for scripts and
+for the MCP server. Each reads one JSON object on stdin and writes the result
+the Python function's `to_json_dict()` gave, or one `error:` line on stderr
+with exit 2. Decimals are strings, years of income are labels such as
+`"2026-27"`, facts are JSON booleans or `null`, and a rate table or override is
+a file path.
 
-```python
-from decimal import Decimal
-from div7aloan import (
-    GateFacts, MyrFacts, benchmark_rate, complying_loan_gate,
-    minimum_yearly_repayment, parse_year, review_register,
-)
+| Command | Input |
+| --- | --- |
+| `benchmark-rate` | `year_of_income`; optional `table`, `override` |
+| `complying-loan-gate` | `facts` (the `GateFacts` fields) or `mapping` and `where` (a register row); optional `table`, `override` |
+| `minimum-yearly-repayment` | `facts` (the `MyrFacts` fields, `gate_result` as its `verdict`, `benchmark_year_used`, `reasons` and `caveats`) or `mapping`, `year_of_income`, `gate_result` and `where`; optional `table`, `override` |
+| `minimum-yearly-repayment-amount` | `principal`, `rate`, `remaining_term` |
+| `review-register`, `review-register-file` | `rows` or `path`, `year_of_income`, `gate_only`, `myr_only`, `gate_benchmark_year`, `table`, `override` |
+| `parse-year`, `parse-money`, `parse-rate`, `parse-ratio`, `parse-tristate` | `raw`, `where` |
+| `optional-money`, `optional-rate`, `optional-years`, `optional-year-of-income` | `raw`, `where` |
+| `statutory-remaining-term`, `year-of-income` | `supplied`; `start_year` |
+| `load-table`, `load-override`, `load-rows`, `require-columns` | `path`; `path`; `path`, `needed`; `fieldnames`, `needed`, `where` |
 
-year = parse_year("2026-27")
-
-rate = benchmark_rate(year)
-# rate.verdict, rate.rate (Decimal), rate.rba_month, rate.reason
-
-gate = complying_loan_gate(GateFacts(
-    written_agreement=True,
-    terms_in_place_before_lodgment_day=True,
-    maximum_term_years=Decimal("7"),
-    secured_by_registered_mortgage_over_real_property=False,
-    interest_rate_for_years_after_year_loan_made=Decimal("0.0827"),
-    year_loan_made=parse_year("2023-24"),
-))
-# gate.verdict, gate.limbs, gate.reasons, gate.caveats
-
-result = minimum_yearly_repayment(MyrFacts(
-    year_of_income=year,
-    amalgamated_loan_unpaid_at_end_of_previous_year=Decimal("100000.00"),
-    remaining_term_years=Decimal("5"),
-    payments_applied_during_the_year=Decimal("25556.00"),
-    gate_result=gate,
-    year_loan_made=parse_year("2023-24"),
-))
-# result.verdict, result.myr_required, result.shortfall,
-# result.experimental_deemed_dividend_exposure, result.statutory_trace
-
-report = review_register(rows, year)
-# report.summary, report.lines, report.total_exposure
+```sh
+echo '{"facts": {"written_agreement": true, "terms_in_place_before_lodgment_day": true,
+  "maximum_term_years": "7", "secured_by_registered_mortgage_over_real_property": false,
+  "security_coverage_at_first_made": null,
+  "interest_rate_for_years_after_year_loan_made": "0.0827",
+  "year_of_income_being_tested": null, "year_loan_made": "2023-24", "loan_id": "L-1"}}' \
+  | div7a-loan-review complying-loan-gate
 ```
 
-Every result carries a verdict, amounts as `Decimal`, provenance, and a
-refusal or unknown reason where one applies.
-
-In direct Python calls to this source tree, `gate_only` and `myr_only` require
-literal booleans. Both default to `False`, which reports both checks. Setting
-one to `True` reports that check alone; setting both to `True` is invalid.
-Strings such as `"false"`, numbers, `None` and containers are also invalid.
-Invalid options raise `RegisterError` in `review_register` and
-`div7aloan.register.review_register_file` before either function consumes rows
-or reads a file.
-The CLI's `review`, `gate` and `myr` commands already select valid modes.
+`gate_only` and `myr_only` must be JSON booleans and cannot both be true; the
+command line's `review`, `gate` and `myr` commands select valid modes.
+`div7a-loan-review --api-help` lists the commands.
 
 ## Evaluation pack
 
 [`evaluation/div7a_myr/`](evaluation/div7a_myr/) holds fabricated fixtures,
 pinned expectations, and 3 minimum yearly repayments worked by hand from
 the statutory formula with the arithmetic shown. A reviewer who knows s 109N
-and s 109E can re-perform every one on paper without running Python.
+and s 109E can re-perform every one on paper without running the engine.
 
 It also records where this repository's reading of s 109N(1)(b) differs from
 common practice, and why the Act was followed.
 
 ## Tests
 
-```bash
-python tests/fastcheck/bootstrap.py
-python -m pytest -q
+```sh
+cargo test --locked
 ```
 
-Install the dev extra first. The bootstrap installs the locked fast-check
-worker that generates the property tests' inputs, using the Node it pins.
+`tests/parity.rs` replays the frozen corpus of the Python 0.3.2 suite's calls
+and command runs, plus generated cases, and `tests/BEHAVIOURS.md` maps each
+original test to its Rust coverage. The formula properties run as seeded Rust
+tests against exact rational arithmetic.
 
 Every frozen rate year, every verdict, every refusal, the 2025-26 May-vs-June
 trap, the formula against exact rational arithmetic, and a check that no
@@ -524,9 +508,8 @@ engine deliberately does not establish.
 - Benchmark rate explainer: <https://duguid.com.au/rates/div7a-benchmark-rate/>
 - Australian tax AI agents: <https://duguid.com.au/tools/australian-tax-ai-agents/>
 
-From an AI coding agent, the same engine runs through `aus-accounting-mcp`.
-The adapter and engine now share this monorepo but remain separately versioned
-Python distributions.
+From an AI coding agent, the same engine runs through `aus-accounting-mcp`,
+which installs the last Python release, 0.3.2, until it links this crate.
 
 ## Author and licence
 

@@ -1,6 +1,7 @@
 """Build the other benchmark ranges from the ATO's industry pages.
 
-Development-time script. It is not imported by the runtime package. The ATO's
+Development-time script. The engine, the Rust crate in this package, only reads
+its output. The ATO's
 data.gov.au workbook carries only the key ranges; the labour, rent and motor
 vehicle ranges (and cost of sales where it is not the key range) are published
 only on each industry's "in detail" page. Save those pages as text first, for
@@ -10,9 +11,9 @@ example with a browser's batch text export, into a directory holding
 
     uv run python tools/build_other_benchmarks.py \
         --pages-dir <saved pages> \
-        --dataset atobenchmark/data/benchmarks-2023-24.json \
+        --dataset data/benchmarks-2023-24.json \
         --retrieved 2026-09-29 \
-        --out atobenchmark/data/other-benchmarks-2023-24.json
+        --out data/other-benchmarks-2023-24.json
 
 Every page must state the dataset's benchmark year, carry a last-updated date
 and a QC reference, list the dataset's turnover bands in the same order, and
@@ -35,13 +36,28 @@ import hashlib
 import json
 import re
 import sys
+import unicodedata
 from decimal import Decimal
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+# Copies of the engine's name folding and dataset digest. The engine refuses a
+# page file whose dataset_json_sha256 differs from its own digest of the dataset,
+# and the repository's tests/test_ato_page_builder.py holds these copies to it.
+PUNCTUATION_RE = re.compile("[-\u2010-\u2015\u2018\u2019\u201c\u201d'\"]+")
 
-from atobenchmark.dataset import canonical_digest, normalise  # noqa: E402
+
+def normalise(text: str) -> str:
+    """Case fold and flatten punctuation so "Fish and chips shops" matches user input."""
+    folded = unicodedata.normalize("NFKD", text).casefold()
+    folded = PUNCTUATION_RE.sub(" ", folded)
+    return re.sub(r"\s+", " ", folded).strip()
+
+
+def canonical_digest(text: str) -> str:
+    """SHA-256 of a JSON document's content, whatever its line endings or layout."""
+    content = json.loads(text)
+    canonical = json.dumps(content, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(canonical.encode("ascii")).hexdigest()
 
 HEADINGS = {
     "total expenses": "total_expenses_to_turnover",
