@@ -11,6 +11,37 @@ fn outcome(command: &str, input: &Value) -> Value {
     }
 }
 
+/// Applies the source-record divergences CHANGELOG.md documents to a frozen
+/// Python result; the frozen corpus itself is never edited.
+fn adapt(command: &str, mut expected: Value) -> Value {
+    let study = match command {
+        "study-loan-repayment" => expected.pointer_mut("/ok"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/study_loan_repayment"),
+        _ => None,
+    };
+    let Some(study) = study else {
+        return expected;
+    };
+    // The ATO moved and retitled its study loan page; read again on 20 October 2026.
+    let url = "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates";
+    study["sources"][0] = json!(url);
+    study["source_checked"] = json!("2026-10-20");
+    if command == "worksheet-catalogue" {
+        study["source"] = json!(url);
+        let passage = study["source_passage"].as_str().unwrap().replace(
+            "repayment thresholds and rates",
+            "minimum repayment income and rates",
+        );
+        study["source_passage"] = json!(passage);
+        let evidence = &mut study["example_evidence"];
+        evidence["document"] =
+            json!("ATO study and training loan minimum repayment income and rates");
+        evidence["reviewed"] = json!("2026-10-13");
+        evidence["checked"] = json!("2026-10-20");
+    }
+    expected
+}
+
 /// Replays every call the Python 0.4.x tests and the differential generator
 /// made, comparing serialised JSON so key order must match too.
 #[test]
@@ -28,7 +59,7 @@ fn python_api_corpus_matches() {
     for row in &corpus {
         let command = row["command"].as_str().unwrap();
         let actual = outcome(command, &row["input"]).to_string();
-        let expected = row["expected"].to_string();
+        let expected = adapt(command, row["expected"].clone()).to_string();
         if actual != expected {
             failures.push(format!(
                 "{} {command} {}\n  expected {expected}\n  actual   {actual}",

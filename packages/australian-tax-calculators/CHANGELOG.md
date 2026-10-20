@@ -39,6 +39,14 @@ intentionally changed.
   the uv workspace installs the 0.2.0 Python release from PyPI for the MCP
   server and `lodgeit-calculator-adapter`. A signed native publisher remains a separate
   release task.
+- The ATO moved and retitled its study loan page to "Study and training loan
+  minimum repayment income and rates", which now says "minimum repayment
+  income" where it said "repayment threshold". Read again on 20 October 2026,
+  it prints the same figures, so no calculation changes. Every
+  `study-loan-repayment` result cites the new address, with `source_checked`
+  `2026-10-20`; the `worksheet-catalogue` entry also carries the new title and
+  the page's 13 October 2026 update. `tests/parity.rs` applies these changes to
+  the 227 `study-loan-repayment` and 10 `worksheet-catalogue` frozen results.
 
 ### Verification
 
