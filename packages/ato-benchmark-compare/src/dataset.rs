@@ -477,7 +477,7 @@ pub fn merge_page_ranges(
     dataset: &Dataset,
     text: &str,
     source_name: &str,
-    dataset_digest: Option<&str>,
+    dataset_digest: Option<&Raw>,
 ) -> Result<Dataset, Failure> {
     let raw = parse_json(text, source_name)?;
     if !matches!(raw, Raw::Dict(_)) {
@@ -500,14 +500,19 @@ pub fn merge_page_ranges(
         Some(source @ Raw::Dict(_)) => source.clone(),
         _ => return fail(format!("{source_name}: source metadata is missing")),
     };
-    if source.get("dataset_sha256") != dataset.source.get("sha256") {
+    let none = Raw::None;
+    let built_against = source.get("dataset_sha256").unwrap_or(&none);
+    if !built_against.py_eq(dataset.source.get("sha256").unwrap_or(&none)) {
         return fail(format!(
             "{source_name}: built against a different dataset file (sha256 {})",
             repr_of(source.get("dataset_sha256"))
         ));
     }
-    if let Some(digest) = dataset_digest
-        && source.get("dataset_json_sha256") != Some(&Raw::Str(digest.into()))
+    if let Some(digest) = dataset_digest.filter(|d| **d != Raw::None)
+        && !source
+            .get("dataset_json_sha256")
+            .unwrap_or(&none)
+            .py_eq(digest)
     {
         return fail(format!(
             "{source_name}: built against a different {} dataset file; rebuild it with \
@@ -551,7 +556,8 @@ pub fn merge_page_ranges(
         }
         let name = entry.get("name");
         let business_type = match name {
-            Some(Raw::Str(n)) => dataset.business_types.iter().find(|bt| &bt.name == n),
+            // `{bt.name: bt for bt in ...}`: the last of duplicate names wins.
+            Some(Raw::Str(n)) => dataset.business_types.iter().rev().find(|bt| &bt.name == n),
             _ => None,
         };
         let Some(business_type) = business_type else {
@@ -771,7 +777,7 @@ pub fn load(year: Option<&str>, dir: &DataDir) -> Result<Dataset, Failure> {
             &dataset,
             &pages,
             &pages_shown,
-            Some(&canonical_digest(&text)?),
+            Some(&Raw::Str(canonical_digest(&text)?)),
         ),
         None => Ok(dataset),
     }

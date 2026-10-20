@@ -11,7 +11,7 @@ publish = false
 num-bigint = "0.4"
 num-integer = "0.1"
 num-traits = "0.2"
-serde_json = { version = "1", features = ["preserve_order"] }
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
 sha2 = "0.11.1"
 
 [target.'cfg(unix)'.dependencies]

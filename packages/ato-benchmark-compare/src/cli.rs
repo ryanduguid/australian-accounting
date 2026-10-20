@@ -546,12 +546,16 @@ fn option_prefix_matches<'a>(
 }
 
 /// argparse's `_negative_number_matcher` on the text after the leading '-'.
+/// Python 3.15 matches `-\.?\d` at the start only, so `-1x` and `-.5x` also
+/// count; `\d` is any Unicode decimal digit.
 fn looks_like_negative_number(body: &str) -> bool {
     let digit = |c: char| pytext::decimal_value(c as u32).is_some();
-    (!body.is_empty() && body.chars().all(digit))
-        || body.split_once('.').is_some_and(|(int, frac)| {
-            int.chars().all(digit) && !frac.is_empty() && frac.chars().all(digit)
-        })
+    let mut chars = body.chars();
+    match chars.next() {
+        Some('.') => chars.next().is_some_and(digit),
+        Some(c) => digit(c),
+        None => false,
+    }
 }
 
 /// argparse's error for an explicit argument given to a zero-argument flag.
@@ -1212,7 +1216,11 @@ fn cmd_compare(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
         refuse_to_write_over_an_input(&PyPath::new(target), &[Some(pnl_path), Some(mapping_path)])?;
     }
     if let Some(target) = json_target {
-        let payload = to_evidenced_dict(&comparison, &supplied, Some(routing.unreviewed))?;
+        let payload = to_evidenced_dict(
+            &comparison,
+            &supplied,
+            serde_json::json!(routing.unreviewed),
+        )?;
         let text = serde_json::to_string_pretty(&serde_json::Value::Object(payload))
             .expect("JSON values serialise")
             + "\n";
@@ -1226,7 +1234,7 @@ fn cmd_compare(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
     let report = if json_target != Some("-") {
         Some(render_text(
             &comparison,
-            routing.unreviewed,
+            &crate::raw::Raw::Int(routing.unreviewed.to_string()),
             Some(&supplied),
         )?)
     } else {

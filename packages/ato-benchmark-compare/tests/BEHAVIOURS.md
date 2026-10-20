@@ -4,7 +4,7 @@ Base 83288b0, Python 0.2.2 (identical to the PyPI 0.2.2 release): 303 test
 functions. The archive pytest suite passed before the differential harness
 captured the top-level engine calls and command runs they made, with the files
 each named. `tests/data/python-cases.json` freezes the first 60 distinct cases
-of each test plus 2,800 generated API calls and command runs: 3,728 cases in
+of each test plus 2,800 generated API calls and command runs: 3,793 cases in
 all. `tests/parity.rs` replays them and compares complete results, key order,
 output bytes and written files included. Results and streams over 4 KiB are
 stored as an FNV-1a fingerprint and length.
@@ -14,14 +14,19 @@ fields, the CSV field limit at and past 131,072 characters, argparse prefix,
 help and missing-value combinations, and colour controls side by side
 (`FORCE_COLOR` with `PYTHON_COLORS=0` or `NO_COLOR`).
 
-Tests whose checks made no engine call, or more than 60, run natively. The
+Tests whose checks made no engine call, or more than 60, run natively, as do tests
+that injected a failure with `monkeypatch` (a forced digest collision, a failing
+`os.replace` or `os.fsync`): replaying their inputs cannot recreate the failure.
+A `review` group adds every counterexample from the final review. Each frozen case
+records the complete file state after its run: what it wrote, the inputs it left
+unchanged, and that nothing else exists. The
 property tests keep their seeds, examples and input domains; a local SplitMix64
 replaces fast-check's generator, so the random cases differ.
 
 | Original test | Rust coverage |
 | --- | --- |
 | `test_atomic_io.py::test_failed_json_replacement_keeps_the_reviewed_output` | Unit test in `src/atomic.rs` |
-| `test_atomic_io.py::test_failed_mapping_generation_never_truncates_the_prior_mapping` | Frozen replay in `parity.rs` |
+| `test_atomic_io.py::test_failed_mapping_generation_never_truncates_the_prior_mapping` | Unit test in `src/atomic.rs` covers a failed replacement; a failed flush takes the same cleanup path |
 | `test_atomic_io.py::test_exception_inside_staged_writer_leaves_no_partial_output` | Unit test in `src/atomic.rs`; the Rust writer stages the whole text at once, so no caller code runs mid-write |
 | `test_atomic_io.py::test_a_staged_file_already_gone_does_not_mask_the_failure` | Unit test in `src/atomic.rs` covers the failed replacement; the cleanup ignores a staged file already gone, so the rename error is the one reported |
 | `test_benchmark_history.py::test_reclassification_is_separate_from_unchanged_business` | Frozen replay in `parity.rs`; the example's own tests are in `examples/benchmark_history.rs` |
@@ -54,7 +59,7 @@ replaces fast-check's generator, so the random cases differ.
 | `test_cli.py::test_unknown_industry_is_reported` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_previous_benchmark_year_can_be_selected` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_map_then_compare_keeps_guarded_and_apostrophe_accounts_distinct` | Frozen replay in `parity.rs` |
-| `test_cli.py::test_map_fails_when_distinct_accounts_share_a_forced_digest` | Frozen replay in `parity.rs` |
+| `test_cli.py::test_map_fails_when_distinct_accounts_share_a_forced_digest` | Unit test in `src/mapping.rs` with a forced key, through the command line |
 | `test_cli.py::test_map_still_collapses_normalisation_equivalent_accounts` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_map_says_repeated_names_must_be_fixed_in_the_export` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_a_profit_and_loss_that_is_not_utf8_is_reported_as_an_error` | Frozen replay in `parity.rs` |
@@ -64,14 +69,14 @@ replaces fast-check's generator, so the random cases differ.
 | `test_cli.py::test_a_quoted_crlf_in_an_account_name_reaches_the_reader_intact` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_an_export_whose_rows_end_in_a_bare_cr_is_read` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_the_reported_byte_position_counts_from_the_start_of_the_file` | Frozen replay in `parity.rs` |
-| `test_cli.py::test_comparison_rejects_a_forced_digest_collision_before_routing_amounts` | Frozen replay in `parity.rs` |
+| `test_cli.py::test_comparison_rejects_a_forced_digest_collision_before_routing_amounts` | Unit test in `src/mapping.rs` with a forced key (`route_rejects_a_hash_collision_before_routing_amounts`) |
 | `test_cli.py::test_map_lists_ten_unreadable_rows_and_counts_the_rest` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_compare_lists_ten_unreadable_rows_and_counts_the_rest` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_show_names_no_industry_page_for_a_year_without_page_ranges` | Frozen replay in `parity.rs` |
 | `test_cli.py::test_the_overwrite_guard_skips_an_input_that_was_not_given` | Unit test in `src/cli.rs` |
-| `test_cli.py::test_map_refuses_when_an_input_path_cannot_be_resolved` | Frozen replay in `parity.rs` |
+| `test_cli.py::test_map_refuses_when_an_input_path_cannot_be_resolved` | Not reproduced: it monkeypatches `Path.resolve` to fail; Python's non-strict resolve does not fail on real paths (checked on a symlink loop), and the Rust guard falls back the same way |
 | `test_cli.py::test_map_into_a_folder_that_is_a_file_exits_one_with_one_error_line` | Frozen replay in `parity.rs` |
-| `test_cli.py::test_streams_that_cannot_be_reconfigured_still_receive_the_output` | Frozen replay in `parity.rs` |
+| `test_cli.py::test_streams_that_cannot_be_reconfigured_still_receive_the_output` | Not applicable: the binary writes bytes to its streams with no reconfigure step |
 | `test_cli.py::test_python_dash_m_runs_the_command_line` | Not applicable: there is no Python module to run |
 | `test_csv_guard_whitespace.py::test_guard_quotes_formula_after_leading_whitespace` | Frozen replay in `parity.rs` |
 | `test_csv_guard_whitespace.py::test_guard_preserves_ordinary_text` | Frozen replay in `parity.rs` |
@@ -171,8 +176,8 @@ replaces fast-check's generator, so the random cases differ.
 | `test_mapping.py::test_extra_empty_trailing_mapping_cells_remain_accepted` | Frozen replay in `parity.rs` |
 | `test_mapping.py::test_normalisation_equivalent_mapping_accounts_are_duplicates` | Frozen replay in `parity.rs` |
 | `test_mapping.py::test_composed_and_decomposed_unicode_accounts_remain_distinct` | Frozen replay in `parity.rs` |
-| `test_mapping.py::test_write_rejects_a_forced_digest_collision` | Frozen replay in `parity.rs` |
-| `test_mapping.py::test_read_rejects_a_forced_digest_collision` | Frozen replay in `parity.rs` |
+| `test_mapping.py::test_write_rejects_a_forced_digest_collision` | Unit test in `src/mapping.rs` with a forced key |
+| `test_mapping.py::test_read_rejects_a_forced_digest_collision` | Unit test in `src/mapping.rs` with a forced key |
 | `test_mapping.py::test_a_spreadsheet_coerced_numeric_account_is_refused_not_silently_rematched` | Frozen replay in `parity.rs` |
 | `test_mapping.py::test_a_mistyped_source_is_refused_not_read_as_reviewed` | Frozen replay in `parity.rs` |
 | `test_mapping.py::test_a_blank_source_cell_is_refused_not_defaulted_to_reviewed` | Frozen replay in `parity.rs` |
@@ -181,13 +186,13 @@ replaces fast-check's generator, so the random cases differ.
 | `test_mapping.py::test_a_mapping_with_a_header_and_no_rows_is_refused` | Frozen replay in `parity.rs` |
 | `test_mapping.py::test_blank_mapping_rows_are_passed_over` | Frozen replay in `parity.rs` |
 | `test_mapping.py::test_a_keyed_account_that_really_starts_with_an_apostrophe_is_read_as_written` | Frozen replay in `parity.rs` |
-| `test_mapping.py::test_a_key_both_spellings_of_a_guarded_account_match_is_refused_as_ambiguous` | Frozen replay in `parity.rs` |
+| `test_mapping.py::test_a_key_both_spellings_of_a_guarded_account_match_is_refused_as_ambiguous` | Unit test in `src/mapping.rs` with a forced key |
 | `test_mapping_workflows.py::test_suggest_mapping_returns_ordered_rows_duplicates_and_review_count` | Frozen replay in `parity.rs` |
-| `test_mapping_workflows.py::test_suggest_mapping_rejects_a_hash_collision_before_returning_a_draft` | Frozen replay in `parity.rs` |
+| `test_mapping_workflows.py::test_suggest_mapping_rejects_a_hash_collision_before_returning_a_draft` | Unit test in `src/mapping.rs` with a forced key |
 | `test_mapping_workflows.py::test_route_returns_exact_totals_review_count_and_ordered_notes` | Frozen replay in `parity.rs` |
 | `test_mapping_workflows.py::test_route_preserves_the_exact_missing_account_error` | Frozen replay in `parity.rs` |
 | `test_mapping_workflows.py::test_route_preserves_the_exact_repeated_account_error` | Frozen replay in `parity.rs` |
-| `test_mapping_workflows.py::test_route_rejects_a_hash_collision_before_routing_amounts` | Frozen replay in `parity.rs` |
+| `test_mapping_workflows.py::test_route_rejects_a_hash_collision_before_routing_amounts` | Unit test in `src/mapping.rs` with a forced key |
 | `test_mapping_workflows.py::test_mapping_module_owns_suggestion_and_routing_workflows` | Not applicable: Python module layout |
 | `test_mapping_workflows.py::test_routed_totals_carry_the_buckets_a_reviewed_account_reached` | Frozen replay in `parity.rs` |
 | `test_money.py::test_parse_amount_accepts` | Frozen replay in `parity.rs` |

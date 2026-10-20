@@ -65,6 +65,16 @@ fn optional_text<'a>(v: &'a Value, key: &str) -> Result<Option<&'a str>> {
     }
 }
 
+/// A keyword argument with a default: the default when the key is absent,
+/// otherwise `str()` of the value given, `None` included, as an f-string
+/// prints it.
+fn named<'a>(v: &Value, key: &str, default: &'a str) -> std::borrow::Cow<'a, str> {
+    match v.get(key) {
+        None => std::borrow::Cow::Borrowed(default),
+        Some(value) => std::borrow::Cow::Owned(Raw::from_value(value).py_str()),
+    }
+}
+
 fn decimal(text: &str) -> Result<Decimal> {
     Decimal::parse(text).map_err(|s| format!("decimal.{}", s.name()))
 }
@@ -88,15 +98,15 @@ fn strings(v: &Value, key: &str) -> Result<Option<Vec<String>>> {
 /// A dataset named by `year`/`data_dir`, or built from `text` and `pages_text`.
 fn dataset_of(v: &Value) -> Result<Dataset> {
     if let Some(text) = optional_text(v, "text")? {
-        let name = optional_text(v, "source_name")?.unwrap_or("<string>");
-        let data = dataset::loads(text, name).map_err(failure)?;
+        let name = named(v, "source_name", "<string>");
+        let data = dataset::loads(text, &name).map_err(failure)?;
         return match optional_text(v, "pages_text")? {
             None => Ok(data),
             Some(pages) => merge_page_ranges(
                 &data,
                 pages,
-                optional_text(v, "pages_name")?.unwrap_or("<string>"),
-                optional_text(v, "dataset_digest")?,
+                &named(v, "pages_name", "<string>"),
+                v.get("dataset_digest").map(Raw::from_value).as_ref(),
             )
             .map_err(failure),
         };
@@ -277,9 +287,9 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                 None | Some(Value::Null) => None,
                 Some(other) => Some(Raw::from_value(other)),
             };
-            let where_ = optional_text(v, "where")?.unwrap_or("amount");
+            let where_ = named(v, "where", "amount");
             let text = raw.as_ref().map(Raw::py_str);
-            money::parse_amount_shown(text.as_deref(), raw.as_ref().map(Raw::py_repr), where_)
+            money::parse_amount_shown(text.as_deref(), raw.as_ref().map(Raw::py_repr), &where_)
                 .map(|d| decimal_json(&d))
                 .map_err(amount_err)
         }
@@ -299,7 +309,12 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                 .map(|t| json!(t))
                 .map_err(amount_err)
         }
-        "guard" => Ok(json!(guard(optional_text(v, "value")?))),
+        // `guard(value)` takes any object: `str(value)`, or "" for None.
+        "guard" => {
+            let value = v.get("value").map(Raw::from_value).unwrap_or(Raw::None);
+            let text = (value != Raw::None).then(|| value.py_str());
+            Ok(json!(guard(text.as_deref())))
+        }
         "normalise" => Ok(json!(normalise(text(v, "text")?))),
         "normalise-account" => Ok(json!(normalise_account(text(v, "text")?))),
         "account-key" => Ok(json!(account_key(text(v, "text")?))),
@@ -379,19 +394,16 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             let Some(Value::Array(items)) = v.get("mapping") else {
                 return Err("mapping must be a list".into());
             };
-            let mapping: mapping::Mapping = items
-                .iter()
-                .map(|item| {
-                    let row = mapping_row(&item[1])?;
-                    Ok((
-                        item[0]
-                            .as_str()
-                            .ok_or("mapping keys are strings")?
-                            .to_string(),
-                        row,
-                    ))
-                })
-                .collect::<Result<_>>()?;
+            // A dict: a repeated key keeps its first place and its last value.
+            let mut mapping: mapping::Mapping = Vec::new();
+            for item in items {
+                let row = mapping_row(&item[1])?;
+                let key = item[0].as_str().ok_or("mapping keys are strings")?;
+                match mapping.iter_mut().find(|(k, _)| k == key) {
+                    Some(slot) => slot.1 = row,
+                    None => mapping.push((key.to_string(), row)),
+                }
+            }
             let flip = v.get("flip").and_then(Value::as_bool).unwrap_or(false);
             let routed = mapping::route(&rows, &mapping, flip).map_err(failure)?;
             let mut supplied = routed.supplied_buckets.clone();
@@ -418,26 +430,26 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                         .map(|n| crate::ratios::EvidenceMessage::new("routing", n, &[])),
                 );
             }
-            let unreviewed = v
-                .get("unreviewed")
-                .and_then(Value::as_u64)
-                .map(|n| n as usize);
+            // Each serialiser's own default when absent; the value as given otherwise.
+            let unreviewed = v.get("unreviewed").cloned();
             let output_supplied = strings(v, "output_supplied")?;
             match optional_text(v, "output")?.unwrap_or("comparison") {
                 "comparison" => Ok(comparison_json(&comparison)),
-                "to_dict" => report::to_dict(&comparison, json!(unreviewed.unwrap_or(0)))
+                "to_dict" => report::to_dict(&comparison, unreviewed.unwrap_or(json!(0)))
                     .map(map_value)
                     .map_err(failure),
                 "evidenced" => report::to_evidenced_dict(
                     &comparison,
                     &output_supplied.unwrap_or_default(),
-                    unreviewed,
+                    unreviewed.unwrap_or(Value::Null),
                 )
                 .map(map_value)
                 .map_err(failure),
                 "text" => report::render_text(
                     &comparison,
-                    unreviewed.unwrap_or(0),
+                    &unreviewed
+                        .as_ref()
+                        .map_or(Raw::Int("0".into()), Raw::from_value),
                     output_supplied.as_deref(),
                 )
                 .map(|t| json!(t))

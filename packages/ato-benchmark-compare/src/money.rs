@@ -48,7 +48,10 @@ pub fn parse_amount_shown(
     let cleaned = CLEAN.sub("", text);
     let value = Decimal::parse(&cleaned).expect("the grammar leaves a plain number");
     if negative {
-        Ok(value.neg().expect("finite"))
+        // Python's `-value` raised the trapped signal itself, uncaught.
+        value
+            .neg()
+            .map_err(|signal| AmountError(format!("decimal.{}", signal.name())))
     } else {
         Ok(value)
     }
@@ -95,7 +98,12 @@ pub fn percent_compact(value: &Decimal) -> Result<String, AmountError> {
 }
 
 pub fn percent_range(low: &Decimal, high: &Decimal) -> Result<String, AmountError> {
-    if low.equals(high).unwrap_or(false) {
+    // Python's `low == high` raised InvalidOperation for a signalling NaN
+    // before either bound was formatted.
+    let same = low
+        .equals(high)
+        .map_err(|signal| AmountError(format!("decimal.{}", signal.name())))?;
+    if same {
         return percent_compact(low);
     }
     Ok(format!(

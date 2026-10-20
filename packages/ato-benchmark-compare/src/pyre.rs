@@ -485,6 +485,32 @@ impl Regex {
             }
             return n >= min && k(pos);
         }
+        if count == 0 && Self::deterministic(node) {
+            // Each iteration has one possible end, so collect the ends in a
+            // loop, then offer them in backtracking order: a long run such as
+            // "1,000,000,..." no longer recurses once per iteration.
+            let mut ends = vec![at];
+            while max.is_none_or(|m| ends.len() <= m) {
+                let pos = *ends.last().unwrap();
+                let mut found = None;
+                self.m(node, text, pos, &mut |end| {
+                    found = Some(end);
+                    true
+                });
+                match found {
+                    Some(end) if end != pos => ends.push(end),
+                    _ => break,
+                }
+            }
+            if ends.len() <= min {
+                return false;
+            }
+            let mut tries = ends[min..].iter();
+            return match mode {
+                Mode::Greedy => tries.rev().any(|&end| k(end)),
+                _ => tries.any(|&end| k(end)),
+            };
+        }
         let can_more = max.is_none_or(|m| count < m);
         let more = |k: &mut dyn FnMut(usize) -> bool| {
             can_more
@@ -499,6 +525,27 @@ impl Regex {
         match mode {
             Mode::Greedy => more(k) || k(at),
             _ => k(at) || more(k),
+        }
+    }
+
+    /// Whether `node` can end in at most one place from any start.
+    fn deterministic(node: &Node) -> bool {
+        match node {
+            Node::Char(_)
+            | Node::Any
+            | Node::Class(..)
+            | Node::Start
+            | Node::End
+            | Node::Boundary(_)
+            | Node::Behind(_) => true,
+            Node::Seq(items) => items.iter().all(Self::deterministic),
+            Node::Alt(_) => false,
+            Node::Repeat {
+                node,
+                min,
+                max,
+                mode,
+            } => *mode == Mode::Possessive || (*max == Some(*min) && Self::deterministic(node)),
         }
     }
 

@@ -58,7 +58,8 @@ fn single(
         &figures,
         Some(&routed.supplied_buckets),
     )?;
-    to_evidenced_dict(&result, &routed.supplied_buckets, Some(routed.unreviewed)).map(Value::Object)
+    to_evidenced_dict(&result, &routed.supplied_buckets, json!(routed.unreviewed))
+        .map(Value::Object)
 }
 
 fn digest(path: &Path) -> Result<String, String> {

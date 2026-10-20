@@ -148,8 +148,53 @@ fn scratch(case: &Value) -> PathBuf {
     dir
 }
 
-/// The files a run wrote or changed, as the corpus fingerprints them.
+/// Every file under `dir`, as `/`-separated relative names.
+fn files_under(dir: &Path) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(folder) = stack.pop() {
+        for entry in std::fs::read_dir(&folder).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                stack.push(path);
+            } else {
+                let rel = path
+                    .strip_prefix(dir)
+                    .unwrap()
+                    .to_string_lossy()
+                    .replace('\\', "/");
+                out.push(rel);
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
+/// The folder after a run: the files it wrote or changed, as the corpus
+/// fingerprints them, the inputs it left alone, and nothing else.
 fn written_ok(dir: &Path, case: &Value) -> Result<(), String> {
+    let mut expected: Vec<String> = case["written"]
+        .as_object()
+        .unwrap()
+        .keys()
+        .cloned()
+        .collect();
+    for name in case["unchanged"].as_array().unwrap() {
+        let name = name.as_str().unwrap();
+        let data = std::fs::read(dir.join(name)).map_err(|e| format!("{name}: {e}"))?;
+        if data != file_bytes(&case["files"][name]) {
+            return Err(format!("{name} was changed"));
+        }
+        expected.push(name.to_string());
+    }
+    expected.sort();
+    let found = files_under(dir);
+    if found != expected {
+        return Err(format!(
+            "files after the run: {found:?}, expected {expected:?}"
+        ));
+    }
     for (name, want) in case["written"].as_object().unwrap() {
         let data = std::fs::read(dir.join(name)).map_err(|e| format!("{name}: {e}"))?;
         let ok = want["fnv"].as_str() == Some(fnv(&data).as_str())
@@ -217,6 +262,7 @@ fn check(case: &Value) -> Option<String> {
             let value = if out.status.code() == Some(0) {
                 json!({"ok": serde_json::from_slice::<Value>(&out.stdout).unwrap()})
             } else {
+                assert_eq!(out.status.code(), Some(2), "an API refusal exits 2");
                 let err = lf(&out.stderr);
                 json!({"error": err.strip_prefix("error: ").unwrap().strip_suffix('\n').unwrap()})
             };

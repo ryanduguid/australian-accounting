@@ -429,7 +429,7 @@ fn source_text(source: &Raw, key: &str) -> String {
 /// Render the comparison as text; with `supplied`, withhold what nobody supplied.
 pub fn render_text(
     comparison: &Comparison,
-    unreviewed: usize,
+    unreviewed: &Raw,
     supplied: Option<&[String]>,
 ) -> Result<String, Failure> {
     let figures = &comparison.figures;
@@ -554,11 +554,12 @@ pub fn render_text(
         figure(&figures.labour, labour)?
     ));
     lines.push(String::new());
-    if unreviewed > 0 {
+    if unreviewed.truthy() {
         lines.push("Review outstanding".into());
         lines.push(format!(
-            "  {unreviewed} account(s) still carry the bucket this tool suggested. Suggestions \
-             are made from account names alone and are not a substitute for reading the ledger."
+            "  {} account(s) still carry the bucket this tool suggested. Suggestions \
+             are made from account names alone and are not a substitute for reading the ledger.",
+            unreviewed.py_str()
         ));
         lines.push(String::new());
     }
@@ -629,11 +630,8 @@ pub fn render_text(
     ));
     let page = industry_page_source(comparison);
     if !page.is_null() && income {
-        let text = |key: &str| match &page[key] {
-            Value::String(s) => s.clone(),
-            Value::Null => "None".into(),
-            other => other.to_string(),
-        };
+        // An f-string prints `str()` of each value, whatever its type.
+        let text = |key: &str| Raw::from_value(&page[key]).py_str();
         let labels: Vec<&str> = page["ratios"]
             .as_array()
             .unwrap()
@@ -733,11 +731,17 @@ pub fn to_dict(comparison: &Comparison, unreviewed: Value) -> Result<Map<String,
 pub fn to_evidenced_dict(
     comparison: &Comparison,
     supplied_fields: &[String],
-    unreviewed: Option<usize>,
+    unreviewed: Value,
 ) -> Result<Map<String, Value>, Failure> {
     let presence = presence(comparison, supplied_fields)?;
-    let mut payload = to_dict(comparison, json!(unreviewed.unwrap_or(0)))?;
-    payload.insert("unreviewed_accounts".into(), json!(unreviewed));
+    // `to_dict(comparison, unreviewed=unreviewed or 0)`, then the value as given.
+    let counted = if Raw::from_value(&unreviewed).truthy() {
+        unreviewed.clone()
+    } else {
+        json!(0)
+    };
+    let mut payload = to_dict(comparison, counted)?;
+    payload.insert("unreviewed_accounts".into(), unreviewed);
     let figures = &comparison.figures;
     let supplied: Vec<String> = supplied_fields
         .iter()

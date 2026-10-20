@@ -247,8 +247,19 @@ pub fn normalise_account(account: &str) -> String {
     casefold(pytext::strip(&SPACES.sub(" ", account)))
 }
 
+#[cfg(test)]
+thread_local! {
+    /// A key every account gets, as the Python tests forced a digest
+    /// collision by replacing `account_key`.
+    static FORCED_KEY: std::cell::RefCell<Option<String>> = const { std::cell::RefCell::new(None) };
+}
+
 /// A stable digest of an account's logical identity.
 pub fn account_key(account: &str) -> String {
+    #[cfg(test)]
+    if let Some(key) = FORCED_KEY.with(|k| k.borrow().clone()) {
+        return key;
+    }
     let identity = normalise_account(account);
     Sha256::digest(identity.as_bytes())
         .iter()
@@ -344,15 +355,17 @@ pub fn route(rows: &[PnlRow], mapping: &Mapping, flip: bool) -> Result<RoutingRe
             ));
         }
         let amount = if flip && is_expense(&entry.bucket) {
-            row.amount.neg().expect("finite")
+            row.amount.neg()?
         } else {
             row.amount.clone()
         };
-        let slot = totals
-            .iter_mut()
-            .find(|(b, _)| *b == entry.bucket)
-            .expect("a known bucket");
-        slot.1 = slot.1.add(&amount).expect("finite");
+        let Some(slot) = totals.iter_mut().find(|(b, _)| *b == entry.bucket) else {
+            return Err(Failure::Uncaught(format!(
+                "KeyError: {}",
+                pytext::repr(&entry.bucket)
+            )));
+        };
+        slot.1 = slot.1.add(&amount)?;
         if !suggested && !counted_buckets.contains(&entry.bucket) {
             counted_buckets.push(entry.bucket.clone());
         }
@@ -754,6 +767,131 @@ mod tests {
         assert_eq!(s("Bank fees", None), REVIEW);
         assert_eq!(s("Wages", Some("cost_of_sales")), "cost_of_sales_labour");
         assert_eq!(s("Interest received", Some("expense")), REVIEW);
+    }
+
+    use crate::decimal::Decimal;
+    use crate::py::PyPath;
+
+    fn forced<T>(f: impl FnOnce() -> T) -> T {
+        FORCED_KEY.with(|k| *k.borrow_mut() = Some("a".repeat(64)));
+        let out = f();
+        FORCED_KEY.with(|k| *k.borrow_mut() = None);
+        out
+    }
+
+    fn row(account: &str, amount: &str, line: usize) -> PnlRow {
+        PnlRow {
+            account: account.into(),
+            amount: Decimal::parse(amount).unwrap(),
+            line_number: line,
+            section: None,
+            is_total: false,
+        }
+    }
+
+    fn mapping_row(account: &str, bucket: &str) -> MappingRow {
+        MappingRow {
+            account: account.into(),
+            bucket: bucket.into(),
+            source: "reviewed".into(),
+            note: String::new(),
+            amount: String::new(),
+        }
+    }
+
+    fn scratch(name: &str, text: &str) -> PyPath {
+        let dir = std::env::temp_dir().join(format!("ato-collision-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join(name);
+        if !text.is_empty() {
+            std::fs::write(&path, text).unwrap();
+        }
+        PyPath::new(&path.to_string_lossy())
+    }
+
+    fn message(result: Result<impl std::fmt::Debug, Failure>) -> String {
+        result.unwrap_err().to_string()
+    }
+
+    #[test]
+    fn write_rejects_a_forced_digest_collision() {
+        let path = scratch("write.csv", "");
+        let rows = [
+            mapping_row("Sales", "turnover"),
+            mapping_row("Rent", "rent"),
+        ];
+        assert!(forced(|| message(write_mapping(&path, &rows))).contains("collision"));
+    }
+
+    #[test]
+    fn read_rejects_a_forced_digest_collision() {
+        let key = "a".repeat(64);
+        let text = format!(
+            "account,account_key,bucket,source,amount,note
+Sales,{key},turnover,reviewed,1,
+Rent,{key},rent,reviewed,1,
+"
+        );
+        let path = scratch("read.csv", &text);
+        assert!(forced(|| message(read_mapping(&path))).contains("collision"));
+    }
+
+    #[test]
+    fn a_key_both_spellings_of_a_guarded_account_match_is_refused_as_ambiguous() {
+        let key = "a".repeat(64);
+        let text = format!(
+            "account,account_key,bucket,source,amount,note
+'=Rent,{key},rent,reviewed,1,
+"
+        );
+        let path = scratch("ambiguous.csv", &text);
+        assert!(
+            forced(|| message(read_mapping(&path)))
+                .contains("line 2: account display and account_key are ambiguous")
+        );
+    }
+
+    #[test]
+    fn suggest_mapping_rejects_a_hash_collision_before_returning_a_draft() {
+        let rows = [row("Sales", "100", 2), row("Rent", "10", 3)];
+        assert_eq!(
+            forced(|| message(suggest_mapping(&rows))),
+            "account identity hash collision between 'sales' and 'rent'; no mapping was written"
+        );
+    }
+
+    #[test]
+    fn route_rejects_a_hash_collision_before_routing_amounts() {
+        let mapping: Mapping = vec![("a".repeat(64), mapping_row("Sales", "turnover"))];
+        assert_eq!(
+            forced(|| message(route(&[row("Rent", "10", 7)], &mapping, false))),
+            "line 7: account identity hash collision between 'Sales' and 'Rent'; no amount was routed"
+        );
+    }
+
+    #[test]
+    fn map_fails_when_distinct_accounts_share_a_forced_digest() {
+        let pnl = scratch(
+            "source.csv",
+            "account,amount
+Sales,100
+Rent,10
+",
+        );
+        let out = scratch("m.csv", "");
+        let args: Vec<String> = [
+            "map",
+            "--profit-and-loss",
+            &pnl.display(),
+            "--out",
+            &out.display(),
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+        let (code, _, err) = forced(|| crate::cli::run(&args));
+        assert_eq!(code, 1);
+        assert!(err.to_lowercase().contains("collision"), "{err}");
     }
 
     #[test]

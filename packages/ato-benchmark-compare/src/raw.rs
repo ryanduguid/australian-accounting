@@ -5,6 +5,12 @@
 use crate::pyjson::Json;
 use crate::pytext;
 
+#[derive(PartialEq)]
+enum Number {
+    Exact(num_bigint::BigInt),
+    Inexact(f64),
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Raw {
     None,
@@ -87,6 +93,58 @@ impl Raw {
         }
     }
 
+    /// `self == other` as Python compares the values `json.loads` builds:
+    /// `True == 1 == 1.0`, and dicts compare by their keys, not their order.
+    pub fn py_eq(&self, other: &Raw) -> bool {
+        match (self, other) {
+            (Raw::None, Raw::None) => true,
+            (Raw::Str(a), Raw::Str(b)) => a == b,
+            (Raw::List(a), Raw::List(b)) => {
+                a.len() == b.len() && a.iter().zip(b).all(|(x, y)| x.py_eq(y))
+            }
+            (Raw::Dict(_), Raw::Dict(_)) => {
+                let (left, right) = (self.keys(), other.keys());
+                left.len() == right.len()
+                    && left.iter().all(|k| {
+                        other
+                            .get(k)
+                            .is_some_and(|v| self.get(k).is_some_and(|w| w.py_eq(v)))
+                    })
+            }
+            _ => match (self.number(), other.number()) {
+                (Some(a), Some(b)) => a == b,
+                _ => false,
+            },
+        }
+    }
+
+    /// A dict's distinct keys.
+    fn keys(&self) -> Vec<&String> {
+        let mut keys: Vec<&String> = Vec::new();
+        if let Raw::Dict(items) = self {
+            for (k, _) in items {
+                if !keys.contains(&k) {
+                    keys.push(k);
+                }
+            }
+        }
+        keys
+    }
+
+    /// A bool, int or float as an exact integer where it is one.
+    fn number(&self) -> Option<Number> {
+        use num_traits::FromPrimitive;
+        match self {
+            Raw::Bool(b) => Some(Number::Exact(num_bigint::BigInt::from(u8::from(*b)))),
+            Raw::Int(digits) => digits.parse().ok().map(Number::Exact),
+            Raw::Float(f) if f.is_finite() && f.fract() == 0.0 => {
+                num_bigint::BigInt::from_f64(*f).map(Number::Exact)
+            }
+            Raw::Float(f) => Some(Number::Inexact(*f)),
+            _ => None,
+        }
+    }
+
     /// `mapping.get(key)` for a dict; None otherwise.
     pub fn get(&self, key: &str) -> Option<&Raw> {
         match self {
@@ -117,7 +175,10 @@ impl Raw {
         match value {
             Value::Null => Raw::None,
             Value::Bool(b) => Raw::Bool(*b),
-            Value::Number(n) if n.is_i64() || n.is_u64() => Raw::Int(n.to_string()),
+            // An integer of any size keeps its digits, as Python's int does.
+            Value::Number(n) if n.is_i64() || n.is_u64() || is_integer_lexeme(&n.to_string()) => {
+                Raw::Int(n.to_string())
+            }
             Value::Number(n) => Raw::Float(n.as_f64().unwrap_or(f64::NAN)),
             Value::String(s) => Raw::Str(s.clone()),
             Value::Array(items) => Raw::List(items.iter().map(Raw::from_value).collect()),
@@ -175,6 +236,11 @@ pub fn float_repr(value: f64) -> String {
         )
     };
     format!("{sign}{body}")
+}
+
+fn is_integer_lexeme(text: &str) -> bool {
+    let digits = text.strip_prefix('-').unwrap_or(text);
+    !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())
 }
 
 #[cfg(test)]
