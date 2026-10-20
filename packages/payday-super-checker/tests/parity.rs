@@ -122,6 +122,19 @@ fn native(text: &str) -> String {
     text
 }
 
+/// An API case whose path input is written in Windows syntax (`C:\...` or
+/// `..\name`). On Unix the backslash is an ordinary character to pathlib, and
+/// to the binary, so the Windows answer frozen for it does not apply there.
+fn windows_only(case: &Value) -> bool {
+    !cfg!(windows)
+        && case["kind"] == "api"
+        && ["path", "source"].iter().any(|key| {
+            case["input"][*key]
+                .as_str()
+                .is_some_and(|p| p.contains('\\'))
+        })
+}
+
 fn matches_text(actual: &str, expected: &Value) -> bool {
     match expected {
         Value::String(text) => actual == native(text),
@@ -269,6 +282,9 @@ fn lf(bytes: &[u8]) -> String {
 }
 
 fn check(case: &Value) -> Option<String> {
+    if windows_only(case) {
+        return None;
+    }
     let expected = &case["expected"];
     if case["kind"] == "api" {
         let command = case["command"].as_str().unwrap();
