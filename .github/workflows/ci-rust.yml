@@ -4,13 +4,21 @@ on:
   workflow_call:
     inputs:
       package:
-        description: Engine directory under packages/.
+        description: Crate directory, named as the crate, under the root directory.
         type: string
         required: true
+      root:
+        description: The directory holding the crate, packages for an engine or apps for an application.
+        type: string
+        default: packages
       binary:
         description: The command the engine builds, when it differs from the directory name.
         type: string
         default: ""
+      smoke:
+        description: Arguments that must exit 0 from the built command.
+        type: string
+        default: --api-help
 
 permissions:
   contents: read
@@ -21,13 +29,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     defaults:
       run:
         shell: bash
-        working-directory: packages/${{ inputs.package }}
+        working-directory: ${{ inputs.root }}/${{ inputs.package }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -39,15 +47,39 @@ jobs:
       - run: cargo test --locked
       - run: cargo build --locked --release
       - name: Smoke the native command
-        run: ./target/release/${{ inputs.binary || inputs.package }} --api-help
+        env:
+          BINARY: ${{ inputs.binary || inputs.package }}
+          SMOKE: ${{ inputs.smoke }}
+        run: ./target/release/$BINARY $SMOKE
+      # The archive layout the cargo-binstall metadata in Cargo.toml names. CI
+      # keeps it as a short-lived artefact only; nothing here publishes it.
+      - name: Package the native command
+        id: archive
+        env:
+          BINARY: ${{ inputs.binary || inputs.package }}
+          CRATE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          version="$(cargo metadata --locked --no-deps --format-version 1 | jq -r '.packages[0].version')"
+          target="$(rustc -vV | sed -n 's/^host: //p')"
+          base="$CRATE-$version-$target"
+          mkdir -p "dist/$base"
+          if [[ "$RUNNER_OS" == Windows ]]; then
+            cp "target/release/$BINARY.exe" "dist/$base/"
+            (cd dist && 7z a -tzip "$base.zip" "$base" >/dev/null)
+            archive="$base.zip"
+          else
+            cp "target/release/$BINARY" "dist/$base/"
+            tar -C dist -czf "dist/$base.tgz" "$base"
+            archive="$base.tgz"
+          fi
+          echo "path=$archive" >> "$GITHUB_OUTPUT"
       - name: Keep native candidate
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ inputs.package }}-${{ matrix.os }}
           if-no-files-found: error
-          path: |
-            packages/${{ inputs.package }}/target/release/${{ inputs.binary || inputs.package }}
-            packages/${{ inputs.package }}/target/release/${{ inputs.binary || inputs.package }}.exe
+          path: ${{ inputs.root }}/${{ inputs.package }}/dist/${{ steps.archive.outputs.path }}
           retention-days: 7
 
   dependency-audit:
@@ -58,7 +90,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Audit Cargo lock
-        working-directory: packages/${{ inputs.package }}
+        working-directory: ${{ inputs.root }}/${{ inputs.package }}
         run: |
           cargo install cargo-audit --locked --version 0.22.2
           cargo audit --deny warnings

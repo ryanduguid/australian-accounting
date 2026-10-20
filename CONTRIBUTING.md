@@ -61,20 +61,22 @@ own commands:
 
 ## Rust engines
 
-The Exchequer Tally, Solomon's Sword, The WIP Tally, Australian Tax Calculators
-and Division 7A Loan Review are standalone Cargo crates excluded from the uv
-workspace. From `packages/the-exchequer-tally`, `packages/solomons-sword`,
-`packages/the-wip-tally`, `packages/australian-tax-calculators` or
-`packages/div7a-loan-review`, run `cargo fmt --check`, `cargo clippy --locked --all-targets -- -D warnings` and
-`cargo test --locked`. `cargo build --locked --release` builds the native command.
-Root `just test` and `just lint` include these checks; typecheck remains
-Python-only. CI calls `ci-rust.yml` once per engine from the anchor workflow on
-Ubuntu and Windows. CodeQL and Dependabot include Cargo. All candidate builds
-have read-only permissions.
+The 7 Rust engines under `packages/` and the `au-accounting` command in
+`apps/au-accounting/`, which links them, are standalone Cargo crates excluded
+from the uv workspace. From a crate's directory, run `cargo fmt --check`,
+`cargo clippy --locked --all-targets -- -D warnings` and `cargo test --locked`.
+`cargo build --locked --release` builds the native command. Root `just test`
+and `just lint` include these checks; typecheck remains Python-only. CI calls
+`ci-rust.yml` once per crate from the anchor workflow on Ubuntu, Windows and
+macOS, and keeps each platform's binary for 7 days as the archive the crate's
+`[package.metadata.binstall]` names. The `umbrella-parity` job then runs
+`apps/au-accounting/tests/parity.py` over those binaries. CodeQL and Dependabot
+include Cargo. All candidate builds have read-only permissions.
 
 The former PyPI publishers of these engines are retired. Native publication is not
-configured; signing and release-policy integration need a separate authorised
-release change. Other components retain their Python publishers.
+configured: no workflow here publishes the binaries. Publishing them needs a
+Release Policy workflow family for Rust binaries and a separate authorised release
+change. Other components retain their Python publishers.
 
 ## Command routing
 

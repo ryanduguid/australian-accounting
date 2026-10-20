@@ -93,8 +93,8 @@ release +args:
 # The fast local pass: lint, type-check and test every component.
 check: lint typecheck test
 
-# Standalone Rust engines, outside the virtual Python workspace.
-rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review packages/ato-benchmark-compare packages/payday-super-checker"
+# Standalone Rust engines and the au-accounting command, outside the virtual Python workspace.
+rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review packages/ato-benchmark-compare packages/payday-super-checker apps/au-accounting"
 
 rust-test:
     #!/usr/bin/env bash
