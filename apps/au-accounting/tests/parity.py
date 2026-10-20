@@ -4,9 +4,7 @@ Every input in each engine's frozen corpora (tests/data/python-*.json), plus
 edge-case JSON the corpora rarely carry, runs through the engine's standalone
 binary and through `au-accounting`, each in its own scratch folder; exit codes,
 stdout, stderr and (for The WIP Tally's file runs) the files left behind must
-match. The one accepted difference: for a JSON number outside the f64 range, an
-engine built without serde_json's `arbitrary_precision` feature reports the
-error's line and column, which `au-accounting` cannot.
+match, including the line and column of JSON input errors.
 
 Standard library only. usage:
     python -I apps/au-accounting/tests/parity.py BIN_DIR [--cap N]
@@ -44,7 +42,6 @@ NUMBERS = ["0", "-0", "1", "-1", "1.0", "1e2", "1E2", "0.1", "2.5e-3", "-0.0",
 EDGES = (["{}", "[]", "null", "", "{", '{"b":1,"a":2}', '{"a":1,"a":2}'] + NUMBERS
          + [f'{{"value":{n},"amount":{n},"kind":"money"}}' for n in NUMBERS]
          + [f'{{"z":{{"y":{n},"x":[{n}]}},"a":{n}}}' for n in NUMBERS[:6]])
-OUT_OF_RANGE = b"error: invalid JSON: number out of range"
 EDGES += [
     '{"$serde_json::private::Number":"2026"}',
     '{"financial_year":{"$serde_json::private::Number":"2026"}}',
@@ -95,14 +92,6 @@ def run(argv: list[str], args: list[str], stdin: bytes, folder: str, env=None):
     return p.returncode, scrub(p.stdout, folder), scrub(p.stderr, folder)
 
 
-def same(left, right) -> bool:
-    if left == right:
-        return True
-    # The accepted difference: the same error without its position.
-    return (left[0], left[1]) == (right[0], right[1]) and right[2].rstrip() == OUT_OF_RANGE \
-        and left[2].startswith(OUT_OF_RANGE + b" at line ")
-
-
 def file_run(argv: list[str], row: dict):
     """One of The WIP Tally's corpus runs: files written, then its steps in order."""
     with tempfile.TemporaryDirectory() as folder:
@@ -141,7 +130,7 @@ def check(name: str, bin_dir: Path, cap: int) -> tuple[str, int, list[str]]:
             env = environment(row)
             left = run(standalone, args, stdin, a, env)
             right = run(umbrella, args, stdin, b, env)
-            if not same(left, right):
+            if left != right:
                 failures.append(f"{name} {args} ({label}):\n  own: {left!r:.300}\n  au-accounting: {right!r:.300}")
     for row in files:
         if file_run(standalone, row) != file_run(umbrella, row):

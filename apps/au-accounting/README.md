@@ -53,8 +53,6 @@ does, which gives the same output. `tests/parity.py` holds every engine to its
 own command, byte for byte, over each engine's frozen corpora and edge-case
 JSON; CI runs it on Windows, macOS and Linux. What remains different:
 
-- For a JSON number outside the f64 range, The Exchequer Tally and Solomon's
-  Sword report `invalid JSON: number out of range` without the line and column.
 - For an integer beyond the 64-bit range sent to those 2 engines, the nearest
   f64 can differ in its last digit, because their own parser rounds such
   integers differently. Both engines take amounts as decimal strings.
