@@ -80,9 +80,12 @@ def environment(row: dict) -> dict[str, str]:
 
 
 def scrub(data: bytes, folder: str) -> bytes:
-    for form in {folder, os.path.realpath(folder)}:
-        for text in (form, form.replace("\\", "\\\\")):
-            data = data.replace(text.encode(), b"<TMP>")
+    forms = {text.encode() for form in {folder, os.path.realpath(folder)}
+             for text in (form, form.replace("\\", "\\\\"))}
+    # macOS /var/... aliases /private/var/...; replacing the shorter path first
+    # would leave /private<TMP> and create a false difference between commands.
+    for form in sorted(forms, key=len, reverse=True):
+        data = data.replace(form, b"<TMP>")
     return data
 
 
