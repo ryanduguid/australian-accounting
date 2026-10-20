@@ -25,7 +25,6 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE_POLICY_SHA = "0f7ca4ce0ba2e7ea52fc611149a42cd5d0a26f6c"
 
 
 def _load_select_package():
@@ -327,10 +326,11 @@ class BoundaryTests(unittest.TestCase):
                 ROOT / ".github" / "workflows" / f"release-{component}.yml"
             ).read_text(encoding="utf-8")
             with self.subTest(component=component):
-                self.assertIn(
-                    "uses: ryanduguid/release-policy/.github/workflows/"
-                    f"release-python.yml@{RELEASE_POLICY_SHA}",
+                # tests/test_release_checks.py holds the callers to one pin.
+                self.assertRegex(
                     workflow,
+                    r"(?m)^\s*uses: ryanduguid/release-policy/\.github/workflows/"
+                    r"release-python\.yml@[0-9a-f]{40}\s*$",
                 )
                 # Whole lines, not substrings: assertIn also accepts
                 # `source-directory: packages/example-old` and
