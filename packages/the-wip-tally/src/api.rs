@@ -69,7 +69,8 @@ fn py_repr(value: &Value) -> Result<String> {
                     text
                 }
             } else {
-                float_repr(n.as_f64().unwrap_or(f64::NAN))
+                // float(text): an overflowing literal such as 1e400 is infinity.
+                float_repr(text.parse().unwrap_or(f64::NAN))
             }
         }
         Value::String(s) => crate::pytext::repr(s),
@@ -209,10 +210,33 @@ pub fn position_json(p: &engine::ContractPosition) -> Value {
 }
 
 /// Run one JSON stdin command: the result value, or the refusal message.
+/// `json.loads` refuses an integer token of more than 4,300 digits, as
+/// `int(text)` does under Python's default limit.
+fn int_limit(value: &Value) -> Result<()> {
+    match value {
+        Value::Number(n) => {
+            let text = n.to_string();
+            let digits = text.strip_prefix('-').unwrap_or(&text);
+            if digits.len() > 4300 && digits.bytes().all(|b| b.is_ascii_digit()) {
+                return Err(format!(
+                    "ValueError: Exceeds the limit (4300 digits) for integer string conversion: \
+                     value has {} digits; use sys.set_int_max_str_digits() to increase the limit",
+                    digits.len()
+                ));
+            }
+            Ok(())
+        }
+        Value::Array(items) => items.iter().try_for_each(int_limit),
+        Value::Object(items) => items.values().try_for_each(int_limit),
+        _ => Ok(()),
+    }
+}
+
 pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
     if !v.is_object() {
         return Err("input must be a JSON object".into());
     }
+    int_limit(v)?;
     match command {
         "measure" => match engine::measure(&contract(v)?) {
             Ok(position) => Ok(position_json(&position)),

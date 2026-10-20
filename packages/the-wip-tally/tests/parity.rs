@@ -492,6 +492,15 @@ fn where_prints_as_python_printed_the_decoded_value() {
             r#"{"raw":null,"where":1.0000000000000001}"#,
             Err("1.0: no amount given"),
         ),
+        (r#"{"raw":null,"where":1e400}"#, Err("inf: no amount given")),
+        (
+            r#"{"raw":null,"where":-1e400}"#,
+            Err("-inf: no amount given"),
+        ),
+        (
+            r#"{"raw":null,"where":[1e400,-1e400]}"#,
+            Err("[inf, -inf]: no amount given"),
+        ),
         (
             r#"{"raw":null,"where":[1,"a",true,null,[2.5]]}"#,
             Err("[1, 'a', True, None, [2.5]]: no amount given"),

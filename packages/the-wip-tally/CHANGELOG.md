@@ -21,7 +21,8 @@ intentionally changed.
   limited to 8 MiB and each decimal field to 8,192 bytes; JSON uses serde_json's nesting limit and refuses lone surrogate escapes.
   Other fields follow Python: `parse-money`'s `where` defaults to `amount` when
   omitted and prints as Python's `str()` of any other value (`None` for `null`, Python's float spelling for a number, Python's list form for a list; an object is refused because its key order is not kept), a `null` `raw` is `no amount given`,
-  and `line_number` is any JSON integer, printed exactly. An optional amount
+  and `line_number` is any JSON integer, printed exactly, up to the 4,300 digits
+  Python's `json.loads` accepted. An optional amount
   that is omitted is `None`; the Python dataclass required it explicitly.
 - Where Python raised an uncaught decimal signal (an amount beyond 28
   significant digits reaching a quantisation), the command prints
