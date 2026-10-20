@@ -38,14 +38,44 @@ class RustEngineTests(unittest.TestCase):
                 for value in cargo["dependencies"].values():
                     self.assertNotIn("path", value if isinstance(value, dict) else {})
 
+    def test_binstall_metadata_names_the_ci_archive_layout(self):
+        # ci-rust.yml packages <crate>-<version>-<target>/<bin> as .tar.gz, or .zip on
+        # Windows; every crate's binstall metadata must name that layout.
+        expected = {
+            "pkg-url": "{ repo }/releases/download/{ name }/v{ version }/{ name }-{ version }-{ target }{ archive-suffix }",
+            "bin-dir": "{ name }-{ version }-{ target }/{ bin }{ binary-ext }",
+            "pkg-fmt": "tgz",
+            "overrides": {"x86_64-pc-windows-msvc": {"pkg-fmt": "zip"}},
+        }
+        workflow = (ROOT / ".github/workflows/ci-rust.yml").read_text()
+        self.assertIn('base="$CRATE-$version-$target"', workflow)
+        self.assertIn('7z a -tzip "$base.zip" "$base"', workflow)
+        self.assertIn('tar -C dist -czf "dist/$base.tar.gz" "$base"', workflow)
+        for component in [*RUST_ENGINES, "apps/au-accounting"]:
+            with self.subTest(component=component):
+                package = tomllib.loads((ROOT / component / "Cargo.toml").read_text())["package"]
+                self.assertEqual(package["repository"], "https://github.com/ryanduguid/australian-accounting")
+                self.assertEqual(package["metadata"]["binstall"], expected)
+
+    def test_umbrella_links_every_engine_by_path(self):
+        cargo = tomllib.loads((ROOT / "apps/au-accounting/Cargo.toml").read_text())
+        engines = {name: dep for name, dep in cargo["dependencies"].items() if name != "serde_json"}
+        self.assertEqual(engines, {name: {"path": f"../../{component}"} for component, name in RUST_ENGINES.items()})
+        source = (ROOT / "apps/au-accounting/src/main.rs").read_text()
+        for name in RUST_ENGINES.values():
+            self.assertIn(name.replace("-", "_") + "::", source)
+        caller = (ROOT / ".github/workflows/ci.yml").read_text()
+        self.assertIn("uses: ./.github/workflows/ci-rust.yml\n    with:\n      package: au-accounting\n      root: apps\n", caller)
+        self.assertIn("/apps/au-accounting", (ROOT / ".github/dependabot.yml").read_text())
+
     def test_cargo_ci_security_and_publisher_boundary(self):
         workflows = ROOT / ".github/workflows"
         caller = (workflows / "ci.yml").read_text()
-        self.assertIn("needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, payday, test, dependency-audit, lint]", caller)
+        self.assertIn("needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, payday, umbrella, umbrella-parity, test, dependency-audit, lint]", caller)
         workflow = (workflows / "ci-rust.yml").read_text()
         for gate in ("cargo fmt --check", "cargo clippy --locked --all-targets -- -D warnings", "cargo test --locked", "cargo build --locked --release", "cargo audit --deny warnings"):
             self.assertIn(gate, workflow)
-        self.assertIn("os: [ubuntu-latest, windows-latest]", workflow)
+        self.assertIn("os: [ubuntu-latest, windows-latest, macos-latest]", workflow)
         self.assertNotIn("contents: write", workflow)
         self.assertNotIn("id-token: write", workflow)
         self.assertIn("language: rust", (workflows / "codeql.yml").read_text())

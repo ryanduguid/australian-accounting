@@ -9,7 +9,10 @@ checks from its own directory.
   is the whole setup for a fresh clone. `just` comes from `uv tool install rust-just`.
 - Components: `apps/aus-accounting-mcp/` (the MCP application),
   `apps/lodgeit-calculator-adapter/` (an optional adapter for a third-party calculator
-  service, off by default and imported by nothing else here),
+  service, off by default and imported by nothing else here), `apps/au-accounting/`
+  (a Rust command with a subcommand per Rust engine; it links the engine crates by
+  path, uses only their public `api` and `cli` modules, and is excluded from the uv
+  workspace),
   `packages/<distribution>/` (one directory per engine) and `packages/au-tax-rates-data/`
   (sourced ATO rates and thresholds with their validator; not an engine, imported by
   nothing and never released).

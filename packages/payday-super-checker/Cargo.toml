@@ -5,6 +5,7 @@ edition = "2024"
 rust-version = "1.99"
 description = "Experimental review aid for Australian payday-super deadlines and SG charge estimates"
 license = "Apache-2.0"
+repository = "https://github.com/ryanduguid/australian-accounting"
 publish = false
 
 [[bin]]
@@ -25,3 +26,13 @@ libc = "0.2"
 [profile.release]
 lto = true
 codegen-units = 1
+
+# Asset names the release workflow will publish once release-policy has a Rust
+# binary family; see the root README.
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/{ name }/v{ version }/{ name }-{ version }-{ target }{ archive-suffix }"
+bin-dir = "{ name }-{ version }-{ target }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"
