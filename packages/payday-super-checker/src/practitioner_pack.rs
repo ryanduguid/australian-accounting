@@ -15,10 +15,31 @@ use crate::decimal::Decimal;
 use crate::py::{Date, PyPath};
 use crate::pytext;
 use crate::rates::hex;
-use crate::report::CSV_HEADER;
 use crate::{Failure, Result};
 
-pub const EXPECTED_REPORT_HEADER: [&str; 18] = CSV_HEADER;
+/// Deliberately duplicated from `report::CSV_HEADER`: a producer change must
+/// fail `the_contract_is_pinned_to_the_report_writer` until this consumer is
+/// consciously reviewed and updated.
+pub const EXPECTED_REPORT_HEADER: [&str; 18] = [
+    "row",
+    "employee_id",
+    "qe_day",
+    "pathway",
+    "due_date",
+    "verdict",
+    "days_late",
+    "lateness_measured_to",
+    "sg_amount",
+    "final_shortfall",
+    "notional_earnings",
+    "uplift_best_case",
+    "uplift_worst_case",
+    "sgc_estimate_low",
+    "sgc_estimate_high",
+    "caveats",
+    "notes",
+    "unassessable_between",
+];
 pub const VERDICTS: [&str; 6] = ["ON_TIME", "AT_RISK", "LATE", "UNPAID", "UNKNOWN", "SKIPPED"];
 pub const EXPOSURE_FIELDS: [&str; 6] = [
     "final_shortfall",
@@ -146,14 +167,16 @@ fn amount(value: &str, field: &str, source_row: &str, optional: bool) -> Result<
     Ok(Some(amount))
 }
 
-/// `int(value)` that must also print back as `value`: canonical ASCII digits.
+/// `int(value)` that must also print back as `value`: canonical ASCII digits,
+/// within Python's 4,300-digit conversion limit.
 fn canonical_int(value: &str) -> bool {
-    value == "0"
+    let canonical = value == "0"
         || (value
             .bytes()
             .next()
             .is_some_and(|b| (b'1'..=b'9').contains(&b))
-            && value.bytes().all(|b| b.is_ascii_digit()))
+            && value.bytes().all(|b| b.is_ascii_digit()));
+    canonical && value.len() <= 4300
 }
 
 fn parse_data_row(values: &[String], seen: &mut BTreeSet<String>) -> Result<ReportRow> {
@@ -310,9 +333,20 @@ pub fn load_report_snapshot(raw: &str) -> Result<ReportSnapshot> {
     if !extension(&name).eq_ignore_ascii_case(".csv") {
         return Err(pack_error(format!("{raw} must be a .csv checker report")));
     }
+    // `os.getcwd()` raised its OSError, naming no file.
     let root = std::env::current_dir()
         .map(|p| crate::cli::decode_os(p.as_os_str()))
-        .unwrap_or_default();
+        .map_err(|e| {
+            let code = e.raw_os_error().unwrap_or(0);
+            let (errno, strerror) =
+                crate::py::errno_and_strerror(&e, code, crate::py::OsStyle::Errno);
+            Failure::Os(crate::OsError {
+                errno,
+                text: format!("[Errno {errno}] {strerror}"),
+                strerror,
+                filename: None,
+            })
+        })?;
     let candidate = join(&root, &name);
     let data = std::fs::read(crate::py::fs_path(&candidate))
         .map_err(|e| crate::csv_io::os_failure(&e, &candidate))?;
@@ -335,6 +369,9 @@ pub fn parse_report_snapshot(
     source: &str,
     identifiers_omitted: bool,
 ) -> Result<ReportSnapshot> {
+    // Python took a Path, so the source reads as pathlib prints it ("" is ".").
+    let source = PyPath::new(source).display();
+    let source = source.as_str();
     let digest = hex(&Sha256::digest(data));
     let body_bytes = data.strip_prefix(b"\xef\xbb\xbf").unwrap_or(data);
     if std::str::from_utf8(body_bytes).is_err() {
@@ -675,4 +712,14 @@ pub fn render_practitioner_pack(snapshot: &ReportSnapshot, decision_log: bool) -
 pub fn write_practitioner_pack(snapshot: &ReportSnapshot, path: &str) -> Result<()> {
     let text = render_practitioner_pack(snapshot, false)?;
     crate::atomic::write(path, text.as_bytes(), crate::atomic::markdown_destination)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_contract_is_pinned_to_the_report_writer() {
+        assert_eq!(EXPECTED_REPORT_HEADER, crate::report::CSV_HEADER);
+    }
 }

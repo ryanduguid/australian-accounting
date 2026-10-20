@@ -195,6 +195,7 @@ pub fn render_csv(
     };
     let source = facts
         .source
+        .filter(|s| !s.is_empty())
         .map(|s| format!(", source {s}"))
         .unwrap_or_default();
     let provenance = if facts.gic_provenance.is_empty() {
@@ -223,36 +224,43 @@ pub fn render_csv(
     Ok(out)
 }
 
-fn cap_text(entry: Option<&Raw>, fy_label: &str) -> String {
+/// `int(mcb)` with Python's arbitrary precision: TypeError and ValueError
+/// give the unreadable text; an infinite float raises OverflowError uncaught.
+fn cap_text(entry: Option<&Raw>, fy_label: &str) -> Result<String> {
+    use num_traits::FromPrimitive;
     let mcb = entry.and_then(|e| e.get("max_contributions_base"));
-    let whole = match mcb {
+    let whole: Option<num_bigint::BigInt> = match mcb {
         None | Some(Raw::None) => {
-            return format!(
+            return Ok(format!(
                 "not on record for {fy_label}: add max_contributions_base for that year \
                  to data/rates.json"
-            );
+            ));
         }
-        Some(Raw::Int(digits)) => digits.parse::<i128>().ok(),
-        Some(Raw::Bool(b)) => Some(i128::from(*b)),
-        Some(Raw::Str(s)) => crate::py::parse_int(s, 10)
-            .ok()
-            .and_then(|i| i.to_string().parse::<i128>().ok()),
-        Some(Raw::Float(f)) if f.is_finite() => Some(f.trunc() as i128),
+        Some(Raw::Int(digits)) => digits.parse().ok(),
+        Some(Raw::Bool(b)) => Some(u8::from(*b).into()),
+        Some(Raw::Str(s)) => crate::py::parse_int(s, 10).ok(),
+        Some(Raw::Float(f)) if f.is_infinite() => {
+            return Err(Failure::Uncaught(
+                "OverflowError: cannot convert float infinity to integer".into(),
+            ));
+        }
+        Some(Raw::Float(f)) => num_bigint::BigInt::from_f64(f.trunc()),
         Some(_) => None,
     };
-    match whole {
-        Some(n) => format!("${} for {fy_label}, annual per employer", grouped(n)),
+    Ok(match whole {
+        Some(n) => format!("${} for {fy_label}, annual per employer", grouped(&n)),
         None => format!(
             "unreadable for {fy_label}: data/rates.json holds \
              max_contributions_base {}, which is not a whole number of dollars",
             mcb.expect("present").py_repr()
         ),
-    }
+    })
 }
 
 /// `f"{n:,}"`.
-fn grouped(n: i128) -> String {
-    let digits = n.unsigned_abs().to_string();
+fn grouped(n: &num_bigint::BigInt) -> String {
+    let negative = n.sign() == num_bigint::Sign::Minus;
+    let digits = n.magnitude().to_string();
     let mut out = String::new();
     for (i, ch) in digits.chars().enumerate() {
         if i > 0 && (digits.len() - i).is_multiple_of(3) {
@@ -260,7 +268,7 @@ fn grouped(n: i128) -> String {
         }
         out.push(ch);
     }
-    if n < 0 { format!("-{out}") } else { out }
+    if negative { format!("-{out}") } else { out }
 }
 
 /// The run's options the console summary repeats.
@@ -534,7 +542,7 @@ pub fn console_summary(results: &[Assessed], facts: &SummaryFacts) -> Result<Str
     let mcb_text = labels
         .iter()
         .map(|label| cap_text(fy.get(label), label))
-        .collect::<Vec<_>>()
+        .collect::<Result<Vec<_>>>()?
         .join("; ");
     let assessment_line = match facts.assessment_date {
         Some(a) => format!(

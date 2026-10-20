@@ -665,25 +665,6 @@ fn parse_rows_bytes(
             return Err(key_error(field).into());
         }
     }
-    for field in &mapping.explicit {
-        if !mapping.has(field) {
-            return Err(key_error(field).into());
-        }
-    }
-    let mut optional_order = [
-        "remitted",
-        "received",
-        "next_standard_qe_day",
-        "remitted_amount",
-        "matched_amount",
-        "join_caveats",
-        "first_to_fund",
-        "out_of_cycle",
-        "db_interest",
-    ]
-    .into_iter()
-    .filter(|f| !mapping.has(f));
-    let unmapped_optional = optional_order.next();
     let missing: Vec<&str> = CANONICAL
         .iter()
         .filter(|(field, required)| *required && !headers.contains(mapping.get(field)))
@@ -698,6 +679,12 @@ fn parse_rows_bytes(
             repr_list(&missing)
         ))
         .into());
+    }
+    // Python looked each explicit field up while listing the mismapped ones.
+    for field in &mapping.explicit {
+        if !mapping.has(field) {
+            return Err(key_error(field).into());
+        }
     }
     let mismapped = sorted_strings(
         mapping
@@ -739,16 +726,18 @@ fn parse_rows_bytes(
                 })
                 .unwrap_or_default()
         };
-        let optional = |field: &str| cell(mapping.get(field));
+        // An optional field the mapping lacks raises KeyError where it is read.
+        let optional = |field: &str| -> Result<String> {
+            if mapping.has(field) {
+                Ok(cell(mapping.get(field)))
+            } else {
+                Err(key_error(field))
+            }
+        };
         let employee = pytext::strip(&cell(mapping.get("employee_id"))).to_string();
         if employee.is_empty() {
             problems.push(format!("row {i}: employee_id is empty"));
             continue;
-        }
-        if let Some(field) = unmapped_optional
-            && !["first_to_fund", "out_of_cycle", "db_interest"].contains(&field)
-        {
-            return Err(key_error(field).into());
         }
         match read_line(
             i,
@@ -776,14 +765,14 @@ fn read_line(
     employee: String,
     sg_raw: &str,
     qe_raw: &str,
-    optional: &dyn Fn(&str) -> String,
+    optional: &dyn Fn(&str) -> Result<String>,
 ) -> Result<ContribLine> {
-    let remitted_raw = pytext::strip(&optional("remitted")).to_string();
-    let received_raw = pytext::strip(&optional("received")).to_string();
-    let next_raw = pytext::strip(&optional("next_standard_qe_day")).to_string();
-    let remitted_amount_raw = pytext::strip(&optional("remitted_amount")).to_string();
-    let matched_amount_raw = pytext::strip(&optional("matched_amount")).to_string();
-    let join_caveats_raw = pytext::strip(&optional("join_caveats")).to_string();
+    let remitted_raw = pytext::strip(&optional("remitted")?).to_string();
+    let received_raw = pytext::strip(&optional("received")?).to_string();
+    let next_raw = pytext::strip(&optional("next_standard_qe_day")?).to_string();
+    let remitted_amount_raw = pytext::strip(&optional("remitted_amount")?).to_string();
+    let matched_amount_raw = pytext::strip(&optional("matched_amount")?).to_string();
+    let join_caveats_raw = pytext::strip(&optional("join_caveats")?).to_string();
     let join_caveats: Vec<String> = join_caveats_raw
         .split(" | ")
         .filter(|p| !p.is_empty())
@@ -867,14 +856,14 @@ fn read_line(
     } else {
         Some(parse_date(&received_raw, "received", i)?)
     };
-    let first_to_fund = parse_bool(&optional("first_to_fund"), "first_to_fund", i)?;
-    let out_of_cycle = parse_bool(&optional("out_of_cycle"), "out_of_cycle", i)?;
+    let first_to_fund = parse_bool(&optional("first_to_fund")?, "first_to_fund", i)?;
+    let out_of_cycle = parse_bool(&optional("out_of_cycle")?, "out_of_cycle", i)?;
     let next_standard_qe_day = if next_raw.is_empty() {
         None
     } else {
         Some(parse_date(&next_raw, "next_standard_qe_day", i)?)
     };
-    let db_interest = parse_bool(&optional("db_interest"), "db_interest", i)?;
+    let db_interest = parse_bool(&optional("db_interest")?, "db_interest", i)?;
     Ok(ContribLine {
         employee_id: employee,
         qe_day,

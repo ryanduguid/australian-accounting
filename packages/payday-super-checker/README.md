@@ -505,7 +505,9 @@ remain unambiguous.
 The Python import API is replaced by JSON stdin subcommands, for scripts and
 for the MCP server. Each reads one JSON object on stdin and writes the result
 as JSON, or one `error:` line on stderr with exit 2. Decimals are strings,
-dates are `YYYY-MM-DD` strings and paths are file paths. A contribution line
+dates are `YYYY-MM-DD` strings and paths are file paths. An omitted field
+takes the Python function's default and a field it required must be given;
+`null` is accepted only where the Python argument was optional. A contribution line
 has the canonical field names (`employee_id`, `qe_day`, `sg_amount`,
 `remitted`, `remitted_amount`, `received`, `first_to_fund`, `out_of_cycle`,
 `next_standard_qe_day`, `db_interest`, `row`, `matched_amount`,
@@ -517,32 +519,35 @@ table with explicit `from`, `to` and `annual_pct` entries.
 | Command | Input |
 | --- | --- |
 | `parse-date-text` | `text` |
-| `parse-amount` | `value`, `field`, `row`, `empty_is_error` |
+| `parse-amount` | `value`, `field` and `row` (required), `empty_is_error` |
 | `csv-safe`, `normalise-header`, `normalise-name` | `text` |
 | `money` | `value` |
 | `load-mapping` | `mapping_file`, `overrides` |
 | `parse-rows` | `path`, and `mapping_file` and `overrides`, or `mapping` and `explicit` |
 | `load-calendar` | `calendar` |
-| `add-business-days` | `calendar`, `date`, `n` |
+| `add-business-days` | `calendar`, `date`, `n` (required) |
 | `load-gic` | `quarters` |
 | `daily-rate` | `quarters`, `date`, `allow_stale` |
 | `notional-earnings` | `shortfall`, `due`, `end`, `quarters`, `allow_stale` |
 | `uplift-scenarios`, `exposure-range` | `final_shortfall`, `nec` |
 | `compute-due` | `line`, `calendar` |
 | `assess`, `needs-attention` | `lines`, `calendar`, `quarters`, `as_at`, `assessment_date`, `transition_allocation_confirmed`, `allow_stale_gic`; `needs-attention` adds `remittance_only_confirmed` |
-| `render-csv` | as `assess`, with `law_date`, `source`, `gic_provenance`, `include_employee_ids` |
-| `console-summary` | as `assess`, with `csv_path`, `law_date`, `remittance_only_confirmed` |
+| `render-csv` | as `assess`, with `law_date` (required), `source`, `gic_provenance`, `include_employee_ids` |
+| `console-summary` | as `assess`, with `csv_path` and `law_date` (required), `remittance_only_confirmed` |
 | `build-evidence-pack` | as `assess`, with `gic_provenance`, `remittance_only_confirmed`, `rate_tables` |
 | `financial-year` | `date` |
-| `parse-report-snapshot`, `render-practitioner-pack` | `path`, or `text` or `data_b64` with `source` and `identifiers_omitted`; `render-practitioner-pack` adds `decision_log` |
+| `parse-report-snapshot`, `render-practitioner-pack` | `path`, or `text` or `data_b64` with `source` (required) and `identifiers_omitted`; `render-practitioner-pack` adds `decision_log` |
 | `load-profiles` | `role` |
 | `detect-profile` | `headers`, `role`, `vendor` |
 | `read-payroll`, `read-super` | `path`, `vendor` |
 | `join` | `payroll_rows`, `super_rows`, `payroll_has_period_end`, `super_has_period_start`, `super_has_period_end` |
 | `import-files` | `payroll`, `super`, `output`, `vendor`, `statutory_allocation_confirmed` |
 
-`assess` returns each line's result with its rounded `figures`; `join` returns
-the outcomes, orphans and the canonical CSV text `import` would write.
+`assess` returns each line's result with its rounded `figures` (null where a
+figure cannot be rounded to cents); `join` returns the outcomes, orphans and the
+canonical CSV text `import` would write; `import-files` returns the whole
+import report. `build-evidence-pack` names no rate table and no GIC provenance
+unless `rate_tables` and `gic_provenance` are given, as Python's defaults did.
 
 ```sh
 echo '{"text": "9 Jul 2026"}' | payday-super-check parse-date-text

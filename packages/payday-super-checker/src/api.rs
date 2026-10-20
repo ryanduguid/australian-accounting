@@ -6,6 +6,7 @@
 
 use serde_json::{Map, Value, json};
 
+use crate::Failure;
 use crate::assess::{self, Assessed, Options};
 use crate::calendar::{self, BusinessCalendar, Holiday};
 use crate::csv_io::{self, Mapping};
@@ -20,7 +21,6 @@ use crate::py::Date;
 use crate::rates::{self, GicQuarter, GicTable, TableSource};
 use crate::report::{self, Figures, NoteFacts, SummaryFacts};
 use crate::sgc;
-use crate::{Failure, LAW_CONTENT_DATE};
 
 type Result<T> = std::result::Result<T, String>;
 
@@ -108,11 +108,30 @@ fn optional_text<'a>(v: &'a Value, key: &str) -> Result<Option<&'a str>> {
     }
 }
 
+/// A field whose Python default is a string: absent takes it; `null` and
+/// other types are refused, since the API passes no Python object through.
+fn text_or<'a>(v: &'a Value, key: &str, default: &'a str) -> Result<&'a str> {
+    match v.get(key) {
+        None => Ok(default),
+        Some(_) => text(v, key),
+    }
+}
+
+/// A boolean whose Python default is False: absent takes it; `null` and
+/// other types are refused.
 fn flag(v: &Value, key: &str) -> Result<bool> {
     match v.get(key) {
-        None | Some(Value::Null) => Ok(false),
+        None => Ok(false),
         Some(Value::Bool(b)) => Ok(*b),
         Some(_) => Err(format!("{key} must be a boolean")),
+    }
+}
+
+/// A boolean the Python function or dataclass required.
+fn required_flag(v: &Value, key: &str) -> Result<bool> {
+    match v.get(key) {
+        Some(Value::Bool(b)) => Ok(*b),
+        _ => Err(format!("{key} must be a boolean")),
     }
 }
 
@@ -126,18 +145,24 @@ fn control(v: &Value, key: &str, default: bool) -> Result<bool> {
     }
 }
 
+/// An integer with a Python default: absent takes it; anything but a 64-bit
+/// JSON integer is refused.
 fn int(v: &Value, key: &str, default: i64) -> Result<i64> {
     match v.get(key) {
-        None | Some(Value::Null) => Ok(default),
-        Some(n) => n
-            .as_i64()
-            .ok_or_else(|| format!("{key} must be an integer")),
+        None => Ok(default),
+        Some(_) => required_int(v, key),
     }
+}
+
+fn required_int(v: &Value, key: &str) -> Result<i64> {
+    v.get(key)
+        .and_then(Value::as_i64)
+        .ok_or_else(|| format!("{key} must be an integer"))
 }
 
 fn strings(v: &Value, key: &str) -> Result<Vec<String>> {
     match v.get(key) {
-        None | Some(Value::Null) => Ok(Vec::new()),
+        None => Ok(Vec::new()),
         Some(Value::Array(items)) => items
             .iter()
             .map(|x| {
@@ -147,6 +172,22 @@ fn strings(v: &Value, key: &str) -> Result<Vec<String>> {
             })
             .collect(),
         Some(_) => Err(format!("{key} must be a list of strings")),
+    }
+}
+
+/// A list Python accepted as `None` too (`explicit`, `overrides`).
+fn optional_strings(v: &Value, key: &str) -> Result<Vec<String>> {
+    match v.get(key) {
+        Some(Value::Null) => Ok(Vec::new()),
+        _ => strings(v, key),
+    }
+}
+
+/// A list the Python function or dataclass required.
+fn required_strings(v: &Value, key: &str) -> Result<Vec<String>> {
+    match v.get(key) {
+        Some(Value::Array(_)) => strings(v, key),
+        _ => Err(format!("{key} must be a list of strings")),
     }
 }
 
@@ -202,9 +243,7 @@ fn line_of(v: &Value) -> Result<ContribLine> {
         next_standard_qe_day: optional_date(v, "next_standard_qe_day")?,
         db_interest: flag(v, "db_interest")?,
         row: int(v, "row", 0)?,
-        duplicate_note: optional_text(v, "duplicate_note")?
-            .unwrap_or("")
-            .to_string(),
+        duplicate_note: text_or(v, "duplicate_note", "")?.to_string(),
         matched_amount: optional_decimal(v, "matched_amount")?,
         join_caveats: strings(v, "join_caveats")?,
     })
@@ -251,8 +290,8 @@ fn calendar_of(v: &Value) -> Result<BusinessCalendar> {
         holidays.push(Holiday {
             day: date(item, "day")?,
             name: text(item, "name")?.to_string(),
-            jurisdictions: strings(item, "jurisdictions")?,
-            provisional: flag(item, "provisional")?,
+            jurisdictions: required_strings(item, "jurisdictions")?,
+            provisional: required_flag(item, "provisional")?,
         });
     }
     Ok(BusinessCalendar::new(
@@ -287,7 +326,7 @@ fn gic_of(v: &Value) -> Result<GicTable> {
             start: date(item, "from")?,
             end: date(item, "to")?,
             annual_pct: decimal(item, "annual_pct")?,
-            seen: optional_text(item, "seen")?.unwrap_or("").to_string(),
+            seen: text_or(item, "seen", "")?.to_string(),
         });
     }
     GicTable::new(quarters, None).map_err(failure)
@@ -359,7 +398,9 @@ fn result_json(r: &Assessed) -> Result<Value> {
         "caveats": r.caveats,
         "horizon_verdicts": r.horizon_verdicts.as_ref().map(|(a, b)| json!([a, b])),
         "receipt_established": r.receipt_established,
-        "figures": figures_json(&report::rounded_figures(r).map_err(failure)?),
+        // Python's assess() did no display rounding, so a figure that cannot
+        // be rounded to cents leaves `figures` null rather than failing the call.
+        "figures": report::rounded_figures(r).ok().map(|f| figures_json(&f)),
     }))
 }
 
@@ -401,7 +442,7 @@ fn snapshot_of(v: &Value) -> Result<ReportSnapshot> {
     };
     practitioner_pack::parse_report_snapshot(
         &data,
-        optional_text(v, "source")?.unwrap_or("report.csv"),
+        text(v, "source")?,
         flag(v, "identifiers_omitted")?,
     )
     .map_err(failure)
@@ -488,7 +529,7 @@ fn payroll_of(v: &Value) -> Result<PayrollRow> {
         payday: date(v, "payday")?,
         period_end: optional_date(v, "period_end")?,
         sg_amount: decimal(v, "sg_amount")?,
-        row: int(v, "row", 0)?,
+        row: required_int(v, "row")?,
     })
 }
 
@@ -500,7 +541,7 @@ fn super_of(v: &Value) -> Result<SuperRow> {
         period_end: optional_date(v, "period_end")?,
         paid_date: optional_date(v, "paid_date")?,
         amount: decimal(v, "amount")?,
-        row: int(v, "row", 0)?,
+        row: required_int(v, "row")?,
         unpaid_status: optional_text(v, "unpaid_status")?.map(str::to_string),
     })
 }
@@ -554,11 +595,14 @@ fn mapping_of(v: &Value) -> Result<Mapping> {
         }
         return Ok(Mapping {
             columns,
-            explicit: strings(v, "explicit")?.into_iter().collect(),
+            explicit: optional_strings(v, "explicit")?.into_iter().collect(),
         });
     }
-    csv_io::load_mapping(optional_text(v, "mapping_file")?, &strings(v, "overrides")?)
-        .map_err(failure)
+    csv_io::load_mapping(
+        optional_text(v, "mapping_file")?,
+        &optional_strings(v, "overrides")?,
+    )
+    .map_err(failure)
 }
 
 /// Run one JSON stdin command.
@@ -573,8 +617,8 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         "parse-amount" => Ok(dec(Some(
             &csv_io::parse_amount(
                 text(v, "value")?,
-                optional_text(v, "field")?.unwrap_or("amount"),
-                int(v, "row", 0)?,
+                text(v, "field")?,
+                required_int(v, "row")?,
                 flag(v, "empty_is_error")?,
             )
             .map_err(failure)?,
@@ -599,7 +643,7 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         "add-business-days" => {
             let cal = calendar_of(v)?;
             let day = cal
-                .add_business_days(date(v, "date")?, int(v, "n", 0)?)
+                .add_business_days(date(v, "date")?, required_int(v, "n")?)
                 .map_err(failure)?;
             Ok(json!(day.isoformat()))
         }
@@ -663,10 +707,10 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                     &results,
                     &NoteFacts {
                         as_at,
-                        law_date: optional_text(v, "law_date")?.unwrap_or(LAW_CONTENT_DATE),
+                        law_date: text(v, "law_date")?,
                         assessment_date,
                         source: optional_text(v, "source")?,
-                        gic_provenance: optional_text(v, "gic_provenance")?.unwrap_or(""),
+                        gic_provenance: text_or(v, "gic_provenance", "")?,
                     },
                     include_employee_ids,
                 )
@@ -682,8 +726,8 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                     &results,
                     &SummaryFacts {
                         as_at,
-                        csv_path: optional_text(v, "csv_path")?.unwrap_or("report.csv"),
-                        law_date: optional_text(v, "law_date")?.unwrap_or(LAW_CONTENT_DATE),
+                        csv_path: text(v, "csv_path")?,
+                        law_date: text(v, "law_date")?,
                         rates: &rates,
                         assessment_date,
                         remittance_only_confirmed,
@@ -701,9 +745,11 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         }
         "financial-year" => Ok(json!(assess::financial_year(date(v, "date")?))),
         "build-evidence-pack" => {
-            let (results, as_at, assessment_date, gic) = assessed(v)?;
+            let (results, as_at, assessment_date, _) = assessed(v)?;
             let remittance_only_confirmed = control(v, "remittance_only_confirmed", false)?;
+            // Python's defaults: no rate tables and no provenance line.
             let tables: Vec<TableSource> = match v.get("rate_tables") {
+                None => Vec::new(),
                 Some(Value::Array(items)) => items
                     .iter()
                     .map(|t| {
@@ -713,12 +759,9 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                         })
                     })
                     .collect::<Result<_>>()?,
-                _ => gic.source.iter().cloned().collect(),
+                Some(_) => return Err("rate_tables must be a list".into()),
             };
-            let provenance = match optional_text(v, "gic_provenance")? {
-                Some(p) => p.to_string(),
-                None => gic.provenance(),
-            };
+            let provenance = text_or(v, "gic_provenance", "")?.to_string();
             let files = evidence_pack::build_evidence_pack(
                 &results,
                 &PackFacts {
@@ -749,7 +792,7 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                 .collect(),
         )),
         "detect-profile" => {
-            let headers = strings(v, "headers")?;
+            let headers = required_strings(v, "headers")?;
             let profile = profiles::detect(&headers, text(v, "role")?, optional_text(v, "vendor")?)
                 .map_err(failure)?;
             Ok(json!({
@@ -780,9 +823,10 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         }
         "join" => {
             let defaults = Columns::default();
+            // Python read these flags by truthiness.
             let present = |key: &str, default: bool| match v.get(key) {
-                Some(Value::Bool(b)) => *b,
-                _ => default,
+                Some(value) => crate::raw::Raw::from_value(value).truthy(),
+                None => default,
             };
             let result = join::join(
                 list_of(v, "payroll_rows", payroll_of)?,
@@ -820,10 +864,14 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             )
             .map_err(failure)?;
             Ok(json!({
-                "payroll_profile": report.payroll_profile.key,
-                "super_profile": report.super_profile.key,
+                "payroll_profile": profile_json(&report.payroll_profile),
+                "super_profile": profile_json(&report.super_profile),
                 "outcome_counts": report.outcome_counts.iter().map(|(b, n)| json!([b, n])).collect::<Vec<_>>(),
-                "orphan_reasons": report.orphan_reasons.iter().map(|r| json!([r.code, r.message])).collect::<Vec<_>>(),
+                "orphan_reasons": report.orphan_reasons.iter().map(|r| json!({
+                    "super_row": super_json(&report.super_rows[r.super_row]),
+                    "code": r.code,
+                    "message": r.message,
+                })).collect::<Vec<_>>(),
                 "key_mode": report.key_mode,
                 "warnings": report.warnings,
                 "clean": report.clean(),

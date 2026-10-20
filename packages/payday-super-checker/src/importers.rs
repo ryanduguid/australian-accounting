@@ -366,7 +366,7 @@ pub const OUTCOME_UNMATCHED: &str = "unmatched";
 
 /// Bucket one payroll row's join outcome; the more actionable bucket wins.
 pub fn classify_outcome(outcome: &MatchOutcome, row: &PayrollRow) -> Result<&'static str> {
-    if row.sg_amount.is_zero() {
+    if row.sg_amount.equals(&crate::csv_io::zero())? {
         return Ok(OUTCOME_OWES_NOTHING);
     }
     if outcome.flag == "no super payment found" {
@@ -459,18 +459,20 @@ fn refuse_merged_identities(result: &JoinResult, labels: &[(String, String)]) ->
 }
 
 /// The canonical contributions CSV text, without the BOM the file carries.
-pub fn canonical_csv(result: &JoinResult) -> Result<String> {
+/// Each join key's written label, refused where 2 people would share one.
+fn labels_of(result: &JoinResult) -> Result<Vec<(String, String)>> {
     let mut labels: Vec<(String, String)> = Vec::new();
     for outcome in &result.outcomes {
         let row = &result.payroll_rows[outcome.payroll];
+        // Python's `a or b or c or ""`: an empty string falls through.
+        let given = |s: &Option<String>| s.clone().filter(|s| !s.is_empty());
         let preferred = if result.key_mode == "id" {
-            row.employee_id.as_ref()
+            given(&row.employee_id)
         } else {
-            row.employee_name.as_ref()
+            given(&row.employee_name)
         }
-        .or(row.employee_id.as_ref())
-        .or(row.employee_name.as_ref())
-        .cloned()
+        .or_else(|| given(&row.employee_id))
+        .or_else(|| given(&row.employee_name))
         .unwrap_or_default();
         let k = join::payroll_key(row, &result.key_mode);
         if !labels.iter().any(|(key, _)| *key == k) {
@@ -478,6 +480,11 @@ pub fn canonical_csv(result: &JoinResult) -> Result<String> {
         }
     }
     refuse_merged_identities(result, &labels)?;
+    Ok(labels)
+}
+
+pub fn canonical_csv(result: &JoinResult) -> Result<String> {
+    let labels = labels_of(result)?;
     let join_note = result.warnings.join(" | ");
     let mut out = String::new();
     csvwrite::row(
@@ -530,7 +537,9 @@ pub fn canonical_csv(result: &JoinResult) -> Result<String> {
 
 /// Write the canonical contributions CSV with a UTF-8 BOM.
 pub fn write_canonical(result: &JoinResult, path: &str) -> Result<()> {
-    // The guard runs before anything is staged, as Python's did.
+    // The identity refusal, then the output-name guard, then the rows, in
+    // Python's order; nothing is staged before all three pass.
+    labels_of(result)?;
     crate::atomic::csv_destination(path)?;
     let text = canonical_csv(result)?;
     crate::atomic::write(
@@ -578,6 +587,8 @@ pub struct ImportReport {
     /// Payroll-row counts by outcome bucket, in first-seen order.
     pub outcome_counts: Vec<(String, usize)>,
     pub orphan_reasons: Vec<OrphanReason>,
+    /// The super rows `orphan_reasons` index, as Python's carried each row.
+    pub super_rows: Vec<SuperRow>,
     pub key_mode: String,
     pub warnings: Vec<String>,
 }
@@ -758,6 +769,7 @@ pub fn import_files(
         super_profile,
         outcome_counts,
         orphan_reasons: result.orphan_reasons.clone(),
+        super_rows: result.super_rows.clone(),
         key_mode: result.key_mode.clone(),
         warnings,
     })

@@ -202,12 +202,27 @@ fn calendar_date(raw: &Raw, key: &str, at: &str) -> Result<Date> {
     })
 }
 
-/// The bundled table: its holidays in file order and its verified span.
-fn bundled() -> Result<(Vec<Holiday>, Date, Date)> {
+/// The bundled table: its holidays in file order and the document, whose
+/// verified span Python read only after applying any override.
+fn bundled(text: &str) -> Result<(Vec<Holiday>, Raw)> {
     let doc = Raw::from_json(
-        &crate::pyjson::loads(&crate::py::universal_newlines(BUNDLED))
+        &crate::pyjson::loads(&crate::py::universal_newlines(text))
             .map_err(|e| calendar_error(format!("{BUNDLED_PATH} is not valid JSON: {e}")))?,
     );
+    if !matches!(doc, Raw::Dict(_)) {
+        return Err(calendar_error(format!(
+            "{BUNDLED_PATH} must be a JSON object with 'non_business_days', \
+             'verified_from' and 'verified_until'; it holds a {} instead",
+            doc.type_name()
+        )));
+    }
+    for key in ["non_business_days", "verified_from", "verified_until"] {
+        if doc.get(key).is_none() {
+            return Err(calendar_error(format!(
+                "{BUNDLED_PATH} is missing the '{key}' key"
+            )));
+        }
+    }
     let Some(Raw::List(entries)) = doc.get("non_business_days") else {
         return Err(calendar_error(format!(
             "{BUNDLED_PATH}: 'non_business_days' must be a list of holiday entries"
@@ -224,17 +239,7 @@ fn bundled() -> Result<(Vec<Holiday>, Date, Date)> {
         }
         holidays.push(holiday);
     }
-    let from = calendar_date(
-        doc.get("verified_from").unwrap_or(&Raw::None),
-        "verified_from",
-        BUNDLED_PATH,
-    )?;
-    let until = calendar_date(
-        doc.get("verified_until").unwrap_or(&Raw::None),
-        "verified_until",
-        BUNDLED_PATH,
-    )?;
-    Ok((holidays, from, until))
+    Ok((holidays, doc))
 }
 
 /// Insert or replace a holiday by day, keeping a replaced day's position.
@@ -248,12 +253,26 @@ fn put(holidays: &mut Vec<Holiday>, holiday: Holiday) {
 /// Load the bundled table, optionally patched by an override file:
 /// `{"add": [...], "remove": ["2026-09-25"], "verified_until": "2029-12-31"}`.
 pub fn load_calendar(override_path: Option<&str>) -> Result<BusinessCalendar> {
-    let (mut holidays, verified_from, verified_until) = bundled()?;
+    load_from(BUNDLED, override_path)
+}
+
+fn load_from(text: &str, override_path: Option<&str>) -> Result<BusinessCalendar> {
+    let (mut holidays, doc) = bundled(text)?;
     let mut declared_until = None;
     if let Some(path) = override_path {
         let doc = csv_io::load_json(path, |e| format!("{path} is not valid JSON: {e}"))?;
         apply_override(&mut holidays, &mut declared_until, &doc, path)?;
     }
+    let verified_from = calendar_date(
+        doc.get("verified_from").expect("checked"),
+        "verified_from",
+        BUNDLED_PATH,
+    )?;
+    let verified_until = calendar_date(
+        doc.get("verified_until").expect("checked"),
+        "verified_until",
+        BUNDLED_PATH,
+    )?;
     Ok(BusinessCalendar::new(
         holidays,
         verified_from,
@@ -274,7 +293,8 @@ pub fn apply_override(
             "{path} must be an object with 'add' and 'remove' lists"
         )));
     };
-    let unknown: Vec<&str> = entries
+    // A set, as Python's: a repeated key is named once.
+    let unknown: std::collections::BTreeSet<&str> = entries
         .iter()
         .map(|(k, _)| k.as_str())
         .filter(|k| !["add", "remove", "verified_until"].contains(k))
@@ -404,5 +424,75 @@ mod tests {
             cal.provisional_hits(day(2026, 7, 1), day(2026, 7, 31))
                 .is_empty()
         );
+    }
+
+    /// Python 0.2.2's answers for a hand-edited bundled calendar, its data path
+    /// shortened to the crate's, including the verified dates being read only
+    /// after any override.
+    #[test]
+    fn a_malformed_bundled_calendar_is_refused_as_python_refused_it() {
+        for (text, override_path, expected) in [
+            (
+                r#"{}"#,
+                None,
+                r#"data/business_days.json is missing the 'non_business_days' key"#,
+            ),
+            (
+                r#"[{"date": "2026-08-03", "name": "Picnic Day", "jurisdictions": ["NT"]}]"#,
+                None,
+                r#"data/business_days.json must be a JSON object with 'non_business_days', 'verified_from' and 'verified_until'; it holds a list instead"#,
+            ),
+            (
+                r#""x""#,
+                None,
+                r#"data/business_days.json must be a JSON object with 'non_business_days', 'verified_from' and 'verified_until'; it holds a str instead"#,
+            ),
+            (
+                r#"{"non_business_days": [{"date": "2026-08-03", "name": "Picnic Day", "jurisdictions": ["NT"]}], "verified_until": "2027-08-31"}"#,
+                None,
+                r#"data/business_days.json is missing the 'verified_from' key"#,
+            ),
+            (
+                r#"{"non_business_days": [{"date": "2026-08-03", "name": "Picnic Day", "jurisdictions": ["NT"]}], "verified_from": "2026-07-01"}"#,
+                None,
+                r#"data/business_days.json is missing the 'verified_until' key"#,
+            ),
+            (
+                r#"{"non_business_days": {"a": 1}, "verified_from": "2026-07-01", "verified_until": "2027-08-31"}"#,
+                None,
+                r#"data/business_days.json: 'non_business_days' must be a list of holiday entries"#,
+            ),
+            (
+                r#"{"non_business_days": [{"date": "2026-08-03", "name": "Picnic Day", "jurisdictions": ["NT"]}], "verified_from": null, "verified_until": "2027-08-31"}"#,
+                None,
+                r#"data/business_days.json has verified_from None; write it as YYYY-MM-DD"#,
+            ),
+            (
+                r#"{"non_business_days": [{"date": "2026-08-03", "name": "Picnic Day", "jurisdictions": ["NT"]}], "verified_from": "2026-07-01", "verified_until": "31/08/2027"}"#,
+                None,
+                r#"data/business_days.json has verified_until '31/08/2027'; write it as YYYY-MM-DD"#,
+            ),
+            (
+                r#"{"non_business_days": [{"date": "2026-08-03", "name": "Picnic Day", "jurisdictions": ["NT"]}], "verified_from": "2026-07-01", "verified_until": "31/08/2027"}"#,
+                Some(r#"missing-override.json"#),
+                r#"[Errno 2] No such file or directory: 'missing-override.json'"#,
+            ),
+            (
+                r#"{"#,
+                None,
+                r#"data/business_days.json is not valid JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"#,
+            ),
+            (
+                r#"{"non_business_days": [{"date": "2026-08-03", "name": "Picnic Day", "jurisdictions": ["NT"]}], "verified_from": "2026-07-01", "verified_until": "2027-08-31"}"#,
+                None,
+                r#"OK"#,
+            ),
+        ] {
+            let got = match load_from(text, override_path) {
+                Ok(_) => "OK".to_string(),
+                Err(f) => f.message(),
+            };
+            assert_eq!(got, expected, "{text}");
+        }
     }
 }

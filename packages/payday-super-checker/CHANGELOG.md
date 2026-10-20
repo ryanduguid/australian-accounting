@@ -19,7 +19,11 @@ message rule is intentionally changed.
   (`write_csv`, `write_canonical`, `write_practitioner_pack`,
   `write_evidence_pack`) are reached through the commands that called them.
 - Dataclass results become JSON objects with the same field names; decimals are
-  strings and dates are `YYYY-MM-DD` strings.
+  strings and dates are `YYYY-MM-DD` strings. `import-files` returns the whole
+  import report, its profiles and each orphan's super row included. `assess`
+  adds each line's rounded `figures`, the figures the report prints; they are
+  null where a figure cannot be rounded to cents (for example under an
+  astronomical custom GIC rate), since Python's `assess()` did no rounding.
 - The bundled data moves from `paydaysuper/data/` to `data/` and is compiled
   into the binary; its contents and digests are unchanged. Rebuild after editing
   it.
@@ -32,16 +36,19 @@ message rule is intentionally changed.
 
 ### Verification
 
-`tests/parity.rs` replays 4,833 frozen cases: every top-level engine call
-and command run the Python 0.2.2 tests made, and generated calls and runs, each
-with the files it read, compared byte for byte with key order kept, and every
-file a run wrote checked against Python's. `tests/properties.rs` keeps the
+`tests/parity.rs` replays 4,874 frozen cases, each with the files it read: up
+to 60 distinct top-level engine calls and command runs from each Python 0.2.2
+test (those the harness could encode as JSON or command-line input), the final
+reviews' counterexamples and generated calls and runs. Results are compared byte
+for byte with key order kept, and every file a run wrote is checked against
+Python's. `tests/properties.rs` keeps the
 fast-check properties' input domains as seeded Rust tests, `tests/evaluation.rs`
 reruns the evaluation packs and `tests/workbook.rs` holds the frozen workbook
 sample. Python tests that frozen inputs cannot replay run natively: unit tests
 for those that called a decision phase or built a result by hand, `tests/cli.rs`
 for runs that read the machine's clock or name a directory or symlink, and a
-`src/rates.rs` test that holds every malformed-table message to Python's. The
+`src/rates.rs`, `src/calendar.rs` and `src/profiles.rs` tests that hold every
+malformed bundled-data message to Python's. The
 rest tested Python packaging, imports, the fast-check bridge and module layout,
 which no longer exist, or the Python tools, whose tests moved to the repository
 root.
@@ -51,9 +58,9 @@ root.
 
 - Python imports, dataclasses, exception classes and package version lookup are
   removed. `--version` reports the Cargo version, 1.0.0; Python 0.2.2 reported
-  `0.2.2`. The evidence pack's report records the version too, so its
-  `report.md` and the digests over it differ from a 0.2.2 pack for the same
-  input.
+  `0.2.2`. The report CSV's NOTE row records the version too, in a written
+  report and in the evidence pack's `report.csv`, so those files and the
+  digests over them differ from 0.2.2's for the same input.
 - The data files are named `data/<file>` in messages and in the evidence pack's
   rate-table manifest (`data/gic_rates.json`), rather than the installed package
   path `paydaysuper/data/<file>`. The manifest digest is unchanged.
@@ -61,11 +68,14 @@ root.
   exited 1, prints one `error:` line with the traceback's last line and exits 1.
   A trapped decimal signal prints its class alone, without the detail Python's
   traceback added after it.
-- The JSON stdin commands call each function as Python would have been called
-  with the same keyword arguments: an omitted field takes the function's default,
-  and an explicit `null` is passed as `None`. A field Python required to be a
-  literal boolean is refused unless it is a JSON boolean. The JSON API's own
-  refusals exit 2.
+- The JSON stdin commands take typed fields. An omitted field takes the
+  Python function's or dataclass's default, and a field Python required must be
+  given. `null` is accepted only where the Python parameter or field was
+  optional, and means `None` there. A `null` anywhere else, a field of another
+  JSON type, and an integer outside the signed 64-bit range are refused with the
+  field's name and exit 2, where Python's dataclasses carried such a value
+  through or failed later with their own error. Python's literal-boolean checks
+  are kept, and `join` still reads its column flags by truthiness.
 - A command name given as the only argument runs that JSON command, so a
   contribution file named exactly like one (for example `assess`) must be
   checked as `./assess`.

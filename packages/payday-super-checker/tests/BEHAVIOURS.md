@@ -3,9 +3,11 @@
 Base 55a037c, Python 0.2.2: 672 test functions. The archive pytest suite
 passed before the differential harness captured the top-level engine calls and
 command runs they made, with the files each named. `tests/data/python-cases.json`
-freezes the first 60 distinct cases of each test plus 3,400 generated API
-calls and command runs: 4,833 cases in all. `tests/parity.rs` replays them and
-compares complete results, key order, output bytes and written files included.
+freezes the first 60 distinct cases of each test that the harness could encode
+as JSON or command-line input, 41 counterexamples from the final reviews
+and 3,400 generated API calls and command runs: 4,874 cases in all.
+`tests/parity.rs` replays them and compares complete results, key order, output
+bytes and written files included.
 Results and streams over 4 KiB are stored as an FNV-1a fingerprint and length.
 
 The generated cases include malformed dates, amounts and flags in the CSV
@@ -17,8 +19,12 @@ Some tests cannot be replayed from frozen inputs, and run natively instead: thos
 that call an internal phase with chosen facts, build a result by hand, read the
 machine's clock for a defaulted `--as-at`, name a directory or a symlink, or edit
 a bundled table. A table edit cannot reach the binary, which compiles its data in,
-so `src/rates.rs` holds every Python message for a malformed table to its own
-parser. Each frozen case records the complete file state after its run: what it
+so `src/rates.rs`, `src/calendar.rs` and `src/profiles.rs` hold every Python
+message for malformed bundled data to their own parsers. Where the JSON API
+refuses a field its typed contract excludes (a `null` where Python's argument was
+not optional, another JSON type, an integer outside 64 bits, or a required field
+left out), the harness records the refusal in place of Python's answer and counts
+it; it checks that the input really breaks the contract for the field named. Each frozen case records the complete file state after its run: what it
 wrote, the inputs it left unchanged, and that nothing else exists. The property
 tests keep the fast-check properties' input domains; a local generator replaces
 fast-check's, so the random cases differ.
@@ -544,7 +550,7 @@ fast-check's, so the random cases differ.
 | `test_limitations.py::test_psc_2_join_declares_each_degraded_match` | `psc_2_join_declares_each_degraded_match` in `tests/docs.rs` |
 | `test_limitations.py::test_psc_2_register_names_the_same_four_conditions` | `the_limitations_register_names_its_entries_and_conditions` in `tests/docs.rs` |
 | `test_openaccountants_handoff.py::test_document_matches_the_engine_run` | `the_openaccountants_handoff_matches_the_engine_run` in `tests/docs.rs` |
-| `test_practitioner_pack.py::test_contract_is_deliberately_pinned_to_the_report_writer` | By construction: `EXPECTED_REPORT_HEADER` is defined as the report writer's 18-entry `CSV_HEADER` in `src/practitioner_pack.rs` |
+| `test_practitioner_pack.py::test_contract_is_deliberately_pinned_to_the_report_writer` | Unit test `the_contract_is_pinned_to_the_report_writer` in `src/practitioner_pack.rs`, against the consumer's own literal header |
 | `test_practitioner_pack.py::test_pack_is_deterministic_private_by_default_and_source_bound` | Frozen replay in `parity.rs` |
 | `test_practitioner_pack.py::test_no_exception_pack_still_requires_human_signoff` | Frozen replay in `parity.rs` |
 | `test_practitioner_pack.py::test_malformed_or_internally_inconsistent_reports_fail_closed` | Frozen replay in `parity.rs` |
@@ -578,7 +584,7 @@ fast-check's, so the random cases differ.
 | `test_profiles.py::test_all_eight_profiles_load` | Frozen replay in `parity.rs` |
 | `test_profiles.py::test_super_profiles_can_isolate_super_guarantee` | Frozen replay in `parity.rs` |
 | `test_profiles.py::test_payroll_profiles_map_a_payday` | Frozen replay in `parity.rs` |
-| `test_profiles.py::test_profile_data_is_declared_as_package_data` | Not applicable: the profiles are compiled into the binary |
+| `test_profiles.py::test_profile_data_is_declared_as_package_data` | Not applicable: the profiles are compiled into the binary; Unit test `the_bundled_profile_list_is_the_folder` in `src/profiles.rs` keeps the compiled list and the folder in step |
 | `test_profiles.py::test_load_profiles_returns_both_roles` | Frozen replay in `parity.rs` |
 | `test_profiles.py::test_load_profiles_filters_by_role` | Frozen replay in `parity.rs` |
 | `test_profiles.py::test_every_shipped_profile_is_marked_unverified` | Frozen replay in `parity.rs` |

@@ -61,8 +61,10 @@ pub fn notional_earnings(
     let mut nec = zero();
     let mut d = due.add_days(1)?;
     while d <= end {
+        // Python evaluated the sum before asking for the day's rate.
+        let base = shortfall.add(&nec)?;
         let rate = gic.daily_rate(d, allow_stale)?;
-        nec = nec.add(&shortfall.add(&nec)?.mul(&rate)?)?;
+        nec = nec.add(&base.mul(&rate)?)?;
         d = d.add_days(1)?;
     }
     Ok(nec)

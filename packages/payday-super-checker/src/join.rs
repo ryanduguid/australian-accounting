@@ -296,10 +296,13 @@ fn why_orphaned(
     if covered.is_empty() {
         return Ok((ORPHAN_NO_PAYDAY.into(), "matched no payday".into()));
     }
+    // `all(r.sg_amount == 0 ...)`: stops at the first non-zero, and a
+    // signalling NaN raises InvalidOperation.
     let mut all_zero = true;
     for &r in covered {
-        if !payroll[r].sg_amount.is_zero() {
+        if !payroll[r].sg_amount.equals(&zero())? {
             all_zero = false;
+            break;
         }
     }
     if all_zero {
@@ -310,8 +313,9 @@ fn why_orphaned(
     }
     let mut all_settled = true;
     for &r in covered {
-        if !unmet(r, payroll, allocated)?.is_zero() {
+        if !unmet(r, payroll, allocated)?.equals(&zero())? {
             all_settled = false;
+            break;
         }
     }
     if all_settled {
@@ -483,7 +487,7 @@ pub fn join(
 
     let mut outcomes = Vec::new();
     for (i, row) in payroll_rows.iter().enumerate() {
-        if row.sg_amount.is_zero() {
+        if row.sg_amount.equals(&zero())? {
             outcomes.push(MatchOutcome {
                 payroll: i,
                 remitted: None,
