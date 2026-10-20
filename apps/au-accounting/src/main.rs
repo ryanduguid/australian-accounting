@@ -266,14 +266,13 @@ fn adapt(value: Value, json: Json) -> Result<Value, String> {
 /// when it fits u64 or i64 (`-0` is a float), otherwise the nearest finite f64.
 fn plain_number(n: &serde_json::Number) -> Result<serde_json::Number, String> {
     let text = n.to_string();
-    if !text.contains(['.', 'e', 'E']) {
+    if !text.bytes().any(|b| b".eE".contains(&b)) {
         if let Ok(u) = text.parse::<u64>() {
             return Ok(u.into());
         }
-        if let Ok(i) = text.parse::<i64>()
-            && i != 0
-        {
-            return Ok(i.into());
+        match text.parse::<i64>() {
+            Ok(i) if i != 0 => return Ok(i.into()),
+            _ => {}
         }
     }
     text.parse::<f64>()
@@ -297,7 +296,9 @@ fn help() -> String {
 }
 
 fn main() {
-    let mut args = std::env::args_os().skip(1);
+    // argv[0] is skipped, and the arguments only select an engine and become its
+    // input, as each engine's own main() takes them.
+    let mut args = std::env::args_os().skip(1); // nosemgrep: rust.lang.security.args-os.args-os
     let first = args.next();
     let rest: Vec<OsString> = args.collect();
     let selected = first
