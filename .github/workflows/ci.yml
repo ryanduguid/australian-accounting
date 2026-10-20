@@ -55,30 +55,10 @@ jobs:
         # changed-line-coverage lists the risk-scoped files held to complete
         # changed-line branch coverage against main.
         include:
-          - package: australian-tax-calculators
-            import-name: austaxcalc
-            windows-python: "3.14"
-            changed-line-coverage: ""
-          - package: ato-benchmark-compare
-            import-name: atobenchmark
-            windows-python: "3.14"
-            changed-line-coverage: atobenchmark/mapping.py
-          - package: div7a-loan-review
-            import-name: div7aloan
-            windows-python: ""
-            changed-line-coverage: ""
           - package: payday-super-checker
             import-name: paydaysuper
             windows-python: "3.14"
             changed-line-coverage: paydaysuper/assess.py,paydaysuper/report.py
-          - package: solomons-sword
-            import-name: louisgoldberg
-            windows-python: ""
-            changed-line-coverage: ""
-          - package: the-wip-tally
-            import-name: wiptally
-            windows-python: "3.14"
-            changed-line-coverage: ""
           - package: gst-review
             import-name: gstreview
             windows-python: ""
@@ -92,7 +72,50 @@ jobs:
 
   exchequer:
     name: the-exchequer-tally
-    uses: ./.github/workflows/ci-exchequer.yml
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: the-exchequer-tally
+    permissions:
+      contents: read
+
+  solomons:
+    name: solomons-sword
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: solomons-sword
+    permissions:
+      contents: read
+
+  wip:
+    name: the-wip-tally
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: the-wip-tally
+      binary: wip-tally
+    permissions:
+      contents: read
+
+  taxcalc:
+    name: australian-tax-calculators
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: australian-tax-calculators
+    permissions:
+      contents: read
+
+  div7a:
+    name: div7a-loan-review
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: div7a-loan-review
+    permissions:
+      contents: read
+
+  atobench:
+    name: ato-benchmark-compare
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: ato-benchmark-compare
     permissions:
       contents: read
 
@@ -235,7 +258,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, exchequer, test, dependency-audit, lint]
+    needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

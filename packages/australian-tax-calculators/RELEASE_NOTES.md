@@ -1,3 +1,10 @@
+# v1.0.0
+
+Unreleased standalone Rust major version. Python imports are removed; the
+former functions are JSON stdin subcommands. See [CHANGELOG.md](CHANGELOG.md)
+for migration, verification and documented divergences, and
+[README.md](README.md) to build it.
+
 # v0.2.0
 
 - Adds the four already merged worksheets for Schedule 8 study-loan withholding,

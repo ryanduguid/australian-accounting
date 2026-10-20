@@ -13,5 +13,5 @@ Topics:
 - division-7a
 - itaa-1936
 - private-company-loans
-- python
 - review-aid
+- rust

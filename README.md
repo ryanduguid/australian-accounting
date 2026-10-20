@@ -138,14 +138,14 @@ For an editable source installation, run `pip install -e .` from
 
 | Path | Distribution | Import package | Commands |
 |---|---|---|---|
-| `packages/australian-tax-calculators/` | `australian-tax-calculators` | `austaxcalc` | Python worksheet functions |
+| `packages/australian-tax-calculators/` | `australian-tax-calculators` (Rust) | none | `australian-tax-calculators` (JSON stdin worksheets) |
 | `apps/aus-accounting-mcp/` | `aus-accounting-mcp` | `aus_accounting_mcp` | `aus-accounting-mcp`, `aus-accounting-mcp-demo` |
-| `packages/ato-benchmark-compare/` | `ato-benchmark-compare` | `atobenchmark` | `ato-benchmark-compare` |
+| `packages/ato-benchmark-compare/` | `ato-benchmark-compare` (Rust) | none | `ato-benchmark-compare` |
 | `packages/payday-super-checker/` | `payday-super-checker` | `paydaysuper` | `payday-super-check` |
-| `packages/div7a-loan-review/` | `div7a-loan-review` | `div7aloan` | `div7a-loan-review` |
+| `packages/div7a-loan-review/` | `div7a-loan-review` (Rust) | none | `div7a-loan-review` |
 | `packages/the-exchequer-tally/` | `the-exchequer-tally` (Rust) | none | `the-exchequer-tally` |
-| `packages/solomons-sword/` | `solomons-sword` | `louisgoldberg` | `solomons-sword` |
-| `packages/the-wip-tally/` | `the-wip-tally` | `wiptally` | `wip-tally` |
+| `packages/solomons-sword/` | `solomons-sword` (Rust) | none | `solomons-sword` |
+| `packages/the-wip-tally/` | `the-wip-tally` (Rust) | none | `wip-tally` |
 | `packages/gst-review/` | `gst-review` | `gstreview` | Python review functions: GST coding states against registration, BAS-to-ledger reconciliation |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` | `lodgeitadapter` | optional adapter for a third-party calculator service; off by default, makes HTTP calls only when `LODGEIT_ADAPTER_ENABLED=1` |
 | `packages/au-tax-rates-data/` | `au-tax-rates-data` (never released) | `rates` (module) | `python rates.py validate`, `snapshot` and `check`: ATO rates and thresholds with verbatim source quotes, validated offline |
@@ -154,12 +154,20 @@ For an editable source installation, run `pip install -e .` from
 MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest); it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
 `div7a-loan-review`, `australian-tax-calculators` and `gst-review` distributions. In
-the development workspace, uv resolves those 5 dependencies to their checked-out sources.
+the development workspace, uv resolves 2 of those dependencies to their checked-out
+sources and takes `australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2 and
+`ato-benchmark-compare` 0.2.2, the last Python releases, from PyPI.
 
-The Exchequer Tally 1.0.0 is an unreleased standalone Rust binary. Build it with
-Cargo using its [README](packages/the-exchequer-tally/README.md). The uv workspace
-continues to develop the other engines and applications; the MCP server has no
-dependency on The Exchequer Tally.
+The Exchequer Tally 1.0.0, Solomon's Sword 1.0.0, The WIP Tally 1.0.0,
+Australian Tax Calculators 1.0.0 and Division 7A Loan Review 1.0.0 are
+unreleased standalone Rust binaries. Build each with Cargo using its README
+([The Exchequer Tally](packages/the-exchequer-tally/README.md),
+[Solomon's Sword](packages/solomons-sword/README.md),
+[The WIP Tally](packages/the-wip-tally/README.md),
+[Australian Tax Calculators](packages/australian-tax-calculators/README.md),
+[Division 7A Loan Review](packages/div7a-loan-review/README.md)). The
+uv workspace continues to develop the other engines and applications; the MCP
+server uses none of these crates yet.
 
 ## Working in a component
 

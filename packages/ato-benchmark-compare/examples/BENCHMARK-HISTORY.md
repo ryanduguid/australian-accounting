@@ -1,9 +1,9 @@
 # Benchmark comparisons across periods
 
-The source example calls the existing parser, reviewed mapping, ratio and dataset functions. It retains each complete comparison and a separate mapping bridge.
+The source example, `benchmark_history.rs`, calls the engine crate's parser, reviewed mapping, ratio and dataset functions. It retains each complete comparison and a separate mapping bridge.
 
 ```powershell
-uv run --locked --extra dev python examples/benchmark_history.py --previous-pnl examples/bakery-pnl.csv --current-pnl examples/bakery-pnl.csv --previous-mapping examples/bakery-mapping.csv --current-mapping examples/bakery-mapping.csv --previous-period FY2025 --current-period FY2026 --industry "Bakeries and hot bread shops"
+cargo run --release --example benchmark_history -- --previous-pnl examples/bakery-pnl.csv --current-pnl examples/bakery-pnl.csv --previous-mapping examples/bakery-mapping.csv --current-mapping examples/bakery-mapping.csv --previous-period FY2025 --current-period FY2026 --industry "Bakeries and hot bread shops"
 ```
 
 These supplied files are fabricated. Reusing them demonstrates zero business movement; it is not a claim about actual bakery performance. Supply distinct snapshots and reviewed mappings for a real comparison. Each source digest, declared period, benchmark year, turnover basis and dataset provenance remains visible. Select fixed dataset years with `--previous-year` and `--current-year` for reproducibility.

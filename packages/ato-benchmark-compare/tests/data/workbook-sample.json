@@ -1,0 +1,130 @@
+{
+  "benchmark_year": "2023-24",
+  "business_type": "Bakeries and hot bread shops",
+  "key_ratio": "cost_of_sales_to_turnover",
+  "turnover": "850000.00",
+  "turnover_basis": "sales of goods and services",
+  "turnover_band": {
+    "band": "high",
+    "label": "More than $750,000"
+  },
+  "figures": {
+    "sales_of_goods_and_services": "850000.00",
+    "other_business_income": "1200.00",
+    "total_business_income": "851200.00",
+    "total_expenses": "751950.00",
+    "payments_to_associated_persons": "45000.00",
+    "total_expenses_for_ratio": "706950.00",
+    "cost_of_sales_for_ratio": "270000.00",
+    "labour": "277800.00"
+  },
+  "bucket_totals": {
+    "associated_persons": "45000.00",
+    "contractor_commission": "7800.00",
+    "cost_of_sales": "270000.00",
+    "cost_of_sales_labour": "95000.00",
+    "excluded": "2287850.00",
+    "motor_vehicle": "9500.00",
+    "other_expense": "87650.00",
+    "other_income": "1200.00",
+    "rent": "62000.00",
+    "salary_wages": "175000.00",
+    "turnover": "850000.00"
+  },
+  "ratios": [
+    {
+      "ratio": "cost_of_sales_to_turnover",
+      "label": "Cost of sales to turnover",
+      "value": "0.3176",
+      "percent": "31.76%",
+      "benchmark_min": "0.29",
+      "benchmark_max": "0.36",
+      "benchmark_source": "ato_dataset",
+      "status": "within",
+      "is_key_ratio": true
+    },
+    {
+      "ratio": "total_expenses_to_turnover",
+      "label": "Total expenses to turnover",
+      "value": "0.8317",
+      "percent": "83.17%",
+      "benchmark_min": "0.82",
+      "benchmark_max": "0.9",
+      "benchmark_source": "ato_dataset",
+      "status": "within",
+      "is_key_ratio": false
+    },
+    {
+      "ratio": "labour_to_turnover",
+      "label": "Labour to turnover",
+      "value": "0.3268",
+      "percent": "32.68%",
+      "benchmark_min": "0.25",
+      "benchmark_max": "0.34",
+      "benchmark_source": "ato_industry_page",
+      "status": "within",
+      "is_key_ratio": false
+    },
+    {
+      "ratio": "rent_to_turnover",
+      "label": "Rent to turnover",
+      "value": "0.0729",
+      "percent": "7.29%",
+      "benchmark_min": "0.05",
+      "benchmark_max": "0.08",
+      "benchmark_source": "ato_industry_page",
+      "status": "within",
+      "is_key_ratio": false
+    },
+    {
+      "ratio": "motor_vehicle_to_turnover",
+      "label": "Motor vehicle expenses to turnover",
+      "value": "0.0112",
+      "percent": "1.12%",
+      "benchmark_min": "0.01",
+      "benchmark_max": "0.01",
+      "benchmark_source": "ato_industry_page",
+      "status": "above",
+      "is_key_ratio": false
+    }
+  ],
+  "unreviewed_accounts": 0,
+  "notes": [
+    "The ATO says to use total expenses to turnover as the key range instead where cost of sales is only a small amount. It does not put a figure on small, so both ranges are reported and that judgement is yours.",
+    "The labour to turnover, rent to turnover and motor vehicle expenses to turnover ranges come from the ATO's page for this industry, not the data.gov.au dataset. The ATO says not every business reports these expenses and to use these ranges only as a guide where they apply.",
+    "The ATO printed a single figure, not a range, for motor vehicle expenses to turnover. The tool compares against that figure and does not infer wider bounds."
+  ],
+  "checks_to_make": [
+    "No activity statement W1 amount was supplied. The ATO uses W1 for the labour ratio when it exceeds the salary and wages figure. Pass --w1 to apply that rule."
+  ],
+  "source": {
+    "publisher": "Australian Taxation Office",
+    "dataset": "Small Business Benchmarks",
+    "dataset_page": "https://data.gov.au/data/dataset/small-business-benchmarks",
+    "resource_name": "2023-24 Benchmarks",
+    "resource_url": "https://data.gov.au/data/dataset/591b444b-be7f-4121-8252-119a9fe07c19/resource/db3ab8b7-e029-48de-8e7a-c61532e25496/download/small-business-benchmarks-2023-24-data.xlsx",
+    "resource_last_modified": "2026-03-15T22:07:39.563377",
+    "retrieved": "2026-08-13",
+    "sha256": "84925348cc6abfdbfb2cd14c62456e02d44057b7c7b444a6839e6179f71440f5",
+    "bytes": 20826,
+    "licence": "Creative Commons Attribution 2.5 Australia",
+    "licence_url": "https://creativecommons.org/licenses/by/2.5/au/"
+  },
+  "industry_page_source": {
+    "page_title": "Bakeries and hot bread shops",
+    "page_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/bakeries-and-hot-bread-shops",
+    "page_last_updated": "16 March 2026",
+    "page_reference": "QC43659",
+    "text_sha256": "d1d15a43ae5680aaae168b24f40cb72866e38f56d284e78196827c337e64402a",
+    "retrieved": "2026-09-29",
+    "licence": "ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products",
+    "licence_url": "https://www.ato.gov.au/about-ato/using-our-website/copyright-notice",
+    "caution": "Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.",
+    "ratios": [
+      "labour_to_turnover",
+      "rent_to_turnover",
+      "motor_vehicle_to_turnover"
+    ]
+  },
+  "disclaimer": "The ATO publishes these benchmarks as ranges, and sitting outside a range is not of itself a finding that anything is wrong. This tool reports a comparison. It is not tax advice and it does not decide how any amount should be reported."
+}

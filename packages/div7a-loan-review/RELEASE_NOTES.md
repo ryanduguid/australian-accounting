@@ -1,3 +1,10 @@
+# v1.0.0
+
+Unreleased standalone Rust major version. Python imports are removed; the
+former API functions are JSON stdin subcommands. See [CHANGELOG.md](CHANGELOG.md)
+for migration, verification and documented divergences, and
+[README.md](README.md) to build it.
+
 # v0.3.2
 
 - The package moves from MIT to the Apache-2.0 licence, with a `NOTICE` file whose attribution anyone redistributing the package or a derivative must keep ([#373](https://github.com/ryanduguid/australian-accounting/pull/373)). The package metadata declares Apache-2.0. Releases up to v0.2.0 stay under MIT.

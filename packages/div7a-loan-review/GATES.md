@@ -1,5 +1,11 @@
 # Gates: div7a-loan-review v1
 
+This ledger records the gates of the Python engine, 0.1 to 0.3.2. Its commands
+ran the Python suite, which the Rust port 1.0.0 removed; their evidence is
+historical. The Rust engine's checks are `cargo test --locked` in this
+directory, and `tests/BEHAVIOURS.md` maps every Python test to its Rust
+coverage.
+
 OWNS: div7aloan/**, tests/**, examples/**, evaluation/**, .github/**, *.md, *.toml, *.cff, LICENSE
 
 Scope: the complete v1 engine reviewing ITAA 1936 s 109N loan terms and the s 109E minimum yearly repayment, against every "Done when" criterion and every required test in the build brief. Declared prerequisites: Node.js, an installed Unlazy skill with `UNLAZY_SKILL` set to its directory (this repository does not vendor `gate-lint.mjs`), Python 3.14+ on PATH, and a POSIX shell (run with `--shell bash`); commands use `&&` chains and single-quoted `python -c`, which stock `cmd.exe` does not parse.

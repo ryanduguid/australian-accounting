@@ -1,8 +1,8 @@
 # Excel workbook
 
 `ato-benchmark-compare.xlsx` is the same comparison as the command line tool, written
-in ordinary worksheet formulas for accountants who work in Excel and do not have
-Python. It is macro-free and needs desktop Excel for Microsoft 365 or Excel 2024.
+in ordinary worksheet formulas for accountants who work in Excel rather than at a
+command line. It is macro-free and needs desktop Excel for Microsoft 365 or Excel 2024.
 Nothing leaves the workbook.
 
 ## Using it
@@ -40,17 +40,22 @@ its upper bound while only the first band includes its lower bound.
 
 ## How it is kept honest
 
-The workbook is a second implementation of the rules in `atobenchmark`, so it can
-drift. `tests/test_workbook.py` reads the cached values desktop Excel wrote and holds
-them to the engine's answer for the bakery example, and holds the Benchmarks sheet to
-the shipped JSON. A change to the engine, the data or the workbook that is not
-rebuilt fails the test.
+The workbook is a second implementation of the engine's rules, so it can drift. The
+repository's `tests/test_ato_workbook.py` reads the cached values desktop Excel wrote
+and holds them to the engine's answer for the bakery example, frozen in
+`tests/data/workbook-sample.json`, which `cargo test` holds to the engine, and holds
+the Benchmarks sheet to the shipped JSON. A change to the engine, the data or the
+workbook that is not rebuilt fails one of the two tests. The shipped workbook was
+built against engine 0.2.2, whose results the Rust 1.0.0 engine reproduces.
 
-Rebuild on a machine with desktop Excel, from the package directory:
+Rebuild on a machine with desktop Excel and Rust, from the repository root:
 
 ```powershell
-uv run --locked --extra dev python tools/build_workbook.py
+uv run python packages/ato-benchmark-compare/tools/build_workbook.py
 ```
+
+The build reads the benchmark bands through the engine's `load-dataset` command,
+building the binary with Cargo if needed.
 
 The build writes the formulas with openpyxl, opens the file once in Excel over COM to
 calculate and save real cached values, records the Excel build on Sources & Version

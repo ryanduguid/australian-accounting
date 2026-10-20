@@ -10,7 +10,7 @@ not a runtime dependency. Run it when the ATO publishes a new benchmark year:
         --resource-name "2023-24 Benchmarks" \
         --resource-last-modified 2026-03-15T22:07:39.563377 \
         --retrieved 2026-08-13 \
-        --out atobenchmark/data/benchmarks-2023-24.json
+        --out data/benchmarks-2023-24.json
 
 Every published figure is copied verbatim. The only derived values are the turnover
 band bounds, which are read from the ATO's own range labels, and the key ratio, which

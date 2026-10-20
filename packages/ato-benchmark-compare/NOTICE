@@ -6,7 +6,7 @@ This product includes work by Ryan Duguid
 
 Third-party data notice
 
-The benchmark figures under atobenchmark/data are derived from Australian
+The benchmark figures under data are derived from Australian
 Taxation Office data, "Small Business Benchmarks", published at
 https://data.gov.au/data/dataset/small-business-benchmarks and licensed under
 Creative Commons Attribution 2.5 Australia
@@ -16,10 +16,19 @@ adjoining; no published ratio has been altered. The Australian Taxation Office
 has not endorsed this software.
 
 The labour, rent, motor vehicle and supplementary cost of sales ranges in
-atobenchmark/data/other-benchmarks-*.json are reproduced from the Australian
+data/other-benchmarks-*.json are reproduced from the Australian
 Taxation Office's small business benchmark industry pages under the ATO's
 copyright notice (https://www.ato.gov.au/about-ato/using-our-website/copyright-notice),
 which permits copying and adaptation provided nothing suggests the ATO or the
 Commonwealth endorses the user or its products. Published percentages are
 converted to ratio bounds, and a single printed figure is stored as equal
 bounds, with no wider interval inferred.
+
+Decimal, text, CSV, JSON, path and argparse compatibility helpers are adapted
+from Division 7A Loan Review, The WIP Tally and Australian Tax Calculators in
+this repository, which adapted them from The Exchequer Tally's port of
+accounting-review-pipeline/packages/elizabeth-anne-alexander and from
+llm-tax-guardrails tools/drdebits_build (Apache-2.0), Copyright 2026 Ryan
+Duguid. The Unicode tables in src/unitables.rs are generated from the Unicode
+Character Database 17.0.0 as Python 3.15.0 ships it, under the Unicode
+License v3.

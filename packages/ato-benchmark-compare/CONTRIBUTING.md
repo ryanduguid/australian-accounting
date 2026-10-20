@@ -24,7 +24,7 @@ transmit anything.
 - Trace every rule to a primary source and cite it in the pull request. The rules
   currently implemented are recorded in `docs/ato-source-notes-2026-08-13.md` with
   the page and QC number each came from.
-- Do not hand edit anything under `atobenchmark/data`. Rebuild it with
+- Do not hand edit anything under `data`. Rebuild it with
   `tools/build_dataset.py` from the ATO workbook so the SHA-256 in the file still
   matches the file it came from, and rebuild the industry-page ranges with
   `tools/build_other_benchmarks.py` from pages saved as text. The page file binds
@@ -33,26 +33,24 @@ transmit anything.
 - When the ATO publishes a new benchmark year, add it as a new dataset file rather
   than replacing an existing one. A comparison run last year should still reproduce.
 - Cross check at least one industry against the ATO's own industry page before
-  proposing a new dataset year. `tests/test_dataset.py` does this for bakeries.
+  proposing a new dataset year. The bakery cross check from the Python tests is
+  replayed by `tests/parity.rs`.
 
 ## Local verification
 
-Python 3.14 or newer. The runtime imports nothing outside the standard library.
-`uv` manages the development environment and the lock file is committed.
+The engine is a Rust crate with the toolchain pinned in `rust-toolchain.toml`.
+From this directory:
 
 ```bash
-uv sync --locked --extra dev --python 3.14
-uv run --locked --extra dev --python 3.14 python tests/fastcheck/bootstrap.py
-uv run --locked --extra dev --python 3.14 pytest
-uv run --locked --extra dev --python 3.14 python -m build
-uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+cargo fmt --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 ```
 
-The bootstrap installs the property tests' locked fast-check worker with the Node
-pinned in the dev extra; repeat it whenever `tests/fastcheck/package-lock.json` changes.
-CI repeats this on Ubuntu with Python 3.14 and 3.15, and on Windows with 3.14. Keep
-runtime strings ASCII: on Windows, redirected stdout uses the machine's ANSI codepage
-rather than UTF-8.
+`tests/parity.rs` replays the frozen record of the Python 0.2.2 engine's answers;
+a change that alters any of them fails it. The data and workbook build tools in
+`tools/` are Python and are tested from the repository root. CI runs the crate on
+Ubuntu and Windows. Keep runtime strings ASCII.
 
 ## Pull requests
 
@@ -61,7 +59,7 @@ rather than UTF-8.
 - When you change a rule, search for everything else that states it. The README
   table, a docstring, the `buckets` command output and a warning string can all keep
   asserting the old rule long after the code has moved.
-- Amounts stay in `Decimal` end to end. A float anywhere in the ratio path will be
+- Amounts stay exact decimals end to end. A float anywhere in the ratio path will be
   rejected: 0.31 as a float is not 0.31, and these comparisons are against published
   figures at 2 decimal places.
 - A displayed figure and its verdict must never disagree. 30.96% is below a 31% floor

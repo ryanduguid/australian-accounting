@@ -67,16 +67,19 @@ maximum term.
 
 ## How it is kept honest
 
-The workbook is a second implementation of the rules in `div7aloan`, so it can
-drift. `tests/test_workbook.py` reads the cached values desktop Excel wrote and
-holds every row of the mixed sample, the summary counts and the Rates sheet to the
-engine. A change to the engine, the rate table or the workbook that is not rebuilt
-fails the test.
+The workbook is a second implementation of the engine's rules, so it can
+drift. The repository's `tests/test_div7a_workbook.py` reads the cached values
+desktop Excel wrote and holds every row of the mixed sample, the summary counts
+and the Rates sheet to the engine's review, frozen in
+`tests/data/workbook-sample.json`, which `cargo test` holds to the engine. A
+change to the engine, the rate table or the workbook that is not rebuilt fails
+one of the two tests. The shipped workbook was built against engine 0.3.2, whose
+results the Rust 1.0.0 engine reproduces.
 
-Rebuild on a machine with desktop Excel, from the package directory:
+Rebuild on a machine with desktop Excel, from the repository root:
 
 ```powershell
-uv run --locked --extra dev python tools/build_workbook.py
+uv run python packages/div7a-loan-review/tools/build_workbook.py
 ```
 
 The build writes the formulas with openpyxl, opens the file once in Excel over COM

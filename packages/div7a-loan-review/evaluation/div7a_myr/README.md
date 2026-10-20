@@ -9,7 +9,7 @@ the questions it should refuse?
 
 Six fabricated loans hold the statutory facts steady and vary one thing each.
 Three are hand-worked below, so a reviewer who knows s 109N and s 109E can
-re-perform them on paper without running Python.
+re-perform them on paper without running the engine.
 
 ## Intended reviewer
 
@@ -29,7 +29,7 @@ s 109E(6) formula was read from the formula image in the compilation
 (`document_2/image.017.png`), not from a secondary source or a calculator.
 
 Benchmark rates come from the frozen table in
-[`div7aloan/data/benchmark_rates.csv`](../../div7aloan/data/benchmark_rates.csv),
+[`data/benchmark_rates.csv`](../../data/benchmark_rates.csv),
 cited to RBA statistical table F5, series `FILRHLBVS`, and cross-checked
 against the published table at
 <https://duguid.com.au/rates/div7a-benchmark-rate/>, last reviewed
@@ -189,32 +189,32 @@ last year repays too little this year without changing anything.
 
 ## Reproduce the result
 
-The engine needs Python 3.14 or later and has no runtime dependencies. The
-[repository README](../../README.md) carries the install step and the
+The engine is a standalone binary with no runtime dependencies. The
+[repository README](../../README.md) carries the build step and the
 definition of every register column used by the fixtures.
 
 Record the version the figures were reproduced under:
 
 ```bash
-python -m div7aloan.cli --version
+div7a-loan-review --version
 ```
 
 Then, from `packages/div7a-loan-review`:
 
 ```bash
-python -m div7aloan.cli review --input evaluation/div7a_myr/fixtures/myr_met_exact.csv --year 2026-27
+div7a-loan-review review --input evaluation/div7a_myr/fixtures/myr_met_exact.csv --year 2026-27
 ```
 
 ```bash
-python -m div7aloan.cli review --input evaluation/div7a_myr/fixtures/myr_short_by_1000.csv --year 2023-24
+div7a-loan-review review --input evaluation/div7a_myr/fixtures/myr_short_by_1000.csv --year 2023-24
 ```
 
 ```bash
-python -m div7aloan.cli review --input evaluation/div7a_myr/fixtures/rising_benchmark.csv --year 2026-27
+div7a-loan-review review --input evaluation/div7a_myr/fixtures/rising_benchmark.csv --year 2026-27
 ```
 
 ```bash
-python -m pytest tests/test_evaluation_pack.py -q
+cargo test --locked --test evaluation
 ```
 
 `--format json` on any of those emits the machine-readable form, with every

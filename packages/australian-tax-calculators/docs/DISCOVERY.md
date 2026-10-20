@@ -13,6 +13,6 @@ Topics:
 - depreciation
 - fbt
 - gst
-- python
 - review-aid
+- rust
 - superannuation

@@ -11,7 +11,7 @@ Topics:
 - australian-tax
 - division-6
 - itaa-1936
-- python
+- rust
 - review-aid
 - section-100a
 - trust-distributions

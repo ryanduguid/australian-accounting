@@ -1,14 +1,15 @@
 """Build workbooks/ato-benchmark-compare.xlsx, the accountant-facing Excel front end.
 
-The workbook is a second implementation of the rules in ``atobenchmark`` written in
-ordinary worksheet formulas, so an accountant can run the comparison with desktop
-Excel and no Python. It is pinned to the engine by ``tests/test_workbook.py``, which
-reads the cached values Excel wrote and compares them with the engine's answer for
-the bakery example.
+The workbook is a second implementation of the engine's rules written in ordinary
+worksheet formulas, so an accountant can run the comparison with desktop Excel and
+nothing else. It is pinned to the engine by the repository's
+``tests/test_ato_workbook.py``, which reads the cached values Excel wrote and compares
+them with the engine's answer for the bakery example, frozen in
+``tests/data/workbook-sample.json`` and held to the Rust engine by ``cargo test``.
 
-Run from the package directory on a machine with desktop Excel:
+Run from the repository root on a machine with desktop Excel and Rust:
 
-    uv run --locked --extra dev python tools/build_workbook.py
+    uv run python packages/ato-benchmark-compare/tools/build_workbook.py
 
 openpyxl writes the formulas; a single desktop Excel pass over COM recalculates the
 workbook so the shipped file carries real cached values, then the build-machine path
@@ -18,6 +19,7 @@ Excel stamps into xl/workbook.xml is stripped.
 from __future__ import annotations
 
 import csv
+import json
 import re
 import subprocess
 import sys
@@ -34,10 +36,43 @@ from openpyxl.worksheet.formula import ArrayFormula
 from openpyxl.worksheet.table import Table, TableColumn, TableFormula, TableStyleInfo
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from atobenchmark import __version__  # noqa: E402
-from atobenchmark import dataset as ds  # noqa: E402
-from atobenchmark.mapping import BUCKETS  # noqa: E402
+
+# The engine is the Rust crate in ROOT. The bucket and ratio wording below are
+# copies; the repository's tests/test_ato_workbook.py holds them to its source.
+__version__ = re.search(r'^version = "([^"]+)"$',
+                        (ROOT / "Cargo.toml").read_text(encoding="utf-8"), re.M).group(1)
+BUCKETS = {
+    "turnover": "Sales of goods and services. The ATO's turnover label.",
+    "other_income": "Business income that is not sales, for example interest or grants.",
+    "cost_of_sales": "Cost of sales, excluding any salary and wages inside it.",
+    "cost_of_sales_labour": "Salary and wages included in cost of sales.",
+    "salary_wages": "Salary and wages outside cost of sales.",
+    "contractor_commission": "Contractor, subcontractor and commission expenses.",
+    "associated_persons": "Payments to associated persons.",
+    "rent": "Rent expenses.",
+    "motor_vehicle": "Motor vehicle expenses.",
+    "other_expense": "Every other expense, including superannuation and depreciation.",
+    "excluded": "Not part of the ATO calculation, for example income tax expense.",
+}
+RATIO_LABELS = {
+    "cost_of_sales_to_turnover": "Cost of sales to turnover",
+    "total_expenses_to_turnover": "Total expenses to turnover",
+    "labour_to_turnover": "Labour to turnover",
+    "rent_to_turnover": "Rent to turnover",
+    "motor_vehicle_to_turnover": "Motor vehicle expenses to turnover",
+}
+
+
+def engine(command: str, value: object) -> object:
+    """One JSON command of the engine binary, built from ROOT if needed."""
+    done = subprocess.run(
+        ["cargo", "run", "--release", "--quiet", "--manifest-path", str(ROOT / "Cargo.toml"),
+         "--", command],
+        input=json.dumps(value), capture_output=True, text=True, encoding="utf-8", check=False,
+    )
+    if done.returncode != 0:
+        raise SystemExit(f"engine {command} failed: {done.stderr.strip()}")
+    return json.loads(done.stdout)
 
 OUT = ROOT / "workbooks" / "ato-benchmark-compare.xlsx"
 
@@ -86,47 +121,48 @@ RANGE_COLUMNS = {
 }
 
 
-def _bounds(band: ds.Band, key: str) -> list:
-    value = band.ratios.get(key)
+def _bounds(band: dict, key: str) -> list:
+    value = dict(band["ratios"]).get(key)
     if value is None:
         return [None, None]
-    return [float(value.minimum), float(value.maximum)]
+    return [float(value[0]), float(value[1])]
 
 
 def read_bands() -> tuple[list[list], dict[str, dict], dict[str, dict]]:
     """Every band as the engine loads it, industry-page ranges merged in.
 
-    Reading through ``dataset.load`` rather than the JSON keeps the workbook on
-    the engine's own view: the same merge, the same checks, the same refusals.
+    Reading through the engine's ``load-dataset`` rather than the JSON keeps the
+    workbook on the engine's own view: the same merge, the same checks, the same
+    refusals.
     """
     rows, sources, page_sources = [], {}, {}
-    for year in ds.available_years():
-        data = ds.load(year)
-        sources[year] = data.source
-        if data.page_source is not None:
-            page_sources[year] = data.page_source
-        for bt in data.business_types:
-            for band in bt.bands:
+    for year in engine("available-years", {"data_dir": None}):
+        data = engine("load-dataset", {"year": year, "data_dir": None})
+        sources[year] = data["source"]
+        if data["page_source"] is not None:
+            page_sources[year] = data["page_source"]
+        for bt in data["business_types"]:
+            for band in bt["bands"]:
                 rows.append(
                     [
                         year,
-                        bt.name,
-                        bt.key_ratio,
-                        band.band,
-                        band.label,
-                        float(band.turnover_from),
-                        "Y" if band.turnover_from_inclusive else "N",
-                        None if band.turnover_to is None else float(band.turnover_to),
+                        bt["name"],
+                        bt["key_ratio"],
+                        band["band"],
+                        band["label"],
+                        float(band["turnover_from"]),
+                        "Y" if band["turnover_from_inclusive"] else "N",
+                        None if band["turnover_to"] is None else float(band["turnover_to"]),
                         *_bounds(band, "cost_of_sales_to_turnover"),
                         *_bounds(band, "total_expenses_to_turnover"),
-                        data.source["retrieved"],
-                        data.source["sha256"],
+                        data["source"]["retrieved"],
+                        data["source"]["sha256"],
                         *_bounds(band, "labour_to_turnover"),
                         *_bounds(band, "rent_to_turnover"),
                         *_bounds(band, "motor_vehicle_to_turnover"),
-                        " ".join(key for key in RANGE_COLUMNS if key in band.page_ratios),
-                        None if not band.page_ratios or bt.page is None
-                        else bt.page["text_sha256"],
+                        " ".join(key for key in RANGE_COLUMNS if key in band["page_ratios"]),
+                        None if not band["page_ratios"] or bt["page"] is None
+                        else dict(bt["page"])["text_sha256"],
                     ]
                 )
     return rows, sources, page_sources
@@ -387,7 +423,7 @@ def build() -> None:
         "motor_vehicle_to_turnover": "B16",
     }
     ratios = [
-        (key, ds.RATIO_LABELS[key], cells[key], *RANGE_COLUMNS[key]) for key in RANGE_COLUMNS
+        (key, RATIO_LABELS[key], cells[key], *RANGE_COLUMNS[key]) for key in RANGE_COLUMNS
     ]
     for r, (key, label, cell, lo, hi) in enumerate(ratios, 2):
         ws.cell(row=r, column=1, value=key)

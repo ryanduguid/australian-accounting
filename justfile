@@ -11,12 +11,7 @@
 # Component directory : the import package it owns. Adding a component means
 # adding it here and to tests/test_boundaries.py.
 components := trim(replace('''
-packages/australian-tax-calculators:austaxcalc
-packages/ato-benchmark-compare:atobenchmark
 packages/payday-super-checker:paydaysuper
-packages/div7a-loan-review:div7aloan
-packages/solomons-sword:louisgoldberg
-packages/the-wip-tally:wiptally
 packages/gst-review:gstreview
 apps/aus-accounting-mcp:aus_accounting_mcp
 apps/lodgeit-calculator-adapter:lodgeitadapter
@@ -106,10 +101,19 @@ release +args:
 # The fast local pass: lint, type-check and test every component.
 check: lint typecheck test
 
-# Standalone Rust engine, outside the virtual Python workspace.
+# Standalone Rust engines, outside the virtual Python workspace.
+rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review packages/ato-benchmark-compare"
+
 rust-test:
-    cd packages/the-exchequer-tally && cargo test --locked
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for engine in {{ rust_engines }}; do
+        (cd "$engine" && cargo test --locked)
+    done
 
 rust-lint:
-    cd packages/the-exchequer-tally && cargo fmt --check
-    cd packages/the-exchequer-tally && cargo clippy --locked --all-targets -- -D warnings
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for engine in {{ rust_engines }}; do
+        (cd "$engine" && cargo fmt --check && cargo clippy --locked --all-targets -- -D warnings)
+    done
