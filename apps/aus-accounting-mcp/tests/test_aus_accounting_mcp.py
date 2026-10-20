@@ -1188,10 +1188,12 @@ def test_release_uses_the_hardened_shared_policy_contract() -> None:
     release_job = _workflow_jobs(release)["release"]
     release_mapping = "\n".join(_yaml_mapping_lines(release_job))
 
-    assert (
-        "uses: ryanduguid/release-policy/.github/workflows/release-python.yml@"
-        "0f7ca4ce0ba2e7ea52fc611149a42cd5d0a26f6c"
-    ) in release_mapping
+    # The pin is the caller's to set; the root release tests hold the callers to one pin.
+    assert re.search(
+        r"(?m)^\s*uses: ryanduguid/release-policy/\.github/workflows/"
+        r"release-python\.yml@[0-9a-f]{40}$",
+        release_mapping,
+    )
     assert "source-directory: apps/aus-accounting-mcp" in release_mapping
     assert "tag-prefix: aus-accounting-mcp" in release_mapping
     permissions = _yaml_block(release_job, "permissions", 4)
