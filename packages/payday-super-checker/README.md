@@ -559,7 +559,63 @@ echo '{"text": "9 Jul 2026"}' | payday-super-check parse-date-text
 
 `payday-super-check --api-help` lists the commands. A command name given as the
 only argument runs that command, so a contribution file named exactly like one
-(for example `assess`) is checked as `./assess`.
+(for example `assess`) is checked as `./assess`. The same holds for `derive` and
+`verify` below.
+
+## Derivations and `verify`
+
+`derive` reads one contribution's facts on stdin and writes a derivation of its
+due date: the input, one step per statutory question and the result. Each step
+names the provision it applies (`authority`), shows its `working` and gives its
+`value`. The input takes `qe_day` (required), `first_to_fund`, `out_of_cycle`,
+`next_standard_qe_day` and `db_interest`, with the canonical meanings. The
+steps are payday super (SGAA 1992 s 18C), defined benefit (s 18A(3)), the usual
+period (s 6(1), s 18C(1)(c)), the first contribution to a fund (s 18C(2)
+item 1), out-of-cycle earnings (s 18C(2) item 2, F2026L00784 s 5), item 4
+(s 18C(2) item 4, not applied to a single contribution), the days not counted
+(s 6(1) 'business day', naming each holiday) and the due date. The `result` is
+the deadline `compute-due` gives, with the caveats a register check adds for a
+next standard QE day without the out-of-cycle flag and for unconfirmed holidays
+or a date past the calendar's coverage.
+
+```sh
+echo '{"qe_day": "2026-07-09", "first_to_fund": true}' | payday-super-check derive > derivation.json
+payday-super-check verify derivation.json
+```
+
+`verify` rederives a saved derivation from its input, with no network, and
+compares it step by step. It prints `verified` and, when something differs,
+`differs_at`: the step number and id, the first field that differs, and the
+saved and rederived values. A changed holiday table, an engine change or an
+edit to the saved file all show up as the step they change. Exit codes: 0 when
+every step and the result match, 1 when one differs, 2 with an `error:` line
+when the input cannot be read. `verify` with no file reads stdin.
+
+A derivation reads only the bundled calendar, so anyone holding the file can
+rederive it; any other input key, `calendar` included, is refused. Item 4
+needs the employee's earlier paydays and fund receipts, so only the register
+check applies it.
+
+## WebAssembly
+
+`wasm/` builds the derivation for `wasm32-unknown-unknown`, for calculators
+that run in a browser. It exports `alloc(len)`, `dealloc(ptr, len)`,
+`derive(ptr, len)` and `verify(ptr, len)` over UTF-8 JSON in linear memory;
+`derive` and `verify` return `(ptr << 32) | len` of `{"ok": ...}` or
+`{"error": "..."}`, which the caller frees with `dealloc`. The remapped prefixes
+keep local paths out of the panic locations the binary carries:
+
+```sh
+rustup target add wasm32-unknown-unknown
+cd wasm
+RUSTFLAGS="--remap-path-prefix=$(cd .. && pwd)=payday-super-checker --remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=cargo" \
+  cargo build --locked --release --target wasm32-unknown-unknown
+cargo test --locked
+```
+
+The module is `wasm/target/wasm32-unknown-unknown/release/payday_super_checker_wasm.wasm`.
+An evidence pack needs a private folder, which the WebAssembly build cannot
+create, so the library refuses one there.
 
 ## Local file boundary
 

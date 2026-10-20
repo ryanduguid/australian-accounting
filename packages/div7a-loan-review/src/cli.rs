@@ -1189,6 +1189,11 @@ pub fn decode_os(text: &std::ffi::OsStr) -> String {
             );
         }
     }
+    // No command line reaches the WebAssembly build.
+    #[cfg(not(any(unix, windows)))]
+    for ch in text.to_string_lossy().chars() {
+        pytext::push_code_point(&mut out, ch as u32);
+    }
     out
 }
 

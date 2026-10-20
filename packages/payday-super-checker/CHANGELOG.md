@@ -10,6 +10,19 @@ No deadline, business-day, GIC, notional-earnings, uplift, rounding, refusal or
 message rule is intentionally changed, except the Employment Hero Reconciled
 status below.
 
+### Added
+
+- `derive` writes a due-date derivation for one contribution: the input, eight
+  steps each naming the SGAA 1992 provision or instrument it applies, and the
+  deadline. `verify` rederives a saved derivation offline and names the first
+  step that differs (exit 1), or confirms it (exit 0). Both read only the
+  bundled calendar.
+- `wasm/` builds the derivation for `wasm32-unknown-unknown`, exporting
+  `alloc`, `dealloc`, `derive` and `verify` over JSON. Writing an evidence pack
+  is refused on targets other than Unix and Windows, which cannot create its
+  private folder.
+- The public library API is unchanged apart from the new `derivation` module.
+
 ### Migration
 
 - `paydaysuper` imports become JSON stdin subcommands named after the function

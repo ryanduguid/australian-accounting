@@ -271,6 +271,13 @@ fn create_private_dir(path: &std::path::Path) -> std::io::Result<()> {
     std::fs::DirBuilder::new().mode(0o700).create(path)
 }
 
+/// No private-folder guarantee elsewhere (the WebAssembly build has no file
+/// system), so the pack is refused rather than written open.
+#[cfg(not(any(unix, windows)))]
+fn create_private_dir(_path: &std::path::Path) -> std::io::Result<()> {
+    Err(std::io::ErrorKind::Unsupported.into())
+}
+
 #[cfg(windows)]
 fn create_private_dir(path: &std::path::Path) -> std::io::Result<()> {
     use std::ffi::c_void;

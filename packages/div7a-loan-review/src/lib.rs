@@ -3,6 +3,7 @@ mod argtheme;
 pub mod cli;
 mod csvread;
 pub mod decimal;
+pub mod derivation;
 pub mod facts;
 pub mod gate;
 pub mod money;

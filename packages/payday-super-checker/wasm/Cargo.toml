@@ -1,0 +1,25 @@
+[package]
+name = "payday-super-checker-wasm"
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.99"
+description = "WebAssembly build of the Payday Super due date derivation"
+license = "Apache-2.0"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+payday-super-checker = { path = ".." }
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "s"
+panic = "abort"
+strip = true
+
+# Not a member of any parent workspace.
+[workspace]

@@ -16,6 +16,7 @@ mod csvwrite;
 pub mod dates;
 pub mod deadlines;
 pub mod decimal;
+pub mod derivation;
 pub mod evidence_pack;
 #[doc(hidden)]
 pub mod fuzzing;
