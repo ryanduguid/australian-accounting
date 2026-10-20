@@ -5,7 +5,7 @@ determination, and it does not authorise anyone to skip the current-source check
 
 ## Before tagging
 
-1. Read every ATO page in `SOURCES` in `lodgmentcalendar/due_dates.py` and the holiday
+1. Read every ATO page in `SOURCES` in `lodgmentcalendar/rules.py` and the holiday
    page in `lodgmentcalendar/holidays.py` live. If a date, condition or table moved, update
    the rule, its test, `SOURCE_CHECKED` and the primary-source review in the same commit.
 2. `uv run --locked --extra dev pytest --cov --cov-branch`

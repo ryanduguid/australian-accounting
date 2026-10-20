@@ -65,7 +65,7 @@ CONFLICTS = {
 }
 
 
-def roll(day: date, holidays: Mapping[date, str] = HOLIDAYS,
+def roll(day: date, holidays: Mapping[date, str] | None = None,
          covers_to: date = COVERS_TO) -> tuple[date | None, list[dict[str, str]], str | None]:
     """The first business day on or after ``day``, the days passed over, and why not.
 
@@ -74,6 +74,7 @@ def roll(day: date, holidays: Mapping[date, str] = HOLIDAYS,
     table answers the roll 2 ways. ``holidays`` and ``covers_to`` default to the ATO
     table; ``calendar`` adds a caller's holidays to them.
     """
+    holidays = HOLIDAYS if holidays is None else holidays
     skipped: list[dict[str, str]] = []
     while True:
         if day in CONFLICTS:

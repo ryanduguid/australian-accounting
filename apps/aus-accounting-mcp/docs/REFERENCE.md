@@ -50,7 +50,7 @@ The example is fabricated, is not a lodgement or Division 7A determination, is n
 
 | Asset | Purpose | Source | Licence | Creation | SHA-256 | Refresh trigger |
 |---|---|---|---|---|---|---|
-| `docs/quick-proof.webp` | Static terminal summary of the two checked demonstration outcomes | `docs/quick-proof.txt`, emitted by `aus-accounting-mcp-demo` | Apache-2.0 | `uv run --locked --extra dev python scripts/render_demo_image.py docs/quick-proof.txt docs/quick-proof.webp` with Pillow 12.3.0 | `438f38ae6e12de4dcecec7253a7b1be95651dca05db8208b9077d5edb976bd0e` | Regenerate when the transcript, demo output, render constants or pinned Pillow version changes |
+| `docs/quick-proof.webp` | Static terminal summary of the two checked demonstration outcomes | `docs/quick-proof.txt`, emitted by `aus-accounting-mcp-demo` | Apache-2.0 | `uv run --locked --extra dev python scripts/render_demo_image.py docs/quick-proof.txt docs/quick-proof.webp` with Pillow 13.0.0 | `438f38ae6e12de4dcecec7253a7b1be95651dca05db8208b9077d5edb976bd0e` | Regenerate when the transcript, demo output, render constants or pinned Pillow version changes |
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
