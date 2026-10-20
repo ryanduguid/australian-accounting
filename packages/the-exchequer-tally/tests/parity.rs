@@ -206,6 +206,40 @@ fn forced_colour_error_line_matches_python_3_15() {
     );
 }
 #[test]
+fn negative_number_prefix_values_reach_the_type_check() {
+    // Final stderr lines recorded from Python 0.2.0 on CPython 3.15: argparse's
+    // `-\.?\d` matcher is a prefix match, so these are values, not options.
+    for (args, expected) in [
+        (
+            ["dist-statement", "--amount", "-1\n"],
+            "the-exchequer-tally dist-statement: error: argument --amount: money must be between 0 and 1000000000000.00 AUD: '-1\\n'",
+        ),
+        (
+            ["dist-statement", "--amount", "-1x"],
+            "the-exchequer-tally dist-statement: error: argument --amount: not a decimal amount: '-1x'",
+        ),
+        (
+            ["dist-statement", "--amount", "-.5x"],
+            "the-exchequer-tally dist-statement: error: argument --amount: not a decimal amount: '-.5x'",
+        ),
+        (
+            ["bre-test", "--turnover", "-1x"],
+            "the-exchequer-tally bre-test: error: argument --turnover: not a decimal amount: '-1x'",
+        ),
+    ] {
+        let out = Command::new(env!("CARGO_BIN_EXE_the-exchequer-tally"))
+            .args(args)
+            .env("PYTHON_COLORS", "0")
+            .env_remove("FORCE_COLOR")
+            .output()
+            .unwrap();
+        assert_eq!(out.status.code(), Some(2), "{args:?}");
+        let stderr = String::from_utf8(out.stderr).unwrap();
+        let last = stderr.trim_end().rsplit('\n').next().unwrap();
+        assert_eq!(last.trim_end_matches('\r'), expected, "{args:?}");
+    }
+}
+#[test]
 fn ledger_years_dates_and_null_references_follow_python() {
     // Expected text recorded from Python 0.1.8 FrankingAccount(fy) on CPython 3.15.
     for (fy, expected) in [
