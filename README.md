@@ -148,6 +148,7 @@ For an editable source installation, run `pip install -e .` from
 | `packages/the-exchequer-tally/` | `the-exchequer-tally` (Rust) | none | `the-exchequer-tally` |
 | `packages/solomons-sword/` | `solomons-sword` (Rust) | none | `solomons-sword` |
 | `packages/the-wip-tally/` | `the-wip-tally` (Rust) | none | `wip-tally` |
+| `apps/au-accounting/` | `au-accounting` (Rust) | none | `au-accounting`, one subcommand per Rust engine |
 | `packages/gst-review/` | `gst-review` | `gstreview` | Python review functions: GST coding states against registration, BAS-to-ledger reconciliation |
 | `packages/lodgment-calendar/` | `lodgment-calendar` (not yet released) | `lodgmentcalendar` | Python function: ATO lodgment program due dates for BAS, IAS and income tax returns, `UNKNOWN` where a fact is missing |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` | `lodgeitadapter` | optional adapter for a third-party calculator service; off by default, makes HTTP calls only when `LODGEIT_ADAPTER_ENABLED=1` |
@@ -162,16 +163,40 @@ takes `australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2,
 `ato-benchmark-compare` 0.2.2 and `payday-super-checker` 0.2.2, the last Python
 releases, from PyPI.
 
-The Exchequer Tally 1.0.0, Solomon's Sword 1.0.0, The WIP Tally 1.0.0,
-Australian Tax Calculators 1.0.0 and Division 7A Loan Review 1.0.0 are
-unreleased standalone Rust binaries. Build each with Cargo using its README
-([The Exchequer Tally](packages/the-exchequer-tally/README.md),
-[Solomon's Sword](packages/solomons-sword/README.md),
-[The WIP Tally](packages/the-wip-tally/README.md),
-[Australian Tax Calculators](packages/australian-tax-calculators/README.md),
-[Division 7A Loan Review](packages/div7a-loan-review/README.md)). The
-uv workspace continues to develop the other engines and applications; the MCP
-server uses none of these crates yet.
+The uv workspace continues to develop the Python engines and applications; the
+MCP server uses none of the Rust crates yet.
+
+## Install the Rust engines
+
+The 7 Rust engines are unreleased standalone binaries. With
+[Rust](https://rustup.rs/) 1.99 or later, install `au-accounting`, one command
+with a subcommand per engine (`benchmarks`, `div7a`, `exchequer`, `payday-super`,
+`solomons`, `tax` and `wip`):
+
+```bash
+cargo install --locked --git https://github.com/ryanduguid/australian-accounting au-accounting
+```
+
+`au-accounting div7a --help` then shows that engine's own commands; see
+[its README](apps/au-accounting/README.md). To install one engine's own command
+instead, name its crate from the table above, for example:
+
+```bash
+cargo install --locked --git https://github.com/ryanduguid/australian-accounting div7a-loan-review
+```
+
+GST Review is still a Python package, so `au-accounting` has no `gst-review`
+subcommand; install it from [PyPI](https://pypi.org/project/gst-review/).
+
+Prebuilt binaries are coming: CI already builds each crate's Windows, macOS and
+Linux archive, and every crate carries [cargo-binstall](https://github.com/cargo-bins/cargo-binstall)
+metadata naming those release assets. No release publishes them yet; that waits
+for a Release Policy workflow for Rust binaries and for the crates on crates.io.
+Once both ship, this will download a prebuilt binary instead of compiling:
+
+```bash
+cargo binstall au-accounting
+```
 
 ## Working in a component
 

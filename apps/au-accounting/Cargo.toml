@@ -1,0 +1,34 @@
+[package]
+name = "au-accounting"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+description = "One command for the Australian accounting engines in this repository"
+license = "Apache-2.0"
+repository = "https://github.com/ryanduguid/australian-accounting"
+publish = false
+
+[dependencies]
+ato-benchmark-compare = { path = "../../packages/ato-benchmark-compare" }
+australian-tax-calculators = { path = "../../packages/australian-tax-calculators" }
+div7a-loan-review = { path = "../../packages/div7a-loan-review" }
+payday-super-checker = { path = "../../packages/payday-super-checker" }
+serde = "1"
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
+solomons-sword = { path = "../../packages/solomons-sword" }
+the-exchequer-tally = { path = "../../packages/the-exchequer-tally" }
+the-wip-tally = { path = "../../packages/the-wip-tally" }
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+# Asset names the release workflow will publish once release-policy has a Rust
+# binary family; see README.md.
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/{ name }/v{ version }/{ name }-{ version }-{ target }{ archive-suffix }"
+bin-dir = "{ name }-{ version }-{ target }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"
