@@ -1,0 +1,22 @@
+[package]
+name = "payday-super-checker-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+payday-super-checker = { path = ".." }
+
+[[bin]]
+name = "csv_readers"
+path = "fuzz_targets/csv_readers.rs"
+test = false
+doc = false
+bench = false
+
+# Not a member of any parent workspace.
+[workspace]

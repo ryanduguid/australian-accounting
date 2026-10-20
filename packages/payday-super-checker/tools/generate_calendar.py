@@ -1,4 +1,4 @@
-"""Generate paydaysuper/data/business_days.json: the national non-business-day table.
+"""Generate data/business_days.json: the national non-business-day table.
 
 DEV-TIME TOOL ONLY. The runtime never imports python-holidays: compliance
 output must not change because a transitive dependency updated, and the raw
@@ -11,8 +11,8 @@ Method (SGAA 1992 s 6(1) "business day"):
   holidays across the 8 listed jurisdictions, minus entries that are not
   whole-of-jurisdiction, weekends excluded (computed at runtime).
 
-Usage:
-    uv run --locked --extra dev --python 3.14 python tools/generate_calendar.py > paydaysuper/data/business_days.json
+Usage, from the repository root:
+    uv run --locked python packages/payday-super-checker/tools/generate_calendar.py > packages/payday-super-checker/data/business_days.json
 Then hand-review every line against the 8 state/territory government pages
 before shipping, record the review date, and raise `verified_until` only to
 the last date every jurisdiction covers. The raw generator deliberately

@@ -1,0 +1,236 @@
+[
+ [
+  "verified string",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": \"false\", \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: 'verified' must be true or false, got str"
+ ],
+ [
+  "verified null",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": null, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: 'verified' must be true or false, got NoneType"
+ ],
+ [
+  "no key",
+  [
+   [
+    "p0.json",
+    "{\"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json has no 'key'"
+ ],
+ [
+  "no role",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json has no 'role'"
+ ],
+ [
+  "role int",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": 3, \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: 'role' must be str, got int"
+ ],
+ [
+  "bad role",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"employer\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: role 'employer' is not one of ['payroll', 'super']"
+ ],
+ [
+  "columns list",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": [], \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: 'columns' must be dict, got list"
+ ],
+ [
+  "unknown field",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"], \"bogus\": [\"x\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json maps unknown field(s) ['bogus']; valid fields are ['amount', 'contribution_type', 'employee_id', 'employee_name', 'paid_date', 'payday', 'period_end', 'period_start', 'status']"
+ ],
+ [
+  "empty headings",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: 'employee_name' must be a non-empty list of headings"
+ ],
+ [
+  "sg_filter incomplete",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"amount\"}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: sg_filter needs 'column' and 'include'"
+ ],
+ [
+  "sg_filter unmapped",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"nope\", \"include\": [\"x\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: sg_filter column 'nope' is not one of the mapped columns"
+ ],
+ [
+  "sg_filter empty include",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"employee_name\", \"include\": []}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: sg_filter 'include' must be a non-empty list of values"
+ ],
+ [
+  "status incomplete",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\", \"remitted_status\": {\"column\": \"employee_name\", \"sent\": [\"a\"]}}"
+   ]
+  ],
+  "profile p0.json: remitted_status needs 'column', 'sent' and 'not_sent'"
+ ],
+ [
+  "status overlap",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\", \"remitted_status\": {\"column\": \"employee_name\", \"sent\": [\"Paid\", \"Done\"], \"not_sent\": [\"PAID!\"]}}"
+   ]
+  ],
+  "profile p0.json: remitted_status lists ['paid'] as both 'sent' and 'not_sent'"
+ ],
+ [
+  "status empty sent",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\", \"remitted_status\": {\"column\": \"employee_name\", \"sent\": [], \"not_sent\": [\"x\"]}}"
+   ]
+  ],
+  "profile p0.json: remitted_status 'sent' must be a non-empty list of values"
+ ],
+ [
+  "date formats empty",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: 'date_formats' must be a non-empty list of formats"
+ ],
+ [
+  "date formats null",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": null, \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: 'date_formats' must be a non-empty list of formats"
+ ],
+ [
+  "signature string",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": \"x\", \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json: 'signature' must be list, got str"
+ ],
+ [
+  "name missing",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "profile p0.json has no 'name'"
+ ],
+ [
+  "not json",
+  [
+   [
+    "p0.json",
+    "{"
+   ]
+  ],
+  "profile p0.json is not valid JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+ ],
+ [
+  "not object",
+  [
+   [
+    "p0.json",
+    "[]"
+   ]
+  ],
+  "profile p0.json must be a JSON object"
+ ],
+ [
+  "duplicate keys",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ],
+   [
+    "p1.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "duplicate profile key(s): ['xero-super']"
+ ],
+ [
+  "good",
+  [
+   [
+    "p0.json",
+    "{\"key\": \"xero-super\", \"name\": \"Xero Payroll - Superannuation Payments\", \"role\": \"super\", \"verified\": false, \"signature\": [\"Employee\", \"Contribution Type\", \"Amount\"], \"columns\": {\"employee_name\": [\"Employee\", \"Employee Name\"], \"employee_id\": [\"Employee Number\", \"Employee Code\"], \"period_start\": [\"Period Start\", \"Pay Period Start\", \"Period From\"], \"period_end\": [\"Period End\", \"Pay Period End\", \"Period To\"], \"paid_date\": [\"Payment Date\", \"Super Payment Date\", \"Date Sent To Fund\", \"Sent To Fund\"], \"amount\": [\"Amount\", \"Super Amount\"], \"contribution_type\": [\"Contribution Type\"]}, \"date_formats\": [\"%d/%m/%Y\", \"%Y-%m-%d\", \"%d %b %Y\"], \"sg_filter\": {\"column\": \"contribution_type\", \"include\": [\"Superannuation Guarantee\", \"SGC\", \"SG\", \"Employer Contributions\"]}, \"notes\": \"Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it.\"}"
+   ]
+  ],
+  "OK"
+ ]
+]
