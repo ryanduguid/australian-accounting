@@ -95,7 +95,7 @@ def test_a_complete_calendar_settles_the_june_monthly_statement():
     ({"extra_holidays": {date(2027, 7, 28): "Synthetic\nholiday"}}, "needs a holiday name"),
     ({"extra_holidays": {date(2027, 7, 28): "Synthetic\x7fholiday"}}, "needs a holiday name"),
     ({"extra_holidays": {date(2027, 7, 28): "Synthetic\x85holiday"}}, "needs a holiday name"),
-    ({"extra_holidays": {date(2027, 7, 28): "Synthetic‮holiday"}}, "needs a holiday name"),
+    ({"extra_holidays": {date(2027, 7, 28): "Synthetic\u202eholiday"}}, "needs a holiday name"),
     ({"extra_holidays": {date(2027, 7, 28): "x" * 121}}, "needs a holiday name"),
     ({"extra_holidays": {date(2027, 6, 7): "Synthetic"}}, "already in the ATO table"),
     ({"extra_holidays": {date(2026, 9, 25): "Synthetic"}}, "already in the ATO table"),
