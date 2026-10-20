@@ -11,10 +11,13 @@ The repository includes original arithmetic and fabricated test inputs, with
 selected established amounts from Library worked examples. It does not reproduce
 the Library documents or require access to them at runtime.
 
-`tests/test_library_evidence.py` froze the expected amounts below. It did not
-call another engine to generate its expectations. `tests/test_calculations.py`
-covered the smaller examples, rounding, boundaries and refusals. Neither test set
-establishes eligibility, classification or a complete tax liability.
+The Python 0.2.0 suite's `test_library_evidence.py` froze the expected amounts
+below. It did not call another engine to generate its expectations.
+`test_calculations.py` covered the smaller examples, rounding, boundaries and
+refusals. Their calls are frozen in `tests/data/python-api.json` and replayed by
+`tests/parity.rs`; [tests/BEHAVIOURS.md](../tests/BEHAVIOURS.md) maps every
+original test, including those named below, to its Rust coverage. Neither test
+set establishes eligibility, classification or a complete tax liability.
 
 The Python tests named in this file were removed when the engine moved to Rust
 in 1.0.0. Every call they made replays from `tests/data/python-api.json` in
@@ -144,7 +147,8 @@ data for Schedule 1 (NAT 1004) so that payroll software can be checked against
 it, and `tests/payg_withholding_sample_2026_27.csv` holds every value in the
 weekly, fortnightly and monthly tables published on 17 June 2026: 48 earnings
 points for each period on scales 1, 2, 3, 5 and 6, 720 amounts in all.
-`tests/test_payg_withholding.py` requires the worksheet to reproduce each one.
+`tests/tables.rs` (`every_scale_matches_the_ato_sample`) requires the worksheet
+to reproduce each one.
 
 The coefficients in `src/metadata.rs` were transcribed from the ATO page
 "Coefficients to use in formulas for withholding from weekly payments", and the
@@ -166,7 +170,7 @@ and pensioners tax offset, s 3(1) sets those at $28,011 and $35,013, which the
 ATO page "Medicare levy reduction for low-income earners" (last updated 30 June
 2026) gives for 2025-26. The 2024-25 figures, $27,222 and $34,027, are from
 table 2 of the ATO's myTax 2025 instructions, which apply to 1 July 2024 to 30
-June 2025. `tests/test_medicare_levy.py` holds the worksheet to the ATO page's
+June 2025. The frozen replay in `tests/parity.rs` holds the worksheet to the ATO page's
 example ($29,000 in 2025-26 gives $98.90), to each threshold and phase-in limit
 and to the dollar either side of them. The 2026-27 thresholds were not
 published when the worksheet was written, so 2026-27 is refused rather than
@@ -201,7 +205,7 @@ individual who is an Australian resident at any time in the year with taxable
 income of no more than $66,667. The ATO page "Low income tax offset" (last
 updated 8 June 2026) states the same bands, and its page on low and middle
 income earner tax offsets works the $45,000 case to $325, which
-`tests/test_low_income_tax_offset.py` holds. The tests also derive the $325
+the frozen replay in `tests/parity.rs` holds. `tests/tables.rs` also derives the $325
 from the first band and the $66,667 cut-out as the first whole dollar at which
 the third item reaches nil.
 
@@ -226,7 +230,7 @@ Imposition Act 2013 sets the tax at 15%. The ATO's key superannuation rates
 table gives the $250,000 threshold for 2017-18 onwards (last updated 7 August
 2026), and its Division 293 page (last updated 24 August 2026) works Jan's
 example: $240,000 and $15,000 give taxable contributions of $5,000 and tax of
-$750, which `tests/test_division_293.py` holds.
+$750, which the frozen replay in `tests/parity.rs` holds.
 
 Both inputs are the operator's established figures; the worksheet does not
 build Division 293 income from its components or classify contributions.
@@ -242,7 +246,7 @@ Statement of formulas for calculating study and training support loans
 components" (NAT 3539, published 17 June 2026, for payments made from 1 July
 2026), read on 15 October 2026, together with its rules for the weekly
 equivalent of fortnightly and monthly earnings and for rounding to the dollar.
-The ATO's sample data page, checked the same day, lists no Schedule 8 data. `tests/test_study_loan_withholding.py`
+The ATO's sample data page, checked the same day, lists no Schedule 8 data. The frozen replay in `tests/parity.rs`
 holds the component to the page's examples 1 to 3 ($2,608.36 weekly gives $193,
 $4,409.75 fortnightly gives $260 and $10,627.88 monthly without the tax-free
 threshold gives $979) and to the published starting earnings for each pay
@@ -273,7 +277,7 @@ ss 154-10 and 154-20. The ATO has since moved and retitled the page "Study and
 training loan minimum repayment income and rates" (last updated 13 October
 2026), which now says "minimum repayment income" where it said "repayment
 threshold". Read again on 20 October 2026, its tables and examples print the
-same figures. `tests/test_study_loan.py` holds the worksheet to the
+same figures. The frozen replay in `tests/parity.rs` holds the worksheet to the
 page's examples 1 and 3 ($86,380 gives $2,527.80; $254,780 gives $25,478.00)
 and to every band boundary in both years.
 
@@ -315,9 +319,9 @@ same under both.
 The ATO's contributions caps and non-concessional contributions cap pages,
 read on 24 September 2026, supply the concessional caps ($30,000, $30,000 and
 $32,500), the general transfer balance caps ($1.9 million, $2 million and
-$2.1 million) and the $500,000 carry-forward limit. `tests/test_super_worksheets.py`
-types in the ATO's published bring-forward tables for each year and checks every
-band boundary a cent either side. The age condition follows the ATO's "Age
+$2.1 million) and the $500,000 carry-forward limit. The frozen replay in
+`tests/parity.rs` holds the worksheet to the ATO's published bring-forward tables
+for each year at every band boundary and a cent either side. The age condition follows the ATO's "Age
 eligibility" section and s 292-85(3): under 75 at any time in the year. The
 non-concessional cap page's bullet that refers to age on 1 July is not used.
 
