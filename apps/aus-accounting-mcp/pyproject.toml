@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aus-accounting-mcp"
-version = "0.6.0"
+version = "0.7.0"
 description = "Local accounting reviews, fourteen bounded tax and super worksheets and cited retrieval from your configured local Markdown folder. uvx from PyPI; not advice."
 readme = "README.md"
 requires-python = ">=3.14"
@@ -49,6 +49,7 @@ dependencies = [
     "div7a-loan-review==0.3.2",
     "australian-tax-calculators==0.2.0",
     "gst-review==0.1.0",
+    "lodgment-calendar==0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -120,6 +121,7 @@ extraPaths = [
     "../../packages/div7a-loan-review",
     "../../packages/australian-tax-calculators",
     "../../packages/gst-review",
+    "../../packages/lodgment-calendar",
 ]
 
 [tool.coverage.report]

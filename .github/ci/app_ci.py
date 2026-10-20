@@ -17,13 +17,13 @@ DEPENDENCIES = {
     # ato-benchmark-compare and payday-super-checker from PyPI until the MCP
     # server links the Rust crates, so their directories do not select them.
     "aus-accounting-mcp": frozenset({
-        "gst-review",
+        "gst-review", "lodgment-calendar",
     }),
     "lodgeit-calculator-adapter": frozenset(),
 }
 PACKAGES = frozenset().union(*DEPENDENCIES.values(), {
     "solomons-sword", "the-exchequer-tally", "the-wip-tally", "australian-tax-calculators",
-    "div7a-loan-review", "ato-benchmark-compare", "payday-super-checker", "lodgment-calendar",
+    "div7a-loan-review", "ato-benchmark-compare", "payday-super-checker",
 })
 APP_JOBS = frozenset({"test", "lint", "dependency-audit"})
 KNOWN_PREFIXES = tuple(f"packages/{name}/" for name in PACKAGES) + tuple(

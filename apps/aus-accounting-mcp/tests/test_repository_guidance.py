@@ -13,7 +13,7 @@ EXPECTED_POLICY = """\
 
 This package is an MCP facade. Keep statutory calculations in the delegated
 `payday-super-checker`, `ato-benchmark-compare`, `div7a-loan-review`,
-`australian-tax-calculators` and `gst-review` engines;
+`australian-tax-calculators`, `gst-review` and `lodgment-calendar` engines;
 adapters may validate, translate and serialise, but must not reimplement their law
 or datasets.
 

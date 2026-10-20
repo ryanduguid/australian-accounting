@@ -397,6 +397,53 @@ class BasReconciliation(EngineResult):
     warnings: GstStatements
 
 
+class LodgmentObligation(ResultObject):
+    obligation: str
+    period: Annotated[str, Field(description="Statement period or income year.")]
+    kind: Literal["lodgment", "payment", "concession"]
+    status: Annotated[
+        Literal["DETERMINED", "UNKNOWN"],
+        Field(description="UNKNOWN names what is missing; never replace it with a date."),
+    ]
+    due_date: Annotated[
+        DateText | None, Field(description="Date after the next-business-day roll; null when "
+                               "UNKNOWN.")
+    ]
+    nominal_due_date: Annotated[
+        DateText | None, Field(description="Date the rule names, before the roll.")
+    ]
+    rule_id: str
+    summary: str
+    source_url: str
+    source_provision: str
+    source_checked: DateText
+    holiday_roll: Annotated[
+        dict[str, Any] | None, Field(description="Weekend days and holidays passed over.")
+    ]
+    missing: Annotated[list[str], Field(description="Facts not supplied or questions open.")]
+    payment: NotRequired[Annotated[
+        Literal["with_lodgment", "separate", "none", "unknown"],
+        Field(description="On lodgment rows: how the payment date relates to this one."),
+    ]]
+
+
+class LodgmentCalendar(EngineResult):
+    calendar: Literal["lodgment_due_dates"]
+    disclaimer: str
+    program_year: YearText
+    request: Annotated[dict[str, Any], Field(description="Obligation, entity, year, channel.")]
+    facts_used: Annotated[dict[str, bool | None], Field(description="Each fact; null is "
+                                                         "not supplied.")]
+    obligations: list[LodgmentObligation]
+    counts: Annotated[dict[str, int], Field(description="Rows per status.")]
+    holiday_calendar: Annotated[
+        dict[str, Any], Field(description="Holiday rule, ATO table source and coverage.")
+    ]
+    not_decided: GstStatements
+    warnings: GstStatements
+    source_checked: DateText
+
+
 class LibraryExcerpt(ResultObject):
     path: str
     sha256: str

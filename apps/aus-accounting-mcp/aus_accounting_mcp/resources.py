@@ -33,6 +33,7 @@ from paydaysuper.rates import load_gic
 
 from .adapters.div7a import DISCLAIMER as DIV7A_DISCLAIMER
 from .adapters.gst import DISCLAIMER as GST_DISCLAIMER
+from .adapters.lodgment import DISCLAIMER as LODGMENT_DISCLAIMER
 from .adapters.payday import DISCLAIMER as PAYDAY_DISCLAIMER, SINGLE_CONTRIBUTION_CAVEAT
 
 SERVER_DISTRIBUTION = "aus-accounting-mcp"
@@ -47,6 +48,7 @@ ENGINE_DISTRIBUTIONS = (
     "payday-super-checker",
     "australian-tax-calculators",
     "gst-review",
+    "lodgment-calendar",
 )
 
 #: The facade's own boundary statement, paragraph by paragraph. Every one of
@@ -101,6 +103,8 @@ def scope() -> dict[str, Any]:
             "supplied GST registration dates.",
             "reconcile_bas": "Compare lodged BAS label figures with ledger lines per period; "
             "not BAS preparation or revision.",
+            "get_lodgment_due_dates": "List ATO 2026-27 lodgment program due dates for BAS, "
+            "IAS and income tax returns, with UNKNOWN where a fact is missing.",
             "calculate_tax_worksheet": "Run one of the bounded calculation_worksheets below.",
             "search_accounting_library": "Search an explicitly configured local Markdown library.",
             "read_accounting_library": "Read bounded lines with a source path and hash.",
@@ -185,6 +189,8 @@ def disclaimer() -> str:
             "\n".join(f"{kind}: {description}" for kind, description in SCOPES.items()),
             "# gst-review",
             GST_DISCLAIMER,
+            "# lodgment-calendar",
+            LODGMENT_DISCLAIMER,
         )
     )
 

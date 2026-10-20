@@ -40,6 +40,7 @@ from .adapters.gst import (
     bas_reconciliation,
     coding_review,
 )
+from .adapters.lodgment import LodgmentFactsInput, lodgment_due_dates
 from .adapters.payday import (
     ContributionInput,
     evidence_pack,
@@ -73,6 +74,7 @@ from .outputs import (
     LegislationSearch,
     LibraryExcerpt,
     LibrarySearch,
+    LodgmentCalendar,
     PaydayEvidencePack,
     PaydayGroupReview,
     PaydayReview,
@@ -155,6 +157,11 @@ classification of the facts the operator supplied, not a determination.
   periods, lodged figures and the basis as established; never invent them. A state or
   difference is a review prompt: neither tool classifies a supply, prepares or revises
   a BAS, or decides which basis applies.
+- get_lodgment_due_dates lists ATO 2026-27 lodgment program dates for BAS, IAS and
+  income tax returns by entity type and lodgment channel. Supply each program fact
+  as established and omit the rest; never guess one. Report UNKNOWN rows with their
+  missing conditions, never as a nominal date, and tell the user to confirm dates in
+  Online services for agents. It lodges nothing.
 - generate_synthetic_sbr_fixture is only for fabricated integration tests.
   Never use its CTR/BAS output as a real calculation or lodgment.
 Resources carry context without a tool call: aus-accounting://disclaimer for the
@@ -917,6 +924,43 @@ def reconcile_bas(
     """
     return cast(BasReconciliation, bas_reconciliation(
         lines, periods, basis=basis, g1_includes_gst=g1_includes_gst, bas_codes=bas_codes,
+    ))
+
+
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Get ATO lodgment program due dates")
+def get_lodgment_due_dates(
+    obligation: Annotated[Literal["bas", "ias", "income_tax_return"], Field(
+        description="Activity statement (BAS or IAS) or income tax return.")],
+    entity_type: Annotated[Literal["individual", "trust", "partnership", "company", "smsf"],
+                           Field(description="The entity that lodges.")],
+    financial_year: Annotated[str, Field(
+        max_length=7, pattern=r"^[0-9]{4}-[0-9]{2}$",
+        description="YYYY-YY: the year of the statement periods (2026-27 recorded), or the "
+        "income year a return covers (2025-26 recorded). Other years return UNKNOWN.")],
+    channel: Annotated[Literal["self", "tax_agent", "bas_agent"], Field(
+        description="Who lodges. A BAS agent cannot lodge an income tax return.")],
+    reporting_cycle: Annotated[Literal["monthly", "quarterly"] | None, Field(
+        description="Required for bas and ias; omit for income_tax_return. A quarterly "
+        "instalment reported on a monthly BAS is monthly.")] = None,
+    facts: Annotated[LodgmentFactsInput | None, Field(
+        description="Program conditions as established; omit any that is not.")] = None,
+) -> LodgmentCalendar:
+    """List lodgement, payment and concession due dates from lodgment-calendar.
+
+    Covers the ATO 2026-27 lodgment program: monthly and quarterly BAS and IAS for
+    2026-27 periods, and 2025-26 income tax returns for individuals, trusts,
+    partnerships, companies (including consolidated head companies) and SMSFs, lodged
+    by the taxpayer or a registered tax or BAS agent. Each row gives status
+    DETERMINED or UNKNOWN, due_date after the next-business-day roll under the ATO's
+    public holiday table, nominal_due_date, rule_id, summary, source_url,
+    source_provision, source_checked and missing. A payment row appears only where
+    payment is not due with the lodgement. UNKNOWN names each fact not supplied or
+    question the ATO pages leave open; report it as UNKNOWN. Retain not_decided and
+    warnings. Not advice; lodges nothing and reads no network.
+    """
+    return cast(LodgmentCalendar, lodgment_due_dates(
+        obligation, entity_type, financial_year, channel,
+        reporting_cycle=reporting_cycle, facts=facts,
     ))
 
 

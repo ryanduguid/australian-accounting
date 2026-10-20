@@ -91,13 +91,14 @@ dev = [{ name = "pytest", specifier = ">=8" }]
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "apps/aus-accounting-mcp" }
 dependencies = [
     { name = "ato-benchmark-compare" },
     { name = "australian-tax-calculators" },
     { name = "div7a-loan-review" },
     { name = "gst-review" },
+    { name = "lodgment-calendar" },
     { name = "mcp" },
     { name = "payday-super-checker" },
 ]
@@ -121,6 +122,7 @@ requires-dist = [
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.6.1" },
     { name = "div7a-loan-review", specifier = "==0.3.2" },
     { name = "gst-review", editable = "packages/gst-review" },
+    { name = "lodgment-calendar", editable = "packages/lodgment-calendar" },
     { name = "mcp", specifier = ">=2.3.0,<3" },
     { name = "nodejs-wheel-binaries", marker = "extra == 'dev'", specifier = "==24.19.0" },
     { name = "payday-super-checker", specifier = "==0.2.2" },

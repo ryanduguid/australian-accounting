@@ -17,15 +17,16 @@ exclude = ["packages/the-exchequer-tally", "packages/solomons-sword", "packages/
 # workspace resolves every member together, and cannot hold 2 exact pins of
 # the same tool.
 
-# apps/aus-accounting-mcp declares exact pins on the 5 engines it consumes,
+# apps/aus-accounting-mcp declares exact pins on the 6 engines it consumes,
 # because a published distribution cannot depend on a path. Inside the
-# workspace gst-review resolves to the checked-out source instead, so the
-# application's tests import gstreview from the tree under review rather than
-# from the last PyPI release.
+# workspace gst-review and lodgment-calendar resolve to the checked-out sources
+# instead, so the application's tests import gstreview and lodgmentcalendar from
+# the tree under review rather than from the last PyPI release.
 # The pins stay authoritative for the published wheel; uv sources are development metadata
 # and are not written into built distributions.
 [tool.uv.sources]
 gst-review = { workspace = true }
+lodgment-calendar = { workspace = true }
 
 # australian-tax-calculators, div7a-loan-review, ato-benchmark-compare and
 # payday-super-checker are now Rust crates outside the workspace. Until the MCP
