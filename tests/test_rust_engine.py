@@ -59,7 +59,8 @@ class RustEngineTests(unittest.TestCase):
 
     def test_umbrella_links_every_engine_by_path(self):
         cargo = tomllib.loads((ROOT / "apps/au-accounting/Cargo.toml").read_text())
-        engines = {name: dep for name, dep in cargo["dependencies"].items() if name != "serde_json"}
+        engines = {name: dep for name, dep in cargo["dependencies"].items()
+                   if name not in {"serde", "serde_json"}}
         self.assertEqual(engines, {name: {"path": f"../../{component}"} for component, name in RUST_ENGINES.items()})
         source = (ROOT / "apps/au-accounting/src/main.rs").read_text()
         for name in RUST_ENGINES.values():
