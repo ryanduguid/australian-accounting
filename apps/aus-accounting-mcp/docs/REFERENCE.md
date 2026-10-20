@@ -77,7 +77,7 @@ Ready-made copies live in [`clients/`](https://github.com/ryanduguid/australian-
 
 ### Cursor
 
-[![Add to Cursor](https://img.shields.io/badge/Cursor-Add%20MCP-black)](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyJhdXMtYWNjb3VudGluZy1tY3AiXX0=)
+[![Add to Cursor](https://img.shields.io/badge/Cursor-Add%20MCP-black?style=flat&labelColor=000000&color=66023C)](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyJhdXMtYWNjb3VudGluZy1tY3AiXX0=)
 
 Or drop the standard config into `~/.cursor/mcp.json`.
 
@@ -108,7 +108,7 @@ gemini mcp add -s user aus-accounting uvx aus-accounting-mcp
 
 ### VS Code
 
-[![Install in VS Code](https://img.shields.io/badge/VS%20Code-Install%20MCP-0098FF)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522aus-accounting%2522%252C%2522command%2522%253A%2522uvx%2522%252C%2522args%2522%253A%255B%2522aus-accounting-mcp%2522%255D%257D)
+[![Install in VS Code](https://img.shields.io/badge/VS%20Code-Install%20MCP-0098FF?style=flat&labelColor=000000&color=66023C)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522aus-accounting%2522%252C%2522command%2522%253A%2522uvx%2522%252C%2522args%2522%253A%255B%2522aus-accounting-mcp%2522%255D%257D)
 
 Or from a terminal:
 
