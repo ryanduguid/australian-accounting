@@ -19,8 +19,8 @@ intentionally changed.
   refused with the original message; text that is not a decimal is refused as
   `decimal.InvalidOperation`, as `Decimal(text)` raised it. Flags, counts, ages,
   days, quarters and scales are JSON values checked by the original type rules,
-  so `2.0` is not a scale and `true` is not an integer. An integer of any size
-  is an `int`, as in Python, and a list or object period is quoted in the
+  so `2.0` is not a scale and `true` is not an integer. An integer of up to 4,300
+  digits, the limit Python's `json.loads` applied, is an `int`, as in Python, and a list or object period is quoted in the
   refusal as Python's `repr()` wrote it.
 - The JSON boundary refuses input over 8 MiB, a decimal string over 8,192 bytes
   and a missing argument (`<name> is required`; Python raised `TypeError`). JSON
