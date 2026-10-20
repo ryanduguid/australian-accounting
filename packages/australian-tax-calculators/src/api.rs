@@ -169,13 +169,95 @@ pub fn arg(value: &Value) -> Arg {
         Value::Bool(b) => Arg::Bool(*b),
         Value::Number(n) => match n.as_i64() {
             Some(i) => Arg::Int(i),
-            None if n.is_u64() => Arg::BigInt(n.to_string()),
-            None => Arg::Other(n.to_string()),
+            None if is_integer(&n.to_string()) => Arg::BigInt(n.to_string()),
+            None => Arg::Other(py_repr(value)),
         },
         Value::String(s) => Arg::Text(s.clone()),
-        Value::Null => Arg::Other("None".into()),
-        other => Arg::Other(other.to_string()),
+        other => Arg::Other(py_repr(other)),
     }
+}
+
+/// An integer token of any size, which `json.loads` makes an `int`.
+fn is_integer(text: &str) -> bool {
+    let digits = text.strip_prefix('-').unwrap_or(text);
+    !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())
+}
+
+/// `repr()` of the Python object `json.loads` makes from `value`.
+fn py_repr(value: &Value) -> String {
+    match value {
+        Value::Null => "None".into(),
+        Value::Bool(true) => "True".into(),
+        Value::Bool(false) => "False".into(),
+        Value::Number(n) if is_integer(&n.to_string()) => {
+            let text = n.to_string();
+            // `int("-0")` is 0.
+            if text.trim_start_matches('-').bytes().all(|b| b == b'0') {
+                "0".into()
+            } else {
+                text
+            }
+        }
+        Value::Number(n) => float_repr(n.as_f64().unwrap_or(f64::NAN)),
+        Value::String(s) => crate::pytext::repr(s),
+        Value::Array(items) => format!(
+            "[{}]",
+            items.iter().map(py_repr).collect::<Vec<_>>().join(", ")
+        ),
+        Value::Object(items) => format!(
+            "{{{}}}",
+            items
+                .iter()
+                .map(|(k, v)| format!("{}: {}", crate::pytext::repr(k), py_repr(v)))
+                .collect::<Vec<_>>()
+                .join(", ")
+        ),
+    }
+}
+
+/// `repr(float)`: the shortest text that reads back as the same double.
+fn float_repr(value: f64) -> String {
+    if value.is_nan() {
+        return "nan".into();
+    }
+    if value.is_infinite() {
+        return if value > 0.0 { "inf" } else { "-inf" }.into();
+    }
+    let sci = format!("{value:e}");
+    let (mantissa, exponent) = sci.split_once('e').expect("exponent form");
+    let exponent: i32 = exponent.parse().expect("exponent digits");
+    let (sign, mantissa) = match mantissa.strip_prefix('-') {
+        Some(rest) => ("-", rest),
+        None => ("", mantissa),
+    };
+    let digits: String = mantissa.chars().filter(|c| *c != '.').collect();
+    let decpt = exponent + 1;
+    if !(-4 < decpt && decpt <= 16) {
+        let rest = &digits[1..];
+        let dot = if rest.is_empty() {
+            String::new()
+        } else {
+            format!(".{rest}")
+        };
+        let esign = if exponent < 0 { '-' } else { '+' };
+        return format!(
+            "{sign}{}{dot}e{esign}{:02}",
+            &digits[..1],
+            exponent.unsigned_abs()
+        );
+    }
+    let body = if decpt <= 0 {
+        format!("0.{}{digits}", "0".repeat((-decpt) as usize))
+    } else if decpt as usize >= digits.len() {
+        format!("{digits}{}.0", "0".repeat(decpt as usize - digits.len()))
+    } else {
+        format!(
+            "{}.{}",
+            &digits[..decpt as usize],
+            &digits[decpt as usize..]
+        )
+    };
+    format!("{sign}{body}")
 }
 
 fn argument(v: &Value, key: &str, kind: Kind) -> Result<Arg> {
@@ -203,10 +285,11 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
     match command {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
         "periods" => {
-            let kind = v
-                .get("kind")
-                .and_then(Value::as_str)
-                .ok_or("kind must be a string")?;
+            let kind = match v.get("kind") {
+                None => return Err("kind is required".into()),
+                Some(Value::String(kind)) => kind.as_str(),
+                Some(_) => return Err("kind must be a string".into()),
+            };
             // Python raised KeyError for a worksheet it does not have.
             if crate::metadata::supported_periods(kind).is_empty() {
                 return Err(format!("unknown worksheet {}", crate::pytext::repr(kind)));

@@ -4,7 +4,8 @@ Base 83288b0, Python 0.2.0 (unchanged since the `australian-tax-calculators/v0.2
 tag): 109 test functions. The archive pytest suite passed before the
 differential harness captured the API calls they made. `tests/data/python-api.json`
 freezes the first 60 distinct calls of each test, all their parametrised cases
-together, plus 2,008 generated cases: 3,221 calls in all.
+together, plus 2,008 generated cases, 1,215 threshold cases and 23 review
+counterexamples: 4,459 calls in all. Tests are told apart by file and name.
 `tests/parity.rs` replays them through the JSON boundary and compares complete
 results, including key order, decimal scale and refusal messages.
 
