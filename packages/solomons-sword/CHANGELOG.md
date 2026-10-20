@@ -32,9 +32,12 @@ intentionally changed.
   argparse colour (`PYTHON_COLORS`, `NO_COLOR`, `FORCE_COLOR`) and width
   (`COLUMNS`) controls remain supported and are differential-tested.
 - On Unix, a stdout or stderr the binary cannot write (a closed pipe, a full
-  disk) is reported as Python's shutdown reported it: `Exception ignored while
-  flushing sys.stdout:` and the OSError on stderr, with exit 120. On Windows the
-  binary exits 1 without that message.
+  disk) is reported as Python's interpreter shutdown reported it: `Exception
+  ignored while flushing sys.stdout:` and the OSError on stderr, with exit 120.
+  The binary writes its output once, at the end, so this is its policy for every
+  write failure; Python could instead fail inside a command when output passed
+  its 8 KiB buffer, and report that through the command's own error handler. On
+  Windows the binary exits 1 without that message.
 - The Python/PyPI release workflow and the fast-check property bridge are
   removed. The footing property runs as a seeded Rust test over the same input
   domain. Native candidate builds are available in CI; a signed native
