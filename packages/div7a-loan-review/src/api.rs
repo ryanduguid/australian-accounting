@@ -104,13 +104,30 @@ fn over(v: &Value) -> Result<Option<RateOverride>> {
         .transpose()
 }
 
+/// The `where` keyword: its default when absent, otherwise `str()` of the
+/// value given, `None` included, as the f-strings that quote it print it.
 fn where_(v: &Value, default: &str) -> Result<String> {
-    Ok(optional_text(v, "where")?.unwrap_or(default).to_string())
+    Ok(match v.get("where") {
+        None => default.to_string(),
+        Some(value) => Raw::from_value(value).py_str(),
+    })
+}
+
+/// A register row as `from_mapping` reads it: anything but a dict fails on
+/// its first `row.get`, as Python's did.
+fn mapping_of(value: &Value) -> Result<Raw> {
+    match Raw::from_value(value) {
+        row @ Raw::Dict(_) => Ok(row),
+        other => Err(format!(
+            "AttributeError: '{}' object has no attribute 'get'",
+            other.type_name()
+        )),
+    }
 }
 
 fn gate_facts(v: &Value) -> Result<GateFacts> {
     if let Some(mapping) = v.get("mapping") {
-        return GateFacts::from_mapping(&Raw::from_value(mapping), &where_(v, "row")?);
+        return GateFacts::from_mapping(&mapping_of(mapping)?, &where_(v, "row")?);
     }
     let f = v.get("facts").ok_or("facts or mapping is required")?;
     Ok(GateFacts {
@@ -151,7 +168,16 @@ fn gate_summary(v: &Value) -> Result<Option<GateSummary>> {
     match v.get("gate_result") {
         None | Some(Value::Null) => Ok(None),
         Some(g) => Ok(Some(GateSummary {
-            verdict: text(g, "verdict")?.to_string(),
+            // `GateVerdict(value)` accepts its three members only.
+            verdict: match text(g, "verdict")? {
+                v @ ("COMPLYING" | "NOT_COMPLYING" | "UNKNOWN") => v.to_string(),
+                other => {
+                    return Err(format!(
+                        "{} is not a valid GateVerdict",
+                        crate::pytext::repr(other)
+                    ));
+                }
+            },
             benchmark_year_used: optional_text(g, "benchmark_year_used")?
                 .unwrap_or_default()
                 .to_string(),
@@ -165,7 +191,7 @@ fn myr_facts(v: &Value) -> Result<MyrFacts> {
     if let Some(mapping) = v.get("mapping") {
         let year = year(v, "year_of_income")?.ok_or("year_of_income is required")?;
         return MyrFacts::from_mapping(
-            &Raw::from_value(mapping),
+            &mapping_of(mapping)?,
             year,
             gate_summary(v)?,
             &where_(v, "row")?,
@@ -309,7 +335,11 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             Ok(json!(value.to_sci_string()))
         }
         "load-table" => {
-            let table = load_table(&PyPath::new(text(v, "path")?)).map_err(failure)?;
+            // `load_table(path=None)` reads the frozen table.
+            let table = match optional_text(v, "path")? {
+                None => crate::rates::frozen_table(),
+                Some(path) => load_table(&PyPath::new(path)).map_err(failure)?,
+            };
             Ok(json!({
                 "reviewed_until": table.reviewed_until.label(),
                 "reviewed_on": table.reviewed_on,
@@ -355,6 +385,14 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             Some(Value::Number(n)) if n.is_i64() => {
                 YearOfIncome::new(n.as_i64().expect("i64")).map(|y| json!(y.label()))
             }
+            // An int beyond 64 bits is still an int, and out of range.
+            Some(Value::Number(n))
+                if matches!(Raw::from_value(&Value::Number(n.clone())), Raw::Int(_)) =>
+            {
+                Err(format!(
+                    "year of income {n}-.. is outside 1900-2100; this looks like a typo rather than a year"
+                ))
+            }
             other => {
                 let raw = Raw::from_value(other.unwrap_or(&Value::Null));
                 Err(format!(
@@ -371,6 +409,10 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         }
         "require-columns" => {
             let fieldnames = strings(v, "fieldnames")?;
+            // `fieldnames or []`, but `needed` is iterated as given.
+            if matches!(v.get("needed"), Some(Value::Null)) {
+                return Err("TypeError: 'NoneType' object is not iterable".into());
+            }
             let needed = strings(v, "needed")?;
             let needed: Vec<&str> = needed.iter().map(String::as_str).collect();
             require_columns(&fieldnames, &needed, text(v, "where")?)?;

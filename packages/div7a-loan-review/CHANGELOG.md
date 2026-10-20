@@ -24,18 +24,26 @@ intentionally changed.
   1: `error: decimal.DivisionByZero` for a reviewed rate too small to move
   `1 + rate` at 60 digits, `error: UnicodeDecodeError: ...` for an override
   file that is not UTF-8, and `error: AttributeError: ...` for an override row
-  whose optional field is not a string.
+  whose optional field is not a string. A trapped decimal signal prints its
+  class alone, without the detail Python's traceback added after it.
 - Output is UTF-8 with native text-mode newlines, and lone surrogates from the
   command line are escaped, as before. Python's encoding overrides
   (`PYTHONIOENCODING`, `PYTHONUTF8=0`) are not supported; argparse colour
   (`PYTHON_COLORS`, `NO_COLOR`, `FORCE_COLOR`) and width (`COLUMNS`) controls
   are, and are differential-tested.
+- On Unix, a stdout or stderr the binary cannot write (a closed pipe, a full
+  disk) is reported as Python's shutdown reported it: `Exception ignored while
+  flushing sys.stdout:` and the OSError on stderr, with exit 120. On Windows the
+  binary exits 1 without that message.
 - The CSV field size limit is fixed at Python's default, 131,072 characters; a
   library caller could lower it in Python. `load-rows` omits a row's extra
   unnamed cells, which `csv.DictReader` gathered under a `None` key.
-- The JSON boundary reads a JSON integer above 18,446,744,073,709,551,615 as
-  floating point, so such a value is quoted as a float in a refusal. It refuses input
-  over 8 MiB and lone Unicode surrogate escapes.
+- The JSON stdin commands call each function as Python would have been called
+  with the same keyword arguments: an omitted field takes the function's default
+  (`load-table` without a path reads the frozen table) and an explicit `null` is
+  passed as `None`. Every JSON integer stays exact, as Python's `int` does. The
+  boundary refuses input over 8 MiB and lone Unicode surrogate escapes; its own
+  refusals exit 2.
 - A reason without its code, and comparing a year of income with a bare
   number, can no longer be written: reasons and codes are built as pairs, and
   years are typed.
@@ -54,11 +62,14 @@ intentionally changed.
 ### Verification
 
 A differential harness exported base 83288b0, ran its pytest suite and captured
-the calls and command runs 199 test functions made (up to 60 per test), then
+the calls and command runs 204 test functions made (up to 60 per test), then
 compared Python 3.15.0 with the Rust binary on those and on generated API calls
 and command runs: registers with odd cells, overrides valid and malformed,
-argparse errors, colour and width settings. All 3,557 results match byte for
-byte after 1,223 documented adaptations (the version, table URI and traceback
+argparse errors, colour and width settings. A deterministic group adds every
+counterexample from the final review (special operands in the formula, gate
+verdicts, non-mapping rows, argument presence, rate-table read order, argparse
+edge cases). All 3,612 results match byte for
+byte after 1,230 documented adaptations (the version, table URI and traceback
 lines above). They
 are frozen in `tests/data/python-cases.json` and replayed by `tests/parity.rs`.
 `tests/BEHAVIOURS.md` maps each original test to its Rust coverage.

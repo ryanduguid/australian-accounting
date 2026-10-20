@@ -195,6 +195,8 @@ enum Input {
 /// `csv.reader` over the decoded text.
 pub struct Reader<'a> {
     text: TextReader<'a>,
+    /// `csv.reader(list_of_lines)`: each item is one line with no terminator.
+    lines: Option<std::collections::VecDeque<Vec<char>>>,
     state: State,
     field: Vec<char>,
     fields: Vec<String>,
@@ -204,6 +206,18 @@ impl<'a> Reader<'a> {
     pub fn new(data: &'a [u8]) -> Self {
         Reader {
             text: TextReader::new(data),
+            lines: None,
+            state: State::StartRecord,
+            field: Vec::new(),
+            fields: Vec::new(),
+        }
+    }
+
+    /// `csv.reader` over a list of strings, such as `text.splitlines()` gives.
+    pub fn from_lines(lines: &[&str]) -> Reader<'static> {
+        Reader {
+            text: TextReader::new(&[]),
+            lines: Some(lines.iter().map(|l| l.chars().collect()).collect()),
             state: State::StartRecord,
             field: Vec::new(),
             fields: Vec::new(),
@@ -307,7 +321,11 @@ impl<'a> Reader<'a> {
         self.field.clear();
         self.state = State::StartRecord;
         loop {
-            let Some(line) = self.text.readline()? else {
+            let next = match self.lines.as_mut() {
+                Some(lines) => lines.pop_front(),
+                None => self.text.readline()?,
+            };
+            let Some(line) = next else {
                 if !self.field.is_empty() || self.state == State::InQuotedField {
                     // Non-strict: the open field is saved at the end of the data.
                     self.save_field();

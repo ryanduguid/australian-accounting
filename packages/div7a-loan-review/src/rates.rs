@@ -320,22 +320,6 @@ fn optional_text(row: &Raw, key: &str, default: &str) -> Result<String, Failure>
     }
 }
 
-/// The rows a `csv.DictReader` yields over the table's non-comment lines.
-fn dict_rows(body: &str) -> Result<Vec<Raw>, csvread::ReadError> {
-    let mut reader = csvread::Reader::new(body.as_bytes());
-    let Some(header) = reader.next_row()? else {
-        return Ok(Vec::new());
-    };
-    let mut rows = Vec::new();
-    while let Some(row) = reader.next_row()? {
-        if row.is_empty() {
-            continue;
-        }
-        rows.push(dict_row(&header, &row));
-    }
-    Ok(rows)
-}
-
 /// `dict(zip(fieldnames, row))` with DictReader's `None` for a short row.
 pub fn dict_row(header: &[String], row: &[String]) -> Raw {
     let mut items: Vec<(String, Raw)> = Vec::new();
@@ -363,10 +347,18 @@ fn table_from_text(text: &str, shown: &str, uri: String) -> Result<BenchmarkTabl
         .copied()
         .filter(|line| !line.starts_with('#'))
         .collect();
-    let rows =
-        dict_rows(&body.join("\n")).map_err(|e| Failure::Uncaught(format!("_csv.Error: {e}")))?;
+    // `csv.DictReader` over the lines themselves, read and checked one row at
+    // a time, so a fault in an early row is reported before a later CSV error.
+    let csv_error = |e: csvread::ReadError| Failure::Uncaught(format!("_csv.Error: {e}"));
+    let mut reader = csvread::Reader::from_lines(&body);
+    let header = reader.next_row().map_err(csv_error)?.unwrap_or_default();
     let mut entries: BTreeMap<i64, BenchmarkEntry> = BTreeMap::new();
-    for (n, row) in rows.iter().enumerate() {
+    let mut n = 0;
+    while let Some(cells) = reader.next_row().map_err(csv_error)? {
+        if cells.is_empty() {
+            continue;
+        }
+        let row = &dict_row(&header, &cells);
         let where_ = format!("benchmark rate row {} in {shown}", n + 1);
         let year = parse_year(
             &Raw::Str(required(row, "year_of_income", &where_)?),
@@ -399,6 +391,7 @@ fn table_from_text(text: &str, shown: &str, uri: String) -> Result<BenchmarkTabl
             snapshot_sha256: optional_text(row, "snapshot_sha256", "")?,
         };
         entries.insert(year.start_year, entry);
+        n += 1;
     }
     let Some(latest) = entries.keys().next_back().copied() else {
         return Err(Failure::Value(format!("{shown} holds no benchmark rates")));

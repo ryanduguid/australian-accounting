@@ -420,8 +420,28 @@ impl Decimal {
     /// digits plus 2, rounded half even, and one final rounding to the context.
     pub fn pow_integral(&self, exponent: &Decimal) -> Calc<Decimal> {
         let one = Decimal::from_int(1);
-        debug_assert!(self.is_finite() && !self.negative && !self.is_zero());
-        debug_assert!(exponent.is_finite() && !exponent.negative && !exponent.is_zero());
+        debug_assert!(self.is_finite() && !self.negative);
+        debug_assert!(!exponent.is_nan() && !exponent.negative && !exponent.is_zero());
+        // The special operands, as `Decimal.__pow__` takes them first: a zero
+        // base, then a base of one, then an infinite exponent.
+        if self.is_zero() {
+            return Ok(Decimal::from_int(0));
+        }
+        if !exponent.is_finite() {
+            if self.order(&one) == Ordering::Equal {
+                let places = (prec() - 1) as usize;
+                return Ok(finite(
+                    false,
+                    format!("1{}", "0".repeat(places)),
+                    -(places as i128),
+                ));
+            }
+            return Ok(if self.adjusted() < 0 {
+                Decimal::from_int(0)
+            } else {
+                Decimal::parse("Infinity").expect("a special value")
+            });
+        }
         if self.order(&one) == Ordering::Equal {
             // _qcheck_pow_one: 1.000**3 is 1.000000000, capped at prec - 1 places.
             let shift = pow_one_shift(exponent, -self.exp, prec() - 1);
