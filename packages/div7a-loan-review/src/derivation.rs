@@ -243,29 +243,42 @@ fn first_field(saved: &Value, fresh: &Value) -> Option<String> {
 }
 
 /// Where a saved derivation and its rederivation part: a step, then the result.
-fn first_difference(saved: &Value, fresh: &Value) -> Option<Value> {
+fn first_difference(saved: &Value, fresh: &Value) -> (Option<Value>, usize) {
+    for key in ["engine", "calculation"] {
+        if saved.get(key) != fresh.get(key) {
+            return (
+                Some(json!({"step": null, "id": "metadata", "field": key,
+                "saved": saved.get(key), "rederived": fresh.get(key)})),
+                0,
+            );
+        }
+    }
     let none = Vec::new();
     let saved_steps = saved["steps"].as_array().unwrap_or(&none);
     let fresh_steps = fresh["steps"].as_array().unwrap_or(&none);
     for i in 0..saved_steps.len().max(fresh_steps.len()) {
-        let (s, f) = (
-            saved_steps.get(i).unwrap_or(&Value::Null),
-            fresh_steps.get(i).unwrap_or(&Value::Null),
-        );
-        if s != f {
+        let (saved_step, fresh_step) = (saved_steps.get(i), fresh_steps.get(i));
+        if saved_step != fresh_step {
+            let (s, f) = (
+                saved_step.unwrap_or(&Value::Null),
+                fresh_step.unwrap_or(&Value::Null),
+            );
             let field = first_field(s, f);
             let pick = |v: &Value| field.as_ref().map_or(v.clone(), |k| v[k].clone());
-            return Some(json!({
-                "step": i + 1,
-                "id": f.get("id").or_else(|| s.get("id")),
-                "field": field,
-                "saved": pick(s),
-                "rederived": pick(f),
-            }));
+            return (
+                Some(json!({
+                    "step": i + 1,
+                    "id": f.get("id").or_else(|| s.get("id")),
+                    "field": field,
+                    "saved": pick(s),
+                    "rederived": pick(f),
+                })),
+                i + 1,
+            );
         }
     }
     let (s, f) = (&saved["result"], &fresh["result"]);
-    (s != f).then(|| {
+    let difference = (s != f).then(|| {
         let field = first_field(s, f);
         let pick = |v: &Value| field.as_ref().map_or(v.clone(), |k| v[k].clone());
         json!({
@@ -275,7 +288,8 @@ fn first_difference(saved: &Value, fresh: &Value) -> Option<Value> {
             "saved": pick(s),
             "rederived": pick(f),
         })
-    })
+    });
+    (difference, fresh_steps.len())
 }
 
 /// Rederive a saved derivation from its input and compare it step by step.
@@ -285,11 +299,11 @@ pub fn verify(saved: &Value) -> Result<Value, String> {
     }
     let input = saved.get("input").ok_or("input is missing")?;
     let fresh = derive(input)?;
-    let differs = first_difference(saved, &fresh);
+    let (differs, checked) = first_difference(saved, &fresh);
     Ok(json!({
         "verified": differs.is_none(),
         "differs_at": differs,
-        "steps_checked": fresh["steps"].as_array().map_or(0, Vec::len),
+        "steps_checked": checked,
         "saved_engine_version": saved.get("engine_version"),
         "engine_version": crate::VERSION,
     }))

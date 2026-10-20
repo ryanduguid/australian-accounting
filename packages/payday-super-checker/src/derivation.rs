@@ -156,7 +156,12 @@ pub fn derive(input: &Value) -> Result<Value, String> {
                 due.isoformat()
             ));
         }
-        let (weekends, holidays) = not_counted(&cal, line.qe_day, due);
+        let count_start = if deadline.pathway == OUT_OF_CYCLE {
+            next.ok_or("out-of-cycle deadline has no next standard QE day")?
+        } else {
+            line.qe_day
+        };
+        let (weekends, holidays) = not_counted(&cal, count_start, due);
         steps.extend([
             step(
                 "usual-period",
@@ -202,9 +207,12 @@ pub fn derive(input: &Value) -> Result<Value, String> {
                 "business-days",
                 "SGAA 1992 s 6(1) 'business day'",
                 format!(
-                    "Not counted after the QE day up to the due date: weekend days, \
+                    "Not counted for the {} period after {} up to {}: weekend days, \
                      {weekends}; weekday public holidays for the whole of a State or \
                      Territory, {}. A holiday not yet confirmed is counted as a business day.",
+                    pathway_words(&deadline.pathway),
+                    count_start.isoformat(),
+                    due.isoformat(),
                     holidays.len()
                 ),
                 json!(holidays),
@@ -251,29 +259,42 @@ fn first_field(saved: &Value, fresh: &Value) -> Option<String> {
 }
 
 /// Where a saved derivation and its rederivation part: a step, then the result.
-fn first_difference(saved: &Value, fresh: &Value) -> Option<Value> {
+fn first_difference(saved: &Value, fresh: &Value) -> (Option<Value>, usize) {
+    for key in ["engine", "calculation"] {
+        if saved.get(key) != fresh.get(key) {
+            return (
+                Some(json!({"step": null, "id": "metadata", "field": key,
+                "saved": saved.get(key), "rederived": fresh.get(key)})),
+                0,
+            );
+        }
+    }
     let none = Vec::new();
     let saved_steps = saved["steps"].as_array().unwrap_or(&none);
     let fresh_steps = fresh["steps"].as_array().unwrap_or(&none);
     for i in 0..saved_steps.len().max(fresh_steps.len()) {
-        let (s, f) = (
-            saved_steps.get(i).unwrap_or(&Value::Null),
-            fresh_steps.get(i).unwrap_or(&Value::Null),
-        );
-        if s != f {
+        let (saved_step, fresh_step) = (saved_steps.get(i), fresh_steps.get(i));
+        if saved_step != fresh_step {
+            let (s, f) = (
+                saved_step.unwrap_or(&Value::Null),
+                fresh_step.unwrap_or(&Value::Null),
+            );
             let field = first_field(s, f);
             let pick = |v: &Value| field.as_ref().map_or(v.clone(), |k| v[k].clone());
-            return Some(json!({
-                "step": i + 1,
-                "id": f.get("id").or_else(|| s.get("id")),
-                "field": field,
-                "saved": pick(s),
-                "rederived": pick(f),
-            }));
+            return (
+                Some(json!({
+                    "step": i + 1,
+                    "id": f.get("id").or_else(|| s.get("id")),
+                    "field": field,
+                    "saved": pick(s),
+                    "rederived": pick(f),
+                })),
+                i + 1,
+            );
         }
     }
     let (s, f) = (&saved["result"], &fresh["result"]);
-    (s != f).then(|| {
+    let difference = (s != f).then(|| {
         let field = first_field(s, f);
         let pick = |v: &Value| field.as_ref().map_or(v.clone(), |k| v[k].clone());
         json!({
@@ -283,7 +304,8 @@ fn first_difference(saved: &Value, fresh: &Value) -> Option<Value> {
             "saved": pick(s),
             "rederived": pick(f),
         })
-    })
+    });
+    (difference, fresh_steps.len())
 }
 
 /// Rederive a saved derivation from its input and compare it step by step.
@@ -293,11 +315,11 @@ pub fn verify(saved: &Value) -> Result<Value, String> {
     }
     let input = saved.get("input").ok_or("input is missing")?;
     let fresh = derive(input)?;
-    let differs = first_difference(saved, &fresh);
+    let (differs, checked) = first_difference(saved, &fresh);
     Ok(json!({
         "verified": differs.is_none(),
         "differs_at": differs,
-        "steps_checked": fresh["steps"].as_array().map_or(0, Vec::len),
+        "steps_checked": checked,
         "saved_engine_version": saved.get("engine_version"),
         "engine_version": crate::VERSION,
     }))
@@ -330,6 +352,63 @@ mod tests {
             assert!(authority.starts_with("SGAA 1992 s "), "{authority}");
         }
         assert_eq!(verify(&d).unwrap()["verified"], true);
+    }
+
+    #[test]
+    fn excluded_days_belong_to_the_selected_deadline_window() {
+        for (next, first, due, pathway, dates, weekends) in [
+            ("2027-01-04", false, "2027-01-13", OUT_OF_CYCLE, vec![], 2),
+            (
+                "2027-01-04",
+                true,
+                "2027-01-25",
+                EXTENDED_20BD,
+                vec!["2026-12-25", "2026-12-28", "2027-01-01"],
+                10,
+            ),
+            (
+                "2027-01-25",
+                true,
+                "2027-02-04",
+                OUT_OF_CYCLE,
+                vec!["2027-01-26"],
+                2,
+            ),
+            ("2027-01-14", true, "2027-01-25", OUT_OF_CYCLE, vec![], 4),
+        ] {
+            let d = derive(&json!({"qe_day": "2026-12-23", "out_of_cycle": true,
+                "next_standard_qe_day": next, "first_to_fund": first}))
+            .unwrap();
+            assert_eq!(d["result"]["due"], due);
+            assert_eq!(d["result"]["pathway"], pathway);
+            let step = d["steps"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|s| s["id"] == "business-days")
+                .unwrap();
+            let actual: Vec<_> = step["value"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|v| v.as_str().unwrap().split_once(' ').unwrap().0)
+                .collect();
+            assert_eq!(actual, dates);
+            let start = if pathway == OUT_OF_CYCLE {
+                next
+            } else {
+                "2026-12-23"
+            };
+            let working = step["working"].as_str().unwrap();
+            assert!(
+                working.contains(&format!("after {start} up to {due}")),
+                "{working}"
+            );
+            assert!(
+                working.contains(&format!("weekend days, {weekends};")),
+                "{working}"
+            );
+        }
     }
 
     #[test]

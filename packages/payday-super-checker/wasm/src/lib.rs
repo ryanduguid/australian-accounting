@@ -14,9 +14,13 @@ use serde_json::{Value, json};
 
 /// One call: JSON in, `{"ok": ...}` or `{"error": "..."}` out.
 pub fn call(f: fn(&Value) -> Result<Value, String>, input: &[u8]) -> Vec<u8> {
-    let result = serde_json::from_slice(input)
-        .map_err(|e| format!("invalid JSON: {e}"))
-        .and_then(|v| f(&v));
+    let result = if input.len() > 8 << 20 {
+        Err("JSON input exceeds 8 MiB".to_string())
+    } else {
+        serde_json::from_slice(input)
+            .map_err(|e| format!("invalid JSON: {e}"))
+            .and_then(|v| f(&v))
+    };
     let out = match result {
         Ok(v) => json!({"ok": v}),
         Err(m) => json!({"error": m}),
@@ -80,4 +84,23 @@ mod tests {
         let out: Value = serde_json::from_slice(&call(derivation::derive, input)).unwrap();
         assert_eq!(out["ok"]["result"]["due"], "2026-08-07");
     }
+}
+
+#[cfg(test)]
+#[test]
+fn json_input_limit_matches_the_native_cli() {
+    fn accept(_: &Value) -> Result<Value, String> {
+        Ok(json!(true))
+    }
+    let mut bytes = vec![b' '; 8 << 20];
+    bytes[0] = b'0';
+    assert_eq!(
+        serde_json::from_slice::<Value>(&call(accept, &bytes)).unwrap(),
+        json!({"ok": true})
+    );
+    bytes.push(b' ');
+    assert_eq!(
+        serde_json::from_slice::<Value>(&call(accept, &bytes)).unwrap(),
+        json!({"error": "JSON input exceeds 8 MiB"})
+    );
 }

@@ -52,3 +52,61 @@ fn a_saved_derivation_verifies_and_an_edit_is_named() {
     assert_eq!(missing.status.code(), Some(2));
     assert!(String::from_utf8_lossy(&missing.stderr).starts_with("error: "));
 }
+
+#[test]
+fn verification_checks_identity_and_reports_comparison_progress() {
+    let original: Value = serde_json::from_slice(&run(&["derive"], INPUT).stdout).unwrap();
+    for key in ["engine", "calculation"] {
+        for value in [Some(Value::from("wrong")), None] {
+            let mut saved = original.clone();
+            if let Some(value) = value {
+                saved[key] = value;
+            } else {
+                saved.as_object_mut().unwrap().remove(key);
+            }
+            let result = run(&["verify", "-"], &saved.to_string());
+            assert_eq!(result.status.code(), Some(1));
+            let report: Value = serde_json::from_slice(&result.stdout).unwrap();
+            assert_eq!(report["differs_at"]["field"], key);
+            assert_eq!(report["steps_checked"], 0);
+        }
+    }
+    let n = original["steps"].as_array().unwrap().len();
+    for i in [0, n / 2, n - 1] {
+        let mut saved = original.clone();
+        saved["steps"][i]["value"] = Value::from("edited");
+        let report: Value =
+            serde_json::from_slice(&run(&["verify"], &saved.to_string()).stdout).unwrap();
+        assert_eq!(report["steps_checked"], i + 1);
+    }
+    for variant in [0, 1, 2] {
+        let mut saved = original.clone();
+        let steps = saved["steps"].as_array_mut().unwrap();
+        match variant {
+            0 => {
+                steps.pop();
+            }
+            1 => steps.push(steps[0].clone()),
+            _ => steps.push(Value::Null),
+        }
+        let report: Value =
+            serde_json::from_slice(&run(&["verify"], &saved.to_string()).stdout).unwrap();
+        assert_eq!(report["verified"], false);
+        assert_eq!(
+            report["steps_checked"],
+            if variant == 0 { n } else { n + 1 }
+        );
+    }
+    let mut saved = original.clone();
+    saved["result"] = Value::Null;
+    let report: Value =
+        serde_json::from_slice(&run(&["verify"], &saved.to_string()).stdout).unwrap();
+    assert_eq!(report["steps_checked"], n);
+    saved = original;
+    saved["engine_version"] = Value::from("historical-untrusted");
+    let report: Value =
+        serde_json::from_slice(&run(&["verify"], &saved.to_string()).stdout).unwrap();
+    assert_eq!(report["verified"], true);
+    assert_eq!(report["steps_checked"], n);
+    assert_eq!(report["saved_engine_version"], "historical-untrusted");
+}

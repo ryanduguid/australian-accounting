@@ -74,6 +74,19 @@ jobs:
             archive="$base.tgz"
           fi
           echo "path=$archive" >> "$GITHUB_OUTPUT"
+      - name: Check the browser engine against the native command
+        if: runner.os == 'Linux' && (inputs.package == 'div7a-loan-review' || inputs.package == 'payday-super-checker')
+        env:
+          ENGINE: ${{ inputs.package }}
+          BINARY: ${{ inputs.binary || inputs.package }}
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo fmt --manifest-path wasm/Cargo.toml --check
+          cargo clippy --manifest-path wasm/Cargo.toml --locked --all-targets -- -D warnings
+          cargo test --manifest-path wasm/Cargo.toml --locked
+          cargo clippy --manifest-path wasm/Cargo.toml --locked --target wasm32-unknown-unknown --lib -- -D warnings
+          cargo build --manifest-path wasm/Cargo.toml --locked --release --target wasm32-unknown-unknown
+          node ../../.github/ci/check_engine_wasm.mjs "$ENGINE" "target/release/$BINARY"
       - name: Keep native candidate
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

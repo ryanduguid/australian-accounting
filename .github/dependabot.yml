@@ -63,8 +63,10 @@ updates:
       - /packages/the-wip-tally
       - /packages/australian-tax-calculators
       - /packages/div7a-loan-review
+      - /packages/div7a-loan-review/wasm
       - /packages/ato-benchmark-compare
       - /packages/payday-super-checker
+      - /packages/payday-super-checker/wasm
       - /packages/payday-super-checker/fuzz
       - /packages/gst-review
       - /packages/au-tax-rates-data

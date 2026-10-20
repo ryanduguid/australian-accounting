@@ -487,6 +487,12 @@ A derivation reads only the compiled-in benchmark table: `table` and
 `override` are refused, so anyone holding the file can rederive it. A year
 outside the table derives to `UNKNOWN`.
 
+Verification compares the saved engine and calculation identity before the working.
+`steps_checked` counts the step positions actually compared, including a saved
+extra position; a metadata difference checks zero steps. The saved engine version
+is descriptive, untrusted metadata. A different historical version can still
+verify when its identity, working and result agree with this verifier's engine.
+
 ## WebAssembly
 
 `wasm/` builds the derivation for `wasm32-unknown-unknown`, for calculators
