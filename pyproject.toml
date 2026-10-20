@@ -12,20 +12,21 @@
 members = ["packages/*", "apps/*"]
 exclude = ["packages/the-exchequer-tally", "packages/solomons-sword", "packages/the-wip-tally", "packages/australian-tax-calculators", "packages/div7a-loan-review", "packages/ato-benchmark-compare", "packages/payday-super-checker"]
 
-# The 8 engines pin the shared toolchain to one exact version each, so the
+# The 2 Python engines pin the shared toolchain to one exact version each, so the
 # workspace resolves it without an override. Keep those pins identical: a
 # workspace resolves every member together, and cannot hold 2 exact pins of
 # the same tool.
 
-# apps/aus-accounting-mcp declares exact pins on the 5 engines it consumes,
+# apps/aus-accounting-mcp declares exact pins on the 6 engines it consumes,
 # because a published distribution cannot depend on a path. Inside the
-# workspace gst-review resolves to the checked-out source instead, so the
-# application's tests import gstreview from the tree under review rather than
-# from the last PyPI release.
+# workspace gst-review and lodgment-calendar resolve to the checked-out sources
+# instead, so the application's tests import gstreview and lodgmentcalendar from
+# the tree under review rather than from the last PyPI release.
 # The pins stay authoritative for the published wheel; uv sources are development metadata
 # and are not written into built distributions.
 [tool.uv.sources]
 gst-review = { workspace = true }
+lodgment-calendar = { workspace = true }
 
 # australian-tax-calculators, div7a-loan-review, ato-benchmark-compare and
 # payday-super-checker are now Rust crates outside the workspace. Until the MCP
@@ -52,7 +53,7 @@ dev = [
     "pyright[nodejs]>=1.1.414",
     "nodejs-wheel-binaries>=24.19.0",
     "openpyxl>=3.1",
-    "Pillow>=12.3",
+    "Pillow>=13.0.0",
     "pytest>=8",
     "ruff>=0.11",
 ]
@@ -79,11 +80,13 @@ testpaths = ["tests"]
 pythonVersion = "3.14"
 include = [
     "packages/gst-review/gstreview",
+    "packages/lodgment-calendar/lodgmentcalendar",
     "apps/aus-accounting-mcp/aus_accounting_mcp",
     "apps/lodgeit-calculator-adapter/lodgeitadapter",
 ]
 extraPaths = [
     "packages/gst-review",
+    "packages/lodgment-calendar",
     "apps/aus-accounting-mcp",
     "apps/lodgeit-calculator-adapter",
 ]

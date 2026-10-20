@@ -114,6 +114,7 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `refuse_div7a` | Explain unsupported Division 7A matters. Call without arguments. |
 | `review_gst_coding` | Give each coded bank line a review state against supplied GST registration dates. |
 | `reconcile_bas` | Compare lodged BAS label figures with ledger lines per period. |
+| `get_lodgment_due_dates` | List ATO 2026-27 lodgment program due dates for BAS, IAS and income tax returns, self-lodged or through an agent, with `UNKNOWN` where a fact is missing. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, best match first. |
@@ -176,7 +177,7 @@ leaves `UNKNOWN` or refuses. Another implementation can replay them; see
 
 Apache-2.0 licensed. Created by Ryan Duguid. If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.6.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.6.0),
+[v0.7.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.0),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <!-- mcp-name: io.github.ryanduguid/aus-accounting -->
