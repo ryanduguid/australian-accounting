@@ -258,9 +258,9 @@
     <tools><tool>reconcile_bas</tool></tools>
   </qa_pair>
   <qa_pair id="lodgment-due-date">
-    <question>Synthetic Banksia Pty Ltd is not the head company of a consolidated group. Its registered BAS agent lodges its quarterly BAS electronically, and its previous activity statement was lodged electronically. Using the ATO 2026-27 lodgment program, return only the due date of its quarter 2, 2026-27 BAS in YYYY-MM-DD form.</question>
+    <question>Synthetic Banksia Pty Ltd is not the head company of a consolidated group. Its registered BAS agent lodges its quarterly BAS electronically, each statement generates after the previous one was lodged electronically, and its BAS carries no monthly PAYG obligation. Using the ATO 2026-27 lodgment program, return only the due date of its quarter 2, 2026-27 BAS in YYYY-MM-DD form.</question>
     <answer>2027-03-02</answer>
-    <calls>[{"name": "get_lodgment_due_dates", "arguments": {"obligation": "bas", "entity_type": "company", "financial_year": "2026-27", "channel": "bas_agent", "reporting_cycle": "quarterly", "facts": {"consolidated_head_company": false, "lodges_electronically": true, "previous_statement_lodged_electronically": true}}}]</calls>
+    <calls>[{"name": "get_lodgment_due_dates", "arguments": {"obligation": "bas", "entity_type": "company", "financial_year": "2026-27", "channel": "bas_agent", "reporting_cycle": "quarterly", "facts": {"consolidated_head_company": false, "lodges_electronically": true, "previous_statement_lodged_electronically": true, "includes_monthly_payg_obligation": false}}}]</calls>
     <tools><tool>get_lodgment_due_dates</tool></tools>
   </qa_pair>
 </evaluation>

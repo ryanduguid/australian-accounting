@@ -940,8 +940,10 @@ def get_lodgment_due_dates(
     channel: Annotated[Literal["self", "tax_agent", "bas_agent"], Field(
         description="Who lodges. A BAS agent cannot lodge an income tax return.")],
     reporting_cycle: Annotated[Literal["monthly", "quarterly"] | None, Field(
-        description="Required for bas and ias; omit for income_tax_return. A quarterly "
-        "instalment reported on a monthly BAS is monthly.")] = None,
+        description="Required for bas and ias; omit for income_tax_return. A monthly bas "
+        "reports GST monthly; other monthly activity statements are ias. A quarterly "
+        "instalment reported on a monthly BAS is monthly. For a consolidated head company, "
+        "a quarterly ias is its PAYG instalment activity statement.")] = None,
     facts: Annotated[LodgmentFactsInput | None, Field(
         description="Program conditions as established; omit any that is not.")] = None,
 ) -> LodgmentCalendar:

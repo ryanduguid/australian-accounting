@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 from lodgmentcalendar import holidays
-from lodgmentcalendar.holidays import COVERS_FROM, COVERS_TO, HOLIDAYS, roll
+from lodgmentcalendar.holidays import CONFLICTS, COVERS_FROM, COVERS_TO, HOLIDAYS, roll
 
 # Each row of the ATO's Tables 1 and 2: the holiday and its "First business day".
 # The 25 September 2026 row is left out: the table gives 28 September, a day it
@@ -35,8 +35,8 @@ ATO_FIRST_BUSINESS_DAY = {
 @pytest.mark.parametrize("holiday,first", ATO_FIRST_BUSINESS_DAY.items(),
                          ids=lambda value: value.isoformat())
 def test_roll_reproduces_the_ato_first_business_day_column(holiday, first):
-    rolled, skipped = roll(holiday)
-    assert rolled == first
+    rolled, skipped, open_question = roll(holiday)
+    assert (rolled, open_question) == (first, None)
     assert skipped[0] == {"date": holiday.isoformat(), "reason": HOLIDAYS[holiday]}
 
 
@@ -45,30 +45,37 @@ def test_every_listed_holiday_is_checked_against_the_table_bar_one():
 
 
 def test_a_business_day_stays_put():
-    assert roll(date(2026, 10, 28)) == (date(2026, 10, 28), [])
+    assert roll(date(2026, 10, 28)) == (date(2026, 10, 28), [], None)
 
 
 def test_a_weekend_moves_to_monday():
     assert roll(date(2026, 10, 31)) == (date(2026, 11, 2), [
         {"date": "2026-10-31", "reason": "Saturday"},
         {"date": "2026-11-01", "reason": "Sunday"},
-    ])
+    ], None)
 
 
 def test_a_weekend_then_a_holiday_in_one_state_moves_every_state():
     # 28 February 2027 is a Sunday and 1 March 2027 is Labour Day in WA only.
-    rolled, skipped = roll(date(2027, 2, 28))
+    rolled, skipped, _ = roll(date(2027, 2, 28))
     assert rolled == date(2027, 3, 2)
     assert [day["reason"] for day in skipped] == ["Sunday", "Labour Day (WA)"]
 
 
 def test_a_weekday_outside_the_published_tables_cannot_be_rolled():
-    assert roll(date(2027, 7, 28)) == (None, [])
-    assert roll(date(2027, 7, 31)) == (None, [
-        {"date": "2027-07-31", "reason": "Saturday"},
-        {"date": "2027-08-01", "reason": "Sunday"},
-    ])
-    assert roll(date(2026, 6, 30)) == (None, [])
+    assert roll(date(2027, 7, 28))[:2] == (None, [])
+    rolled, skipped, open_question = roll(date(2027, 7, 31))
+    assert (rolled, [day["reason"] for day in skipped]) == (None, ["Saturday", "Sunday"])
+    assert open_question.startswith("whether 2027-08-02 is a public holiday")
+    assert roll(date(2026, 6, 30))[:2] == (None, [])
+
+
+def test_the_conflicting_25_september_row_cannot_be_rolled():
+    # The table gives 28 September 2026 for this row and lists 28 September as a holiday.
+    assert roll(date(2026, 9, 25)) == (None, [], CONFLICTS[date(2026, 9, 25)])
+    rolled, skipped, open_question = roll(date(2026, 9, 26))
+    assert (rolled, len(skipped)) == (date(2026, 9, 29), 3)
+    assert open_question is None
 
 
 def test_coverage_is_the_program_year():

@@ -18,7 +18,8 @@ TOOL = "get_lodgment_due_dates"
 BANKSIA = {"obligation": "bas", "entity_type": "company", "financial_year": "2026-27",
            "channel": "bas_agent", "reporting_cycle": "quarterly",
            "facts": {"consolidated_head_company": False, "lodges_electronically": True,
-                     "previous_statement_lodged_electronically": True}}
+                     "previous_statement_lodged_electronically": True,
+                     "includes_monthly_payg_obligation": False}}
 
 
 def call(**arguments):

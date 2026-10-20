@@ -78,6 +78,12 @@ SOURCES: dict[str, tuple[str, str]] = {
         _PROGRAM + "/about-the-lodgment-program",
         "Lodgment and payment due dates (last updated 1 July 2026)",
     ),
+    "overdue": (
+        _PROGRAM + "/taxpayers-with-overdue-tax-returns",
+        "Taxpayers with overdue tax returns: lodge by 31 October 2026; payment by 1 December "
+        "2026 for companies and super funds; normal program once all are lodged (last "
+        "updated 1 July 2026)",
+    ),
     "october": (
         _BY_MONTH + "/october-2026",
         "31 October: final date to add new clients to your client list; tax returns for "
@@ -149,29 +155,38 @@ SOURCES: dict[str, tuple[str, str]] = {
 FACT_MEANINGS: dict[str, str] = {
     "prior_returns_outstanding": "one or more prior year tax returns were outstanding at "
     "30 June 2026",
+    "overdue_returns_lodged_by_31_october": "every return outstanding at 30 June 2026 was "
+    "lodged by 31 October 2026, which restores the program date for the 2026 return",
     "on_agent_client_list_by_cutoff": "the client was on the registered agent's client list "
     "by 31 October 2026, so the program covers the 2026 return",
     "large_or_medium": "a large or medium taxpayer as the ATO defines it for return "
     "lodgment (for example annual total income over $10 million; for a super fund, also "
-    "investments over $50 million)",
+    "investments over $50 million); for a head company, the group under the single entity "
+    "rule",
+    "member_large_or_medium": "a member of the head company's consolidated group was large "
+    "or medium in its latest year lodged",
     "new_registrant": "a new registrant with no earlier return",
     "prior_year_return_taxable": "the 2025 return (the latest year lodged) was taxable",
     "current_year_return_taxable": "the 2026 return being lodged will be taxable",
     "latest_tax_liability_20k_or_more": "the latest return lodged resulted in a tax "
     "liability of $20,000 or more",
-    "total_income_over_2m": "total income over $2 million in the latest year lodged (for a "
-    "head company, a member had it)",
+    "total_income_over_2m": "total income was over $2 million both in 2024–25 and in the "
+    "latest year lodged (for a head company, a member's); null when the 2 differ or are not "
+    "known, because ATO pages name each year",
     "prior_year_non_taxable_or_refund": "the prior year return was non-taxable or resulted "
     "in a refund",
     "current_year_non_taxable_or_refund": "the 2026 return will be non-taxable or result in "
     "a refund",
     "consolidated_head_company": "the company is the head company of a consolidated group",
     "first_consolidated_return": "this is the group's first consolidated return",
-    "lodges_electronically": "the statement is lodged electronically: online for a "
-    "self-lodger, through Online services for agents or the practitioner lodgment service "
-    "for an agent",
-    "previous_statement_lodged_electronically": "the client's previous activity statement "
-    "was lodged electronically; false for a first statement or a paper one",
+    "lodges_electronically": "the statement is lodged electronically: for a self-lodger, "
+    "received and lodged online; for an agent, lodged through Online services for agents or "
+    "the practitioner lodgment service",
+    "previous_statement_lodged_electronically": "each statement generates after the client's "
+    "previous activity statement was lodged electronically; false for a first statement, a "
+    "paper one or one lodged after the next statement generated",
+    "includes_monthly_payg_obligation": "the quarterly statement also carries a monthly PAYG "
+    "withholding or PAYG instalment obligation",
     "annual_turnover_up_to_10m": "annual turnover is up to $10 million",
     "deferred_gst_registered": "the business is registered for deferred GST",
 }
@@ -182,8 +197,10 @@ class Facts:
     """Conditions the program dates depend on. ``None`` means not supplied."""
 
     prior_returns_outstanding: bool | None = None
+    overdue_returns_lodged_by_31_october: bool | None = None
     on_agent_client_list_by_cutoff: bool | None = None
     large_or_medium: bool | None = None
+    member_large_or_medium: bool | None = None
     new_registrant: bool | None = None
     prior_year_return_taxable: bool | None = None
     current_year_return_taxable: bool | None = None
@@ -195,6 +212,7 @@ class Facts:
     first_consolidated_return: bool | None = None
     lodges_electronically: bool | None = None
     previous_statement_lodged_electronically: bool | None = None
+    includes_monthly_payg_obligation: bool | None = None
     annual_turnover_up_to_10m: bool | None = None
     deferred_gst_registered: bool | None = None
 
@@ -241,10 +259,6 @@ WARNINGS = [
 ]
 
 _YEAR = re.compile(r"([0-9]{4})-([0-9]{2})")
-_COVERAGE = (
-    f"whether {{day}} is a public holiday for the whole of any state or territory: the "
-    f"ATO's table covers {COVERS_FROM.isoformat()} to {COVERS_TO.isoformat()}"
-)
 
 
 def due_dates(
@@ -270,8 +284,10 @@ def due_dates(
             rows += _rows(label, financial_year, _not_recorded(financial_year, RETURN_YEAR), [])
         else:
             rule, missing, concessions = _return_rule(entity_type, channel, facts)
-            rows += _rows(label, financial_year, rule, missing, family=_family(entity_type,
-                                                                                channel))
+            # A partnership pays no income tax, whatever its lodgement date turns out to be.
+            rows += _rows(label, financial_year, rule, missing,
+                          family=_family(entity_type, channel),
+                          pending_payment="none" if entity_type == "partnership" else "unknown")
             for concession, needed in concessions:
                 rows.append(_row(label, financial_year, "concession", concession, needed))
     elif financial_year != ACTIVITY_YEAR:
@@ -352,11 +368,11 @@ def _not_recorded(year: str, recorded: str) -> Rule:
 
 
 def _rows(label: str, period: str, rule: Rule | None, missing: list[str], *,
-          family: str = "") -> list[dict[str, Any]]:
+          family: str = "", pending_payment: str = "unknown") -> list[dict[str, Any]]:
     if rule is None or missing:
         pending = Rule(family, "The date depends on facts not supplied: "
                        + "; ".join(FACT_MEANINGS[name] for name in missing) + ".", "about")
-        return [_row(label, period, "lodgment", pending, missing, payment="unknown")]
+        return [_row(label, period, "lodgment", pending, missing, payment=pending_payment)]
     payment = rule.payment
     rows = [_row(label, period, "lodgment", rule, [],
                  payment=payment if isinstance(payment, str) else "separate")]
@@ -374,14 +390,11 @@ def _row(label: str, period: str, kind: str, rule: Rule, missing: list[str], *,
     if rule.unresolved is not None:
         needed.append(rule.unresolved)
     elif rule.nominal is not None and not needed:
-        due, skipped = roll(rule.nominal)
+        due, skipped, open_question = roll(rule.nominal)
         if skipped or due is None:
             holiday_roll = {"skipped": skipped, "source_url": HOLIDAY_SOURCE}
-        if due is None:
-            # The days passed over run on from the nominal date, so the first one the
-            # table cannot answer for comes straight after them.
-            uncovered = rule.nominal + timedelta(days=len(skipped))
-            needed.append(_COVERAGE.format(day=uncovered.isoformat()))
+        if open_question is not None:
+            needed.append(open_question)
         elif kind == "concession" and skipped:
             needed.append(
                 f"whether the next-business-day rule extends this concession: "
@@ -495,6 +508,10 @@ def _head_company_statement(obligation: str, head_due: date) -> Rule:
 
 
 def _agent_quarter(ask: _Ask, quarter: int, original: Rule, program_due: date) -> Rule | None:
+    if ask("includes_monthly_payg_obligation"):
+        return Rule("AS-Q-AGENT-MONTHLY-PAYG", "Quarterly statement that also carries a "
+                    "monthly PAYG obligation: not eligible for program dates, so the original "
+                    "due date stands.", "agent_as", original.nominal)
     electronic = ask("lodges_electronically")
     if electronic is False:
         return Rule("AS-Q-AGENT-PAPER", "Quarterly statement lodged on paper: no program date "
@@ -510,7 +527,7 @@ def _agent_quarter(ask: _Ask, quarter: int, original: Rule, program_due: date) -
                     unresolved="the due date for a first statement or one following a paper "
                     "lodgement: the ATO says the client may need to lodge by an earlier date "
                     "than the program date")
-    if previous is None:
+    if previous is None or ask.missing:
         return None
     rule = Rule("AS-Q-AGENT", "Eligible quarterly statement lodged electronically by a "
                 "registered tax or BAS agent: lodge and pay by the program date.", "bas_agent",
@@ -553,7 +570,7 @@ _OCT31, _DEC1, _JAN31 = date(2026, 10, 31), date(2026, 12, 1), date(2027, 1, 31)
 _FEB28, _MAR31, _MAY15, _JUN5 = (date(2027, 2, 28), date(2027, 3, 31), date(2027, 5, 15),
                                  date(2027, 6, 5))
 _NOA = ("the notice of assessment, which sets the payment due date: for a return lodged "
-        "on time, the later of 21 days after the lodgment due date and the day the notice is "
+        "on time, 21 days after the later of the lodgment due date and the day the notice is "
         "deemed received (7 business days after issue)")
 
 
@@ -576,11 +593,13 @@ _SELF = {
     "individual": Rule(
         "ITR-SELF-IND", "Self-lodged individual return: lodge by 31 October; on a weekend, "
         "the next business day.", "self_individual", _OCT31,
-        payment=Rule("PAY-SELF-IND", "A self-lodged return with a tax bill: pay by 21 "
-                     "November if the assessment issues by 31 October, otherwise 21 days "
-                     "after it issues.", "self_individual", date(2026, 11, 21),
-                     unresolved="the assessment issue date: payment is due 21 November only "
-                     "if the assessment issues by 31 October")),
+        payment=Rule("PAY-SELF-IND", "A self-lodged return with a tax bill lodged by 31 "
+                     "October: pay by 21 November, or 21 days after the assessment issues if "
+                     "that is after 31 October. Lodged late: pay by 21 November.",
+                     "self_individual", date(2026, 11, 21),
+                     unresolved="the lodgement date and the assessment issue date: for a "
+                     "return lodged by 31 October whose assessment issues after 31 October, "
+                     "payment is 21 days after issue")),
     "trust": Rule(
         "ITR-SELF-TRUST", "Self-lodged trust return: lodge by 31 October.", "self_business",
         _OCT31, payment=Rule("PAY-SELF-TRUST", "Any tax assessed to the trustee is payable "
@@ -600,16 +619,16 @@ _SELF_CO_OVERDUE = Rule(
     "ITR-SELF-CO-OVERDUE", "Self-lodged company with prior year returns outstanding: lodge "
     "by 31 October.", "self_business", _OCT31,
     payment=Rule("PAY-SELF-CO-OVERDUE", "The self-lodger page gives no payment date for "
-                 "this case.", "self_business", unresolved="a payment date: the self-lodger "
-                 "page states none for a company with prior year returns outstanding"))
-_SELF_CO_LM = Rule("ITR-SELF-CO-LM", "The self-lodger page gives 28 February only for small "
-                   "companies.", "self_business", unresolved="a self-lodger due date for a "
-                   "large or medium company, which the self-lodger page does not publish",
-                   payment="unknown")
-_SELF_CO = Rule("ITR-SELF-CO", "Self-lodged small company with no prior year returns "
-                "outstanding: lodge and pay by 28 February. The ATO says this applies "
-                "generally and asks self-lodgers to check their date.", "self_business",
-                _FEB28)
+                 "this case.", "self_business", unresolved="whether the 1 December 2026 "
+                 "payment date on the agent program's overdue returns page applies to a "
+                 "self-lodger: that page addresses registered agents and the self-lodger page "
+                 "gives no payment date"))
+_SELF_CO = Rule("ITR-SELF-CO", "Self-lodged company with no prior year returns "
+                "outstanding: the ATO says the date for small companies is generally 28 "
+                "February and asks self-lodgers to check their date.", "self_business",
+                _FEB28, unresolved="which companies the self-lodger page's 28 February date "
+                "covers: it applies 'generally' to 'small companies', which the page does not "
+                "define", payment="unknown")
 _SELF_SMSF_PAY = Rule("PAY-SELF-SMSF-1DEC", "Pay any tax by 1 December 2026.", "self_smsf",
                       _DEC1)
 _SELF_SMSF_OCT = Rule("ITR-SELF-SMSF-31OCT", "Self-preparing SMSF that is a new registrant "
@@ -629,14 +648,14 @@ _NOT_COVERED = Rule("ITR-AGENT-NOT-COVERED", "A client added to the agent's clie
 
 
 def _overdue(entity_type: str) -> Rule:
-    summary = ("Prior year returns outstanding at 30 June 2026: lodge the 2026 return by 31 "
-               "October 2026. Lodging every overdue return by then restores the program date.")
+    summary = ("Prior year returns outstanding at 30 June 2026 and not all lodged by 31 "
+               "October 2026: lodge the 2026 return by 31 October 2026.")
     if entity_type in {"individual", "trust"}:
         return Rule("ITR-AGENT-OVERDUE", summary, "ind_trust", _OCT31, payment=_PAY_NOA)
     if entity_type == "partnership":
         return Rule("ITR-AGENT-OVERDUE", summary, "october", _OCT31, payment="none")
     source = "super" if entity_type == "smsf" else "co_super"
-    return Rule("ITR-AGENT-OVERDUE", summary, source, _OCT31, payment=_pay_dec1(source))
+    return Rule("ITR-AGENT-OVERDUE", summary, source, _OCT31, payment=_pay_dec1("overdue"))
 
 
 _IT_31MAR = Rule("ITR-AGENT-IT-31MAR", "Individual or trust (other than a large or medium "
@@ -659,9 +678,9 @@ _TRUST_LM = {
 _PART_15MAY = Rule("ITR-AGENT-PART-15MAY", "Partnership not required to lodge earlier: lodge "
                    "by 15 May 2027, progressively so the partners can meet their own dates. "
                    "A partnership pays no income tax.", "may", _MAY15, payment="none")
-_CON_PART = Rule("CON-PART-5JUN", "5 June 2027 concession for partnerships.", "june", _JUN5,
-                 unresolved="whether the 5 June concession covers partnerships: the "
-                 "individuals and trusts page lists them and the June 2027 page does not")
+_CON_PART = Rule("CON-PART-5JUN", "Concession for partnership returns due 15 May 2027: "
+                 "lodged with any payment by 5 June 2027, no penalty applies.", "ind_trust",
+                 _JUN5)
 _CO_LM = {
     "new": Rule("ITR-AGENT-CO-LM-NEW", "New registrant large or medium company: lodge and "
                 "pay by 28 February 2027.", "co_super", _FEB28),
@@ -694,6 +713,12 @@ _HEAD_LM = {
                 "entity rule, whose 2026 return will be non-taxable: lodge by 28 February "
                 "2027.", "consolidated", _FEB28, payment="none"),
 }
+_HEAD_SPLIT = Rule("ITR-AGENT-HEAD-LM-SPLIT", "Head company with a large or medium "
+                   "member or a large or medium group, but not both.", "consolidated",
+                   unresolved="whether the 31 January or 28 February date applies when only one "
+                   "of a large or medium member and a large or medium group holds: the "
+                   "consolidated groups page lists both conditions without saying whether "
+                   "each is needed", payment="unknown")
 _HEAD_NEW = Rule("ITR-AGENT-HEAD-NEW", "New registrant head company without a large or medium "
                  "member.", "co_super", unresolved="the date for a new registrant head company "
                  "without a large or medium member: the companies and super funds table gives "
@@ -757,44 +782,50 @@ def _self_return(entity_type: str, ask: _Ask) -> Rule | None:
             return _SELF_CO_HEAD
         if ask("prior_returns_outstanding"):
             return _SELF_CO_OVERDUE
-        if ask("large_or_medium"):
-            return _SELF_CO_LM
         return _SELF_CO
     new, overdue = ask("new_registrant"), ask("prior_returns_outstanding")
     if new or overdue:
         # The earliest date that applies wins, so a fact not supplied cannot change it.
         ask.missing.clear()
         return _SELF_SMSF_OCT
-    if ask("large_or_medium"):
-        taxable = ask("current_year_return_taxable")
-        return _SELF_SMSF_JAN if taxable else _SELF_SMSF_FEB if taxable is False else None
-    return _SELF_SMSF_FEB
+    if ask.facts.current_year_return_taxable is False or not ask("large_or_medium"):
+        return _SELF_SMSF_FEB
+    taxable = ask("current_year_return_taxable")
+    return _SELF_SMSF_JAN if taxable else None
 
 
 def _agent_return(entity_type: str, ask: _Ask) -> tuple[Rule | None, Rule | None]:
     if entity_type == "company" and ask("consolidated_head_company"):
         return _head_company_return(ask), None
-    if ask("prior_returns_outstanding"):
+    if _still_overdue(ask):
         return _overdue(entity_type), None
     if entity_type == "partnership":
         return _PART_15MAY, _CON_PART
+    # A new registrant has no earlier return, so a test on the latest return cannot apply.
+    new = ask.facts.new_registrant is True
     if entity_type in {"individual", "trust"}:
         if entity_type == "trust" and ask("large_or_medium"):
             return _large_or_medium(ask, _TRUST_LM), None
-        if ask("latest_tax_liability_20k_or_more"):
+        if not new and ask("latest_tax_liability_20k_or_more"):
             return _IT_31MAR, None
         return _IT_15MAY, _CON_IT
-    if ask("large_or_medium"):
-        if entity_type == "smsf" and ask("new_registrant"):
-            return _SMSF_NEW, None
-        return _large_or_medium(ask, _CO_LM if entity_type == "company" else _SMSF_LM), None
     if entity_type == "smsf" and ask("new_registrant"):
         return _SMSF_NEW, None
-    if ask("total_income_over_2m"):
+    if ask("large_or_medium"):
+        return _large_or_medium(ask, _CO_LM if entity_type == "company" else _SMSF_LM), None
+    if not new and ask("total_income_over_2m"):
         return (_CO_31MAR if entity_type == "company" else _SMSF_31MAR), None
     if entity_type == "company":
         return _CO_15MAY, _CON_CO
     return _SMSF_15MAY, _CON_SMSF
+
+
+def _still_overdue(ask: _Ask) -> bool | None:
+    """Whether the 31 October 2026 overdue-return date applies to an agent client."""
+    if not ask("prior_returns_outstanding"):
+        return ask.facts.prior_returns_outstanding
+    cleared = ask("overdue_returns_lodged_by_31_october")
+    return None if cleared is None else not cleared
 
 
 def _large_or_medium(ask: _Ask, table: dict[Any, Rule]) -> Rule | None:
@@ -807,11 +838,20 @@ def _large_or_medium(ask: _Ask, table: dict[Any, Rule]) -> Rule | None:
 def _head_company_return(ask: _Ask) -> Rule | None:
     if ask("first_consolidated_return"):
         return _HEAD_FIRST
-    if ask("prior_returns_outstanding"):
+    if _still_overdue(ask):
         return _overdue("company")
-    if ask("large_or_medium"):
+    member = ask("member_large_or_medium")
+    if member:
         taxable = ask("current_year_return_taxable")
-        return None if taxable is None else _HEAD_LM[taxable]
+        if taxable is False:
+            # The February 2027 page: a non-taxable head company with such a member.
+            return _HEAD_LM[False]
+        group = ask("large_or_medium")
+        if taxable is None or group is None:
+            return None
+        return _HEAD_LM[True] if group else _HEAD_SPLIT
+    if ask("large_or_medium"):
+        return None if member is None else _HEAD_SPLIT
     if ask("new_registrant"):
         return _HEAD_NEW
     if ask("total_income_over_2m"):

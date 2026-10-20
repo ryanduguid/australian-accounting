@@ -55,20 +55,34 @@ HOLIDAYS: dict[date, str] = {
 }
 
 
-def roll(day: date) -> tuple[date | None, list[dict[str, str]]]:
-    """The first business day on or after ``day``, and the days passed over.
+# Days whose roll the table itself answers 2 ways.
+CONFLICTS = {
+    date(2026, 9, 25): "the next business day after 2026-09-25: the ATO table gives 28 "
+    "September 2026, but also lists 28 September as King's Birthday (WA), which would make "
+    "it 29 September",
+}
 
-    Returns ``None`` for the date when a weekday on the way falls outside the
-    published tables, because it may be a holiday the ATO has not yet listed.
+
+def roll(day: date) -> tuple[date | None, list[dict[str, str]], str | None]:
+    """The first business day on or after ``day``, the days passed over, and why not.
+
+    Returns no date, with the reason, when a weekday on the way falls outside the
+    published tables (it may be a holiday the ATO has not yet listed) or the table
+    answers the roll 2 ways.
     """
     skipped: list[dict[str, str]] = []
     while True:
+        if day in CONFLICTS:
+            return None, skipped, CONFLICTS[day]
         reason = {5: "Saturday", 6: "Sunday"}.get(day.weekday())
         if reason is None:
             if not COVERS_FROM <= day <= COVERS_TO:
-                return None, skipped
+                return None, skipped, (
+                    f"whether {day.isoformat()} is a public holiday for the whole of any "
+                    f"state or territory: the ATO's table covers {COVERS_FROM.isoformat()} "
+                    f"to {COVERS_TO.isoformat()}")
             reason = HOLIDAYS.get(day)
             if reason is None:
-                return day, skipped
+                return day, skipped, None
         skipped.append({"date": day.isoformat(), "reason": reason})
         day += timedelta(days=1)

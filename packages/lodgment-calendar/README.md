@@ -25,7 +25,8 @@ from lodgmentcalendar import Facts, due_dates
 result = due_dates(
     "bas", "company", "2026-27", "bas_agent", reporting_cycle="quarterly",
     facts=Facts(consolidated_head_company=False, lodges_electronically=True,
-                previous_statement_lodged_electronically=True),
+                previous_statement_lodged_electronically=True,
+                includes_monthly_payg_obligation=False),
 )
 for row in result["obligations"]:
     print(row["period"], row["status"], row["nominal_due_date"], row["due_date"], row["rule_id"])
@@ -52,7 +53,7 @@ Quarter 4 is `UNKNOWN` because the ATO marks 25 August 2027 'to be confirmed'.
 | `entity_type` | `individual`, `trust`, `partnership`, `company` or `smsf` |
 | `financial_year` | The year of the statement periods, or the income year a return covers, as `2026-27` |
 | `channel` | `self`, `tax_agent` or `bas_agent` (a BAS agent cannot lodge an income tax return) |
-| `reporting_cycle` | `monthly` or `quarterly`, for `bas` and `ias` only |
+| `reporting_cycle` | `monthly` or `quarterly`, for `bas` and `ias` only. A monthly `bas` reports GST monthly; other monthly activity statements are `ias`. For a consolidated head company, a quarterly `ias` is its PAYG instalment activity statement |
 | `facts` | A `Facts` with the conditions below; each is `True`, `False` or `None` (not supplied) |
 
 This release records statement periods in 2026-27 and income tax returns for the 2025-26
@@ -60,12 +61,14 @@ income year, which are the returns the 2026–27 program covers. Any other year 
 `UNKNOWN` row.
 
 The `Facts` fields are the conditions the ATO pages make the dates depend on:
-`prior_returns_outstanding`, `on_agent_client_list_by_cutoff`, `large_or_medium`,
+`prior_returns_outstanding`, `overdue_returns_lodged_by_31_october`,
+`on_agent_client_list_by_cutoff`, `large_or_medium`, `member_large_or_medium`,
 `new_registrant`, `prior_year_return_taxable`, `current_year_return_taxable`,
 `latest_tax_liability_20k_or_more`, `total_income_over_2m`,
 `prior_year_non_taxable_or_refund`, `current_year_non_taxable_or_refund`,
 `consolidated_head_company`, `first_consolidated_return`, `lodges_electronically`,
-`previous_statement_lodged_electronically`, `annual_turnover_up_to_10m` and
+`previous_statement_lodged_electronically`, `includes_monthly_payg_obligation`,
+`annual_turnover_up_to_10m` and
 `deferred_gst_registered`. `FACT_MEANINGS` in `lodgmentcalendar.due_dates` gives the
 ATO's wording for each. Only the facts on a date's decision path are read; a `None` on
 that path makes the date `UNKNOWN`.

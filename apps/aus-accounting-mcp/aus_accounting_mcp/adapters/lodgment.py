@@ -34,8 +34,11 @@ class LodgmentFactsInput(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     prior_returns_outstanding: bool | None = _fact("prior_returns_outstanding")
+    overdue_returns_lodged_by_31_october: bool | None = _fact(
+        "overdue_returns_lodged_by_31_october")
     on_agent_client_list_by_cutoff: bool | None = _fact("on_agent_client_list_by_cutoff")
     large_or_medium: bool | None = _fact("large_or_medium")
+    member_large_or_medium: bool | None = _fact("member_large_or_medium")
     new_registrant: bool | None = _fact("new_registrant")
     prior_year_return_taxable: bool | None = _fact("prior_year_return_taxable")
     current_year_return_taxable: bool | None = _fact("current_year_return_taxable")
@@ -49,6 +52,7 @@ class LodgmentFactsInput(BaseModel):
     lodges_electronically: bool | None = _fact("lodges_electronically")
     previous_statement_lodged_electronically: bool | None = _fact(
         "previous_statement_lodged_electronically")
+    includes_monthly_payg_obligation: bool | None = _fact("includes_monthly_payg_obligation")
     annual_turnover_up_to_10m: bool | None = _fact("annual_turnover_up_to_10m")
     deferred_gst_registered: bool | None = _fact("deferred_gst_registered")
 

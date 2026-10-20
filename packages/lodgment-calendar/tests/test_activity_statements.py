@@ -7,9 +7,11 @@ registered agent. Neither exists.
 import pytest
 from lodgmentcalendar import Facts, due_dates
 
-AGENT_READY = Facts(lodges_electronically=True, previous_statement_lodged_electronically=True)
+AGENT_READY = Facts(lodges_electronically=True, previous_statement_lodged_electronically=True,
+                    includes_monthly_payg_obligation=False)
 BANKSIA = Facts(consolidated_head_company=False, lodges_electronically=True,
-                previous_statement_lodged_electronically=True)
+                previous_statement_lodged_electronically=True,
+                includes_monthly_payg_obligation=False)
 DECEMBER_READY = Facts(lodges_electronically=True, previous_statement_lodged_electronically=True,
                        annual_turnover_up_to_10m=True, deferred_gst_registered=False)
 
@@ -56,9 +58,9 @@ def test_quarterly_bas_without_the_lodgment_method_is_unknown_except_quarter_2()
     result = rows("bas", "individual", "2026-27", "self", reporting_cycle="quarterly")
     assert [row["status"] for row in result] == ["UNKNOWN", "DETERMINED", "UNKNOWN", "UNKNOWN"]
     assert result[0]["missing"] == ["lodges_electronically: the statement is lodged "
-                                    "electronically: online for a self-lodger, through Online "
-                                    "services for agents or the practitioner lodgment service "
-                                    "for an agent"]
+                                    "electronically: for a self-lodger, received and lodged "
+                                    "online; for an agent, lodged through Online services for "
+                                    "agents or the practitioner lodgment service"]
     assert result[0]["nominal_due_date"] is None and result[0]["payment"] == "unknown"
 
 
@@ -78,7 +80,8 @@ def test_quarterly_bas_lodged_by_an_agent_gets_the_program_dates(channel):
 
 def test_agent_quarterly_bas_on_paper_keeps_the_original_dates():
     result = rows("bas", "partnership", "2026-27", "bas_agent", reporting_cycle="quarterly",
-                  facts=Facts(lodges_electronically=False))
+                  facts=Facts(lodges_electronically=False,
+                              includes_monthly_payg_obligation=False))
     assert [(row["rule_id"], row["due_date"]) for row in result] == [
         ("AS-Q-AGENT-PAPER", "2026-10-28"), ("AS-Q-28", "2027-03-02"),
         ("AS-Q-AGENT-PAPER", "2027-04-28"), ("AS-Q-AGENT-PAPER", None)]
@@ -87,7 +90,8 @@ def test_agent_quarterly_bas_on_paper_keeps_the_original_dates():
 def test_agent_first_or_after_paper_statement_is_unknown_with_the_original_date():
     result = rows("ias", "smsf", "2026-27", "tax_agent", reporting_cycle="quarterly",
                   facts=Facts(lodges_electronically=True,
-                              previous_statement_lodged_electronically=False))
+                              previous_statement_lodged_electronically=False,
+                              includes_monthly_payg_obligation=False))
     first = result[0]
     assert (first["status"], first["nominal_due_date"], first["rule_id"]) == (
         "UNKNOWN", "2026-10-28", "AS-Q-AGENT-FIRST-OR-PAPER")
@@ -96,12 +100,28 @@ def test_agent_first_or_after_paper_statement_is_unknown_with_the_original_date(
 
 def test_agent_quarterly_without_the_previous_lodgment_method_is_unknown():
     result = rows("ias", "trust", "2026-27", "bas_agent", reporting_cycle="quarterly",
-                  facts=Facts(lodges_electronically=True))
+                  facts=Facts(lodges_electronically=True, includes_monthly_payg_obligation=False))
     assert result[0]["missing"] == [
-        "previous_statement_lodged_electronically: the client's previous activity statement "
-        "was lodged electronically; false for a first statement or a paper one"]
+        "previous_statement_lodged_electronically: each statement generates after the "
+        "client's previous activity statement was lodged electronically; false for a first "
+        "statement, a paper one or one lodged after the next statement generated"]
     no_method = rows("ias", "trust", "2026-27", "bas_agent", reporting_cycle="quarterly")
-    assert no_method[2]["missing"][0].startswith("lodges_electronically:")
+    assert [item.split(":")[0] for item in no_method[2]["missing"]] == [
+        "includes_monthly_payg_obligation", "lodges_electronically"]
+
+
+def test_a_quarterly_statement_with_a_monthly_payg_obligation_keeps_the_original_dates():
+    facts = Facts(**{**AGENT_READY.__dict__, "includes_monthly_payg_obligation": True})
+    result = rows("bas", "trust", "2026-27", "tax_agent", reporting_cycle="quarterly",
+                  facts=facts)
+    assert [(row["rule_id"], row["due_date"]) for row in result] == [
+        ("AS-Q-AGENT-MONTHLY-PAYG", "2026-10-28"), ("AS-Q-28", "2027-03-02"),
+        ("AS-Q-AGENT-MONTHLY-PAYG", "2027-04-28"), ("AS-Q-AGENT-MONTHLY-PAYG", None)]
+    unsure = Facts(**{**AGENT_READY.__dict__, "includes_monthly_payg_obligation": None})
+    first = rows("bas", "trust", "2026-27", "tax_agent", reporting_cycle="quarterly",
+                 facts=unsure)[0]
+    assert (first["status"], first["missing"][0].split(":")[0]) == (
+        "UNKNOWN", "includes_monthly_payg_obligation")
 
 
 def test_a_company_must_say_whether_it_is_a_head_company():
