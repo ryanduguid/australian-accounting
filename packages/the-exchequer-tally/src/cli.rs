@@ -547,13 +547,16 @@ fn option_prefix_matches<'a>(
         .collect()
 }
 
-/// argparse's `_negative_number_matcher` on the text after the leading '-'.
+/// argparse's `_negative_number_matcher` (`-\.?\d`, matched as a prefix) on the text after the
+/// leading '-': "-1x", "-.5x" and "-1\n" all count, as in Python 3.15.
 fn looks_like_negative_number(body: &str) -> bool {
     let digit = |c: char| pytext::decimal_value(c as u32).is_some();
-    (!body.is_empty() && body.chars().all(digit))
-        || body.split_once('.').is_some_and(|(int, frac)| {
-            int.chars().all(digit) && !frac.is_empty() && frac.chars().all(digit)
-        })
+    let mut chars = body.chars();
+    match chars.next() {
+        Some('.') => chars.next().is_some_and(digit),
+        Some(c) => digit(c),
+        None => false,
+    }
 }
 
 /// argparse's handling of an explicit argument given to the zero-argument help flag.
