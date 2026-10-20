@@ -6,10 +6,12 @@ UNKNOWN outcomes. This module only carries the MCP arguments into the engine's t
 
 from __future__ import annotations
 
-from typing import Any
+from datetime import date
+from typing import Annotated, Any
 
 from lodgmentcalendar import Facts, due_dates
 from lodgmentcalendar.due_dates import FACT_MEANINGS
+from lodgmentcalendar.holidays import MAX_EXTRA_HOLIDAYS
 from pydantic import BaseModel, ConfigDict, Field
 
 from aus_accounting_mcp.errors import InputError
@@ -20,6 +22,10 @@ DISCLAIMER = (
     "guide only: confirm each client's dates in Online services for agents, the "
     "practitioner lodgment service or on the statement before acting."
 )
+
+
+Day = Annotated[str, Field(max_length=10, pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                           description="YYYY-MM-DD.", json_schema_extra={"format": "date"})]
 
 
 def _fact(name: str) -> Any:
@@ -57,6 +63,25 @@ class LodgmentFactsInput(BaseModel):
     deferred_gst_registered: bool | None = _fact("deferred_gst_registered")
 
 
+class HolidayInput(BaseModel):
+    """A public holiday for the whole of a state or territory, missing from the ATO table."""
+
+    model_config = ConfigDict(extra="forbid", strict=True, str_strip_whitespace=True)
+
+    date: Day
+    name: Annotated[str, Field(min_length=1, max_length=120)]
+
+
+HolidayList = Annotated[list[HolidayInput], Field(max_length=MAX_EXTRA_HOLIDAYS)]
+
+
+def _day(value: str, field: str) -> date:
+    try:
+        return date.fromisoformat(value)
+    except ValueError as exc:
+        raise InputError(f"{field}: {value!r} is not a YYYY-MM-DD date") from exc
+
+
 def lodgment_due_dates(
     obligation: str,
     entity_type: str,
@@ -65,11 +90,22 @@ def lodgment_due_dates(
     *,
     reporting_cycle: str | None = None,
     facts: LodgmentFactsInput | None = None,
+    extra_holidays: list[HolidayInput] | None = None,
+    holidays_complete_until: str | None = None,
 ) -> dict[str, Any]:
     supplied = Facts() if facts is None else Facts(**facts.model_dump())
+    holidays: dict[date, str] = {}
+    for item in extra_holidays or []:
+        day = _day(item.date, "extra_holidays.date")
+        if day in holidays:
+            raise InputError(f"extra_holidays: {item.date} appears more than once")
+        holidays[day] = item.name
+    complete = (None if holidays_complete_until is None
+                else _day(holidays_complete_until, "holidays_complete_until"))
     try:
         result = due_dates(obligation, entity_type, financial_year, channel,
-                           reporting_cycle=reporting_cycle, facts=supplied)
+                           reporting_cycle=reporting_cycle, facts=supplied,
+                           extra_holidays=holidays, holidays_complete_until=complete)
     except ValueError as exc:
         raise InputError(str(exc)) from exc
     return {**result, "disclaimer": DISCLAIMER}

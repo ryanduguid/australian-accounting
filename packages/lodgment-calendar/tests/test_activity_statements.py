@@ -42,7 +42,7 @@ def test_quarterly_bas_lodged_online_by_the_trust_itself():
     ]
     assert result[3]["missing"] == [
         "whether 2027-08-11 is a public holiday for the whole of any state or territory: "
-        "the ATO's table covers 2026-07-01 to 2027-06-30"]
+        "the holidays known cover 2026-07-01 to 2027-06-30"]
     assert result[0]["source_url"].endswith("two-week-lodgment-concession-terms-and-conditions")
 
 

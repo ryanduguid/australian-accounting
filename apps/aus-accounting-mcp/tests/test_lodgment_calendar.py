@@ -109,3 +109,46 @@ def test_resources_list_the_engine_and_tool():
         component_versions()["engines"])
     assert TOOL in scope()["review_tools"]
     assert f"# lodgment-calendar\n\n{DISCLAIMER}" in disclaimer()
+
+
+QUARTER_4 = {"obligation": "bas", "entity_type": "trust", "financial_year": "2026-27",
+             "channel": "self", "reporting_cycle": "quarterly",
+             "facts": {"lodges_electronically": False}}
+
+
+def test_caller_holidays_settle_dates_after_the_ato_table():
+    result = call(**QUARTER_4,
+                  extra_holidays=[{"date": "2027-07-28", "name": "Synthetic test holiday"}],
+                  holidays_complete_until="2027-08-31")
+
+    q4 = result["obligations"][3]
+    assert (q4["status"], q4["due_date"]) == ("DETERMINED", "2027-07-29")
+    assert result["holiday_calendar"]["caller_holidays"] == {
+        "2027-07-28": "Synthetic test holiday (caller-supplied)"}
+    assert call(**QUARTER_4)["obligations"][3]["status"] == "UNKNOWN"
+
+
+@pytest.mark.parametrize("change,message", [
+    ({"extra_holidays": [{"date": "2027-02-30", "name": "Synthetic"}]},
+     "is not a YYYY-MM-DD date"),
+    ({"extra_holidays": [{"date": "2027-07-28", "name": "Synthetic"}] * 2},
+     "appears more than once"),
+    ({"extra_holidays": [{"date": "2027-06-07", "name": "Synthetic"}]},
+     "already in the ATO table"),
+    ({"holidays_complete_until": "2027-13-01"}, "is not a YYYY-MM-DD date"),
+])
+def test_invalid_holiday_inputs_reach_the_caller(change, message):
+    with pytest.raises(ToolError, match=message):
+        call(**QUARTER_4, **change)
+
+
+@pytest.mark.parametrize("change", [
+    {"extra_holidays": [{"date": "2027-07-28"}]},
+    {"extra_holidays": [{"date": "2027-07-28", "name": "Synthetic", "state": "NT"}]},
+    {"extra_holidays": [{"date": f"2027-08-{day:02d}", "name": "Synthetic"}
+                        for day in range(1, 32)] * 2},
+    {"holidays_complete_until": "31/08/2027"},
+])
+def test_malformed_holiday_inputs_are_rejected(change):
+    with pytest.raises(ToolError):
+        call(**QUARTER_4, **change)

@@ -36,7 +36,9 @@ Christmas Eve and New Year's Eve holidays in some states, WA King's Birthday and
 Melbourne Cup Day. It reads no other holiday source. The tables run from 3 August 2026 to
 14 June 2027, so coverage is set to the program year, 1 July 2026 to 30 June 2027. A
 weekday outside that span returns `UNKNOWN`, keeping the nominal date; a missing holiday
-can only move a date later.
+can only move a date later. A caller can add holidays the tables omit and state the date
+the combined list is complete to; the calendar takes that statement as given and marks
+each added holiday as caller-supplied. Without that date, coverage stays at 30 June 2027.
 
 The `payday-super-checker` calendar was not reused. It applies the Superannuation
 Guarantee (Administration) Act 1992 definition, which excludes holidays that are not
@@ -133,8 +135,9 @@ payment together, as the tables state; partnerships pay no income tax.
     returns the staggered dates of 21 March, 21 April and 5 June 2027 depend on the
     lodgement date and are the latest dates if processing takes 2 weeks. A self-lodger's 21
     November payment date applies only if the assessment issues by 31 October.
-11. **Dates after 30 June 2027.** Outside the holiday tables, as described above. This
-    affects quarter 4 and June 2027 statements.
+11. **Dates after 30 June 2027.** Outside the holiday tables, as described above, unless
+    the caller supplies a complete calendar. This affects quarter 4 and June 2027
+    statements.
 12. **Facts the caller cannot yet know.** Whether overdue returns will all be lodged by 31
     October 2026, whether a statement carries a monthly PAYG obligation and whether each
     statement generates after an electronic lodgement are inputs; until supplied, the

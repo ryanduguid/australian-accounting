@@ -40,7 +40,7 @@ from .adapters.gst import (
     bas_reconciliation,
     coding_review,
 )
-from .adapters.lodgment import LodgmentFactsInput, lodgment_due_dates
+from .adapters.lodgment import HolidayList, LodgmentFactsInput, lodgment_due_dates
 from .adapters.payday import (
     ContributionInput,
     evidence_pack,
@@ -946,6 +946,15 @@ def get_lodgment_due_dates(
         "a quarterly ias is its PAYG instalment activity statement.")] = None,
     facts: Annotated[LodgmentFactsInput | None, Field(
         description="Program conditions as established; omit any that is not.")] = None,
+    extra_holidays: Annotated[HolidayList | None, Field(
+        description="Public holidays for the whole of a state or territory that the ATO "
+        "table (1 July 2026 to 30 June 2027) does not list, from an official source. "
+        "Omit unless established.")] = None,
+    holidays_complete_until: Annotated[str | None, Field(
+        max_length=10, pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+        json_schema_extra={"format": "date"},
+        description="YYYY-MM-DD: only when the ATO table plus extra_holidays hold every "
+        "such holiday to this date. Settles dates after 30 June 2027; never guess it.")] = None,
 ) -> LodgmentCalendar:
     """List lodgement, payment and concession due dates from lodgment-calendar.
 
@@ -957,12 +966,14 @@ def get_lodgment_due_dates(
     public holiday table, nominal_due_date, rule_id, summary, source_url,
     source_provision, source_checked and missing. A payment row appears only where
     payment is not due with the lodgement. UNKNOWN names each fact not supplied or
-    question the ATO pages leave open; report it as UNKNOWN. Retain not_decided and
+    question the ATO pages leave open; report it as UNKNOWN. Dates after 30 June 2027
+    stay UNKNOWN unless holidays_complete_until covers them. Retain not_decided and
     warnings. Not advice; lodges nothing and reads no network.
     """
     return cast(LodgmentCalendar, lodgment_due_dates(
         obligation, entity_type, financial_year, channel,
-        reporting_cycle=reporting_cycle, facts=facts,
+        reporting_cycle=reporting_cycle, facts=facts, extra_holidays=extra_holidays,
+        holidays_complete_until=holidays_complete_until,
     ))
 
 

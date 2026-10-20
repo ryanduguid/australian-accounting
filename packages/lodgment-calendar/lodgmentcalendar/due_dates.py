@@ -11,12 +11,13 @@ nothing.
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, fields
 from datetime import date, timedelta
 from typing import Any
 
 from ._version import __version__
-from .holidays import COVERS_FROM, COVERS_TO, HOLIDAY_PROVISION, HOLIDAY_SOURCE, roll
+from .holidays import COVERS_FROM, HOLIDAY_PROVISION, HOLIDAY_SOURCE, calendar, roll
 
 SOURCE_CHECKED = "2026-10-20"
 PROGRAM_YEAR = "2026-27"
@@ -269,34 +270,46 @@ def due_dates(
     *,
     reporting_cycle: str | None = None,
     facts: Facts | None = None,
+    extra_holidays: Mapping[date, str] | None = None,
+    holidays_complete_until: date | None = None,
 ) -> dict[str, Any]:
     """Return each lodgement, payment and concession date with its rule and status.
 
     ``financial_year`` is the year of the periods (activity statements) or the income
     year the return covers (income tax returns), in the form 2026-27.
+
+    ``extra_holidays`` adds public holidays for the whole of a state or territory that
+    the ATO table does not list, by date and name. ``holidays_complete_until`` states
+    that the ATO table and those holidays hold every such holiday to that date, which
+    lets dates after 30 June 2027 be settled.
     """
     facts = Facts() if facts is None else facts
     _check(obligation, entity_type, financial_year, channel, reporting_cycle, facts)
+    cal = calendar(extra_holidays, holidays_complete_until)
     rows: list[dict[str, Any]] = []
     if obligation == "income_tax_return":
         label = f"Income tax return {financial_year}"
         if financial_year != RETURN_YEAR:
-            rows += _rows(label, financial_year, _not_recorded(financial_year, RETURN_YEAR), [])
+            rows += _rows(label, financial_year, _not_recorded(financial_year, RETURN_YEAR), [],
+                          cal=cal)
         else:
             rule, missing, concessions = _return_rule(entity_type, channel, facts)
             # A partnership pays no income tax, whatever its lodgement date turns out to be.
             rows += _rows(label, financial_year, rule, missing,
                           family=_family(entity_type, channel),
-                          pending_payment="none" if entity_type == "partnership" else "unknown")
+                          pending_payment="none" if entity_type == "partnership" else "unknown",
+                          cal=cal)
             for concession, needed in concessions:
-                rows.append(_row(label, financial_year, "concession", concession, needed))
+                rows.append(_row(label, financial_year, "concession", concession, needed,
+                                 cal=cal))
     elif financial_year != ACTIVITY_YEAR:
         rows += _rows(f"{obligation.upper()} {financial_year}", financial_year,
-                      _not_recorded(financial_year, ACTIVITY_YEAR), [])
+                      _not_recorded(financial_year, ACTIVITY_YEAR), [], cal=cal)
     else:
         for period, label, rule, missing in _statement_rules(
                 obligation, entity_type, channel, reporting_cycle, facts):
-            rows += _rows(label, period, rule, missing, family=_family(obligation, channel))
+            rows += _rows(label, period, rule, missing, family=_family(obligation, channel),
+                          cal=cal)
     return {
         "ok": True,
         "engine": "lodgment-calendar",
@@ -317,7 +330,11 @@ def due_dates(
             "source_url": HOLIDAY_SOURCE,
             "source_provision": HOLIDAY_PROVISION,
             "covers_from": COVERS_FROM.isoformat(),
-            "covers_to": COVERS_TO.isoformat(),
+            "covers_to": cal[1].isoformat(),
+            "caller_holidays": {day.isoformat(): name for day, name in sorted(cal[0].items())
+                                if name.endswith(" (caller-supplied)")},
+            "caller_complete_until": (None if holidays_complete_until is None
+                                      else holidays_complete_until.isoformat()),
         },
         "not_decided": NOT_DECIDED,
         "warnings": WARNINGS,
@@ -367,22 +384,26 @@ def _not_recorded(year: str, recorded: str) -> Rule:
     )
 
 
-def _rows(label: str, period: str, rule: Rule | None, missing: list[str], *,
+Calendar = tuple[dict[date, str], date]
+
+
+def _rows(label: str, period: str, rule: Rule | None, missing: list[str], *, cal: Calendar,
           family: str = "", pending_payment: str = "unknown") -> list[dict[str, Any]]:
     if rule is None or missing:
         pending = Rule(family, "The date depends on facts not supplied: "
                        + "; ".join(FACT_MEANINGS[name] for name in missing) + ".", "about")
-        return [_row(label, period, "lodgment", pending, missing, payment=pending_payment)]
+        return [_row(label, period, "lodgment", pending, missing, payment=pending_payment,
+                     cal=cal)]
     payment = rule.payment
     rows = [_row(label, period, "lodgment", rule, [],
-                 payment=payment if isinstance(payment, str) else "separate")]
+                 payment=payment if isinstance(payment, str) else "separate", cal=cal)]
     if isinstance(payment, Rule):
-        rows.append(_row(label, period, "payment", payment, []))
+        rows.append(_row(label, period, "payment", payment, [], cal=cal))
     return rows
 
 
 def _row(label: str, period: str, kind: str, rule: Rule, missing: list[str], *,
-         payment: str | None = None) -> dict[str, Any]:
+         cal: Calendar, payment: str | None = None) -> dict[str, Any]:
     url, provision = SOURCES[rule.source]
     needed = [f"{name}: {FACT_MEANINGS[name]}" for name in missing]
     due: date | None = None
@@ -390,7 +411,7 @@ def _row(label: str, period: str, kind: str, rule: Rule, missing: list[str], *,
     if rule.unresolved is not None:
         needed.append(rule.unresolved)
     elif rule.nominal is not None and not needed:
-        due, skipped, open_question = roll(rule.nominal)
+        due, skipped, open_question = roll(rule.nominal, *cal)
         if skipped or due is None:
             holiday_roll = {"skipped": skipped, "source_url": HOLIDAY_SOURCE}
         if open_question is not None:

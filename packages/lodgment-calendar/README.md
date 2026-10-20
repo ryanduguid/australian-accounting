@@ -45,7 +45,7 @@ Quarter 4 is `UNKNOWN` because the ATO marks 25 August 2027 'to be confirmed'.
 
 ## Inputs
 
-`due_dates(obligation, entity_type, financial_year, channel, *, reporting_cycle=None, facts=None)`
+`due_dates(obligation, entity_type, financial_year, channel, *, reporting_cycle=None, facts=None, extra_holidays=None, holidays_complete_until=None)`
 
 | Input | Values |
 | --- | --- |
@@ -55,6 +55,8 @@ Quarter 4 is `UNKNOWN` because the ATO marks 25 August 2027 'to be confirmed'.
 | `channel` | `self`, `tax_agent` or `bas_agent` (a BAS agent cannot lodge an income tax return) |
 | `reporting_cycle` | `monthly` or `quarterly`, for `bas` and `ias` only. A monthly `bas` reports GST monthly; other monthly activity statements are `ias`. For a consolidated head company, a quarterly `ias` is its PAYG instalment activity statement |
 | `facts` | A `Facts` with the conditions below; each is `True`, `False` or `None` (not supplied) |
+| `extra_holidays` | Up to 50 `date: name` holidays the ATO table does not list (see below) |
+| `holidays_complete_until` | A `date` to which the ATO table and `extra_holidays` hold every holiday (see below) |
 
 This release records statement periods in 2026-27 and income tax returns for the 2025-26
 income year, which are the returns the 2026–27 program covers. Any other year returns one
@@ -103,6 +105,29 @@ a public holiday for the whole of any state or territory moves to the next busin
 for taxpayers in every state. The tables cover 1 July 2026 to 30 June 2027. A later date
 that is not a weekend cannot be shown to be a business day, so it is `UNKNOWN` with its
 nominal date kept. A holiday missing from the tables can only move a date later.
+
+To settle those dates, pass the missing holidays from an official source as
+`extra_holidays` and the last date your list is complete to as
+`holidays_complete_until`. Holidays alone never extend coverage, because a list holding
+one 2027 holiday is not a list that has 2027 covered. Each one must be a weekday the ATO
+table does not already list, and shows in `holiday_roll` and `holiday_calendar` marked
+'(caller-supplied)'.
+
+```python
+from datetime import date
+
+result = due_dates("bas", "trust", "2026-27", "self", reporting_cycle="quarterly",
+                   facts=Facts(lodges_electronically=True),
+                   holidays_complete_until=date(2027, 8, 31))
+print(result["obligations"][3]["due_date"])
+```
+
+```
+2027-08-11
+```
+
+This assumes no whole-of-state holiday falls between 1 July and 31 August 2027 beyond
+those you pass; the calendar takes that statement as given.
 
 ## Scope
 

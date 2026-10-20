@@ -10,5 +10,7 @@ Not yet released.
   concessions, the 2-week online concession for quarterly statements and the December
   BAS concession, each with its ATO source, provision and review date.
 - Moves dates to the next business day using the ATO's 2026–27 public holiday tables.
+  Callers can add holidays the tables do not list and state the date their list is
+  complete to, which settles dates after 30 June 2027.
 - Returns `UNKNOWN`, naming the missing condition, for any date that depends on a fact
   not supplied, a date the ATO pages leave open or a day outside the holiday tables.

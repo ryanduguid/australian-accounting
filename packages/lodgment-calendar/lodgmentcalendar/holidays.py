@@ -10,7 +10,8 @@ calendar used here, copied as published; no other holiday source is read.
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from collections.abc import Mapping
+from datetime import date, datetime, timedelta
 
 HOLIDAY_SOURCE = (
     "https://www.ato.gov.au/tax-and-super-professionals/for-tax-professionals/"
@@ -28,6 +29,7 @@ HOLIDAY_PROVISION = (
 # there cannot be shown to be a business day.
 COVERS_FROM = date(2026, 7, 1)
 COVERS_TO = date(2027, 6, 30)
+MAX_EXTRA_HOLIDAYS = 50
 
 HOLIDAYS: dict[date, str] = {
     date(2026, 8, 3): "Picnic Day (NT)",
@@ -63,26 +65,62 @@ CONFLICTS = {
 }
 
 
-def roll(day: date) -> tuple[date | None, list[dict[str, str]], str | None]:
+def roll(day: date, holidays: Mapping[date, str] = HOLIDAYS,
+         covers_to: date = COVERS_TO) -> tuple[date | None, list[dict[str, str]], str | None]:
     """The first business day on or after ``day``, the days passed over, and why not.
 
     Returns no date, with the reason, when a weekday on the way falls outside the
-    published tables (it may be a holiday the ATO has not yet listed) or the table
-    answers the roll 2 ways.
+    holidays known to be complete (it may be a holiday nobody has listed) or the ATO
+    table answers the roll 2 ways. ``holidays`` and ``covers_to`` default to the ATO
+    table; ``calendar`` adds a caller's holidays to them.
     """
     skipped: list[dict[str, str]] = []
     while True:
         if day in CONFLICTS:
             return None, skipped, CONFLICTS[day]
-        reason = {5: "Saturday", 6: "Sunday"}.get(day.weekday())
+        # A known holiday is not a business day, even past the span known to be complete.
+        reason = {5: "Saturday", 6: "Sunday"}.get(day.weekday()) or holidays.get(day)
         if reason is None:
-            if not COVERS_FROM <= day <= COVERS_TO:
+            if not COVERS_FROM <= day <= covers_to:
                 return None, skipped, (
                     f"whether {day.isoformat()} is a public holiday for the whole of any "
-                    f"state or territory: the ATO's table covers {COVERS_FROM.isoformat()} "
-                    f"to {COVERS_TO.isoformat()}")
-            reason = HOLIDAYS.get(day)
-            if reason is None:
-                return day, skipped, None
+                    f"state or territory: the holidays known cover {COVERS_FROM.isoformat()} "
+                    f"to {covers_to.isoformat()}")
+            return day, skipped, None
         skipped.append({"date": day.isoformat(), "reason": reason})
         day += timedelta(days=1)
+
+
+def calendar(extra: Mapping[date, str] | None,
+             complete_until: date | None) -> tuple[dict[date, str], date]:
+    """The ATO table plus a caller's holidays, and the last day the result is complete to.
+
+    A caller's holiday must be a public holiday for the whole of a state or territory
+    that the ATO table does not list. ``complete_until`` is the caller's statement that
+    the 2 together hold every such holiday to that date; adding holidays alone never
+    extends coverage, and an earlier date cannot shrink the ATO table's own span.
+    """
+    extra = {} if extra is None else extra
+    if not isinstance(extra, Mapping) or len(extra) > MAX_EXTRA_HOLIDAYS:
+        raise ValueError(f"extra_holidays must map at most {MAX_EXTRA_HOLIDAYS} dates to "
+                         "holiday names")
+    merged = dict(HOLIDAYS)
+    for day, name in extra.items():
+        if not _is_date(day):
+            raise ValueError(f"extra_holidays has {day!r}; each key must be a date")
+        if (not isinstance(name, str) or not name.strip() or len(name) > 120
+                or any(ord(char) < 32 for char in name)):
+            raise ValueError(f"extra_holidays[{day.isoformat()}] needs a holiday name of at "
+                             "most 120 printable characters")
+        if day in HOLIDAYS or day in CONFLICTS:
+            raise ValueError(f"extra_holidays[{day.isoformat()}] is already in the ATO table")
+        if day.weekday() >= 5:
+            raise ValueError(f"extra_holidays[{day.isoformat()}] falls on a weekend")
+        merged[day] = f"{name.strip()} (caller-supplied)"
+    if complete_until is not None and not _is_date(complete_until):
+        raise ValueError(f"holidays_complete_until must be a date; got {complete_until!r}")
+    return merged, max(COVERS_TO, complete_until or COVERS_TO)
+
+
+def _is_date(value: object) -> bool:
+    return isinstance(value, date) and not isinstance(value, datetime)
