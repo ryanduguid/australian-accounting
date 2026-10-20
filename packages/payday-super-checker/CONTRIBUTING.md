@@ -4,7 +4,7 @@ This tool checks contributions against the payday-super deadline and estimates S
 
 ## Data boundary
 
-- Use fabricated data. The `.gitignore` blocks `.csv`, `.xls`, `.xlsx`, `.pdf`, `.ofx`, `.qif` and `.aba` files, with exceptions for `examples/*.csv` and `tests/fixtures/importers/*.csv`. The 4 additional exceptions under `evaluation/payday_super_evidence/fixtures/` are `timely_remittance_no_receipt.csv`, `late_remittance_no_receipt.csv`, `receipt_on_due_date.csv` and `receipt_after_due_date.csv`. Put new general fixtures in the examples or importer test directory.
+- Use fabricated data. The `.gitignore` blocks `.csv`, `.xls`, `.xlsx`, `.pdf`, `.ofx`, `.qif` and `.aba` files, with exceptions for `examples/*.csv` and the evaluation fixtures named one by one under `evaluation/`. Put new general fixtures in the examples directory.
 - Never commit an `.aba` file, redacted or not. It carries the account numbers a payroll run pays into.
 - Keep employee names, membership numbers, TFNs, ABNs tied to a real employer, and screenshots of a live payroll system out of the repository.
 
@@ -16,21 +16,24 @@ This tool checks contributions against the payday-super deadline and estimates S
 
 ## Local verification
 
-Python 3.14 or newer. The runtime imports nothing outside the standard library. `uv` manages the development environment, and we commit the lock file.
+The engine is a Rust crate with the toolchain pinned in `rust-toolchain.toml`.
+From this directory:
 
 ```bash
-uv sync --locked --extra dev --python 3.14
-uv run --locked --extra dev --python 3.14 python tests/fastcheck/bootstrap.py
-uv run --locked --extra dev --python 3.14 pytest
-uv run --locked --extra dev --python 3.14 python -m build
-uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict
+cargo fmt --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 ```
 
-The bootstrap installs the property tests' locked fast-check worker with the Node pinned in the dev extra; repeat it whenever `tests/fastcheck/package-lock.json` changes. CI repeats this on Ubuntu with Python 3.14 and 3.15, and on Windows with 3.14. Keep runtime strings ASCII: on Windows, redirected stdout uses the machine's ANSI codepage rather than UTF-8.
+`tests/parity.rs` replays the frozen record of the Python 0.2.2 engine's answers;
+a change that alters any of them fails it. The calendar generator and the
+workbook builder in `tools/` are Python and are tested from the repository root.
+CI runs the crate on Ubuntu and Windows, and `fuzz/` holds the cargo-fuzz target
+for the CSV readers.
 
 ## Pull requests
 
-Name the rule you changed and the test that pins it. A behaviour change needs a focused test under `tests/`. Run that test against the old code first. If it passes there too, it is not testing your change.
+Name the rule you changed and the test that pins it. A behaviour change needs a focused test under `tests/` or in the module it changes. Run that test against the old code first. If it passes there too, it is not testing your change.
 
 When you change a rule, search for everything else that states or enforces it. An enumeration in the report, a README table and a docstring can all keep asserting the old rule long after you have changed the code.
 
@@ -38,9 +41,7 @@ For a potential security vulnerability, follow [SECURITY.md](SECURITY.md) rather
 
 ## Releases
 
-Follow [RELEASING.md](RELEASING.md) from the monorepo root. Tag the exact
-current `main` commit with the namespaced component tag after the release pull
-request passes its checks and an administrator verifies release immutability.
-The root workflow publishes the checked distribution to GitHub and PyPI with
-checksums and attestations. The product remains an experimental review aid, not
-a compliance determination.
+The Rust 1.0.0 binary is unreleased and has no publisher yet. [RELEASING.md](RELEASING.md)
+records how the Python releases through v0.2.2 were published and how to verify
+them. The product remains an experimental review aid, not a compliance
+determination.

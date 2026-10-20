@@ -6,7 +6,6 @@ on:
     workflows:
       - Release aus-accounting-mcp
       - Release gst-review
-      - Release payday-super-checker
     types: [completed]
   workflow_dispatch:
     inputs:

@@ -37,8 +37,8 @@ review files. Its contract test reads the pinned as-at date and verdicts from
 identifier omission and blank decision headings:
 
 ```bash
-uv run --locked payday-super-check evidence-pack evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 -o evidence-pack
-uv run --locked --extra dev pytest tests/test_evidence_pack.py -q
+payday-super-check evidence-pack evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 -o evidence-pack
+cargo test --locked --test parity
 ```
 
 The first command exits 2 and leaves `AT_RISK` in `exceptions.json`, even with
@@ -48,11 +48,11 @@ are unchanged. This is workflow verification, not a new review of timing law.
 Run these commands from `packages/payday-super-checker` in the monorepo. Exit code 2 signals a late result or an unacknowledged receipt-evidence gap.
 
 ```bash
-uv run --locked --extra dev --python 3.14 payday-super-check evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o timely-report.csv
-uv run --locked --extra dev --python 3.14 payday-super-check evaluation/payday_super_evidence/fixtures/late_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o late-remittance-report.csv
-uv run --locked --extra dev --python 3.14 payday-super-check evaluation/payday_super_evidence/fixtures/receipt_on_due_date.csv --as-at 2026-08-20 -o on-time-report.csv
-uv run --locked --extra dev --python 3.14 payday-super-check evaluation/payday_super_evidence/fixtures/receipt_after_due_date.csv --as-at 2026-08-20 -o late-receipt-report.csv
-uv run --locked --extra dev --python 3.14 pytest tests/test_evaluation_pack.py -q
+payday-super-check evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o timely-report.csv
+payday-super-check evaluation/payday_super_evidence/fixtures/late_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o late-remittance-report.csv
+payday-super-check evaluation/payday_super_evidence/fixtures/receipt_on_due_date.csv --as-at 2026-08-20 -o on-time-report.csv
+payday-super-check evaluation/payday_super_evidence/fixtures/receipt_after_due_date.csv --as-at 2026-08-20 -o late-receipt-report.csv
+cargo test --locked --test evaluation
 ```
 
 The remittance-only confirmation acknowledges missing fund receipt evidence; it does not establish payment. The AT_RISK example exits 0 with confirmation and 2 without it. A LATE result exits 2 either way.

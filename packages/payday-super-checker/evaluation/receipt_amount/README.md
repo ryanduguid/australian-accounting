@@ -61,7 +61,7 @@ package reproduces every row. From the component directory, with
 
 ```bash
 uvx --from payday-super-checker==0.1.7 payday-super-check evaluation/receipt_amount/fixtures/timely_receipt_no_amount.csv --as-at 2026-08-20 -o timely-no-amount.csv
-uv run --locked --extra dev pytest tests/test_receipt_amount_evaluation.py -q
+cargo test --locked --test evaluation
 ```
 
 The first command runs the published package; the second runs the checked-out

@@ -25,8 +25,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGES = ROOT / "packages"
-PAYDAY_RATES = PACKAGES / "payday-super-checker" / "paydaysuper" / "data" / "rates.json"
-PAYDAY_GIC = PACKAGES / "payday-super-checker" / "paydaysuper" / "data" / "gic_rates.json"
+PAYDAY_RATES = PACKAGES / "payday-super-checker" / "data" / "rates.json"
+PAYDAY_GIC = PACKAGES / "payday-super-checker" / "data" / "gic_rates.json"
 CALCULATOR_METADATA = PACKAGES / "australian-tax-calculators" / "src" / "metadata.rs"
 CALCULATIONS = PACKAGES / "australian-tax-calculators" / "src" / "engine.rs"
 DIV7A_RATES = PACKAGES / "div7a-loan-review" / "data" / "benchmark_rates.csv"

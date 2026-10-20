@@ -7,21 +7,21 @@
 - **MCP facade**: https://duguid.com.au/tools/australian-tax-ai-agents/
 - **Repository**: https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker
 - **Evidence evaluation**: [evaluation/payday_super_evidence/README.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/evaluation/payday_super_evidence/README.md)
-- **Distribution**: `payday-super-checker`
-- **Import package**: `paydaysuper`
+- **Cargo package**: `payday-super-checker` 1.0.0, a standalone Rust binary (unreleased; build with `cargo build --locked --release`). It replaces Python package 0.2.2 and its `paydaysuper` import API.
 - **CLI command**: `payday-super-check`
 - **Domain**: Experimental evaluation of Australian superannuation contribution timelines against Payday Super 2026 deadlines and estimation of potential Superannuation Guarantee (SG) charge exposure.
 - **Primary legislation**: *Superannuation Guarantee (Administration) Act 1992 (Cth)* (*SGAA 1992*), Treasury Laws Amendment (Payday Superannuation) reforms.
 
 ## Core modules and APIs
-- `paydaysuper.deadlines`: Calculates the usual 7-business-day window and supported statutory extensions.
-- `paydaysuper.calendar`: Applies a curated national non-business-day calendar and reviewed holiday overrides.
-- `paydaysuper.rates`: Loads dated General Interest Charge (GIC) tables and financial-year SG parameters.
-- `paydaysuper.sgc`: Deterministic Superannuation Guarantee Charge exposure calculator (nominal interest + administration component).
-- `paydaysuper.csv_io`: Strict CSV schema parsing with atomic IO validation.
+- `payday-super-check <file.csv>`, `evidence-pack`, `import` and `review-pack`: the check, the evidence pack, the vendor-export importer and the practitioner review pack.
+- JSON stdin subcommands replace the import API: `assess`, `compute-due`, `notional-earnings`, `parse-rows`, `load-calendar`, `join`, `import-files` and the others `payday-super-check --api-help` lists.
+- `src/deadlines.rs`: the usual 7-business-day window and supported statutory extensions.
+- `src/calendar.rs`: the curated national non-business-day calendar and reviewed holiday overrides.
+- `src/rates.rs` and `src/sgc.rs`: the dated General Interest Charge (GIC) table, financial-year SG parameters and the SG charge exposure estimate (notional earnings plus administrative uplift).
+- `src/csv_io.rs`: strict CSV schema parsing; generated files are written atomically.
 
 ## Release and evidence limits
-- This documentation describes checker 0.2.2, published on PyPI (https://pypi.org/project/payday-super-checker/). aus-accounting-mcp 0.2.12 pins checker 0.1.9 (0.2.10 and 0.2.11 pin 0.1.8, 0.2.5 to 0.2.9 pin 0.1.7, 0.2.4 pins 0.1.6); the workspace uses the checked-out source. Check the installed engine version when comparing CLI and MCP results.
+- This documentation describes the Rust checker 1.0.0, which gives the results of Python checker 0.2.2, the last release on PyPI (https://pypi.org/project/payday-super-checker/). aus-accounting-mcp 0.2.12 pins checker 0.1.9 (0.2.10 and 0.2.11 pin 0.1.8, 0.2.5 to 0.2.9 pin 0.1.7, 0.2.4 pins 0.1.6); until the MCP server links the crate, the workspace installs Python 0.2.2 from PyPI. Check the installed engine version when comparing CLI and MCP results.
 - Published 0.1.6 assumes full receipt when a fund-receipt date has neither matched_amount nor remitted_amount. Versions 0.1.7 and later leave a timely date without an amount UNKNOWN; a late date remains LATE with no shortfall reduction and a maximum estimate measured to the as-at date.
 - The tagged 0.1.6 workbook extrapolates beyond the GIC table ending 31 December 2026. The 0.1.6 CLI withholds those estimates by default and offers --allow-stale-gic. Workbooks from 0.1.7 withhold them and mark incomplete rate-dependent Summary totals Not assessed; they have no stale-rate opt-in.
 - Matching, receipt evidence and rate coverage remain separate limits. Arithmetic does not establish that a payment matched the right payday or reached the fund.

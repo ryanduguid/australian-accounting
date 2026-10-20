@@ -16,7 +16,6 @@ decision-log.md
 # The only CSV exceptions are examples, importer test fixtures, and the
 # fabricated Payday Super evaluation fixtures listed by name below.
 !examples/*.csv
-!tests/fixtures/importers/*.csv
 !evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv
 !evaluation/payday_super_evidence/fixtures/late_remittance_no_receipt.csv
 !evaluation/payday_super_evidence/fixtures/receipt_on_due_date.csv
@@ -28,7 +27,12 @@ decision-log.md
 !evaluation/receipt_amount/fixtures/timely_receipt_matched_amount.csv
 !evaluation/receipt_amount/fixtures/payday_before_1_july_2026.csv
 
-# Python
+# Rust
+target/
+fuzz/artifacts/
+fuzz/coverage/
+
+# Python tools
 __pycache__/
 *.py[cod]
 .venv/

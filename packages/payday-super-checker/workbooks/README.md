@@ -77,7 +77,7 @@ specific parity checks, not proof of every input or option. See the
 
 ## How it is kept honest
 
-The workbook is a second implementation of the rules in `paydaysuper`, so it can
+The workbook is a second implementation of the rules in this crate, so it can
 drift. `tests/test_workbook.py` reads the cached values desktop Excel wrote and
 holds every line of `examples/sample_payrun.csv`, the summary counts and totals,
 the Holidays table and the GIC table to the engine. A change to the engine, the
@@ -86,7 +86,7 @@ data or the workbook that is not rebuilt fails the test.
 Rebuild on a machine with desktop Excel, from the package directory:
 
 ```powershell
-uv run --locked --extra dev python tools/build_workbook.py
+uv run --locked python packages/payday-super-checker/tools/build_workbook.py
 ```
 
 The build writes the formulas with openpyxl, opens the file once in Excel over COM
