@@ -25,6 +25,35 @@ fn decimal(v: &Value, key: &str) -> Result<Decimal> {
     Decimal::parse(&t).map_err(|s| format!("decimal.{}", s.name()))
 }
 
+/// A JSON integer of any size, as Python's `int` prints it.
+fn integer(v: &Value, key: &str) -> Result<String> {
+    let text = match v.get(key) {
+        Some(Value::Number(n)) => n.to_string(),
+        _ => String::new(),
+    };
+    let digits = text.strip_prefix('-').unwrap_or(&text);
+    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(format!("{key} must be an integer"));
+    }
+    Ok(if digits.bytes().all(|b| b == b'0') {
+        "0".into()
+    } else {
+        text
+    })
+}
+
+/// `str()` of a scalar JSON value, as an f-string prints the Python object.
+fn py_str(value: &Value) -> Result<String> {
+    Ok(match value {
+        Value::Null => "None".into(),
+        Value::Bool(true) => "True".into(),
+        Value::Bool(false) => "False".into(),
+        Value::Number(n) => n.to_string(),
+        Value::String(s) => s.clone(),
+        _ => return Err("where must be a string, number, boolean or null".into()),
+    })
+}
+
 fn optional_decimal(v: &Value, key: &str) -> Result<Option<Decimal>> {
     match v.get(key) {
         None | Some(Value::Null) => Ok(None),
@@ -40,10 +69,7 @@ fn contract(v: &Value) -> Result<ContractInput> {
     };
     Ok(ContractInput {
         contract_id: text(v, "contract_id")?,
-        line_number: v
-            .get("line_number")
-            .and_then(Value::as_i64)
-            .ok_or("line_number must be an integer")?,
+        line_number: integer(v, "line_number")?,
         customer: text(v, "customer")?,
         description: text(v, "description")?,
         original_contract_sum: decimal(v, "original_contract_sum")?,
@@ -118,10 +144,15 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             Err(ScheduleError::Decimal(s)) => Err(format!("decimal.{}", s.name())),
         },
         "parse-money" => {
+            // `parse_money(raw, where="amount")`: an explicit null `where`
+            // is printed as None, and a null `raw` is "no amount given".
             let where_ = match v.get("where") {
                 None => "amount".to_string(),
-                Some(_) => text(v, "where")?,
+                Some(value) => py_str(value)?,
             };
+            if matches!(v.get("raw"), Some(Value::Null)) {
+                return Err(format!("{where_}: no amount given"));
+            }
             match money::parse_money(&text(v, "raw")?, &where_) {
                 Ok(value) => Ok(json!(value.to_string())),
                 Err(AmountError::Message(m)) => Err(m),

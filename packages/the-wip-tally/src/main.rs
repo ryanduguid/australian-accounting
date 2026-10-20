@@ -2,7 +2,8 @@ use std::io::{Read, Write};
 use the_wip_tally::{api, cli};
 
 fn emit(mut stream: impl Write, text: &str) -> std::io::Result<()> {
-    stream.write_all(&cli::output_bytes(text))
+    stream.write_all(&cli::output_bytes(text))?;
+    stream.flush()
 }
 fn api_run(command: &str) -> (i32, String, String) {
     let mut bytes = Vec::new();
@@ -43,9 +44,38 @@ fn main() {
     };
     let out_result = emit(std::io::stdout().lock(), &out);
     let err_result = emit(std::io::stderr().lock(), &err);
-    std::process::exit(if out_result.is_err() || err_result.is_err() {
-        1
-    } else {
-        code
-    });
+    std::process::exit(finish(code, out_result, err_result));
+}
+
+/// The exit status once both streams are written. Python reported a stream
+/// it could not flush at shutdown, on stderr, and exited 120; on Windows the
+/// binary exits 1 without that message.
+fn finish(code: i32, out: std::io::Result<()>, err: std::io::Result<()>) -> i32 {
+    if let Err(e) = &out {
+        if cfg!(unix) {
+            let _ = std::io::stderr().write_all(unflushed("stdout", e).as_bytes());
+            return 120;
+        }
+        return 1;
+    }
+    if err.is_err() {
+        return if cfg!(unix) { 120 } else { 1 };
+    }
+    code
+}
+
+/// "Exception ignored while flushing sys.stdout:" and the OSError, as Python printed them.
+fn unflushed(stream: &str, e: &std::io::Error) -> String {
+    let code = e.raw_os_error().unwrap_or(0);
+    let class = match code {
+        32 => "BrokenPipeError",
+        104 => "ConnectionResetError",
+        11 => "BlockingIOError",
+        _ => "OSError",
+    };
+    let text = e.to_string();
+    let text = text
+        .rfind(" (os error ")
+        .map_or(text.as_str(), |i| &text[..i]);
+    format!("Exception ignored while flushing sys.{stream}:\n{class}: [Errno {code}] {text}\n")
 }

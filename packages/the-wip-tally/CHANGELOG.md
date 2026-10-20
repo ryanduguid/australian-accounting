@@ -19,6 +19,10 @@ intentionally changed.
   float ratio. Text that is not a decimal is refused as
   `decimal.InvalidOperation`, as `Decimal(text)` raised it. JSON input is
   limited to 8 MiB and each decimal field to 8,192 bytes; JSON uses serde_json's nesting limit and refuses lone surrogate escapes.
+  Other fields follow Python: `parse-money`'s `where` defaults to `amount` when
+  omitted and prints as `None` when `null`, a `null` `raw` is `no amount given`,
+  and `line_number` is any JSON integer, printed exactly. An optional amount
+  that is omitted is `None`; the Python dataclass required it explicitly.
 - Where Python raised an uncaught decimal signal (an amount beyond 28
   significant digits reaching a quantisation), the command prints
   `error: decimal.<Signal>` instead of a traceback. Exit 1 and the files already
@@ -32,6 +36,10 @@ intentionally changed.
   colour (`PYTHON_COLORS`, `NO_COLOR`, `FORCE_COLOR`) and width (`COLUMNS`)
   controls remain supported and are differential-tested. A command-line path
   that is not valid Unicode is not supported.
+- On Unix, a stdout or stderr the binary cannot write (a closed pipe, a full
+  disk) is reported as Python's shutdown reported it: `Exception ignored while
+  flushing sys.stdout:` and the OSError on stderr, with exit 120. On Windows the
+  binary exits 1 without that message.
 - File errors reproduce Python's `[Errno N] ...` and `[WinError N] ...` text for
   the failures the tests and differential exercise (missing files, unreadable
   inputs, an existing folder). Rarer failures, such as an atomic replacement

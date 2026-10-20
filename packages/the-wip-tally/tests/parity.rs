@@ -21,7 +21,7 @@ fn contract_json(c: &ContractInput) -> Value {
     let d = |v: &Decimal| json!(v.to_string());
     let o = |v: &Option<Decimal>| v.as_ref().map_or(Value::Null, |v| json!(v.to_string()));
     json!({
-        "contract_id": c.contract_id, "line_number": c.line_number, "customer": c.customer,
+        "contract_id": c.contract_id, "line_number": c.line_number.parse::<i64>().unwrap(), "customer": c.customer,
         "description": c.description, "original_contract_sum": d(&c.original_contract_sum),
         "approved_variations": d(&c.approved_variations),
         "unapproved_variations_estimate": d(&c.unapproved_variations_estimate),
@@ -179,12 +179,11 @@ fn replay(prefixes: &[&str]) {
         let expected = &row["expected"];
         let actual = evaluate(command, &row["input"]);
         if expected.get("schema").is_some() {
-            // A Python float the original refused with TypeError: refused by the schema.
-            assert!(
-                actual["error"]
-                    .as_str()
-                    .unwrap()
-                    .ends_with("must be a string"),
+            // A JSON number where the schema takes a decimal string: the exact
+            // refusal the harness checked names a field holding a non-string.
+            assert_eq!(
+                actual["error"].as_str(),
+                expected["error"].as_str(),
                 "{}: {actual}",
                 row["test"]
             );

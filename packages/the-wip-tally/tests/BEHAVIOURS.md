@@ -1,11 +1,13 @@
 # Python behaviour coverage
 
-Base 74f7d0e, Python 0.1.4 (its engine and command code are unchanged in 0.2.0): 113 test functions. The archive pytest suite
+Base 25ebed4, Python 0.2.0: 113 test functions. The archive pytest suite
 passed before its observed inputs were frozen (package metadata tests
 deselected). Rust replays the Python results in `tests/data/`: API and library
 results in-process, and each command run with its input files, comparing exit
-codes, stdout, stderr and every file left behind. Generated cases are frozen
-beside them. API results over 64 KiB and command streams over 4 KiB are stored
+codes, stdout, stderr and every file left behind. Generated cases and the final review's counterexamples
+(7,816 API and 643 command cases in all) are frozen beside them. Frozen
+streams are compared after CRLF normalisation; the live differential compares
+raw bytes. API results over 64 KiB and command streams over 4 KiB are stored
 as an FNV-1a fingerprint and length.
 
 | Original test | Rust coverage |
@@ -26,16 +28,16 @@ as an FNV-1a fingerprint and length.
 | `test_cli.py::test_oversized_field_reports_an_error_not_a_traceback` | Frozen replay: `contract_files_mappings_and_schedule_dates`, `original_cli_runs_with_their_files` |
 | `test_cli.py::test_mapping_file_renames_columns` | Frozen replay: `contract_files_mappings_and_schedule_dates`, `measure_positions_flags_and_refusals`, `money_parsing_and_formatting`, `original_cli_runs_with_their_files`, `spreadsheet_and_markdown_escaping` |
 | `test_cli.py::test_review_pack_refuses_to_overwrite_its_mapping_file` | Frozen replay: `contract_files_mappings_and_schedule_dates`, `measure_positions_flags_and_refusals`, `money_parsing_and_formatting`, `original_cli_runs_with_their_files`, `spreadsheet_and_markdown_escaping` |
-| `test_cli.py::test_review_pack_hashes_the_bytes_used_even_if_source_changes` | Frozen replay: `contract_files_mappings_and_schedule_dates`, `measure_positions_flags_and_refusals`, `money_parsing_and_formatting`, `original_cli_runs_with_their_files`, `spreadsheet_and_markdown_escaping` |
+| `test_cli.py::test_review_pack_hashes_the_bytes_used_even_if_source_changes` | By construction: `src/cli.rs` reads the source once and both parses and hashes those bytes, so a later change cannot reach the pack; the test's change after the read is a monkeypatch the corpus cannot replay, and the unmodified run is frozen |
 | `test_cli.py::test_review_pack_takes_the_date_the_schedule_records` | Frozen replay: `contract_files_mappings_and_schedule_dates`, `measure_positions_flags_and_refusals`, `money_parsing_and_formatting`, `original_cli_runs_with_their_files`, `spreadsheet_and_markdown_escaping` |
 | `test_cli.py::test_a_schedule_without_a_readable_date_records_none` | Frozen replay: `contract_files_mappings_and_schedule_dates` |
 | `test_cli.py::test_an_unreadable_schedule_records_no_date` | Frozen replay: `contract_files_mappings_and_schedule_dates` |
 | `test_cli.py::test_review_pack_refuses_an_empty_source` | Frozen replay: `contract_files_mappings_and_schedule_dates`, `measure_positions_flags_and_refusals`, `money_parsing_and_formatting`, `original_cli_runs_with_their_files`, `spreadsheet_and_markdown_escaping` |
 | `test_cli.py::test_review_pack_needs_the_schedule_to_exist` | Frozen replay: `contract_files_mappings_and_schedule_dates`, `measure_positions_flags_and_refusals`, `money_parsing_and_formatting`, `original_cli_runs_with_their_files`, `spreadsheet_and_markdown_escaping` |
 | `test_cli.py::test_outputs_must_carry_their_own_suffix` | Frozen replay: `original_cli_runs_with_their_files` |
-| `test_cli.py::test_schedule_refuses_when_an_input_path_cannot_be_resolved` | Frozen replay: `original_cli_runs_with_their_files` |
+| `test_cli.py::test_schedule_refuses_when_an_input_path_cannot_be_resolved` | Not reproduced: it monkeypatches `Path.resolve` to fail; Python's non-strict resolve does not fail on real paths (checked on a symlink loop), and the Rust guard falls back the same way |
 | `test_cli.py::test_a_schedule_into_a_folder_that_is_a_file_exits_one_with_one_error_line` | Frozen replay: `contract_files_mappings_and_schedule_dates`, `measure_positions_flags_and_refusals`, `money_parsing_and_formatting`, `original_cli_runs_with_their_files` |
-| `test_cli.py::test_streams_that_cannot_be_reconfigured_still_receive_the_output` | Frozen replay: `contract_files_mappings_and_schedule_dates`, `measure_positions_flags_and_refusals`, `money_parsing_and_formatting`, `original_cli_runs_with_their_files`, `spreadsheet_and_markdown_escaping` |
+| `test_cli.py::test_streams_that_cannot_be_reconfigured_still_receive_the_output` | Not applicable: the binary writes bytes to its streams with no reconfigure step |
 | `test_cli.py::test_python_dash_m_runs_the_command_line` | Retired: Python `-m` module entry; the binary itself is the command, and `--version` is replayed |
 | `test_csv_guard_whitespace.py::test_guard_quotes_formula_after_leading_whitespace` | Frozen replay: `spreadsheet_and_markdown_escaping` |
 | `test_csv_guard_whitespace.py::test_guard_preserves_ordinary_text` | Frozen replay: `spreadsheet_and_markdown_escaping` |

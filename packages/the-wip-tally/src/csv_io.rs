@@ -332,7 +332,7 @@ fn parse_row(
 
     Ok(ContractInput {
         contract_id: contract_id.clone(),
-        line_number: line,
+        line_number: line.to_string(),
         customer: get("customer").unwrap_or_default(),
         description: get("description").unwrap_or_default(),
         original_contract_sum: money_req("original_contract_sum")?,

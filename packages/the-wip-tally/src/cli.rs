@@ -378,43 +378,46 @@ enum Class<'a> {
     /// flag) and whether `=` introduced it.
     Flag(&'a str, Option<(String, bool)>),
     UnknownOption,
+    /// A prefix of several flags. Python 3.15 refuses it only when parsing
+    /// reaches it, so an earlier `-h` still prints help.
+    Ambiguous(String),
     Positional,
 }
 
-fn classify<'a>(token: &str, flags: &[&'a str]) -> Result<Class<'a>, String> {
+fn classify<'a>(token: &str, flags: &[&'a str]) -> Class<'a> {
     if token.is_empty() || !token.starts_with('-') {
-        return Ok(Class::Positional);
+        return Class::Positional;
     }
     if let Some(exact) = flags.iter().find(|f| **f == token) {
-        return Ok(Class::Flag(exact, None));
+        return Class::Flag(exact, None);
     }
     if pytext::py_len(token) == 1 {
-        return Ok(Class::Positional);
+        return Class::Positional;
     }
     if let Some((name, value)) = token.split_once('=')
         && let Some(exact) = flags.iter().find(|f| **f == name)
     {
-        return Ok(Class::Flag(exact, Some((value.to_string(), true))));
+        return Class::Flag(exact, Some((value.to_string(), true)));
     }
     let mut found = option_prefix_matches(token, flags);
     match found.len() {
         0 => {}
         1 => {
             let (flag, explicit) = found.remove(0);
-            return Ok(Class::Flag(flag, explicit));
+            return Class::Flag(flag, explicit);
         }
         _ => {
             let names: Vec<&str> = found.iter().map(|(f, _)| *f).collect();
-            return Err(format!(
+            return Class::Ambiguous(format!(
                 "ambiguous option: {token} could match {}",
                 names.join(", ")
             ));
         }
     }
     if looks_like_negative_number(&token[1..]) || token.contains(' ') {
-        return Ok(Class::Positional);
+        return Class::Positional;
     }
-    Ok(Class::UnknownOption)
+    Class::UnknownOption
 }
 
 /// argparse's `_get_option_tuples`: the flags a token abbreviates, with any explicit value.
@@ -448,12 +451,16 @@ fn option_prefix_matches<'a>(
 }
 
 /// argparse's `_negative_number_matcher` on the text after the leading '-'.
+/// Python 3.15 matches `-\.?\d` at the start only, so `-1x` and `-.5x` also
+/// count; `\d` is any Unicode decimal digit.
 fn looks_like_negative_number(body: &str) -> bool {
     let digit = |c: char| pytext::decimal_value(c as u32).is_some();
-    (!body.is_empty() && body.chars().all(digit))
-        || body.split_once('.').is_some_and(|(int, frac)| {
-            int.chars().all(digit) && !frac.is_empty() && frac.chars().all(digit)
-        })
+    let mut chars = body.chars();
+    match chars.next() {
+        Some('.') => chars.next().is_some_and(digit),
+        Some(c) => digit(c),
+        None => false,
+    }
 }
 /// argparse's error for an explicit argument given to a zero-argument flag.
 /// `-hx` is read as further short flags instead, and help runs first.
@@ -673,7 +680,7 @@ fn parse(prog: &str, args: &[String]) -> Result<Parsed, Exit> {
             }
             break;
         }
-        match classify(token, &main_flags).map_err(|m| main_exit(prog, m))? {
+        match classify(token, &main_flags) {
             Class::Flag(flag, explicit) => {
                 ignored_argument(flag, explicit).map_err(|m| main_exit(prog, m))?;
                 if flag == "--version" {
@@ -688,6 +695,7 @@ fn parse(prog: &str, args: &[String]) -> Result<Parsed, Exit> {
                 ));
             }
             Class::UnknownOption => extras.push(token.clone()),
+            Class::Ambiguous(message) => return Err(main_exit(prog, message)),
             Class::Positional => {
                 command_at = Some(index);
                 break;
@@ -719,6 +727,7 @@ fn parse(prog: &str, args: &[String]) -> Result<Parsed, Exit> {
 enum Pattern {
     /// A known option, with any explicit argument.
     Option(usize),
+    Ambiguous(usize),
     Unknown,
     Arg,
     /// The first `--`.
@@ -737,6 +746,7 @@ fn parse_command(
     let mut patterns = Vec::with_capacity(args.len());
     let mut explicit: Vec<Option<(String, bool)>> = vec![None; args.len()];
     let mut chosen: Vec<&'static str> = vec![""; args.len()];
+    let mut refusals: Vec<String> = vec![String::new(); args.len()];
     let mut marked = false;
     for (i, token) in args.iter().enumerate() {
         if marked {
@@ -745,18 +755,27 @@ fn parse_command(
             marked = true;
             patterns.push(Pattern::Marker);
         } else {
-            patterns.push(match classify(token, &flags).map_err(sub_error)? {
+            patterns.push(match classify(token, &flags) {
                 Class::Flag(flag, value) => {
                     chosen[i] = flag;
                     explicit[i] = value;
                     Pattern::Option(i)
                 }
                 Class::UnknownOption => Pattern::Unknown,
+                Class::Ambiguous(message) => {
+                    refusals[i] = message;
+                    Pattern::Ambiguous(i)
+                }
                 Class::Positional => Pattern::Arg,
             });
         }
     }
-    let is_option = |p: Pattern| matches!(p, Pattern::Option(_) | Pattern::Unknown);
+    let is_option = |p: Pattern| {
+        matches!(
+            p,
+            Pattern::Option(_) | Pattern::Ambiguous(_) | Pattern::Unknown
+        )
+    };
     let last_option = patterns.iter().rposition(|p| is_option(*p));
     let mut parsed = Parsed {
         command,
@@ -804,6 +823,7 @@ fn parse_command(
                 extras.push(args[start].clone());
                 start += 1;
             }
+            Pattern::Ambiguous(i) => return Err(sub_error(refusals[i].clone())),
             Pattern::Option(i) => {
                 let flag = chosen[i];
                 if flag == "-h" || flag == "--help" {

@@ -56,7 +56,8 @@ pub type Result<T> = std::result::Result<T, ScheduleError>;
 #[derive(Clone, Debug)]
 pub struct ContractInput {
     pub contract_id: String,
-    pub line_number: i64,
+    /// The source row, as Python's `int` printed it in messages.
+    pub line_number: String,
     pub customer: String,
     pub description: String,
     pub original_contract_sum: Decimal,
