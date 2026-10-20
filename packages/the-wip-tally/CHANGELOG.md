@@ -55,11 +55,13 @@ intentionally changed.
 ### Consumers
 
 accounting-review-pipeline's monthly-close utility workflows and grant replay
-run this component as a uv Python project (`uv run --project
-packages/the-wip-tally ... python examples/job_to_cash.py`) from a pinned
-australian-accounting revision. They are unaffected until that pin moves past
-this change; then they must run `cargo run --locked --example job_to_cash --`
-with the same arguments and stop recording a Python runtime for this project.
+ran this component as a uv Python project (`uv run --project
+packages/the-wip-tally ... python examples/job_to_cash.py`). From
+accounting-review-pipeline a38eaf0 (#409) they run a checkout without
+`pyproject.toml` through `cargo run --locked --example job_to_cash --` with the
+same arguments and record `rustc -vV` instead of a Python runtime; earlier WIP
+revisions still run as uv projects. This repository's `joined-fixtures.yml`
+pins that pipeline commit.
 
 ### Dependencies and reuse
 
