@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software in research or industry applications, please cite it as below."
+authors:
+  - family-names: Duguid
+    given-names: Ryan
+title: "lodgment-calendar: ATO lodgment program due dates for BAS, IAS and income tax returns. Preparation aid, not a determination."
+version: 0.1.0
+url: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/lodgment-calendar"
+repository-code: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/lodgment-calendar"
+license: Apache-2.0
+keywords:
+  - lodgment-program
+  - bas
+  - tax-agent
+  - bas-agent
+  - australia

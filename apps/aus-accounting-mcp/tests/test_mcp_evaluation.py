@@ -70,12 +70,14 @@ async def _answer(session, case):
                 "legislation-citation", "legislated-rate", "statutory-definition",
                 "injected-instruction", "undefined-term", "stored-rate-date",
                 "ranked-provision", "long-provision", "ruling-paragraph",
-                "gst-coding", "bas-reconciliation"}:
+                "gst-coding", "bas-reconciliation", "lodgment-due-date"}:
         reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
         results = [await call(c["name"], **c["arguments"])
                    for c in json.loads(reference.text)]
         if case == "grouped-payday":
             return results[0]["results"][1]["due"]
+        if case == "lodgment-due-date":
+            return results[0]["obligations"][1]["due_date"]
         if case == "gst-coding":
             return results[0]["lines"][0]["state"]
         if case == "bas-reconciliation":

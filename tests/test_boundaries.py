@@ -47,6 +47,7 @@ RELEASE_CALLERS = {
 
 PYTHON_ENGINES = {
     "packages/gst-review": "gstreview",
+    "packages/lodgment-calendar": "lodgmentcalendar",
 }
 RUST_ENGINES = {
     "packages/the-exchequer-tally": "the-exchequer-tally",

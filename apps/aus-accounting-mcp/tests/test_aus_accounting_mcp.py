@@ -43,7 +43,7 @@ def test_proof_package_surface_is_versioned_and_keeps_stdio_separate() -> None:
         "aus-accounting-mcp-demo": "aus_accounting_mcp.demo:main",
     }
     dev_dependencies = project["optional-dependencies"]["dev"]
-    assert "Pillow==12.3.0" in dev_dependencies
+    assert "Pillow==13.0.0" in dev_dependencies
 
 
 def test_pypi_facets_are_declared_without_contradicting_the_licence_field() -> None:
@@ -1003,7 +1003,7 @@ def test_release_metadata_matches_the_candidate_version() -> None:
     # The newest section names every engine pin this release ships.
     newest = re.split(r"(?m)^# v", release_notes)[1]
     pins = [pin.split("==") for pin in project["dependencies"] if "==" in pin]
-    assert len(pins) == 5
+    assert len(pins) == 6
     for name, version in pins:
         assert f"{name}` {version}" in newest
     assert published_version == server["packages"][0]["version"] == VERSION

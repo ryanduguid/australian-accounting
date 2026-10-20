@@ -17,7 +17,7 @@ DEPENDENCIES = {
     # ato-benchmark-compare and payday-super-checker from PyPI until the MCP
     # server links the Rust crates, so their directories do not select them.
     "aus-accounting-mcp": frozenset({
-        "gst-review",
+        "gst-review", "lodgment-calendar",
     }),
     "lodgeit-calculator-adapter": frozenset(),
 }
