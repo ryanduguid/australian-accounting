@@ -112,6 +112,7 @@ Runtime parity alone does not justify removing the supported Python package.
 | --- | --- |
 | `aus_accounting_mcp/demo.py` | Native command implemented above. Retain the Python command and its proof/media checks whilst Python remains supported. |
 | `evaluation/tool_selection.py` | All 3 native commands implemented above. Retain the original as the supported Python workflow and migration oracle until distribution and consumer cutover are approved. |
+| `examples/group_review.py` | A native Cargo example preserves independent reports, metadata, byte digests and scope without an aggregate verdict. See [the group review guide](examples/GROUP-REVIEW.md) for its command, encodings and limits. Retain the supported Python example until its workflow is retired explicitly. |
 | `scripts/check_installed_worksheets.py` | The native installation test above covers every worksheet kind and period and linked engine identities. Retain this script's Python wheel/pin checks whilst Python remains supported; they describe a different distribution. |
 | `scripts/check_corpus_setup.py` | The native installation test above feeds fabricated HTML through the real native builder and registered MCP retrieval, with optional retained run files and setup report. Retain the Python helper for compatible Python builder checkouts whilst that workflow remains supported. |
 | `scripts/registry_preflight.py` | Retain for the supported PyPI/Registry release. Native distribution and provenance checks need an approved release design before replacement. |

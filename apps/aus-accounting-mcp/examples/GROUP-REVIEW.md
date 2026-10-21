@@ -4,12 +4,36 @@
 index containing each source report in full. It reads local files only and does
 not call an engine or a service. Keep real workpapers outside a repository.
 
+The unpublished native candidate provides the same local workflow:
+
+```sh
+cargo run --locked --example group_review -- /approved/local/path/manifest.json
+```
+
+Build a portable example executable with `cargo build --locked --release --example
+group_review`. The executable under `target/release/examples/` needs neither
+Python nor the checkout. It takes the same manifest argument and prints the
+complete index on stdout, or exits 1 with a diagnostic and no index when input
+validation fails. JSON formatting and parser diagnostics may differ. The Python
+example remains supported.
+
 Use schema `group-review-input.v1` with a non-empty `reports` list. Each report
 has exactly these text fields: `id`, `entity`, `period`, `engine`,
 `engine_version`, `scope`, `path` and `sha256`. The path names a UTF-8 `.txt` or
 `.json` report under the manifest directory. SHA-256 binds the exact bytes.
 Missing files, duplicate IDs, changed digests and paths outside that directory
 stop the index. The example accepts files up to 2 MB each.
+
+Both examples accept UTF-8, UTF-16 and UTF-32 manifests with the byte encoding
+detection used by Python's JSON loader. Reports remain strict UTF-8 with one
+optional leading BOM; the digest includes that BOM. Duplicate decoded JSON keys
+are refused. The native candidate also checks the bytes actually read against
+the 2,000,000 byte limit, bounding reads if a file grows after its size check.
+Lone surrogate JSON strings are refused by the native parser. Paths use the
+host platform's rules; resolved report targets must remain under the resolved
+manifest's directory and end in lowercase `.txt` or `.json`. As in the Python
+example, this assumes local files stay stable during the operation. It does not
+isolate concurrent filesystem changes by another process.
 
 Run company, trust and Division 7A checks separately using their own commands
 and supported facts. Save stdout, retain exit codes in the accompanying work
