@@ -16,7 +16,7 @@ name = "ato-benchmark-compare"
 version = "1.0.0"
 dependencies = [
  "libc",
- "num-bigint 0.5.1",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "serde_json",
@@ -42,7 +42,7 @@ dependencies = [
 name = "australian-tax-calculators"
 version = "1.0.0"
 dependencies = [
- "num-bigint 0.5.1",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "serde_json",
@@ -142,7 +142,7 @@ name = "div7a-loan-review"
 version = "1.0.0"
 dependencies = [
  "libc",
- "num-bigint 0.5.1",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "serde_json",
@@ -277,16 +277,6 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "num-bigint"
-version = "0.4.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c89e69e7e0f03bea5ef08013795c25018e101932225a656383bd384495ecc367"
-dependencies = [
- "num-integer",
- "num-traits",
-]
-
-[[package]]
-name = "num-bigint"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93e7820bc0a80a0238e650327316f929ba18d5be054b647490a3a6a339f3e7c0"
@@ -325,7 +315,7 @@ version = "1.0.0"
 dependencies = [
  "chrono",
  "libc",
- "num-bigint 0.4.8",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "serde_json",
@@ -434,7 +424,7 @@ name = "solomons-sword"
 version = "1.0.0"
 dependencies = [
  "libc",
- "num-bigint 0.5.1",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "serde_json",
@@ -467,7 +457,7 @@ name = "the-exchequer-tally"
 version = "1.0.0"
 dependencies = [
  "libc",
- "num-bigint 0.5.1",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "serde_json",
@@ -479,7 +469,7 @@ version = "1.0.0"
 dependencies = [
  "chrono",
  "libc",
- "num-bigint 0.5.1",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "serde_json",
