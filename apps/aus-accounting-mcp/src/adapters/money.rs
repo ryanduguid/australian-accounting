@@ -51,3 +51,52 @@ pub fn amount(value: &str, field: &str) -> Result<Decimal, String> {
     }
     Ok(amount)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn original_plain_amount_values_and_failure_precedence() {
+        let original: Value = serde_json::from_str(include_str!(
+            "../../tests/fixtures/native/money-relations.json"
+        ))
+        .unwrap();
+        let accepted = original["test_parse_amount_accepts_plain_notation"]
+            .as_array()
+            .unwrap();
+        assert_eq!(accepted.len(), 11);
+        for raw in accepted {
+            let raw = raw.as_str().unwrap();
+            assert!(
+                amount(raw, "amount")
+                    .unwrap()
+                    .equals(&Decimal::parse(raw.trim()).unwrap())
+                    .unwrap(),
+                "{raw:?}"
+            );
+        }
+        let refused = original["test_parse_amount_keeps_one_message_per_failure"]
+            .as_array()
+            .unwrap();
+        assert_eq!(refused.len(), 21);
+        for case in refused {
+            let raw = case[0].as_str().unwrap();
+            let message = amount(raw, "amount").unwrap_err();
+            assert!(
+                message.contains(case[1].as_str().unwrap()),
+                "{raw:?}: {message}"
+            );
+        }
+        for absent in [None, Some(&Value::Null)] {
+            assert!(optional(absent, "amount").unwrap().is_none());
+        }
+        for raw in ["", "   "] {
+            assert!(
+                optional(Some(&Value::String(raw.into())), "amount")
+                    .unwrap_err()
+                    .contains("omit an unknown amount or send null")
+            );
+        }
+    }
+}

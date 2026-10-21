@@ -82,6 +82,28 @@ resource provenance follows linked tables and input bounds admit every shipped
 benchmark name/year and engine date format. These complement frozen payload
 comparisons; neither a captured call nor this set proves every original assertion.
 
+The source-bound [behaviour record](tests/fixtures/native/behaviour-coverage.json)
+reconciles all 375 original test functions across 31 files. It records 279 with
+native observable checks, 50 with explicit native adaptations and 46 retained
+with the supported Python distribution and its release, Registry, documentation
+or media workflow. Retained checks are active and are not retirement approvals.
+The record identifies proof symbols and limitations for each function; a Rust
+test refuses changed original source hashes until the reconciliation is reviewed.
+These are function dispositions, not 375 independent Rust tests or proof of
+untested inputs, current law or real taxpayer results.
+
+`tests/original_behaviours.rs` tests relationships that frozen payloads cannot
+establish: the exact 46 money paths, published grammar and Draft 2020-12 inputs,
+model bounds, pension day limits, receipt rounding against the actual CSV,
+related-payday alignment, current GIC provenance, conformance cases, labour
+warning prerequisites, Division 7A response sizes, current lodgment facts and
+linked versions. Retrieval tests use valid external link targets and an invalid
+manifest to test refusal and parse ordering. The stdio tests execute the current
+36 evaluation questions with fabricated files, derive every reference answer and
+check result-dependent arguments. Another session tests all 21 unknown-argument
+refusals, partial receipts, input errors, all 11 rejected evidence-pack argument
+variants and recovery, checking for working-directory writes after every reply.
+
 The same test target has an explicit integration check for the native corpus
 builder. Build an expressly selected builder checkout with its `fake-http`
 feature into a separate target directory, then run:

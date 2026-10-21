@@ -223,7 +223,9 @@ fn frozen_corpus_contracts() {
                     item["test"]
                 );
             } else {
-                assert_eq!(result.unwrap(), item["result"], "{}", item["test"]);
+                let result = result.unwrap();
+                crate::contracts::validate_output(name, &result).unwrap();
+                assert_eq!(result, item["result"], "{}", item["test"]);
             }
         }
         count += 1;
@@ -260,7 +262,9 @@ fn frozen_rulings_contracts() {
                 item["test"]
             );
         } else {
-            assert_eq!(result.unwrap(), item["result"], "{}", item["test"]);
+            let result = result.unwrap();
+            crate::contracts::validate_output(name, &result).unwrap();
+            assert_eq!(result, item["result"], "{}", item["test"]);
         }
         count += 1;
     }
@@ -313,11 +317,231 @@ fn frozen_library_contracts() {
                 item["test"]
             );
         } else {
-            assert_eq!(result.unwrap(), item["result"], "{}", item["test"]);
+            let result = result.unwrap();
+            let name = match item["function"].as_str().unwrap() {
+                "read_reference" => "read_accounting_library",
+                "search_references" => "search_accounting_library",
+                other => panic!("Unexpected successful library helper {other}"),
+            };
+            crate::contracts::validate_output(name, &result).unwrap();
+            assert_eq!(result, item["result"], "{}", item["test"]);
         }
         count += 1;
     }
     assert_eq!(count, 38);
+}
+
+fn original_case<'a>(fixture: &'a Value, test: &str, function: &str) -> &'a Value {
+    fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|item| item["test"] == test && item["function"] == function)
+        .unwrap()
+}
+
+fn relation_tree(label: &str) -> Tree {
+    let tree = Tree(std::env::temp_dir().join(format!(
+        "native-mcp-relation-{label}-{}",
+        std::process::id()
+    )));
+    fs::create_dir(&tree.0).unwrap();
+    tree
+}
+
+#[test]
+fn corpus_link_refusal_with_a_valid_readable_external_index() {
+    let fixture = fixture();
+    let tree = relation_tree("corpus-link");
+    let valid = restore(
+        &tree.0,
+        original_case(
+            &fixture,
+            "tests/test_corpus.py::test_search_returns_a_traceable_citation",
+            "search_sections",
+        ),
+        &fixture["blobs"],
+    );
+    let linked = restore(
+        &tree.0,
+        original_case(
+            &fixture,
+            "tests/test_corpus.py::test_a_linked_markdown_directory_is_refused_by_read_as_well_as_search",
+            "read_section",
+        ),
+        &fixture["blobs"],
+    );
+    let target = tree.0.join("outside/C9999A00001/sections.jsonl");
+    fs::create_dir_all(target.parent().unwrap()).unwrap();
+    fs::copy(
+        valid
+            .root
+            .as_ref()
+            .unwrap()
+            .join("markdown/C9999A00001/sections.jsonl"),
+        &target,
+    )
+    .unwrap();
+    let args = json!({"row_id":"C9999A00001:0003:5-15","neighbours":0,"start":0});
+    assert!(corpus::evaluate(&valid, "read_tax_legislation_section", &args).is_ok());
+    assert!(
+        linked
+            .root
+            .as_ref()
+            .unwrap()
+            .join("markdown/C9999A00001/sections.jsonl")
+            .is_file()
+    );
+    assert_eq!(
+        corpus::evaluate(&linked, "read_tax_legislation_section", &args).unwrap_err(),
+        "No title index for that row_id in the configured corpus."
+    );
+    assert_eq!(corpus::evaluate(&linked, "search_tax_legislation", &json!({"query":"synthetic levy rate","limit":5,"offset":0,"act":null,"in_force_only":true})).unwrap_err(), "The corpus folder must contain a markdown directory of title indexes.");
+}
+
+#[test]
+fn rulings_link_refusal_with_a_valid_searchable_external_run() {
+    let fixture = fixture();
+    let tree = relation_tree("rulings-link");
+    let valid = restore(
+        &tree.0,
+        original_case(
+            &fixture,
+            "tests/test_rulings.py::test_a_same_day_tie_goes_to_the_later_folder_name",
+            "search_rulings",
+        ),
+        &fixture["blobs"],
+    );
+    let linked = restore(
+        &tree.0,
+        original_case(
+            &fixture,
+            "tests/test_rulings.py::test_a_linked_run_is_not_followed",
+            "search_rulings",
+        ),
+        &fixture["blobs"],
+    );
+    let outside = tree.0.join("outside");
+    for name in ["manifest.json", "rulings.jsonl", "LICENCE-NOTICE.md"] {
+        fs::copy(
+            valid.root.as_ref().unwrap().join("run-b").join(name),
+            outside.join(name),
+        )
+        .unwrap();
+    }
+    let rows = fs::read_to_string(outside.join("rulings.jsonl")).unwrap();
+    assert!(rows.contains("second fetch wording"));
+    fs::write(
+        outside.join("rulings.jsonl"),
+        rows.replace("second fetch wording", "linked outside wording"),
+    )
+    .unwrap();
+    let direct = Context {
+        root: Some(outside),
+        limits: Default::default(),
+        denied: false,
+        principal_acts: None,
+        fault: None,
+    };
+    let args = json!({"query":"linked outside wording","limit":5,"offset":0,"family":null});
+    assert!(
+        !rulings::evaluate(&direct, "search_ato_rulings", &args).unwrap()["matches"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        rulings::evaluate(&linked, "search_ato_rulings", &args).unwrap()["matches"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[test]
+fn oversized_rulings_rows_are_refused_before_an_invalid_manifest() {
+    let fixture = fixture();
+    let tree = relation_tree("rulings-order");
+    let mut context = restore(
+        &tree.0,
+        original_case(
+            &fixture,
+            "tests/test_rulings.py::test_an_oversized_folder_is_refused_before_anything_is_parsed",
+            "search_rulings",
+        ),
+        &fixture["blobs"],
+    );
+    fs::write(
+        context
+            .root
+            .as_ref()
+            .unwrap()
+            .join("run-2099-01-01/manifest.json"),
+        "{not json",
+    )
+    .unwrap();
+    let args = json!({"query":"synthetic","limit":5,"offset":0,"family":null});
+    assert_eq!(
+        rulings::evaluate(&context, "search_ato_rulings", &args).unwrap_err(),
+        "The configured rulings runs hold more than 0 MB of rows; configure a smaller folder."
+    );
+    context
+        .limits
+        .insert("MAX_CORPUS_BYTES".into(), 320_000_000);
+    let error = rulings::evaluate(&context, "search_ato_rulings", &args).unwrap_err();
+    assert!(error.contains("invalid manifest.json"), "{error}");
+}
+
+#[test]
+fn original_queries_are_tokenised_before_ranking() {
+    for (query, row, expected) in [
+        (
+            "small entity",
+            json!({"heading":"8-5 Meaning of small entity"}),
+            0,
+        ),
+        (
+            "small entity",
+            json!({"heading":"9 Entity that is small"}),
+            1,
+        ),
+        (
+            "small entity",
+            json!({"heading":"4 Other","text":"a *small entity for the year"}),
+            2,
+        ),
+        (
+            "small entity",
+            json!({"heading":"4 Other","text":"a small or large entity"}),
+            3,
+        ),
+        (
+            "40-230 car limit",
+            json!({"heading":"40\u{2011}230 Car limit"}),
+            0,
+        ),
+        (
+            "write-off",
+            json!({"heading":"1 Other","text":"the write\u{2011}off applies"}),
+            2,
+        ),
+        (
+            "car limit",
+            json!({"heading":"9 Scar limitation","text":"a car limit applies"}),
+            2,
+        ),
+        (
+            "car limit",
+            json!({"heading":"9 Scar limitation","text":"scar limitation"}),
+            3,
+        ),
+    ] {
+        assert_eq!(
+            corpus::tier(&terms(query), &["heading"], &["text"], &row),
+            expected,
+            "{query}: {row}"
+        );
+    }
 }
 
 #[cfg(unix)]
