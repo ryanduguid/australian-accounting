@@ -146,6 +146,63 @@ fn matches_text(actual: &str, expected: &Value) -> bool {
     }
 }
 
+fn matches_stderr(
+    actual: &str,
+    expected: &Value,
+    before: chrono::NaiveDate,
+    after: chrono::NaiveDate,
+) -> bool {
+    const PREFIX: &str = "note: --as-at not supplied; assuming ";
+    const SUFFIX: &str = " from this machine's clock, which may not be today's date in Australia. Pass --as-at explicitly in scheduled runs.\n";
+    // Only the date in this exact clock warning varies across corpus replays.
+    if let Some((date, rest)) = expected
+        .as_str()
+        .and_then(|text| text.strip_prefix(PREFIX))
+        .and_then(|text| text.split_once(SUFFIX))
+        && chrono::NaiveDate::parse_from_str(date, "%Y-%m-%d").is_ok()
+    {
+        return [before, after]
+            .iter()
+            .any(|date| actual == format!("{PREFIX}{date}{SUFFIX}{rest}"));
+    }
+    matches_text(actual, expected)
+}
+
+#[test]
+fn clock_warning_requires_current_date_and_exact_remaining_output() {
+    let before = chrono::NaiveDate::from_ymd_opt(2026, 10, 21).unwrap();
+    let after = before.succ_opt().unwrap();
+    let warning = |date| {
+        format!(
+            "note: --as-at not supplied; assuming {date} from this machine's clock, which may not be today's date in Australia. Pass --as-at explicitly in scheduled runs.\nerror: file not found: -x.csv\n"
+        )
+    };
+    let expected = json!(warning("2026-10-20"));
+    for date in ["2026-10-21", "2026-10-22"] {
+        assert!(matches_stderr(&warning(date), &expected, before, after));
+    }
+    for actual in [
+        warning("2026-10-20"),
+        warning("not-a-date"),
+        warning("2026-10-21").replace("-x.csv", "other.csv"),
+        warning("2026-10-21").replace("--as-at not supplied", "--as-at supplied"),
+    ] {
+        assert!(!matches_stderr(&actual, &expected, before, after));
+    }
+    assert!(!matches_stderr(
+        &warning("2026-10-21"),
+        &json!(warning("not-a-date")),
+        before,
+        after
+    ));
+    assert!(!matches_stderr(
+        "changed",
+        &json!("unchanged"),
+        before,
+        after
+    ));
+}
+
 fn replace_bytes(data: &[u8], from: &[u8], to: &[u8]) -> Vec<u8> {
     if from.is_empty() {
         return data.to_vec();
@@ -376,7 +433,9 @@ fn check(case: &Value) -> Option<String> {
     for (key, value) in env {
         command.env(key, value.as_str().unwrap());
     }
+    let before = chrono::Local::now().date_naive();
     let out = command.output().unwrap();
+    let after = chrono::Local::now().date_naive();
     let written = written_ok(&dir, case);
     let (stdout, stderr) = (
         lf(&localise(&out.stdout, &dir)),
@@ -385,7 +444,7 @@ fn check(case: &Value) -> Option<String> {
     let _ = std::fs::remove_dir_all(&dir);
     let ok = out.status.code() == expected["code"].as_i64().map(|c| c as i32)
         && matches_text(&stdout, &expected["stdout"])
-        && matches_text(&stderr, &expected["stderr"])
+        && matches_stderr(&stderr, &expected["stderr"], before, after)
         && written.is_ok();
     (!ok).then(|| {
         format!(
