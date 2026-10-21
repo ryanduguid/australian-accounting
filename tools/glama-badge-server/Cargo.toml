@@ -1,0 +1,26 @@
+[package]
+name = "glama-badge-server"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+
+[features]
+default = ["native"]
+native = ["dep:axum", "dep:tokio", "dep:reqwest"]
+
+[[bin]]
+name = "glama-badge-server"
+path = "src/main.rs"
+required-features = ["native"]
+
+[dependencies]
+axum = { version = "=0.8.9", optional = true, default-features = false, features = ["http1", "tokio"] }
+tokio = { version = "=1.54.0", optional = true, features = ["rt-multi-thread", "net", "sync", "time", "macros", "signal", "io-util"] }
+reqwest = { version = "=0.13.5", optional = true, default-features = false, features = ["rustls"] }
+base64 = { version = "=0.23.1", default-features = false, features = ["std"] }
+roxmltree = "=0.21.1"
+svgtypes = "=0.16.1"
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }

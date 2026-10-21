@@ -1,0 +1,68 @@
+name: Glama badge adapter
+
+on:
+  pull_request:
+    paths:
+      - tools/glama-badge-server/**
+      - tools/glama-badge-worker/**
+      - .github/workflows/glama-badges.yml
+  push:
+    branches: [main]
+    paths:
+      - tools/glama-badge-server/**
+      - tools/glama-badge-worker/**
+      - .github/workflows/glama-badges.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+        working-directory: tools/glama-badge-server
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install 1.99 --profile minimal --component rustfmt,clippy
+      - run: cargo +1.99 fmt --check
+      - run: cargo +1.99 clippy --locked --all-targets -- -D warnings
+      - run: cargo +1.99 test --locked
+      - run: cargo +1.99 build --locked --release
+
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+        working-directory: tools/glama-badge-worker
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+      CARGO_BUILD_JOBS: '2'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26.11.1
+      - run: rustup toolchain install 1.99 --profile minimal --component rustfmt,clippy --target wasm32-unknown-unknown
+      - run: cargo +1.99 fmt --check
+      - run: cargo +1.99 clippy --locked --all-targets -- -D warnings
+      - run: cargo +1.99 clippy --locked --target wasm32-unknown-unknown --lib -- -D warnings
+      - run: cargo +1.99 test --locked
+      - run: cargo +1.99 install worker-build --version 0.8.7 --locked
+      - run: npm ci --ignore-scripts
+      - run: worker-build --release
+      - run: npm test
+      - run: npm run dry-run
