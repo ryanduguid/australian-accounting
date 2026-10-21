@@ -14,7 +14,7 @@ path = "src/main.rs"
 
 [dependencies]
 chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }
-num-bigint = "0.4"
+num-bigint = "0.5"
 num-integer = "0.1"
 num-traits = "0.2"
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
