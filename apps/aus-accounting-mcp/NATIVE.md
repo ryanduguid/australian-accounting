@@ -62,6 +62,39 @@ the input rather than copying every subtree. Custom XML DTDs are
 refused before expansion to bound entity amplification. Standard XML escapes and
 numeric character references remain supported; external entities are never fetched.
 
+Native installation checks run through a copied stdio server outside the checkout,
+with an empty working directory and PATH:
+
+```sh
+cargo test --locked --test native_installation -- --nocapture
+```
+
+The worksheet check exercises all 14 kinds and all 26 advertised periods, checks
+the catalogue against the frozen original and verifies warnings, calculation
+identities and all 6 linked engine versions. It runs in the existing all-target
+Rust CI job. This is synthetic distribution evidence, not tax validation.
+
+The same test target has an explicit integration check for the native corpus
+builder. Build an expressly selected builder checkout with its `fake-http`
+feature into a separate target directory, then run:
+
+```sh
+FADDEN_SETUP_BINARY=/absolute/path/to/fadden cargo test --locked --test native_installation native_builder_fabricated_page_reaches_registered_mcp_citation_tools -- --ignored --nocapture
+```
+
+On Windows, set `$env:FADDEN_SETUP_BINARY` to the absolute executable path before
+the Cargo command. This check requires the real builder and is ignored by default
+because this repository does not contain that independent component. It copies
+both binaries, requires an observed scripted HTTP refusal before supplying the
+fabricated HTML, builds a new immutable corpus run and checks registered MCP
+search/read against the exact paragraph, source hash, date, URL and withdrawal
+observation. Child processes and owned temporary output are cleaned on success
+or failure. Set `FADDEN_SETUP_OUT` to an absolute, absent directory with an existing
+parent to retain the immutable run and `setup-report.json` for inspection. A
+selected output directory is retained even on failure. The check establishes
+neither live capture nor current law. See
+[the corpus connection guide](docs/corpus-setup.md) for the build command and limits.
+
 ## Retained Python tooling
 
 These are explicit remaining migration decisions, not retirement approval.
@@ -71,8 +104,8 @@ Runtime parity alone does not justify removing the supported Python package.
 | --- | --- |
 | `aus_accounting_mcp/demo.py` | Native command implemented above. Retain the Python command and its proof/media checks whilst Python remains supported. |
 | `evaluation/tool_selection.py` | All 3 native commands implemented above. Retain the original as the supported Python workflow and migration oracle until distribution and consumer cutover are approved. |
-| `scripts/check_installed_worksheets.py` | Retain as the supported wheel/pin check. Native relocation and complete-result tests are additional evidence; a native distribution check must explicitly cover all worksheet kinds and supported periods before this script retires. |
-| `scripts/check_corpus_setup.py` | Retain the fabricated integration check until the corpus builder's own Rust migration and native MCP integration are reconciled. It imports that builder's Python entry point; changing only the facade would leave this dependency. |
+| `scripts/check_installed_worksheets.py` | The native installation test above covers every worksheet kind and period and linked engine identities. Retain this script's Python wheel/pin checks whilst Python remains supported; they describe a different distribution. |
+| `scripts/check_corpus_setup.py` | The native installation test above feeds fabricated HTML through the real native builder and registered MCP retrieval, with optional retained run files and setup report. Retain the Python helper for compatible Python builder checkouts whilst that workflow remains supported. |
 | `scripts/registry_preflight.py` | Retain for the supported PyPI/Registry release. Native distribution and provenance checks need an approved release design before replacement. |
 | `scripts/render_demo_image.py` | Retain as optional development media tooling. Pillow renders the existing checked transcript; it is not a native server runtime dependency. A maintained Rust renderer is not required to run either native command. |
 | `scripts/publish-github-about.sh` | Retain the small native shell helper. Running it changes external metadata and requires separate authority. |
