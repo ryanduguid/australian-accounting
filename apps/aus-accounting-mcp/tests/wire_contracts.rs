@@ -143,6 +143,38 @@ fn original_large_pack_pagination_and_scope_over_stdio() {
     assert_eq!(sessions.len(), 4);
     assert_eq!(replay(sessions), 11);
 }
+#[test]
+fn demo_calls_reproduce_complete_proof_over_stdio() {
+    let original: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/native/wire-sessions.json")).unwrap();
+    let mut exchanges = original[0]["exchanges"].as_array().unwrap()[..2].to_vec();
+    let (_, body) = include_str!("../docs/quick-proof.txt")
+        .split_once('\n')
+        .unwrap();
+    let proof: Value = serde_json::from_str(body).unwrap();
+    for (index, call) in proof["calls"].as_array().unwrap().iter().enumerate() {
+        let mut result = call["result"].clone();
+        if call["tool"] == "review_div7a_loan" {
+            result["engine_version"] = serde_json::json!("1.0.0");
+            result["source"]["rate_table_uris"][0]["uri"] =
+                serde_json::json!("data/benchmark_rates.csv");
+        }
+        let id = index + 2;
+        exchanges.push(serde_json::json!({
+            "request": {"jsonrpc": "2.0", "id": id, "method": "tools/call",
+                "params": {"name": call["tool"], "arguments": call["arguments"]}},
+            "expected": {"jsonrpc": "2.0", "id": id, "result": {
+                "isError": false, "content": [{"type": "text", "text": result}],
+                "structuredContent": result}}
+        }));
+    }
+    assert_eq!(
+        replay(vec![
+            serde_json::json!({"label": "native-demo", "exchanges": exchanges})
+        ]),
+        3
+    );
+}
 fn replay(sessions: Vec<Value>) -> usize {
     let mut replies = 0;
     for session in sessions {

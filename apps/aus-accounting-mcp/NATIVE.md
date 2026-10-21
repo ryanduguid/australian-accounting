@@ -9,6 +9,49 @@ calculations, data, warnings and source metadata remain owned by those engines.
 Frozen discovery and effective input descriptors preserve the original MCP
 boundary. They do not supply financial calculations or rate tables.
 
+Run the fabricated proof from this directory with:
+
+```sh
+cargo run --locked --bin aus-accounting-mcp-demo
+```
+
+The demo prints both original calls and their complete structured results through
+the server's validated tool dispatcher. It needs no Python, network, subprocess
+or external data files. The BAS fixture is synthetic and is not a lodgment.
+The Division 7A result retains every warning and limitation. This proof does not
+verify current law or establish a real taxpayer's position. The stdio server
+remains the default `cargo run` command and writes only protocol messages.
+
+Native tests compare the full transcript with `docs/quick-proof.txt`, allowing
+only the command header and the existing native engine version and table URI
+differences below. A separate stdio test replays both calls and compares complete
+results. The original Python proof and its derived image remain tied to the
+supported Python distribution. The native candidate archive includes both
+commands; hosted archive creation remains unverified until CI runs.
+
+## Retained Python tooling
+
+These are explicit remaining migration decisions, not retirement approval.
+Runtime parity alone does not justify removing the supported Python package.
+
+| Tool or dependency | Current disposition |
+| --- | --- |
+| `aus_accounting_mcp/demo.py` | Native command implemented above. Retain the Python command and its proof/media checks whilst Python remains supported. |
+| `evaluation/tool_selection.py` | Pending native port. Preserve its exact typed comparisons, duplicate-key and non-finite rejection, reference digest, answer stripping and supplementary scoring semantics. Its context command still launches the Python server. |
+| `scripts/check_installed_worksheets.py` | Retain as the supported wheel/pin check. Native relocation and complete-result tests are additional evidence; a native distribution check must explicitly cover all worksheet kinds and supported periods before this script retires. |
+| `scripts/check_corpus_setup.py` | Retain the fabricated integration check until the corpus builder's own Rust migration and native MCP integration are reconciled. It imports that builder's Python entry point; changing only the facade would leave this dependency. |
+| `scripts/registry_preflight.py` | Retain for the supported PyPI/Registry release. Native distribution and provenance checks need an approved release design before replacement. |
+| `scripts/render_demo_image.py` | Retain as optional development media tooling. Pillow renders the existing checked transcript; it is not a native server runtime dependency. A maintained Rust renderer is not required to run either native command. |
+| `scripts/publish-github-about.sh` | Retain the small native shell helper. Running it changes external metadata and requires separate authority. |
+| Python adapters, fixtures, tests and exact engine pins | Retain for the supported Python runtime and as the migration oracle until assertion coverage, packaging and consumer cutover are resolved. |
+| Root uv overrides, development tools and Dependabot ignores | Retain whilst the supported Python checks need them. Remove only with the corresponding runtime/tooling retirement. |
+
+The package's `compatibility.json`, `server.json`, Python version and external
+consumer pins still describe the supported distribution. Updating or publishing
+them is a separate release step.
+
+## Runtime qualification
+
 Effective input validation follows the original strict Pydantic models and
 shared money/date gates. Published schema annotations are also preserved, but
 are not imposed as extra input rules where they differ from callable behaviour,
