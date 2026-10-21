@@ -74,6 +74,14 @@ the catalogue against the frozen original and verifies warnings, calculation
 identities and all 6 linked engine versions. It runs in the existing all-target
 Rust CI job. This is synthetic distribution evidence, not tax validation.
 
+`tests/native_relations.rs` also checks relationships against current sources:
+served boundary paragraphs remain in `DISCLAIMER.md`, scope and guidance name the
+registered tools and resources, prompt prerequisites match discovery, shared site
+and icons match `server.json`, worksheet required inputs match discovered variants,
+resource provenance follows linked tables and input bounds admit every shipped
+benchmark name/year and engine date format. These complement frozen payload
+comparisons; neither a captured call nor this set proves every original assertion.
+
 The same test target has an explicit integration check for the native corpus
 builder. Build an expressly selected builder checkout with its `fake-http`
 feature into a separate target directory, then run:
