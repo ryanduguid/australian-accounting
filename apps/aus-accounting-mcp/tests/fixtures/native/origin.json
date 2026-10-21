@@ -1,0 +1,43 @@
+{
+  "base": "c940a25bb6a89d71be8c0d21ab853e3b92566445",
+  "catalogue_sha256": "e56aa41990f34aca645d21990984d0468c131c2aeb6d8428d30621f12bd86a43",
+  "wire_transcript_sha256": "63fef11368bc52b87741bd05dac65aef49267af327321067e844f993bf7b8676",
+  "full_effective_contracts_sha256": "4141727745a0e3693e22a91aa24181ff99da1ee5b88581a0ca54162b75f7c28f",
+  "native_fixture_sha256": "7c23d18e01b8efb1e40630d31f82f97933b6e8fed38326ab066953536711b74e",
+  "capture": "The unchanged Python application passed all 1,083 original tests under read-only instrumentation. Original-only additional captures cover effective validation, fabricated retrieval and protocol boundaries. All expected values were frozen before native comparison.",
+  "fixture_scope": "856 non-retrieval effective SDK calls, 6 resources, 34 prompts, 241 retrieval cases plus 3 large-catalogue provenance cases and 1,175 JSON-RPC replies across 34 sessions. Complete results/refusals are compared, with only the identities and provenance allowances in NATIVE.md. Additional negative schema, extension and CLI assertions are in boundary_contracts.rs. This does not assert every original test is covered.",
+  "oracle_sha256": {
+    "calvino-followups-v1.json": "6a1cfb42c762b2b5fea35928a296284573571f11b7599e2c1ab63283bc31b70e",
+    "coverage-edges-v2.json": "86af4c1cbfc04b1ef6b4382370db5173a41e7f46c7d0f23a1c75633aa25c8f69",
+    "effective-adapter-contracts-v2.json": "4141727745a0e3693e22a91aa24181ff99da1ee5b88581a0ca54162b75f7c28f",
+    "legacy-openers-v1.json": "e3dba5d275328d6e8107a395a6d27ad1e69553791d422b5b4225413d891abd5c",
+    "lifecycle-contracts-v1.json": "b8da80975f554b921f89ce0d3813834e26288abd6580638b9ba3e823010e38b6",
+    "lifecycle-edges-v1.json": "fcad67acc565c895c988b733357819dba455588f9a52e6f6654bba401bd7d758",
+    "retrieval-contracts-v2.json": "65a9f1d56dfe98239390696adb2c081b6e9c518de0aa0efa031aac10cc6c3bbd",
+    "retrieval-edge-contracts-v1.json": "c86b8973b5c2e7f56875750154a31c0846aa84c412a59b6bf6f23e02bd4004f2",
+    "rulings-year-zero-contract-v1.json": "d60789582d5399a4e04f9985c077fcba2676a2fc74d5907da11bfa4f735437f3",
+    "validation-edge-contracts.json": "534bdee1b805f697ffa1786da0b4dc8fbbe6770fdfe0421b7ad5041a9f3f0f62",
+    "wire-coverage-v1.json": "621f21c655294a4d55bf119f49a750e956f6601e640556fbe226de4af310aea4"
+  },
+  "fixture_sha256": {
+    "tests/fixtures/native/adapter-contracts.json": "7c23d18e01b8efb1e40630d31f82f97933b6e8fed38326ab066953536711b74e",
+    "tests/fixtures/native/calvino-followups.json": "1aca4f3563ddbfa5e63115ea1fc8cb06dc548d4dfc6419d2e49cb16e24355a40",
+    "tests/fixtures/native/coverage-edges.json": "6676a59037ac1d851b3d4be588b62fdaf7f002896885305cbef70c82fd4d0828",
+    "tests/fixtures/native/legacy-openers.json": "a7fdcd2be5abdd4a27684fe28c3aa73905f053824a59000fa019d0765522c8d5",
+    "tests/fixtures/native/lifecycle-edges.json": "c845418155aa10a88bce8a0ebbba9b8550ad2a219ed6c094af6d68ac0d43e923",
+    "tests/fixtures/native/lifecycle-sessions.json": "20e178a5841fea42193e07a2c059748680f4ebced2e0a959682efbc1b55f0bf9",
+    "tests/fixtures/native/prompt-contracts.json": "a47c53ee05d234c2eb5020fae4d28240f93c7bf91106aa11508bea213d591afa",
+    "tests/fixtures/native/resource-contracts.json": "62ff0908af360523a209e81bf5785932b59e67665e8bf8064abfdcbaf1fde72c",
+    "tests/fixtures/native/retrieval-contracts.json": "aab49f78d1b4a691568a4855a730f5b75a6fed10dea1dbb05458f45a0bc7ffdb",
+    "tests/fixtures/native/retrieval-edges.json": "88ef46aad5fd09b3952ddb8ad68ffbf3528c7eb6892a63b79b50279e82647e3f",
+    "tests/fixtures/native/validation-edges.json": "b50c86b340df2b0af7c2107ffc578862de57cd2a02da9d8983ab5cc6549ddd7a",
+    "tests/fixtures/native/wire-coverage.json": "c1ddeabc87dcb88285b7993c785949e96d45a2ca73c2a31851b011c4249f25f4",
+    "tests/fixtures/native/wire-sessions.json": "5a195113d66e4d521c90a9eaee4de71a8ab0798958c0d44bf7f50de7774870e8"
+  },
+  "data_sha256": {
+    "data/catalogue.v1.json": "e56aa41990f34aca645d21990984d0468c131c2aeb6d8428d30621f12bd86a43",
+    "data/effective-inputs.v1.json": "8ba12d58c5f096a995facc26087548f26111e3a70c1dbfae594c5057caaaac8a",
+    "data/resource-policy.v1.json": "99f841e442c6e956cb0bcd21c8e40f4fe8c2179a14252a6f3072c584eaf7f6c2",
+    "data/retrieval-policy.v1.json": "898f3289c571be49bc394540220c74a24196733f30e35cd02bac43dea6e13877"
+  }
+}

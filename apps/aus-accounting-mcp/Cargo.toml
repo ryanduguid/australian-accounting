@@ -1,0 +1,31 @@
+[package]
+name = "aus-accounting-mcp"
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.99"
+description = "Native local Australian accounting MCP server candidate"
+license = "Apache-2.0"
+repository = "https://github.com/ryanduguid/australian-accounting"
+publish = false
+
+[dependencies]
+div7a-loan-review = { path = "../../packages/div7a-loan-review" }
+ato-benchmark-compare = { path = "../../packages/ato-benchmark-compare" }
+australian-tax-calculators = { path = "../../packages/australian-tax-calculators" }
+gst-review = { path = "../../packages/gst-review" }
+lodgment-calendar = { path = "../../packages/lodgment-calendar" }
+payday-super-checker = { path = "../../packages/payday-super-checker" }
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+jsonschema = { version = "=0.59.0", default-features = false, features = ["arbitrary-precision"] }
+regex = "=1.13.1"
+num-bigint = "0.4"
+serde = "1"
+rmcp = { version = "=3.6.0", default-features = false, features = ["server", "transport-io"] }
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision", "unbounded_depth"] }
+stacker = "=0.1.25"
+sha2 = "0.11"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std"] }
+
+[profile.release]
+lto = true
+codegen-units = 1

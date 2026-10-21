@@ -1,0 +1,493 @@
+[
+  {
+    "name": "compare_ato_benchmarks",
+    "arguments": null,
+    "result": {
+      "description": "Compare operator-supplied profit and loss bucket totals to the ATO small-business benchmarks without treating an omitted bucket as zero.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Compare these P&L buckets to the ATO small-business benchmarks for this industry. Omit buckets I have not supplied. Do not treat missing as zero.\n\nSelect the industry with list_ato_benchmark_industries first. Then call get_ato_benchmarks with only the buckets I gave you, as decimal strings. Leave every other bucket out rather than passing 0.\n\nTwo things are needed before the call can run at all: turnover, which is sales of goods and services, and at least one expense bucket. If I have not given you both, ask me for them rather than calling the tool, and rather than supplying a 0 I did not establish. Everything else is optional and stays omitted.\n\nPass other_income only if I established it, including an established nil as \"0\". Without it the ATO turnover rule cannot pick a denominator and every ratio is returned as not_supplied, which is the correct answer rather than a problem to work around.\n\nReport not_supplied ratios and null figures as unknown. Do not infer a figure from the others, and do not describe a comparison outside a published range as a finding that anything is wrong. Ask me for any bucket you need."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "compare_ato_benchmarks",
+    "arguments": {},
+    "result": {
+      "description": "Compare operator-supplied profit and loss bucket totals to the ATO small-business benchmarks without treating an omitted bucket as zero.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Compare these P&L buckets to the ATO small-business benchmarks for this industry. Omit buckets I have not supplied. Do not treat missing as zero.\n\nSelect the industry with list_ato_benchmark_industries first. Then call get_ato_benchmarks with only the buckets I gave you, as decimal strings. Leave every other bucket out rather than passing 0.\n\nTwo things are needed before the call can run at all: turnover, which is sales of goods and services, and at least one expense bucket. If I have not given you both, ask me for them rather than calling the tool, and rather than supplying a 0 I did not establish. Everything else is optional and stays omitted.\n\nPass other_income only if I established it, including an established nil as \"0\". Without it the ATO turnover rule cannot pick a denominator and every ratio is returned as not_supplied, which is the correct answer rather than a problem to work around.\n\nReport not_supplied ratios and null figures as unknown. Do not infer a figure from the others, and do not describe a comparison outside a published range as a finding that anything is wrong. Ask me for any bucket you need."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "compare_ato_benchmarks",
+    "arguments": {
+      "industry": ""
+    },
+    "result": {
+      "description": "Compare operator-supplied profit and loss bucket totals to the ATO small-business benchmarks without treating an omitted bucket as zero.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Compare these P&L buckets to the ATO small-business benchmarks for this industry. Omit buckets I have not supplied. Do not treat missing as zero.\n\nSelect the industry with list_ato_benchmark_industries first. Then call get_ato_benchmarks with only the buckets I gave you, as decimal strings. Leave every other bucket out rather than passing 0.\n\nTwo things are needed before the call can run at all: turnover, which is sales of goods and services, and at least one expense bucket. If I have not given you both, ask me for them rather than calling the tool, and rather than supplying a 0 I did not establish. Everything else is optional and stays omitted.\n\nPass other_income only if I established it, including an established nil as \"0\". Without it the ATO turnover rule cannot pick a denominator and every ratio is returned as not_supplied, which is the correct answer rather than a problem to work around.\n\nReport not_supplied ratios and null figures as unknown. Do not infer a figure from the others, and do not describe a comparison outside a published range as a finding that anything is wrong. Ask me for any bucket you need."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "compare_ato_benchmarks",
+    "arguments": {
+      "industry": " "
+    },
+    "result": {
+      "description": "Compare operator-supplied profit and loss bucket totals to the ATO small-business benchmarks without treating an omitted bucket as zero.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Compare these P&L buckets to the ATO small-business benchmarks for this industry. Omit buckets I have not supplied. Do not treat missing as zero.\n\nThe industry is  . Then call get_ato_benchmarks with only the buckets I gave you, as decimal strings. Leave every other bucket out rather than passing 0.\n\nTwo things are needed before the call can run at all: turnover, which is sales of goods and services, and at least one expense bucket. If I have not given you both, ask me for them rather than calling the tool, and rather than supplying a 0 I did not establish. Everything else is optional and stays omitted.\n\nPass other_income only if I established it, including an established nil as \"0\". Without it the ATO turnover rule cannot pick a denominator and every ratio is returned as not_supplied, which is the correct answer rather than a problem to work around.\n\nReport not_supplied ratios and null figures as unknown. Do not infer a figure from the others, and do not describe a comparison outside a published range as a finding that anything is wrong. Ask me for any bucket you need."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "compare_ato_benchmarks",
+    "arguments": {
+      "industry": "SYNTHETIC\n☃"
+    },
+    "result": {
+      "description": "Compare operator-supplied profit and loss bucket totals to the ATO small-business benchmarks without treating an omitted bucket as zero.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Compare these P&L buckets to the ATO small-business benchmarks for this industry. Omit buckets I have not supplied. Do not treat missing as zero.\n\nThe industry is SYNTHETIC\n☃. Then call get_ato_benchmarks with only the buckets I gave you, as decimal strings. Leave every other bucket out rather than passing 0.\n\nTwo things are needed before the call can run at all: turnover, which is sales of goods and services, and at least one expense bucket. If I have not given you both, ask me for them rather than calling the tool, and rather than supplying a 0 I did not establish. Everything else is optional and stays omitted.\n\nPass other_income only if I established it, including an established nil as \"0\". Without it the ATO turnover rule cannot pick a denominator and every ratio is returned as not_supplied, which is the correct answer rather than a problem to work around.\n\nReport not_supplied ratios and null figures as unknown. Do not infer a figure from the others, and do not describe a comparison outside a published range as a finding that anything is wrong. Ask me for any bucket you need."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "compare_ato_benchmarks",
+    "arguments": {
+      "industry": null
+    },
+    "result": {
+      "description": "Compare operator-supplied profit and loss bucket totals to the ATO small-business benchmarks without treating an omitted bucket as zero.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Compare these P&L buckets to the ATO small-business benchmarks for this industry. Omit buckets I have not supplied. Do not treat missing as zero.\n\nSelect the industry with list_ato_benchmark_industries first. Then call get_ato_benchmarks with only the buckets I gave you, as decimal strings. Leave every other bucket out rather than passing 0.\n\nTwo things are needed before the call can run at all: turnover, which is sales of goods and services, and at least one expense bucket. If I have not given you both, ask me for them rather than calling the tool, and rather than supplying a 0 I did not establish. Everything else is optional and stays omitted.\n\nPass other_income only if I established it, including an established nil as \"0\". Without it the ATO turnover rule cannot pick a denominator and every ratio is returned as not_supplied, which is the correct answer rather than a problem to work around.\n\nReport not_supplied ratios and null figures as unknown. Do not infer a figure from the others, and do not describe a comparison outside a published range as a finding that anything is wrong. Ask me for any bucket you need."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "compare_ato_benchmarks",
+    "arguments": {
+      "industry": 1
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt compare_ato_benchmarks"
+    }
+  },
+  {
+    "name": "compare_ato_benchmarks",
+    "arguments": {
+      "industry": true
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt compare_ato_benchmarks"
+    }
+  },
+  {
+    "name": "compare_ato_benchmarks",
+    "arguments": {
+      "industry": []
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt compare_ato_benchmarks"
+    }
+  },
+  {
+    "name": "compare_ato_benchmarks",
+    "arguments": {
+      "unknown": "x"
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt compare_ato_benchmarks"
+    }
+  },
+  {
+    "name": "compare_ato_benchmarks",
+    "arguments": {
+      "industry": "a",
+      "unknown": "x"
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt compare_ato_benchmarks"
+    }
+  },
+  {
+    "name": "review_payday_super_contribution",
+    "arguments": null,
+    "result": {
+      "description": "Review a single superannuation contribution against the Payday Super timing rules, without inventing a fund-receipt date or an SG charge.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this Payday Super contribution. QE day, remitted date, and fund-receipt date are in the CSV. Do not invent an SGC charge.\n\nAsk me for today's date and pass it as as_at; do not assume one. Call calc_payday_super_deadline once for the contribution, with qe_day as the day the wages were actually paid.\n\nPass received only where the clearing house or the fund evidences the date the fund received the contribution. A remitted date is not that date. Missing fund-receipt evidence prevents an ON_TIME result, and the verdict then depends on the other facts, so report the verdict the tool returns with its caveats instead of assuming one. Leave received out if the CSV does not carry it.\n\nPass matched_amount with every received date, the full amount included: a receipt date alone evidences no amount. Checker 0.1.7 leaves a timely receipt without an amount UNKNOWN; a late receipt stays LATE without reducing the shortfall. Do not drop the amount and imply full receipt. Read aus-accounting://payday-coverage for the bundled rate and calendar limits.\n\nThis call reviews one contribution. Related contributions can change the deadline under s 18C(2) item 4 and the allocation of receipts. If those facts matter, use review_payday_super_contributions before drawing a conclusion. Do not combine isolated calls into a payroll-wide review. Establish sg_amount separately; this tool does not calculate entitlement.\n\nReport the verdict, the deadline and the pathway with the caveats attached, and treat the experimental SG-charge figures as exposure flags, not an ATO assessment. Say so if the facts leave the verdict UNKNOWN."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_payday_super_contribution",
+    "arguments": {},
+    "result": {
+      "description": "Review a single superannuation contribution against the Payday Super timing rules, without inventing a fund-receipt date or an SG charge.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this Payday Super contribution. QE day, remitted date, and fund-receipt date are in the CSV. Do not invent an SGC charge.\n\nAsk me for today's date and pass it as as_at; do not assume one. Call calc_payday_super_deadline once for the contribution, with qe_day as the day the wages were actually paid.\n\nPass received only where the clearing house or the fund evidences the date the fund received the contribution. A remitted date is not that date. Missing fund-receipt evidence prevents an ON_TIME result, and the verdict then depends on the other facts, so report the verdict the tool returns with its caveats instead of assuming one. Leave received out if the CSV does not carry it.\n\nPass matched_amount with every received date, the full amount included: a receipt date alone evidences no amount. Checker 0.1.7 leaves a timely receipt without an amount UNKNOWN; a late receipt stays LATE without reducing the shortfall. Do not drop the amount and imply full receipt. Read aus-accounting://payday-coverage for the bundled rate and calendar limits.\n\nThis call reviews one contribution. Related contributions can change the deadline under s 18C(2) item 4 and the allocation of receipts. If those facts matter, use review_payday_super_contributions before drawing a conclusion. Do not combine isolated calls into a payroll-wide review. Establish sg_amount separately; this tool does not calculate entitlement.\n\nReport the verdict, the deadline and the pathway with the caveats attached, and treat the experimental SG-charge figures as exposure flags, not an ATO assessment. Say so if the facts leave the verdict UNKNOWN."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_payday_super_contribution",
+    "arguments": {
+      "as_at": ""
+    },
+    "result": {
+      "description": "Review a single superannuation contribution against the Payday Super timing rules, without inventing a fund-receipt date or an SG charge.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this Payday Super contribution. QE day, remitted date, and fund-receipt date are in the CSV. Do not invent an SGC charge.\n\nAsk me for today's date and pass it as as_at; do not assume one. Call calc_payday_super_deadline once for the contribution, with qe_day as the day the wages were actually paid.\n\nPass received only where the clearing house or the fund evidences the date the fund received the contribution. A remitted date is not that date. Missing fund-receipt evidence prevents an ON_TIME result, and the verdict then depends on the other facts, so report the verdict the tool returns with its caveats instead of assuming one. Leave received out if the CSV does not carry it.\n\nPass matched_amount with every received date, the full amount included: a receipt date alone evidences no amount. Checker 0.1.7 leaves a timely receipt without an amount UNKNOWN; a late receipt stays LATE without reducing the shortfall. Do not drop the amount and imply full receipt. Read aus-accounting://payday-coverage for the bundled rate and calendar limits.\n\nThis call reviews one contribution. Related contributions can change the deadline under s 18C(2) item 4 and the allocation of receipts. If those facts matter, use review_payday_super_contributions before drawing a conclusion. Do not combine isolated calls into a payroll-wide review. Establish sg_amount separately; this tool does not calculate entitlement.\n\nReport the verdict, the deadline and the pathway with the caveats attached, and treat the experimental SG-charge figures as exposure flags, not an ATO assessment. Say so if the facts leave the verdict UNKNOWN."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_payday_super_contribution",
+    "arguments": {
+      "as_at": " "
+    },
+    "result": {
+      "description": "Review a single superannuation contribution against the Payday Super timing rules, without inventing a fund-receipt date or an SG charge.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this Payday Super contribution. QE day, remitted date, and fund-receipt date are in the CSV. Do not invent an SGC charge.\n\nUse   as as_at. Call calc_payday_super_deadline once for the contribution, with qe_day as the day the wages were actually paid.\n\nPass received only where the clearing house or the fund evidences the date the fund received the contribution. A remitted date is not that date. Missing fund-receipt evidence prevents an ON_TIME result, and the verdict then depends on the other facts, so report the verdict the tool returns with its caveats instead of assuming one. Leave received out if the CSV does not carry it.\n\nPass matched_amount with every received date, the full amount included: a receipt date alone evidences no amount. Checker 0.1.7 leaves a timely receipt without an amount UNKNOWN; a late receipt stays LATE without reducing the shortfall. Do not drop the amount and imply full receipt. Read aus-accounting://payday-coverage for the bundled rate and calendar limits.\n\nThis call reviews one contribution. Related contributions can change the deadline under s 18C(2) item 4 and the allocation of receipts. If those facts matter, use review_payday_super_contributions before drawing a conclusion. Do not combine isolated calls into a payroll-wide review. Establish sg_amount separately; this tool does not calculate entitlement.\n\nReport the verdict, the deadline and the pathway with the caveats attached, and treat the experimental SG-charge figures as exposure flags, not an ATO assessment. Say so if the facts leave the verdict UNKNOWN."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_payday_super_contribution",
+    "arguments": {
+      "as_at": "SYNTHETIC\n☃"
+    },
+    "result": {
+      "description": "Review a single superannuation contribution against the Payday Super timing rules, without inventing a fund-receipt date or an SG charge.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this Payday Super contribution. QE day, remitted date, and fund-receipt date are in the CSV. Do not invent an SGC charge.\n\nUse SYNTHETIC\n☃ as as_at. Call calc_payday_super_deadline once for the contribution, with qe_day as the day the wages were actually paid.\n\nPass received only where the clearing house or the fund evidences the date the fund received the contribution. A remitted date is not that date. Missing fund-receipt evidence prevents an ON_TIME result, and the verdict then depends on the other facts, so report the verdict the tool returns with its caveats instead of assuming one. Leave received out if the CSV does not carry it.\n\nPass matched_amount with every received date, the full amount included: a receipt date alone evidences no amount. Checker 0.1.7 leaves a timely receipt without an amount UNKNOWN; a late receipt stays LATE without reducing the shortfall. Do not drop the amount and imply full receipt. Read aus-accounting://payday-coverage for the bundled rate and calendar limits.\n\nThis call reviews one contribution. Related contributions can change the deadline under s 18C(2) item 4 and the allocation of receipts. If those facts matter, use review_payday_super_contributions before drawing a conclusion. Do not combine isolated calls into a payroll-wide review. Establish sg_amount separately; this tool does not calculate entitlement.\n\nReport the verdict, the deadline and the pathway with the caveats attached, and treat the experimental SG-charge figures as exposure flags, not an ATO assessment. Say so if the facts leave the verdict UNKNOWN."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_payday_super_contribution",
+    "arguments": {
+      "as_at": null
+    },
+    "result": {
+      "description": "Review a single superannuation contribution against the Payday Super timing rules, without inventing a fund-receipt date or an SG charge.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this Payday Super contribution. QE day, remitted date, and fund-receipt date are in the CSV. Do not invent an SGC charge.\n\nAsk me for today's date and pass it as as_at; do not assume one. Call calc_payday_super_deadline once for the contribution, with qe_day as the day the wages were actually paid.\n\nPass received only where the clearing house or the fund evidences the date the fund received the contribution. A remitted date is not that date. Missing fund-receipt evidence prevents an ON_TIME result, and the verdict then depends on the other facts, so report the verdict the tool returns with its caveats instead of assuming one. Leave received out if the CSV does not carry it.\n\nPass matched_amount with every received date, the full amount included: a receipt date alone evidences no amount. Checker 0.1.7 leaves a timely receipt without an amount UNKNOWN; a late receipt stays LATE without reducing the shortfall. Do not drop the amount and imply full receipt. Read aus-accounting://payday-coverage for the bundled rate and calendar limits.\n\nThis call reviews one contribution. Related contributions can change the deadline under s 18C(2) item 4 and the allocation of receipts. If those facts matter, use review_payday_super_contributions before drawing a conclusion. Do not combine isolated calls into a payroll-wide review. Establish sg_amount separately; this tool does not calculate entitlement.\n\nReport the verdict, the deadline and the pathway with the caveats attached, and treat the experimental SG-charge figures as exposure flags, not an ATO assessment. Say so if the facts leave the verdict UNKNOWN."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_payday_super_contribution",
+    "arguments": {
+      "as_at": 1
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt review_payday_super_contribution"
+    }
+  },
+  {
+    "name": "review_payday_super_contribution",
+    "arguments": {
+      "as_at": true
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt review_payday_super_contribution"
+    }
+  },
+  {
+    "name": "review_payday_super_contribution",
+    "arguments": {
+      "as_at": []
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt review_payday_super_contribution"
+    }
+  },
+  {
+    "name": "review_payday_super_contribution",
+    "arguments": {
+      "unknown": "x"
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt review_payday_super_contribution"
+    }
+  },
+  {
+    "name": "review_payday_super_contribution",
+    "arguments": {
+      "as_at": "a",
+      "unknown": "x"
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt review_payday_super_contribution"
+    }
+  },
+  {
+    "name": "review_div7a_loan_terms",
+    "arguments": null,
+    "result": {
+      "description": "Review one operator-supplied amalgamated loan for s 109N terms and the s 109E minimum yearly repayment, refusing matters outside that scope.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this operator-supplied Division 7A amalgamated loan for s 109N terms and the s 109E minimum yearly repayment. Leave unknown facts unknown and refuse questions outside the reviewed scope.\n\nAsk me which year of income to review, written like 2026-27. Call review_div7a_loan with the facts I supply. Omit any fact I have not established rather than passing false or 0: an omitted fact stays UNKNOWN, and UNKNOWN is not a failed limb.\n\nInterest rates are decimal fractions, so 8.37 per cent is 0.0837. Do not substitute the benchmark rate for the agreed rate; use get_div7a_benchmark_rate if I ask what the benchmark is.\n\nThis engine does not form amalgamated loans, classify payments under s 109R, or reach unpaid present entitlements, distributable surplus, interposed entities, debt forgiveness or the Commissioner's discretion. Read the aus-accounting://div7a-scope resource and refuse those, with refuse_div7a, rather than answering them. Any shortfall is an experimental review aid, not an assessed dividend."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_div7a_loan_terms",
+    "arguments": {},
+    "result": {
+      "description": "Review one operator-supplied amalgamated loan for s 109N terms and the s 109E minimum yearly repayment, refusing matters outside that scope.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this operator-supplied Division 7A amalgamated loan for s 109N terms and the s 109E minimum yearly repayment. Leave unknown facts unknown and refuse questions outside the reviewed scope.\n\nAsk me which year of income to review, written like 2026-27. Call review_div7a_loan with the facts I supply. Omit any fact I have not established rather than passing false or 0: an omitted fact stays UNKNOWN, and UNKNOWN is not a failed limb.\n\nInterest rates are decimal fractions, so 8.37 per cent is 0.0837. Do not substitute the benchmark rate for the agreed rate; use get_div7a_benchmark_rate if I ask what the benchmark is.\n\nThis engine does not form amalgamated loans, classify payments under s 109R, or reach unpaid present entitlements, distributable surplus, interposed entities, debt forgiveness or the Commissioner's discretion. Read the aus-accounting://div7a-scope resource and refuse those, with refuse_div7a, rather than answering them. Any shortfall is an experimental review aid, not an assessed dividend."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_div7a_loan_terms",
+    "arguments": {
+      "year_of_income": ""
+    },
+    "result": {
+      "description": "Review one operator-supplied amalgamated loan for s 109N terms and the s 109E minimum yearly repayment, refusing matters outside that scope.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this operator-supplied Division 7A amalgamated loan for s 109N terms and the s 109E minimum yearly repayment. Leave unknown facts unknown and refuse questions outside the reviewed scope.\n\nAsk me which year of income to review, written like 2026-27. Call review_div7a_loan with the facts I supply. Omit any fact I have not established rather than passing false or 0: an omitted fact stays UNKNOWN, and UNKNOWN is not a failed limb.\n\nInterest rates are decimal fractions, so 8.37 per cent is 0.0837. Do not substitute the benchmark rate for the agreed rate; use get_div7a_benchmark_rate if I ask what the benchmark is.\n\nThis engine does not form amalgamated loans, classify payments under s 109R, or reach unpaid present entitlements, distributable surplus, interposed entities, debt forgiveness or the Commissioner's discretion. Read the aus-accounting://div7a-scope resource and refuse those, with refuse_div7a, rather than answering them. Any shortfall is an experimental review aid, not an assessed dividend."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_div7a_loan_terms",
+    "arguments": {
+      "year_of_income": " "
+    },
+    "result": {
+      "description": "Review one operator-supplied amalgamated loan for s 109N terms and the s 109E minimum yearly repayment, refusing matters outside that scope.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this operator-supplied Division 7A amalgamated loan for s 109N terms and the s 109E minimum yearly repayment. Leave unknown facts unknown and refuse questions outside the reviewed scope.\n\nThe year of income under review is  . Call review_div7a_loan with the facts I supply. Omit any fact I have not established rather than passing false or 0: an omitted fact stays UNKNOWN, and UNKNOWN is not a failed limb.\n\nInterest rates are decimal fractions, so 8.37 per cent is 0.0837. Do not substitute the benchmark rate for the agreed rate; use get_div7a_benchmark_rate if I ask what the benchmark is.\n\nThis engine does not form amalgamated loans, classify payments under s 109R, or reach unpaid present entitlements, distributable surplus, interposed entities, debt forgiveness or the Commissioner's discretion. Read the aus-accounting://div7a-scope resource and refuse those, with refuse_div7a, rather than answering them. Any shortfall is an experimental review aid, not an assessed dividend."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_div7a_loan_terms",
+    "arguments": {
+      "year_of_income": "SYNTHETIC\n☃"
+    },
+    "result": {
+      "description": "Review one operator-supplied amalgamated loan for s 109N terms and the s 109E minimum yearly repayment, refusing matters outside that scope.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this operator-supplied Division 7A amalgamated loan for s 109N terms and the s 109E minimum yearly repayment. Leave unknown facts unknown and refuse questions outside the reviewed scope.\n\nThe year of income under review is SYNTHETIC\n☃. Call review_div7a_loan with the facts I supply. Omit any fact I have not established rather than passing false or 0: an omitted fact stays UNKNOWN, and UNKNOWN is not a failed limb.\n\nInterest rates are decimal fractions, so 8.37 per cent is 0.0837. Do not substitute the benchmark rate for the agreed rate; use get_div7a_benchmark_rate if I ask what the benchmark is.\n\nThis engine does not form amalgamated loans, classify payments under s 109R, or reach unpaid present entitlements, distributable surplus, interposed entities, debt forgiveness or the Commissioner's discretion. Read the aus-accounting://div7a-scope resource and refuse those, with refuse_div7a, rather than answering them. Any shortfall is an experimental review aid, not an assessed dividend."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_div7a_loan_terms",
+    "arguments": {
+      "year_of_income": null
+    },
+    "result": {
+      "description": "Review one operator-supplied amalgamated loan for s 109N terms and the s 109E minimum yearly repayment, refusing matters outside that scope.",
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "type": "text",
+            "text": "Review this operator-supplied Division 7A amalgamated loan for s 109N terms and the s 109E minimum yearly repayment. Leave unknown facts unknown and refuse questions outside the reviewed scope.\n\nAsk me which year of income to review, written like 2026-27. Call review_div7a_loan with the facts I supply. Omit any fact I have not established rather than passing false or 0: an omitted fact stays UNKNOWN, and UNKNOWN is not a failed limb.\n\nInterest rates are decimal fractions, so 8.37 per cent is 0.0837. Do not substitute the benchmark rate for the agreed rate; use get_div7a_benchmark_rate if I ask what the benchmark is.\n\nThis engine does not form amalgamated loans, classify payments under s 109R, or reach unpaid present entitlements, distributable surplus, interposed entities, debt forgiveness or the Commissioner's discretion. Read the aus-accounting://div7a-scope resource and refuse those, with refuse_div7a, rather than answering them. Any shortfall is an experimental review aid, not an assessed dividend."
+          }
+        }
+      ],
+      "resultType": "complete"
+    }
+  },
+  {
+    "name": "review_div7a_loan_terms",
+    "arguments": {
+      "year_of_income": 1
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt review_div7a_loan_terms"
+    }
+  },
+  {
+    "name": "review_div7a_loan_terms",
+    "arguments": {
+      "year_of_income": true
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt review_div7a_loan_terms"
+    }
+  },
+  {
+    "name": "review_div7a_loan_terms",
+    "arguments": {
+      "year_of_income": []
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt review_div7a_loan_terms"
+    }
+  },
+  {
+    "name": "review_div7a_loan_terms",
+    "arguments": {
+      "unknown": "x"
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt review_div7a_loan_terms"
+    }
+  },
+  {
+    "name": "review_div7a_loan_terms",
+    "arguments": {
+      "year_of_income": "a",
+      "unknown": "x"
+    },
+    "error": {
+      "type": "ValueError",
+      "message": "Error rendering prompt review_div7a_loan_terms"
+    }
+  },
+  {
+    "name": "unknown_prompt",
+    "arguments": {},
+    "error": {
+      "type": "ValueError",
+      "message": "Unknown prompt: unknown_prompt"
+    }
+  }
+]
