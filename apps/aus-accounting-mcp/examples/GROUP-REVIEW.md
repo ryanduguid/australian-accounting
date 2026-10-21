@@ -17,6 +17,12 @@ complete index on stdout, or exits 1 with a diagnostic and no index when input
 validation fails. JSON formatting and parser diagnostics may differ. The Python
 example remains supported.
 
+In an extracted native CI candidate, run `./examples/group_review
+/approved/local/path/manifest.json` from the archive root, or
+`.\examples\group_review.exe C:\approved\local\path\manifest.json` on Windows.
+The executable can also be addressed by its absolute path from another working
+directory. Its manifest and reports stay outside the archive.
+
 Use schema `group-review-input.v1` with a non-empty `reports` list. Each report
 has exactly these text fields: `id`, `entity`, `period`, `engine`,
 `engine_version`, `scope`, `path` and `sha256`. The path names a UTF-8 `.txt` or

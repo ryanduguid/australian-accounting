@@ -26,8 +26,34 @@ Native tests compare the full transcript with `docs/quick-proof.txt`, allowing
 only the command header and the existing native engine version and table URI
 differences below. A separate stdio test replays both calls and compares complete
 results. The original Python proof and its derived image remain tied to the
-supported Python distribution. The native candidate archive includes all 3
-commands; hosted archive creation remains unverified until CI runs.
+supported Python distribution.
+
+The short-lived CI candidate archive keeps the server, demo and evaluator beside
+each other and includes `examples/group_review` (`.exe` on Windows). Extract it
+outside the checkout, keep that layout and run these commands from its root:
+
+```sh
+./aus-accounting-mcp --version
+./aus-accounting-mcp-demo
+./aus-accounting-mcp-evaluate context
+./aus-accounting-mcp-evaluate questions
+./examples/group_review /approved/local/path/manifest.json
+```
+
+On Windows, append `.exe` to each executable name. Point an MCP client's stdio
+command at the absolute server path without `--version`. Optional retrieval
+folders still need their own local setup.
+
+Component and engine licences, notices and disclaimers retain their repository
+paths under `apps/` and `packages/` in the archive. `BUILD-INFO.json` records the
+source commit, target, compiler, version and SHA-256 of every other bundled file.
+This is an unsigned CI content record. It does not authenticate the producer,
+provide a complete dependency licence inventory or replace release attestations.
+CI extracts the finished archive and checks its contents and all 4 executables
+with fabricated inputs, an empty PATH and an empty working directory before
+retaining it. Hosted archive creation and macOS checks remain unverified until
+CI runs. The supported Python release, Registry entry and cutover gates remain
+unchanged.
 
 The native supplementary evaluation tool preserves the full offline workflow:
 
