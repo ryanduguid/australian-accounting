@@ -281,6 +281,61 @@ fn lf(bytes: &[u8]) -> String {
         .replace("\r\n", "\n")
 }
 
+/// Only the missing-date notice follows the clock; every other byte stays frozen.
+fn matches_stderr(actual: &str, expected: &Value, before: &str, after: &str) -> bool {
+    const PREFIX: &str = "note: --as-at not supplied; assuming ";
+    const SUFFIX: &str = " from this machine's clock, which may not be today's date in Australia. Pass --as-at explicitly in scheduled runs.\n";
+    let Some((date, rest)) = expected
+        .as_str()
+        .and_then(|text| text.strip_prefix(PREFIX))
+        .and_then(|text| text.split_once(SUFFIX))
+    else {
+        return matches_text(actual, expected);
+    };
+    assert!(chrono::NaiveDate::parse_from_str(date, "%Y-%m-%d").is_ok());
+    [before, after]
+        .iter()
+        .any(|day| actual == format!("{PREFIX}{day}{SUFFIX}{rest}"))
+}
+
+#[test]
+fn clock_notice_keeps_the_date_and_every_other_byte_checked() {
+    let notice = |date| {
+        format!(
+            "note: --as-at not supplied; assuming {date} from this machine's clock, which may not be today's date in Australia. Pass --as-at explicitly in scheduled runs.\nerror: file not found: -x.csv\n"
+        )
+    };
+    let expected = json!(notice("2026-10-20"));
+    for day in ["2032-01-01", "2032-01-02"] {
+        assert!(matches_stderr(
+            &notice(day),
+            &expected,
+            "2032-01-01",
+            "2032-01-02"
+        ));
+    }
+    for day in ["2026-10-20", "2032-01-03"] {
+        assert!(!matches_stderr(
+            &notice(day),
+            &expected,
+            "2032-01-01",
+            "2032-01-02"
+        ));
+    }
+    assert!(!matches_stderr(
+        &notice("2032-01-01").replace("-x.csv", "other.csv"),
+        &expected,
+        "2032-01-01",
+        "2032-01-02"
+    ));
+    assert!(!matches_stderr(
+        "error: date 2032-01-01\n",
+        &json!("error: date 2026-10-20\n"),
+        "2032-01-01",
+        "2032-01-02"
+    ));
+}
+
 fn check(case: &Value) -> Option<String> {
     if windows_only(case) {
         return None;
@@ -376,7 +431,9 @@ fn check(case: &Value) -> Option<String> {
     for (key, value) in env {
         command.env(key, value.as_str().unwrap());
     }
+    let before = chrono::Local::now().date_naive().to_string();
     let out = command.output().unwrap();
+    let after = chrono::Local::now().date_naive().to_string();
     let written = written_ok(&dir, case);
     let (stdout, stderr) = (
         lf(&localise(&out.stdout, &dir)),
@@ -385,7 +442,7 @@ fn check(case: &Value) -> Option<String> {
     let _ = std::fs::remove_dir_all(&dir);
     let ok = out.status.code() == expected["code"].as_i64().map(|c| c as i32)
         && matches_text(&stdout, &expected["stdout"])
-        && matches_text(&stderr, &expected["stderr"])
+        && matches_stderr(&stderr, &expected["stderr"], &before, &after)
         && written.is_ok();
     (!ok).then(|| {
         format!(

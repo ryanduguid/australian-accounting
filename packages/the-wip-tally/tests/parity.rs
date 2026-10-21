@@ -284,6 +284,7 @@ fn snapshot(folder: &Path, base: &Path, out: &mut Vec<(String, Vec<u8>)>) {
 #[test]
 fn original_cli_runs_with_their_files() {
     let rows: Value = serde_json::from_str(include_str!("data/python-cli.json")).unwrap();
+    let mut pinned_schedules = 0;
     for row in rows.as_array().unwrap() {
         let folder = scratch();
         for (rel, data) in row["files"].as_object().unwrap() {
@@ -306,12 +307,27 @@ fn original_cli_runs_with_their_files() {
                     .replacen("0.00", "0.01", 1);
                 std::fs::write(&schedule, text).unwrap();
             }
-            let args: Vec<&str> = step
+            let mut args: Vec<&str> = step
                 .as_array()
                 .unwrap()
                 .iter()
                 .map(|a| a.as_str().unwrap())
                 .collect();
+            // These successful undated schedules were captured on 20 October.
+            // Keep their complete outputs/files frozen and test the live default below.
+            if args.first() == Some(&"schedule")
+                && matches!(want["code"].as_i64(), Some(0 | 2))
+                && matches!(
+                    row["test"].as_str().unwrap(),
+                    "test_stated_measurability_produces_the_schedule"
+                        | "test_mapping_file_renames_columns"
+                        | "test_schedule_refuses_when_an_input_path_cannot_be_resolved"
+                )
+            {
+                assert!(!args.iter().any(|arg| arg.starts_with("--as")));
+                args.extend(["--as-at", "2026-10-20"]);
+                pinned_schedules += 1;
+            }
             let mut command = Command::new(env!("CARGO_BIN_EXE_wip-tally"));
             command
                 .args(&args)
@@ -357,6 +373,65 @@ fn original_cli_runs_with_their_files() {
         assert_eq!(files, want, "files {}: {:?}", row["test"], steps);
         let _ = std::fs::remove_dir_all(&folder);
     }
+    assert_eq!(pinned_schedules, 3);
+}
+
+#[test]
+fn an_undated_schedule_uses_the_live_date_in_console_and_csv() {
+    let rows: Value = serde_json::from_str(include_str!("data/python-cli.json")).unwrap();
+    let row = rows
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["test"] == "test_stated_measurability_produces_the_schedule")
+        .unwrap();
+    let folder = scratch();
+    for (name, data) in row["files"].as_object().unwrap() {
+        std::fs::write(folder.join(name), unhex(data.as_str().unwrap())).unwrap();
+    }
+    let args: Vec<&str> = row["steps"][0]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|arg| arg.as_str().unwrap())
+        .collect();
+    let before = chrono::Local::now().date_naive().to_string();
+    let run = Command::new(env!("CARGO_BIN_EXE_wip-tally"))
+        .args(&args)
+        .current_dir(&folder)
+        .env("PYTHON_COLORS", "0")
+        .env("COLUMNS", "80")
+        .env_remove("FORCE_COLOR")
+        .env_remove("NO_COLOR")
+        .output()
+        .unwrap();
+    let after = chrono::Local::now().date_naive().to_string();
+    assert_eq!(run.status.code(), Some(0));
+    let frozen_stdout = String::from_utf8(unhex(
+        row["expected"]["results"][0]["stdout"].as_str().unwrap(),
+    ))
+    .unwrap()
+    .replace("\r\n", "\n");
+    let frozen_csv = String::from_utf8(unhex(
+        row["expected"]["files"]["wip-schedule.csv"]
+            .as_str()
+            .unwrap(),
+    ))
+    .unwrap();
+    let stdout = String::from_utf8(run.stdout).unwrap().replace("\r\n", "\n");
+    let csv = std::fs::read_to_string(folder.join("wip-schedule.csv")).unwrap();
+    assert!(
+        [before, after].iter().any(|date| {
+            stdout == frozen_stdout.replacen("as at 2026-10-20", &format!("as at {date}"), 1)
+                && csv == frozen_csv.replacen("\n2026-10-20,", &format!("\n{date},"), 1)
+        }),
+        "stdout {stdout:?}; CSV {csv:?}"
+    );
+    assert!(matches(
+        &run.stderr,
+        &row["expected"]["results"][0]["stderr"]
+    ));
+    let _ = std::fs::remove_dir_all(&folder);
 }
 
 fn summary(json: &str) -> Value {
