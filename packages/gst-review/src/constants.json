@@ -1,0 +1,75 @@
+{
+  "coding": {
+    "SOURCE_CHECKED": "2026-10-19",
+    "GST_ACT": "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+    "DEFAULT_GST_CODES": {
+      "GST on Income": "taxable",
+      "GST on Expenses": "taxable",
+      "GST on Capital": "taxable",
+      "GST Free Income": "gst_free",
+      "GST Free Expenses": "gst_free",
+      "GST Free Capital": "gst_free",
+      "GST Free Exports": "gst_free",
+      "Input Taxed": "input_taxed",
+      "BAS Excluded": "outside_gst",
+      "GST": "taxable",
+      "CAP": "taxable",
+      "FRE": "gst_free",
+      "EXP": "gst_free",
+      "INP": "input_taxed",
+      "N-T": "outside_gst"
+    },
+    "STATES": [
+      "unknown_gst_code",
+      "gst_differs_from_registration",
+      "between_entities",
+      "coded",
+      "suggested",
+      "nothing_suggested"
+    ],
+    "NOT_DECIDED": [
+      "Whether an entity was required to be registered (GST Act s 23-5). The review uses only the registration dates supplied.",
+      "Whether a supply is taxable, GST-free or input taxed on its merits. The review checks GST codes against registration, not against the supply.",
+      "Whether a matched pair between entities is a loan, capital, a distribution or payment for a supply between them.",
+      "Whether a suggested coding is right.",
+      "Direction is read from the sign: a negative amount is a payment. Refunds, reversals and creditable importations (GST Act Division 15) are not distinguished."
+    ]
+  },
+  "bas": {
+    "ATO_BAS_METHOD": "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/completing-your-bas-for-gst/choose-a-method-to-complete-your-bas",
+    "ATO_BAS_INSTRUCTIONS": "https://www.ato.gov.au/print/section/9fc804ad-a043-4a35-b540-16b71d9ca9bf",
+    "LABELS": [
+      "G1",
+      "G2",
+      "G3",
+      "G10",
+      "G11",
+      "1A",
+      "1B"
+    ],
+    "DEFAULT_BAS_CODES": {
+      "GST on Income": "taxable",
+      "GST on Expenses": "taxable",
+      "GST on Capital": "capital",
+      "GST Free Income": "gst_free",
+      "GST Free Expenses": "gst_free",
+      "GST Free Capital": "capital_gst_free",
+      "GST Free Exports": "export",
+      "Input Taxed": "input_taxed",
+      "BAS Excluded": "excluded",
+      "GST": "taxable",
+      "CAP": "capital",
+      "FRE": "gst_free",
+      "EXP": "export",
+      "INP": "input_taxed",
+      "N-T": "excluded"
+    },
+    "NOT_DECIDED": [
+      "Whether a difference needs a revised BAS or can be corrected on a later one.",
+      "Whether any line's GST code is right. The reconciliation takes the codes as given.",
+      "Which accounting basis applies (GST Act s 29-40). The caller states it.",
+      "Part payments on the cash basis: supply one line per payment, with the gross and GST paid.",
+      "Labels other than G1, G2, G3, G10, G11, 1A and 1B, adjustments (GST Act Division 19), and GST on imports."
+    ]
+  }
+}

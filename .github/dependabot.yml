@@ -66,6 +66,7 @@ updates:
       - /packages/ato-benchmark-compare
       - /packages/payday-super-checker
       - /packages/payday-super-checker/fuzz
+      - /packages/gst-review
       - /apps/au-accounting
     schedule:
       interval: weekly

@@ -11,7 +11,6 @@
 # Component directory : the import package it owns. Adding a component means
 # adding it here and to tests/test_boundaries.py.
 components := trim(replace('''
-packages/gst-review:gstreview
 packages/lodgment-calendar:lodgmentcalendar
 apps/aus-accounting-mcp:aus_accounting_mcp
 apps/lodgeit-calculator-adapter:lodgeitadapter
@@ -94,7 +93,7 @@ release +args:
 check: lint typecheck test
 
 # Standalone Rust engines and the au-accounting command, outside the virtual Python workspace.
-rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review packages/ato-benchmark-compare packages/payday-super-checker apps/au-accounting"
+rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review packages/ato-benchmark-compare packages/payday-super-checker packages/gst-review apps/au-accounting"
 
 rust-test:
     #!/usr/bin/env bash
