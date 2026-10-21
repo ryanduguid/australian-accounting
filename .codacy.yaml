@@ -4,7 +4,7 @@
 # that tool.
 #
 # Lizard and Prospector measure function and file size and complexity. Tests
-# are long by design, one case per assertion block, and uv.lock and Cargo.lock
+# are long by design, one case per assertion block, and uv.lock, Cargo.lock and package-lock.json
 # files are generated, so neither is measured; production code still is.
 engines:
   opengrep:
@@ -20,6 +20,7 @@ engines:
       - "uv.lock"
       - "**/uv.lock"
       - "**/Cargo.lock"
+      - "tools/glama-badge-worker/package-lock.json"
   prospector:
     exclude_paths:
       - "tests/**"

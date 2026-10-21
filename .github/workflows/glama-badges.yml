@@ -62,7 +62,7 @@ jobs:
       - run: cargo +1.99 clippy --locked --target wasm32-unknown-unknown --lib -- -D warnings
       - run: cargo +1.99 test --locked
       - run: cargo +1.99 install worker-build --version 0.8.7 --locked
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: worker-build --release
       - run: npm test
       - run: npm run dry-run

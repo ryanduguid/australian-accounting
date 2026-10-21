@@ -73,6 +73,41 @@ async fn bounded_body(response: &mut Response, limit: usize) -> Result<Vec<u8>> 
     Ok(bytes)
 }
 
+async fn source_svg(request: Request, signal: &AbortSignal) -> Result<String> {
+    let mut response = Fetch::Request(request).send_with_signal(signal).await?;
+    if response.status_code() != 200 {
+        return Err(Error::RustError(
+            "Glama returned an unsuccessful response".into(),
+        ));
+    }
+    if response
+        .headers()
+        .get("content-type")?
+        .as_deref()
+        .and_then(|t| t.split(';').next())
+        .map(str::trim)
+        != Some("image/svg+xml")
+    {
+        return Err(Error::RustError("Unexpected Glama media type".into()));
+    }
+    if response
+        .headers()
+        .get("content-length")?
+        .and_then(|n| n.parse::<u64>().ok())
+        .is_some_and(|n| n > SOURCE_LIMIT as u64)
+    {
+        return Err(Error::RustError("Badge exceeds byte limit".into()));
+    }
+    let bytes = bounded_body(&mut response, SOURCE_LIMIT).await?;
+    let svg = std::str::from_utf8(&bytes).map_err(|_| Error::RustError("Invalid UTF-8".into()))?;
+    let svg = glama_badge_server::restyle(svg)
+        .map_err(|_| Error::RustError("Unsupported Glama SVG".into()))?;
+    if svg.len() > OUTPUT_LIMIT {
+        return Err(Error::RustError("Rendered badge exceeds byte limit".into()));
+    }
+    Ok(svg)
+}
+
 async fn source(id: &str) -> Result<String> {
     let mut init = RequestInit::new();
     init.with_method(Method::Get)
@@ -85,41 +120,7 @@ async fn source(id: &str) -> Result<String> {
     )?;
     let abort = AbortController::default();
     let signal = abort.signal();
-    let work = async {
-        let mut response = Fetch::Request(request).send_with_signal(&signal).await?;
-        if response.status_code() != 200 {
-            return Err(Error::RustError(
-                "Glama returned an unsuccessful response".into(),
-            ));
-        }
-        if response
-            .headers()
-            .get("content-type")?
-            .as_deref()
-            .and_then(|t| t.split(';').next())
-            .map(str::trim)
-            != Some("image/svg+xml")
-        {
-            return Err(Error::RustError("Unexpected Glama media type".into()));
-        }
-        if response
-            .headers()
-            .get("content-length")?
-            .and_then(|n| n.parse::<u64>().ok())
-            .is_some_and(|n| n > SOURCE_LIMIT as u64)
-        {
-            return Err(Error::RustError("Badge exceeds byte limit".into()));
-        }
-        let bytes = bounded_body(&mut response, SOURCE_LIMIT).await?;
-        let svg =
-            std::str::from_utf8(&bytes).map_err(|_| Error::RustError("Invalid UTF-8".into()))?;
-        let svg = glama_badge_server::restyle(svg)
-            .map_err(|_| Error::RustError("Unsupported Glama SVG".into()))?;
-        if svg.len() > OUTPUT_LIMIT {
-            return Err(Error::RustError("Rendered badge exceeds byte limit".into()));
-        }
-        Ok(svg)
-    };
+    let work = source_svg(request, &signal);
     let result = match select(
         Box::pin(work),
         Box::pin(Delay::from(Duration::from_secs(8))),
