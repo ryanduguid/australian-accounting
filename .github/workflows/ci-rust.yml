@@ -15,8 +15,8 @@ on:
         description: The command the engine builds, when it differs from the directory name.
         type: string
         default: ""
-      extra-binary:
-        description: Optional second command to include in the candidate archive.
+      extra-binaries:
+        description: Optional space-separated commands to include in the candidate archive.
         type: string
         default: ""
       smoke:
@@ -108,7 +108,7 @@ jobs:
         env:
           BINARY: ${{ inputs.binary || inputs.package }}
           CRATE: ${{ inputs.package }}
-          EXTRA_BINARY: ${{ inputs.extra-binary }}
+          EXTRA_BINARIES: ${{ inputs.extra-binaries }}
         run: |
           set -euo pipefail
           version="$(cargo metadata --locked --no-deps --format-version 1 | jq -r '.packages[0].version')"
@@ -117,9 +117,10 @@ jobs:
           mkdir -p "dist/$base"
           suffix=""
           if [[ "$RUNNER_OS" == Windows ]]; then suffix=".exe"; fi
-          if [[ -n "$EXTRA_BINARY" ]]; then
-            cp "target/release/$EXTRA_BINARY$suffix" "dist/$base/"
-          fi
+          read -r -a extra_bins <<< "$EXTRA_BINARIES"
+          for extra in "${extra_bins[@]}"; do
+            cp "target/release/$extra$suffix" "dist/$base/"
+          done
           if [[ "$RUNNER_OS" == Windows ]]; then
             cp "target/release/$BINARY.exe" "dist/$base/"
             (cd dist && 7z a -tzip "$base.zip" "$base" >/dev/null)

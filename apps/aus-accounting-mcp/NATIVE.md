@@ -26,8 +26,41 @@ Native tests compare the full transcript with `docs/quick-proof.txt`, allowing
 only the command header and the existing native engine version and table URI
 differences below. A separate stdio test replays both calls and compares complete
 results. The original Python proof and its derived image remain tied to the
-supported Python distribution. The native candidate archive includes both
+supported Python distribution. The native candidate archive includes all 3
 commands; hosted archive creation remains unverified until CI runs.
+
+The native supplementary evaluation tool preserves the full offline workflow:
+
+```sh
+cargo run --locked --bin aus-accounting-mcp-evaluate -- context
+cargo run --locked --bin aus-accounting-mcp-evaluate -- questions
+cargo run --locked --bin aus-accounting-mcp-evaluate -- score run.json --reference-sha256 SHA256
+```
+
+Build the server alongside the evaluator before running `context`. That command
+initialises the sibling `aus-accounting-mcp` executable through MCP and prints
+its complete instructions, tool definitions and actual scope resource. It
+inherits configured retrieval folders and closes its owned child on success,
+failure or timeout. The server must be beside the evaluator after installation.
+The embedded reference lets `questions` and `score` run without the checkout,
+Python, a server or network access. Use `--reference PATH` before the command to
+evaluate a separate UTF-8 XML reference; the digest always identifies the exact
+reference bytes.
+
+Scoring never executes recorded calls. It preserves integer/decimal/boolean
+types, exact decimal values, call order and repetitions, complete arguments,
+surrounding answer whitespace rules and the legacy tools-only warning. Duplicate
+keys, non-finite numbers, malformed references and digest mismatches are refused
+before any scores print. An imperfect valid recording exits 0: this remains a
+supplementary measurement requiring human interpretation, rather than a model
+performance gate. Native parser diagnostics may differ from Python. Custom
+references must be UTF-8; lone surrogate JSON strings, integers beyond 4,300
+digits and JSON nesting beyond 1,000 containers are refused. JSON parsing also
+has a 1 GiB cumulative scanning budget, counting each nested raw value, to bound
+work on large values wrapped in many containers. Intermediate raw values borrow
+the input rather than copying every subtree. Custom XML DTDs are
+refused before expansion to bound entity amplification. Standard XML escapes and
+numeric character references remain supported; external entities are never fetched.
 
 ## Retained Python tooling
 
@@ -37,7 +70,7 @@ Runtime parity alone does not justify removing the supported Python package.
 | Tool or dependency | Current disposition |
 | --- | --- |
 | `aus_accounting_mcp/demo.py` | Native command implemented above. Retain the Python command and its proof/media checks whilst Python remains supported. |
-| `evaluation/tool_selection.py` | Pending native port. Preserve its exact typed comparisons, duplicate-key and non-finite rejection, reference digest, answer stripping and supplementary scoring semantics. Its context command still launches the Python server. |
+| `evaluation/tool_selection.py` | All 3 native commands implemented above. Retain the original as the supported Python workflow and migration oracle until distribution and consumer cutover are approved. |
 | `scripts/check_installed_worksheets.py` | Retain as the supported wheel/pin check. Native relocation and complete-result tests are additional evidence; a native distribution check must explicitly cover all worksheet kinds and supported periods before this script retires. |
 | `scripts/check_corpus_setup.py` | Retain the fabricated integration check until the corpus builder's own Rust migration and native MCP integration are reconciled. It imports that builder's Python entry point; changing only the facade would leave this dependency. |
 | `scripts/registry_preflight.py` | Retain for the supported PyPI/Registry release. Native distribution and provenance checks need an approved release design before replacement. |
