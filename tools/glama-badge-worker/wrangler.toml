@@ -1,0 +1,11 @@
+name = "flat-glama-badges"
+main = "build/worker/shim.mjs"
+compatibility_date = "2026-07-30"
+workers_dev = true
+preview_urls = false
+
+[build]
+command = "worker-build --release"
+
+[observability]
+enabled = false
