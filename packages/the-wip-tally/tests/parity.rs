@@ -306,12 +306,26 @@ fn original_cli_runs_with_their_files() {
                     .replacen("0.00", "0.01", 1);
                 std::fs::write(&schedule, text).unwrap();
             }
-            let args: Vec<&str> = step
+            let mut args: Vec<&str> = step
                 .as_array()
                 .unwrap()
                 .iter()
                 .map(|a| a.as_str().unwrap())
                 .collect();
+            // Completed schedule snapshots used the capture day's default date,
+            // including schedules with review flags (exit 2). Replay that date
+            // explicitly; the clock default is checked separately below, with
+            // every snapshot byte kept intact. Leave parser-error cases alone.
+            if args.first() == Some(&"schedule")
+                && !args
+                    .iter()
+                    .any(|a| *a == "--as-at" || a.starts_with("--as-at="))
+                && want["stdout"]
+                    .as_str()
+                    .is_some_and(|hex| unhex(hex).starts_with(b"TheWIPTally: "))
+            {
+                args.extend(["--as-at", "2026-10-20"]);
+            }
             let mut command = Command::new(env!("CARGO_BIN_EXE_wip-tally"));
             command
                 .args(&args)
@@ -357,6 +371,55 @@ fn original_cli_runs_with_their_files() {
         assert_eq!(files, want, "files {}: {:?}", row["test"], steps);
         let _ = std::fs::remove_dir_all(&folder);
     }
+}
+
+#[test]
+fn schedule_defaults_to_the_current_local_date() {
+    let rows: Value = serde_json::from_str(include_str!("data/python-cli.json")).unwrap();
+    let row = rows
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["test"] == "test_stated_measurability_produces_the_schedule")
+        .unwrap();
+    let folder = scratch();
+    for (rel, data) in row["files"].as_object().unwrap() {
+        let path = folder.join(rel);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, unhex(data.as_str().unwrap())).unwrap();
+    }
+    let before = chrono::Local::now().date_naive();
+    let run = Command::new(env!("CARGO_BIN_EXE_wip-tally"))
+        .args(["schedule", "contracts.csv", "-o", "wip-schedule.csv"])
+        .current_dir(&folder)
+        .output()
+        .unwrap();
+    let after = chrono::Local::now().date_naive();
+    assert!(run.status.success());
+    assert!(run.stderr.is_empty());
+    let stdout = lf(&run.stdout);
+    let schedule = lf(&std::fs::read(folder.join("wip-schedule.csv")).unwrap());
+    let expected_stdout = String::from_utf8(unhex(
+        row["expected"]["results"][0]["stdout"].as_str().unwrap(),
+    ))
+    .unwrap();
+    let expected_schedule = String::from_utf8(unhex(
+        row["expected"]["files"]["wip-schedule.csv"]
+            .as_str()
+            .unwrap(),
+    ))
+    .unwrap();
+    assert!([before, after].iter().any(|date| {
+        stdout
+            == lf(expected_stdout
+                .replace("2026-10-20", &date.to_string())
+                .as_bytes())
+            && schedule
+                == lf(expected_schedule
+                    .replace("2026-10-20", &date.to_string())
+                    .as_bytes())
+    }));
+    std::fs::remove_dir_all(folder).unwrap();
 }
 
 fn summary(json: &str) -> Value {
