@@ -6,6 +6,7 @@ rust-version = "1.99"
 description = "Compare profit and loss figures against the ATO small business benchmarks"
 license = "Apache-2.0"
 repository = "https://github.com/ryanduguid/australian-accounting"
+homepage = "https://duguid.com.au/tools/ato-benchmarks/"
 publish = false
 
 [dependencies]

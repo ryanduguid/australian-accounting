@@ -6,6 +6,7 @@ rust-version = "1.99"
 description = "Corporate tax, franking ledger and Division 203 benchmark review aids"
 license = "Apache-2.0"
 repository = "https://github.com/ryanduguid/australian-accounting"
+homepage = "https://duguid.com.au/tools/company-tax-franking/"
 publish = false
 
 [dependencies]

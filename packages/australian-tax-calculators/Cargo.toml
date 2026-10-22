@@ -6,6 +6,7 @@ rust-version = "1.99"
 description = "Bounded Australian tax calculation worksheets with explicit scope and sources"
 license = "Apache-2.0"
 repository = "https://github.com/ryanduguid/australian-accounting"
+homepage = "https://duguid.com.au/tools/australian-tax-ai-agents/"
 publish = false
 
 [dependencies]
