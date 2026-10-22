@@ -120,7 +120,7 @@ fn group(node: Node<'_, '_>, ids: &HashSet<&str>) -> Result<(f64, f64, f64)> {
     transform(node)
 }
 
-fn validate<'a, 'i>(root: Node<'a, 'i>) -> Result<Vec<Node<'a, 'i>>> {
+fn structure<'a, 'i>(root: Node<'a, 'i>) -> Result<Vec<Node<'a, 'i>>> {
     shape(
         root,
         "svg",
@@ -158,14 +158,10 @@ fn validate<'a, 'i>(root: Node<'a, 'i>) -> Result<Vec<Node<'a, 'i>>> {
             }),
         "Unsupported card identity",
     )?;
-    let ids = definitions(children[2])?;
-    for (index, y, scale) in GROUPS {
-        let (_, actual_y, actual_scale) = group(children[index], &ids)?;
-        require(
-            actual_y == y && actual_scale == scale,
-            "Unsupported card text layout",
-        )?;
-    }
+    Ok(children)
+}
+
+fn frame_and_signals(children: &[Node<'_, '_>]) -> Result<()> {
     leaf(children[3], "path", &["d", "fill", "stroke"])?;
     path_data(children[3])?;
     attribute_is(children[3], "d", FRAME)?;
@@ -192,6 +188,10 @@ fn validate<'a, 'i>(root: Node<'a, 'i>) -> Result<Vec<Node<'a, 'i>>> {
     }
     paint(children[6], "stroke")?;
     attribute_is(children[6], "stroke-width", "1.5")?;
+    Ok(())
+}
+
+fn icons(children: &[Node<'_, '_>]) -> Result<()> {
     for index in [11, 13, 16, 19] {
         leaf(
             children[index],
@@ -214,6 +214,10 @@ fn validate<'a, 'i>(root: Node<'a, 'i>) -> Result<Vec<Node<'a, 'i>>> {
         attribute_is(children[index], "stroke-linecap", "round")?;
         attribute_is(children[index], "stroke-linejoin", "round")?;
     }
+    Ok(())
+}
+
+fn footer(children: &[Node<'_, '_>]) -> Result<()> {
     leaf(children[23], "path", &["d", "stroke", "stroke-dasharray"])?;
     path_data(children[23])?;
     attribute_is(children[23], "d", "M18 153.5H362")?;
@@ -233,6 +237,22 @@ fn validate<'a, 'i>(root: Node<'a, 'i>) -> Result<Vec<Node<'a, 'i>>> {
     transform(children[26])?;
     path_data(children[26])?;
     paint(children[26], "fill")?;
+    Ok(())
+}
+
+fn validate<'a, 'i>(root: Node<'a, 'i>) -> Result<Vec<Node<'a, 'i>>> {
+    let children = structure(root)?;
+    let ids = definitions(children[2])?;
+    for (index, y, scale) in GROUPS {
+        let (_, actual_y, actual_scale) = group(children[index], &ids)?;
+        require(
+            actual_y == y && actual_scale == scale,
+            "Unsupported card text layout",
+        )?;
+    }
+    frame_and_signals(&children)?;
+    icons(&children)?;
+    footer(&children)?;
     for (value, label) in [(14, 15), (17, 18), (21, 22)] {
         let x = transform(children[value])?.0;
         let label_x = transform(children[label])?.0;
