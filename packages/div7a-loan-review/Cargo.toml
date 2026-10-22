@@ -6,6 +6,7 @@ rust-version = "1.99"
 description = "Experimental review aid for ITAA 1936 Division 7A complying loan terms and minimum yearly repayments"
 license = "Apache-2.0"
 repository = "https://github.com/ryanduguid/australian-accounting"
+homepage = "https://duguid.com.au/tools/australian-tax-ai-agents/"
 publish = false
 
 [dependencies]
