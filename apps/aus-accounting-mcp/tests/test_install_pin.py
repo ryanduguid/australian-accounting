@@ -17,6 +17,10 @@ checker = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(checker)
 
 
+def test_readme_first_install_selects_an_exact_release() -> None:
+    checker.install_version((APP / "README.md").read_text(encoding="utf-8"))
+
+
 @pytest.mark.parametrize(
     "command",
     [
