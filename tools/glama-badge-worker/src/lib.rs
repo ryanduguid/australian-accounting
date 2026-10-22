@@ -3,8 +3,10 @@
 #![cfg(any(target_arch = "wasm32", test))]
 
 const TTL_MS: u64 = 300_000;
+#[cfg(not(feature = "synthetic-trial"))]
 const ALLOWED: &str = include_str!("../../glama-badge-server/allowed.txt");
 
+#[cfg(not(feature = "synthetic-trial"))]
 fn identity(path: &str, has_query: bool) -> Option<&str> {
     let id = path.strip_prefix("/glama/")?.strip_suffix(".svg")?;
     (!has_query && ALLOWED.lines().any(|allowed| allowed == id)).then_some(id)
@@ -16,13 +18,18 @@ fn cache_age(fetched: u64, now: u64) -> Option<u64> {
 }
 
 #[cfg(target_arch = "wasm32")]
+mod http;
+#[cfg(all(target_arch = "wasm32", not(feature = "synthetic-trial")))]
 mod runtime;
+#[cfg(all(target_arch = "wasm32", feature = "synthetic-trial"))]
+mod synthetic;
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
+    #[cfg(not(feature = "synthetic-trial"))]
     fn exact_public_routes_only() {
         for id in ALLOWED.lines() {
             let path = format!("/glama/{id}.svg");

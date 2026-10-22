@@ -67,3 +67,40 @@ Verify Cache API writes and hits on the exact approved public hostname.
 Cloudflare documents functional caching on custom domains and no effect in
 Dashboard or Playground previews. Local Miniflare cache tests do not establish
 the behaviour of a public workers.dev address.
+
+## Synthetic hosting trial
+
+The separate `synthetic-trial` build excludes the live provider handler. It runs
+the same Rust renderer on a captured test fixture, with a centred gold
+`SYNTHETIC TEST DATA` label. It makes no outbound requests and serves no live
+ratings. Its routes are `/synthetic.svg` and `/failure.svg` (a deliberate 503).
+Both accept GET and HEAD without queries. Other routes return 404 whilst active.
+
+```sh
+cargo clippy --locked --all-targets --features synthetic-trial -- -D warnings
+cargo clippy --locked --target wasm32-unknown-unknown --lib --features synthetic-trial -- -D warnings
+cargo test --locked --features synthetic-trial
+worker-build --release --out-dir build-synthetic -- --features synthetic-trial
+npm run test:synthetic
+npm run dry-run:synthetic
+```
+
+`synthetic.wrangler.toml` uses separate build output and a separate service name,
+with a 10 ms CPU limit, preview URLs disabled and observability disabled.
+`SYNTHETIC_START_MS` and `SYNTHETIC_END_MS` are public epoch millisecond values.
+The default values disable the trial. A missing, invalid, reversed, future,
+expired or longer than 1-hour window returns 410 with `no-store` before accessing
+the cache. Successful responses cannot advertise freshness beyond that window.
+The trial reports `x-synthetic-cache: HIT` or `MISS`; a hit measures this Worker
+Cache API namespace, rather than any outer CDN cache. The default build retains
+its existing live badge routes and HTTP contract.
+
+Deployment is a separate authorised action. Use a new trial service name, verify
+the existing account and hostname and set a finite window. Never overwrite the
+live service or register a new account, plan or hostname to make the trial work.
+Keep the controlled test to at most 64 requests, collect HTTPS, cache, expiry and
+failure evidence and retire the trial afterwards. Expiry disables successful
+responses; it does not prevent requests from consuming account quota. Confirm
+account quota and request admission before public exposure. A local pass does
+not prove production CPU usage, global admission or catalogue capacity. No README
+should point at this trial.

@@ -8,6 +8,9 @@ publish = false
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[features]
+synthetic-trial = []
+
 [dependencies]
 glama-badge-server = { path = "../glama-badge-server", default-features = false }
 
