@@ -7,10 +7,10 @@ import { Miniflare, Response } from 'miniflare';
 const origin = 'https://trial.example';
 let outbound = 0;
 const active = { SYNTHETIC_START_MS: String(Date.now() - 1_000), SYNTHETIC_END_MS: String(Date.now() + 120_000) };
-function runtime(bindings) {
+function runtime(bindings, entry = '../build-synthetic/worker/shim.mjs') {
   return new Miniflare({
     modules: true,
-    scriptPath: fileURLToPath(new URL('../build-synthetic/worker/shim.mjs', import.meta.url)),
+    scriptPath: fileURLToPath(new URL(entry, import.meta.url)),
     compatibilityDate: '2026-07-30',
     modulesRules: [{ type: 'ESModule', include: ['**/*.js'], fallthrough: true }, { type: 'CompiledWasm', include: ['**/*.wasm'], fallthrough: true }],
     bindings,
@@ -115,5 +115,70 @@ await test('Synthetic-only compiled Worker', { timeout: 30_000 }, async t => {
       assert.equal(head.status, 410);
       assert.equal(await head.text(), '');
     } finally { await expiring.dispose(); }
+  });
+  await t.test('cache I/O crossing expiry fails closed for cold and warm GET/HEAD', async () => {
+    // Override the clock only in this local test wrapper, at the real Cache API boundary.
+    await writeFile(new URL('../build-synthetic/expiry-clock-test.mjs', import.meta.url), `
+      import worker from './worker/shim.mjs';
+      export default class extends worker { async fetch(request) {
+        const RealDate = Date;
+        let now = Number(request.headers.get('x-test-before'));
+        const after = Number(request.headers.get('x-test-after'));
+        globalThis.Date = class extends RealDate {
+          constructor(...args) { super(...(args.length ? args : [now])); }
+          static now() { return now; }
+        };
+        const prototype = Object.getPrototypeOf(caches.default);
+        const match = prototype.match;
+        prototype.match = async function(...args) {
+          const response = await match.apply(this, args);
+          now = after;
+          return response;
+        };
+        try { return await super.fetch(request); }
+        finally { prototype.match = match; globalThis.Date = RealDate; }
+      } };
+    `);
+    const before = Date.now();
+    const end = before + 60_000;
+    const bindings = { SYNTHETIC_START_MS: String(before - 1_000), SYNTHETIC_END_MS: String(end) };
+    const delayed = runtime(bindings, '../build-synthetic/expiry-clock-test.mjs');
+    try {
+      const cache = (await delayed.getCaches()).default;
+      const key = `https://flat-glama-synthetic.invalid/v1/${bindings.SYNTHETIC_START_MS}/${bindings.SYNTHETIC_END_MS}.svg`;
+      for (const after of [end, end - 500, end - 3_500]) {
+        for (const warm of [false, true]) {
+          for (const method of ['GET', 'HEAD']) {
+            await delayed.purgeCache();
+            if (warm) await cache.put(key, new Response(svg, { headers: { 'cache-control': 'max-age=300', 'x-synthetic-rendered-at': String(before) } }));
+            const response = await delayed.dispatchFetch(origin + '/synthetic.svg', {
+              method, headers: { 'x-test-before': String(before), 'x-test-after': String(after) },
+            });
+            assert.equal(response.status, after >= end ? 410 : 200, `${method}, warm=${warm}, after=${after}`);
+            const remaining = Math.floor((end - after) / 1_000);
+            assert.equal(response.headers.get('cache-control'), after >= end ? 'no-store' : `public, max-age=${remaining}, must-revalidate`);
+            if (after < end) assert.equal(response.headers.get('x-synthetic-cache'), warm ? 'HIT' : 'MISS');
+            if (method === 'HEAD') assert.equal(await response.text(), '');
+            else await response.text();
+            if (remaining > 0 && !warm) {
+              const stored = await cache.match(key);
+              assert.equal(stored.headers.get('x-synthetic-rendered-at'), String(after));
+              assert.equal(stored.headers.get('cache-control'), `public, max-age=${remaining}, must-revalidate`);
+              await stored.text();
+            }
+          }
+        }
+      }
+      for (const method of ['GET', 'HEAD']) {
+        await cache.put(key, new Response(svg, { headers: { 'cache-control': 'max-age=300', 'x-synthetic-rendered-at': String(before - 299_500) } }));
+        const response = await delayed.dispatchFetch(origin + '/synthetic.svg', {
+          method, headers: { 'x-test-before': String(before), 'x-test-after': String(before + 1_000) },
+        });
+        assert.equal(response.status, 200);
+        assert.equal(response.headers.get('x-synthetic-cache'), 'MISS', 'cache age must be checked after I/O');
+        assert.equal(response.headers.get('cache-control'), 'public, max-age=59, must-revalidate');
+        await response.text();
+      }
+    } finally { await delayed.dispose(); }
   });
 });

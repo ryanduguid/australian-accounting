@@ -52,23 +52,33 @@ async fn fetch(request: Request, env: Env, context: Context) -> Result<Response>
     // A local Cache API key only. No request is sent to this reserved domain.
     let key = format!("https://flat-glama-synthetic.invalid/v1/{start}/{end}.svg");
     let cache = Cache::default();
-    let remaining = (end - now) / 1_000;
     if let Ok(Some(mut cached)) = cache.get(key.as_str(), false).await {
         let rendered = cached
             .headers()
             .get(RENDERED_AT)?
             .and_then(|v| v.parse().ok());
         if cached.status_code() == 200
-            && let Some(age) = rendered.and_then(|t| cache_age(t, now))
             && let Ok(bytes) = bounded_body(&mut cached, 65_536).await
             && let Ok(svg) = String::from_utf8(bytes)
         {
-            let mut response = reply(200, svg, Some(age.min(remaining)), head)?;
-            response.headers_mut().set("x-synthetic-cache", "HIT")?;
-            return Ok(response);
+            let now = Date::now().as_millis();
+            if now < start || now >= end {
+                return reply(410, "Synthetic trial inactive".into(), None, head);
+            }
+            if let Some(age) = rendered.and_then(|t| cache_age(t, now)) {
+                let remaining = (end - now) / 1_000;
+                let mut response = reply(200, svg, Some(age.min(remaining)), head)?;
+                response.headers_mut().set("x-synthetic-cache", "HIT")?;
+                return Ok(response);
+            }
         }
     }
     let svg = render()?;
+    let now = Date::now().as_millis();
+    if now < start || now >= end {
+        return reply(410, "Synthetic trial inactive".into(), None, head);
+    }
+    let remaining = (end - now) / 1_000;
     let mut stored = reply(200, svg.clone(), Some(300.min(remaining)), false)?;
     stored.headers_mut().set(RENDERED_AT, &now.to_string())?;
     context.wait_until(async move {
