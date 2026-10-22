@@ -5,6 +5,8 @@ use std::fmt;
 
 mod validation;
 use validation::{Badge, grade_colour, number, parse, validate};
+mod mcprush;
+pub use mcprush::restyle as restyle_mcprush_card;
 
 const IVORY: &str = "#FFFFF0";
 const PLATINUM: &str = "#E5E4E2";
@@ -94,6 +96,15 @@ fn escaped(output: &mut String, text: &str) {
 }
 
 fn write_node(output: &mut String, node: Node<'_, '_>, fill: Option<&str>) {
+    write_painted_node(output, node, fill, None);
+}
+
+fn write_painted_node(
+    output: &mut String,
+    node: Node<'_, '_>,
+    fill: Option<&str>,
+    stroke: Option<&str>,
+) {
     let name = node.tag_name().name();
     output.push('<');
     output.push_str(name);
@@ -105,6 +116,8 @@ fn write_node(output: &mut String, node: Node<'_, '_>, fill: Option<&str>) {
             output,
             if attribute.name() == "fill" {
                 fill.unwrap_or(attribute.value())
+            } else if attribute.name() == "stroke" {
+                stroke.unwrap_or(attribute.value())
             } else {
                 attribute.value()
             },
