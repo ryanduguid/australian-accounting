@@ -18,9 +18,13 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 ![ato-benchmark-compare](assets/banner.svg)
 
+<div align="center">
+
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.99-66023C?logo=rust&logoColor=E5E4E2&labelColor=000000&style=flat&color=66023C)](https://www.rust-lang.org/)
+
+</div>
 
 ATO Benchmark Compare 1.0.0 is a standalone Rust binary, command `ato-benchmark-compare`.
 It replaces the Python `ato-benchmark-compare` 0.2.2 package and its `atobenchmark` import API.

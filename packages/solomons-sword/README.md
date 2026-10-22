@@ -8,10 +8,14 @@ to software issues reproduced with fabricated data. Do not send taxpayer
 information or request advice, return preparation, tax-treatment confirmation or
 lodgement.
 
+<div align="center">
+
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![Rust](https://img.shields.io/badge/Rust-1.99-66023C?logo=rust&logoColor=E5E4E2&labelColor=000000&style=flat&color=66023C)](https://www.rust-lang.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat&color=66023C)](https://www.apache.org/licenses/LICENSE-2.0)
 [![ITAA 1936](https://img.shields.io/badge/Legislation-ITAA%201936%20Division%206-66023C?labelColor=000000&style=flat&color=66023C)](https://www.legislation.gov.au/C1936A00027/latest/text)
+
+</div>
 
 **Trust distribution allocation, Section 100A / 99B risk evaluation, and Division 6 ITAA 1936 review helpers for Australian trusts.**
 
