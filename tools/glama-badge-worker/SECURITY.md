@@ -23,3 +23,12 @@ its versioned cache keys; a cache write uses validated, transformed SVG. A publi
 canary must verify hostname and namespace isolation as well as actual reuse.
 The freshness window starts when the Worker successfully acquires and transforms
 the response; it does not attest when Glama generated its underlying scores.
+
+The `synthetic-trial` Cargo feature compiles out the live handler. Its only
+successful route renders a captured fixture with a visible test label. It has no
+upstream fetch path. A required runtime window of at most 1 hour bounds admission
+to successful responses, including cache hits. Inactive trials and deliberate
+failures use `no-store`. Separate build output, service name and cache keys keep
+the trial apart from live badges. This window is not an account-wide request
+limit: even rejected requests can consume Cloudflare quota. The trial needs its
+own authorised deployment and quota/admission checks.
