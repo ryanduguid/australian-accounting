@@ -61,3 +61,23 @@ upstream status and media-type failures, redirects, response size, cache reuse,
 expiry and concurrent-fetch capacity. They use loopback fixtures. Deployment,
 public HTTPS ingress, provider quotas and live end-to-end availability require
 separate validation before any README is migrated.
+
+## Offline MCPRush full card
+
+`restyle_mcprush_card` handles the observed 380 × 200 Aus Accounting MCP card.
+It retains every source glyph, position, metric, accessible label and provider
+attribution. The frame uses black and platinum, with ivory text and purple
+backgrounds behind the project name and informational values. Grade and access
+colours remain exactly as supplied. Both provider themes are supported.
+
+To restyle a fresh captured public card without making any network requests:
+
+```sh
+cargo run --locked --no-default-features --example restyle_mcprush < card.svg > flat-card.svg
+```
+
+Input is limited to 32 KiB and the observed fixed-identity SVG grammar. Unknown
+elements, references, layout changes or malformed geometry are errors. This
+offline example adds no HTTP route and does not change either Glama server.
+The live README still uses the native card until a separately checked hosting
+adapter is ready. Keep its existing MCPRush listing link when migrating it.
