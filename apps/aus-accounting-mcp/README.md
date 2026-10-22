@@ -8,10 +8,14 @@ release provides ten through calculators 0.1.8. See the
 package checks. The annual Medicare worksheet does not apply Medicare
 adjustments to payroll withholding.
 
+<div align="center">
+
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
 [![PyPI](https://img.shields.io/pypi/v/aus-accounting-mcp.svg?color=66023C&labelColor=000000&style=flat)](https://pypi.org/project/aus-accounting-mcp/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat&color=66023C)](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE)
 [![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-66023C?logo=python&logoColor=E5E4E2&labelColor=000000&style=flat&color=66023C)](https://www.python.org/downloads/)
+
+</div>
 
 Australian accounting tools for Claude, Cursor, Codex and other MCP clients. The
 server runs on your machine over stdio, needs no API key or account, and makes no
