@@ -476,4 +476,74 @@ mod tests {
             day(2027, 3, 1)
         );
     }
+
+    fn bundled_calendar() -> crate::calendar::BusinessCalendar {
+        crate::calendar::load_calendar(None).unwrap()
+    }
+
+    /// ATO 'Payment deadlines for Payday Super', Example 1, second QE day:
+    /// a 30 July 2026 payday is due 11 August 2026 (7 business days). The ATO
+    /// notes both Example 1 periods 'include an additional day because the
+    /// Picnic Day holiday in the Northern Territory is not counted as a
+    /// business day'. Picnic Day, Monday 3 August 2026, applies to the whole
+    /// of the NT (Public Holidays Act 1981 (NT)), so SGAA 1992 s 6(1) stops
+    /// the clock on it.
+    #[test]
+    fn ato_example_1_a_30_july_2026_payday_is_due_11_august_2026() {
+        let cal = bundled_calendar();
+        assert!(!cal.is_business_day(day(2026, 8, 3)));
+        let payday = ContribLine {
+            qe_day: day(2026, 7, 30),
+            ..line()
+        };
+        let dl = compute_due(&payday, &cal).unwrap();
+        assert_eq!(dl.due, Some(day(2026, 8, 11)));
+        assert_eq!(dl.pathway, USUAL_7BD);
+    }
+
+    /// Example 1, first QE day: a first eligible contribution on 9 July 2026
+    /// is due 7 August 2026 (20 business days, s 18C(2) item 1), again
+    /// including the additional Picnic Day.
+    #[test]
+    fn ato_example_1_a_first_contribution_9_july_2026_is_due_7_august_2026() {
+        let cal = bundled_calendar();
+        let first = ContribLine {
+            qe_day: day(2026, 7, 9),
+            first_to_fund: true,
+            ..line()
+        };
+        let dl = compute_due(&first, &cal).unwrap();
+        assert_eq!(dl.due, Some(day(2026, 8, 7)));
+        assert_eq!(dl.pathway, EXTENDED_20BD);
+    }
+
+    /// Control for the two cases above: with the NT Picnic Day entry removed
+    /// through the same override path `--holidays-override` uses, 3 August
+    /// 2026 is a business day and the same 7-business-day window from
+    /// 30 July 2026 falls on 10 August 2026. The extra day in the bundled
+    /// answer comes from the holiday, not the arithmetic.
+    #[test]
+    fn without_picnic_day_the_same_30_july_window_falls_on_10_august_2026() {
+        let bundled = bundled_calendar();
+        let doc = crate::raw::Raw::from_json(
+            &crate::pyjson::loads("{\"remove\": [\"2026-08-03\"]}").unwrap(),
+        );
+        let mut holidays: Vec<crate::calendar::Holiday> = bundled.holidays().cloned().collect();
+        let mut declared_until = None;
+        crate::calendar::apply_override(&mut holidays, &mut declared_until, &doc, "test override")
+            .unwrap();
+        let cal = crate::calendar::BusinessCalendar::new(
+            holidays,
+            bundled.verified_from,
+            bundled.verified_until,
+            declared_until,
+        );
+        assert!(cal.is_business_day(day(2026, 8, 3)));
+        let payday = ContribLine {
+            qe_day: day(2026, 7, 30),
+            ..line()
+        };
+        let dl = compute_due(&payday, &cal).unwrap();
+        assert_eq!(dl.due, Some(day(2026, 8, 10)));
+    }
 }
