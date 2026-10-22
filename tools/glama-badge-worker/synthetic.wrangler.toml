@@ -1,0 +1,20 @@
+# Trial service only. Override the name for an authorised run; never use the live service name.
+name = "flat-glama-synthetic"
+main = "build-synthetic/worker/shim.mjs"
+compatibility_date = "2026-07-30"
+workers_dev = true
+preview_urls = false
+
+[build]
+command = "worker-build --release --out-dir build-synthetic -- --features synthetic-trial"
+
+[vars]
+# Missing, invalid, future, expired or longer than 1 hour: HTTP 410, no-store.
+SYNTHETIC_START_MS = "0"
+SYNTHETIC_END_MS = "0"
+
+[limits]
+cpu_ms = 10
+
+[observability]
+enabled = false
