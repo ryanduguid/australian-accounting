@@ -20,3 +20,8 @@ capability. Do not add confidential identities to the allowlist.
 
 Use the repository's private vulnerability reporting process for suspected
 security issues.
+
+The offline MCPRush example reads at most 32 KiB of source SVG from standard
+input and writes a validated restyled card to standard output. It fetches
+nothing and exposes no HTTP route. Its fixed-identity grammar rejects active
+content, foreign namespaces, external references and unsupported layouts.

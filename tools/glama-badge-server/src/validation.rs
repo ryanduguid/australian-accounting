@@ -55,7 +55,7 @@ pub(super) fn parse(input: &str) -> Result<Document<'_>> {
     Ok(document)
 }
 
-fn elements<'a, 'i>(node: Node<'a, 'i>) -> Result<Vec<Node<'a, 'i>>> {
+pub(super) fn elements<'a, 'i>(node: Node<'a, 'i>) -> Result<Vec<Node<'a, 'i>>> {
     require(
         node.children()
             .all(|child| child.is_element() || child.text().is_some_and(|t| t.trim().is_empty())),
@@ -64,7 +64,7 @@ fn elements<'a, 'i>(node: Node<'a, 'i>) -> Result<Vec<Node<'a, 'i>>> {
     Ok(node.children().filter(Node::is_element).collect())
 }
 
-fn shape(node: Node<'_, '_>, name: &str, attributes: &[&str]) -> Result<()> {
+pub(super) fn shape(node: Node<'_, '_>, name: &str, attributes: &[&str]) -> Result<()> {
     require(node.tag_name().name() == name, "Unexpected element")?;
     require(
         node.attributes().len() == attributes.len()
@@ -73,19 +73,19 @@ fn shape(node: Node<'_, '_>, name: &str, attributes: &[&str]) -> Result<()> {
     )
 }
 
-fn leaf(node: Node<'_, '_>, name: &str, attributes: &[&str]) -> Result<()> {
+pub(super) fn leaf(node: Node<'_, '_>, name: &str, attributes: &[&str]) -> Result<()> {
     shape(node, name, attributes)?;
     require(!node.has_children(), "Unexpected element children")
 }
 
-fn attribute_is(node: Node<'_, '_>, key: &str, value: &str) -> Result<()> {
+pub(super) fn attribute_is(node: Node<'_, '_>, key: &str, value: &str) -> Result<()> {
     require(
         node.attribute(key) == Some(value),
         "Unexpected attribute value",
     )
 }
 
-fn metadata(node: Node<'_, '_>, name: &str) -> Result<()> {
+pub(super) fn metadata(node: Node<'_, '_>, name: &str) -> Result<()> {
     shape(node, name, &[])?;
     require(
         node.children().all(|n| n.is_text()),
@@ -128,7 +128,7 @@ fn segment_bounded(segment: PathSegment) -> bool {
     }
 }
 
-fn path_data(node: Node<'_, '_>) -> Result<()> {
+pub(super) fn path_data(node: Node<'_, '_>) -> Result<()> {
     let data = node.attribute("d").ok_or(InvalidBadge("Missing path"))?;
     require(
         !data.is_empty()
