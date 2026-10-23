@@ -66,3 +66,9 @@ jobs:
       - run: worker-build --release
       - run: npm test
       - run: npm run dry-run
+      - run: cargo +1.99 clippy --locked --all-targets --features synthetic-trial -- -D warnings
+      - run: cargo +1.99 clippy --locked --target wasm32-unknown-unknown --lib --features synthetic-trial -- -D warnings
+      - run: cargo +1.99 test --locked --features synthetic-trial
+      - run: worker-build --release --out-dir build-synthetic -- --features synthetic-trial
+      - run: npm run test:synthetic
+      - run: npm run dry-run:synthetic
