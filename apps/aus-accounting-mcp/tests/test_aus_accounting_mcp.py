@@ -958,7 +958,23 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
         assert server["args"] == expected_args
     readme = (root / "README.md").read_text(encoding="utf-8")
     disclaimer = (root / "DISCLAIMER.md").read_text(encoding="utf-8")
-    assert "uvx aus-accounting-mcp" in readme
+    # The first code block under Install must be the exact pinned command.
+    pin = re.search(
+        r"## Install\n(?:(?!```).)*```bash\n"
+        r"uvx --from '(aus-accounting-mcp==[0-9]+\.[0-9]+\.[0-9]+)' aus-accounting-mcp\n```",
+        readme,
+        re.DOTALL,
+    )
+    assert pin is not None
+    readme_args = ["--from", pin.group(1), "aus-accounting-mcp"]
+    readme_client = re.search(r"```json\n(.*?)\n```", readme, re.DOTALL)
+    assert readme_client is not None
+    assert json.loads(readme_client.group(1))["mcpServers"]["aus-accounting"] == {
+        "command": "uvx", "args": readme_args,
+    }
+    command = f"uvx --from '{pin.group(1)}' aus-accounting-mcp"
+    assert f"claude mcp add --scope user aus-accounting -- {command}" in readme
+    assert f"codex mcp add aus-accounting -- {command}" in readme
     assert f"git+{CANONICAL_REPOSITORY}" not in readme
     cursor_link = re.search(r"https://cursor\.com/en/install-mcp\?[^)]+", readme)
     assert cursor_link is not None
@@ -966,7 +982,7 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
     assert len(cursor_config) == 1
     assert json.loads(base64.urlsafe_b64decode(cursor_config[0]).decode("utf-8")) == {
         "command": "uvx",
-        "args": expected_args,
+        "args": readme_args,
     }
     assert "<!-- mcp-name: io.github.ryanduguid/aus-accounting -->" in readme
     assert "DISCLAIMER.md" in readme
