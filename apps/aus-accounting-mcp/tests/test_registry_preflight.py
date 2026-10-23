@@ -29,6 +29,11 @@ SDIST = "aus_accounting_mcp-9.9.9.tar.gz"
 PYPROJECT = (
     f'[build-system]\nrequires = ["x"]\n\n[project]\nname = "{NAME}"\nversion = "{VERSION}"\n'
 )
+README = (
+    f"Release `{NAME}==0.1.0` added worksheets.\n\n"
+    f"uvx --from '{NAME}=={VERSION}' {NAME}\n"
+    f'"args": ["--from", "{NAME}=={VERSION}", "{NAME}"]\n'
+)
 
 
 def server(**overrides: object) -> dict[str, object]:
@@ -112,6 +117,7 @@ class FakePyPI:
 
 def write_tree(tmp_path: Path, document: dict[str, object] | None = None) -> Path:
     (tmp_path / "pyproject.toml").write_text(PYPROJECT, encoding="utf-8")
+    (tmp_path / "README.md").write_text(README, encoding="utf-8")
     (tmp_path / "server.json").write_text(
         json.dumps(document if document is not None else server()), encoding="utf-8"
     )
@@ -163,6 +169,25 @@ def test_identity_and_version_mismatches_fail(
     root = write_tree(tmp_path, document)
     pypi = FakePyPI()
     with pytest.raises(preflight.PreflightError, match=message):
+        preflight.run(root, pypi)
+    assert pypi.urls == []
+
+
+@pytest.mark.parametrize(
+    "readme, pins",
+    [
+        (README.replace(f"{NAME}=={VERSION}'", f"{NAME}==9.9.8'"), "['9.9.8', '9.9.9']"),
+        (README.replace(VERSION, "9.9.8"), "['9.9.8']"),
+        (f"Release `{NAME}=={VERSION}` only.\n", "[]"),
+    ],
+)
+def test_readme_install_pins_must_select_the_published_version(
+    tmp_path: Path, readme: str, pins: str
+) -> None:
+    root = write_tree(tmp_path)
+    (root / "README.md").write_text(readme, encoding="utf-8")
+    pypi = FakePyPI()
+    with pytest.raises(preflight.PreflightError, match=re.escape(f"README install pins {pins}")):
         preflight.run(root, pypi)
     assert pypi.urls == []
 
