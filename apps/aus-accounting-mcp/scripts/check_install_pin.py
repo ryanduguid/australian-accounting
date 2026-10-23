@@ -28,7 +28,7 @@ def install_version(readme: str) -> str:
 def check_install_pin(readme: str, repository: Path) -> str:
     version = install_version(readme)
     tag = f"{NAME}/v{version}"
-    manifest = subprocess.run(
+    manifest = subprocess.run(  # nosec B607 - fixed git program, no shell
         ["git", "show", f"{tag}:apps/{NAME}/pyproject.toml"],
         cwd=repository,
         check=True,
