@@ -66,16 +66,8 @@ folders you configure. They do not contact the ATO or the Federal Register, chan
 records or lodge. Your MCP host still sends tool arguments and results to its model
 provider, so use fabricated data with a hosted model.
 
-To upgrade, replace `0.6.0` in your client configuration with the published release
-you intend to use. From a repository checkout, fetch the release tags with
-`git fetch --tags`, then check this README's install pin against its tagged manifest:
-
-```bash
-uv run --locked python scripts/check_install_pin.py
-```
-
-Run that check from `apps/aus-accounting-mcp/`. It reads local tags and does not
-query PyPI; confirm the selected release is published on PyPI before changing the pin.
+To upgrade, replace the version in your client configuration with a later release
+published on PyPI.
 
 ## Client integration
 

@@ -958,8 +958,12 @@ def test_client_snippets_use_uvx_from_pypi() -> None:
         assert server["args"] == expected_args
     readme = (root / "README.md").read_text(encoding="utf-8")
     disclaimer = (root / "DISCLAIMER.md").read_text(encoding="utf-8")
+    # The first code block under Install must be the exact pinned command.
     pin = re.search(
-        r"uvx --from '(aus-accounting-mcp==[0-9]+\.[0-9]+\.[0-9]+)' aus-accounting-mcp", readme
+        r"## Install\n(?:(?!```).)*```bash\n"
+        r"uvx --from '(aus-accounting-mcp==[0-9]+\.[0-9]+\.[0-9]+)' aus-accounting-mcp\n```",
+        readme,
+        re.DOTALL,
     )
     assert pin is not None
     readme_args = ["--from", pin.group(1), "aus-accounting-mcp"]
