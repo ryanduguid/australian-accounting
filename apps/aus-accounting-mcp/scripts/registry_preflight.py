@@ -8,7 +8,8 @@ distribution, its README must carry the registry's ``mcp-name`` ownership
 marker, and PyPI's provenance record for both files must name this
 repository's own release workflow and trusted-publisher environment. It also
 binds ``server.json`` to ``pyproject.toml`` so the registry can never name a
-version the source tree does not.
+version the source tree does not, and requires every quoted README install pin
+to select that version, because the README is also the PyPI description.
 
 Run from ``apps/aus-accounting-mcp``. Exit 0 prints the checks it made; any
 failure exits 1 and names the first mismatch.
@@ -78,6 +79,13 @@ def registry_package(server: dict[str, object], name: str, version: str) -> tupl
             f"server.json package version {package.get('version')!r} != {version!r}"
         )
     return identifier, version
+
+
+def readme_pins(readme: str, name: str, version: str) -> None:
+    """Quoted install pins must all select the version being published."""
+    pins = set(re.findall(rf"""['"]{re.escape(name)}==([^'"]+)['"]""", readme))
+    if pins != {version}:
+        raise PreflightError(f"README install pins {sorted(pins)} != pyproject {version!r}")
 
 
 def _files(release: dict[str, object]) -> tuple[str, str]:
@@ -221,13 +229,15 @@ def run(
     if not isinstance(server, dict):
         raise PreflightError("server.json is not an object")
     identifier, version = registry_package(server, name, version)
+    readme_pins((root / "README.md").read_text(encoding="utf-8"), name, version)
     wheel, sdist = verify_pypi(fetch_json, identifier, version)
     for filename in (wheel, sdist):
         verify_provenance(fetch_json, identifier, version, filename)
     published = verify_readback(fetch_json, server, name, version) if readback else []
     digest = hashlib.sha256(server_bytes).hexdigest()
     return [
-        f"server.json names {SERVER_NAME} -> PyPI {identifier} {version}, matching pyproject.toml",
+        f"server.json names {SERVER_NAME} -> PyPI {identifier} {version}, "
+        "matching pyproject.toml and README",
         f"PyPI holds {wheel} and {sdist} with the mcp-name marker",
         f"provenance for both files names {REPOSITORY} {RELEASE_WORKFLOW} ({PYPI_ENVIRONMENT})",
         *published,
