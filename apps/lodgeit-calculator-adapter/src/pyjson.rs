@@ -150,7 +150,7 @@ pub enum DecodeError {
     /// The `object_pairs_hook` found a repeated member.
     Duplicate,
     /// `RecursionError`: the C stack ran low while decoding a JSON "array"
-    /// or "object", or in the "call" reading a constant; [`recursion_message`]
+    /// or "object", or in the "call" or Python "hook" reading a constant; [`recursion_message`]
     /// gives its text.
     Recursion(&'static str),
     /// A `ValueError` raised by a parse hook, with its message.
@@ -180,6 +180,15 @@ const CALL_DEPTH: Option<usize> = Some(544);
 #[cfg(not(windows))]
 const CALL_DEPTH: Option<usize> = None;
 
+/// `Text`'s `parse_constant`, the client's Python function, checks the stack
+/// this much deeper on entry: measured with `parse_float` and `parse_int` as
+/// `str`, which add nothing, it fails 5 levels early on Windows, as the
+/// default does, and 2 on Linux whatever the stack's start.
+#[cfg(windows)]
+const HOOK_DEPTH: usize = 544;
+#[cfg(not(windows))]
+const HOOK_DEPTH: usize = 128;
+
 /// An absolute stack limit, moved by `LODGEIT_ADAPTER_STACK_SHIFT` bytes in
 /// the differential build: the harness's stand-in for where Linux's stack
 /// starts, which moves every absolute limit together.
@@ -204,8 +213,11 @@ fn level_cost(array: bool) -> usize {
 }
 
 /// `str()` of the `RecursionError` for a JSON "array" or "object", or the
-/// "call" of `parse_constant`.
+/// "call" of `parse_constant`, or the entry to `Text`'s Python "hook".
 pub fn recursion_message(kind: &str) -> String {
+    if kind == "hook" {
+        return format!("Stack overflow (used {} kB)", STACK.3);
+    }
     if kind == "call" {
         return format!(
             "Stack overflow (used {} kB) while calling a Python object",
@@ -260,10 +272,11 @@ pub fn loads_numbers(text: &str, numbers: Numbers) -> Result<Json, DecodeError> 
 /// The C scanner over the text's UTF-8 bytes: its syntax is ASCII, and string
 /// content is copied a run at a time.
 fn decode(text: &str, reject_duplicates: bool, numbers: Numbers) -> Result<Json, DecodeError> {
-    // shortcut: the call check is measured for the default `parse_constant`
-    // only; `Text`'s Python hook is measured with the client (gate B2).
     let constant = |name: &str, value: f64, used: usize| {
         if numbers == Numbers::Text {
+            if used + HOOK_DEPTH > shifted(STACK.2) {
+                return Err(DecodeError::Recursion("hook"));
+            }
             Err(DecodeError::Hook(format!(
                 "response contains the JSON-invalid constant {name}"
             )))
@@ -975,6 +988,47 @@ mod tests {
                 let constant = |n: usize| chain(&"[".repeat(n), "NaN", &"]".repeat(n));
                 assert!(loads(&constant(13_857)).is_ok());
                 assert_eq!(err(&constant(13_858)), DecodeError::Recursion("call"));
+            })
+            .expect("spawn")
+            .join()
+            .expect("no panic");
+    }
+
+    /// The client's hooks, measured with CPython 3.15: `str` for numbers adds
+    /// nothing, and its Python `parse_constant` is refused 5 levels short of
+    /// the arrays' limit on Windows (13,862) and 2 short on Linux, with the
+    /// bare message.
+    #[test]
+    fn the_client_constant_hook_is_refused_short_of_the_limit() {
+        let (arrays, short) = if cfg!(windows) {
+            (13_862, 5)
+        } else {
+            (65_198, 2)
+        };
+        std::thread::Builder::new()
+            .stack_size(512 << 20)
+            .spawn(move || {
+                let chain = |n: usize, inner: &str| "[".repeat(n) + inner + &"]".repeat(n);
+                let text = |text: String| loads_numbers(&text, Numbers::Text);
+                assert!(text(chain(arrays, "")).is_ok());
+                assert_eq!(
+                    text(chain(arrays + 1, "")),
+                    Err(DecodeError::Recursion("array"))
+                );
+                assert!(text(chain(arrays - 1, "1.5")).is_ok());
+                let refused = Err(DecodeError::Hook(
+                    "response contains the JSON-invalid constant NaN".into(),
+                ));
+                assert_eq!(text(chain(arrays - short, "NaN")), refused);
+                assert_eq!(
+                    text(chain(arrays - short + 1, "NaN")),
+                    Err(DecodeError::Recursion("hook"))
+                );
+                let used = if cfg!(windows) { 1952 } else { 8156 };
+                assert_eq!(
+                    recursion_message("hook"),
+                    format!("Stack overflow (used {used} kB)")
+                );
             })
             .expect("spawn")
             .join()

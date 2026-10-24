@@ -269,7 +269,6 @@ pub(crate) fn key_error(key: &str) -> Exc {
     Exc::msg("KeyError", &py::repr_str(key))
 }
 
-#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn os_exc(error: &OsError) -> Exc {
     Exc::msg(error.class(), &error.text)
 }

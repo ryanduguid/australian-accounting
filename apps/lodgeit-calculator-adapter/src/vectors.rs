@@ -135,6 +135,44 @@ fn run_case(case: &Json) -> R<Json> {
             let c = loaded()?;
             Json::str(&repr(c.calculator(&pts(&text(field("calc"))))?))
         }
+        "remote" => {
+            // The CLI over real sockets to the harness's loopback server,
+            // with the case's environment and each backoff recorded, not slept.
+            let env: Vec<(String, String)> = match field("env") {
+                Json::Object(pairs) => pairs
+                    .iter()
+                    .map(|(k, v)| (k.as_str().unwrap_or_default().to_owned(), text(v)))
+                    .collect(),
+                _ => Vec::new(),
+            };
+            let lookup = |name: &str| env.iter().find(|(k, _)| k == name).map(|(_, v)| v.clone());
+            let argv: Vec<String> = match field("argv") {
+                Json::Array(items) => items.iter().map(text).collect(),
+                _ => Vec::new(),
+            };
+            let mut sleeps = Vec::new();
+            let mut sleep = |seconds: f64| {
+                sleeps.push(Json::str(&crate::py::float_repr(seconds)));
+                Ok(())
+            };
+            let (mut stdout, mut stderr) = (Vec::new(), Vec::new());
+            let code = crate::cli::run_io(
+                &argv,
+                &mut stdout,
+                &mut stderr,
+                &mut crate::cli::Io {
+                    env: &lookup,
+                    dial: &mut crate::dial::Net,
+                    sleep: &mut sleep,
+                },
+            );
+            Json::Array(vec![
+                Json::Int(code.into()),
+                Json::str(&recorded(&stdout, 65536)),
+                Json::str(&recorded(&collapsed(&stderr), 1 << 20)),
+                Json::Array(sleeps),
+            ])
+        }
         "cli" => {
             // Each file is hex bytes, or null for a directory; all are
             // relative to the working directory and removed afterwards.
@@ -370,6 +408,7 @@ fn transport_case(case: &Json) -> R<Json> {
     let mut sleeps = Vec::new();
     let result = request(&config, &mut script, &call, &mut |seconds| {
         sleeps.push(Json::str(&crate::py::float_repr(seconds)));
+        Ok(())
     });
     let result = match result {
         Ok(raw) => Json::obj([(
@@ -475,6 +514,7 @@ pub fn run(input: impl BufRead, mut output: impl Write) -> std::io::Result<()> {
             .filter_map(char::from_u32)
             .collect();
         writeln!(output, "{line}")?;
+        output.flush()?;
     }
     Ok(())
 }

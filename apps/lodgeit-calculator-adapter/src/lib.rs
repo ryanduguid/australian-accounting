@@ -4,6 +4,7 @@
 pub mod argparse;
 pub mod argtheme;
 pub mod cli;
+pub mod client;
 pub mod config;
 pub mod contract;
 pub mod decimal;

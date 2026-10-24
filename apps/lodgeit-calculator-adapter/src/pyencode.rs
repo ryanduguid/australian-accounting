@@ -47,6 +47,20 @@ impl Options {
         key_separator: ": ",
         budget: CONTRACT_BUDGET,
     };
+    /// The outcome `discover`, `drift` and `invoke` print: as `contract`'s,
+    /// with `default=str`.
+    pub const PRINTED: Options = Options {
+        default_str: true,
+        ..Options::INDENTED
+    };
+    /// `evidence.write`: `indent=2, ensure_ascii=False, allow_nan=False`.
+    // shortcut: the budget is the indented one `contract` measured; the
+    // write's own call site was not measured (its records rarely nest).
+    pub const EVIDENCE: Options = Options {
+        ensure_ascii: false,
+        allow_nan: false,
+        ..Options::INDENTED
+    };
 
     /// The C stack a nested list or dict holds while the encoder works inside
     /// it ([`COSTS`]). A container's check counts its ancestors' costs and not

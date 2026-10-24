@@ -18,7 +18,7 @@ use std::io;
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::time::Duration;
 
-use crate::pyops::Exc;
+use crate::pyops::{Exc, R};
 use crate::transport::{Connection, Dial, Raised};
 
 /// The dialler for real connections.
@@ -80,19 +80,11 @@ impl Dial for Net {
 /// timeout makes non-blocking; an overflow is an `OverflowError`, which
 /// nothing catches.
 pub(crate) fn socket_timeout(seconds: f64) -> io::Result<Duration> {
-    if seconds.is_nan() {
-        return Err(io::Error::other("Invalid value NaN (not a number)"));
-    }
     let overflow = |message: &str| io::Error::other(Raised(Exc::msg("OverflowError", message)));
-    let scaled = seconds * 1e9;
-    let nanoseconds = if scaled < 0.0 {
-        scaled.floor()
-    } else {
-        scaled.ceil()
-    };
-    if !(-9_223_372_036_854_775_808.0..9_223_372_036_854_775_808.0).contains(&nanoseconds) {
-        return Err(overflow("timestamp out of range for C PyTime_t"));
-    }
+    let nanoseconds = pytime(seconds).map_err(|exc| match exc.class {
+        "OverflowError" => io::Error::other(Raised(exc)),
+        _ => io::Error::other(crate::pyvalue::points_lossy(&exc.text)),
+    })?;
     if nanoseconds < 0.0 {
         return Err(io::Error::other("Timeout value out of range"));
     }
@@ -103,6 +95,40 @@ pub(crate) fn socket_timeout(seconds: f64) -> io::Result<Duration> {
         return Err(io::ErrorKind::WouldBlock.into());
     }
     Ok(Duration::from_nanos(nanoseconds as u64))
+}
+
+/// CPython's seconds-to-`PyTime_t` conversion with `_PyTime_ROUND_TIMEOUT`:
+/// whole nanoseconds rounded away from zero, or its `ValueError` for NaN and
+/// `OverflowError` past the clock type.
+fn pytime(seconds: f64) -> R<f64> {
+    if seconds.is_nan() {
+        return Err(Exc::msg("ValueError", "Invalid value NaN (not a number)"));
+    }
+    let scaled = seconds * 1e9;
+    let nanoseconds = if scaled < 0.0 {
+        scaled.floor()
+    } else {
+        scaled.ceil()
+    };
+    if !(-9_223_372_036_854_775_808.0..9_223_372_036_854_775_808.0).contains(&nanoseconds) {
+        return Err(Exc::msg(
+            "OverflowError",
+            "timestamp out of range for C PyTime_t",
+        ));
+    }
+    Ok(nanoseconds)
+}
+
+/// `time.sleep(seconds)`, the transport's backoff. Measured with CPython
+/// 3.15: Linux also refuses, with `EINVAL`, a sleep whose deadline overflows
+/// the monotonic clock (about 292 years); this sleeps instead.
+pub fn sleep(seconds: f64) -> R<()> {
+    let nanoseconds = pytime(seconds)?;
+    if nanoseconds < 0.0 {
+        return Err(Exc::msg("ValueError", "sleep length must be non-negative"));
+    }
+    std::thread::sleep(Duration::from_nanos(nanoseconds as u64));
+    Ok(())
 }
 
 #[cfg(test)]
@@ -122,6 +148,32 @@ mod tests {
                 .filter_map(|&cp| char::from_u32(cp))
                 .collect(),
         )
+    }
+
+    #[test]
+    fn sleep_refuses_what_time_sleep_refuses() {
+        // Measured with CPython 3.15's time.sleep on Windows and Linux.
+        let refused = |seconds: f64| {
+            sleep(seconds)
+                .err()
+                .map(|e| (e.class, crate::pyvalue::points_lossy(&e.text)))
+        };
+        let pytime = Some((
+            "OverflowError",
+            "timestamp out of range for C PyTime_t".to_owned(),
+        ));
+        assert_eq!(refused(f64::INFINITY), pytime);
+        assert_eq!(refused(-9.3e9), pytime);
+        assert_eq!(
+            refused(f64::NAN),
+            Some(("ValueError", "Invalid value NaN (not a number)".to_owned()))
+        );
+        let negative = Some(("ValueError", "sleep length must be non-negative".to_owned()));
+        assert_eq!(refused(-1e-300), negative);
+        assert_eq!(refused(-1.0), negative);
+        for slept in [0.0, -0.0, 5e-324] {
+            assert_eq!(refused(slept), None);
+        }
     }
 
     #[test]

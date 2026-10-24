@@ -156,7 +156,7 @@ pub fn request(
     config: &dyn RequestConfig,
     dial: &mut dyn Dial,
     call: &Call,
-    sleep: &mut dyn FnMut(f64),
+    sleep: &mut dyn FnMut(f64) -> R<()>,
 ) -> R<RawResponse> {
     config.require_enabled()?;
     config.check_url(call.url)?;
@@ -211,7 +211,7 @@ pub fn request(
                 }
             }
         }
-        sleep(config.retry_backoff_seconds() * f64::from(attempt));
+        sleep(config.retry_backoff_seconds() * f64::from(attempt))?;
     }
     let Some((kind, status, attempt)) = last else {
         return Err(Exc::msg(
@@ -991,7 +991,7 @@ mod tests {
             retry_safe: true,
             bearer_token: None,
         };
-        let result = request(&config, &mut dial, &call, &mut |_| {});
+        let result = request(&config, &mut dial, &call, &mut |_| Ok(()));
         (result, sent.take())
     }
 
@@ -1055,7 +1055,10 @@ mod tests {
                 bearer_token: None,
             };
             let mut sleeps = 0;
-            let result = request(&config, &mut crate::dial::Net, &call, &mut |_| sleeps += 1);
+            let result = request(&config, &mut crate::dial::Net, &call, &mut |_| {
+                sleeps += 1;
+                Ok(())
+            });
             (result, sleeps)
         };
         let (result, _) = call(5.0);
