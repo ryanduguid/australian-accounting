@@ -406,9 +406,15 @@ fn transport_case(case: &Json) -> R<Json> {
         sent: Vec::new(),
     };
     let mut sleeps = Vec::new();
+    // `real_sleep` cases (non-finite backoff only) reach `time.sleep`'s errors.
+    let real = field("real_sleep").truthy();
     let result = request(&config, &mut script, &call, &mut |seconds| {
         sleeps.push(Json::str(&crate::py::float_repr(seconds)));
-        Ok(())
+        if real {
+            crate::dial::sleep(seconds)
+        } else {
+            Ok(())
+        }
     });
     let result = match result {
         Ok(raw) => Json::obj([(

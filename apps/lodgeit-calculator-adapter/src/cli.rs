@@ -101,18 +101,47 @@ pub fn build_parser() -> Parser {
 
 /// Text-mode stdout: `surrogateescape`, and on Windows each `\n` written as
 /// `\r\n` before encoding, so an encoding error counts the added `\r`s.
+/// A failed write is kept for the flush at shutdown, where Python reports
+/// it; the traceback Python prints when its buffer fills first is not
+/// reproduced.
 struct Out<W> {
     w: W,
+    failed: Option<std::io::Error>,
 }
 
 impl<W: Write> Out<W> {
     fn print(&mut self, line: &[u32]) -> R<()> {
         let bytes = pyvalue::encode_print(&line_ends(line))
             .map_err(|m| Exc::msg("UnicodeEncodeError", &m))?;
-        let _ = self.w.write_all(&bytes);
-        let _ = self.w.write_all(&newlines(b"\n"));
+        if self.failed.is_none()
+            && let Err(error) = self.w.write_all(&[&bytes[..], &newlines(b"\n")].concat())
+        {
+            self.failed = Some(error);
+        }
         Ok(())
     }
+
+    /// The flush at shutdown: None, or the exit status 120 after its report.
+    fn finish(mut self, stderr: &mut dyn Write) -> Option<i32> {
+        let error = match self.failed.take() {
+            Some(error) => error,
+            None => self.w.flush().err()?,
+        };
+        Some(flush_failed(stderr, &error))
+    }
+}
+
+/// Python's report of a stdout that could not be flushed at exit, whose
+/// status then becomes 120 whatever the command returned.
+fn flush_failed(stderr: &mut dyn Write, error: &std::io::Error) -> i32 {
+    let error = OsError::new(error, None, Style::Errno);
+    let report = format!(
+        "Exception ignored while flushing sys.stdout:\n{}: {}\n",
+        error.class(),
+        error.text
+    );
+    let _ = stderr.write_all(&newlines(report.as_bytes()));
+    120
 }
 
 fn line_ends(text: &[u32]) -> S {
@@ -159,11 +188,22 @@ fn text(ns: &Namespace, key: &str) -> String {
 }
 
 pub fn main(argv: Vec<OsString>) -> i32 {
-    let args: Vec<String> = argv
+    let mut stderr = std::io::stderr();
+    // Python keeps undecodable argument bytes as surrogates and can open a
+    // path made of them; this port cannot carry them, so it refuses such an
+    // argument rather than read or write a file under another name.
+    let Some(args) = argv
         .iter()
-        .map(|a| a.to_string_lossy().into_owned())
-        .collect();
-    run_with(&args, &mut std::io::stdout().lock(), &mut std::io::stderr())
+        .map(|a| a.to_str().map(str::to_owned))
+        .collect::<Option<Vec<String>>>()
+    else {
+        eprint(
+            &mut stderr,
+            &pts("lodgeit-adapter: an argument is not valid Unicode"),
+        );
+        return 2;
+    };
+    run_with(&args, &mut std::io::stdout().lock(), &mut stderr)
 }
 
 /// What a run reaches beyond its arguments and streams: the environment,
@@ -191,22 +231,29 @@ pub fn run_io(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write, i
     let ns = match build_parser().parse(args) {
         Ok(ns) => ns,
         Err(Exit::Help(help)) => {
-            let _ = stdout.write_all(&newlines(help.as_bytes()));
-            let _ = stdout.flush();
-            return 0;
+            return match stdout
+                .write_all(&newlines(help.as_bytes()))
+                .and_then(|()| stdout.flush())
+            {
+                Ok(()) => 0,
+                Err(error) => flush_failed(stderr, &error),
+            };
         }
         Err(Exit::Error(usage)) => {
             let _ = stderr.write_all(&newlines(usage.as_bytes()));
             return 2;
         }
     };
-    let mut out = Out { w: stdout };
+    let mut out = Out {
+        w: stdout,
+        failed: None,
+    };
     let result = run(&ns, &mut out, stderr, io);
-    let _ = out.w.flush();
-    result.unwrap_or_else(|error| {
+    let code = result.unwrap_or_else(|error| {
         let _ = stderr.write_all(&newlines(error.traceback().as_bytes()));
         1
-    })
+    });
+    out.finish(stderr).unwrap_or(code)
 }
 
 fn run(
@@ -696,5 +743,29 @@ mod tests {
         );
         assert_eq!(verified, 0, "{}", String::from_utf8_lossy(&out));
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    /// A stdout that refuses every write, as `/dev/full` does.
+    struct Full;
+
+    impl Write for Full {
+        fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+            Err(std::io::Error::from_raw_os_error(28))
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn a_stdout_that_cannot_be_written_exits_120_as_pythons_flush_does() {
+        // Checked against CPython 3.15 on Linux with stdout on /dev/full.
+        for args in [["contract"], ["--help"]] {
+            let args: Vec<String> = args.iter().map(|a| a.to_string()).collect();
+            let mut stderr = Vec::new();
+            assert_eq!(run_with(&args, &mut Full, &mut stderr), 120);
+            let stderr = String::from_utf8(stderr).unwrap();
+            assert!(stderr.starts_with("Exception ignored while flushing sys.stdout:"));
+        }
     }
 }

@@ -760,6 +760,11 @@ impl<'a> Response<'a> {
             {
                 return Err(failed);
             }
+            // `int(value)` refuses more than 4,300 digits, leading zeros
+            // included (`sys.int_info.default_max_str_digits`).
+            if values.iter().any(|v| v.len() > 4300) {
+                return Err(failed);
+            }
             if values
                 .iter()
                 .any(|v| v.trim_start_matches('0') != values[0].trim_start_matches('0'))
@@ -1018,6 +1023,122 @@ mod tests {
             .filter_map(char::from_u32)
             .collect();
         assert_eq!(text, "HTTP 503 body could not be read after 2 attempt(s)");
+    }
+
+    #[test]
+    fn a_length_past_ints_digit_limit_fails_to_open() {
+        // int() takes 4,300 digits, leading zeros counted, and refuses 4,301;
+        // the refusal is a 200 that failed to open, so it is retried.
+        let reply = |digits: String| -> &'static [u8] {
+            let text = format!("HTTP/1.1 200 OK\r\nContent-Length: {digits}\r\n\r\nab");
+            Box::leak(text.into_bytes().into_boxed_slice())
+        };
+        let ok: &[u8] = b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok";
+        let at_limit = reply(format!("{}2", "0".repeat(4299)));
+        assert_eq!(run("GET", None, vec![at_limit]).0.unwrap().body, b"ab");
+        for digits in [format!("{}2", "0".repeat(4300)), "9".repeat(5000)] {
+            let (result, _) = run("GET", None, vec![reply(digits), ok]);
+            assert_eq!(result.expect("the retry succeeds").body, b"ok");
+        }
+    }
+
+    /// Bytes, then the error rustls's reader returns for a TCP close
+    /// without `close_notify`.
+    struct Truncated(io::Cursor<Vec<u8>>);
+
+    impl Read for Truncated {
+        fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+            match self.0.read(buf)? {
+                0 => Err(io::ErrorKind::UnexpectedEof.into()),
+                n => Ok(n),
+            }
+        }
+    }
+
+    impl Write for Truncated {
+        fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+            Ok(buf.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    struct Truncating(&'static [u8]);
+
+    impl Dial for Truncating {
+        fn dial(&mut self, _: &str, _: u16, _: bool, _: f64) -> io::Result<Box<dyn Connection>> {
+            Ok(Box::new(Truncated(io::Cursor::new(self.0.to_vec()))))
+        }
+    }
+
+    #[test]
+    fn a_tls_truncation_is_not_the_end_of_a_close_delimited_body() {
+        // The adapter's suppress_ragged_eofs=False makes it a read failure;
+        // `rustls::StreamOwned` reads `UnexpectedEof` for a close without
+        // `close_notify`, in the status line, the headers or the body.
+        let config = AdapterConfig {
+            enabled: true,
+            base_url: Some("http://127.0.0.1".into()),
+            allow_loopback: true,
+            max_attempts: 1.into(),
+            ..AdapterConfig::default()
+        };
+        let call = Call {
+            method: "GET",
+            url: "http://127.0.0.1/v1/rates",
+            body: None,
+            content_type: None,
+            retry_safe: true,
+            bearer_token: None,
+        };
+        let cases: [(&'static [u8], &str); 3] = [
+            (b"HTTP/1.1 2", "no response after 1 attempt(s)"),
+            // The status read before the failure stays, as in Python.
+            (
+                b"HTTP/1.1 200 OK\r\nConn",
+                "HTTP 200 body could not be read after 1 attempt(s)",
+            ),
+            (
+                b"HTTP/1.1 200 OK\r\nConnection: close\r\n\r\npartial",
+                "HTTP 200 body could not be read after 1 attempt(s)",
+            ),
+        ];
+        for (reply, expected) in cases {
+            let error =
+                request(&config, &mut Truncating(reply), &call, &mut |_| Ok(())).unwrap_err();
+            let text: String = error.text.into_iter().filter_map(char::from_u32).collect();
+            assert_eq!(text, expected);
+        }
+    }
+
+    #[test]
+    fn a_backoff_time_sleep_refuses_stops_the_retries() {
+        // time.sleep(nan) raises ValueError before the second attempt.
+        let config = AdapterConfig {
+            enabled: true,
+            base_url: Some("http://127.0.0.1".into()),
+            allow_loopback: true,
+            retry_backoff_seconds: f64::NAN,
+            ..AdapterConfig::default()
+        };
+        let sent = Rc::default();
+        let unavailable: &[u8] = b"HTTP/1.1 503 X\r\nContent-Length: 0\r\n\r\n";
+        let mut dial = Replies {
+            replies: vec![unavailable, unavailable],
+            sent: Rc::clone(&sent),
+        };
+        let call = Call {
+            method: "GET",
+            url: "http://127.0.0.1/v1/rates",
+            body: None,
+            content_type: None,
+            retry_safe: true,
+            bearer_token: None,
+        };
+        let error = request(&config, &mut dial, &call, &mut crate::dial::sleep).unwrap_err();
+        assert_eq!(error.class, "ValueError");
+        assert_eq!(dial.replies.len(), 1, "no second dial");
     }
 
     #[test]
