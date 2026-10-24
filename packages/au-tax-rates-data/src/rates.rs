@@ -1651,13 +1651,18 @@ fn exit_code(status: std::process::ExitStatus) -> i64 {
 
 /// `fetch_text(url)`.
 fn fetch_text(url: &Json) -> R<S> {
-    let (code, stdout, stderr) = run_browser(&browser_args(url))?;
+    fetch_text_with(&browser_command(), url)
+}
+
+/// [`fetch_text`] with the browser command as a parameter, which tests fake.
+fn fetch_text_with(browser: &[String], url: &Json) -> R<S> {
+    let (code, stdout, stderr) = run_browser(&browser_args(browser, url))?;
     read_output(code, stdout.as_deref(), stderr.as_deref())
 }
 
 /// The command `fetch_text` runs for `url`.
-fn browser_args(url: &Json) -> Vec<Json> {
-    let mut command: Vec<Json> = browser_command().iter().map(|a| Json::str(a)).collect();
+fn browser_args(browser: &[String], url: &Json) -> Vec<Json> {
+    let mut command: Vec<Json> = browser.iter().map(|a| Json::str(a)).collect();
     command.extend([
         Json::str("text"),
         url.clone(),
@@ -1730,11 +1735,15 @@ fn read_output(code: i64, stdout: Option<&str>, stderr: Option<&str>) -> R<S> {
 
 type Page = Result<S, Exc>;
 
-/// `fetch_all(urls)`, pausing 2 seconds after each page.
-fn fetch_all(urls: &[Json]) -> R<Vec<(Json, Page)>> {
-    fetch_all_with(urls, fetch_text, env("RATES_NO_SLEEP").is_none())
+/// What the commands reach outside the package: the browser (and the pause
+/// after each page) and the ATO's server. Tests replace them.
+struct World<'a> {
+    fetch: &'a mut dyn FnMut(&Json) -> R<S>,
+    pause: bool,
+    get: &'a mut dyn FnMut(&str, &str) -> TableResponse,
 }
 
+/// `fetch_all(urls)`, pausing 2 seconds after each page where `pause` is set.
 fn fetch_all_with(
     urls: &[Json],
     mut fetch: impl FnMut(&Json) -> R<S>,
@@ -1778,12 +1787,12 @@ fn source_urls(records: &[Json]) -> R<Vec<Json>> {
 
 // ---------------------------------------------------------------- commands
 
-fn cmd_snapshot(ctx: &Ctx, out: &mut Out<impl Write>) -> R<i32> {
+fn cmd_snapshot(ctx: &Ctx, out: &mut Out<impl Write>, world: &mut World) -> R<i32> {
     let records = load_records(ctx)?;
     let urls = source_urls(&records)?;
     pyos::mkdir(&ctx.snapshots).map_err(|e| os_exc(&e))?;
     let mut failed = 0;
-    for (url, page) in fetch_all(&urls)? {
+    for (url, page) in fetch_all_with(&urls, &mut *world.fetch, world.pause)? {
         match page {
             Err(e) => {
                 failed += 1;
@@ -2037,9 +2046,9 @@ fn local_today() -> String {
     }
 }
 
-fn cmd_check(ctx: &Ctx, out: &mut Out<impl Write>, out_dir: &str) -> R<i32> {
+fn cmd_check(ctx: &Ctx, out: &mut Out<impl Write>, out_dir: &str, world: &mut World) -> R<i32> {
     let records = load_records(ctx)?;
-    let pages = fetch_all(&source_urls(&records)?)?;
+    let pages = fetch_all_with(&source_urls(&records)?, &mut *world.fetch, world.pause)?;
     write_check(ctx, out, out_dir, &records, &pages, &local_today())
 }
 
@@ -2450,8 +2459,8 @@ fn bytes_decode_error(data: &[u8]) -> String {
     utf8(data, 0)
 }
 
-fn cmd_ato_tables(ctx: &Ctx, out: &mut Out<impl Write>) -> R<i32> {
-    ato_tables_with(out, get_table, || load_records(ctx))
+fn cmd_ato_tables(ctx: &Ctx, out: &mut Out<impl Write>, world: &mut World) -> R<i32> {
+    ato_tables_with(out, &mut *world.get, || load_records(ctx))
 }
 
 fn ato_tables_with(
@@ -2496,14 +2505,34 @@ fn build_parser(ctx: &Ctx) -> Parser {
 /// Run the command line; the result is the exit status.
 pub fn main(argv: Vec<OsString>) -> i32 {
     let ctx = Ctx::new();
+    // The binary reads the package folder it was built from (or RATES_ROOT
+    // under the differential harness). Where that folder has gone, `glob`
+    // would find no records and `validate` pass, so refuse instead.
+    if std::fs::read_dir(ctx.data.fs()).is_err() {
+        let report = format!(
+            "rates: cannot read {}; this binary reads the package folder it was built from\n",
+            ctx.data.display()
+        );
+        let _ = std::io::stderr().write_all(&newlines(report.as_bytes()));
+        return 2;
+    }
+    let world = World {
+        fetch: &mut fetch_text,
+        pause: env("RATES_NO_SLEEP").is_none(),
+        get: &mut get_table,
+    };
+    run(&ctx, &argv, world, std::io::stdout().lock())
+}
+
+/// [`main`] with the package, the outside world and stdout as parameters.
+fn run(ctx: &Ctx, argv: &[OsString], mut world: World, mut stdout: impl Write) -> i32 {
     let args: Vec<String> = argv
         .iter()
         .map(|a| a.to_string_lossy().into_owned())
         .collect();
-    let namespace = match build_parser(&ctx).parse(&args) {
+    let namespace = match build_parser(ctx).parse(&args) {
         Ok(namespace) => namespace,
         Err(Exit::Help(text)) => {
-            let mut stdout = std::io::stdout();
             return match stdout
                 .write_all(&newlines(text.as_bytes()))
                 .and_then(|()| stdout.flush())
@@ -2521,12 +2550,12 @@ pub fn main(argv: Vec<OsString>) -> i32 {
         Some(Value::Str(s)) => s.clone(),
         _ => String::new(),
     };
-    let mut out = Out::new(std::io::stdout().lock());
+    let mut out = Out::new(stdout);
     let result = match text("command").as_str() {
-        "snapshot" => cmd_snapshot(&ctx, &mut out),
-        "validate" => cmd_validate(&ctx, &mut out),
-        "check" => cmd_check(&ctx, &mut out, &text("out")),
-        _ => cmd_ato_tables(&ctx, &mut out),
+        "snapshot" => cmd_snapshot(ctx, &mut out, &mut world),
+        "validate" => cmd_validate(ctx, &mut out),
+        "check" => cmd_check(ctx, &mut out, &text("out"), &mut world),
+        _ => cmd_ato_tables(ctx, &mut out, &mut world),
     };
     let code = report(result);
     out.finish().unwrap_or(code)

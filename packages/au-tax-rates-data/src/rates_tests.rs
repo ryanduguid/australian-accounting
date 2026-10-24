@@ -1616,7 +1616,7 @@ fn the_browser_is_given_the_url_where_test_dataset_py_looked_for_it() {
     // Python's fake subprocess.run picked its reply by args[3].
     let url = Json::str("https://www.ato.gov.au/rates");
     if std::env::var_os("RATES_BROWSER").is_none() {
-        assert_eq!(browser_args(&url)[3], url);
+        assert_eq!(browser_args(&browser_command(), &url)[3], url);
     }
 }
 
@@ -1628,4 +1628,149 @@ fn check_out_names_the_report_folder() {
     };
     assert!(matches!(namespace.get("command"), Some(Value::Str(s)) if s == "check"));
     assert!(matches!(namespace.get("out"), Some(Value::Str(s)) if s == "reports"));
+}
+
+// --------------------------------------------------------- the command line
+
+/// The package with its data folder holding just these records.
+fn package(records: &[Json]) -> Ctx {
+    let folder = tmp("data");
+    for (i, record) in records.iter().enumerate() {
+        std::fs::write(folder.join(format!("record-{i}.json")), dumps(record))
+            .expect("write record");
+    }
+    let real = ctx();
+    Ctx {
+        data: PyPath::new(&folder.to_string_lossy()),
+        root: real.root,
+        snapshots: real.snapshots,
+    }
+}
+
+/// `main(args)` with the browser and the ATO's server replaced: the exit
+/// status and stdout.
+fn run_with(
+    ctx: &Ctx,
+    args: &[&str],
+    fetch: &mut dyn FnMut(&Json) -> R<S>,
+    get: &mut dyn FnMut(&str, &str) -> TableResponse,
+) -> (i32, String) {
+    let argv: Vec<OsString> = args.iter().map(OsString::from).collect();
+    let mut stdout = Vec::new();
+    let world = World {
+        fetch,
+        pause: false,
+        get,
+    };
+    let code = run(ctx, &argv, world, &mut stdout);
+    (code, String::from_utf8(stdout).expect("UTF-8 output"))
+}
+
+#[test]
+fn main_check_fetches_each_source_and_writes_its_report() {
+    let item = fabricated(&[]);
+    let url = item.at("source_url").clone();
+    let ctx = package(&[item]);
+    let folder = tmp("reports");
+    let mut fetched = Vec::new();
+    let (code, printed) = run_with(
+        &ctx,
+        &["check", "--out", &folder.to_string_lossy()],
+        &mut |u| {
+            fetched.push(u.clone());
+            Ok(s("Effective date: 31 February 2026"))
+        },
+        &mut |_, _| panic!("a table read"),
+    );
+    assert_eq!(code, 1);
+    assert_eq!(fetched, [url]);
+    assert!(printed.starts_with("1 finding(s); report at "), "{printed}");
+    assert_eq!(
+        std::fs::read_dir(&folder)
+            .expect("the report folder")
+            .count(),
+        1
+    );
+}
+
+#[test]
+fn main_ato_tables_reads_both_tables_and_keeps_escaped_pairs_apart_from_raw_surrogates() {
+    // Rates review 5, finding 1: the raw U+D800 in "note" once took U+40000
+    // as its stand-in, so the escaped U+40000 in DT_EFFECT came back as
+    // U+D800 and the row counted as in force. CPython 3.15 at 24fcf24 prints
+    // these lines and exits 1.
+    let tc2 = b"{\"note\":\"\xed\xa0\x80\",\"columns\":[{\"name\":\"DT_EFFECT\"},{\"name\":\"DT_END\"},\
+{\"name\":\"TX_DESC\"},{\"name\":\"AM_INC_MIN\"},{\"name\":\"AM_INC_MAX\"},{\"name\":\"AM_OFFSET\"},\
+{\"name\":\"PC_TAX_RATE\"}],\"rows\":[[\"\\ud8c0\\udc00\",\"\\ud900\\udc00\",\"FBT rate\",\"0\",\"0\",\"0\",\"0.47\"]]}";
+    let tc9 = dumps(&table(&TC9, &[]));
+    let fbt = ato_record(
+        "fbt",
+        "Fringe benefits tax rate",
+        "percent",
+        int(47),
+        "{\"income_year\": \"\u{FF12}\u{FF10}\u{FF12}\u{FF16}-\u{FF12}\u{FF17}\"}",
+    );
+    let mut requested = Vec::new();
+    let (code, printed) = run_with(
+        &package(&[fbt]),
+        &["ato-tables"],
+        &mut |_| panic!("a page fetched"),
+        &mut |name, _| {
+            requested.push(name.to_string());
+            Ok((
+                200,
+                if name == "TC2TAXRTE" {
+                    tc2.to_vec()
+                } else {
+                    tc9.clone()
+                },
+            ))
+        },
+    );
+    assert_eq!(code, 1);
+    assert_eq!(requested, ["TC2TAXRTE", "TC9GENTAC"]);
+    let want = "fbt: cannot read TC2TAXRTE {'TX_DESC': 'FBT rate'}: no row in force on \u{FF12}\u{FF10}\u{FF12}\u{FF16}-07-01\n\
+1 record(s) compared, 1 finding(s). Not in the ATO tables: none\n";
+    assert_eq!(printed, want.replace('\n', nl()));
+}
+
+#[test]
+fn main_help_is_written_to_its_stdout() {
+    let (code, printed) = run_with(
+        &ctx(),
+        &["--help"],
+        &mut |_| panic!("a page fetched"),
+        &mut |_, _| panic!("a table read"),
+    );
+    assert_eq!(code, 0);
+    assert!(printed.starts_with("usage: rates"), "{printed}");
+}
+
+#[test]
+fn an_invalid_browser_reply_fails_only_its_own_page_through_fetch_text() {
+    // Python's fake subprocess.run answered by URL; here a script does.
+    let good = browser_reply(0, "200", true, &"x".repeat(250));
+    let folder = tmp("browser");
+    let browser: Vec<String> = if cfg!(windows) {
+        let script = folder.join("browser.cmd");
+        let body = format!(
+            "@echo off\r\nif \"%2\"==\"https://www.ato.gov.au/bad\" (echo null) else (echo {good})\r\n"
+        );
+        std::fs::write(&script, body).expect("write the browser");
+        vec![script.to_string_lossy().into_owned()]
+    } else {
+        let script = folder.join("browser.sh");
+        let body = format!("case \"$2\" in *bad) echo null ;; *) echo '{good}' ;; esac\n");
+        std::fs::write(&script, body).expect("write the browser");
+        vec!["sh".into(), script.to_string_lossy().into_owned()]
+    };
+    let urls = [
+        Json::str("https://www.ato.gov.au/bad"),
+        Json::str("https://www.ato.gov.au/ok"),
+    ];
+    let pages = fetch_all_with(&urls, |url| fetch_text_with(&browser, url), false).unwrap();
+    let error = pages[0].1.as_ref().unwrap_err();
+    assert_eq!(error.class, "RuntimeError");
+    assert_eq!(st(&error.text), "the browser's reply is not a page");
+    assert_eq!(st(pages[1].1.as_ref().unwrap()), "x".repeat(250));
 }
