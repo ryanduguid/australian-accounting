@@ -315,20 +315,97 @@ fn check_bracketed_netloc(netloc: &str) -> Result<(), String> {
             Err("IPvFuture address is invalid".into())
         };
     }
-    // ipaddress.ip_address: an IPv6 address may carry a %zone; IPv4 is refused in brackets.
-    // shortcut: Rust's address grammar stands in for ipaddress's; both refuse leading-zero
-    // IPv4 octets and accept embedded IPv4 in IPv6.
-    let address = hostname.split_once('%').map_or(hostname, |(a, _)| a);
-    if address.parse::<std::net::Ipv4Addr>().is_ok() {
+    // ipaddress.ip_address tries IPv4 first, which brackets refuse.
+    if is_ipv4(hostname) {
         return Err("An IPv4 address cannot be in brackets".into());
     }
-    if address.parse::<std::net::Ipv6Addr>().is_err() {
+    if !is_ipv6(hostname) {
         return Err(format!(
             "{} does not appear to be an IPv4 or IPv6 address",
             crate::py::repr_str(hostname)
         ));
     }
     Ok(())
+}
+
+/// `ipaddress.IPv4Address(text)` accepts it: 4 dotted ASCII decimal octets
+/// of at most 3 digits, without leading zeros, each at most 255.
+fn is_ipv4(text: &str) -> bool {
+    let octets: Vec<&str> = text.split('.').collect();
+    octets.len() == 4
+        && octets.iter().all(|o| {
+            !o.is_empty()
+                && o.len() <= 3
+                && o.bytes().all(|b| b.is_ascii_digit())
+                && (*o == "0" || !o.starts_with('0'))
+                && o.parse::<u16>().is_ok_and(|n| n <= 255)
+        })
+}
+
+/// `ipaddress.IPv6Address(text)` accepts it, following `_split_scope_id` and
+/// `_ip_int_from_string`: a `%scope` must be non-empty and hold no `%`.
+fn is_ipv6(text: &str) -> bool {
+    if text.contains('/') {
+        return false;
+    }
+    let address = match text.split_once('%') {
+        Some((_, scope)) if scope.is_empty() || scope.contains('%') => return false,
+        Some((address, _)) => address,
+        None => text,
+    };
+    if address.is_empty() || address.chars().count() > 45 {
+        return false;
+    }
+    let mut parts: Vec<&str> = address.splitn(10, ':').collect();
+    if parts.len() < 3 {
+        return false;
+    }
+    if parts[parts.len() - 1].contains('.') {
+        // An IPv4 suffix stands for 2 hextets.
+        if !is_ipv4(parts.pop().expect("3 parts")) {
+            return false;
+        }
+        parts.extend(["0", "0"]);
+    }
+    let n = parts.len();
+    if n > 9 {
+        return false;
+    }
+    let mut skip = None;
+    for (i, part) in parts.iter().enumerate().take(n - 1).skip(1) {
+        if part.is_empty() {
+            if skip.is_some() {
+                return false;
+            }
+            skip = Some(i);
+        }
+    }
+    let (hi, lo) = match skip {
+        Some(at) => {
+            let (mut hi, mut lo) = (at, n - at - 1);
+            if parts[0].is_empty() {
+                hi -= 1;
+                if hi != 0 {
+                    return false;
+                }
+            }
+            if parts[n - 1].is_empty() {
+                lo -= 1;
+                if lo != 0 {
+                    return false;
+                }
+            }
+            if hi + lo >= 8 {
+                return false;
+            }
+            (hi, lo)
+        }
+        None if n != 8 || parts[0].is_empty() || parts[n - 1].is_empty() => return false,
+        None => (n, 0),
+    };
+    let hextet =
+        |h: &&str| !h.is_empty() && h.len() <= 4 && h.bytes().all(|b| b.is_ascii_hexdigit());
+    parts[..hi].iter().all(hextet) && parts[n - lo..].iter().all(hextet)
 }
 
 /// `.hostname` of a split URL: lower-cased, without user information, port or brackets.
@@ -385,6 +462,41 @@ pub fn port(netloc: &str) -> Result<Option<u32>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Expected values from CPython 3.15's `ipaddress.IPv6Address`.
+    #[test]
+    fn ipv6_addresses_are_read_as_ipaddress_reads_them() {
+        let long = format!("{}:", "0:".repeat(20));
+        for (text, valid) in [
+            ("fe80::%1%25ETH0", false),
+            ("1.2.3.4", false),
+            ("::ffff:1.2.3.4", true),
+            ("::ffff:1.2.3.04", false),
+            ("1:2:3:4:5:6:7::", true),
+            ("::1:2:3:4:5:6:7", true),
+            ("1::2::3", false),
+            (":1::", false),
+            ("1:2:3:4:5:6:7:8:9", false),
+            ("12345::", false),
+            ("::%", false),
+            ("::1/64", false),
+            ("0:0:0:0:0:0:0:0", true),
+            ("::ffff:1.2.3", false),
+            ("1:2:3:4:5:6:1.2.3.4", true),
+            ("1:2:3:4:5:6:7:1.2.3.4", false),
+            (long.as_str(), false),
+            ("\u{ff11}::", false),
+            ("::1%\u{e9}", true),
+            ("1:2:3:4:5:6:7:8::", false),
+            ("::", true),
+            (":::", false),
+            ("::1.2.3.4", true),
+            ("a:b:c:d:e:f:1:2:3:4", false),
+        ] {
+            assert_eq!(is_ipv6(text), valid, "{text}");
+        }
+        assert!(is_ipv4("1.2.3.4") && !is_ipv4("1.2.3.4%x") && !is_ipv4("01.2.3.4"));
+    }
 
     /// Expected values from CPython 3.15's urljoin.
     #[test]

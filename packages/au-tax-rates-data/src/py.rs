@@ -324,21 +324,26 @@ pub fn int_repr(i: &BigInt) -> Result<String, String> {
     Ok(text)
 }
 
-/// Unicode digits to ASCII and Unicode spaces to ' ', as `int()` and `float()` first do.
+/// Non-ASCII digits to ASCII and non-ASCII spaces to ' ', as `int()` and
+/// `float()` first do (`_PyUnicode_TransformDecimalAndSpaceToASCII`). ASCII
+/// is kept as it is, so `\x1c`-`\x1f`, which `str.isspace` accepts, stay.
 fn number_text(s: &str) -> Option<String> {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
-        if is_space(c) {
-            out.push(' ');
-        } else if let Some(d) = decimal_value(c) {
-            out.push(char::from_digit(d, 10).expect("digit"));
-        } else if c.is_ascii() {
+        if c.is_ascii() {
             out.push(c);
+        } else if is_space(c) {
+            out.push(' ');
         } else {
-            return None;
+            out.push(char::from_digit(decimal_value(c)?, 10).expect("digit"));
         }
     }
     Some(out)
+}
+
+/// `Py_ISSPACE`: the ASCII whitespace `int()` and `float()` strip.
+fn py_isspace(c: char) -> bool {
+    matches!(c, ' ' | '\t' | '\n' | '\x0b' | '\x0c' | '\r')
 }
 
 /// `int()`'s `ValueError` for a string whose `repr` is `repr`: CPython formats it
@@ -354,8 +359,7 @@ pub fn invalid_int_literal(base: u32, repr: &str) -> String {
 pub fn parse_int(s: &str, base: u32) -> Result<BigInt, String> {
     let invalid = || invalid_int_literal(base, &repr_str(s));
     let text = number_text(s).ok_or_else(invalid)?;
-    let text =
-        text.trim_matches(|c: char| c.is_ascii_whitespace() || ('\x1c'..='\x1f').contains(&c));
+    let text = text.trim_matches(py_isspace);
     let (negative, mut body) = match text.as_bytes().first() {
         Some(b'-') => (true, &text[1..]),
         Some(b'+') => (false, &text[1..]),
@@ -411,8 +415,7 @@ pub fn parse_int(s: &str, base: u32) -> Result<BigInt, String> {
 pub fn parse_float(s: &str) -> Result<f64, String> {
     let invalid = || format!("could not convert string to float: {}", repr_str(s));
     let text = number_text(s).ok_or_else(invalid)?;
-    let text =
-        text.trim_matches(|c: char| c.is_ascii_whitespace() || ('\x1c'..='\x1f').contains(&c));
+    let text = text.trim_matches(py_isspace);
     let (sign, body) = match text.as_bytes().first() {
         Some(b'-') => ("-", &text[1..]),
         Some(b'+') => ("", &text[1..]),
@@ -900,6 +903,11 @@ mod tests {
         assert_eq!(parse_int(" 1\u{0661}", 10).unwrap(), BigInt::from(11));
         assert_eq!(parse_int("0b101", 2).unwrap(), BigInt::from(5));
         assert!(parse_int("1__0", 10).is_err());
+        // Only ASCII whitespace and non-ASCII spaces are stripped: str.isspace's
+        // \x1c-\x1f are not, and \v is.
+        assert!(parse_int("1\x1c", 10).is_err() && parse_float("\x1f1").is_err());
+        assert_eq!(parse_int("\x0b1\u{85}", 10).unwrap(), BigInt::from(1));
+        assert_eq!(parse_float("\u{3000}2\x0c").unwrap(), 2.0);
         assert_eq!(parse_float("1.e+5").unwrap(), 100000.0);
         assert_eq!(parse_float("1_0.5").unwrap(), 10.5);
         assert!(parse_float("1._5").is_err());
