@@ -170,7 +170,7 @@ fn os_error(error: &io::Error) -> Failure {
 }
 
 /// `fp.readline(_MAXLINE + 1)`.
-fn read_line<R: BufRead>(reader: &mut R) -> Result<Vec<u8>, Failure> {
+pub(crate) fn read_line<R: BufRead>(reader: &mut R) -> Result<Vec<u8>, Failure> {
     let mut line = Vec::new();
     reader
         .by_ref()
@@ -204,7 +204,7 @@ fn safe_read<R: BufRead>(reader: &mut R, amt: u64) -> Result<Vec<u8>, Failure> {
     Ok(data)
 }
 
-fn latin1(bytes: &[u8]) -> String {
+pub(crate) fn latin1(bytes: &[u8]) -> String {
     bytes.iter().map(|&b| char::from(b)).collect()
 }
 
@@ -246,12 +246,16 @@ fn py_int(text: &str) -> Option<num_bigint::BigInt> {
 }
 
 /// `HTTPResponse._read_status()`: the version and status code.
-fn read_status<R: BufRead>(reader: &mut R) -> Result<(String, u16), Failure> {
-    let raw = read_line(reader)?;
+pub(crate) fn read_status<R: BufRead>(reader: &mut R) -> Result<(String, u16), Failure> {
+    status_line(&read_line(reader)?)
+}
+
+/// The version and status code from a status line already read.
+pub(crate) fn status_line(raw: &[u8]) -> Result<(String, u16), Failure> {
     if raw.len() > MAXLINE {
         return Err("got more than 65536 bytes when reading status line".into());
     }
-    let line = latin1(&raw);
+    let line = latin1(raw);
     if line.is_empty() {
         return Err("Remote end closed connection without response".into());
     }
@@ -274,10 +278,17 @@ fn read_status<R: BufRead>(reader: &mut R) -> Result<(String, u16), Failure> {
 }
 
 /// `_read_headers(fp)`: the raw lines up to the blank line or the end.
-fn read_headers<R: BufRead>(reader: &mut R) -> Result<Vec<Vec<u8>>, Failure> {
+pub(crate) fn read_headers<R: BufRead>(reader: &mut R) -> Result<Vec<Vec<u8>>, Failure> {
+    header_lines(|| read_line(reader))
+}
+
+/// `_read_headers` over any line source.
+pub(crate) fn header_lines(
+    mut next: impl FnMut() -> Result<Vec<u8>, Failure>,
+) -> Result<Vec<Vec<u8>>, Failure> {
     let mut lines = Vec::new();
     loop {
-        let line = read_line(reader)?;
+        let line = next()?;
         if line.len() > MAXLINE {
             return Err("got more than 65536 bytes when reading header line".into());
         }
@@ -340,7 +351,7 @@ fn begin<R: BufRead>(reader: &mut R) -> Result<Head, Failure> {
 
 /// `http.client.parse_headers`: the email package's compat32 parse of the
 /// header lines, reduced to the name and value of each field.
-fn parse_header_lines(raw: &[Vec<u8>]) -> Vec<(String, String)> {
+pub(crate) fn parse_header_lines(raw: &[Vec<u8>]) -> Vec<(String, String)> {
     let text = latin1(&raw.concat());
     let mut lines = Vec::new();
     let mut rest = text.as_str();

@@ -10,3 +10,4 @@ pub const NOT_ENABLED: &str = "lodgeitadapter.errors.NotEnabledError";
 pub const CONFIGURATION: &str = "lodgeitadapter.errors.ConfigurationError";
 pub const DISALLOWED_TARGET: &str = "lodgeitadapter.errors.DisallowedTargetError";
 pub const CONTRACT: &str = "lodgeitadapter.errors.ContractError";
+pub const TRANSPORT: &str = "lodgeitadapter.errors.TransportError";

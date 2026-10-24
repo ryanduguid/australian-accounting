@@ -169,8 +169,218 @@ fn run_case(case: &Json) -> R<Json> {
                 Json::str(&recorded(&collapsed(&stderr), 1 << 20)),
             ])
         }
+        "transport" => transport_case(case)?,
         other => unreachable!("unknown op {other}"),
     })
+}
+
+fn float(value: &Json) -> f64 {
+    match value {
+        Json::Float(f) => *f,
+        Json::Int(i) => i.to_string().parse().expect("a small int"),
+        _ => unreachable!("a number"),
+    }
+}
+
+fn int(value: &Json) -> num_bigint::BigInt {
+    match value {
+        Json::Int(i) => i.clone(),
+        _ => unreachable!("an int"),
+    }
+}
+
+/// One scripted connection: the reply in segments, then its end, and the
+/// byte count after which a send fails.
+struct Scripted {
+    reply: std::collections::VecDeque<Vec<u8>>,
+    end: String,
+    send_fail: Option<usize>,
+    sent: std::rc::Rc<std::cell::RefCell<Vec<u8>>>,
+}
+
+impl std::io::Read for Scripted {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        use std::io::{Error, ErrorKind};
+        let Some(segment) = self.reply.front_mut() else {
+            return match self.end.as_str() {
+                "eof" => Ok(0),
+                "reset" => Err(Error::from(ErrorKind::ConnectionReset)),
+                _ => Err(Error::from(ErrorKind::TimedOut)),
+            };
+        };
+        let n = buf.len().min(segment.len());
+        buf[..n].copy_from_slice(&segment[..n]);
+        segment.drain(..n);
+        if segment.is_empty() {
+            self.reply.pop_front();
+        }
+        Ok(n)
+    }
+}
+
+impl std::io::Write for Scripted {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let mut sent = self.sent.borrow_mut();
+        let room = self
+            .send_fail
+            .map_or(buf.len(), |limit| limit.saturating_sub(sent.len()));
+        if room == 0 && !buf.is_empty() {
+            return Err(std::io::Error::from(std::io::ErrorKind::BrokenPipe));
+        }
+        let n = buf.len().min(room);
+        sent.extend_from_slice(&buf[..n]);
+        Ok(n)
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+/// The dialler the harness scripts: each dial takes the next step, and
+/// one past the script is refused.
+struct Script {
+    steps: Vec<Json>,
+    dials: Vec<Json>,
+    sent: Vec<std::rc::Rc<std::cell::RefCell<Vec<u8>>>>,
+}
+
+impl crate::transport::Dial for Script {
+    fn dial(
+        &mut self,
+        host: &str,
+        port: u16,
+        tls: bool,
+        timeout: f64,
+    ) -> std::io::Result<Box<dyn crate::transport::Connection>> {
+        use std::io::{Error, ErrorKind};
+        self.dials.push(Json::Array(vec![
+            Json::str(host),
+            Json::Int(port.into()),
+            Json::Bool(tls),
+            Json::str(&crate::py::float_repr(timeout)),
+        ]));
+        let sent = std::rc::Rc::default();
+        self.sent.push(std::rc::Rc::clone(&sent));
+        let Some(step) = self.steps.get(self.dials.len() - 1) else {
+            return Err(Error::from(ErrorKind::ConnectionRefused));
+        };
+        let step_field = |name: &str| step.get(name).unwrap_or(&Json::Null);
+        match text(step_field("connect")).as_str() {
+            "refused" => return Err(Error::from(ErrorKind::ConnectionRefused)),
+            "timeout" => return Err(Error::from(ErrorKind::TimedOut)),
+            _ => {}
+        }
+        let reply = match step_field("reply") {
+            Json::Array(parts) => parts.iter().map(|p| unhex(&text(p))).collect(),
+            _ => Default::default(),
+        };
+        let send_fail = match step_field("send_fail") {
+            Json::Int(n) => Some(n.to_string().parse().expect("a small int")),
+            _ => None,
+        };
+        Ok(Box::new(Scripted {
+            reply,
+            end: text(step_field("end")),
+            send_fail,
+            sent,
+        }))
+    }
+}
+
+/// `transport.request` over a scripted dialler: the dials, the bytes each
+/// connection was sent, the backoff sleeps and the result.
+fn transport_case(case: &Json) -> R<Json> {
+    use crate::transport::{Call, request};
+    let field = |name: &str| case.get(name).unwrap_or(&Json::Null);
+    let c = field("config");
+    let cf = |name: &str| c.get(name).unwrap_or(&Json::Null);
+    let pairs = |value: &Json| -> Vec<(String, String)> {
+        match value {
+            Json::Array(items) => items
+                .iter()
+                .map(|pair| match pair {
+                    Json::Array(kv) => (text(&kv[0]), text(&kv[1])),
+                    _ => unreachable!("a pair"),
+                })
+                .collect(),
+            _ => Vec::new(),
+        }
+    };
+    let config = AdapterConfig {
+        enabled: cf("enabled").truthy(),
+        base_url: cf("base_url").as_str().map(str::to_owned),
+        allowed_hosts: match cf("allowed_hosts") {
+            Json::Array(hosts) => hosts.iter().map(text).collect(),
+            _ => Vec::new(),
+        },
+        allow_loopback: cf("allow_loopback").truthy(),
+        read_timeout: float(cf("read_timeout")),
+        max_response_bytes: int(cf("max_response_bytes")),
+        max_attempts: int(cf("max_attempts")),
+        retry_backoff_seconds: float(cf("retry_backoff_seconds")),
+        user_agent: text(cf("user_agent")),
+        extra_headers: pairs(cf("extra_headers")),
+    }
+    .checked()?;
+    let body = field("body").as_str().map(unhex);
+    let method = text(field("method"));
+    let url = text(field("url"));
+    let call = Call {
+        method: &method,
+        url: &url,
+        body: body.as_deref(),
+        content_type: field("content_type").as_str(),
+        retry_safe: field("retry_safe").truthy(),
+        bearer_token: field("bearer").as_str(),
+    };
+    let mut script = Script {
+        steps: match field("script") {
+            Json::Array(steps) => steps.clone(),
+            _ => Vec::new(),
+        },
+        dials: Vec::new(),
+        sent: Vec::new(),
+    };
+    let mut sleeps = Vec::new();
+    let result = request(&config, &mut script, &call, &mut |seconds| {
+        sleeps.push(Json::str(&crate::py::float_repr(seconds)));
+    });
+    let result = match result {
+        Ok(raw) => Json::obj([(
+            "raw",
+            Json::Array(vec![
+                Json::Int(raw.status.into()),
+                Json::Array(
+                    raw.headers
+                        .iter()
+                        .map(|(k, v)| Json::Array(vec![Json::str(k), Json::str(v)]))
+                        .collect(),
+                ),
+                Json::str(&hex(&raw.body)),
+                Json::str(&raw.url),
+                Json::Int(raw.elapsed_ms.into()),
+            ]),
+        )]),
+        Err(error) => Json::obj([(
+            "error",
+            Json::Array(vec![Json::str(error.class), json_str(error.text)]),
+        )]),
+    };
+    Ok(Json::obj([
+        ("dials", Json::Array(script.dials)),
+        (
+            "sent",
+            Json::Array(
+                script
+                    .sent
+                    .iter()
+                    .map(|s| Json::str(&hex(&s.borrow())))
+                    .collect(),
+            ),
+        ),
+        ("sleeps", Json::Array(sleeps)),
+        ("result", result),
+    ]))
 }
 
 fn hex(bytes: &[u8]) -> String {
