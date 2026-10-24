@@ -37,9 +37,13 @@ are refused. The native candidate also checks the bytes actually read against
 the 2,000,000 byte limit, bounding reads if a file grows after its size check.
 Lone surrogate JSON strings are refused by the native parser. Paths use the
 host platform's rules; resolved report targets must remain under the resolved
-manifest's directory and end in lowercase `.txt` or `.json`. As in the Python
-example, this assumes local files stay stable during the operation. It does not
-isolate concurrent filesystem changes by another process.
+manifest's directory and end in lowercase `.txt` or `.json`. On Windows the
+native example refuses a report path naming a drive other than the manifest's,
+such as `D:report.txt` beside a manifest on `C:`, before resolving it. The
+Python example resolves such a path against that drive's current directory and
+accepts it only if the result lies under the manifest's directory. As in the
+Python example, this assumes local files stay stable during the operation. It
+does not isolate concurrent filesystem changes by another process.
 
 Run company, trust and Division 7A checks separately using their own commands
 and supported facts. Save stdout, retain exit codes in the accompanying work
