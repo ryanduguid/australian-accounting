@@ -240,9 +240,10 @@ fn split_ws(s: &str, maxsplit: usize) -> Vec<String> {
     parts
 }
 
-/// `int(text)` of a str of Latin-1 text: surrounding whitespace allowed.
+/// `int(text)`, which strips whitespace but, unlike `str.split`, not
+/// `\x1c` to `\x1f`.
 fn py_int(text: &str) -> Option<num_bigint::BigInt> {
-    crate::py::parse_int(text.trim_matches(py_space), 10).ok()
+    crate::py::parse_int(text, 10).ok()
 }
 
 /// `HTTPResponse._read_status()`: the version and status code.

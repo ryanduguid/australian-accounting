@@ -805,9 +805,45 @@ impl Date {
     }
 }
 
+/// Stand-ins for the lone surrogates in `points`, so code that takes `str`
+/// can carry them and give them back: one unused code point per distinct
+/// surrogate, from the unassigned planes 4 to 13 (which no normalisation or
+/// URL rule treats specially) and then planes 15 and 16. Each pair is
+/// (surrogate, stand-in). None only when the text already uses nearly every
+/// one of those 720,896 code points.
+pub fn surrogate_stand_ins(points: &[u32]) -> Option<Vec<(u32, u32)>> {
+    let mut lone: Vec<u32> = points
+        .iter()
+        .copied()
+        .filter(|cp| (0xD800..=0xDFFF).contains(cp))
+        .collect();
+    if lone.is_empty() {
+        return Some(Vec::new());
+    }
+    lone.sort_unstable();
+    lone.dedup();
+    let used: std::collections::HashSet<u32> = points.iter().copied().collect();
+    let mut free = (0x4_0000..0xE_0000)
+        .chain(0xF_0000..=0x10_FFFF)
+        .filter(|cp| !used.contains(cp));
+    lone.into_iter()
+        .map(|surrogate| free.next().map(|stand_in| (surrogate, stand_in)))
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn stand_ins_never_meet_a_character_already_present() {
+        assert_eq!(surrogate_stand_ins(&[0x61]), Some(Vec::new()));
+        let points = [0xD800, 0x4_0000, 0xDC00, 0xD800, 0x4_0002];
+        assert_eq!(
+            surrogate_stand_ins(&points),
+            Some(vec![(0xD800, 0x4_0001), (0xDC00, 0x4_0003)])
+        );
+    }
 
     #[test]
     fn word_count_is_the_length_of_split() {
