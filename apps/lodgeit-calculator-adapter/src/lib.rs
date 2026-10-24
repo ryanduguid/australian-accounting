@@ -7,6 +7,7 @@ pub mod cli;
 pub mod config;
 pub mod contract;
 pub mod decimal;
+pub mod dial;
 pub mod errors;
 pub mod evidence;
 pub mod https;

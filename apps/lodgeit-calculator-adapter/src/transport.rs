@@ -79,7 +79,8 @@ pub trait Connection: Read + Write {}
 impl<T: Read + Write> Connection for T {}
 
 /// `socket.create_connection((host, port), timeout)`, wrapped in TLS when
-/// `tls` is set: an error is the `OSError` Python's connect raised.
+/// `tls` is set: an error is the `OSError` Python's connect raised, or,
+/// carrying [`Raised`], an exception `_attempt` does not catch.
 pub trait Dial {
     fn dial(
         &mut self,
@@ -89,6 +90,19 @@ pub trait Dial {
         timeout: f64,
     ) -> io::Result<Box<dyn Connection>>;
 }
+
+/// The payload of a dial error that `request` raises as it is, as Python's
+/// `OverflowError` from `settimeout` passes through `_attempt`.
+#[derive(Debug)]
+pub struct Raised(pub Exc);
+
+impl std::fmt::Display for Raised {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(self.0.class)
+    }
+}
+
+impl std::error::Error for Raised {}
 
 /// What came back, before anything interprets it.
 #[derive(Clone, Debug, PartialEq)]
@@ -132,6 +146,7 @@ enum Kind {
 enum Attempt {
     Raw(RawResponse),
     Failed(Kind, Option<u16>),
+    Raised(Exc),
 }
 
 /// `request(config, method, url, ...)`: one HTTP request with every bound
@@ -184,6 +199,7 @@ pub fn request(
                     return Ok(raw);
                 }
             }
+            Attempt::Raised(exc) => return Err(exc),
             Attempt::Failed(kind, status) => {
                 let server_error = status.is_some_and(|s| s >= 500);
                 let eligible = kind != Kind::Redirect
@@ -554,13 +570,23 @@ fn one_attempt(
     let Some(prepared) = prepare(call, headers) else {
         return Attempt::Failed(Kind::Open, None);
     };
-    let Ok(mut connection) = dial.dial(&prepared.host, prepared.port, prepared.tls, timeout) else {
-        return Attempt::Failed(Kind::Open, None);
+    let mut connection = match dial.dial(&prepared.host, prepared.port, prepared.tls, timeout) {
+        Ok(connection) => connection,
+        Err(error) => {
+            return match error.into_inner().map(|e| e.downcast::<Raised>()) {
+                Some(Ok(raised)) => Attempt::Raised(raised.0),
+                _ => Attempt::Failed(Kind::Open, None),
+            };
+        }
     };
+    // `sendall` per piece; a TLS stream holds records until flushed.
     for data in &prepared.sends {
         if connection.write_all(data).is_err() {
             return Attempt::Failed(Kind::Open, None);
         }
+    }
+    if connection.flush().is_err() {
+        return Attempt::Failed(Kind::Open, None);
     }
     let response = match Response::begin(&mut *connection, prepared.head) {
         Ok(response) => response,
@@ -992,5 +1018,57 @@ mod tests {
             .filter_map(char::from_u32)
             .collect();
         assert_eq!(text, "HTTP 503 body could not be read after 2 attempt(s)");
+    }
+
+    #[test]
+    fn a_real_dial_reaches_loopback_and_an_overflowing_timeout_is_raised() {
+        use std::net::TcpListener;
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server = std::thread::spawn(move || {
+            let (mut peer, _) = listener.accept().unwrap();
+            let mut request = Vec::new();
+            while !request.ends_with(b"\r\n\r\n") {
+                let mut byte = [0u8; 1];
+                peer.read_exact(&mut byte).unwrap();
+                request.push(byte[0]);
+            }
+            peer.write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok")
+                .unwrap();
+            request
+        });
+        let url = format!("http://127.0.0.1:{port}/v1/rates");
+        let call = |timeout: f64| {
+            let config = AdapterConfig {
+                enabled: true,
+                base_url: Some(format!("http://127.0.0.1:{port}")),
+                allow_loopback: true,
+                read_timeout: timeout,
+                ..AdapterConfig::default()
+            };
+            let call = Call {
+                method: "GET",
+                url: &url,
+                body: None,
+                content_type: None,
+                retry_safe: true,
+                bearer_token: None,
+            };
+            let mut sleeps = 0;
+            let result = request(&config, &mut crate::dial::Net, &call, &mut |_| sleeps += 1);
+            (result, sleeps)
+        };
+        let (result, _) = call(5.0);
+        assert_eq!(result.expect("the server answers").body, b"ok");
+        assert!(
+            server
+                .join()
+                .unwrap()
+                .starts_with(b"GET /v1/rates HTTP/1.1\r\n")
+        );
+        // Nothing listens now, but the timeout is refused before the connect.
+        let (result, sleeps) = call(f64::INFINITY);
+        assert_eq!(result.unwrap_err().class, "OverflowError");
+        assert_eq!(sleeps, 0, "an uncaught exception is not retried");
     }
 }

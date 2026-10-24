@@ -170,6 +170,32 @@ fn run_case(case: &Json) -> R<Json> {
             ])
         }
         "transport" => transport_case(case)?,
+        "settimeout" => {
+            // `s.settimeout(t); s.gettimeout()`, with t given by its bits.
+            let bits = text(field("bits")).parse().expect("u64 bits");
+            match crate::dial::socket_timeout(f64::from_bits(bits)) {
+                Ok(timeout) => {
+                    let ns = timeout.as_nanos();
+                    // _PyTime_AsSecondsDouble
+                    Json::Float(if ns % 1_000_000_000 == 0 {
+                        (ns / 1_000_000_000) as f64
+                    } else {
+                        ns as f64 / 1e9
+                    })
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => Json::Float(0.0),
+                Err(error) => {
+                    return Err(match error.into_inner().map(|e| e.downcast()) {
+                        Some(Ok(raised)) => {
+                            let crate::transport::Raised(exc) = *raised;
+                            exc
+                        }
+                        Some(Err(other)) => Exc::msg("ValueError", &other.to_string()),
+                        None => unreachable!("socket_timeout's errors carry a message"),
+                    });
+                }
+            }
+        }
         other => unreachable!("unknown op {other}"),
     })
 }

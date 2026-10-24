@@ -116,7 +116,7 @@ fn connect(host: &str) -> Result<Stream, Failure> {
     Ok(Stream(Box::new(rustls::StreamOwned::new(session, socket))))
 }
 
-fn tls_config() -> Result<Arc<rustls::ClientConfig>, Failure> {
+pub(crate) fn tls_config() -> Result<Arc<rustls::ClientConfig>, Failure> {
     use rustls_platform_verifier::BuilderVerifierExt;
     let provider = Arc::new(rustls::crypto::ring::default_provider());
     let mut config = rustls::ClientConfig::builder_with_provider(provider)
