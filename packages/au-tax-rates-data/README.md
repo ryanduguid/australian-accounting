@@ -58,7 +58,7 @@ GitHub Actions runs `cargo fmt --check`, clippy, the tests and `rates validate` 
 
 ## The Rust port
 
-`rates` replaced `rates.py` at australian-accounting 24fcf24. It keeps the 4 subcommands, their options, output, exit codes and written files, including what Python did with malformed records: the same problems where `rates.py` reported one, and the same exception, by class and message, where it stopped. `src/rates_tests.rs` holds each of the 4 Python test files' tests; `tests/BEHAVIOURS.md` maps them. A differential harness ran both on 40,000 generated cases on Windows and 20,000 on Linux, comparing exit codes, stdout, stderr and every file left behind.
+`rates` replaced `rates.py` at australian-accounting 24fcf24. It keeps the 4 subcommands, their options, output, exit codes and written files, including what Python did with malformed records: the same problems where `rates.py` reported one, and the same exception, by class and message, where it stopped. `src/rates_tests.rs` holds each of the 4 Python test files' tests; `tests/BEHAVIOURS.md` maps them. A differential harness ran both on 40,000 generated cases on each of Windows and Linux, comparing exit codes, stdout, stderr and every file left behind.
 
 Where it differs:
 
@@ -71,6 +71,8 @@ Where it differs:
 - Command-line arguments that are not valid Unicode are read with replacement characters.
 - A figure whose fixed-point form would run past 100,000,000 digits stops with `MemoryError` instead of being built. A tax-scale bound of 5,000 or more digits shown by `ato-tables` stops with the same integer digit-limit `ValueError` as Python, without first building the integer.
 - A regular expression in a record's `pattern` that Python would warn about with `FutureWarning` is used without the warning.
+- If the browser exits but leaves a process holding its output open, the 180-second timeout still ends the page with `TimeoutExpired`, as Python does on Linux; Python on Windows waits for that process instead.
+- When stdout cannot be written, both report `Exception ignored while flushing sys.stdout:` with the error and exit 120. For output larger than Python's stdout buffer, Python first prints a traceback for the `print` that failed; the port does not.
 
 The instant asset write-off record retains the source table's $20,000 limit from 1 July 2023. A separate [ATO legislation update](https://www.ato.gov.au/about-ato/new-legislation/in-detail/businesses/20000-dollars-instant-asset-write-off), checked on 28 September 2026, confirms that the limit is permanent from 1 July 2026 for eligible small businesses. For the full-cost deduction, each eligible depreciating asset must cost less than $20,000. Separate rules cover later additions to an asset's cost; other conditions and exclusions apply.
 

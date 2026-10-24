@@ -151,7 +151,7 @@ fn tmp(name: &str) -> PathBuf {
 }
 
 fn out() -> Out<Vec<u8>> {
-    Out { w: Vec::new() }
+    Out::new(Vec::new())
 }
 
 fn printed(out: Out<Vec<u8>>) -> String {
@@ -1553,4 +1553,79 @@ fn failed_requests_and_invalid_json_close_the_connection() {
         assert_eq!(code, 1);
         assert!(printed(out).starts_with("cannot read the ATO tables: "));
     }
+}
+
+// ------------------------------------------------------------------ regressions
+
+#[test]
+fn a_url_path_keeps_supplementary_characters_and_lone_surrogates_apart() {
+    // CPython 3.15's urlparse(...).path for each tail.
+    let path = |tail: &[u32]| {
+        url_path(&[s("https://example.test/a"), tail.to_vec()].concat()).expect("a path")
+    };
+    let want = |tail: &[u32]| [s("/a"), tail.to_vec()].concat();
+    assert_eq!(path(&[0x10_0000]), want(&[0x10_0000]));
+    assert_eq!(path(&[0x10_07FF, 0xD800]), want(&[0x10_07FF, 0xD800]));
+    assert_eq!(path(&[0xD800, 0x4_0000]), want(&[0xD800, 0x4_0000]));
+    assert_eq!(path(&[0xD800, 0x3B, 0x78]), want(&[0xD800]));
+}
+
+#[test]
+fn the_browser_timeout_covers_a_pipe_a_descendant_holds_open() {
+    // The command exits at once, leaving a 6-second descendant on its pipes.
+    let command: Vec<Json> = if cfg!(windows) {
+        ["cmd", "/c", "start", "/b", "ping", "-n", "7", "127.0.0.1"]
+            .map(Json::str)
+            .to_vec()
+    } else {
+        ["sh", "-c", "sleep 6 & exit 0"].map(Json::str).to_vec()
+    };
+    let started = Instant::now();
+    let error = run_with_limit(&command, Duration::from_secs(1)).expect_err("a timeout");
+    assert_eq!(error.class, "subprocess.TimeoutExpired");
+    assert!(st(&error.text).ends_with("' timed out after 1 seconds"));
+    assert!(
+        started.elapsed() < Duration::from_secs(4),
+        "{:?}",
+        started.elapsed()
+    );
+}
+
+#[test]
+fn a_stdout_that_cannot_be_written_ends_with_status_120() {
+    struct Full;
+    impl Write for Full {
+        fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+            Err(std::io::Error::from_raw_os_error(28))
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    let mut out = Out::new(Full);
+    out.print_str("one")
+        .expect("print keeps going, as a buffered print does");
+    out.print_str("two")
+        .expect("print keeps going, as a buffered print does");
+    assert_eq!(out.finish(), Some(120));
+    assert_eq!(Out::new(Vec::new()).finish(), None);
+}
+
+#[test]
+fn the_browser_is_given_the_url_where_test_dataset_py_looked_for_it() {
+    // Python's fake subprocess.run picked its reply by args[3].
+    let url = Json::str("https://www.ato.gov.au/rates");
+    if std::env::var_os("RATES_BROWSER").is_none() {
+        assert_eq!(browser_args(&url)[3], url);
+    }
+}
+
+#[test]
+fn check_out_names_the_report_folder() {
+    let args = ["check", "--out", "reports"].map(String::from);
+    let Ok(namespace) = build_parser(&ctx()).parse(&args) else {
+        panic!("check --out parses");
+    };
+    assert!(matches!(namespace.get("command"), Some(Value::Str(s)) if s == "check"));
+    assert!(matches!(namespace.get("out"), Some(Value::Str(s)) if s == "reports"));
 }

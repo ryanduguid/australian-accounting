@@ -902,19 +902,20 @@ const USES_PARAMS: [&str; 16] = [
     "sip", "sips", "mms", "sftp", "tel",
 ];
 
-/// `urlparse(url).path`. A lone surrogate rides through `urlsplit` as a
-/// private-use character, which no step of it treats specially.
+/// `urlparse(url).path`. A lone surrogate rides through `urlsplit` as an
+/// unassigned code point the URL does not use, which no step of it treats
+/// specially.
 fn url_path(url: &[u32]) -> R<S> {
-    let hide = |cp: u32| {
-        if (0xD800..=0xDFFF).contains(&cp) {
-            0x10_0000 + cp - 0xD800
-        } else {
-            cp
-        }
-    };
+    let pairs = py::surrogate_stand_ins(url).ok_or_else(|| {
+        value_error(pts(
+            "no code point is free to stand in for a lone surrogate",
+        ))
+    })?;
+    let hide: std::collections::HashMap<u32, u32> = pairs.iter().copied().collect();
+    let show: std::collections::HashMap<u32, u32> = pairs.iter().map(|&(s, f)| (f, s)).collect();
     let text: String = url
         .iter()
-        .filter_map(|&cp| char::from_u32(hide(cp)))
+        .filter_map(|cp| char::from_u32(*hide.get(cp).unwrap_or(cp)))
         .collect();
     let split = crate::pyurl::urlsplit(&text).map_err(|m| value_error(pts(&m)))?;
     let mut path = split.path;
@@ -931,11 +932,7 @@ fn url_path(url: &[u32]) -> R<S> {
         .chars()
         .map(|c| {
             let cp = u32::from(c);
-            if (0x10_0000..0x10_0800).contains(&cp) {
-                cp - 0x10_0000 + 0xD800
-            } else {
-                cp
-            }
+            *show.get(&cp).unwrap_or(&cp)
         })
         .collect())
 }
@@ -993,19 +990,40 @@ fn snapshot_path(ctx: &Ctx, url: &[u32]) -> R<Snap> {
 // ---------------------------------------------------------------- output
 
 /// `sys.stdout`: UTF-8 with `surrogateescape`, `\n` written as the platform's line end.
+///
+/// A write that fails is kept for the end, where Python's flush at shutdown
+/// reports it and exits 120. shortcut: Python raises at the `print` once its
+/// buffer fills, so an output past that buffer also gets a traceback first;
+/// the commands' reports are far smaller.
 struct Out<W> {
     w: W,
+    failed: Option<std::io::Error>,
 }
 
 impl<W: Write> Out<W> {
+    fn new(w: W) -> Self {
+        Out { w, failed: None }
+    }
+
     fn print(&mut self, line: &[u32]) -> R<()> {
         let bytes = pyvalue::encode_print(&line_ends(line))
             .map_err(|m| Exc::msg("UnicodeEncodeError", &m))?;
-        let _ = self.w.write_all(&bytes);
-        let _ = self
-            .w
-            .write_all(if cfg!(windows) { b"\r\n" } else { b"\n" });
+        if self.failed.is_none() {
+            let end: &[u8] = if cfg!(windows) { b"\r\n" } else { b"\n" };
+            if let Err(error) = self.w.write_all(&[&bytes[..], end].concat()) {
+                self.failed = Some(error);
+            }
+        }
         Ok(())
+    }
+
+    /// The flush at shutdown: None, or the exit status 120 after its report.
+    fn finish(mut self) -> Option<i32> {
+        let error = match self.failed.take() {
+            Some(error) => error,
+            None => self.w.flush().err()?,
+        };
+        Some(flush_failed(&error))
     }
 
     fn print_str(&mut self, line: &str) -> R<()> {
@@ -1489,6 +1507,11 @@ fn browser_command() -> Vec<String> {
 /// `subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
 /// timeout=180)`: the exit status, stdout and stderr.
 fn run_browser(command: &[Json]) -> R<(i64, Option<String>, Option<String>)> {
+    run_with_limit(command, Duration::from_secs(180))
+}
+
+/// [`run_browser`] with its timeout as a parameter, which tests shorten.
+fn run_with_limit(command: &[Json], limit: Duration) -> R<(i64, Option<String>, Option<String>)> {
     let mut args: Vec<OsString> = Vec::new();
     for arg in command {
         let Json::Str(s) = arg else {
@@ -1521,28 +1544,45 @@ fn run_browser(command: &[Json]) -> R<(i64, Option<String>, Option<String>)> {
                 OsError::new(&e, Some(&program), pyos::Style::Errno)
             })
         })?;
-    let drain = |pipe: Option<Box<dyn Read + Send>>| {
+    // Each pipe drains on its own thread, which reports on the channel.
+    let (sender, drained) = std::sync::mpsc::channel();
+    let pipes: [Option<Box<dyn Read + Send>>; 2] = [
+        child
+            .stdout
+            .take()
+            .map(|p| Box::new(p) as Box<dyn Read + Send>),
+        child
+            .stderr
+            .take()
+            .map(|p| Box::new(p) as Box<dyn Read + Send>),
+    ];
+    for (which, pipe) in pipes.into_iter().enumerate() {
+        let sender = sender.clone();
         std::thread::spawn(move || {
             let mut bytes = Vec::new();
             if let Some(mut pipe) = pipe {
                 let _ = pipe.read_to_end(&mut bytes);
             }
-            bytes
-        })
+            let _ = sender.send((which, bytes));
+        });
+    }
+    // communicate(timeout=180): one deadline for the exit and both pipes, as
+    // a descendant can hold a pipe open after the browser exits. On a
+    // timeout the child is killed and reaped, and the pipes are left to
+    // their threads, as POSIX `run` leaves them.
+    let deadline = Instant::now() + limit;
+    let timed_out = || {
+        Err(Exc::new(
+            "subprocess.TimeoutExpired",
+            p!(
+                "Command '",
+                repr_s(&Json::Array(command.to_vec())),
+                "' timed out after ",
+                &limit.as_secs().to_string(),
+                " seconds"
+            ),
+        ))
     };
-    let out = drain(
-        child
-            .stdout
-            .take()
-            .map(|p| Box::new(p) as Box<dyn Read + Send>),
-    );
-    let err = drain(
-        child
-            .stderr
-            .take()
-            .map(|p| Box::new(p) as Box<dyn Read + Send>),
-    );
-    let deadline = Instant::now() + Duration::from_secs(180);
     let status = loop {
         if let Ok(Some(status)) = child.try_wait() {
             break status;
@@ -1550,27 +1590,23 @@ fn run_browser(command: &[Json]) -> R<(i64, Option<String>, Option<String>)> {
         if Instant::now() >= deadline {
             let _ = child.kill();
             let _ = child.wait();
-            let _ = (out.join(), err.join());
-            return Err(Exc::new(
-                "subprocess.TimeoutExpired",
-                p!(
-                    "Command '",
-                    repr_s(&Json::Array(command.to_vec())),
-                    "' timed out after 180 seconds"
-                ),
-            ));
+            return timed_out();
         }
         std::thread::sleep(Duration::from_millis(5));
     };
+    let mut output = [Vec::new(), Vec::new()];
+    for _ in 0..2 {
+        match drained.recv_timeout(deadline.saturating_duration_since(Instant::now())) {
+            Ok((which, bytes)) => output[which] = bytes,
+            Err(_) => return timed_out(),
+        }
+    }
     let decode = |bytes: Vec<u8>| -> R<String> {
         py::decode_utf8(&bytes)
             .map(|text| py::universal_newlines(&text))
             .map_err(|e| Exc::msg("UnicodeDecodeError", &e.to_string()))
     };
-    let (stdout, stderr) = (
-        out.join().unwrap_or_default(),
-        err.join().unwrap_or_default(),
-    );
+    let [stdout, stderr] = output;
     let code = exit_code(status);
     if cfg!(windows) {
         // Windows decodes each pipe in a reader thread: a failure is printed
@@ -1615,6 +1651,12 @@ fn exit_code(status: std::process::ExitStatus) -> i64 {
 
 /// `fetch_text(url)`.
 fn fetch_text(url: &Json) -> R<S> {
+    let (code, stdout, stderr) = run_browser(&browser_args(url))?;
+    read_output(code, stdout.as_deref(), stderr.as_deref())
+}
+
+/// The command `fetch_text` runs for `url`.
+fn browser_args(url: &Json) -> Vec<Json> {
     let mut command: Vec<Json> = browser_command().iter().map(|a| Json::str(a)).collect();
     command.extend([
         Json::str("text"),
@@ -1623,8 +1665,7 @@ fn fetch_text(url: &Json) -> R<S> {
         Json::str("--wait"),
         Json::str("3"),
     ]);
-    let (code, stdout, stderr) = run_browser(&command)?;
-    read_output(code, stdout.as_deref(), stderr.as_deref())
+    command
 }
 
 /// The page text in a reply the browser wrote in full.
@@ -2463,9 +2504,13 @@ pub fn main(argv: Vec<OsString>) -> i32 {
         Ok(namespace) => namespace,
         Err(Exit::Help(text)) => {
             let mut stdout = std::io::stdout();
-            let _ = stdout.write_all(&newlines(text.as_bytes()));
-            let _ = stdout.flush();
-            return 0;
+            return match stdout
+                .write_all(&newlines(text.as_bytes()))
+                .and_then(|()| stdout.flush())
+            {
+                Ok(()) => 0,
+                Err(error) => flush_failed(&error),
+            };
         }
         Err(Exit::Error(text)) => {
             let _ = std::io::stderr().write_all(&newlines(text.as_bytes()));
@@ -2476,16 +2521,31 @@ pub fn main(argv: Vec<OsString>) -> i32 {
         Some(Value::Str(s)) => s.clone(),
         _ => String::new(),
     };
-    let mut out = Out {
-        w: std::io::stdout().lock(),
-    };
+    let mut out = Out::new(std::io::stdout().lock());
     let result = match text("command").as_str() {
         "snapshot" => cmd_snapshot(&ctx, &mut out),
         "validate" => cmd_validate(&ctx, &mut out),
         "check" => cmd_check(&ctx, &mut out, &text("out")),
         _ => cmd_ato_tables(&ctx, &mut out),
     };
-    let _ = out.w.flush();
+    let code = report(result);
+    out.finish().unwrap_or(code)
+}
+
+/// `Py_FinalizeEx` failing to flush `sys.stdout`: the report, then status 120.
+fn flush_failed(error: &std::io::Error) -> i32 {
+    let error = OsError::new(error, None, pyos::Style::Errno);
+    let report = format!(
+        "Exception ignored while flushing sys.stdout:\n{}: {}\n",
+        error.class(),
+        error.text
+    );
+    let _ = std::io::stderr().write_all(&newlines(report.as_bytes()));
+    120
+}
+
+/// The exit status, after an uncaught exception's report.
+fn report(result: R<i32>) -> i32 {
     match result {
         Ok(code) => code,
         Err(e) => {

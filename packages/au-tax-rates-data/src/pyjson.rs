@@ -661,15 +661,39 @@ pub fn loads_bytes(data: &[u8]) -> Result<Json, Option<DecodeError>> {
         )
     })()
     .ok_or(None)?;
-    // A raw lone surrogate becomes an escape, which the scanner turns back into one.
-    let mut text = String::with_capacity(points.len());
-    for cp in points {
-        match char::from_u32(cp) {
-            Some(c) => text.push(c),
-            None => text.push_str(&format!("\\u{cp:04x}")),
-        }
+    // A raw lone surrogate is scanned as an unused code point standing in for
+    // it, one character as it is, so it neither pairs with an escape beside
+    // it nor moves an error's position, and is given back in every string.
+    let pairs = crate::py::surrogate_stand_ins(&points).ok_or(None)?;
+    let hide: std::collections::HashMap<u32, u32> = pairs.iter().copied().collect();
+    let text: String = points
+        .iter()
+        .filter_map(|cp| char::from_u32(*hide.get(cp).unwrap_or(cp)))
+        .collect();
+    let value = loads_standard(&text).map_err(Some)?;
+    if pairs.is_empty() {
+        return Ok(value);
     }
-    loads_standard(&text).map_err(Some)
+    let show: std::collections::HashMap<u32, u32> = pairs.iter().map(|&(s, f)| (f, s)).collect();
+    Ok(restore(value, &show))
+}
+
+/// The value with each stand-in in its strings put back as its surrogate.
+fn restore(value: Json, show: &std::collections::HashMap<u32, u32>) -> Json {
+    let text = |s: PyStr| {
+        PyStr::from_code_points(s.points().map(|cp| *show.get(&cp).unwrap_or(&cp)).collect())
+    };
+    match value {
+        Json::Str(s) => Json::Str(text(s)),
+        Json::Array(items) => Json::Array(items.into_iter().map(|v| restore(v, show)).collect()),
+        Json::Object(pairs) => Json::Object(
+            pairs
+                .into_iter()
+                .map(|(k, v)| (text(k), restore(v, show)))
+                .collect(),
+        ),
+        other => other,
+    }
 }
 
 fn utf8_surrogatepass(data: &[u8]) -> Option<Vec<u32>> {
@@ -894,6 +918,42 @@ mod tests {
         let constant = |n: usize| chain(&"[".repeat(n), "NaN", &"]".repeat(n));
         assert!(loads(&constant(13_857)).is_ok());
         assert_eq!(err(&constant(13_858)), DecodeError::Recursion("call"));
+    }
+
+    /// CPython 3.15's `json.loads(bytes)` on raw (surrogatepass) and escaped
+    /// surrogates: only 2 escapes pair.
+    #[test]
+    fn raw_surrogates_in_bytes_stay_apart_from_escapes() {
+        let lone = |points: &[u32]| Json::Str(PyStr::Lone(points.to_vec()));
+        let x = |value: Json| Ok(Json::Object(vec![(PyStr::Text("x".into()), value)]));
+        assert_eq!(
+            loads_bytes(b"{\"x\":\"\xed\xa0\x80\\udc00\"}"),
+            x(lone(&[0xD800, 0xDC00]))
+        );
+        assert_eq!(
+            loads_bytes(b"{\"x\":\"\\ud800\xed\xb0\x80\"}"),
+            x(lone(&[0xD800, 0xDC00]))
+        );
+        assert_eq!(
+            loads_bytes(b"{\"x\":\"\\ud800\\udc00\"}"),
+            x(Json::str("\u{10000}"))
+        );
+        let invalid = |m: &str| Err(Some(DecodeError::Invalid(m.to_string())));
+        assert_eq!(
+            loads_bytes(b"{\"x\":\"\xed\xa0\x80\",}"),
+            invalid("Illegal trailing comma before end of object: line 1 column 9 (char 8)")
+        );
+        assert_eq!(
+            loads_bytes(b"[\"\xed\xa0\x80\", \xed\xa0\x80]"),
+            invalid("Expecting value: line 1 column 7 (char 6)")
+        );
+        assert_eq!(
+            loads_bytes(b"{\"\xed\xa0\x80\": 1, \"k\": \"\xed\xb0\x80\xed\xa0\x80\"}"),
+            Ok(Json::Object(vec![
+                (PyStr::Lone(vec![0xD800]), Json::Int(1.into())),
+                (PyStr::Text("k".into()), lone(&[0xDC00, 0xD800])),
+            ]))
+        );
     }
 
     #[test]

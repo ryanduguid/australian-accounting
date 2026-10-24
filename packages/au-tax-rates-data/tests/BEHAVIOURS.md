@@ -34,7 +34,7 @@ A differential harness, kept outside the repository, covered the commands end to
 | `test_dataset.py::test_fetch_text_rejects_unusable_pages` | `fetch_text_rejects_unusable_pages` | `read_reply`, the step after `subprocess.run` |
 | `test_dataset.py::test_fetch_all_keeps_each_failure_as_that_page_s_value` | `fetch_all_keeps_each_failure_as_that_page_s_value` | `fetch_all_with` given the fake `fetch_text` |
 | `test_dataset.py::test_fetch_text_rejects_a_success_shaped_reply_from_a_failed_browser` | `fetch_text_rejects_a_success_shaped_reply_from_a_failed_browser` | `read_reply`, the step after `subprocess.run` |
-| `test_dataset.py::test_a_malformed_reply_fails_only_its_own_page` | `a_malformed_reply_fails_only_its_own_page` | `fetch_all_with` over `read_reply` |
+| `test_dataset.py::test_a_malformed_reply_fails_only_its_own_page` | `a_malformed_reply_fails_only_its_own_page` | `fetch_all_with` over `read_reply`; `the_browser_is_given_the_url_where_test_dataset_py_looked_for_it` checks the URL's place in the command |
 | `test_dataset.py::test_the_payg_section_is_checked_not_its_contents_entry` | `the_payg_section_is_checked_not_its_contents_entry` | direct call |
 | `test_numeric_validation.py::test_non_finite_values_are_refused` | `non_finite_values_are_refused` | direct call |
 | `test_numeric_validation.py::test_finite_non_negative_values_remain_valid` | `finite_non_negative_values_remain_valid` | direct call |
@@ -50,8 +50,8 @@ A differential harness, kept outside the repository, covered the commands end to
 | `test_pattern_reports.py::test_malformed_decimal_is_a_report_finding` | `malformed_decimal_is_a_report_finding` | direct call |
 | `test_pattern_reports.py::test_tax_scale_pattern_is_reported_as_unsupported` | `tax_scale_pattern_is_reported_as_unsupported` | direct call |
 | `test_pattern_reports.py::test_failed_parse_does_not_hide_later_changed_values` | `failed_parse_does_not_hide_later_changed_values` | direct call |
-| `test_pattern_reports.py::test_check_writes_report_and_returns_failure_when_source_value_is_unreadable` | `check_writes_report_and_returns_failure_when_source_value_is_unreadable` | `write_check`, the step after `load_records` and `fetch_all` |
-| `test_pattern_reports.py::test_empty_pattern_cannot_produce_a_successful_check` | `empty_pattern_cannot_produce_a_successful_check` | `write_check`, the step after `load_records` and `fetch_all` |
+| `test_pattern_reports.py::test_check_writes_report_and_returns_failure_when_source_value_is_unreadable` | `check_writes_report_and_returns_failure_when_source_value_is_unreadable` | `write_check`, the step after `load_records` and `fetch_all`; `check_out_names_the_report_folder` checks the `--out` parsing |
+| `test_pattern_reports.py::test_empty_pattern_cannot_produce_a_successful_check` | `empty_pattern_cannot_produce_a_successful_check` | `write_check`, the step after `load_records` and `fetch_all`; `check_out_names_the_report_folder` checks the `--out` parsing |
 | `test_ato_tables.py::test_matching_figures_produce_no_finding` | `matching_figures_produce_no_finding` | direct call |
 | `test_ato_tables.py::test_the_medicare_figures_come_from_the_basic_levy_rows` | `the_medicare_figures_come_from_the_basic_levy_rows` | direct call |
 | `test_ato_tables.py::test_a_different_figure_is_a_finding_that_shows_both` | `a_different_figure_is_a_finding_that_shows_both` | direct call |
@@ -60,7 +60,7 @@ A differential harness, kept outside the repository, covered the commands end to
 | `test_ato_tables.py::test_two_separate_rows_for_a_single_rate_are_a_finding` | `two_separate_rows_for_a_single_rate_are_a_finding` | direct call |
 | `test_ato_tables.py::test_records_the_tables_do_not_hold_are_listed_without_a_finding` | `records_the_tables_do_not_hold_are_listed_without_a_finding` | direct call |
 | `test_ato_tables.py::test_every_label_the_comparison_reads_belongs_to_a_record` | `every_label_the_comparison_reads_belongs_to_a_record` | direct call |
-| `test_ato_tables.py::test_the_command_reads_both_tables_and_exits_1_on_a_finding` | `the_command_reads_both_tables_and_exits_1_on_a_finding` | `ato_tables_with` given each table's response and the records |
+| `test_ato_tables.py::test_the_command_reads_both_tables_and_exits_1_on_a_finding` | `the_command_reads_both_tables_and_exits_1_on_a_finding` | `ato_tables_with` given each table's response and the records; `https::tests::a_table_is_one_get_and_the_connection_closes` checks the request and the closing over a fake stream |
 | `test_ato_tables.py::test_an_unreadable_table_ends_the_command_with_exit_1` | `an_unreadable_table_ends_the_command_with_exit_1` | `ato_tables_with` given each table's response and the records |
-| `test_ato_tables.py::test_redirects_and_http_errors_end_the_command_without_following_them` | `redirects_and_http_errors_end_the_command_without_following_them` | `ato_tables_with`; `https::get` reads a body only for a 200 |
-| `test_ato_tables.py::test_failed_requests_and_invalid_json_close_the_connection` | `failed_requests_and_invalid_json_close_the_connection` | `ato_tables_with`; the connection closes when `https::get` returns |
+| `test_ato_tables.py::test_redirects_and_http_errors_end_the_command_without_following_them` | `redirects_and_http_errors_end_the_command_without_following_them` | `ato_tables_with`; `https::tests::a_redirect_or_error_status_is_not_read_and_the_connection_closes` checks that only a 200's body is read |
+| `test_ato_tables.py::test_failed_requests_and_invalid_json_close_the_connection` | `failed_requests_and_invalid_json_close_the_connection` | `ato_tables_with`; `https::tests::a_failed_request_closes_the_connection` checks the closing after each failure |

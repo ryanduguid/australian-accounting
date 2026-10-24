@@ -32,7 +32,12 @@ pub type Failure = String;
 /// GET `path` from `host` over HTTPS. The body is read only for a 200, as
 /// the caller raises before reading any other.
 pub fn get(host: &str, path: &str) -> Result<Response, Failure> {
-    let mut stream = connect(host)?;
+    exchange(connect(host)?, host, path)
+}
+
+/// One GET over a connected stream, which is dropped, closing the
+/// connection, however the exchange ends.
+fn exchange<S: Read + Write>(mut stream: S, host: &str, path: &str) -> Result<Response, Failure> {
     let mut message = format!("GET {path} HTTP/1.1\r\n").into_bytes();
     message.extend_from_slice(format!("Host: {host}\r\n").as_bytes());
     message.extend_from_slice(b"Accept-Encoding: identity\r\n\r\n");
@@ -241,8 +246,10 @@ fn split_ws(s: &str, maxsplit: usize) -> Vec<String> {
 }
 
 /// `int(text)` of a str of Latin-1 text: surrounding whitespace allowed.
+/// `int(text)`, which strips whitespace but, unlike `str.split`, not
+/// `\x1c` to `\x1f`.
 fn py_int(text: &str) -> Option<num_bigint::BigInt> {
-    crate::py::parse_int(text.trim_matches(py_space), 10).ok()
+    crate::py::parse_int(text, 10).ok()
 }
 
 /// `HTTPResponse._read_status()`: the version and status code.
@@ -447,4 +454,124 @@ fn chunk_size(line: &[u8]) -> Option<u64> {
         return None;
     }
     Some(u64::try_from(&n).unwrap_or(u64::MAX))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::cell::{Cell, RefCell};
+    use std::rc::Rc;
+
+    /// A connection with a canned reply that records what it is sent and
+    /// whether it was closed (dropped).
+    struct Fake {
+        reply: io::Cursor<Vec<u8>>,
+        sent: Rc<RefCell<Vec<u8>>>,
+        closed: Rc<Cell<bool>>,
+        refuse_writes: bool,
+    }
+
+    impl Read for Fake {
+        fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+            self.reply.read(buf)
+        }
+    }
+
+    impl Write for Fake {
+        fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+            if self.refuse_writes {
+                return Err(io::ErrorKind::BrokenPipe.into());
+            }
+            self.sent.borrow_mut().extend_from_slice(buf);
+            Ok(buf.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    impl Drop for Fake {
+        fn drop(&mut self) {
+            self.closed.set(true);
+        }
+    }
+
+    /// The exchange's result, the bytes sent and whether the stream was closed.
+    fn run(reply: &[u8], refuse_writes: bool) -> (Result<Response, Failure>, Vec<u8>, bool) {
+        let (sent, closed) = (Rc::default(), Rc::default());
+        let fake = Fake {
+            reply: io::Cursor::new(reply.to_vec()),
+            sent: Rc::clone(&sent),
+            closed: Rc::clone(&closed),
+            refuse_writes,
+        };
+        let result = exchange(fake, "ato.example", "/tables/fbt.json");
+        (result, sent.take(), closed.get())
+    }
+
+    #[test]
+    fn a_table_is_one_get_and_the_connection_closes() {
+        let (result, sent, closed) = run(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\n{}", false);
+        assert_eq!(result.expect("a 200").body, b"{}");
+        assert_eq!(
+            sent,
+            b"GET /tables/fbt.json HTTP/1.1\r\nHost: ato.example\r\nAccept-Encoding: identity\r\n\r\n"
+        );
+        assert!(closed);
+    }
+
+    #[test]
+    fn a_redirect_or_error_status_is_not_read_and_the_connection_closes() {
+        // The body is malformed chunking: reading it would fail.
+        for status in ["301 Moved", "404 Not Found", "500 Error"] {
+            let reply = format!(
+                "HTTP/1.1 {status}\r\nTransfer-Encoding: chunked\r\nLocation: /x\r\n\r\nzz\r\n"
+            );
+            let (result, _, closed) = run(reply.as_bytes(), false);
+            let response = result.expect("a status");
+            assert!(response.status != 200 && response.body.is_empty());
+            assert!(closed);
+        }
+    }
+
+    #[test]
+    fn a_failed_request_closes_the_connection() {
+        for (reply, refuse) in [
+            (
+                &b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nab"[..],
+                false,
+            ),
+            (b"", true),
+            (b"", false),
+        ] {
+            let (result, _, closed) = run(reply, refuse);
+            assert!(result.is_err());
+            assert!(closed);
+        }
+        // Invalid JSON is the caller's to refuse, after the connection has closed.
+        let (result, _, closed) = run(b"HTTP/1.1 200 OK\r\n\r\n{,", false);
+        assert_eq!(result.expect("a 200").body, b"{,");
+        assert!(closed);
+    }
+
+    #[test]
+    fn a_content_length_int_refuses_is_ignored() {
+        // int("2\x1c") raises, so the body runs to the end of the stream.
+        let (result, _, _) = run(
+            b"HTTP/1.1 200 OK\r\nContent-Length: 2\x1c\r\n\r\n{}JUNK",
+            false,
+        );
+        assert_eq!(result.expect("a 200").body, b"{}JUNK");
+        // Headers are Latin-1, so 0x85 is NEL, which int() strips.
+        for &space in b"\x0b\x85 " {
+            let reply = [
+                &b"HTTP/1.1 200 OK\r\nContent-Length: 2"[..],
+                &[space],
+                b"\r\n\r\n{}JUNK",
+            ]
+            .concat();
+            let (result, _, _) = run(&reply, false);
+            assert_eq!(result.expect("a 200").body, b"{}");
+        }
+    }
 }
