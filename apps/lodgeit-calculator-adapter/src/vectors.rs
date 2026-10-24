@@ -135,8 +135,92 @@ fn run_case(case: &Json) -> R<Json> {
             let c = loaded()?;
             Json::str(&repr(c.calculator(&pts(&text(field("calc"))))?))
         }
+        "cli" => {
+            // Each file is hex bytes, or null for a directory; all are
+            // relative to the working directory and removed afterwards.
+            let files = match field("files") {
+                Json::Object(pairs) => pairs.clone(),
+                _ => Vec::new(),
+            };
+            for (path, content) in &files {
+                let path = std::path::Path::new(path.as_str().expect("an ASCII path"));
+                match content {
+                    Json::Null => std::fs::create_dir_all(path),
+                    hex => std::fs::write(path, unhex(&text(hex))),
+                }
+                .expect("write a case file");
+            }
+            let argv: Vec<String> = match field("argv") {
+                Json::Array(items) => items.iter().map(text).collect(),
+                _ => Vec::new(),
+            };
+            let (mut stdout, mut stderr) = (Vec::new(), Vec::new());
+            let code = crate::cli::run_with(&argv, &mut stdout, &mut stderr);
+            for (path, content) in &files {
+                let path = std::path::Path::new(path.as_str().expect("an ASCII path"));
+                let _ = match content {
+                    Json::Null => std::fs::remove_dir_all(path),
+                    _ => std::fs::remove_file(path),
+                };
+            }
+            Json::Array(vec![
+                Json::Int(code.into()),
+                Json::str(&recorded(&stdout, 65536)),
+                Json::str(&recorded(&collapsed(&stderr), 1 << 20)),
+            ])
+        }
         other => unreachable!("unknown op {other}"),
     })
+}
+
+fn hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+/// Runs of identical lines as one line marked ` [x N]`, as the harness
+/// records stderr: a Linux traceback can carry 65,000 notes.
+fn collapsed(bytes: &[u8]) -> Vec<u8> {
+    let lines: Vec<&[u8]> = bytes.split_inclusive(|&b| b == b'\n').collect();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < lines.len() {
+        let line = lines[i];
+        let run = lines[i..]
+            .iter()
+            .take_while(|&&other| other == line)
+            .count();
+        if run > 1 {
+            let end = line
+                .iter()
+                .rev()
+                .take_while(|&&b| b == b'\n' || b == b'\r')
+                .count();
+            out.extend_from_slice(&line[..line.len() - end]);
+            out.extend_from_slice(format!(" [x {run}]").as_bytes());
+            out.extend_from_slice(&line[line.len() - end..]);
+        } else {
+            out.extend_from_slice(line);
+        }
+        i += run;
+    }
+    out
+}
+
+/// Output as the harness records it: hex, or its SHA-256 and length past `large`.
+fn recorded(bytes: &[u8], large: usize) -> String {
+    use sha2::{Digest, Sha256};
+    if bytes.len() > large {
+        format!("sha256:{}:{}", hex(&Sha256::digest(bytes)), bytes.len())
+    } else {
+        hex(bytes)
+    }
+}
+
+fn unhex(text: &str) -> Vec<u8> {
+    (0..text.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&text[i..i + 2], 16).expect("hex"))
+        .collect()
 }
 
 /// Read cases from `input` and write each result to `output`.

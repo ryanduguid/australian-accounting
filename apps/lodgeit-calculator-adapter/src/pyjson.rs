@@ -150,31 +150,68 @@ pub enum DecodeError {
     /// The `object_pairs_hook` found a repeated member.
     Duplicate,
     /// `RecursionError`: the C stack ran low while decoding a JSON "array"
-    /// or "object"; [`recursion_message`] gives its text.
+    /// or "object", or in the "call" reading a constant; [`recursion_message`]
+    /// gives its text.
     Recursion(&'static str),
     /// A `ValueError` raised by a parse hook, with its message.
     Hook(String),
 }
 
 // CPython 3.15's scanner stops where its C stack runs low. Measured with the
-// reference build, each array level costs 144 bytes and each object level 128
-// on Windows (python.exe reserves a 2,000,000-byte stack); both cost 128 on Linux with the
-// default 8 MiB `ulimit -s`. A container is refused when the levels open
-// around it, its own included, would pass the limit; the message reports the
-// stack in use then, which the Windows measurements found constant. On Linux
-// the environment and address layout move Python's limit by hundreds of
-// levels per process; 65,220 is one measured run.
+// reference build (`artifacts/.../tools/measure_decode.py`, `fit_decode.py`),
+// each array level costs 144 bytes and each object level 128 on Windows
+// (python.exe reserves a 2,000,000-byte stack); both cost 128 on Linux with
+// the default 8 MiB `ulimit -s`. A container is refused once the levels open
+// around it, its own not included, pass the limit, as MSVC reads the stack
+// pointer at the enclosing call; the message reports the stack in use then,
+// which the Windows measurements found constant. On Linux where the stack
+// starts moves Python's limit by about 8 KB per process; its figure is the
+// encoder budget plus its offset (see `pyencode`).
 #[cfg(windows)]
-const STACK: (usize, usize, usize, u32) = (144, 128, 1_996_128, 1952);
+const STACK: (usize, usize, usize, u32) = (144, 128, 1_996_016, 1952);
 #[cfg(not(windows))]
-const STACK: (usize, usize, usize, u32) = (128, 128, 65_220 * 128, 8156);
+const STACK: (usize, usize, usize, u32) = (128, 128, 8_345_296, 8156);
+
+/// The default `parse_constant` is a C function whose call checks the stack
+/// this much deeper than the levels open around the constant. On Linux the
+/// check never fails before the next level's would.
+#[cfg(windows)]
+const CALL_DEPTH: Option<usize> = Some(544);
+#[cfg(not(windows))]
+const CALL_DEPTH: Option<usize> = None;
+
+/// An absolute stack limit, moved by `LODGEIT_ADAPTER_STACK_SHIFT` bytes in
+/// the differential build: the harness's stand-in for where Linux's stack
+/// starts, which moves every absolute limit together.
+pub(crate) fn shifted(limit: usize) -> usize {
+    #[cfg(feature = "differential")]
+    {
+        static SHIFT: std::sync::OnceLock<isize> = std::sync::OnceLock::new();
+        let shift = SHIFT.get_or_init(|| {
+            std::env::var("LODGEIT_ADAPTER_STACK_SHIFT")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0)
+        });
+        limit.saturating_add_signed(*shift)
+    }
+    #[cfg(not(feature = "differential"))]
+    limit
+}
 
 fn level_cost(array: bool) -> usize {
     if array { STACK.0 } else { STACK.1 }
 }
 
-/// `str()` of the `RecursionError` for a JSON "array" or "object".
+/// `str()` of the `RecursionError` for a JSON "array" or "object", or the
+/// "call" of `parse_constant`.
 pub fn recursion_message(kind: &str) -> String {
+    if kind == "call" {
+        return format!(
+            "Stack overflow (used {} kB) while calling a Python object",
+            STACK.3
+        );
+    }
     format!(
         "Stack overflow (used {} kB) while decoding a JSON {kind} from a unicode string",
         STACK.3
@@ -223,11 +260,15 @@ pub fn loads_numbers(text: &str, numbers: Numbers) -> Result<Json, DecodeError> 
 /// The C scanner over the text's UTF-8 bytes: its syntax is ASCII, and string
 /// content is copied a run at a time.
 fn decode(text: &str, reject_duplicates: bool, numbers: Numbers) -> Result<Json, DecodeError> {
-    let constant = |name: &str, value: f64| {
+    // shortcut: the call check is measured for the default `parse_constant`
+    // only; `Text`'s Python hook is measured with the client (gate B2).
+    let constant = |name: &str, value: f64, used: usize| {
         if numbers == Numbers::Text {
             Err(DecodeError::Hook(format!(
                 "response contains the JSON-invalid constant {name}"
             )))
+        } else if CALL_DEPTH.is_some_and(|depth| used + depth > shifted(STACK.2)) {
+            Err(DecodeError::Recursion("call"))
         } else {
             Ok(Json::Float(value))
         }
@@ -281,7 +322,7 @@ fn decode(text: &str, reject_duplicates: bool, numbers: Numbers) -> Result<Json,
                 Json::Str(string)
             }
             b'{' => {
-                if used + level_cost(false) > STACK.2 {
+                if used > shifted(STACK.2) {
                     return Err(DecodeError::Recursion("object"));
                 }
                 idx = skip(idx + 1);
@@ -296,7 +337,7 @@ fn decode(text: &str, reject_duplicates: bool, numbers: Numbers) -> Result<Json,
                 }
             }
             b'[' => {
-                if used + level_cost(true) > STACK.2 {
+                if used > shifted(STACK.2) {
                     return Err(DecodeError::Recursion("array"));
                 }
                 idx = skip(idx + 1);
@@ -322,13 +363,13 @@ fn decode(text: &str, reject_duplicates: bool, numbers: Numbers) -> Result<Json,
                     Json::Bool(false)
                 } else if literal(b"NaN") {
                     idx += 3;
-                    constant("NaN", f64::NAN)?
+                    constant("NaN", f64::NAN, used)?
                 } else if literal(b"Infinity") {
                     idx += 8;
-                    constant("Infinity", f64::INFINITY)?
+                    constant("Infinity", f64::INFINITY, used)?
                 } else if literal(b"-Infinity") {
                     idx += 9;
-                    constant("-Infinity", f64::NEG_INFINITY)?
+                    constant("-Infinity", f64::NEG_INFINITY, used)?
                 } else {
                     let (number, next) =
                         match_number(text, idx, numbers).ok_or_else(|| expecting_value(idx))??;
@@ -886,6 +927,34 @@ mod tests {
 
     fn err(text: &str) -> DecodeError {
         loads(text).unwrap_err()
+    }
+
+    /// The scanner checks a container against the levels open around it, not
+    /// its own: 8 objects and 13,855 arrays hold 1,996,144 bytes, so the
+    /// object opened next is refused, where counting the last array's own
+    /// cost would refuse that array. A constant's call checks 544 deeper.
+    #[cfg(windows)]
+    #[test]
+    fn stack_checks_count_open_levels_only() {
+        // Dropping a 13,857-deep value recurses past a test thread's stack.
+        std::thread::Builder::new()
+            .stack_size(512 << 20)
+            .spawn(|| {
+                let chain =
+                    |opens: &str, inner: &str, closes: &str| opens.to_string() + inner + closes;
+                let text = chain(
+                    &("{\"k\":".repeat(8) + &"[".repeat(13_855)),
+                    "{}",
+                    &("]".repeat(13_855) + &"}".repeat(8)),
+                );
+                assert_eq!(err(&text), DecodeError::Recursion("object"));
+                let constant = |n: usize| chain(&"[".repeat(n), "NaN", &"]".repeat(n));
+                assert!(loads(&constant(13_857)).is_ok());
+                assert_eq!(err(&constant(13_858)), DecodeError::Recursion("call"));
+            })
+            .expect("spawn")
+            .join()
+            .expect("no panic");
     }
 
     #[test]

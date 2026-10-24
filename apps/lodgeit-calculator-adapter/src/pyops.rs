@@ -85,6 +85,7 @@ pub(crate) fn strip(text: &[u32]) -> &[u32] {
 }
 
 /// `re.sub(r"\s+", " ", text).strip()`.
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn norm(text: &[u32]) -> S {
     let mut out = Vec::with_capacity(text.len());
     let mut in_space = false;
@@ -103,6 +104,7 @@ pub(crate) fn norm(text: &[u32]) -> S {
 }
 
 /// `re.sub(r"[^\S\n\t]", " ", text)`.
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn plain_spaces(text: &[u32]) -> S {
     text.iter()
         .map(|&cp| {
@@ -121,6 +123,7 @@ pub(crate) fn contains(haystack: &[u32], needle: &[u32]) -> bool {
 }
 
 /// `str.splitlines()`.
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn splitlines(text: &[u32]) -> Vec<&[u32]> {
     let mut lines = Vec::new();
     let mut start = 0;
@@ -148,11 +151,13 @@ pub(crate) fn splitlines(text: &[u32]) -> Vec<&[u32]> {
     lines
 }
 
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn points_of(value: &PyStr) -> S {
     value.code_points()
 }
 
 /// `int(digits)` for a run of Unicode decimal digits.
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn int_of(digits: &[u32]) -> BigInt {
     digits
         .iter()
@@ -160,22 +165,58 @@ pub(crate) fn int_of(digits: &[u32]) -> BigInt {
         .fold(BigInt::zero(), |n, d| n * 10 + d)
 }
 
-/// A Python exception: its class, qualified as a traceback names it, and its `str()`.
+/// A Python exception: its class, qualified as a traceback names it, its
+/// `str()` and the notes a traceback prints after it, in the order added.
 #[derive(Clone, Debug)]
 pub struct Exc {
     pub class: &'static str,
     pub text: S,
+    pub notes: Vec<S>,
 }
 
 pub(crate) type R<T> = Result<T, Exc>;
 
 impl Exc {
     pub(crate) fn new(class: &'static str, text: S) -> Exc {
-        Exc { class, text }
+        Exc {
+            class,
+            text,
+            notes: Vec::new(),
+        }
     }
 
     pub(crate) fn msg(class: &'static str, text: &str) -> Exc {
         Exc::new(class, pts(text))
+    }
+
+    /// `add_note(note)`.
+    pub(crate) fn note(mut self, note: S) -> Exc {
+        self.notes.push(note);
+        self
+    }
+
+    /// What an uncaught exception writes to stderr, without its frames:
+    /// the header, the class and message, and each note on its own line.
+    /// stderr's `backslashreplace` shows a lone surrogate as an escape.
+    pub fn traceback(&self) -> String {
+        let shown = |points: &[u32]| -> String {
+            points
+                .iter()
+                .map(|&cp| char::from_u32(cp).map_or_else(|| format!("\\u{cp:04x}"), String::from))
+                .collect()
+        };
+        let mut out = String::from("Traceback (most recent call last):\n");
+        out.push_str(self.class);
+        if !self.text.is_empty() {
+            out.push_str(": ");
+            out.push_str(&shown(&self.text));
+        }
+        out.push('\n');
+        for note in &self.notes {
+            out.push_str(&shown(note));
+            out.push('\n');
+        }
+        out
     }
 
     /// `isinstance(self, base)` for the classes the tool meets.
@@ -209,6 +250,7 @@ impl Exc {
     }
 
     /// `type(self).__name__`.
+    #[expect(dead_code, reason = "used once later gates port its callers")]
     pub(crate) fn name(&self) -> &'static str {
         self.class.rsplit('.').next().unwrap_or(self.class)
     }
@@ -218,6 +260,7 @@ pub(crate) fn type_error(text: &str) -> Exc {
     Exc::msg("TypeError", text)
 }
 
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn value_error(text: S) -> Exc {
     Exc::new("ValueError", text)
 }
@@ -226,10 +269,12 @@ pub(crate) fn key_error(key: &str) -> Exc {
     Exc::msg("KeyError", &py::repr_str(key))
 }
 
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn os_exc(error: &OsError) -> Exc {
     Exc::msg(error.class(), &error.text)
 }
 
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn decimal_signal(signal: Signal) -> Exc {
     match signal {
         Signal::InvalidOperation => Exc::msg(
@@ -244,6 +289,7 @@ pub(crate) fn decimal_signal(signal: Signal) -> Exc {
     }
 }
 
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn conversion(error: Conversion) -> Exc {
     Exc::msg("decimal.InvalidOperation", error.text())
 }
@@ -264,6 +310,7 @@ pub(crate) fn getitem<'a>(value: &'a Json, key: &str) -> R<&'a Json> {
 }
 
 /// `key in value` for a dict.
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn has(value: &Json, key: &str) -> bool {
     value.get(key).is_some()
 }
@@ -303,6 +350,7 @@ pub(crate) fn hash_key(value: &Json, container: &str) -> R<Key> {
 }
 
 /// `hash((a, b))` as a set element.
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn tuple_key(items: &[&Json]) -> R<Key> {
     let mut keys = Vec::new();
     for item in items {
@@ -316,6 +364,7 @@ pub(crate) fn tuple_key(items: &[&Json]) -> R<Key> {
     Ok(Key::Tuple(keys))
 }
 
+#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn repr_s(value: &Json) -> S {
     pts(&repr(value))
 }
@@ -422,4 +471,68 @@ pub(crate) fn sorted_set(values: Vec<Json>) -> R<Vec<Json>> {
         Some(e) => Err(e),
         None => Ok(unique),
     }
+}
+
+/// `sorted(values)`: stable, failing with the `TypeError` of the first
+/// comparison CPython's `list.sort` cannot make. The comparisons are its own
+/// for fewer than 64 items, where the whole list is one `count_run` followed
+/// by binary insertion of the rest; longer lists are sorted the same way,
+/// where CPython would merge runs.
+pub(crate) fn py_sorted(mut a: Vec<Json>) -> R<Vec<Json>> {
+    let lt = |x: &Json, y: &Json| py_compare(x, y, "<");
+    let total = a.len();
+    if total < 2 {
+        return Ok(a);
+    }
+    // count_run: an ascending run, else a descending one with its equal
+    // stretches kept in order, extended by an ascending suffix.
+    let mut n = 1;
+    while n < total && !lt(&a[n], &a[n - 1])? {
+        n += 1;
+    }
+    let descending = n < total && (n == 1 || !lt(&a[0], &a[n - 1])?);
+    if descending {
+        if n > 1 {
+            a[..n].reverse();
+        }
+        n += 1;
+        let mut neq = 0;
+        let reverse_last_neq = |a: &mut [Json], n: usize, neq: &mut usize| {
+            if *neq > 0 {
+                *neq += 1;
+                a[n - *neq..n].reverse();
+                *neq = 0;
+            }
+        };
+        while n < total {
+            if lt(&a[n], &a[n - 1])? {
+                reverse_last_neq(&mut a, n, &mut neq);
+            } else if lt(&a[n - 1], &a[n])? {
+                break;
+            } else {
+                neq += 1;
+            }
+            n += 1;
+        }
+        reverse_last_neq(&mut a, n, &mut neq);
+        a[..n].reverse();
+        while n < total && !lt(&a[n], &a[n - 1])? {
+            n += 1;
+        }
+    }
+    // binarysort: insert each remaining item after everything not above it.
+    for ok in n..total {
+        let (mut low, mut high) = (0, ok);
+        while low < high {
+            let mid = (low + high) / 2;
+            if lt(&a[ok], &a[mid])? {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+        let item = a.remove(ok);
+        a.insert(low, item);
+    }
+    Ok(a)
 }

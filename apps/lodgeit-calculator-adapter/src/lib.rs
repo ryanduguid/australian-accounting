@@ -3,14 +3,17 @@
 //! reproduce the Python behaviour it relied on.
 pub mod argparse;
 pub mod argtheme;
+pub mod cli;
 pub mod config;
 pub mod contract;
 pub mod decimal;
 pub mod errors;
+pub mod evidence;
 pub mod https;
 pub mod py;
 pub mod pycase;
 pub mod pydatetime;
+pub mod pyencode;
 pub mod pyjson;
 pub mod pyops;
 pub mod pyos;

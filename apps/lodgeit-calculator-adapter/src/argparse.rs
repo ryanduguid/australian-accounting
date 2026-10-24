@@ -15,6 +15,8 @@ pub enum Value {
     Int(i64),
     Bool(bool),
     List(Vec<String>),
+    /// `argparse.SUPPRESS`: the namespace has no attribute until the option is given.
+    Suppress,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -910,7 +912,7 @@ impl Parser {
     fn parse_inner(&self, arg_strings: &[String]) -> Result<(Namespace, Vec<String>), Fail> {
         let mut ns = Namespace::new();
         for action in &self.actions {
-            if action.kind != Kind::Help {
+            if action.kind != Kind::Help && action.default != Value::Suppress {
                 ns.insert(action.dest.clone(), action.default.clone());
             }
         }
