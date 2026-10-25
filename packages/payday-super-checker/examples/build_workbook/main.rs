@@ -2,14 +2,49 @@
 //! the source of the shipped workbook until this one passes the differential
 //! gates recorded for the port.
 
-use std::io::{Cursor, Read, Write};
+mod model;
+
+use std::io::{Cursor, Write};
+
+use model::{read_part, relationships};
 
 /// The tblLines columns whose calculated formula Excel must treat as an array
 /// formula when the table grows; see `repair_array_columns`.
 pub const ARRAY_CALCS: [&str; 3] = ["Confirmed_latest", "Possible_latest", "Case_variant"];
 
 fn main() {
-    eprintln!("build_workbook: the Rust builder is not complete; use tools/build_workbook.py");
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let read = |path: &str| std::fs::read(path).unwrap_or_else(|e| fail(&format!("{path}: {e}")));
+    let model_of =
+        |path: &str| model::model(&read(path)).unwrap_or_else(|e| fail(&format!("{path}: {e}")));
+    match args
+        .iter()
+        .map(String::as_str)
+        .collect::<Vec<_>>()
+        .as_slice()
+    {
+        // Print a workbook's semantic model, for freezing a reference.
+        ["--model", path] => {
+            for line in model_of(path) {
+                println!("{line}");
+            }
+        }
+        // Compare two workbooks' models; exit 1 on any difference.
+        ["--diff", reference, candidate] => {
+            let differences = model::differences(&model_of(reference), &model_of(candidate));
+            for line in &differences {
+                println!("{line}");
+            }
+            if !differences.is_empty() {
+                std::process::exit(1);
+            }
+        }
+        _ => fail("the Rust builder is not complete; use tools/build_workbook.py"),
+    }
+}
+
+fn fail(message: &str) -> ! {
+    eprintln!("build_workbook: {message}");
     std::process::exit(1);
 }
 
@@ -45,63 +80,6 @@ pub fn repair_array_columns(
     Ok(out.finish().map_err(|e| e.to_string())?.into_inner())
 }
 
-fn read_part(archive: &mut zip::ZipArchive<Cursor<&[u8]>>, name: &str) -> Result<String, String> {
-    let mut text = String::new();
-    archive
-        .by_name(name)
-        .map_err(|e| format!("{name}: {e}"))?
-        .read_to_string(&mut text)
-        .map_err(|e| format!("{name}: {e}"))?;
-    Ok(text)
-}
-
-/// Resolve a relationship target against the directory of its source part.
-fn resolve(source: &str, target: &str) -> String {
-    if let Some(absolute) = target.strip_prefix('/') {
-        return absolute.to_string();
-    }
-    let mut parts: Vec<&str> = source.split('/').collect();
-    parts.pop();
-    for segment in target.split('/') {
-        match segment {
-            ".." => {
-                parts.pop();
-            }
-            "." | "" => {}
-            _ => parts.push(segment),
-        }
-    }
-    parts.join("/")
-}
-
-fn rels_of(part: &str) -> String {
-    let (dir, file) = part.rsplit_once('/').unwrap_or(("", part));
-    format!("{dir}/_rels/{file}.rels")
-}
-
-/// Relationship targets of `part`, resolved, with their type URIs.
-fn relationships(
-    archive: &mut zip::ZipArchive<Cursor<&[u8]>>,
-    part: &str,
-) -> Result<Vec<(String, String, String)>, String> {
-    let rels = rels_of(part);
-    let xml = read_part(archive, &rels)?;
-    let doc = roxmltree::Document::parse(&xml).map_err(|e| format!("{rels}: {e}"))?;
-    Ok(doc
-        .descendants()
-        .filter(|n| n.has_tag_name("Relationship"))
-        .map(|n| {
-            let id = n.attribute("Id").unwrap_or_default().to_string();
-            let kind = n.attribute("Type").unwrap_or_default().to_string();
-            (
-                id,
-                kind,
-                resolve(part, n.attribute("Target").unwrap_or_default()),
-            )
-        })
-        .collect())
-}
-
 /// Find the table part named `table` through workbook -> sheet -> table
 /// relationships rather than assuming a part name.
 fn table_part(
@@ -109,22 +87,15 @@ fn table_part(
     sheet: &str,
     table: &str,
 ) -> Result<String, String> {
-    const R: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-    let workbook = read_part(archive, "xl/workbook.xml")?;
-    let doc = roxmltree::Document::parse(&workbook).map_err(|e| e.to_string())?;
-    let mut ids = doc
-        .descendants()
-        .filter(|n| n.has_tag_name("sheet") && n.attribute("name") == Some(sheet))
-        .filter_map(|n| n.attribute((R, "id")));
-    let id = match (ids.next(), ids.next()) {
-        (Some(id), None) => id.to_string(),
-        _ => return Err(format!("expected exactly one sheet named {sheet}")),
-    };
-    let sheet_part = relationships(archive, "xl/workbook.xml")?
+    let matching: Vec<String> = model::sheets(archive)?
         .into_iter()
-        .find(|(rid, _, _)| *rid == id)
-        .map(|(_, _, target)| target)
-        .ok_or_else(|| format!("no relationship {id} for sheet {sheet}"))?;
+        .filter(|(name, _, _)| name == sheet)
+        .map(|(_, _, part)| part)
+        .collect();
+    let [sheet_part] = matching.as_slice() else {
+        return Err(format!("expected exactly one sheet named {sheet}"));
+    };
+    let sheet_part = sheet_part.clone();
     let mut found = Vec::new();
     for (_, kind, target) in relationships(archive, &sheet_part)? {
         if !kind.ends_with("/table") {
