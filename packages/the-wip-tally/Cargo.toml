@@ -6,6 +6,7 @@ rust-version = "1.99"
 description = "Deterministic AASB 15 construction WIP schedule and practitioner review pack"
 license = "Apache-2.0"
 repository = "https://github.com/ryanduguid/australian-accounting"
+homepage = "https://duguid.com.au/tools/wip-schedule/"
 publish = false
 
 [[bin]]

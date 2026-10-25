@@ -1,5 +1,7 @@
 # Australian accounting engines and MCP server
 
+<div align="center">
+
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/ryanduguid/australian-accounting?label=coverage&labelColor=000000&style=flat)](https://codecov.io/gh/ryanduguid/australian-accounting)
 [![CodeQL](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/codeql.yml?branch=main&label=CodeQL&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
@@ -11,10 +13,12 @@
 [![SLSA 3](https://img.shields.io/badge/SLSA-level%203-990024?labelColor=000000&style=flat&color=990024)](https://github.com/ryanduguid/australian-accounting/attestations)
 [![VirusTotal](https://img.shields.io/badge/VirusTotal-scanned-990024?labelColor=000000&style=flat&logo=virustotal&logoColor=FFD32A&color=990024)](https://github.com/ryanduguid/australian-accounting/releases)<br>
 [![licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ryanduguid/australian-accounting)
+[![Open in GitHub Codespaces](https://img.shields.io/badge/GitHub-Codespaces-66023C?style=flat&labelColor=000000&logo=github&logoColor=FFD32A)](https://codespaces.new/ryanduguid/australian-accounting)
 [![Glama MCP server score](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/score.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
 
 [![Aus Accounting MCP server](https://mcprush.com/badge/aus-accounting-mcp/card.svg)](https://mcprush.com/to/aus-accounting-mcp?ref=badge)
+
+</div>
 
 Seven independently released Python engines that apply Australian tax and payroll
 rules to figures you supply, plus **Aus Accounting MCP**, a local Model Context

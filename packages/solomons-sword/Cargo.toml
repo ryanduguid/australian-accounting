@@ -6,6 +6,7 @@ rust-version = "1.99"
 description = "Division 6 trust allocation, s 100A risk zoning and s 99B review aids"
 license = "Apache-2.0"
 repository = "https://github.com/ryanduguid/australian-accounting"
+homepage = "https://duguid.com.au/tools/trust-distributions/"
 publish = false
 
 [dependencies]

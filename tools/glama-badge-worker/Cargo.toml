@@ -1,0 +1,24 @@
+[package]
+name = "glama-badge-worker"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+synthetic-trial = []
+
+[dependencies]
+glama-badge-server = { path = "../glama-badge-server", default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+worker = "=0.8.7"
+futures-util = { version = "0.3", default-features = false, features = ["std", "async-await"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1

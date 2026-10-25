@@ -8,10 +8,14 @@ release provides ten through calculators 0.1.8. See the
 package checks. The annual Medicare worksheet does not apply Medicare
 adjustments to payroll withholding.
 
+<div align="center">
+
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
 [![PyPI](https://img.shields.io/pypi/v/aus-accounting-mcp.svg?color=66023C&labelColor=000000&style=flat)](https://pypi.org/project/aus-accounting-mcp/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat&color=66023C)](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE)
 [![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-66023C?logo=python&logoColor=E5E4E2&labelColor=000000&style=flat&color=66023C)](https://www.python.org/downloads/)
+
+</div>
 
 Australian accounting tools for Claude, Cursor, Codex and other MCP clients. The
 server runs on your machine over stdio, needs no API key or account, and makes no
@@ -50,16 +54,20 @@ The listing identifies the distribution; it does not prove a client's installed 
 Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uvx aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.6.0' aus-accounting-mcp
 ```
+
+This selects the published [0.6.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.6.0).
+The source checkout may be ahead of the published release. The pin selects the
+server version; it does not lock every transitive dependency.
 
 The server waits for an MCP client over stdio. Tool calls read bundled data and any
 folders you configure. They do not contact the ATO or the Federal Register, change
 records or lodge. Your MCP host still sends tool arguments and results to its model
 provider, so use fabricated data with a hosted model.
 
-`uvx` keeps the version it first downloaded. To upgrade, name the release in your
-client configuration, for example `aus-accounting-mcp==<version>`.
+To upgrade, replace the version in your client configuration with a later release
+published on PyPI.
 
 ## Client integration
 
@@ -70,18 +78,18 @@ For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio server
   "mcpServers": {
     "aus-accounting": {
       "command": "uvx",
-      "args": ["aus-accounting-mcp"]
+      "args": ["--from", "aus-accounting-mcp==0.6.0", "aus-accounting-mcp"]
     }
   }
 }
 ```
 
-[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyJhdXMtYWNjb3VudGluZy1tY3AiXX0=),
+[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuNi4wIiwiYXVzLWFjY291bnRpbmctbWNwIl19),
 or from a terminal:
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx aus-accounting-mcp
-codex mcp add aus-accounting -- uvx aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.6.0' aus-accounting-mcp
+codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.6.0' aus-accounting-mcp
 ```
 
 The [client setup guide](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#client-setup)

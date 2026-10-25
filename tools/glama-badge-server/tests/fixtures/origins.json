@@ -1,0 +1,52 @@
+[
+  {
+    "name": "connector-unhealthy.svg",
+    "source": "../glama-fixtures/connector-unhealthy.svg"
+  },
+  {
+    "name": "grade-c.svg",
+    "source": "../glama-fixtures/grade-c.svg"
+  },
+  {
+    "name": "licence-f-correct.svg",
+    "source": "../glama-fixtures/licence-f-correct.svg"
+  },
+  {
+    "name": "licence-f.svg",
+    "source": "../glama-fixtures/licence-f.svg"
+  },
+  {
+    "name": "quality-c.svg",
+    "source": "../glama-fixtures/quality-c.svg"
+  },
+  {
+    "name": "connector-verified-healthy.svg",
+    "source": "../render-checks/66af30f930b9ef18358cd265bb492e5a02424295bb5f1fbad687bbce39c3890e.svg",
+    "url": "https://glama.ai/mcp/connectors/com.paxaver.mcp/paxaver/badges/score.svg"
+  },
+  {
+    "name": "connector-unverified-healthy.svg",
+    "source": "../render-checks/316926d96c1489f814eb141ae80305a7b082e3b8be63123ce4e19cc6d713ff72.svg",
+    "url": "https://glama.ai/mcp/connectors/dev.mailprobe/mailprobe/badges/score.svg"
+  },
+  {
+    "name": "server-a-missing-f.svg",
+    "source": "../render-checks/042dce15ac7636379ad93d2a34ba76cc67479be82e443993fe81257cb94966a3.svg",
+    "url": "https://glama.ai/mcp/servers/@98lukehall/renoun-mcp/badges/score.svg"
+  },
+  {
+    "name": "server-a-b-d.svg",
+    "source": "../render-checks/45019502c99e7a47462abc449510b7a3fadd3ed5ddbc1f3a1ad042e41316744c.svg",
+    "url": "https://glama.ai/mcp/servers/@6figr-com/job-gpt-mcp-server/badges/score.svg"
+  },
+  {
+    "name": "server-a-missing-a.svg",
+    "source": "../render-checks/ed0b7791e17ee24e825e826b04571b4d7e41c4d92f4cfd8b3fc0ab146e6ba847.svg",
+    "url": "https://glama.ai/mcp/servers/@airblackbox/air-blackbox-mcp/badges/score.svg"
+  },
+  {
+    "name": "server-a-a-d.svg",
+    "source": "../render-checks/66b36b61835682bbf0742f7e199c41cc5aabf22923499af77cdcca6078dd8592.svg",
+    "url": "https://glama.ai/mcp/servers/@alberthild/shield-api-mcp/badges/score.svg"
+  }
+]
