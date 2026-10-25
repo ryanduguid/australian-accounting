@@ -170,13 +170,28 @@ fn evaluate(command: &str, input: &Value) -> Value {
 
 fn replay(prefixes: &[&str]) {
     let rows: Value = serde_json::from_str(include_str!("data/python-api.json")).unwrap();
+    let corrections: Value =
+        serde_json::from_str(include_str!("data/amount-range-corrections.json")).unwrap();
     let mut n = 0;
-    for row in rows.as_array().unwrap() {
+    for (index, row) in rows.as_array().unwrap().iter().enumerate() {
         let command = row["command"].as_str().unwrap();
         if !prefixes.iter().any(|p| command.starts_with(p)) {
             continue;
         }
-        let expected = &row["expected"];
+        let mut expected = row["expected"].clone();
+        // This frozen case supplied integer-scale billings. The corrected
+        // right-to-invoice result, like every money result, has cent scale.
+        if command == "measure" && index == 4642 {
+            assert_eq!(row["test"], "test_unused_output_progress_is_not_validated");
+            assert_eq!(row["input"]["certified_billings"], "200");
+            assert_eq!(expected["ok"]["revenue_to_date"], "200");
+            expected["ok"]["revenue_to_date"] = json!("200.00");
+        }
+        if let Some(message) = corrections["api"].get(index.to_string()) {
+            assert_eq!(command, "parse-money");
+            assert_eq!(expected, json!({"error": "decimal.InvalidOperation"}));
+            expected = json!({"error": message});
+        }
         let actual = evaluate(command, &row["input"]);
         if expected.get("schema").is_some() {
             // A JSON number where the schema takes a decimal string: the exact
@@ -186,10 +201,10 @@ fn replay(prefixes: &[&str]) {
             assert_eq!(got, Some(want), "{}: {actual}", row["test"]);
         } else if expected.get("fnv").is_some() {
             let text = serde_json::to_string(&actual).unwrap();
-            assert!(matches(text.as_bytes(), expected), "{}", row["test"]);
+            assert!(matches(text.as_bytes(), &expected), "{}", row["test"]);
         } else {
             assert_eq!(
-                &actual, expected,
+                actual, expected,
                 "{}: {command} {}",
                 row["test"], row["input"]
             );
@@ -284,7 +299,9 @@ fn snapshot(folder: &Path, base: &Path, out: &mut Vec<(String, Vec<u8>)>) {
 #[test]
 fn original_cli_runs_with_their_files() {
     let rows: Value = serde_json::from_str(include_str!("data/python-cli.json")).unwrap();
-    for row in rows.as_array().unwrap() {
+    let corrections: Value =
+        serde_json::from_str(include_str!("data/amount-range-corrections.json")).unwrap();
+    for (index, row) in rows.as_array().unwrap().iter().enumerate() {
         let folder = scratch();
         for (rel, data) in row["files"].as_object().unwrap() {
             let path = folder.join(rel);
@@ -292,7 +309,28 @@ fn original_cli_runs_with_their_files() {
             std::fs::write(path, unhex(data.as_str().unwrap())).unwrap();
         }
         let steps = row["steps"].as_array().unwrap();
-        let expected = &row["expected"];
+        let mut expected = row["expected"].clone();
+        // Exact, reviewed post-port refusals; codes, stdout and files retain
+        // their frozen expectations. The original corpora stay unchanged.
+        if let Some(steps) = corrections["cli"][index.to_string()].as_object() {
+            for (step, message) in steps {
+                let step: usize = step.parse().unwrap();
+                assert_eq!(
+                    lf(&unhex(
+                        expected["results"][step]["stderr"].as_str().unwrap()
+                    )),
+                    b"error: decimal.InvalidOperation\n"
+                );
+                expected["results"][step]["stderr"] = json!(
+                    message
+                        .as_str()
+                        .unwrap()
+                        .bytes()
+                        .map(|b| format!("{b:02x}"))
+                        .collect::<String>()
+                );
+            }
+        }
         for (n, (step, want)) in steps
             .iter()
             .zip(expected["results"].as_array().unwrap())
@@ -533,6 +571,36 @@ fn the_version_wraps_like_help_text() {
         .unwrap();
     let text = String::from_utf8(out.stdout).unwrap().replace("\r\n", "\n");
     assert_eq!(text, "wip-tally\n1.0.0\n");
+}
+
+#[test]
+fn as_at_help_distinguishes_command_defaults() {
+    for (command, expected) in [
+        (
+            "schedule",
+            "--as-at AS_AT reporting date YYYY-MM-DD (default: today)",
+        ),
+        (
+            "review-pack",
+            "--as-at AS_AT reporting date YYYY-MM-DD (default: schedule date, or today if unavailable)",
+        ),
+    ] {
+        for help in ["-h", "--help"] {
+            let out = Command::new(env!("CARGO_BIN_EXE_wip-tally"))
+                .args([command, help])
+                .env("PYTHON_COLORS", "0")
+                .env("COLUMNS", "80")
+                .env_remove("FORCE_COLOR")
+                .env_remove("NO_COLOR")
+                .output()
+                .unwrap();
+            assert!(out.status.success(), "{command} {help}: {:?}", out.stderr);
+            assert!(out.stderr.is_empty(), "{command} {help}: {:?}", out.stderr);
+            let text = String::from_utf8(out.stdout).unwrap();
+            let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
+            assert!(text.contains(expected), "{command} {help}: {text}");
+        }
+    }
 }
 
 /// `where` as `json.loads` read it from literal bytes: the harness serialises a

@@ -101,15 +101,17 @@ every flagged contract, and puts a sign-off checklist on the page. Keep the
 CSV beside the pack. The CSV is the row-level evidence.
 
 The reporting date is written on every schedule row, so it is inside the bytes
-the pack rebuilds and hashes. Give both commands the same `--as-at`, or the
-pack refuses to bind one period's numbers to another period's header.
+the pack rebuilds and hashes. Without `--as-at`, `review-pack` uses the schedule's
+recorded date, or today if no usable date is available. An explicit `--as-at`
+takes precedence and must match the schedule's date; the pack refuses to bind
+one period's numbers to another period's header.
 
 ### Options
 
 | Option | What it does |
 | --- | --- |
 | `-o, --output` | Where to write the schedule CSV (default `wip-schedule.csv`) or the review pack |
-| `--as-at DATE` | Reporting date as `YYYY-MM-DD`, written on every schedule row (default: today) |
+| `--as-at DATE` | Reporting date as `YYYY-MM-DD`, written on every schedule row. `schedule` defaults to today; `review-pack` uses the schedule date, or today if unavailable. An explicit date overrides either default. |
 | `--mapping-file FILE` | JSON map of canonical field names to your column headings |
 
 ## Input columns
@@ -181,6 +183,13 @@ engine never offsets one contract against another. Retention classification
 under paras 105-108 is flagged for the engagement lead; it is not auto-posted
 to receivables.
 
+For a measurable `right_to_invoice` contract, certified billings are rounded to
+cents, half up, before they become revenue. That same amount determines the
+contract balance, so rounding cannot create an asset or liability. The GST
+review note keeps using the supplied billing evidence, independently of progress
+method. The supplied contract remains intact in the Rust result. Other
+progress methods and recoverable-cost-only revenue keep their rounding order.
+
 **Profit fade.** Current margin at completion versus prior-period margin, in
 percentage points. A movement of 1.00 point or more is a review flag. An ETC
 that has not moved after $1,000 or more of additional cost is flagged stale.
@@ -234,6 +243,11 @@ lists the commands.
 | `parse-money` | `raw` string, optional `where` (default `amount`) | The cent-quantised amount as a string |
 
 Each JSON input is limited to 8 MiB and each decimal field to 8,192 UTF-8 bytes.
+
+`parse-money` refuses amounts that cannot be rounded to cents within the
+28-digit decimal context, including a rounding carry beyond that precision.
+The refusal retains `where`; CSV refusals name the row, contract and field and
+are collected with other unreadable cells. These input errors produce no result.
 
 ## Job-to-cash example
 

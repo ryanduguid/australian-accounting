@@ -10,6 +10,16 @@ streams are compared after CRLF normalisation; the live differential compares
 raw bytes. API results over 64 KiB and command streams over 4 KiB are stored
 as an FNV-1a fingerprint and length.
 
+Post-port corrections preserve those frozen inputs and expectations:
+
+- `invoice_cents.rs` pins half-up right-to-invoice revenue, a nil contract
+  balance, GST based on supplied billings, period revenue and source evidence. Frozen
+  API case 4642 now expects `200.00` revenue instead of integer-scale `200`.
+- `amount_range.rs` pins contextual precision refusals and unchanged accepted
+  rounding. `data/amount-range-corrections.json` states the new error text for
+  28 API cases and 8 CLI cases. CLI refusals now collect all unreadable cells;
+  the same exit codes, stdout and files are still checked.
+
 | Original test | Rust coverage |
 | --- | --- |
 | `test_atomic_io.py::test_a_failed_replacement_keeps_the_reviewed_output` | Retired: monkeypatches Python `os.replace`. `report::atomic_write` stages beside the destination, flushes and renames; a failed rename removes the staged file and leaves the destination untouched |

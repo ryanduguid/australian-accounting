@@ -152,8 +152,16 @@ pub fn as_money(value: &Decimal) -> Calc<Decimal> {
 
 /// `parse_money`: an amount quantised to cents; a non-zero sub-half-cent value is refused.
 pub fn parse_money(raw: &str, where_: &str) -> Result<Decimal> {
-    let value = parse_amount(raw, where_)?;
-    let quantised = as_money(&value)?;
+    let out_of_range = || {
+        AmountError::Message(format!(
+            "{where_}: amount is outside the supported range for cents"
+        ))
+    };
+    let value = parse_amount(raw, where_).map_err(|error| match error {
+        AmountError::Decimal(_) => out_of_range(),
+        other => other,
+    })?;
+    let quantised = as_money(&value).map_err(|_| out_of_range())?;
     if !value.equals(&d("0"))? && quantised.equals(&d("0"))? {
         return refuse(format!(
             "{where_}: {} is smaller than half a cent and would round to nil",
