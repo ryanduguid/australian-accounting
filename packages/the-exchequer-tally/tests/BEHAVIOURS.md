@@ -59,7 +59,7 @@ The native tests also assert refused postings leave the ledger unchanged.
 | `test_recording_refuses_dates_outside_financial_year` | Frozen franking-account scenarios in `parity.rs` |
 | `test_initial_entries_must_belong_to_financial_year` | Frozen franking-account scenarios in `parity.rs` |
 | `test_financial_year_includes_both_boundary_dates` | Frozen franking-account scenarios in `parity.rs` |
-| `test_mutated_entries_cannot_contaminate_annual_calculations` | Frozen franking-account scenarios in `parity.rs` |
+| `test_mutated_entries_cannot_contaminate_annual_calculations` | `refused_records_do_not_post_and_mutated_entries_are_revalidated` and `appended_entries_outside_the_year_are_refused` in `parity.rs` |
 | `test_direct_franking_entries_preserve_ledger_invariants` | `direct_entries_preserve_ledger_invariants` in parity.rs |
 | `test_distribution_cli_requires_an_explicit_iso_payment_date` | Frozen original CLI subprocess, validate-value scenarios in `parity.rs` |
 | `test_distribution_cli_requires_an_explicit_tax_rate` | Frozen original CLI subprocess, validate-value scenarios in `parity.rs` |

@@ -173,8 +173,10 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         "distribution-event" => event(v)?.json(),
         "benchmark" => {
             // Python validates the validator's rate before constructing/adding events.
-            let tax_rate = optional_decimal(v, "corporate_tax_rate")?;
-            engine::rate(tax_rate.as_ref(), "BenchmarkRuleValidator")?;
+            let tax_rate = engine::rate(
+                optional_decimal(v, "corporate_tax_rate")?.as_ref(),
+                "BenchmarkRuleValidator",
+            )?;
             let events = array(v, "distributions")?
                 .iter()
                 .map(event)
