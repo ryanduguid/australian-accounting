@@ -116,12 +116,17 @@ class RustEngineTests(unittest.TestCase):
         directories = {f"{crate['root']}/{crate['package']}" for crate in crates}
         self.assertEqual(directories, set(RUST_ENGINES) | set(DATASETS) | {"apps/au-accounting"})
         root = tomllib.loads((ROOT / "pyproject.toml").read_text())
-        self.assertEqual(set(root["tool"]["uv"]["workspace"]["exclude"]), directories)
+        exclude = root["tool"]["uv"]["workspace"]["exclude"]
+        self.assertEqual(len(exclude), len(set(exclude)))
+        self.assertEqual(set(exclude), directories)
         # Dependabot's directories key takes globs, but GitHub does not document
         # what a glob matching a directory without a Cargo.toml does, so the list
         # stays explicit: every crate and every crate's fuzz harness.
-        fuzz = {manifest.parent.relative_to(ROOT).as_posix() for manifest in ROOT.glob("packages/*/fuzz/Cargo.toml")}
-        self.assertEqual(set(dependabot_directories("cargo")), {f"/{d}" for d in directories | fuzz})
+        fuzz = {manifest.parent.relative_to(ROOT).as_posix()
+                for manifest in [*ROOT.glob("packages/*/fuzz/Cargo.toml"), *ROOT.glob("apps/*/fuzz/Cargo.toml")]}
+        cargo = dependabot_directories("cargo", (ROOT / ".github/dependabot.yml").read_text())
+        self.assertEqual(len(cargo), len(set(cargo)))
+        self.assertEqual(set(cargo), {f"/{d}" for d in directories | fuzz})
         workflows = ROOT / ".github/workflows"
         matrix = "matrix: ${{ fromJSON(needs.crates.outputs.matrix) }}"
         caller = (workflows / "ci.yml").read_text()
@@ -140,29 +145,83 @@ class RustEngineTests(unittest.TestCase):
         self.assertEqual(by_name["gst-review"]["smoke"], "--api-help")
 
     def test_crate_lister_rejects_what_ci_rust_cannot_check(self):
+        engine = '[package]\nname = "engine"\n'
         cases = {
-            "renamed": '[package]\nname = "other"\n',
-            "two commands": '[package]\nname = "engine"\n[[bin]]\nname = "a"\n[[bin]]\nname = "b"\n',
+            "renamed": ('[package]\nname = "other"\n', ["src/main.rs"]),
+            "two commands": (engine + '[[bin]]\nname = "a"\n[[bin]]\nname = "b"\n', ["src/main.rs"]),
+            "an implicit second command": (engine, ["src/main.rs", "src/bin/extra.rs"]),
+            "no command": (engine, ["src/lib.rs"]),
         }
-        for case, manifest in cases.items():
+        for case, (manifest, sources) in cases.items():
             with self.subTest(case=case), tempfile.TemporaryDirectory() as scratch:
                 crate = Path(scratch) / "packages/engine"
-                crate.mkdir(parents=True)
+                for source in sources:
+                    (crate / source).parent.mkdir(parents=True, exist_ok=True)
+                    (crate / source).write_text("", encoding="utf-8")
                 (crate / "Cargo.toml").write_text(manifest, encoding="utf-8")
                 with self.assertRaises(SystemExit):
                     rust_crates["crates"](Path(scratch))
         with tempfile.TemporaryDirectory() as scratch, self.assertRaises(SystemExit):
             rust_crates["crates"](Path(scratch))
 
+    def test_parity_names_a_renamed_dependency_by_its_crate(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            umbrella = Path(scratch) / "apps/au-accounting"
+            umbrella.mkdir(parents=True)
+            (umbrella / "Cargo.toml").write_text(
+                '[package]\nname = "au-accounting"\n[dependencies]\n'
+                'serde_json = "1"\ngst = { path = "../../packages/gst-review", package = "gst-review" }\n'
+                'wip = { path = "../../packages/the-wip-tally" }\n', encoding="utf-8")
+            self.assertEqual(rust_crates["linked"](Path(scratch)), ["gst-review", "wip"])
 
-def dependabot_directories(ecosystem: str) -> list[str]:
-    """The directories of one dependabot.yml entry, read without a YAML parser."""
-    text = (ROOT / ".github/dependabot.yml").read_text()
-    block = text.split(f"- package-ecosystem: {ecosystem}\n", 1)[1].split("\n  - ", 1)[0]
-    listing = block.split("directories:\n", 1)[1]
+    def test_dependabot_reader_sees_every_directory(self):
+        base = ("version: 2\nupdates:\n  - package-ecosystem: cargo\n    directories:\n"
+                "      - /packages/a\n      - /packages/b\n    schedule:\n      interval: weekly\n")
+        self.assertEqual(dependabot_directories("cargo", base), ["/packages/a", "/packages/b"])
+        hidden = {
+            "after a comment": base.replace("      - /packages/b\n", "      - /packages/b\n      # more\n      - /packages/c\n"),
+            "with a trailing comment": base.replace("/packages/b\n", "/packages/b  # note\n      - /packages/c\n"),
+            "in a second entry": base + "  - package-ecosystem: cargo\n    directory: /packages/c\n",
+        }
+        for case, text in hidden.items():
+            with self.subTest(case=case):
+                self.assertIn("/packages/c", dependabot_directories("cargo", text))
+                self.assertNotIn("/packages/b  # note", dependabot_directories("cargo", text))
+        unsupported = {
+            "flow style": base.replace('    directories:\n      - /packages/a\n      - /packages/b\n', '    directories: ["/packages/a"]\n'),
+            "nested": base.replace("      - /packages/b\n", "      - /packages/b\n        - /packages/c\n"),
+        }
+        for case, text in unsupported.items():
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                dependabot_directories("cargo", text)
+
+
+def dependabot_directories(ecosystem: str, text: str) -> list[str]:
+    """Every directory the dependabot.yml entries for ecosystem name, without a YAML parser.
+
+    Blank and comment lines are skipped; a directories list in any other shape fails.
+    """
     directories = []
-    for line in listing.splitlines():
-        if not line.startswith("      - "):
-            break
-        directories.append(line.removeprefix("      - ").strip())
+    for entry in text.split("\n  - ")[1:]:
+        lines = entry.splitlines()
+        if lines[0].strip() != f"package-ecosystem: {ecosystem}":
+            continue
+        listing = False
+        for line in lines[1:]:
+            value = "" if line.strip().startswith("#") else line.split(" #", 1)[0].strip()
+            if not value:
+                continue
+            if value.startswith("directory:"):
+                directories.append(value.removeprefix("directory:").strip())
+                listing = False
+            elif value.startswith("directories:"):
+                if value != "directories:":
+                    raise ValueError(f"unsupported directories value: {line!r}")
+                listing = True
+            elif listing and line.startswith("      - "):
+                directories.append(value.removeprefix("- ").strip())
+            elif listing and line.startswith("      "):
+                raise ValueError(f"unsupported directories line: {line!r}")
+            else:
+                listing = False
     return directories

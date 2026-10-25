@@ -10,8 +10,9 @@ manifests are the only list, so adding a crate edits no workflow. Writes:
   engines it links by path;
 - parity-count: how many native commands that pattern unpacks.
 
-A crate's command is its one [[bin]] name, or the crate name without one. Its
-smoke arguments are [package.metadata.ci] smoke, or --api-help.
+A crate builds one command: its one [[bin]] name, or the crate name from
+src/main.rs. A crate with more (src/bin/) or none stops the listing. Its smoke
+arguments are [package.metadata.ci] smoke, or --api-help.
 """
 
 from __future__ import annotations
@@ -36,8 +37,10 @@ def crates(root: Path = ROOT) -> list[dict[str, str]]:
         if package["name"] != manifest.parent.name:
             sys.exit(f"{where}: the crate must be named as its directory")
         bins = data.get("bin", [])
-        if len(bins) > 1:
-            sys.exit(f"{where}: ci-rust.yml smokes one command; this crate has {len(bins)}")
+        if len(bins) > 1 or (manifest.parent / "src/bin").exists():
+            sys.exit(f"{where}: ci-rust.yml smokes one command; this crate builds more")
+        if not bins and not (manifest.parent / "src/main.rs").is_file():
+            sys.exit(f"{where}: ci-rust.yml smokes a command; this crate builds none")
         found.append({
             "package": package["name"],
             "root": manifest.parent.parent.name,
@@ -51,8 +54,9 @@ def crates(root: Path = ROOT) -> list[dict[str, str]]:
 
 def linked(root: Path = ROOT) -> list[str]:
     data = tomllib.loads((root / UMBRELLA / "Cargo.toml").read_text(encoding="utf-8"))
+    # An artefact is named after the crate, which a renamed dependency gives as package.
     return sorted(
-        name for name, spec in data["dependencies"].items()
+        spec.get("package", name) for name, spec in data["dependencies"].items()
         if isinstance(spec, dict) and "path" in spec
     )
 

@@ -46,15 +46,17 @@ RELEASE_CALLERS = {
 PYTHON_ENGINES = {
     "packages/lodgment-calendar": "lodgmentcalendar",
 }
+# Sourced records with their validator, a standalone Rust crate. Not an engine
+# or an application: nothing links it, and it is never released.
+DATASETS = {
+    "packages/au-tax-rates-data": "rates",
+}
+# Every other packages/*/Cargo.toml is a standalone Rust engine, named as its
+# directory (.github/ci/rust_crates.py enforces that); the manifests are the list.
 RUST_ENGINES = {
-    "packages/the-exchequer-tally": "the-exchequer-tally",
-    "packages/solomons-sword": "solomons-sword",
-    "packages/the-wip-tally": "the-wip-tally",
-    "packages/australian-tax-calculators": "australian-tax-calculators",
-    "packages/div7a-loan-review": "div7a-loan-review",
-    "packages/ato-benchmark-compare": "ato-benchmark-compare",
-    "packages/payday-super-checker": "payday-super-checker",
-    "packages/gst-review": "gst-review",
+    manifest.parent.relative_to(ROOT).as_posix(): manifest.parent.name
+    for manifest in sorted(ROOT.glob("packages/*/Cargo.toml"))
+    if manifest.parent.relative_to(ROOT).as_posix() not in DATASETS
 }
 ENGINES = PYTHON_ENGINES | RUST_ENGINES
 APPLICATIONS = {
@@ -62,11 +64,6 @@ APPLICATIONS = {
     # The optional remote adapter. An application, not an engine: it may consume
     # engines, and no engine may consume it.
     "apps/lodgeit-calculator-adapter": "lodgeitadapter",
-}
-# Sourced records with their validator, a standalone Rust crate. Not an engine
-# or an application: nothing links it, and it is never released.
-DATASETS = {
-    "packages/au-tax-rates-data": "rates",
 }
 
 # The files the changed-line coverage gate holds to complete branch coverage,
