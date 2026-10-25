@@ -898,7 +898,7 @@ pub enum Layout {
     Canonical,
 }
 
-fn dump_str(points: &[u32], out: &mut String) {
+pub(crate) fn dump_str(points: &[u32], out: &mut String) {
     out.push('"');
     for &cp in points {
         match cp {

@@ -243,6 +243,7 @@ fn run_case(case: &Json) -> R<Json> {
             ])
         }
         "transport" => transport_case(case)?,
+        "core" => core_case(case)?,
         "settimeout" => {
             // `s.settimeout(t); s.gettimeout()`, with t given by its bits.
             let bits = text(field("bits")).parse().expect("u64 bits");
@@ -485,6 +486,86 @@ fn transport_case(case: &Json) -> R<Json> {
             ),
         ),
         ("sleeps", Json::Array(sleeps)),
+        ("result", result),
+    ]))
+}
+
+/// `CoreClient.list_clients` over a scripted dialler: the dials, the bytes
+/// each connection was sent and the page or the `CoreError`.
+fn core_case(case: &Json) -> R<Json> {
+    use crate::core::{CoreClient, CoreConfig, CoreContinuation};
+    let field = |name: &str| case.get(name).unwrap_or(&Json::Null);
+    let c = field("config");
+    let config = CoreConfig::new(
+        c.at("enabled").truthy(),
+        float(c.at("read_timeout")),
+        int(c.at("max_response_bytes"))
+            .to_string()
+            .parse()
+            .expect("a small int"),
+    )?;
+    let continuation = field("continuation")
+        .as_str()
+        .map(|value| CoreContinuation {
+            value: value.to_owned(),
+        });
+    let mut script = Script {
+        steps: match field("script") {
+            Json::Array(steps) => steps.clone(),
+            _ => Vec::new(),
+        },
+        dials: Vec::new(),
+        sent: Vec::new(),
+    };
+    // Past i64 is out of range either way.
+    let size = int(field("page_size"))
+        .to_string()
+        .parse()
+        .unwrap_or(i64::MAX);
+    let result = match (CoreClient { config }).list_clients_via(
+        &mut script,
+        &text(field("bearer")),
+        size,
+        continuation.as_ref(),
+    ) {
+        Ok(page) => {
+            let optional = |value: &Option<String>| value.as_deref().map_or(Json::Null, Json::str);
+            let items = page.items.iter().map(|item| {
+                Json::Array(vec![
+                    Json::str(&item.id),
+                    optional(&item.code),
+                    Json::Bool(item.archived),
+                    Json::Bool(item.private),
+                ])
+            });
+            let token = page.continuation.map(|c| c.value);
+            Json::obj([(
+                "page",
+                Json::Array(vec![Json::Array(items.collect()), optional(&token)]),
+            )])
+        }
+        Err(error) => Json::obj([(
+            "core",
+            Json::Array(vec![
+                Json::str(error.category.as_str()),
+                error
+                    .http_status
+                    .map_or(Json::Null, |s| Json::Int(s.into())),
+            ]),
+        )]),
+    };
+    Ok(Json::obj([
+        ("dials", Json::Array(script.dials)),
+        (
+            "sent",
+            Json::Array(
+                script
+                    .sent
+                    .iter()
+                    .map(|s| Json::str(&hex(&s.borrow())))
+                    .collect(),
+            ),
+        ),
         ("result", result),
     ]))
 }

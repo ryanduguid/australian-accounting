@@ -7,6 +7,7 @@ pub mod cli;
 pub mod client;
 pub mod config;
 pub mod contract;
+pub mod core;
 pub mod decimal;
 pub mod dial;
 pub mod errors;
