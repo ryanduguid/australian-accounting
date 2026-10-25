@@ -13,6 +13,7 @@
 //! sign anything.
 pub mod depreciation;
 pub mod div7a;
+pub mod fano;
 pub mod fbt;
 
 use crate::decimal::Decimal;

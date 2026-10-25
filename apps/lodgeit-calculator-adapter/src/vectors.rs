@@ -251,6 +251,7 @@ fn run_case(case: &Json) -> R<Json> {
         "div7a" => div7a_case(case)?,
         "fbt" => fbt_case(case)?,
         "depreciation" => depreciation_case(case),
+        "fano" => fano_case(case),
         "settimeout" => {
             // `s.settimeout(t); s.gettimeout()`, with t given by its bits.
             let bits = text(field("bits")).parse().expect("u64 bits");
@@ -771,6 +772,77 @@ fn depreciation_case(case: &Json) -> Json {
         ),
         ("windows", windows),
         ("result", outcome_json(compared)),
+    ])
+}
+
+/// The Fano trial: the payload or its refusal, the interpretation of no
+/// provider or a fabricated outcome, and one crosswalk lookup.
+fn fano_case(case: &Json) -> Json {
+    use crate::trials::fano;
+    let field = |name: &str| case.get(name).unwrap_or(&Json::Null);
+    let refused = |error: Exc| Json::Array(vec![Json::str(error.class), json_str(error.text)]);
+    let or = |value: &Json, default: &str| match value {
+        Json::Null => default.to_owned(),
+        value => text(value),
+    };
+    let lines: Vec<fano::Line> = match field("lines") {
+        Json::Array(items) => items
+            .iter()
+            .map(|line| fano::Line {
+                description: text(line.at("description")),
+                source_topology: text(line.at("source_topology")),
+                amount: Decimal::parse_exact(&text(line.at("amount"))).expect("a decimal"),
+                predicted_code: or(line.at("predicted_code"), "sbrm_0000"),
+                confidence: Decimal::parse_exact(&or(line.at("confidence"), "0"))
+                    .expect("a decimal"),
+            })
+            .collect(),
+        _ => Vec::new(),
+    };
+    let entity = text(field("entity"));
+    let payload = match fano::build_payload(&entity, &lines) {
+        Ok(body) => Json::str(&repr(&body)),
+        Err(error) => refused(error),
+    };
+    let shown = |(status, suggestions, notes): fano::Interpreted| {
+        Json::obj([(
+            "ok",
+            Json::Array(vec![
+                Json::str(&status),
+                Json::Array(suggestions.iter().map(fano::Suggestion::to_json).collect()),
+                Json::Array(notes.into_iter().map(json_str).collect()),
+            ]),
+        )])
+    };
+    let given = field("outcome");
+    let result = if given == &Json::Null {
+        match fano::classify(&entity, &lines, None) {
+            Ok(interpreted) => shown(interpreted),
+            Err(error) => Json::obj([("error", refused(error))]),
+        }
+    } else {
+        shown(fano::interpret(&lines, &fabricated_outcome(given)))
+    };
+    let crosswalk: Option<Vec<(String, String)>> = match field("crosswalk") {
+        Json::Array(pairs) => Some(
+            pairs
+                .iter()
+                .map(|pair| match pair {
+                    Json::Array(pair) => (text(&pair[0]), text(&pair[1])),
+                    _ => panic!("a pair"),
+                })
+                .collect(),
+        ),
+        _ => None,
+    };
+    let mapped = match fano::require_crosswalk(crosswalk.as_deref(), &text(field("code"))) {
+        Ok(local) => Json::str(&local),
+        Err(error) => refused(error),
+    };
+    Json::obj([
+        ("payload", payload),
+        ("result", result),
+        ("crosswalk", mapped),
     ])
 }
 
