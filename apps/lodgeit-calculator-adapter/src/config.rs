@@ -357,7 +357,8 @@ pub fn from_environment(env: impl Fn(&str) -> Option<String>) -> R<AdapterConfig
     .checked()
 }
 
-/// `from_environment()` over the process environment.
+/// `from_environment()` over the process environment, through
+/// [`from_os_environment`], so a non-Unicode value is refused.
 pub fn from_process_environment() -> R<AdapterConfig> {
     from_os_environment(|name| std::env::var_os(name))
 }

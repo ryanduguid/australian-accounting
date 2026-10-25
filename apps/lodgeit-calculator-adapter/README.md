@@ -37,8 +37,8 @@ from an error all send nothing. `tests/no_network_by_default.rs` proves each of
 those with a dialler that fails the test on any connection attempt.
 
 The Python package also had an MCP surface, `invoke_calculator` with a per-call
-`network_acknowledged` switch. It was never released and nothing used it, so
-the Rust port omits it. The offline Aus Accounting MCP is a separate application
+`network_acknowledged` switch. It was never released, had no entry point and
+no other component consumed it, so the Rust port omits it. The offline Aus Accounting MCP is a separate application
 and is unaffected.
 
 ## Build
@@ -232,11 +232,14 @@ and live tenant compatibility remains unverified.
 
 ## The Rust port
 
-The port reproduces the Python package's output, exit codes, evidence bytes
-and wire bytes. Differential harnesses ran the Python package and this crate
-side by side on Windows and Linux over generated and directed cases, from the
-command line and transport to the Core client and the trials, with no
-unexplained difference. These differences are deliberate:
+Differential harnesses ran the Python package and this crate side by side on
+Windows and Linux over generated and directed cases, from the command line and
+transport to the Core client and the trials, each gate at its own commit. On
+those cases the crate matched the Python package's output, exit codes, HTTP
+request bytes and evidence bytes, apart from the differences below and cases
+the harnesses explained and counted apart (Python's hash order, and the Linux
+stack band). The TLS handshake was normalised in those comparisons, not
+compared byte for byte. These differences are deliberate:
 
 - **Typed interfaces.** The library takes Rust types, so Python's runtime type
   checks have no counterpart, and a Rust `String` cannot hold a lone surrogate.
@@ -248,7 +251,9 @@ unexplained difference. These differences are deliberate:
 - **Non-Unicode input is refused.** A command-line argument that is not valid
   Unicode exits with status 2, and a `LODGEIT_ADAPTER_*` variable that is not
   valid Unicode is a configuration error. Python carries such bytes as
-  surrogates.
+  surrogates. All 7 recognised variables are checked before any is parsed, so
+  this refusal can come before another configuration error Python would
+  report first.
 - **Output.** Standard output is always UTF-8; `PYTHONIOENCODING` is not
   honoured. A failed write to standard output is reported at exit (status
   120, with Python's flush message), where Python can raise during the write
@@ -266,8 +271,8 @@ unexplained difference. These differences are deliberate:
   memory runs out differs. A backoff sleep longer than about 292 years sleeps
   on Linux, where CPython refuses it. A lone surrogate in a route reaches the
   request URL as U+FFFD.
-- **Core.** Python clears the token, request body and response from its frame
-  locals so a traceback cannot show them. A Rust `CoreError` holds only the
+- **Core.** Python clears the token, continuation, request body and response
+  from its frame locals so a traceback cannot show them. A Rust `CoreError` holds only the
   category and status, and the token stays the caller's borrowed string.
   `list_clients_via` takes any dialler, which is how the tests stub the socket.
 - **Engines.** The trials link the in-tree Rust engines, which match

@@ -71,7 +71,8 @@ and `just lint` include these checks; typecheck remains Python-only. CI calls
 `ci-rust.yml` once per crate on Ubuntu, Windows and macOS, from the anchor
 workflow (the adapter from its own workflow), and keeps each platform's binary for 7 days as the archive the crate's
 `[package.metadata.binstall]` names (the adapter has none: it is not released). The `umbrella-parity` job then runs
-`apps/au-accounting/tests/parity.py` over those binaries. CodeQL and Dependabot
+`apps/au-accounting/tests/parity.py` over the engines' and `au-accounting`'s
+binaries; the adapter is not part of it. CodeQL and Dependabot
 include Cargo. All candidate builds have read-only permissions.
 
 The former PyPI publishers of these engines are retired. Native publication is not

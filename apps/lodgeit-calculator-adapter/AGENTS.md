@@ -62,9 +62,9 @@ This crate has its own `Cargo.lock`; commit it with any dependency change. The
 trials link `packages/div7a-loan-review` and `packages/australian-tax-calculators`
 by path, so a change to either engine can change a trial's figures.
 
-The port reproduces the retired Python package byte for byte. The README's
-'The Rust port' section lists the deliberate differences; keep it current when
-behaviour changes.
+The port was differentially tested against the retired Python package. The
+README's 'The Rust port' section says what matched and lists the deliberate
+differences; keep it current when behaviour changes.
 
 Do not release, tag or publish. This component has no release workflow, which
 is deliberate: it is development source.
