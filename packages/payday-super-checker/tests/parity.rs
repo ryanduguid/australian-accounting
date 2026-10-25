@@ -58,14 +58,24 @@ fn corpus() -> Vec<Value> {
 
 /// Applies `data/amendments.json`: the answers that deliberate changes made
 /// since Python 0.2.2 replace, kept apart so the frozen record never changes.
+/// Each override names its case's test and may replace only an existing
+/// `expected` or `written`, once, so a stale index or a typo fails the replay.
 fn amend(cases: &mut [Value]) {
     let amendments: Value =
         serde_json::from_str(include_str!("data/amendments.json")).expect("amendments parse");
+    let mut seen = std::collections::HashSet::new();
     for change in amendments["changes"].as_array().unwrap() {
         for (index, fields) in change["cases"].as_object().unwrap() {
-            let case = &mut cases[index.parse::<usize>().unwrap()];
+            let at = index.parse::<usize>().unwrap();
+            assert!(seen.insert(at), "case {index} amended twice");
+            let case = &mut cases[at];
+            assert_eq!(case["test"], fields["test"], "case {index} is another test");
             for (key, value) in fields.as_object().unwrap() {
-                case[key] = value.clone();
+                match key.as_str() {
+                    "test" => {}
+                    "expected" | "written" if case.get(key).is_some() => case[key] = value.clone(),
+                    _ => panic!("case {index}: cannot amend {key}"),
+                }
             }
         }
     }

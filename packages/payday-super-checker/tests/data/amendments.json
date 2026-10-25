@@ -5,6 +5,7 @@
    "change": "Employment Hero Beam 'Reconciled' is not sent to the fund (26 October 2026). Beam reports Reconciled once it has cleared the employer's money, before 'Sent to fund' (yourpayroll Super Contributions Report; Reckon's Beam status guide), so a Reconciled row gets no remitted date.",
    "cases": {
     "452": {
+     "test": "test_employment_hero_pair_is_detected_and_imports",
      "expected": {
       "ok": {
        "rows": [
@@ -64,6 +65,7 @@
      }
     },
     "453": {
+     "test": "test_employment_hero_pair_is_detected_and_imports",
      "expected": {
       "ok": {
        "payroll_profile": {
@@ -247,6 +249,7 @@
      }
     },
     "741": {
+     "test": "test_a_created_batch_is_not_written_as_a_remitted_payday",
      "expected": {
       "ok": {
        "payroll_profile": {
@@ -420,6 +423,7 @@
      }
     },
     "748": {
+     "test": "test_every_sent_beam_status_keeps_the_paid_date",
      "expected": {
       "ok": {
        "payroll_profile": {
@@ -591,6 +595,7 @@
      }
     },
     "749": {
+     "test": "test_every_sent_beam_status_keeps_the_paid_date",
      "expected": {
       "ok": {
        "rows": [
@@ -640,6 +645,7 @@
      }
     },
     "750": {
+     "test": "test_every_sent_beam_status_keeps_the_paid_date",
      "expected": {
       "ok": {
        "payroll_profile": {
@@ -819,6 +825,7 @@
      }
     },
     "751": {
+     "test": "test_every_sent_beam_status_keeps_the_paid_date",
      "expected": {
       "ok": {
        "rows": [
@@ -868,6 +875,7 @@
      }
     },
     "752": {
+     "test": "test_every_sent_beam_status_keeps_the_paid_date",
      "expected": {
       "ok": {
        "payroll_profile": {
@@ -1047,16 +1055,19 @@
      }
     },
     "753": {
+     "test": "test_a_status_outside_the_beam_ladder_is_refused_not_guessed",
      "expected": {
       "error": "row 2: status 'Processing' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand."
      }
     },
     "754": {
+     "test": "test_a_status_outside_the_beam_ladder_is_refused_not_guessed",
      "expected": {
       "error": "row 2: status '' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand."
      }
     },
     "757": {
+     "test": "test_awaiting_clearance_is_not_remittance_evidence",
      "expected": {
       "ok": {
        "payroll_profile": {
@@ -1230,30 +1241,35 @@
      }
     },
     "1295": {
+     "test": "test_sg_filter_include_as_a_string_raises_csv_error",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1296": {
+     "test": "test_date_formats_as_a_string_raises_csv_error",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1297": {
+     "test": "test_verified_as_a_string_raises_csv_error",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1298": {
+     "test": "test_all_eight_profiles_load",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1299": {
+     "test": "test_super_profiles_can_isolate_super_guarantee",
      "expected": {
       "ok": [
        {
@@ -1583,12 +1599,14 @@
      }
     },
     "1301": {
+     "test": "test_load_profiles_returns_both_roles",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1302": {
+     "test": "test_load_profiles_filters_by_role",
      "expected": {
       "ok": [
        {
@@ -1918,12 +1936,14 @@
      }
     },
     "1303": {
+     "test": "test_every_shipped_profile_is_marked_unverified",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1304": {
+     "test": "test_score_is_none_when_a_signature_heading_is_missing",
      "expected": {
       "ok": [
        {
@@ -2253,6 +2273,7 @@
      }
     },
     "1317": {
+     "test": "test_shipped_beam_status_ladder_is_fully_classified",
      "expected": {
       "ok": [
        {
@@ -2582,48 +2603,56 @@
      }
     },
     "1318": {
+     "test": "test_only_the_employment_hero_super_profile_classifies_a_status",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1319": {
+     "test": "test_remitted_status_list_as_a_string_raises_csv_error",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1320": {
+     "test": "test_remitted_status_with_a_status_in_both_lists_raises_csv_error",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1321": {
+     "test": "test_a_malformed_profile_is_refused_with_its_reason",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1322": {
+     "test": "test_a_profile_without_a_role_is_refused",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1324": {
+     "test": "test_a_profile_file_that_is_not_a_json_object_is_refused",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1325": {
+     "test": "test_two_profiles_with_one_key_are_refused",
      "expected": {
       "fnv": "7d0b2cb36d419c22",
       "len": 6349
      }
     },
     "1326": {
+     "test": "test_blank_and_repeated_headings_resolve_to_the_first_real_one",
      "expected": {
       "ok": [
        {
@@ -2953,6 +2982,7 @@
      }
     },
     "3940": {
+     "test": "generated",
      "expected": {
       "code": 1,
       "stdout": "",
@@ -2960,6 +2990,7 @@
      }
     },
     "3969": {
+     "test": "generated",
      "expected": {
       "code": 1,
       "stdout": "",
@@ -2967,6 +2998,7 @@
      }
     },
     "4000": {
+     "test": "generated",
      "expected": {
       "code": 1,
       "stdout": "",
@@ -2974,6 +3006,7 @@
      }
     },
     "4229": {
+     "test": "generated",
      "expected": {
       "code": 1,
       "stdout": "",
@@ -2981,6 +3014,7 @@
      }
     },
     "4310": {
+     "test": "generated",
      "expected": {
       "code": 1,
       "stdout": "",
@@ -2988,6 +3022,7 @@
      }
     },
     "4329": {
+     "test": "generated",
      "expected": {
       "code": 1,
       "stdout": "",
@@ -2995,6 +3030,7 @@
      }
     },
     "4499": {
+     "test": "generated",
      "expected": {
       "code": 2,
       "stdout": "payroll profile: employment-hero-payroll -- Employment Hero / KeyPay - Detailed Activity Report (unverified against a real export)\nsuper profile: employment-hero-super -- Employment Hero / KeyPay - Super Contributions (payments) (unverified against a real export)\nemployee matching: by id\n\nNo payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (6):\n  - row 4: over: 466.66 against 137.69, check for salary sacrifice in the contribution types; matched super rows carry no payment date\n  - row 5: partial: 210.73 of 259.33 matched; matched super rows carry no payment date\n  - row 2: no super payment found\n  - row 3: no super payment found\n  - super row 3: status 'Created' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n  - super row 4: status 'Reconciled' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n\npaydays: matched 0, no remittance date 0, partial 1, over 1, owes nothing 0, no payment found 2\nwrote contributions.csv\n",
@@ -3008,6 +3044,7 @@
      }
     },
     "4600": {
+     "test": "generated",
      "expected": {
       "code": 1,
       "stdout": "",
@@ -3015,6 +3052,7 @@
      }
     },
     "4649": {
+     "test": "generated",
      "expected": {
       "code": 1,
       "stdout": "",
@@ -3022,6 +3060,7 @@
      }
     },
     "4859": {
+     "test": "generated",
      "expected": {
       "code": 1,
       "stdout": "",
