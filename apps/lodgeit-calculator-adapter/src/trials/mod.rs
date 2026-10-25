@@ -12,6 +12,7 @@
 //! complies, whether a benefit is reportable, or whether a reviewer should
 //! sign anything.
 pub mod div7a;
+pub mod fbt;
 
 use crate::decimal::Decimal;
 use crate::p;

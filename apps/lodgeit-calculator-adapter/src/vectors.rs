@@ -249,6 +249,7 @@ fn run_case(case: &Json) -> R<Json> {
         "transport" => transport_case(case)?,
         "core" => core_case(case)?,
         "div7a" => div7a_case(case)?,
+        "fbt" => fbt_case(case)?,
         "settimeout" => {
             // `s.settimeout(t); s.gettimeout()`, with t given by its bits.
             let bits = text(field("bits")).parse().expect("u64 bits");
@@ -575,15 +576,11 @@ fn core_case(case: &Json) -> R<Json> {
     ]))
 }
 
-/// The Division 7A trial over a case file: per case, the request body's
-/// `repr` and the comparison, against no provider or a fabricated outcome.
-fn div7a_case(case: &Json) -> R<Json> {
+/// A fabricated provider outcome: its status, `result`, `values` (name and
+/// decimal text pairs), refusal class and findings.
+fn fabricated_outcome(given: &Json) -> crate::client::Outcome {
     use crate::client::{Outcome, Status};
-    use crate::trials::div7a;
-    let field = |name: &str| case.get(name).unwrap_or(&Json::Null);
-    let cases = div7a::load_cases(Some(&text(field("file"))))?;
-    let given = field("outcome");
-    let outcome = (given != &Json::Null).then(|| Outcome {
+    Outcome {
         status: [
             Status::Computed,
             Status::UpstreamRefused,
@@ -604,7 +601,22 @@ fn div7a_case(case: &Json) -> R<Json> {
         raw_response: Json::Null,
         http_status: None,
         result: given.at("result").clone(),
-        values: Vec::new(),
+        values: match given.at("values") {
+            Json::Array(pairs) => pairs
+                .iter()
+                .map(|pair| match pair {
+                    Json::Array(pair) => match &pair[..] {
+                        [name, value] => (
+                            pts(&text(name)),
+                            Decimal::parse_exact(&text(value)).expect("a decimal"),
+                        ),
+                        _ => panic!("a name and a value"),
+                    },
+                    _ => panic!("a pair"),
+                })
+                .collect(),
+            _ => Vec::new(),
+        },
         manifest: Json::Null,
         advisory: Json::Null,
         upstream_refusal_class: given.at("refusal").clone(),
@@ -617,7 +629,77 @@ fn div7a_case(case: &Json) -> R<Json> {
         contract_snapshot: Json::Null,
         contract_sha256: String::new(),
         base_url: None,
-    });
+    }
+}
+
+fn outcome_json(result: R<crate::trials::Comparison>) -> Json {
+    match result {
+        Ok(comparison) => Json::obj([("ok", comparison.to_json())]),
+        Err(error) => Json::obj([(
+            "error",
+            Json::Array(vec![Json::str(error.class), json_str(error.text)]),
+        )]),
+    }
+}
+
+/// The FBT trial for one car benefit, against no provider or a fabricated
+/// outcome, and `prepare_aggregate_input` on its own.
+fn fbt_case(case: &Json) -> R<Json> {
+    use crate::trials::fbt;
+    let field = |name: &str| case.get(name).unwrap_or(&Json::Null);
+    let b = field("benefit");
+    let dec = |value: &Json| Decimal::parse_exact(&text(value)).expect("a decimal");
+    let benefit = fbt::CarBenefit {
+        case_id: text(b.at("case_id")),
+        base_value: dec(b.at("base_value")),
+        days_available: int(b.at("days_available")).try_into().expect("an i64"),
+        accessories: dec(b.at("accessories")),
+        employee_contribution: dec(b.at("employee_contribution")),
+        fbt_type: text(b.at("fbt_type")),
+        period_uri: text(b.at("period_uri")),
+    };
+    let given = field("outcome");
+    let compared = if given == &Json::Null {
+        fbt::evaluate(&benefit, None)
+    } else {
+        fbt::evaluate_outcome(&benefit, &fabricated_outcome(given))
+    };
+    let request = match benefit.request() {
+        Ok(body) => Json::str(&repr(&body)),
+        Err(error) => Json::Array(vec![Json::str(error.class), json_str(error.text)]),
+    };
+    let p = field("prepare");
+    let prepared = match fbt::prepare_aggregate_input(
+        &dec(p.at("value")),
+        &text(p.at("fbt_type")),
+        &text(p.at("field_name")),
+        &fabricated_outcome(&Json::obj([
+            ("status", Json::str("COMPUTED")),
+            ("values", p.at("values").clone()),
+        ]))
+        .values,
+    ) {
+        Ok((one, two)) => Json::Array(vec![
+            Json::str(&one.to_sci_string()),
+            Json::str(&two.to_sci_string()),
+        ]),
+        Err(error) => Json::Array(vec![Json::str(error.class), json_str(error.text)]),
+    };
+    Ok(Json::obj([
+        ("request", request),
+        ("prepared", prepared),
+        ("result", outcome_json(compared)),
+    ]))
+}
+
+/// The Division 7A trial over a case file: per case, the request body's
+/// `repr` and the comparison, against no provider or a fabricated outcome.
+fn div7a_case(case: &Json) -> R<Json> {
+    use crate::trials::div7a;
+    let field = |name: &str| case.get(name).unwrap_or(&Json::Null);
+    let cases = div7a::load_cases(Some(&text(field("file"))))?;
+    let given = field("outcome");
+    let outcome = (given != &Json::Null).then(|| fabricated_outcome(given));
     let entries = cases.iter().map(|one| {
         let compared = match &outcome {
             None => div7a::evaluate(one, None),
@@ -627,16 +709,7 @@ fn div7a_case(case: &Json) -> R<Json> {
         };
         Json::obj([
             ("request", Json::str(&repr(&div7a::build_request(one)))),
-            (
-                "result",
-                match compared {
-                    Ok(comparison) => Json::obj([("ok", comparison.to_json())]),
-                    Err(error) => Json::obj([(
-                        "error",
-                        Json::Array(vec![Json::str(error.class), json_str(error.text)]),
-                    )]),
-                },
-            ),
+            ("result", outcome_json(compared)),
         ])
     });
     Ok(Json::Array(entries.collect()))
