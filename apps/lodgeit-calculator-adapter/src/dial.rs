@@ -3,8 +3,10 @@
 //! `SSLContext.wrap_socket(sock, server_hostname=host)` with the default
 //! context, as `http.client` runs them under the adapter's handlers.
 //!
-//! - The timeout bounds the connect to each address and every later read
-//!   and write, as Python's socket timeout does, the TLS handshake included.
+//! - The timeout bounds the connect to each address, each read, each
+//!   `sendall` and the TLS handshake as a whole, as CPython's socket and
+//!   `_ssl` deadlines do: a peer that answers a byte at a time cannot keep
+//!   one of them going past the timeout.
 //! - TLS is rustls with the operating system's certificate verifier, where
 //!   Python uses OpenSSL with the system's roots: both refuse an untrusted
 //!   certificate or a name that does not match, and both offer HTTP/1.1 by
@@ -14,9 +16,9 @@
 //! - Plain HTTP is dialled only where `config.check_url` allowed it, which
 //!   is loopback with `allow_loopback` set.
 
-use std::io;
+use std::io::{self, Read, Write};
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use crate::pyops::{Exc, R};
 use crate::transport::{Connection, Dial, Raised};
@@ -54,22 +56,125 @@ impl Dial for Net {
             (None, error) => return Err(error.unwrap_or_else(|| io::Error::other("no address"))),
         };
         let _ = socket.set_nodelay(true);
-        socket.set_read_timeout(Some(timeout))?;
-        socket.set_write_timeout(Some(timeout))?;
+        let mut socket = Bounded {
+            socket,
+            timeout,
+            deadline: None,
+        };
         if !tls {
-            return Ok(Box::new(socket));
+            return Ok(Box::new(Plain(socket)));
         }
         let name = rustls::pki_types::ServerName::try_from(host)
             .map_err(io::Error::other)?
             .to_owned();
         let config = crate::https::tls_config().map_err(io::Error::other)?;
         let mut session = rustls::ClientConnection::new(config, name).map_err(io::Error::other)?;
-        let mut socket = socket;
-        // `do_handshake()`: each read and write under the socket timeout.
+        // `do_handshake()`: the whole handshake under one timeout.
+        socket.arm();
         while session.is_handshaking() {
             session.complete_io(&mut socket)?;
         }
-        Ok(Box::new(rustls::StreamOwned::new(session, socket)))
+        Ok(Box::new(Tls(rustls::StreamOwned::new(session, socket))))
+    }
+}
+
+/// The socket under the deadline of the operation in progress. A socket
+/// timeout alone restarts with every underlying read and write, where
+/// CPython bounds an SSL handshake, read or write, or a `sendall`, as a whole.
+struct Bounded {
+    socket: TcpStream,
+    timeout: Duration,
+    /// None where the timeout reaches past what `Instant` holds.
+    deadline: Option<Instant>,
+}
+
+impl Bounded {
+    /// The operation starting now has the timeout to finish.
+    fn arm(&mut self) {
+        self.deadline = Instant::now().checked_add(self.timeout);
+    }
+
+    /// What is left of the operation's time, or its timeout once it is gone.
+    fn left(&self) -> io::Result<Duration> {
+        let Some(deadline) = self.deadline else {
+            return Ok(self.timeout);
+        };
+        match deadline.saturating_duration_since(Instant::now()) {
+            Duration::ZERO => Err(io::Error::new(io::ErrorKind::TimedOut, "timed out")),
+            left => Ok(left),
+        }
+    }
+}
+
+impl Read for Bounded {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.socket.set_read_timeout(Some(self.left()?))?;
+        self.socket.read(buf)
+    }
+}
+
+impl Write for Bounded {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.socket.set_write_timeout(Some(self.left()?))?;
+        self.socket.write(buf)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.socket.flush()
+    }
+}
+
+/// Plain HTTP: each `recv` and each `sendall` has the timeout.
+struct Plain(Bounded);
+
+impl Read for Plain {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.0.arm();
+        self.0.read(buf)
+    }
+}
+
+impl Write for Plain {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0.arm();
+        self.0.write(buf)
+    }
+
+    fn write_all(&mut self, buf: &[u8]) -> io::Result<()> {
+        self.0.arm();
+        self.0.write_all(buf)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.0.flush()
+    }
+}
+
+/// HTTPS: each SSL read and each `sendall` has the timeout, however many
+/// socket reads and writes it takes. Records a write left pending are sent
+/// under that write's deadline.
+struct Tls(rustls::StreamOwned<rustls::ClientConnection, Bounded>);
+
+impl Read for Tls {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.0.sock.arm();
+        self.0.read(buf)
+    }
+}
+
+impl Write for Tls {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0.sock.arm();
+        self.0.write(buf)
+    }
+
+    fn write_all(&mut self, buf: &[u8]) -> io::Result<()> {
+        self.0.sock.arm();
+        self.0.write_all(buf)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.0.flush()
     }
 }
 
@@ -252,6 +357,95 @@ mod tests {
         drop(connection);
         assert!(Net.dial("127.0.0.1", port, true, 5.0).is_err());
         server.join().unwrap();
+    }
+
+    /// A peer that sends a handshake record a byte at a time, each byte
+    /// well inside the timeout. CPython 3.15 gives up on the handshake after
+    /// the timeout as a whole (1.04 to 1.1 s for 1 s, Windows and Linux).
+    #[test]
+    fn a_dribbled_tls_handshake_times_out_as_a_whole() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server = std::thread::spawn(move || {
+            let (mut peer, _) = listener.accept().unwrap();
+            let mut hello = [0u8; 4096];
+            let _ = peer.read(&mut hello);
+            let _ = peer.write_all(&[0x16, 0x03, 0x03, 0x40, 0x00]);
+            for _ in 0..30 {
+                std::thread::sleep(Duration::from_millis(100));
+                if peer.write_all(&[0]).is_err() {
+                    break;
+                }
+            }
+        });
+        let start = Instant::now();
+        assert!(Net.dial("127.0.0.1", port, true, 0.5).is_err());
+        let elapsed = start.elapsed();
+        assert!(elapsed < Duration::from_millis(1500), "{elapsed:?}");
+        server.join().unwrap();
+    }
+
+    /// A reader that takes 4 KiB every 100 ms: CPython 3.15's `sendall` of
+    /// 4 MiB times out after the timeout as a whole on Linux (1.01 s for 1 s;
+    /// on Windows the loopback send completes at once).
+    #[cfg(unix)]
+    #[test]
+    fn a_slow_reader_bounds_a_send_as_a_whole() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server = std::thread::spawn(move || {
+            let (mut peer, _) = listener.accept().unwrap();
+            let mut chunk = [0u8; 4096];
+            for _ in 0..30 {
+                std::thread::sleep(Duration::from_millis(100));
+                if matches!(peer.read(&mut chunk), Ok(0) | Err(_)) {
+                    break;
+                }
+            }
+        });
+        let mut connection = Net.dial("127.0.0.1", port, false, 0.5).unwrap();
+        let start = Instant::now();
+        assert!(connection.write_all(&vec![b'x'; 4 << 20]).is_err());
+        let elapsed = start.elapsed();
+        assert!(elapsed < Duration::from_millis(1500), "{elapsed:?}");
+        drop(connection);
+        server.join().unwrap();
+    }
+
+    /// A self-signed certificate for 127.0.0.1, made for this test and
+    /// trusted nowhere: the handshake fails on the certificate, and the
+    /// server never sees the handshake finish, let alone a request.
+    #[test]
+    fn an_untrusted_certificate_is_refused_before_any_request() {
+        use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
+        let cert = include_bytes!("../fixtures/tls/untrusted-loopback.cert.der");
+        let key = include_bytes!("../fixtures/tls/untrusted-loopback.key.der");
+        let provider = std::sync::Arc::new(rustls::crypto::ring::default_provider());
+        let config = rustls::ServerConfig::builder_with_provider(provider)
+            .with_safe_default_protocol_versions()
+            .unwrap()
+            .with_no_client_auth()
+            .with_single_cert(
+                vec![CertificateDer::from(cert.to_vec())],
+                PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(key.to_vec())),
+            )
+            .unwrap();
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server = std::thread::spawn(move || {
+            let (mut peer, _) = listener.accept().unwrap();
+            let mut session = rustls::ServerConnection::new(std::sync::Arc::new(config)).unwrap();
+            while session.is_handshaking() && session.complete_io(&mut peer).is_ok() {}
+            let mut request = Vec::new();
+            let _ = session.reader().read_to_end(&mut request);
+            (session.is_handshaking(), request)
+        });
+        let error = match Net.dial("127.0.0.1", port, true, 5.0) {
+            Ok(_) => panic!("an untrusted certificate was accepted"),
+            Err(error) => error.to_string(),
+        };
+        assert!(error.contains("invalid peer certificate"), "{error}");
+        assert_eq!(server.join().unwrap(), (true, Vec::new()));
     }
 
     /// Certificate checks need a real server: `cargo test -- --ignored`.

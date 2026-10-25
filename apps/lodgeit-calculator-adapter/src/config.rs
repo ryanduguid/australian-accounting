@@ -283,6 +283,34 @@ fn float_int(value: f64) -> R<BigInt> {
     Ok(crate::pyvalue::float_to_int(value.trunc()))
 }
 
+/// The variables [`from_environment`] reads.
+const ENVIRONMENT: [&str; 7] = [
+    "LODGEIT_ADAPTER_ALLOWED_HOSTS",
+    "LODGEIT_ADAPTER_ENABLED",
+    "LODGEIT_ADAPTER_BASE_URL",
+    "LODGEIT_ADAPTER_ALLOW_LOOPBACK",
+    "LODGEIT_ADAPTER_READ_TIMEOUT",
+    "LODGEIT_ADAPTER_MAX_RESPONSE_BYTES",
+    "LODGEIT_ADAPTER_MAX_ATTEMPTS",
+];
+
+/// `from_environment(os.environ)` over the values as the operating system
+/// holds them. Python keeps undecodable bytes as surrogates; this port cannot
+/// carry them, so it refuses such a value rather than read it with
+/// replacement characters, which could name another host.
+pub fn from_os_environment(env: impl Fn(&str) -> Option<std::ffi::OsString>) -> R<AdapterConfig> {
+    if let Some(name) = ENVIRONMENT
+        .into_iter()
+        .find(|name| env(name).is_some_and(|value| value.to_str().is_none()))
+    {
+        return Err(refuse(
+            CONFIGURATION,
+            format!("{name} is not valid Unicode"),
+        ));
+    }
+    from_environment(|name| env(name).and_then(|value| value.into_string().ok()))
+}
+
 /// `from_environment(environ)`: a config from the environment, still disabled
 /// unless asked. `env` is `environ.get`.
 pub fn from_environment(env: impl Fn(&str) -> Option<String>) -> R<AdapterConfig> {
@@ -399,6 +427,27 @@ mod tests {
                 .class,
             "ValueError"
         );
+    }
+
+    #[test]
+    fn a_value_that_is_not_unicode_is_refused_not_replaced() {
+        use std::ffi::OsString;
+        #[cfg(windows)]
+        let undecodable =
+            <OsString as std::os::windows::ffi::OsStringExt>::from_wide(&[0x68, 0xD800]);
+        #[cfg(unix)]
+        let undecodable = <OsString as std::os::unix::ffi::OsStringExt>::from_vec(vec![b'h', 0xff]);
+        for name in ENVIRONMENT {
+            let env = |asked: &str| (asked == name).then(|| undecodable.clone());
+            let error = from_os_environment(env).unwrap_err();
+            assert_eq!(error.class, CONFIGURATION);
+            assert_eq!(
+                crate::pyvalue::points_lossy(&error.text),
+                format!("{name} is not valid Unicode")
+            );
+        }
+        let plain = |name: &str| (name == "LODGEIT_ADAPTER_ENABLED").then(|| OsString::from("1"));
+        assert!(from_os_environment(plain).unwrap().enabled);
     }
 
     #[test]

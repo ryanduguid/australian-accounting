@@ -168,7 +168,11 @@ fn run_case(case: &Json) -> R<Json> {
                     .collect(),
                 _ => Vec::new(),
             };
-            let lookup = |name: &str| env.iter().find(|(k, _)| k == name).map(|(_, v)| v.clone());
+            let lookup = |name: &str| {
+                env.iter()
+                    .find(|(k, _)| k == name)
+                    .map(|(_, v)| std::ffi::OsString::from(v))
+            };
             let argv: Vec<String> = match field("argv") {
                 Json::Array(items) => items.iter().map(text).collect(),
                 _ => Vec::new(),

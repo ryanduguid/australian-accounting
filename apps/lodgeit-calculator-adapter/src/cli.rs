@@ -209,14 +209,14 @@ pub fn main(argv: Vec<OsString>) -> i32 {
 /// What a run reaches beyond its arguments and streams: the environment,
 /// the network and `time.sleep`.
 pub struct Io<'a> {
-    pub env: &'a dyn Fn(&str) -> Option<String>,
+    pub env: &'a dyn Fn(&str) -> Option<OsString>,
     pub dial: &'a mut dyn Dial,
     pub sleep: &'a mut dyn FnMut(f64) -> R<()>,
 }
 
 /// `main(argv)` writing to the given streams; returns the exit status.
 pub fn run_with(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
-    let env = |name: &str| std::env::var_os(name).map(|v| v.to_string_lossy().into_owned());
+    let env = |name: &str| std::env::var_os(name);
     let mut sleep = crate::dial::sleep;
     let mut io = Io {
         env: &env,
@@ -305,7 +305,7 @@ fn remote(
     stderr: &mut dyn Write,
     io: &mut Io,
 ) -> R<i32> {
-    let base = config::from_environment(io.env)?;
+    let base = config::from_os_environment(io.env)?;
     let base_url = match ns.get("base_url") {
         Some(Value::Str(url)) if !url.is_empty() => Some(url.clone()),
         _ => base.base_url,
