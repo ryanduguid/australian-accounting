@@ -4,6 +4,11 @@ Unreleased standalone Rust major version. Python imports are removed; former API
 functions are JSON subcommands. See [CHANGELOG.md](CHANGELOG.md) for migration,
 verification and documented divergences, and [README.md](README.md) to build it.
 
+- Measurable right-to-invoice contracts now use cent-quantised certified billings
+  for revenue, the contract balance and the GST review note. Direct Rust and
+  JSON inputs with fractional cents no longer produce unquantised revenue or a
+  rounding-only asset or liability. Other revenue methods are unchanged.
+
 - The `review-pack --as-at` help now describes the existing default: the schedule
   date, or today if unavailable. Date selection and calculations are unchanged.
 

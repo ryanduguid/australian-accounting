@@ -1,6 +1,6 @@
 //! AASB 15 WIP arithmetic for a single unit of account, ported from Python
-//! `wiptally.schedule` and `wiptally.model` without changing a rule, rounding
-//! step, flag or message. It computes; it does not decide transfer over time,
+//! `wiptally.schedule` and `wiptally.model`. Subsequent corrections are recorded
+//! in RELEASE_NOTES.md. It computes; it does not decide transfer over time,
 //! claim enforceability or whether a contract is onerous.
 
 use crate::decimal::{Calc, Decimal, Signal};
@@ -263,6 +263,14 @@ pub fn measure(contract: &ContractInput) -> Result<ContractPosition> {
         require_ratio(c, output, "output_percent", "output progress")?;
     }
 
+    // A measurable right-to-invoice amount is money in every derived figure.
+    // Keep the supplied contract intact as evidence and leave other methods'
+    // rounding order unchanged.
+    let certified_billings = if measurable && method == PROGRESS_RIGHT_TO_INVOICE {
+        as_money(&c.certified_billings)?
+    } else {
+        c.certified_billings.clone()
+    };
     let zero = d("0.00");
     let (percent_complete, revenue_to_date) = if !measurable {
         recoverable_cost_revenue(c, &transaction_price, &progress_cost, &mut flags)?
@@ -282,10 +290,10 @@ pub fn measure(contract: &ContractInput) -> Result<ContractPosition> {
         } else {
             progress_cost.div(&progress_eac)?
         };
-        (percent, c.certified_billings.clone())
+        (percent, certified_billings.clone())
     };
 
-    let net = as_money(&revenue_to_date.sub(&c.certified_billings)?)?;
+    let net = as_money(&revenue_to_date.sub(&certified_billings)?)?;
     let (contract_asset, contract_liability) = if net.gt(&d("0"))? {
         (net, zero.clone())
     } else if net.lt(&d("0"))? {
@@ -311,7 +319,7 @@ pub fn measure(contract: &ContractInput) -> Result<ContractPosition> {
     };
 
     require_ratio(c, &c.gst_rate, "gst_rate", "GST rate")?;
-    let gst_on_certified = as_money(&c.certified_billings.mul(&c.gst_rate)?)?;
+    let gst_on_certified = as_money(&certified_billings.mul(&c.gst_rate)?)?;
     let gst_on_retention = as_money(&c.retention_withheld.mul(&c.gst_rate)?)?;
 
     flag_commercial(

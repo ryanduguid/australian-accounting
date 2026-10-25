@@ -183,6 +183,12 @@ engine never offsets one contract against another. Retention classification
 under paras 105-108 is flagged for the engagement lead; it is not auto-posted
 to receivables.
 
+For a measurable `right_to_invoice` contract, certified billings are rounded to
+cents, half up, before they become revenue. That same amount determines the
+contract balance and the GST review note, so rounding cannot create an asset or
+liability. The supplied contract remains intact in the Rust result. Other
+progress methods and recoverable-cost-only revenue keep their rounding order.
+
 **Profit fade.** Current margin at completion versus prior-period margin, in
 percentage points. A movement of 1.00 point or more is a review flag. An ETC
 that has not moved after $1,000 or more of additional cost is flagged stale.
@@ -236,6 +242,7 @@ lists the commands.
 | `parse-money` | `raw` string, optional `where` (default `amount`) | The cent-quantised amount as a string |
 
 Each JSON input is limited to 8 MiB and each decimal field to 8,192 UTF-8 bytes.
+
 
 ## Job-to-cash example
 
