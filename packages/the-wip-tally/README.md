@@ -101,15 +101,17 @@ every flagged contract, and puts a sign-off checklist on the page. Keep the
 CSV beside the pack. The CSV is the row-level evidence.
 
 The reporting date is written on every schedule row, so it is inside the bytes
-the pack rebuilds and hashes. Give both commands the same `--as-at`, or the
-pack refuses to bind one period's numbers to another period's header.
+the pack rebuilds and hashes. Without `--as-at`, `review-pack` uses the schedule's
+recorded date, or today if no usable date is available. An explicit `--as-at`
+takes precedence and must match the schedule's date; the pack refuses to bind
+one period's numbers to another period's header.
 
 ### Options
 
 | Option | What it does |
 | --- | --- |
 | `-o, --output` | Where to write the schedule CSV (default `wip-schedule.csv`) or the review pack |
-| `--as-at DATE` | Reporting date as `YYYY-MM-DD`, written on every schedule row (default: today) |
+| `--as-at DATE` | Reporting date as `YYYY-MM-DD`, written on every schedule row. `schedule` defaults to today; `review-pack` uses the schedule date, or today if unavailable. An explicit date overrides either default. |
 | `--mapping-file FILE` | JSON map of canonical field names to your column headings |
 
 ## Input columns
