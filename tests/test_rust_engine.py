@@ -1,8 +1,13 @@
 """Rust owns its checks, command and release format independently of Python."""
+import runpy
+import tempfile
 import tomllib
 import unittest
+from pathlib import Path
 
-from test_boundaries import ROOT, RUST_ENGINES, select_package
+from test_boundaries import DATASETS, ROOT, RUST_ENGINES, select_package
+
+rust_crates = runpy.run_path(str(ROOT / ".github/ci/rust_crates.py"))
 
 # The Python import package each port removed.
 REMOVED_IMPORTS = {
@@ -83,14 +88,13 @@ class RustEngineTests(unittest.TestCase):
         source = (ROOT / "apps/au-accounting/src/main.rs").read_text()
         for name in RUST_ENGINES.values():
             self.assertIn(name.replace("-", "_") + "::", source)
-        caller = (ROOT / ".github/workflows/ci.yml").read_text()
-        self.assertIn("uses: ./.github/workflows/ci-rust.yml\n    with:\n      package: au-accounting\n      root: apps\n", caller)
-        self.assertIn("/apps/au-accounting", (ROOT / ".github/dependabot.yml").read_text())
+        # CI compares au-accounting with exactly the engines it links.
+        self.assertEqual(rust_crates["linked"](), sorted(RUST_ENGINES.values()))
 
     def test_cargo_ci_security_and_publisher_boundary(self):
         workflows = ROOT / ".github/workflows"
         caller = (workflows / "ci.yml").read_text()
-        self.assertIn("needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, payday, gst, rates, umbrella, umbrella-parity, test, dependency-audit, lint]", caller)
+        self.assertIn("needs: [changes, packages, crates, rust, umbrella-parity, test, dependency-audit, lint]", caller)
         workflow = (workflows / "ci-rust.yml").read_text()
         for gate in ("cargo fmt --check", "cargo clippy --locked --all-targets -- -D warnings", "cargo test --locked", "cargo build --locked --release", "cargo audit --deny warnings"):
             self.assertIn(gate, workflow)
@@ -98,13 +102,67 @@ class RustEngineTests(unittest.TestCase):
         self.assertNotIn("contents: write", workflow)
         self.assertNotIn("id-token: write", workflow)
         self.assertIn("language: rust", (workflows / "codeql.yml").read_text())
-        dependabot = (ROOT / ".github/dependabot.yml").read_text()
         snyk = (workflows / "snyk.yml").read_text()
         self.assertIn("snyk sbom test --experimental --file=snyk-sbom.json", snyk)
         self.assertNotIn("--package-manager=cargo", snyk)
         for name in RUST_ENGINES.values():
             with self.subTest(engine=name):
-                self.assertIn(f"uses: ./.github/workflows/ci-rust.yml\n    with:\n      package: {name}\n", caller)
                 self.assertFalse((workflows / f"release-{name}.yml").exists())
-                self.assertIn(f"/packages/{name}", dependabot)
-                self.assertIn(name, snyk.split("matrix:")[1].split("steps:")[0])
+
+    def test_crate_lists_follow_the_manifests(self):
+        # The Cargo.toml files are the one list of Rust crates. CI and the justfile
+        # derive theirs; the lists that cannot be derived must match them.
+        crates = rust_crates["crates"]()
+        directories = {f"{crate['root']}/{crate['package']}" for crate in crates}
+        self.assertEqual(directories, set(RUST_ENGINES) | set(DATASETS) | {"apps/au-accounting"})
+        root = tomllib.loads((ROOT / "pyproject.toml").read_text())
+        self.assertEqual(set(root["tool"]["uv"]["workspace"]["exclude"]), directories)
+        # Dependabot's directories key takes globs, but GitHub does not document
+        # what a glob matching a directory without a Cargo.toml does, so the list
+        # stays explicit: every crate and every crate's fuzz harness.
+        fuzz = {manifest.parent.relative_to(ROOT).as_posix() for manifest in ROOT.glob("packages/*/fuzz/Cargo.toml")}
+        self.assertEqual(set(dependabot_directories("cargo")), {f"/{d}" for d in directories | fuzz})
+        workflows = ROOT / ".github/workflows"
+        matrix = "matrix: ${{ fromJSON(needs.crates.outputs.matrix) }}"
+        caller = (workflows / "ci.yml").read_text()
+        snyk = (workflows / "snyk.yml").read_text()
+        self.assertIn(matrix, caller)
+        self.assertIn(matrix, snyk)
+        self.assertIn('pattern: "${{ needs.crates.outputs.parity }}-${{ matrix.os }}"', caller)
+        for crate in crates:
+            with self.subTest(crate=crate["package"]):
+                self.assertNotIn(f"package: {crate['package']}\n", caller)
+                self.assertNotIn(crate["package"], snyk)
+        by_name = {crate["package"]: crate for crate in crates}
+        self.assertEqual(by_name["au-tax-rates-data"], {"package": "au-tax-rates-data", "root": "packages", "binary": "rates", "smoke": "validate"})
+        self.assertEqual(by_name["au-accounting"], {"package": "au-accounting", "root": "apps", "binary": "au-accounting", "smoke": "--version"})
+        self.assertEqual(by_name["the-wip-tally"]["binary"], "wip-tally")
+        self.assertEqual(by_name["gst-review"]["smoke"], "--api-help")
+
+    def test_crate_lister_rejects_what_ci_rust_cannot_check(self):
+        cases = {
+            "renamed": '[package]\nname = "other"\n',
+            "two commands": '[package]\nname = "engine"\n[[bin]]\nname = "a"\n[[bin]]\nname = "b"\n',
+        }
+        for case, manifest in cases.items():
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as scratch:
+                crate = Path(scratch) / "packages/engine"
+                crate.mkdir(parents=True)
+                (crate / "Cargo.toml").write_text(manifest, encoding="utf-8")
+                with self.assertRaises(SystemExit):
+                    rust_crates["crates"](Path(scratch))
+        with tempfile.TemporaryDirectory() as scratch, self.assertRaises(SystemExit):
+            rust_crates["crates"](Path(scratch))
+
+
+def dependabot_directories(ecosystem: str) -> list[str]:
+    """The directories of one dependabot.yml entry, read without a YAML parser."""
+    text = (ROOT / ".github/dependabot.yml").read_text()
+    block = text.split(f"- package-ecosystem: {ecosystem}\n", 1)[1].split("\n  - ", 1)[0]
+    listing = block.split("directories:\n", 1)[1]
+    directories = []
+    for line in listing.splitlines():
+        if not line.startswith("      - "):
+            break
+        directories.append(line.removeprefix("      - ").strip())
+    return directories

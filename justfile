@@ -91,20 +91,21 @@ release +args:
 # The fast local pass: lint, type-check and test every component.
 check: lint typecheck test
 
-# Standalone Rust engines, the au-accounting command and the rates dataset's
-# validator, outside the virtual Python workspace.
-rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review packages/ato-benchmark-compare packages/payday-super-checker packages/gst-review apps/au-accounting packages/au-tax-rates-data"
+# Every standalone Rust crate (the engines, the au-accounting command and the
+# rates dataset's validator), outside the virtual Python workspace. CI lists them
+# the same way, in .github/ci/rust_crates.py.
+rust_manifests := "packages/*/Cargo.toml apps/*/Cargo.toml"
 
 rust-test:
     #!/usr/bin/env bash
     set -euo pipefail
-    for engine in {{ rust_engines }}; do
-        (cd "$engine" && cargo test --locked)
+    for manifest in {{ rust_manifests }}; do
+        (cd "${manifest%/Cargo.toml}" && cargo test --locked)
     done
 
 rust-lint:
     #!/usr/bin/env bash
     set -euo pipefail
-    for engine in {{ rust_engines }}; do
-        (cd "$engine" && cargo fmt --check && cargo clippy --locked --all-targets -- -D warnings)
+    for manifest in {{ rust_manifests }}; do
+        (cd "${manifest%/Cargo.toml}" && cargo fmt --check && cargo clippy --locked --all-targets -- -D warnings)
     done

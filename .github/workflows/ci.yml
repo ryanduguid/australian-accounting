@@ -1,12 +1,12 @@
 name: tests
 
 # The repository's anchor workflow. It carries no path filter, so the required
-# checks always report, and it runs two things: the MCP application's own gates
-# (ruff, pyright, pytest under branch coverage on Python 3.14 and 3.15 plus a Windows
+# checks always report, and it runs the MCP application's own gates (ruff, pyright, pytest under branch coverage on Python 3.14 and 3.15 plus a Windows
 # leg, and a dependency audit, the same set ci-package.yml gives the engines),
-# and one call of the reusable ci-package.yml for each engine under packages/.
-# Each call applies its own package's path filter, so a change to one engine
-# runs that engine's gates and skips the rest.
+# one call of the reusable ci-package.yml for each Python engine under packages/,
+# and one call of ci-rust.yml for each Rust crate. Each ci-package.yml call applies
+# its own package's path filter, so a change to one engine runs that engine's
+# gates and skips the rest.
 
 on:
   workflow_dispatch:
@@ -66,97 +66,48 @@ jobs:
       windows-python: ${{ matrix.windows-python }}
       changed-line-coverage: ${{ matrix.changed-line-coverage }}
 
-  exchequer:
-    name: the-exchequer-tally
+  crates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+      parity: ${{ steps.list.outputs.parity }}
+      parity-count: ${{ steps.list.outputs.parity-count }}
+    steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: list
+        run: python3 .github/ci/rust_crates.py >> "$GITHUB_OUTPUT"
+
+  # One ci-rust.yml call for each Rust crate: every packages/*/Cargo.toml and
+  # apps/*/Cargo.toml, as rust_crates.py lists them.
+  rust:
+    name: ${{ matrix.package }}
+    needs: crates
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.crates.outputs.matrix) }}
     uses: ./.github/workflows/ci-rust.yml
     with:
-      package: the-exchequer-tally
+      package: ${{ matrix.package }}
+      root: ${{ matrix.root }}
+      binary: ${{ matrix.binary }}
+      smoke: ${{ matrix.smoke }}
     permissions:
       contents: read
 
-  solomons:
-    name: solomons-sword
-    uses: ./.github/workflows/ci-rust.yml
-    with:
-      package: solomons-sword
-    permissions:
-      contents: read
-
-  wip:
-    name: the-wip-tally
-    uses: ./.github/workflows/ci-rust.yml
-    with:
-      package: the-wip-tally
-      binary: wip-tally
-    permissions:
-      contents: read
-
-  taxcalc:
-    name: australian-tax-calculators
-    uses: ./.github/workflows/ci-rust.yml
-    with:
-      package: australian-tax-calculators
-    permissions:
-      contents: read
-
-  div7a:
-    name: div7a-loan-review
-    uses: ./.github/workflows/ci-rust.yml
-    with:
-      package: div7a-loan-review
-    permissions:
-      contents: read
-
-  atobench:
-    name: ato-benchmark-compare
-    uses: ./.github/workflows/ci-rust.yml
-    with:
-      package: ato-benchmark-compare
-    permissions:
-      contents: read
-
-  payday:
-    name: payday-super-checker
-    uses: ./.github/workflows/ci-rust.yml
-    with:
-      package: payday-super-checker
-      binary: payday-super-check
-    permissions:
-      contents: read
-
-  gst:
-    name: gst-review
-    uses: ./.github/workflows/ci-rust.yml
-    with:
-      package: gst-review
-    permissions:
-      contents: read
-
-  rates:
-    name: au-tax-rates-data
-    uses: ./.github/workflows/ci-rust.yml
-    with:
-      package: au-tax-rates-data
-      binary: rates
-      smoke: validate
-    permissions:
-      contents: read
-
-  umbrella:
-    name: au-accounting
-    uses: ./.github/workflows/ci-rust.yml
-    with:
-      package: au-accounting
-      root: apps
-      smoke: --version
-    permissions:
-      contents: read
+  # Each crate had its own caller job until the rust matrix derived them.
+  # removed-jobs: exchequer, solomons, wip, taxcalc, div7a, atobench, payday, gst, rates, umbrella
 
   # Holds au-accounting to each engine's own command on every platform, using
   # the native candidates the jobs above built from this commit.
   umbrella-parity:
     name: au-accounting parity (${{ matrix.os }})
-    needs: [exchequer, solomons, wip, taxcalc, div7a, atobench, payday, gst, umbrella]
+    needs: [crates, rust]
     strategy:
       fail-fast: false
       matrix:
@@ -174,11 +125,13 @@ jobs:
           python-version: "3.14"
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          pattern: "{the-exchequer-tally,solomons-sword,the-wip-tally,australian-tax-calculators,div7a-loan-review,ato-benchmark-compare,payday-super-checker,gst-review,au-accounting}-${{ matrix.os }}"
+          pattern: "${{ needs.crates.outputs.parity }}-${{ matrix.os }}"
           path: candidates
           merge-multiple: true
       - name: Unpack the native commands
         shell: bash
+        env:
+          EXPECTED: ${{ needs.crates.outputs.parity-count }}
         run: |
           set -euo pipefail
           mkdir bin
@@ -189,7 +142,7 @@ jobs:
             esac
           done
           find candidates -mindepth 2 -type f -exec cp {} bin/ \;
-          test "$(ls bin | wc -l)" -eq 9
+          test "$(ls bin | wc -l)" -eq "$EXPECTED"
       - name: Compare every engine with au-accounting
         run: python -I apps/au-accounting/tests/parity.py bin --cap 600
 
@@ -332,7 +285,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, payday, gst, rates, umbrella, umbrella-parity, test, dependency-audit, lint]
+    needs: [changes, packages, crates, rust, umbrella-parity, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
