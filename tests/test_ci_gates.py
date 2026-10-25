@@ -438,7 +438,7 @@ class GateWiringTests(unittest.TestCase):
                 self.assertNotIn("needs: changes", packages)
         owner = (WORKFLOWS / "boundaries.yml").read_text(encoding="utf-8")
         self.assertIn("run: uv run --locked --group dev pytest", owner)
-        self.assertIn("needs: [boundaries, root-checks, rates-dataset]", owner)
+        self.assertIn("needs: [boundaries, root-checks]", owner)
 
     def test_every_gate_runs_the_check_on_its_own_workflow_and_needs_every_job(self) -> None:
         sys.path.insert(0, str(CHECK.parent))
