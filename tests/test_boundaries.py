@@ -41,11 +41,9 @@ select_package = _load_select_package()
 
 RELEASE_CALLERS = {
     "aus-accounting-mcp": "apps/aus-accounting-mcp",
-    "gst-review": "packages/gst-review",
 }
 
 PYTHON_ENGINES = {
-    "packages/gst-review": "gstreview",
     "packages/lodgment-calendar": "lodgmentcalendar",
 }
 RUST_ENGINES = {
@@ -56,6 +54,7 @@ RUST_ENGINES = {
     "packages/div7a-loan-review": "div7a-loan-review",
     "packages/ato-benchmark-compare": "ato-benchmark-compare",
     "packages/payday-super-checker": "payday-super-checker",
+    "packages/gst-review": "gst-review",
 }
 ENGINES = PYTHON_ENGINES | RUST_ENGINES
 APPLICATIONS = {
@@ -64,8 +63,8 @@ APPLICATIONS = {
     # engines, and no engine may consume it.
     "apps/lodgeit-calculator-adapter": "lodgeitadapter",
 }
-# Sourced records with their validator. Not an engine or an application: nothing
-# imports it, and it is never released.
+# Sourced records with their validator, a standalone Rust crate. Not an engine
+# or an application: nothing links it, and it is never released.
 DATASETS = {
     "packages/au-tax-rates-data": "rates",
 }
@@ -370,12 +369,12 @@ class BoundaryTests(unittest.TestCase):
     def test_positive_control_for_forbidden_imports(self) -> None:
         tree = ast.parse(
             "import aus_accounting_mcp\n"
-            "from gstreview.bas import summarise\n"
+            "from lodgmentcalendar.calendar import summarise\n"
             "import json\n"
         )
         self.assertEqual(
             imported_top_levels(tree) & FORBIDDEN_FOR_ENGINES,
-            {"aus_accounting_mcp", "gstreview"},
+            {"aus_accounting_mcp", "lodgmentcalendar"},
         )
 
     def test_positive_control_for_escaping_relative_imports(self) -> None:

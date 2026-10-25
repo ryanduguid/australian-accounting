@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools==84.0.0"]
+requires = ["setuptools==84.2.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -61,7 +61,7 @@ dev = [
     "Pillow==13.0.0",
     # release-python builds without isolation, so the backend comes from this
     # locked extra, pinned exactly as [build-system] requires.
-    "setuptools==84.0.0",
+    "setuptools==84.2.1",
 ]
 
 [project.scripts]
@@ -120,7 +120,6 @@ extraPaths = [
     "../../packages/payday-super-checker",
     "../../packages/div7a-loan-review",
     "../../packages/australian-tax-calculators",
-    "../../packages/gst-review",
     "../../packages/lodgment-calendar",
 ]
 

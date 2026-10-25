@@ -16,12 +16,10 @@ just test      # every component's suite, plus the repository boundary checks
 `just test` runs `just setup` first, which repeats `uv sync`.
 
 `uv sync` creates one `.venv` at the root and installs the Python components into it
-as editable workspace members. `apps/aus-accounting-mcp` therefore imports
-`gstreview` from the checked-out tree rather than from its last PyPI release, with
-no per-component install step. Australian Tax Calculators, Division 7A Loan
-Review, ATO Benchmark Compare and Payday Super Checker are Rust crates now; until
-the MCP server links them, the workspace installs their last Python releases,
-0.2.0, 0.3.2, 0.2.2 and 0.2.2, from PyPI.
+as editable workspace members. Australian Tax Calculators, Division 7A Loan
+Review, ATO Benchmark Compare, Payday Super Checker and GST Review are Rust crates;
+until the MCP server links them, the workspace installs their last Python
+releases, 0.2.0, 0.3.2, 0.2.2, 0.2.2 and 0.1.0, from PyPI.
 
 `just` is optional tooling; install it with `uv tool install rust-just`. The recipes
 are `setup`, `lint`, `typecheck`, `test` and `check` (the last 3 together). Each
@@ -109,7 +107,7 @@ outside the checkout, the same way the lockfile is regenerated below.
 | div7a-loan-review (Rust) | `packages/div7a-loan-review/` | none |
 | ato-benchmark-compare (Rust) | `packages/ato-benchmark-compare/` | none |
 | payday-super-checker (Rust) | `packages/payday-super-checker/` | none |
-| gst-review | `packages/gst-review/` | `gstreview` |
+| gst-review (Rust) | `packages/gst-review/` | none |
 | lodgment-calendar | `packages/lodgment-calendar/` | `lodgmentcalendar` |
 
 The 2 applications, the rates dataset and the repository boundary checks use their own
@@ -119,7 +117,7 @@ commands:
 |---|---|---|
 | Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev pyright aus_accounting_mcp` |
 | LodgeiT calculator adapter | `apps/lodgeit-calculator-adapter/` | `uv run --locked --extra dev pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check lodgeitadapter tests`; `uv run --locked --extra dev pyright lodgeitadapter`. Its gates run from `.github/workflows/ci-lodgeit-adapter.yml`, not `ci.yml`. |
-| AU tax rates data | `packages/au-tax-rates-data/` | `uv run --locked pytest -q`; `uv run --locked python rates.py validate`. These run in the `rates-dataset` job of `.github/workflows/boundaries.yml` on Python 3.14 and 3.15, from a copy outside the workspace so that the dataset's own `uv.lock` is the one checked. The dataset is never released. |
+| AU tax rates data (Rust) | `packages/au-tax-rates-data/` | `cargo fmt --check`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo test --locked`; `cargo run --locked --release -- validate`. These run in the `au-tax-rates-data` job of `.github/workflows/ci.yml` on Ubuntu, Windows and macOS. The dataset is never released. |
 | Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py tests/test_shared_blocks.py` |
 
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,
@@ -148,8 +146,7 @@ The existing component lock checks remain required.
 report, and it runs 2 things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
 The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, pyright and
-pytest commands on Ubuntu with Python 3.15, and its `rates-dataset` job runs the rates
-dataset's own checks on Python 3.14 and 3.15. The adapter uses distinct `lodgeit`
+pytest commands on Ubuntu with Python 3.15. The adapter uses distinct `lodgeit`
 job names and a `lodgeit-gates` result check, keeping the MCP application's existing
 release-check names unchanged. Branch protection requires one aggregate per
 workflow, `tests-gates`, `boundaries-gates`, `lodgeit-gates`, `public-fixtures-gates`
@@ -260,7 +257,7 @@ Registry through `publish-mcp.yml`.
 | div7a-loan-review (Rust) | reserved `div7a-loan-review/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | ato-benchmark-compare (Rust) | reserved `ato-benchmark-compare/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | payday-super-checker (Rust) | reserved `payday-super-checker/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
-| gst-review | `gst-review/vX.Y.Z` | `release-gst-review.yml` | `pyproject.toml` | `pypi-gst-review` |
+| gst-review (Rust) | reserved `gst-review/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 
 Tag and push with `just release <component>...` from the repository root, with `gh`
 authenticated with Administration read access. Before tagging anything it refuses unless

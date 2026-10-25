@@ -30,6 +30,7 @@ dependencies = [
  "ato-benchmark-compare",
  "australian-tax-calculators",
  "div7a-loan-review",
+ "gst-review",
  "payday-super-checker",
  "serde",
  "serde_json",
@@ -189,6 +190,17 @@ dependencies = [
  "futures-task",
  "pin-project-lite",
  "slab",
+]
+
+[[package]]
+name = "gst-review"
+version = "1.0.0"
+dependencies = [
+ "chrono",
+ "num-bigint",
+ "num-integer",
+ "num-traits",
+ "serde_json",
 ]
 
 [[package]]
