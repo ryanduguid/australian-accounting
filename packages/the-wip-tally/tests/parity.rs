@@ -535,6 +535,36 @@ fn the_version_wraps_like_help_text() {
     assert_eq!(text, "wip-tally\n1.0.0\n");
 }
 
+#[test]
+fn as_at_help_distinguishes_command_defaults() {
+    for (command, expected) in [
+        (
+            "schedule",
+            "--as-at AS_AT reporting date YYYY-MM-DD (default: today)",
+        ),
+        (
+            "review-pack",
+            "--as-at AS_AT reporting date YYYY-MM-DD (default: schedule date, or today if unavailable)",
+        ),
+    ] {
+        for help in ["-h", "--help"] {
+            let out = Command::new(env!("CARGO_BIN_EXE_wip-tally"))
+                .args([command, help])
+                .env("PYTHON_COLORS", "0")
+                .env("COLUMNS", "80")
+                .env_remove("FORCE_COLOR")
+                .env_remove("NO_COLOR")
+                .output()
+                .unwrap();
+            assert!(out.status.success(), "{command} {help}: {:?}", out.stderr);
+            assert!(out.stderr.is_empty(), "{command} {help}: {:?}", out.stderr);
+            let text = String::from_utf8(out.stdout).unwrap();
+            let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
+            assert!(text.contains(expected), "{command} {help}: {text}");
+        }
+    }
+}
+
 /// `where` as `json.loads` read it from literal bytes: the harness serialises a
 /// Python value first, which would normalise `1.2300` before the binary saw it.
 /// Expected strings are Python 0.2.0's `parse_money` on the same literals.
