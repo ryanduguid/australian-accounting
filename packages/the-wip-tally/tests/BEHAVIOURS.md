@@ -15,6 +15,10 @@ Post-port corrections preserve those frozen inputs and expectations:
 - `invoice_cents.rs` pins half-up right-to-invoice revenue, a nil contract
   balance, consistent GST, period revenue and unchanged source evidence. Frozen
   API case 4642 now expects `200.00` revenue instead of integer-scale `200`.
+- `amount_range.rs` pins contextual precision refusals and unchanged accepted
+  rounding. `data/amount-range-corrections.json` states the new error text for
+  28 API cases and 8 CLI cases. CLI refusals now collect all unreadable cells;
+  the same exit codes, stdout and files are still checked.
 
 | Original test | Rust coverage |
 | --- | --- |

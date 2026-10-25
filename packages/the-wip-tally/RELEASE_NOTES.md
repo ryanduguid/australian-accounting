@@ -8,6 +8,9 @@ verification and documented divergences, and [README.md](README.md) to build it.
   for revenue, the contract balance and the GST review note. Direct Rust and
   JSON inputs with fractional cents no longer produce unquantised revenue or a
   rounding-only asset or liability. Other revenue methods are unchanged.
+- Amounts outside the decimal context's range for cents now produce an input
+  refusal with the field context. CSV errors retain their row and contract and
+  are collected with other unreadable cells; JSON refusals retain `where`.
 
 - The `review-pack --as-at` help now describes the existing default: the schedule
   date, or today if unavailable. Date selection and calculations are unchanged.

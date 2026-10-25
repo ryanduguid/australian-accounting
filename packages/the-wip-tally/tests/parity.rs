@@ -170,6 +170,8 @@ fn evaluate(command: &str, input: &Value) -> Value {
 
 fn replay(prefixes: &[&str]) {
     let rows: Value = serde_json::from_str(include_str!("data/python-api.json")).unwrap();
+    let corrections: Value =
+        serde_json::from_str(include_str!("data/amount-range-corrections.json")).unwrap();
     let mut n = 0;
     for (index, row) in rows.as_array().unwrap().iter().enumerate() {
         let command = row["command"].as_str().unwrap();
@@ -184,6 +186,11 @@ fn replay(prefixes: &[&str]) {
             assert_eq!(row["input"]["certified_billings"], "200");
             assert_eq!(expected["ok"]["revenue_to_date"], "200");
             expected["ok"]["revenue_to_date"] = json!("200.00");
+        }
+        if let Some(message) = corrections["api"].get(index.to_string()) {
+            assert_eq!(command, "parse-money");
+            assert_eq!(expected, json!({"error": "decimal.InvalidOperation"}));
+            expected = json!({"error": message});
         }
         let actual = evaluate(command, &row["input"]);
         if expected.get("schema").is_some() {
@@ -292,7 +299,9 @@ fn snapshot(folder: &Path, base: &Path, out: &mut Vec<(String, Vec<u8>)>) {
 #[test]
 fn original_cli_runs_with_their_files() {
     let rows: Value = serde_json::from_str(include_str!("data/python-cli.json")).unwrap();
-    for row in rows.as_array().unwrap() {
+    let corrections: Value =
+        serde_json::from_str(include_str!("data/amount-range-corrections.json")).unwrap();
+    for (index, row) in rows.as_array().unwrap().iter().enumerate() {
         let folder = scratch();
         for (rel, data) in row["files"].as_object().unwrap() {
             let path = folder.join(rel);
@@ -300,7 +309,28 @@ fn original_cli_runs_with_their_files() {
             std::fs::write(path, unhex(data.as_str().unwrap())).unwrap();
         }
         let steps = row["steps"].as_array().unwrap();
-        let expected = &row["expected"];
+        let mut expected = row["expected"].clone();
+        // Exact, reviewed post-port refusals; codes, stdout and files retain
+        // their frozen expectations. The original corpora stay unchanged.
+        if let Some(steps) = corrections["cli"][index.to_string()].as_object() {
+            for (step, message) in steps {
+                let step: usize = step.parse().unwrap();
+                assert_eq!(
+                    lf(&unhex(
+                        expected["results"][step]["stderr"].as_str().unwrap()
+                    )),
+                    b"error: decimal.InvalidOperation\n"
+                );
+                expected["results"][step]["stderr"] = json!(
+                    message
+                        .as_str()
+                        .unwrap()
+                        .bytes()
+                        .map(|b| format!("{b:02x}"))
+                        .collect::<String>()
+                );
+            }
+        }
         for (n, (step, want)) in steps
             .iter()
             .zip(expected["results"].as_array().unwrap())
