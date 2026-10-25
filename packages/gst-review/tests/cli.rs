@@ -55,7 +55,8 @@ fn bounded_input_and_invalid_utf8_are_refused() {
     assert_eq!(output.status.code(), Some(2));
     assert!(output.stdout.is_empty());
 }
-#[cfg(unix)]
+// macOS has no /dev/full.
+#[cfg(target_os = "linux")]
 #[test]
 fn failed_output_stream_is_a_failure() {
     let full = std::fs::OpenOptions::new()
