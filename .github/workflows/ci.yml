@@ -128,6 +128,16 @@ jobs:
     permissions:
       contents: read
 
+  rates:
+    name: au-tax-rates-data
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: au-tax-rates-data
+      binary: rates
+      smoke: validate
+    permissions:
+      contents: read
+
   umbrella:
     name: au-accounting
     uses: ./.github/workflows/ci-rust.yml
@@ -318,7 +328,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, payday, umbrella, umbrella-parity, test, dependency-audit, lint]
+    needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, payday, rates, umbrella, umbrella-parity, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

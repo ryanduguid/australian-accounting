@@ -10,7 +10,7 @@ from test_boundaries import APPLICATIONS, DATASETS, ENGINES, ROOT, RUST_APPLICAT
 
 @pytest.mark.parametrize("component", sorted(ENGINES | APPLICATIONS | RUST_APPLICATIONS | DATASETS))
 def test_component_suite(component: str) -> None:
-    rust = component in RUST_ENGINES or component in RUST_APPLICATIONS
+    rust = component in RUST_ENGINES or component in RUST_APPLICATIONS or component in DATASETS
     command = ["cargo", "test", "--locked"] if rust else [sys.executable, "-m", "pytest"]
     result = subprocess.run(
         command,
