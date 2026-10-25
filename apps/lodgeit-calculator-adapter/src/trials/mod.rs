@@ -11,6 +11,7 @@
 //! implementations agreed on a number. It says nothing about whether a loan
 //! complies, whether a benefit is reportable, or whether a reviewer should
 //! sign anything.
+pub mod depreciation;
 pub mod div7a;
 pub mod fbt;
 

@@ -250,6 +250,7 @@ fn run_case(case: &Json) -> R<Json> {
         "core" => core_case(case)?,
         "div7a" => div7a_case(case)?,
         "fbt" => fbt_case(case)?,
+        "depreciation" => depreciation_case(case),
         "settimeout" => {
             // `s.settimeout(t); s.gettimeout()`, with t given by its bits.
             let bits = text(field("bits")).parse().expect("u64 bits");
@@ -690,6 +691,87 @@ fn fbt_case(case: &Json) -> R<Json> {
         ("prepared", prepared),
         ("result", outcome_json(compared)),
     ]))
+}
+
+/// The depreciation trial: the range request, the pre-acquisition test, a
+/// split into windows and the comparison, against no provider or a
+/// fabricated outcome.
+fn depreciation_case(case: &Json) -> Json {
+    use crate::trials::depreciation;
+    let field = |name: &str| case.get(name).unwrap_or(&Json::Null);
+    let refused = |error: Exc| Json::Array(vec![Json::str(error.class), json_str(error.text)]);
+    let a = field("asset");
+    let asset = depreciation::Asset {
+        case_id: text(a.at("case_id")),
+        cost: Decimal::parse_exact(&text(a.at("cost"))).expect("a decimal"),
+        acquisition_date: text(a.at("acquisition_date")),
+        useful_life_years: int(a.at("useful_life_years")).try_into().expect("an i64"),
+        method: text(a.at("method")),
+    };
+    let (from, to, day_count) = (
+        text(field("from_date")),
+        text(field("to_date")),
+        text(field("day_count")),
+    );
+    let supplied = match field("supplied") {
+        Json::Null => None,
+        value => Some(Decimal::parse_exact(&text(value)).expect("a decimal")),
+    };
+    let request = match depreciation::range_request(&asset, &from, &to, &day_count) {
+        Ok(body) => Json::str(&repr(&body)),
+        Err(error) => refused(error),
+    };
+    let w = field("windows");
+    let boundaries: Vec<String> = match w.at("boundaries") {
+        Json::Array(items) => items.iter().map(text).collect(),
+        _ => Vec::new(),
+    };
+    let windows = match depreciation::consecutive_windows(
+        &text(w.at("start")),
+        &text(w.at("end")),
+        &boundaries,
+    ) {
+        Ok(pairs) => Json::Array(
+            pairs
+                .iter()
+                .map(|(one, two)| Json::Array(vec![Json::str(one), Json::str(two)]))
+                .collect(),
+        ),
+        Err(error) => refused(error),
+    };
+    let given = field("outcome");
+    let compared = if given == &Json::Null {
+        let case_id = match field("case_id") {
+            Json::Null => None,
+            value => Some(text(value)),
+        };
+        depreciation::evaluate_range(
+            &asset,
+            &from,
+            &to,
+            &day_count,
+            None,
+            supplied.as_ref(),
+            case_id.as_deref(),
+        )
+    } else {
+        depreciation::evaluate_outcome(
+            &asset,
+            &from,
+            pts(&text(field("label"))),
+            &fabricated_outcome(given),
+            supplied.as_ref(),
+        )
+    };
+    Json::obj([
+        ("request", request),
+        (
+            "spans",
+            Json::Bool(depreciation::spans_acquisition(&asset, &from)),
+        ),
+        ("windows", windows),
+        ("result", outcome_json(compared)),
+    ])
 }
 
 /// The Division 7A trial over a case file: per case, the request body's
