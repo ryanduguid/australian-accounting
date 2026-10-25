@@ -1,6 +1,7 @@
 """The Payday Super Checker Excel workbook is a second implementation of the checker's rules.
 
-It ships with cached values written by desktop Excel (tools/build_workbook.py), so this
+It ships with cached values written by desktop Excel (the package's
+`cargo run --example build_workbook`), so this
 test can hold it to the engine's answer for the shipped sample without Excel on the
 test machine. The engine is a Rust crate; its assessment of that sample is frozen in
 tests/data/workbook-sample.json, which `cargo test` holds to the engine. If the engine,
@@ -9,12 +10,10 @@ the calendar, the GIC table or the workbook changes on its own, one of the two t
 
 from __future__ import annotations
 
-import ast
-import importlib.util
 import json
 import re
 import zipfile
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -22,12 +21,10 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1] / "packages" / "payday-super-checker"
 ENGINE_SAMPLE = ROOT / "tests" / "data" / "workbook-sample.json"
-# The shipped workbook was last built and recalculated against Python engine 0.2.2;
-# the Rust 1.0.0 engine gives the same results. A desktop Excel rebuild records the
-# crate version instead, and this constant moves with it.
-WORKBOOK_ENGINE_VERSION = "0.2.2"
+# The engine version the shipped workbook was last built against, which the builder
+# records from Cargo.toml on Sources & Version. A rebuild after a version bump moves it.
+WORKBOOK_ENGINE_VERSION = "1.0.0"
 WORKBOOK = ROOT / "workbooks" / "payday-super-checker.xlsx"
-TOOL = ROOT / "tools" / "build_workbook.py"
 AS_AT = date(2026, 8, 10)
 SHEETS = ("Start Here", "Register", "Codes", "Holidays", "GIC", "Summary", "Review Checks",
           "Sources & Version")
@@ -58,39 +55,6 @@ def register_rows(book):
     ws = book["Register"]
     titles = [c.value for c in ws[1]]
     return [dict(zip(titles, row)) for row in ws.iter_rows(min_row=2, values_only=True) if row[0]]
-
-
-def rust_source(name):
-    return re.sub(r"\s+", " ", (ROOT / "src" / name).read_text(encoding="utf-8"))
-
-
-def tool_constant(name):
-    tree = ast.parse(TOOL.read_text(encoding="utf-8"))
-    for node in tree.body:
-        if isinstance(node, ast.Assign) and [getattr(t, "id", None) for t in node.targets] == [name]:
-            return node.value
-    raise AssertionError(name)
-
-
-def rust_date(source, name):
-    found = re.search(rf"pub const {name}: Date = Date {{ year: (\d+), month: (\d+), day: (\d+), }};",
-                      rust_source(source))
-    return date(*map(int, found.groups()))
-
-
-def test_the_builder_constants_are_the_engines():
-    """The workbook builder carries copies of the engine's constants."""
-    assert ast.literal_eval(tool_constant("LATEST_SANE_YEAR")) == int(
-        re.search(r"pub const LATEST_SANE_YEAR: i32 = (\d+);", rust_source("csv_io.rs")).group(1))
-    for name, words in (("TRUE_WORDS", 5), ("FALSE_WORDS", 6)):
-        rust = re.search(rf"pub const {name}: \[&str; {words}\] = \[(.*?)\];", rust_source("csv_io.rs"))
-        assert set(re.findall(r'"([^"]*)"', rust.group(1))) == ast.literal_eval(tool_constant(name))
-    for name, source in (("TRANSITION_END", "assess.rs"), ("REGIME_START", "deadlines.rs")):
-        call = tool_constant(name)
-        assert date(*(ast.literal_eval(a) for a in call.args)) == rust_date(source, name), name
-    version = re.search(r'^version = "([^"]+)"', (ROOT / "Cargo.toml").read_text(encoding="utf-8"),
-                        re.MULTILINE).group(1)
-    assert builder_module().__version__ == version
 
 
 def test_workbook_is_macro_free_and_carries_no_build_path(cached):
@@ -209,131 +173,3 @@ def test_input_columns_are_formatted_so_pasted_values_stay_inert():
     assert ws.protection.sheet is False, "pasting extends the table"
     assert book["Summary"].protection.sheet is True
     assert book["Review Checks"].protection.sheet is True
-
-
-# ---------------------------------------------------------------------------
-# Generator-level checks. Excel is not run here, so these hold the formulas the
-# builder writes; the shipped cached values still come from a desktop Excel pass
-# (tools/build_workbook.py).
-# ---------------------------------------------------------------------------
-
-
-def builder_module():
-    pytest.importorskip("openpyxl")
-    spec = importlib.util.spec_from_file_location("payday_build_workbook", TOOL)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-@pytest.fixture(scope="module")
-def builder():
-    return builder_module()
-
-
-def test_every_register_date_is_read_as_a_whole_calendar_day(builder):
-    """The checker drops a zone-less time component; noon on the deadline is not late."""
-    calc = builder.formulas()
-    for column, source in (("Pay_day", "payment_date"), ("Remit_day", "remitted_date"),
-                           ("Recv_day", "fund_received_date"),
-                           ("Next_day", "next_standard_payday")):
-        assert calc[column] == builder.whole_day(source)
-        assert "INT(" in calc[column]
-    # Nothing downstream may reach past the whole-day columns to the raw date cells.
-    downstream = {name: formula for name, formula in calc.items()
-                  if name not in {"Pay_day", "Remit_day", "Recv_day", "Next_day",
-                                  "Row_problem", "Guard"}}
-    for name, formula in downstream.items():
-        for source in ("payment_date", "remitted_date", "fund_received_date",
-                       "next_standard_payday"):
-            assert f"[{source}]]" not in formula, (name, source)
-    assert builder.AS_AT != builder.AS_AT_INPUT
-    assert builder.ASSESS != builder.ASSESS_INPUT
-
-
-def test_a_blank_register_date_stays_blank_through_the_whole_day_columns(builder):
-    """A blank date cell read as a number is 30 December 1899, not a missing date.
-
-    Excel gives a bare reference to an empty cell the value 0, so a whole-day
-    column that returned the raw reference made every blank date look supplied:
-    ISNUMBER saw a number, Settled and Remit accepted day 0 as on or before the
-    as-at date, and the shipped sample's unremitted EMP004 turned from UNPAID
-    into LATE.
-    """
-    for source in ("payment_date", "remitted_date", "fund_received_date",
-                   "next_standard_payday"):
-        formula = builder.whole_day(source)
-        assert formula.startswith(f'=IF({builder.T(source)}="","",')
-    # The control: a supplied date is still truncated to its calendar day.
-    assert "INT(" in builder.whole_day("payment_date")
-
-
-def test_the_register_refuses_the_dates_and_amounts_the_checker_refuses(builder):
-    problem = builder.formulas()["Row_problem"]
-    assert f"DATE({builder.LATEST_SANE_YEAR},12,31)" in problem
-    # The Summary coverage date is bound the same way, so a fabricated far-future
-    # coverage cannot mark deadlines as covered.
-    source = TOOL.read_text(encoding="utf-8")
-    assert "AND(ISNUMBER({COVERAGE}),{COVERAGE}<={FAR_DATE})" in source
-    assert "date-not-real" in problem
-    assert "amount-under-half-a-cent" in problem
-    for column in builder.AMOUNT_COLUMNS:
-        assert f"ROUND(tblLines[[#This Row],[{column}]],2)=0" in problem
-
-
-def test_amount_invariants_compare_cents_not_raw_input(builder):
-    """1000.001 against 1000.004 is one figure to the checker, so it is here too."""
-    calc = builder.formulas()
-    problem = calc["Row_problem"]
-    for pair in ("remitted_amount>sg", "matched_amount>sg", "remitted_amount>matched"):
-        assert pair in problem
-    assert "ROUND(tblLines[[#This Row],[remitted_amount]],2)>ROUND(" in problem
-    assert "ROUND(tblLines[[#This Row],[matched_amount]],2)>ROUND(" in problem
-    # The receipt-covers-liability test is the one that read a fully received
-    # 1000.004 payday as UNPAID.
-    assert ("tblLines[[#This Row],[Receipt_credit]]>=ROUND(tblLines[[#This Row],[sg_amount]],2)"
-            in calc["Branch"])
-
-
-def test_the_gic_table_holds_only_published_contiguous_quarters(builder):
-    """No estimated rows: a day past the table withholds the estimate instead of
-    reading a carried-forward rate, and the accrual end stays uncapped."""
-    rows, last_known = builder.read_gic()
-    assert rows and all(row[4] == "known" for row in rows)
-    assert last_known == rows[-1][1]
-    for earlier, later in zip(rows, rows[1:]):
-        assert later[0] == earlier[1] + timedelta(days=1)
-    assert not hasattr(builder, "ESTIMATE_UNTIL")
-    assert "Past_gic_table" in builder.formulas()["NEC"]
-
-
-def test_a_bare_receipt_date_is_left_unknown_in_the_workbook(builder):
-    """A fund-receipt date with neither amount column filled evidences timing
-    only. The branch formula sends such a row to the U codes before any
-    receipt branch can read the whole-liability cap as a full receipt, the
-    covers test itself needs a stated amount, and the s 18D offset waits for
-    one. Verified through desktop Excel on 20 Sep 2026: bare timely receipt
-    U2 (UNPAID or ON_TIME), bare late receipt E with the not-evidenced
-    lateness basis and no offset, stated full receipt D1."""
-    calc = builder.formulas()
-    evidenced = (
-        "OR(ISNUMBER(tblLines[[#This Row],[matched_amount]]),"
-        "ISNUMBER(tblLines[[#This Row],[remitted_amount]]))"
-    )
-    assert calc["Branch"].index(f"IF(AND(NOT({evidenced})") < calc["Branch"].index('"A1"')
-    # A pre-payment is timely only inside the 12-month window, so a stale one
-    # must fall through to the S codes rather than be offered ON_TIME: the
-    # window test has to be nested under the pre-payment test, not OR-ed
-    # beside the on-or-before-deadline test (which every pre-payment passes).
-    settled = "tblLines[[#This Row],[Settled]]"
-    pay = "tblLines[[#This Row],[Pay_day]]"
-    assert (
-        f"IF({settled}<{pay},{settled}>=tblLines[[#This Row],[Earliest_prepay]],OR("
-        in calc["Branch"]
-    )
-    assert '"U1"' in calc["Branch"] and '"U2"' in calc["Branch"] and '"U3"' in calc["Branch"]
-    assert f"AND(tblLines[[#This Row],[Receipt_credit]]>=ROUND(tblLines[[#This Row],[sg_amount]],2),{evidenced})" in calc["Branch"]
-    assert evidenced in calc["Offset_s18D"]
-    assert "as-at date (fund receipt amount not evidenced)" in calc["Lateness_basis"]
-    for code, outer in (("U1", "LATE or ON_TIME"), ("U2", "UNPAID or ON_TIME"), ("U3", "NOT_YET_DUE or ON_TIME")):
-        assert builder.CODES[code] == ("UNKNOWN", outer, 0, 0, 0)
