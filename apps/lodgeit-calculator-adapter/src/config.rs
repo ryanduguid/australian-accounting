@@ -359,7 +359,7 @@ pub fn from_environment(env: impl Fn(&str) -> Option<String>) -> R<AdapterConfig
 
 /// `from_environment()` over the process environment.
 pub fn from_process_environment() -> R<AdapterConfig> {
-    from_environment(|name| std::env::var_os(name).map(|v| v.to_string_lossy().into_owned()))
+    from_os_environment(|name| std::env::var_os(name))
 }
 
 #[cfg(test)]

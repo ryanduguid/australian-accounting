@@ -33,7 +33,8 @@ rustls-platform-verifier = "0.7.1"
 libc = "0.2"
 
 [features]
-# A fixed clock and elapsed time for the differential harness. Release builds
+# A fixed clock and elapsed time for the differential harness: present day,
+# present time, every run. Release builds
 # leave it off.
 differential = []
 

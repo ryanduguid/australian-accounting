@@ -1,6 +1,6 @@
 //! `tests/test_cli_paths.py`: command-line paths the regression suites do
 //! not reach. All offline; the network commands talk to a loopback stub
-//! this file starts. The MCP tests wait for gate D.
+//! this file starts. The MCP tests were retired with the MCP surface.
 use std::ffi::OsString;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};

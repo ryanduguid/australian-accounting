@@ -6,7 +6,8 @@ without the `test_` prefix (`tests/test_cli_paths.py` became `tests/cli_paths.rs
 and each test a Rust test of the same name without the prefix, except where the
 table says otherwise:
 
-- **Deferred to gate D (MCP):** 7 tests that drive `lodgeitadapter.mcp`.
+- **Retired with the MCP surface:** 7 tests that drive `lodgeitadapter.mcp`. The Rust
+  port omits the MCP surface, so these have no Rust test.
 - **Not applicable:** 16 tests whose input the Rust types cannot represent (a
   non-boolean flag, a non-string key, a configuration of the wrong type) or that
   inject a non-I/O exception, such as a cancellation, from a read or a close, which
@@ -39,10 +40,10 @@ Seam: the CLI runs in process through `cli::run_io` with captured stdout and std
 | test_cli_paths.py::test_drift_that_differs_lists_each_finding_and_exits_one | drift_that_differs_lists_each_finding_and_exits_one | loopback server |
 | test_cli_paths.py::test_drift_that_cannot_reach_the_service_reports_the_outcome | drift_that_cannot_reach_the_service_reports_the_outcome (the retry backoff does not sleep) | loopback server |
 | test_cli_paths.py::test_invoke_names_a_body_file_it_cannot_read | invoke_names_a_body_file_it_cannot_read | loopback server |
-| test_cli_paths.py::test_the_mcp_contract_tool_reads_the_snapshot_offline | deferred to gate D (MCP) | none |
-| test_cli_paths.py::test_the_mcp_drift_tool_reports_findings | deferred to gate D (MCP) | none |
-| test_cli_paths.py::test_the_mcp_invoke_tool_refuses_a_body_it_cannot_read | deferred to gate D (MCP) | none |
-| test_cli_paths.py::test_the_mcp_invoke_tool_returns_a_computed_outcome | deferred to gate D (MCP) | none |
+| test_cli_paths.py::test_the_mcp_contract_tool_reads_the_snapshot_offline | retired: the Rust port omits the MCP surface | none |
+| test_cli_paths.py::test_the_mcp_drift_tool_reports_findings | retired: the Rust port omits the MCP surface | none |
+| test_cli_paths.py::test_the_mcp_invoke_tool_refuses_a_body_it_cannot_read | retired: the Rust port omits the MCP surface | none |
+| test_cli_paths.py::test_the_mcp_invoke_tool_returns_a_computed_outcome | retired: the Rust port omits the MCP surface | none |
 
 ## `test_client_outcomes.py` to `client_outcomes.rs`
 
@@ -181,9 +182,9 @@ Seam: the client tests use a `std::net::TcpListener` stub on 127.0.0.1 started i
 | `test_no_network_by_default.py::test_a_host_off_the_allowlist_is_refused_before_a_socket_opens` | `a_host_off_the_allowlist_is_refused_before_a_socket_opens` | direct call (`check_url`), plus `transport::request` with a panicking `transport::Dial` to show the refusal comes before any dial |
 | `test_no_network_by_default.py::test_a_route_the_adapter_does_not_call_is_refused` | `a_route_the_adapter_does_not_call_is_refused` | direct call (`check_url` takes no dialler) |
 | `test_no_network_by_default.py::test_loopback_needs_its_own_switch` | `loopback_needs_its_own_switch` | direct call (`check_url` takes no dialler) |
-| `test_no_network_by_default.py::test_the_mcp_invoke_tool_needs_a_per_call_network_acknowledgement` | not applicable: deferred to gate D (MCP) | none |
-| `test_no_network_by_default.py::test_a_loose_acknowledgement_never_reaches_the_client` | not applicable: deferred to gate D (MCP) | none |
-| `test_no_network_by_default.py::test_the_mcp_invoke_tool_declares_the_acknowledgement_as_required` | not applicable: deferred to gate D (MCP) | none |
+| `test_no_network_by_default.py::test_the_mcp_invoke_tool_needs_a_per_call_network_acknowledgement` | retired: the Rust port omits the MCP surface | none |
+| `test_no_network_by_default.py::test_a_loose_acknowledgement_never_reaches_the_client` | retired: the Rust port omits the MCP surface | none |
+| `test_no_network_by_default.py::test_the_mcp_invoke_tool_declares_the_acknowledgement_as_required` | retired: the Rust port omits the MCP surface | none |
 
 ## `test_review_regressions.py` to `review_regressions.rs`
 

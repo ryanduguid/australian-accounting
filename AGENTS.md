@@ -8,8 +8,9 @@ checks from its own directory.
   one `.venv`; `just test` runs every component's suite plus the boundary checks. That
   is the whole setup for a fresh clone. `just` comes from `uv tool install rust-just`.
 - Components: `apps/aus-accounting-mcp/` (the MCP application),
-  `apps/lodgeit-calculator-adapter/` (an optional adapter for a third-party calculator
-  service, off by default and imported by nothing else here), `apps/au-accounting/`
+  `apps/lodgeit-calculator-adapter/` (a Rust command, an optional adapter for a
+  third-party calculator service, off by default; nothing else here depends on it,
+  it links 2 engine crates by path, and it is excluded from the uv workspace), `apps/au-accounting/`
   (a Rust command with a subcommand per Rust engine; it links the engine crates by
   path, uses only their public `api` and `cli` modules, and is excluded from the uv
   workspace),

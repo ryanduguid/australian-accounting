@@ -60,9 +60,11 @@ RUST_ENGINES = {
 ENGINES = PYTHON_ENGINES | RUST_ENGINES
 APPLICATIONS = {
     "apps/aus-accounting-mcp": "aus_accounting_mcp",
-    # The optional remote adapter. An application, not an engine: it may consume
-    # engines, and no engine may consume it.
-    "apps/lodgeit-calculator-adapter": "lodgeitadapter",
+}
+# The optional remote adapter, a standalone Rust crate. An application, not an
+# engine: it links 2 engines by path, and no engine may link it.
+RUST_APPLICATIONS = {
+    "apps/lodgeit-calculator-adapter": "lodgeit-calculator-adapter",
 }
 # Sourced records with their validator. Not an engine or an application: nothing
 # imports it, and it is never released.
@@ -158,7 +160,7 @@ class BoundaryTests(unittest.TestCase):
                 self.assertFalse(select_package.should_run(package, siblings))
                 # An application is not an engine dependency, so an application
                 # change alone does not run an engine's gates.
-                for application in APPLICATIONS:
+                for application in APPLICATIONS | RUST_APPLICATIONS:
                     self.assertFalse(
                         select_package.should_run(package, [f"{application}/module.py"])
                     )

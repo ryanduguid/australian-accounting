@@ -3,7 +3,8 @@
 //! Python sabotages `socket.create_connection` and `socket.socket.connect`.
 //! The Rust seam is `transport::Dial`: every client here gets a dialler that
 //! panics on any dial, so a request that should not happen fails loudly
-//! rather than reaching a service. The MCP tests are deferred to gate D.
+//! rather than reaching a service. The MCP tests were retired with the MCP
+//! surface.
 
 use std::ffi::OsString;
 use std::io;
