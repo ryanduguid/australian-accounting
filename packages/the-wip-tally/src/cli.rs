@@ -83,7 +83,12 @@ static COMMANDS: [Command; 2] = [
                 Some("the contract CSV that produced it"),
             ),
             opt(&["-o", "--output"], "OUTPUT", false, None),
-            opt(&["--as-at"], "AS_AT", false, Some(AS_AT_HELP)),
+            opt(
+                &["--as-at"],
+                "AS_AT",
+                false,
+                Some("reporting date YYYY-MM-DD (default: schedule date, or today if unavailable)"),
+            ),
             opt(
                 &["--mapping-file"],
                 "MAPPING_FILE",
