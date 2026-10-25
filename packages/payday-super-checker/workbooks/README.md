@@ -78,22 +78,27 @@ specific parity checks, not proof of every input or option. See the
 ## How it is kept honest
 
 The workbook is a second implementation of the rules in this crate, so it can
-drift. `tests/test_workbook.py` reads the cached values desktop Excel wrote and
-holds every line of `examples/sample_payrun.csv`, the summary counts and totals,
-the Holidays table and the GIC table to the engine. A change to the engine, the
-data or the workbook that is not rebuilt fails the test.
+drift. The repository's `tests/test_payday_workbook.py` reads the cached values
+desktop Excel wrote and holds every line of `examples/sample_payrun.csv`, the
+summary counts and totals, the Holidays table and the GIC table to the engine.
+A change to the engine, the data or the workbook that is not rebuilt fails the
+test.
 
 Rebuild on a machine with desktop Excel, from the package directory:
 
 ```powershell
-uv run --locked python packages/payday-super-checker/tools/build_workbook.py
+cargo run --example build_workbook
 ```
 
-The build writes the formulas with openpyxl, opens the file once in Excel over COM
-to calculate and save real cached values, records the Excel build on Sources &
-Version and strips the machine path Excel stamps into the file. Pass `--no-excel`
-to skip the Excel pass; the file then ships without cached values and the parity
-test fails, which is the point.
+The build writes the formulas with rust_xlsxwriter, opens the file once in Excel
+over COM to calculate and save real cached values, records the Excel build on
+Sources & Version and strips the machine path Excel stamps into the file. Pass
+`--no-excel` to skip the Excel pass; the file then ships without cached values
+and the parity test fails, which is the point. `--out <path>` writes somewhere
+other than the shipped file. The build works on a staging file and replaces the
+output only when every step succeeds, so a failed build leaves the previous
+workbook in place. The builder's own tests, which hold the formulas it
+writes, run under `cargo test`.
 
 Two things are worth knowing about how the formulas differ from the code while
 giving the same answers. Item 4 is not swept row by row: the confirmed latest

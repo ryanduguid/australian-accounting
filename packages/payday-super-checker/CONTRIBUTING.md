@@ -26,8 +26,10 @@ cargo test --locked
 ```
 
 `tests/parity.rs` replays the frozen record of the Python 0.2.2 engine's answers;
-a change that alters any of them fails it. The calendar generator and the
-workbook builder in `tools/` are Python and are tested from the repository root.
+a change that alters any of them fails it. The workbook builder is the
+`build_workbook` example, whose tests `cargo test` runs; the calendar generator
+in `tools/` is Python and is tested from the repository root, as is the shipped
+workbook.
 CI runs the crate on Ubuntu and Windows, and `fuzz/` holds the cargo-fuzz target
 for the CSV readers.
 
