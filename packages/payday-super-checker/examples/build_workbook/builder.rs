@@ -1394,9 +1394,12 @@ pub fn build() -> Result<Vec<u8>> {
     }
 
     // openpyxl's print margins, which Excel keeps on save; rust_xlsxwriter
-    // otherwise writes Excel's narrower defaults.
+    // otherwise writes Excel's narrower defaults. Setting them writes a page
+    // setup, whose paper would then default to Letter, so name A4 (paper 9),
+    // what the Python workbook prints on with an Australian printer default.
     for ws in wb.worksheets_mut() {
         ws.set_margins(0.75, 0.75, 1.0, 1.0, 0.5, 0.5);
+        ws.set_paper_size(9);
     }
 
     let xlsx = wb.save_to_buffer()?;
@@ -1410,18 +1413,19 @@ pub fn build() -> Result<Vec<u8>> {
 mod tests {
     use crate::model::{differences, model};
 
-    /// Accepted until Gate B checks them in desktop Excel:
-    /// - openpyxl writes a status colour as a `solid` dxf fill with fgColor;
-    ///   rust_xlsxwriter cannot write patternType in a dxf and writes bgColor,
-    ///   the form Excel itself writes for conditional formats;
+    /// Accepted after the Gate B desktop Excel check:
+    /// - openpyxl writes a status colour as a `solid` dxf fill with fgColor,
+    ///   which Excel does not display; rust_xlsxwriter writes bgColor, the form
+    ///   Excel writes and displays, so the Rust workbook shows the colours;
     /// - setting openpyxl's margins makes rust_xlsxwriter write a page setup
-    ///   with portrait orientation and 200 dpi, where openpyxl leaves both to
-    ///   the printer.
+    ///   with portrait orientation, A4 paper and 200 dpi, where openpyxl leaves
+    ///   them to the printer; Excel reports the same orientation, margins and
+    ///   print quality for both, and A4 for both with an Australian printer.
     fn accepted(line: &str) -> String {
         line.replace("dxf{fill{solid fgColor=", "dxf{fill{(absent) bgColor=")
             .replace(
                 "| page orientation=default paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=600 verticalDpi=600 ",
-                "| page orientation=portrait paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=200 verticalDpi=200 ",
+                "| page orientation=portrait paperSize=9 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=200 verticalDpi=200 ",
             )
     }
 
