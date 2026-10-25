@@ -197,7 +197,7 @@ name = "gst-review"
 version = "1.0.0"
 dependencies = [
  "chrono",
- "num-bigint 0.4.8",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "serde_json",
