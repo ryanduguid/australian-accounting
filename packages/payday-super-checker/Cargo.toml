@@ -12,6 +12,14 @@ publish = false
 name = "payday-super-check"
 path = "src/main.rs"
 
+# Rust port of tools/build_workbook.py, in progress; dev-dependencies only, so
+# the release binary links none of it. `test = true` runs its unit tests under
+# `cargo test`.
+[[example]]
+name = "build_workbook"
+path = "examples/build_workbook.rs"
+test = true
+
 [dependencies]
 chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }
 num-bigint = "0.5"
@@ -26,6 +34,11 @@ libc = "0.2"
 [profile.release]
 lto = true
 codegen-units = 1
+
+[dev-dependencies]
+roxmltree = "=0.21.1"
+rust_xlsxwriter = "=0.101.0"
+zip = { version = "=9.1.0", default-features = false, features = ["deflate"] }
 
 # Asset names the release workflow will publish once release-policy has a Rust
 # binary family; see the root README.
