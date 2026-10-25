@@ -13,6 +13,7 @@ REMOVED_IMPORTS = {
     "div7a-loan-review": "div7aloan",
     "ato-benchmark-compare": "atobenchmark",
     "payday-super-checker": "paydaysuper",
+    "gst-review": "gstreview",
 }
 # Runtime crates an engine may use; none is another engine or a path dependency.
 ALLOWED_DEPENDENCIES = {"num-bigint", "num-integer", "num-traits", "serde_json", "chrono", "sha2"}
@@ -89,7 +90,7 @@ class RustEngineTests(unittest.TestCase):
     def test_cargo_ci_security_and_publisher_boundary(self):
         workflows = ROOT / ".github/workflows"
         caller = (workflows / "ci.yml").read_text()
-        self.assertIn("needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, payday, umbrella, umbrella-parity, test, dependency-audit, lint]", caller)
+        self.assertIn("needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, payday, gst, rates, umbrella, umbrella-parity, test, dependency-audit, lint]", caller)
         workflow = (workflows / "ci-rust.yml").read_text()
         for gate in ("cargo fmt --check", "cargo clippy --locked --all-targets -- -D warnings", "cargo test --locked", "cargo build --locked --release", "cargo audit --deny warnings"):
             self.assertIn(gate, workflow)

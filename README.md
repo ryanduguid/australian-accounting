@@ -153,17 +153,16 @@ For an editable source installation, run `pip install -e .` from
 | `packages/solomons-sword/` | `solomons-sword` (Rust) | none | `solomons-sword` |
 | `packages/the-wip-tally/` | `the-wip-tally` (Rust) | none | `wip-tally` |
 | `apps/au-accounting/` | `au-accounting` (Rust) | none | `au-accounting`, one subcommand per Rust engine |
-| `packages/gst-review/` | `gst-review` | `gstreview` | Python review functions: GST coding states against registration, BAS-to-ledger reconciliation |
+| `packages/gst-review/` | `gst-review` (Rust) | none | `gst-review`: GST coding states against registration and BAS-to-ledger reconciliation |
 | `packages/lodgment-calendar/` | `lodgment-calendar` (not yet released) | `lodgmentcalendar` | Python function: ATO lodgment program due dates for BAS, IAS and income tax returns, `UNKNOWN` where a fact is missing |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` | `lodgeitadapter` | optional adapter for a third-party calculator service; off by default, makes HTTP calls only when `LODGEIT_ADAPTER_ENABLED=1` |
-| `packages/au-tax-rates-data/` | `au-tax-rates-data` (never released) | `rates` (module) | `python rates.py validate`, `snapshot` and `check`: ATO rates and thresholds with verbatim source quotes, validated offline |
+| `packages/au-tax-rates-data/` | `au-tax-rates-data` (Rust, never released) | none | `rates validate`, `snapshot`, `check` and `ato-tables`: ATO rates and thresholds with verbatim source quotes, validated offline |
 
 `IMPORTS.md` records the source repository, commit and tree of every imported component. The
 MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest); it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
 `div7a-loan-review`, `australian-tax-calculators` and `gst-review` distributions. In
-the development workspace, uv resolves `gst-review` to its checked-out source and
-takes `australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2,
+the development workspace, uv takes `gst-review` 0.1.0 and `australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2,
 `ato-benchmark-compare` 0.2.2 and `payday-super-checker` 0.2.2, the last Python
 releases, from PyPI.
 
@@ -172,10 +171,10 @@ MCP server uses none of the Rust crates yet.
 
 ## Install the Rust engines
 
-The 7 Rust engines are unreleased standalone binaries. With
+The 8 Rust engines are unreleased standalone binaries. With
 [Rust](https://rustup.rs/) 1.99 or later, install `au-accounting`, one command
 with a subcommand per engine (`benchmarks`, `div7a`, `exchequer`, `payday-super`,
-`solomons`, `tax` and `wip`):
+`gst-review`, `solomons`, `tax` and `wip`):
 
 ```bash
 cargo install --locked --git https://github.com/ryanduguid/australian-accounting au-accounting
@@ -189,8 +188,8 @@ instead, name its crate from the table above, for example:
 cargo install --locked --git https://github.com/ryanduguid/australian-accounting div7a-loan-review
 ```
 
-GST Review is still a Python package, so `au-accounting` has no `gst-review`
-subcommand; install it from [PyPI](https://pypi.org/project/gst-review/).
+`au-accounting gst-review review-coding` and `reconcile-bas` read JSON on stdin;
+see the [GST Review schemas](packages/gst-review/README.md).
 
 Prebuilt binaries are coming: CI already builds each crate's Windows, macOS and
 Linux archive, and every crate carries [cargo-binstall](https://github.com/cargo-bins/cargo-binstall)
