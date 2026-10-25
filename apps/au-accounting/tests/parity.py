@@ -8,7 +8,7 @@ match, including the line and column of JSON input errors.
 
 Standard library only. usage:
     python -I apps/au-accounting/tests/parity.py BIN_DIR [--cap N]
-BIN_DIR holds au-accounting and the 7 engine commands; --cap samples at most N
+BIN_DIR holds au-accounting and the 8 engine commands; --cap samples at most N
 corpus rows per engine and kind (default: every row).
 """
 
@@ -30,6 +30,7 @@ ENGINES = {
     "benchmarks": ("ato-benchmark-compare", "ato-benchmark-compare"),
     "div7a": ("div7a-loan-review", "div7a-loan-review"),
     "exchequer": ("the-exchequer-tally", "the-exchequer-tally"),
+    "gst-review": ("gst-review", "gst-review"),
     "payday-super": ("payday-super-checker", "payday-super-check"),
     "solomons": ("solomons-sword", "solomons-sword"),
     "tax": ("australian-tax-calculators", "australian-tax-calculators"),
@@ -58,6 +59,8 @@ EDGES += [
 
 def corpus(package: str) -> list[dict]:
     rows = []
+    if package == "gst-review":
+        return json.loads((ROOT / "packages/gst-review/tests/fixtures/python-contracts.json").read_text(encoding="utf-8"))
     for path in sorted((ROOT / "packages" / package / "tests/data").glob("python-*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
         rows.extend(data["cases"] if isinstance(data, dict) else data)

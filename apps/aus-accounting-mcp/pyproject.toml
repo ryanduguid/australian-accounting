@@ -120,7 +120,6 @@ extraPaths = [
     "../../packages/payday-super-checker",
     "../../packages/div7a-loan-review",
     "../../packages/australian-tax-calculators",
-    "../../packages/gst-review",
     "../../packages/lodgment-calendar",
 ]
 

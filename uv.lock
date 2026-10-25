@@ -9,7 +9,6 @@ resolution-markers = [
 [manifest]
 members = [
     "aus-accounting-mcp",
-    "gst-review",
     "lodgeit-calculator-adapter",
     "lodgment-calendar",
 ]
@@ -105,7 +104,7 @@ requires-dist = [
     { name = "australian-tax-calculators", specifier = "==0.2.0" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.6.1" },
     { name = "div7a-loan-review", specifier = "==0.3.2" },
-    { name = "gst-review", editable = "packages/gst-review" },
+    { name = "gst-review", specifier = "==0.1.0" },
     { name = "lodgment-calendar", editable = "packages/lodgment-calendar" },
     { name = "mcp", specifier = ">=2.3.0,<3" },
     { name = "nodejs-wheel-binaries", marker = "extra == 'dev'", specifier = "==24.19.0" },
@@ -359,32 +358,11 @@ wheels = [
 [[package]]
 name = "gst-review"
 version = "0.1.0"
-source = { editable = "packages/gst-review" }
-
-[package.optional-dependencies]
-dev = [
-    { name = "build" },
-    { name = "coverage" },
-    { name = "nodejs-wheel-binaries" },
-    { name = "pyright", extra = ["nodejs"] },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-    { name = "setuptools" },
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4b/5b/3d75d9b92e023ac0355cf804a8528349f15310a9cd45f7f04b96f84615c5/gst_review-0.1.0.tar.gz", hash = "sha256:6524ca3a084300294187a542b6eb42bda59a1c9694d40dcc9a896eeddfb47ab6", size = 38340, upload-time = "2026-10-19T14:23:04.001Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ec/c0/648ff3d04461fb0883aadfc084de0ba827e16146fe80d887f44bc16a5516/gst_review-0.1.0-py3-none-any.whl", hash = "sha256:aae5020766ab8c576e912d50ec78f232a1fcf5f2dce4033f0862b0ed5e95edd8", size = 18548, upload-time = "2026-10-19T14:23:02.752Z" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "build", marker = "extra == 'dev'", specifier = "==1.6.1" },
-    { name = "coverage", marker = "extra == 'dev'", specifier = "==7.16.2" },
-    { name = "nodejs-wheel-binaries", marker = "extra == 'dev'", specifier = "==24.19.0" },
-    { name = "pyright", extras = ["nodejs"], marker = "extra == 'dev'", specifier = "==1.1.414" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = "==7.1.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.17.0" },
-    { name = "setuptools", marker = "extra == 'dev'", specifier = "==84.2.1" },
-]
-provides-extras = ["dev"]
 
 [[package]]
 name = "h11"
@@ -530,7 +508,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = "==7.1.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = "==0.17.0" },
-    { name = "setuptools", marker = "extra == 'dev'", specifier = "==84.0.0" },
+    { name = "setuptools", marker = "extra == 'dev'", specifier = "==84.2.1" },
 ]
 provides-extras = ["mcp", "trials", "dev"]
 

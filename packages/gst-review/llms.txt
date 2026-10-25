@@ -1,27 +1,18 @@
 # gst-review
 
-> Review aids for Australian GST over bank and ledger lines: a review state for each coded bank line, and a BAS-to-ledger reconciliation by tax period. A review aid, not a determination or advice.
+Unreleased standalone Rust GST coding and BAS reconciliation review aids.
+Repository: https://github.com/ryanduguid/australian-accounting/tree/main/packages/gst-review
 
-## Package overview
-- **Repository**: https://github.com/ryanduguid/australian-accounting/tree/main/packages/gst-review
-- **Distribution**: `gst-review`
-- **Install**: `pip install gst-review` (published on PyPI; Python 3.14 or later).
-- **Import package**: `gstreview`
-- **CLI command**: none; library only.
-- **Domain**: GST coding checks before a BAS and reconciliation of a lodged BAS after it.
-- **Primary sources**: GST Act ss 9-5, 11-5, 29-5 and 29-10; the ATO's BAS completion instructions.
+Commands: gst-review review-coding and gst-review reconcile-bas. Both take one
+JSON object on stdin. Money is supplied as decimal strings and dates as canonical
+YYYY-MM-DD. They contact no service, write no files and lodge nothing. See README.md
+for required fields, defaults, validation, states, limitations and checks.
 
-## Core APIs
-- `gstreview.review_coding(lines, registrations, *, match_window_days=3, gst_codes=None)`: one state per `BankLine`: `unknown_gst_code`, `gst_differs_from_registration`, `between_entities`, `coded`, `suggested` or `nothing_suggested`.
-- `gstreview.reconcile_bas(lines, periods, lodged, *, basis, g1_includes_gst=True, bas_codes=None)`: G1, G2, G3, G10, G11, 1A and 1B per `Period` from `LedgerLine`s, compared with lodged whole-dollar figures on the cash or accruals basis. Refuses when a line in a period cannot be placed on a label.
-- Both return JSON-safe dictionaries with `facts_used`, `not_decided`, `sources`, `source_checked` and `warnings`.
+The former gstreview Python import package is removed from this checkout.
+Aus Accounting MCP still pins the published gst-review 0.1.0. Native version 1.0.0
+and its publisher are pending; there are no published native release assets yet.
 
-## Architectural boundaries
-1. **Caller's facts.** Registration dates, codes, supplier status, periods, lodged figures and the basis are taken as given and not verified.
-2. **Codes, not merits.** GST codes are checked against registration and the BAS labels they reach, not against the supply.
-3. **Whole dollars.** Ledger totals round down before comparison; lodged figures must be whole non-negative dollars.
-4. **Review aid policy.** Not accounting, tax or legal advice. Nothing is written to a ledger or lodged.
-
-## Docs
-- [README](https://github.com/ryanduguid/australian-accounting/blob/main/packages/gst-review/README.md): states, attribution, rounding and worked examples.
-- [Disclaimer](https://github.com/ryanduguid/australian-accounting/blob/main/packages/gst-review/DISCLAIMER.md)
+The retained law source check is dated 2026-10-19. Port qualification verifies
+implementation parity rather than current legal advice. Obtain human review.
+Ryan Duguid is not a registered tax agent or BAS agent. Use fabricated data for
+software support and never submit taxpayer information. See DISCLAIMER.md.
