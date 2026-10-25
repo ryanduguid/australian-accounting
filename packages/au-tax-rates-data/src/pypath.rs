@@ -399,6 +399,7 @@ fn readlink_deep(path: &str) -> String {
 /// shortcut: CPython asks `FindFirstFileW` for the stored name of a component
 /// it may not open (access denied, sharing violation); this keeps the name as
 /// given there. Only the letter case of such a component can differ.
+/// Ask for the stored name too if a case mismatch is reported for such a path.
 #[cfg(windows)]
 fn final_path_name_nonstrict(path: &str) -> Result<String, crate::pyos::OsError> {
     const ALLOWED: &[i32] = &[
