@@ -172,6 +172,8 @@ sheet Codes | cell F7 number 1 | fmt="General"
 sheet Codes | cell F8 number 0 | fmt="General"
 sheet Codes | cell F9 number 0 | fmt="General"
 sheet Codes | col C width=24 custom=1 hidden=0 style=[fmt="General"]
+sheet Codes | margins left=0.75 right=0.75 top=1 bottom=1 header=0.5 footer=0.5
+sheet Codes | page orientation=default paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=600 verticalDpi=600 blackAndWhite=0 draft=0
 sheet Codes | protection sheet=1 objects=0 scenarios=0 formatCells=1 formatColumns=1 formatRows=1 insertColumns=1 insertRows=1 insertHyperlinks=1 deleteColumns=1 deleteRows=1 selectLockedCells=0 sort=1 autoFilter=1 pivotTables=1 selectUnlockedCells=0 password=0
 sheet Codes | view gridlines=1 zoom=100
 sheet GIC | cell A1 text "from" | fmt="General" font{name=Calibri sz=11 b color=#FFFFFF} fill{solid fgColor=#5C2D91}
@@ -203,6 +205,8 @@ sheet GIC | col A width=14 custom=1 hidden=0 style=[fmt="General"]
 sheet GIC | col B width=14 custom=1 hidden=0 style=[fmt="General"]
 sheet GIC | col C width=14 custom=1 hidden=0 style=[fmt="General"]
 sheet GIC | col F width=14 custom=1 hidden=0 style=[fmt="General"]
+sheet GIC | margins left=0.75 right=0.75 top=1 bottom=1 header=0.5 footer=0.5
+sheet GIC | page orientation=default paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=600 verticalDpi=600 blackAndWhite=0 draft=0
 sheet GIC | view gridlines=1 zoom=100
 sheet Holidays | cell A1 text "date" | fmt="General" font{name=Calibri sz=11 b color=#FFFFFF} fill{solid fgColor=#5C2D91}
 sheet Holidays | cell A10 number 46137 | fmt="yyyy-mm-dd" font{name=Calibri sz=11 color=#1F4E9E} fill{solid fgColor=#E2E0DF}
@@ -328,6 +332,8 @@ sheet Holidays | cell C8 text "ACT, NSW, NT, QLD, SA, VIC, WA" | fmt="General" f
 sheet Holidays | cell C9 text "ACT, NSW, NT, QLD, SA, TAS, VIC, WA" | fmt="General" font{name=Calibri sz=11 color=#1F4E9E} fill{solid fgColor=#E2E0DF}
 sheet Holidays | col B width=50 custom=1 hidden=0 style=[fmt="General"]
 sheet Holidays | col C width=40 custom=1 hidden=0 style=[fmt="General"]
+sheet Holidays | margins left=0.75 right=0.75 top=1 bottom=1 header=0.5 footer=0.5
+sheet Holidays | page orientation=default paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=600 verticalDpi=600 blackAndWhite=0 draft=0
 sheet Holidays | view gridlines=1 zoom=100
 sheet Register | cell A1 text "employee_id" | fmt="General" font{name=Calibri sz=11 b color=#FFFFFF} fill{solid fgColor=#5C2D91}
 sheet Register | cell A10 text "EMP002" | fmt="@" font{name=Calibri sz=11 color=#1F4E9E} fill{solid fgColor=#E2E0DF}
@@ -1109,6 +1115,8 @@ sheet Register | col W width=13 custom=1 hidden=0 style=[fmt="General"]
 sheet Register | col X width=13 custom=1 hidden=0 style=[fmt="General"]
 sheet Register | col Y width=13 custom=1 hidden=0 style=[fmt="General"]
 sheet Register | col Z width=13 custom=1 hidden=0 style=[fmt="General"]
+sheet Register | margins left=0.75 right=0.75 top=1 bottom=1 header=0.5 footer=0.5
+sheet Register | page orientation=default paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=600 verticalDpi=600 blackAndWhite=0 draft=0
 sheet Register | pane xSplit=1 ySplit=1 topLeft=B2 state=frozen
 sheet Register | validation H2:H1011 I2:I1011 K2:K1011 | type="list" operator="between" errorStyle="stop" imeMode="noControl" allowBlank="1" showDropDown="0" showInputMessage="0" showErrorMessage="0" errorTitle="" error="" promptTitle="" prompt="" formula1="\"yes,no\"" formula2=""
 sheet Register | view gridlines=1 zoom=100
@@ -1184,6 +1192,8 @@ sheet Review Checks | col D width=24 custom=1 hidden=0 style=[fmt="General"]
 sheet Review Checks | conditional B2:B16 | type=cellIs operator=equal stop=0 formulas=["\"BLOCKED\""] dxf{fill{solid fgColor=#F8D7DA}} | rank=0
 sheet Review Checks | conditional B2:B16 | type=cellIs operator=equal stop=0 formulas=["\"PASS\""] dxf{fill{solid fgColor=#D4EDDA}} | rank=2
 sheet Review Checks | conditional B2:B16 | type=cellIs operator=equal stop=0 formulas=["\"REVIEW\""] dxf{fill{solid fgColor=#FFF3CD}} | rank=1
+sheet Review Checks | margins left=0.75 right=0.75 top=1 bottom=1 header=0.5 footer=0.5
+sheet Review Checks | page orientation=default paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=600 verticalDpi=600 blackAndWhite=0 draft=0
 sheet Review Checks | protection sheet=1 objects=0 scenarios=0 formatCells=1 formatColumns=1 formatRows=1 insertColumns=1 insertRows=1 insertHyperlinks=1 deleteColumns=1 deleteRows=1 selectLockedCells=0 sort=1 autoFilter=1 pivotTables=1 selectUnlockedCells=0 password=0
 sheet Review Checks | view gridlines=1 zoom=100
 sheet Sources & Version | cell A1 text "Item" | fmt="General" font{name=Calibri sz=11 b color=#FFFFFF} fill{solid fgColor=#5C2D91}
@@ -1205,6 +1215,8 @@ sheet Sources & Version | cell B8 text "https://duguid.com.au/tools/payday-super
 sheet Sources & Version | cell B9 text "Experimental review aid. Not a compliance determination, not an ATO assessment, and not tax, legal or financial advice." | fmt="General"
 sheet Sources & Version | col A width=52 custom=1 hidden=0 style=[fmt="General"]
 sheet Sources & Version | col B width=110 custom=1 hidden=0 style=[fmt="General"]
+sheet Sources & Version | margins left=0.75 right=0.75 top=1 bottom=1 header=0.5 footer=0.5
+sheet Sources & Version | page orientation=default paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=600 verticalDpi=600 blackAndWhite=0 draft=0
 sheet Sources & Version | view gridlines=1 zoom=100
 sheet Start Here | cell A1 text "Payday Super review: s 18C deadlines and the SG charge estimate" | fmt="General" font{name=Calibri sz=14 b color=#5C2D91}
 sheet Start Here | cell A10 text "Overall status" | fmt="General" font{name=Calibri sz=11 b}
@@ -1220,6 +1232,8 @@ sheet Start Here | col A width=110 custom=1 hidden=0 style=[fmt="General"]
 sheet Start Here | conditional A11 | type=cellIs operator=equal stop=0 formulas=["\"BLOCKED\""] dxf{fill{solid fgColor=#F8D7DA}} | rank=0
 sheet Start Here | conditional A11 | type=cellIs operator=equal stop=0 formulas=["\"PASS\""] dxf{fill{solid fgColor=#D4EDDA}} | rank=2
 sheet Start Here | conditional A11 | type=cellIs operator=equal stop=0 formulas=["\"REVIEW\""] dxf{fill{solid fgColor=#FFF3CD}} | rank=1
+sheet Start Here | margins left=0.75 right=0.75 top=1 bottom=1 header=0.5 footer=0.5
+sheet Start Here | page orientation=default paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=600 verticalDpi=600 blackAndWhite=0 draft=0
 sheet Start Here | view gridlines=1 zoom=100
 sheet Summary | cell A1 text "Inputs" | fmt="General" font{name=Calibri sz=11 b color=#FFFFFF} fill{solid fgColor=#5C2D91}
 sheet Summary | cell A10 text "ON_TIME" | fmt="General"
@@ -1274,6 +1288,8 @@ sheet Summary | col B width=18 custom=1 hidden=0 style=[fmt="General"]
 sheet Summary | conditional B24 | type=cellIs operator=equal stop=0 formulas=["\"BLOCKED\""] dxf{fill{solid fgColor=#F8D7DA}} | rank=0
 sheet Summary | conditional B24 | type=cellIs operator=equal stop=0 formulas=["\"PASS\""] dxf{fill{solid fgColor=#D4EDDA}} | rank=2
 sheet Summary | conditional B24 | type=cellIs operator=equal stop=0 formulas=["\"REVIEW\""] dxf{fill{solid fgColor=#FFF3CD}} | rank=1
+sheet Summary | margins left=0.75 right=0.75 top=1 bottom=1 header=0.5 footer=0.5
+sheet Summary | page orientation=default paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=600 verticalDpi=600 blackAndWhite=0 draft=0
 sheet Summary | protection sheet=1 objects=0 scenarios=0 formatCells=1 formatColumns=1 formatRows=1 insertColumns=1 insertRows=1 insertHyperlinks=1 deleteColumns=1 deleteRows=1 selectLockedCells=0 sort=1 autoFilter=1 pivotTables=1 selectUnlockedCells=0 password=0
 sheet Summary | validation B2 B6 | type="date" operator="greaterThan" errorStyle="stop" imeMode="noControl" allowBlank="0" showDropDown="0" showInputMessage="0" showErrorMessage="0" errorTitle="" error="" promptTitle="" prompt="" formula1="1" formula2=""
 sheet Summary | validation B3 | type="date" operator="greaterThan" errorStyle="stop" imeMode="noControl" allowBlank="1" showDropDown="0" showInputMessage="0" showErrorMessage="0" errorTitle="" error="" promptTitle="" prompt="" formula1="1" formula2=""

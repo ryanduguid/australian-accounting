@@ -24,6 +24,12 @@
 //! Differential fills (dxf) are reported as written, not as an effective
 //! colour: openpyxl and rust_xlsxwriter write solid dxf fills differently,
 //! and whether Excel renders them alike is unverified.
+//!
+//! Not read, so outside this comparison: document properties, theme content,
+//! the indexed colour palette, cell selections and tab selection, rich-text
+//! runs, and comments, drawings or hyperlink targets (neither builder writes
+//! any). The rules above hold for these two builders' outputs, not for any
+//! workbook.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::{Cursor, Read};
@@ -589,6 +595,38 @@ fn sheet_lines(
             )));
         }
     }
+    // Print margins; Excel's own defaults apply when the element is absent.
+    let margins = child(root, "pageMargins");
+    let mut text = String::from("margins");
+    for (attr, default) in [
+        ("left", "0.7"),
+        ("right", "0.7"),
+        ("top", "0.75"),
+        ("bottom", "0.75"),
+        ("header", "0.3"),
+        ("footer", "0.3"),
+    ] {
+        let v = margins.and_then(|m| m.attribute(attr)).unwrap_or(default);
+        text.push_str(&format!(" {attr}={}", number(v)));
+    }
+    out.push(at(text));
+    let setup = child(root, "pageSetup");
+    let mut text = String::from("page");
+    for (attr, default) in [
+        ("orientation", "default"),
+        ("paperSize", "1"),
+        ("scale", "100"),
+        ("fitToWidth", "1"),
+        ("fitToHeight", "1"),
+        ("horizontalDpi", "600"),
+        ("verticalDpi", "600"),
+        ("blackAndWhite", "0"),
+        ("draft", "0"),
+    ] {
+        let v = setup.and_then(|m| m.attribute(attr)).unwrap_or(default);
+        text.push_str(&format!(" {attr}={v}"));
+    }
+    out.push(at(text));
     if let Some(format) = child(root, "sheetFormatPr") {
         for attr in [
             "defaultColWidth",

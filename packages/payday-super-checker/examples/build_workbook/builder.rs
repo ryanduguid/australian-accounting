@@ -1393,6 +1393,12 @@ pub fn build() -> Result<Vec<u8>> {
         }
     }
 
+    // openpyxl's print margins, which Excel keeps on save; rust_xlsxwriter
+    // otherwise writes Excel's narrower defaults.
+    for ws in wb.worksheets_mut() {
+        ws.set_margins(0.75, 0.75, 1.0, 1.0, 0.5, 0.5);
+    }
+
     let xlsx = wb.save_to_buffer()?;
     let columns: Vec<(&str, &str)> = ARRAY_CALCS.iter().map(|c| (*c, &calc[c][1..])).collect();
     Ok(repair_array_columns(
@@ -1404,12 +1410,19 @@ pub fn build() -> Result<Vec<u8>> {
 mod tests {
     use crate::model::{differences, model};
 
-    /// Accepted until Gate B checks it in desktop Excel: openpyxl writes a
-    /// status colour as a `solid` dxf fill with fgColor; rust_xlsxwriter
-    /// cannot write patternType in a dxf and writes bgColor, the form Excel
-    /// itself writes for conditional formats.
+    /// Accepted until Gate B checks them in desktop Excel:
+    /// - openpyxl writes a status colour as a `solid` dxf fill with fgColor;
+    ///   rust_xlsxwriter cannot write patternType in a dxf and writes bgColor,
+    ///   the form Excel itself writes for conditional formats;
+    /// - setting openpyxl's margins makes rust_xlsxwriter write a page setup
+    ///   with portrait orientation and 200 dpi, where openpyxl leaves both to
+    ///   the printer.
     fn accepted(line: &str) -> String {
         line.replace("dxf{fill{solid fgColor=", "dxf{fill{(absent) bgColor=")
+            .replace(
+                "| page orientation=default paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=600 verticalDpi=600 ",
+                "| page orientation=portrait paperSize=1 scale=100 fitToWidth=1 fitToHeight=1 horizontalDpi=200 verticalDpi=200 ",
+            )
     }
 
     #[test]
