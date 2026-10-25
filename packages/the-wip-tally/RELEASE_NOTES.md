@@ -5,7 +5,7 @@ functions are JSON subcommands. See [CHANGELOG.md](CHANGELOG.md) for migration,
 verification and documented divergences, and [README.md](README.md) to build it.
 
 - Measurable right-to-invoice contracts now use cent-quantised certified billings
-  for revenue, the contract balance and the GST review note. Direct Rust and
+  for revenue and the contract balance. GST still uses supplied billings. Rust and
   JSON inputs with fractional cents no longer produce unquantised revenue or a
   rounding-only asset or liability. Other revenue methods are unchanged.
 - Amounts outside the decimal context's range for cents now produce an input
