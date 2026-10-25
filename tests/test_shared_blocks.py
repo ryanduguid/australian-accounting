@@ -27,7 +27,6 @@ GROUPS = {
     "tools/build_workbook.py": {
         "files": (
             PACKAGES / "div7a-loan-review" / "tools" / "build_workbook.py",
-            PACKAGES / "payday-super-checker" / "tools" / "build_workbook.py",
             PACKAGES / "ato-benchmark-compare" / "tools" / "build_workbook.py",
         ),
         "identical": ("header", "style"),
