@@ -10,8 +10,10 @@
 //! - a font with no name or size takes the workbook default font's, and font
 //!   family, scheme and charset are ignored (Excel's own resave of the shipped
 //!   workbook fills them the same way);
-//! - colour alpha is ignored (openpyxl writes 00, Excel and rust_xlsxwriter FF);
-//! - shared and inline strings compare as text;
+//! - colour alpha is ignored (openpyxl writes 00, Excel and rust_xlsxwriter FF),
+//!   and so is the background colour of a solid cell fill, which never shows;
+//! - shared and inline strings compare as text, and an empty string as an
+//!   empty cell (Excel saves openpyxl's empty strings that way);
 //! - a formula cell's cached value and its type are ignored (pre-Excel);
 //! - column records expand to one line per column; validation and conditional
 //!   format ranges compare as cell sets, and identical validation rules are
@@ -257,7 +259,14 @@ fn fill_text(fill: Option<Node>, dxf: bool) -> String {
         .attribute("patternType")
         .unwrap_or(if dxf { "(absent)" } else { "none" });
     let mut text = format!("fill{{{kind}");
-    for name in ["fgColor", "bgColor"] {
+    // A solid cell fill shows only its foreground colour (ECMA-376 18.8.32);
+    // rust_xlsxwriter and Excel add bgColor indexed 64, openpyxl omits it.
+    let colours: &[&str] = if !dxf && kind == "solid" {
+        &["fgColor"]
+    } else {
+        &["fgColor", "bgColor"]
+    };
+    for name in colours {
         if let Some(c) = child(pattern, name) {
             text.push_str(&format!(" {name}={}", colour(Some(c))));
         }
@@ -676,6 +685,13 @@ fn sheet_lines(
                 (kind, Some(v)) => format!("{kind} {v}"),
                 (_, None) => "empty".into(),
             }
+        };
+        // openpyxl writes "" as an empty inline string; Excel saves it as an
+        // empty cell, as rust_xlsxwriter writes it.
+        let content = if content == "text \"\"" {
+            "empty".into()
+        } else {
+            content
         };
         if content == "empty" && s == 0 {
             continue;

@@ -2,6 +2,7 @@
 //! the source of the shipped workbook until this one passes the differential
 //! gates recorded for the port.
 
+mod builder;
 mod model;
 
 use std::io::{Cursor, Write};
@@ -39,7 +40,16 @@ fn main() {
                 std::process::exit(1);
             }
         }
-        _ => fail("the Rust builder is not complete; use tools/build_workbook.py"),
+        // Experimental until Gate B: write the pre-Excel workbook to a chosen
+        // path, never the shipped one.
+        ["--no-excel", "--out", path] => {
+            let xlsx = builder::build().unwrap_or_else(|e| fail(&e.to_string()));
+            std::fs::write(path, xlsx).unwrap_or_else(|e| fail(&format!("{path}: {e}")));
+            println!("{path}");
+        }
+        _ => fail(
+            "usage: build_workbook --no-excel --out <xlsx> | --model <xlsx> | --diff <reference> <candidate>; the desktop Excel pass is not ported, use tools/build_workbook.py",
+        ),
     }
 }
 
