@@ -63,8 +63,8 @@ APPLICATIONS = {
     # engines, and no engine may consume it.
     "apps/lodgeit-calculator-adapter": "lodgeitadapter",
 }
-# Sourced records with their validator. Not an engine or an application: nothing
-# imports it, and it is never released.
+# Sourced records with their validator, a standalone Rust crate. Not an engine
+# or an application: nothing links it, and it is never released.
 DATASETS = {
     "packages/au-tax-rates-data": "rates",
 }

@@ -15,7 +15,6 @@ SCOPES = {
     "packages/lodgment-calendar": "lodgmentcalendar",
     "apps/aus-accounting-mcp": "aus_accounting_mcp",
     "apps/lodgeit-calculator-adapter": "lodgeitadapter",
-    "packages/au-tax-rates-data": "rates.py",
 }
 
 
@@ -34,8 +33,7 @@ class PyrightGateTests(unittest.TestCase):
 
     def test_root_retains_every_runtime_package(self) -> None:
         project = tomllib.loads((ROOT / "pyproject.toml").read_text())
-        expected = {f"{directory}/{target}" for directory, target in SCOPES.items()
-                    if target != "rates.py"}
+        expected = {f"{directory}/{target}" for directory, target in SCOPES.items()}
         self.assertEqual(set(project["tool"]["pyright"]["include"]), expected)
 
     def test_type_gate_rejects_representative_invalid_code(self) -> None:

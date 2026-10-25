@@ -10,7 +10,7 @@
 
 [tool.uv.workspace]
 members = ["packages/*", "apps/*"]
-exclude = ["packages/the-exchequer-tally", "packages/solomons-sword", "packages/the-wip-tally", "packages/australian-tax-calculators", "packages/div7a-loan-review", "packages/ato-benchmark-compare", "packages/payday-super-checker", "packages/gst-review", "apps/au-accounting"]
+exclude = ["packages/the-exchequer-tally", "packages/solomons-sword", "packages/the-wip-tally", "packages/australian-tax-calculators", "packages/div7a-loan-review", "packages/ato-benchmark-compare", "packages/payday-super-checker", "packages/gst-review", "apps/au-accounting", "packages/au-tax-rates-data"]
 
 # The Python components pin the shared toolchain to one exact version each, so the
 # workspace resolves it without an override. Keep those pins identical: a

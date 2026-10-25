@@ -1,0 +1,36 @@
+[package]
+name = "au-tax-rates-data"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+description = "Snapshot, validate and re-check the AU tax rates dataset"
+license = "Apache-2.0"
+repository = "https://github.com/ryanduguid/australian-accounting"
+publish = false
+
+[[bin]]
+name = "rates"
+path = "src/main.rs"
+
+[dependencies]
+num-bigint = "0.4.8"
+num-integer = "0.1"
+num-traits = "0.2"
+sha2 = "0.11.1"
+# Unicode 17, the version CPython 3.15 normalises with (urlsplit's netloc check).
+unicode-normalization = "=0.1.25"
+# TLS for ato-tables, verified against the operating system's certificate store.
+rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12"] }
+rustls-platform-verifier = "0.7.1"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[features]
+# RATES_ROOT, RATES_BROWSER, RATES_TODAY, RATES_ATO_TABLES and RATES_NO_SLEEP
+# for the differential harness; see src/rates.rs. Release builds leave it off.
+differential = []
+
+[profile.release]
+lto = true
+codegen-units = 1
