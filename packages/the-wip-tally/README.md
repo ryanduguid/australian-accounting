@@ -185,8 +185,9 @@ to receivables.
 
 For a measurable `right_to_invoice` contract, certified billings are rounded to
 cents, half up, before they become revenue. That same amount determines the
-contract balance and the GST review note, so rounding cannot create an asset or
-liability. The supplied contract remains intact in the Rust result. Other
+contract balance, so rounding cannot create an asset or liability. The GST
+review note keeps using the supplied billing evidence, independently of progress
+method. The supplied contract remains intact in the Rust result. Other
 progress methods and recoverable-cost-only revenue keep their rounding order.
 
 **Profit fade.** Current margin at completion versus prior-period margin, in

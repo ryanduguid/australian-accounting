@@ -13,7 +13,7 @@ as an FNV-1a fingerprint and length.
 Post-port corrections preserve those frozen inputs and expectations:
 
 - `invoice_cents.rs` pins half-up right-to-invoice revenue, a nil contract
-  balance, consistent GST, period revenue and unchanged source evidence. Frozen
+  balance, GST based on supplied billings, period revenue and source evidence. Frozen
   API case 4642 now expects `200.00` revenue instead of integer-scale `200`.
 
 | Original test | Rust coverage |

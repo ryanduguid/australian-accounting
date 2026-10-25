@@ -17,7 +17,7 @@ fn invoice_revenue_and_position_use_the_same_cents() {
         ("100.00", "100.00", "10.00"),
         ("100.004", "100.00", "10.00"),
         ("100.005", "100.01", "10.00"),
-        ("100.049", "100.05", "10.01"),
+        ("100.049", "100.05", "10.00"),
     ] {
         let mut input = contract();
         input.progress_method = engine::PROGRESS_RIGHT_TO_INVOICE.into();
@@ -59,6 +59,29 @@ fn other_revenue_methods_keep_their_rounding() {
     assert_eq!(position.revenue_to_date.to_string(), "100.01");
     assert_eq!(position.contract_asset.to_string(), "0.01");
     assert_eq!(position.contract_liability.to_string(), "0.00");
+}
+
+#[test]
+fn gst_uses_supplied_billings_independently_of_progress_method() {
+    for (method, measurable) in [
+        (engine::PROGRESS_RIGHT_TO_INVOICE, true),
+        (engine::PROGRESS_COST_TO_COST, true),
+        (engine::PROGRESS_OUTPUT, true),
+        (engine::PROGRESS_RIGHT_TO_INVOICE, false),
+    ] {
+        let mut input = contract();
+        input.progress_method = method.into();
+        input.outcome_reasonably_measurable = Some(measurable);
+        input.output_percent = Some(d("0.4"));
+        input.certified_billings = d("100.049");
+        let position = engine::measure(&input).unwrap();
+        assert_eq!(position.gst_on_certified_billings.to_string(), "10.00");
+        if measurable && method == engine::PROGRESS_RIGHT_TO_INVOICE {
+            assert_eq!(position.revenue_to_date.to_string(), "100.05");
+            assert_eq!(position.contract_asset.to_string(), "0.00");
+            assert_eq!(position.contract_liability.to_string(), "0.00");
+        }
+    }
 }
 
 #[test]

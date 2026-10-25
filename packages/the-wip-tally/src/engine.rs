@@ -263,7 +263,7 @@ pub fn measure(contract: &ContractInput) -> Result<ContractPosition> {
         require_ratio(c, output, "output_percent", "output progress")?;
     }
 
-    // A measurable right-to-invoice amount is money in every derived figure.
+    // Use the same cents for measurable right-to-invoice revenue and balance.
     // Keep the supplied contract intact as evidence and leave other methods'
     // rounding order unchanged.
     let certified_billings = if measurable && method == PROGRESS_RIGHT_TO_INVOICE {
@@ -319,7 +319,7 @@ pub fn measure(contract: &ContractInput) -> Result<ContractPosition> {
     };
 
     require_ratio(c, &c.gst_rate, "gst_rate", "GST rate")?;
-    let gst_on_certified = as_money(&certified_billings.mul(&c.gst_rate)?)?;
+    let gst_on_certified = as_money(&c.certified_billings.mul(&c.gst_rate)?)?;
     let gst_on_retention = as_money(&c.retention_withheld.mul(&c.gst_rate)?)?;
 
     flag_commercial(
