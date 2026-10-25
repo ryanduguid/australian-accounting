@@ -1,6 +1,7 @@
-//! The workbook as tools/build_workbook.py builds it before its desktop Excel
-//! pass. Formula text is the Python builder's, character for character; the
-//! frozen model of the Python output holds the two together.
+//! The workbook before its desktop Excel pass. Formula text is that of the
+//! Python builder it replaced (tools/build_workbook.py, removed after 8072c1a),
+//! character for character; the frozen model of the Python output holds the
+//! two together.
 
 use std::collections::BTreeMap;
 use std::error::Error;
@@ -1411,6 +1412,7 @@ pub fn build() -> Result<Vec<u8>> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::model::{differences, model};
 
     /// Accepted after the Gate B desktop Excel check:
@@ -1439,5 +1441,164 @@ mod tests {
         let built = model(&super::build().unwrap()).unwrap();
         let found = differences(&frozen, &built);
         assert!(found.is_empty(), "{}", found.join("\n"));
+    }
+
+    const RAW_DATES: [(&str, &str); 4] = [
+        ("Pay_day", "payment_date"),
+        ("Remit_day", "remitted_date"),
+        ("Recv_day", "fund_received_date"),
+        ("Next_day", "next_standard_payday"),
+    ];
+
+    /// The checker drops a zone-less time component; noon on the deadline is
+    /// not late.
+    #[test]
+    fn every_register_date_is_read_as_a_whole_calendar_day() {
+        let calc = formulas();
+        for (column, source) in RAW_DATES {
+            assert_eq!(calc[column], whole_day(source));
+            assert!(calc[column].contains("INT("), "{column}");
+        }
+        // Nothing downstream may reach past the whole-day columns to the raw
+        // date cells.
+        let upstream = [
+            "Pay_day",
+            "Remit_day",
+            "Recv_day",
+            "Next_day",
+            "Row_problem",
+            "Guard",
+        ];
+        for (name, formula) in calc.iter().filter(|(n, _)| !upstream.contains(n)) {
+            for (_, source) in RAW_DATES {
+                assert!(
+                    !formula.contains(&format!("[{source}]]")),
+                    "{name} reads {source}"
+                );
+            }
+        }
+        assert_ne!(AS_AT, AS_AT_INPUT);
+        assert_ne!(ASSESS, ASSESS_INPUT);
+    }
+
+    /// A blank date cell read as a number is 30 December 1899, not a missing
+    /// date. Excel gives a bare reference to an empty cell the value 0, so a
+    /// whole-day column that returned the raw reference made every blank date
+    /// look supplied: ISNUMBER saw a number, Settled and Remit accepted day 0
+    /// as on or before the as-at date, and the shipped sample's unremitted
+    /// EMP004 turned from UNPAID into LATE.
+    #[test]
+    fn a_blank_register_date_stays_blank_through_the_whole_day_columns() {
+        for (_, source) in RAW_DATES {
+            let blank = format!("=IF({}=\"\",\"\",", t(source));
+            assert!(whole_day(source).starts_with(&blank), "{source}");
+        }
+        // The control: a supplied date is still truncated to its calendar day.
+        assert!(whole_day("payment_date").contains("INT("));
+    }
+
+    #[test]
+    fn the_register_refuses_the_dates_and_amounts_the_checker_refuses() {
+        let problem = &formulas()["Row_problem"];
+        assert!(problem.contains(&format!("DATE({LATEST_SANE_YEAR},12,31)")));
+        assert!(problem.contains("date-not-real"));
+        assert!(problem.contains("amount-under-half-a-cent"));
+        for column in AMOUNT_COLUMNS {
+            let nil = format!("ROUND(tblLines[[#This Row],[{column}]],2)=0");
+            assert!(problem.contains(&nil), "{column}");
+        }
+        // The Summary coverage date is bound the same way, so a fabricated
+        // far-future coverage cannot mark deadlines as covered.
+        let bound = format!("AND(ISNUMBER({COVERAGE}),{COVERAGE}<=DATE({LATEST_SANE_YEAR},12,31))");
+        let built = model(&build().unwrap()).unwrap();
+        assert!(built.iter().any(|line| line.contains(&bound)), "{bound}");
+    }
+
+    /// 1000.001 against 1000.004 is one figure to the checker, so it is here too.
+    #[test]
+    fn amount_invariants_compare_cents_not_raw_input() {
+        let calc = formulas();
+        let problem = &calc["Row_problem"];
+        for pair in [
+            "remitted_amount>sg",
+            "matched_amount>sg",
+            "remitted_amount>matched",
+        ] {
+            assert!(problem.contains(pair), "{pair}");
+        }
+        assert!(problem.contains("ROUND(tblLines[[#This Row],[remitted_amount]],2)>ROUND("));
+        assert!(problem.contains("ROUND(tblLines[[#This Row],[matched_amount]],2)>ROUND("));
+        // The receipt-covers-liability test is the one that read a fully
+        // received 1000.004 payday as UNPAID.
+        assert!(calc["Branch"].contains(
+            "tblLines[[#This Row],[Receipt_credit]]>=ROUND(tblLines[[#This Row],[sg_amount]],2)"
+        ));
+    }
+
+    /// No estimated rows: a day past the table withholds the estimate instead
+    /// of reading a carried-forward rate, and the accrual end stays uncapped.
+    #[test]
+    fn the_gic_table_holds_only_published_contiguous_quarters() {
+        let (rows, last_known) = read_gic().unwrap();
+        assert!(!rows.is_empty());
+        assert_eq!(last_known, rows[rows.len() - 1].1);
+        for pair in rows.windows(2) {
+            assert_eq!(serial(pair[1].0), serial(pair[0].1) + 1.0);
+        }
+        assert!(formulas()["NEC"].contains("Past_gic_table"));
+        // The written table holds exactly the published quarters, each marked
+        // known: a header and one basis cell per quarter.
+        let basis: Vec<String> = model(&build().unwrap())
+            .unwrap()
+            .into_iter()
+            .filter(|line| line.starts_with("sheet GIC | cell E"))
+            .collect();
+        assert_eq!(basis.len(), rows.len() + 1, "{basis:#?}");
+        assert!(basis[0].contains("cell E1 text \"basis\""), "{}", basis[0]);
+        for line in &basis[1..] {
+            assert!(line.contains(" text \"known\" "), "{line}");
+        }
+    }
+
+    /// A fund-receipt date with neither amount column filled evidences timing
+    /// only. The branch formula sends such a row to the U codes before any
+    /// receipt branch can read the whole-liability cap as a full receipt, the
+    /// covers test itself needs a stated amount, and the s 18D offset waits for
+    /// one. Verified through desktop Excel on 20 Sep 2026: bare timely receipt
+    /// U2 (UNPAID or ON_TIME), bare late receipt E with the not-evidenced
+    /// lateness basis and no offset, stated full receipt D1.
+    #[test]
+    fn a_bare_receipt_date_is_left_unknown_in_the_workbook() {
+        let calc = formulas();
+        let branch = &calc["Branch"];
+        let evidenced = "OR(ISNUMBER(tblLines[[#This Row],[matched_amount]]),ISNUMBER(tblLines[[#This Row],[remitted_amount]]))";
+        let at = |needle: &str| branch.find(needle).unwrap_or_else(|| panic!("{needle}"));
+        assert!(at(&format!("IF(AND(NOT({evidenced})")) < at("\"A1\""));
+        // A pre-payment is timely only inside the 12-month window, so a stale
+        // one must fall through to the S codes rather than be offered ON_TIME:
+        // the window test has to be nested under the pre-payment test, not
+        // OR-ed beside the on-or-before-deadline test (which every pre-payment
+        // passes).
+        let settled = "tblLines[[#This Row],[Settled]]";
+        let pay = "tblLines[[#This Row],[Pay_day]]";
+        assert!(branch.contains(&format!(
+            "IF({settled}<{pay},{settled}>=tblLines[[#This Row],[Earliest_prepay]],OR("
+        )));
+        for code in ["\"U1\"", "\"U2\"", "\"U3\""] {
+            assert!(branch.contains(code), "{code}");
+        }
+        assert!(branch.contains(&format!(
+            "AND(tblLines[[#This Row],[Receipt_credit]]>=ROUND(tblLines[[#This Row],[sg_amount]],2),{evidenced})"
+        )));
+        assert!(calc["Offset_s18D"].contains(evidenced));
+        assert!(calc["Lateness_basis"].contains("as-at date (fund receipt amount not evidenced)"));
+        for (code, outer) in [
+            ("U1", "LATE or ON_TIME"),
+            ("U2", "UNPAID or ON_TIME"),
+            ("U3", "NOT_YET_DUE or ON_TIME"),
+        ] {
+            let entry = CODES.iter().find(|c| c.0 == code).unwrap();
+            assert_eq!(*entry, (code, "UNKNOWN", outer, 0, 0, 0));
+        }
     }
 }

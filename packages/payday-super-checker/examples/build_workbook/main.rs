@@ -1,17 +1,30 @@
-//! Rust port of tools/build_workbook.py, in progress. The Python builder stays
-//! the source of the shipped workbook until this one passes the differential
-//! gates recorded for the port.
+//! Builds workbooks/payday-super-checker.xlsx, the accountant-facing Excel
+//! front end. Run from the package directory on a machine with desktop Excel:
+//!
+//!     cargo run --example build_workbook
+//!
+//! rust_xlsxwriter writes the formulas; a single desktop Excel pass over COM
+//! recalculates the workbook so the shipped file carries real cached values
+//! (see `excel`). The repository's `tests/test_payday_workbook.py` holds those
+//! values to the engine.
 
 mod builder;
+mod excel;
 mod model;
 
 use std::io::{Cursor, Write};
+use std::path::Path;
 
 use model::{read_part, relationships};
 
 /// The tblLines columns whose calculated formula Excel must treat as an array
 /// formula when the table grows; see `repair_array_columns`.
 pub const ARRAY_CALCS: [&str; 3] = ["Confirmed_latest", "Possible_latest", "Case_variant"];
+
+const SHIPPED: &str = concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/workbooks/payday-super-checker.xlsx"
+);
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -40,16 +53,66 @@ fn main() {
                 std::process::exit(1);
             }
         }
-        // Experimental until Gate B: write the pre-Excel workbook to a chosen
-        // path, never the shipped one.
-        ["--no-excel", "--out", path] => {
-            let xlsx = builder::build().unwrap_or_else(|e| fail(&e.to_string()));
-            std::fs::write(path, xlsx).unwrap_or_else(|e| fail(&format!("{path}: {e}")));
-            println!("{path}");
-        }
+        // Build to the shipped path or --out; --no-excel skips the Excel pass,
+        // so the file has no cached values and the root parity test fails.
+        [] => build(SHIPPED, true),
+        ["--out", path] => build(path, true),
+        ["--no-excel"] => build(SHIPPED, false),
+        ["--no-excel", "--out", path] => build(path, false),
         _ => fail(
-            "usage: build_workbook --no-excel --out <xlsx> | --model <xlsx> | --diff <reference> <candidate>; the desktop Excel pass is not ported, use tools/build_workbook.py",
+            "usage: build_workbook [--no-excel] [--out <xlsx>] | --model <xlsx> | --diff <reference> <candidate>",
         ),
+    }
+}
+
+/// Build into a new staging file beside `path` and replace `path` only once
+/// every step has succeeded, so a failed build leaves the previous workbook.
+fn build(path: &str, recalc: bool) {
+    if recalc && !cfg!(windows) {
+        fail(excel::UNAVAILABLE);
+    }
+    let xlsx = builder::build().unwrap_or_else(|e| fail(&e.to_string()));
+    let dest = Path::new(path);
+    let dir = dest.parent().filter(|d| !d.as_os_str().is_empty());
+    if let Some(dir) = dir {
+        std::fs::create_dir_all(dir).unwrap_or_else(|e| fail(&format!("{}: {e}", dir.display())));
+    }
+    let name = format!("build_workbook-staging-{}.xlsx", std::process::id());
+    let staging = dir.map_or_else(|| Path::new(&name).to_path_buf(), |d| d.join(&name));
+    let io = |e: std::io::Error| format!("{}: {e}", staging.display());
+    // create_new: never overwrite, and so never remove, a file this run did
+    // not create.
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&staging)
+        .unwrap_or_else(|e| fail(&io(e)));
+    let steps = || -> Result<Option<String>, String> {
+        file.write_all(&xlsx).map_err(io)?;
+        drop(file);
+        let status = if recalc {
+            Some(excel::recalc(&staging)?)
+        } else {
+            None
+        };
+        std::fs::rename(&staging, dest).map_err(|e| format!("{path}: {e}"))?;
+        Ok(status)
+    };
+    match steps() {
+        // The workbook is in place, so the report is best-effort: a closed
+        // stdout must not turn a finished build into a failed one.
+        Ok(status) => {
+            let mut out = std::io::stdout().lock();
+            let _ = status.map_or(Ok(()), |status| writeln!(out, "{status}"));
+            let _ = writeln!(out, "{path}");
+        }
+        Err(e) => match std::fs::remove_file(&staging) {
+            Err(r) if r.kind() != std::io::ErrorKind::NotFound => fail(&format!(
+                "{e}; also could not remove {}: {r}",
+                staging.display()
+            )),
+            _ => fail(&e),
+        },
     }
 }
 
@@ -73,16 +136,21 @@ pub fn repair_array_columns(
     let part = table_part(&mut archive, sheet, table)?;
     let xml = read_part(&mut archive, &part)?;
     let repaired = mark_array_columns(&xml, columns)?;
+    replace_part(xlsx, &part, repaired.as_bytes())
+}
+
+/// The package with `part` replaced by `body`, deflated, and every other
+/// member raw-copied.
+pub fn replace_part(xlsx: &[u8], part: &str, body: &[u8]) -> Result<Vec<u8>, String> {
+    let mut archive = zip::ZipArchive::new(Cursor::new(xlsx)).map_err(|e| e.to_string())?;
     let mut out = zip::ZipWriter::new(Cursor::new(Vec::new()));
     for i in 0..archive.len() {
         let file = archive.by_index(i).map_err(|e| e.to_string())?;
-        if file.name().map_err(|e| e.to_string())? == part.as_str() {
+        if file.name().map_err(|e| e.to_string())? == part {
             let options = zip::write::SimpleFileOptions::default()
                 .compression_method(zip::CompressionMethod::Deflated);
-            out.start_file(part.as_str(), options)
-                .map_err(|e| e.to_string())?;
-            out.write_all(repaired.as_bytes())
-                .map_err(|e| e.to_string())?;
+            out.start_file(part, options).map_err(|e| e.to_string())?;
+            out.write_all(body).map_err(|e| e.to_string())?;
         } else {
             out.raw_copy_file(file).map_err(|e| e.to_string())?;
         }
