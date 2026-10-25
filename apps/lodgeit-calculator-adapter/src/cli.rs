@@ -481,7 +481,8 @@ fn invoke_body(ns: &Namespace, contract: &Contract, path: &PyPath) -> R<Result<J
 /// `_decimalise(body, number_fields)`: Decimals rebuilt at the dotted paths
 /// the snapshot records as JSON numbers, and nowhere else. `[]` walks every
 /// element of a list.
-fn decimalise(body: Json, number_fields: &Json) -> R<Result<Json, S>> {
+#[doc(hidden)]
+pub fn decimalise(body: Json, number_fields: &Json) -> R<Result<Json, S>> {
     if !matches!(body, Json::Object(_)) {
         return Ok(Err(pts("a request body must be a JSON object")));
     }

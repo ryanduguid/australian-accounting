@@ -217,7 +217,8 @@ fn keys_within(pairs: &[(PyStr, Json)], allowed: &[&str]) -> bool {
 /// raise and its pairs hook refuses a repeated key; no number is ever
 /// admitted, so decoding numbers natively and refusing them after is the
 /// same.
-fn parse_page(body: &[u8], size: i64) -> Option<CoreClientPage> {
+#[doc(hidden)]
+pub fn parse_page(body: &[u8], size: i64) -> Option<CoreClientPage> {
     let data = pyjson::loads(std::str::from_utf8(body).ok()?).ok()?;
     let Json::Object(top) = &data else {
         return None;

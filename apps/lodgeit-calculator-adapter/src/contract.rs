@@ -21,7 +21,8 @@ use crate::pyvalue::{Key, item_eq, py_eq, repr, str_points, type_name};
 /// `contracts` folder beside the binary, as a built wheel carries one inside
 /// the package. With the `differential` feature, `LODGEIT_ADAPTER_PACKAGE`
 /// replaces the checkout's package folder.
-fn contracts_dirs() -> Vec<PyPath> {
+#[doc(hidden)]
+pub fn contracts_dirs() -> Vec<PyPath> {
     let mut package = env!("CARGO_MANIFEST_DIR").to_owned();
     if cfg!(feature = "differential")
         && let Some(root) = std::env::var_os("LODGEIT_ADAPTER_PACKAGE")
