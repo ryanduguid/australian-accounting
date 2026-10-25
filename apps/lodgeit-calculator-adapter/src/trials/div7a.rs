@@ -16,8 +16,8 @@ use super::{Comparison, Evaluation, Money, compare_values, put};
 use crate::client::{Client, Outcome, Status};
 use crate::decimal::{Decimal, Signal};
 use crate::p;
-use crate::pyjson::{self, Json};
-use crate::pyops::{Exc, R, S, conversion, decimal_signal, getitem, pts};
+use crate::pyjson::{self, DecodeError, Json};
+use crate::pyops::{Exc, R, S, conversion, decimal_signal, getitem, iterate, pts};
 use crate::pyvalue::str_points;
 
 pub const CALC_URI: &str = "urn:sbrm:calculator:div7a:at";
@@ -111,12 +111,21 @@ fn int(value: &Json) -> R<i64> {
 /// `load_cases(path)`: the cases in `text`, the packaged case file when
 /// `None`.
 pub fn load_cases(text_of_file: Option<&str>) -> R<Vec<Case>> {
-    let payload = pyjson::loads_standard(text_of_file.unwrap_or(CASES))
-        .map_err(|_| Exc::msg("json.decoder.JSONDecodeError", "the case file is not JSON"))?;
-    let Json::Array(raws) = getitem(&payload, "cases")? else {
-        return Err(Exc::msg("TypeError", "cases is not a list"));
-    };
-    raws.iter().map(load_case).collect()
+    let payload =
+        pyjson::loads_standard(text_of_file.unwrap_or(CASES)).map_err(|error| match error {
+            DecodeError::Invalid(m) if m.starts_with("Exceeds the limit") => {
+                Exc::msg("ValueError", &m)
+            }
+            DecodeError::Invalid(m) => Exc::msg("json.decoder.JSONDecodeError", &m),
+            DecodeError::Recursion(kind) => {
+                Exc::msg("RecursionError", &pyjson::recursion_message(kind))
+            }
+            other => unreachable!("json.loads has no hooks here: {other:?}"),
+        })?;
+    iterate(getitem(&payload, "cases")?)?
+        .iter()
+        .map(load_case)
+        .collect()
 }
 
 /// Each field in the order Python's constructor call reads it, so the first
@@ -583,5 +592,30 @@ mod tests {
         let term = [("remaining_term_years", Json::Int(5.into()))];
         let comparison = compared(&met, &answered(&met, &term));
         assert_eq!(comparison.evaluation, Evaluation::ScopeMismatch);
+    }
+
+    /// The decoder's own message, and `cases` iterated as Python iterates it.
+    #[test]
+    fn a_case_file_is_read_as_python_reads_it() {
+        let error = load_cases(Some("[")).expect_err("not JSON");
+        assert_eq!(
+            (error.class, error.text),
+            (
+                "json.decoder.JSONDecodeError",
+                pts("Expecting value: line 1 column 2 (char 1)")
+            )
+        );
+        assert!(load_cases(Some(r#"{"cases": {}}"#)).unwrap().is_empty());
+        assert!(load_cases(Some(r#"{"cases": ""}"#)).unwrap().is_empty());
+        let error = load_cases(Some(r#"{"cases": "ab"}"#)).expect_err("a str case");
+        assert_eq!(
+            (error.class, error.text),
+            (
+                "TypeError",
+                pts("string indices must be integers, not 'str'")
+            )
+        );
+        let error = load_cases(Some(r#"{"cases": 5}"#)).expect_err("not iterable");
+        assert_eq!(error.text, pts("'int' object is not iterable"));
     }
 }

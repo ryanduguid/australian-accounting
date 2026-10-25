@@ -171,7 +171,8 @@ pub fn build(outcome: &Outcome, label: &str, synthetic: bool, response_contract:
             Json::Bool(requires("requires_advisory")?),
         ),
     ]);
-    let mut values: Vec<&(S, crate::decimal::Decimal)> = outcome.values.iter().collect();
+    let values = crate::trials::dict(&outcome.values);
+    let mut values: Vec<&(S, crate::decimal::Decimal)> = values.iter().collect();
     values.sort_by(|a, b| a.0.cmp(&b.0));
     let calculation = Json::obj([
         ("schema", Json::str(SCHEMA)),

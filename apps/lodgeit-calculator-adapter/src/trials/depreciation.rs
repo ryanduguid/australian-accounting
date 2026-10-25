@@ -13,7 +13,7 @@
 //! no `cost_additions` and the figures do not close. An unreconcilable
 //! movement is `CONTRACT_FAILURE`; the addition that would close it is never
 //! invented.
-use super::{Comparison, Evaluation, Money, get, shown};
+use super::{Comparison, Evaluation, Money, dict, get, shown};
 use crate::client::{Client, Outcome, Status};
 use crate::decimal::Decimal;
 use crate::p;
@@ -77,6 +77,7 @@ pub fn reconcile(
     supplied_additions: Option<&Decimal>,
     tolerance: &Decimal,
 ) -> R<(bool, Vec<S>)> {
+    let values = &dict(values);
     let missing: Vec<&str> = ["opening_wdv", "closing_wdv", "range_dep"]
         .into_iter()
         .filter(|name| get(values, &pts(name)).is_none())
@@ -226,7 +227,7 @@ pub fn evaluate_outcome(
         Status::Computed => {}
         _ => return Ok(with(Evaluation::ContractFailure, outcome.findings.clone())),
     }
-    let values: Money = outcome.values.clone();
+    let values: Money = dict(&outcome.values);
     let (closes, found) = reconcile(&values, supplied_additions, &super::cent())?;
     let mut reasons = outcome.findings.clone();
     reasons.extend(found);
@@ -398,5 +399,34 @@ mod tests {
         );
         let last = consecutive_windows("9999-01-01", "9999-12-31", &["9999-12-31".to_owned()]);
         assert_eq!(last.expect_err("past the last date").class, "OverflowError");
+    }
+
+    /// A repeated figure holds its last value, as in Python's dict.
+    #[test]
+    fn a_repeated_figure_is_read_as_its_last_value() {
+        let mut values = range("120000.00", "96000.00", "24000.00");
+        values.push((pts("closing_wdv"), dec("90000.00")));
+        let compared = evaluate_outcome(
+            &asset(),
+            "2024-07-01",
+            pts("DEP-1"),
+            &computed(values),
+            None,
+        )
+        .expect("ok");
+        assert_eq!(compared.evaluation, Evaluation::ContractFailure);
+        assert_eq!(compared.upstream.len(), 3);
+
+        let mut values = range("120000.00", "90000.00", "24000.00");
+        values.push((pts("closing_wdv"), dec("96000.00")));
+        let compared = evaluate_outcome(
+            &asset(),
+            "2024-07-01",
+            pts("DEP-1"),
+            &computed(values),
+            None,
+        )
+        .expect("ok");
+        assert_eq!(compared.evaluation, Evaluation::Match);
     }
 }

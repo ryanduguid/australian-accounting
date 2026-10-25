@@ -37,6 +37,17 @@ pub(crate) fn put(values: &mut Money, name: &[u32], value: Decimal) {
     }
 }
 
+/// `dict(pairs)`: each name once, at its first position, holding its last
+/// value. Python's figures are dicts, so a `Money` from a caller passes
+/// through this before a name is looked up or listed.
+pub(crate) fn dict(pairs: &Money) -> Money {
+    let mut values = Money::new();
+    for (name, value) in pairs {
+        put(&mut values, name, value.clone());
+    }
+    values
+}
+
 /// `sorted(values)`.
 fn keys(values: &Money) -> Vec<&S> {
     let mut names: Vec<&S> = values.iter().map(|(k, _)| k).collect();
@@ -147,6 +158,7 @@ pub fn compare_values(
     upstream: &Money,
     tolerance: &Decimal,
 ) -> R<(Evaluation, Money, Vec<S>)> {
+    let (expected, local, upstream) = (&dict(expected), &dict(local), &dict(upstream));
     let mut reasons: Vec<S> = Vec::new();
     let mut differences = Money::new();
     for name in keys(expected) {

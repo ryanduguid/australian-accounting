@@ -217,9 +217,10 @@ pub fn require_crosswalk(crosswalk: Option<&[(String, String)]>, proposed_code: 
              chart of accounts until somebody maps it.",
         ));
     };
+    // `dict(crosswalk)`: the last entry for a code is the one that stands.
     crosswalk
         .iter()
-        .find(|(code, _)| code == proposed_code)
+        .rfind(|(code, _)| code == proposed_code)
         .map(|(_, local)| local.clone())
         .ok_or_else(|| {
             Exc::msg(
@@ -503,5 +504,24 @@ mod tests {
     fn without_a_client_the_classifier_is_not_called() {
         let (status, suggestions, _) = classify("company", &lines(), None).expect("a result");
         assert_eq!((status.as_str(), suggestions.len()), ("NOT_RUN", 0));
+    }
+
+    /// `dict(crosswalk)`: the last entry for a code stands.
+    #[test]
+    fn a_repeated_crosswalk_code_takes_its_last_entry() {
+        let crosswalk = [
+            ("sbrm_1200".to_owned(), "1".to_owned()),
+            ("lodgeit_4000".to_owned(), "4".to_owned()),
+            ("sbrm_1200".to_owned(), "2".to_owned()),
+            ("sbrm_1200".to_owned(), "3".to_owned()),
+        ];
+        assert_eq!(
+            require_crosswalk(Some(&crosswalk), "sbrm_1200").unwrap(),
+            "3"
+        );
+        assert_eq!(
+            require_crosswalk(Some(&crosswalk), "lodgeit_4000").unwrap(),
+            "4"
+        );
     }
 }

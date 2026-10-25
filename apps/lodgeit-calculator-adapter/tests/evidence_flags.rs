@@ -235,3 +235,25 @@ fn verify_command_refuses_the_contradictory_record() {
     assert!(stdout.contains("validation.accepted=false"), "{stdout}");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// A repeated value name is recorded once, at its first position, with its
+/// last value, as Python's dict holds it.
+#[test]
+fn a_repeated_value_is_recorded_once_with_its_last_figure() {
+    use lodgeit_calculator_adapter::decimal::Decimal;
+    let dec = |text: &str| Decimal::parse_exact(text).expect("a literal");
+    let outcome = Outcome {
+        values: vec![
+            (pts("b"), dec("1.00")),
+            (pts("a"), dec("2.00")),
+            (pts("b"), dec("3.00")),
+        ],
+        ..computed_outcome()
+    };
+    let record = build(&outcome, true);
+    assert_eq!(
+        record.at("calculation").at("normalised").at("values"),
+        &Json::obj([("a", Json::str("2.00")), ("b", Json::str("3.00"))])
+    );
+    assert!(evidence::verify(&record).unwrap().is_empty());
+}

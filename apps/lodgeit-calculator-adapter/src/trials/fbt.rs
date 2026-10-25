@@ -9,7 +9,7 @@
 //! and 16, which appear in `local` and are not compared.
 use australian_tax_calculators::engine::{self, Arg};
 
-use super::{Comparison, Evaluation, Money, get, put, shown};
+use super::{Comparison, Evaluation, Money, dict, get, put, shown};
 use crate::client::{Client, Outcome, Status};
 use crate::decimal::{Decimal, Signal};
 use crate::errors::CONTRACT;
@@ -80,6 +80,7 @@ pub fn prepare_aggregate_input(
     field_name: &str,
     response_values: &Money,
 ) -> R<(Decimal, Decimal)> {
+    let response_values = &dict(response_values);
     let calc = |r: crate::decimal::Calc<bool>| r.map_err(decimal_signal);
     if ALREADY_GROSSED_UP.contains(&field_name) {
         return Err(Exc::msg(
@@ -230,7 +231,7 @@ pub fn evaluate_outcome(benefit: &CarBenefit, outcome: &Outcome) -> R<Comparison
         Status::Computed => {}
         _ => return Ok(with(Evaluation::ContractFailure, outcome.findings.clone())),
     }
-    let values: Money = outcome.values.clone();
+    let values: Money = dict(&outcome.values);
     let taxable = pts("taxable_value");
     let Some(category_value) = get(&values, &taxable).cloned() else {
         let mut reasons = vec![pts(
@@ -444,5 +445,46 @@ mod tests {
         let error = evaluate_outcome(&other, &outcome).expect_err("no local year");
         assert_eq!(error.class, "KeyError");
         assert_eq!(error.text, pts("'urn:sbrm:period:fbt:fy2025'"));
+    }
+
+    /// Python's values are a dict: a repeated name holds its last figure, so
+    /// the guard against a second gross-up sees the figure that stands.
+    #[test]
+    fn a_repeated_figure_is_read_as_its_last_value() {
+        let refused = computed(&[
+            ("taxable_value", "8500.42"),
+            ("grossed_up_taxable_value", "16038.60"),
+            ("fbt_payable", "7538.14"),
+            ("grossed_up_taxable_value", "8500.42"),
+        ]);
+        let error = evaluate_outcome(&benefit("Type 2"), &refused).expect_err("refused");
+        assert_eq!(error.class, CONTRACT);
+
+        let agreed = computed(&[
+            ("taxable_value", "8500.42"),
+            ("grossed_up_taxable_value", "8500.42"),
+            ("fbt_payable", "7538.14"),
+            ("grossed_up_taxable_value", "16038.60"),
+        ]);
+        let compared = evaluate_outcome(&benefit("Type 2"), &agreed).expect("a comparison");
+        assert_eq!(compared.evaluation, Evaluation::Match);
+        assert_eq!(
+            get(&compared.upstream, &pts("grossed_up_taxable_value")).map(Decimal::to_sci_string),
+            Some("16038.60".into())
+        );
+
+        let recorded = vec![
+            (pts("fbt_payable"), dec("1.00")),
+            (pts("fbt_payable"), dec("10.00")),
+        ];
+        let by_value = prepare_aggregate_input(&dec("10.00"), "Type 1", "taxable_value", &recorded);
+        assert_eq!(by_value.expect_err("refused").class, CONTRACT);
+        let recorded = vec![
+            (pts("fbt_payable"), dec("10.00")),
+            (pts("fbt_payable"), dec("1.00")),
+        ];
+        assert!(
+            prepare_aggregate_input(&dec("10.00"), "Type 1", "taxable_value", &recorded).is_ok()
+        );
     }
 }
