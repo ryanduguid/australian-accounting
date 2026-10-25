@@ -248,6 +248,7 @@ fn run_case(case: &Json) -> R<Json> {
         }
         "transport" => transport_case(case)?,
         "core" => core_case(case)?,
+        "div7a" => div7a_case(case)?,
         "settimeout" => {
             // `s.settimeout(t); s.gettimeout()`, with t given by its bits.
             let bits = text(field("bits")).parse().expect("u64 bits");
@@ -572,6 +573,73 @@ fn core_case(case: &Json) -> R<Json> {
         ),
         ("result", result),
     ]))
+}
+
+/// The Division 7A trial over a case file: per case, the request body's
+/// `repr` and the comparison, against no provider or a fabricated outcome.
+fn div7a_case(case: &Json) -> R<Json> {
+    use crate::client::{Outcome, Status};
+    use crate::trials::div7a;
+    let field = |name: &str| case.get(name).unwrap_or(&Json::Null);
+    let cases = div7a::load_cases(Some(&text(field("file"))))?;
+    let given = field("outcome");
+    let outcome = (given != &Json::Null).then(|| Outcome {
+        status: [
+            Status::Computed,
+            Status::UpstreamRefused,
+            Status::UpstreamRejected,
+            Status::UpstreamNotFound,
+            Status::UpstreamThrottled,
+            Status::UpstreamUnavailable,
+            Status::ContractFailure,
+            Status::RefusedToSend,
+        ]
+        .into_iter()
+        .find(|s| s.as_str() == text(given.at("status")))
+        .expect("a status"),
+        calculator: None,
+        period: None,
+        request_body: None,
+        request_json: None,
+        raw_response: Json::Null,
+        http_status: None,
+        result: given.at("result").clone(),
+        values: Vec::new(),
+        manifest: Json::Null,
+        advisory: Json::Null,
+        upstream_refusal_class: given.at("refusal").clone(),
+        findings: match given.at("findings") {
+            Json::Array(items) => items.iter().map(|f| pts(&text(f))).collect(),
+            _ => Vec::new(),
+        },
+        observed_at: String::new(),
+        elapsed_ms: None,
+        contract_snapshot: Json::Null,
+        contract_sha256: String::new(),
+        base_url: None,
+    });
+    let entries = cases.iter().map(|one| {
+        let compared = match &outcome {
+            None => div7a::evaluate(one, None),
+            Some(outcome) => div7a::run_local(one).and_then(|(verdict, values, reasons)| {
+                div7a::evaluate_outcome(one, &verdict, &values, &reasons, outcome)
+            }),
+        };
+        Json::obj([
+            ("request", Json::str(&repr(&div7a::build_request(one)))),
+            (
+                "result",
+                match compared {
+                    Ok(comparison) => Json::obj([("ok", comparison.to_json())]),
+                    Err(error) => Json::obj([(
+                        "error",
+                        Json::Array(vec![Json::str(error.class), json_str(error.text)]),
+                    )]),
+                },
+            ),
+        ])
+    });
+    Ok(Json::Array(entries.collect()))
 }
 
 fn hex(bytes: &[u8]) -> String {

@@ -273,7 +273,6 @@ pub(crate) fn os_exc(error: &OsError) -> Exc {
     Exc::msg(error.class(), &error.text)
 }
 
-#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn decimal_signal(signal: Signal) -> Exc {
     match signal {
         Signal::InvalidOperation => Exc::msg(
@@ -288,7 +287,6 @@ pub(crate) fn decimal_signal(signal: Signal) -> Exc {
     }
 }
 
-#[expect(dead_code, reason = "used once later gates port its callers")]
 pub(crate) fn conversion(error: Conversion) -> Exc {
     Exc::msg("decimal.InvalidOperation", error.text())
 }

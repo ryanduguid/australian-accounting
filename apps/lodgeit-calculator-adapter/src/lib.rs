@@ -30,6 +30,7 @@ pub mod strptime;
 pub mod termsize;
 pub mod textwrap;
 pub mod transport;
+pub mod trials;
 pub mod wire;
 
 #[cfg(feature = "differential")]
