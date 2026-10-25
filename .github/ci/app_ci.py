@@ -14,10 +14,10 @@ from select_package import is_shared, parse_changed_paths
 # boundaries-gates owner runs on every change, including a skipped app.
 DEPENDENCIES = {
     # The MCP server takes australian-tax-calculators, div7a-loan-review,
-    # ato-benchmark-compare and payday-super-checker from PyPI until it links
-    # the Rust crates, so their directories do not select it.
+    # ato-benchmark-compare, payday-super-checker and gst-review from PyPI
+    # until it links the Rust crates, so their directories do not select it.
     "aus-accounting-mcp": frozenset({
-        "gst-review", "lodgment-calendar",
+        "lodgment-calendar",
     }),
     # The adapter's trials link these Rust engines by path.
     "lodgeit-calculator-adapter": frozenset({
@@ -26,7 +26,7 @@ DEPENDENCIES = {
 }
 PACKAGES = frozenset().union(*DEPENDENCIES.values(), {
     "solomons-sword", "the-exchequer-tally", "the-wip-tally", "australian-tax-calculators",
-    "div7a-loan-review", "ato-benchmark-compare", "payday-super-checker",
+    "div7a-loan-review", "ato-benchmark-compare", "payday-super-checker", "gst-review",
 })
 # The jobs each application's selection runs or skips. The adapter's one job
 # calls ci-rust.yml.

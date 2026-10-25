@@ -16,12 +16,10 @@ just test      # every component's suite, plus the repository boundary checks
 `just test` runs `just setup` first, which repeats `uv sync`.
 
 `uv sync` creates one `.venv` at the root and installs the Python components into it
-as editable workspace members. `apps/aus-accounting-mcp` therefore imports
-`gstreview` from the checked-out tree rather than from its last PyPI release, with
-no per-component install step. Australian Tax Calculators, Division 7A Loan
-Review, ATO Benchmark Compare and Payday Super Checker are Rust crates now; until
-the MCP server links them, the workspace installs their last Python releases,
-0.2.0, 0.3.2, 0.2.2 and 0.2.2, from PyPI.
+as editable workspace members. Australian Tax Calculators, Division 7A Loan
+Review, ATO Benchmark Compare, Payday Super Checker and GST Review are Rust crates;
+until the MCP server links them, the workspace installs their last Python
+releases, 0.2.0, 0.3.2, 0.2.2, 0.2.2 and 0.1.0, from PyPI.
 
 `just` is optional tooling; install it with `uv tool install rust-just`. The recipes
 are `setup`, `lint`, `typecheck`, `test` and `check` (the last 3 together). Each
@@ -111,7 +109,7 @@ outside the checkout, the same way the lockfile is regenerated below.
 | div7a-loan-review (Rust) | `packages/div7a-loan-review/` | none |
 | ato-benchmark-compare (Rust) | `packages/ato-benchmark-compare/` | none |
 | payday-super-checker (Rust) | `packages/payday-super-checker/` | none |
-| gst-review | `packages/gst-review/` | `gstreview` |
+| gst-review (Rust) | `packages/gst-review/` | none |
 | lodgment-calendar | `packages/lodgment-calendar/` | `lodgmentcalendar` |
 
 The 2 applications, the rates dataset and the repository boundary checks use their own
@@ -261,7 +259,7 @@ Registry through `publish-mcp.yml`.
 | div7a-loan-review (Rust) | reserved `div7a-loan-review/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | ato-benchmark-compare (Rust) | reserved `ato-benchmark-compare/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | payday-super-checker (Rust) | reserved `payday-super-checker/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
-| gst-review | `gst-review/vX.Y.Z` | `release-gst-review.yml` | `pyproject.toml` | `pypi-gst-review` |
+| gst-review (Rust) | reserved `gst-review/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 
 Tag and push with `just release <component>...` from the repository root, with `gh`
 authenticated with Administration read access. Before tagging anything it refuses unless

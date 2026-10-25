@@ -9,6 +9,7 @@ repository = "https://github.com/ryanduguid/australian-accounting"
 publish = false
 
 [dependencies]
+gst-review = { path = "../../packages/gst-review" }
 ato-benchmark-compare = { path = "../../packages/ato-benchmark-compare" }
 australian-tax-calculators = { path = "../../packages/australian-tax-calculators" }
 div7a-loan-review = { path = "../../packages/div7a-loan-review" }

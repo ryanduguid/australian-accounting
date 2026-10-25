@@ -1,6 +1,6 @@
 # au-accounting
 
-One command for the 7 Rust engines in this repository. `au-accounting ENGINE ...`
+One command for the 8 Rust engines in this repository. `au-accounting ENGINE ...`
 passes the remaining arguments to that engine's library, so each subcommand takes
 the same arguments, reads the same JSON on stdin and prints the same output as the
 engine's own command.
@@ -10,14 +10,15 @@ engine's own command.
 | `benchmarks` | [ATO Benchmark Compare](../../packages/ato-benchmark-compare/README.md) | `ato-benchmark-compare` |
 | `div7a` | [Division 7A Loan Review](../../packages/div7a-loan-review/README.md) | `div7a-loan-review` |
 | `exchequer` | [The Exchequer Tally](../../packages/the-exchequer-tally/README.md) | `the-exchequer-tally` |
+| `gst-review` | [GST Review](../../packages/gst-review/README.md) | `gst-review` |
 | `payday-super` | [Payday Super Checker](../../packages/payday-super-checker/README.md) | `payday-super-check` |
 | `solomons` | [Solomon's Sword](../../packages/solomons-sword/README.md) | `solomons-sword` |
 | `tax` | [Australian Tax Calculators](../../packages/australian-tax-calculators/README.md) | `australian-tax-calculators` |
 | `wip` | [The WIP Tally](../../packages/the-wip-tally/README.md) | `wip-tally` |
 
 The engine's own command name also works as the subcommand, for example
-`au-accounting div7a-loan-review`. GST Review is still a Python package, so it has
-no subcommand; install it from [PyPI](https://pypi.org/project/gst-review/).
+`au-accounting div7a-loan-review`. GST Review takes `review-coding` or
+`reconcile-bas` with one JSON object on stdin.
 
 ## Install
 

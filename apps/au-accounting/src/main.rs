@@ -50,6 +50,14 @@ const ENGINES: &[Engine] = &[
         python_flush: false,
     },
     Engine {
+        name: "gst-review",
+        command: "gst-review",
+        summary: "GST coding and BAS reconciliation review aids",
+        run: gst_review,
+        encode: |text, _| gst_review::cli::output_bytes(text),
+        python_flush: false,
+    },
+    Engine {
         name: "payday-super",
         command: "payday-super-check",
         summary: "Payday super deadlines and SG charge estimates",
@@ -124,6 +132,19 @@ fn exchequer(args: &[OsString]) -> Outcome {
         arbitrary_precision: false,
     };
     dispatch(&args, api::COMMANDS, api::evaluate, json, note, cli::run)
+}
+
+fn gst_review(args: &[OsString]) -> Outcome {
+    use gst_review::{api, cli};
+    let args: Vec<String> = args.iter().map(|a| cli::decode_os(a)).collect();
+    dispatch(
+        &args,
+        &api::COMMANDS,
+        api::evaluate,
+        FULL_JSON,
+        "See README.md for their schemas.",
+        cli::run,
+    )
 }
 
 fn payday_super(args: &[OsString]) -> Outcome {
