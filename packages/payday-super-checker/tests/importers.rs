@@ -27,14 +27,28 @@ fn import_beam(
         Some("employment-hero"),
         false,
     );
-    let written = std::fs::read_to_string(&out).unwrap_or_default();
+    let written = match report {
+        Ok(_) => std::fs::read_to_string(&out).unwrap(),
+        Err(_) => String::new(),
+    };
     let _ = std::fs::remove_dir_all(&dir);
-    let remittance = written
-        .lines()
-        .skip(1)
+    // The fabricated values hold no commas or quotes, so a plain split reads
+    // each field; the columns are found by their header names.
+    assert!(!written.contains('"'), "{written}");
+    // The file opens with a UTF-8 BOM for Excel.
+    let mut lines = written.strip_prefix('\u{feff}').unwrap_or(&written).lines();
+    let header: Vec<&str> = lines.next().unwrap_or_default().split(',').collect();
+    let at = |name: &str| header.iter().position(|h| *h == name).unwrap();
+    let remittance = lines
         .map(|l| {
             let c: Vec<&str> = l.split(',').collect();
-            [c[0], c[3], c[9], c[10]].map(str::to_string)
+            [
+                "employee_id",
+                "remitted_date",
+                "remitted_amount",
+                "matched_amount",
+            ]
+            .map(|name| c[at(name)].to_string())
         })
         .collect();
     (report, remittance)
@@ -96,6 +110,21 @@ fn only_sent_to_fund_on_the_beam_ladder_is_a_remittance() {
         "Reconciled",
     ];
     let statuses: Vec<&str> = not_sent.iter().copied().chain(["Sent to fund"]).collect();
+    // A status the profile gains must be added to this ladder and tested.
+    let profiles = payday_super_checker::profiles::load_profiles(Some("super")).unwrap();
+    let rule = profiles
+        .iter()
+        .find(|p| p.key == "employment-hero-super")
+        .and_then(|p| p.remitted_status.as_ref())
+        .unwrap();
+    let sorted = |list: Vec<String>| {
+        let mut list = list;
+        list.sort_unstable();
+        list
+    };
+    let expected = |list: &[&str]| sorted(list.iter().map(|s| s.to_string()).collect());
+    assert_eq!(sorted(rule.sent.clone()), expected(&["Sent to fund"]));
+    assert_eq!(sorted(rule.not_sent.clone()), expected(&not_sent));
     let mut payroll = PAYROLL_HEADER.to_string();
     let mut super_csv = BEAM_HEADER.to_string();
     for (n, status) in statuses.iter().enumerate() {
