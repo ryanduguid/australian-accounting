@@ -12,6 +12,29 @@ use crate::pypath::PyPath;
 use crate::pyvalue::{dumps_line, repr};
 use crate::wire;
 
+/// Every path under the working directory, bar the package's own code: the
+/// Python runner's `created()`.
+fn created() -> std::collections::BTreeSet<std::path::PathBuf> {
+    let skip = std::path::Path::new(".").join("pkg").join("lodgeitadapter");
+    let mut found = std::collections::BTreeSet::new();
+    let mut pending = vec![std::path::PathBuf::from(".")];
+    while let Some(dir) = pending.pop() {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = dir.join(entry.file_name());
+            if entry.file_type().is_ok_and(|t| t.is_dir()) && path != skip {
+                pending.push(path.clone());
+            }
+            if path != skip {
+                found.insert(path);
+            }
+        }
+    }
+    found
+}
+
 fn text(value: &Json) -> String {
     value.as_str().unwrap_or_default().to_owned()
 }
@@ -180,6 +203,7 @@ fn run_case(case: &Json) -> R<Json> {
                 Json::Object(pairs) => pairs.clone(),
                 _ => Vec::new(),
             };
+            let before = created();
             for (path, content) in &files {
                 let path = std::path::Path::new(path.as_str().expect("an ASCII path"));
                 match content {
@@ -199,6 +223,17 @@ fn run_case(case: &Json) -> R<Json> {
                 let _ = match content {
                     Json::Null => std::fs::remove_dir_all(path),
                     _ => std::fs::remove_file(path),
+                };
+            }
+            // As the Python runner does: whatever the case wrote, such as an
+            // evidence file, must not reach the next case.
+            let mut extra: Vec<_> = created().difference(&before).cloned().collect();
+            extra.sort_by_key(|path| std::cmp::Reverse(path.as_os_str().len()));
+            for path in extra {
+                let _ = if path.is_dir() {
+                    std::fs::remove_dir(&path)
+                } else {
+                    std::fs::remove_file(&path)
                 };
             }
             Json::Array(vec![
