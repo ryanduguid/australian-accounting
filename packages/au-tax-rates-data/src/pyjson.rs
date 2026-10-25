@@ -205,20 +205,31 @@ enum Frame {
     Object(Vec<(PyStr, Json)>, PyStr),
 }
 
+/// What an object does with a repeated member.
+#[derive(Clone, Copy, PartialEq)]
+enum Members {
+    /// The `object_pairs_hook` refuses it.
+    Reject,
+    /// A `dict`: the first position and the last value.
+    Merge,
+    /// Every pair as written, for `restore` to merge once surrogates are back.
+    Keep,
+}
+
 /// `json.loads(text, object_pairs_hook=_reject_duplicate_json_members)`.
 pub fn loads(text: &str) -> Result<Json, DecodeError> {
-    decode(text, true)
+    decode(text, Members::Reject)
 }
 
 /// `json.loads(text)`: a repeated member keeps its first position and takes
 /// the last value, as a `dict` built from the pairs does.
 pub fn loads_standard(text: &str) -> Result<Json, DecodeError> {
-    decode(text, false)
+    decode(text, Members::Merge)
 }
 
 /// The C scanner over the text's UTF-8 bytes: its syntax is ASCII, and string
 /// content is copied a run at a time.
-fn decode(text: &str, reject_duplicates: bool) -> Result<Json, DecodeError> {
+fn decode(text: &str, members: Members) -> Result<Json, DecodeError> {
     let constant = |value: f64, used: usize| {
         if CALL_DEPTH.is_some_and(|depth| used + depth > STACK.2) {
             Err(DecodeError::Recursion("call"))
@@ -376,11 +387,15 @@ fn decode(text: &str, reject_duplicates: bool) -> Result<Json, DecodeError> {
                             unreachable!()
                         };
                         used -= level_cost(false);
+                        if members == Members::Keep {
+                            value = Json::Object(pairs);
+                            continue;
+                        }
                         let mut keys = std::collections::HashMap::with_capacity(pairs.len());
                         let mut unique: Vec<(PyStr, Json)> = Vec::with_capacity(pairs.len());
                         for (k, v) in pairs {
                             if let Some(&at) = keys.get(&k) {
-                                if reject_duplicates {
+                                if members == Members::Reject {
                                     return Err(DecodeError::Duplicate);
                                 }
                                 unique[at] = (k, v);
@@ -674,10 +689,13 @@ pub fn loads_bytes(data: &[u8]) -> Result<Json, Option<DecodeError>> {
         .iter()
         .filter_map(|cp| char::from_u32(*hide.get(cp).unwrap_or(cp)))
         .collect();
-    let value = loads_standard(&text).map_err(Some)?;
     if pairs.is_empty() {
-        return Ok(value);
+        return loads_standard(&text).map_err(Some);
     }
+    // Stand-ins for one surrogate can be spelt apart from its escape, so
+    // the members are merged only once every surrogate is back, in the order
+    // written: CPython's dict keeps the last value.
+    let value = decode(&text, Members::Keep).map_err(Some)?;
     let show: std::collections::HashMap<u32, u32> = pairs.iter().map(|&(s, f)| (f, s)).collect();
     Ok(restore(value, &show))
 }
@@ -1020,6 +1038,33 @@ mod tests {
                     ])
                 ),
                 (lone(0xD800), Json::Array(vec![Json::Int(3.into())])),
+            ]))
+        );
+        // 3 spellings of one key: the first position and the last value.
+        let three = Ok(Json::Object(vec![(lone(0xD800), Json::Int(3.into()))]));
+        assert_eq!(
+            loads_bytes(b"{\"\xed\xa0\x80\":1,\"\\ud800\":2,\"\xed\xa0\x80\":3}"),
+            three
+        );
+        assert_eq!(
+            loads_bytes(b"{\"\\ud800\":1,\"\xed\xa0\x80\":2,\"\\ud800\":3}"),
+            three
+        );
+        assert_eq!(
+            loads_bytes(
+                b"{\"a\":{\"\xed\xa0\x80\":1,\"b\":0,\"\\ud800\":2,\"c\":[],\"\xed\xa0\x80\":3},\
+                  \"\\ud800\":[4],\"\xed\xa0\x80\":5}"
+            ),
+            Ok(Json::Object(vec![
+                (
+                    key("a"),
+                    Json::Object(vec![
+                        (lone(0xD800), Json::Int(3.into())),
+                        (key("b"), Json::Int(0.into())),
+                        (key("c"), Json::Array(Vec::new())),
+                    ])
+                ),
+                (lone(0xD800), Json::Int(5.into())),
             ]))
         );
         assert_eq!(

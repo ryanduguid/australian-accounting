@@ -788,17 +788,16 @@ impl Entry {
 }
 
 /// `sorted(DATA.glob("*.json"))`: every entry whose name matches, hidden files
-/// and directories included; a listing that fails yields nothing. On Windows
-/// the match and the order ignore case, as `PureWindowsPath` compares.
-fn glob_json(data: &PyPath) -> Vec<Entry> {
-    let Ok(listing) = std::fs::read_dir(data.fs()) else {
-        return Vec::new();
-    };
+/// and directories included. On Windows the match and the order ignore case,
+/// as `PureWindowsPath` compares. Where `glob` yields nothing for a listing
+/// that fails, this raises its `OSError`: `run` has checked the folder, and a
+/// listing that fails after that must not pass as no records.
+fn glob_json(data: &PyPath) -> R<Vec<Entry>> {
+    let failed =
+        |e: std::io::Error| os_exc(&OsError::new(&e, Some(&data.display()), pyos::Style::Errno));
     let mut entries = Vec::new();
-    for entry in listing {
-        let Ok(entry) = entry else {
-            return Vec::new();
-        };
+    for entry in std::fs::read_dir(data.fs()).map_err(failed)? {
+        let entry = entry.map_err(failed)?;
         let name = pyos::os_name_points(&entry.file_name());
         if JSON_NAME.fullmatch(&name).is_none() {
             continue;
@@ -815,7 +814,7 @@ fn glob_json(data: &PyPath) -> Vec<Entry> {
     } else {
         entries.sort_by(|a, b| a.name.cmp(&b.name));
     }
-    entries
+    Ok(entries)
 }
 
 /// `path.read_text(encoding="utf-8")`.
@@ -845,7 +844,7 @@ fn json_error(error: DecodeError) -> Exc {
 }
 
 fn load_records(ctx: &Ctx) -> R<Vec<Json>> {
-    glob_json(&ctx.data)
+    glob_json(&ctx.data)?
         .iter()
         .map(|entry| loads(&read_text(&entry.path, &entry.display)?))
         .collect()
@@ -1810,7 +1809,7 @@ fn cmd_snapshot(ctx: &Ctx, out: &mut Out<impl Write>, world: &mut World) -> R<i3
 
 fn cmd_validate(ctx: &Ctx, out: &mut Out<impl Write>) -> R<i32> {
     let mut failed = 0;
-    for entry in glob_json(&ctx.data) {
+    for entry in glob_json(&ctx.data)? {
         let record = match read_text(&entry.path, &entry.display).and_then(|t| loads(&t)) {
             Ok(record) => record,
             Err(e) if e.is_any(&["OSError", "ValueError", "RecursionError"]) => {
@@ -2505,17 +2504,6 @@ fn build_parser(ctx: &Ctx) -> Parser {
 /// Run the command line; the result is the exit status.
 pub fn main(argv: Vec<OsString>) -> i32 {
     let ctx = Ctx::new();
-    // The binary reads the package folder it was built from (or RATES_ROOT
-    // under the differential harness). Where that folder has gone, `glob`
-    // would find no records and `validate` pass, so refuse instead.
-    if std::fs::read_dir(ctx.data.fs()).is_err() {
-        let report = format!(
-            "rates: cannot read {}; this binary reads the package folder it was built from\n",
-            ctx.data.display()
-        );
-        let _ = std::io::stderr().write_all(&newlines(report.as_bytes()));
-        return 2;
-    }
     let world = World {
         fetch: &mut fetch_text,
         pause: env("RATES_NO_SLEEP").is_none(),
@@ -2546,6 +2534,18 @@ fn run(ctx: &Ctx, argv: &[OsString], mut world: World, mut stdout: impl Write) -
             return 2;
         }
     };
+    // Every command reads the package folder the binary was built from (or
+    // RATES_ROOT under the differential harness). Where that folder cannot
+    // be read, `glob` would find no records and `validate` pass, so refuse
+    // instead, once the command line has been read as Python reads it.
+    if std::fs::read_dir(ctx.data.fs()).is_err() {
+        let report = format!(
+            "rates: cannot read {}; this binary reads the package folder it was built from\n",
+            ctx.data.display()
+        );
+        let _ = std::io::stderr().write_all(&newlines(report.as_bytes()));
+        return 2;
+    }
     let text = |key: &str| match namespace.get(key) {
         Some(Value::Str(s)) => s.clone(),
         _ => String::new(),

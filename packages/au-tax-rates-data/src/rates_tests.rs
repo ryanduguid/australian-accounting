@@ -261,6 +261,7 @@ fn every_file_is_named_after_its_unique_id() {
     ids.dedup();
     assert_eq!(ids.len(), count);
     let mut stems: Vec<String> = glob_json(&ctx().data)
+        .expect("the data folder lists")
         .iter()
         .map(|e| st(&e.stem()))
         .collect();
@@ -627,7 +628,7 @@ fn a_scale_taxed_from_the_first_dollar_renders_without_an_over_amount() {
 
 #[test]
 fn data_files_are_stable_json() {
-    for entry in glob_json(&ctx().data) {
+    for entry in glob_json(&ctx().data).expect("the data folder lists") {
         let text = read_text(&entry.path, &entry.display).unwrap();
         let mut canonical = String::new();
         dumps_indented(&loads(&text).unwrap(), 0, &mut canonical);
@@ -1683,14 +1684,27 @@ fn main_check_fetches_each_source_and_writes_its_report() {
         &mut |_, _| panic!("a table read"),
     );
     assert_eq!(code, 1);
-    assert_eq!(fetched, [url]);
-    assert!(printed.starts_with("1 finding(s); report at "), "{printed}");
+    assert_eq!(fetched, std::slice::from_ref(&url));
+    let reports: Vec<PathBuf> = std::fs::read_dir(&folder)
+        .expect("the report folder")
+        .map(|e| e.expect("an entry").path())
+        .collect();
+    let [report] = &reports[..] else {
+        panic!("{reports:?}")
+    };
+    let name = report.file_name().unwrap().to_string_lossy().into_owned();
+    assert_eq!(name, format!("au-tax-rates-check-{}.md", local_today()));
     assert_eq!(
-        std::fs::read_dir(&folder)
-            .expect("the report folder")
-            .count(),
-        1
+        printed,
+        format!("1 finding(s); report at {}{}", report.display(), nl())
     );
+    // The file holds the report `check` built for the same records and page.
+    let records = load_records(&ctx).expect("the records load");
+    let pages = vec![(url, Ok(s("Effective date: 31 February 2026")))];
+    let (want, findings) = build_report(&ctx, &records, &pages, &local_today()).unwrap();
+    assert_eq!(findings, 1);
+    let text = std::fs::read_to_string(report).expect("the report");
+    assert_eq!(text, st(&want).replace('\n', nl()));
 }
 
 #[test]
@@ -1715,8 +1729,8 @@ fn main_ato_tables_reads_both_tables_and_keeps_escaped_pairs_apart_from_raw_surr
         &package(&[fbt]),
         &["ato-tables"],
         &mut |_| panic!("a page fetched"),
-        &mut |name, _| {
-            requested.push(name.to_string());
+        &mut |name, path| {
+            requested.push(format!("{name} {path}"));
             Ok((
                 200,
                 if name == "TC2TAXRTE" {
@@ -1728,7 +1742,13 @@ fn main_ato_tables_reads_both_tables_and_keeps_escaped_pairs_apart_from_raw_surr
         },
     );
     assert_eq!(code, 1);
-    assert_eq!(requested, ["TC2TAXRTE", "TC9GENTAC"]);
+    assert_eq!(
+        requested,
+        [
+            "TC2TAXRTE /cdn/static-data/codes-tables/TC2TAXRTE.json",
+            "TC9GENTAC /cdn/static-data/codes-tables/TC9GENTAC.json"
+        ]
+    );
     let want = "fbt: cannot read TC2TAXRTE {'TX_DESC': 'FBT rate'}: no row in force on \u{FF12}\u{FF10}\u{FF12}\u{FF16}-07-01\n\
 1 record(s) compared, 1 finding(s). Not in the ATO tables: none\n";
     assert_eq!(printed, want.replace('\n', nl()));
@@ -1744,6 +1764,33 @@ fn main_help_is_written_to_its_stdout() {
     );
     assert_eq!(code, 0);
     assert!(printed.starts_with("usage: rates"), "{printed}");
+}
+
+#[test]
+fn a_missing_data_folder_is_refused_only_once_the_command_line_is_read() {
+    // Rates review 6, finding 3: the refusal once came before argparse, so
+    // `--help` and a usage error ended with it too.
+    let real = ctx();
+    let gone = Ctx {
+        data: PyPath::new(&tmp("gone").join("data").to_string_lossy()),
+        root: real.root,
+        snapshots: real.snapshots,
+    };
+    let run = |args: &[&str]| {
+        run_with(
+            &gone,
+            args,
+            &mut |_| panic!("a page fetched"),
+            &mut |_, _| panic!("a table read"),
+        )
+    };
+    let (code, printed) = run(&["--help"]);
+    assert_eq!(code, 0);
+    assert!(printed.starts_with("usage: rates"), "{printed}");
+    assert_eq!(run(&["no-such-command"]), (2, String::new()));
+    for command in ["validate", "snapshot", "check", "ato-tables"] {
+        assert_eq!(run(&[command]), (2, String::new()), "{command}");
+    }
 }
 
 #[test]
