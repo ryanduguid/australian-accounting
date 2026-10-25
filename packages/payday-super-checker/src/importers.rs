@@ -778,6 +778,28 @@ mod tests {
         }
     }
 
+    /// Beam's Reconciled means it has cleared the employer's money, before
+    /// Sent to fund, so only a Sent to fund row may carry a remittance date.
+    #[test]
+    fn a_reconciled_beam_batch_is_not_yet_sent_to_the_fund() {
+        let dir = std::env::temp_dir().join(format!("payday-beam-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("super.csv");
+        std::fs::write(
+            &path,
+            "Employee,Super Contribution Type,Period Start,Period End,Payment Date,Amount,Status\n\
+             Test Employee One,Super Guarantee,01/07/2026,09/07/2026,14/07/2026,612.00,Reconciled\n\
+             Test Employee Two,Super Guarantee,01/07/2026,09/07/2026,14/07/2026,540.00,Sent to fund\n",
+        )
+        .unwrap();
+        let (rows, _, _) = read_super(path.to_str().unwrap(), Some("employment-hero")).unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(rows[0].paid_date, None);
+        assert_eq!(rows[0].unpaid_status.as_deref(), Some("Reconciled"));
+        assert!(rows[1].paid_date.is_some());
+        assert_eq!(rows[1].unpaid_status, None);
+    }
+
     #[test]
     fn the_canonical_header_is_the_checkers_default_mapping() {
         let mapped: Vec<&str> = crate::csv_io::DEFAULT_MAPPING

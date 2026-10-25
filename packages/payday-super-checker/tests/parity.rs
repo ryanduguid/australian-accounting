@@ -46,12 +46,29 @@ fn corpus() -> Vec<Value> {
             other => other.clone(),
         }
     }
-    raw["cases"]
+    let mut cases: Vec<Value> = raw["cases"]
         .as_array()
         .unwrap()
         .iter()
         .map(|c| resolve(c, &strings))
-        .collect()
+        .collect();
+    amend(&mut cases);
+    cases
+}
+
+/// Applies `data/amendments.json`: the answers that deliberate changes made
+/// since Python 0.2.2 replace, kept apart so the frozen record never changes.
+fn amend(cases: &mut [Value]) {
+    let amendments: Value =
+        serde_json::from_str(include_str!("data/amendments.json")).expect("amendments parse");
+    for change in amendments["changes"].as_array().unwrap() {
+        for (index, fields) in change["cases"].as_object().unwrap() {
+            let case = &mut cases[index.parse::<usize>().unwrap()];
+            for (key, value) in fields.as_object().unwrap() {
+                case[key] = value.clone();
+            }
+        }
+    }
 }
 
 fn fnv(bytes: &[u8]) -> String {
