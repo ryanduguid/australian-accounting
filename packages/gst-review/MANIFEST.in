@@ -1,5 +1,0 @@
-include NOTICE
-include CITATION.cff DISCLAIMER.md RELEASE_NOTES.md RELEASING.md SECURITY.md llms.txt uv.lock .gitignore LICENSE README.md
-graft gstreview
-graft tests
-global-exclude *.py[cod]
