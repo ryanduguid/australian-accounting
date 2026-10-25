@@ -1,4 +1,11 @@
-# Australian accounting engines and MCP server
+<p align="center">
+  <picture>
+    <source media="(max-width: 600px) and (prefers-color-scheme: light)" srcset=".github/assets/banner-phone-light.svg">
+    <source media="(max-width: 600px)" srcset=".github/assets/banner-phone.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/banner-light.svg">
+    <img src=".github/assets/banner.svg" width="100%" alt="AU Accounting. ATO benchmarks, Payday Super and Div 7A, run locally. Pixel art of an abacus beside the AU Accounting wordmark in slab-serif block letters.">
+  </picture>
+</p>
 
 <div align="center">
 
