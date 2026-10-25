@@ -277,6 +277,81 @@ fn large_nested_values_use_borrowed_tokens_and_bounded_work() {
 }
 
 #[test]
+fn deeply_nested_reference_xml_is_bounded() {
+    // roxmltree parses recursively per element; the reference scan must refuse
+    // excessive nesting instead of exhausting the stack. Total nesting is the
+    // questions/qa_pair/question wrappers plus the chain, so 3 + depth.
+    let temp = Temp::new();
+    let record = temp.0.join("record.json");
+    fs::write(&record, "{}").unwrap();
+    let path = record.to_str().unwrap();
+    let reference = temp.0.join("deep.xml");
+    // No construct may end earlier in the scan than in roxmltree and expose an
+    // inner "</" or a false opener: a quoted "/>" or '>' in an attribute value,
+    // a '>' inside a processing instruction (also hiding a fake CDATA opener),
+    // or a comment opening with "<!-->". roxmltree enters an empty leaf too,
+    // so it is one more level. Each shape is (prefix, opener, innermost, the
+    // deepest accepted chain).
+    let shapes = [
+        ("", "<a>", "", 997),
+        ("", "<a b=\"/>\">", "", 997),
+        ("", "<a b='x>/'>", "", 997),
+        ("", "<a><?p > </a>?>", "", 997),
+        ("", "<a><!--> </a> -->", "", 997),
+        ("<?p > <![CDATA[?>", "<a>", "<![CDATA[]]>", 997),
+        ("", "<a>", "<leaf/>", 996),
+    ];
+    let cases = shapes.into_iter().flat_map(|shape| {
+        let deepest = shape.3;
+        [
+            (deepest, false),
+            (deepest + 1, true),
+            (2_000, true),
+            (100_000, true),
+        ]
+        .map(|case| (shape, case))
+    });
+    for ((prefix, open, inner, _), (depth, bounded)) in cases {
+        let xml = format!(
+            "<questions><qa_pair id='x'><question>Q{prefix}{}{inner}{}</question><calls>[]</calls><answer>A</answer></qa_pair></questions>",
+            open.repeat(depth),
+            "</a>".repeat(depth)
+        );
+        fs::write(&reference, xml).unwrap();
+        for (command, exit) in [("questions", 1), ("score", 2)] {
+            let mut args = vec!["--reference", reference.to_str().unwrap()];
+            args.push(command);
+            if command == "score" {
+                args.push(path);
+            }
+            let output = run(&args);
+            if bounded {
+                assert_eq!(
+                    output.status.code(),
+                    Some(exit),
+                    "{prefix}{open}{inner} depth {depth} {command}: {:?}",
+                    output.stderr
+                );
+                assert!(output.stdout.is_empty());
+                assert!(
+                    String::from_utf8(output.stderr)
+                        .unwrap()
+                        .contains("1,000 nested elements"),
+                    "{prefix}{open}{inner} depth {depth} {command}"
+                );
+            } else {
+                assert!(
+                    output.status.success(),
+                    "{prefix}{open}{inner} depth {depth} {command}: {:?}",
+                    output.stderr
+                );
+                assert!(output.stderr.is_empty());
+            }
+        }
+    }
+}
+
+#[test]
 fn lenient_questions_keep_first_position_and_last_duplicate_value() {
     let temp = Temp::new();
     let reference = temp.0.join("questions.xml");

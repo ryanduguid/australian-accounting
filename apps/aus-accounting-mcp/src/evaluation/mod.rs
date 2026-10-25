@@ -41,11 +41,76 @@ fn element_text(node: Option<roxmltree::Node<'_, '_>>) -> String {
         .filter_map(|n| n.text())
         .collect()
 }
+fn nesting(text: &str) -> Result<(), String> {
+    // roxmltree's parser recurses per nested element with no depth limit, so
+    // bound the nesting before it sees the bytes. Comments, CDATA and processing
+    // instructions end exactly where roxmltree's tokenizer ends them (the first
+    // terminator after the opener), because ending one early would expose an
+    // inner "</" and undercount. Any other "<!" makes roxmltree fail at once, so
+    // what the scan does after it cannot matter. The scan may overcount (a safe
+    // refusal near the limit) but never undercounts nesting roxmltree reaches.
+    const LIMIT: i64 = 1_000;
+    let mut depth = 0i64;
+    let mut rest = text;
+    fn skip<'a>(after: &'a str, opener: usize, end: &str) -> &'a str {
+        let body = after.get(opener..).unwrap_or("");
+        body.find(end).map_or("", |i| &body[i + end.len()..])
+    }
+    while let Some(start) = rest.find('<') {
+        let after = &rest[start + 1..];
+        let tag = after.as_bytes();
+        if tag.starts_with(b"!--") {
+            rest = skip(after, 3, "-->");
+        } else if tag.starts_with(b"![CDATA[") {
+            rest = skip(after, 8, "]]>");
+        } else if tag.first() == Some(&b'?') {
+            rest = skip(after, 1, "?>");
+        } else if tag.first() == Some(&b'!') {
+            rest = skip(after, 1, ">");
+        } else if tag.first() == Some(&b'/') {
+            depth = (depth - 1).max(0);
+            rest = after;
+        } else {
+            // Attribute values may contain '>' and "/>" but never '<', so the
+            // start tag ends at the first '>' outside quotes. An unclosed quote
+            // runs to the end, which roxmltree refuses before recursing further.
+            let mut quote = None;
+            let end = after.bytes().position(|b| match quote {
+                Some(q) => {
+                    if b == q {
+                        quote = None;
+                    }
+                    false
+                }
+                None if b == b'"' || b == b'\'' => {
+                    quote = Some(b);
+                    false
+                }
+                None => b == b'>',
+            });
+            // roxmltree enters an empty element too, so it counts while open.
+            depth += 1;
+            if depth > LIMIT {
+                return Err("XML exceeds 1,000 nested elements".into());
+            }
+            if end.map_or(after, |i| &after[..i]).trim_end().ends_with('/') {
+                depth -= 1;
+            }
+            rest = end.map_or("", |i| &after[i + 1..]);
+        }
+    }
+    Ok(())
+}
 fn xml(bytes: &[u8]) -> Result<roxmltree::Document<'_>, String> {
     let text = std::str::from_utf8(bytes).map_err(|e| e.to_string())?;
     // The embedded reference needs no DTD. Refuse DTDs before any entity
     // expansion; roxmltree's per-entity guards do not cap total amplification.
-    roxmltree::Document::parse(text).map_err(|e| e.to_string())
+    nesting(text)?;
+    // The bounded nesting above is still ~1,000 parser frames deep, beyond the
+    // default main stack; parse on the larger stack as the scoring path does.
+    stacker::grow(16 * 1024 * 1024, || {
+        roxmltree::Document::parse(text).map_err(|e| e.to_string())
+    })
 }
 fn validate(recorded: &Json) -> Result<&IndexMap<String, Json>, String> {
     let cases = recorded
