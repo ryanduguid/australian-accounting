@@ -183,12 +183,14 @@ fn direct_entries_preserve_ledger_invariants() {
         let input = serde_json::json!({"financial_year":2027,"entries":[{"entry_date":"2026-09-01","entry_type":entry_type,"amount":amount,"description":"Synthetic entry"}]});
         api::evaluate("franking-account", &input).unwrap_err()
     };
-    for amount in ["NaN", "-1"] {
-        assert_eq!(
-            entry("TAX_REFUND", amount),
-            "amount must be a non-negative finite Decimal",
-            "{amount}"
-        );
+    for entry_type in ["TAX_REFUND", "PAYG_INSTALMENT"] {
+        for amount in ["NaN", "Infinity", "-1"] {
+            assert_eq!(
+                entry(entry_type, amount),
+                "amount must be a non-negative finite Decimal",
+                "{entry_type} {amount}"
+            );
+        }
     }
     assert_eq!(
         entry("unrecognised", "1"),
