@@ -244,6 +244,10 @@ lists the commands.
 
 Each JSON input is limited to 8 MiB and each decimal field to 8,192 UTF-8 bytes.
 
+`parse-money` refuses amounts that cannot be rounded to cents within the
+28-digit decimal context, including a rounding carry beyond that precision.
+The refusal retains `where`; CSV refusals name the row, contract and field and
+are collected with other unreadable cells. These input errors produce no result.
 
 ## Job-to-cash example
 
