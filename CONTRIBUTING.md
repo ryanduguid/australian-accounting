@@ -16,12 +16,10 @@ just test      # every component's suite, plus the repository boundary checks
 `just test` runs `just setup` first, which repeats `uv sync`.
 
 `uv sync` creates one `.venv` at the root and installs the Python components into it
-as editable workspace members. `apps/aus-accounting-mcp` therefore imports
-`gstreview` from the checked-out tree rather than from its last PyPI release, with
-no per-component install step. Australian Tax Calculators, Division 7A Loan
-Review, ATO Benchmark Compare and Payday Super Checker are Rust crates now; until
-the MCP server links them, the workspace installs their last Python releases,
-0.2.0, 0.3.2, 0.2.2 and 0.2.2, from PyPI.
+as editable workspace members. Australian Tax Calculators, Division 7A Loan
+Review, ATO Benchmark Compare, Payday Super Checker and GST Review are Rust crates;
+until the MCP server links them, the workspace installs their last Python
+releases, 0.2.0, 0.3.2, 0.2.2, 0.2.2 and 0.1.0, from PyPI.
 
 `just` is optional tooling; install it with `uv tool install rust-just`. The recipes
 are `setup`, `lint`, `typecheck`, `test` and `check` (the last 3 together). Each
@@ -61,16 +59,18 @@ own commands:
 
 ## Rust engines
 
-The 7 Rust engines under `packages/` and the `au-accounting` command in
-`apps/au-accounting/`, which links them, are standalone Cargo crates excluded
-from the uv workspace. From a crate's directory, run `cargo fmt --check`,
+The 7 Rust engines under `packages/`, the `au-accounting` command in
+`apps/au-accounting/`, which links them, and the LodgeiT calculator adapter in
+`apps/lodgeit-calculator-adapter/` are standalone Cargo crates excluded from the
+uv workspace. From a crate's directory, run `cargo fmt --check`,
 `cargo clippy --locked --all-targets -- -D warnings` and `cargo test --locked`.
 `cargo build --locked --release` builds the native command. Root `just test`
 and `just lint` include these checks; typecheck remains Python-only. CI calls
-`ci-rust.yml` once per crate from the anchor workflow on Ubuntu, Windows and
-macOS, and keeps each platform's binary for 7 days as the archive the crate's
-`[package.metadata.binstall]` names. The `umbrella-parity` job then runs
-`apps/au-accounting/tests/parity.py` over those binaries. CodeQL and Dependabot
+`ci-rust.yml` once per crate on Ubuntu, Windows and macOS, from the anchor
+workflow (the adapter from its own workflow), and keeps each platform's binary for 7 days as the archive the crate's
+`[package.metadata.binstall]` names (the adapter has none: it is not released). The `umbrella-parity` job then runs
+`apps/au-accounting/tests/parity.py` over the engines' and `au-accounting`'s
+binaries; the adapter is not part of it. CodeQL and Dependabot
 include Cargo. All candidate builds have read-only permissions.
 
 The former PyPI publishers of these engines are retired. Native publication is not
@@ -109,7 +109,7 @@ outside the checkout, the same way the lockfile is regenerated below.
 | div7a-loan-review (Rust) | `packages/div7a-loan-review/` | none |
 | ato-benchmark-compare (Rust) | `packages/ato-benchmark-compare/` | none |
 | payday-super-checker (Rust) | `packages/payday-super-checker/` | none |
-| gst-review | `packages/gst-review/` | `gstreview` |
+| gst-review (Rust) | `packages/gst-review/` | none |
 | lodgment-calendar | `packages/lodgment-calendar/` | `lodgmentcalendar` |
 
 The 2 applications, the rates dataset and the repository boundary checks use their own
@@ -118,7 +118,7 @@ commands:
 | Component | Directory | Checks |
 |---|---|---|
 | Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev pyright aus_accounting_mcp` |
-| LodgeiT calculator adapter | `apps/lodgeit-calculator-adapter/` | `uv run --locked --extra dev pytest -q --cov=lodgeitadapter --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check lodgeitadapter tests`; `uv run --locked --extra dev pyright lodgeitadapter`. Its gates run from `.github/workflows/ci-lodgeit-adapter.yml`, not `ci.yml`. |
+| LodgeiT calculator adapter (Rust) | `apps/lodgeit-calculator-adapter/` | `cargo fmt --check`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo test --locked`. Its gates run from `.github/workflows/ci-lodgeit-adapter.yml`, not `ci.yml`. |
 | AU tax rates data (Rust) | `packages/au-tax-rates-data/` | `cargo fmt --check`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo test --locked`; `cargo run --locked --release -- validate`. These run in the `au-tax-rates-data` job of `.github/workflows/ci.yml` on Ubuntu, Windows and macOS. The dataset is never released. |
 | Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py tests/test_shared_blocks.py` |
 
@@ -148,8 +148,8 @@ The existing component lock checks remain required.
 report, and it runs 2 things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
 The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, pyright and
-pytest commands on Ubuntu with Python 3.15. The adapter uses distinct `lodgeit`
-job names and a `lodgeit-gates` result check, keeping the MCP application's existing
+pytest commands on Ubuntu with Python 3.15. The adapter's jobs run in their own
+workflow with a `lodgeit-gates` result check, keeping the MCP application's existing
 release-check names unchanged. Branch protection requires one aggregate per
 workflow, `tests-gates`, `boundaries-gates`, `lodgeit-gates`, `public-fixtures-gates`
 and `codeql-gates`, plus the `CodeQL` results check and `Attribution policy`. Each
@@ -191,8 +191,8 @@ release callers require that test job; no second pytest run is needed.
   files, its engine dependencies, root tests, shared policy and workspace files, and any
   unknown path or comparison run its complete checks. Only known unrelated component
   paths can skip them. The MCP application includes its 4 engine dependencies; the
-  adapter includes the 2 engines used by its comparison tests. Root pytest checks these
-  dependency lists against both manifests on every change. The aggregate requires a
+  adapter includes the 2 engines its trials link. Root pytest checks these
+  dependency lists against each application's manifest on every change. The aggregate requires a
   successful selection and exactly the corresponding successful or skipped app jobs.
   Every main push and manual run executes all app checks, preserving release evidence.
 - `.github/ci/<engine>/checks.sh` holds an engine's own source guards, and
@@ -259,7 +259,7 @@ Registry through `publish-mcp.yml`.
 | div7a-loan-review (Rust) | reserved `div7a-loan-review/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | ato-benchmark-compare (Rust) | reserved `ato-benchmark-compare/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | payday-super-checker (Rust) | reserved `payday-super-checker/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
-| gst-review | `gst-review/vX.Y.Z` | `release-gst-review.yml` | `pyproject.toml` | `pypi-gst-review` |
+| gst-review (Rust) | reserved `gst-review/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 
 Tag and push with `just release <component>...` from the repository root, with `gh`
 authenticated with Administration read access. Before tagging anything it refuses unless

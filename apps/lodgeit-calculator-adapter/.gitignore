@@ -1,15 +1,5 @@
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-build/
+target/
 dist/
-*.egg-info/
-.pytest_cache/
-.coverage
-htmlcov/
-.uv/
-uv.lock.bak
 .DS_Store
 Thumbs.db
 
@@ -20,10 +10,3 @@ Thumbs.db
 *.token
 *.tokens
 *.pem
-
-# Test & Bytecode Caches
-.pytest_cache/
-__pycache__/
-*.py[cod]
-.ruff_cache/
-.mypy_cache/

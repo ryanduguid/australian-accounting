@@ -13,19 +13,27 @@ from select_package import is_shared, parse_changed_paths
 # Root pytest checks these lists against the manifests. Its required
 # boundaries-gates owner runs on every change, including a skipped app.
 DEPENDENCIES = {
-    # The apps take australian-tax-calculators, div7a-loan-review,
-    # ato-benchmark-compare and payday-super-checker from PyPI until the MCP
-    # server links the Rust crates, so their directories do not select them.
+    # The MCP server takes australian-tax-calculators, div7a-loan-review,
+    # ato-benchmark-compare, payday-super-checker and gst-review from PyPI
+    # until it links the Rust crates, so their directories do not select it.
     "aus-accounting-mcp": frozenset({
-        "gst-review", "lodgment-calendar",
+        "lodgment-calendar",
     }),
-    "lodgeit-calculator-adapter": frozenset(),
+    # The adapter's trials link these Rust engines by path.
+    "lodgeit-calculator-adapter": frozenset({
+        "australian-tax-calculators", "div7a-loan-review",
+    }),
 }
 PACKAGES = frozenset().union(*DEPENDENCIES.values(), {
     "solomons-sword", "the-exchequer-tally", "the-wip-tally", "australian-tax-calculators",
-    "div7a-loan-review", "ato-benchmark-compare", "payday-super-checker",
+    "div7a-loan-review", "ato-benchmark-compare", "payday-super-checker", "gst-review",
 })
-APP_JOBS = frozenset({"test", "lint", "dependency-audit"})
+# The jobs each application's selection runs or skips. The adapter's one job
+# calls ci-rust.yml.
+APP_JOBS = {
+    "aus-accounting-mcp": frozenset({"test", "lint", "dependency-audit"}),
+    "lodgeit-calculator-adapter": frozenset({"rust"}),
+}
 KNOWN_PREFIXES = tuple(f"packages/{name}/" for name in PACKAGES) + tuple(
     f"apps/{name}/" for name in DEPENDENCIES
 )
@@ -65,7 +73,7 @@ def changed_paths(root: Path) -> list[str]:
         return []
 
 
-def check_results(results: object, event: str) -> None:
+def check_results(results: object, event: str, app: str) -> None:
     if not isinstance(results, dict):
         raise ValueError("Job results must be an object")
     changes = results.get("changes")
@@ -75,13 +83,14 @@ def check_results(results: object, event: str) -> None:
     run = outputs.get("run") if isinstance(outputs, dict) else None
     if run not in ("true", "false") or (event != "pull_request" and run != "true"):
         raise ValueError("Invalid application selection")
-    if not APP_JOBS <= results.keys():
+    app_jobs = APP_JOBS[app]
+    if not app_jobs <= results.keys():
         raise ValueError("Missing application job results")
     expected_app = "success" if run == "true" else "skipped"
     failed = [
         name for name, job in results.items()
         if not isinstance(job, dict)
-        or job.get("result") != (expected_app if name in APP_JOBS else "success")
+        or job.get("result") != (expected_app if name in app_jobs else "success")
     ]
     if failed:
         raise ValueError("Jobs did not satisfy application selection: " + ", ".join(failed))
@@ -90,8 +99,8 @@ def check_results(results: object, event: str) -> None:
 def main(argv: list[str]) -> int:
     event = os.environ.get("GITHUB_EVENT_NAME", "")
     try:
-        if argv[1:] == ["gate"]:
-            check_results(json.loads(os.environ.get("RESULTS", "")), event)
+        if len(argv) == 3 and argv[1] == "gate" and argv[2] in DEPENDENCIES:
+            check_results(json.loads(os.environ.get("RESULTS", "")), event, argv[2])
         elif len(argv) == 3 and argv[1] == "select" and argv[2] in DEPENDENCIES:
             paths = changed_paths(Path.cwd()) if event == "pull_request" else []
             run = event != "pull_request" or should_run(argv[2], paths)
@@ -99,7 +108,7 @@ def main(argv: list[str]) -> int:
             print(f"Application checks: {reason}", file=sys.stderr)
             print(f"run={'true' if run else 'false'}")
         else:
-            print(f"usage: {argv[0]} select <app> | gate", file=sys.stderr)
+            print(f"usage: {argv[0]} select <app> | gate <app>", file=sys.stderr)
             return 2
     except (ValueError, TypeError) as error:
         print(str(error), file=sys.stderr)

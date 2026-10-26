@@ -4,10 +4,10 @@ authors:
   - family-names: Duguid
     given-names: Ryan
 title: "gst-review: Australian GST coding review and BAS-to-ledger reconciliation. Review aid, not a determination."
-version: 0.1.0
+version: 1.0.0
 url: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/gst-review"
 repository-code: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/gst-review"
-license: Apache-2.0
+license-url: "https://github.com/ryanduguid/australian-accounting/blob/main/packages/gst-review/LICENSE"
 keywords:
   - gst
   - bas

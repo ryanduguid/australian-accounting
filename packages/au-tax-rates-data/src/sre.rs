@@ -600,6 +600,7 @@ fn unicode_escape(source: &mut Tokenizer, escape: &mut Vec<u32>) -> PResult<Opti
             }
             let charname = source.getuntil('}', "character name")?;
             // shortcut: no Unicode name database, so every name is refused as undefined.
+            // Add a name table if a pattern needs a named escape.
             let mut msg = pts("undefined character name ");
             msg.extend(pts(&repr_points(&charname)));
             return Err(source.error(msg, charname.len() + 4));

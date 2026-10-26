@@ -24,7 +24,7 @@ availability must never gate a build here.
 cd apps/lodgeit-calculator-adapter
 BASE=https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app
 
-uv run --locked --extra dev lodgeit-adapter drift --enable-network --base-url "$BASE"
+cargo run --locked --release -- drift --enable-network --base-url "$BASE"
 ```
 
 `drift` exits non-zero when the live catalogue differs from the snapshot. Read
@@ -34,14 +34,14 @@ real. Nothing updates it for you.
 Then one calculation, with evidence:
 
 ```bash
-uv run --locked --extra dev lodgeit-adapter invoke \
+cargo run --locked --release -- invoke \
   --enable-network --base-url "$BASE" \
   --calculator urn:sbrm:calculator:div7a:at \
   --period urn:sbrm:period:div7a:fy2026 \
   --body fixtures/example-div7a-request.json \
   --evidence-out out/div7a-live.json
 
-uv run --locked --extra dev lodgeit-adapter verify --evidence out/div7a-live.json
+cargo run --locked --release -- verify --evidence out/div7a-live.json
 ```
 
 `out/` is not tracked. An evidence file from a live probe is a local record of

@@ -1,23 +1,16 @@
 # Releasing
 
-This project is a review aid. A release is a tagged source snapshot, not a
-determination, and it does not authorise anyone to skip the current-source check
-below.
+Native version 1.0.0 is unreleased. `Cargo.toml` owns its version. Keep the citation,
+release-note heading and Cargo locks aligned. CI builds and checks Windows, macOS
+and Linux archives; it does not publish them. Native publication waits for the
+repository's reviewed Rust release workflow and explicit release authorisation.
+Do not send the Rust crate through the retired Python publisher.
 
-## Before tagging
+The published Python 0.1.0 remains available for the MCP façade's exact pin.
+Removing its source from this checkout does not withdraw or replace that release.
+Historical tags and attestations remain unchanged.
 
-1. Confirm the GST Act compilation cited in `gstreview/coding.py` is still the one in
-   force at legislation.gov.au, and that the ATO BAS pages cited in `gstreview/bas.py`
-   still say what the README relies on: G labels follow the G1 choice of including GST,
-   and ledger totals round down to whole dollars. If either moved, update the source
-   links, `SOURCE_CHECKED` and the README in the same commit as the code.
-2. `uv run --locked --extra dev pytest --cov --cov-branch`
-3. `uv run --locked --extra dev ruff check .`
-4. `uv run --locked --extra dev pyright`
-5. Run both README examples and compare their output with the README.
-
-## Version
-
-The version source is `[project].version` in `pyproject.toml`. Keep `__version__` in
-`gstreview/_version.py` aligned with it; the package identity test checks both copies.
-Update the release-note heading, citation and lockfiles in the same commit.
+Before a future native release, recheck the current GST Act and ATO BAS sources
+recorded in `src/constants.json`, then run the checks documented in the README,
+both fabricated examples and the root boundary and umbrella parity checks.
+A port parity result does not establish that the law or guidance remains current.

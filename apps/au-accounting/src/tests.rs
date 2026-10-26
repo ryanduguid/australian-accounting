@@ -125,9 +125,15 @@ fn serde_keeps_syntax_utf8_and_recursion_validation() {
 
 #[test]
 fn every_engine_and_command_name_routes_to_one_engine() {
-    let mut names: Vec<&str> = ENGINES.iter().flat_map(|e| [e.name, e.command]).collect();
-    names.sort_unstable();
-    names.dedup();
-    assert_eq!(names.len(), 2 * ENGINES.len());
+    for (index, engine) in ENGINES.iter().enumerate() {
+        for name in [engine.name, engine.command] {
+            assert_eq!(
+                ENGINES
+                    .iter()
+                    .position(|e| e.name == name || e.command == name),
+                Some(index)
+            );
+        }
+    }
     assert!(help().lines().all(|line| line.len() <= 80));
 }

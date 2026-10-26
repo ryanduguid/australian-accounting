@@ -1,0 +1,29 @@
+[package]
+name = "gst-review"
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.99"
+description = "Review aids for Australian GST coding and BAS-to-ledger reconciliation"
+license = "FSL-1.1-ALv2"
+repository = "https://github.com/ryanduguid/australian-accounting"
+homepage = "https://duguid.com.au/tools/australian-tax-ai-agents/"
+publish = false
+
+[dependencies]
+chrono = { version = "0.4.45", default-features = false, features = ["std"] }
+num-bigint = "0.5"
+num-integer = "0.1"
+num-traits = "0.2"
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/{ name }/v{ version }/{ name }-{ version }-{ target }{ archive-suffix }"
+bin-dir = "{ name }-{ version }-{ target }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"

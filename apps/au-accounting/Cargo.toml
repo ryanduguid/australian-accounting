@@ -4,11 +4,12 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.99"
 description = "One command for the Australian accounting engines in this repository"
-license = "Apache-2.0"
+license = "FSL-1.1-ALv2"
 repository = "https://github.com/ryanduguid/australian-accounting"
 publish = false
 
 [dependencies]
+gst-review = { path = "../../packages/gst-review" }
 ato-benchmark-compare = { path = "../../packages/ato-benchmark-compare" }
 australian-tax-calculators = { path = "../../packages/australian-tax-calculators" }
 div7a-loan-review = { path = "../../packages/div7a-loan-review" }

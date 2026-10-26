@@ -699,9 +699,9 @@ fast-check's, so the random cases differ.
 | `test_workbook.py::test_sample_matches_the_engine_line_by_line` | Moved to the repository's `tests/test_payday_workbook.py`, reading the engine answer `workbook.rs` holds in `tests/data/workbook-sample.json` |
 | `test_workbook.py::test_holiday_and_gic_tables_match_the_shipped_data` | Moved to the repository's `tests/test_payday_workbook.py` |
 | `test_workbook.py::test_input_columns_are_formatted_so_pasted_values_stay_inert` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_every_register_date_is_read_as_a_whole_calendar_day` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_a_blank_register_date_stays_blank_through_the_whole_day_columns` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_the_register_refuses_the_dates_and_amounts_the_checker_refuses` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_amount_invariants_compare_cents_not_raw_input` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_the_gic_table_holds_only_published_contiguous_quarters` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_a_bare_receipt_date_is_left_unknown_in_the_workbook` | Moved to the repository's `tests/test_payday_workbook.py` |
+| `test_workbook.py::test_every_register_date_is_read_as_a_whole_calendar_day` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |
+| `test_workbook.py::test_a_blank_register_date_stays_blank_through_the_whole_day_columns` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |
+| `test_workbook.py::test_the_register_refuses_the_dates_and_amounts_the_checker_refuses` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |
+| `test_workbook.py::test_amount_invariants_compare_cents_not_raw_input` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |
+| `test_workbook.py::test_the_gic_table_holds_only_published_contiguous_quarters` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |
+| `test_workbook.py::test_a_bare_receipt_date_is_left_unknown_in_the_workbook` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |

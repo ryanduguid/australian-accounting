@@ -1,3 +1,14 @@
+# v1.0.0 (unreleased)
+
+The GST coding and BAS reconciliation engines are now standalone Rust. Both
+JSON stdin commands preserve the Python 0.1.0 review results and refusals. Amounts
+are decimal strings and dates are canonical ISO strings. The Python import package
+is removed from this checkout; the MCP façade still pins the published 0.1.0.
+The native publisher is pending. No tag, release or package is published here.
+
+Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
+Apache-2.0 as the future licence). Released versions keep their licence.
+
 # v0.1.0
 
 This is the first PyPI release of `gst-review`, published through

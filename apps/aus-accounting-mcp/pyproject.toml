@@ -8,7 +8,7 @@ version = "0.7.0"
 description = "Local accounting reviews, fourteen bounded tax and super worksheets and cited retrieval from your configured local Markdown folder. uvx from PyPI; not advice."
 readme = "README.md"
 requires-python = ">=3.14"
-license = "Apache-2.0"
+license = "FSL-1.1-ALv2"
 license-files = ["LICENSE", "NOTICE"]
 authors = [
     { name = "Ryan Duguid", email = "ryan@duguid.com.au" }
@@ -120,7 +120,6 @@ extraPaths = [
     "../../packages/payday-super-checker",
     "../../packages/div7a-loan-review",
     "../../packages/australian-tax-calculators",
-    "../../packages/gst-review",
     "../../packages/lodgment-calendar",
 ]
 

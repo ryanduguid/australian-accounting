@@ -1,0 +1,43 @@
+[package]
+name = "lodgeit-calculator-adapter"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+description = "Optional, explicitly enabled adapter for the LodgeiT Labs calculator constellation"
+license = "FSL-1.1-ALv2"
+repository = "https://github.com/ryanduguid/australian-accounting"
+publish = false
+
+[[bin]]
+name = "lodgeit-adapter"
+path = "src/main.rs"
+
+[[bin]]
+name = "adapter-vectors"
+path = "src/bin/vectors.rs"
+required-features = ["differential"]
+
+[dependencies]
+num-bigint = "0.4.8"
+num-integer = "0.1"
+num-traits = "0.2"
+australian-tax-calculators = { path = "../../packages/australian-tax-calculators" }
+div7a-loan-review = { path = "../../packages/div7a-loan-review" }
+sha2 = "0.11.1"
+# Unicode 17, the version CPython 3.15 normalises with (urlsplit's netloc check).
+unicode-normalization = "=0.1.25"
+rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12"] }
+rustls-platform-verifier = "0.7.1"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[features]
+# A fixed clock and elapsed time for the differential harness: present day,
+# present time, every run. Release builds
+# leave it off.
+differential = []
+
+[profile.release]
+lto = true
+codegen-units = 1

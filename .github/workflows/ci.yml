@@ -55,10 +55,6 @@ jobs:
         # changed-line-coverage lists the risk-scoped files held to complete
         # changed-line branch coverage against main.
         include:
-          - package: gst-review
-            import-name: gstreview
-            windows-python: ""
-            changed-line-coverage: ""
           - package: lodgment-calendar
             import-name: lodgmentcalendar
             windows-python: ""
@@ -128,6 +124,14 @@ jobs:
     permissions:
       contents: read
 
+  gst:
+    name: gst-review
+    uses: ./.github/workflows/ci-rust.yml
+    with:
+      package: gst-review
+    permissions:
+      contents: read
+
   rates:
     name: au-tax-rates-data
     uses: ./.github/workflows/ci-rust.yml
@@ -152,7 +156,7 @@ jobs:
   # the native candidates the jobs above built from this commit.
   umbrella-parity:
     name: au-accounting parity (${{ matrix.os }})
-    needs: [exchequer, solomons, wip, taxcalc, div7a, atobench, payday, umbrella]
+    needs: [exchequer, solomons, wip, taxcalc, div7a, atobench, payday, gst, umbrella]
     strategy:
       fail-fast: false
       matrix:
@@ -170,7 +174,7 @@ jobs:
           python-version: "3.14"
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          pattern: "{the-exchequer-tally,solomons-sword,the-wip-tally,australian-tax-calculators,div7a-loan-review,ato-benchmark-compare,payday-super-checker,au-accounting}-${{ matrix.os }}"
+          pattern: "{the-exchequer-tally,solomons-sword,the-wip-tally,australian-tax-calculators,div7a-loan-review,ato-benchmark-compare,payday-super-checker,gst-review,au-accounting}-${{ matrix.os }}"
           path: candidates
           merge-multiple: true
       - name: Unpack the native commands
@@ -185,7 +189,7 @@ jobs:
             esac
           done
           find candidates -mindepth 2 -type f -exec cp {} bin/ \;
-          test "$(ls bin | wc -l)" -eq 8
+          test "$(ls bin | wc -l)" -eq 9
       - name: Compare every engine with au-accounting
         run: python -I apps/au-accounting/tests/parity.py bin --cap 600
 
@@ -328,7 +332,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, payday, rates, umbrella, umbrella-parity, test, dependency-audit, lint]
+    needs: [changes, packages, exchequer, solomons, wip, taxcalc, div7a, atobench, payday, gst, rates, umbrella, umbrella-parity, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -347,7 +351,7 @@ jobs:
       - name: Require selected checks to succeed and unselected checks to skip
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python3 .github/ci/app_ci.py gate
+        run: python3 .github/ci/app_ci.py gate aus-accounting-mcp
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}
