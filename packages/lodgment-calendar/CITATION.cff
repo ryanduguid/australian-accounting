@@ -7,7 +7,7 @@ title: "lodgment-calendar: ATO lodgment program due dates for BAS, IAS and incom
 version: 0.1.0
 url: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/lodgment-calendar"
 repository-code: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/lodgment-calendar"
-license: Apache-2.0
+license-url: "https://github.com/ryanduguid/australian-accounting/blob/main/packages/lodgment-calendar/LICENSE"
 keywords:
   - lodgment-program
   - bas

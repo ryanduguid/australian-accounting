@@ -7,7 +7,7 @@ title: "payday-super-checker: experimental Payday Super review CLI. Not a compli
 version: 1.0.0
 url: "https://duguid.com.au/tools/payday-super/"
 repository-code: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker"
-license: Apache-2.0
+license-url: "https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/LICENSE"
 keywords:
   - superannuation
   - payday-super

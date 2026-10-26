@@ -14,6 +14,8 @@ verification and documented divergences, and [README.md](README.md) to build it.
 
 - The `review-pack --as-at` help now describes the existing default: the schedule
   date, or today if unavailable. Date selection and calculations are unchanged.
+- Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
+  Apache-2.0 as the future licence). Released versions keep their licence.
 
 # v0.2.0
 

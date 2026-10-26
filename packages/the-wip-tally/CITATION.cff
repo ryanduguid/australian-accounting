@@ -7,7 +7,7 @@ title: "TheWIPTally: deterministic AASB 15 construction WIP schedule. Review aid
 version: 1.0.0
 url: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally"
 repository-code: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally"
-license: Apache-2.0
+license-url: "https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/LICENSE"
 keywords:
   - aasb-15
   - construction-accounting

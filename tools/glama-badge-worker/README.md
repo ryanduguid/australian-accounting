@@ -61,7 +61,7 @@ prove production CPU limits or capacity across all 2,947 identities. A public
 canary must verify HTTPS, freshness, failure responses and resource usage before
 any bulk README migration. Deployment needs Ryan's approval.
 
-Licensed under Apache-2.0.
+Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 two years after it is made available. See [LICENSE](../../LICENSE) and [NOTICE](../../NOTICE).
 
 Verify Cache API writes and hits on the exact approved public hostname.
 Cloudflare documents functional caching on custom domains and no effect in
