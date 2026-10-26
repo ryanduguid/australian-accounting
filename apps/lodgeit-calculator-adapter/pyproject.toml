@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Optional, explicitly enabled adapter for the LodgeiT Labs calculator constellation, with independent comparison trials. Never called by an offline engine."
 readme = "README.md"
 requires-python = ">=3.14"
-license = "Apache-2.0"
+license = "FSL-1.1-ALv2"
 license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Ryan Duguid" }]
 keywords = ["australian-tax", "division-7a", "fbt", "depreciation", "interoperability"]

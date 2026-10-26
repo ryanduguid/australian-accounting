@@ -7,7 +7,7 @@ title: "div7a-loan-review: experimental ITAA 1936 Division 7A loan-terms and min
 version: 1.0.0
 url: "https://duguid.com.au/rates/div7a-benchmark-rate/"
 repository-code: "https://github.com/ryanduguid/australian-accounting/tree/main/packages/div7a-loan-review"
-license: Apache-2.0
+license-url: "https://github.com/ryanduguid/australian-accounting/blob/main/packages/div7a-loan-review/LICENSE"
 keywords:
   - division-7a
   - itaa-1936
