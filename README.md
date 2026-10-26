@@ -239,3 +239,7 @@ Each component's `LICENSE` applies to that component, and
 ATO material. Outputs are review aids, not advice.
 
 </details>
+
+---
+
+<p align="center"><sub>Solomon Grundy, born on a Monday, reconciled by Sunday.<br>Made in Newcastle, Australia by <a href="https://duguid.com.au/">Ryan Duguid</a>.</sub></p>
