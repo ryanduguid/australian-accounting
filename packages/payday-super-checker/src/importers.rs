@@ -4,7 +4,7 @@
 //! No vendor export carries a fund receipt date, so every vendor date lands
 //! in `remitted` and the receipt column is left empty. Where a profile
 //! classifies a status column, a vendor date lands in `remitted` only when
-//! the row's status shows the payment actually left the employer.
+//! the row's status shows the payment was sent to the fund.
 
 use crate::csv_io::{
     self, Cell, DictReader, LATEST_SANE_YEAR, ReadFailure, cents, csv_safe, malformed_row_problem,

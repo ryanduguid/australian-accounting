@@ -9,6 +9,8 @@ and 3,400 generated API calls and command runs: 4,883 cases in all.
 `tests/parity.rs` replays them and compares complete results, key order, output
 bytes and written files included.
 Results and streams over 4 KiB are stored as an FNV-1a fingerprint and length.
+`tests/data/amendments.json` replaces the answers of cases that a deliberate
+change since 0.2.2 alters, by case index, with the reason for each change.
 
 The generated cases include malformed dates, amounts and flags in the CSV
 columns, mapping and calendar override files, Xero, MYOB and Employment Hero
