@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "ATO lodgment program due dates for BAS, IAS and income tax returns, with cited rules and UNKNOWN for missing facts. Preparation aid, not a determination."
 readme = "README.md"
 requires-python = ">=3.14"
-license = "Apache-2.0"
+license = "FSL-1.1-ALv2"
 license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Ryan Duguid" }]
 keywords = ["australia", "ato", "lodgment-program", "bas", "tax-agent", "bas-agent", "due-dates"]

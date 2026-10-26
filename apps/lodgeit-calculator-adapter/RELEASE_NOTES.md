@@ -15,6 +15,8 @@ First cut. Not released, not published, not tagged.
   depreciation and Fano, with evaluation outcomes that are deliberately not
   accounting-review states.
 - A CLI, and an MCP surface behind its own optional extra.
+- Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
+  Apache-2.0 as the future licence). Released versions keep their licence.
 
 Nothing here has been verified against the live service beyond the contract
 reading recorded in `contracts/` on 18 September 2026.
