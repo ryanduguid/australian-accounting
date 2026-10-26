@@ -6,7 +6,7 @@ version = 4
 name = "australian-tax-calculators"
 version = "1.0.0"
 dependencies = [
- "num-bigint 0.5.1",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "serde_json",
@@ -121,7 +121,7 @@ name = "div7a-loan-review"
 version = "1.0.0"
 dependencies = [
  "libc",
- "num-bigint 0.5.1",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "serde_json",
@@ -250,7 +250,7 @@ dependencies = [
  "australian-tax-calculators",
  "div7a-loan-review",
  "libc",
- "num-bigint 0.4.8",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "rustls",
@@ -270,16 +270,6 @@ name = "memchr"
 version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
-
-[[package]]
-name = "num-bigint"
-version = "0.4.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c89e69e7e0f03bea5ef08013795c25018e101932225a656383bd384495ecc367"
-dependencies = [
- "num-integer",
- "num-traits",
-]
 
 [[package]]
 name = "num-bigint"
