@@ -69,6 +69,7 @@ updates:
       - /packages/gst-review
       - /packages/au-tax-rates-data
       - /apps/au-accounting
+      - /apps/lodgeit-calculator-adapter
     schedule:
       interval: weekly
     open-pull-requests-limit: 2

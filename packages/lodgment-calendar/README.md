@@ -141,4 +141,4 @@ time.
 
 ## Licence
 
-Apache-2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 two years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

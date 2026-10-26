@@ -5,6 +5,9 @@ former functions are JSON stdin subcommands. See [CHANGELOG.md](CHANGELOG.md)
 for migration, verification and documented divergences, and
 [README.md](README.md) to build it.
 
+Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
+Apache-2.0 as the future licence). Released versions keep their licence.
+
 # v0.2.0
 
 - Adds the four already merged worksheets for Schedule 8 study-loan withholding,

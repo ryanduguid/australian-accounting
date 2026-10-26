@@ -1,17 +1,17 @@
 # Core client catalogue preview
 
-`lodgeitadapter.core` reads one page of non-archived client identities from the
+`lodgeit_calculator_adapter::core` reads one page of non-archived client identities from the
 public LodgeiT Core preview contract captured on 9 October 2026. It is a separate
 opt-in library interface in the existing network application. Calculator config,
-CLI, MCP, trials and evidence writers do not call it.
+CLI, trials and evidence writers do not call it.
 
-```python
-from lodgeitadapter.core import CoreClient, CoreConfig
+```rust
+use lodgeit_calculator_adapter::core::{CoreClient, CoreConfig};
 
-client = CoreClient(CoreConfig(enabled=True))
-page = client.list_clients(bearer_token=host_token, page_size=100)
-# Inspect page.items in the authorised local consumer.
-# Pass page.continuation to a later explicit call to read the next page.
+let client = CoreClient { config: CoreConfig::new(true, 20.0, 1024 * 1024)? };
+let page = client.list_clients(&host_token, 100, None)?;
+// Inspect page.items in the authorised local consumer.
+// Pass page.continuation.as_ref() to a later explicit call to read the next page.
 ```
 
 The host obtains and manages `host_token`. This module reads no environment
@@ -46,15 +46,16 @@ Custom redirect refusals and malformed redirect locations produce transport
 errors without an HTTP status. A redirect scheme refused by the standard handler
 as an HTTP error produces a protocol mismatch with its status, as does an
 unexpected non-redirect status. None exposes a redirect destination.
-Core clears its bearer, continuation, request body and
-raw response bindings on every exit, including early input refusals. Caller
-frames and external telemetry still require the host's own sensitive-data policy.
+A `CoreError` holds only its category and HTTP status, never the bearer,
+continuation, request body or raw response. The bearer stays the caller's
+borrowed string. Callers and external telemetry still require the host's own
+sensitive-data policy.
 
-The returned immutable objects contain client UUID, optional custom code,
+The returned values contain client UUID, optional custom code,
 archived/private flags and an opaque continuation. These values can identify
-people or organisations and must be handled as sensitive. Their ordinary
+people or organisations and must be handled as sensitive. Their `Debug`
 representations are redacted; callers can deliberately inspect or serialise the
-fields. The package logs and persists none of them and exposes no Core evidence
+fields. The crate logs and persists none of them and exposes no Core evidence
 writer. An unexpected profile may transiently arrive in memory, but it is refused
 and never returned. This is not an in-process sandbox or a memory-erasure guarantee.
 
