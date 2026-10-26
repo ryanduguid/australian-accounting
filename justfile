@@ -13,7 +13,6 @@
 components := trim(replace('''
 packages/lodgment-calendar:lodgmentcalendar
 apps/aus-accounting-mcp:aus_accounting_mcp
-apps/lodgeit-calculator-adapter:lodgeitadapter
 ''', "\n", " "))
 
 # List the available recipes.
@@ -91,9 +90,9 @@ release +args:
 # The fast local pass: lint, type-check and test every component.
 check: lint typecheck test
 
-# Standalone Rust engines, the au-accounting command and the rates dataset's
-# validator, outside the virtual Python workspace.
-rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review packages/ato-benchmark-compare packages/payday-super-checker packages/gst-review apps/au-accounting packages/au-tax-rates-data"
+# Standalone Rust engines, the au-accounting command, the rates dataset's
+# validator and the LodgeiT adapter, outside the virtual Python workspace.
+rust_engines := "packages/the-exchequer-tally packages/solomons-sword packages/the-wip-tally packages/australian-tax-calculators packages/div7a-loan-review packages/ato-benchmark-compare packages/payday-super-checker packages/gst-review apps/au-accounting packages/au-tax-rates-data apps/lodgeit-calculator-adapter"
 
 rust-test:
     #!/usr/bin/env bash
