@@ -19,7 +19,7 @@
 [![OpenSSF Best Practices](https://img.shields.io/cii/level/15429?label=Best%20Practices&labelColor=000000&style=flat)](https://www.bestpractices.dev/projects/15429)
 [![SLSA 3](https://img.shields.io/badge/SLSA-level%203-990024?labelColor=000000&style=flat&color=990024)](https://github.com/ryanduguid/australian-accounting/attestations)
 [![VirusTotal](https://img.shields.io/badge/VirusTotal-scanned-990024?labelColor=000000&style=flat&logo=virustotal&logoColor=FFD32A&color=990024)](https://github.com/ryanduguid/australian-accounting/releases)<br>
-[![licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
+[![licence: FSL-1.1-ALv2](https://img.shields.io/badge/licence-FSL--1.1--ALv2-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
 [![Open in GitHub Codespaces](https://img.shields.io/badge/GitHub-Codespaces-66023C?style=flat&labelColor=000000&logo=github&logoColor=FFD32A)](https://codespaces.new/ryanduguid/australian-accounting)
 [![Glama MCP server score](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/score.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
 
@@ -162,7 +162,7 @@ For an editable source installation, run `pip install -e .` from
 | `apps/au-accounting/` | `au-accounting` (Rust) | none | `au-accounting`, one subcommand per Rust engine |
 | `packages/gst-review/` | `gst-review` (Rust) | none | `gst-review`: GST coding states against registration and BAS-to-ledger reconciliation |
 | `packages/lodgment-calendar/` | `lodgment-calendar` (not yet released) | `lodgmentcalendar` | Python function: ATO lodgment program due dates for BAS, IAS and income tax returns, `UNKNOWN` where a fact is missing |
-| `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` | `lodgeitadapter` | optional adapter for a third-party calculator service; off by default, makes HTTP calls only when `LODGEIT_ADAPTER_ENABLED=1` |
+| `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` (Rust, not released) | none | `lodgeit-adapter`: optional adapter for a third-party calculator service; off by default, makes HTTP calls only when enabled (`LODGEIT_ADAPTER_ENABLED=1` or `--enable-network`) |
 | `packages/au-tax-rates-data/` | `au-tax-rates-data` (Rust, never released) | none | `rates validate`, `snapshot`, `check` and `ato-tables`: ATO rates and thresholds with verbatim source quotes, validated offline |
 
 `IMPORTS.md` records the source repository, commit and tree of every imported component. The

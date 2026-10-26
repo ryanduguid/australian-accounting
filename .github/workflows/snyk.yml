@@ -136,7 +136,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [the-exchequer-tally, solomons-sword, the-wip-tally, australian-tax-calculators, div7a-loan-review, ato-benchmark-compare, payday-super-checker, gst-review, au-tax-rates-data, au-accounting]
+        package: [the-exchequer-tally, solomons-sword, the-wip-tally, australian-tax-calculators, div7a-loan-review, ato-benchmark-compare, payday-super-checker, gst-review, au-tax-rates-data, au-accounting, lodgeit-calculator-adapter]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -149,7 +149,7 @@ jobs:
           rustup toolchain install 1.99 --profile minimal
           cargo install cargo-cyclonedx --locked --version 0.5.9
       - name: Test the Cargo graph
-        working-directory: ${{ matrix.package == 'au-accounting' && 'apps' || 'packages' }}/${{ matrix.package }}
+        working-directory: ${{ (matrix.package == 'au-accounting' || matrix.package == 'lodgeit-calculator-adapter') && 'apps' || 'packages' }}/${{ matrix.package }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |

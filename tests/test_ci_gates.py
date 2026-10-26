@@ -216,6 +216,12 @@ class ApplicationSelectionTests(unittest.TestCase):
         rust_packages = {path.parent.name for path in ROOT.glob("packages/*/Cargo.toml")}
         self.assertTrue(self.ci.PACKAGES <= packages | rust_packages)
         for app, expected in self.ci.DEPENDENCIES.items():
+            cargo = ROOT / "apps" / app / "Cargo.toml"
+            if cargo.is_file():
+                links = {name for name, dep in tomllib.loads(cargo.read_text())["dependencies"].items()
+                         if isinstance(dep, dict) and "path" in dep}
+                self.assertEqual(links & rust_packages, expected, app)
+                continue
             project = tomllib.loads((ROOT / "apps" / app / "pyproject.toml").read_text())["project"]
             declared = project.get("dependencies", []) + [
                 requirement for extra in project.get("optional-dependencies", {}).values()
@@ -340,66 +346,71 @@ class ApplicationGitTests(unittest.TestCase):
 class ApplicationGateTests(unittest.TestCase):
     def test_gate_truth_table_and_every_malformed_or_unsuccessful_job(self) -> None:
         ci = application_ci()
-        for selection, result in (("true", "success"), ("false", "skipped")):
-            success = {name: {"result": result} for name in ci.APP_JOBS}
-            success.update(changes={"result": "success", "outputs": {"run": selection}},
-                           packages={"result": "success"}, future={"result": "success"})
-            ci.check_results(success, "pull_request")
-            for name in success:
-                for bad in ("failure", "cancelled", "skipped", "success", "unknown", None):
-                    expected = result if name in ci.APP_JOBS else "success"
-                    if bad == expected:
-                        continue
-                    with self.subTest(selection=selection, name=name, bad=bad):
-                        changed = copy.deepcopy(success)
-                        changed[name]["result"] = bad
+        for app, app_jobs in ci.APP_JOBS.items():
+            for selection, result in (("true", "success"), ("false", "skipped")):
+                success = {name: {"result": result} for name in app_jobs}
+                success.update(changes={"result": "success", "outputs": {"run": selection}},
+                               packages={"result": "success"}, future={"result": "success"})
+                ci.check_results(success, "pull_request", app)
+                for name in success:
+                    for bad in ("failure", "cancelled", "skipped", "success", "unknown", None):
+                        expected = result if name in app_jobs else "success"
+                        if bad == expected:
+                            continue
+                        with self.subTest(selection=selection, name=name, bad=bad):
+                            changed = copy.deepcopy(success)
+                            changed[name]["result"] = bad
+                            with self.assertRaises(ValueError):
+                                ci.check_results(changed, "pull_request", app)
+                    for malformed in (None, [], "success", {}):
+                        with self.subTest(name=name, malformed=malformed):
+                            with self.assertRaises(ValueError):
+                                ci.check_results({**success, name: malformed}, "pull_request", app)
+                    if name in app_jobs | {"changes"}:
                         with self.assertRaises(ValueError):
-                            ci.check_results(changed, "pull_request")
-                for malformed in (None, [], "success", {}):
-                    with self.subTest(name=name, malformed=malformed):
-                        with self.assertRaises(ValueError):
-                            ci.check_results({**success, name: malformed}, "pull_request")
-                if name in ci.APP_JOBS | {"changes"}:
+                            ci.check_results({k: v for k, v in success.items() if k != name}, "pull_request", app)
+                for invalid in (None, True, False, "TRUE", "false ", "", [], {}):
+                    changed = copy.deepcopy(success)
+                    changed["changes"]["outputs"]["run"] = invalid
+                    with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                        ci.check_results(changed, "pull_request", app)
+                for malformed in (None, [], "true", {}):
+                    changed = copy.deepcopy(success)
+                    changed["changes"]["outputs"] = malformed
                     with self.assertRaises(ValueError):
-                        ci.check_results({k: v for k, v in success.items() if k != name}, "pull_request")
-            for invalid in (None, True, False, "TRUE", "false ", "", [], {}):
-                changed = copy.deepcopy(success)
-                changed["changes"]["outputs"]["run"] = invalid
-                with self.subTest(invalid=invalid), self.assertRaises(ValueError):
-                    ci.check_results(changed, "pull_request")
-            for malformed in (None, [], "true", {}):
-                changed = copy.deepcopy(success)
-                changed["changes"]["outputs"] = malformed
+                        ci.check_results(changed, "pull_request", app)
+                if selection == "false":
+                    for event in ("push", "workflow_dispatch", ""):
+                        with self.assertRaises(ValueError):
+                            ci.check_results(success, event, app)
+            for malformed in (None, [], "success", {}):
                 with self.assertRaises(ValueError):
-                    ci.check_results(changed, "pull_request")
-            if selection == "false":
-                for event in ("push", "workflow_dispatch", ""):
-                    with self.assertRaises(ValueError):
-                        ci.check_results(success, event)
-        for malformed in (None, [], "success", {}):
-            with self.assertRaises(ValueError):
-                ci.check_results(malformed, "pull_request")
+                    ci.check_results(malformed, "pull_request", app)
 
     def test_gate_cli_works_with_sparse_checkout_and_rejects_invalid_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             shutil.copytree(CHECK.parent, root / ".github/ci", ignore=shutil.ignore_patterns("__pycache__"))
-            results = {name: {"result": "skipped"} for name in application_ci().APP_JOBS}
-            results["changes"] = {"result": "success", "outputs": {"run": "false"}}
-            for raw, expected in ((json.dumps(results), 0), ("{invalid", 1), ("null", 1)):
-                # The current interpreter runs the copied repository gate with no shell.
-                # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
-                done = subprocess.run(  # nosec B603
-                    [sys.executable, str(root / ".github/ci/app_ci.py"), "gate"], cwd=root,
-                    env={**os.environ, "RESULTS": raw, "GITHUB_EVENT_NAME": "pull_request"},
-                    capture_output=True, text=True, check=False,
-                )
-                self.assertEqual(done.returncode, expected, done.stderr)
+            for app, app_jobs in application_ci().APP_JOBS.items():
+                results = {name: {"result": "skipped"} for name in app_jobs}
+                results["changes"] = {"result": "success", "outputs": {"run": "false"}}
+                for raw, gate, expected in ((json.dumps(results), [app], 0), ("{invalid", [app], 1),
+                                            ("null", [app], 1), (json.dumps(results), [], 2),
+                                            (json.dumps(results), ["unknown-app"], 2)):
+                    # The current interpreter runs the copied repository gate with no shell.
+                    # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+                    done = subprocess.run(  # nosec B603
+                        [sys.executable, str(root / ".github/ci/app_ci.py"), "gate", *gate], cwd=root,
+                        env={**os.environ, "RESULTS": raw, "GITHUB_EVENT_NAME": "pull_request"},
+                        capture_output=True, text=True, check=False,
+                    )
+                    with self.subTest(app=app, raw=raw, gate=gate):
+                        self.assertEqual(done.returncode, expected, done.stderr)
 
 
 class GateWiringTests(unittest.TestCase):
     def test_application_coverage_producers_select_a_retained_interpreter(self) -> None:
-        for filename in ("ci.yml", "ci-lodgeit-adapter.yml"):
+        for filename in ("ci.yml",):
             with self.subTest(workflow=filename):
                 test = job_block((WORKFLOWS / filename).read_text(encoding="utf-8"), "test")
                 self.assertIn('python: "3.14"', test)
@@ -425,13 +436,13 @@ class GateWiringTests(unittest.TestCase):
             self.assertIn("persist-credentials: false", changes)
             self.assertIn(f'run: python3 .github/ci/app_ci.py select {app} >> "$GITHUB_OUTPUT"', changes)
             self.assertIn("run: ${{ steps.select.outputs.run }}", changes)
-            for name in application_ci().APP_JOBS:
+            for name in application_ci().APP_JOBS[app]:
                 job = job_block(text, name)
                 self.assertIn("needs: changes\n", job)
                 self.assertIn("if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'", job)
                 self.assertNotIn("continue-on-error", job)
             gate = gate_job(workflow, GATES[workflow])
-            self.assertIn("run: python3 .github/ci/app_ci.py gate", gate)
+            self.assertIn(f"run: python3 .github/ci/app_ci.py gate {app}\n", gate)
             self.assertIn(f"check_gates.py .github/workflows/{workflow} {GATES[workflow]} --no-results", gate)
             if workflow == "ci.yml":
                 packages = job_block(text, "packages")

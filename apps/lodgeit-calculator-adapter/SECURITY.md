@@ -9,7 +9,7 @@ fixed read route, per-call authentication and sensitive client-data projection.
 
 No credentials, no tokens, no API keys, no account. The provider's calculator
 surface is open access. If a provider later requires a key, adding one is a
-change to review here, not a configuration tweak: this package has no code for
+change to review here, not a configuration tweak: this crate has no code for
 reading a secret and none should be added without deciding where the secret
 lives and who can read it.
 
@@ -32,7 +32,7 @@ lives and who can read it.
 Send fabricated figures. This component is built for synthetic trials, and an
 evidence file records whether its input was synthetic.
 
-Nothing is logged by the package itself: no request body, no response body, no
+Nothing is logged by the adapter itself: no request body, no response body, no
 amount. The CLI prints what you asked it for, to your terminal.
 
 Do not send client payroll, client loans or any identifier through the

@@ -10,7 +10,7 @@
 
 [tool.uv.workspace]
 members = ["packages/*", "apps/*"]
-exclude = ["packages/the-exchequer-tally", "packages/solomons-sword", "packages/the-wip-tally", "packages/australian-tax-calculators", "packages/div7a-loan-review", "packages/ato-benchmark-compare", "packages/payday-super-checker", "packages/gst-review", "apps/au-accounting", "packages/au-tax-rates-data"]
+exclude = ["packages/the-exchequer-tally", "packages/solomons-sword", "packages/the-wip-tally", "packages/australian-tax-calculators", "packages/div7a-loan-review", "packages/ato-benchmark-compare", "packages/payday-super-checker", "packages/gst-review", "apps/au-accounting", "packages/au-tax-rates-data", "apps/lodgeit-calculator-adapter"]
 
 # The Python components pin the shared toolchain to one exact version each, so the
 # workspace resolves it without an override. Keep those pins identical: a
@@ -28,13 +28,9 @@ lodgment-calendar = { workspace = true }
 
 # australian-tax-calculators, div7a-loan-review, ato-benchmark-compare and
 # payday-super-checker are now Rust crates outside the workspace. Until the MCP
-# server links them directly, the applications take each engine's last Python
-# release from PyPI (0.2.0, 0.3.2, 0.2.2 and 0.2.2), whose engine code the
-# crates' parity corpora pin. The workspace resolves one
-# version of each, so these override the applications' older exact pins as the
-# workspace members did; each application's own uv.lock keeps its pins.
-[tool.uv]
-override-dependencies = ["australian-tax-calculators==0.2.0", "div7a-loan-review==0.3.2", "ato-benchmark-compare==0.2.2", "payday-super-checker==0.2.2"]
+# server links them directly, it takes each engine's last Python release from
+# PyPI (0.2.0, 0.3.2, 0.2.2 and 0.2.2), whose engine code the crates' parity
+# corpora pin.
 
 # The shared toolchain for running every component's checks from one
 # environment. Components keep their own `dev` extras, which remain the
@@ -79,12 +75,10 @@ pythonVersion = "3.14"
 include = [
     "packages/lodgment-calendar/lodgmentcalendar",
     "apps/aus-accounting-mcp/aus_accounting_mcp",
-    "apps/lodgeit-calculator-adapter/lodgeitadapter",
 ]
 extraPaths = [
     "packages/lodgment-calendar",
     "apps/aus-accounting-mcp",
-    "apps/lodgeit-calculator-adapter",
 ]
 typeCheckingMode = "standard"
 reportMissingImports = "none"

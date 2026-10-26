@@ -32,7 +32,7 @@ conformance counts move without this page.
 | Field | Entry |
 | --- | --- |
 | Name and version | Aus Accounting MCP (`aus-accounting-mcp`) 0.7.0, a local MCP server of Australian accounting tools |
-| Source and updates | Ryan Duguid, the sole maintainer, under the Apache License 2.0, with no warranty or support agreement. Each release has [release notes](../RELEASE_NOTES.md). `uvx` keeps the version it first downloaded, so name the release in the client configuration (`aus-accounting-mcp==<version>`) to control which version runs. |
+| Source and updates | Ryan Duguid, the sole maintainer, under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2), with no warranty or support agreement. Each release has [release notes](../RELEASE_NOTES.md). `uvx` keeps the version it first downloaded, so name the release in the client configuration (`aus-accounting-mcp==<version>`) to control which version runs. |
 | Intended use cases | Gives an assistant bounded calculations and reviews (ATO benchmarks, Payday Super timing, Division 7A s 109N and s 109E, 14 worksheets), cited retrieval from folders the firm configures, and synthetic test data |
 | Known limitations and prohibited use | Not tax advice, and not for use without human review; Payday Super and Division 7A reviews are experimental; each worksheet holds only within its stated period and scope; retrieval returns point-in-time copies, and no match does not mean no rule; library search does not rank by authority |
 | Foreseeable misuse and failure | A figure outside its period or scope, or a superseded provision or ruling, is relied on as current. Each worksheet holds only within its stated period and scope, a result the tools cannot establish stays `UNKNOWN` or `REFUSED`, every provision the legislation tools return carries its compilation date, and every rulings paragraph its fetch date. Client data reaching a hosted model through the host is outside the server's control: it makes no network calls, and the README asks for fabricated data whenever the host uses a hosted model. |
@@ -89,7 +89,8 @@ DrDebits tells the model that private rulings protect only the applicant for the
 scheme.
 
 **What does it cost?** Nothing to use. The server and the corpus builder's code are
-Apache-2.0 licensed, and DrDebits is licensed CC BY 4.0. There is no account or API key. The
+FSL-1.1-ALv2 licensed. DrDebits is FSL-1.1-ALv2 licensed from v0.4.0; its earlier releases are
+CC BY 4.0. There is no account or API key. The
 MCP host and its model provider charge separately.
 
 **How often is it updated?** The corpus is rebuilt when the firm runs the builder;
