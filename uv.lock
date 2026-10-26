@@ -9,14 +9,7 @@ resolution-markers = [
 [manifest]
 members = [
     "aus-accounting-mcp",
-    "lodgeit-calculator-adapter",
     "lodgment-calendar",
-]
-overrides = [
-    { name = "ato-benchmark-compare", specifier = "==0.2.2" },
-    { name = "australian-tax-calculators", specifier = "==0.2.0" },
-    { name = "div7a-loan-review", specifier = "==0.3.2" },
-    { name = "payday-super-checker", specifier = "==0.2.2" },
 ]
 
 [manifest.dependency-groups]
@@ -467,50 +460,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/19/74/a633ee74eb36c44aa
 wheels = [
     { url = "https://files.pythonhosted.org/packages/41/45/1a4ed80516f02155c51f51e8cedb3c1902296743db0bbc66608a0db2814f/jsonschema_specifications-2025.9.1-py3-none-any.whl", hash = "sha256:98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe", size = 18437, upload-time = "2025-09-08T01:34:57.871Z" },
 ]
-
-[[package]]
-name = "lodgeit-calculator-adapter"
-version = "0.1.0"
-source = { editable = "apps/lodgeit-calculator-adapter" }
-
-[package.optional-dependencies]
-dev = [
-    { name = "australian-tax-calculators" },
-    { name = "build" },
-    { name = "coverage" },
-    { name = "div7a-loan-review" },
-    { name = "nodejs-wheel-binaries" },
-    { name = "pyright", extra = ["nodejs"] },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-    { name = "setuptools" },
-]
-mcp = [
-    { name = "mcp" },
-]
-trials = [
-    { name = "australian-tax-calculators" },
-    { name = "div7a-loan-review" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "australian-tax-calculators", marker = "extra == 'dev'", specifier = "==0.1.3" },
-    { name = "australian-tax-calculators", marker = "extra == 'trials'", specifier = "==0.1.3" },
-    { name = "build", marker = "extra == 'dev'", specifier = ">=1.6.1" },
-    { name = "coverage", marker = "extra == 'dev'", specifier = "==7.16.2" },
-    { name = "div7a-loan-review", marker = "extra == 'dev'", specifier = "==0.1.2" },
-    { name = "div7a-loan-review", marker = "extra == 'trials'", specifier = "==0.1.2" },
-    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=2.3.0,<3" },
-    { name = "nodejs-wheel-binaries", marker = "extra == 'dev'", specifier = "==24.19.0" },
-    { name = "pyright", extras = ["nodejs"], marker = "extra == 'dev'", specifier = "==1.1.414" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = "==7.1.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.17.0" },
-    { name = "setuptools", marker = "extra == 'dev'", specifier = "==84.2.1" },
-]
-provides-extras = ["mcp", "trials", "dev"]
 
 [[package]]
 name = "lodgment-calendar"
