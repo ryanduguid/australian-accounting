@@ -8,6 +8,13 @@ license = "FSL-1.1-ALv2"
 repository = "https://github.com/ryanduguid/australian-accounting"
 publish = false
 
+# What CI runs: the command it smokes, with these arguments, from its own
+# workflow rather than ci.yml (.github/ci/rust_crates.py).
+[package.metadata.ci]
+binary = "lodgeit-adapter"
+smoke = "contract"
+workflow = "ci-lodgeit-adapter.yml"
+
 [[bin]]
 name = "lodgeit-adapter"
 path = "src/main.rs"

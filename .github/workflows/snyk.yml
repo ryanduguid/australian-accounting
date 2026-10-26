@@ -17,6 +17,7 @@ on:
       - "**/requirements*.txt"
       - "**/package-lock.json"
       - ".github/workflows/snyk.yml"
+      - ".github/ci/rust_crates.py"
       - "pyproject.toml"
   pull_request:
     paths:
@@ -26,6 +27,7 @@ on:
       - "**/requirements*.txt"
       - "**/package-lock.json"
       - ".github/workflows/snyk.yml"
+      - ".github/ci/rust_crates.py"
       - "pyproject.toml"
 
 permissions:
@@ -126,8 +128,25 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  crates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+    steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: list
+        run: python3 .github/ci/rust_crates.py >> "$GITHUB_OUTPUT"
+
+  # Every Rust crate rust_crates.py lists: packages/*/Cargo.toml and apps/*/Cargo.toml.
   rust:
     name: Snyk Rust dependencies (${{ matrix.package }})
+    needs: crates
     if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -135,8 +154,7 @@ jobs:
       contents: read
     strategy:
       fail-fast: false
-      matrix:
-        package: [the-exchequer-tally, solomons-sword, the-wip-tally, australian-tax-calculators, div7a-loan-review, ato-benchmark-compare, payday-super-checker, gst-review, au-tax-rates-data, au-accounting, lodgeit-calculator-adapter]
+      matrix: ${{ fromJSON(needs.crates.outputs.matrix) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -149,7 +167,7 @@ jobs:
           rustup toolchain install 1.99 --profile minimal
           cargo install cargo-cyclonedx --locked --version 0.5.9
       - name: Test the Cargo graph
-        working-directory: ${{ (matrix.package == 'au-accounting' || matrix.package == 'lodgeit-calculator-adapter') && 'apps' || 'packages' }}/${{ matrix.package }}
+        working-directory: ${{ matrix.root }}/${{ matrix.package }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |

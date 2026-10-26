@@ -33,3 +33,7 @@ pkg-fmt = "tgz"
 
 [package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
 pkg-fmt = "zip"
+
+# Arguments CI runs the built command with (.github/ci/rust_crates.py).
+[package.metadata.ci]
+smoke = "--version"
