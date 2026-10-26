@@ -25,7 +25,7 @@ path = "src/bin/vectors.rs"
 required-features = ["differential"]
 
 [dependencies]
-num-bigint = "0.4.8"
+num-bigint = "0.5.1"
 num-integer = "0.1"
 num-traits = "0.2"
 australian-tax-calculators = { path = "../../packages/australian-tax-calculators" }
