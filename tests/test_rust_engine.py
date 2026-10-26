@@ -121,12 +121,13 @@ class RustEngineTests(unittest.TestCase):
         self.assertEqual(set(exclude), directories)
         # Dependabot's directories key takes globs, but GitHub does not document
         # what a glob matching a directory without a Cargo.toml does, so the list
-        # stays explicit: every crate and every crate's fuzz harness.
+        # stays explicit: every crate, every crate's fuzz harness and every tool crate.
         fuzz = {manifest.parent.relative_to(ROOT).as_posix()
                 for manifest in [*ROOT.glob("packages/*/fuzz/Cargo.toml"), *ROOT.glob("apps/*/fuzz/Cargo.toml")]}
+        tools = {manifest.parent.relative_to(ROOT).as_posix() for manifest in ROOT.glob("tools/*/Cargo.toml")}
         cargo = dependabot_directories("cargo", (ROOT / ".github/dependabot.yml").read_text())
         self.assertEqual(len(cargo), len(set(cargo)))
-        self.assertEqual(set(cargo), {f"/{d}" for d in directories | fuzz})
+        self.assertEqual(set(cargo), {f"/{d}" for d in directories | fuzz | tools})
         workflows = ROOT / ".github/workflows"
         matrix = "matrix: ${{ fromJSON(needs.crates.outputs.matrix) }}"
         caller = (workflows / "ci.yml").read_text()
