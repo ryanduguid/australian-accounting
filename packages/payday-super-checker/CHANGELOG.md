@@ -7,7 +7,8 @@ import API. The check, `import`, `review-pack` and `evidence-pack` commands keep
 their flags, help, validation, console output, written files and exit codes.
 The former API functions are JSON stdin subcommands, documented in README.md.
 No deadline, business-day, GIC, notional-earnings, uplift, rounding, refusal or
-message rule is intentionally changed.
+message rule is intentionally changed, except the Employment Hero Reconciled
+status below.
 
 ### Migration
 
@@ -64,6 +65,12 @@ root.
 
 ### Documented divergences
 
+- The Employment Hero profile treats Beam's Reconciled status as not yet sent
+  to the fund. Python 0.2.2 counted it as sent, but Beam's status order puts
+  Reconciled (employer money cleared by Beam) before Sent to fund. A Reconciled
+  row now gets no remitted date and its payday reads as unfunded, with a
+  warning naming the status. The replay applies the changed answers from
+  `tests/data/amendments.json`, leaving the frozen Python record unchanged.
 - Python imports, dataclasses, exception classes and package version lookup are
   removed. `--version` reports the Cargo version, 1.0.0; Python 0.2.2 reported
   `0.2.2`. The report CSV's NOTE row records the version too, in a written
