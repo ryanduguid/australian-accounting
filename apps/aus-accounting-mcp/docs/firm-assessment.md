@@ -89,7 +89,8 @@ DrDebits tells the model that private rulings protect only the applicant for the
 scheme.
 
 **What does it cost?** Nothing to use. The server and the corpus builder's code are
-FSL-1.1-ALv2 licensed, and DrDebits is licensed CC BY 4.0. There is no account or API key. The
+FSL-1.1-ALv2 licensed. DrDebits is FSL-1.1-ALv2 licensed from v0.4.0; its earlier releases are
+CC BY 4.0. There is no account or API key. The
 MCP host and its model provider charge separately.
 
 **How often is it updated?** The corpus is rebuilt when the firm runs the builder;
