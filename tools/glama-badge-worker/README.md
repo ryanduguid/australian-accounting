@@ -26,9 +26,10 @@ Worker with captured public SVGs and intercepted upstream requests. It makes no
 live provider requests. The production component is Rust. Miniflare is pinned
 to stable 4.20260730.0; Wrangler 4.151.3 also bundles a newer beta runtime for its
 own commands. Both local integration tests and Wrangler packaging must pass.
-The stable Miniflare test dependency overrides Sharp to 0.35.5, and every
-Undici copy, including the one under Wrangler's bundled Miniflare, is overridden
-to 7.30.1 for their published security fixes, without changing the direct pins.
+The stable Miniflare test dependency overrides Sharp to 0.35.5, and any
+Undici copy below 7.30.1, including the one under Wrangler's bundled Miniflare,
+is raised to 7.30.1 for their published security fixes, without changing the direct
+pins or holding back a newer Undici.
 
 Do not enable Cargo release stripping: it removes target feature metadata
 required by the current wasm-bindgen packaging step. worker-build runs wasm-opt.
