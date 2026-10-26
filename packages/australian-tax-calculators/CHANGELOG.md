@@ -47,6 +47,12 @@ intentionally changed.
   `2026-10-20`; the `worksheet-catalogue` entry also carries the new title and
   the page's 13 October 2026 update. `tests/parity.rs` applies these changes to
   the 227 `study-loan-repayment` and 10 `worksheet-catalogue` frozen results.
+- The ATO moved its "Lump sum payment in arrears tax offsets" page to "Lump
+  sum payment in arrears" under income you must declare; the old address
+  redirected there on 26 October 2026. The fourth `medicare-levy` source and
+  the s 9A refusal message cite the new address, with no calculation change.
+  `tests/parity.rs` applies this to the 162 `medicare-levy` results, 56
+  `medicare-levy` refusals and 10 `worksheet-catalogue` frozen results.
 
 ### Verification
 

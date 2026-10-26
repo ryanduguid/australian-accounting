@@ -14,6 +14,21 @@ fn outcome(command: &str, input: &Value) -> Value {
 /// Applies the source-record divergences CHANGELOG.md documents to a frozen
 /// Python result; the frozen corpus itself is never edited.
 fn adapt(command: &str, mut expected: Value) -> Value {
+    // The ATO moved its lump sum in arrears page; the redirect was seen on 26 October 2026.
+    let lump_sum_old = "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/lump-sum-payment-in-arrears-tax-offsets";
+    let lump_sum_new = "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/lump-sum-payment-in-arrears";
+    let lump_sum = match command {
+        "medicare-levy" => expected.pointer_mut("/ok/sources/3"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/medicare_levy/sources/3"),
+        _ => None,
+    };
+    if let Some(source) = lump_sum {
+        assert_eq!(*source, json!(lump_sum_old), "frozen lump sum source moved");
+        *source = json!(lump_sum_new);
+    }
+    if let Some(Value::String(error)) = expected.get_mut("error") {
+        *error = error.replace(lump_sum_old, lump_sum_new);
+    }
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
         "worksheet-catalogue" => expected.pointer_mut("/ok/study_loan_repayment"),

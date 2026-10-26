@@ -187,7 +187,9 @@ assessable income includes eligible lump sums in arrears of at least 10% of
 normal taxable income and the accrual-year tests in s 9A(1)(c) are met; the
 terms come from ITAA 1936 s 159ZR(1). The ATO page "Lump sum payment in arrears
 tax offsets" (last updated 8 June 2026, read on 15 October 2026) says the
-Medicare levy exemption on the arrears amount applies from 1 July 2024. The
+Medicare levy exemption on the arrears amount applies from 1 July 2024. By 26
+October 2026 its address redirected to the ATO page "Lump sum payment in
+arrears", which the worksheet now cites; that page has not been re-read. The
 worksheet takes `section_9a_adjustment_applies` as an operator-established
 fact and refuses when it is true rather than estimate the adjustment. In the
 tests, $40,000 for 2025-26 that includes $12,000 of arrears from two earlier
