@@ -1,7 +1,7 @@
 {
   "name": "australian-accounting",
   "image": "mcr.microsoft.com/devcontainers/python:3-3.14-bookworm",
-  "postCreateCommand": "pipx install uv==0.13.1 && uv sync --locked",
+  "postCreateCommand": "pipx install uv==0.13.5 && uv sync --locked",
   "customizations": {
     "vscode": {
       "extensions": ["ms-python.python"]
