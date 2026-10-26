@@ -1,4 +1,11 @@
-# Australian accounting engines and MCP server
+<p align="center">
+  <picture>
+    <source media="(max-width: 600px) and (prefers-color-scheme: light)" srcset=".github/assets/banner-phone-light.svg">
+    <source media="(max-width: 600px)" srcset=".github/assets/banner-phone.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/banner-light.svg">
+    <img src=".github/assets/banner.svg" width="100%" alt="AU Accounting. ATO benchmarks, Payday Super and Div 7A, run locally. Pixel art of an abacus beside the AU Accounting wordmark in slab-serif block letters.">
+  </picture>
+</p>
 
 <div align="center">
 
@@ -12,7 +19,7 @@
 [![OpenSSF Best Practices](https://img.shields.io/cii/level/15429?label=Best%20Practices&labelColor=000000&style=flat)](https://www.bestpractices.dev/projects/15429)
 [![SLSA 3](https://img.shields.io/badge/SLSA-level%203-990024?labelColor=000000&style=flat&color=990024)](https://github.com/ryanduguid/australian-accounting/attestations)
 [![VirusTotal](https://img.shields.io/badge/VirusTotal-scanned-990024?labelColor=000000&style=flat&logo=virustotal&logoColor=FFD32A&color=990024)](https://github.com/ryanduguid/australian-accounting/releases)<br>
-[![licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
+[![licence: FSL-1.1-ALv2](https://img.shields.io/badge/licence-FSL--1.1--ALv2-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
 [![Open in GitHub Codespaces](https://img.shields.io/badge/GitHub-Codespaces-66023C?style=flat&labelColor=000000&logo=github&logoColor=FFD32A)](https://codespaces.new/ryanduguid/australian-accounting)
 [![Glama MCP server score](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/score.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
 

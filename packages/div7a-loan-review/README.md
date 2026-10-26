@@ -21,7 +21,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 <div align="center">
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
+[![License: FSL-1.1-ALv2](https://img.shields.io/badge/License-FSL--1.1--ALv2-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.99-66023C?logo=rust&logoColor=E5E4E2&labelColor=000000&style=flat&color=66023C)](https://www.rust-lang.org/)
 
 </div>
@@ -125,7 +125,7 @@ describes how it calculates.
 The two overlap on Division 7A loan review but do different jobs. Workpapers
 Plus sits inside a practice's ledger and compliance workflow, with ATO
 pre-population and AI extraction from bank and loan statements. This engine is
-Apache-2.0 licensed, runs offline on a register you supply, shows the statutory trace
+FSL-1.1-ALv2 licensed, runs offline on a register you supply, shows the statutory trace
 behind each figure and, for the cases listed under
 [What it refuses](#what-it-refuses), returns `UNKNOWN`, `REFUSED` or `SKIPPED`
 with a reason instead of a figure. A practice that uses a
@@ -521,4 +521,4 @@ Ryan Duguid. Written independently, in his own time, on his own equipment.
 Provisional member of Chartered Accountants Australia and New Zealand; that
 membership is not an endorsement of this software by CA ANZ.
 
-Apache-2.0. See [LICENSE](LICENSE). If you redistribute this work or build on it, keep the attribution in [NOTICE](NOTICE).
+Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 two years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).

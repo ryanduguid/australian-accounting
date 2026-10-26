@@ -21,7 +21,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 <div align="center">
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
+[![License: FSL-1.1-ALv2](https://img.shields.io/badge/License-FSL--1.1--ALv2-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.99-66023C?logo=rust&logoColor=E5E4E2&labelColor=000000&style=flat&color=66023C)](https://www.rust-lang.org/)
 
 </div>
@@ -423,7 +423,11 @@ Commonwealth endorses the user or its products. Published percentages are conver
 to ratio bounds, and a single printed figure is stored as equal bounds, with no wider
 interval inferred.
 
-The code in this repository is Apache-2.0 licensed. The data attribution is also
+The code in this repository is licensed under the Functional Source License,
+Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and
+redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service),
+and each version becomes available under Apache-2.0 two years after it is made available. See
+[LICENSE](LICENSE) and [NOTICE](NOTICE). The data attribution is also
 recorded in [NOTICE](NOTICE); keep it with any copy of the binary or the source.
 
 ## Author

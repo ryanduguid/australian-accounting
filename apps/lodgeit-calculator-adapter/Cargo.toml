@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.99"
 description = "Optional, explicitly enabled adapter for the LodgeiT Labs calculator constellation"
-license = "Apache-2.0"
+license = "FSL-1.1-ALv2"
 repository = "https://github.com/ryanduguid/australian-accounting"
 publish = false
 

@@ -13,6 +13,8 @@
   `div7a-loan-review` 0.3.2, `australian-tax-calculators` 0.2.0 and `gst-review` 0.1.0
   unchanged.
 - Aligns citation, compatibility and MCP Registry metadata with 0.7.0.
+- Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
+  Apache-2.0 as the future licence). Released versions keep their licence.
 
 # v0.6.0
 
@@ -58,7 +60,7 @@
 - Breaking: requires Python 3.14 or later. 0.3.0 remains the last release for Python 3.11 to 3.13 ([#355](https://github.com/ryanduguid/australian-accounting/pull/355)).
 - Requires `mcp` 2.3.0 or later ([#370](https://github.com/ryanduguid/australian-accounting/pull/370)).
 - Licence: Apache-2.0 replaces MIT. Anyone who redistributes this package or a
-  derivative must keep the attribution in `NOTICE`. Versions already released stay
+  derivative must keep the copyright notices in `NOTICE`. Versions already released stay
   under MIT.
 - Breaking: money arguments accept plain decimal notation only: ASCII digits, an
   optional leading minus and at most 2 decimal places, with surrounding whitespace

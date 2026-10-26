@@ -28,11 +28,18 @@ message rule is intentionally changed.
 - The bundled data moves from `paydaysuper/data/` to `data/` and is compiled
   into the binary; its contents and digests are unchanged. Rebuild after editing
   it.
-- The calendar generator, the workbook builder and the quick-proof renderer stay
-  in Python under `tools/`. Their tests moved to the repository root, as
-  `tests/test_payday_generate_calendar.py` and `tests/test_payday_workbook.py`;
-  the workbook test reads the engine figures frozen in
-  `tests/data/workbook-sample.json`.
+- The calendar generator and the quick-proof renderer stay in Python under
+  `tools/`. The calendar generator's tests moved to the repository root, as
+  `tests/test_payday_generate_calendar.py`.
+- The workbook builder is the Rust `build_workbook` example
+  (`cargo run --example build_workbook`), replacing `tools/build_workbook.py`;
+  its formula tests run under `cargo test`. The shipped workbook's tests stay
+  at the repository root in `tests/test_payday_workbook.py`, which reads the
+  engine figures frozen in `tests/data/workbook-sample.json`. The rebuilt
+  workbook records engine 1.0.0, shows its PASS, REVIEW and BLOCKED status
+  colours, which the openpyxl-built workbook's conditional formats never
+  displayed in Excel, and names portrait A4 in each sheet's page setup.
+  Every calculated result is unchanged.
 - The fuzz target is a cargo-fuzz target over the CSV readers, in `fuzz/`.
 
 ### Verification
