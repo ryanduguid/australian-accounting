@@ -71,6 +71,7 @@ jobs:
     timeout-minutes: 2
     outputs:
       matrix: ${{ steps.list.outputs.matrix }}
+      ci-matrix: ${{ steps.list.outputs.ci-matrix }}
       parity: ${{ steps.list.outputs.parity }}
       parity-count: ${{ steps.list.outputs.parity-count }}
     steps:
@@ -84,13 +85,14 @@ jobs:
         run: python3 .github/ci/rust_crates.py >> "$GITHUB_OUTPUT"
 
   # One ci-rust.yml call for each Rust crate: every packages/*/Cargo.toml and
-  # apps/*/Cargo.toml, as rust_crates.py lists them.
+  # apps/*/Cargo.toml, as rust_crates.py lists them, except a crate whose own
+  # workflow calls it ([package.metadata.ci] workflow).
   rust:
     name: ${{ matrix.package }}
     needs: crates
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.crates.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.crates.outputs.ci-matrix) }}
     uses: ./.github/workflows/ci-rust.yml
     with:
       package: ${{ matrix.package }}
@@ -304,7 +306,7 @@ jobs:
       - name: Require selected checks to succeed and unselected checks to skip
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python3 .github/ci/app_ci.py gate
+        run: python3 .github/ci/app_ci.py gate aus-accounting-mcp
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}

@@ -195,7 +195,7 @@ fn the_house_files_cover_the_required_ground() {
         "Provisional member of Chartered Accountants Australia and New Zealand",
         "not an endorsement of this software by CA ANZ",
         "own time, on his own equipment",
-        "keep the attribution in [NOTICE](NOTICE)",
+        "keep the copyright notices in [NOTICE](NOTICE)",
     ] {
         assert_in(phrase, &readme, "README");
     }

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.99"
 description = "Snapshot, validate and re-check the AU tax rates dataset"
-license = "Apache-2.0"
+license = "FSL-1.1-ALv2"
 repository = "https://github.com/ryanduguid/australian-accounting"
 publish = false
 

@@ -79,7 +79,7 @@ def test_ci_commands_exclude_root_helpers_but_keep_non_uv_component_checks() -> 
         working-directory: apps/another-app
   tests-gates:
     steps:
-      - run: python3 .github/ci/app_ci.py gate
+      - run: python3 .github/ci/app_ci.py gate aus-accounting-mcp
 """
     commands = _ci_run_commands(workflow)
     if commands != ["python custom_check.py", "uv run --locked pytest"]:

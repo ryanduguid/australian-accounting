@@ -14,3 +14,5 @@ Not yet released.
   complete to, which settles dates after 30 June 2027.
 - Returns `UNKNOWN`, naming the missing condition, for any date that depends on a fact
   not supplied, a date the ATO pages leave open or a day outside the holiday tables.
+- Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
+  Apache-2.0 as the future licence). Released versions keep their licence.

@@ -9,6 +9,8 @@ and 3,400 generated API calls and command runs: 4,883 cases in all.
 `tests/parity.rs` replays them and compares complete results, key order, output
 bytes and written files included.
 Results and streams over 4 KiB are stored as an FNV-1a fingerprint and length.
+`tests/data/amendments.json` replaces the answers of cases that a deliberate
+change since 0.2.2 alters, by case index, with the reason for each change.
 
 The generated cases include malformed dates, amounts and flags in the CSV
 columns, mapping and calendar override files, Xero, MYOB and Employment Hero
@@ -697,9 +699,9 @@ fast-check's, so the random cases differ.
 | `test_workbook.py::test_sample_matches_the_engine_line_by_line` | Moved to the repository's `tests/test_payday_workbook.py`, reading the engine answer `workbook.rs` holds in `tests/data/workbook-sample.json` |
 | `test_workbook.py::test_holiday_and_gic_tables_match_the_shipped_data` | Moved to the repository's `tests/test_payday_workbook.py` |
 | `test_workbook.py::test_input_columns_are_formatted_so_pasted_values_stay_inert` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_every_register_date_is_read_as_a_whole_calendar_day` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_a_blank_register_date_stays_blank_through_the_whole_day_columns` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_the_register_refuses_the_dates_and_amounts_the_checker_refuses` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_amount_invariants_compare_cents_not_raw_input` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_the_gic_table_holds_only_published_contiguous_quarters` | Moved to the repository's `tests/test_payday_workbook.py` |
-| `test_workbook.py::test_a_bare_receipt_date_is_left_unknown_in_the_workbook` | Moved to the repository's `tests/test_payday_workbook.py` |
+| `test_workbook.py::test_every_register_date_is_read_as_a_whole_calendar_day` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |
+| `test_workbook.py::test_a_blank_register_date_stays_blank_through_the_whole_day_columns` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |
+| `test_workbook.py::test_the_register_refuses_the_dates_and_amounts_the_checker_refuses` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |
+| `test_workbook.py::test_amount_invariants_compare_cents_not_raw_input` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |
+| `test_workbook.py::test_the_gic_table_holds_only_published_contiguous_quarters` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |
+| `test_workbook.py::test_a_bare_receipt_date_is_left_unknown_in_the_workbook` | Moved to the repository's `tests/test_payday_workbook.py`, then to `examples/build_workbook/builder.rs` with the builder |

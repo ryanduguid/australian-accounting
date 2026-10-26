@@ -5,7 +5,7 @@ import tomllib
 import unittest
 from pathlib import Path
 
-from test_boundaries import DATASETS, ROOT, RUST_ENGINES, select_package
+from test_boundaries import DATASETS, ROOT, RUST_APPLICATIONS, RUST_ENGINES, select_package
 
 rust_crates = runpy.run_path(str(ROOT / ".github/ci/rust_crates.py"))
 
@@ -114,7 +114,7 @@ class RustEngineTests(unittest.TestCase):
         # derive theirs; the lists that cannot be derived must match them.
         crates = rust_crates["crates"]()
         directories = {f"{crate['root']}/{crate['package']}" for crate in crates}
-        self.assertEqual(directories, set(RUST_ENGINES) | set(DATASETS) | {"apps/au-accounting"})
+        self.assertEqual(directories, set(RUST_ENGINES) | set(DATASETS) | set(RUST_APPLICATIONS) | {"apps/au-accounting"})
         root = tomllib.loads((ROOT / "pyproject.toml").read_text())
         exclude = root["tool"]["uv"]["workspace"]["exclude"]
         self.assertEqual(len(exclude), len(set(exclude)))
@@ -131,8 +131,12 @@ class RustEngineTests(unittest.TestCase):
         matrix = "matrix: ${{ fromJSON(needs.crates.outputs.matrix) }}"
         caller = (workflows / "ci.yml").read_text()
         snyk = (workflows / "snyk.yml").read_text()
-        self.assertIn(matrix, caller)
+        self.assertIn("matrix: ${{ fromJSON(needs.crates.outputs.ci-matrix) }}", caller)
         self.assertIn(matrix, snyk)
+        # A crate with its own caller workflow is checked there, not again in ci.yml.
+        own = {crate["package"] for crate in crates} - {crate["package"] for crate in rust_crates["crates"](ci_yml=True)}
+        self.assertEqual(own, {"lodgeit-calculator-adapter"})
+        self.assertIn("package: lodgeit-calculator-adapter\n", (workflows / "ci-lodgeit-adapter.yml").read_text())
         self.assertIn('pattern: "${{ needs.crates.outputs.parity }}-${{ matrix.os }}"', caller)
         for crate in crates:
             with self.subTest(crate=crate["package"]):
@@ -143,6 +147,7 @@ class RustEngineTests(unittest.TestCase):
         self.assertEqual(by_name["au-accounting"], {"package": "au-accounting", "root": "apps", "binary": "au-accounting", "smoke": "--version"})
         self.assertEqual(by_name["the-wip-tally"]["binary"], "wip-tally")
         self.assertEqual(by_name["gst-review"]["smoke"], "--api-help")
+        self.assertEqual(by_name["lodgeit-calculator-adapter"], {"package": "lodgeit-calculator-adapter", "root": "apps", "binary": "lodgeit-adapter", "smoke": "contract"})
 
     def test_crate_lister_rejects_what_ci_rust_cannot_check(self):
         engine = '[package]\nname = "engine"\n'
@@ -151,6 +156,7 @@ class RustEngineTests(unittest.TestCase):
             "two commands": (engine + '[[bin]]\nname = "a"\n[[bin]]\nname = "b"\n', ["src/main.rs"]),
             "an implicit second command": (engine, ["src/main.rs", "src/bin/extra.rs"]),
             "no command": (engine, ["src/lib.rs"]),
+            "a chosen command it does not build": (engine + '[package.metadata.ci]\nbinary = "c"\n[[bin]]\nname = "a"\n[[bin]]\nname = "b"\n', ["src/main.rs"]),
         }
         for case, (manifest, sources) in cases.items():
             with self.subTest(case=case), tempfile.TemporaryDirectory() as scratch:
@@ -163,6 +169,16 @@ class RustEngineTests(unittest.TestCase):
                     rust_crates["crates"](Path(scratch))
         with tempfile.TemporaryDirectory() as scratch, self.assertRaises(SystemExit):
             rust_crates["crates"](Path(scratch))
+
+    def test_crate_lister_takes_the_chosen_command_of_several(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            crate = Path(scratch) / "packages/engine"
+            (crate / "src/bin").mkdir(parents=True)
+            (crate / "Cargo.toml").write_text(
+                '[package]\nname = "engine"\n[package.metadata.ci]\nbinary = "a"\n'
+                '[[bin]]\nname = "a"\npath = "src/main.rs"\n[[bin]]\nname = "b"\npath = "src/bin/b.rs"\n',
+                encoding="utf-8")
+            self.assertEqual(rust_crates["crates"](Path(scratch))[0]["binary"], "a")
 
     def test_parity_names_a_renamed_dependency_by_its_crate(self):
         with tempfile.TemporaryDirectory() as scratch:
