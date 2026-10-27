@@ -106,6 +106,9 @@ def scope() -> dict[str, Any]:
             "get_lodgment_due_dates": "List ATO 2026-27 lodgment program due dates for BAS, "
             "IAS and income tax returns, with UNKNOWN where a fact is missing.",
             "calculate_tax_worksheet": "Run one of the bounded calculation_worksheets below.",
+            "get_data_freshness": "Report each bundled dataset's recorded periods, engine "
+            "version and source dates, with UNKNOWN where none is recorded; never a "
+            "statement that data is current.",
             "search_accounting_library": "Search an explicitly configured local Markdown library.",
             "read_accounting_library": "Read bounded lines with a source path and hash.",
             "search_tax_legislation": "Search an explicitly configured local legislation corpus; "

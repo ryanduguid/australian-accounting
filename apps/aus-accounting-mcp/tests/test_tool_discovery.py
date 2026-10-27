@@ -138,6 +138,7 @@ BOUNDED_STRING_INPUTS = {
     ("search_ato_rulings", "query"): 200,
     ("search_ato_rulings", "family"): 100,
     ("read_ato_ruling", "row_ref"): 300,
+    ("get_data_freshness", "as_at"): 10,
 }
 
 

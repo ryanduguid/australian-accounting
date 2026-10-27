@@ -687,6 +687,63 @@ class TaxCalculation(EngineResult):
     warnings: list[str]
 
 
+Unknown = Annotated[
+    Literal["UNKNOWN"], Field(description="The installed engine records no such fact.")
+]
+
+
+class FreshnessPeriod(ResultObject):
+    id: Annotated[str, Field(description="Engine label for the period.")]
+    basis: Annotated[str, Field(description="What kind of period the label names.")]
+    start: DateText
+    end: DateText
+
+
+class DatasetFreshness(ResultObject):
+    dataset: Annotated[str, Field(description="Bundled dataset identifier.")]
+    description: str
+    tools: Annotated[list[str], Field(description="Tools that read this dataset.")]
+    engine: Annotated[str, Field(description="Distribution that ships the dataset.")]
+    engine_version: Annotated[
+        str, Field(description="Installed version of that engine, or UNKNOWN.")
+    ]
+    effective_periods: Annotated[
+        list[FreshnessPeriod] | Unknown,
+        Field(description="Periods the installed data records; never a currency claim."),
+    ]
+    sources: Annotated[list[str] | Unknown, Field(description="Source URLs the engine records.")]
+    retrieved: Annotated[
+        list[DateText] | Unknown, Field(description="Recorded retrieval or seen dates.")
+    ]
+    source_checked: Annotated[
+        DateText | Unknown, Field(description="Recorded source review date.")
+    ]
+    provenance: Provenance
+    as_at_status: NotRequired[Annotated[
+        Literal["INSIDE_RECORDED_PERIOD", "OUTSIDE_RECORDED_PERIOD", "UNKNOWN"],
+        Field(description="Only with as_at. Inside a recorded period is not current data."),
+    ]]
+
+
+class DataFreshness(ResultObject):
+    ok: Annotated[Literal[True], Field(description="The report ran.")]
+    server: Annotated[
+        dict[str, str], Field(description="Installed server distribution and version, or "
+                              "UNKNOWN. A cached release can be older than the latest.")
+    ]
+    bundled_data: Literal[True]
+    live_lookup: Literal[False]
+    currency: Annotated[
+        Literal["NOT_ESTABLISHED"],
+        Field(description="This tool never establishes that data is current."),
+    ]
+    statement: Annotated[str, Field(description="Limits to retain when presenting the result.")]
+    as_at: Annotated[DateText | None, Field(description="The as_at supplied, or null.")]
+    tool: Annotated[str | None, Field(description="The tool filter supplied, or null.")]
+    datasets: list[DatasetFreshness]
+    not_listed: Annotated[str, Field(description="Tools whose data is not bundled.")]
+
+
 class Div7aResult(EngineResult):
     law_content_date: DateText
     law_compilation: Annotated[str, Field(description="Compiled law identified by the engine.")]

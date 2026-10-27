@@ -67,7 +67,9 @@ records or lodge. Your MCP host still sends tool arguments and results to its mo
 provider, so use fabricated data with a hosted model.
 
 To upgrade, replace the version in your client configuration with a later release
-published on PyPI.
+published on PyPI. `uvx` can keep serving a cached release, so call
+`get_data_freshness` to see the installed version and the periods its bundled data
+records. It cannot tell you whether a newer release or newer official figures exist.
 
 ## Client integration
 
@@ -130,6 +132,7 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `define_tax_term` | Find an expression's statutory definitions in that corpus. |
 | `search_tax_rates` | Find legislated rates and thresholds with the provision that sets them. |
 | `generate_synthetic_sbr_fixture` | Generate fabricated CTR/BAS test data. |
+| `get_data_freshness` | Report each bundled dataset's recorded periods, engine version and source dates, with `UNKNOWN` where none is recorded. |
 
 Missing figures remain unknown. Preserve `UNKNOWN`, `REFUSED`, `not_supplied` and
 `null` results; `ok: true` means the tool ran, not that a review passed. Supply an
