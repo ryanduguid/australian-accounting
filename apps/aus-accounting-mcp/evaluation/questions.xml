@@ -263,4 +263,10 @@
     <calls>[{"name": "get_lodgment_due_dates", "arguments": {"obligation": "bas", "entity_type": "company", "financial_year": "2026-27", "channel": "bas_agent", "reporting_cycle": "quarterly", "facts": {"consolidated_head_company": false, "lodges_electronically": true, "previous_statement_lodged_electronically": true, "includes_monthly_payg_obligation": false}}}]</calls>
     <tools><tool>get_lodgment_due_dates</tool></tools>
   </qa_pair>
+  <qa_pair id="data-freshness">
+    <question>Without calculating any due date, check what the installed server records about the lodgment program data it ships. Does 15 July 2027 fall inside a period that data records? Return only the status the server reports.</question>
+    <answer>OUTSIDE_RECORDED_PERIOD</answer>
+    <calls>[{"name": "get_data_freshness", "arguments": {"as_at": "2027-07-15", "tool": "get_lodgment_due_dates"}}]</calls>
+    <tools><tool>get_data_freshness</tool></tools>
+  </qa_pair>
 </evaluation>

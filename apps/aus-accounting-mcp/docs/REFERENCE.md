@@ -165,6 +165,18 @@ copy without a download until the uv cache is cleaned.
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayment for one operator-supplied amalgamated loan | div7a-loan-review |
 | `refuse_div7a` | Refuse Division 7A matters outside the reviewed engine scope. Takes no arguments | MCP policy |
 | `generate_synthetic_sbr_fixture` | Synthetic CTR/BAS for agent tests (`synthetic: true`) | local fixture |
+| `get_data_freshness` | Report each bundled dataset's recorded periods, engine version, source URLs and retrieval and review dates, or `UNKNOWN` | every engine above |
+
+`get_data_freshness` reads only what the installed engines record: the ATO
+benchmark years, the Division 7A rate table, the Payday Super GIC quarters,
+business-day calendar and SG parameters, each worksheet's supported periods, the
+lodgment program and the GST review rules. A fact an engine does not record, such
+as the GST review rules' effective period, is `UNKNOWN`. With `as_at`, each dataset
+reports `INSIDE_RECORDED_PERIOD`, `OUTSIDE_RECORDED_PERIOD` or `UNKNOWN`; inside a
+recorded period means the release holds data for that date, not that the data is
+current. `currency` is always `NOT_ESTABLISHED`: a cached `uvx` release can be older
+than the latest, and the tool predicts no next change. Pass `tool` to report only
+the datasets one tool reads.
 
 `refuse_div7a` answers the questions this server does not review, and those arrive
 with no loan facts, so it publishes no inputs. Call it with no arguments and do not
