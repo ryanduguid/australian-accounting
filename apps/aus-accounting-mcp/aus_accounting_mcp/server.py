@@ -61,11 +61,13 @@ from .fixtures.synthetic_sbr import (
     generate_synthetic_bas_payload,
     generate_synthetic_ctr_payload,
 )
+from .freshness import DataTool, data_freshness
 from .library import MAX_OFFSET, read_reference, search_references
 from .money import MONEY_SCHEMA, parse_amount
 from .outputs import (
     BasReconciliation,
     BenchmarkComparison,
+    DataFreshness,
     Div7aRate,
     Div7aReview,
     GstCodingReview,
@@ -162,6 +164,9 @@ classification of the facts the operator supplied, not a determination.
   as established and omit the rest; never guess one. Report UNKNOWN rows with their
   missing conditions, never as a nominal date, and tell the user to confirm dates in
   Online services for agents. It lodges nothing.
+- get_data_freshness reports each bundled dataset's recorded periods, engine version
+  and source dates, with UNKNOWN where none is recorded. It never establishes that
+  data is current; retain its statement when presenting a rate or date.
 - generate_synthetic_sbr_fixture is only for fabricated integration tests.
   Never use its CTR/BAS output as a real calculation or lodgment.
 Resources carry context without a tool call: aus-accounting://disclaimer for the
@@ -1006,6 +1011,31 @@ def calculate_tax_worksheet(
     All maths stays in australian-tax-calculators. Local review aid, not advice.
     """
     return cast(TaxCalculation, calculate(facts))
+
+
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Report bundled data periods and sources")
+def get_data_freshness(
+    as_at: Annotated[str | None, Field(
+        max_length=10, pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+        json_schema_extra={"format": "date"},
+        description="Optional YYYY-MM-DD date the user names, tested against each "
+        "dataset's recorded periods. Do not infer today.")] = None,
+    tool: Annotated[DataTool | None, Field(
+        description="Optional: report only the datasets this tool reads.")] = None,
+) -> DataFreshness:
+    """Report what the installed release records about each bundled dataset.
+
+    For the ATO benchmarks, Division 7A rates, Payday Super GIC quarters, business-day
+    calendar and SG parameters, each worksheet's rates, the lodgment program and the
+    GST review rules: the effective periods recorded, the installed engine version,
+    source URLs and retrieval and review dates, with UNKNOWN where the engine records
+    none. With as_at, each dataset says whether that date falls inside a recorded
+    period. currency is always NOT_ESTABLISHED: a cached uvx release can be older than
+    the latest, and official figures can change after a source was checked. Retain the
+    statement. Pass tool to report only the datasets that tool reads. Reads no
+    network and predicts no next change.
+    """
+    return cast(DataFreshness, data_freshness(as_at, tool))
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Search the configured accounting library")

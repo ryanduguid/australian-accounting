@@ -47,6 +47,9 @@ CASES = [
     ("refuse_div7a", REFUSAL),
     ("generate_synthetic_sbr_fixture", {"form_type": "BAS"}),
     ("generate_synthetic_sbr_fixture", {"form_type": "CTR"}),
+    ("get_data_freshness", {}),
+    ("get_data_freshness", {"as_at": "2026-10-28"}),
+    ("get_data_freshness", {"as_at": "2026-10-28", "tool": "review_gst_coding"}),
 ]
 for detail in ("summary", "full"):
     for year in ("2025-26", "2027-28"):
@@ -94,6 +97,8 @@ def test_output_schema_validates_without_changing_the_tool_payload(name, argumen
         ("calc_payday_super_deadline", PAYDAY, ["result", "sg_amount"], 120),
         ("generate_synthetic_sbr_fixture", {"form_type": "BAS"}, ["synthetic"], False),
         ("refuse_div7a", REFUSAL, ["ok"], True),
+        ("get_data_freshness", {}, ["currency"], "CURRENT"),
+        ("get_data_freshness", {}, ["live_lookup"], True),
     ],
 )
 def test_schema_rejects_misleading_money_and_safety_markers(name, arguments, path, bad_value):
