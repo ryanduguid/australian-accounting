@@ -25,8 +25,9 @@ The sample is held in
 which australian-tax-calculators uses as its test oracle and whose provenance it
 records in `docs/calculation-evidence.md`. The repository records the publication
 and its date but no URL or checksum for the downloaded sample, so the CSV cannot be
-re-checked against the publication from this repository alone. `tests/test_conformance_cases.py` fails if an
-authority case's expected amount differs from that CSV.
+re-checked against the publication from this repository alone. Each authority case's
+`source` gives the CSV's SHA-256, and `tests/test_conformance_cases.py` fails if the
+held CSV no longer has that digest or an expected amount differs from it.
 
 The self-pinned cases are the Payday Super and Division 7A cases, including the
 refusal. They pin what a reviewer would rely on, and most of all what the server
@@ -66,4 +67,5 @@ shows two implementations agree; it does not show either is right in law. An
 authority case shows agreement with the ATO's published sample for that pay,
 not that a payee's scale, allowances or declarations are right.
 The rates and law dates come from the delegated engines; each result states
-the `engine_version` it was produced under.
+the `engine_version` it was produced under, and the Payday Super and Division 7A
+results also state their `law_content_date`.

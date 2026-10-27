@@ -3,6 +3,7 @@
 import asyncio
 import copy
 import csv
+import hashlib
 import json
 from decimal import Decimal
 from pathlib import Path
@@ -116,6 +117,7 @@ def test_authority_cases_reproduce_the_ato_sample() -> None:
     """
     sample = (repository_root() / "packages" / "australian-tax-calculators" / "tests"
               / "data" / PAYG_SAMPLE)
+    digest = hashlib.sha256(sample.read_bytes()).hexdigest()
     with sample.open(encoding="utf-8", newline="") as handle:
         rows = {(row["period"], row["earnings"]): row for row in csv.DictReader(handle)}
     authority = [case for case in CASES if case["basis"] == "authority"]
@@ -125,6 +127,8 @@ def test_authority_cases_reproduce_the_ato_sample() -> None:
         assert case["tool"] == "calculate_tax_worksheet"
         assert (facts["kind"], facts["year"]) == ("payg_withholding", "2026-27")
         assert PAYG_SAMPLE in case["source"] and "17 June 2026" in case["source"]
+        # The held sample must still be the bytes the case was written from.
+        assert f"(SHA-256 {digest})" in case["source"], case["id"]
         row = rows[(facts["pay_period"], facts["earnings"])]
         expected = f"{Decimal(row[f'scale{facts['scale']}']):.2f}"
         assert case["expect"] == {"/amounts/withholding": expected}, case["id"]
