@@ -16,7 +16,7 @@ import json
 from collections.abc import Iterable
 from datetime import date
 from pathlib import Path
-from typing import Any, Literal, get_args
+from typing import Any, Literal, TypedDict, Unpack, get_args
 
 from atobenchmark.dataset import available_years, load
 from austaxcalc import calculations
@@ -124,16 +124,18 @@ def _engine_document(directory: Path, name: str) -> dict[str, Any]:
     return json.loads((directory / name).read_text(encoding="utf-8"))
 
 
+class _Facts(TypedDict):
+    """What a dataset's engine records about its periods and sources."""
+
+    effective_periods: list[dict[str, str]] | str
+    sources: list[str] | str
+    retrieved: list[str] | str
+    source_checked: str
+    provenance: dict[str, Any]
+
+
 def _dataset(
-    dataset: str,
-    description: str,
-    tools: list[str],
-    engine: str,
-    periods: list[dict[str, str]] | str,
-    sources: list[str] | str,
-    retrieved: list[str] | str,
-    source_checked: str,
-    provenance: dict[str, Any],
+    dataset: str, description: str, tools: list[str], engine: str, **facts: Unpack[_Facts],
 ) -> dict[str, Any]:
     return {
         "dataset": dataset,
@@ -141,11 +143,11 @@ def _dataset(
         "tools": tools,
         "engine": engine,
         "engine_version": _installed(engine) or UNKNOWN,
-        "effective_periods": periods,
-        "sources": sources,
-        "retrieved": retrieved,
-        "source_checked": source_checked,
-        "provenance": provenance,
+        "effective_periods": facts["effective_periods"],
+        "sources": facts["sources"],
+        "retrieved": facts["retrieved"],
+        "source_checked": facts["source_checked"],
+        "provenance": facts["provenance"],
     }
 
 
@@ -158,11 +160,11 @@ def _benchmarks() -> list[dict[str, Any]]:
             f"ATO small business benchmarks for {year}.",
             ["list_ato_benchmark_industries", "get_ato_benchmarks"],
             "ato-benchmark-compare",
-            [_financial_year(year, "benchmark financial year")],
-            _urls([source.get("resource_url"), source.get("dataset_page")]),
-            _dates([source.get("retrieved")]),
-            UNKNOWN,
-            source,
+            effective_periods=[_financial_year(year, "benchmark financial year")],
+            sources=_urls([source.get("resource_url"), source.get("dataset_page")]),
+            retrieved=_dates([source.get("retrieved")]),
+            source_checked=UNKNOWN,
+            provenance=source,
         ))
     return datasets
 
@@ -175,11 +177,13 @@ def _div7a() -> dict[str, Any]:
         "Division 7A s 109N(2) benchmark interest rates by year of income.",
         ["get_div7a_benchmark_rate", "review_div7a_loan"],
         "div7a-loan-review",
-        [_financial_year(entry.year.label, "year of income") for entry in entries],
-        _urls([url for entry in entries for url in (entry.primary_url, entry.verify_at)]),
-        _dates(entry.retrieved_on for entry in entries),
-        _iso_or_unknown(table.reviewed_on),
-        {
+        effective_periods=[
+            _financial_year(entry.year.label, "year of income") for entry in entries
+        ],
+        sources=_urls([url for entry in entries for url in (entry.primary_url, entry.verify_at)]),
+        retrieved=_dates(entry.retrieved_on for entry in entries),
+        source_checked=_iso_or_unknown(table.reviewed_on),
+        provenance={
             "reviewed_until": table.reviewed_until.label,
             "reviewed_on": table.reviewed_on,
             "law_content_date": DIV7A_LAW_CONTENT_DATE,
@@ -196,15 +200,15 @@ def _gic() -> dict[str, Any]:
         "General interest charge quarters used for Payday Super notional earnings.",
         PAYDAY_TOOLS,
         "payday-super-checker",
-        [
+        effective_periods=[
             {"id": f"{q['from']}/{q['to']}", "basis": "GIC quarter",
              "start": q["from"], "end": q["to"]}
             for q in quarters
         ],
-        _urls(q.get("verify_at") for q in quarters),
-        _dates(q.get("seen") for q in quarters),
-        UNKNOWN,
-        {
+        sources=_urls(q.get("verify_at") for q in quarters),
+        retrieved=_dates(q.get("seen") for q in quarters),
+        source_checked=UNKNOWN,
+        provenance={
             "summary": table.provenance(),
             "table": table.source.to_json_dict() if table.source else UNKNOWN,
             "law_content_date": PAYDAY_LAW_CONTENT_DATE,
@@ -221,16 +225,16 @@ def _calendar() -> dict[str, Any]:
         "Whole-of-state public holidays under SGAA 1992 s 6(1) for Payday Super deadlines.",
         PAYDAY_TOOLS,
         "payday-super-checker",
-        [{
+        effective_periods=[{
             "id": "verified",
             "basis": "calendar verification span",
             "start": calendar.verified_from.isoformat(),
             "end": calendar.verified_until.isoformat(),
         }],
-        _urls(official.values()),
-        UNKNOWN,
-        _iso_or_unknown(official.get("checked")),
-        {
+        sources=_urls(official.values()),
+        retrieved=UNKNOWN,
+        source_checked=_iso_or_unknown(official.get("checked")),
+        provenance={
             "coverage_until": calendar.coverage_until.isoformat(),
             "coverage_note": official.get("coverage_note", UNKNOWN),
             "law_content_date": PAYDAY_LAW_CONTENT_DATE,
@@ -246,12 +250,12 @@ def _sg_parameters() -> dict[str, Any]:
         "financial year.",
         PAYDAY_TOOLS,
         "payday-super-checker",
-        [_financial_year(label, "financial year") for label in sorted(years)],
-        _urls(url for entry in years.values()
-              for url in (entry.get("verify_at"), entry.get("cross_check"))),
-        _dates(entry.get("seen") for entry in years.values()),
-        UNKNOWN,
-        {
+        effective_periods=[_financial_year(label, "financial year") for label in sorted(years)],
+        sources=_urls(url for entry in years.values()
+                      for url in (entry.get("verify_at"), entry.get("cross_check"))),
+        retrieved=_dates(entry.get("seen") for entry in years.values()),
+        source_checked=UNKNOWN,
+        provenance={
             "sources": {label: entry.get("source", UNKNOWN) for label, entry in years.items()},
             "law_content_date": PAYDAY_LAW_CONTENT_DATE,
         },
@@ -265,14 +269,14 @@ def _worksheets() -> list[dict[str, Any]]:
             f"Rates and thresholds for the {kind} worksheet.",
             ["calculate_tax_worksheet"],
             "australian-tax-calculators",
-            [
+            effective_periods=[
                 {key: period[key] for key in ("id", "basis", "start", "end")}
                 for period in entry["supported_periods"]
             ] or UNKNOWN,
-            _urls(entry.get("sources") or [entry.get("source")]),
-            UNKNOWN,
-            _iso_or_unknown(entry.get("source_checked")),
-            {"source_passage": entry.get("source_passage", UNKNOWN)},
+            sources=_urls(entry.get("sources") or [entry.get("source")]),
+            retrieved=UNKNOWN,
+            source_checked=_iso_or_unknown(entry.get("source_checked")),
+            provenance={"source_passage": entry.get("source_passage", UNKNOWN)},
         )
         for kind, entry in calculations.worksheet_catalogue().items()
     ]
@@ -284,16 +288,16 @@ def _lodgment() -> dict[str, Any]:
         f"ATO {PROGRAM_YEAR} lodgment program due dates and its public holiday table.",
         ["get_lodgment_due_dates"],
         "lodgment-calendar",
-        [{
+        effective_periods=[{
             "id": PROGRAM_YEAR,
             "basis": "lodgment program year and holiday table",
             "start": COVERS_FROM.isoformat(),
             "end": COVERS_TO.isoformat(),
         }],
-        _urls(url for url, _provision in LODGMENT_SOURCES.values()),
-        UNKNOWN,
-        _iso_or_unknown(LODGMENT_SOURCE_CHECKED),
-        {
+        sources=_urls(url for url, _provision in LODGMENT_SOURCES.values()),
+        retrieved=UNKNOWN,
+        source_checked=_iso_or_unknown(LODGMENT_SOURCE_CHECKED),
+        provenance={
             "activity_statement_year": ACTIVITY_YEAR,
             "income_tax_return_year": RETURN_YEAR,
             "holiday_table": HOLIDAY_PROVISION,
@@ -307,11 +311,11 @@ def _gst() -> dict[str, Any]:
         "GST coding and BAS reconciliation rules.",
         ["review_gst_coding", "reconcile_bas"],
         "gst-review",
-        UNKNOWN,
-        _urls([GST_ACT, ATO_BAS_METHOD, ATO_BAS_INSTRUCTIONS]),
-        UNKNOWN,
-        _iso_or_unknown(GST_SOURCE_CHECKED),
-        {},
+        effective_periods=UNKNOWN,
+        sources=_urls([GST_ACT, ATO_BAS_METHOD, ATO_BAS_INSTRUCTIONS]),
+        retrieved=UNKNOWN,
+        source_checked=_iso_or_unknown(GST_SOURCE_CHECKED),
+        provenance={},
     )
 
 
