@@ -1,10 +1,16 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "matching": "Each key in expect is a JSON Pointer (RFC 6901) into the tool's structured result; the value is the exact JSON value expected there. Fields not named are not part of the case. A case with expect_error_contains expects the call to fail with an error message containing that text.",
+  "basis": {
+    "authority": "The expected values come from an official publication named in source, not from this server.",
+    "self-pinned": "The expected values are this server's own results, kept as regression pins; no external authority was checked."
+  },
   "cases": [
     {
       "id": "payday_nothing_received",
       "tool": "calc_payday_super_deadline",
+      "basis": "self-pinned",
+      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
       "arguments": {"qe_day": "2026-08-06", "sg_amount": "120.00", "as_at": "2026-08-20"},
       "expect": {
         "/result/due": "2026-08-17",
@@ -16,6 +22,8 @@
     {
       "id": "payday_receipt_without_amount",
       "tool": "calc_payday_super_deadline",
+      "basis": "self-pinned",
+      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
       "arguments": {"qe_day": "2026-08-06", "sg_amount": "120.00", "as_at": "2026-08-20", "received": "2026-08-17"},
       "expect": {
         "/result/due": "2026-08-17",
@@ -27,6 +35,8 @@
     {
       "id": "payday_receipt_with_matched_amount",
       "tool": "calc_payday_super_deadline",
+      "basis": "self-pinned",
+      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
       "arguments": {"qe_day": "2026-08-06", "sg_amount": "120.00", "as_at": "2026-08-20", "received": "2026-08-17", "matched_amount": "120.00"},
       "expect": {
         "/result/due": "2026-08-17",
@@ -37,12 +47,16 @@
     {
       "id": "payday_before_1_july_2026_refused",
       "tool": "calc_payday_super_deadline",
+      "basis": "self-pinned",
+      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
       "arguments": {"qe_day": "2026-06-25", "sg_amount": "120.00", "as_at": "2026-08-20"},
       "expect_error_contains": "QE day before 1 Jul 2026"
     },
     {
       "id": "div7a_rate_known_year",
       "tool": "get_div7a_benchmark_rate",
+      "basis": "self-pinned",
+      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
       "arguments": {"year_of_income": "2026-27"},
       "expect": {
         "/verdict": "KNOWN",
@@ -52,6 +66,8 @@
     {
       "id": "div7a_rate_unsupported_year",
       "tool": "get_div7a_benchmark_rate",
+      "basis": "self-pinned",
+      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
       "arguments": {"year_of_income": "2031-32"},
       "expect": {
         "/verdict": "UNKNOWN",
@@ -61,6 +77,8 @@
     {
       "id": "div7a_minimum_repayment_met",
       "tool": "review_div7a_loan",
+      "basis": "self-pinned",
+      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
       "arguments": {
         "year_of_income": "2026-27",
         "year_loan_made": "2025-26",
@@ -85,6 +103,8 @@
     {
       "id": "div7a_written_agreement_not_established",
       "tool": "review_div7a_loan",
+      "basis": "self-pinned",
+      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
       "arguments": {
         "year_of_income": "2026-27",
         "year_loan_made": "2025-26",
@@ -105,6 +125,126 @@
         "/minimum_yearly_repayment/myr_required": null,
         "/minimum_yearly_repayment/reason_codes/0": "REFUSED_GATE_UNKNOWN"
       }
+    },
+    {
+      "id": "payg_weekly_scale1_116",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row weekly,116, column scale1.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "116", "pay_period": "weekly", "scale": 1}},
+      "expect": {"/amounts/withholding": "17.00"}
+    },
+    {
+      "id": "payg_weekly_scale2_537",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row weekly,537, column scale2.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "537", "pay_period": "weekly", "scale": 2}},
+      "expect": {"/amounts/withholding": "26.00"}
+    },
+    {
+      "id": "payg_weekly_scale3_1134",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row weekly,1134, column scale3.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "1134", "pay_period": "weekly", "scale": 3}},
+      "expect": {"/amounts/withholding": "340.00"}
+    },
+    {
+      "id": "payg_weekly_scale5_2595",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row weekly,2595, column scale5.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "2595", "pay_period": "weekly", "scale": 5}},
+      "expect": {"/amounts/withholding": "597.00"}
+    },
+    {
+      "id": "payg_weekly_scale6_3653",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row weekly,3653, column scale6.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "3653", "pay_period": "weekly", "scale": 6}},
+      "expect": {"/amounts/withholding": "1025.00"}
+    },
+    {
+      "id": "payg_fortnightly_scale1_232",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row fortnightly,232, column scale1.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "232", "pay_period": "fortnightly", "scale": 1}},
+      "expect": {"/amounts/withholding": "34.00"}
+    },
+    {
+      "id": "payg_fortnightly_scale2_1074",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row fortnightly,1074, column scale2.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "1074", "pay_period": "fortnightly", "scale": 2}},
+      "expect": {"/amounts/withholding": "52.00"}
+    },
+    {
+      "id": "payg_fortnightly_scale3_2268",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row fortnightly,2268, column scale3.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "2268", "pay_period": "fortnightly", "scale": 3}},
+      "expect": {"/amounts/withholding": "680.00"}
+    },
+    {
+      "id": "payg_fortnightly_scale5_5190",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row fortnightly,5190, column scale5.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "5190", "pay_period": "fortnightly", "scale": 5}},
+      "expect": {"/amounts/withholding": "1194.00"}
+    },
+    {
+      "id": "payg_fortnightly_scale6_7306",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row fortnightly,7306, column scale6.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "7306", "pay_period": "fortnightly", "scale": 6}},
+      "expect": {"/amounts/withholding": "2050.00"}
+    },
+    {
+      "id": "payg_monthly_scale1_502_67",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row monthly,502.67, column scale1.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "502.67", "pay_period": "monthly", "scale": 1}},
+      "expect": {"/amounts/withholding": "74.00"}
+    },
+    {
+      "id": "payg_monthly_scale2_2327_00",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row monthly,2327.00, column scale2.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "2327.00", "pay_period": "monthly", "scale": 2}},
+      "expect": {"/amounts/withholding": "113.00"}
+    },
+    {
+      "id": "payg_monthly_scale3_4914_00",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row monthly,4914.00, column scale3.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "4914.00", "pay_period": "monthly", "scale": 3}},
+      "expect": {"/amounts/withholding": "1473.00"}
+    },
+    {
+      "id": "payg_monthly_scale5_11245_00",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row monthly,11245.00, column scale5.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "11245.00", "pay_period": "monthly", "scale": 5}},
+      "expect": {"/amounts/withholding": "2587.00"}
+    },
+    {
+      "id": "payg_monthly_scale6_15829_67",
+      "tool": "calculate_tax_worksheet",
+      "basis": "authority",
+      "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row monthly,15829.67, column scale6.",
+      "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "15829.67", "pay_period": "monthly", "scale": 6}},
+      "expect": {"/amounts/withholding": "4442.00"}
     }
   ]
 }
