@@ -7,6 +7,13 @@
   `UNKNOWN` with that fact named. `extra_holidays` and `holidays_complete_until` let the
   operator settle dates after the ATO holiday table ends on 30 June 2027. It delegates to the new `lodgment-calendar` 0.1.0
   engine and lodges nothing.
+- Adds `get_data_freshness`, which reports each bundled dataset's recorded effective
+  periods, engine and server versions, source URLs and retrieval and review dates, with
+  `UNKNOWN` where an engine records none. With `as_at` each dataset reports
+  `INSIDE_RECORDED_PERIOD`, `OUTSIDE_RECORDED_PERIOD` or `UNKNOWN`, and `tool` limits the
+  report to the datasets one tool reads. `currency` is always `NOT_ESTABLISHED`: the
+  tool reads only what the installed engines record, looks nothing up and predicts no
+  next change, and a cached `uvx` release can be older than the latest.
 - Lists `lodgment-calendar` in the component-versions resource, the disclaimer resource
   and the scope resource.
 - Retains `payday-super-checker` 0.2.2, `ato-benchmark-compare` 0.2.2,

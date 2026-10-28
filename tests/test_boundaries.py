@@ -41,6 +41,7 @@ select_package = _load_select_package()
 
 RELEASE_CALLERS = {
     "aus-accounting-mcp": "apps/aus-accounting-mcp",
+    "lodgment-calendar": "packages/lodgment-calendar",
 }
 
 PYTHON_ENGINES = {

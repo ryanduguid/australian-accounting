@@ -161,7 +161,7 @@ For an editable source installation, run `pip install -e .` from
 | `packages/the-wip-tally/` | `the-wip-tally` (Rust) | none | `wip-tally` |
 | `apps/au-accounting/` | `au-accounting` (Rust) | none | `au-accounting`, one subcommand per Rust engine |
 | `packages/gst-review/` | `gst-review` (Rust) | none | `gst-review`: GST coding states against registration and BAS-to-ledger reconciliation |
-| `packages/lodgment-calendar/` | `lodgment-calendar` (not yet released) | `lodgmentcalendar` | Python function: ATO lodgment program due dates for BAS, IAS and income tax returns, `UNKNOWN` where a fact is missing |
+| `packages/lodgment-calendar/` | `lodgment-calendar` | `lodgmentcalendar` | Python function: ATO lodgment program due dates for BAS, IAS and income tax returns, `UNKNOWN` where a fact is missing |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` (Rust, not released) | none | `lodgeit-adapter`: optional adapter for a third-party calculator service; off by default, makes HTTP calls only when enabled (`LODGEIT_ADAPTER_ENABLED=1` or `--enable-network`) |
 | `packages/au-tax-rates-data/` | `au-tax-rates-data` (Rust, never released) | none | `rates validate`, `snapshot`, `check` and `ato-tables`: ATO rates and thresholds with verbatim source quotes, validated offline |
 

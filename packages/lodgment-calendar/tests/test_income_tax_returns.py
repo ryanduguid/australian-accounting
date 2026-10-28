@@ -401,7 +401,7 @@ def test_returns_outside_the_2025_26_income_year_are_not_recorded(year):
 def test_result_envelope_carries_provenance_and_counts():
     result = due_dates("income_tax_return", "individual", "2025-26", "self")
     assert result["ok"] is True and result["engine"] == "lodgment-calendar"
-    assert result["program_year"] == "2026-27" and result["source_checked"] == "2026-10-20"
+    assert result["program_year"] == "2026-27" and result["source_checked"] == "2026-10-28"
     assert result["counts"] == {"DETERMINED": 1, "UNKNOWN": 1}
     assert result["request"] == {"obligation": "income_tax_return", "entity_type": "individual",
                                  "financial_year": "2025-26", "channel": "self",
@@ -411,4 +411,4 @@ def test_result_envelope_carries_provenance_and_counts():
     assert result["not_decided"] and result["warnings"]
     for row in result["obligations"]:
         assert row["source_url"].startswith("https://www.ato.gov.au/")
-        assert row["source_provision"] and row["source_checked"] == "2026-10-20"
+        assert row["source_provision"] and row["source_checked"] == "2026-10-28"

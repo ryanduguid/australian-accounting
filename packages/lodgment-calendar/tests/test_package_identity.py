@@ -6,7 +6,7 @@ import lodgmentcalendar
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_unreleased_distribution_uses_the_project_identity() -> None:
+def test_published_distribution_uses_the_project_identity() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
     lockfile = (ROOT / "uv.lock").read_text(encoding="utf-8")
@@ -24,7 +24,14 @@ def test_unreleased_distribution_uses_the_project_identity() -> None:
     for shipped in ("CITATION.cff", "DISCLAIMER.md", "RELEASE_NOTES.md", "RELEASING.md",
                     "llms.txt", "uv.lock", "docs"):
         assert shipped in manifest
-    assert release_notes.startswith("# v0.1.0\n\nNot yet released.\n")
-    assert "**Package lifecycle:** not yet released." in readme
+    assert "**Package lifecycle:** published." in readme
+    assert "pip install lodgment-calendar" in readme
+    assert "not yet released" not in readme.lower()
+    assert "release-lodgment-calendar.yml" in release_notes
+    assert release_notes.startswith("# v0.1.0\n")
+    assert "first PyPI release" in release_notes
+    assert "Not yet released" not in release_notes
+    assert "not yet released" not in llms
+    assert "date-released:" not in citation
     for text in (pyproject, citation, llms):
         assert "australian-accounting/tree/main/packages/lodgment-calendar" in text

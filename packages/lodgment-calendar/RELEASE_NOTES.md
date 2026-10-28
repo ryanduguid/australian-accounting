@@ -1,6 +1,7 @@
 # v0.1.0
 
-Not yet released.
+This is the first PyPI release of `lodgment-calendar`, published through
+`release-lodgment-calendar.yml`, the monorepo's namespaced, attested release workflow.
 
 - `due_dates` returns lodgement, payment and concession dates for monthly and quarterly
   BAS and IAS periods in 2026-27 and for 2025-26 income tax returns of individuals,

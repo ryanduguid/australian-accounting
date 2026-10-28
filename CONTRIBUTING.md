@@ -252,6 +252,7 @@ Registry through `publish-mcp.yml`.
 | Component | Tag | Workflow | Version source | PyPI environment |
 |---|---|---|---|---|
 | aus-accounting-mcp | `aus-accounting-mcp/vX.Y.Z` | `release-aus-accounting-mcp.yml` | `pyproject.toml` | `pypi-aus-accounting-mcp` |
+| lodgment-calendar | `lodgment-calendar/vX.Y.Z` | `release-lodgment-calendar.yml` | `pyproject.toml` | `pypi-lodgment-calendar` |
 | the-exchequer-tally (Rust) | reserved `the-exchequer-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | solomons-sword (Rust) | reserved `solomons-sword/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | the-wip-tally (Rust) | reserved `the-wip-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
