@@ -230,6 +230,19 @@ rules here agree with it. Its roll was not reused because it ignores public holi
 and its due-date table is loaded from that package's rates data. This engine depends on
 no other distribution.
 
+## Pre-release source check, 28 October 2026
+
+Every page in `SOURCES`, including the holiday page, was read live again on 28 October
+2026 with one plain request each. All 21 returned HTTP 200, and each page's 'Last
+updated' date matches the date recorded in its provision, so no page has changed since
+it was read for this review. Tables 1 and 2 of the holiday page list the same 20 dates as
+`HOLIDAYS`; the names differ only in the capital A of 'Additional' in the joined 28
+December 2026 entry. The table's 'First business day' column agrees with the
+next-business-day roll for every date except 25 September 2026, the conflict this
+review already leaves `UNKNOWN`. No rule, test or reading changed; `SOURCE_CHECKED` is
+now `2026-10-28`. The quarter 4, 2026–27 agent date is still unconfirmed, and the
+holiday table still ends on 14 June 2027.
+
 ## Before release
 
 - Read every page above live again and update `SOURCE_CHECKED`.
