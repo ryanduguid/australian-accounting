@@ -9,7 +9,7 @@ import json
 from datetime import date, timedelta
 
 import pytest
-from lodgmentcalendar.due_dates import FACT_MEANINGS
+from lodgmentcalendar.rules import FACT_MEANINGS
 from mcp.server.mcpserver.exceptions import ToolError
 
 from aus_accounting_mcp.adapters.lodgment import DISCLAIMER
