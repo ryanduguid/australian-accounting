@@ -180,12 +180,15 @@ class RustCopyTests(unittest.TestCase):
             for directory in RUST_COPIES["copies"]:
                 copy = self.read(directory, name).split("#[cfg(test)]")
                 with self.subTest(file=str((directory / name).relative_to(ROOT))):
+                    self.assertEqual(len(copy), 2)
                     self.assertEqual(reference[0], copy[0])
                 for part, path in ((reference, PAYDAY_TOOLS), (copy, directory)):
                     with self.subTest(file=str((path / name).relative_to(ROOT))):
-                        # The test module comes last, so no code escapes the comparison.
-                        top_level = [line for line in part[1].splitlines() if line[:1].strip()]
+                        # The test module comes last, so no code escapes the comparison:
+                        # nothing follows its closing brace, indented or not.
+                        top_level = [line for line in part[-1].splitlines() if line[:1].strip()]
                         self.assertEqual(top_level, ["mod tests {", "}"])
+                        self.assertTrue(part[-1].rstrip().endswith("\n}"))
 
     def test_the_staging_build_functions_are_identical(self) -> None:
         for name, functions in RUST_COPIES["functions"].items():

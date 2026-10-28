@@ -47,7 +47,7 @@ and holds them to the engine's answer for the bakery example, frozen in
 the Benchmarks sheet to the shipped JSON. A change to the engine, the data or the
 workbook that is not rebuilt fails one of the two tests.
 
-Rebuild on a machine with desktop Excel, from `packages/ato-benchmark-compare`:
+Rebuild on Windows with Rust and desktop Excel, from `packages/ato-benchmark-compare`:
 
 ```powershell
 cargo run --example build_workbook

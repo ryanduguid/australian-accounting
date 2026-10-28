@@ -1101,13 +1101,49 @@ mod tests {
         assert!(error.unwrap_err().to_string().contains("no source"));
     }
 
+    /// The length of a formula cell's formula, from its model line
+    /// `... | cell A1 formula "..."`: the model writes it `{:?}` quoted, and
+    /// each escape stands for one character. None for any other line.
+    fn formula_chars(line: &str) -> Option<usize> {
+        let (_, cell) = line.split_once(" | cell ")?;
+        let (_, rest) = cell.split_once(' ')?;
+        let mut chars = rest.strip_prefix("formula \"")?.chars();
+        let mut count = 0;
+        loop {
+            match chars.next()? {
+                '"' => return Some(count),
+                '\\' => {
+                    let escaped = chars.next()?;
+                    if escaped == 'u' {
+                        while chars.next()? != '}' {}
+                    }
+                }
+                _ => {}
+            }
+            count += 1;
+        }
+    }
+
     #[test]
     fn every_formula_fits_excels_formula_limit() {
+        let fits = |formula: &str| {
+            formula_chars(&format!("sheet S | cell A1 formula {formula:?}")).unwrap() <= 8192
+        };
+        assert!(fits(&"A".repeat(8192)) && !fits(&"A".repeat(8193)));
+        assert!(fits(&format!("{}\"\\\u{7f}", "A".repeat(8189))));
+        assert!(!fits(&format!("\"{}", "A".repeat(8192))));
         let built = model(&build().unwrap()).unwrap();
-        let formulas: Vec<&String> = built.iter().filter(|l| l.contains(" formula ")).collect();
+        assert_eq!(
+            formula_chars("sheet S | cell A4 text \"No formula \\\"x\\\"\""),
+            None
+        );
+        let formulas: Vec<(&String, usize)> = built
+            .iter()
+            .filter_map(|line| Some((line, formula_chars(line)?)))
+            .collect();
         assert!(formulas.len() > 100);
-        for line in formulas {
-            assert!(line.chars().count() <= 8192 + 200, "{line}");
+        for (line, chars) in formulas {
+            assert!(chars <= 8192, "{line}");
         }
     }
 }
