@@ -234,14 +234,24 @@ no other distribution.
 
 Every page in `SOURCES`, including the holiday page, was read live again on 28 October
 2026 with one plain request each. All 21 returned HTTP 200, and each page's 'Last
-updated' date matches the date recorded in its provision, so no page has changed since
-it was read for this review. Tables 1 and 2 of the holiday page list the same 20 dates as
-`HOLIDAYS`; the names differ only in the capital A of 'Additional' in the joined 28
-December 2026 entry. The table's 'First business day' column agrees with the
-next-business-day roll for every date except 25 September 2026, the conflict this
-review already leaves `UNKNOWN`. No rule, test or reading changed; `SOURCE_CHECKED` is
-now `2026-10-28`. The quarter 4, 2026–27 agent date is still unconfirmed, and the
-holiday table still ends on 14 June 2027.
+updated' date matches the date recorded in its provision: the ATO records no update to
+any of them since this review. The page text from 20 October was not kept, so the pages
+were not compared word for word. Instead:
+
+- Tables 1 and 2 of the holiday page list the same 20 dates as `HOLIDAYS`; the names
+  differ only in the capital A of 'Additional' in the joined 28 December 2026 entry. The
+  table's 'First business day' column agrees with the next-business-day roll for every
+  date except 25 September 2026, the conflict this review already leaves `UNKNOWN`.
+- The engine was run over every request shape with 403 fact sets. Each of the 86
+  distinct pairs of rule and nominal date it returned is on the page that rule cites:
+  68 as a written date, and 18 under a rule the page states (the 21st day of the
+  following month, or 2 weeks after the original quarterly date). This shows each date
+  is still on its source page; it does not show that every condition around it is
+  unchanged.
+
+No rule, test or reading changed; `SOURCE_CHECKED` is now `2026-10-28`, the date of this
+re-check. The quarter 4, 2026–27 agent date is still 'to be confirmed', and the holiday
+table still ends on 14 June 2027.
 
 ## Before release
 
