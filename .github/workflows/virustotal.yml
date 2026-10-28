@@ -5,6 +5,7 @@ on:
   workflow_run:
     workflows:
       - Release aus-accounting-mcp
+      - Release lodgment-calendar
     types: [completed]
   workflow_dispatch:
     inputs:

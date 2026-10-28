@@ -9,8 +9,9 @@ the ATO pages leave open, comes back `UNKNOWN` with the missing condition named.
 Distribution `lodgment-calendar`, import package `lodgmentcalendar`. Library only: this
 component ships no command.
 
-**Package lifecycle:** not yet released. Install it from this repository; see
-[release notes](RELEASE_NOTES.md) and [DISCLAIMER.md](DISCLAIMER.md).
+**Package lifecycle:** published. Install `lodgment-calendar` from PyPI with
+`pip install lodgment-calendar`; see [release notes](RELEASE_NOTES.md) and
+[DISCLAIMER.md](DISCLAIMER.md).
 
 It is a preparation aid. It reads the facts you pass, contacts no service, calls no ATO
 API and lodges nothing. Ryan Duguid is not a registered tax agent or BAS agent. Project
@@ -100,9 +101,9 @@ The result holds `obligations`, `counts` by status, `request`, `facts_used`,
 
 The holiday calendar is the ATO's own: Tables 1 and 2 of
 [Lodgment and payment dates on weekends or public holidays](https://www.ato.gov.au/tax-and-super-professionals/for-tax-professionals/prepare-and-lodge/registered-agent-lodgment-program/lodgment-and-payment-dates-on-weekends-or-public-holidays),
-checked on 20 October 2026. Under that page, a date that falls on a Saturday, a Sunday or
-a public holiday for the whole of any state or territory moves to the next business day
-for taxpayers in every state. The tables cover 1 July 2026 to 30 June 2027. A later date
+checked on 20 October 2026 and again on 28 October 2026. Under that page, a date that
+falls on a Saturday, a Sunday or a public holiday for the whole of any state or territory
+moves to the next business day for taxpayers in every state. The tables cover 1 July 2026 to 30 June 2027. A later date
 that is not a weekend cannot be shown to be a business day, so it is `UNKNOWN` with its
 nominal date kept. A holiday missing from the tables can only move a date later.
 

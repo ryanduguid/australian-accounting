@@ -20,7 +20,16 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python",
         ".github/workflows/codeql.yml: codeql-gates"
     ],
-
+    "release-lodgment-calendar.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
+        ".github/workflows/ci.yml: lodgment-calendar / build",
+        ".github/workflows/ci.yml: lodgment-calendar / dependency-audit",
+        ".github/workflows/ci.yml: lodgment-calendar / lint",
+        ".github/workflows/ci.yml: lodgment-calendar / test (3.14)",
+        ".github/workflows/boundaries.yml: boundaries",
+        ".github/workflows/codeql.yml: Analyze Python",
+        ".github/workflows/codeql.yml: codeql-gates"
+    ],
 }
 
 
@@ -101,7 +110,7 @@ class ReleaseChecksTests(unittest.TestCase):
                 match = re.search(r"(?m)^      source-directory: (\S+)$", text)
                 assert match is not None, path.name
                 components.append(match.group(1))
-        self.assertEqual(components, ["apps/aus-accounting-mcp"])
+        self.assertEqual(components, ["apps/aus-accounting-mcp", "packages/lodgment-calendar"])
         for component in components:
             with self.subTest(component=component):
                 project = tomllib.loads((ROOT / component / "pyproject.toml").read_text(encoding="utf-8"))

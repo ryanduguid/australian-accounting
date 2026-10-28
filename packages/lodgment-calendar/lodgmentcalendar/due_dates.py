@@ -22,7 +22,7 @@ from .returns import return_rule
 from .rules import FACT_MEANINGS, SOURCES, Facts, Rule
 from .statements import statement_rules
 
-SOURCE_CHECKED = "2026-10-20"
+SOURCE_CHECKED = "2026-10-28"
 PROGRAM_YEAR = "2026-27"
 # The program dates cover activity statements for periods in 2026–27 and income
 # tax returns for the 2025–26 income year (the 2026 return).

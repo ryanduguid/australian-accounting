@@ -230,6 +230,29 @@ rules here agree with it. Its roll was not reused because it ignores public holi
 and its due-date table is loaded from that package's rates data. This engine depends on
 no other distribution.
 
+## Pre-release source check, 28 October 2026
+
+Every page in `SOURCES`, including the holiday page, was read live again on 28 October
+2026 with one plain request each. All 21 returned HTTP 200, and each page's 'Last
+updated' date matches the date recorded in its provision: the ATO records no update to
+any of them since this review. The page text from 20 October was not kept, so the pages
+were not compared word for word. Instead:
+
+- Tables 1 and 2 of the holiday page list the same 20 dates as `HOLIDAYS`; the names
+  differ only in the capital A of 'Additional' in the joined 28 December 2026 entry. The
+  table's 'First business day' column agrees with the next-business-day roll for every
+  date except 25 September 2026, the conflict this review already leaves `UNKNOWN`.
+- The engine was run over every request shape with 403 fact sets. It returned 86
+  distinct combinations of rule, cited page and nominal date. For 68 the date is
+  written on the cited page; the other 18 follow from a rule that page states (the
+  21st day of the following month, or 2 weeks after the original quarterly date). This
+  ties each date to its cited page as the page reads now; it does not show that every
+  condition around it is unchanged.
+
+No rule, test or reading changed; `SOURCE_CHECKED` is now `2026-10-28`, the date of this
+re-check. The quarter 4, 2026–27 agent date is still 'to be confirmed', and the holiday
+table still ends on 14 June 2027.
+
 ## Before release
 
 - Read every page above live again and update `SOURCE_CHECKED`.
