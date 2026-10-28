@@ -9,6 +9,14 @@ repository = "https://github.com/ryanduguid/australian-accounting"
 homepage = "https://duguid.com.au/tools/australian-tax-ai-agents/"
 publish = false
 
+# Builds workbooks/div7a-loan-review.xlsx; dev-dependencies only, so the
+# release binary links none of it. `test = true` runs its unit tests under
+# `cargo test`.
+[[example]]
+name = "build_workbook"
+path = "examples/build_workbook/main.rs"
+test = true
+
 [dependencies]
 num-bigint = "0.5"
 num-integer = "0.1"
@@ -22,6 +30,11 @@ libc = "0.2"
 [profile.release]
 lto = true
 codegen-units = 1
+
+[dev-dependencies]
+roxmltree = "=0.21.1"
+rust_xlsxwriter = "=0.101.0"
+zip = { version = "=9.1.0", default-features = false, features = ["deflate"] }
 
 # Asset names the release workflow will publish once release-policy has a Rust
 # binary family; see the root README.

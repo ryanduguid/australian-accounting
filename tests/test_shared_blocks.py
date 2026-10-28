@@ -10,6 +10,10 @@ drift fails instead.
 names definitions whose docstrings or comments have diverged, so only the
 executable code is compared. The first file in each group is the reference.
 
+`RUST_COPIES` pins the Rust workbook tooling the div7a builder copied from the
+payday builder: whole files that differ only by declared substitutions, the
+model's code outside its tests, and the staging build's functions.
+
 Standard library only, and no component is imported: the files are read and
 parsed.
 """
@@ -17,21 +21,35 @@ parsed.
 from __future__ import annotations
 
 import ast
+import re
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGES = ROOT / "packages"
 
-GROUPS = {
-    "tools/build_workbook.py": {
-        "files": (
-            PACKAGES / "div7a-loan-review" / "tools" / "build_workbook.py",
-            PACKAGES / "ato-benchmark-compare" / "tools" / "build_workbook.py",
+# No Python definition is copied across components at present: the workbook
+# builders' helpers left with the payday and div7a Python builders.
+GROUPS: dict[str, dict] = {}
+
+PAYDAY_TOOLS = PACKAGES / "payday-super-checker" / "examples" / "build_workbook"
+RUST_COPIES = {
+    "copy": PACKAGES / "div7a-loan-review" / "examples" / "build_workbook",
+    # file: (payday text, div7a text) pairs; every other byte is the same.
+    "substituted": {
+        "excel.rs": (("PAYDAY_WORKBOOK", "DIV7A_WORKBOOK"),),
+        "recalc.ps1": (
+            ("PAYDAY_WORKBOOK", "DIV7A_WORKBOOK"),
+            ("PaydayBuild", "Div7aBuild"),
+            ("Review Checks B16", "Review Checks B10"),
+            ("Range('B16')", "Range('B10')"),
+            # The Python div7a builder ran Excel with macros force-disabled.
+            ("$xl.AutomationSecurity = 1", "$xl.AutomationSecurity = 3"),
         ),
-        "identical": ("header", "style"),
-        "same_logic": ("recalc",),
     },
+    # The model's tests exercise each builder's own features.
+    "code_before_tests": ("model.rs",),
+    "functions": {"main.rs": ("build", "fail", "replace_part")},
 }
 
 
@@ -118,6 +136,61 @@ class SharedBlockTests(unittest.TestCase):
                 for name in spec["same_logic"]:
                     with self.subTest(group=group, name=name, file=str(path.relative_to(ROOT))):
                         self.assertEqual(_executable(reference[name]), _executable(copy[name]))
+
+
+def _rust_function(text: str, name: str) -> str:
+    """A top-level `fn` item, from its signature to its closing brace."""
+    match = re.search(rf"^(?:pub )?fn {name}\b.*?^}}\n", text, re.M | re.S)
+    assert match is not None, name
+    return match.group(0)
+
+
+class RustCopyTests(unittest.TestCase):
+    def read(self, directory: Path, name: str) -> str:
+        return (directory / name).read_text(encoding="utf-8")
+
+    def test_substituted_files_differ_only_by_their_declared_substitutions(self) -> None:
+        for name, pairs in RUST_COPIES["substituted"].items():
+            reference = self.read(PAYDAY_TOOLS, name)
+            for old, new in pairs:
+                with self.subTest(file=name, text=old):
+                    # A renamed literal must fail here, not quietly stop matching.
+                    self.assertIn(old, reference)
+                reference = reference.replace(old, new)
+            with self.subTest(file=name):
+                self.assertEqual(reference, self.read(RUST_COPIES["copy"], name))
+
+    def test_the_model_code_is_identical_outside_its_tests(self) -> None:
+        for name in RUST_COPIES["code_before_tests"]:
+            reference, copy = (
+                self.read(d, name).split("#[cfg(test)]")
+                for d in (PAYDAY_TOOLS, RUST_COPIES["copy"])
+            )
+            with self.subTest(file=name):
+                self.assertEqual(len(reference), 2)
+                self.assertEqual(reference[0], copy[0])
+            for part, path in ((reference, PAYDAY_TOOLS), (copy, RUST_COPIES["copy"])):
+                with self.subTest(file=str((path / name).relative_to(ROOT))):
+                    # The test module comes last, so no code escapes the comparison.
+                    top_level = [line for line in part[1].splitlines() if line[:1].strip()]
+                    self.assertEqual(top_level, ["mod tests {", "}"])
+
+    def test_the_staging_build_functions_are_identical(self) -> None:
+        for name, functions in RUST_COPIES["functions"].items():
+            reference = self.read(PAYDAY_TOOLS, name)
+            copy = self.read(RUST_COPIES["copy"], name)
+            for function in functions:
+                with self.subTest(file=name, function=function):
+                    self.assertEqual(
+                        _rust_function(reference, function), _rust_function(copy, function)
+                    )
+
+    def test_a_function_ends_at_its_own_closing_brace(self) -> None:
+        text = "fn a() {\n    x\n}\n\npub fn b() {\n}\n"
+        self.assertEqual(_rust_function(text, "a"), "fn a() {\n    x\n}\n")
+        self.assertEqual(_rust_function(text, "b"), "pub fn b() {\n}\n")
+        # A longer name sharing the prefix is a different function.
+        self.assertEqual(_rust_function("fn ab() {\n}\nfn a() {\n}\n", "a"), "fn a() {\n}\n")
 
 
 if __name__ == "__main__":  # pragma: no cover
