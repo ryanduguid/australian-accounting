@@ -160,16 +160,35 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                 engine::max_franking_rate(number(v, "current_fy")?, prior)?.to_string()
             ))
         }
-        "statement" => Ok(Statement::new(
-            text(v, "entity_name")?.into(),
-            text(v, "abn_or_acn")?.into(),
-            text(v, "recipient_name")?.into(),
-            date(v, "payment_date")?,
-            decimal(v, "total_distribution")?,
-            decimal(v, "franking_percentage")?,
-            optional_decimal(v, "corporate_tax_rate")?,
-        )?
-        .json()),
+        "statement" => {
+            let entity = text(v, "entity_name")?.into();
+            let acn = text(v, "abn_or_acn")?.into();
+            let recipient = text(v, "recipient_name")?.into();
+            let paid = date(v, "payment_date")?;
+            let total = decimal(v, "total_distribution")?;
+            let pct = decimal(v, "franking_percentage")?;
+            let tax_rate = optional_decimal(v, "corporate_tax_rate")?;
+            // These were keyword arguments: Python refused any other key before
+            // validating amounts, so a field such as withholding is never silently dropped.
+            let fields = [
+                "entity_name",
+                "abn_or_acn",
+                "recipient_name",
+                "payment_date",
+                "total_distribution",
+                "franking_percentage",
+                "corporate_tax_rate",
+            ];
+            if let Some(key) = v
+                .as_object()
+                .and_then(|o| o.keys().find(|k| !fields.contains(&k.as_str())))
+            {
+                return Err(format!(
+                    "generate_distribution_statement() got an unexpected keyword argument '{key}'"
+                ));
+            }
+            Ok(Statement::new(entity, acn, recipient, paid, total, pct, tax_rate)?.json())
+        }
         "distribution-event" => event(v)?.json(),
         "benchmark" => {
             // Python validates the validator's rate before constructing/adding events.

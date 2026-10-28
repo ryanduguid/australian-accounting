@@ -24,9 +24,15 @@ No money calculation, rate table or statutory text is intentionally changed.
   lone Unicode surrogate escapes; Python object strings could contain them.
 - The JSON boundary checks input types itself, because the Python API took typed
   objects. A malformed decimal string is refused as `<field>: not a decimal
-  amount`, a date other than canonical `YYYY-MM-DD` (for example `20261018` or a
-  week date) as `<field> must be YYYY-MM-DD`, and a financial year that is not a
-  JSON integer within the signed 64-bit range as `<field> must be an integer`.
+  amount`, a date that is not a calendar-valid canonical `YYYY-MM-DD` (for
+  example `20261018`, a week date or `2026-13-01`) as `<field> must be
+  YYYY-MM-DD`, and a financial year that is not a JSON integer within the signed
+  64-bit range as `<field> must be an integer`. `validate-value` is the
+  exception: it keeps the original CLI validator's messages.
+- `statement` refuses an unlisted field with Python's
+  `generate_distribution_statement() got an unexpected keyword argument '<key>'`,
+  without Python's `Did you mean` suggestion for a near miss. With several
+  unlisted fields it names the first in sorted key order, not the order given.
 - Arithmetic always uses Python's default Decimal context. A caller-selected
   context (for example `decimal.localcontext()` with lower precision) could
   change Python 0.2.0 results and has no equivalent.

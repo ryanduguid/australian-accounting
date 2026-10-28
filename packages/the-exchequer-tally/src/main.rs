@@ -1,8 +1,17 @@
 use std::io::{Read, Write};
 use the_exchequer_tally::{api, cli};
 
-fn emit(mut stream: impl Write, text: &str, stderr: bool) -> std::io::Result<()> {
-    stream.write_all(&cli::output_bytes(text, stderr))
+fn emit(mut stream: impl Write, text: &str, stderr: bool, json: bool) -> std::io::Result<()> {
+    if !json {
+        return stream.write_all(&cli::output_bytes(text, stderr));
+    }
+    // API text comes from JSON, never from an OS string, so it carries no surrogate
+    // escapes to decode: write it as UTF-8 with only the native newline.
+    if cfg!(windows) {
+        stream.write_all(text.replace('\n', "\r\n").as_bytes())
+    } else {
+        stream.write_all(text.as_bytes())
+    }
 }
 fn api_run(command: &str) -> (i32, String, String) {
     let mut bytes = Vec::new();
@@ -27,7 +36,8 @@ fn main() {
         .skip(1)
         .map(|a| cli::decode_os(&a))
         .collect();
-    let (code, out, err) = if args.len() == 1 && api::COMMANDS.contains(&args[0].as_str()) {
+    let json = args.len() == 1 && api::COMMANDS.contains(&args[0].as_str());
+    let (code, out, err) = if json {
         api_run(&args[0])
     } else if args == ["--api-help"] {
         (
@@ -41,8 +51,8 @@ fn main() {
     } else {
         cli::run(&args)
     };
-    let out_result = emit(std::io::stdout().lock(), &out, false);
-    let err_result = emit(std::io::stderr().lock(), &err, true);
+    let out_result = emit(std::io::stdout().lock(), &out, false, json);
+    let err_result = emit(std::io::stderr().lock(), &err, true, json);
     std::process::exit(if out_result.is_err() || err_result.is_err() {
         1
     } else {
