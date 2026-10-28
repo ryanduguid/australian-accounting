@@ -10,8 +10,8 @@ from datetime import date
 from typing import Annotated, Any
 
 from lodgmentcalendar import Facts, due_dates
-from lodgmentcalendar.due_dates import FACT_MEANINGS
 from lodgmentcalendar.holidays import MAX_EXTRA_HOLIDAYS
+from lodgmentcalendar.rules import FACT_MEANINGS
 from pydantic import BaseModel, ConfigDict, Field
 
 from aus_accounting_mcp.errors import InputError

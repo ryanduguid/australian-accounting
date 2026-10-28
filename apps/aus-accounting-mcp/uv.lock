@@ -47,13 +47,14 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "ato-benchmark-compare" },
     { name = "australian-tax-calculators" },
     { name = "div7a-loan-review" },
     { name = "gst-review" },
+    { name = "lodgment-calendar" },
     { name = "mcp" },
     { name = "payday-super-checker" },
 ]
@@ -77,6 +78,7 @@ requires-dist = [
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.6.1" },
     { name = "div7a-loan-review", specifier = "==0.3.2" },
     { name = "gst-review", specifier = "==0.1.0" },
+    { name = "lodgment-calendar", specifier = "==0.1.0" },
     { name = "mcp", specifier = ">=2.3.0,<3" },
     { name = "nodejs-wheel-binaries", marker = "extra == 'dev'", specifier = "==24.19.0" },
     { name = "payday-super-checker", specifier = "==0.2.2" },
@@ -419,6 +421,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/19/74/a633ee74eb36c44aa6d1095e7cc5569bebf04342ee146178e2d36600708b/jsonschema_specifications-2025.9.1.tar.gz", hash = "sha256:b540987f239e745613c7a9176f3edb72b832a4ac465cf02712288397832b5e8d", size = 32855, upload-time = "2025-09-08T01:34:59.186Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/41/45/1a4ed80516f02155c51f51e8cedb3c1902296743db0bbc66608a0db2814f/jsonschema_specifications-2025.9.1-py3-none-any.whl", hash = "sha256:98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe", size = 18437, upload-time = "2025-09-08T01:34:57.871Z" },
+]
+
+[[package]]
+name = "lodgment-calendar"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/01/2655cf09781d47df26665518486bf44a153df8d32cf2416bad80f0996481/lodgment_calendar-0.1.0.tar.gz", hash = "sha256:c684d48beda275d1bd3958b42437b8fb0e9aebc76c4cfb32ec9707b369cf7b00", size = 58872, upload-time = "2026-10-28T20:11:58.07Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e6/5e/1d8c2c24c921683c676e1b610247f8c545cdae8229584050338b26492a99/lodgment_calendar-0.1.0-py3-none-any.whl", hash = "sha256:0cedab6590420bd9c84e83fe666a9baefb6b5821e7c51b6bf279105345f89cc5", size = 25463, upload-time = "2026-10-28T20:11:56.524Z" },
 ]
 
 [[package]]
