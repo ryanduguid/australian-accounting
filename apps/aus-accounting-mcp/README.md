@@ -54,10 +54,10 @@ The listing identifies the distribution; it does not prove a client's installed 
 Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uvx --from 'aus-accounting-mcp==0.6.0' aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.7.0' aus-accounting-mcp
 ```
 
-This selects the published [0.6.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.6.0).
+This selects the published [0.7.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.0).
 The source checkout may be ahead of the published release. The pin selects the
 server version; it does not lock every transitive dependency.
 
@@ -80,18 +80,18 @@ For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio server
   "mcpServers": {
     "aus-accounting": {
       "command": "uvx",
-      "args": ["--from", "aus-accounting-mcp==0.6.0", "aus-accounting-mcp"]
+      "args": ["--from", "aus-accounting-mcp==0.7.0", "aus-accounting-mcp"]
     }
   }
 }
 ```
 
-[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuNi4wIiwiYXVzLWFjY291bnRpbmctbWNwIl19),
+[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuNy4wIiwiYXVzLWFjY291bnRpbmctbWNwIl19),
 or from a terminal:
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.6.0' aus-accounting-mcp
-codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.6.0' aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.0' aus-accounting-mcp
+codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.0' aus-accounting-mcp
 ```
 
 The [client setup guide](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#client-setup)
