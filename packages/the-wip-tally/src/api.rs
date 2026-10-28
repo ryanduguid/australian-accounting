@@ -179,8 +179,8 @@ fn contract(v: &Value) -> Result<ContractInput> {
     })
 }
 
-fn opt(value: &Option<Decimal>) -> Value {
-    value.as_ref().map_or(Value::Null, |d| json!(d.to_string()))
+fn opt(value: Option<&Decimal>) -> Value {
+    value.map_or(Value::Null, |d| json!(d.to_string()))
 }
 
 /// The position as JSON: every computed field, plus `needs_review`.
@@ -198,10 +198,10 @@ pub fn position_json(p: &engine::ContractPosition) -> Value {
         "contract_asset": p.contract_asset.to_string(),
         "contract_liability": p.contract_liability.to_string(),
         "gross_profit_at_completion": p.gross_profit_at_completion.to_string(),
-        "margin_at_completion": opt(&p.margin_at_completion),
-        "prior_margin_at_completion": opt(&p.prior_margin_at_completion),
-        "profit_fade_points": opt(&p.profit_fade_points),
-        "period_revenue": opt(&p.period_revenue),
+        "margin_at_completion": opt(p.margin_at_completion.as_ref()),
+        "prior_margin_at_completion": opt(p.prior_margin_at_completion.as_ref()),
+        "profit_fade_points": opt(p.profit_fade_points.as_ref()),
+        "period_revenue": opt(p.period_revenue.as_ref()),
         "gst_on_certified_billings": p.gst_on_certified_billings.to_string(),
         "gst_on_retention": p.gst_on_retention.to_string(),
         "flags": p.flags,
