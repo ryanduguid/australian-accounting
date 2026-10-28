@@ -45,23 +45,25 @@ repository's `tests/test_ato_workbook.py` reads the cached values desktop Excel 
 and holds them to the engine's answer for the bakery example, frozen in
 `tests/data/workbook-sample.json`, which `cargo test` holds to the engine, and holds
 the Benchmarks sheet to the shipped JSON. A change to the engine, the data or the
-workbook that is not rebuilt fails one of the two tests. The shipped workbook was
-built against engine 0.2.2, whose results the Rust 1.0.0 engine reproduces.
+workbook that is not rebuilt fails one of the two tests.
 
-Rebuild on a machine with desktop Excel and Rust, from the repository root:
+Rebuild on Windows with Rust and desktop Excel, from `packages/ato-benchmark-compare`:
 
 ```powershell
-uv run python packages/ato-benchmark-compare/tools/build_workbook.py
+cargo run --example build_workbook
 ```
 
-The build reads the benchmark bands through the engine's `load-dataset` command,
-building the binary with Cargo if needed.
+The build reads the benchmark bands through the engine's own dataset loader, so the
+workbook carries the same merged ranges the engine compares against.
 
-The build writes the formulas with openpyxl, opens the file once in Excel over COM to
-calculate and save real cached values, records the Excel build on Sources & Version
-and strips the machine path Excel stamps into the file. Pass `--no-excel` to skip the
-Excel pass; the file then opens fine in Excel but ships without cached values and the
-parity test fails, which is the point.
+The build writes the formulas with rust_xlsxwriter, opens the file once in Excel over
+COM to calculate and save real cached values, records the Excel build on Sources &
+Version and strips the machine path Excel stamps into the file. Pass `--no-excel` to
+skip the Excel pass; the file then opens fine in Excel but ships without cached values
+and the parity test fails, which is the point. `--out <path>` writes somewhere other
+than the shipped file. The build works on a staging file and replaces the output only
+when every step succeeds, so a failed build leaves the previous workbook in place. The
+builder's own tests, which hold the formulas it writes, run under `cargo test`.
 
 Account identity in the workbook is the trimmed, lower-cased account name rather than
 the engine's SHA-256 account key. Both resolve the same account to the same mapping

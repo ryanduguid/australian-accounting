@@ -1,15 +1,15 @@
 """The ato-benchmark-compare Excel workbook is a second implementation of the engine's rules.
 
-It ships with cached values written by desktop Excel (tools/build_workbook.py), so this
-test can hold it to the engine's answer for the bakery example without Excel on the
-test machine. The engine is a Rust crate; its comparison of that example is frozen in
+It ships with cached values written by desktop Excel (the Rust `build_workbook` example,
+`cargo run --example build_workbook`), so this test can hold it to the engine's answer
+for the bakery example without Excel on the test machine. The engine is a Rust crate;
+its comparison of that example is frozen in
 tests/data/workbook-sample.json, which `cargo test` holds to the engine. If the engine,
 the benchmark data or the workbook changes on its own, one of the two tests fails.
 """
 
 from __future__ import annotations
 
-import ast
 import json
 import re
 import zipfile
@@ -20,12 +20,10 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1] / "packages" / "ato-benchmark-compare"
 ENGINE_COMPARISON = ROOT / "tests" / "data" / "workbook-sample.json"
-# The shipped workbook was last built and recalculated against Python engine 0.2.2;
-# the Rust 1.0.0 engine gives the same results. A desktop Excel rebuild records the
-# crate version instead, and this constant moves with it.
-WORKBOOK_ENGINE_VERSION = "0.2.2"
+# The crate version the shipped workbook was built and recalculated against; a
+# desktop Excel rebuild records the current version, and this constant moves with it.
+WORKBOOK_ENGINE_VERSION = "1.0.0"
 WORKBOOK = ROOT / "workbooks" / "ato-benchmark-compare.xlsx"
-TOOL = ROOT / "tools" / "build_workbook.py"
 SHEETS = (
     "Start Here", "P&L Import", "Mapping", "Benchmarks", "Calculation", "Results",
     "Review Checks", "Sources & Version",
@@ -42,29 +40,6 @@ def cached():
 
 def bakery_comparison():
     return json.loads(ENGINE_COMPARISON.read_text(encoding="utf-8"))
-
-
-def rust_source(name):
-    return re.sub(r"\s+", " ", (ROOT / "src" / name).read_text(encoding="utf-8"))
-
-
-def tool_constant(name):
-    tree = ast.parse(TOOL.read_text(encoding="utf-8"))
-    for node in tree.body:
-        if isinstance(node, ast.Assign) and [t.id for t in node.targets] == [name]:
-            return ast.literal_eval(node.value)
-    raise AssertionError(name)
-
-
-def test_the_builder_wording_is_the_engines():
-    """The workbook builder carries copies of the bucket and ratio wording."""
-    buckets = re.search(r"pub const BUCKETS: \[\(&str, &str\); \d+\] = \[(.*?)\];", rust_source("mapping.rs"))
-    pairs = re.findall(r'\( ?"([a-z_]+)", "((?:[^"\\]|\\.)*)",? ?\)', buckets.group(1))
-    assert dict(pairs) == tool_constant("BUCKETS")
-    assert list(dict(pairs)) == list(tool_constant("BUCKETS"))
-    labels = re.search(r"pub fn ratio_label\(key: &str\) -> &str \{ match key \{(.*?)other =>",
-                       rust_source("dataset.rs"))
-    assert dict(re.findall(r'"([a-z_]+)" => "([^"]+)"', labels.group(1))) == tool_constant("RATIO_LABELS")
 
 
 def test_workbook_is_macro_free_and_carries_no_build_path(cached):

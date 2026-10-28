@@ -21,11 +21,20 @@ intentionally changed.
 - `examples/benchmark_history.py` is `examples/benchmark_history.rs`, run with
   `cargo run --release --example benchmark_history -- ...`; its flags and JSON
   output are unchanged.
-- The data and workbook build tools stay in Python. `build_other_benchmarks.py`
-  carries its own copies of `normalise` and `canonical_digest`, and
-  `build_workbook.py` reads the bands through the binary's `load-dataset`. Their
-  tests moved to the repository root, as `tests/test_ato_page_builder.py` and
-  `tests/test_ato_workbook.py`.
+- The data build tools stay in Python. `build_other_benchmarks.py` carries its
+  own copies of `normalise` and `canonical_digest`; its tests moved to the
+  repository root, as `tests/test_ato_page_builder.py`.
+- The workbook builder is the Rust `build_workbook` example
+  (`cargo run --example build_workbook`), replacing `tools/build_workbook.py`;
+  its tests run under `cargo test`, and it reads the bands through the engine's
+  dataset loader and imports the bucket wording and ratio labels instead of
+  copying them. The shipped workbook's tests stay at the repository root in
+  `tests/test_ato_workbook.py`, which holds it to the engine's comparison frozen
+  in `tests/data/workbook-sample.json`. The rebuilt workbook records engine
+  1.0.0, shows its PASS, REVIEW and BLOCKED status colours, which the
+  openpyxl-built workbook's conditional formats never displayed in Excel, and
+  names portrait A4 in each sheet's page setup. Every calculated result is
+  unchanged.
 
 ### Verification
 
