@@ -43,8 +43,6 @@ RUST_COPIES = {
             ("PaydayBuild", "Div7aBuild"),
             ("Review Checks B16", "Review Checks B10"),
             ("Range('B16')", "Range('B10')"),
-            # The Python div7a builder ran Excel with macros force-disabled.
-            ("$xl.AutomationSecurity = 1", "$xl.AutomationSecurity = 3"),
         ),
     },
     # The model's tests exercise each builder's own features.
