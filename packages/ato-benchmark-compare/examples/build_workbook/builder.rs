@@ -117,6 +117,25 @@ struct Bakery {
     mapping: Vec<[String; 4]>,
 }
 
+/// The account, bucket, source and note columns of the mapping header. A
+/// repeated one refuses: DictReader silently took its last value.
+fn mapping_columns(header: &[String]) -> Result<[usize; 4]> {
+    let column = |name: &str| {
+        let mut at = (0..header.len()).filter(|&i| header[i] == name);
+        match (at.next(), at.next()) {
+            (Some(i), None) => Ok(i),
+            (None, _) => Err(format!("bakery-mapping.csv: no {name} column")),
+            _ => Err(format!("bakery-mapping.csv: repeated {name} column")),
+        }
+    };
+    Ok([
+        column("account")?,
+        column("bucket")?,
+        column("source")?,
+        column("note")?,
+    ])
+}
+
 /// The bakery sample as the Python builder read it, with csv.reader and
 /// csv.DictReader.
 fn read_bakery() -> Result<Bakery> {
@@ -133,18 +152,7 @@ fn read_bakery() -> Result<Bakery> {
     }
     let mut rows = read_csv("bakery-mapping.csv")?.into_iter();
     let header = rows.next().ok_or("bakery-mapping.csv: no header")?;
-    let column = |name: &str| {
-        header
-            .iter()
-            .position(|h| h == name)
-            .ok_or(format!("bakery-mapping.csv: no {name} column"))
-    };
-    let at = [
-        column("account")?,
-        column("bucket")?,
-        column("source")?,
-        column("note")?,
-    ];
+    let at = mapping_columns(&header)?;
     let mut mapping = Vec::new();
     // DictReader skips a row with no fields at all.
     for row in rows.filter(|row| !row.is_empty()) {
@@ -1080,6 +1088,17 @@ mod tests {
         for text in ["", "-", "1.", ".5", "+1", " 1", "1e3", "1,000", "--1"] {
             assert!(!is_amount(text), "{text}");
         }
+    }
+
+    #[test]
+    fn a_repeated_or_missing_mapping_column_refuses() {
+        let header = |names: &str| names.split(',').map(String::from).collect::<Vec<_>>();
+        let columns = mapping_columns(&header("account,bucket,source,amount,note")).unwrap();
+        assert_eq!(columns, [0, 1, 2, 4]);
+        let error = mapping_columns(&header("account,bucket,source,note,bucket"));
+        assert!(error.unwrap_err().to_string().contains("repeated bucket"));
+        let error = mapping_columns(&header("account,bucket,note"));
+        assert!(error.unwrap_err().to_string().contains("no source"));
     }
 
     #[test]
