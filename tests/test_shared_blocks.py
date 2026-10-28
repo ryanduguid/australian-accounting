@@ -10,9 +10,10 @@ drift fails instead.
 names definitions whose docstrings or comments have diverged, so only the
 executable code is compared. The first file in each group is the reference.
 
-`RUST_COPIES` pins the Rust workbook tooling the div7a builder copied from the
-payday builder: whole files that differ only by declared substitutions, the
-model's code outside its tests, and the staging build's functions.
+`RUST_COPIES` pins the Rust workbook tooling the div7a and ato-benchmark
+builders copied from the payday builder: whole files that differ only by
+declared substitutions, the model's code outside its tests, and the staging
+build's functions.
 
 Standard library only, and no component is imported: the files are read and
 parsed.
@@ -34,16 +35,27 @@ GROUPS: dict[str, dict] = {}
 
 PAYDAY_TOOLS = PACKAGES / "payday-super-checker" / "examples" / "build_workbook"
 RUST_COPIES = {
-    "copy": PACKAGES / "div7a-loan-review" / "examples" / "build_workbook",
-    # file: (payday text, div7a text) pairs; every other byte is the same.
-    "substituted": {
-        "excel.rs": (("PAYDAY_WORKBOOK", "DIV7A_WORKBOOK"),),
-        "recalc.ps1": (
-            ("PAYDAY_WORKBOOK", "DIV7A_WORKBOOK"),
-            ("PaydayBuild", "Div7aBuild"),
-            ("Review Checks B16", "Review Checks B10"),
-            ("Range('B16')", "Range('B10')"),
-        ),
+    # Each copy's directory, then file: (payday text, copy text) pairs; every
+    # other byte is the same.
+    "copies": {
+        PACKAGES / "div7a-loan-review" / "examples" / "build_workbook": {
+            "excel.rs": (("PAYDAY_WORKBOOK", "DIV7A_WORKBOOK"),),
+            "recalc.ps1": (
+                ("PAYDAY_WORKBOOK", "DIV7A_WORKBOOK"),
+                ("PaydayBuild", "Div7aBuild"),
+                ("Review Checks B16", "Review Checks B10"),
+                ("Range('B16')", "Range('B10')"),
+            ),
+        },
+        PACKAGES / "ato-benchmark-compare" / "examples" / "build_workbook": {
+            "excel.rs": (("PAYDAY_WORKBOOK", "ATO_WORKBOOK"),),
+            "recalc.ps1": (
+                ("PAYDAY_WORKBOOK", "ATO_WORKBOOK"),
+                ("PaydayBuild", "AtoBuild"),
+                ("Review Checks B16", "Review Checks B13"),
+                ("Range('B16')", "Range('B13')"),
+            ),
+        },
     },
     # The model's tests exercise each builder's own features.
     "code_before_tests": ("model.rs",),
@@ -148,40 +160,43 @@ class RustCopyTests(unittest.TestCase):
         return (directory / name).read_text(encoding="utf-8")
 
     def test_substituted_files_differ_only_by_their_declared_substitutions(self) -> None:
-        for name, pairs in RUST_COPIES["substituted"].items():
-            reference = self.read(PAYDAY_TOOLS, name)
-            for old, new in pairs:
-                with self.subTest(file=name, text=old):
-                    # A renamed literal must fail here, not quietly stop matching.
-                    self.assertIn(old, reference)
-                reference = reference.replace(old, new)
-            with self.subTest(file=name):
-                self.assertEqual(reference, self.read(RUST_COPIES["copy"], name))
+        for directory, files in RUST_COPIES["copies"].items():
+            copy = str(directory.relative_to(PACKAGES))
+            for name, pairs in files.items():
+                reference = self.read(PAYDAY_TOOLS, name)
+                for old, new in pairs:
+                    with self.subTest(copy=copy, file=name, text=old):
+                        # A renamed literal must fail here, not quietly stop matching.
+                        self.assertIn(old, reference)
+                    reference = reference.replace(old, new)
+                with self.subTest(copy=copy, file=name):
+                    self.assertEqual(reference, self.read(directory, name))
 
     def test_the_model_code_is_identical_outside_its_tests(self) -> None:
         for name in RUST_COPIES["code_before_tests"]:
-            reference, copy = (
-                self.read(d, name).split("#[cfg(test)]")
-                for d in (PAYDAY_TOOLS, RUST_COPIES["copy"])
-            )
+            reference = self.read(PAYDAY_TOOLS, name).split("#[cfg(test)]")
             with self.subTest(file=name):
                 self.assertEqual(len(reference), 2)
-                self.assertEqual(reference[0], copy[0])
-            for part, path in ((reference, PAYDAY_TOOLS), (copy, RUST_COPIES["copy"])):
-                with self.subTest(file=str((path / name).relative_to(ROOT))):
-                    # The test module comes last, so no code escapes the comparison.
-                    top_level = [line for line in part[1].splitlines() if line[:1].strip()]
-                    self.assertEqual(top_level, ["mod tests {", "}"])
+            for directory in RUST_COPIES["copies"]:
+                copy = self.read(directory, name).split("#[cfg(test)]")
+                with self.subTest(file=str((directory / name).relative_to(ROOT))):
+                    self.assertEqual(reference[0], copy[0])
+                for part, path in ((reference, PAYDAY_TOOLS), (copy, directory)):
+                    with self.subTest(file=str((path / name).relative_to(ROOT))):
+                        # The test module comes last, so no code escapes the comparison.
+                        top_level = [line for line in part[1].splitlines() if line[:1].strip()]
+                        self.assertEqual(top_level, ["mod tests {", "}"])
 
     def test_the_staging_build_functions_are_identical(self) -> None:
         for name, functions in RUST_COPIES["functions"].items():
             reference = self.read(PAYDAY_TOOLS, name)
-            copy = self.read(RUST_COPIES["copy"], name)
-            for function in functions:
-                with self.subTest(file=name, function=function):
-                    self.assertEqual(
-                        _rust_function(reference, function), _rust_function(copy, function)
-                    )
+            for directory in RUST_COPIES["copies"]:
+                copy = self.read(directory, name)
+                for function in functions:
+                    with self.subTest(copy=str(directory.relative_to(PACKAGES)), function=function):
+                        self.assertEqual(
+                            _rust_function(reference, function), _rust_function(copy, function)
+                        )
 
     def test_a_function_ends_at_its_own_closing_brace(self) -> None:
         text = "fn a() {\n    x\n}\n\npub fn b() {\n}\n"
