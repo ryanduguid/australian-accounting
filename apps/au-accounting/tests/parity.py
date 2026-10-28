@@ -145,7 +145,6 @@ def check(name: str, bin_dir: Path, cap: int) -> tuple[str, int, list[str]]:
     return name, len(cases) + len(files), failures
 
 
-
 def derivation_check(name: str, bin_dir: Path) -> tuple[str, int, list[str]]:
     """Successful and rejected saved derivations use the standalone CLI contract."""
     _, command = ENGINES[name]
@@ -198,6 +197,7 @@ def derivation_check(name: str, bin_dir: Path) -> tuple[str, int, list[str]]:
         if derived != run(alias, ["derive"], raw, b):
             failures.append(f"{command} alias differs")
     return f"{name} derivations", len(cases) + 1, failures
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
