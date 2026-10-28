@@ -48,8 +48,9 @@ cargo test --locked
 ```
 
 `tests/parity.rs` replays the frozen record of the Python 0.2.2 engine's answers;
-a change that alters any of them fails it. The data and workbook build tools in
-`tools/` are Python and are tested from the repository root. CI runs the crate on
+a change that alters any of them fails it. The data build tools in `tools/` are
+Python and are tested from the repository root; the workbook builder is the Rust
+`build_workbook` example, whose tests run under `cargo test`. CI runs the crate on
 Ubuntu and Windows. Keep runtime strings ASCII.
 
 ## Pull requests
