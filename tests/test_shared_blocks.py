@@ -13,7 +13,9 @@ executable code is compared. The first file in each group is the reference.
 `RUST_COPIES` pins the Rust workbook tooling the div7a and ato-benchmark
 builders copied from the payday builder: whole files that differ only by
 declared substitutions, the model's code outside its tests, and the staging
-build's functions.
+build's functions. Those checks read rustfmt's layout, in which a top-level
+item and its closing brace start at column 0; each package's CI runs
+`cargo fmt --check`, which refuses a file laid out otherwise.
 
 Standard library only, and no component is imported: the files are read and
 parsed.
