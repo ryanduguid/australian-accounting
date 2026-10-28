@@ -73,20 +73,23 @@ desktop Excel wrote and holds every row of the mixed sample, the summary counts
 and the Rates sheet to the engine's review, frozen in
 `tests/data/workbook-sample.json`, which `cargo test` holds to the engine. A
 change to the engine, the rate table or the workbook that is not rebuilt fails
-one of the two tests. The shipped workbook was built against engine 0.3.2, whose
-results the Rust 1.0.0 engine reproduces.
+one of the two tests.
 
-Rebuild on a machine with desktop Excel, from the repository root:
+Rebuild on a machine with desktop Excel, from `packages/div7a-loan-review`:
 
 ```powershell
-uv run python packages/div7a-loan-review/tools/build_workbook.py
+cargo run --example build_workbook
 ```
 
-The build writes the formulas with openpyxl, opens the file once in Excel over COM
-to calculate and save real cached values, records the Excel build on Sources &
-Version and strips the machine path Excel stamps into the file. Pass `--no-excel`
-to skip the Excel pass; the file then ships without cached values and the parity
-test fails, which is the point.
+The build writes the formulas with rust_xlsxwriter, opens the file once in Excel
+over COM to calculate and save real cached values, records the Excel build on
+Sources & Version and strips the machine path Excel stamps into the file. Pass
+`--no-excel` to skip the Excel pass; the file then ships without cached values
+and the parity test fails, which is the point. `--out <path>` writes somewhere
+other than the shipped file. The build works on a staging file and replaces the
+output only when every step succeeds, so a failed build leaves the previous
+workbook in place. The builder's own tests, which hold the formulas it writes,
+run under `cargo test`.
 
 The s 109E(6) amount is worked in binary floating point and rounded with Excel's
 ROUND, where the engine works in 60-digit decimal and rounds half up. Both were

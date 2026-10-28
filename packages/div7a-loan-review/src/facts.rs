@@ -9,8 +9,9 @@ use crate::years::{YearOfIncome, parse_year};
 
 /// Spellings of "I do not know"; a blank cell counts.
 pub const UNKNOWN_TOKENS: [&str; 7] = ["", "unknown", "unk", "n/a", "na", "?", "-"];
-const TRUE: [&str; 5] = ["true", "t", "yes", "y", "1"];
-const FALSE: [&str; 5] = ["false", "f", "no", "n", "0"];
+/// Spellings `parse_tristate` reads as true and as false, after strip and lower.
+pub const TRUE: [&str; 5] = ["true", "t", "yes", "y", "1"];
+pub const FALSE: [&str; 5] = ["false", "f", "no", "n", "0"];
 
 /// `str(raw).strip().lower()`.
 fn token(raw: &Raw) -> String {
