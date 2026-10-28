@@ -326,7 +326,7 @@ pub fn measure(contract: &ContractInput) -> Result<ContractPosition> {
         c,
         &mut flags,
         &variable_excluded,
-        &fade_points,
+        fade_points.as_ref(),
         &gross_profit,
     )?;
 
@@ -434,7 +434,7 @@ fn flag_commercial(
     c: &ContractInput,
     flags: &mut Vec<&'static str>,
     variable_excluded: &Decimal,
-    fade_points: &Option<Decimal>,
+    fade_points: Option<&Decimal>,
     gross_profit: &Decimal,
 ) -> Calc<()> {
     let zero = d("0");
