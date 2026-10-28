@@ -64,7 +64,7 @@ try {
     throw "Process $excelId is not an Excel started by this build; refusing to own it."
   }
   $excel = $candidate
-  $xl.Visible = $false; $xl.DisplayAlerts = $false; $xl.AutomationSecurity = 1
+  $xl.Visible = $false; $xl.DisplayAlerts = $false; $xl.AutomationSecurity = 3
   for ($attempt = 0; $attempt -lt 5 -and $null -eq $wb; $attempt++) {
     $wb = Invoke-Com { $xl.Workbooks.Open($env:DIV7A_WORKBOOK) }
     if ($null -eq $wb) { Start-Sleep -Seconds 2 }

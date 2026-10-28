@@ -58,11 +58,17 @@ intentionally changed.
   installs the 0.3.2 Python release from PyPI for the MCP server and
   `lodgeit-calculator-adapter`. A signed native publisher remains a separate
   release task.
-- The Excel workbook and its builder are unchanged. `tools/build_workbook.py`
-  stays a Python build tool (openpyxl), now with literal copies of the engine
-  constants it restates; the repository's `tests/test_div7a_workbook.py` holds
-  those copies to the Rust source and the shipped workbook to the engine's
-  review frozen in `tests/data/workbook-sample.json`.
+- The workbook builder is the Rust `build_workbook` example
+  (`cargo run --example build_workbook`), replacing `tools/build_workbook.py`;
+  its formula tests run under `cargo test`, and it imports the engine constants
+  it restates instead of copying them (`facts::TRUE` and `facts::FALSE` are
+  public for it). The shipped workbook's tests stay at the repository root in
+  `tests/test_div7a_workbook.py`, which holds it to the engine's review frozen
+  in `tests/data/workbook-sample.json`. The rebuilt workbook records engine
+  1.0.0, shows its PASS, REVIEW and BLOCKED status colours, which the
+  openpyxl-built workbook's conditional formats never displayed in Excel, and
+  names portrait A4 in each sheet's page setup. Every calculated result is
+  unchanged.
 
 ### Verification
 
