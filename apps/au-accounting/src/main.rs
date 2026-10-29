@@ -17,8 +17,8 @@ struct Engine {
     command: &'static str,
     summary: &'static str,
     run: fn(&[OsString]) -> Outcome,
-    /// The engine's own stream encoding (`true` for stderr).
-    encode: fn(&str, bool) -> Vec<u8>,
+    /// The engine's own stream encoding, given its arguments (`true` for stderr).
+    encode: fn(&[OsString], &str, bool) -> Vec<u8>,
     /// Exit 120 with Python's message when a stream cannot be written, on Unix,
     /// as the engine's own command does; otherwise exit 1.
     python_flush: bool,
@@ -30,7 +30,7 @@ const ENGINES: &[Engine] = &[
         command: "ato-benchmark-compare",
         summary: "P&L figures against the ATO small business benchmarks",
         run: benchmarks,
-        encode: |text, _| ato_benchmark_compare::cli::output_bytes(text),
+        encode: |_, text, _| ato_benchmark_compare::cli::output_bytes(text),
         python_flush: true,
     },
     Engine {
@@ -38,7 +38,7 @@ const ENGINES: &[Engine] = &[
         command: "div7a-loan-review",
         summary: "Division 7A complying loans and minimum yearly repayments",
         run: div7a,
-        encode: |text, _| div7a_loan_review::cli::output_bytes(text),
+        encode: |_, text, _| div7a_loan_review::cli::output_bytes(text),
         python_flush: true,
     },
     Engine {
@@ -46,7 +46,7 @@ const ENGINES: &[Engine] = &[
         command: "the-exchequer-tally",
         summary: "Corporate tax, franking ledger and Division 203 review aids",
         run: exchequer,
-        encode: the_exchequer_tally::cli::output_bytes,
+        encode: exchequer_encode,
         python_flush: false,
     },
     Engine {
@@ -54,7 +54,7 @@ const ENGINES: &[Engine] = &[
         command: "gst-review",
         summary: "GST coding and BAS reconciliation review aids",
         run: gst_review,
-        encode: |text, _| gst_review::cli::output_bytes(text),
+        encode: |_, text, _| gst_review::cli::output_bytes(text),
         python_flush: false,
     },
     Engine {
@@ -62,7 +62,7 @@ const ENGINES: &[Engine] = &[
         command: "payday-super-check",
         summary: "Payday super deadlines and SG charge estimates",
         run: payday_super,
-        encode: |text, _| payday_super_checker::cli::output_bytes(text),
+        encode: |_, text, _| payday_super_checker::cli::output_bytes(text),
         python_flush: true,
     },
     Engine {
@@ -70,7 +70,7 @@ const ENGINES: &[Engine] = &[
         command: "solomons-sword",
         summary: "Trust allocation, s 100A risk zoning and s 99B review aids",
         run: solomons,
-        encode: |text, _| solomons_sword::cli::output_bytes(text),
+        encode: |_, text, _| solomons_sword::cli::output_bytes(text),
         python_flush: true,
     },
     Engine {
@@ -78,13 +78,7 @@ const ENGINES: &[Engine] = &[
         command: "australian-tax-calculators",
         summary: "Bounded Australian tax calculation worksheets",
         run: tax,
-        encode: |text, _| {
-            if cfg!(windows) {
-                text.replace('\n', "\r\n").into_bytes()
-            } else {
-                text.as_bytes().to_vec()
-            }
-        },
+        encode: |_, text, _| plain(text),
         python_flush: false,
     },
     Engine {
@@ -92,10 +86,29 @@ const ENGINES: &[Engine] = &[
         command: "wip-tally",
         summary: "AASB 15 construction WIP schedule and review pack",
         run: wip,
-        encode: |text, _| the_wip_tally::cli::output_bytes(text),
+        encode: |_, text, _| the_wip_tally::cli::output_bytes(text),
         python_flush: true,
     },
 ];
+
+/// UTF-8 with native newlines.
+fn plain(text: &str) -> Vec<u8> {
+    if cfg!(windows) {
+        text.replace('\n', "\r\n").into_bytes()
+    } else {
+        text.as_bytes().to_vec()
+    }
+}
+
+/// As The Exchequer Tally's own command: JSON results are plain UTF-8, and only
+/// its CLI output decodes the U+10F7FF escapes that OS-string arguments carry.
+fn exchequer_encode(args: &[OsString], text: &str, stderr: bool) -> Vec<u8> {
+    use the_exchequer_tally::{api, cli};
+    match args {
+        [command] if api::COMMANDS.iter().any(|c| command == *c) => plain(text),
+        _ => cli::output_bytes(text, stderr),
+    }
+}
 
 fn benchmarks(args: &[OsString]) -> Outcome {
     use ato_benchmark_compare::{api, cli};
@@ -504,11 +517,11 @@ fn main() {
     let (code, out, err) = (engine.run)(&rest);
     let mut stdout = std::io::stdout().lock();
     let out_result = stdout
-        .write_all(&(engine.encode)(&out, false))
+        .write_all(&(engine.encode)(&rest, &out, false))
         .and_then(|()| stdout.flush());
     let mut stderr = std::io::stderr().lock();
     let err_result = stderr
-        .write_all(&(engine.encode)(&err, true))
+        .write_all(&(engine.encode)(&rest, &err, true))
         .and_then(|()| stderr.flush());
     std::process::exit(finish(engine.python_flush, code, out_result, err_result));
 }
