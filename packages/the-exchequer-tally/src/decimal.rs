@@ -55,12 +55,6 @@ pub enum Signal {
     InvalidOperation,
 }
 
-/// Arithmetic result plus the `Inexact` flag, which the CSV loader traps.
-pub struct Outcome {
-    pub value: Decimal,
-    pub inexact: bool,
-}
-
 fn big(digits: &str) -> BigUint {
     BigUint::parse_bytes(digits.as_bytes(), 10).expect("coefficient digits are ASCII")
 }
@@ -85,10 +79,6 @@ fn finite(negative: bool, digits: String, exp: i128) -> Decimal {
 }
 
 impl Decimal {
-    pub fn zero() -> Decimal {
-        finite(false, "0".into(), 0)
-    }
-
     /// `Decimal(text)` with CPython's exact string conversion.
     pub fn parse(text: &str) -> Result<Decimal, Signal> {
         let stripped = pytext::strip(text);
@@ -134,11 +124,11 @@ impl Decimal {
         }
     }
 
-    pub fn add(&self, other: &Decimal) -> Outcome {
+    pub fn add(&self, other: &Decimal) -> Decimal {
         add(self, other)
     }
 
-    pub fn sub(&self, other: &Decimal) -> Outcome {
+    pub fn sub(&self, other: &Decimal) -> Decimal {
         add(self, &other.negate())
     }
 
@@ -146,14 +136,13 @@ impl Decimal {
         let negative = self.negative ^ other.negative;
         let exp = self.exp + other.exp;
         if self.is_zero() || other.is_zero() {
-            return fix(finite(negative, "0".into(), exp), Rounding::HalfEven).value;
+            return fix(finite(negative, "0".into(), exp), Rounding::HalfEven);
         }
         let product = big(&self.digits) * big(&other.digits);
         fix(
             finite(negative, product.to_string(), exp),
             Rounding::HalfEven,
         )
-        .value
     }
 
     /// `self / other`; the caller guarantees a non-zero divisor.
@@ -167,8 +156,7 @@ impl Decimal {
             return fix(
                 finite(negative, "0".into(), self.exp - other.exp),
                 Rounding::HalfEven,
-            )
-            .value;
+            );
         }
         let shift = other.digits.len() as i128 - self.digits.len() as i128 + PREC + 1;
         let mut exp = self.exp - other.exp - shift;
@@ -189,7 +177,7 @@ impl Decimal {
                 exp += 1;
             }
         }
-        fix(finite(negative, coeff.to_string(), exp), Rounding::HalfEven).value
+        fix(finite(negative, coeff.to_string(), exp), Rounding::HalfEven)
     }
 
     /// `abs(self)` under the context, which also rounds.
@@ -198,7 +186,7 @@ impl Decimal {
             negative: false,
             ..self.clone()
         };
-        fix(positive, Rounding::HalfEven).value
+        fix(positive, Rounding::HalfEven)
     }
 
     /// `self.quantize(Decimal(f"1E{exp}"), rounding=rounding)`.
@@ -207,7 +195,7 @@ impl Decimal {
             return Err(Signal::InvalidOperation);
         }
         if self.is_zero() {
-            return Ok(fix(finite(self.negative, "0".into(), exp), rounding).value);
+            return Ok(fix(finite(self.negative, "0".into(), exp), rounding));
         }
         if self.adjusted() > EMAX || self.adjusted() - exp + 1 > PREC {
             return Err(Signal::InvalidOperation);
@@ -216,7 +204,7 @@ impl Decimal {
         if answer.adjusted() > EMAX || answer.digits.len() as i128 > PREC {
             return Err(Signal::InvalidOperation);
         }
-        Ok(fix(answer, rounding).value)
+        Ok(fix(answer, rounding))
     }
 
     /// `str(self)`, Python's to-sci-string with a capital `E`.
@@ -243,10 +231,9 @@ impl Decimal {
         format!("{sign}{intpart}{fracpart}{exp}")
     }
 
-    /// `format(self, "f")`, or `None` where CPython runs out of memory: a zero
-    /// the gateway admits can carry an exponent near -10**18, whose fixed-point
-    /// form has that many digits.
-    pub fn to_fixed_string(&self) -> Option<String> {
+    /// `format(self, "f")`. Its only caller, `fixed`, first rescales to a few
+    /// places, so the fixed-point form is no longer than the rescaled digits.
+    fn to_fixed_string(&self) -> String {
         let sign = if self.negative { "-" } else { "" };
         let value = if self.is_zero() && self.exp > 0 {
             finite(self.negative, "0".into(), 0)
@@ -254,20 +241,13 @@ impl Decimal {
             self.clone()
         };
         let dotplace = value.exp + value.digits.len() as i128;
-        let length = value.digits.len() as i128 + dotplace.unsigned_abs() as i128;
-        // shortcut: the cut-off where CPython raises MemoryError depends on the
-        // machine; 1 GiB of digits is treated as out of memory here.
-        // Set a measured memory budget if a legitimate input needs more digits.
-        if length > 1 << 30 {
-            return None;
-        }
         let (intpart, fracpart) = place_point(&value.digits, dotplace, false);
-        Some(format!("{sign}{intpart}{fracpart}"))
+        format!("{sign}{intpart}{fracpart}")
     }
 
     pub fn fixed(&self, places: u32, grouped: bool) -> String {
         let rounded = rescale(self, -(places as i128), Rounding::HalfEven);
-        let raw = rounded.to_fixed_string().expect("bounded fixed output");
+        let raw = rounded.to_fixed_string();
         if !grouped {
             return raw;
         }
@@ -515,13 +495,10 @@ fn rescale(value: &Decimal, exp: i128, rounding: Rounding) -> Decimal {
 }
 
 /// `_pydecimal.Decimal._fix`: round to the context and clamp zero exponents.
-fn fix(value: Decimal, rounding: Rounding) -> Outcome {
+fn fix(value: Decimal, rounding: Rounding) -> Decimal {
     if value.is_zero() {
         let new_exp = value.exp.clamp(ETINY, EMAX);
-        return Outcome {
-            value: finite(value.negative, "0".into(), new_exp),
-            inexact: false,
-        };
+        return finite(value.negative, "0".into(), new_exp);
     }
     let mut exp_min = value.digits.len() as i128 + value.exp - PREC;
     assert!(
@@ -530,10 +507,7 @@ fn fix(value: Decimal, rounding: Rounding) -> Outcome {
     );
     exp_min = exp_min.max(ETINY);
     if value.exp >= exp_min {
-        return Outcome {
-            value,
-            inexact: false,
-        };
+        return value;
     }
     let mut source = value.clone();
     let mut keep = value.digits.len() as i128 + value.exp - exp_min;
@@ -558,13 +532,10 @@ fn fix(value: Decimal, rounding: Rounding) -> Outcome {
         exp_min <= ETOP,
         "overflow is unreachable for the bounded amounts the gateway accepts"
     );
-    Outcome {
-        value: finite(value.negative, coeff, exp_min),
-        inexact: changed != 0,
-    }
+    finite(value.negative, coeff, exp_min)
 }
 
-fn add(a: &Decimal, b: &Decimal) -> Outcome {
+fn add(a: &Decimal, b: &Decimal) -> Decimal {
     let exp = a.exp.min(b.exp);
     if a.is_zero() && b.is_zero() {
         return fix(
@@ -660,17 +631,17 @@ mod tests {
     #[test]
     fn arithmetic_matches_cpython_probes() {
         let z = d("0E+999999999999999999");
-        assert_eq!(z.add(&z).value.to_sci_string(), "0E+999999");
-        assert_eq!(z.add(&d("1.00")).value.to_sci_string(), "1.00");
+        assert_eq!(z.add(&z).to_sci_string(), "0E+999999");
+        assert_eq!(z.add(&d("1.00")).to_sci_string(), "1.00");
         let tiny = d("0E-999999999999999999");
-        assert_eq!(tiny.add(&tiny).value.to_sci_string(), "0E-1000026");
+        assert_eq!(tiny.add(&tiny).to_sci_string(), "0E-1000026");
         assert_eq!(
             d("0E-999999999").div(&d("100")).to_sci_string(),
             "0E-1000026"
         );
-        assert_eq!(d("-0.00").sub(&d("0.00")).value.to_sci_string(), "-0.00");
-        assert_eq!(d("-0").add(&d("-0")).value.to_sci_string(), "-0");
-        assert_eq!(d("1.00").sub(&d("1.00")).value.to_sci_string(), "0.00");
+        assert_eq!(d("-0.00").sub(&d("0.00")).to_sci_string(), "-0.00");
+        assert_eq!(d("-0").add(&d("-0")).to_sci_string(), "-0");
+        assert_eq!(d("1.00").sub(&d("1.00")).to_sci_string(), "0.00");
         assert_eq!(d("10").div(&d("4")).to_sci_string(), "2.5");
         assert_eq!(
             d("1").div(&d("3")).to_sci_string(),
@@ -680,16 +651,9 @@ mod tests {
         assert_eq!(d("1.00").div(&d("8")).to_sci_string(), "0.125");
         assert_eq!(d("12E+3").div(&d("4E-2")).to_sci_string(), "3E+5");
         let rounded = d("1E+18").sub(&d("1E-18"));
-        assert_eq!(
-            rounded.value.to_sci_string(),
-            "1000000000000000000.000000000"
-        );
-        assert!(rounded.inexact);
-        let carried = d("9999999999999999999999999999.5").add(&Decimal::zero());
-        assert_eq!(
-            carried.value.to_sci_string(),
-            "1.000000000000000000000000000E+28"
-        );
+        assert_eq!(rounded.to_sci_string(), "1000000000000000000.000000000");
+        let carried = d("9999999999999999999999999999.5").add(&d("0"));
+        assert_eq!(carried.to_sci_string(), "1.000000000000000000000000000E+28");
         let percent = d("2").div(&d("3")).mul(&d("100"));
         assert_eq!(
             percent
@@ -706,12 +670,11 @@ mod tests {
 
     #[test]
     fn fixed_format_matches_cpython() {
-        let fixed = |text: &str| d(text).to_fixed_string().unwrap();
+        let fixed = |text: &str| d(text).to_fixed_string();
         assert_eq!(fixed("1E+3"), "1000");
         assert_eq!(fixed("-0.00"), "-0.00");
         assert_eq!(fixed("1.20E-5"), "0.0000120");
         assert_eq!(fixed("0E-3"), "0.000");
         assert_eq!(fixed("0E+3"), "0");
-        assert_eq!(d("0E-999999999999").to_fixed_string(), None);
     }
 }
