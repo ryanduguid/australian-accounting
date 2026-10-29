@@ -19,6 +19,14 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Ordinary taxable employer, established type 1 and type 2 taxable values for the year ended 31 March 2026. Excludes benefit valuation, exemptions, rebates and not-for-profit caps. Retains gross-up precision for the estimate, then presents the amounts to cents. The return_item figures follow the FBT return instead: items 14A and 14B rounded to the nearest dollar, as the ATO's own worked example does, item 15 as their sum and item 16 at 47%, before any optional rounding down to 5 cents.",
     ),
     (
+        "fbt_car_statutory",
+        "One car held by an ordinary taxable employer and used or available for an employee's private use in the FBT year ended 31 March 2026 or 2027, with no commitment to provide it made before 7.30 pm AEST on 10 May 2011, so the 20% statutory percentage applies. The operator establishes the base value as the employer's guide (7.8.1) describes: cost_price holds the cost price, dealer delivery and the non-business accessories the one-third reduction applies to, and later_accessories holds non-business accessories added after acquisition, which it never reduces. one_third_reduction is true only from the FBT year starting after the car has been held for 4 years. Days used or available for private use, recipient's payments and whether the electric cars exemption applies are established facts. Excludes deciding whether a car benefit or exemption arises, the base value itself, arm's-length deeming, dealer demonstrator cars, the type 1 or type 2 choice, gross-up and FBT payable. The reduced base value and the gross taxable value are rounded to cents before the recipient's payment, which cannot take the taxable value below nil; an unused excess is shown and reduces no other benefit. An exempt electric car's taxable value is nil, and taxable_value_before_exemption is its notional value for reportable fringe benefits.",
+    ),
+    (
+        "fbt_car_operating_cost",
+        "One car held by an ordinary taxable employer to provide car fringe benefits in the FBT year ended 31 March 2026 or 2027, valued under a written election for the operating cost method. The operator establishes the GST-inclusive running costs for the days held (repairs, maintenance, servicing, fuel, insurance, registration and extended warranties, including costs the employee paid), the lease charges for a leased car, or for an owned car acquired on or after 10 May 2006 its depreciated value at the start of the FBT year (its cost price if acquired in the year), the days the car was held to provide fringe benefits, the business use percentage from log book and odometer records (0 without them), recipient's payments and whether the electric cars exemption applies. Deemed depreciation at 25% and deemed interest at the year's benchmark rate are apportioned to the days held. Non-business accessories fitted before the year belong in depreciated_value; accessories fitted during the year, cars acquired before 10 May 2006, the business use estimate itself, arm's-length deeming, the type 1 or type 2 choice, gross-up and FBT payable are excluded. Each deemed amount and the gross taxable value are rounded to cents before the recipient's payment, which cannot take the taxable value below nil; an unused excess is shown and reduces no other benefit. An exempt electric car's taxable value is nil, and taxable_value_before_exemption is its notional value for reportable fringe benefits.",
+    ),
+    (
         "depreciation",
         "First year only, ordinary tangible Division 40 asset first held on or after 10 May 2006. Established cost, effective life and taxable-use proportion. Days run from first use or installation ready for use. No second-element costs, disposals, changed life, pooling, immediate write-offs, special assets or Division 43 capital works. Does not determine an effective life from an asset description.",
     ),
@@ -78,6 +86,14 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/calculating-your-fbt",
     ),
     (
+        "fbt_car_statutory",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00008",
+    ),
+    (
+        "fbt_car_operating_cost",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00008",
+    ),
+    (
         "depreciation",
         "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/general-depreciation-rules-capital-allowances/prime-cost-straight-line-and-diminishing-value-methods",
     ),
@@ -124,6 +140,21 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "fbt",
         &[
             "https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/fbt-return-2026-calculation-details-for-taxable-employers",
+        ],
+    ),
+    (
+        "fbt_car_statutory",
+        &[
+            "https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/item-23-fringe-benefit-categories-for-fbt-return-2026",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/electric-cars-exemption",
+        ],
+    ),
+    (
+        "fbt_car_operating_cost",
+        &[
+            "https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/item-23-fringe-benefit-categories-for-fbt-return-2026",
+            "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/electric-cars-exemption",
         ],
     ),
     (

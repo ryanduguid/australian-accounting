@@ -8,6 +8,14 @@ import API. The fourteen worksheet functions, `worksheet_catalogue()` and
 method, rounding, period, scope statement, source, warning or refusal message is
 intentionally changed.
 
+### Added
+
+- `fbt-car-statutory` and `fbt-car-operating-cost` value one car fringe benefit
+  under FBTAA s 9 or s 10 for the FBT years ended 31 March 2026 and 2027; no
+  Python release has them. The worksheet catalogue lists both, so
+  `tests/parity.rs` compares the 10 frozen `worksheet-catalogue` results without
+  those 2 entries, and `tests/fbt_car.rs` covers them.
+
 ### Documented divergences
 
 - Python imports, keyword signatures, the `metadata` dictionaries and package

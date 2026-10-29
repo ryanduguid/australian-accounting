@@ -186,6 +186,12 @@ pub const DIVISION_293_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
 
 pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 
+/// Statutory or benchmark interest rate by FBT year ended 31 March, for the
+/// car operating cost method's deemed interest. Its keys are both car
+/// worksheets' supported years; the 20% statutory rate and the 25% deemed
+/// depreciation rate apply in each.
+pub const FBT_BENCHMARK_INTEREST_RATES: &[(&str, &str)] = &[("2026", "0.0862"), ("2027", "0.0827")];
+
 /// SISR Schedule 7 factors as (lowest age, factor), oldest band first.
 pub const PENSION_MINIMUM_FACTORS: [(i64, &str); 7] = [
     (95, "0.14"),
@@ -207,6 +213,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "gst" | "capital_gains" | "depreciation" | "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
         "fbt" => vec!["2026"],
+        "fbt_car_statutory" | "fbt_car_operating_cost" => keys(FBT_BENCHMARK_INTEREST_RATES),
         "payg_withholding" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
         "contribution_caps" => keys(CONTRIBUTION_CAPS),
         "pension_minimum" => vec!["2024-25", "2025-26", "2026-27"],
@@ -234,6 +241,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt" => (
             "2026-09-27",
             "Calculating your FBT, steps 3 to 7 and the MantCo example; FBT return 2026 instructions, items 14A to 16",
+        ),
+        "fbt_car_statutory" => (
+            "2026-10-29",
+            "Fringe benefits tax - a guide for employers, 7.8 statutory formula method and examples 23 and 26; FBT return 2026 instructions, item 23A and example 6; Electric cars exemption, reportable fringe benefits",
+        ),
+        "fbt_car_operating_cost" => (
+            "2026-10-29",
+            "Fringe benefits tax - a guide for employers, 7.9 operating cost method and example 31; FBT return 2026 instructions, item 23B and example 7; FBT rates and thresholds, benchmark interest rate; Electric cars exemption, reportable fringe benefits",
         ),
         "depreciation" => (
             "2026-09-24",
@@ -305,6 +320,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-000, 3-020",
             "2026-06-30",
             "2026-09-15",
+        ),
+        "fbt_car_statutory" | "fbt_car_operating_cost" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-020",
+            "2026-06-30",
+            "2026-10-29",
         ),
         "depreciation" => (
             "tax-examples-depreciation",
@@ -396,6 +417,38 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("prior_losses", "AUD"),
         ],
         "fbt" => vec![("type_one_value", "AUD"), ("type_two_value", "AUD")],
+        "fbt_car_statutory" => vec![
+            (
+                "cost_price",
+                "AUD, the established base value the one-third reduction applies to",
+            ),
+            (
+                "later_accessories",
+                "AUD, non-business accessories added after acquisition",
+            ),
+            ("one_third_reduction", "boolean"),
+            (
+                "days_available",
+                "integer from 0 to the days in the FBT year",
+            ),
+            ("employee_contribution", "AUD"),
+            ("electric_car_exempt", "boolean"),
+        ],
+        "fbt_car_operating_cost" => vec![
+            (
+                "running_costs",
+                "AUD, GST-inclusive operating costs for the days held, before lease charges and deemed amounts",
+            ),
+            ("lease_charges", "AUD, 0 for an owned car"),
+            (
+                "depreciated_value",
+                "AUD, at the start of the FBT year or the cost price if acquired in it; 0 for a leased car",
+            ),
+            ("days_held", "integer from 0 to the days in the FBT year"),
+            ("business_use", "decimal fraction from 0 to 1"),
+            ("employee_contribution", "AUD"),
+            ("electric_car_exempt", "boolean"),
+        ],
         "depreciation" => vec![
             ("cost", "AUD"),
             ("effective_life", "years, decimal string from 0.01 to 1000"),
@@ -488,6 +541,23 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "fbt" => vec![
             ("type_one_value", Text("1000.00")),
             ("type_two_value", Text("1000.00")),
+        ],
+        "fbt_car_statutory" => vec![
+            ("cost_price", Text("32000.00")),
+            ("later_accessories", Text("0.00")),
+            ("one_third_reduction", Flag(false)),
+            ("days_available", Whole(274)),
+            ("employee_contribution", Text("0.00")),
+            ("electric_car_exempt", Flag(false)),
+        ],
+        "fbt_car_operating_cost" => vec![
+            ("running_costs", Text("5200.00")),
+            ("lease_charges", Text("0.00")),
+            ("depreciated_value", Text("50000.00")),
+            ("days_held", Whole(365)),
+            ("business_use", Text("0.3636")),
+            ("employee_contribution", Text("1500.00")),
+            ("electric_car_exempt", Flag(false)),
         ],
         "depreciation" => vec![
             ("cost", Text("3000.00")),

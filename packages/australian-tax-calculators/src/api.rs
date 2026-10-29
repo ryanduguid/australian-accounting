@@ -57,6 +57,33 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "fbt-car-statutory",
+        &[
+            ("cost_price", Dec),
+            ("later_accessories", Dec),
+            ("one_third_reduction", Raw),
+            ("days_available", Raw),
+            ("employee_contribution", Dec),
+            ("electric_car_exempt", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "fbt-car-operating-cost",
+        &[
+            ("running_costs", Dec),
+            ("lease_charges", Dec),
+            ("depreciated_value", Dec),
+            ("days_held", Raw),
+            ("business_use", Dec),
+            ("employee_contribution", Dec),
+            ("electric_car_exempt", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "depreciation",
         &[
             ("cost", Dec),
@@ -351,6 +378,12 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         "resident-tax" => engine::resident_tax(&a[0], &a[1], &a[2]),
         "capital-gains" => engine::capital_gains(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5]),
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
+        "fbt-car-statutory" => {
+            engine::fbt_car_statutory(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
+        "fbt-car-operating-cost" => engine::fbt_car_operating_cost(
+            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8],
+        ),
         "depreciation" => engine::depreciation(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6]),
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
         "payg-withholding" => engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4]),
