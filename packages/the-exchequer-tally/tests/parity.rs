@@ -336,3 +336,78 @@ fn json_boundary_rejects_wrong_types_and_excessive_numbers() {
             .contains("entity_name must be a string")
     );
 }
+fn api_process(command: &str, input: &Value) -> std::process::Output {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_the-exchequer-tally"))
+        .arg(command)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let bytes = serde_json::to_vec(input).unwrap();
+    child.stdin.take().unwrap().write_all(&bytes).unwrap();
+    child.wait_with_output().unwrap()
+}
+fn native_line(text: &str) -> Vec<u8> {
+    format!("{text}{}", if cfg!(windows) { "\r\n" } else { "\n" }).into_bytes()
+}
+fn statement_input() -> Value {
+    serde_json::json!({"entity_name":"A","abn_or_acn":"1","recipient_name":"B","payment_date":"2026-10-18","total_distribution":"100.00","franking_percentage":"100.00","corporate_tax_rate":"0.25"})
+}
+#[test]
+fn statement_refuses_unexpected_fields_as_python_keywords_did() {
+    let refused = |key: &str, extra: Value| {
+        let mut input = statement_input();
+        for (k, v) in extra.as_object().unwrap() {
+            input[k] = v.clone();
+        }
+        let out = api_process("statement", &input);
+        assert_eq!(out.status.code(), Some(2), "{key}");
+        assert!(out.stdout.is_empty(), "{key}");
+        assert_eq!(
+            out.stderr,
+            native_line(&format!(
+                "error: generate_distribution_statement() got an unexpected keyword argument '{key}'"
+            ))
+        );
+    };
+    refused(
+        "withholding_tax_deducted",
+        serde_json::json!({"withholding_tax_deducted":"12.00"}),
+    );
+    // Python refuses the keyword before the function body validates any amount.
+    refused(
+        "withholding_tax_deducted",
+        serde_json::json!({"withholding_tax_deducted":"12.00","total_distribution":"0"}),
+    );
+    // The key is reported as given, plane-16 private-use pairs included.
+    refused(
+        "\u{10F7FF}\u{10F7FF}",
+        serde_json::json!({"\u{10F7FF}\u{10F7FF}":"1"}),
+    );
+    // Python's other API functions took objects whose extra keys the adapter never passed on.
+    let mut tax = serde_json::json!({"financial_year":2027,"aggregated_turnover":"1","assessable_income":"1","passive_income":"0","passive_incme":"1"});
+    assert_eq!(api_process("corporate-tax", &tax).status.code(), Some(0));
+    tax["financial_year"] = Value::Null;
+    assert_eq!(api_process("corporate-tax", &tax).status.code(), Some(2));
+}
+#[test]
+fn api_output_preserves_plane_16_private_use_text() {
+    let mut input = statement_input();
+    input["entity_name"] = "\u{10F7FF}\u{10F7FF}".into();
+    input["recipient_name"] = "\u{10F7FF}\u{10F800}".into();
+    let out = api_process("statement", &input);
+    assert_eq!(out.status.code(), Some(0));
+    assert!(out.stderr.is_empty());
+    let text = String::from_utf8(out.stdout).unwrap();
+    let body = text.strip_suffix(if cfg!(windows) { "\r\n" } else { "\n" });
+    let result: Value = serde_json::from_str(body.unwrap()).unwrap();
+    assert_eq!(result["entity_name"], "\u{10F7FF}\u{10F7FF}");
+    assert_eq!(result["recipient_name"], "\u{10F7FF}\u{10F800}");
+
+    let ledger = serde_json::json!({"financial_year":2027,"opening_balance":"0","entries":[{"entry_date":"2026-07-01","entry_type":"PAYG_INSTALMENT","amount":"1","description":"\u{10F7FF}\u{10F7FF}"}]});
+    let out = api_process("franking-account", &ledger);
+    assert_eq!(out.status.code(), Some(0));
+    let result: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(result["entries"][0]["description"], "\u{10F7FF}\u{10F7FF}");
+}

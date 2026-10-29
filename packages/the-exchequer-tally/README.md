@@ -48,10 +48,14 @@ listed in [CHANGELOG.md](CHANGELOG.md). Output uses UTF-8, with CRLF on Windows.
 Each API command reads one UTF-8 JSON object from stdin and prints one compact
 JSON result followed by a newline. Decimal amounts, rates and percentages are
 strings throughout, preserving Python Decimal values and scale. Dates use
-canonical `YYYY-MM-DD`. Financial years are JSON integers within the signed
-64-bit range. An unknown outcome is JSON `null`. An invalid request exits 2,
-writes `error: <reason>` to stderr and writes no stdout; type and format errors
-name the field. `--api-help` lists these commands.
+canonical `YYYY-MM-DD` and must be real calendar dates. Financial years are
+JSON integers within the signed 64-bit range. An unknown outcome is JSON
+`null`. An invalid request exits 2, writes `error: <reason>` to stderr and
+writes no stdout. Type and format errors name the field, except in
+`validate-value`, which keeps the original CLI validator's messages.
+`statement` refuses any field not listed for it, as the Python keyword call
+did; the other commands ignore unlisted fields. `--api-help` lists these
+commands.
 
 | Command | Input fields | Result |
 | --- | --- | --- |

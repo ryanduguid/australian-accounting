@@ -22,9 +22,11 @@ fn in_ranges(table: &[(u32, u32)], cp: u32) -> bool {
 /// decoded from an OS string writes each one as ESCAPE followed by
 /// U+10F800 + (surrogate - U+D800), and doubles a genuine ESCAPE, so OS strings
 /// map to text one to one. Both are private-use code points at the end of plane 16.
-/// shortcut: text that does not come from an OS string (JSON fields) is not
-/// escaped. If it holds ESCAPE followed by ESCAPE or by U+10F800..U+10FFFF, that
-/// pair prints as an escape; escaping every JSON-derived string would remove it.
+/// Text that does not come from an OS string (JSON fields) is not escaped, so
+/// this binary writes JSON command results as plain UTF-8 without decoding.
+/// shortcut: a library caller that passes JSON-derived text to `cli::output_bytes`
+/// prints ESCAPE followed by ESCAPE or by U+10F800..U+10FFFF as an escape; give
+/// such a caller the plain writer `main.rs` uses once it must preserve that text.
 const ESCAPE: char = '\u{10F7FF}';
 const CARRY_OFFSET: u32 = 0x10_F800 - 0xD800;
 
