@@ -332,6 +332,189 @@ pub fn fbt(
     )
 }
 
+/// A car worksheet's FBT year: `year_ended` must be an integer. Returns the
+/// period id, its label and the days in the year (366 when it holds 29 February).
+fn fbt_year(confirmed: &Arg, year_ended: &Arg, kind: &str) -> Result<(String, String, i64)> {
+    // Only a supported integer passes; anything else is quoted as given.
+    let period = match year_ended.int() {
+        Some(Some(n)) if meta::supported_periods(kind).contains(&n.to_string().as_str()) => {
+            Arg::Text(n.to_string())
+        }
+        _ => Arg::Other(year_ended.repr()),
+    };
+    let year = scope(confirmed, &period, kind)?;
+    let ended: i64 = year.parse().expect("FBT year");
+    let days = if is_leap(ended) { 366 } else { 365 };
+    Ok((year, format!("year ended 31 March {ended}"), days))
+}
+
+fn day_count(value: &Arg, days_in_year: i64, name: &str) -> Result<i64> {
+    match value.int() {
+        Some(Some(n)) if (0..=days_in_year).contains(&n) => Ok(n),
+        _ => refuse(format!(
+            "{name} must be an integer from 0 to {days_in_year}."
+        )),
+    }
+}
+
+fn flag(value: &Arg, name: &str) -> Result<bool> {
+    match value {
+        Arg::Bool(b) => Ok(*b),
+        _ => refuse(format!("{name} must be a boolean.")),
+    }
+}
+
+fn cents(value: Decimal) -> Calc<Decimal> {
+    value.quantize(-2, Rounding::HalfUp)
+}
+
+/// The steps after a car's gross taxable value. The gross value is rounded to
+/// cents first: the recipient's payment is in cents, so this moves no taxable
+/// value and keeps the applied and excess parts adding up. The payment cannot
+/// take the value below nil. Under the operating cost method, s 10(5) then
+/// substitutes the statutory formula value when it is lower. An exempt electric
+/// car's taxable value is nil; the value before the exemption is the notional
+/// value its reportable fringe benefits amount is worked out from.
+fn car_taxable_values(
+    gross: Decimal,
+    contribution: &Decimal,
+    statutory: Option<&Decimal>,
+    exempt: bool,
+) -> Calc<Vec<(&'static str, Decimal)>> {
+    let gross = cents(gross)?;
+    let applied = py_min(contribution.clone(), gross.clone())?;
+    let mut value = gross.sub(&applied)?;
+    let mut out = vec![
+        ("gross_taxable_value", gross),
+        ("employee_contribution_applied", applied.clone()),
+        ("excess_employee_contribution", contribution.sub(&applied)?),
+    ];
+    if let Some(statutory) = statutory {
+        out.push(("operating_cost_taxable_value", value.clone()));
+        out.push(("statutory_formula_taxable_value", statutory.clone()));
+        value = py_min(value, statutory.clone())?;
+    }
+    out.push(("taxable_value_before_exemption", value.clone()));
+    out.push(("taxable_value", if exempt { int(0) } else { value }));
+    Ok(out)
+}
+
+/// FBTAA s 9: `(A x B x C) / D - E` on the operator's established base value.
+#[allow(clippy::too_many_arguments)]
+pub fn fbt_car_statutory(
+    cost_price: &Arg,
+    later_accessories: &Arg,
+    one_third_reduction: &Arg,
+    days_available: &Arg,
+    employee_contribution: &Arg,
+    electric_car_exempt: &Arg,
+    year_ended: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let kind = "fbt_car_statutory";
+    let (_, period, days_in_year) = fbt_year(scope_confirmed, year_ended, kind)?;
+    let cost = money(cost_price)?;
+    let accessories = money(later_accessories)?;
+    let reduce = flag(one_third_reduction, "one_third_reduction")?;
+    let days = day_count(days_available, days_in_year, "days_available")?;
+    let contribution = money(employee_contribution)?;
+    let exempt = flag(electric_car_exempt, "electric_car_exempt")?;
+    let amounts = precise(|| {
+        // The one-third reduction never reaches accessories added after acquisition.
+        let reduced = if reduce {
+            cost.sub(&cost.div(&int(3))?)?
+        } else {
+            cost.clone()
+        };
+        let base = reduced.add(&accessories)?;
+        let gross = base
+            .mul(&d("0.20"))?
+            .mul(&int(days))?
+            .div(&int(days_in_year))?;
+        let mut out = vec![("base_value", base)];
+        out.extend(car_taxable_values(gross, &contribution, None, exempt)?);
+        Ok(out)
+    })?;
+    result(
+        kind,
+        &period,
+        amounts,
+        vec![
+            rate("statutory_percentage", "0.20"),
+            rate("days_available", days),
+            rate("days_in_year", days_in_year),
+        ],
+    )
+}
+
+/// FBTAA s 10: `C x (100% - BP) - R`, with deemed depreciation and interest on
+/// an owned car's depreciated value (ss 11 and 12), apportioned to the days in
+/// the holding period it was owned, and the s 10(5) statutory comparison.
+#[allow(clippy::too_many_arguments)]
+pub fn fbt_car_operating_cost(
+    running_costs: &Arg,
+    lease_charges: &Arg,
+    depreciated_value: &Arg,
+    days_held: &Arg,
+    business_use: &Arg,
+    employee_contribution: &Arg,
+    statutory_formula_taxable_value: &Arg,
+    electric_car_exempt: &Arg,
+    year_ended: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let kind = "fbt_car_operating_cost";
+    let (year, period, days_in_year) = fbt_year(scope_confirmed, year_ended, kind)?;
+    let running = money(running_costs)?;
+    let lease = money(lease_charges)?;
+    let value = money(depreciated_value)?;
+    if lease.gt(&int(0))? && value.gt(&int(0))? {
+        return refuse(
+            "A car is either owned, with a depreciated_value, or leased, with lease_charges; set the other to 0.",
+        );
+    }
+    let days = day_count(days_held, days_in_year, "days_held")?;
+    let Some(business) = finite_between(business_use, "0", "1")? else {
+        return refuse("business_use must be a finite Decimal fraction from 0 to 1.");
+    };
+    let contribution = money(employee_contribution)?;
+    let statutory = money(statutory_formula_taxable_value)?;
+    let exempt = flag(electric_car_exempt, "electric_car_exempt")?;
+    let interest_rate = d(lookup(meta::FBT_BENCHMARK_INTEREST_RATES, &year));
+    let private = precise(|| Ok(int(1).sub(&business)?))?;
+    let amounts = precise(|| {
+        let deemed = |rate: &Decimal| value.mul(rate)?.mul(&int(days))?.div(&int(days_in_year));
+        let depreciation = deemed(&d("0.25"))?;
+        let interest = deemed(&interest_rate)?;
+        let costs = running.add(&lease)?.add(&depreciation)?.add(&interest)?;
+        let gross = costs.mul(&private)?;
+        let mut out = vec![
+            ("deemed_depreciation", depreciation),
+            ("deemed_interest", interest),
+            ("operating_costs", costs),
+        ];
+        out.extend(car_taxable_values(
+            gross,
+            &contribution,
+            Some(&statutory),
+            exempt,
+        )?);
+        Ok(out)
+    })?;
+    result(
+        kind,
+        &period,
+        amounts,
+        vec![
+            rate("depreciation_rate", "0.25"),
+            rate("benchmark_interest_rate", &interest_rate),
+            rate("days_held", days),
+            rate("days_in_year", days_in_year),
+            rate("private_use", &private),
+        ],
+    )
+}
+
 fn finite_between(value: &Arg, low: &str, high: &str) -> Calc<Option<Decimal>> {
     let Arg::Decimal(v) = value else {
         return Ok(None);
@@ -934,11 +1117,13 @@ pub fn pension_minimum(
     )
 }
 
-const KINDS: [&str; 14] = [
+const KINDS: [&str; 16] = [
     "gst",
     "resident_tax",
     "capital_gains",
     "fbt",
+    "fbt_car_statutory",
+    "fbt_car_operating_cost",
     "depreciation",
     "quarterly_sg",
     "payg_withholding",
@@ -956,7 +1141,7 @@ pub fn periods(kind: &str) -> Value {
     let mut out = Vec::new();
     for year in meta::supported_periods(kind) {
         let mut period = Map::new();
-        if kind == "fbt" {
+        if kind.starts_with("fbt") {
             let ended: i64 = year.parse().expect("FBT year");
             period.insert("id".into(), json!(year));
             period.insert("basis".into(), json!("FBT year"));
@@ -1002,7 +1187,7 @@ pub fn worksheet_catalogue() -> Value {
     let mut out = Map::new();
     for kind in KINDS {
         let supported = periods(kind);
-        let fbt = kind == "fbt";
+        let fbt = kind.starts_with("fbt");
         let (checked, passage) = meta::source_review(kind);
         let mut evidence: Map<String, Value> = meta::library_evidence(kind)
             .iter()

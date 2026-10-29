@@ -3,12 +3,31 @@ use serde_json::{Value, json};
 use std::io::Write;
 use std::process::{Command, Stdio};
 
+/// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
+/// `tests/fbt_car.rs` covers them.
+const NEW_KINDS: [(&str, &str); 2] = [
+    ("fbt-car-statutory", "fbt_car_statutory"),
+    ("fbt-car-operating-cost", "fbt_car_operating_cost"),
+];
+
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.
 fn outcome(command: &str, input: &Value) -> Value {
     match api::evaluate(command, input) {
         Ok(v) => json!({ "ok": v }),
         Err(m) => json!({ "error": m }),
     }
+}
+
+/// The frozen catalogue predates the new worksheets: compare it without them.
+fn without_new_kinds(command: &str, mut actual: Value) -> Value {
+    if command == "worksheet-catalogue"
+        && let Some(entries) = actual.get_mut("ok").and_then(Value::as_object_mut)
+    {
+        for (_, kind) in NEW_KINDS {
+            assert!(entries.shift_remove(kind).is_some(), "{kind} missing");
+        }
+    }
+    actual
 }
 
 /// Applies the source-record divergences CHANGELOG.md documents to a frozen
@@ -65,6 +84,9 @@ fn python_api_corpus_matches() {
         serde_json::from_str(include_str!("data/python-api.json")).expect("corpus parses");
     assert!(corpus.len() > 3000, "corpus too small: {}", corpus.len());
     for command in api::commands() {
+        if NEW_KINDS.iter().any(|(c, _)| *c == command) {
+            continue;
+        }
         assert!(
             corpus.iter().any(|row| row["command"] == command),
             "{command} has no case"
@@ -73,7 +95,7 @@ fn python_api_corpus_matches() {
     let mut failures = Vec::new();
     for row in &corpus {
         let command = row["command"].as_str().unwrap();
-        let actual = outcome(command, &row["input"]).to_string();
+        let actual = without_new_kinds(command, outcome(command, &row["input"])).to_string();
         let expected = adapt(command, row["expected"].clone()).to_string();
         if actual != expected {
             failures.push(format!(
