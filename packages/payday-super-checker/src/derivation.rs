@@ -8,7 +8,7 @@
 //! needs the employee's earlier paydays, so a single contribution does not
 //! apply it; the register check does.
 
-use serde_json::{Map, Value, json};
+use serde_json::{Value, json};
 
 use crate::api;
 use crate::calendar::{self, BusinessCalendar};
@@ -245,67 +245,65 @@ pub fn derive(input: &Value) -> Result<Value, String> {
     }))
 }
 
-/// The first field, in `fresh`'s key order then `saved`'s, whose values differ.
-fn first_field(saved: &Value, fresh: &Value) -> Option<String> {
-    let empty = Map::new();
-    let (s, f) = (
-        saved.as_object().unwrap_or(&empty),
-        fresh.as_object().unwrap_or(&empty),
-    );
+/// The first field, in `fresh`'s key order then `saved`'s, whose values differ,
+/// when both sides are objects; otherwise the values are compared whole.
+fn first_field(saved: Option<&Value>, fresh: Option<&Value>) -> Option<String> {
+    let (s, f) = (saved?.as_object()?, fresh?.as_object()?);
     f.keys()
         .chain(s.keys())
         .find(|k| s.get(*k) != f.get(*k))
         .cloned()
 }
 
+/// One side's value of `field`, or the whole value when no field is named.
+fn pick<'a>(v: Option<&'a Value>, field: &Option<String>) -> Option<&'a Value> {
+    match field {
+        Some(k) => v.and_then(|v| v.get(k)),
+        None => v,
+    }
+}
+
+/// One difference. `missing` names the side that has no such step or field,
+/// which a JSON null alone cannot distinguish from a present null.
+fn difference(step: Value, id: Value, saved: Option<&Value>, fresh: Option<&Value>) -> Value {
+    let field = first_field(saved, fresh);
+    let (s, f) = (pick(saved, &field), pick(fresh, &field));
+    let mut d = json!({"step": step, "id": id, "field": field, "saved": s, "rederived": f});
+    match (s, f) {
+        (None, Some(_)) => d["missing"] = json!("saved"),
+        (Some(_), None) => d["missing"] = json!("rederived"),
+        _ => {}
+    }
+    d
+}
+
 /// Where a saved derivation and its rederivation part: a step, then the result.
 fn first_difference(saved: &Value, fresh: &Value) -> (Option<Value>, usize) {
     for key in ["engine", "calculation"] {
-        if saved.get(key) != fresh.get(key) {
-            return (
-                Some(json!({"step": null, "id": "metadata", "field": key,
-                "saved": saved.get(key), "rederived": fresh.get(key)})),
-                0,
-            );
+        let (s, f) = (saved.get(key), fresh.get(key));
+        if s != f {
+            let mut d = difference(Value::Null, json!("metadata"), s, f);
+            d["field"] = json!(key);
+            return (Some(d), 0);
         }
     }
     let none = Vec::new();
     let saved_steps = saved["steps"].as_array().unwrap_or(&none);
     let fresh_steps = fresh["steps"].as_array().unwrap_or(&none);
     for i in 0..saved_steps.len().max(fresh_steps.len()) {
-        let (saved_step, fresh_step) = (saved_steps.get(i), fresh_steps.get(i));
-        if saved_step != fresh_step {
-            let (s, f) = (
-                saved_step.unwrap_or(&Value::Null),
-                fresh_step.unwrap_or(&Value::Null),
-            );
-            let field = first_field(s, f);
-            let pick = |v: &Value| field.as_ref().map_or(v.clone(), |k| v[k].clone());
-            return (
-                Some(json!({
-                    "step": i + 1,
-                    "id": f.get("id").or_else(|| s.get("id")),
-                    "field": field,
-                    "saved": pick(s),
-                    "rederived": pick(f),
-                })),
-                i + 1,
-            );
+        let (s, f) = (saved_steps.get(i), fresh_steps.get(i));
+        if s != f {
+            let id = f
+                .and_then(|f| f.get("id"))
+                .or_else(|| s.and_then(|s| s.get("id")))
+                .cloned()
+                .unwrap_or(Value::Null);
+            return (Some(difference(json!(i + 1), id, s, f)), i + 1);
         }
     }
-    let (s, f) = (&saved["result"], &fresh["result"]);
-    let difference = (s != f).then(|| {
-        let field = first_field(s, f);
-        let pick = |v: &Value| field.as_ref().map_or(v.clone(), |k| v[k].clone());
-        json!({
-            "step": null,
-            "id": "result",
-            "field": field,
-            "saved": pick(s),
-            "rederived": pick(f),
-        })
-    });
-    (difference, fresh_steps.len())
+    let (s, f) = (saved.get("result"), fresh.get("result"));
+    let differs = (s != f).then(|| difference(Value::Null, json!("result"), s, f));
+    (differs, fresh_steps.len())
 }
 
 /// Rederive a saved derivation from its input and compare it step by step.
@@ -442,6 +440,34 @@ mod tests {
         let mut d = derive(&json!({"qe_day": "2026-12-23"})).unwrap();
         d["result"]["due"] = json!("2027-01-15");
         assert_eq!(verify(&d).unwrap()["differs_at"]["field"], "due");
+    }
+
+    #[test]
+    fn an_absent_step_or_field_is_named_as_missing() {
+        let input = json!({"qe_day": "2026-12-23"});
+        let mut d = derive(&input).unwrap();
+        d["steps"].as_array_mut().unwrap().push(Value::Null);
+        let at = &verify(&d).unwrap()["differs_at"];
+        assert_eq!(
+            at,
+            &json!({"step": 9, "id": null, "field": null, "saved": null,
+                "rederived": null, "missing": "rederived"})
+        );
+        let mut d = derive(&input).unwrap();
+        d["steps"][0]["note"] = Value::Null;
+        let at = &verify(&d).unwrap()["differs_at"];
+        assert_eq!(
+            (&at["field"], &at["missing"]),
+            (&json!("note"), &json!("rederived"))
+        );
+        let mut d = derive(&input).unwrap();
+        d.as_object_mut().unwrap().remove("engine");
+        let at = &verify(&d).unwrap()["differs_at"];
+        assert_eq!(
+            (&at["field"], &at["missing"]),
+            (&json!("engine"), &json!("saved"))
+        );
+        assert_eq!(verify(&d).unwrap()["steps_checked"], 0);
     }
 
     #[test]

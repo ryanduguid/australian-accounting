@@ -586,7 +586,7 @@ payday-super-check verify derivation.json
 `verify` rederives a saved derivation from its input, with no network, and
 compares it step by step. It prints `verified` and, when something differs,
 `differs_at`: the step number and id, the first field that differs, and the
-saved and rederived values. A changed holiday table, an engine change or an
+saved and rederived values; `missing`, `saved` or `rederived`, names a side that has no such step or field. A changed holiday table, an engine change or an
 edit to the saved file all show up as the step they change. Exit codes: 0 when
 every step and the result match, 1 when one differs, 2 with an `error:` line
 when the input cannot be read. `verify` with no file reads stdin.
