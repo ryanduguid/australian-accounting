@@ -266,12 +266,8 @@ pub fn repr_bytes(b: &[u8]) -> String {
 /// to even, so its spelling is used whenever it still reads back as `value`.
 fn shortest_exp(value: f64) -> String {
     let shortest = format!("{value:e}");
-    let precision = shortest
-        .bytes()
-        .take_while(|&b| b != b'e')
-        .filter(u8::is_ascii_digit)
-        .count()
-        - 1;
+    let (mantissa, _) = shortest.split_once('e').expect("exponent form");
+    let precision = mantissa.bytes().filter(u8::is_ascii_digit).count() - 1;
     let nearest = format!("{value:.precision$e}");
     if nearest.parse::<f64>() == Ok(value) {
         nearest
