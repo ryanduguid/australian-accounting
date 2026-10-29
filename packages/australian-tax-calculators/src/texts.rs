@@ -190,3 +190,14 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
 ];
+
+/// The car worksheets' reportable fringe benefits note, read from the ATO's
+/// reportable fringe benefits page on 30 October 2026. It follows the 2
+/// warnings every worksheet carries.
+const CAR_REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit's taxable value before any exemption, not a reportable fringe benefits amount. The employee's reportable fringe benefits amount is the total reportable taxable value of all their reportable fringe benefits for the FBT year multiplied by the type 2 (lower) gross-up rate, when that total exceeds $2,000. A car benefit from the private use of a pooled or shared car is not reportable. This worksheet determines neither.";
+
+/// Warnings added after the original's 2, by worksheet.
+pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
+    ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
+    ("fbt_car_operating_cost", &[CAR_REPORTABLE_NOTE]),
+];

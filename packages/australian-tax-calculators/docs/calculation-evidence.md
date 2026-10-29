@@ -37,7 +37,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Resident tax | `tax-examples-individuals` (tax-examples), ¶7-010, step 2 | 30 June 2025 | Basic tax for 2024–25; later offsets and levies excluded |
 | Capital gains | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-040 and ¶2-240 | 30 June 2026 | Established ordinary gains, losses and discount entitlement for 2025–26 |
 | FBT | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
-| FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020, with the ATO's FBT return 2026 instructions (item 23) and employer's guide (7.8 and 7.9) | 30 June 2026; 1 April 2026 (item 23) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027 |
+| FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020 and ¶3-045 (reportable value), with the ATO's FBT return 2026 instructions (item 23), employer's guide (7.8 and 7.9) and reportable fringe benefits page | 30 June 2026; 1 April 2026 (item 23); 12 January 2023 (reportable fringe benefits) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027; the reportable taxable value before the employee's $2,000 threshold and type 2 gross-up |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
@@ -148,6 +148,29 @@ $2,995.44, and deemed amounts on $40,000 for 100 days with $500 of costs at 50%
 give $2,092.19, not $2,092.20. Their displayed figures can therefore differ by a
 cent from the total behind them. The ATO examples show whole dollars without
 stating a method.
+
+Reportable taxable value. The ATO's
+[Reportable fringe benefits](https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/fbt-registration-lodgment-payment-and-reporting/reportable-fringe-benefits)
+page (last updated 12 January 2023, read 30 October 2026) says an employer
+reports an employee's fringe benefits if the total taxable value of their
+reportable fringe benefits is more than $2,000 in the FBT year, and that the
+reportable fringe benefits amount is that total multiplied by the lower (type 2)
+gross-up rate, never the type 1 rate. An eligible electric car's private use is
+exempt from FBT but still reportable, at its notional taxable value; car
+benefits from the private use of pooled or shared cars are not reportable.
+¶3-045 (`tax-examples-fringe-benefits-tax-fbt`, review date 30 June 2026,
+currency not verified, read 30 October 2026) includes an exempt electric car's
+taxable value in the reportable fringe benefits amount, leaves out its
+associated car expense benefits such as registration, and applies the $2,000
+threshold to the employee's total including the car. So
+`reportable_taxable_value` equals `taxable_value_before_exemption`, after the
+recipient's payment and, under the operating cost method, after s 10(5). The
+threshold and gross-up apply to the employee's total across all their
+reportable benefits, which one car's worksheet cannot know, so it applies
+neither, does not decide whether the car is pooled or shared, and says so in a
+third warning. `tests/fbt_car.rs` checks a taxable car, an exempt electric car
+and a recipient's payment under both methods; `tests/properties.rs` checks the
+equality on every seeded result.
 
 ## Depreciation
 

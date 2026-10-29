@@ -16,6 +16,12 @@ intentionally changed.
   No Python release has them. The worksheet catalogue lists both, so
   `tests/parity.rs` compares the 10 frozen `worksheet-catalogue` results without
   those 2 entries, and `tests/fbt_car.rs` covers them.
+- Both car worksheets end their amounts with `reportable_taxable_value`, the
+  taxable value before any exemption (an exempt electric car's notional value),
+  and add a third warning: the employee's reportable fringe benefits amount is
+  the total of all their reportable benefits at the type 2 gross-up rate when it
+  exceeds $2,000, a pooled or shared car is not reportable, and the worksheet
+  determines neither. Every other amount and warning is unchanged.
 
 ### Documented divergences
 

@@ -258,6 +258,15 @@ the figures behind it. The tests hold both
 worksheets to the ATO's and the Library's worked examples; see
 [calculation evidence](docs/calculation-evidence.md#fbt-car-benefits).
 
+Each result ends its amounts with `reportable_taxable_value`, the car benefit's
+contribution to the employee's reportable fringe benefits: its taxable value
+before any exemption, so for an exempt electric car the notional value. It is
+not a reportable fringe benefits amount. That amount is the total taxable value
+of all the employee's reportable fringe benefits for the FBT year, grossed up at
+the type 2 rate, and is reported only when the total exceeds $2,000; a pooled or
+shared car is not reportable. One car cannot know either, so neither worksheet
+grosses up or applies the threshold, and each adds a third warning saying so.
+
 ## Worksheet discovery
 
 The `worksheet-catalogue` command, `worksheet_catalogue()` from the 0.1.4 wheel,

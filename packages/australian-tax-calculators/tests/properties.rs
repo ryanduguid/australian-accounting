@@ -477,7 +477,8 @@ fn study_loan_components_agree_with_the_combined_coefficients_to_a_dollar() {
 
 /// Every car result reconciles to the cent: the applied and excess
 /// contribution make up the contribution, the applied part and the value
-/// before exemption make up the gross value, and an exempt car is nil.
+/// before exemption make up the gross value, that value is also the reportable
+/// taxable value, and an exempt car is nil.
 fn check_car_reconciles(result: &Value, contribution: &str, exempt: bool) {
     let gross = amount(result, "gross_taxable_value");
     let applied = amount(result, "employee_contribution_applied");
@@ -503,6 +504,11 @@ fn check_car_reconciles(result: &Value, contribution: &str, exempt: bool) {
     };
     assert!(eq(&applied.add(&own).unwrap(), &gross), "{result}");
     assert!(le(&n(0), &before), "{result}");
+    // The reportable taxable value ignores the exemption.
+    assert!(
+        eq(&amount(result, "reportable_taxable_value"), &before),
+        "{result}"
+    );
     let expected = if exempt { n(0) } else { before };
     assert!(eq(&amount(result, "taxable_value"), &expected), "{result}");
 }
