@@ -2,8 +2,9 @@
 
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
-API, with the same fourteen worksheets, results and refusals. Python releases
-through 0.1.9 contain ten worksheets. Until the MCP server links this crate,
+API, with the same fourteen worksheets, results and refusals, and adds 2 FBT car
+worksheets that no Python release contains. Python releases through 0.1.9
+contain ten worksheets. Until the MCP server links this crate,
 it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
 keeps the engine release and MCP integration separate.
@@ -18,8 +19,9 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 </div>
 
-Fourteen calculation worksheets for established facts: ordinary GST, resident basic income
-tax, CGT losses and discount, ordinary employer FBT, first-year depreciation,
+Sixteen calculation worksheets for established facts: ordinary GST, resident basic income
+tax, CGT losses and discount, ordinary employer FBT, car fringe benefit taxable values
+under the statutory formula and operating cost methods, first-year depreciation,
 quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, a single person's Medicare levy, the low income tax offset and
@@ -88,6 +90,8 @@ lists the commands.
 | `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
+| `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
+| `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
@@ -101,7 +105,8 @@ lists the commands.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 
-Every argument is required, as the Python functions had no defaults. Input over 8 MiB,
+The 2 car commands have no Python original; their arguments follow the same
+rules. Every argument is required, as the Python functions had no defaults. Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Supported periods
@@ -112,6 +117,7 @@ or a decimal string over 8,192 bytes, is refused.
 | Resident tax | 2024-25, 2025-26 and 2026-27; full-year resident ordinary income, before offsets and levies |
 | CGT | 2025-26, resident individual's established gains and losses; losses before the 50% discount |
 | FBT | Year ended 31 March 2026; established type 1 and type 2 taxable values, ordinary employer |
+| FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and the 25% deemed depreciation rate |
 | Depreciation | 2025-26, first year of an ordinary tangible Division 40 asset; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
@@ -215,6 +221,42 @@ out either input, defined benefit interests and deferred debt accounts are
 outside it. See [calculation evidence](docs/calculation-evidence.md#division-293).
 
 These four worksheets are included from release 0.2.0.
+
+## FBT car benefits
+
+`fbt_car_statutory` applies FBTAA s 9 to one car: the base value times 20%,
+times the days the car was used or available for private use, divided by the
+days in the FBT year, less the recipient's payment. `cost_price` is the part of
+the base value the one-third reduction applies to: the cost price of a car the
+provider or an associate owned when first held, or otherwise its leased car
+value, the lessor's cost price only if the lease began then and the lessor
+bought the car at or about that time. `later_accessories`, the non-business
+accessories fitted after the earliest holding time, are never reduced. `fbt_car_operating_cost` applies s 10: car expenses for the
+holding period, lease charges for a leased car, and for an owned car (including
+one under hire purchase) deemed depreciation at 25% and deemed interest at the
+year's benchmark rate (8.62% for 2026, 8.27% for 2027) on its s 12 depreciated
+value, apportioned to the days held, times the private use percentage, less the
+recipient's payment. Under s 10(5) its taxable value is the lower of that value
+and `statutory_formula_taxable_value`, the same car's
+`taxable_value_before_exemption` from `fbt-car-statutory`. Its gross value and
+contribution split stay those of the operating cost method; where the statutory
+value is lower, the statutory worksheet's split applies.
+
+Both cover one car held by one provider for a single holding period in the FBT
+years ended 31 March 2026 and 2027, and take every valuation
+fact as established: holding and private use, the base value, the business use
+percentage and whether the electric cars exemption applies. A recipient's
+payment cannot take the taxable value below nil, and any excess is reported,
+not applied to another benefit. An exempt electric car's `taxable_value` is nil;
+`taxable_value_before_exemption` is the notional value its reportable fringe
+benefits amount is worked out from, which neither worksheet grosses up. The
+results are taxable values before gross-up: for the year ended 31 March 2026,
+the only year `fbt` supports, pass them to `fbt` as type 1 or type 2 values once
+that classification is established. Only the gross taxable value is rounded to
+cents, so the displayed base value or deemed amounts can differ by a cent from
+the figures behind it. The tests hold both
+worksheets to the ATO's and the Library's worked examples; see
+[calculation evidence](docs/calculation-evidence.md#fbt-car-benefits).
 
 ## Worksheet discovery
 

@@ -474,3 +474,95 @@ fn study_loan_components_agree_with_the_combined_coefficients_to_a_dollar() {
         assert!(saw_zero, "{scale}");
     }
 }
+
+/// Every car result reconciles to the cent: the applied and excess
+/// contribution make up the contribution, the applied part and the value
+/// before exemption make up the gross value, and an exempt car is nil.
+fn check_car_reconciles(result: &Value, contribution: &str, exempt: bool) {
+    let gross = amount(result, "gross_taxable_value");
+    let applied = amount(result, "employee_contribution_applied");
+    let before = amount(result, "taxable_value_before_exemption");
+    let total = applied
+        .add(&amount(result, "excess_employee_contribution"))
+        .unwrap();
+    assert!(eq(&total, &d(contribution)), "{result}");
+    // Under s 10(5) the operating cost value gives way to a lower statutory value.
+    let own = match result["amounts"].get("operating_cost_taxable_value") {
+        Some(_) => {
+            let own = amount(result, "operating_cost_taxable_value");
+            let statutory = amount(result, "statutory_formula_taxable_value");
+            let lower = if le(&own, &statutory) {
+                &own
+            } else {
+                &statutory
+            };
+            assert!(eq(&before, lower), "{result}");
+            own
+        }
+        None => before.clone(),
+    };
+    assert!(eq(&applied.add(&own).unwrap(), &gross), "{result}");
+    assert!(le(&n(0), &before), "{result}");
+    let expected = if exempt { n(0) } else { before };
+    assert!(eq(&amount(result, "taxable_value"), &expected), "{result}");
+}
+
+#[test]
+fn car_worksheets_reconcile_and_stay_within_their_bases() {
+    let mut rng = Rng(0xCA45);
+    for _ in 0..RUNS {
+        let year = rng.int(2026, 2027);
+        let (contribution, exempt) = (rng.pay(), rng.bool());
+        let (cost, accessories) = (rng.pay(), rng.pay());
+        let (days, reduce) = (rng.int(0, 365), rng.bool());
+        let result = run(
+            "fbt-car-statutory",
+            json!({"cost_price": cost, "later_accessories": accessories,
+                   "one_third_reduction": reduce, "days_available": days,
+                   "employee_contribution": contribution, "electric_car_exempt": exempt,
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        check_car_reconciles(&result, &contribution, exempt);
+        // The base never exceeds cost plus accessories, nor the gross value 20% of
+        // it, allowing a cent for the unrounded base behind the displayed one.
+        let base = amount(&result, "base_value");
+        assert!(
+            le(&base, &d(&cost).add(&d(&accessories)).unwrap()),
+            "{result}"
+        );
+        let ceiling = base.mul(&d("0.20")).unwrap().add(&d("0.01")).unwrap();
+        assert!(
+            le(&amount(&result, "gross_taxable_value"), &ceiling),
+            "{result}"
+        );
+
+        let owned = rng.bool();
+        let (running, value) = (rng.pay(), rng.pay());
+        let lease = if owned { "0.00".to_string() } else { rng.pay() };
+        let value = if owned { value } else { "0.00".to_string() };
+        let business = format!("0.{:04}", rng.int(0, 9999));
+        let result = run(
+            "fbt-car-operating-cost",
+            json!({"running_costs": running, "lease_charges": lease, "depreciated_value": value,
+                   "days_held": rng.int(0, 365), "business_use": business,
+                   "employee_contribution": contribution,
+                   "statutory_formula_taxable_value": rng.pay(), "electric_car_exempt": exempt,
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        check_car_reconciles(&result, &contribution, exempt);
+        // The displayed parts add to the operating costs within a cent, since the
+        // deemed amounts are rounded only for display.
+        let parts = ["deemed_depreciation", "deemed_interest"]
+            .iter()
+            .fold(d(&running).add(&d(&lease)).unwrap(), |sum, key| {
+                sum.add(&amount(&result, key)).unwrap()
+            });
+        let gap = parts.sub(&amount(&result, "operating_costs")).unwrap();
+        assert!(le(&d("-0.01"), &gap) && le(&gap, &d("0.01")), "{result}");
+        let costs = amount(&result, "operating_costs").add(&d("0.005")).unwrap();
+        assert!(
+            le(&amount(&result, "gross_taxable_value"), &costs),
+            "{result}"
+        );
+    }
+}

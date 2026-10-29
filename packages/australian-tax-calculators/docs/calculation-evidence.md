@@ -37,6 +37,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Resident tax | `tax-examples-individuals` (tax-examples), ¶7-010, step 2 | 30 June 2025 | Basic tax for 2024–25; later offsets and levies excluded |
 | Capital gains | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-040 and ¶2-240 | 30 June 2026 | Established ordinary gains, losses and discount entitlement for 2025–26 |
 | FBT | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
+| FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020, with the ATO's FBT return 2026 instructions (item 23) and employer's guide (7.8 and 7.9) | 30 June 2026; 1 April 2026 (item 23) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027 |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
@@ -111,6 +112,42 @@ to the nearest dollar, so the engine does too: 14A $34,323, 14B $11,321 (from
 $11,320.80), item 15 $45,644 and item 16 $21,452.68, against the $21,452.73 estimate.
 The optional rounding of item 16 down to a multiple of 5 cents is left to the
 preparer.
+
+## FBT car benefits
+
+These worksheets were added on 29 October 2026, after the 15 September check;
+their example evidence was read that day. `tests/fbt_car.rs` holds each case.
+
+Statutory formula. The FBT return 2026 instructions, item 23A example 6, value a
+$32,000 car available for 274 of 365 days: `32000 × 0.20 × 274 / 365 =
+4804.383...`, presented as **$4,804.38**; the ATO writes $4,804. ¶3-020 values
+Bourke Pty Ltd's $50,000 car for the full year less Tom's $1,500 fuel
+contribution: `50000 × 0.20 − 1500 = 8500`. The employer's guide, example 26,
+reduces $30,000 by one-third and leaves a $1,000 accessory unreduced, for a
+$21,000 base value; example 23 reduces $39,000 by $13,000 and adds $4,000 of later
+accessories.
+
+Operating cost. ¶3-020 adds $5,200 of running costs, deemed depreciation of
+`50000 × 0.25 = 12500` and deemed interest of `50000 × 0.0862 = 4310` for
+$22,010, then applies 63.64% private use: `22010 × 0.6364 = 14007.164`, less
+$1,500, presented as **$12,507.16**. Its statutory formula value of $8,500 is
+lower, so under s 10(5) the worksheet's taxable value is **$8,500.00**. The
+Library rounds the business use
+percentage of `8000 / 22000` to 36.36%; the worksheet takes the percentage as
+the operator supplies it. Item 23B example 7 applies 30% private use to $10,000
+of total operating costs for **$3,000**. The guide's example 31 used 5.20% for
+2020-21; the tests rerun its facts at 8.62% (`7500 + 10000 + 3448 = 20948`,
+`× 0.25 − 2000 = 3237`) and 8.27% (`7500 + 10000 + 3308`, giving $3,202).
+
+Rounding is a worksheet convention: only the gross taxable value is rounded half
+up to cents, before the recipient's payment. The payment is in cents, so this
+moves no taxable value and keeps the applied and excess parts adding up. The
+base value and deemed amounts stay unrounded until then: `50000.02` reduced by
+one-third for 164 days gives $2,995.43, where a base rounded first would give
+$2,995.44, and deemed amounts on $40,000 for 100 days with $500 of costs at 50%
+give $2,092.19, not $2,092.20. Their displayed figures can therefore differ by a
+cent from the total behind them. The ATO examples show whole dollars without
+stating a method.
 
 ## Depreciation
 
