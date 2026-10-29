@@ -420,11 +420,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "fbt_car_statutory" => vec![
             (
                 "cost_price",
-                "AUD, the part of the base value the one-third reduction applies to: for a car the provider or an associate owned at the earliest holding time, its cost price with dealer delivery and accessories fitted at acquisition; otherwise its leased car value then, the lessor's cost price only if the lessor bought it when the lease began, else its arm's-length purchase price",
+                "AUD, the part of the base value the one-third reduction applies to: for a car the provider or an associate owned at the earliest holding time, its cost price with dealer delivery and accessories fitted at acquisition; otherwise its leased car value then, the lessor's cost price only if the lease began then and the lessor bought the car at or about that time, else its arm's-length purchase price",
             ),
             (
                 "later_accessories",
-                "AUD, non-business accessories added after acquisition",
+                "AUD, non-business accessories fitted after the earliest holding time and still fitted in the year",
             ),
             ("one_third_reduction", "boolean"),
             (

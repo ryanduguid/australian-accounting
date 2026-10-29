@@ -229,10 +229,9 @@ times the days the car was used or available for private use, divided by the
 days in the FBT year, less the recipient's payment. `cost_price` is the part of
 the base value the one-third reduction applies to: the cost price of a car the
 provider or an associate owned when first held, or otherwise its leased car
-value, the lessor's cost price only if the lessor bought the car when the lease
-began.
-`later_accessories`, the non-business accessories added after acquisition, are
-never reduced. `fbt_car_operating_cost` applies s 10: car expenses for the
+value, the lessor's cost price only if the lease began then and the lessor
+bought the car at or about that time. `later_accessories`, the non-business
+accessories fitted after the earliest holding time, are never reduced. `fbt_car_operating_cost` applies s 10: car expenses for the
 holding period, lease charges for a leased car, and for an owned car (including
 one under hire purchase) deemed depreciation at 25% and deemed interest at the
 year's benchmark rate (8.62% for 2026, 8.27% for 2027) on its s 12 depreciated
