@@ -41,7 +41,8 @@ fn statutory_formula_matches_the_fbt_return_2026_example() {
         result["amounts"],
         json!({"base_value": "32000.00", "gross_taxable_value": "4804.38",
                "employee_contribution_applied": "0.00", "excess_employee_contribution": "0.00",
-               "taxable_value_before_exemption": "4804.38", "taxable_value": "4804.38"})
+               "taxable_value_before_exemption": "4804.38", "taxable_value": "4804.38",
+               "reportable_taxable_value": "4804.38"})
     );
     assert_eq!(
         result["rates"],
@@ -122,7 +123,8 @@ fn operating_cost_matches_the_library_car_example() {
                "employee_contribution_applied": "1500.00", "excess_employee_contribution": "0.00",
                "operating_cost_taxable_value": "12507.16",
                "statutory_formula_taxable_value": "8500.00",
-               "taxable_value_before_exemption": "8500.00", "taxable_value": "8500.00"})
+               "taxable_value_before_exemption": "8500.00", "taxable_value": "8500.00",
+               "reportable_taxable_value": "8500.00"})
     );
     assert_eq!(result["rates"]["benchmark_interest_rate"], "0.0862");
     assert_eq!(result["rates"]["private_use"], "0.6364");
@@ -313,4 +315,64 @@ fn the_catalogue_and_periods_describe_both_worksheets() {
         catalogue["fbt_car_statutory"]["example"]["facts"]["days_available"],
         274
     );
+}
+
+/// The note every car result carries after the 2 standard warnings.
+const REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit's taxable value before any exemption, not a reportable fringe benefits amount. The employee's reportable fringe benefits amount is the total reportable taxable value of all their reportable fringe benefits for the FBT year multiplied by the type 2 (lower) gross-up rate, when that total exceeds $2,000. A car benefit from the private use of a pooled or shared car is not reportable. This worksheet determines neither.";
+
+fn check_reportable(result: &Value, reportable: &str, taxable: &str) {
+    assert_eq!(result["amounts"]["reportable_taxable_value"], reportable);
+    assert_eq!(
+        result["amounts"]["taxable_value_before_exemption"],
+        reportable
+    );
+    assert_eq!(result["amounts"]["taxable_value"], taxable);
+    // The new figure is the last amount, after every existing one.
+    let keys: Vec<&String> = result["amounts"].as_object().unwrap().keys().collect();
+    assert_eq!(keys.last().unwrap().as_str(), "reportable_taxable_value");
+    let warnings = result["warnings"].as_array().unwrap();
+    assert_eq!(warnings.len(), 3);
+    assert_eq!(warnings[2], REPORTABLE_NOTE);
+}
+
+#[test]
+fn a_taxable_car_reports_its_taxable_value() {
+    check_reportable(&statutory(json!({})).unwrap(), "4804.38", "4804.38");
+    check_reportable(&operating(json!({})).unwrap(), "8500.00", "8500.00");
+}
+
+#[test]
+fn an_exempt_electric_car_reports_its_notional_value() {
+    // ¶3-045: an exempt electric car's taxable value still goes into the
+    // employee's reportable fringe benefits amount.
+    let result = statutory(json!({"electric_car_exempt": true})).unwrap();
+    check_reportable(&result, "4804.38", "0.00");
+    let result = operating(json!({"electric_car_exempt": true})).unwrap();
+    check_reportable(&result, "8500.00", "0.00");
+}
+
+#[test]
+fn the_reportable_value_is_after_the_recipients_payment() {
+    // ¶3-020's $10,000 gross value less Tom's $1,500.
+    let result = statutory(json!({
+        "cost_price": "50000.00", "days_available": 365, "employee_contribution": "1500.00",
+    }))
+    .unwrap();
+    check_reportable(&result, "8500.00", "8500.00");
+    let result = statutory(json!({
+        "cost_price": "50000.00", "days_available": 365, "employee_contribution": "1500.00",
+        "electric_car_exempt": true,
+    }))
+    .unwrap();
+    check_reportable(&result, "8500.00", "0.00");
+    // A payment above the gross value leaves nothing to report.
+    let result = statutory(json!({"employee_contribution": "5000.00"})).unwrap();
+    check_reportable(&result, "0.00", "0.00");
+    // Item 23B example 7 less a $500 payment, below the $8,500 statutory value.
+    let result = operating(json!({
+        "running_costs": "10000.00", "depreciated_value": "0.00", "business_use": "0.7",
+        "employee_contribution": "500.00", "electric_car_exempt": true,
+    }))
+    .unwrap();
+    check_reportable(&result, "2500.00", "0.00");
 }
