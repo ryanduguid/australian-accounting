@@ -420,7 +420,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "fbt_car_statutory" => vec![
             (
                 "cost_price",
-                "AUD, the part of the base value the one-third reduction applies to: an owned car's cost price with dealer delivery and accessories fitted at acquisition, or for a leased car the lessor's cost price or the market value when first leased",
+                "AUD, the part of the base value the one-third reduction applies to: for a car the provider or an associate owned at the earliest holding time, its cost price with dealer delivery and accessories fitted at acquisition; otherwise its leased car value then, the lessor's cost price only if the lessor bought it when the lease began, else its arm's-length purchase price",
             ),
             (
                 "later_accessories",
@@ -437,7 +437,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "fbt_car_operating_cost" => vec![
             (
                 "running_costs",
-                "AUD, GST-inclusive car expenses for the holding period under FBTAA s 10(3), including those the employee paid: repairs, maintenance and fuel, and registration and insurance attributable to the period; excluding insured repair expenses and expenses the lessor bears under the lease",
+                "AUD, GST-inclusive car expenses for the holding period under FBTAA s 10(3), including those the employee paid: repairs, maintenance and fuel, and registration and insurance attributable to the period; excluding insured repair expenses, an owned car's registration and insurance incurred before the provider owned it, and expenses the lessor bears under the lease",
             ),
             (
                 "lease_charges",

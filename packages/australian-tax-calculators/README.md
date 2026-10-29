@@ -227,8 +227,10 @@ These four worksheets are included from release 0.2.0.
 `fbt_car_statutory` applies FBTAA s 9 to one car: the base value times 20%,
 times the days the car was used or available for private use, divided by the
 days in the FBT year, less the recipient's payment. `cost_price` is the part of
-the base value the one-third reduction applies to: an owned car's cost price, or
-a leased car's cost to the lessor or its market value when first leased.
+the base value the one-third reduction applies to: the cost price of a car the
+provider or an associate owned when first held, or otherwise its leased car
+value, the lessor's cost price only if the lessor bought the car when the lease
+began.
 `later_accessories`, the non-business accessories added after acquisition, are
 never reduced. `fbt_car_operating_cost` applies s 10: car expenses for the
 holding period, lease charges for a leased car, and for an owned car (including
@@ -237,9 +239,12 @@ year's benchmark rate (8.62% for 2026, 8.27% for 2027) on its s 12 depreciated
 value, apportioned to the days held, times the private use percentage, less the
 recipient's payment. Under s 10(5) its taxable value is the lower of that value
 and `statutory_formula_taxable_value`, the same car's
-`taxable_value_before_exemption` from `fbt-car-statutory`.
+`taxable_value_before_exemption` from `fbt-car-statutory`. Its gross value and
+contribution split stay those of the operating cost method; where the statutory
+value is lower, the statutory worksheet's split applies.
 
-Both cover the FBT years ended 31 March 2026 and 2027 and take every valuation
+Both cover one car held by one provider for a single holding period in the FBT
+years ended 31 March 2026 and 2027, and take every valuation
 fact as established: holding and private use, the base value, the business use
 percentage and whether the electric cars exemption applies. A recipient's
 payment cannot take the taxable value below nil, and any excess is reported,
