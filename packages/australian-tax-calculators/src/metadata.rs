@@ -420,7 +420,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "fbt_car_statutory" => vec![
             (
                 "cost_price",
-                "AUD, the established base value the one-third reduction applies to",
+                "AUD, the part of the base value the one-third reduction applies to: an owned car's cost price with dealer delivery and accessories fitted at acquisition, or for a leased car the lessor's cost price or the market value when first leased",
             ),
             (
                 "later_accessories",
@@ -437,16 +437,26 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "fbt_car_operating_cost" => vec![
             (
                 "running_costs",
-                "AUD, GST-inclusive operating costs for the days held, before lease charges and deemed amounts",
+                "AUD, GST-inclusive car expenses for the holding period under FBTAA s 10(3), including those the employee paid: repairs, maintenance and fuel, and registration and insurance attributable to the period; excluding insured repair expenses and expenses the lessor bears under the lease",
             ),
-            ("lease_charges", "AUD, 0 for an owned car"),
+            (
+                "lease_charges",
+                "AUD, for the holding period; 0 for an owned car",
+            ),
             (
                 "depreciated_value",
-                "AUD, at the start of the FBT year or the cost price if acquired in it; 0 for a leased car",
+                "AUD, an owned car's FBTAA s 12 depreciated value at the start of the FBT year (cost price less earlier FBT deemed depreciation, not the income tax value), or its cost price if acquired in the year; a hire purchase car is owned; 0 for a leased car",
             ),
-            ("days_held", "integer from 0 to the days in the FBT year"),
+            (
+                "days_held",
+                "integer, the days in the holding period the car was owned or leased, from 0 to the days in the FBT year",
+            ),
             ("business_use", "decimal fraction from 0 to 1"),
             ("employee_contribution", "AUD"),
+            (
+                "statutory_formula_taxable_value",
+                "AUD, the same car's s 9 value for the same holding period: fbt_car_statutory's taxable_value_before_exemption",
+            ),
             ("electric_car_exempt", "boolean"),
         ],
         "depreciation" => vec![
@@ -557,6 +567,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("days_held", Whole(365)),
             ("business_use", Text("0.3636")),
             ("employee_contribution", Text("1500.00")),
+            ("statutory_formula_taxable_value", Text("8500.00")),
             ("electric_car_exempt", Flag(false)),
         ],
         "depreciation" => vec![

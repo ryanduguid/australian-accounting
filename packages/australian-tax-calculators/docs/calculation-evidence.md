@@ -130,17 +130,24 @@ accessories.
 Operating cost. ¶3-020 adds $5,200 of running costs, deemed depreciation of
 `50000 × 0.25 = 12500` and deemed interest of `50000 × 0.0862 = 4310` for
 $22,010, then applies 63.64% private use: `22010 × 0.6364 = 14007.164`, less
-$1,500, presented as **$12,507.16**. The Library rounds the business use
+$1,500, presented as **$12,507.16**. Its statutory formula value of $8,500 is
+lower, so under s 10(5) the worksheet's taxable value is **$8,500.00**. The
+Library rounds the business use
 percentage of `8000 / 22000` to 36.36%; the worksheet takes the percentage as
 the operator supplies it. Item 23B example 7 applies 30% private use to $10,000
 of total operating costs for **$3,000**. The guide's example 31 used 5.20% for
 2020-21; the tests rerun its facts at 8.62% (`7500 + 10000 + 3448 = 20948`,
 `× 0.25 − 2000 = 3237`) and 8.27% (`7500 + 10000 + 3308`, giving $3,202).
 
-Rounding is a worksheet convention: the reduced base value, each deemed amount
-and the gross taxable value are rounded half up to cents before the recipient's
-payment, so the reported figures reconcile exactly. The ATO examples show whole
-dollars without stating a method.
+Rounding is a worksheet convention: only the gross taxable value is rounded half
+up to cents, before the recipient's payment. The payment is in cents, so this
+moves no taxable value and keeps the applied and excess parts adding up. The
+base value and deemed amounts stay unrounded until then: `50000.02` reduced by
+one-third for 164 days gives $2,995.43, where a base rounded first would give
+$2,995.44, and deemed amounts on $40,000 for 100 days with $500 of costs at 50%
+give $2,092.19, not $2,092.20. Their displayed figures can therefore differ by a
+cent from the total behind them. The ATO examples show whole dollars without
+stating a method.
 
 ## Depreciation
 

@@ -11,8 +11,9 @@ intentionally changed.
 ### Added
 
 - `fbt-car-statutory` and `fbt-car-operating-cost` value one car fringe benefit
-  under FBTAA s 9 or s 10 for the FBT years ended 31 March 2026 and 2027; no
-  Python release has them. The worksheet catalogue lists both, so
+  under FBTAA s 9 or s 10 for the FBT years ended 31 March 2026 and 2027; the
+  operating cost result takes the lower statutory formula value under s 10(5).
+  No Python release has them. The worksheet catalogue lists both, so
   `tests/parity.rs` compares the 10 frozen `worksheet-catalogue` results without
   those 2 entries, and `tests/fbt_car.rs` covers them.
 

@@ -368,23 +368,35 @@ fn cents(value: Decimal) -> Calc<Decimal> {
     value.quantize(-2, Rounding::HalfUp)
 }
 
-/// The steps after a car's gross taxable value: the recipient's payment, never
-/// below nil, then the electric car exemption, which leaves the notional value
-/// the employer still reports.
+/// The steps after a car's gross taxable value. The gross value is rounded to
+/// cents first: the recipient's payment is in cents, so this moves no taxable
+/// value and keeps the applied and excess parts adding up. The payment cannot
+/// take the value below nil. Under the operating cost method, s 10(5) then
+/// substitutes the statutory formula value when it is lower. An exempt electric
+/// car's taxable value is nil; the value before the exemption is the notional
+/// value its reportable fringe benefits amount is worked out from.
 fn car_taxable_values(
     gross: Decimal,
     contribution: &Decimal,
+    statutory: Option<&Decimal>,
     exempt: bool,
 ) -> Calc<Vec<(&'static str, Decimal)>> {
+    let gross = cents(gross)?;
     let applied = py_min(contribution.clone(), gross.clone())?;
-    let before = gross.sub(&applied)?;
-    Ok(vec![
+    let mut value = gross.sub(&applied)?;
+    let mut out = vec![
         ("gross_taxable_value", gross),
         ("employee_contribution_applied", applied.clone()),
         ("excess_employee_contribution", contribution.sub(&applied)?),
-        ("taxable_value_before_exemption", before.clone()),
-        ("taxable_value", if exempt { int(0) } else { before }),
-    ])
+    ];
+    if let Some(statutory) = statutory {
+        out.push(("operating_cost_taxable_value", value.clone()));
+        out.push(("statutory_formula_taxable_value", statutory.clone()));
+        value = py_min(value, statutory.clone())?;
+    }
+    out.push(("taxable_value_before_exemption", value.clone()));
+    out.push(("taxable_value", if exempt { int(0) } else { value }));
+    Ok(out)
 }
 
 /// FBTAA s 9: `(A x B x C) / D - E` on the operator's established base value.
@@ -410,18 +422,17 @@ pub fn fbt_car_statutory(
     let amounts = precise(|| {
         // The one-third reduction never reaches accessories added after acquisition.
         let reduced = if reduce {
-            cents(cost.sub(&cost.div(&int(3))?)?)?
+            cost.sub(&cost.div(&int(3))?)?
         } else {
             cost.clone()
         };
         let base = reduced.add(&accessories)?;
-        let gross = cents(
-            base.mul(&d("0.20"))?
-                .mul(&int(days))?
-                .div(&int(days_in_year))?,
-        )?;
+        let gross = base
+            .mul(&d("0.20"))?
+            .mul(&int(days))?
+            .div(&int(days_in_year))?;
         let mut out = vec![("base_value", base)];
-        out.extend(car_taxable_values(gross, &contribution, exempt)?);
+        out.extend(car_taxable_values(gross, &contribution, None, exempt)?);
         Ok(out)
     })?;
     result(
@@ -437,7 +448,8 @@ pub fn fbt_car_statutory(
 }
 
 /// FBTAA s 10: `C x (100% - BP) - R`, with deemed depreciation and interest on
-/// an owned car's depreciated value, apportioned to the days it was held.
+/// an owned car's depreciated value (ss 11 and 12), apportioned to the days in
+/// the holding period it was owned, and the s 10(5) statutory comparison.
 #[allow(clippy::too_many_arguments)]
 pub fn fbt_car_operating_cost(
     running_costs: &Arg,
@@ -446,6 +458,7 @@ pub fn fbt_car_operating_cost(
     days_held: &Arg,
     business_use: &Arg,
     employee_contribution: &Arg,
+    statutory_formula_taxable_value: &Arg,
     electric_car_exempt: &Arg,
     year_ended: &Arg,
     scope_confirmed: &Arg,
@@ -465,22 +478,27 @@ pub fn fbt_car_operating_cost(
         return refuse("business_use must be a finite Decimal fraction from 0 to 1.");
     };
     let contribution = money(employee_contribution)?;
+    let statutory = money(statutory_formula_taxable_value)?;
     let exempt = flag(electric_car_exempt, "electric_car_exempt")?;
     let interest_rate = d(lookup(meta::FBT_BENCHMARK_INTEREST_RATES, &year));
     let private = precise(|| Ok(int(1).sub(&business)?))?;
     let amounts = precise(|| {
-        let deemed =
-            |rate: &Decimal| cents(value.mul(rate)?.mul(&int(days))?.div(&int(days_in_year))?);
+        let deemed = |rate: &Decimal| value.mul(rate)?.mul(&int(days))?.div(&int(days_in_year));
         let depreciation = deemed(&d("0.25"))?;
         let interest = deemed(&interest_rate)?;
         let costs = running.add(&lease)?.add(&depreciation)?.add(&interest)?;
-        let gross = cents(costs.mul(&private)?)?;
+        let gross = costs.mul(&private)?;
         let mut out = vec![
             ("deemed_depreciation", depreciation),
             ("deemed_interest", interest),
             ("operating_costs", costs),
         ];
-        out.extend(car_taxable_values(gross, &contribution, exempt)?);
+        out.extend(car_taxable_values(
+            gross,
+            &contribution,
+            Some(&statutory),
+            exempt,
+        )?);
         Ok(out)
     })?;
     result(

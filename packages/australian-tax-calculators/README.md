@@ -91,7 +91,7 @@ lists the commands.
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
-| `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `days_held`, `business_use`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
+| `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
@@ -227,22 +227,30 @@ These four worksheets are included from release 0.2.0.
 `fbt_car_statutory` applies FBTAA s 9 to one car: the base value times 20%,
 times the days the car was used or available for private use, divided by the
 days in the FBT year, less the recipient's payment. `cost_price` is the part of
-the base value the one-third reduction applies to; `later_accessories`, the
-non-business accessories added after acquisition, are never reduced.
-`fbt_car_operating_cost` applies s 10: running costs, lease charges for a leased
-car, and for an owned car deemed depreciation at 25% and deemed interest at the
-year's benchmark rate (8.62% for 2026, 8.27% for 2027) on the depreciated value,
-apportioned to the days held, times the private use percentage, less the
-recipient's payment.
+the base value the one-third reduction applies to: an owned car's cost price, or
+a leased car's cost to the lessor or its market value when first leased.
+`later_accessories`, the non-business accessories added after acquisition, are
+never reduced. `fbt_car_operating_cost` applies s 10: car expenses for the
+holding period, lease charges for a leased car, and for an owned car (including
+one under hire purchase) deemed depreciation at 25% and deemed interest at the
+year's benchmark rate (8.62% for 2026, 8.27% for 2027) on its s 12 depreciated
+value, apportioned to the days held, times the private use percentage, less the
+recipient's payment. Under s 10(5) its taxable value is the lower of that value
+and `statutory_formula_taxable_value`, the same car's
+`taxable_value_before_exemption` from `fbt-car-statutory`.
 
 Both cover the FBT years ended 31 March 2026 and 2027 and take every valuation
 fact as established: holding and private use, the base value, the business use
 percentage and whether the electric cars exemption applies. A recipient's
 payment cannot take the taxable value below nil, and any excess is reported,
 not applied to another benefit. An exempt electric car's `taxable_value` is nil;
-`taxable_value_before_exemption` is the notional value the employer reports. The
-results are taxable values before gross-up: pass them to `fbt` as type 1 or
-type 2 values once that classification is established. The tests hold both
+`taxable_value_before_exemption` is the notional value its reportable fringe
+benefits amount is worked out from, which neither worksheet grosses up. The
+results are taxable values before gross-up: for the year ended 31 March 2026,
+the only year `fbt` supports, pass them to `fbt` as type 1 or type 2 values once
+that classification is established. Only the gross taxable value is rounded to
+cents, so the displayed base value or deemed amounts can differ by a cent from
+the figures behind it. The tests hold both
 worksheets to the ATO's and the Library's worked examples; see
 [calculation evidence](docs/calculation-evidence.md#fbt-car-benefits).
 

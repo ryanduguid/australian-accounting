@@ -486,7 +486,22 @@ fn check_car_reconciles(result: &Value, contribution: &str, exempt: bool) {
         .add(&amount(result, "excess_employee_contribution"))
         .unwrap();
     assert!(eq(&total, &d(contribution)), "{result}");
-    assert!(eq(&applied.add(&before).unwrap(), &gross), "{result}");
+    // Under s 10(5) the operating cost value gives way to a lower statutory value.
+    let own = match result["amounts"].get("operating_cost_taxable_value") {
+        Some(_) => {
+            let own = amount(result, "operating_cost_taxable_value");
+            let statutory = amount(result, "statutory_formula_taxable_value");
+            let lower = if le(&own, &statutory) {
+                &own
+            } else {
+                &statutory
+            };
+            assert!(eq(&before, lower), "{result}");
+            own
+        }
+        None => before.clone(),
+    };
+    assert!(eq(&applied.add(&own).unwrap(), &gross), "{result}");
     assert!(le(&n(0), &before), "{result}");
     let expected = if exempt { n(0) } else { before };
     assert!(eq(&amount(result, "taxable_value"), &expected), "{result}");
@@ -508,13 +523,14 @@ fn car_worksheets_reconcile_and_stay_within_their_bases() {
                    "year_ended": year, "scope_confirmed": true}),
         );
         check_car_reconciles(&result, &contribution, exempt);
-        // The base never exceeds cost plus accessories, nor the gross value 20% of it.
+        // The base never exceeds cost plus accessories, nor the gross value 20% of
+        // it, allowing a cent for the unrounded base behind the displayed one.
         let base = amount(&result, "base_value");
         assert!(
             le(&base, &d(&cost).add(&d(&accessories)).unwrap()),
             "{result}"
         );
-        let ceiling = base.mul(&d("0.20")).unwrap().add(&d("0.005")).unwrap();
+        let ceiling = base.mul(&d("0.20")).unwrap().add(&d("0.01")).unwrap();
         assert!(
             le(&amount(&result, "gross_taxable_value"), &ceiling),
             "{result}"
@@ -529,16 +545,20 @@ fn car_worksheets_reconcile_and_stay_within_their_bases() {
             "fbt-car-operating-cost",
             json!({"running_costs": running, "lease_charges": lease, "depreciated_value": value,
                    "days_held": rng.int(0, 365), "business_use": business,
-                   "employee_contribution": contribution, "electric_car_exempt": exempt,
+                   "employee_contribution": contribution,
+                   "statutory_formula_taxable_value": rng.pay(), "electric_car_exempt": exempt,
                    "year_ended": year, "scope_confirmed": true}),
         );
         check_car_reconciles(&result, &contribution, exempt);
+        // The displayed parts add to the operating costs within a cent, since the
+        // deemed amounts are rounded only for display.
         let parts = ["deemed_depreciation", "deemed_interest"]
             .iter()
             .fold(d(&running).add(&d(&lease)).unwrap(), |sum, key| {
                 sum.add(&amount(&result, key)).unwrap()
             });
-        assert!(eq(&parts, &amount(&result, "operating_costs")), "{result}");
+        let gap = parts.sub(&amount(&result, "operating_costs")).unwrap();
+        assert!(le(&d("-0.01"), &gap) && le(&gap, &d("0.01")), "{result}");
         let costs = amount(&result, "operating_costs").add(&d("0.005")).unwrap();
         assert!(
             le(&amount(&result, "gross_taxable_value"), &costs),

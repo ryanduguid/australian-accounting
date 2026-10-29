@@ -19,7 +19,7 @@ fn operating(overrides: Value) -> Result<Value, String> {
     let mut input = json!({
         "running_costs": "5200.00", "lease_charges": "0.00", "depreciated_value": "50000.00",
         "days_held": 365, "business_use": "0.3636", "employee_contribution": "1500.00",
-        "electric_car_exempt": false, "year_ended": 2026, "scope_confirmed": true,
+        "statutory_formula_taxable_value": "8500.00", "electric_car_exempt": false, "year_ended": 2026, "scope_confirmed": true,
     });
     for (k, v) in overrides.as_object().unwrap() {
         input[k] = v.clone();
@@ -81,6 +81,17 @@ fn one_third_reduction_leaves_later_accessories_whole() {
 }
 
 #[test]
+fn the_reduced_base_value_stays_unrounded() {
+    // 50000.02 x 2/3 = 33333.3466...; x 0.20 x 164 / 365 = 2995.4349..., where a
+    // base rounded first to 33333.35 would give 2995.44.
+    let a = amounts(statutory(json!({
+        "cost_price": "50000.02", "one_third_reduction": true, "days_available": 164,
+    })));
+    assert_eq!(a["base_value"], "33333.35");
+    assert_eq!(a["gross_taxable_value"], "2995.43");
+}
+
+#[test]
 fn contributions_stop_at_nil_and_the_excess_is_shown() {
     let a = amounts(statutory(json!({"employee_contribution": "5000.00"})));
     assert_eq!(a["employee_contribution_applied"], "4804.38");
@@ -94,24 +105,43 @@ fn an_exempt_electric_car_keeps_its_notional_value() {
     assert_eq!(a["taxable_value_before_exemption"], "4804.38");
     assert_eq!(a["taxable_value"], "0.00");
     let a = amounts(operating(json!({"electric_car_exempt": true})));
-    assert_eq!(a["taxable_value_before_exemption"], "12507.16");
+    assert_eq!(a["taxable_value_before_exemption"], "8500.00");
     assert_eq!(a["taxable_value"], "0.00");
 }
 
 #[test]
 fn operating_cost_matches_the_library_car_example() {
     // ¶3-020: $5,200 running costs, $12,500 deemed depreciation, $4,310 deemed
-    // interest at 8.62%, 63.64% private use, less the $1,500 contribution.
+    // interest at 8.62%, 63.64% private use, less the $1,500 contribution. The
+    // statutory formula's $8,500 is lower, so s 10(5) makes it the taxable value.
     let result = operating(json!({})).unwrap();
     assert_eq!(
         result["amounts"],
         json!({"deemed_depreciation": "12500.00", "deemed_interest": "4310.00",
                "operating_costs": "22010.00", "gross_taxable_value": "14007.16",
                "employee_contribution_applied": "1500.00", "excess_employee_contribution": "0.00",
-               "taxable_value_before_exemption": "12507.16", "taxable_value": "12507.16"})
+               "operating_cost_taxable_value": "12507.16",
+               "statutory_formula_taxable_value": "8500.00",
+               "taxable_value_before_exemption": "8500.00", "taxable_value": "8500.00"})
     );
     assert_eq!(result["rates"]["benchmark_interest_rate"], "0.0862");
     assert_eq!(result["rates"]["private_use"], "0.6364");
+}
+
+#[test]
+fn the_lower_of_the_two_methods_is_the_taxable_value() {
+    for (statutory, taxable) in [
+        ("20000.00", "12507.16"),
+        ("12507.16", "12507.16"),
+        ("12507.15", "12507.15"),
+        ("0.00", "0.00"),
+    ] {
+        let a = amounts(operating(
+            json!({"statutory_formula_taxable_value": statutory}),
+        ));
+        assert_eq!(a["operating_cost_taxable_value"], "12507.16");
+        assert_eq!(a["taxable_value"], taxable, "{statutory}");
+    }
 }
 
 #[test]
@@ -156,6 +186,20 @@ fn deemed_amounts_are_apportioned_to_the_days_held() {
     assert_eq!(a["deemed_interest"], "1649.47");
     assert_eq!(a["operating_costs"], "6635.77");
     assert_eq!(a["taxable_value"], "6635.77");
+}
+
+#[test]
+fn deemed_amounts_stay_unrounded_until_the_gross_value() {
+    // 500 + 2739.726... + 944.657... = 4184.383...; x 0.5 = 2092.19, where
+    // deemed amounts rounded first would give 4184.39 and 2092.20.
+    let a = amounts(operating(json!({
+        "running_costs": "500.00", "depreciated_value": "40000.00", "days_held": 100,
+        "business_use": "0.5", "employee_contribution": "0.00",
+    })));
+    assert_eq!(a["deemed_depreciation"], "2739.73");
+    assert_eq!(a["deemed_interest"], "944.66");
+    assert_eq!(a["operating_costs"], "4184.38");
+    assert_eq!(a["gross_taxable_value"], "2092.19");
 }
 
 #[test]
@@ -224,6 +268,10 @@ fn refusals_name_the_fact_to_establish() {
         (
             operating(json!({"days_held": -1})),
             "days_held must be an integer from 0 to 365.",
+        ),
+        (
+            operating(json!({"statutory_formula_taxable_value": "1.001"})),
+            "Amounts must be finite non-negative Decimals, at most 2dp and 1e12.",
         ),
         (
             operating(json!({"electric_car_exempt": "no"})),
