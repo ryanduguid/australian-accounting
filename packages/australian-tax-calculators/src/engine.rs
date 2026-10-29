@@ -184,13 +184,14 @@ fn result(
     out.insert("scope".into(), json!(lookup(texts::SCOPES, kind)));
     out.insert("sources".into(), json!(sources(kind)));
     out.insert("source_checked".into(), json!(meta::source_review(kind).0));
-    out.insert(
-        "warnings".into(),
-        json!([
-            "Operator-confirmed facts and scope; eligibility is not independently verified.",
-            "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
-        ]),
-    );
+    let mut warnings = vec![
+        "Operator-confirmed facts and scope; eligibility is not independently verified.",
+        "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+    ];
+    if let Some((_, extra)) = texts::EXTRA_WARNINGS.iter().find(|(k, _)| *k == kind) {
+        warnings.extend(extra.iter().copied());
+    }
+    out.insert("warnings".into(), json!(warnings));
     Ok(Value::Object(out))
 }
 
@@ -374,7 +375,9 @@ fn cents(value: Decimal) -> Calc<Decimal> {
 /// take the value below nil. Under the operating cost method, s 10(5) then
 /// substitutes the statutory formula value when it is lower. An exempt electric
 /// car's taxable value is nil; the value before the exemption is the notional
-/// value its reportable fringe benefits amount is worked out from.
+/// value its reportable fringe benefits amount is worked out from, so it is
+/// also the car's reportable taxable value, before the employee's $2,000
+/// threshold and the type 2 gross-up, which apply to all their benefits.
 fn car_taxable_values(
     gross: Decimal,
     contribution: &Decimal,
@@ -395,7 +398,8 @@ fn car_taxable_values(
         value = py_min(value, statutory.clone())?;
     }
     out.push(("taxable_value_before_exemption", value.clone()));
-    out.push(("taxable_value", if exempt { int(0) } else { value }));
+    out.push(("taxable_value", if exempt { int(0) } else { value.clone() }));
+    out.push(("reportable_taxable_value", value));
     Ok(out)
 }
 
