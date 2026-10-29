@@ -141,11 +141,11 @@ impl CorporateTax {
         json!({"financial_year":self.fy,"is_base_rate_entity":self.bre,"applicable_rate":self.rate.to_string(),"rate_description":self.description,"statutory_basis":self.basis})
     }
 }
+/// `prior` comes from `api::bre`, which has validated it.
 pub fn max_franking_rate(fy: i64, prior: Option<Bre>) -> Result<D> {
     let mut prior = prior.ok_or_else(|| {
         format!("prior_year_test is required for FY{fy}; the maximum franking rate is not assumed")
     })?;
-    prior.validate()?;
     let required = i128::from(fy) - 1;
     if i128::from(prior.fy) != required {
         return Err(format!(
@@ -195,8 +195,8 @@ impl Statement {
         }
         let rate = rate(tax_rate.as_ref(), "")?;
         let franked = cents(&total.mul(&pct.div(&d("100.00"))))?;
-        let unfranked = cents(&total.sub(&franked).value)?;
-        let multiplier = rate.div(&d("1.00").sub(&rate).value);
+        let unfranked = cents(&total.sub(&franked))?;
+        let multiplier = rate.div(&d("1.00").sub(&rate));
         let credit = q(&franked.mul(&multiplier), Rounding::Down)?;
         Ok(Self {
             entity,
@@ -211,10 +211,10 @@ impl Statement {
         })
     }
     pub fn total(&self) -> D {
-        self.franked.add(&self.unfranked).value
+        self.franked.add(&self.unfranked)
     }
     pub fn gross(&self) -> D {
-        self.total().add(&self.credit).value
+        self.total().add(&self.credit)
     }
     pub fn json(&self) -> Value {
         json!({"entity_name":self.entity,"abn_or_acn":self.acn,"recipient_name":self.recipient,"payment_date":self.date.to_string(),"franked_amount":self.franked.to_string(),"unfranked_amount":self.unfranked.to_string(),"franking_credit":self.credit.to_string(),"franking_percentage":self.pct.to_string(),"corporate_tax_rate":self.rate.to_string(),"withholding_tax_deducted":"0.00","total_distribution":self.total().to_string(),"gross_assessable_income":self.gross().to_string()})
@@ -247,7 +247,7 @@ impl Event {
         if self.amount <= d("0.00") {
             return Ok(d("0.00"));
         }
-        Ok(self.amount.mul(&rate.div(&d("1.00").sub(&rate).value)))
+        Ok(self.amount.mul(&rate.div(&d("1.00").sub(&rate))))
     }
     pub fn ratio(&self) -> Result<D> {
         let max = self.maximum()?;
@@ -266,10 +266,9 @@ impl Event {
         )
     }
 }
-pub fn benchmark(tax_rate: Option<D>, mut events: Vec<Event>) -> Result<Value> {
-    let tax_rate = rate(tax_rate.as_ref(), "BenchmarkRuleValidator")?;
+/// `tax_rate` has passed `rate` and every event has passed `Event::validate`.
+pub fn benchmark(tax_rate: D, mut events: Vec<Event>) -> Result<Value> {
     for event in &mut events {
-        event.validate()?;
         if event.rate.is_none() {
             event.rate = Some(tax_rate.clone());
         }
@@ -287,7 +286,7 @@ pub fn benchmark(tax_rate: Option<D>, mut events: Vec<Event>) -> Result<Value> {
     let mut violations = Vec::new();
     for event in &events[start + 1..] {
         let actual = event.pct()?;
-        let diff = actual.sub(&pct).value;
+        let diff = actual.sub(&pct);
         let max = event.maximum()?;
         let benchmark_credit = ratio.mul(&max);
         let actual_credit = if event.credit < max {
@@ -295,7 +294,7 @@ pub fn benchmark(tax_rate: Option<D>, mut events: Vec<Event>) -> Result<Value> {
         } else {
             &max
         };
-        let credit_diff = actual_credit.sub(&benchmark_credit).value;
+        let credit_diff = actual_credit.sub(&benchmark_credit);
         if credit_diff.abs() > d("0.01") {
             let over = credit_diff > d("0.00");
             violations.push(json!({"event_date":event.date.to_string(),"recipient_name":event.recipient,"benchmark_percentage":pct.to_string(),"actual_percentage":actual.to_string(),"variance_percentage":diff.to_string(),"consequence_type":if over {"OVER_FRANKING_TAX"} else {"FRANKING_DEBIT"},"penalty_or_debit_amount":cents(&credit_diff.abs())?.to_string(),"statutory_reference":if over {"s 203-50(1) ITAA 1997: Over-franking tax payable on excess franking credits."} else {"s 203-50(2) ITAA 1997: Franking account debit arises equal to shortfall."}}));
@@ -491,9 +490,9 @@ impl Account {
         let mut debit = d("0.00");
         for entry in &self.entries {
             if entry.kind.credit() {
-                credit = credit.add(&entry.amount).value;
+                credit = credit.add(&entry.amount);
             } else {
-                debit = debit.add(&entry.amount).value;
+                debit = debit.add(&entry.amount);
             }
         }
         Ok((credit, debit))
@@ -502,7 +501,7 @@ impl Account {
         let (credits, debits) = self.totals()?;
         self.opening
             .as_ref()
-            .map(|o| cents(&o.add(&credits.sub(&debits).value).value))
+            .map(|o| cents(&o.add(&credits.sub(&debits))))
             .transpose()
     }
     pub fn deficit(&self) -> Result<Value> {

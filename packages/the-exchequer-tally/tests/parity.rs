@@ -170,22 +170,32 @@ fn refused_records_do_not_post_and_mutated_entries_are_revalidated() {
 }
 
 #[test]
+fn appended_entries_outside_the_year_are_refused() {
+    let input = serde_json::json!({"financial_year":2027,"opening_balance":"5000","append_entries":[{"entry_date":"2027-07-01","entry_type":"FRANKED_DIST_PAID","amount":"100","description":"Synthetic"}]});
+    assert_eq!(
+        api::evaluate("franking-account", &input).unwrap_err(),
+        "entry_date 2027-07-01 is outside FY2027 (2026-07-01 to 2027-06-30)"
+    );
+}
+#[test]
 fn direct_entries_preserve_ledger_invariants() {
-    for kind in [EntryType::Refund, EntryType::Payg] {
+    let entry = |entry_type: &str, amount: &str| {
+        let input = serde_json::json!({"financial_year":2027,"entries":[{"entry_date":"2026-09-01","entry_type":entry_type,"amount":amount,"description":"Synthetic entry"}]});
+        api::evaluate("franking-account", &input).unwrap_err()
+    };
+    for entry_type in ["TAX_REFUND", "PAYG_INSTALMENT"] {
         for amount in ["NaN", "Infinity", "-1"] {
-            assert!(
-                Entry::new(
-                    Date::parse("2026-09-01").unwrap(),
-                    kind,
-                    engine::d(amount),
-                    "Synthetic entry".into(),
-                    Some(String::new())
-                )
-                .is_err()
+            assert_eq!(
+                entry(entry_type, amount),
+                "amount must be a non-negative finite Decimal",
+                "{entry_type} {amount}"
             );
         }
     }
-    assert!(EntryType::parse("unrecognised").is_err());
+    assert_eq!(
+        entry("unrecognised", "1"),
+        "entry_type must be a FrankingEntryType"
+    );
 }
 #[test]
 fn forced_colour_error_line_matches_python_3_15() {
@@ -290,16 +300,20 @@ fn ledger_years_dates_and_null_references_follow_python() {
 }
 #[test]
 fn json_boundary_rejects_wrong_types_and_excessive_numbers() {
-    assert!(api::evaluate("corporate-tax", &Value::Null).is_err());
-    assert!(
-        api::evaluate(
-            "corporate-tax",
-            &serde_json::json!({"financial_year":"2027"})
-        )
-        .is_err()
+    let refusal = |input: Value| api::evaluate("corporate-tax", &input).unwrap_err();
+    assert_eq!(refusal(Value::Null), "input must be a JSON object");
+    assert_eq!(
+        refusal(serde_json::json!({"financial_year":"2027"})),
+        "financial_year must be an integer"
     );
-    assert!(api::decimal(&serde_json::json!({"x":"1e10001"}), "x").is_err());
-    assert!(api::decimal(&serde_json::json!({"x":"1".repeat(8193)}), "x").is_err());
+    assert_eq!(
+        refusal(serde_json::json!({"financial_year":2027,"aggregated_turnover":"1e10001"})),
+        "aggregated_turnover: decimal exponent or adjusted exponent exceeds 10000"
+    );
+    assert_eq!(
+        refusal(serde_json::json!({"financial_year":2027,"aggregated_turnover":"1".repeat(8193)})),
+        "aggregated_turnover: decimal input exceeds 8192 bytes"
+    );
     let extreme = serde_json::json!({"current_fy":i64::MIN,"prior_year_test":{"financial_year":2026,"aggregated_turnover":"0","assessable_income":"1","passive_income":"0"}});
     assert_eq!(
         api::evaluate("max-franking-rate", &extreme).unwrap_err(),
