@@ -1,4 +1,4 @@
-"""Pin dated figures that more than one copy keeps, and the GIC expiry warning.
+"""Pin dated figures that more than one copy keeps, and the table expiry warnings.
 
 The 2026-27 concessional cap sits in payday-super-checker's rates.json and in
 australian-tax-calculators' metadata.rs, and the maximum contributions base is
@@ -18,6 +18,7 @@ import importlib.util
 import io
 import json
 import re
+import tempfile
 import unittest
 from datetime import timedelta
 from decimal import Decimal
@@ -148,9 +149,41 @@ class DatedRateTests(unittest.TestCase):
             with self.subTest(days_before=days_before):
                 out = io.StringIO()
                 with contextlib.redirect_stdout(out):
-                    self.assertEqual(check.main(["--today", today]), code)
+                    self.assertEqual(check.main(["--today", today, "--table", "gic"]), code)
                 if code:
                     self.assertIn("gic_rates.json", out.getvalue())
+
+    def test_the_holiday_warning_fires_inside_28_days_only(self) -> None:
+        check = _load_expiry_check()
+        end = check.holidays_end()
+        for days_before, code in ((95, 0), (28, 0), (27, 1), (16, 1)):
+            today = (end - timedelta(days=days_before)).isoformat()
+            with self.subTest(days_before=days_before):
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    self.assertEqual(check.main(["--today", today, "--table", "holidays"]), code)
+                if code:
+                    self.assertIn("holidays.py", out.getvalue())
+
+    def test_the_holiday_end_is_the_tables_covers_to(self) -> None:
+        # COVERS_TO, not the last listed holiday: roll() settles no weekday past it.
+        check = _load_expiry_check()
+        with tempfile.TemporaryDirectory() as directory:
+            table = Path(directory) / "holidays.py"
+            table.write_text("HOLIDAYS = {date(2030, 1, 1): 'x'}\n"
+                             "COVERS_TO = date(2030, 6, 30)\n", encoding="utf-8")
+            self.assertEqual(check.holidays_end(table).isoformat(), "2030-06-30")
+            table.write_text("COVERS_TO = max(HOLIDAYS)\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                check.holidays_end(table)
+
+    def test_every_table_is_checked_by_default(self) -> None:
+        # A table that starts expiring fails the scheduled run, which passes no --table.
+        check = _load_expiry_check()
+        today = (check.holidays_end() - timedelta(days=1)).isoformat()
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(check.main(["--today", today]), 1)
+        self.assertIn("holidays.py", out.getvalue())
 
 
 class DatasetAgreementTests(unittest.TestCase):
