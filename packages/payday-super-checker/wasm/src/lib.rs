@@ -39,7 +39,7 @@ mod exports {
     }
 
     /// # Safety
-    /// `ptr` and `len` must come from `alloc` or a returned result, once.
+    /// `ptr` and `len` must be one matching pair from `alloc` or a returned result, freed once.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn dealloc(ptr: *mut u8, len: usize) {
         // SAFETY: the caller's contract above; `alloc` and `run` make these buffers as

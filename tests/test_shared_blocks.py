@@ -180,8 +180,16 @@ def _rust_function(text: str, name: str) -> str:
     """A top-level `fn` item: its outer attributes, signature and body to its closing brace."""
     match = re.search(rf"^(?:pub )?fn {name}\b.*?^}}\n", text, re.M | re.S)
     assert match is not None, name
+    # A second match, such as a commented-out original, could hide a changed live definition.
+    assert len(re.findall(rf"^(?:pub )?fn {name}\b", text, re.M)) == 1, name
     # An attribute such as `#[cfg(...)]` or `#[export_name = "..."]` changes behaviour.
     return _rust_outer_attributes(text[: match.start()]) + match.group(0)
+
+
+class RustFunctionTests(unittest.TestCase):
+    def test_a_commented_out_copy_cannot_stand_in_for_the_live_function(self) -> None:
+        with self.assertRaises(AssertionError):
+            _rust_function("/*\nfn verify() {\n}\n*/\nfn verify() {\n    changed();\n}\n", "verify")
 
 
 class RustCopyTests(unittest.TestCase):
