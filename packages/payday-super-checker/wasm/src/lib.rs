@@ -42,10 +42,15 @@ mod exports {
     /// `ptr` and `len` must come from `alloc` or a returned result, once.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn dealloc(ptr: *mut u8, len: usize) {
+        // SAFETY: the caller's contract above; `alloc` and `run` make these buffers as
+        // boxed slices of exactly `len` bytes.
+        // nosemgrep: rust.lang.security.unsafe-usage.unsafe-usage
         drop(unsafe { Box::from_raw(std::ptr::slice_from_raw_parts_mut(ptr, len)) });
     }
 
     unsafe fn run(f: fn(&Value) -> Result<Value, String>, ptr: *const u8, len: usize) -> u64 {
+        // SAFETY: `derive` and `verify`, the only callers, pass on their callers' live buffer.
+        // nosemgrep: rust.lang.security.unsafe-usage.unsafe-usage
         let input = unsafe { std::slice::from_raw_parts(ptr, len) };
         let out = Box::into_raw(call(f, input).into_boxed_slice());
         ((out.cast::<u8>() as u64) << 32) | out.len() as u64
@@ -55,6 +60,8 @@ mod exports {
     /// `ptr` and `len` must describe a live buffer from `alloc`.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn derive(ptr: *const u8, len: usize) -> u64 {
+        // SAFETY: the caller's contract above is the one `run` needs.
+        // nosemgrep: rust.lang.security.unsafe-usage.unsafe-usage
         unsafe { run(derivation::derive, ptr, len) }
     }
 
@@ -62,6 +69,8 @@ mod exports {
     /// `ptr` and `len` must describe a live buffer from `alloc`.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn verify(ptr: *const u8, len: usize) -> u64 {
+        // SAFETY: the caller's contract above is the one `run` needs.
+        // nosemgrep: rust.lang.security.unsafe-usage.unsafe-usage
         unsafe { run(derivation::verify, ptr, len) }
     }
 }

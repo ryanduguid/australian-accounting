@@ -28,6 +28,8 @@ function callJson(command, input) {
   const ptr = alloc(bytes.length);
   try {
     new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
+    // `command` is only ever the literal 'derive' or 'verify', from this file's own calls.
+    // nosemgrep: javascript.lang.security.audit.unsafe-dynamic-method.unsafe-dynamic-method
     const packed = instance.exports[command](ptr, bytes.length);
     const outputPtr = Number(packed >> 32n);
     const outputLen = Number(packed & 0xffffffffn);
