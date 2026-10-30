@@ -13,6 +13,7 @@
 
 ## Core APIs
 - `lodgmentcalendar.due_dates(obligation, entity_type, financial_year, channel, *, reporting_cycle=None, facts=None, extra_holidays=None, holidays_complete_until=None)`: rows of `lodgment`, `payment` and `concession` dates, each `DETERMINED` or `UNKNOWN`, with `rule_id`, `summary`, `source_url`, `source_provision`, `source_checked` and `missing`.
+- `lodgmentcalendar.to_ics(result, *, uid_scope="")`: an iCalendar file with one all-day event per `DETERMINED` row, and the `UNKNOWN` rows returned apart.
 - `lodgmentcalendar.Facts`: the program conditions; each `True`, `False` or `None` for not supplied.
 
 ## Architectural boundaries
