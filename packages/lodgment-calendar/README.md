@@ -97,6 +97,29 @@ The result holds `obligations`, `counts` by status, `request`, `facts_used`,
 | `missing` | Each fact not supplied or question the ATO pages leave open |
 | `payment` | On lodgement rows: `with_lodgment`, `separate`, `none` or `unknown` |
 
+## Calendar file
+
+`to_ics(result, *, uid_scope="")` writes a `due_dates` result as an iCalendar file
+(RFC 5545) and returns `{"ics": text, "unknown": rows}`.
+
+```python
+from lodgmentcalendar import to_ics
+
+output = to_ics(result, uid_scope="H1")
+with open("due-dates.ics", "w", encoding="utf-8", newline="") as file:
+    file.write(output["ics"])
+```
+
+Each `DETERMINED` row is one all-day event, with the rule, its source and the review date
+in the description. Each `UNKNOWN` row is in `unknown` and has no event: it is never given
+its nominal date. The calendar's own description names those rows too, though many
+calendar programs do not show it, so read `unknown`. `ics` is `None` when no row is
+`DETERMINED`.
+
+An event's UID follows the request, period and kind, so importing a later export replaces
+an event whose date moved. Pass a client code as `uid_scope` when a calendar holds more
+than one client; only its hash is written.
+
 ## Weekends and public holidays
 
 The holiday calendar is the ATO's own: Tables 1 and 2 of
