@@ -116,8 +116,10 @@ its nominal date. The calendar's own description names those rows too, though ma
 calendar programs do not show it, so read `unknown`. `ics` is `None` when no row is
 `DETERMINED`.
 
-An event's UID follows the request, period and kind, so importing a later export replaces
-an event whose date moved. Pass a client code as `uid_scope` when a calendar holds more
+An event's UID follows the request, period and kind, so it stays the same when the date
+moves. The file carries no revision history, so whether importing a later export updates
+the event is up to the calendar program, which may keep a stale or duplicate event. After a
+date moves, check the calendar. Pass a client code as `uid_scope` when a calendar holds more
 than one client; only its hash is written.
 
 ## Weekends and public holidays

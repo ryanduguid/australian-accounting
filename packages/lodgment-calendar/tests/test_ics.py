@@ -143,3 +143,25 @@ def test_every_request_shape_keeps_rows_and_uids_distinct():
                 assert len(new) == len(found)
                 assert not new & uids
                 uids |= new
+
+
+def test_a_carriage_return_never_reaches_a_content_line():
+    result = quarterly()
+    row = next(row for row in result["obligations"] if row["status"] == "DETERMINED")
+    row["summary"] = "one\r\ntwo\rthree"
+    text = to_ics(result)["ics"]
+    assert "\r" not in text.replace("\r\n", "")
+    assert "one\\ntwo\\nthree" in "".join(unfold(text))
+
+
+def test_a_changed_holiday_input_moves_the_date_and_keeps_the_uid():
+    def export(**holidays):
+        return events(to_ics(due_dates(
+            "bas", "trust", "2026-27", "self", reporting_cycle="quarterly",
+            facts=Facts(lodges_electronically=True),
+            holidays_complete_until=date(2027, 8, 31), **holidays))["ics"])
+
+    plain, moved = export(), export(extra_holidays={date(2027, 8, 11): "Test holiday"})
+    assert (plain[3][START], moved[3][START]) == ("20270811", "20270812")
+    assert [event["UID"] for event in plain] == [event["UID"] for event in moved]
+

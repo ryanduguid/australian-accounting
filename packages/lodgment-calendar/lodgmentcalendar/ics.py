@@ -19,8 +19,9 @@ def to_ics(result: dict[str, Any], *, uid_scope: str = "") -> dict[str, Any]:
     """Return ``{"ics": text, "unknown": rows}`` for a result from ``due_dates``.
 
     ``ics`` is None when no row is DETERMINED, because a calendar must hold an event.
-    An event's UID follows the request, period and kind, so a later export replaces it
-    when its date changes. ``uid_scope`` keeps 2 clients on the same terms from sharing
+    An event's UID follows the request, period and kind, so it stays the same when the
+    date moves. Whether a calendar program then updates the event on a later import is
+    up to that program. ``uid_scope`` keeps 2 clients on the same terms from sharing
     UIDs; pass a client code. Only its hash is written.
     """
     if not isinstance(uid_scope, str):
@@ -55,6 +56,8 @@ def _event(row: dict[str, Any], result: dict[str, Any], uid_scope: str) -> list[
         "BEGIN:VEVENT",
         f"UID:{hashlib.sha256(identity.encode()).hexdigest()}@lodgment-calendar",
         # A fixed stamp keeps the same result byte-identical from one export to the next.
+        # shortcut: no SEQUENCE or revision history, so a calendar program may keep a stale
+        # or duplicate event when a date moves. Upgrade: record each UID's revisions.
         f"DTSTAMP:{row['source_checked'].replace('-', '')}T000000Z",
         f"DTSTART;VALUE=DATE:{due:%Y%m%d}",
         f"DTEND;VALUE=DATE:{due + timedelta(days=1):%Y%m%d}",
@@ -67,7 +70,7 @@ def _event(row: dict[str, Any], result: dict[str, Any], uid_scope: str) -> list[
 def _text(value: str) -> str:
     """Escape a TEXT value (RFC 5545 section 3.3.11)."""
     return (value.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,")
-            .replace("\n", "\\n"))
+            .replace("\r\n", "\n").replace("\r", "\n").replace("\n", "\\n"))
 
 
 def _fold(line: str) -> str:
