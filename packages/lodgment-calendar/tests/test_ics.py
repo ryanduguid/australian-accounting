@@ -1,5 +1,6 @@
 """The iCalendar export: every determined date is an event, and only those."""
 
+import re
 from datetime import date, timedelta
 
 import pytest
@@ -57,7 +58,7 @@ def test_rule_source_and_roll_are_in_the_description():
     description = rolled["DESCRIPTION"]
     assert "Rule: AS-Q-28" in description
     assert "before the next-business-day roll: 2027-02-28" in description
-    assert "https://www.ato.gov.au" in description
+    assert re.search(r"Source: .*https://www\.ato\.gov\.au/", description)
     assert "Source checked: 2026-10-28" in description
     assert "guide only" in description
     assert rolled["SUMMARY"].endswith(": lodgment")
@@ -88,7 +89,8 @@ def test_all_determined_rows_add_no_unknown_note():
 
 
 def test_the_same_result_exports_the_same_bytes():
-    assert to_ics(quarterly())["ics"] == to_ics(quarterly())["ics"]
+    first, second = to_ics(quarterly())["ics"], to_ics(quarterly())["ics"]
+    assert first == second
 
 
 def test_a_uid_survives_a_changed_date_and_differs_by_scope():
