@@ -72,8 +72,9 @@ root.
   warning naming the status. The profile also classifies every other status
   the vendor lists, which Python 0.2.2 refused. Sent to fund with response and
   a manual batch's Paid keep their date as a remittance date. Sent to fund with
-  refund, Cancelled, Failed, Refunded, Not actioned and Payment failed get no
-  remitted date and the same warning. Any other status is still refused. The
+  refund, Cancelled, Failed, Refunded, Not actioned and Payment failed do not
+  establish remittance, so they get no remitted date and the same warning. Any
+  other status is still refused. The
   replay applies the changed answers from `tests/data/amendments.json`, leaving
   the frozen Python record unchanged.
 - Python imports, dataclasses, exception classes and package version lookup are

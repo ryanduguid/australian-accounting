@@ -211,6 +211,12 @@ fn a_near_miss_beam_status_stops_the_import() {
         message.contains("row 2: status 'Sent to fund with reversal' is not one this tool knows"),
         "{message}"
     );
+    // A withheld date is missing evidence, not proof that no money moved.
+    assert!(
+        message.contains("does not establish remittance: ['Awaiting clearance'"),
+        "{message}"
+    );
+    assert!(!message.contains("not yet sent"), "{message}");
 }
 
 /// A status off the ladder stops the import rather than guessing.
