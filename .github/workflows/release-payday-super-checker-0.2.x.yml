@@ -88,11 +88,15 @@ jobs:
           persist-credentials: false
 
       - name: Bind the pinned policy scripts to this one-off release
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
         shell: bash
         run: |
           set -euo pipefail
+          test "$WORKFLOW_SHA" = "$GITHUB_SHA"
           sed -i 's|^_POLICY_REPOSITORY = .*|_POLICY_REPOSITORY = "ryanduguid/australian-accounting"|; s|^_POLICY_WORKFLOW = .*|_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"|' policy/scripts/python_release.py
           grep -qxF '_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"' policy/scripts/python_release.py
+          grep -qxF '_POLICY_REPOSITORY = "ryanduguid/australian-accounting"' policy/scripts/python_release.py
           cat >> policy/scripts/gates.sh <<'GATE'
           # Replaces the main gate: this tag, on the maintenance branch tip, ahead of v0.2.2.
           gate_main_matches() {
@@ -106,6 +110,8 @@ jobs:
             test "$status" = "ahead"
           }
           GATE
+          bash -n policy/scripts/gates.sh
+          test "$(grep -c '^gate_main_matches()' policy/scripts/gates.sh)" = 2
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -176,7 +182,7 @@ jobs:
       candidate-id: ${{ steps.candidate.outputs.artifact-id }}
       dist-id: ${{ steps.dist.outputs.artifact-id }}
       dist-digest: ${{ steps.dist.outputs.artifact-digest }}
-      policy-sha: ${{ github.sha }}
+      policy-sha: ${{ job.workflow_sha }}
       commit: ${{ steps.release.outputs.commit }}
       stem: ${{ steps.release.outputs.stem }}
       source-directory: ${{ steps.release.outputs.source-directory }}
@@ -203,11 +209,15 @@ jobs:
           persist-credentials: false
 
       - name: Bind the pinned policy scripts to this one-off release
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
         shell: bash
         run: |
           set -euo pipefail
+          test "$WORKFLOW_SHA" = "$GITHUB_SHA"
           sed -i 's|^_POLICY_REPOSITORY = .*|_POLICY_REPOSITORY = "ryanduguid/australian-accounting"|; s|^_POLICY_WORKFLOW = .*|_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"|' policy/scripts/python_release.py
           grep -qxF '_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"' policy/scripts/python_release.py
+          grep -qxF '_POLICY_REPOSITORY = "ryanduguid/australian-accounting"' policy/scripts/python_release.py
           cat >> policy/scripts/gates.sh <<'GATE'
           # Replaces the main gate: this tag, on the maintenance branch tip, ahead of v0.2.2.
           gate_main_matches() {
@@ -221,6 +231,8 @@ jobs:
             test "$status" = "ahead"
           }
           GATE
+          bash -n policy/scripts/gates.sh
+          test "$(grep -c '^gate_main_matches()' policy/scripts/gates.sh)" = 2
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -309,7 +321,7 @@ jobs:
 
       - name: Write and verify the exact candidate inventory
         env:
-          MODULE_SHA: ${{ github.sha }}
+          MODULE_SHA: ${{ job.workflow_sha }}
         shell: bash
         working-directory: ${{ steps.inputs.outputs.source-path }}
         run: |
@@ -389,11 +401,15 @@ jobs:
           persist-credentials: false
 
       - name: Bind the pinned policy scripts to this one-off release
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
         shell: bash
         run: |
           set -euo pipefail
+          test "$WORKFLOW_SHA" = "$GITHUB_SHA"
           sed -i 's|^_POLICY_REPOSITORY = .*|_POLICY_REPOSITORY = "ryanduguid/australian-accounting"|; s|^_POLICY_WORKFLOW = .*|_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"|' policy/scripts/python_release.py
           grep -qxF '_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"' policy/scripts/python_release.py
+          grep -qxF '_POLICY_REPOSITORY = "ryanduguid/australian-accounting"' policy/scripts/python_release.py
           cat >> policy/scripts/gates.sh <<'GATE'
           # Replaces the main gate: this tag, on the maintenance branch tip, ahead of v0.2.2.
           gate_main_matches() {
@@ -407,6 +423,8 @@ jobs:
             test "$status" = "ahead"
           }
           GATE
+          bash -n policy/scripts/gates.sh
+          test "$(grep -c '^gate_main_matches()' policy/scripts/gates.sh)" = 2
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -471,7 +489,7 @@ jobs:
 
       - name: Verify the downloaded candidate inventory
         env:
-          MODULE_SHA: ${{ github.sha }}
+          MODULE_SHA: ${{ job.workflow_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -523,7 +541,7 @@ jobs:
       - name: Verify signer, source, ref and SBOM attestations
         env:
           GH_TOKEN: ${{ github.token }}
-          MODULE_SHA: ${{ github.sha }}
+          MODULE_SHA: ${{ job.workflow_sha }}
         shell: bash
         run: |
           set -euo pipefail

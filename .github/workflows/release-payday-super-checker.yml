@@ -59,6 +59,7 @@ jobs:
           set -euo pipefail
           sed -i 's|^_POLICY_REPOSITORY = .*|_POLICY_REPOSITORY = "ryanduguid/australian-accounting"|; s|^_POLICY_WORKFLOW = .*|_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"|' policy/scripts/python_release.py
           grep -qxF '_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"' policy/scripts/python_release.py
+          grep -qxF '_POLICY_REPOSITORY = "ryanduguid/australian-accounting"' policy/scripts/python_release.py
           cat >> policy/scripts/gates.sh <<'GATE'
           # Replaces the main gate: this tag, on the maintenance branch tip, ahead of v0.2.2.
           gate_main_matches() {
@@ -72,6 +73,8 @@ jobs:
             test "$status" = "ahead"
           }
           GATE
+          bash -n policy/scripts/gates.sh
+          test "$(grep -c '^gate_main_matches()' policy/scripts/gates.sh)" = 2
 
       - name: Verify artefact identity
         env:
