@@ -1,0 +1,21 @@
+name: Beam trial
+on:
+  push:
+    branches: [ryan/beam-trial]
+permissions:
+  contents: read
+jobs:
+  reusable:
+    uses: ./.github/workflows/trial-reusable.yml
+  caller:
+    needs: reusable
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Report
+        env:
+          OUTPUT_SHA: ${{ needs.reusable.outputs.policy-sha }}
+          CALLER_SHA: ${{ job.workflow_sha }}
+        run: |
+          echo "output=$OUTPUT_SHA caller job.workflow_sha=$CALLER_SHA github.sha=$GITHUB_SHA"
+          test "$OUTPUT_SHA" = "$GITHUB_SHA"

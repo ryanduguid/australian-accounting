@@ -1,0 +1,56 @@
+name: Beam trial reusable
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      policy-sha: ${{ job.workflow_sha }}
+    steps:
+      - name: Check out release-policy at the calling pin
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ryanduguid/release-policy
+          ref: a601f1d8b143f92b0517f709216993660d21f480
+          path: policy
+          persist-credentials: false
+
+      - name: Bind the pinned policy scripts to this one-off release
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$WORKFLOW_SHA" = "$GITHUB_SHA"
+          sed -i 's|^_POLICY_REPOSITORY = .*|_POLICY_REPOSITORY = "ryanduguid/australian-accounting"|; s|^_POLICY_WORKFLOW = .*|_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"|' policy/scripts/python_release.py
+          grep -qxF '_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"' policy/scripts/python_release.py
+          grep -qxF '_POLICY_REPOSITORY = "ryanduguid/australian-accounting"' policy/scripts/python_release.py
+          cat >> policy/scripts/gates.sh <<'GATE'
+          # Replaces the main gate: this tag, on the maintenance branch tip, ahead of v0.2.2.
+          gate_main_matches() {
+            local expected="$1" repo="$2" tip status
+            test "$GITHUB_REF_NAME" = "payday-super-checker/v0.2.3"
+            tip="$("$GH" api -H "X-GitHub-Api-Version: 2026-03-10" \
+              "repos/$repo/git/ref/heads/ryan/payday-super-checker-0.2.x" --jq '.object.sha')"
+            test "$tip" = "$expected"
+            status="$("$GH" api -H "X-GitHub-Api-Version: 2026-03-10" \
+              "repos/$repo/compare/f75f003fc6fb26bccd8b304744d4ce516391f426...$expected" --jq '.status')"
+            test "$status" = "ahead"
+          }
+          GATE
+          bash -n policy/scripts/gates.sh
+          test "$(grep -c '^gate_main_matches()' policy/scripts/gates.sh)" = 2
+
+
+      - name: Report
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+          WORKFLOW_REF: ${{ job.workflow_ref }}
+        run: |
+          echo "reusable job.workflow_sha=$WORKFLOW_SHA github.sha=$GITHUB_SHA ref=$WORKFLOW_REF"
+          grep -n '^_POLICY_' policy/scripts/python_release.py
+          . policy/scripts/gates.sh
+          declare -f gate_main_matches
