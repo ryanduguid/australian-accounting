@@ -9,18 +9,18 @@
 
 <div align="center">
 
-[![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
-[![Codecov](https://img.shields.io/codecov/c/github/ryanduguid/australian-accounting?label=coverage&labelColor=000000&style=flat)](https://codecov.io/gh/ryanduguid/australian-accounting)
-[![CodeQL](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/codeql.yml?branch=main&label=CodeQL&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
-[![Snyk](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/snyk.yml?branch=main&label=Snyk&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/snyk.yml)
-[![SonarCloud](https://img.shields.io/sonar/quality_gate/ryanduguid_australian-accounting?server=https%3A%2F%2Fsonarcloud.io&label=SonarCloud&labelColor=000000&style=flat)](https://sonarcloud.io/summary/new_code?id=ryanduguid_australian-accounting)
-[![Codacy code quality](https://img.shields.io/codacy/grade/657574ca064f48499b4839693bafd4bf?label=Codacy&labelColor=000000&style=flat)](https://app.codacy.com/gh/ryanduguid/australian-accounting/dashboard)<br>
+[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
+[![Codecov](https://codecov.io/gh/ryanduguid/australian-accounting/graph/badge.svg)](https://codecov.io/gh/ryanduguid/australian-accounting)
+[![CodeQL](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
+[![Snyk](https://github.com/ryanduguid/australian-accounting/actions/workflows/snyk.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/snyk.yml)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=ryanduguid_australian-accounting&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ryanduguid_australian-accounting)
+[![Codacy code quality](https://app.codacy.com/project/badge/Grade/657574ca064f48499b4839693bafd4bf)](https://app.codacy.com/gh/ryanduguid/australian-accounting/dashboard)<br>
 [![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/ryanduguid/australian-accounting?label=Scorecard&labelColor=000000&style=flat)](https://scorecard.dev/viewer/?uri=github.com/ryanduguid/australian-accounting)
-[![OpenSSF Best Practices](https://img.shields.io/cii/level/15429?label=Best%20Practices&labelColor=000000&style=flat)](https://www.bestpractices.dev/projects/15429)
-[![SLSA 3](https://img.shields.io/badge/SLSA-level%203-990024?labelColor=000000&style=flat&color=990024)](https://github.com/ryanduguid/australian-accounting/attestations)
-[![VirusTotal](https://img.shields.io/badge/VirusTotal-scanned-990024?labelColor=000000&style=flat&logo=virustotal&logoColor=FFD32A&color=990024)](https://github.com/ryanduguid/australian-accounting/releases)<br>
-[![licence: FSL-1.1-ALv2](https://img.shields.io/badge/licence-FSL--1.1--ALv2-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
-[![Open in GitHub Codespaces](https://img.shields.io/badge/GitHub-Codespaces-66023C?style=flat&labelColor=000000&logo=github&logoColor=FFD32A)](https://codespaces.new/ryanduguid/australian-accounting)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15429/badge)](https://www.bestpractices.dev/projects/15429)
+[![SLSA 3](.github/assets/badges/slsa.svg)](https://github.com/ryanduguid/australian-accounting/attestations)
+[![VirusTotal](.github/assets/badges/virustotal.svg)](https://github.com/ryanduguid/australian-accounting/releases)<br>
+[![licence: FSL-1.1-ALv2](.github/assets/badges/licence.svg)](LICENSE)
+[![Open in GitHub Codespaces](.github/assets/badges/github.svg)](https://codespaces.new/ryanduguid/australian-accounting)
 [![Glama MCP server score](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/score.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
 
 [![Aus Accounting MCP server](https://mcprush.com/badge/aus-accounting-mcp/card.svg)](https://mcprush.com/to/aus-accounting-mcp?ref=badge)
