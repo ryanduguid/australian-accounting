@@ -13,9 +13,10 @@ executable code is compared. The first file in each group is the reference.
 `RUST_COPIES` pins the Rust workbook tooling the div7a and ato-benchmark
 builders copied from the payday builder: whole files that differ only by
 declared substitutions, the model's code outside its tests, and the staging
-build's functions. Those checks read rustfmt's layout, in which a top-level
-item and its closing brace start at column 0; each package's CI runs
-`cargo fmt --check`, which refuses a file laid out otherwise.
+build's functions. It also pins the functions the payday and div7a engines
+each keep of `verify` and the WebAssembly `call`. Those checks read rustfmt's
+layout, in which a top-level item and its closing brace start at column 0; each
+package's CI runs `cargo fmt --check`, which refuses a file laid out otherwise.
 
 Standard library only, and no component is imported: the files are read and
 parsed.
@@ -62,6 +63,11 @@ RUST_COPIES = {
     # The model's tests exercise each builder's own features.
     "code_before_tests": ("model.rs",),
     "functions": {"main.rs": ("build", "fail", "replace_part")},
+    # Functions the payday and div7a engines each keep, by path in the engine.
+    "engine_functions": {
+        "src/derivation.rs": ("first_field", "pick", "difference", "first_difference", "verify"),
+        "wasm/src/lib.rs": ("call",),
+    },
 }
 
 
@@ -150,11 +156,40 @@ class SharedBlockTests(unittest.TestCase):
                         self.assertEqual(_executable(reference[name]), _executable(copy[name]))
 
 
+def _rust_outer_attributes(before: str) -> str:
+    """The attributes above a top-level item. Comments and blank lines are not compared."""
+    lines = before.splitlines(keepends=True)
+    found: list[str] = []
+    while lines:
+        line = lines.pop()
+        if not line.strip() or line.startswith("//"):
+            continue
+        if line.startswith(")]"):
+            # rustfmt closes a multi-line attribute at column 0.
+            found.append(line)
+            while lines and not found[-1].startswith("#["):
+                found.append(lines.pop())
+        elif line.startswith("#["):
+            found.append(line)
+        else:
+            break
+    return "".join(reversed(found))
+
+
 def _rust_function(text: str, name: str) -> str:
-    """A top-level `fn` item, from its signature to its closing brace."""
+    """A top-level `fn` item: its outer attributes, signature and body to its closing brace."""
     match = re.search(rf"^(?:pub )?fn {name}\b.*?^}}\n", text, re.M | re.S)
     assert match is not None, name
-    return match.group(0)
+    # A second match, such as a commented-out original, could hide a changed live definition.
+    assert len(re.findall(rf"^(?:pub )?fn {name}\b", text, re.M)) == 1, name
+    # An attribute such as `#[cfg(...)]` or `#[export_name = "..."]` changes behaviour.
+    return _rust_outer_attributes(text[: match.start()]) + match.group(0)
+
+
+class RustFunctionTests(unittest.TestCase):
+    def test_a_commented_out_copy_cannot_stand_in_for_the_live_function(self) -> None:
+        with self.assertRaises(AssertionError):
+            _rust_function("/*\nfn verify() {\n}\n*/\nfn verify() {\n    changed();\n}\n", "verify")
 
 
 class RustCopyTests(unittest.TestCase):
@@ -202,6 +237,24 @@ class RustCopyTests(unittest.TestCase):
                         self.assertEqual(
                             _rust_function(reference, function), _rust_function(copy, function)
                         )
+
+    def test_a_function_includes_only_its_own_outer_attributes(self) -> None:
+        for attributes in ("#[inline]\n", "#[cfg(\n    any()\n)]\n#[inline]\n"):
+            with self.subTest(attributes=attributes):
+                text = f"fn a() {{\n}}\n\n/// Doc.\n{attributes}/// Doc.\n\npub fn b() {{\n}}\n"
+                self.assertEqual(_rust_function(text, "b"), f"{attributes}pub fn b() {{\n}}\n")
+        # The previous item's attributes are not this item's.
+        self.assertEqual(_rust_function("#[inline]\nfn a() {\n}\nfn b() {\n}\n", "b"), "fn b() {\n}\n")
+
+    def test_the_engines_verify_and_wasm_call_functions_are_identical(self) -> None:
+        for name, functions in RUST_COPIES["engine_functions"].items():
+            reference = self.read(PACKAGES / "payday-super-checker", name)
+            copy = self.read(PACKAGES / "div7a-loan-review", name)
+            for function in functions:
+                with self.subTest(file=name, function=function):
+                    self.assertEqual(
+                        _rust_function(reference, function), _rust_function(copy, function)
+                    )
 
     def test_a_function_ends_at_its_own_closing_brace(self) -> None:
         text = "fn a() {\n    x\n}\n\npub fn b() {\n}\n"
