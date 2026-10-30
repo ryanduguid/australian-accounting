@@ -145,15 +145,73 @@ def check(name: str, bin_dir: Path, cap: int) -> tuple[str, int, list[str]]:
     return name, len(cases) + len(files), failures
 
 
+def derivation_check(name: str, bin_dir: Path) -> tuple[str, int, list[str]]:
+    """Successful and rejected saved derivations use the standalone CLI contract."""
+    _, command = ENGINES[name]
+    standalone = [str(bin_dir / f"{command}{EXE}")]
+    umbrella = [str(bin_dir / f"au-accounting{EXE}"), name]
+    input_ = ({"facts": {"year_of_income": "2026-27", "year_loan_made": "2023-24",
+               "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
+               "remaining_term_years": "5", "payments_applied_during_the_year": "25556.00",
+               "gate_result": {"verdict": "COMPLYING", "benchmark_year_used": "2023-24",
+                               "reasons": [], "caveats": []}}}
+              if name == "div7a" else {"qe_day": "2026-07-09", "first_to_fund": True})
+    failures = []
+    with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:
+        raw = json.dumps(input_).encode()
+        derived = run(standalone, ["derive"], raw, a)
+        if derived[0] != 0:
+            return name, 1, [f"standalone derive failed: {derived!r}"]
+        edited_step = json.loads(derived[1])
+        edited_step["steps"][0]["value"] = "edited"
+        edited_result = json.loads(derived[1])
+        edited_result["result"] = None
+        edited_identity = json.loads(derived[1])
+        edited_identity["engine"] = "wrong"
+        extra_step = json.loads(derived[1])
+        extra_step["steps"].append(None)
+        cases = [(["derive"], raw), (["verify"], derived[1]), (["verify", "-"], derived[1]),
+                 (["verify", "saved.json"], b""), (["verify", "missing.json"], b""),
+                 (["derive"], b"{"), (["verify"], b"{"), (["verify"], b"{}"),
+                 (["derive"], raw + b" " * ((8 << 20) + 1)),
+                 *[(["verify"], json.dumps(value).encode()) for value in
+                   [edited_step, edited_result, edited_identity, extra_step]]]
+        if name == "div7a":
+            facts = input_["facts"]
+            mapping = {k: v for k, v in facts.items() if k not in {"year_of_income", "gate_result"}}
+            mapping["loan_id"] = 9007199254740993
+            exact = json.dumps({"year_of_income": facts["year_of_income"],
+                                "gate_result": facts["gate_result"], "mapping": mapping}).encode()
+            cases.append((["derive"], exact))
+            native = run(standalone, ["derive"], exact, a)
+            assert native[0] == 0
+            cases.append((["verify"], native[1]))
+        for directory in [a, b]:
+            Path(directory, "saved.json").write_bytes(derived[1])
+        for args, stdin in cases:
+            left = run(standalone, args, stdin, a)
+            right = run(umbrella, args, stdin, b)
+            if left != right:
+                failures.append(f"{name} {args}: own={left!r:.500}, umbrella={right!r:.500}")
+        alias = [str(bin_dir / f"au-accounting{EXE}"), command]
+        if derived != run(alias, ["derive"], raw, b):
+            failures.append(f"{command} alias differs")
+    return f"{name} derivations", len(cases) + 1, failures
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("bin_dir", type=Path)
     parser.add_argument("--cap", type=int, default=0)
+    parser.add_argument("--derivations-only", action="store_true")
     options = parser.parse_args()
     # Each command runs inside a scratch folder; resolve binaries before chdir.
     options.bin_dir = options.bin_dir.resolve()
-    with ThreadPoolExecutor(max_workers=len(ENGINES)) as pool:
-        results = list(pool.map(lambda n: check(n, options.bin_dir, options.cap), ENGINES))
+    results = []
+    if not options.derivations_only:
+        with ThreadPoolExecutor(max_workers=len(ENGINES)) as pool:
+            results = list(pool.map(lambda n: check(n, options.bin_dir, options.cap), ENGINES))
+    results += [derivation_check(name, options.bin_dir) for name in ("div7a", "payday-super")]
     failed = False
     for name, count, failures in results:
         print(f"{name}: {count} cases, {len(failures)} differences")
