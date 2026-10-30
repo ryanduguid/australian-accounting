@@ -210,7 +210,7 @@ fn gate_summary(v: &Value) -> Result<Option<GateSummary>> {
     }
 }
 
-fn myr_facts(v: &Value) -> Result<MyrFacts> {
+pub(crate) fn myr_facts(v: &Value) -> Result<MyrFacts> {
     if let Some(mapping) = v.get("mapping") {
         let year = year(v, "year_of_income")?.ok_or("year_of_income is required")?;
         return MyrFacts::from_mapping(

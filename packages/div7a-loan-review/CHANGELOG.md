@@ -9,6 +9,18 @@ functions are JSON stdin subcommands, documented in README.md. No benchmark
 rate, statutory test, formula, rounding, refusal, reason code or message is
 intentionally changed.
 
+### Added
+
+- `derive` writes a minimum yearly repayment derivation: the input, ten steps
+  each naming the ITAA 1936 provision it applies, and the
+  `minimum-yearly-repayment` result unchanged. `verify` rederives a saved
+  derivation offline and names the first step that differs (exit 1), or
+  confirms it (exit 0). Both read only the compiled-in benchmark table.
+- `wasm/` builds the derivation for `wasm32-unknown-unknown`, exporting
+  `alloc`, `dealloc`, `derive` and `verify` over JSON.
+- `api::myr_facts` is visible inside the crate for the derivation; the public
+  library API is unchanged apart from the new `derivation` module.
+
 ### Documented divergences
 
 - Python imports, dataclasses, enums, exception classes and package version

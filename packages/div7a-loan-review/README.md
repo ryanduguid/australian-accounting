@@ -457,6 +457,61 @@ echo '{"facts": {"written_agreement": true, "terms_in_place_before_lodgment_day"
 command line's `review`, `gate` and `myr` commands select valid modes.
 `div7a-loan-review --api-help` lists the commands.
 
+## Derivations and `verify`
+
+`derive` reads the `minimum-yearly-repayment` input on stdin and writes a
+derivation: the input, one step per statutory question and the result. Each
+step names the provision it applies (`authority`), shows its `working` and
+gives its `value`. The ten steps are the year of income (s 109E(1)), the year
+the loan was made (s 109E(1)(a), s 109P), complying terms (s 109N(1),
+s 109E(3)(b)), the benchmark rate (s 109N(2)), the opening balance and the
+remaining term (s 109E(6)), the repayment (s 109E(5) and (6)), the payments
+applied (s 109R, not applied), the shortfall (s 109E(1)(c)) and the outcome
+with its reason codes. A step the engine did not reach has a `null` value. The
+`result` is exactly what `minimum-yearly-repayment` returns.
+
+```sh
+div7a-loan-review derive < facts.json > derivation.json
+div7a-loan-review verify derivation.json
+```
+
+`verify` rederives a saved derivation from its input, with no network, and
+compares it step by step. It prints `verified` and, when something differs,
+`differs_at`: the step number and id, the first field that differs, and the
+saved and rederived values; `missing`, `saved` or `rederived`, names a side that has no such step or field. A newer rate table, an engine change or an edit to
+the saved file all show up as the step they change. Exit codes: 0 when every
+step and the result match, 1 when one differs, 2 with an `error:` line when the
+input cannot be read. `verify` with no file reads stdin.
+
+A derivation reads only the compiled-in benchmark table: `table` and
+`override` are refused, so anyone holding the file can rederive it. A year
+outside the table derives to `UNKNOWN`.
+
+Verification compares the saved engine and calculation identity before the working.
+`steps_checked` counts the step positions actually compared, including a saved
+extra position; a metadata difference checks zero steps. The saved engine version
+is descriptive, untrusted metadata. A different historical version can still
+verify when its identity, working and result agree with this verifier's engine.
+
+## WebAssembly
+
+`wasm/` builds the derivation for `wasm32-unknown-unknown`, for calculators
+that run in a browser. It exports `alloc(len)`, `dealloc(ptr, len)`,
+`derive(ptr, len)` and `verify(ptr, len)` over UTF-8 JSON in linear memory;
+`derive` and `verify` return `(ptr << 32) | len` of `{"ok": ...}` or
+`{"error": "..."}`, which the caller frees with `dealloc`. The remapped prefixes
+keep local paths out of the panic locations the binary carries:
+
+```sh
+rustup target add wasm32-unknown-unknown
+cd wasm
+RUSTFLAGS="--remap-path-prefix=$(cd .. && pwd)=div7a-loan-review --remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=cargo" \
+  cargo build --locked --release --target wasm32-unknown-unknown
+cargo test --locked
+```
+
+The module is `wasm/target/wasm32-unknown-unknown/release/div7a_loan_review_wasm.wasm`.
+
 ## Evaluation pack
 
 [`evaluation/div7a_myr/`](evaluation/div7a_myr/) holds fabricated fixtures,

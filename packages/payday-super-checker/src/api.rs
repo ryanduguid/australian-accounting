@@ -57,7 +57,7 @@ pub const COMMANDS: [&str; 30] = [
     "import-files",
 ];
 
-fn failure(f: Failure) -> String {
+pub(crate) fn failure(f: Failure) -> String {
     match f {
         Failure::Value(m) | Failure::StaleGic(m) => m,
         Failure::Os(e) => e.display(),
@@ -115,7 +115,7 @@ fn text_or<'a>(v: &'a Value, key: &str, default: &'a str) -> Result<&'a str> {
 
 /// A boolean whose Python default is False: absent takes it; `null` and
 /// other types are refused.
-fn flag(v: &Value, key: &str) -> Result<bool> {
+pub(crate) fn flag(v: &Value, key: &str) -> Result<bool> {
     match v.get(key) {
         None => Ok(false),
         Some(Value::Bool(b)) => Ok(*b),
@@ -193,11 +193,11 @@ fn date_of(text: &str, key: &str) -> Result<Date> {
         .ok_or_else(|| format!("{key} must be a date in YYYY-MM-DD form"))
 }
 
-fn date(v: &Value, key: &str) -> Result<Date> {
+pub(crate) fn date(v: &Value, key: &str) -> Result<Date> {
     date_of(text(v, key)?, key)
 }
 
-fn optional_date(v: &Value, key: &str) -> Result<Option<Date>> {
+pub(crate) fn optional_date(v: &Value, key: &str) -> Result<Option<Date>> {
     optional_text(v, key)?.map(|t| date_of(t, key)).transpose()
 }
 
@@ -352,7 +352,7 @@ fn gic_json(gic: &GicTable) -> Value {
     })
 }
 
-fn deadline_json(dl: &Deadline) -> Value {
+pub(crate) fn deadline_json(dl: &Deadline) -> Value {
     json!({
         "due": iso(dl.due),
         "pathway": dl.pathway,
