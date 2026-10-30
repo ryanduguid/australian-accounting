@@ -49,7 +49,7 @@ Citation: [`CITATION.cff`](CITATION.cff).
 
 ## Release status and examples
 
-This documentation describes checker 0.2.2. See [release notes](RELEASE_NOTES.md)
+This documentation describes checker 0.2.3. See [release notes](RELEASE_NOTES.md)
 for the receipt-amount migration and workbook corrections. Check
 [PyPI](https://pypi.org/project/payday-super-checker/) and
 [GitHub releases](https://github.com/ryanduguid/australian-accounting/releases)
@@ -104,10 +104,10 @@ python tools/render_quick_proof.py --check
 ## Excel workbook
 
 No Python? [`workbooks/payday-super-checker.xlsx`](workbooks/payday-super-checker.xlsx)
-implements the 0.2.2 review in ordinary worksheet formulas: paste the canonical
+implements the 0.2.3 review in ordinary worksheet formulas: paste the canonical
 contributions register, set the as-at date, and read the deadline, verdict,
 shortfall, notional earnings and SG charge estimate range per line, with the
-0.2.2 checker's UNKNOWN outcomes preserved. The tagged 0.1.6 workbook
+0.2.3 checker's UNKNOWN outcomes preserved. The tagged 0.1.6 workbook
 still assumes full receipt without an amount and extrapolates beyond its GIC
 table, unlike the 0.1.6 CLI default. Use the version-specific limits in
 [workbooks/README.md](workbooks/README.md). It is macro-free, needs desktop Excel for
@@ -145,7 +145,7 @@ already supply booleans and retain their existing behaviour.
 
 ## Before you run
 
-Gather these facts first. The 0.2.2 checks can refuse or mark `UNKNOWN`
+Gather these facts first. The 0.2.3 checks can refuse or mark `UNKNOWN`
 when required evidence is missing. The published receipt-amount exception is
 described under [release status](#release-status-and-examples).
 
@@ -490,7 +490,7 @@ Profiles ship for Xero Payroll, MYOB AccountRight, MYOB Business and Employment 
 
 **Every shipped profile is unverified against a real export.** Each one's column names come from vendor help documentation, and Xero, MYOB and Employment Hero do not publish an actual column list for these reports, so the first real export you try may match no profile at all. When that happens the importer prints the column headings it found in your file next to the headings each candidate profile wanted. Send both lists back and fixing the profile is a one-line edit to its JSON file, not a rewrite.
 
-**The supported export profiles do not establish a fund receipt date.** Xero's report gives the date a payment was sent to the fund. MYOB gives a Paid Date. Employment Hero gives a Beam status (Sent to fund, Reconciled, and so on). None of these is the date the fund received the money. The legal deadline tests receipt by the fund, and time in transit through a clearing house is the employer's risk, not the fund's, so a vendor date is a remittance date and `fund_received_date` is left blank on every row. Fill that column in from your fund or clearing house before treating any verdict from the checker as final. `remitted_date` is the latest known vendor date for the dated subtotal; an entirely undated match leaves it blank. The Beam status also decides whether the date counts at all: a batch still at Created, Submission accepted or Awaiting payment is money that never left the employer, so its Payment Date is not written as a remittance date and the payday reads as unfunded, with a warning naming the status. A status outside the Beam ladder stops the import rather than being guessed either way.
+**The supported export profiles do not establish a fund receipt date.** Xero's report gives the date a payment was sent to the fund. MYOB gives a Paid Date. Employment Hero gives a Beam status (Created through to Sent to fund). None of these is the date the fund received the money. The legal deadline tests receipt by the fund, and time in transit through a clearing house is the employer's risk, not the fund's, so a vendor date is a remittance date and `fund_received_date` is left blank on every row. Fill that column in from your fund or clearing house before treating any verdict from the checker as final. `remitted_date` is the latest known vendor date for the dated subtotal; an entirely undated match leaves it blank. The Beam status also decides whether the date counts at all: a batch still at Created, Submission accepted or Awaiting payment is money that never left the employer, so its Payment Date is not written as a remittance date and the payday reads as unfunded, with a warning naming the status. A status outside the Beam ladder stops the import rather than being guessed either way.
 
 **A mixed dated/undated match uses the latest known date conservatively.** If 600.00 of a 1000.00 match has a vendor date and 400.00 does not, `remitted_date` is the latest known date for the dated subtotal, `remitted_amount` is 600.00 and `matched_amount` is 1000.00. An as-at report shows none of the dated subtotal as remitted before the date and only 600.00 on or after it; the undated 400.00 stays operationally unremitted. A dated 999.99 part payment writes 999.99 in both amount fields, leaving 0.01 operationally unremitted. That vendor evidence does **not** reduce the statutory base or final shortfall by itself: without `fund_received_date`, the SGC estimate continues to treat the full 1000.00 as unreceived. If an eligible fund receipt is supplied on the row, it can credit at most `matched_amount`; an on-time partial receipt reduces the base shortfall, while a late partial receipt can reduce only the final shortfall and not the base used for notional earnings. An entirely undated match leaves both remittance fields blank but still writes its total to `matched_amount`, so adding a later receipt date cannot turn a known partial match into full credit. `sg_amount` is always the amount owed.
 

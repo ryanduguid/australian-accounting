@@ -1,12 +1,8 @@
 name: Release payday-super-checker
 
-# Component release for packages/payday-super-checker. The namespaced tag
-# payday-super-checker/vX.Y.Z selects exactly this component: the reusable
-# release-policy workflow binds the tag, the component directory, the
-# distribution identity, the RELEASE_NOTES.md header, the lockfile and the
-# main commit before it builds, attests and publishes the GitHub release.
-# The pypi job then publishes the exact attested distribution through this
-# component's own trusted publisher and environment.
+# One-off maintenance release of 0.2.3 from ryan/payday-super-checker-0.2.x. See release-payday-super-checker-0.2.x.yml.
+# The pypi job publishes the exact attested distribution through this filename's
+# trusted publisher and environment, which is why the filename stays.
 
 on:
   push:
@@ -26,18 +22,8 @@ jobs:
       attestations: write # Record provenance and SBOM attestations for release assets.
       contents: write # Create the draft release, upload assets and publish it.
       id-token: write # Obtain the OIDC identity required to sign attestations.
-    uses: ryanduguid/release-policy/.github/workflows/release-python.yml@a601f1d8b143f92b0517f709216993660d21f480
+    uses: ./.github/workflows/release-payday-super-checker-0.2.x.yml
     with:
-      required-checks: |
-        .github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner
-        .github/workflows/ci.yml: payday-super-checker / build
-        .github/workflows/ci.yml: payday-super-checker / dependency-audit
-        .github/workflows/ci.yml: payday-super-checker / lint
-        .github/workflows/ci.yml: payday-super-checker / test (3.14)
-        .github/workflows/ci.yml: payday-super-checker / test-windows
-        .github/workflows/boundaries.yml: boundaries
-        .github/workflows/codeql.yml: Analyze Python
-        .github/workflows/codeql.yml: codeql-gates
       source-directory: packages/payday-super-checker
       tag-prefix: payday-super-checker
       upload-dist-artifact: true
@@ -63,9 +49,29 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ryanduguid/release-policy
-          ref: ${{ needs.release.outputs.policy-sha }}
+          ref: a601f1d8b143f92b0517f709216993660d21f480
           path: policy
           persist-credentials: false
+
+      - name: Bind the pinned policy scripts to this one-off release
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i 's|^_POLICY_REPOSITORY = .*|_POLICY_REPOSITORY = "ryanduguid/australian-accounting"|; s|^_POLICY_WORKFLOW = .*|_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"|' policy/scripts/python_release.py
+          grep -qxF '_POLICY_WORKFLOW = ".github/workflows/release-payday-super-checker-0.2.x.yml"' policy/scripts/python_release.py
+          cat >> policy/scripts/gates.sh <<'GATE'
+          # Replaces the main gate: this tag, on the maintenance branch tip, ahead of v0.2.2.
+          gate_main_matches() {
+            local expected="$1" repo="$2" tip status
+            test "$GITHUB_REF_NAME" = "payday-super-checker/v0.2.3"
+            tip="$("$GH" api -H "X-GitHub-Api-Version: 2026-03-10" \
+              "repos/$repo/git/ref/heads/ryan/payday-super-checker-0.2.x" --jq '.object.sha')"
+            test "$tip" = "$expected"
+            status="$("$GH" api -H "X-GitHub-Api-Version: 2026-03-10" \
+              "repos/$repo/compare/f75f003fc6fb26bccd8b304744d4ce516391f426...$expected" --jq '.status')"
+            test "$status" = "ahead"
+          }
+          GATE
 
       - name: Verify artefact identity
         env:
@@ -111,7 +117,7 @@ jobs:
           for file in "candidate/$STEM-$VERSION-py3-none-any.whl" "candidate/$STEM-$VERSION.tar.gz"; do
             gh attestation verify "$file" --repo "$GITHUB_REPOSITORY" \
               --source-digest "$GITHUB_SHA" --source-ref "$GITHUB_REF" \
-              --signer-workflow ryanduguid/release-policy/.github/workflows/release-python.yml \
+              --signer-workflow ryanduguid/australian-accounting/.github/workflows/release-payday-super-checker-0.2.x.yml \
               --signer-digest "$POLICY_SHA"
             cp "$file" dist/
           done

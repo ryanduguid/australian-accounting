@@ -286,8 +286,14 @@ def test_shipped_beam_status_ladder_is_fully_classified():
     ladder = profile.remitted_status
     assert ladder is not None
     assert ladder.column == "status"
-    assert set(ladder.sent) == {"Sent to fund", "Reconciled"}
-    assert set(ladder.not_sent) == {"Created", "Submission accepted", "Awaiting payment", "Awaiting clearance"}
+    assert set(ladder.sent) == {"Sent to fund"}
+    assert set(ladder.not_sent) == {
+        "Created",
+        "Submission accepted",
+        "Awaiting payment",
+        "Awaiting clearance",
+        "Reconciled",
+    }
 
 
 def test_only_the_employment_hero_super_profile_classifies_a_status():

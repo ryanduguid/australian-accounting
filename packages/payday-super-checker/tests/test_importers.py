@@ -165,8 +165,8 @@ def test_xero_pair_is_detected_and_imports(tmp_path):
 def test_employment_hero_pair_is_detected_and_imports(tmp_path):
     # Same gap for the Employment Hero / KeyPay profiles, plus their one
     # extra rule: the Beam Status column decides whether a Payment Date is
-    # written as a remittance date at all. Both fixture statuses (Sent to
-    # fund, Reconciled) evidence money that left the employer.
+    # written as a remittance date at all. Both fixture rows are Sent to
+    # fund, which evidences money that left for the fund.
     payroll_rows, payroll_profile, _ = read_payroll(
         FIXTURES / "employment_hero_payroll.csv"
     )
@@ -3439,7 +3439,7 @@ def test_a_created_batch_exits_nonzero_through_the_real_cli(tmp_path, capsys):
     assert _canonical_rows(out)[0]["remitted_date"] == ""
 
 
-@pytest.mark.parametrize("status", ["Created", "Submission accepted", "Awaiting payment", "Awaiting clearance"])
+@pytest.mark.parametrize("status", ["Created", "Submission accepted", "Awaiting payment", "Awaiting clearance", "Reconciled", "RECONCILED"])
 def test_every_not_yet_paid_beam_status_blanks_the_paid_date(tmp_path, status):
     _, super_path = _eh_files(tmp_path, status)
     rows, _, _ = read_super(super_path, vendor="employment-hero")
@@ -3451,9 +3451,8 @@ def test_every_not_yet_paid_beam_status_blanks_the_paid_date(tmp_path, status):
     "status",
     [
         "Sent to fund",
-        "Reconciled",
         # Status comparison folds like every other heading-shaped value.
-        "RECONCILED",
+        "SENT TO FUND",
     ],
 )
 def test_every_sent_beam_status_keeps_the_paid_date(tmp_path, status):

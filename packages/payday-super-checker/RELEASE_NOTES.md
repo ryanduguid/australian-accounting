@@ -1,3 +1,9 @@
+# v0.2.3
+
+**Correction for 0.2.2.** An Employment Hero export row with the Beam status Reconciled was treated as sent to the fund. Beam's order puts Reconciled (employer money cleared by Beam) before Sent to fund, so the row now gets no remitted date and its payday reads as unfunded, with a warning naming the status. Re-run any 0.2.2 review of an Employment Hero export that contains Reconciled rows.
+
+No other check changed. This is a maintenance release from the 0.2.2 tree, built from a branch rather than `main`, which has moved to a Rust port. The Excel workbook is rebuilt to report engine 0.2.3.
+
 # v0.2.2
 
 - The package moves from MIT to the Apache-2.0 licence, with a `NOTICE` file whose attribution anyone redistributing the package or a derivative must keep ([#373](https://github.com/ryanduguid/australian-accounting/pull/373)). The package metadata declares Apache-2.0. Releases up to v0.1.10 stay under MIT.
