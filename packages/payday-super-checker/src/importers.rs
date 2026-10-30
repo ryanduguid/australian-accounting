@@ -242,7 +242,7 @@ pub fn read_super(path: &str, vendor: Option<&str>) -> Result<(Vec<SuperRow>, Pr
                 return Err(csv_error(format!(
                     "row {i}: status {} is not one this tool knows \
                      for profile {} (payment left the employer: \
-                     {}; money not yet sent: \
+                     {}; does not establish remittance: \
                      {}), so there is no way to tell \
                      whether this payment was made. Correct the status column, \
                      or map the file by hand.",

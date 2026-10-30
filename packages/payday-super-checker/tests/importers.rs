@@ -97,20 +97,28 @@ fn a_reconciled_beam_batch_is_not_yet_sent_to_the_fund() {
     );
 }
 
-/// The whole Beam status ladder, one fabricated row per status. Every
-/// status before Sent to fund leaves the employer's money unremitted, so
-/// only the Sent to fund row keeps its payment date as a remittance.
+/// Every status the vendor lists, one fabricated row per status: the 11 for
+/// automated batches, plus 'Not actioned', 'Paid' and 'Payment failed'
+/// ('Created' is also the first manual status). Only a sent status keeps its
+/// payment date as a remittance, and that date is never a fund receipt.
 #[test]
-fn only_sent_to_fund_on_the_beam_ladder_is_a_remittance() {
+fn every_vendor_beam_status_is_classified_and_only_sent_ones_are_a_remittance() {
     let not_sent = [
         "Created",
+        "Submission accepted",
         "Awaiting payment",
         "Awaiting clearance",
-        "Submission accepted",
         "Reconciled",
+        "Sent to fund with refund",
+        "Cancelled",
+        "Failed",
+        "Refunded",
+        "Not actioned",
+        "Payment failed",
     ];
-    let statuses: Vec<&str> = not_sent.iter().copied().chain(["Sent to fund"]).collect();
-    // A status the profile gains must be added to this ladder and tested.
+    let sent = ["Sent to fund", "Sent to fund with response", "Paid"];
+    let statuses: Vec<&str> = not_sent.iter().chain(&sent).copied().collect();
+    // A status the profile gains must be added to these lists and tested.
     let profiles = payday_super_checker::profiles::load_profiles(Some("super")).unwrap();
     let rule = profiles
         .iter()
@@ -123,7 +131,7 @@ fn only_sent_to_fund_on_the_beam_ladder_is_a_remittance() {
         list
     };
     let expected = |list: &[&str]| sorted(list.iter().map(|s| s.to_string()).collect());
-    assert_eq!(sorted(rule.sent.clone()), expected(&["Sent to fund"]));
+    assert_eq!(sorted(rule.sent.clone()), expected(&sent));
     assert_eq!(sorted(rule.not_sent.clone()), expected(&not_sent));
     let mut payroll = PAYROLL_HEADER.to_string();
     let mut super_csv = BEAM_HEADER.to_string();
@@ -136,8 +144,8 @@ fn only_sent_to_fund_on_the_beam_ladder_is_a_remittance() {
     let (report, remittance) = import_beam("beam-ladder", &payroll, &super_csv);
     let report = report.unwrap();
     for (n, status) in statuses.iter().enumerate() {
-        let sent = *status == "Sent to fund";
-        let (date, amount) = if sent {
+        let is_sent = sent.contains(status);
+        let (date, amount) = if is_sent {
             ("2026-07-14", "100.00")
         } else {
             ("", "")
@@ -151,12 +159,64 @@ fn only_sent_to_fund_on_the_beam_ladder_is_a_remittance() {
             report
                 .warnings
                 .contains(&not_remitted_warning(n + 2, status)),
-            !sent,
+            !is_sent,
             "{status}"
         );
     }
     assert_eq!(report.count("matched, no remittance date"), not_sent.len());
-    assert_eq!(report.count("matched"), 1);
+    assert_eq!(report.count("matched"), sent.len());
+}
+
+/// A batch where a fund rejected and refunded some contributions does not say
+/// which, so no row in it reads as remitted. A reviewer settles each
+/// contribution from the batch history and enters that row's date by hand.
+#[test]
+fn a_sent_to_fund_with_refund_row_gets_no_remittance_date() {
+    let (report, remittance) = import_beam(
+        "beam-with-refund",
+        &format!("{PAYROLL_HEADER}Test Employee One,09/07/2026,09/07/2026,612.00
+"),
+        &format!(
+            "{BEAM_HEADER}             Test Employee One,Super Guarantee,01/07/2026,09/07/2026,14/07/2026,612.00,Sent to fund with refund
+"
+        ),
+    );
+    let report = report.unwrap();
+    assert_eq!(
+        remittance,
+        [["Test Employee One", "", "", "612.00"].map(str::to_string)]
+    );
+    assert!(
+        report
+            .warnings
+            .contains(&not_remitted_warning(2, "Sent to fund with refund"))
+    );
+}
+
+/// A status off the ladder stops the import rather than guessing, including
+/// one that only starts like a known status.
+#[test]
+fn a_near_miss_beam_status_stops_the_import() {
+    let (report, _) = import_beam(
+        "beam-near-miss",
+        &format!("{PAYROLL_HEADER}Test Employee One,09/07/2026,09/07/2026,100.00
+"),
+        &format!(
+            "{BEAM_HEADER}             Test Employee One,Super Guarantee,01/07/2026,09/07/2026,14/07/2026,100.00,Sent to fund with reversal
+"
+        ),
+    );
+    let message = report.err().unwrap().message();
+    assert!(
+        message.contains("row 2: status 'Sent to fund with reversal' is not one this tool knows"),
+        "{message}"
+    );
+    // A withheld date is missing evidence, not proof that no money moved.
+    assert!(
+        message.contains("does not establish remittance: ['Awaiting clearance'"),
+        "{message}"
+    );
+    assert!(!message.contains("not yet sent"), "{message}");
 }
 
 /// A status off the ladder stops the import rather than guessing.
