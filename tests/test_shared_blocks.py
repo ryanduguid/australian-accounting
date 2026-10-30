@@ -156,11 +156,32 @@ class SharedBlockTests(unittest.TestCase):
                         self.assertEqual(_executable(reference[name]), _executable(copy[name]))
 
 
+def _rust_outer_attributes(before: str) -> str:
+    """The attributes above a top-level item. Comments and blank lines are not compared."""
+    lines = before.splitlines(keepends=True)
+    found: list[str] = []
+    while lines:
+        line = lines.pop()
+        if not line.strip() or line.startswith("//"):
+            continue
+        if line.startswith(")]"):
+            # rustfmt closes a multi-line attribute at column 0.
+            found.append(line)
+            while lines and not found[-1].startswith("#["):
+                found.append(lines.pop())
+        elif line.startswith("#["):
+            found.append(line)
+        else:
+            break
+    return "".join(reversed(found))
+
+
 def _rust_function(text: str, name: str) -> str:
-    """A top-level `fn` item, from its signature to its closing brace."""
+    """A top-level `fn` item: its outer attributes, signature and body to its closing brace."""
     match = re.search(rf"^(?:pub )?fn {name}\b.*?^}}\n", text, re.M | re.S)
     assert match is not None, name
-    return match.group(0)
+    # An attribute such as `#[cfg(...)]` or `#[export_name = "..."]` changes behaviour.
+    return _rust_outer_attributes(text[: match.start()]) + match.group(0)
 
 
 class RustCopyTests(unittest.TestCase):
@@ -208,6 +229,14 @@ class RustCopyTests(unittest.TestCase):
                         self.assertEqual(
                             _rust_function(reference, function), _rust_function(copy, function)
                         )
+
+    def test_a_function_includes_only_its_own_outer_attributes(self) -> None:
+        for attributes in ("#[inline]\n", "#[cfg(\n    any()\n)]\n#[inline]\n"):
+            with self.subTest(attributes=attributes):
+                text = f"fn a() {{\n}}\n\n/// Doc.\n{attributes}/// Doc.\n\npub fn b() {{\n}}\n"
+                self.assertEqual(_rust_function(text, "b"), f"{attributes}pub fn b() {{\n}}\n")
+        # The previous item's attributes are not this item's.
+        self.assertEqual(_rust_function("#[inline]\nfn a() {\n}\nfn b() {\n}\n", "b"), "fn b() {\n}\n")
 
     def test_the_engines_verify_and_wasm_call_functions_are_identical(self) -> None:
         for name, functions in RUST_COPIES["engine_functions"].items():

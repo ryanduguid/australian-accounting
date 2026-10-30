@@ -49,7 +49,8 @@ mod exports {
     }
 
     unsafe fn run(f: fn(&Value) -> Result<Value, String>, ptr: *const u8, len: usize) -> u64 {
-        // SAFETY: `derive` and `verify`, the only callers, pass on their callers' live buffer.
+        // SAFETY: `derive` and `verify`, the only callers, forward the host's arguments unchecked,
+        // so this holds only if the host meets the `# Safety` preconditions documented on them.
         // nosemgrep: rust.lang.security.unsafe-usage.unsafe-usage
         let input = unsafe { std::slice::from_raw_parts(ptr, len) };
         let out = Box::into_raw(call(f, input).into_boxed_slice());
