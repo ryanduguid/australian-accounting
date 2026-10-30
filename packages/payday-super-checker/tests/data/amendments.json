@@ -2,7 +2,7 @@
  "about": "Deliberate behaviour changes made after the Python 0.2.2 record in python-cases.json was frozen. tests/parity.rs replaces the listed answers by corpus index before comparing, so python-cases.json stays exactly as Python left it. Each change gives its reason and every case it alters.",
  "changes": [
   {
-   "change": "Employment Hero Beam 'Reconciled' is not sent to the fund (26 October 2026). Beam reports Reconciled once it has cleared the employer's money, before 'Sent to fund' (yourpayroll Super Contributions Report; Reckon's Beam status guide), so a Reconciled row gets no remitted date.",
+   "change": "Employment Hero Beam 'Reconciled' is not sent to the fund (26 October 2026). Beam reports Reconciled once it has cleared the employer's money, before 'Sent to fund' (yourpayroll Super Contributions Report; Reckon's Beam status guide), so a Reconciled row gets no remitted date. The profile then gained every other status the vendor lists (30 October 2026): 'Sent to fund with response' and manual 'Paid' are transmission evidence or the employer's assertion, so sent; 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned' and 'Payment failed' do not establish remittance, so they get no date.",
    "cases": {
     "452": {
      "test": "test_employment_hero_pair_is_detected_and_imports",
@@ -209,17 +209,25 @@
         "remitted_status": {
          "column": "status",
          "sent": [
-          "Sent to fund"
+          "Sent to fund",
+          "Sent to fund with response",
+          "Paid"
          ],
          "not_sent": [
           "Awaiting clearance",
           "Created",
           "Submission accepted",
           "Awaiting payment",
-          "Reconciled"
+          "Reconciled",
+          "Sent to fund with refund",
+          "Cancelled",
+          "Failed",
+          "Refunded",
+          "Not actioned",
+          "Payment failed"
          ]
         },
-        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
        },
        "outcome_counts": [
         [
@@ -393,17 +401,25 @@
         "remitted_status": {
          "column": "status",
          "sent": [
-          "Sent to fund"
+          "Sent to fund",
+          "Sent to fund with response",
+          "Paid"
          ],
          "not_sent": [
           "Awaiting clearance",
           "Created",
           "Submission accepted",
           "Awaiting payment",
-          "Reconciled"
+          "Reconciled",
+          "Sent to fund with refund",
+          "Cancelled",
+          "Failed",
+          "Refunded",
+          "Not actioned",
+          "Payment failed"
          ]
         },
-        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
        },
        "outcome_counts": [
         [
@@ -567,17 +583,25 @@
         "remitted_status": {
          "column": "status",
          "sent": [
-          "Sent to fund"
+          "Sent to fund",
+          "Sent to fund with response",
+          "Paid"
          ],
          "not_sent": [
           "Awaiting clearance",
           "Created",
           "Submission accepted",
           "Awaiting payment",
-          "Reconciled"
+          "Reconciled",
+          "Sent to fund with refund",
+          "Cancelled",
+          "Failed",
+          "Refunded",
+          "Not actioned",
+          "Payment failed"
          ]
         },
-        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
        },
        "outcome_counts": [
         [
@@ -789,17 +813,25 @@
         "remitted_status": {
          "column": "status",
          "sent": [
-          "Sent to fund"
+          "Sent to fund",
+          "Sent to fund with response",
+          "Paid"
          ],
          "not_sent": [
           "Awaiting clearance",
           "Created",
           "Submission accepted",
           "Awaiting payment",
-          "Reconciled"
+          "Reconciled",
+          "Sent to fund with refund",
+          "Cancelled",
+          "Failed",
+          "Refunded",
+          "Not actioned",
+          "Payment failed"
          ]
         },
-        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
        },
        "outcome_counts": [
         [
@@ -1019,17 +1051,25 @@
         "remitted_status": {
          "column": "status",
          "sent": [
-          "Sent to fund"
+          "Sent to fund",
+          "Sent to fund with response",
+          "Paid"
          ],
          "not_sent": [
           "Awaiting clearance",
           "Created",
           "Submission accepted",
           "Awaiting payment",
-          "Reconciled"
+          "Reconciled",
+          "Sent to fund with refund",
+          "Cancelled",
+          "Failed",
+          "Refunded",
+          "Not actioned",
+          "Payment failed"
          ]
         },
-        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
        },
        "outcome_counts": [
         [
@@ -1057,13 +1097,13 @@
     "753": {
      "test": "test_a_status_outside_the_beam_ladder_is_refused_not_guessed",
      "expected": {
-      "error": "row 2: status 'Processing' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand."
+      "error": "row 2: status 'Processing' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund', 'Sent to fund with response', 'Paid']; does not establish remittance: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled', 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned', 'Payment failed']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand."
      }
     },
     "754": {
      "test": "test_a_status_outside_the_beam_ladder_is_refused_not_guessed",
      "expected": {
-      "error": "row 2: status '' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand."
+      "error": "row 2: status '' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund', 'Sent to fund with response', 'Paid']; does not establish remittance: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled', 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned', 'Payment failed']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand."
      }
     },
     "757": {
@@ -1211,17 +1251,25 @@
         "remitted_status": {
          "column": "status",
          "sent": [
-          "Sent to fund"
+          "Sent to fund",
+          "Sent to fund with response",
+          "Paid"
          ],
          "not_sent": [
           "Awaiting clearance",
           "Created",
           "Submission accepted",
           "Awaiting payment",
-          "Reconciled"
+          "Reconciled",
+          "Sent to fund with refund",
+          "Cancelled",
+          "Failed",
+          "Refunded",
+          "Not actioned",
+          "Payment failed"
          ]
         },
-        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
        },
        "outcome_counts": [
         [
@@ -1243,29 +1291,29 @@
     "1295": {
      "test": "test_sg_filter_include_as_a_string_raises_csv_error",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1296": {
      "test": "test_date_formats_as_a_string_raises_csv_error",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1297": {
      "test": "test_verified_as_a_string_raises_csv_error",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1298": {
      "test": "test_all_eight_profiles_load",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1299": {
@@ -1357,17 +1405,25 @@
         "remitted_status": {
          "column": "status",
          "sent": [
-          "Sent to fund"
+          "Sent to fund",
+          "Sent to fund with response",
+          "Paid"
          ],
          "not_sent": [
           "Awaiting clearance",
           "Created",
           "Submission accepted",
           "Awaiting payment",
-          "Reconciled"
+          "Reconciled",
+          "Sent to fund with refund",
+          "Cancelled",
+          "Failed",
+          "Refunded",
+          "Not actioned",
+          "Payment failed"
          ]
         },
-        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
        },
        {
         "key": "myob-ar-super",
@@ -1601,8 +1657,8 @@
     "1301": {
      "test": "test_load_profiles_returns_both_roles",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1302": {
@@ -1694,17 +1750,25 @@
         "remitted_status": {
          "column": "status",
          "sent": [
-          "Sent to fund"
+          "Sent to fund",
+          "Sent to fund with response",
+          "Paid"
          ],
          "not_sent": [
           "Awaiting clearance",
           "Created",
           "Submission accepted",
           "Awaiting payment",
-          "Reconciled"
+          "Reconciled",
+          "Sent to fund with refund",
+          "Cancelled",
+          "Failed",
+          "Refunded",
+          "Not actioned",
+          "Payment failed"
          ]
         },
-        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
        },
        {
         "key": "myob-ar-super",
@@ -1938,8 +2002,8 @@
     "1303": {
      "test": "test_every_shipped_profile_is_marked_unverified",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1304": {
@@ -2031,17 +2095,25 @@
         "remitted_status": {
          "column": "status",
          "sent": [
-          "Sent to fund"
+          "Sent to fund",
+          "Sent to fund with response",
+          "Paid"
          ],
          "not_sent": [
           "Awaiting clearance",
           "Created",
           "Submission accepted",
           "Awaiting payment",
-          "Reconciled"
+          "Reconciled",
+          "Sent to fund with refund",
+          "Cancelled",
+          "Failed",
+          "Refunded",
+          "Not actioned",
+          "Payment failed"
          ]
         },
-        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
        },
        {
         "key": "myob-ar-super",
@@ -2361,17 +2433,25 @@
         "remitted_status": {
          "column": "status",
          "sent": [
-          "Sent to fund"
+          "Sent to fund",
+          "Sent to fund with response",
+          "Paid"
          ],
          "not_sent": [
           "Awaiting clearance",
           "Created",
           "Submission accepted",
           "Awaiting payment",
-          "Reconciled"
+          "Reconciled",
+          "Sent to fund with refund",
+          "Cancelled",
+          "Failed",
+          "Refunded",
+          "Not actioned",
+          "Payment failed"
          ]
         },
-        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
        },
        {
         "key": "myob-ar-super",
@@ -2605,50 +2685,50 @@
     "1318": {
      "test": "test_only_the_employment_hero_super_profile_classifies_a_status",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1319": {
      "test": "test_remitted_status_list_as_a_string_raises_csv_error",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1320": {
      "test": "test_remitted_status_with_a_status_in_both_lists_raises_csv_error",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1321": {
      "test": "test_a_malformed_profile_is_refused_with_its_reason",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1322": {
      "test": "test_a_profile_without_a_role_is_refused",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1324": {
      "test": "test_a_profile_file_that_is_not_a_json_object_is_refused",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1325": {
      "test": "test_two_profiles_with_one_key_are_refused",
      "expected": {
-      "fnv": "7d0b2cb36d419c22",
-      "len": 6349
+      "fnv": "369f810b7c0c35f6",
+      "len": 7158
      }
     },
     "1326": {
@@ -2740,17 +2820,25 @@
         "remitted_status": {
          "column": "status",
          "sent": [
-          "Sent to fund"
+          "Sent to fund",
+          "Sent to fund with response",
+          "Paid"
          ],
          "not_sent": [
           "Awaiting clearance",
           "Created",
           "Submission accepted",
           "Awaiting payment",
-          "Reconciled"
+          "Reconciled",
+          "Sent to fund with refund",
+          "Cancelled",
+          "Failed",
+          "Refunded",
+          "Not actioned",
+          "Payment failed"
          ]
         },
-        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+        "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
        },
        {
         "key": "myob-ar-super",
@@ -2986,7 +3074,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: row 2: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
+      "stderr": "error: row 2: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund', 'Sent to fund with response', 'Paid']; does not establish remittance: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled', 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned', 'Payment failed']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
      }
     },
     "3969": {
@@ -2994,7 +3082,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: row 2: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
+      "stderr": "error: row 2: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund', 'Sent to fund with response', 'Paid']; does not establish remittance: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled', 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned', 'Payment failed']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
      }
     },
     "4000": {
@@ -3002,7 +3090,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: row 2: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
+      "stderr": "error: row 2: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund', 'Sent to fund with response', 'Paid']; does not establish remittance: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled', 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned', 'Payment failed']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
      }
     },
     "4229": {
@@ -3010,7 +3098,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: row 5: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
+      "stderr": "error: row 5: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund', 'Sent to fund with response', 'Paid']; does not establish remittance: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled', 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned', 'Payment failed']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
      }
     },
     "4310": {
@@ -3018,7 +3106,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: row 3: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
+      "stderr": "error: row 3: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund', 'Sent to fund with response', 'Paid']; does not establish remittance: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled', 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned', 'Payment failed']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
      }
     },
     "4329": {
@@ -3026,7 +3114,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: row 5: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
+      "stderr": "error: row 5: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund', 'Sent to fund with response', 'Paid']; does not establish remittance: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled', 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned', 'Payment failed']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
      }
     },
     "4499": {
@@ -3048,7 +3136,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: row 3: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
+      "stderr": "error: row 3: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund', 'Sent to fund with response', 'Paid']; does not establish remittance: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled', 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned', 'Payment failed']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
      }
     },
     "4649": {
@@ -3056,7 +3144,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: row 2: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
+      "stderr": "error: row 2: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund', 'Sent to fund with response', 'Paid']; does not establish remittance: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled', 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned', 'Payment failed']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
      }
     },
     "4859": {
@@ -3064,7 +3152,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: row 4: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund']; money not yet sent: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
+      "stderr": "error: row 4: status 'Lost' is not one this tool knows for profile employment-hero-super (payment left the employer: ['Sent to fund', 'Sent to fund with response', 'Paid']; does not establish remittance: ['Awaiting clearance', 'Created', 'Submission accepted', 'Awaiting payment', 'Reconciled', 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned', 'Payment failed']), so there is no way to tell whether this payment was made. Correct the status column, or map the file by hand.\n"
      }
     }
    }

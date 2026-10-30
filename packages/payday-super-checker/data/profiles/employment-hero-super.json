@@ -21,8 +21,8 @@
   },
   "remitted_status": {
     "column": "status",
-    "sent": ["Sent to fund"],
-    "not_sent": ["Awaiting clearance", "Created", "Submission accepted", "Awaiting payment", "Reconciled"]
+    "sent": ["Sent to fund", "Sent to fund with response", "Paid"],
+    "not_sent": ["Awaiting clearance", "Created", "Submission accepted", "Awaiting payment", "Reconciled", "Sent to fund with refund", "Cancelled", "Failed", "Refunded", "Not actioned", "Payment failed"]
   },
-  "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund. None of them is a fund receipt date. The first five do not establish remittance to the fund, so those rows get no remitted date. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. A status outside the ladder is refused rather than guessed."
+  "notes": "The payments CSV carries a Status column at the far right. Beam statuses run Created, Submission accepted, Awaiting payment, Awaiting clearance, Reconciled, Sent to fund, with Sent to fund with response, Sent to fund with refund, Cancelled, Failed and Refunded as the other automated outcomes. A contribution outside any batch is Not actioned, and a manual batch runs Created, then Paid or Payment failed. None of them is a fund receipt date. Sent to fund and Sent to fund with response (a fund replied with warnings or notes) are transmission evidence only, and Paid is the employer's own assertion, so those dates are remittance dates and nothing more. Every other status does not establish remittance, so its row gets no remitted date; that is not proof that no money moved. Awaiting clearance and Reconciled (Beam has cleared the employer's money but not sent it on) remain pending even if an employer payment date is present. Sent to fund with refund says a fund rejected and refunded some contributions without saying which, so each contribution needs reconciling against the batch history before its row is given a date by hand. A status outside this list is refused rather than guessed."
 }
