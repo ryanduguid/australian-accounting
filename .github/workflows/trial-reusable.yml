@@ -1,6 +1,9 @@
 name: Beam trial reusable
 on:
   workflow_call:
+    outputs:
+      policy-sha:
+        value: ${{ jobs.probe.outputs.policy-sha }}
 permissions:
   contents: read
 jobs:
