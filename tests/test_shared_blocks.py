@@ -13,9 +13,10 @@ executable code is compared. The first file in each group is the reference.
 `RUST_COPIES` pins the Rust workbook tooling the div7a and ato-benchmark
 builders copied from the payday builder: whole files that differ only by
 declared substitutions, the model's code outside its tests, and the staging
-build's functions. Those checks read rustfmt's layout, in which a top-level
-item and its closing brace start at column 0; each package's CI runs
-`cargo fmt --check`, which refuses a file laid out otherwise.
+build's functions. It also pins the functions the payday and div7a engines
+each keep of `verify` and the WebAssembly `call`. Those checks read rustfmt's
+layout, in which a top-level item and its closing brace start at column 0; each
+package's CI runs `cargo fmt --check`, which refuses a file laid out otherwise.
 
 Standard library only, and no component is imported: the files are read and
 parsed.
@@ -62,6 +63,11 @@ RUST_COPIES = {
     # The model's tests exercise each builder's own features.
     "code_before_tests": ("model.rs",),
     "functions": {"main.rs": ("build", "fail", "replace_part")},
+    # Functions the payday and div7a engines each keep, by path in the engine.
+    "engine_functions": {
+        "src/derivation.rs": ("first_field", "pick", "difference", "first_difference", "verify"),
+        "wasm/src/lib.rs": ("call",),
+    },
 }
 
 
@@ -202,6 +208,16 @@ class RustCopyTests(unittest.TestCase):
                         self.assertEqual(
                             _rust_function(reference, function), _rust_function(copy, function)
                         )
+
+    def test_the_engines_verify_and_wasm_call_functions_are_identical(self) -> None:
+        for name, functions in RUST_COPIES["engine_functions"].items():
+            reference = self.read(PACKAGES / "payday-super-checker", name)
+            copy = self.read(PACKAGES / "div7a-loan-review", name)
+            for function in functions:
+                with self.subTest(file=name, function=function):
+                    self.assertEqual(
+                        _rust_function(reference, function), _rust_function(copy, function)
+                    )
 
     def test_a_function_ends_at_its_own_closing_brace(self) -> None:
         text = "fn a() {\n    x\n}\n\npub fn b() {\n}\n"
