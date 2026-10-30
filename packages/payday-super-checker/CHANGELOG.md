@@ -66,7 +66,7 @@ root.
 ### Documented divergences
 
 - The Employment Hero profile treats Beam's Reconciled status as not yet sent
-  to the fund. Python 0.2.2 counted it as sent, but Beam's status order puts
+  to the fund, as does Python maintenance release 0.2.3. Python 0.2.2 counted it as sent, but Beam's status order puts
   Reconciled (employer money cleared by Beam) before Sent to fund. A Reconciled
   row now gets no remitted date and its payday reads as unfunded, with a
   warning naming the status. The replay applies the changed answers from
