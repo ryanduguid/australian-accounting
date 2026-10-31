@@ -96,7 +96,7 @@ class RustEngineTests(unittest.TestCase):
         caller = (workflows / "ci.yml").read_text()
         self.assertIn("needs: [changes, packages, crates, rust, umbrella-parity, test, dependency-audit, lint]", caller)
         workflow = (workflows / "ci-rust.yml").read_text()
-        for gate in ("cargo fmt --check", "cargo clippy --locked --all-targets -- -D warnings", "cargo test --locked", "cargo build --locked --release", "cargo audit --deny warnings"):
+        for gate in ("cargo fmt --check", "cargo clippy --locked --all-targets -- -D warnings", "cargo test --locked", "cargo build --locked --release", "cargo audit --deny warnings", "cargo llvm-cov --locked --fail-under-lines"):
             self.assertIn(gate, workflow)
         self.assertIn("os: [ubuntu-latest, windows-latest, macos-latest]", workflow)
         self.assertNotIn("contents: write", workflow)

@@ -31,7 +31,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     defaults:
       run:
         shell: bash
@@ -44,7 +44,32 @@ jobs:
         run: rustup toolchain install 1.99 --profile minimal --component rustfmt,clippy
       - run: cargo fmt --check
       - run: cargo clippy --locked --all-targets -- -D warnings
-      - run: cargo test --locked
+      - name: Run the tests
+        if: runner.os != 'Linux'
+        run: cargo test --locked
+      # strace lets tests/no_network.rs watch a real calculation. Coverage needs
+      # llvm-tools and a prebuilt cargo-llvm-cov, with no fallback to compiling it.
+      - name: Install strace and llvm-tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes strace
+          rustup component add llvm-tools
+      - name: Install cargo-llvm-cov
+        if: runner.os == 'Linux'
+        uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2.87.29
+        with:
+          tool: cargo-llvm-cov@0.9.1
+          fallback: none
+      # Each floor is the crate's measured line coverage, rounded down (31 October
+      # 2026). Raise it with the tests, never lower it to pass.
+      - name: Run the tests with a line coverage floor
+        if: runner.os == 'Linux'
+        env:
+          CRATE: ${{ inputs.package }}
+        run: |
+          floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
+          cargo llvm-cov --locked --fail-under-lines "$floor"
       - run: cargo build --locked --release
       - name: Smoke the native command
         env:
