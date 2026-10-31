@@ -22,6 +22,8 @@ synthetic fixtures marked `synthetic: true`; they are not lodgements.
 
 Payday Super reviews can mark `UNKNOWN` or refuse where the facts do not
 establish the statutory test. A remittance date alone cannot produce `ON_TIME`.
+Returned contributions are not assessed: no input records one, so `ON_TIME`
+assumes the fund kept every receipt.
 Experimental SG-charge figures are exposure flags, not an ATO assessment.
 
 `ok: true` means a tool ran, not that a review passed. Retain `UNKNOWN`,

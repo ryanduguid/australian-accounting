@@ -404,11 +404,39 @@ Check the
 `aus-accounting://payday-coverage` resource for bundled rate and calendar
 coverage, and retain the result's caveats.
 
+### Returned contributions
+
+The Payday Super tools do not assess a contribution the fund returned. The pinned
+checker has no input for one, and none is offered here, so a receipt the fund later
+sent back still reads as received. SGAA 1992 s 18C turns on contributions received
+by the fund, so a later return can change the outcome. Every `ON_TIME` result
+assumes the fund kept every receipt. Check fund records before relying on it.
+
+Each `ON_TIME` row in `calc_payday_super_deadline` and
+`review_payday_super_contributions` carries the same statement in `caveats` and
+this field, which the output schema requires whenever `verdict` is `ON_TIME`:
+
+```json
+"verdict_qualification": {
+  "code": "RETURNED_CONTRIBUTIONS_NOT_ASSESSED",
+  "returned_contributions_assessed": false,
+  "assumes_fund_kept_every_receipt": true,
+  "statement": "aus-accounting-mcp qualification of ON_TIME: returned contributions were not assessed. ..."
+}
+```
+
+Branch on `code`. The verdict, `review_exit_code` and every figure are the engine's
+and do not change. Other verdicts carry neither the field nor the caveat. An
+`UNKNOWN` row can list `ON_TIME` in `horizon_verdicts`; that is a candidate rather
+than a verdict and carries no qualification, but it rests on the same assumption if
+it later resolves to `ON_TIME`. Grouped review has no aggregate on-time statement, so
+its qualification is on each row.
+
 ## Payday Super evidence pack
 
 `build_payday_super_evidence_pack` (from v0.2.5) accepts the same `contributions`
 and explicit `as_at` as grouped review. It delegates the assessment and all 4
-artefacts to the checker. There are no path arguments, fixture-path lookups,
+artefacts to the checker, apart from the returned-contributions limit below. There are no path arguments, fixture-path lookups,
 filesystem writes or network calls.
 
 The response includes `files` keyed by `report.csv`, `practitioner-review.md`,
@@ -417,6 +445,16 @@ newlines or removing the CSV's initial BOM; the Markdown and JSON bind to those
 exact report bytes. Source row numbers are one-based positions in the input list.
 `review_exit_code` is 2 for any non-`ON_TIME` row and 0 only when all rows are
 `ON_TIME`. An error remains an MCP error. No decision or sign-off is generated.
+
+A pack with any `ON_TIME` row, which includes every exit code 0, states the limit in
+[Returned contributions](#returned-contributions). The response carries
+`verdict_qualification`, required by the schema at exit code 0, and the caveat. The
+files carry it too, because they are saved without the response: `report.csv` in the
+`caveats` cell of each `ON_TIME` row, before the checker hashes it;
+`exceptions.json` as a top-level `verdict_qualification`; and
+`practitioner-review.md` and `decision-log.md` as a note above their first heading,
+ahead of the status line. These 4 additions come from this server, not the checker.
+A pack with no `ON_TIME` row is exactly what the checker rendered.
 
 The default `response_detail="full"` includes the pack in both text and structured
 content for client compatibility. Hosts that read `structuredContent.files` can

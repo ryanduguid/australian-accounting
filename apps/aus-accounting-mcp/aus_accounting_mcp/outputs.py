@@ -196,6 +196,43 @@ class BenchmarkComparison(EngineResult):
     ]
 
 
+class VerdictQualification(ResultObject):
+    """What an ON_TIME did not assess. Absent on any other verdict."""
+
+    code: Annotated[
+        Literal["RETURNED_CONTRIBUTIONS_NOT_ASSESSED"],
+        Field(description="Stable token for this limit."),
+    ]
+    returned_contributions_assessed: Annotated[
+        Literal[False],
+        Field(description="No tool input records a contribution the fund returned."),
+    ]
+    assumes_fund_kept_every_receipt: Annotated[
+        Literal[True],
+        Field(description="ON_TIME holds only if the fund kept every receipt."),
+    ]
+    statement: Annotated[str, Field(description="The limit in words; retain it with ON_TIME.")]
+
+
+QualifiedVerdict = Annotated[
+    VerdictQualification,
+    Field(description="Limit on ON_TIME, required with it; check fund records for returns."),
+]
+
+
+def _required_when(condition: dict[str, Any]) -> ConfigDict:
+    """Publish a conditional requirement so a validating client refuses a bare result."""
+    return ConfigDict(
+        extra="allow",
+        strict=True,
+        json_schema_extra={
+            "if": {"properties": condition, "required": list(condition)},
+            "then": {"required": ["verdict_qualification"]},
+        },
+    )
+
+
+@with_config(_required_when({"verdict": {"const": "ON_TIME"}}))
 class PaydayAssessment(ResultObject):
     employee_id: Annotated[str, Field(description="Operator reference echoed from the input.")]
     qe_day: DateText
@@ -220,8 +257,15 @@ class PaydayAssessment(ResultObject):
     ]
     pathway: Annotated[str, Field(description="Deadline pathway chosen by the engine.")]
     verdict: Annotated[
-        str, Field(description="Engine contribution verdict; read alongside caveats and pathway.")
+        str,
+        Field(
+            description=(
+                "Engine contribution verdict; read alongside caveats and pathway, and "
+                "ON_TIME alongside verdict_qualification."
+            )
+        ),
     ]
+    verdict_qualification: NotRequired[QualifiedVerdict]
     days_late: Annotated[
         int | None, Field(description="Engine days late, or null when not established.")
     ]
@@ -316,11 +360,13 @@ PaydayEvidenceFiles = TypedDict("PaydayEvidenceFiles", {
 })
 
 
+@with_config(_required_when({"review_exit_code": {"const": 0}}))
 class PaydayEvidencePack(EngineResult):
     law_content_date: DateText
     as_at: DateText
     disclaimer: str
     review_exit_code: Literal[0, 2]
+    verdict_qualification: NotRequired[QualifiedVerdict]
     files: PaydayEvidenceFiles
     caveats: Caveats
 
