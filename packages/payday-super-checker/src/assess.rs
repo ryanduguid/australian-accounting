@@ -277,6 +277,13 @@ pub fn check_inputs(lines: &[ContribLine]) -> Result<()> {
         if let Some(p) = date_problem(line) {
             problems.push(p);
         }
+        if line.returned_by_fund && (line.db_interest || line.sg_amount.le(&zero())?) {
+            problems.push(format!(
+                "row {}: returned_by_fund=yes needs a row carrying an SG amount that is \
+                 tested for lateness",
+                line.row
+            ));
+        }
     }
     if problems.is_empty() {
         Ok(())
@@ -1058,6 +1065,34 @@ fn apply_exposure(
     Ok(())
 }
 
+/// A fund returned some of this contribution and the file does not say what.
+///
+/// A returned amount is not a contribution (SIS reg 7.07G(4); LCR 2026/2
+/// paragraphs 24 and 25), so the row's receipt cannot be read as eligible, and
+/// the deadline does not move. Nothing shows the row is on time or late.
+fn assess_unreconciled_return(result: &mut Assessed, cal: &BusinessCalendar, as_at: Date) {
+    let due = result.deadline.due.expect("assessed lines have a deadline");
+    let latest = result
+        .deadline
+        .possible_item4_due
+        .map_or(due, |p| p.max(due));
+    let coverage_open = due > cal.coverage_until;
+    let on_time_possible = match result.line.received.filter(|r| *r <= as_at) {
+        Some(received) => received <= latest || coverage_open,
+        None => as_at <= latest || coverage_open,
+    };
+    result.verdict = UNKNOWN.into();
+    result.horizon_verdicts = verdicts(UNPAID, if on_time_possible { ON_TIME } else { LATE });
+    result.caveats.push(format!(
+        "returned_by_fund=yes: a fund returned some or all of this contribution, and a \
+         returned amount is not a contribution (SIS reg 7.07G(4); LCR 2026/2 paragraphs \
+         24 and 25). Nothing on this row says which amount came back, so no receipt on it \
+         is read as eligible. The deadline {} does not restart. No exposure is calculated; \
+         reconcile the contribution with the fund or clearing house",
+        due.isoformat()
+    ));
+}
+
 fn assess_line(
     line: ContribLine,
     dl: Deadline,
@@ -1123,6 +1158,10 @@ fn assess_line(
         }
         return Ok(result);
     }
+    if result.line.returned_by_fund {
+        assess_unreconciled_return(&mut result, cal, as_at);
+        return Ok(result);
+    }
     let facts = assessment_facts(&mut result, cal, as_at)?;
     let (on_time, stale_prepayment, finished) = if facts.settled.is_some() {
         assess_received(&mut result, as_at, &facts)?
@@ -1183,6 +1222,7 @@ pub(crate) mod tests {
             duplicate_note: String::new(),
             matched_amount: None,
             join_caveats: Vec::new(),
+            returned_by_fund: false,
         }
     }
 

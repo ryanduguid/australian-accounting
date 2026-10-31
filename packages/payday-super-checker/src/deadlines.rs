@@ -55,6 +55,8 @@ pub struct ContribLine {
     pub duplicate_note: String,
     pub matched_amount: Option<Decimal>,
     pub join_caveats: Vec<String>,
+    /// A fund or clearing house says some of this contribution came back.
+    pub returned_by_fund: bool,
 }
 
 /// The most a receipt date on this row can evidence.
@@ -260,7 +262,15 @@ fn item4_evidence(
     possible_due: Date,
     as_at: Option<Date>,
 ) -> Result<Evidence> {
-    if line.sg_amount.le(&zero())? || line.db_interest || receipt_amount_cap(line).le(&zero())? {
+    if line.sg_amount.le(&zero())? || line.db_interest {
+        return Ok(Evidence::Impossible);
+    }
+    if line.returned_by_fund {
+        // A returned amount is not an eligible contribution, and which amount
+        // came back is not yet known, so nothing here confirms item 4.
+        return Ok(Evidence::Possible);
+    }
+    if receipt_amount_cap(line).le(&zero())? {
         return Ok(Evidence::Impossible);
     }
     let earliest = earliest_prepayment_day(line.qe_day)?;
@@ -431,6 +441,7 @@ mod tests {
             duplicate_note: String::new(),
             matched_amount: None,
             join_caveats: Vec::new(),
+            returned_by_fund: false,
         }
     }
 

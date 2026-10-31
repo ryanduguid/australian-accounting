@@ -130,8 +130,8 @@ refusing an export that a firm cannot re-run.
 
 Recorded here so they are not re-audited:
 
-- **Fund receipt dates are blank on every import.** No payroll or clearing
-  house export carries one, and the s 18C test is receipt by the fund. This is
+- **Fund receipt dates are blank on every import.** No supported payroll or
+  clearing house export carries one, and the s 18C test is receipt by the fund. This is
   the tool's central boundary, not a defect, and it is published on the
   [tool page](https://duguid.com.au/tools/payday-super/) and stated by the CLI
   on every import.

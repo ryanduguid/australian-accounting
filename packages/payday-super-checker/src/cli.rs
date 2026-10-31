@@ -1194,8 +1194,8 @@ fn import_main(args: &[String]) -> (i32, String, String) {
         profile_line("super", &report.super_profile),
         format!("employee matching: by {}", report.key_mode),
         String::new(),
-        "No payroll or clearing-house export carries a fund receipt date, so \
-         fund_received_date is written blank on every row. The checker's \
+        "No supported payroll or clearing-house export carries a fund receipt date, \
+         so fund_received_date is written blank on every row. The checker's \
          deadline tests receipt by the fund, not remittance -- fill that \
          column in from your fund or clearing house before relying on any \
          verdict it produces."

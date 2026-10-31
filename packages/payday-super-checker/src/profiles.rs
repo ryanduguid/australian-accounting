@@ -96,6 +96,9 @@ pub struct RemittedStatus {
     pub column: String,
     pub sent: Vec<String>,
     pub not_sent: Vec<String>,
+    /// The `not_sent` values that say a fund returned part of a batch without
+    /// saying which contributions: unresolved, rather than simply unsent.
+    pub refund_unreconciled: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -260,10 +263,31 @@ fn build(raw: &Raw, file: &str) -> Result<Profile> {
                     repr_list(&sorted_strings(overlap.iter()))
                 )));
             }
+            let refund_unreconciled = match rs.get("refund_unreconciled") {
+                None => Vec::new(),
+                value => non_empty_list(value, || {
+                    format!(
+                        "profile {file}: remitted_status 'refund_unreconciled' must be a \
+                         non-empty list of values"
+                    )
+                })?,
+            };
+            let unlisted: Vec<String> = folded(&refund_unreconciled)
+                .difference(&folded(&not_sent))
+                .cloned()
+                .collect();
+            if !unlisted.is_empty() {
+                return Err(error(format!(
+                    "profile {file}: remitted_status 'refund_unreconciled' lists {} outside \
+                     'not_sent'",
+                    repr_list(&sorted_strings(unlisted.iter()))
+                )));
+            }
             Some(RemittedStatus {
                 column: column.py_str(),
                 sent,
                 not_sent,
+                refund_unreconciled,
             })
         }
     };

@@ -81,7 +81,7 @@ pub fn csv_safe(text: &str) -> String {
 }
 
 /// The canonical fields, in order, and whether each is required.
-pub const CANONICAL: [(&str, bool); 12] = [
+pub const CANONICAL: [(&str, bool); 13] = [
     ("employee_id", true),
     ("qe_day", true),
     ("sg_amount", true),
@@ -94,9 +94,10 @@ pub const CANONICAL: [(&str, bool); 12] = [
     ("remitted_amount", false),
     ("matched_amount", false),
     ("join_caveats", false),
+    ("returned_by_fund", false),
 ];
 
-pub const DEFAULT_MAPPING: [(&str, &str); 12] = [
+pub const DEFAULT_MAPPING: [(&str, &str); 13] = [
     ("employee_id", "employee_id"),
     ("qe_day", "payment_date"),
     ("sg_amount", "sg_amount"),
@@ -109,6 +110,7 @@ pub const DEFAULT_MAPPING: [(&str, &str); 12] = [
     ("remitted_amount", "remitted_amount"),
     ("matched_amount", "matched_amount"),
     ("join_caveats", "join_caveats"),
+    ("returned_by_fund", "returned_by_fund"),
 ];
 
 pub const TRUE_WORDS: [&str; 5] = ["y", "yes", "true", "1", "t"];
@@ -864,6 +866,12 @@ fn read_line(
         Some(parse_date(&next_raw, "next_standard_qe_day", i)?)
     };
     let db_interest = parse_bool(&optional("db_interest")?, "db_interest", i)?;
+    // Added after the original mappings, so one saved without it reads as blank.
+    let returned_by_fund = parse_bool(
+        &optional("returned_by_fund").unwrap_or_default(),
+        "returned_by_fund",
+        i,
+    )?;
     Ok(ContribLine {
         employee_id: employee,
         qe_day,
@@ -879,6 +887,7 @@ fn read_line(
         duplicate_note: String::new(),
         matched_amount,
         join_caveats,
+        returned_by_fund,
     })
 }
 

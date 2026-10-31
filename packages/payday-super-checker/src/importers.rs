@@ -1,7 +1,7 @@
 //! Read a payroll export and a super payments export, join them, and write
 //! the canonical contributions CSV.
 //!
-//! No vendor export carries a fund receipt date, so every vendor date lands
+//! No supported vendor export carries a fund receipt date, so every vendor date lands
 //! in `remitted` and the receipt column is left empty. Where a profile
 //! classifies a status column, a vendor date lands in `remitted` only when
 //! the row's status shows the payment was sent to the fund.
@@ -216,6 +216,11 @@ pub fn read_super(path: &str, vendor: Option<&str>) -> Result<(Vec<SuperRow>, Pr
         .iter()
         .flat_map(|r| r.not_sent.iter().map(|v| normalise_header(v)))
         .collect();
+    let refund_unreconciled: Vec<String> = profile
+        .remitted_status
+        .iter()
+        .flat_map(|r| r.refund_unreconciled.iter().map(|v| normalise_header(v)))
+        .collect();
     let mut rows = Vec::new();
     for (i, raw) in raw_rows.iter().enumerate() {
         let i = i as i64 + 2;
@@ -232,12 +237,14 @@ pub fn read_super(path: &str, vendor: Option<&str>) -> Result<(Vec<SuperRow>, Pr
             &profile.date_formats,
         )?;
         let mut unpaid_status = None;
+        let mut refund_status = false;
         if let Some(rule) = &profile.remitted_status {
             let status_text = cell(raw, &resolved, &rule.column);
             let status_key = normalise_header(&status_text);
             if not_sent.contains(&status_key) {
                 unpaid_status = Some(crate::py::split_whitespace(&status_text).join(" "));
                 paid_date = None;
+                refund_status = refund_unreconciled.contains(&status_key);
             } else if !sent.contains(&status_key) {
                 return Err(csv_error(format!(
                     "row {i}: status {} is not one this tool knows \
@@ -277,6 +284,7 @@ pub fn read_super(path: &str, vendor: Option<&str>) -> Result<(Vec<SuperRow>, Pr
             amount: value,
             row: i,
             unpaid_status,
+            refund_unreconciled: refund_status,
         });
     }
     if rows.is_empty() {
@@ -356,6 +364,10 @@ pub const CANONICAL_HEADER: [&str; 12] = [
     "matched_amount",
     "join_caveats",
 ];
+
+/// Appended to the canonical header only when a row needs it, so a file with
+/// no vendor refund status keeps the 12 columns every earlier reader expects.
+pub const RETURNED_COLUMN: &str = "returned_by_fund";
 
 pub const OUTCOME_MATCHED: &str = "matched";
 pub const OUTCOME_OWES_NOTHING: &str = "owes nothing";
@@ -480,14 +492,13 @@ pub fn canonical_csv(result: &JoinResult) -> Result<String> {
         .map(|(k, l)| (k.as_str(), l.as_str()))
         .collect();
     let join_note = result.warnings.join(" | ");
+    let flagged = result.outcomes.iter().any(|o| o.refund_unreconciled);
+    let mut header: Vec<String> = CANONICAL_HEADER.iter().map(|s| s.to_string()).collect();
+    if flagged {
+        header.push(RETURNED_COLUMN.to_string());
+    }
     let mut out = String::new();
-    csvwrite::row(
-        &CANONICAL_HEADER
-            .iter()
-            .map(|s| s.to_string())
-            .collect::<Vec<_>>(),
-        &mut out,
-    );
+    csvwrite::row(&header, &mut out);
     for outcome in &result.outcomes {
         let row = &result.payroll_rows[outcome.payroll];
         let k = join::payroll_key(row, &result.key_mode);
@@ -509,7 +520,7 @@ pub fn canonical_csv(result: &JoinResult) -> Result<String> {
             matched = Some(row.sg_amount.clone());
         }
         let iso = |d: Option<Date>| d.map(|d| d.isoformat()).unwrap_or_default();
-        let values = [
+        let mut values = vec![
             label,
             row.payday.isoformat(),
             money(Some(&row.sg_amount))?,
@@ -523,6 +534,16 @@ pub fn canonical_csv(result: &JoinResult) -> Result<String> {
             money(matched.as_ref())?,
             join_note.clone(),
         ];
+        if flagged {
+            values.push(
+                if outcome.refund_unreconciled {
+                    "yes"
+                } else {
+                    "no"
+                }
+                .to_string(),
+            );
+        }
         let guarded: Vec<String> = values.iter().map(|v| csv_safe(v)).collect();
         csvwrite::row(&guarded, &mut out);
     }
@@ -745,6 +766,14 @@ pub fn import_files(
             result.super_rows[r.super_row].row, r.message
         )
     }));
+    warnings.extend(result.super_rows.iter().filter(|s| s.refund_unreconciled).map(|s| {
+        format!(
+            "super row {}: its status says a fund returned part of the batch without saying \
+             which contributions, so the matched payday is written returned_by_fund=yes and \
+             stays UNKNOWN. Reconcile it against the batch history",
+            s.row
+        )
+    }));
     warnings.extend(result.super_rows.iter().filter_map(|s| {
         s.unpaid_status.as_ref().map(|status| {
             format!(
@@ -784,7 +813,8 @@ mod tests {
             .iter()
             .map(|(_, c)| *c)
             .collect();
-        assert_eq!(CANONICAL_HEADER.to_vec(), mapped);
+        assert_eq!(CANONICAL_HEADER.to_vec(), mapped[..12].to_vec());
+        assert_eq!(mapped[12], RETURNED_COLUMN);
     }
 
     #[test]
