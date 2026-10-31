@@ -265,7 +265,10 @@ historical flags. The typed transport adapter preserves the original unknown
 bootstrap method and metadata diagnostics whilst retaining rmcp's negotiation,
 dispatch and active-session metadata checks. Discover-only EOF exits cleanly.
 Malformed JSON-RPC envelopes remain governed by the SDK: an invalid method type
-can receive `-32600` where the original Python transport stayed silent.
+can receive `-32600` where the original Python transport stayed silent, and a
+`tools/call`, `prompts/get` or `resources/read` missing its required parameter
+receives `-32601` where Python returns `-32602`. Non-string prompt arguments
+receive Python's `-32602` on the wire.
 
 Retrieval reads only operator-configured folders and never writes or downloads
 source material. Link and Windows reparse checks, bounded scans, immutable run
