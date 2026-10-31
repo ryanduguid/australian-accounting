@@ -525,6 +525,47 @@ fn numbers_beyond_u64_keep_their_digits_in_both_channels() {
 }
 
 #[test]
+fn non_string_prompt_arguments_are_refused_on_the_wire() {
+    let directory = SessionDirectory::new();
+    let mut child = Command::new(env!("CARGO_BIN_EXE_aus-accounting-mcp"))
+        .current_dir(&directory.0)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    let mut stdin = child.stdin.take().unwrap();
+    let mut lines = BufReader::new(child.stdout.take().unwrap()).lines();
+    writeln!(
+        stdin,
+        r#"{{"jsonrpc":"2.0","id":1,"method":"initialize","params":{{"protocolVersion":"2025-11-25","capabilities":{{}},"clientInfo":{{"name":"t","version":"1"}}}}}}"#
+    )
+    .unwrap();
+    lines.next().unwrap().unwrap();
+    writeln!(
+        stdin,
+        r#"{{"jsonrpc":"2.0","method":"notifications/initialized","params":{{}}}}"#
+    )
+    .unwrap();
+    for (id, value) in ["null", "1", "true", "[]"].iter().enumerate() {
+        writeln!(
+            stdin,
+            r#"{{"jsonrpc":"2.0","id":{},"method":"prompts/get","params":{{"name":"review_div7a_loan_terms","arguments":{{"year_of_income":{value}}}}}}}"#,
+            id + 2
+        )
+        .unwrap();
+        let reply: Value = serde_json::from_str(&lines.next().unwrap().unwrap()).unwrap();
+        assert_eq!(reply["error"]["code"], -32602, "{value}: {reply}");
+        assert_eq!(
+            reply["error"]["message"], "Invalid request parameters",
+            "{value}"
+        );
+    }
+    drop(stdin);
+    child.wait().unwrap();
+}
+
+#[test]
 fn demo_calls_reproduce_complete_proof_over_stdio() {
     let original: Vec<Value> =
         serde_json::from_str(include_str!("fixtures/native/wire-sessions.json")).unwrap();

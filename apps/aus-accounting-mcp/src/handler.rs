@@ -188,6 +188,18 @@ impl ServerHandler for AccountingServer {
         request: GetPromptRequestParams,
         context: RequestContext<RoleServer>,
     ) -> Result<GetPromptResponse, ErrorData> {
+        // The MCP wire type is a map of strings; the Python SDK refuses anything else here.
+        if request
+            .arguments
+            .iter()
+            .flatten()
+            .any(|(_, value)| !value.is_string())
+        {
+            return Err(ErrorData::invalid_params(
+                "Invalid request parameters",
+                Some(json!("")),
+            ));
+        }
         let arguments = request.arguments.map(|a| a.into_iter().collect());
         let result = crate::prompts::get(&request.name, arguments.as_ref())
             .map_err(|e| ErrorData::new(ErrorCode(0), e, None))?;
