@@ -198,6 +198,11 @@ strictly, it ends the day before the sixth anniversary, one day sooner than
 Roya's count. Acts Interpretation Act s 36 sets no start day for it. The
 worksheet follows the ATO's example.
 
+No example settles 2 s 118-140 boundaries, so the worksheet takes the narrower
+reading: the 12 months before ownership ends start the day after the same date
+a year earlier, and where the same day of the month 6 months before the end does
+not exist (31 August), the 6 months start on the first of the next month.
+
 ## Depreciation
 
 Paragraph ¶6-000 supplies the first-year prime cost and diminishing value

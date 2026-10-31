@@ -250,9 +250,9 @@ fn changing_homes_needs_three_months_and_no_uncovered_income() {
     let r = run(json!({
         "capital_gain": "100000.00", "market_value_basis": true,
         "ownership_start": "2010-02-01", "ownership_end": "2026-06-30",
-        "lived_periods": [lived("2010-02-01", "2016-06-30"), lived("2025-07-01", "2025-12-31")],
-        "income_use_periods": [used("2016-07-01", "2025-06-30", "1"), used("2026-01-01", "2026-06-30", "1")],
-        "absence_choice_periods": [lived("2016-07-01", "2025-06-30"), lived("2026-01-01", "2026-06-30")],
+        "lived_periods": [lived("2010-02-01", "2016-06-30"), lived("2025-10-01", "2025-12-31")],
+        "income_use_periods": [used("2016-07-01", "2025-09-30", "1"), used("2026-01-01", "2026-06-30", "1")],
+        "absence_choice_periods": [lived("2016-07-01", "2025-09-30"), lived("2026-01-01", "2026-06-30")],
         "new_home_acquired": "2026-01-01",
     }))
     .unwrap();
@@ -370,4 +370,70 @@ fn the_exempt_share_adds_back_to_the_gain_on_a_half_cent() {
     .unwrap();
     assert_eq!(r["amounts"]["assessable_capital_gain"], "0.13");
     assert_eq!(r["amounts"]["exempt_capital_gain"], "0.87");
+}
+
+#[test]
+fn part_use_that_paused_before_the_move_is_refused() {
+    // 25% in 2020 and 2022 but none in 2021, then a choice period: whether
+    // the paused use is 'before you stop living in it' is unsettled.
+    let message = refusal(json!({
+        "capital_gain": "1000.00", "ownership_start": "2020-01-01", "ownership_end": "2025-12-31",
+        "lived_periods": [lived("2020-01-01", "2022-12-31")],
+        "income_use_periods": [used("2020-01-01", "2020-12-31", "0.25"), used("2022-01-01", "2022-12-31", "0.25")],
+        "absence_choice_periods": [lived("2023-01-01", "2025-12-31")],
+    }));
+    assert!(message.contains("changed or stopped"), "{message}");
+}
+
+#[test]
+fn acquisition_after_the_event_year_is_refused() {
+    let message = refusal(json!({
+        "capital_gain": "1000.00", "year": "2024-25",
+        "ownership_start": "2025-07-01", "ownership_end": "2025-12-31",
+    }));
+    assert!(message.contains("ownership_start"), "{message}");
+}
+
+#[test]
+fn a_loss_on_the_wrong_basis_is_told_to_use_the_reduced_cost_base() {
+    let message = refusal(json!({
+        "capital_loss": "1000.00", "market_value_basis": true,
+        "ownership_start": "2020-01-01", "ownership_end": "2025-12-31",
+    }));
+    assert!(message.contains("reduced cost base"), "{message}");
+}
+
+#[test]
+fn the_12_months_before_sale_start_the_day_after_the_date_a_year_earlier() {
+    // Sold 30 June 2026: the 12 months run from 1 July 2025, so living there
+    // from 30 June to 29 September 2025 is not 3 continuous months inside them.
+    let r = run(json!({
+        "capital_gain": "100000.00", "ownership_start": "2020-01-01", "ownership_end": "2026-06-30",
+        "lived_periods": [lived("2025-06-30", "2025-09-29")], "new_home_acquired": "2026-01-01",
+    }))
+    .unwrap();
+    assert!(
+        r["rates"]["changing_main_residence_overlap"]
+            .as_str()
+            .unwrap()
+            .starts_with("not applied: no continuous 3 months"),
+        "{}",
+        r["rates"]
+    );
+}
+
+#[test]
+fn six_months_before_a_month_end_sale_never_exceed_six_months() {
+    // Sold 31 August 2026: 28 February plus 6 months is only 28 August, so
+    // both homes are main residences from 1 March, not 28 February.
+    let r = run(json!({
+        "capital_gain": "100000.00", "ownership_start": "2020-01-01", "ownership_end": "2026-08-31",
+        "lived_periods": [lived("2020-01-01", "2026-02-27")], "new_home_acquired": "2026-02-28",
+        "year": "2026-27",
+    }))
+    .unwrap();
+    assert_eq!(
+        r["rates"]["changing_main_residence_overlap"],
+        "from 2026-03-01"
+    );
 }

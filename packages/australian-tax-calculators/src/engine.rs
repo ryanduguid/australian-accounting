@@ -1244,6 +1244,12 @@ pub fn main_residence(
             "ownership_end must not be before the {year} income year began: the ownership period ends on or after the CGT event."
         ));
     }
+    let year_end = dates::add_months(year_start, 12) - 1;
+    if first > year_end {
+        return refuse(format!(
+            "ownership_start must not be after the {year} income year ended: the dwelling is acquired before the CGT event."
+        ));
+    }
     if first < dates::parse("1985-09-20").expect("date") {
         return refuse("A dwelling acquired before 20 September 1985 is out of scope.");
     }
@@ -1310,12 +1316,18 @@ pub fn main_residence(
         }
         let before = &part[run..at(s.start)];
         let kept = before.last().cloned().flatten();
+        // Once part use begins it must continue, at one floor area, to the move.
         let mut consistent = true;
-        for p in before.iter().flatten() {
-            consistent &= match &kept {
-                Some(k) => k.equals(p)?,
-                None => false,
-            };
+        let mut began = false;
+        for p in before {
+            match (p, &kept) {
+                (Some(p), Some(k)) => {
+                    began = true;
+                    consistent &= k.equals(p)?;
+                }
+                (Some(_), None) => consistent = false,
+                (None, _) => consistent &= !began,
+            }
         }
         if !consistent {
             return refuse(
@@ -1344,7 +1356,9 @@ pub fn main_residence(
     let overlap = match new_home {
         None => Err("not claimed"),
         Some(acquired) => {
-            let window = dates::add_months(last, -12).max(first);
+            // The 12 months ending on the last day start the day after the
+            // same date a year earlier.
+            let window = (dates::add_months(last, -12) + 1).max(first);
             let mut three_months = false;
             let mut run_start = None;
             for day in window..=last {
@@ -1369,7 +1383,7 @@ pub fn main_residence(
                     "not applied: used to produce income in those 12 months while not the main residence",
                 )
             } else {
-                Ok(acquired.max(dates::add_months(last, -6)).max(first))
+                Ok(acquired.max(dates::months_before(last, 6)).max(first))
             }
         }
     };
@@ -1426,7 +1440,7 @@ pub fn main_residence(
     }
     if !applies && market_value {
         return refuse(
-            "The home first used to produce income rule does not apply: work out the gain or loss from the actual cost base and set market_value_basis to false.",
+            "The home first used to produce income rule does not apply: work out the gain from the actual cost base, or the loss from the actual reduced cost base, and set market_value_basis to false.",
         );
     }
 

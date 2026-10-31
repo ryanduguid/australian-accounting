@@ -34,6 +34,19 @@ pub fn add_months(day: i64, months: i64) -> i64 {
     from_civil(y, m, d.min(month_days(y, m)))
 }
 
+/// The earliest day that is `months` months before `day` counting both ends
+/// in the same day of the month: 1 November for 1 May and 6 months. Where that
+/// day of the month does not exist, the first of the next month, so the period
+/// never runs longer: 1 March for 31 August, not 28 February.
+pub fn months_before(day: i64, months: i64) -> i64 {
+    let start = add_months(day, -months);
+    if add_months(start, months) == day {
+        start
+    } else {
+        start + 1
+    }
+}
+
 fn is_leap(y: i64) -> bool {
     (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
 }
@@ -109,5 +122,9 @@ mod tests {
         assert_eq!(step("2025-08-31", 6), "2026-02-28");
         assert_eq!(step("2024-02-29", 12), "2025-02-28");
         assert_eq!(step("2026-03-31", -1), "2026-02-28");
+        let before = |t: &str, n| format(months_before(parse(t).unwrap(), n));
+        assert_eq!(before("2026-05-01", 6), "2025-11-01");
+        assert_eq!(before("2026-08-31", 6), "2026-03-01");
+        assert_eq!(before("2026-02-28", 12), "2025-02-28");
     }
 }
