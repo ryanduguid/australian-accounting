@@ -17,7 +17,9 @@ status and the returned contributions below.
   exposure. `--events`, on the check and `evidence-pack` commands, takes dated,
   amount-specific returns and fund receipts: partial returns, no double counting,
   late notification and the first eligible contribution, against the unchanged
-  deadline. The JSON `assess` subcommand takes the same facts as `returned_by_fund`
+  deadline. A receipt still inside the fund's 3 business days, or a return after
+  them, stays `UNKNOWN`. A file whose return column the mapping cannot read is
+  refused. The JSON `assess` subcommand takes the same facts as `returned_by_fund`
   and `events` on a line. Sources are in
   `docs/primary-source-review-2026-10-31.md`; limits are PSC-3 in `LIMITATIONS.md`.
 - `import` writes `returned_by_fund=yes` for Beam's 'Sent to fund with refund', in

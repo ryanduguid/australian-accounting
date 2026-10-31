@@ -18,7 +18,8 @@ lodgement or accounting entry.
   contribution. The statutory timing test depends on this date.
 - **Returned contribution**: an amount a fund sent back. It is not a contribution
   (SIS reg 7.07G(4); LCR 2026/2 paragraphs 24 and 25), and the deadline does not
-  restart. A line is `UNKNOWN` until kept receipts cover the SG amount.
+  restart. A line is `UNKNOWN` until kept receipts cover the SG amount and the fund's
+  3 business days have ended, and stays so if a return came after those days.
 - **Supported deadline**: the latest contribution deadline established by the
   supplied facts and implemented statutory pathways. A possible but unevidenced
   item 4 extension is not treated as a supported deadline.

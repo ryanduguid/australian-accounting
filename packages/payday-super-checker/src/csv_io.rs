@@ -8,13 +8,14 @@ use std::collections::BTreeSet;
 
 use crate::csvread::{self, Reader};
 use crate::dates;
-use crate::deadlines::{ContribEvent, ContribLine, EventKind};
+use crate::deadlines::{ContribEvent, ContribLine};
 use crate::decimal::{Decimal, Rounding};
 use crate::py::Date;
 use crate::pyjson;
 use crate::pyre::Regex;
 use crate::pytext;
 use crate::raw::Raw;
+use crate::returned;
 use crate::{Failure, OsError, Result, repr_list, sorted_strings};
 
 /// Characters Excel and Sheets can evaluate at the start of a cell.
@@ -705,6 +706,26 @@ fn parse_rows_bytes(
         .into());
     }
 
+    // A return column the mapping cannot read would turn a returned contribution
+    // back into an ordinary one, so it stops the file. A file without it reads
+    // as no return, which is the only case the default covers.
+    let unread: Vec<&String> = named
+        .iter()
+        .filter(|h| {
+            h.to_lowercase().replace(' ', "_") == "returned_by_fund"
+                && !(mapping.has("returned_by_fund") && mapping.get("returned_by_fund") == *h)
+        })
+        .collect();
+    if !unread.is_empty() {
+        return Err(csv_error(format!(
+            "{path} has a return column the mapping does not read: {}. Ignoring it could \
+             read a returned contribution as received. Map it with \
+             --map returned_by_fund=COLUMN, or remove it.",
+            repr_list(&sorted_strings(unread))
+        ))
+        .into());
+    }
+
     let mut lines = Vec::new();
     let mut problems: Vec<String> = Vec::new();
     let mut i: i64 = 1;
@@ -866,7 +887,8 @@ fn read_line(
         Some(parse_date(&next_raw, "next_standard_qe_day", i)?)
     };
     let db_interest = parse_bool(&optional("db_interest")?, "db_interest", i)?;
-    // Added after the original mappings, so one saved without it reads as blank.
+    // Mappings saved before this field exist. `parse_rows_bytes` has already
+    // refused a file that carries the column such a mapping cannot read.
     let returned_by_fund = parse_bool(
         &optional("returned_by_fund").unwrap_or_default(),
         "returned_by_fund",
@@ -889,6 +911,7 @@ fn read_line(
         join_caveats,
         returned_by_fund,
         events: Vec::new(),
+        return_not_shown: false,
     })
 }
 
@@ -1039,23 +1062,8 @@ fn read_event(row: &DictRow, i: i64) -> Result<(String, Date, ContribEvent)> {
     };
     let receipt = optional_date("receipt_date")?;
     let notified = optional_date("notified_date")?;
-    let kind = match kind_text.to_ascii_lowercase().as_str() {
-        "received" => {
-            if receipt.is_some() || notified.is_some() {
-                return Err(csv_error(format!(
-                    "{at}: receipt_date and notified_date belong on a returned event"
-                )));
-            }
-            EventKind::Received
-        }
-        "returned" => EventKind::Returned { receipt, notified },
-        _ => {
-            return Err(csv_error(format!(
-                "{at}: event {} is neither received nor returned",
-                pytext::repr(&kind_text)
-            )));
-        }
-    };
+    let kind = returned::event_kind(&kind_text, receipt, notified)
+        .map_err(|m| csv_error(format!("{at}: {m}")))?;
     Ok((
         employee,
         qe_day,

@@ -303,6 +303,9 @@ pub fn assess(
 ) -> Result<Vec<Assessed>> {
     check_inputs(&lines)?;
     flag_duplicates(&mut lines)?;
+    for line in &mut lines {
+        line.return_not_shown = !returned::returns_not_shown(line, cal)?.is_empty();
+    }
 
     let pre_regime: Vec<&ContribLine> = lines.iter().filter(|l| l.qe_day < REGIME_START).collect();
     if !pre_regime.is_empty() {
@@ -1116,10 +1119,12 @@ fn later_contribution_due(
 
 /// Assess a line that a fund returned money on, or that carries events.
 ///
-/// The returned amount is not a contribution (SIS reg 7.07G(4); LCR 2026/2
+/// A rejected amount is not a contribution (SIS reg 7.07G(4); LCR 2026/2
 /// paragraphs 24 and 25) and the deadline does not move for a rejection (ATO,
 /// 'Getting it right'). The line is decided only when the kept receipts cover
-/// the SG amount; otherwise it is UNKNOWN, carries no exposure and is not LATE.
+/// the SG amount, the fund's period to reject them has ended and every return
+/// is shown to be a rejection; otherwise it is UNKNOWN, carries no exposure and
+/// is not LATE.
 fn assess_events(
     result: &mut Assessed,
     cal: &BusinessCalendar,
@@ -1136,14 +1141,28 @@ fn assess_events(
     let doubtful = returned::cannot_reconcile(&line);
     let owed = cents(Some(&line.sg_amount))?;
 
+    let not_shown = returned::returns_not_shown(&line, cal)?;
     if !line.events.is_empty() {
         result.caveats.push(returned::trail(&line)?);
     }
+    for (receipt, returned_on) in &not_shown {
+        result.caveats.push(format!(
+            "the return dated {} came more than 3 business days after the {} receipt, so it \
+             is not shown to be a rejection or a refund under SIS reg 7.07G(3). Reg 7.07G(4) \
+             covers such a refund and LCR 2026/2 paragraph 24 a rejected attempt; neither \
+             settles a later refund of an amount the fund may have allocated. This checker \
+             does not say the credit is gone or that it stands. Confirm with the fund what \
+             the return was",
+            returned_on.isoformat(),
+            receipt.isoformat()
+        ));
+    }
     for event in &line.events {
-        let EventKind::Returned { notified, .. } = event.kind else {
+        let EventKind::Returned { receipt, notified } = event.kind else {
             continue;
         };
-        if event.date > as_at {
+        let shown = receipt.is_none_or(|day| !not_shown.contains(&(day, event.date)));
+        if event.date > as_at && shown {
             result.caveats.push(format!(
                 "the return dated {} is after the as-at date {}, but a returned amount \
                  is not a contribution once it is rejected, so it is not counted here",
@@ -1178,7 +1197,15 @@ fn assess_events(
     let mut last_credit = None;
     let mut last_counted = None;
     let mut kept_receipts = 0;
+    let mut in_fund_window = false;
+    let mut unsettled_on_time = false;
     for r in returned::receipts(&line)? {
+        if not_shown.iter().any(|(day, _)| *day == r.date)
+            && r.date <= as_at
+            && (past_horizon || r.date <= possible.unwrap_or(due))
+        {
+            unsettled_on_time = true;
+        }
         let eligible = r.eligible()?;
         if !eligible.gt(&zero())? {
             continue;
@@ -1206,6 +1233,19 @@ fn assess_events(
         let credit = dmin(&eligible, &remaining)?;
         remaining = remaining.sub(&credit)?;
         last_credit = Some(r.date);
+        let window_end = returned::fund_window_end(r.date, cal)?;
+        if as_at <= window_end {
+            in_fund_window = true;
+            result.caveats.push(format!(
+                "the fund has until {} to allocate or refund the receipt dated {} (SIS reg \
+                 7.07G), and a receipt alone does not show it is able to be allocated (SGAA \
+                 s 18A(1)(a)(ii); LCR 2026/2 paragraph 20). The line is left undecided at this \
+                 as-at date; rerun after {}",
+                window_end.isoformat(),
+                r.date.isoformat(),
+                window_end.isoformat()
+            ));
+        }
         if r.date <= window {
             on_time = on_time.add(&credit)?;
         } else if r.date <= due {
@@ -1242,17 +1282,25 @@ fn assess_events(
             .received
             .filter(|r| *r <= as_at)
             .is_some_and(|r| r > possible.unwrap_or(due) && !past_horizon);
-        let settled_any = last_credit.is_some() || line.received.is_some_and(|r| r <= as_at);
+        let settled_any =
+            last_credit.is_some() || unsettled_on_time || line.received.is_some_and(|r| r <= as_at);
         let window_left = if first {
             possible.unwrap_or(due)
         } else {
             possible.unwrap_or(later_due)
         };
         let window_open = past_horizon || as_at <= window_left;
-        let on_time_possible =
-            !any_late && !row_receipt_late && (window_open || (doubtful && settled_any));
+        let on_time_possible = unsettled_on_time
+            || (!any_late && !row_receipt_late && (window_open || (doubtful && settled_any)));
+        // A return not shown to be a rejection may leave the first receipt in
+        // place, so a late replacement covering the amount reads LATE at worst.
+        let worst = if unsettled_on_time && any_late && !remaining.gt(&zero())? {
+            LATE
+        } else {
+            UNPAID
+        };
         result.verdict = UNKNOWN.into();
-        result.horizon_verdicts = verdicts(UNPAID, if on_time_possible { ON_TIME } else { LATE });
+        result.horizon_verdicts = verdicts(worst, if on_time_possible { ON_TIME } else { LATE });
         if line.returned_by_fund && !returned::has_return_event(&line) {
             result.caveats.push(format!(
                 "returned_by_fund=yes: a fund returned some or all of this contribution, and \
@@ -1263,14 +1311,14 @@ fn assess_events(
                  and supply the dated return with --events",
                 due.isoformat()
             ));
-        } else if doubtful {
+        } else if line.received.is_some() && !receipt_amount_evidenced(&line) {
             result.caveats.push(
                 "the fund receipt on this row states no amount, so what the fund kept cannot \
                  be reconciled against the events. Supply matched_amount and rerun"
                     .into(),
             );
         }
-        if remaining.gt(&zero())? && !line.events.is_empty() {
+        if remaining.gt(&zero())? && !line.events.is_empty() && !line.return_not_shown {
             result.caveats.push(format!(
                 "the events leave ${} of the ${} SG amount with no eligible fund receipt on \
                  or before the as-at date. The deadline {} does not restart on a return. The \
@@ -1280,16 +1328,42 @@ fn assess_events(
                 money(Some(&owed))?,
                 due.isoformat()
             ));
+            if !doubtful
+                && !undecided
+                && !in_fund_window
+                && !past_horizon
+                && possible.is_none()
+                && as_at > due
+            {
+                result.caveats.push(format!(
+                    "if these events are complete, s 18C gives a base shortfall of ${} for this \
+                     QE day, and s 19A adds notional earnings for each late-period day on which \
+                     the final shortfall is above nil. This is a conditional statement, not an \
+                     estimate: no SG charge figure is calculated",
+                    money(Some(&owed.sub(&on_time)?))?
+                ));
+            }
         }
         return Ok(());
     }
 
     result.receipt_established = true;
+    if in_fund_window {
+        result.verdict = UNKNOWN.into();
+        result.horizon_verdicts = verdicts(UNPAID, if any_late { LATE } else { ON_TIME });
+        return Ok(());
+    }
     if undecided {
         result.verdict = UNKNOWN.into();
         result.horizon_verdicts = verdicts(LATE, ON_TIME);
         return Ok(());
     }
+    result.caveats.push(
+        "this reads the receipts the fund kept as able to be allocated, and assumes no \
+         rejection of them has been notified (SGAA s 18A(1)(a)(ii); ATO, 'Getting it right'). \
+         A receipt date does not prove allocation; the fund's records settle it"
+            .into(),
+    );
     if !any_late {
         result.verdict = ON_TIME.into();
         return Ok(());
@@ -1449,6 +1523,7 @@ pub(crate) mod tests {
             join_caveats: Vec::new(),
             returned_by_fund: false,
             events: Vec::new(),
+            return_not_shown: false,
         }
     }
 

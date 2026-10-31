@@ -273,12 +273,13 @@ fn a_resubmission_received_inside_the_original_deadline_is_on_time() {
 
 #[test]
 fn a_rejection_does_not_restart_the_deadline() {
-    // 3 business days after the 18 August rejection would still be open if the
-    // clock restarted; the deadline stays 17 August.
+    // A receipt on 13 August rejected on 18 August, the third business day. The
+    // 20 August resubmission would be in time if the clock restarted on the
+    // rejection; the deadline stays 17 August.
     let run = with_events(
-        ORIGINAL,
+        "E1,2026-08-06,120.00,2026-08-07,2026-08-13,no,no,,no,120.00,120.00,,no\n",
         &format!(
-            "E1,2026-08-06,returned,2026-08-18,120.00,2026-08-10,\n{}",
+            "E1,2026-08-06,returned,2026-08-18,120.00,2026-08-13,\n{}",
             resubmitted("2026-08-20", "120.00")
         ),
         "2026-09-20",
@@ -594,6 +595,14 @@ fn a_late_receipt_after_the_assessment_does_not_reduce_the_final_shortfall() {
     );
     assert_eq!(run.field(0, "verdict"), "LATE");
     assert_eq!(run.field(0, "final_shortfall"), "50.00");
+    // $120 at 11.43% a year: 18 to 31 August, 14 days; the $70 of 20 August
+    // cannot stop the shortfall while $50 stays unpaid at the assessment.
+    assert_eq!(run.field(0, "notional_earnings"), "0.53");
+
+    // With no assessment yet, both receipts count and earnings run to 10 September.
+    let unassessed = check_in(&dir, ORIGINAL, "2026-09-20", &["--events", "events.csv"]);
+    assert_eq!(unassessed.field(0, "final_shortfall"), "0.00");
+    assert_eq!(unassessed.field(0, "notional_earnings"), "0.91");
 }
 
 #[test]
@@ -608,6 +617,8 @@ fn a_return_of_money_only_ever_seen_as_a_remittance_never_reads_at_risk() {
         "2026-09-20",
     );
     assert_eq!(resent.field(0, "verdict"), "ON_TIME");
+    // The event is the receipt, so the row needs no further confirmation.
+    assert_eq!(resent.code, 0, "{}", resent.stderr);
 }
 
 #[test]
@@ -774,4 +785,244 @@ fn the_api_takes_events_and_applies_the_same_rules() {
         doubled.to_string().contains("count the money twice"),
         "{doubled}"
     );
+}
+
+// --- findings from the first independent review -----------------------------
+
+/// Run an API command and return its answer, or its error text as a string.
+fn api(command: &str, input: &Value) -> Value {
+    use std::io::Write;
+    let mut child = Command::new(env!("CARGO_BIN_EXE_payday-super-check"))
+        .arg(command)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(input.to_string().as_bytes())
+        .unwrap();
+    let out = child.wait_with_output().unwrap();
+    serde_json::from_slice(&out.stdout)
+        .unwrap_or_else(|_| Value::String(String::from_utf8_lossy(&out.stderr).into_owned()))
+}
+
+const LEGACY_MAPPING: [(&str, &str); 12] = [
+    ("employee_id", "employee_id"),
+    ("qe_day", "payment_date"),
+    ("sg_amount", "sg_amount"),
+    ("remitted", "remitted_date"),
+    ("received", "fund_received_date"),
+    ("first_to_fund", "first_contribution_to_fund"),
+    ("out_of_cycle", "out_of_cycle"),
+    ("next_standard_qe_day", "next_standard_payday"),
+    ("db_interest", "defined_benefit"),
+    ("remitted_amount", "remitted_amount"),
+    ("matched_amount", "matched_amount"),
+    ("join_caveats", "join_caveats"),
+];
+
+fn legacy_parse(path: &Path) -> Value {
+    api(
+        "parse-rows",
+        &serde_json::json!({ "path": path, "mapping": LEGACY_MAPPING }),
+    )
+}
+
+#[test]
+fn a_mapping_that_cannot_read_the_return_column_refuses_the_file() {
+    let dir = scratch();
+    let carrying = dir.join("carrying.csv");
+    std::fs::write(&carrying, format!("{HEADER}{}", flagged(TIMELY_RECEIPT))).unwrap();
+    let answer = legacy_parse(&carrying);
+    assert!(
+        answer.to_string().contains("return column"),
+        "a returned row must not parse as unflagged: {answer}"
+    );
+
+    let plain = dir.join("plain.csv");
+    let without = HEADER.replace(",returned_by_fund", "");
+    let row = TIMELY_RECEIPT.strip_suffix(',').unwrap();
+    std::fs::write(&plain, format!("{without}{row}\n")).unwrap();
+    let answer = legacy_parse(&plain);
+    assert_eq!(answer[0]["employee_id"], "E1", "{answer}");
+    assert!(answer[0].get("returned_by_fund").is_none(), "{answer}");
+}
+
+#[test]
+fn a_differently_written_return_column_is_refused_until_mapped() {
+    let dir = scratch();
+    std::fs::write(
+        dir.join("pay.csv"),
+        format!(
+            "{}{}",
+            HEADER.replace("returned_by_fund", "Returned By Fund"),
+            flagged(TIMELY_RECEIPT)
+        ),
+    )
+    .unwrap();
+    let run = |extra: &[&str]| {
+        Command::new(env!("CARGO_BIN_EXE_payday-super-check"))
+            .args(["pay.csv", "--as-at", "2026-09-20", "-o", "report.csv"])
+            .args(extra)
+            .current_dir(&dir)
+            .output()
+            .unwrap()
+    };
+    let refused = run(&[]);
+    assert_eq!(refused.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&refused.stderr).contains("Returned By Fund"));
+    let mapped = run(&["--map", "returned_by_fund=Returned By Fund"]);
+    assert_eq!(
+        mapped.status.code(),
+        Some(2),
+        "{}",
+        String::from_utf8_lossy(&mapped.stderr)
+    );
+}
+
+#[test]
+fn json_events_are_validated_like_csv_events() {
+    let line = |event: Value| {
+        serde_json::json!({
+            "as_at": "2026-09-20",
+            "transition_allocation_confirmed": true,
+            "lines": [{
+                "employee_id": "E1", "qe_day": "2026-08-06", "sg_amount": "120.00",
+                "row": 2, "first_to_fund": false, "out_of_cycle": false,
+                "db_interest": false, "events": [event],
+            }],
+        })
+    };
+    for field in ["notified_date", "receipt_date"] {
+        let answer = api(
+            "assess",
+            &line(serde_json::json!({
+                "event": "received", "event_date": "2026-08-14", "amount": "120.00",
+                field: "2026-08-12",
+            })),
+        );
+        assert!(
+            answer.to_string().contains("belong on a returned event"),
+            "{field}: {answer}"
+        );
+    }
+    let answer = api(
+        "assess",
+        &line(serde_json::json!({
+            "event": "reversed", "event_date": "2026-08-14", "amount": "120.00",
+        })),
+    );
+    assert!(
+        answer.to_string().contains("neither received nor returned"),
+        "{answer}"
+    );
+}
+
+const RESENT_14_AUGUST: &str = "E1,2026-08-06,received,2026-08-14,120.00,,\n";
+
+#[test]
+fn a_resubmission_inside_the_funds_window_is_undecided_until_it_ends() {
+    // 3 business days after Friday 14 August 2026 is Wednesday 19 August.
+    let events = format!("{RETURN_ALL}{RESENT_14_AUGUST}");
+    for as_at in ["2026-08-14", "2026-08-19"] {
+        let run = with_events(ORIGINAL, &events, as_at);
+        assert_unresolved(&run, 0, "UNPAID or ON_TIME");
+        assert!(run.field(0, "caveats").contains("2026-08-19"), "{as_at}");
+        assert!(run.field(0, "caveats").contains("reg 7.07G"), "{as_at}");
+    }
+
+    let after = with_events(ORIGINAL, &events, "2026-08-20");
+    assert_eq!(after.code, 0, "{}", after.stderr);
+    assert_eq!(after.field(0, "verdict"), "ON_TIME");
+    assert!(
+        after
+            .field(0, "caveats")
+            .contains("assumes no rejection of them has been notified"),
+        "{}",
+        after.field(0, "caveats")
+    );
+
+    let rejected_too = with_events(
+        ORIGINAL,
+        &format!("{events}E1,2026-08-06,returned,2026-08-19,120.00,2026-08-14,\n"),
+        "2026-08-20",
+    );
+    assert_unresolved(&rejected_too, 0, "UNPAID or LATE");
+}
+
+#[test]
+fn a_late_resubmission_inside_the_funds_window_is_unpaid_or_late() {
+    let run = with_events(
+        ORIGINAL,
+        &format!("{RETURN_ALL}{}", resubmitted("2026-08-20", "120.00")),
+        "2026-08-21",
+    );
+    assert_unresolved(&run, 0, "UNPAID or LATE");
+}
+
+#[test]
+fn a_shortfall_after_the_deadline_states_the_base_shortfall_and_no_estimate() {
+    let all = with_events(ORIGINAL, RETURN_ALL, "2026-09-20");
+    assert_unresolved(&all, 0, "UNPAID or LATE");
+    let caveats = all.field(0, "caveats");
+    assert!(caveats.contains("base shortfall of $120.00"), "{caveats}");
+    assert!(caveats.contains("s 18C"), "{caveats}");
+    assert!(caveats.contains("s 19A"), "{caveats}");
+    assert_eq!(all.field(0, "notional_earnings"), "");
+
+    let part = with_events(ORIGINAL, RETURN_PART, "2026-09-20");
+    assert_unresolved(&part, 0, "UNPAID or LATE");
+    assert!(
+        part.field(0, "caveats")
+            .contains("base shortfall of $40.00")
+    );
+
+    let open = with_events(ORIGINAL, RETURN_ALL, "2026-08-13");
+    assert!(!open.field(0, "caveats").contains("base shortfall"));
+}
+
+#[test]
+fn a_return_after_the_funds_window_is_not_read_as_a_rejection() {
+    // 10 August plus 3 business days is 13 August, so 14 August is outside.
+    let late_return = "E1,2026-08-06,returned,2026-08-14,120.00,2026-08-10,\n";
+    let on_time_resend = with_events(
+        ORIGINAL,
+        &format!("{late_return}{}", resubmitted("2026-08-17", "120.00")),
+        "2026-09-20",
+    );
+    assert_unresolved(&on_time_resend, 0, "UNPAID or ON_TIME");
+    let caveats = on_time_resend.field(0, "caveats");
+    assert!(caveats.contains("more than 3 business days"), "{caveats}");
+    assert!(
+        caveats.contains("does not say the credit is gone"),
+        "{caveats}"
+    );
+
+    let late_resend = with_events(
+        ORIGINAL,
+        &format!("{late_return}{}", resubmitted("2026-08-20", "120.00")),
+        "2026-09-20",
+    );
+    assert_unresolved(&late_resend, 0, "LATE or ON_TIME");
+
+    let alone = with_events(ORIGINAL, late_return, "2026-09-20");
+    assert_unresolved(&alone, 0, "UNPAID or ON_TIME");
+    let caveats = alone.field(0, "caveats");
+    assert!(!caveats.contains("no eligible fund receipt"), "{caveats}");
+    assert!(!caveats.contains("base shortfall"), "{caveats}");
+
+    // The third business day is still inside.
+    let inside = with_events(
+        ORIGINAL,
+        &format!(
+            "E1,2026-08-06,returned,2026-08-13,120.00,2026-08-10,\n{}",
+            resubmitted("2026-08-17", "120.00")
+        ),
+        "2026-09-20",
+    );
+    assert_eq!(inside.field(0, "verdict"), "ON_TIME");
 }

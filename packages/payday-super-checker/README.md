@@ -311,8 +311,13 @@ The checker walks the kept receipts in date order against the original deadline:
 | --- | --- |
 | Kept receipts cover the SG amount, all on time | `ON_TIME` |
 | Kept receipts cover the SG amount, some after the deadline | `LATE`, with the estimate on the amount not on time |
-| Kept receipts do not cover the SG amount, before or after the deadline | `UNKNOWN`, exit 2, no exposure |
+| Kept receipts do not cover the SG amount, before or after the deadline | `UNKNOWN`, exit 2, no exposure. After the deadline, a caveat states the s 18C base shortfall that applies if the events are complete |
+| A counted receipt is still inside the fund's 3 business days at the as-at date | `UNKNOWN`, exit 2, no exposure, until that period ends |
+| A return came more than 3 business days after the receipt it names | `UNKNOWN`, exit 2, no exposure: it is not shown to be a rejection or a refund under reg 7.07G(3), so confirm it with the fund |
 | A later receipt falls inside 20 business days, but the fund kept part of the first contribution | `UNKNOWN` between `LATE` and `ON_TIME` |
+
+`ON_TIME` and `LATE` on an events line assume no rejection of the kept receipts has
+been notified, and a caveat says so.
 
 Only the first kept contribution has the 20 business days. A wholly returned attempt
 was never made, so its resubmission can be that first contribution, still counted
@@ -495,7 +500,7 @@ Required: `employee_id`, `payment_date`, `sg_amount`. Everything else is optiona
 | `remitted_amount` | `remitted_amount` | Amount covered by `remitted_date`. Blank on a dated row means the whole `sg_amount` was remitted (the operational reading that 9-column files rely on); a value requires `remitted_date` and cannot exceed `sg_amount`. This records operational remittance only. It does not reduce a statutory shortfall without an eligible fund receipt |
 | `matched_amount` | `matched_amount` | Total contribution amount associated with this payday, capped at `sg_amount`. The importer writes an explicit amount even when the vendor supplied no payment date: zero for no match, the partial amount for a short match, and the liability for a full or over match. It is not proof of remittance or fund receipt. When you add `fund_received_date`, it is the amount that date can evidence, and a receipt date with neither this column nor `remitted_amount` evidences no amount at all. If it is below `sg_amount` and `remitted_date` is present, `remitted_amount` is required |
 | `received` | `fund_received_date` | Day the fund received the eligible contribution associated with this QE day. Receipt is necessary for an on-time result; the row association also asserts the contribution was allocable and applied to this QE day under the statutory ordering. The date fixes timing only. The amount it evidences is `matched_amount`, then `remitted_amount` for older 10-column partial files; a row with neither amount is left `UNKNOWN` rather than `ON_TIME` (versions 0.1.6 and earlier read it as the whole `sg_amount`) |
-| `returned_by_fund` | `returned_by_fund` | Optional. Yes when a fund returned some or all of this contribution. See [A contribution the fund returned](#a-contribution-the-fund-returned) |
+| `returned_by_fund` | `returned_by_fund` | Optional. Yes when a fund returned some or all of this contribution. A file carrying this column, however it is capitalised or spaced, is refused when the mapping does not read it. See [A contribution the fund returned](#a-contribution-the-fund-returned) |
 | `join_caveats` | `join_caveats` | Optional, appended last. The importer writes the join's structural warnings here, joined with `"\|"`, so they travel with the file into the report's caveats column and the evidence pack instead of living only in the console. Blank on a clean join; absent on canonical files from before 0.1.5 |
 | `first_to_fund` | `first_contribution_to_fund` | Yes for the first contribution to that fund (new starter, or a fund switch) |
 | `out_of_cycle` | `out_of_cycle` | Yes only for an allowance, bonus, commission, loading, payment in advance or back payment made outside an established payment timing, pattern or schedule, where the statutory next-standard-payment conditions are met |

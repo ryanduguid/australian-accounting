@@ -59,6 +59,8 @@ pub struct ContribLine {
     pub returned_by_fund: bool,
     /// Dated, amount-specific receipts and returns beyond the row's own columns.
     pub events: Vec<ContribEvent>,
+    /// `assess` found a return not shown to be a rejection or a reg 7.07G(3) refund.
+    pub return_not_shown: bool,
 }
 
 /// What happened to some of a line's money.
@@ -482,6 +484,7 @@ mod tests {
             join_caveats: Vec::new(),
             returned_by_fund: false,
             events: Vec::new(),
+            return_not_shown: false,
         }
     }
 

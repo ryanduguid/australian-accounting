@@ -2,14 +2,35 @@
 //! a line, what they leave eligible and what makes them unusable.
 //!
 //! A returned amount is not a contribution (SIS reg 7.07G(4); LCR 2026/2
-//! paragraphs 24 and 25), whenever it came back and whatever the as-at date, so
-//! a receipt only ever counts for what the fund kept.
+//! paragraphs 24 and 25), whatever the as-at date, so a receipt only ever counts
+//! for what the fund kept. A return after the fund's 3 business days is not shown
+//! to be either, so `assess` leaves its line undecided instead of relying on it.
 
 use crate::Result;
+use crate::calendar::BusinessCalendar;
 use crate::csv_io::{cents, money, zero};
 use crate::deadlines::{ContribLine, EventKind, receipt_amount_cap, receipt_amount_evidenced};
 use crate::decimal::Decimal;
 use crate::py::Date;
+
+/// The event a file or the API names, with the fields only a return may carry.
+pub fn event_kind(
+    text: &str,
+    receipt: Option<Date>,
+    notified: Option<Date>,
+) -> std::result::Result<EventKind, String> {
+    match text.to_ascii_lowercase().as_str() {
+        "received" if receipt.is_some() || notified.is_some() => {
+            Err("receipt_date and notified_date belong on a returned event".to_string())
+        }
+        "received" => Ok(EventKind::Received),
+        "returned" => Ok(EventKind::Returned { receipt, notified }),
+        _ => Err(format!(
+            "event {} is neither received nor returned",
+            crate::pytext::repr(text)
+        )),
+    }
+}
 
 /// One day's fund receipt on a line and how much of it came back.
 #[derive(Clone, Debug)]
@@ -41,6 +62,34 @@ pub fn carries_return_facts(line: &ContribLine) -> bool {
 pub fn cannot_reconcile(line: &ContribLine) -> bool {
     (line.returned_by_fund && !has_return_event(line))
         || (line.received.is_some() && !receipt_amount_evidenced(line))
+        || line.return_not_shown
+}
+
+/// The end of the 3 business days a fund has to allocate or refund a receipt
+/// (SIS reg 7.07G(2) and (3)), not counting the day of receipt.
+///
+/// shortcut: this uses the checker's national calendar. The ATO measures the
+/// fund's period by holidays in the fund's location, which the input does not
+/// hold. A location's regional holiday is the one case the fund has longer.
+pub fn fund_window_end(receipt: Date, cal: &BusinessCalendar) -> Result<Date> {
+    cal.add_business_days(receipt, 3)
+}
+
+/// The (receipt, return) dates of returns later than the fund's window. Only a
+/// refund under reg 7.07G(3) is taken not to have been made, and LCR 2026/2
+/// paragraph 24 speaks of a rejected attempt, so these are neither.
+pub fn returns_not_shown(line: &ContribLine, cal: &BusinessCalendar) -> Result<Vec<(Date, Date)>> {
+    let mut out = Vec::new();
+    for event in &line.events {
+        if let EventKind::Returned {
+            receipt: Some(day), ..
+        } = event.kind
+            && event.date > fund_window_end(day, cal)?
+        {
+            out.push((day, event.date));
+        }
+    }
+    Ok(out)
 }
 
 /// The line's receipts with an amount, in date order, less what came back.

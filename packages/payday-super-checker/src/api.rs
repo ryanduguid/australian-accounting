@@ -20,6 +20,7 @@ use crate::profiles::{self, Profile};
 use crate::py::Date;
 use crate::rates::{self, GicQuarter, GicTable, TableSource};
 use crate::report::{self, Figures, NoteFacts, SummaryFacts};
+use crate::returned;
 use crate::sgc;
 
 type Result<T> = std::result::Result<T, String>;
@@ -248,18 +249,16 @@ fn line_of(v: &Value) -> Result<ContribLine> {
             Some(Value::Array(items)) => items.iter().map(event_of).collect::<Result<_>>()?,
             Some(_) => return Err("events must be a list of events".into()),
         },
+        return_not_shown: false,
     })
 }
 
 fn event_of(v: &Value) -> Result<ContribEvent> {
-    let kind = match text(v, "event")? {
-        "received" => EventKind::Received,
-        "returned" => EventKind::Returned {
-            receipt: optional_date(v, "receipt_date")?,
-            notified: optional_date(v, "notified_date")?,
-        },
-        other => return Err(format!("event {other:?} is neither received nor returned")),
-    };
+    let kind = returned::event_kind(
+        text(v, "event")?,
+        optional_date(v, "receipt_date")?,
+        optional_date(v, "notified_date")?,
+    )?;
     Ok(ContribEvent {
         kind,
         date: date(v, "event_date")?,

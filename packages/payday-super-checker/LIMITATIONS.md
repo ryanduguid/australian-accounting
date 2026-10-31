@@ -135,8 +135,20 @@ applies contributions automatically to the earliest QE day with a shortfall, so 
 return on one payday can move later money onto it, and the later payday then falls
 short. The checker does not move money between rows. A resubmission with no fund
 receipt has no event, so its row stays `UNKNOWN`. A line whose kept receipts do not
-cover the SG amount is `UNKNOWN` with no exposure, even after the deadline, although
-s 18C gives a base shortfall on those facts.
+cover the SG amount is `UNKNOWN` with no exposure, even after the deadline. Its
+caveat states the s 18C base shortfall that applies if the events are complete.
+
+A line with events stays `UNKNOWN` until 3 business days after its last counted
+receipt, because that receipt may still be rejected. After that it can read
+`ON_TIME` or `LATE`, on the assumption that no rejection was notified: a caveat says
+so, and the checker cannot verify it. A return more than 3 business days after its
+receipt is not shown to be a rejection or a reg 7.07G(3) refund, so its line is
+`UNKNOWN`. The checker does not say the credit is gone or that it stands. These
+periods use the national calendar, and the ATO measures the fund's period by holidays
+in the fund's location, so a regional holiday can give a fund one more day than this
+allows. A self-managed fund has longer under reg 7.07H, and the input does not name
+the fund type, so the same 3 business days apply. A row with no events is not held
+for this period: its receipt date keeps its existing reading as an eligible receipt.
 
 Where the fund kept part of a first contribution, a later receipt between the end
 of the usual period and the 20th business day stays `UNKNOWN`: LCR 2026/2 paragraph
@@ -146,8 +158,8 @@ supply. The Python package, the MCP server and the Excel workbook do not read a
 return at all, so a returned receipt entered there still reads as received.
 
 **Unaffected.** The deadline never moves for a return or for late notice. A returned
-amount never counts as credit, never confirms an item 4 extension and is excluded
-whatever the as-at date.
+amount never produces `ON_TIME` or `LATE` on its own, never confirms an item 4
+extension and is excluded whatever the as-at date.
 
 **Where it surfaces at runtime.** The caveats column holds the ordered trail and the
 reason for the verdict. An unresolved row names its candidate verdicts and exits 2.
