@@ -150,6 +150,13 @@ fn questions_and_complete_actual_stdio_context_match_original() {
         assert_eq!(value, before);
         *value = Value::String(after.into());
     }
+    // Reviewed native engine correction, afa19a4 (#474): the ATO moved this page.
+    let medicare = &mut expected["calculation_worksheets"]["medicare_levy"]["sources"][3];
+    assert_eq!(
+        medicare,
+        "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/lump-sum-payment-in-arrears-tax-offsets"
+    );
+    *medicare = Value::String("https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/lump-sum-payment-in-arrears".into());
     assert_eq!(actual, expected);
 }
 

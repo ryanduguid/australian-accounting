@@ -237,7 +237,7 @@ fn unknown_arguments_and_expected_input_errors_leave_the_session_usable() {
         replay(vec![
             json!({"label":"original-boundary-errors-and-recovery","exchanges":exchanges})
         ]),
-        39
+        40
     );
 }
 

@@ -90,9 +90,6 @@ fn frozen_effective_adapter_contracts() {
                 );
                 expected["structuredContent"]["source_checked"] = json!("2026-10-20");
             }
-            if name == "calculate_tax_worksheet" {
-                expected = moved_lump_sum_page(&expected);
-            }
             if name == "build_payday_super_evidence_pack" {
                 native_pack(&mut expected["structuredContent"]["files"]);
             }
@@ -111,7 +108,11 @@ fn frozen_effective_adapter_contracts() {
             assert_eq!(text, actual["structuredContent"]);
             actual["content"] = json!([]);
         }
-        let mut expected = expected;
+        let mut expected = if name == "calculate_tax_worksheet" {
+            moved_lump_sum_page(&expected)
+        } else {
+            expected
+        };
         if expected["isError"] == false
             && !(name == "build_payday_super_evidence_pack"
                 && case["request"]["arguments"]["response_detail"] == "compact")
@@ -236,13 +237,13 @@ fn native_freshness(result: &mut Value) {
     for row in result["datasets"].as_array_mut().unwrap() {
         row["engine_version"] = json!("1.0.0");
         let provenance = &mut row["provenance"];
-        if let Some(tables) = provenance["tables"].as_array_mut() {
-            for table in tables {
+        if let Some(tables) = provenance.get_mut("tables") {
+            for table in tables.as_array_mut().unwrap() {
                 table["uri"] = json!("data/benchmark_rates.csv");
             }
         }
-        if provenance["table"].is_object() {
-            provenance["table"]["uri"] = json!("data/gic_rates.json");
+        if let Some(table) = provenance.get_mut("table") {
+            table["uri"] = json!("data/gic_rates.json");
         }
         if row["dataset"] == "tax_worksheet:study_loan_repayment" {
             row["sources"][0] = json!(

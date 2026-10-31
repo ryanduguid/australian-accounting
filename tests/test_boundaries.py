@@ -70,7 +70,7 @@ NATIVE_CANDIDATES = {"packages/lodgment-calendar", "apps/aus-accounting-mcp"}
 RUST_ENGINES = {
     manifest.parent.relative_to(ROOT).as_posix(): manifest.parent.name
     for manifest in sorted(ROOT.glob("packages/*/Cargo.toml"))
-    if manifest.parent.relative_to(ROOT).as_posix() not in DATASETS | NATIVE_CANDIDATES
+    if manifest.parent.relative_to(ROOT).as_posix() not in set(DATASETS) | NATIVE_CANDIDATES
 }
 ENGINES = PYTHON_ENGINES | RUST_ENGINES
 APPLICATIONS = {

@@ -1,9 +1,9 @@
 {
   "base": "3f7815b",
   "catalogue_sha256": "2f78eb00d01a1d9df6a86540cb742fae821ac51562a58811af69f91bb3471a76",
-  "wire_transcript_sha256": "68814836f86b0d5b913f24eaa7c5f1caae6c6e550aba00bc05fa2d48a46fdcc5",
+  "wire_transcript_sha256": "2d7f9fb8a586f1d319c7253a252c5b993c6deade68656c14030fe68584c04434",
   "full_effective_contracts_sha256": "4141727745a0e3693e22a91aa24181ff99da1ee5b88581a0ca54162b75f7c28f",
-  "native_fixture_sha256": "10a91054883da23b2528b1149d7b897d105e5aaa8898ad3f810e3ae37e244a9f",
+  "native_fixture_sha256": "4742f2b1c03744d9d8a4f2bb3b8953e6bc35c61f8ca9ddb5d53fe5c63efb2290",
   "capture": "The unchanged Python application passed all 1,083 original tests under read-only instrumentation. Original-only additional captures cover effective validation, fabricated retrieval and protocol boundaries. All expected values were frozen before native comparison.",
   "fixture_scope": "856 non-retrieval effective SDK calls, 6 resources, 34 prompts, 241 retrieval cases plus 3 large-catalogue provenance cases and 1,175 JSON-RPC replies across 34 sessions. Complete results/refusals are compared, with only the identities and provenance allowances in NATIVE.md. Additional negative schema, extension and CLI assertions are in boundary_contracts.rs. This does not assert every original test is covered.",
   "oracle_sha256": {
@@ -20,7 +20,7 @@
     "wire-coverage-v1.json": "621f21c655294a4d55bf119f49a750e956f6601e640556fbe226de4af310aea4"
   },
   "fixture_sha256": {
-    "tests/fixtures/native/adapter-contracts.json": "10a91054883da23b2528b1149d7b897d105e5aaa8898ad3f810e3ae37e244a9f",
+    "tests/fixtures/native/adapter-contracts.json": "4742f2b1c03744d9d8a4f2bb3b8953e6bc35c61f8ca9ddb5d53fe5c63efb2290",
     "tests/fixtures/native/calvino-followups.json": "1aca4f3563ddbfa5e63115ea1fc8cb06dc548d4dfc6419d2e49cb16e24355a40",
     "tests/fixtures/native/coverage-edges.json": "6676a59037ac1d851b3d4be588b62fdaf7f002896885305cbef70c82fd4d0828",
     "tests/fixtures/native/legacy-openers.json": "d592d59fa8cb7fec48371134d52b764ea14a1ded245d86a10d68eed7e985def5",
@@ -31,8 +31,8 @@
     "tests/fixtures/native/retrieval-contracts.json": "aab49f78d1b4a691568a4855a730f5b75a6fed10dea1dbb05458f45a0bc7ffdb",
     "tests/fixtures/native/retrieval-edges.json": "88ef46aad5fd09b3952ddb8ad68ffbf3528c7eb6892a63b79b50279e82647e3f",
     "tests/fixtures/native/validation-edges.json": "b50c86b340df2b0af7c2107ffc578862de57cd2a02da9d8983ab5cc6549ddd7a",
-    "tests/fixtures/native/wire-coverage.json": "6b0e861b6297e7b96b414f864a8537cfd21ec91027d1d6f8572d909236efee27",
-    "tests/fixtures/native/wire-sessions.json": "68814836f86b0d5b913f24eaa7c5f1caae6c6e550aba00bc05fa2d48a46fdcc5",
+    "tests/fixtures/native/wire-coverage.json": "ed1069b318b5fe433db32d5ef18d09445636b61d9cc1850e8311bf21f04d136e",
+    "tests/fixtures/native/wire-sessions.json": "2d7f9fb8a586f1d319c7253a252c5b993c6deade68656c14030fe68584c04434",
     "tests/fixtures/native/freshness-contracts.json": "9a12b4991ddf1e6bb2e3f4a62a506c422a378481910003f3bd56365db2797482"
   },
   "data_sha256": {

@@ -139,6 +139,9 @@ class RustEngineTests(unittest.TestCase):
         self.assertIn("package: lodgeit-calculator-adapter\n", (workflows / "ci-lodgeit-adapter.yml").read_text())
         self.assertIn('pattern: "${{ needs.crates.outputs.parity }}-${{ matrix.os }}"', caller)
         for crate in crates:
+            # A native candidate's Python component keeps its own CI callers.
+            if f"{crate['root']}/{crate['package']}" in NATIVE_CANDIDATES:
+                continue
             with self.subTest(crate=crate["package"]):
                 self.assertNotIn(f"package: {crate['package']}\n", caller)
         by_name = {crate["package"]: crate for crate in crates}
