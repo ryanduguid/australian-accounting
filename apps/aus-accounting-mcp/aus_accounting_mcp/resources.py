@@ -105,6 +105,10 @@ def scope() -> dict[str, Any]:
             "not BAS preparation or revision.",
             "get_lodgment_due_dates": "List ATO 2026-27 lodgment program due dates for BAS, "
             "IAS and income tax returns, with UNKNOWN where a fact is missing.",
+            "validate_abn": "Test an ABN's check digit; proves neither ABR nor GST "
+            "registration.",
+            "validate_acn": "Test an ACN's check digit; proves neither ABR nor GST "
+            "registration.",
             "calculate_tax_worksheet": "Run one of the bounded calculation_worksheets below.",
             "get_data_freshness": "Report each bundled dataset's recorded periods, engine "
             "version and source dates, with UNKNOWN where none is recorded; never a "

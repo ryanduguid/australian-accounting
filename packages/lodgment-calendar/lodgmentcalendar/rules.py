@@ -125,6 +125,16 @@ SOURCES: dict[str, tuple[str, str]] = {
         "dates, table 'Dates and types of lodgment for self-preparers' (last updated 30 May "
         "2026)",
     ),
+    "fbt_self": (
+        _ATO + "/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/"
+        "fbt-registration-lodgment-payment-and-reporting/lodging-your-fbt-return-and-paying",
+        "Due date to lodge your return and pay (last updated 10 September 2026)",
+    ),
+    "fbt_agent": (
+        _PROGRAM + "/due-dates-by-obligation-type/fbt-return",
+        "FBT return: lodgment and payment due dates; client list by 21 May (last updated 1 "
+        "July 2026)",
+    ),
     "holidays": (HOLIDAY_SOURCE, HOLIDAY_PROVISION),
 }
 
@@ -166,6 +176,8 @@ FACT_MEANINGS: dict[str, str] = {
     "withholding or PAYG instalment obligation",
     "annual_turnover_up_to_10m": "annual turnover is up to $10 million",
     "deferred_gst_registered": "the business is registered for deferred GST",
+    "on_fbt_client_list_by_21_may": "the tax agent was appointed for the client's FBT role and "
+    "had the client on its FBT client list by 21 May",
 }
 
 
@@ -192,6 +204,7 @@ class Facts:
     includes_monthly_payg_obligation: bool | None = None
     annual_turnover_up_to_10m: bool | None = None
     deferred_gst_registered: bool | None = None
+    on_fbt_client_list_by_21_may: bool | None = None
 
 
 @dataclass(frozen=True)

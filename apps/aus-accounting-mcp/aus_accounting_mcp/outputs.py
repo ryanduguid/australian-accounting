@@ -899,6 +899,30 @@ class Div7aReview(RootModel[ReviewSummary | ReviewFull]):
         return value
 
 
+class IdentifierCheck(ResultObject):
+    ok: Annotated[Literal[True], Field(description="The check ran; not that the number passed.")]
+    identifier: Literal["ABN", "ACN"]
+    result: Annotated[
+        Literal["CHECK_DIGIT_VALID", "CHECK_DIGIT_INVALID", "MALFORMED"],
+        Field(description="Outcome of the arithmetic; never a registration status."),
+    ]
+    check_digit_valid: bool
+    formatted: Annotated[
+        str | None, Field(description="The digits in the usual groups; null when malformed.")
+    ]
+    reason: str
+    abr_registration_established: Annotated[
+        Literal[False], Field(description="A check digit never establishes ABR registration.")
+    ]
+    gst_registration_established: Annotated[
+        Literal[False], Field(description="A check digit never establishes GST registration.")
+    ]
+    not_established: Annotated[str, Field(description="Retain when presenting the result.")]
+    source_url: str
+    source_provision: str
+    source_checked: DateText
+
+
 class ScopeRefusal(ResultObject):
     ok: Annotated[Literal[False], Field(description="Unsupported request was refused.")]
     available: Annotated[

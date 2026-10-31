@@ -125,6 +125,8 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `review_gst_coding` | Give each coded bank line a review state against supplied GST registration dates. |
 | `reconcile_bas` | Compare lodged BAS label figures with ledger lines per period. |
 | `get_lodgment_due_dates` | List ATO 2026-27 lodgment program due dates for BAS, IAS and income tax returns, self-lodged or through an agent, with `UNKNOWN` where a fact is missing. |
+| `validate_abn` | Test an ABN against ABN Lookup's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
+| `validate_acn` | Test an ACN against ASIC's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, best match first. |

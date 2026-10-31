@@ -176,6 +176,37 @@ fn the_readme_lists_each_refusal_and_avoids_the_wrong_names() {
 }
 
 #[test]
+fn the_bendel_note_separates_the_holding_the_ato_view_and_what_stays_undecided() {
+    let readme = flat(README);
+    let start = readme.find("## Unpaid present entitlements after").unwrap();
+    let end = readme.find("## The shortfall is not the dividend").unwrap();
+    let note = &readme[start..end];
+    for phrase in [
+        "[2026] HCA 18",
+        "10 June 2026",
+        "dismissed 5 to 2",
+        "read at source on 31 October 2026",
+        "adds no calculation",
+        "subject to formal revision",
+        "'when a private company does nothing' ([72])",
+        "Subdivision EA",
+        "26 June 2026",
+        "is the Commissioner's view, not the Court's holding",
+        "TD 2022/11",
+        "whether an unpaid present entitlement, or any dealing with one, is a loan under s 109D(3)",
+        "whether Subdivision EA, including s 109XA, or s 100A applies",
+    ] {
+        assert_in(phrase, note, "the Bendel note");
+    }
+    assert_in("[2026] HCA 18", &flat(DISCLAIMER), "DISCLAIMER");
+    assert_in(
+        "See [*Bendel*](#unpaid-present-entitlements-after-bendel)",
+        README,
+        "the refusal table",
+    );
+}
+
+#[test]
 fn the_house_files_cover_the_required_ground() {
     let disclaimer = flat(DISCLAIMER);
     for phrase in [

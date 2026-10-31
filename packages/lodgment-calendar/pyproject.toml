@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "lodgment-calendar"
 version = "0.1.0"
-description = "ATO lodgment program due dates for BAS, IAS and income tax returns, with cited rules and UNKNOWN for missing facts. Preparation aid, not a determination."
+description = "ATO lodgment program due dates for BAS, IAS, income tax and FBT returns, with cited rules and UNKNOWN for missing facts. Preparation aid, not a determination."
 readme = "README.md"
 requires-python = ">=3.14"
 license = "FSL-1.1-ALv2"

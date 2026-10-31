@@ -59,7 +59,7 @@ def test_rule_source_and_roll_are_in_the_description():
     assert "Rule: AS-Q-28" in description
     assert "before the next-business-day roll: 2027-02-28" in description
     assert re.search(r"Source: .*https://www\.ato\.gov\.au/", description)
-    assert "Source checked: 2026-10-28" in description
+    assert "Source checked: 2026-10-31" in description
     assert "guide only" in description
     assert rolled["SUMMARY"].endswith(": lodgment")
 
