@@ -950,6 +950,40 @@ fn attach_events_bytes(
     let Some(fieldnames) = reader.fieldnames().map(<[String]>::to_vec) else {
         return Err(csv_error(format!("{path} has no header row")).into());
     };
+    check_event_columns(path, &fieldnames)?;
+    let mut problems: Vec<String> = Vec::new();
+    let mut i: i64 = 1;
+    let mut any = false;
+    while let Some(raw) = reader.next_row()? {
+        i += 1;
+        any = true;
+        let mut row: DictRow = Vec::new();
+        for (k, v) in raw {
+            dict_set(&mut row, k.map(|k| pytext::strip(&k).to_string()), v);
+        }
+        if let Some(problem) = malformed_row_problem(&row, i) {
+            problems.push(problem);
+            continue;
+        }
+        match read_event(&row, i) {
+            Err(Failure::Value(m)) => problems.push(m),
+            Err(other) => return Err(other.into()),
+            Ok((employee, qe_day, event)) => {
+                attach_event(lines, &employee, qe_day, event, i, &mut problems);
+            }
+        }
+    }
+    if !problems.is_empty() {
+        return Err(problems_error(&problems, path).into());
+    }
+    if !any {
+        return Err(csv_error(format!("{path} has a header but no data rows")).into());
+    }
+    Ok(())
+}
+
+/// Refuse an events header with an unknown, repeated or missing column.
+fn check_event_columns(path: &str, fieldnames: &[String]) -> std::result::Result<(), Failed> {
     let named: Vec<String> = fieldnames
         .iter()
         .map(|h| pytext::strip(h).to_string())
@@ -983,53 +1017,37 @@ fn attach_events_bytes(
         ))
         .into());
     }
-    let mut problems: Vec<String> = Vec::new();
-    let mut i: i64 = 1;
-    let mut any = false;
-    while let Some(raw) = reader.next_row()? {
-        i += 1;
-        any = true;
-        let mut row: DictRow = Vec::new();
-        for (k, v) in raw {
-            dict_set(&mut row, k.map(|k| pytext::strip(&k).to_string()), v);
-        }
-        if let Some(problem) = malformed_row_problem(&row, i) {
-            problems.push(problem);
-            continue;
-        }
-        match read_event(&row, i) {
-            Err(Failure::Value(m)) => problems.push(m),
-            Err(other) => return Err(other.into()),
-            Ok((employee, qe_day, event)) => {
-                let matching: Vec<usize> = (0..lines.len())
-                    .filter(|&l| lines[l].employee_id == employee && lines[l].qe_day == qe_day)
-                    .collect();
-                match matching[..] {
-                    [only] => lines[only].events.push(event),
-                    [] => problems.push(format!(
-                        "event row {i}: no contribution row has employee_id {} and payment \
-                         date {}, and an event is never dropped",
-                        pytext::repr(&employee),
-                        qe_day.isoformat()
-                    )),
-                    _ => problems.push(format!(
-                        "event row {i}: {} contribution rows have employee_id {} and payment \
-                         date {}, so the event cannot be applied to one of them",
-                        matching.len(),
-                        pytext::repr(&employee),
-                        qe_day.isoformat()
-                    )),
-                }
-            }
-        }
-    }
-    if !problems.is_empty() {
-        return Err(problems_error(&problems, path).into());
-    }
-    if !any {
-        return Err(csv_error(format!("{path} has a header but no data rows")).into());
-    }
     Ok(())
+}
+
+/// Give the event to the one line it names, or record why it cannot go on one.
+fn attach_event(
+    lines: &mut [ContribLine],
+    employee: &str,
+    qe_day: Date,
+    event: ContribEvent,
+    i: i64,
+    problems: &mut Vec<String>,
+) {
+    let matching: Vec<usize> = (0..lines.len())
+        .filter(|&l| lines[l].employee_id == employee && lines[l].qe_day == qe_day)
+        .collect();
+    match matching[..] {
+        [only] => lines[only].events.push(event),
+        [] => problems.push(format!(
+            "event row {i}: no contribution row has employee_id {} and payment \
+             date {}, and an event is never dropped",
+            pytext::repr(employee),
+            qe_day.isoformat()
+        )),
+        _ => problems.push(format!(
+            "event row {i}: {} contribution rows have employee_id {} and payment \
+             date {}, so the event cannot be applied to one of them",
+            matching.len(),
+            pytext::repr(employee),
+            qe_day.isoformat()
+        )),
+    }
 }
 
 fn read_event(row: &DictRow, i: i64) -> Result<(String, Date, ContribEvent)> {

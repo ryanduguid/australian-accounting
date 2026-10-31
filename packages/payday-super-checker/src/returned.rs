@@ -11,7 +11,9 @@
 use crate::Result;
 use crate::calendar::BusinessCalendar;
 use crate::csv_io::{cents, money, zero};
-use crate::deadlines::{ContribLine, EventKind, receipt_amount_cap, receipt_amount_evidenced};
+use crate::deadlines::{
+    ContribEvent, ContribLine, EventKind, receipt_amount_cap, receipt_amount_evidenced,
+};
 use crate::decimal::Decimal;
 use crate::py::Date;
 
@@ -175,6 +177,22 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
         return Ok(problems);
     }
     let mut received_days: Vec<Date> = line.received.into_iter().collect();
+    let allocations = check_each_event(line, &mut received_days, &mut problems)?;
+    let known = receipts(line)?;
+    check_allocation_totals(line, allocations, &known, &mut problems)?;
+    check_named_receipts(line, &received_days, &mut problems)?;
+    check_kept_amounts(line, &known, &mut problems)?;
+    Ok(problems)
+}
+
+/// Check each event against the ones before it. Adds to `received_days` and
+/// returns the receipt days that allocations name.
+fn check_each_event(
+    line: &ContribLine,
+    received_days: &mut Vec<Date>,
+    problems: &mut Vec<String>,
+) -> Result<Vec<Date>> {
+    let row = line.row;
     let mut returns: Vec<(Option<Date>, Date)> = Vec::new();
     let mut allocations: Vec<Date> = Vec::new();
     let mut entries: Vec<(Date, Date, String)> = Vec::new();
@@ -206,30 +224,57 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
                 returns.push((receipt, event.date));
             }
             EventKind::Allocated { receipt } => {
-                let entry = (receipt, event.date, money(Some(&event.amount))?);
-                if entries.contains(&entry) {
-                    problems.push(format!(
-                        "{at}: this repeats an allocation of ${} dated {} from the {} receipt, \
-                         which could count one fund record twice. Remove the duplicate, or \
-                         consolidate genuine equal allocations into one row with their total",
-                        entry.2,
-                        event.date.isoformat(),
-                        receipt.isoformat()
-                    ));
-                }
-                entries.push(entry);
+                check_allocated_event(event, receipt, &at, &mut entries, problems)?;
                 allocations.push(receipt);
-                if event.date < receipt {
-                    problems.push(format!(
-                        "{at}: the allocation dated {} is before the receipt it names ({})",
-                        event.date.isoformat(),
-                        receipt.isoformat()
-                    ));
-                }
+                check_allocated_date(event, receipt, &at, problems);
             }
         }
     }
-    let known = receipts(line)?;
+    Ok(allocations)
+}
+
+/// Refuse an allocation that repeats an earlier one exactly.
+fn check_allocated_event(
+    event: &ContribEvent,
+    receipt: Date,
+    at: &str,
+    entries: &mut Vec<(Date, Date, String)>,
+    problems: &mut Vec<String>,
+) -> Result<()> {
+    let entry = (receipt, event.date, money(Some(&event.amount))?);
+    if entries.contains(&entry) {
+        problems.push(format!(
+            "{at}: this repeats an allocation of ${} dated {} from the {} receipt, \
+             which could count one fund record twice. Remove the duplicate, or \
+             consolidate genuine equal allocations into one row with their total",
+            entry.2,
+            event.date.isoformat(),
+            receipt.isoformat()
+        ));
+    }
+    entries.push(entry);
+    Ok(())
+}
+
+/// Refuse an allocation dated before the receipt it names.
+fn check_allocated_date(event: &ContribEvent, receipt: Date, at: &str, problems: &mut Vec<String>) {
+    if event.date < receipt {
+        problems.push(format!(
+            "{at}: the allocation dated {} is before the receipt it names ({})",
+            event.date.isoformat(),
+            receipt.isoformat()
+        ));
+    }
+}
+
+/// Refuse allocations of a receipt that total more than the fund kept of it.
+fn check_allocation_totals(
+    line: &ContribLine,
+    mut allocations: Vec<Date>,
+    known: &[Receipt],
+    problems: &mut Vec<String>,
+) -> Result<()> {
+    let row = line.row;
     allocations.sort();
     allocations.dedup();
     for day in allocations {
@@ -248,6 +293,16 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
             ));
         }
     }
+    Ok(())
+}
+
+/// Check each return against the receipt it names, or against naming none.
+fn check_named_receipts(
+    line: &ContribLine,
+    received_days: &[Date],
+    problems: &mut Vec<String>,
+) -> Result<()> {
+    let row = line.row;
     for event in &line.events {
         let EventKind::Returned { receipt, notified } = event.kind else {
             continue;
@@ -255,27 +310,7 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
         let at = format!("row {row}, event row {}", event.row);
         match receipt {
             Some(day) => {
-                if !received_days.contains(&day) {
-                    problems.push(format!(
-                        "{at}: the return names a receipt dated {} that this payday does \
-                         not record",
-                        day.isoformat()
-                    ));
-                }
-                if event.date < day {
-                    problems.push(format!(
-                        "{at}: the return dated {} is before the receipt it names ({})",
-                        event.date.isoformat(),
-                        day.isoformat()
-                    ));
-                }
-                if notified.is_some_and(|n| n < day) {
-                    problems.push(format!(
-                        "{at}: the employer cannot be told of a return before the receipt \
-                         it names ({})",
-                        day.isoformat()
-                    ));
-                }
+                check_named_receipt(event, day, notified, &at, received_days, problems);
             }
             None => {
                 if received_days.iter().any(|d| *d <= event.date) {
@@ -292,8 +327,50 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
             }
         }
     }
+    Ok(())
+}
+
+/// Check a return against the receipt it names.
+fn check_named_receipt(
+    event: &ContribEvent,
+    day: Date,
+    notified: Option<Date>,
+    at: &str,
+    received_days: &[Date],
+    problems: &mut Vec<String>,
+) {
+    if !received_days.contains(&day) {
+        problems.push(format!(
+            "{at}: the return names a receipt dated {} that this payday does \
+             not record",
+            day.isoformat()
+        ));
+    }
+    if event.date < day {
+        problems.push(format!(
+            "{at}: the return dated {} is before the receipt it names ({})",
+            event.date.isoformat(),
+            day.isoformat()
+        ));
+    }
+    if notified.is_some_and(|n| n < day) {
+        problems.push(format!(
+            "{at}: the employer cannot be told of a return before the receipt \
+             it names ({})",
+            day.isoformat()
+        ));
+    }
+}
+
+/// Refuse returns above a receipt, and receipts left above the SG amount.
+fn check_kept_amounts(
+    line: &ContribLine,
+    known: &[Receipt],
+    problems: &mut Vec<String>,
+) -> Result<()> {
+    let row = line.row;
     let mut kept = zero();
-    for r in &known {
+    for r in known {
         if r.returned.gt(&r.amount)? {
             problems.push(format!(
                 "row {row}: the returns of the receipt dated {} total ${}, more than the \
@@ -315,7 +392,7 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
             money(Some(&line.sg_amount))?
         ));
     }
-    Ok(problems)
+    Ok(())
 }
 
 /// The line's receipts and returns in date order, for the reader and the pack.
