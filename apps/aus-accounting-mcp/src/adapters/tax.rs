@@ -23,6 +23,21 @@ const MONEY: &[&str] = &[
     "low_tax_contributions",
 ];
 
+/// The engine's worksheets this server's input schema can reach. The engine can
+/// hold kinds the published contract does not advertise yet.
+pub fn advertised_worksheets() -> Result<Value, String> {
+    let mut catalogue =
+        australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({}))?;
+    let spec =
+        crate::contracts::tool("calculate_tax_worksheet").ok_or("calculate_tax_worksheet")?;
+    let advertised = &spec["inputSchema"]["properties"]["facts"]["discriminator"]["mapping"];
+    catalogue
+        .as_object_mut()
+        .ok_or("worksheet catalogue")?
+        .retain(|kind, _| advertised.get(kind).is_some());
+    Ok(catalogue)
+}
+
 pub fn calculate(input: &Value) -> Result<Value, String> {
     let mut facts = input["facts"].clone();
     let object = facts.as_object_mut().unwrap();

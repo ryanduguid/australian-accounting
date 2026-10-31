@@ -1,11 +1,12 @@
 //! Translation only. All statutory calculation and provenance belong to engines.
 mod benchmarks;
 mod div7a;
+mod freshness;
 mod gst;
 mod money;
 mod payday;
 mod synthetic;
-mod tax;
+pub(crate) mod tax;
 
 use serde_json::{Value, json};
 
@@ -20,6 +21,7 @@ pub fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
         "list_ato_benchmark_industries" => benchmarks::list(input),
         "get_ato_benchmarks" => benchmarks::compare(input),
         "calculate_tax_worksheet" => tax::calculate(input),
+        "get_data_freshness" => freshness::report(input),
         "review_gst_coding" => gst::coding(input),
         "reconcile_bas" => gst::bas(input),
         "generate_synthetic_sbr_fixture" => synthetic::generate(input),

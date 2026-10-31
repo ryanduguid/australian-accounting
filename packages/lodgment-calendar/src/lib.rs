@@ -12,7 +12,14 @@ use serde_json::Value;
 use std::sync::OnceLock;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
-const CHECKED: &str = "2026-10-20";
+const CHECKED: &str = "2026-10-28";
+
+/// What the program records about its period and sources, for a freshness report.
+pub fn provenance() -> Value {
+    serde_json::json!({"program_year":"2026-27","activity_year":"2026-27","return_year":"2025-26",
+        "covers_from":"2026-07-01","covers_to":"2027-06-30","source_checked":CHECKED,
+        "sources":data()["sources"],"holiday_provision":data()["holiday_provision"]})
+}
 
 fn data() -> &'static Value {
     static DATA: OnceLock<Value> = OnceLock::new();

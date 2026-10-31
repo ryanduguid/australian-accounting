@@ -23,8 +23,7 @@ pub fn read(uri: &str) -> Result<Value, String> {
         .clone();
     match uri {
         "aus-accounting://scope" => {
-            value["calculation_worksheets"] =
-                australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({}))?;
+            value["calculation_worksheets"] = crate::adapters::tax::advertised_worksheets()?;
             for name in RETRIEVAL_FOLDERS {
                 let configured = std::env::var_os(name)
                     .filter(|s| !s.is_empty())

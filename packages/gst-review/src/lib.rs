@@ -18,6 +18,13 @@ use std::sync::OnceLock;
 pub type Result<T> = std::result::Result<T, String>;
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// The rule sources and their check date, for a freshness report.
+pub fn provenance() -> Value {
+    let (coding, bas) = (&constants()["coding"], &constants()["bas"]);
+    serde_json::json!({"sources":[coding["GST_ACT"],bas["ATO_BAS_METHOD"],bas["ATO_BAS_INSTRUCTIONS"]],
+        "source_checked":coding["SOURCE_CHECKED"]})
+}
+
 fn constants() -> &'static Value {
     static CONSTANTS: OnceLock<Value> = OnceLock::new();
     CONSTANTS.get_or_init(|| serde_json::from_str(include_str!("constants.json")).unwrap())
