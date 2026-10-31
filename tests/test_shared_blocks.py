@@ -256,6 +256,13 @@ class RustCopyTests(unittest.TestCase):
                         _rust_function(reference, function), _rust_function(copy, function)
                     )
 
+    def test_the_engines_no_network_harness_is_identical(self) -> None:
+        marker = "// Everything below is the same in every engine;"
+        copies = {path.parent.parent.name: path.read_text(encoding="utf-8").split(marker)[1]
+                  for path in PACKAGES.glob("*/tests/no_network.rs")}
+        self.assertEqual(len(copies), 8)
+        self.assertEqual(len(set(copies.values())), 1, sorted(copies))
+
     def test_a_function_ends_at_its_own_closing_brace(self) -> None:
         text = "fn a() {\n    x\n}\n\npub fn b() {\n}\n"
         self.assertEqual(_rust_function(text, "a"), "fn a() {\n    x\n}\n")
