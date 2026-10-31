@@ -170,7 +170,7 @@ MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server]
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
 `div7a-loan-review`, `australian-tax-calculators` and `gst-review` distributions. In
 the development workspace, uv takes `gst-review` 0.1.0 and `australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2,
-`ato-benchmark-compare` 0.2.2 and `payday-super-checker` 0.2.2, the last Python
+`ato-benchmark-compare` 0.2.2 and `payday-super-checker` 0.2.3, the last Python
 releases, from PyPI.
 
 The uv workspace continues to develop the Python engines and applications; the

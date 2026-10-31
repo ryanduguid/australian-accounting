@@ -2,12 +2,12 @@
   "schema_version": 1,
   "server": {
     "distribution": "aus-accounting-mcp",
-    "version": "0.7.0",
+    "version": "0.7.1",
     "repository": "https://github.com/ryanduguid/australian-accounting",
-    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.7.0/",
+    "pypi": "https://pypi.org/project/aus-accounting-mcp/0.7.1/",
     "registry_identity": "io.github.ryanduguid/aus-accounting",
-    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.7.0",
-    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.0"
+    "registry": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.7.1",
+    "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.1"
   },
   "engines": [
     {
@@ -24,9 +24,9 @@
     },
     {
       "distribution": "payday-super-checker",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker",
-      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.2.2"
+      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.2.3"
     },
     {
       "distribution": "australian-tax-calculators",

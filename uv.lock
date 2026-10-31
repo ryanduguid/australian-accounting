@@ -67,7 +67,7 @@ wheels = [
 
 [[package]]
 name = "aus-accounting-mcp"
-version = "0.7.0"
+version = "0.7.1"
 source = { editable = "apps/aus-accounting-mcp" }
 dependencies = [
     { name = "ato-benchmark-compare" },
@@ -101,7 +101,7 @@ requires-dist = [
     { name = "lodgment-calendar", editable = "packages/lodgment-calendar" },
     { name = "mcp", specifier = ">=2.3.0,<3" },
     { name = "nodejs-wheel-binaries", marker = "extra == 'dev'", specifier = "==24.19.0" },
-    { name = "payday-super-checker", specifier = "==0.2.2" },
+    { name = "payday-super-checker", specifier = "==0.2.3" },
     { name = "pillow", marker = "extra == 'dev'", specifier = "==13.0.0" },
     { name = "pyright", extras = ["nodejs"], marker = "extra == 'dev'", specifier = "==1.1.414" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
@@ -589,11 +589,11 @@ wheels = [
 
 [[package]]
 name = "payday-super-checker"
-version = "0.2.2"
+version = "0.2.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bc/e1/52e8c7cc1aa14695ebbd5c19fbfb9707d285887a5ea69eaab6d63886d6b1/payday_super_checker-0.2.2.tar.gz", hash = "sha256:48d220235c694796f31bb0b27c556f8e5182e1986ad02ee136d0ff6e7df90362", size = 342237, upload-time = "2026-10-19T14:06:45.997Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/07/30/2a4a51b7a26fd6e07ec6bb6fa3bf14b1fb9e0e9e25c1e71baef6709f83a3/payday_super_checker-0.2.3.tar.gz", hash = "sha256:8e613c5094d4cc8224c63230380ab2c03ef52d52fbcc268f16adb0b1e9322dd5", size = 342273, upload-time = "2026-10-30T09:27:04.141Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4b/78/0faa20845867ba110e6f25bcabe181de5c62c4bd2de94100ef7226d88b2a/payday_super_checker-0.2.2-py3-none-any.whl", hash = "sha256:93a98fb4b1f89299ade87da5584236f790b02628cc206171c8d4f2e4c11409b7", size = 124629, upload-time = "2026-10-19T14:06:44.637Z" },
+    { url = "https://files.pythonhosted.org/packages/d3/75/b05759519938137202dbc099437ccb04f0c8e28cedb7a041dc6b08644796/payday_super_checker-0.2.3-py3-none-any.whl", hash = "sha256:ea9f4411d49384040e70cf9d7de279ad771245717ed8ac691ea24af4a1937040", size = 124641, upload-time = "2026-10-30T09:27:02.828Z" },
 ]
 
 [[package]]
