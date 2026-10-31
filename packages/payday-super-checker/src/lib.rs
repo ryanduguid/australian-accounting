@@ -32,6 +32,7 @@ mod pyunicode;
 pub mod rates;
 mod raw;
 pub mod report;
+pub mod returned;
 pub mod sgc;
 mod strptime_table;
 mod tables;

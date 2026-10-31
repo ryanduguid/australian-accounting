@@ -201,7 +201,7 @@ fn the_calendar_regeneration_guidance_uses_the_locked_environment() {
 #[test]
 fn the_limitations_register_names_its_entries_and_conditions() {
     let register = read("LIMITATIONS.md");
-    for entry in ["PSC-1", "PSC-2"] {
+    for entry in ["PSC-1", "PSC-2", "PSC-3"] {
         assert!(register.contains(entry));
     }
     assert_eq!(register.matches("**Unaffected by ").count(), 2);

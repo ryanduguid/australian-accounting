@@ -8,10 +8,26 @@ their flags, help, validation, console output, written files and exit codes.
 The former API functions are JSON stdin subcommands, documented in README.md.
 No deadline, business-day, GIC, notional-earnings, uplift, rounding, refusal or
 message rule is intentionally changed, except the Employment Hero Beam
-status below.
+status and the returned contributions below.
 
 ### Added
 
+- A contribution a fund returned can no longer stay `ON_TIME`. The optional
+  `returned_by_fund` column leaves a row `UNKNOWN`, attention-driving and with no
+  exposure. `--events`, on the check and `evidence-pack` commands, takes dated,
+  amount-specific returns and fund receipts: partial returns, no double counting,
+  late notification and the first eligible contribution, against the unchanged
+  deadline. On a line with a return, a kept receipt is `UNKNOWN` until an `allocated`
+  event shows the fund allocated it, a late receipt allocated only on or after the
+  assessment date has its figures withheld, and a return more than 3 business days after
+  its receipt stays `UNKNOWN`. A file whose return column the mapping cannot read is
+  refused. The JSON `assess` subcommand takes the same facts as `returned_by_fund`
+  and `events` on a line. Sources are in
+  `docs/primary-source-review-2026-10-31.md`; limits are PSC-3 in `LIMITATIONS.md`.
+- `import` writes `returned_by_fund=yes` for Beam's 'Sent to fund with refund', in
+  a column that appears only when a row needs it. It says no supported export
+  carries a fund receipt date, because only the shipped profiles were inspected.
+  Profiles may list `refund_unreconciled` values under `remitted_status`.
 - `derive` writes a due-date derivation for one contribution: the input, eight
   steps each naming the SGAA 1992 provision or instrument it applies, and the
   deadline. `verify` rederives a saved derivation offline and names the first

@@ -14,7 +14,7 @@ use crate::calendar::BusinessCalendar;
 use crate::csv_io::zero;
 use crate::decimal::Decimal;
 use crate::py::Date;
-use crate::{Failure, Result, py};
+use crate::{Failure, Result, py, returned};
 
 pub const REGIME_START: Date = Date {
     year: 2026,
@@ -55,6 +55,38 @@ pub struct ContribLine {
     pub duplicate_note: String,
     pub matched_amount: Option<Decimal>,
     pub join_caveats: Vec<String>,
+    /// A fund or clearing house says some of this contribution came back.
+    pub returned_by_fund: bool,
+    /// Dated, amount-specific receipts, returns and allocations beyond the row's
+    /// own columns.
+    pub events: Vec<ContribEvent>,
+    /// `assess` found a return not shown to be a rejection or a reg 7.07G(3) refund.
+    pub return_not_shown: bool,
+}
+
+/// What happened to some of a line's money.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum EventKind {
+    /// The fund received this amount on the event's date.
+    Received,
+    /// The fund returned this amount on the event's date. `receipt` names the
+    /// receipt it came out of; none says no receipt is on record for it.
+    Returned {
+        receipt: Option<Date>,
+        notified: Option<Date>,
+    },
+    /// The fund's records show it allocated this amount of `receipt` on the
+    /// event's date.
+    Allocated { receipt: Date },
+}
+
+#[derive(Clone, Debug)]
+pub struct ContribEvent {
+    pub kind: EventKind,
+    pub date: Date,
+    pub amount: Decimal,
+    /// The event's row in its own file; 0 for one supplied through the API.
+    pub row: i64,
 }
 
 /// The most a receipt date on this row can evidence.
@@ -260,28 +292,61 @@ fn item4_evidence(
     possible_due: Date,
     as_at: Option<Date>,
 ) -> Result<Evidence> {
-    if line.sg_amount.le(&zero())? || line.db_interest || receipt_amount_cap(line).le(&zero())? {
+    if line.sg_amount.le(&zero())? || line.db_interest {
         return Ok(Evidence::Impossible);
     }
     let earliest = earliest_prepayment_day(line.qe_day)?;
-    if let Some(receipt) = line.received {
-        if receipt < earliest {
-            return Ok(Evidence::Impossible);
-        }
+    let receipt_evidence = |receipt: Date| {
         if as_at.is_none_or(|a| receipt <= a) {
             if receipt < line.qe_day || receipt <= confirmed_due {
-                return Ok(Evidence::Confirmed);
+                return Evidence::Confirmed;
             }
             if receipt > possible_due {
-                return Ok(Evidence::Impossible);
+                return Evidence::Impossible;
             }
+            return Evidence::Possible;
+        }
+        if receipt <= possible_due {
+            Evidence::Possible
+        } else {
+            Evidence::Impossible
+        }
+    };
+    if returned::carries_return_facts(line) {
+        // A returned amount is not an eligible contribution, so only what the
+        // fund kept can confirm item 4, and not while that is unknown.
+        if returned::cannot_reconcile(line) {
             return Ok(Evidence::Possible);
         }
-        return Ok(if receipt <= possible_due {
+        for r in returned::receipts(line)? {
+            if r.date >= earliest && r.eligible()?.gt(&zero())? {
+                let evidence = receipt_evidence(r.date);
+                // On a line with a return, a receipt confirms nothing until the
+                // fund's allocation of it shows it was an eligible contribution.
+                let by = as_at.map_or(confirmed_due, |a| a.min(confirmed_due));
+                let unproven = returned::has_return_event(line)
+                    && r.eligible()?.gt(&returned::allocated(line, r.date, by)?)?;
+                return Ok(if unproven && matches!(evidence, Evidence::Confirmed) {
+                    Evidence::Possible
+                } else {
+                    evidence
+                });
+            }
+        }
+        return Ok(if as_at.is_none_or(|a| a <= possible_due) {
             Evidence::Possible
         } else {
             Evidence::Impossible
         });
+    }
+    if receipt_amount_cap(line).le(&zero())? {
+        return Ok(Evidence::Impossible);
+    }
+    if let Some(receipt) = line.received {
+        if receipt < earliest {
+            return Ok(Evidence::Impossible);
+        }
+        return Ok(receipt_evidence(receipt));
     }
     if line.remitted.is_some_and(|r| r > possible_due) {
         return Ok(Evidence::Impossible);
@@ -431,6 +496,9 @@ mod tests {
             duplicate_note: String::new(),
             matched_amount: None,
             join_caveats: Vec::new(),
+            returned_by_fund: false,
+            events: Vec::new(),
+            return_not_shown: false,
         }
     }
 

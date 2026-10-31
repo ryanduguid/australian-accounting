@@ -8,13 +8,14 @@ use std::collections::BTreeSet;
 
 use crate::csvread::{self, Reader};
 use crate::dates;
-use crate::deadlines::ContribLine;
+use crate::deadlines::{ContribEvent, ContribLine};
 use crate::decimal::{Decimal, Rounding};
 use crate::py::Date;
 use crate::pyjson;
 use crate::pyre::Regex;
 use crate::pytext;
 use crate::raw::Raw;
+use crate::returned;
 use crate::{Failure, OsError, Result, repr_list, sorted_strings};
 
 /// Characters Excel and Sheets can evaluate at the start of a cell.
@@ -81,7 +82,7 @@ pub fn csv_safe(text: &str) -> String {
 }
 
 /// The canonical fields, in order, and whether each is required.
-pub const CANONICAL: [(&str, bool); 12] = [
+pub const CANONICAL: [(&str, bool); 13] = [
     ("employee_id", true),
     ("qe_day", true),
     ("sg_amount", true),
@@ -94,9 +95,10 @@ pub const CANONICAL: [(&str, bool); 12] = [
     ("remitted_amount", false),
     ("matched_amount", false),
     ("join_caveats", false),
+    ("returned_by_fund", false),
 ];
 
-pub const DEFAULT_MAPPING: [(&str, &str); 12] = [
+pub const DEFAULT_MAPPING: [(&str, &str); 13] = [
     ("employee_id", "employee_id"),
     ("qe_day", "payment_date"),
     ("sg_amount", "sg_amount"),
@@ -109,6 +111,7 @@ pub const DEFAULT_MAPPING: [(&str, &str); 12] = [
     ("remitted_amount", "remitted_amount"),
     ("matched_amount", "matched_amount"),
     ("join_caveats", "join_caveats"),
+    ("returned_by_fund", "returned_by_fund"),
 ];
 
 pub const TRUE_WORDS: [&str; 5] = ["y", "yes", "true", "1", "t"];
@@ -703,6 +706,29 @@ fn parse_rows_bytes(
         .into());
     }
 
+    // A return column the mapping cannot read would turn a returned contribution
+    // back into an ordinary one, so it stops the file. A file without it reads
+    // as no return, which is the only case the default covers.
+    let unread: Vec<&String> = named
+        .iter()
+        .filter(|h| {
+            h.chars()
+                .filter(|c| c.is_alphanumeric())
+                .flat_map(char::to_lowercase)
+                .eq("returnedbyfund".chars())
+                && !(mapping.has("returned_by_fund") && mapping.get("returned_by_fund") == *h)
+        })
+        .collect();
+    if !unread.is_empty() {
+        return Err(csv_error(format!(
+            "{path} has a return column the mapping does not read: {}. Ignoring it could \
+             read a returned contribution as received. Map it with \
+             --map returned_by_fund=COLUMN, or remove it.",
+            repr_list(&sorted_strings(unread))
+        ))
+        .into());
+    }
+
     let mut lines = Vec::new();
     let mut problems: Vec<String> = Vec::new();
     let mut i: i64 = 1;
@@ -864,6 +890,13 @@ fn read_line(
         Some(parse_date(&next_raw, "next_standard_qe_day", i)?)
     };
     let db_interest = parse_bool(&optional("db_interest")?, "db_interest", i)?;
+    // Mappings saved before this field exist. `parse_rows_bytes` has already
+    // refused a file that carries the column such a mapping cannot read.
+    let returned_by_fund = parse_bool(
+        &optional("returned_by_fund").unwrap_or_default(),
+        "returned_by_fund",
+        i,
+    )?;
     Ok(ContribLine {
         employee_id: employee,
         qe_day,
@@ -879,7 +912,189 @@ fn read_line(
         duplicate_note: String::new(),
         matched_amount,
         join_caveats,
+        returned_by_fund,
+        events: Vec::new(),
+        return_not_shown: false,
     })
+}
+
+/// The event file's columns, each with whether a row must fill it.
+const EVENT_COLUMNS: [(&str, bool); 7] = [
+    ("employee_id", true),
+    ("payment_date", true),
+    ("event", true),
+    ("event_date", true),
+    ("amount", true),
+    ("receipt_date", false),
+    ("notified_date", false),
+];
+
+/// Read the events file and attach each event to the one line it names. An
+/// event that names no line, or more than one, is refused rather than dropped.
+pub fn attach_events(path: &str, lines: &mut [ContribLine]) -> Result<()> {
+    let data = read_bytes(path)?;
+    match attach_events_bytes(path, &data, lines) {
+        Err(Failed::Read(ReadFailure::Decode { byte, start })) => Err(not_utf8(path, byte, start)),
+        Err(Failed::Read(ReadFailure::Csv(m))) => Err(csv_module_error(&m)),
+        Err(Failed::Engine(f)) => Err(f),
+        Ok(()) => Ok(()),
+    }
+}
+
+fn attach_events_bytes(
+    path: &str,
+    data: &[u8],
+    lines: &mut [ContribLine],
+) -> std::result::Result<(), Failed> {
+    let mut reader = DictReader::new(data)?;
+    let Some(fieldnames) = reader.fieldnames().map(<[String]>::to_vec) else {
+        return Err(csv_error(format!("{path} has no header row")).into());
+    };
+    check_event_columns(path, &fieldnames)?;
+    let mut problems: Vec<String> = Vec::new();
+    let mut i: i64 = 1;
+    let mut any = false;
+    while let Some(raw) = reader.next_row()? {
+        i += 1;
+        any = true;
+        let mut row: DictRow = Vec::new();
+        for (k, v) in raw {
+            dict_set(&mut row, k.map(|k| pytext::strip(&k).to_string()), v);
+        }
+        if let Some(problem) = malformed_row_problem(&row, i) {
+            problems.push(problem);
+            continue;
+        }
+        match read_event(&row, i) {
+            Err(Failure::Value(m)) => problems.push(m),
+            Err(other) => return Err(other.into()),
+            Ok((employee, qe_day, event)) => {
+                attach_event(lines, &employee, qe_day, event, i, &mut problems);
+            }
+        }
+    }
+    if !problems.is_empty() {
+        return Err(problems_error(&problems, path).into());
+    }
+    if !any {
+        return Err(csv_error(format!("{path} has a header but no data rows")).into());
+    }
+    Ok(())
+}
+
+/// Refuse an events header with an unknown, repeated or missing column.
+fn check_event_columns(path: &str, fieldnames: &[String]) -> std::result::Result<(), Failed> {
+    let named: Vec<String> = fieldnames
+        .iter()
+        .map(|h| pytext::strip(h).to_string())
+        .collect();
+    let known = |h: &str| EVENT_COLUMNS.iter().any(|(c, _)| *c == h);
+    let mut bad: Vec<String> = named.iter().filter(|h| !known(h)).cloned().collect();
+    for (i, h) in named.iter().enumerate() {
+        if named[..i].contains(h) {
+            bad.push(h.clone());
+        }
+    }
+    let absent: Vec<&str> = EVENT_COLUMNS
+        .iter()
+        .filter(|(c, required)| *required && !named.iter().any(|h| h == c))
+        .map(|(c, _)| *c)
+        .collect();
+    if !bad.is_empty() || !absent.is_empty() {
+        return Err(csv_error(format!(
+            "{path} needs the columns {} with optional {}. Unknown or repeated: {}; \
+             missing: {}",
+            repr_list(&[
+                "employee_id",
+                "payment_date",
+                "event",
+                "event_date",
+                "amount"
+            ]),
+            repr_list(&["receipt_date", "notified_date"]),
+            repr_list(&bad),
+            repr_list(&absent)
+        ))
+        .into());
+    }
+    Ok(())
+}
+
+/// Give the event to the one line it names, or record why it cannot go on one.
+fn attach_event(
+    lines: &mut [ContribLine],
+    employee: &str,
+    qe_day: Date,
+    event: ContribEvent,
+    i: i64,
+    problems: &mut Vec<String>,
+) {
+    let matching: Vec<usize> = (0..lines.len())
+        .filter(|&l| lines[l].employee_id == employee && lines[l].qe_day == qe_day)
+        .collect();
+    match matching[..] {
+        [only] => lines[only].events.push(event),
+        [] => problems.push(format!(
+            "event row {i}: no contribution row has employee_id {} and payment \
+             date {}, and an event is never dropped",
+            pytext::repr(employee),
+            qe_day.isoformat()
+        )),
+        _ => problems.push(format!(
+            "event row {i}: {} contribution rows have employee_id {} and payment \
+             date {}, so the event cannot be applied to one of them",
+            matching.len(),
+            pytext::repr(employee),
+            qe_day.isoformat()
+        )),
+    }
+}
+
+fn read_event(row: &DictRow, i: i64) -> Result<(String, Date, ContribEvent)> {
+    let cell = |column: &str| -> String {
+        row.iter()
+            .find(|(k, _)| k.as_deref() == Some(column))
+            .map(|(_, v)| match v {
+                Cell::Value(s) => pytext::strip(s).to_string(),
+                _ => String::new(),
+            })
+            .unwrap_or_default()
+    };
+    let at = format!("event row {i}");
+    let required = |column: &str| -> Result<String> {
+        let value = cell(column);
+        if value.is_empty() {
+            return Err(csv_error(format!("{at}: {column} is empty")));
+        }
+        Ok(value)
+    };
+    let employee = required("employee_id")?;
+    let qe_day = parse_date(&required("payment_date")?, "payment_date", i)?;
+    let kind_text = required("event")?;
+    let date = parse_date(&required("event_date")?, "event_date", i)?;
+    let amount = parse_amount(&required("amount")?, "amount", i, true)?;
+    let optional_date = |column: &str| -> Result<Option<Date>> {
+        let value = cell(column);
+        if value.is_empty() {
+            Ok(None)
+        } else {
+            parse_date(&value, column, i).map(Some)
+        }
+    };
+    let receipt = optional_date("receipt_date")?;
+    let notified = optional_date("notified_date")?;
+    let kind = returned::event_kind(&kind_text, receipt, notified)
+        .map_err(|m| csv_error(format!("{at}: {m}")))?;
+    Ok((
+        employee,
+        qe_day,
+        ContribEvent {
+            kind,
+            date,
+            amount,
+            row: i,
+        },
+    ))
 }
 
 /// An `OSError` from reading `path`.

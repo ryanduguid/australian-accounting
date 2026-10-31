@@ -34,6 +34,8 @@ pub struct SuperRow {
     pub amount: Decimal,
     pub row: i64,
     pub unpaid_status: Option<String>,
+    /// The vendor status says a fund returned part of this payment's batch.
+    pub refund_unreconciled: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -45,6 +47,7 @@ pub struct MatchOutcome {
     pub last_known_paid_date: Option<Date>,
     pub remitted_amount: Option<Decimal>,
     pub matched_amount: Option<Decimal>,
+    pub refund_unreconciled: bool,
 }
 
 pub const ORPHAN_NO_PAYDAY: &str = "no payday matched";
@@ -488,6 +491,7 @@ pub fn join(
                 last_known_paid_date: None,
                 remitted_amount: None,
                 matched_amount: Some(zero()),
+                refund_unreconciled: false,
             });
             continue;
         }
@@ -500,6 +504,7 @@ pub fn join(
                 last_known_paid_date: None,
                 remitted_amount: None,
                 matched_amount: Some(zero()),
+                refund_unreconciled: false,
             });
             continue;
         }
@@ -563,6 +568,9 @@ pub fn join(
             last_known_paid_date: last_known,
             remitted_amount,
             matched_amount: Some(matched_amount),
+            refund_unreconciled: entries
+                .iter()
+                .any(|(si, _, _)| super_rows[*si].refund_unreconciled),
         });
     }
 
@@ -608,6 +616,7 @@ mod tests {
             amount: Decimal::parse("612.00").unwrap(),
             row: 2,
             unpaid_status: None,
+            refund_unreconciled: false,
         }
     }
 

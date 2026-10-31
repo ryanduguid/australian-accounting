@@ -152,6 +152,12 @@ fn check_parser(evidence_pack: bool) -> Parser {
                 "override one column mapping; repeatable (e.g. --map qe_day=PayDate)",
             ),
             opt(
+                kind_opt(&["--events"], "events", "EVENTS", Kind::Store),
+                false,
+                "CSV of dated, amount-specific fund receipts and returns for the rows in \
+                 the input (see README). An event that matches no row is refused",
+            ),
+            opt(
                 kind_opt(
                     &["--holidays-override"],
                     "holidays_override",
@@ -944,6 +950,7 @@ fn check_main(args: &[String], evidence_pack: bool) -> (i32, String, String) {
         for (value, label) in [
             (Some(csv_path.as_str()), "the input file"),
             (parsed.get("mapping_file"), "the --mapping-file input"),
+            (parsed.get("events"), "the --events input"),
             (
                 parsed.get("holidays_override"),
                 "the --holidays-override input",
@@ -965,7 +972,10 @@ fn check_main(args: &[String], evidence_pack: bool) -> (i32, String, String) {
         }
         let overrides = parsed.lists.get("map").cloned().unwrap_or_default();
         let mapping = csv_io::load_mapping(parsed.get("mapping_file"), &overrides)?;
-        let lines = csv_io::parse_rows(&csv_path, &mapping)?;
+        let mut lines = csv_io::parse_rows(&csv_path, &mapping)?;
+        if let Some(events) = parsed.get("events") {
+            csv_io::attach_events(events, &mut lines)?;
+        }
         let cal = calendar::load_calendar(parsed.get("holidays_override"))?;
         let gic = rates::load_gic()?;
         let rates = if evidence_pack {
@@ -1194,8 +1204,8 @@ fn import_main(args: &[String]) -> (i32, String, String) {
         profile_line("super", &report.super_profile),
         format!("employee matching: by {}", report.key_mode),
         String::new(),
-        "No payroll or clearing-house export carries a fund receipt date, so \
-         fund_received_date is written blank on every row. The checker's \
+        "No supported payroll or clearing-house export carries a fund receipt date, \
+         so fund_received_date is written blank on every row. The checker's \
          deadline tests receipt by the fund, not remittance -- fill that \
          column in from your fund or clearing house before relying on any \
          verdict it produces."

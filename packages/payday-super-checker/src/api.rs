@@ -10,7 +10,7 @@ use crate::Failure;
 use crate::assess::{self, Assessed, Options};
 use crate::calendar::{self, BusinessCalendar, Holiday};
 use crate::csv_io::{self, Mapping};
-use crate::deadlines::{self, ContribLine, Deadline};
+use crate::deadlines::{self, ContribEvent, ContribLine, Deadline, EventKind};
 use crate::decimal::Decimal;
 use crate::evidence_pack::{self, PackFacts};
 use crate::importers;
@@ -20,6 +20,7 @@ use crate::profiles::{self, Profile};
 use crate::py::Date;
 use crate::rates::{self, GicQuarter, GicTable, TableSource};
 use crate::report::{self, Figures, NoteFacts, SummaryFacts};
+use crate::returned;
 use crate::sgc;
 
 type Result<T> = std::result::Result<T, String>;
@@ -242,7 +243,48 @@ fn line_of(v: &Value) -> Result<ContribLine> {
         duplicate_note: text_or(v, "duplicate_note", "")?.to_string(),
         matched_amount: optional_decimal(v, "matched_amount")?,
         join_caveats: strings(v, "join_caveats")?,
+        returned_by_fund: flag(v, "returned_by_fund")?,
+        events: match v.get("events") {
+            None | Some(Value::Null) => Vec::new(),
+            Some(Value::Array(items)) => items.iter().map(event_of).collect::<Result<_>>()?,
+            Some(_) => return Err("events must be a list of events".into()),
+        },
+        return_not_shown: false,
     })
+}
+
+fn event_of(v: &Value) -> Result<ContribEvent> {
+    let kind = returned::event_kind(
+        text(v, "event")?,
+        optional_date(v, "receipt_date")?,
+        optional_date(v, "notified_date")?,
+    )?;
+    Ok(ContribEvent {
+        kind,
+        date: date(v, "event_date")?,
+        amount: decimal(v, "amount")?,
+        row: 0,
+    })
+}
+
+fn event_json(event: &ContribEvent) -> Value {
+    let mut out = json!({
+        "event_date": event.date.isoformat(),
+        "amount": event.amount.to_sci_string(),
+    });
+    match event.kind {
+        EventKind::Received => out["event"] = json!("received"),
+        EventKind::Returned { receipt, notified } => {
+            out["event"] = json!("returned");
+            out["receipt_date"] = iso(receipt);
+            out["notified_date"] = iso(notified);
+        }
+        EventKind::Allocated { receipt } => {
+            out["event"] = json!("allocated");
+            out["receipt_date"] = iso(Some(receipt));
+        }
+    }
+    out
 }
 
 fn lines_of(v: &Value) -> Result<Vec<ContribLine>> {
@@ -253,7 +295,7 @@ fn lines_of(v: &Value) -> Result<Vec<ContribLine>> {
 }
 
 fn line_json(line: &ContribLine) -> Value {
-    json!({
+    let mut out = json!({
         "employee_id": line.employee_id,
         "qe_day": line.qe_day.isoformat(),
         "sg_amount": line.sg_amount.to_sci_string(),
@@ -268,7 +310,14 @@ fn line_json(line: &ContribLine) -> Value {
         "duplicate_note": line.duplicate_note,
         "matched_amount": dec(line.matched_amount.as_ref()),
         "join_caveats": line.join_caveats,
-    })
+    });
+    if line.returned_by_fund {
+        out["returned_by_fund"] = json!(true);
+    }
+    if !line.events.is_empty() {
+        out["events"] = line.events.iter().map(event_json).collect();
+    }
+    out
 }
 
 /// A selector for bundled data: absent or `null` selects the bundled table,
@@ -494,9 +543,13 @@ fn profile_json(p: &Profile) -> Value {
         "columns": p.columns.iter().map(|(f, h)| json!([f, h])).collect::<Vec<_>>(),
         "date_formats": p.date_formats,
         "sg_filter": p.sg_filter.as_ref().map(|f| json!({"column": f.column, "include": f.include})),
-        "remitted_status": p.remitted_status.as_ref().map(|s| json!({
-            "column": s.column, "sent": s.sent, "not_sent": s.not_sent,
-        })),
+        "remitted_status": p.remitted_status.as_ref().map(|s| {
+            let mut out = json!({"column": s.column, "sent": s.sent, "not_sent": s.not_sent});
+            if !s.refund_unreconciled.is_empty() {
+                out["refund_unreconciled"] = json!(s.refund_unreconciled);
+            }
+            out
+        }),
         "notes": p.notes,
     })
 }
@@ -517,7 +570,7 @@ fn payroll_json(r: &PayrollRow) -> Value {
 }
 
 fn super_json(r: &SuperRow) -> Value {
-    json!({
+    let mut out = json!({
         "employee_id": r.employee_id,
         "employee_name": r.employee_name,
         "period_start": iso(r.period_start),
@@ -526,7 +579,11 @@ fn super_json(r: &SuperRow) -> Value {
         "amount": r.amount.to_sci_string(),
         "row": r.row,
         "unpaid_status": r.unpaid_status,
-    })
+    });
+    if r.refund_unreconciled {
+        out["refund_unreconciled"] = json!(true);
+    }
+    out
 }
 
 fn payroll_of(v: &Value) -> Result<PayrollRow> {
@@ -550,6 +607,7 @@ fn super_of(v: &Value) -> Result<SuperRow> {
         amount: decimal(v, "amount")?,
         row: required_int(v, "row")?,
         unpaid_status: optional_text(v, "unpaid_status")?.map(str::to_string),
+        refund_unreconciled: flag(v, "refund_unreconciled")?,
     })
 }
 

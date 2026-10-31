@@ -62,6 +62,9 @@ fn line_of(input: &Value) -> Result<ContribLine, String> {
         duplicate_note: String::new(),
         matched_amount: None,
         join_caveats: Vec::new(),
+        returned_by_fund: false,
+        events: Vec::new(),
+        return_not_shown: false,
     })
 }
 

@@ -126,12 +126,73 @@ relying on their verdicts.
 **Status.** Open, by design. The tool reports what it matched on rather than
 refusing an export that a firm cannot re-run.
 
+## PSC-3 Returned contributions rest on the rows and events you supply
+
+**Trigger.** A row with `returned_by_fund=yes`, or any `--events` file.
+
+**Effect.** Each event is applied to the one row it names. LCR 2026/2 paragraph 33
+applies contributions automatically to the earliest QE day with a shortfall, so a
+return on one payday can move later money onto it, and the later payday then falls
+short. The checker does not move money between rows. A resubmission with no fund
+receipt has no event, so its row stays `UNKNOWN`. A line whose kept receipts do not
+cover the SG amount is `UNKNOWN` with no exposure, even after the deadline. Its
+caveat states the s 18C base shortfall that applies if the events are complete.
+
+On a line with a return event, a kept receipt reads `ON_TIME` or `LATE` only with an
+`allocated` event from the fund's records covering it by the as-at date; otherwise
+the line is `UNKNOWN`. The checker relies on that event as supplied and cannot verify
+it. A timely receipt allocated only after its deadline stays `UNKNOWN`, which also
+holds back a routine allocation of a receipt that arrived close to the deadline. A
+`LATE` row is measured to the receipt, so a receipt that became allocable later would
+add days, and a caveat says so. A late receipt allocated only on or after the
+assessment date stays `UNKNOWN` with its figures withheld, because the s 18D reduction
+is not shown. Identical `allocated` entries (same receipt, date and amount) are refused
+as possible duplicates, so consolidate genuine equal allocations into one row with their
+total. Unequal same-day entries are added together, with a caveat asking the reader to
+check them. The same amount entered on 2 different dates is also added, with no caveat,
+so a duplicate with a mistaken date can still produce a wrong `ON_TIME`. An allocation
+later reversed by a partial refund is refused, because
+allocations cannot total more than the fund kept: record the return and only the
+allocation that stands after it.
+
+A return more than 3 business days after its receipt is not shown to be a rejection
+or a reg 7.07G(3) refund, so its line is `UNKNOWN`. The checker does not say the
+credit is gone or that it stands. This test uses the national calendar and the same 3
+days for every fund, although the ATO counts holidays in the fund's location and an
+SMSF has longer under reg 7.07H. It can leave a genuine rejection `UNKNOWN`, but
+cannot produce `ON_TIME`.
+
+A line with no return event is not held for allocation: its receipt date keeps its
+existing reading as an eligible receipt. An undisclosed return therefore still reads
+`ON_TIME` when nothing in the file records it.
+
+Where the fund kept part of a first contribution, a later receipt between the end
+of the usual period and the 20th business day stays `UNKNOWN`: LCR 2026/2 paragraph
+54 says it is not on time, and the s 6(1) late period has not started. A payment
+that becomes allocable after it arrives (paragraph 20) is tested on the date you
+supply. The Python package, the MCP server and the Excel workbook do not read a
+return at all, so a returned receipt entered there still reads as received.
+
+**Unaffected.** The deadline never moves for a return or for late notice. A returned
+amount never produces `ON_TIME` or `LATE` on its own, never confirms an item 4
+extension and is excluded whatever the as-at date.
+
+**Where it surfaces at runtime.** The caveats column holds the ordered trail and the
+reason for the verdict. An unresolved row names its candidate verdicts and exits 2.
+
+**Operator step.** Reconcile each return against the fund's error message or the
+clearing house batch history. Check the statutory allocation for every affected
+payday before relying on a row. Read
+[the source record](docs/primary-source-review-2026-10-31.md).
+
+**Status.** Open. The rules a source does not settle are left unresolved, not guessed.
+
 ## Not limitations
 
 Recorded here so they are not re-audited:
 
-- **Fund receipt dates are blank on every import.** No payroll or clearing
-  house export carries one, and the s 18C test is receipt by the fund. This is
+- **Fund receipt dates are blank on every import.** No supported payroll or
+  clearing house export carries one, and the s 18C test is receipt by the fund. This is
   the tool's central boundary, not a defect, and it is published on the
   [tool page](https://duguid.com.au/tools/payday-super/) and stated by the CLI
   on every import.
