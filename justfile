@@ -13,7 +13,6 @@
 components := trim(replace('''
 packages/lodgment-calendar:lodgmentcalendar
 apps/aus-accounting-mcp:aus_accounting_mcp
-apps/lodgeit-calculator-adapter:lodgeitadapter
 ''', "\n", " "))
 
 # List the available recipes.

@@ -27,10 +27,17 @@
 
 </div>
 
-Seven independently released Python engines that apply Australian tax and payroll
-rules to figures you supply, plus **Aus Accounting MCP**, a local Model Context
-Protocol server that hands those engines to an AI assistant. It serves Australian
-accountants and bookkeepers, and the developers who build tooling for them.
+Nine engines (8 in Rust, 1 in Python) that apply Australian tax and payroll rules
+to figures you supply, plus **Aus Accounting MCP**, a local Model Context Protocol
+server that gives an AI assistant the published Python releases of 6 of them; it
+loads none of the Rust crates yet. It serves Australian accountants and bookkeepers,
+and the developers who build tooling for them.
+
+```bash
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
+```
+
+That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
 
 Each tool returns a calculation, the facts it used and the matters it refuses to
 decide. The engines and the MCP server run locally: they read files you point them at, contact no
@@ -52,7 +59,7 @@ Synthetic examples. Accounting decisions stay with the reviewer.
 With [uv](https://docs.astral.sh/uv/) installed, [download the synthetic CSV](https://duguid.com.au/assets/examples/payday/timely_remittance_no_receipt.csv) as `timely_remittance_no_receipt.csv`. Open a terminal in that folder and run:
 
 ```bash
-uvx --from payday-super-checker==0.1.7 payday-super-check timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o payday-report.csv
+uvx --from payday-super-checker==0.2.3 payday-super-check timely_remittance_no_receipt.csv --as-at 2026-08-20 --confirm-remittance-only -o payday-report.csv
 ```
 
 This downloads the pinned PyPI package without cloning the repository. It writes `payday-report.csv` in the current folder, replacing that file if it exists. Open the report to see the due date and verdict.
@@ -68,7 +75,7 @@ The confirmation acknowledges the missing receipt; it does not establish payment
 
 [Read the 5-minute Payday Super case](packages/payday-super-checker/docs/manager-case-study.md) · [Division 7A repayment case](packages/div7a-loan-review/docs/manager-case-study.md) · [MCP setup](apps/aus-accounting-mcp/README.md#client-integration)
 
-The [recorded public evaluation](https://duguid.com.au/evaluate/payday-super-evidence/) uses release 0.1.3. Follow its fixed revision and commands to reproduce that historical run; the quick trial above uses release 0.1.7, which requires an evidenced amount alongside a fund-receipt date.
+The [recorded public evaluation](https://duguid.com.au/evaluate/payday-super-evidence/) uses release 0.1.3. Follow its fixed revision and commands to reproduce that historical run; the quick trial above uses release 0.2.3, which, like every release from 0.1.7, requires an evidenced amount alongside a fund-receipt date.
 
 ## Choose the next example
 
@@ -92,8 +99,8 @@ Codex, ChatGPT and Copilot without claiming equivalent tested behaviour.
 <details>
 <summary>Installation, component identities, integration and reference</summary>
 
-Development home for the Aus Accounting MCP application and 7 independently released
-Australian accounting engines. Each component keeps its own distribution name, version,
+Development home for the Aus Accounting MCP application and 9 Australian accounting
+engines. Each component keeps its own distribution name, version,
 lockfile, tests, release notes, commands and licence. There is no root distribution,
 shared runtime library or combined version.
 
@@ -161,19 +168,20 @@ For an editable source installation, run `pip install -e .` from
 | `packages/the-wip-tally/` | `the-wip-tally` (Rust) | none | `wip-tally` |
 | `apps/au-accounting/` | `au-accounting` (Rust) | none | `au-accounting`, one subcommand per Rust engine |
 | `packages/gst-review/` | `gst-review` (Rust) | none | `gst-review`: GST coding states against registration and BAS-to-ledger reconciliation |
-| `packages/lodgment-calendar/` | `lodgment-calendar` | `lodgmentcalendar` | Python function: ATO lodgment program due dates for BAS, IAS and income tax returns, `UNKNOWN` where a fact is missing |
+| `packages/lodgment-calendar/` | `lodgment-calendar` | `lodgmentcalendar` | Python function: ATO lodgment program due dates for BAS, IAS, income tax and FBT returns, `UNKNOWN` where a fact is missing |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` (Rust, not released) | none | `lodgeit-adapter`: optional adapter for a third-party calculator service; off by default, makes HTTP calls only when enabled (`LODGEIT_ADAPTER_ENABLED=1` or `--enable-network`) |
 | `packages/au-tax-rates-data/` | `au-tax-rates-data` (Rust, never released) | none | `rates validate`, `snapshot`, `check` and `ato-tables`: ATO rates and thresholds with verbatim source quotes, validated offline |
 
 `IMPORTS.md` records the source repository, commit and tree of every imported component. The
 MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest); it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
-`div7a-loan-review`, `australian-tax-calculators` and `gst-review` distributions. In
-the development workspace, uv takes `gst-review` 0.1.0 and `australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2,
+`div7a-loan-review`, `australian-tax-calculators`, `gst-review` and `lodgment-calendar`
+distributions. In the development workspace, uv takes `gst-review` 0.1.0 and
+`australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2,
 `ato-benchmark-compare` 0.2.2 and `payday-super-checker` 0.2.3, the last Python
 releases, from PyPI.
 
-The uv workspace continues to develop the Python engines and applications; the
+The uv workspace develops `lodgment-calendar` and the MCP application; the
 MCP server uses none of the Rust crates yet.
 
 ## Install the Rust engines
@@ -213,6 +221,9 @@ To skip local setup, [open the repository in GitHub Codespaces](https://codespac
 The devcontainer installs uv and runs `uv sync --locked`, so the fabricated examples
 above run as written. Codespaces usage counts against your own GitHub quota.
 
+The Codecov badge reports the Python components only. Each Rust crate's line coverage
+is held to a floor in CI, from `.github/ci/rust_coverage_floors.json`.
+
 ## Boundaries
 
 - The MCP application depends on engines only through their published distributions.
@@ -224,9 +235,10 @@ above run as written. Codespaces usage counts against your own GitHub quota.
 
 ## Releases
 
-Each component is released on its own namespaced tag `<component>/vX.Y.Z` by its own root
-workflow `.github/workflows/release-<component>.yml`, which calls the pinned Release Policy
-reusable workflow for that component directory only. `CONTRIBUTING.md` has the table.
+`aus-accounting-mcp` and `lodgment-calendar` are each released on a namespaced tag
+`<component>/vX.Y.Z` by their own root workflow `.github/workflows/release-<component>.yml`,
+which calls the pinned Release Policy reusable workflow for that component directory only.
+The 8 Rust engines have reserved tags and no publisher yet. `CONTRIBUTING.md` has the table.
 The rates dataset in `packages/au-tax-rates-data/` is never released.
 
 Each component's `LICENSE` applies to that component, and

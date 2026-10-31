@@ -39,6 +39,25 @@ jobs:
       - run: cargo +1.99 test --locked
       - run: cargo +1.99 build --locked --release
 
+  dependency-audit:
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: [glama-badge-server, glama-badge-worker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2.87.29
+        with:
+          tool: cargo-audit@0.22.2
+          fallback: none
+      - name: Audit Cargo lock
+        working-directory: tools/${{ matrix.tool }}
+        run: cargo audit --deny warnings
+
   worker:
     runs-on: ubuntu-latest
     timeout-minutes: 20

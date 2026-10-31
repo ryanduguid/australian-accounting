@@ -28,6 +28,11 @@ compute the lodgment day under section 109D(6), and does not touch section
 109C payments, section 109F forgiven debts, the interposed-entity rules in
 sections 109T to 109X, or unpaid present entitlements under section 109XA.
 
+*Commissioner of Taxation v Bendel* [2026] HCA 18 (10 June 2026) does not widen this scope.
+The engine does not decide whether an unpaid present entitlement or a dealing with one is a
+section 109D(3) loan, or whether Subdivision EA or section 100A applies. See the dated note
+in the README.
+
 It marks `UNKNOWN` or refuses where the supplied facts do not establish the
 statutory test. An `UNKNOWN` is a finding that work remains, not a soft pass.
 

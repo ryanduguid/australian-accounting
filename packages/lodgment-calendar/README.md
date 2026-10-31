@@ -1,7 +1,7 @@
 # Lodgment calendar
 
-`lodgment-calendar` works out lodgement and payment due dates for BAS, IAS and income tax
-returns under the ATO's 2026–27 lodgment program, for self-lodgers and for clients of
+`lodgment-calendar` works out lodgement and payment due dates for BAS, IAS, income tax and
+FBT returns under the ATO's 2026–27 lodgment program, for self-lodgers and for clients of
 registered tax and BAS agents. Each date carries its rule, the ATO page it comes from and
 the date that page was checked. A date that depends on a fact you did not supply, or that
 the ATO pages leave open, comes back `UNKNOWN` with the missing condition named.
@@ -50,18 +50,23 @@ Quarter 4 is `UNKNOWN` because the ATO marks 25 August 2027 'to be confirmed'.
 
 | Input | Values |
 | --- | --- |
-| `obligation` | `bas`, `ias` or `income_tax_return` |
+| `obligation` | `bas`, `ias`, `income_tax_return` or `fbt_return` |
 | `entity_type` | `individual`, `trust`, `partnership`, `company` or `smsf` |
-| `financial_year` | The year of the statement periods, or the income year a return covers, as `2026-27` |
+| `financial_year` | The year of the statement periods, the income year a return covers, or the FBT year ending 31 March, as `2026-27` |
 | `channel` | `self`, `tax_agent` or `bas_agent` (a BAS agent cannot lodge an income tax return) |
 | `reporting_cycle` | `monthly` or `quarterly`, for `bas` and `ias` only. A monthly `bas` reports GST monthly; other monthly activity statements are `ias`. For a consolidated head company, a quarterly `ias` is its PAYG instalment activity statement |
 | `facts` | A `Facts` with the conditions below; each is `True`, `False` or `None` (not supplied) |
 | `extra_holidays` | Up to 50 `date: name` holidays the ATO table does not list (see below) |
 | `holidays_complete_until` | A `date` to which the ATO table and `extra_holidays` hold every holiday (see below) |
 
-This release records statement periods in 2026-27 and income tax returns for the 2025-26
-income year, which are the returns the 2026–27 program covers. Any other year returns one
-`UNKNOWN` row.
+This release records statement periods in 2026-27, income tax returns for the 2025-26
+income year, which are the returns the 2026–27 program covers, and FBT returns for the FBT
+year ending 31 March 2027 (`2026-27`, the 2027 return). Any other year returns one `UNKNOWN`
+row.
+
+An FBT return is due on 21 May 2027 unless a tax agent lodges it electronically for a client
+on the agent's FBT client list by 21 May, when the ATO says the date is generally 25 June
+2027. A `bas_agent` row is `UNKNOWN`: the ATO's FBT pages name only tax agents.
 
 The `Facts` fields are the conditions the ATO pages make the dates depend on:
 `prior_returns_outstanding`, `overdue_returns_lodged_by_31_october`,
@@ -71,13 +76,13 @@ The `Facts` fields are the conditions the ATO pages make the dates depend on:
 `prior_year_non_taxable_or_refund`, `current_year_non_taxable_or_refund`,
 `consolidated_head_company`, `first_consolidated_return`, `lodges_electronically`,
 `previous_statement_lodged_electronically`, `includes_monthly_payg_obligation`,
-`annual_turnover_up_to_10m` and
-`deferred_gst_registered`. `FACT_MEANINGS` in `lodgmentcalendar.due_dates` gives the
+`annual_turnover_up_to_10m`, `deferred_gst_registered` and
+`on_fbt_client_list_by_21_may`. `FACT_MEANINGS` in `lodgmentcalendar.due_dates` gives the
 ATO's wording for each. Only the facts on a date's decision path are read; a `None` on
 that path makes the date `UNKNOWN`.
 
 Invalid inputs raise `ValueError`: an unknown value, a malformed year, a cycle on an
-income tax return, a BAS agent lodging an income tax return or a fact that is not
+income tax or FBT return, a BAS agent lodging an income tax return or a fact that is not
 `True`, `False` or `None`.
 
 ## Output
@@ -126,7 +131,7 @@ than one client; only its hash is written.
 
 The holiday calendar is the ATO's own: Tables 1 and 2 of
 [Lodgment and payment dates on weekends or public holidays](https://www.ato.gov.au/tax-and-super-professionals/for-tax-professionals/prepare-and-lodge/registered-agent-lodgment-program/lodgment-and-payment-dates-on-weekends-or-public-holidays),
-checked on 20 October 2026 and again on 28 October 2026. Under that page, a date that
+checked on 20 October 2026 and again on 28 and 31 October 2026. Under that page, a date that
 falls on a Saturday, a Sunday or a public holiday for the whole of any state or territory
 moves to the next business day for taxpayers in every state. The tables cover 1 July 2026 to 30 June 2027. A later date
 that is not a weekend cannot be shown to be a business day, so it is `UNKNOWN` with its
@@ -160,8 +165,8 @@ those you pass; the calendar takes that statement as given.
 Modelled rules, open questions and every source are listed in the
 [primary-source review](docs/primary-source-review-2026-10-20.md). The calendar does not
 model substituted accounting periods, companies that are not full self-assessment
-taxpayers, APRA-regulated funds, annual GST returns, instalment notices, FBT or other
-obligation types. It does not check whether the facts you pass are true, apply a
+taxpayers, APRA-regulated funds, annual GST returns, instalment notices, FBT instalments
+or other obligation types. It does not check whether the facts you pass are true, apply a
 client-specific date the ATO has set, or decide whether anything was lodged or paid on
 time.
 

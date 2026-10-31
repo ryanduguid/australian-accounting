@@ -165,7 +165,20 @@ copy without a download until the uv cache is cleaned.
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayment for one operator-supplied amalgamated loan | div7a-loan-review |
 | `refuse_div7a` | Refuse Division 7A matters outside the reviewed engine scope. Takes no arguments | MCP policy |
 | `generate_synthetic_sbr_fixture` | Synthetic CTR/BAS for agent tests (`synthetic: true`) | local fixture |
+| `validate_abn` | Test an ABN's check digit; proves neither ABR nor GST registration | local arithmetic |
+| `validate_acn` | Test an ACN's check digit; proves neither ABR nor GST registration | local arithmetic |
 | `get_data_freshness` | Report each bundled dataset's recorded periods, engine version, source URLs and retrieval and review dates, or `UNKNOWN` | every engine above |
+
+`validate_abn` and `validate_acn` return `CHECK_DIGIT_VALID`, `CHECK_DIGIT_INVALID` or
+`MALFORMED`. They run the arithmetic in ABN Lookup's
+[Format of the ABN](https://abr.business.gov.au/Help/AbnFormat) and Appendix D of ASIC's
+[EDGE Document Messages Specification 5.10](https://download.asic.gov.au/media/vy0ensam/els-document-messages-specification-v5-10.pdf),
+both read on 31 October 2026. They contact neither register. Every result carries
+`abr_registration_established: false`, `gst_registration_established: false` and a
+`not_established` statement to retain. Only spaces are removed from the input. An ABN with
+a leading zero fails, because ABR's first step of subtracting 1 from the first digit cannot
+give an 11 digit number. The arithmetic sits in this facade because no published engine
+holds it, and it has no rate, date or dataset to go stale.
 
 `get_data_freshness` reads only what the installed engines record: the ATO
 benchmark years, the Division 7A rate table, the Payday Super GIC quarters,
@@ -211,7 +224,7 @@ at the end. Limits must be integers from 1 to 100 and offsets non-negative integ
 Omitting `limit` or setting it to null preserves full-list calls; an offset still
 skips that many matching entries. Source metadata accompanies every page.
 
-Thirty-two fabricated, read-only agent evaluation questions are in
+Thirty-nine fabricated, read-only agent evaluation questions are in
 [evaluation/questions.xml](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/evaluation/questions.xml), each with its exact expected
 answer and the tools a correct answer needs. The normal pytest suite replays them
 through a real stdio MCP session using the locked engines, checking both the
@@ -365,10 +378,11 @@ Their rules and sources come from `australian-tax-calculators`. Broader classifi
 exemptions, BAS/returns, trusts, partnerships, SMSF fund tax and audit, the transfer
 balance cap and payroll tax remain unsupported. Reference text cannot establish calculation support.
 
-The evaluation includes 32 cases: 10 original workflows, 10 unsupported-topic
+The evaluation includes 39 cases: 10 original workflows, 10 unsupported-topic
 questions, grouped Payday, a tax worksheet, synthetic library retrieval, the
-Payday evidence pack, which needs checker evidence-pack support, and 8 synthetic
-legislation corpus cases covering citation, ranking, reading a long provision in
+Payday evidence pack, which needs checker evidence-pack support, a synthetic ruling
+paragraph, GST coding, BAS reconciliation, a lodgment due date, data freshness, 2
+identifier check digits and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
 parts, rates, definitions, an injected instruction, an undefined term and a
 stored rate's date.
 The unsupported-topic answers require no tool calls. The

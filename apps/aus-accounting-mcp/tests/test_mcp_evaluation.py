@@ -71,7 +71,7 @@ async def _answer(session, case):
                 "injected-instruction", "undefined-term", "stored-rate-date",
                 "ranked-provision", "long-provision", "ruling-paragraph",
                 "gst-coding", "bas-reconciliation", "lodgment-due-date",
-                "data-freshness"}:
+                "data-freshness", "abn-check-digit", "acn-check-digit"}:
         reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
         results = [await call(c["name"], **c["arguments"])
                    for c in json.loads(reference.text)]
@@ -82,6 +82,9 @@ async def _answer(session, case):
         if case == "data-freshness":
             assert results[0]["currency"] == "NOT_ESTABLISHED"
             return results[0]["datasets"][0]["as_at_status"]
+        if case in {"abn-check-digit", "acn-check-digit"}:
+            assert results[0]["gst_registration_established"] is False
+            return results[0]["result"]
         if case == "gst-coding":
             return results[0]["lines"][0]["state"]
         if case == "bas-reconciliation":

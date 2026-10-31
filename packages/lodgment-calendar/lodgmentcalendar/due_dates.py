@@ -17,20 +17,23 @@ from datetime import date
 from typing import Any
 
 from ._version import __version__
+from .fbt import fbt_rule
 from .holidays import COVERS_FROM, HOLIDAY_PROVISION, HOLIDAY_SOURCE, calendar, roll
 from .returns import return_rule
 from .rules import FACT_MEANINGS, SOURCES, Facts, Rule
 from .statements import statement_rules
 
-SOURCE_CHECKED = "2026-10-28"
+SOURCE_CHECKED = "2026-10-31"
 PROGRAM_YEAR = "2026-27"
 # The program dates cover activity statements for periods in 2026–27 and income
 # tax returns for the 2025–26 income year (the 2026 return).
 ACTIVITY_YEAR = "2026-27"
 RETURN_YEAR = "2025-26"
+# The FBT year ending 31 March 2027, whose return the ATO calls the 2027 return.
+FBT_YEAR = "2026-27"
 
 DETERMINED, UNKNOWN = "DETERMINED", "UNKNOWN"
-OBLIGATIONS = ("bas", "ias", "income_tax_return")
+OBLIGATIONS = ("bas", "ias", "income_tax_return", "fbt_return")
 ENTITY_TYPES = ("individual", "trust", "partnership", "company", "smsf")
 CHANNELS = ("self", "tax_agent", "bas_agent")
 CYCLES = ("monthly", "quarterly")
@@ -47,6 +50,9 @@ NOT_DECIDED = [
     "returns, instalment notices (forms R, S, T and N), PAYG instalments paid in 2 "
     "instalments or annually, deferred BAS payers (who pay monthly PAYG instalments on the "
     "28th) and every other obligation type.",
+    "Whether an employer must lodge an FBT return or send a notice of non-lodgment, FBT "
+    "instalments on activity statements, an extension of time for an FBT return, and state "
+    "or territory FBT nominations.",
     "Whether a lodgement or payment was on time, and any penalty or general interest charge.",
     "Disaster or other deferrals, and holidays proclaimed after the ATO published its "
     "2026–27 table.",
@@ -75,8 +81,9 @@ def due_dates(
 ) -> dict[str, Any]:
     """Return each lodgement, payment and concession date with its rule and status.
 
-    ``financial_year`` is the year of the periods (activity statements) or the income
-    year the return covers (income tax returns), in the form 2026-27.
+    ``financial_year`` is the year of the periods (activity statements), the income year
+    the return covers (income tax returns) or the FBT year ending 31 March (FBT returns,
+    so 2026-27 is the 2027 return), in the form 2026-27.
 
     ``extra_holidays`` adds public holidays for the whole of a state or territory that
     the ATO table does not list, by date and name. ``holidays_complete_until`` states
@@ -88,6 +95,8 @@ def due_dates(
     cal = calendar(extra_holidays, holidays_complete_until)
     if obligation == "income_tax_return":
         rows = _return_rows(entity_type, financial_year, channel, facts, cal)
+    elif obligation == "fbt_return":
+        rows = _fbt_rows(financial_year, channel, facts, cal)
     else:
         rows = _statement_rows(obligation, entity_type, financial_year, channel,
                                reporting_cycle, facts, cal)
@@ -125,6 +134,16 @@ def _return_rows(entity_type: str, financial_year: str, channel: str, facts: Fac
     for concession, needed in concessions:
         rows.append(_row(label, financial_year, "concession", concession, needed, cal=cal))
     return rows
+
+
+def _fbt_rows(financial_year: str, channel: str, facts: Facts,
+              cal: Calendar) -> list[dict[str, Any]]:
+    label = f"FBT return, FBT year {financial_year}"
+    if financial_year != FBT_YEAR:
+        return _rows(label, financial_year, _not_recorded(financial_year, FBT_YEAR), [], cal=cal)
+    rule, missing = fbt_rule(channel, facts)
+    return _rows(label, financial_year, rule, missing, family=_family("fbt", channel), cal=cal,
+                 pending_source="fbt_agent")
 
 
 def _statement_rows(obligation: str, entity_type: str, financial_year: str, channel: str,
@@ -166,10 +185,10 @@ def _check(obligation: str, entity_type: str, financial_year: object, channel: s
     match = _YEAR.fullmatch(financial_year) if isinstance(financial_year, str) else None
     if match is None or int(match[2]) != (int(match[1]) + 1) % 100:
         raise ValueError(f"financial_year must look like 2026-27; got {financial_year!r}")
-    if obligation == "income_tax_return":
+    if obligation in ("income_tax_return", "fbt_return"):
         if reporting_cycle is not None:
             raise ValueError("reporting_cycle applies only to bas and ias")
-        if channel == "bas_agent":
+        if obligation == "income_tax_return" and channel == "bas_agent":
             raise ValueError("a BAS agent cannot lodge an income tax return; use tax_agent")
     elif reporting_cycle not in CYCLES:
         raise ValueError(f"reporting_cycle must be one of {', '.join(CYCLES)} for "
@@ -203,10 +222,11 @@ Calendar = tuple[dict[date, str], date]
 
 
 def _rows(label: str, period: str, rule: Rule | None, missing: list[str], *, cal: Calendar,
-          family: str = "", pending_payment: str = "unknown") -> list[dict[str, Any]]:
+          family: str = "", pending_payment: str = "unknown",
+          pending_source: str = "about") -> list[dict[str, Any]]:
     if rule is None or missing:
         pending = Rule(family, "The date depends on facts not supplied: "
-                       + "; ".join(FACT_MEANINGS[name] for name in missing) + ".", "about")
+                       + "; ".join(FACT_MEANINGS[name] for name in missing) + ".", pending_source)
         return [_row(label, period, "lodgment", pending, missing, payment=pending_payment,
                      cal=cal)]
     payment = rule.payment

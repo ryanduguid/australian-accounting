@@ -9,7 +9,8 @@ authorise a release.
 ## Review position
 
 The calendar models the ATO's 2026–27 lodgment program: activity statements for periods
-in 2026-27 and income tax returns for the 2025-26 income year (the 2026 return). It
+in 2026-27, income tax returns for the 2025-26 income year (the 2026 return) and, from the
+section on FBT returns below, the 2027 FBT return. It
 returns a date as `DETERMINED` only when the caller has supplied every fact on that
 date's decision path, the ATO pages give one date for those facts and the holiday table
 covers every weekday the next-business-day roll passes. Everything else is `UNKNOWN`
@@ -252,6 +253,52 @@ were not compared word for word. Instead:
 No rule, test or reading changed; `SOURCE_CHECKED` is now `2026-10-28`, the date of this
 re-check. The quarter 4, 2026–27 agent date is still 'to be confirmed', and the holiday
 table still ends on 14 June 2027.
+
+## FBT returns, 31 October 2026
+
+Added after 0.1.0. The Library holds FBT worked examples that mention the return's due date
+without stating it, so it settled nothing; these rules come from the ATO pages below, read
+live on 31 October 2026.
+
+| Rule | Date | Source and provision |
+| --- | --- | --- |
+| `FBT-21-MAY` | Not lodged by a tax agent: lodge and pay by 21 May 2027 | [Lodging your FBT return and paying](https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/fbt-registration-lodgment-payment-and-reporting/lodging-your-fbt-return-and-paying) (10 September 2026), Due date to lodge your return and pay |
+| `FBT-AGENT-ELECTRONIC` | Tax agent lodges electronically, client on its FBT client list by 21 May: 25 June 2027 | [FBT return](https://www.ato.gov.au/tax-and-super-professionals/for-tax-professionals/prepare-and-lodge/registered-agent-lodgment-program/due-dates-by-obligation-type/fbt-return) (1 July 2026); the same date in the June 2027 page |
+| `FBT-AGENT-PAPER` | Tax agent lodges by paper: 21 May 2027 | FBT return page; the same date in the May 2027 page |
+| `FBT-AGENT-NOT-LISTED` | Client not on the list by 21 May: 21 May 2027 | FBT return page, with the Lodging your FBT return page's 'you must be an FBT client of the tax agent by 21 May' |
+
+Both dates are Fridays and neither is in the holiday table, so neither rolls. Both fall
+inside `COVERS_TO`, so this adds no table end date: `.github/ci/check_rate_expiry.py`
+already warns before that span ends.
+
+Readings for review:
+
+- **The return's year.** The agent pages say the '2027 FBT return'; the 2026 return
+  instructions use the 'FBT year ending 31 March 2026' for the 2026 return. By that pattern
+  the 2027 return is for the FBT year ending 31 March 2027, recorded as `2026-27`.
+- **'Generally'.** The Lodging your FBT return page says the agent date is 'generally' 25
+  June and does not say when it is not. The summary keeps the word, and a date the ATO sets
+  for one client is in `not_decided`.
+- **Electronic lodgement.** The agent page says 'through the Practitioner lodgment service';
+  the other says 'electronically'. Both are read through the existing `lodges_electronically`
+  fact.
+- **Not on the list.** The pages say a client must be listed by 21 May for the June date.
+  That the general 21 May date then applies is read from the 'unless' in the Lodging your FBT
+  return page.
+- **Entity type.** The pages give one date for every employer, so the entity type does not
+  change the rule.
+
+Left `UNKNOWN`: a BAS agent. The FBT pages name only tax agents and the
+[BAS agent lodgment program](https://www.ato.gov.au/tax-and-super-professionals/for-tax-professionals/prepare-and-lodge/bas-agent-lodgment-program-2026-27)
+page lists no FBT date, so whether a BAS agent can lodge the return is not settled here.
+
+Every page in `SOURCES` was also read live on 31 October 2026 with one plain request each.
+All returned HTTP 200, and each page's 'Last updated' date matches the date recorded in its
+provision. The pages were not compared word for word, and the engine was not rerun over the
+fact sets of the 28 October check. `SOURCE_CHECKED` is now `2026-10-31`.
+
+The MCP tool does not offer `fbt_return`: it pins the published 0.1.0, which has no such
+obligation, until a release and a pin bump.
 
 ## Before release
 

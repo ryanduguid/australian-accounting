@@ -11,6 +11,8 @@ intentionally changed.
 
 ### Added
 
+- A dated scope note on *Commissioner of Taxation v Bendel* [2026] HCA 18 in the README and
+  DISCLAIMER. It adds no calculation.
 - `derive` writes a minimum yearly repayment derivation: the input, ten steps
   each naming the ITAA 1936 provision it applies, and the
   `minimum-yearly-repayment` result unchanged. `verify` rederives a saved
