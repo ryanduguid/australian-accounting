@@ -29,8 +29,9 @@
 
 Nine engines (8 in Rust, 1 in Python) that apply Australian tax and payroll rules
 to figures you supply, plus **Aus Accounting MCP**, a local Model Context Protocol
-server that hands 6 of them to an AI assistant. It serves Australian accountants
-and bookkeepers, and the developers who build tooling for them.
+server that gives an AI assistant the published Python releases of 6 of them; it
+loads none of the Rust crates yet. It serves Australian accountants and bookkeepers,
+and the developers who build tooling for them.
 
 ```bash
 claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp

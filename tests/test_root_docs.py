@@ -12,12 +12,16 @@ def _text(name: str) -> str:
     return (ROOT / name).read_text(encoding="utf-8")
 
 
-def test_root_readme_install_command_names_the_current_release() -> None:
-    command = (
-        "claude mcp add --scope user aus-accounting -- "
-        f"uvx --from 'aus-accounting-mcp=={PROJECT['version']}' aus-accounting-mcp"
+def test_root_readme_install_command_matches_the_application_readme() -> None:
+    command = re.compile(
+        r"claude mcp add --scope user aus-accounting -- "
+        r"uvx --from 'aus-accounting-mcp==[0-9.]+' aus-accounting-mcp"
     )
-    assert command in _text("README.md")
+    # The application README's pin moves to a release only once it is published.
+    assert command.findall(_text("README.md")) == command.findall(
+        _text("apps/aus-accounting-mcp/README.md")
+    )
+    assert command.search(_text("README.md"))
 
 
 def test_root_docs_state_the_python_floor_the_package_requires() -> None:
@@ -37,5 +41,7 @@ def test_root_docs_do_not_call_the_rust_engines_python() -> None:
     )
     assert (rust_engines, python_engines) == (8, 1)
     claim = "Nine engines (8 in Rust, 1 in Python)"
-    assert claim in _text("README.md")
-    assert claim in _text("llms.txt")
+    for name in ("README.md", "llms.txt"):
+        text = " ".join(_text(name).replace("> ", "").split())
+        assert claim in text
+        assert "loads none of the Rust crates yet" in text
