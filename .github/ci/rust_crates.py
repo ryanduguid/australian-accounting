@@ -5,10 +5,9 @@ usage: python .github/ci/rust_crates.py >> "$GITHUB_OUTPUT"
 Every packages/*/Cargo.toml and apps/*/Cargo.toml is a crate CI checks; the
 manifests are the only list, so adding a crate edits no workflow. Writes:
 
-- matrix: the ci-rust.yml include list (package, root, binary, smoke) of
-  every crate, for snyk.yml;
-- ci-matrix: the same list without the crates whose own workflow calls
-  ci-rust.yml ([package.metadata.ci] workflow), for ci.yml;
+- ci-matrix: the ci-rust.yml include list (package, root, binary, smoke) of
+  every crate except those whose own workflow calls ci-rust.yml
+  ([package.metadata.ci] workflow), for ci.yml;
 - parity: the artefact names, as a brace pattern, of au-accounting and the
   engines it links by path;
 - parity-count: how many native commands that pattern unpacks.
@@ -79,7 +78,6 @@ def linked(root: Path = ROOT) -> list[str]:
 
 def main() -> None:
     parity = [*linked(), Path(UMBRELLA).name]
-    print("matrix=" + json.dumps({"include": crates()}, separators=(",", ":")))
     print("ci-matrix=" + json.dumps({"include": crates(ci_yml=True)}, separators=(",", ":")))
     print("parity={" + ",".join(parity) + "}")
     print(f"parity-count={len(parity)}")
