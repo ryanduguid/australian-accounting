@@ -213,6 +213,9 @@ To skip local setup, [open the repository in GitHub Codespaces](https://codespac
 The devcontainer installs uv and runs `uv sync --locked`, so the fabricated examples
 above run as written. Codespaces usage counts against your own GitHub quota.
 
+The Codecov badge reports the Python components only. Each Rust crate's line coverage
+is held to a floor in CI, from `.github/ci/rust_coverage_floors.json`.
+
 ## Boundaries
 
 - The MCP application depends on engines only through their published distributions.
