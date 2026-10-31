@@ -125,8 +125,8 @@ related-payday alignment, current GIC provenance, conformance cases, labour
 warning prerequisites, Division 7A response sizes, current lodgment facts and
 linked versions. Retrieval tests use valid external link targets and an invalid
 manifest to test refusal and parse ordering. The stdio tests execute the current
-36 evaluation questions with fabricated files, derive every reference answer and
-check result-dependent arguments. Another session tests all 21 unknown-argument
+37 evaluation questions with fabricated files, derive every reference answer and
+check result-dependent arguments. Another session tests all 22 unknown-argument
 refusals, partial receipts, input errors, all 11 rejected evidence-pack argument
 variants and recovery, checking for working-directory writes after every reply.
 

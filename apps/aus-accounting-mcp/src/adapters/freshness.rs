@@ -363,3 +363,53 @@ pub fn report(input: &Value) -> Result<Value, String> {
         "as_at":as_at,"tool":tool,"datasets":datasets,"not_listed":NOT_LISTED}),
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn only_an_iso_date_is_reported_as_a_date() {
+        for value in [json!(null), json!(""), json!("2026-13-01"), json!(20261028)] {
+            assert_eq!(iso_or_unknown(&value), UNKNOWN);
+        }
+        assert_eq!(iso_or_unknown(&json!("2026-10-28")), "2026-10-28");
+        assert_eq!(dates([&json!(null)]), UNKNOWN);
+        assert_eq!(
+            dates([
+                &json!("2026-10-28"),
+                &json!(null),
+                &json!("2026-01-02"),
+                &json!("2026-10-28")
+            ]),
+            json!(["2026-01-02", "2026-10-28"])
+        );
+        assert_eq!(urls([&json!("http://example.com")]), UNKNOWN);
+    }
+
+    #[test]
+    fn a_label_that_is_not_one_financial_year_is_refused() {
+        assert_eq!(
+            financial_year("2025-26", "x").unwrap()["start"],
+            "2025-07-01"
+        );
+        assert_eq!(financial_year("1999-00", "x").unwrap()["end"], "2000-06-30");
+        for label in ["2025-27", "2025", "2025-2026", "abcd-26", "2025/26"] {
+            assert!(financial_year(label, "x").is_err(), "{label}");
+        }
+    }
+
+    #[test]
+    fn a_date_in_a_gap_between_recorded_periods_is_outside() {
+        let periods = json!([{"start":"2024-01-01","end":"2024-03-31"},{"start":"2024-07-01","end":"2024-09-30"}]);
+        assert_eq!(
+            as_at_status(&periods, "2024-05-01"),
+            "OUTSIDE_RECORDED_PERIOD"
+        );
+        assert_eq!(
+            as_at_status(&periods, "2024-07-01"),
+            "INSIDE_RECORDED_PERIOD"
+        );
+        assert_eq!(as_at_status(&json!(UNKNOWN), "2024-07-01"), UNKNOWN);
+    }
+}

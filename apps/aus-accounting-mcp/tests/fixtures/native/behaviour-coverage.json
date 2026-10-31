@@ -1,22 +1,23 @@
 {
   "schema_version": 1,
-  "scope": "All 375 original test functions in 31 files, including their inspected parameterised assertions. Source-bound reconciliation, not a claim that captured-call counts prove coverage.",
+  "scope": "All 392 original test functions in 32 files, including their inspected parameterised assertions. Source-bound reconciliation, not a claim that captured-call counts prove coverage.",
   "status_meanings": {
     "covered": "Inspected observable assertions have explicit native proof, including complete original payload/refusal equality where appropriate. Cross-source relationships use direct checks. Existing NATIVE.md identity/parser allowances still apply.",
     "adapted": "Explicit native representation, static-link or test-instrumentation difference; see per-function limit. This is not support for substituting Python modules or malformed Python-only values at runtime.",
     "retained-python-distribution": "Protects the still-supported Python distribution, release/Registry process or its documentation/media. Kept active; not retired, ported or an approval to publish/cut over."
   },
   "counts": {
-    "retained-python-distribution": 46,
-    "covered": 279,
-    "adapted": 50
+    "adapted": 55,
+    "covered": 289,
+    "retained-python-distribution": 48
   },
   "original_sources": {
-    "tests/test_aus_accounting_mcp.py": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+    "tests/test_aus_accounting_mcp.py": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
     "tests/test_cli.py": "534852f7277704d14027b070cf33507db64334d53ba867c926173fce434f5be7",
     "tests/test_compatibility.py": "d0616cd7d9aec8c92464bff989f2ec2119ef16f3e7e11993c792b4ca5268b9cb",
-    "tests/test_conformance_cases.py": "84a900c60d65010077337e3ea134b782c83aec7567b4e08da9b2ce1ddeff05bc",
+    "tests/test_conformance_cases.py": "6acc9215e8b4cc62317eb926d258d89662eee4fbb239fc2f53860e8bfaa60976",
     "tests/test_corpus.py": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+    "tests/test_data_freshness.py": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
     "tests/test_demo.py": "1ed98e9286f9f118de7b57042b8c68c27d9a2f4e635d10db0bafe1ee16711d44",
     "tests/test_demo_media.py": "34c7b570a5747651b18aa9a688cbcc9c9da5de34e9fe5b2259d6ebe87610714c",
     "tests/test_div7a.py": "7aff7234554d00835d236cd4a07d8184f6dc18eef28046ce3e42a69fdffb4547",
@@ -27,21 +28,21 @@
     "tests/test_group_review.py": "e7932ce738953af1b945a32df83dd16070aa36737b8ce0a03a417729fbefe2ca",
     "tests/test_gst_review.py": "da754a17bae3746a3c025679df0b7a17a897345de8561d5a1b98234ff7659c0e",
     "tests/test_industry_pagination.py": "7f91548bed40ee86edf644daf5ce458d6231d83046de56f39ccb8b11af43fafb",
-    "tests/test_lodgment_calendar.py": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
-    "tests/test_mcp_evaluation.py": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
-    "tests/test_output_contracts.py": "e28e38ddadf2ce0ddf825dd2081f6f63ad9d1169af72bc4b6995d8b02148b9ee",
+    "tests/test_lodgment_calendar.py": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
+    "tests/test_mcp_evaluation.py": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+    "tests/test_output_contracts.py": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
     "tests/test_payday_boundary.py": "165ff36bc3500f222a3233368e6709df81004842e8539c25f359607bb7a6aa25",
     "tests/test_payday_receipt_amount.py": "af1e3467d546f3cbd4dd5a104ebd29b23f33d39a0a64101446168449a2e3a58c",
     "tests/test_payday_rounding.py": "6c82c37bfac06ae64280f4c8312e034535e077962c81e7375797ef48b2d46403",
     "tests/test_payday_scope.py": "d47c12c1515a63d224cac6a5f5d854ceb213e5f221c5e535974e02205f6d351e",
-    "tests/test_registry_preflight.py": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
-    "tests/test_repository_guidance.py": "fedd22c32d07e2759f156b5ac9ad4eabb6340f9e139963da39583ed5dac72bea",
+    "tests/test_registry_preflight.py": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
+    "tests/test_repository_guidance.py": "c31719384c5e6b5697523ddc184c25a8ded59af05e2d9b73c28ac63d7add1a83",
     "tests/test_resources.py": "3e242411b14321671decf3a3954fac2249343afb8c50d8581f39a5742cf4d551",
     "tests/test_rulings.py": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
-    "tests/test_selection_record_integrity.py": "68e7c5c63b7e5d1f487f1657cf389039b2c50a6f9b12f78d668e45e6beb34893",
+    "tests/test_selection_record_integrity.py": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
     "tests/test_server_money.py": "1e45fcffbbed08c03fb999ec0306d60c270c52d38e1809be752029bca492bcfc",
     "tests/test_server_paths.py": "90acde9386b8a2e161990cbda25d4c5c3e826ceef728ef9ee8d3452aaefdd4b9",
-    "tests/test_tool_discovery.py": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+    "tests/test_tool_discovery.py": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
     "tests/test_worksheet_catalogue.py": "5d6b5a6e3dbd2ec33fe277d00213c6b4ad23b6039167b4f8a90f147f04bc0676"
   },
   "proofs": {
@@ -111,11 +112,11 @@
     },
     "ANSWER": {
       "test": "tests/wire_contracts.rs::current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts",
-      "evidence": "Current XML calls through one actual process; all 36 derived answers/42 calls, extra original assertions, result-dependent argument relationships and complete published-tool selection. Fabricated files bound to original builder hashes."
+      "evidence": "Current XML calls through one actual process; all 37 derived answers/43 calls, extra original assertions, result-dependent argument relationships and complete published-tool selection. Fabricated files bound to original builder hashes."
     },
     "WIRE": {
       "test": "tests/wire_contracts.rs::unknown_arguments_and_expected_input_errors_leave_the_session_usable",
-      "evidence": "All 21 misspelled-argument refusals, partial receipt, ambiguous date, 3 original error probes, 11 rejected evidence-pack argument variants and recovery; response identity, absent structured error content and no cwd writes after each reply checked."
+      "evidence": "All 22 misspelled-argument refusals, partial receipt, ambiguous date, 3 original error probes, 11 rejected evidence-pack argument variants and recovery; response identity, absent structured error content and no cwd writes after each reply checked."
     },
     "W": {
       "test": "tests/wire_contracts.rs::original_large_pack_pagination_and_scope_over_stdio",
@@ -224,13 +225,17 @@
     "PY": {
       "test": "Original Python tests remain active in the supported distribution workflow",
       "evidence": "Distribution, publication, documentation/media or Python installation assertions remain with the supported Python package. No retirement or native publication/cutover is implied."
+    },
+    "FRESH": {
+      "test": "tests/native_adapters.rs::frozen_freshness_contracts",
+      "evidence": "31 complete replies from the Python server at the oracle base in freshness-contracts.json, with explicit native identity and engine-correction allowances; unit tests in src/adapters/freshness.rs."
     }
   },
   "functions": [
     {
       "original": "tests/test_aus_accounting_mcp.py:36",
       "function": "test_proof_package_surface_is_versioned_and_keeps_stdio_separate",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -239,7 +244,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:49",
       "function": "test_pypi_facets_are_declared_without_contradicting_the_licence_field",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -248,7 +253,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:72",
       "function": "test_github_about_copy_matches_the_script_that_applies_it",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -257,7 +262,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:96",
       "function": "test_build_backend_is_exactly_pinned_for_reproducible_wheels",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -266,7 +271,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:319",
       "function": "test_inlined_simulators_are_gone",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -275,7 +280,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:329",
       "function": "test_payday_on_time_uses_payday_super_checker",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -284,7 +289,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:346",
       "function": "test_payday_without_fund_receipt_is_at_risk",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -293,7 +298,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:357",
       "function": "test_payday_pre_regime_is_refused",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -302,7 +307,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:367",
       "function": "test_payday_transition_period_cannot_be_confirmed_by_the_mcp",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -311,7 +316,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:377",
       "function": "test_payday_rejects_non_decimal_amounts",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -320,7 +325,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:387",
       "function": "test_ato_benchmarks_use_shipped_dataset",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -329,7 +334,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:419",
       "function": "test_ato_omitted_buckets_are_not_treated_as_zero",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -338,7 +343,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:476",
       "function": "test_ato_other_income_can_move_the_turnover_band",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -347,7 +352,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:504",
       "function": "test_ato_omitted_other_income_withholds_the_turnover_band_and_ranges",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -356,7 +361,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:529",
       "function": "test_ato_omitted_other_income_withholds_notes_that_quote_turnover",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -365,7 +370,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:558",
       "function": "test_ato_w1_without_associated_persons_is_not_supplied",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -374,7 +379,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:576",
       "function": "test_ato_w1_does_not_substitute_for_salary_wages",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -383,7 +388,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:611",
       "function": "test_engine_declares_every_fact_its_labour_check_quotes",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "LABOUR",
@@ -393,7 +398,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:636",
       "function": "test_ato_omitted_salary_wages_withholds_checks_that_quote_the_label",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -402,7 +407,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:678",
       "function": "test_ato_a_check_resting_only_on_supplied_buckets_survives_the_withholding",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -411,7 +416,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:725",
       "function": "test_ato_withholds_every_check_that_states_an_omitted_bucket_as_a_zero",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -420,7 +425,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:770",
       "function": "test_ato_omitted_cost_of_sales_does_not_pick_the_key_ratio",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -429,7 +434,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:800",
       "function": "test_ato_labour_gate_declines_a_ratio_the_engine_computes_correctly",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "LABOUR",
@@ -439,7 +444,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:837",
       "function": "test_ato_partial_labour_picture_is_not_supplied",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -448,7 +453,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:848",
       "function": "test_ato_complete_labour_picture_is_evidenced",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -457,7 +462,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:864",
       "function": "test_ato_omitted_other_income_withholds_every_ratio",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -466,7 +471,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:904",
       "function": "test_ato_refuses_turnover_only",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -475,7 +480,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:909",
       "function": "test_ato_unknown_industry_is_refused",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -484,7 +489,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:918",
       "function": "test_div7a_is_refused",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -493,7 +498,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:927",
       "function": "test_div7a_refusal_is_reachable_without_inventing_loan_facts",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "adapted",
       "proofs": [
         "D",
@@ -505,7 +510,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:940",
       "function": "test_synthetic_sbr_fixtures_are_labelled",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -514,43 +519,34 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:951",
       "function": "test_client_snippets_use_uvx_from_pypi",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:992",
+      "original": "tests/test_aus_accounting_mcp.py:1008",
       "function": "test_release_metadata_matches_the_candidate_version",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1013",
+      "original": "tests/test_aus_accounting_mcp.py:1029",
       "function": "test_active_repository_metadata_uses_canonical_identity",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1031",
+      "original": "tests/test_aus_accounting_mcp.py:1047",
       "function": "test_readme_has_stable_proof_anchor_and_mapping",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
-      "status": "retained-python-distribution",
-      "proofs": [
-        "PY"
-      ]
-    },
-    {
-      "original": "tests/test_aus_accounting_mcp.py:1061",
-      "function": "test_committed_binary_assets_have_current_provenance",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -558,125 +554,116 @@
     },
     {
       "original": "tests/test_aus_accounting_mcp.py:1077",
+      "function": "test_committed_binary_assets_have_current_provenance",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "status": "retained-python-distribution",
+      "proofs": [
+        "PY"
+      ]
+    },
+    {
+      "original": "tests/test_aus_accounting_mcp.py:1093",
       "function": "test_repository_social_preview_has_current_name_dimensions_and_provenance",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1090",
+      "original": "tests/test_aus_accounting_mcp.py:1106",
       "function": "test_server_metadata_publishes_exact_pypi_release",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1107",
+      "original": "tests/test_aus_accounting_mcp.py:1123",
       "function": "test_pypi_route_rejects_a_second_publisher_workflow",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1122",
+      "original": "tests/test_aus_accounting_mcp.py:1138",
       "function": "test_pypi_route_rejects_controls_parked_in_a_dummy_job",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1151",
+      "original": "tests/test_aus_accounting_mcp.py:1167",
       "function": "test_pypi_route_rejects_a_rebuilt_distribution",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1164",
+      "original": "tests/test_aus_accounting_mcp.py:1180",
       "function": "test_release_workflow_uses_registered_pypi_publisher",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1168",
+      "original": "tests/test_aus_accounting_mcp.py:1184",
       "function": "test_readme_links_to_release_records",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1183",
+      "original": "tests/test_aus_accounting_mcp.py:1199",
       "function": "test_release_uses_the_hardened_shared_policy_contract",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1207",
+      "original": "tests/test_aus_accounting_mcp.py:1223",
       "function": "test_registry_publisher_is_pinned_and_checksum_verified",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1241",
+      "original": "tests/test_aus_accounting_mcp.py:1257",
       "function": "test_payday_reads_the_date_shapes_the_engine_reads",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1247",
+      "original": "tests/test_aus_accounting_mcp.py:1263",
       "function": "test_payday_refuses_a_numeric_date_that_could_be_read_either_way",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1270",
+      "original": "tests/test_aus_accounting_mcp.py:1286",
       "function": "test_payday_accepts_a_numeric_date_whose_reading_is_settled",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
-      "status": "covered",
-      "proofs": [
-        "F"
-      ]
-    },
-    {
-      "original": "tests/test_aus_accounting_mcp.py:1275",
-      "function": "test_payday_refuses_a_zone_bearing_stamp_with_the_engine_reason",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
-      "status": "covered",
-      "proofs": [
-        "F"
-      ]
-    },
-    {
-      "original": "tests/test_aus_accounting_mcp.py:1285",
-      "function": "test_payday_still_names_the_field_that_could_not_be_read",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -684,8 +671,26 @@
     },
     {
       "original": "tests/test_aus_accounting_mcp.py:1291",
+      "function": "test_payday_refuses_a_zone_bearing_stamp_with_the_engine_reason",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_aus_accounting_mcp.py:1301",
+      "function": "test_payday_still_names_the_field_that_could_not_be_read",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_aus_accounting_mcp.py:1307",
       "function": "test_payday_date_shapes_do_not_change_a_verdict",
-      "source_sha256": "0ac3ca0622e4440def9fea9e23ca535f5971bf8d6b9f97fb9ab828c3aa35f6de",
+      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
       "status": "covered",
       "proofs": [
         "F"
@@ -743,27 +748,27 @@
       ]
     },
     {
-      "original": "tests/test_conformance_cases.py:38",
+      "original": "tests/test_conformance_cases.py:46",
       "function": "test_conformance_case",
-      "source_sha256": "84a900c60d65010077337e3ea134b782c83aec7567b4e08da9b2ce1ddeff05bc",
+      "source_sha256": "6acc9215e8b4cc62317eb926d258d89662eee4fbb239fc2f53860e8bfaa60976",
       "status": "covered",
       "proofs": [
         "CONF"
       ]
     },
     {
-      "original": "tests/test_conformance_cases.py:50",
+      "original": "tests/test_conformance_cases.py:88",
       "function": "test_cases_are_well_formed",
-      "source_sha256": "84a900c60d65010077337e3ea134b782c83aec7567b4e08da9b2ce1ddeff05bc",
+      "source_sha256": "6acc9215e8b4cc62317eb926d258d89662eee4fbb239fc2f53860e8bfaa60976",
       "status": "covered",
       "proofs": [
         "CONF"
       ]
     },
     {
-      "original": "tests/test_conformance_cases.py:61",
+      "original": "tests/test_conformance_cases.py:141",
       "function": "test_the_resolver_reports_absent_paths",
-      "source_sha256": "84a900c60d65010077337e3ea134b782c83aec7567b4e08da9b2ce1ddeff05bc",
+      "source_sha256": "6acc9215e8b4cc62317eb926d258d89662eee4fbb239fc2f53860e8bfaa60976",
       "status": "adapted",
       "proofs": [
         "CONF"
@@ -2065,7 +2070,7 @@
     {
       "original": "tests/test_lodgment_calendar.py:31",
       "function": "test_agent_quarterly_bas_returns_the_engine_rows_with_provenance",
-      "source_sha256": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
+      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
       "status": "covered",
       "proofs": [
         "F"
@@ -2074,7 +2079,7 @@
     {
       "original": "tests/test_lodgment_calendar.py:53",
       "function": "test_self_lodged_individual_return_without_facts",
-      "source_sha256": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
+      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
       "status": "covered",
       "proofs": [
         "F"
@@ -2083,7 +2088,7 @@
     {
       "original": "tests/test_lodgment_calendar.py:63",
       "function": "test_missing_program_facts_stay_unknown_and_are_named",
-      "source_sha256": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
+      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
       "status": "covered",
       "proofs": [
         "F"
@@ -2092,7 +2097,7 @@
     {
       "original": "tests/test_lodgment_calendar.py:79",
       "function": "test_engine_refusals_reach_the_caller",
-      "source_sha256": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
+      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
       "status": "covered",
       "proofs": [
         "F"
@@ -2101,7 +2106,7 @@
     {
       "original": "tests/test_lodgment_calendar.py:93",
       "function": "test_malformed_arguments_are_rejected",
-      "source_sha256": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
+      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
       "status": "covered",
       "proofs": [
         "F"
@@ -2110,7 +2115,7 @@
     {
       "original": "tests/test_lodgment_calendar.py:98",
       "function": "test_tool_schema_describes_every_fact_and_is_read_only",
-      "source_sha256": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
+      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
       "status": "covered",
       "proofs": [
         "D",
@@ -2120,7 +2125,7 @@
     {
       "original": "tests/test_lodgment_calendar.py:108",
       "function": "test_resources_list_the_engine_and_tool",
-      "source_sha256": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
+      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
       "status": "adapted",
       "proofs": [
         "RS",
@@ -2132,7 +2137,7 @@
     {
       "original": "tests/test_lodgment_calendar.py:121",
       "function": "test_caller_holidays_settle_dates_after_the_ato_table",
-      "source_sha256": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
+      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
       "status": "covered",
       "proofs": [
         "F"
@@ -2141,7 +2146,7 @@
     {
       "original": "tests/test_lodgment_calendar.py:142",
       "function": "test_invalid_holiday_inputs_reach_the_caller",
-      "source_sha256": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
+      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
       "status": "covered",
       "proofs": [
         "F"
@@ -2150,7 +2155,7 @@
     {
       "original": "tests/test_lodgment_calendar.py:152",
       "function": "test_malformed_holiday_inputs_are_rejected",
-      "source_sha256": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
+      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
       "status": "covered",
       "proofs": [
         "F"
@@ -2159,7 +2164,7 @@
     {
       "original": "tests/test_lodgment_calendar.py:163",
       "function": "test_the_tool_caps_caller_holidays_at_50",
-      "source_sha256": "1a0744c7bb696716a09edb9c1e16ca52f7ef822feaf50d42b6f69a8f2407356b",
+      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
       "status": "covered",
       "proofs": [
         "F",
@@ -2167,27 +2172,27 @@
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:246",
+      "original": "tests/test_mcp_evaluation.py:250",
       "function": "test_evaluation_answer_is_reproducible",
-      "source_sha256": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
+      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
       "status": "covered",
       "proofs": [
         "ANSWER"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:261",
+      "original": "tests/test_mcp_evaluation.py:265",
       "function": "test_every_published_tool_selection_names_a_registered_tool",
-      "source_sha256": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
+      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
       "status": "covered",
       "proofs": [
         "ANSWER"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:271",
+      "original": "tests/test_mcp_evaluation.py:275",
       "function": "test_the_selection_harness_publishes_questions_without_their_answers",
-      "source_sha256": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
+      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
       "status": "covered",
       "proofs": [
         "CONTEXT",
@@ -2195,27 +2200,27 @@
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:292",
+      "original": "tests/test_mcp_evaluation.py:296",
       "function": "test_the_selection_harness_scores_a_recorded_run",
-      "source_sha256": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
+      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:319",
+      "original": "tests/test_mcp_evaluation.py:323",
       "function": "test_the_selection_harness_rejects_a_question_it_does_not_know",
-      "source_sha256": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
+      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:326",
+      "original": "tests/test_mcp_evaluation.py:330",
       "function": "test_the_selection_harness_context_is_the_whole_tool_definition",
-      "source_sha256": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
+      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
       "status": "covered",
       "proofs": [
         "CONTEXT",
@@ -2223,54 +2228,54 @@
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:368",
+      "original": "tests/test_mcp_evaluation.py:372",
       "function": "test_recorded_calls_and_answer_are_scored_together",
-      "source_sha256": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
+      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:377",
+      "original": "tests/test_mcp_evaluation.py:381",
       "function": "test_correct_tool_names_cannot_hide_wrong_calls_or_answer",
-      "source_sha256": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
+      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:397",
+      "original": "tests/test_mcp_evaluation.py:401",
       "function": "test_invented_zero_fails_even_when_the_answer_and_tools_are_right",
-      "source_sha256": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
+      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:418",
+      "original": "tests/test_mcp_evaluation.py:422",
       "function": "test_legacy_tool_names_do_not_claim_argument_or_answer_verification",
-      "source_sha256": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
+      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:430",
+      "original": "tests/test_mcp_evaluation.py:434",
       "function": "test_malformed_recordings_return_an_input_error",
-      "source_sha256": "bc7bea2080c2770a48411b4808e9f5acf61e54a18f724b858dba09552923534f",
+      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_output_contracts.py:75",
+      "original": "tests/test_output_contracts.py:78",
       "function": "test_output_schema_validates_without_changing_the_tool_payload",
-      "source_sha256": "e28e38ddadf2ce0ddf825dd2081f6f63ad9d1169af72bc4b6995d8b02148b9ee",
+      "source_sha256": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
       "status": "adapted",
       "proofs": [
         "F",
@@ -2279,18 +2284,18 @@
       "adaptation_or_limit": "Native dispatcher validates the complete value before success serialisation; both output channels equal the original payload without model projection/default insertion."
     },
     {
-      "original": "tests/test_output_contracts.py:99",
+      "original": "tests/test_output_contracts.py:104",
       "function": "test_schema_rejects_misleading_money_and_safety_markers",
-      "source_sha256": "e28e38ddadf2ce0ddf825dd2081f6f63ad9d1169af72bc4b6995d8b02148b9ee",
+      "source_sha256": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
       "status": "covered",
       "proofs": [
         "N"
       ]
     },
     {
-      "original": "tests/test_output_contracts.py:134",
+      "original": "tests/test_output_contracts.py:139",
       "function": "test_output_variants_require_their_sections_and_audit_fields",
-      "source_sha256": "e28e38ddadf2ce0ddf825dd2081f6f63ad9d1169af72bc4b6995d8b02148b9ee",
+      "source_sha256": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
       "status": "adapted",
       "proofs": [
         "V"
@@ -2298,9 +2303,9 @@
       "adaptation_or_limit": "Native JSON Schema validation replaces the additional Python TypeAdapter pass; sections and extension round trips remain explicit."
     },
     {
-      "original": "tests/test_output_contracts.py:149",
+      "original": "tests/test_output_contracts.py:154",
       "function": "test_fixture_schema_rejects_sections_from_the_other_form",
-      "source_sha256": "e28e38ddadf2ce0ddf825dd2081f6f63ad9d1169af72bc4b6995d8b02148b9ee",
+      "source_sha256": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
       "status": "adapted",
       "proofs": [
         "V"
@@ -2308,27 +2313,27 @@
       "adaptation_or_limit": "Native JSON Schema validation replaces the additional Python TypeAdapter pass; sections and extension round trips remain explicit."
     },
     {
-      "original": "tests/test_output_contracts.py:171",
+      "original": "tests/test_output_contracts.py:176",
       "function": "test_output_schema_rejects_malformed_decimal_and_date_text",
-      "source_sha256": "e28e38ddadf2ce0ddf825dd2081f6f63ad9d1169af72bc4b6995d8b02148b9ee",
+      "source_sha256": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
       "status": "covered",
       "proofs": [
         "N"
       ]
     },
     {
-      "original": "tests/test_output_contracts.py:188",
+      "original": "tests/test_output_contracts.py:193",
       "function": "test_output_schema_rejects_malformed_income_year",
-      "source_sha256": "e28e38ddadf2ce0ddf825dd2081f6f63ad9d1169af72bc4b6995d8b02148b9ee",
+      "source_sha256": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
       "status": "covered",
       "proofs": [
         "N"
       ]
     },
     {
-      "original": "tests/test_output_contracts.py:208",
+      "original": "tests/test_output_contracts.py:213",
       "function": "test_variant_validation_retains_unknown_extension_fields",
-      "source_sha256": "e28e38ddadf2ce0ddf825dd2081f6f63ad9d1169af72bc4b6995d8b02148b9ee",
+      "source_sha256": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
       "status": "adapted",
       "proofs": [
         "V"
@@ -2336,9 +2341,9 @@
       "adaptation_or_limit": "Native JSON Schema validation replaces the additional Python TypeAdapter pass; sections and extension round trips remain explicit."
     },
     {
-      "original": "tests/test_output_contracts.py:267",
+      "original": "tests/test_output_contracts.py:272",
       "function": "test_stdio_initialization_publishes_guidance_and_preserves_full_unknown_results",
-      "source_sha256": "e28e38ddadf2ce0ddf825dd2081f6f63ad9d1169af72bc4b6995d8b02148b9ee",
+      "source_sha256": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
       "status": "covered",
       "proofs": [
         "IDENTITY",
@@ -2348,18 +2353,18 @@
       ]
     },
     {
-      "original": "tests/test_output_contracts.py:272",
+      "original": "tests/test_output_contracts.py:277",
       "function": "test_missing_loan_year_preserves_engine_unknown_marker",
-      "source_sha256": "e28e38ddadf2ce0ddf825dd2081f6f63ad9d1169af72bc4b6995d8b02148b9ee",
+      "source_sha256": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_output_contracts.py:283",
+      "original": "tests/test_output_contracts.py:288",
       "function": "test_unknown_loan_year_does_not_allow_malformed_nonempty_years",
-      "source_sha256": "e28e38ddadf2ce0ddf825dd2081f6f63ad9d1169af72bc4b6995d8b02148b9ee",
+      "source_sha256": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
       "status": "covered",
       "proofs": [
         "N"
@@ -2515,135 +2520,135 @@
       "adaptation_or_limit": "Direct Python helper observations use the registered native boundary and its usual tool-error prefix."
     },
     {
-      "original": "tests/test_registry_preflight.py:121",
-      "function": "test_the_committed_server_json_binds_to_the_committed_pyproject",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
-      "status": "retained-python-distribution",
-      "proofs": [
-        "PY"
-      ]
-    },
-    {
       "original": "tests/test_registry_preflight.py:127",
+      "function": "test_the_committed_server_json_binds_to_the_committed_pyproject",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
+      "status": "retained-python-distribution",
+      "proofs": [
+        "PY"
+      ]
+    },
+    {
+      "original": "tests/test_registry_preflight.py:133",
       "function": "test_a_complete_release_passes_and_reports_the_server_json_digest",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:140",
+      "original": "tests/test_registry_preflight.py:146",
       "function": "test_an_absent_package_version_fails_before_any_provenance_lookup",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:160",
+      "original": "tests/test_registry_preflight.py:166",
       "function": "test_identity_and_version_mismatches_fail",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:170",
+      "original": "tests/test_registry_preflight.py:195",
       "function": "test_pypi_metadata_that_disagrees_with_server_json_fails",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:187",
+      "original": "tests/test_registry_preflight.py:212",
       "function": "test_provenance_verification_failures_fail",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:206",
+      "original": "tests/test_registry_preflight.py:231",
       "function": "test_main_reports_failures_on_stderr_and_writes_the_digest_output",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:224",
+      "original": "tests/test_registry_preflight.py:249",
       "function": "test_publication_is_gated_by_the_preflight_the_main_ref_and_an_environment",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:270",
+      "original": "tests/test_registry_preflight.py:295",
       "function": "test_the_ref_guard_admits_only_main",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:330",
+      "original": "tests/test_registry_preflight.py:355",
       "function": "test_readback_checks_published_identity_without_changing_the_default",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:349",
+      "original": "tests/test_registry_preflight.py:374",
       "function": "test_readback_refuses_absent_or_malformed_registry",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:356",
+      "original": "tests/test_registry_preflight.py:381",
       "function": "test_readback_refuses_ambiguous_records_and_does_not_match_substrings",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:377",
+      "original": "tests/test_registry_preflight.py:402",
       "function": "test_readback_refuses_registry_identity_drift",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:391",
+      "original": "tests/test_registry_preflight.py:416",
       "function": "test_readback_requires_active_latest_metadata",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_registry_preflight.py:409",
+      "original": "tests/test_registry_preflight.py:434",
       "function": "test_readback_requires_a_published_matching_stable_release",
-      "source_sha256": "35073f73c4bcc527cba75a9cd41cad0d4622c1460800e481fbf8735a0658dbbe",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -2652,7 +2657,7 @@
     {
       "original": "tests/test_repository_guidance.py:65",
       "function": "test_ci_commands_exclude_root_helpers_but_keep_non_uv_component_checks",
-      "source_sha256": "fedd22c32d07e2759f156b5ac9ad4eabb6340f9e139963da39583ed5dac72bea",
+      "source_sha256": "c31719384c5e6b5697523ddc184c25a8ded59af05e2d9b73c28ac63d7add1a83",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -2661,7 +2666,7 @@
     {
       "original": "tests/test_repository_guidance.py:112",
       "function": "test_agents_preserves_the_mcp_domain_boundaries",
-      "source_sha256": "fedd22c32d07e2759f156b5ac9ad4eabb6340f9e139963da39583ed5dac72bea",
+      "source_sha256": "c31719384c5e6b5697523ddc184c25a8ded59af05e2d9b73c28ac63d7add1a83",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -2670,7 +2675,7 @@
     {
       "original": "tests/test_repository_guidance.py:120",
       "function": "test_agents_tracks_exact_ci_commands_and_classifies_other_checks",
-      "source_sha256": "fedd22c32d07e2759f156b5ac9ad4eabb6340f9e139963da39583ed5dac72bea",
+      "source_sha256": "c31719384c5e6b5697523ddc184c25a8ded59af05e2d9b73c28ac63d7add1a83",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -2679,7 +2684,7 @@
     {
       "original": "tests/test_repository_guidance.py:135",
       "function": "test_agents_pins_repository_backed_supplementary_commands_as_non_ci",
-      "source_sha256": "fedd22c32d07e2759f156b5ac9ad4eabb6340f9e139963da39583ed5dac72bea",
+      "source_sha256": "c31719384c5e6b5697523ddc184c25a8ded59af05e2d9b73c28ac63d7add1a83",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -2688,7 +2693,7 @@
     {
       "original": "tests/test_repository_guidance.py:172",
       "function": "test_runtime_entry_points_and_contribution_scope_are_explicit",
-      "source_sha256": "fedd22c32d07e2759f156b5ac9ad4eabb6340f9e139963da39583ed5dac72bea",
+      "source_sha256": "c31719384c5e6b5697523ddc184c25a8ded59af05e2d9b73c28ac63d7add1a83",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -3213,7 +3218,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:19",
       "function": "test_decoded_argument_types_cannot_match_by_python_coercion",
-      "source_sha256": "68e7c5c63b7e5d1f487f1657cf389039b2c50a6f9b12f78d668e45e6beb34893",
+      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3222,7 +3227,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:51",
       "function": "test_ambiguous_or_nonfinite_recordings_are_input_errors",
-      "source_sha256": "68e7c5c63b7e5d1f487f1657cf389039b2c50a6f9b12f78d668e45e6beb34893",
+      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3231,7 +3236,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:58",
       "function": "test_a_recording_can_bind_the_reference_snapshot",
-      "source_sha256": "68e7c5c63b7e5d1f487f1657cf389039b2c50a6f9b12f78d668e45e6beb34893",
+      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3240,7 +3245,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:75",
       "function": "test_invalid_reference_keys_cannot_produce_scores",
-      "source_sha256": "68e7c5c63b7e5d1f487f1657cf389039b2c50a6f9b12f78d668e45e6beb34893",
+      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3249,7 +3254,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:117",
       "function": "test_finite_float_values_are_not_rounded_before_comparison",
-      "source_sha256": "68e7c5c63b7e5d1f487f1657cf389039b2c50a6f9b12f78d668e45e6beb34893",
+      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3258,7 +3263,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:144",
       "function": "test_answer_whitespace_is_symmetric_but_internal_text_is_exact",
-      "source_sha256": "68e7c5c63b7e5d1f487f1657cf389039b2c50a6f9b12f78d668e45e6beb34893",
+      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3546,7 +3551,7 @@
     {
       "original": "tests/test_tool_discovery.py:18",
       "function": "test_every_input_has_a_description_in_the_public_schema",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "D"
@@ -3555,7 +3560,7 @@
     {
       "original": "tests/test_tool_discovery.py:35",
       "function": "test_no_description_fuses_two_words_across_a_line_break",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "adapted",
       "proofs": [
         "D"
@@ -3565,7 +3570,7 @@
     {
       "original": "tests/test_tool_discovery.py:57",
       "function": "test_every_tool_has_a_readable_title_for_a_host_menu",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "D"
@@ -3574,7 +3579,7 @@
     {
       "original": "tests/test_tool_discovery.py:67",
       "function": "test_no_tool_reachable_only_by_supplying_facts_it_ignores",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "D"
@@ -3583,25 +3588,25 @@
     {
       "original": "tests/test_tool_discovery.py:77",
       "function": "test_local_tools_disclose_their_effects_to_clients",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "D"
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:162",
+      "original": "tests/test_tool_discovery.py:163",
       "function": "test_every_bounded_string_input_publishes_its_length",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "D"
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:176",
+      "original": "tests/test_tool_discovery.py:177",
       "function": "test_the_operator_reference_bound_matches_the_engine_model",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3609,9 +3614,9 @@
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:188",
+      "original": "tests/test_tool_discovery.py:189",
       "function": "test_the_benchmark_money_bound_matches_the_worksheet_money_type",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3619,9 +3624,9 @@
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:197",
+      "original": "tests/test_tool_discovery.py:198",
       "function": "test_every_money_input_shares_the_worksheet_money_bound",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3629,9 +3634,9 @@
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:212",
+      "original": "tests/test_tool_discovery.py:213",
       "function": "test_the_div7a_ratio_bounds_match_the_worksheet_ratio_type",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3639,27 +3644,27 @@
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:228",
+      "original": "tests/test_tool_discovery.py:229",
       "function": "test_the_year_bound_is_the_width_of_the_yyyy_yy_label",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "YEAR"
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:251",
+      "original": "tests/test_tool_discovery.py:252",
       "function": "test_the_date_bound_admits_the_longest_date_the_engine_reads",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "DATE"
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:282",
+      "original": "tests/test_tool_discovery.py:283",
       "function": "test_the_industry_bound_admits_every_shipped_business_type_name",
-      "source_sha256": "761dfdba5df255c399fcb95e62f2b85994eff4083090434d2ac411af4322d6e4",
+      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
       "status": "covered",
       "proofs": [
         "YEAR"
@@ -3752,6 +3757,166 @@
       "status": "covered",
       "proofs": [
         "F"
+      ]
+    },
+    {
+      "original": "tests/test_data_freshness.py:43",
+      "function": "test_every_tool_that_reads_bundled_data_is_covered",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "covered",
+      "proofs": [
+        "FRESH"
+      ]
+    },
+    {
+      "original": "tests/test_data_freshness.py:53",
+      "function": "test_the_report_never_claims_the_data_is_current",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "covered",
+      "proofs": [
+        "FRESH"
+      ]
+    },
+    {
+      "original": "tests/test_data_freshness.py:67",
+      "function": "test_versions_come_from_installed_metadata",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "adapted",
+      "proofs": [
+        "FRESH",
+        "LINKED"
+      ],
+      "adaptation_or_limit": "Native versions are the linked crates' compiled versions; there is no installed metadata to read."
+    },
+    {
+      "original": "tests/test_data_freshness.py:78",
+      "function": "test_a_cached_older_release_reports_its_own_version_and_no_currency",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "adapted",
+      "proofs": [
+        "FRESH"
+      ],
+      "adaptation_or_limit": "The binary reports its own compiled version; a cached older binary does the same. Metadata monkeypatching has no native equivalent."
+    },
+    {
+      "original": "tests/test_data_freshness.py:93",
+      "function": "test_an_uninstalled_distribution_is_unknown_not_guessed",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "adapted",
+      "proofs": [
+        "FRESH"
+      ],
+      "adaptation_or_limit": "An engine is statically linked, so it cannot be uninstalled; the UNKNOWN branch for a version is unreachable and not ported."
+    },
+    {
+      "original": "tests/test_data_freshness.py:104",
+      "function": "test_local_metadata_is_read_from_the_installed_engines",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "covered",
+      "proofs": [
+        "FRESH",
+        "TABLES"
+      ]
+    },
+    {
+      "original": "tests/test_data_freshness.py:131",
+      "function": "test_gic_periods_and_dates_follow_the_shipped_table",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "adapted",
+      "proofs": [
+        "FRESH"
+      ],
+      "adaptation_or_limit": "Compares the shipped table's complete output; substituting a table at runtime has no native equivalent."
+    },
+    {
+      "original": "tests/test_data_freshness.py:148",
+      "function": "test_a_fact_the_engine_does_not_record_is_unknown",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "adapted",
+      "proofs": [
+        "FRESH"
+      ],
+      "adaptation_or_limit": "Unit tests in src/adapters/freshness.rs exercise absent values; engine monkeypatching has no native equivalent."
+    },
+    {
+      "original": "tests/test_data_freshness.py:181",
+      "function": "test_as_at_boundaries_of_the_lodgment_program",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "covered",
+      "proofs": [
+        "FRESH"
+      ]
+    },
+    {
+      "original": "tests/test_data_freshness.py:189",
+      "function": "test_a_date_in_a_gap_between_recorded_periods_is_outside",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "covered",
+      "proofs": [
+        "FRESH"
+      ]
+    },
+    {
+      "original": "tests/test_data_freshness.py:199",
+      "function": "test_without_as_at_no_dataset_carries_a_status",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "covered",
+      "proofs": [
+        "FRESH"
+      ]
+    },
+    {
+      "original": "tests/test_data_freshness.py:207",
+      "function": "test_invalid_arguments_are_refused",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "covered",
+      "proofs": [
+        "FRESH"
+      ]
+    },
+    {
+      "original": "tests/test_data_freshness.py:213",
+      "function": "test_a_label_that_is_not_one_financial_year_is_refused",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "covered",
+      "proofs": [
+        "FRESH"
+      ]
+    },
+    {
+      "original": "tests/test_data_freshness.py:228",
+      "function": "test_only_an_iso_date_is_reported_as_a_date",
+      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "status": "covered",
+      "proofs": [
+        "FRESH"
+      ]
+    },
+    {
+      "original": "tests/test_conformance_cases.py:103",
+      "function": "test_a_case_without_a_valid_basis_or_source_is_rejected",
+      "source_sha256": "6acc9215e8b4cc62317eb926d258d89662eee4fbb239fc2f53860e8bfaa60976",
+      "status": "retained-python-distribution",
+      "proofs": [
+        "PY"
+      ]
+    },
+    {
+      "original": "tests/test_conformance_cases.py:110",
+      "function": "test_authority_cases_reproduce_the_ato_sample",
+      "source_sha256": "6acc9215e8b4cc62317eb926d258d89662eee4fbb239fc2f53860e8bfaa60976",
+      "status": "covered",
+      "proofs": [
+        "CONF"
+      ]
+    },
+    {
+      "original": "tests/test_registry_preflight.py:184",
+      "function": "test_readme_install_pins_must_select_the_published_version",
+      "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
+      "status": "retained-python-distribution",
+      "proofs": [
+        "PY"
       ]
     }
   ],

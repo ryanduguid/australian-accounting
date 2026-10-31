@@ -1,9 +1,9 @@
 {
-  "base": "c940a25bb6a89d71be8c0d21ab853e3b92566445",
-  "catalogue_sha256": "e56aa41990f34aca645d21990984d0468c131c2aeb6d8428d30621f12bd86a43",
-  "wire_transcript_sha256": "63fef11368bc52b87741bd05dac65aef49267af327321067e844f993bf7b8676",
+  "base": "3f7815b",
+  "catalogue_sha256": "2f78eb00d01a1d9df6a86540cb742fae821ac51562a58811af69f91bb3471a76",
+  "wire_transcript_sha256": "68814836f86b0d5b913f24eaa7c5f1caae6c6e550aba00bc05fa2d48a46fdcc5",
   "full_effective_contracts_sha256": "4141727745a0e3693e22a91aa24181ff99da1ee5b88581a0ca54162b75f7c28f",
-  "native_fixture_sha256": "7c23d18e01b8efb1e40630d31f82f97933b6e8fed38326ab066953536711b74e",
+  "native_fixture_sha256": "10a91054883da23b2528b1149d7b897d105e5aaa8898ad3f810e3ae37e244a9f",
   "capture": "The unchanged Python application passed all 1,083 original tests under read-only instrumentation. Original-only additional captures cover effective validation, fabricated retrieval and protocol boundaries. All expected values were frozen before native comparison.",
   "fixture_scope": "856 non-retrieval effective SDK calls, 6 resources, 34 prompts, 241 retrieval cases plus 3 large-catalogue provenance cases and 1,175 JSON-RPC replies across 34 sessions. Complete results/refusals are compared, with only the identities and provenance allowances in NATIVE.md. Additional negative schema, extension and CLI assertions are in boundary_contracts.rs. This does not assert every original test is covered.",
   "oracle_sha256": {
@@ -20,24 +20,27 @@
     "wire-coverage-v1.json": "621f21c655294a4d55bf119f49a750e956f6601e640556fbe226de4af310aea4"
   },
   "fixture_sha256": {
-    "tests/fixtures/native/adapter-contracts.json": "7c23d18e01b8efb1e40630d31f82f97933b6e8fed38326ab066953536711b74e",
+    "tests/fixtures/native/adapter-contracts.json": "10a91054883da23b2528b1149d7b897d105e5aaa8898ad3f810e3ae37e244a9f",
     "tests/fixtures/native/calvino-followups.json": "1aca4f3563ddbfa5e63115ea1fc8cb06dc548d4dfc6419d2e49cb16e24355a40",
     "tests/fixtures/native/coverage-edges.json": "6676a59037ac1d851b3d4be588b62fdaf7f002896885305cbef70c82fd4d0828",
-    "tests/fixtures/native/legacy-openers.json": "a7fdcd2be5abdd4a27684fe28c3aa73905f053824a59000fa019d0765522c8d5",
-    "tests/fixtures/native/lifecycle-edges.json": "c845418155aa10a88bce8a0ebbba9b8550ad2a219ed6c094af6d68ac0d43e923",
-    "tests/fixtures/native/lifecycle-sessions.json": "20e178a5841fea42193e07a2c059748680f4ebced2e0a959682efbc1b55f0bf9",
+    "tests/fixtures/native/legacy-openers.json": "d592d59fa8cb7fec48371134d52b764ea14a1ded245d86a10d68eed7e985def5",
+    "tests/fixtures/native/lifecycle-edges.json": "e8c23aa978c913d5afddbc7d418ada35891692cff60e4861d62cccc295a09297",
+    "tests/fixtures/native/lifecycle-sessions.json": "039618dc123bd70e5c211aaf1d61fdb85917c1bb96210c974fccd6b00fa61de1",
     "tests/fixtures/native/prompt-contracts.json": "a47c53ee05d234c2eb5020fae4d28240f93c7bf91106aa11508bea213d591afa",
-    "tests/fixtures/native/resource-contracts.json": "62ff0908af360523a209e81bf5785932b59e67665e8bf8064abfdcbaf1fde72c",
+    "tests/fixtures/native/resource-contracts.json": "9618d7e8cde6335af29606c7cadd0b552088a2d0d7edb7fc1177683a03cefe58",
     "tests/fixtures/native/retrieval-contracts.json": "aab49f78d1b4a691568a4855a730f5b75a6fed10dea1dbb05458f45a0bc7ffdb",
     "tests/fixtures/native/retrieval-edges.json": "88ef46aad5fd09b3952ddb8ad68ffbf3528c7eb6892a63b79b50279e82647e3f",
     "tests/fixtures/native/validation-edges.json": "b50c86b340df2b0af7c2107ffc578862de57cd2a02da9d8983ab5cc6549ddd7a",
-    "tests/fixtures/native/wire-coverage.json": "c1ddeabc87dcb88285b7993c785949e96d45a2ca73c2a31851b011c4249f25f4",
-    "tests/fixtures/native/wire-sessions.json": "5a195113d66e4d521c90a9eaee4de71a8ab0798958c0d44bf7f50de7774870e8"
+    "tests/fixtures/native/wire-coverage.json": "6b0e861b6297e7b96b414f864a8537cfd21ec91027d1d6f8572d909236efee27",
+    "tests/fixtures/native/wire-sessions.json": "68814836f86b0d5b913f24eaa7c5f1caae6c6e550aba00bc05fa2d48a46fdcc5",
+    "tests/fixtures/native/freshness-contracts.json": "9a12b4991ddf1e6bb2e3f4a62a506c422a378481910003f3bd56365db2797482"
   },
   "data_sha256": {
-    "data/catalogue.v1.json": "e56aa41990f34aca645d21990984d0468c131c2aeb6d8428d30621f12bd86a43",
-    "data/effective-inputs.v1.json": "8ba12d58c5f096a995facc26087548f26111e3a70c1dbfae594c5057caaaac8a",
-    "data/resource-policy.v1.json": "99f841e442c6e956cb0bcd21c8e40f4fe8c2179a14252a6f3072c584eaf7f6c2",
+    "data/catalogue.v1.json": "2f78eb00d01a1d9df6a86540cb742fae821ac51562a58811af69f91bb3471a76",
+    "data/effective-inputs.v1.json": "31b4141c24abe5e1bec05899fd604bb61ff9ece18a4ed9081be6f19fb9c21387",
+    "data/resource-policy.v1.json": "d67c54bfce0893e9f919575883ace5cc83c995c04d93b98f15b4709d37cae920",
     "data/retrieval-policy.v1.json": "898f3289c571be49bc394540220c74a24196733f30e35cd02bac43dea6e13877"
-  }
+  },
+  "first_capture_base": "c940a25bb6a89d71be8c0d21ab853e3b92566445",
+  "refreeze": "Refrozen against the Python server at the base above. Python's delta since the first capture is get_data_freshness, its scope line and instructions, the lodgment source_checked date (2026-10-28), one question in evaluation/questions.xml and conformance schema 2. Transforms were named and counted, the scoring cases re-captured from tool_selection.py, and freshness-contracts.json captured over stdio from the Python server. oracle_sha256 records the first capture's raw files, which are not in this repository."
 }

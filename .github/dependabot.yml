@@ -73,8 +73,10 @@ updates:
       - /packages/payday-super-checker/fuzz
       - /packages/gst-review
       - /packages/au-tax-rates-data
+      - /packages/lodgment-calendar
       - /apps/au-accounting
       - /apps/lodgeit-calculator-adapter
+      - /apps/aus-accounting-mcp
     schedule:
       interval: weekly
     open-pull-requests-limit: 2

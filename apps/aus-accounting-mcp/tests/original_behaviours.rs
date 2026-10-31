@@ -31,7 +31,7 @@ fn original_behaviour_record_is_complete_and_bound_to_its_reviewed_sources() {
         );
     }
     let functions = record["functions"].as_array().unwrap();
-    assert_eq!(functions.len(), 375);
+    assert_eq!(functions.len(), 392);
     let mut identities = BTreeSet::new();
     let mut counts = std::collections::BTreeMap::new();
     for row in functions {
@@ -357,7 +357,7 @@ fn an_unassessed_gic_period_names_the_current_table_boundary() {
 #[test]
 fn current_language_neutral_conformance_cases_execute_through_the_dispatcher() {
     let contract: Value = serde_json::from_str(include_str!("../conformance/cases.json")).unwrap();
-    assert_eq!(contract["schema_version"], 1);
+    assert_eq!(contract["schema_version"], 2);
     let cases = contract["cases"].as_array().unwrap();
     assert!(!cases.is_empty());
     let mut ids = BTreeSet::new();

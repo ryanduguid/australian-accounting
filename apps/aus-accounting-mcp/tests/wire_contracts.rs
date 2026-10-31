@@ -174,7 +174,7 @@ fn unknown_arguments_and_expected_input_errors_leave_the_session_usable() {
             Some("misspelled_fact"),
         ));
     }
-    assert_eq!(cases.len(), 21);
+    assert_eq!(cases.len(), 22);
     let mut partial = payday.clone();
     partial["matched_amount"] = json!("50.00");
     cases.push((
@@ -307,8 +307,8 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
         }
         assert!(questions.insert(id, (text("answer"), reference)).is_none());
     }
-    assert_eq!(questions.len(), 36);
-    assert_eq!(calls, 42);
+    assert_eq!(questions.len(), 37);
+    assert_eq!(calls, 43);
     let registered: BTreeSet<_> = aus_accounting_mcp::contracts::CATALOGUE["tools"]
         .as_array()
         .unwrap()
@@ -478,6 +478,7 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
                 .unwrap()
                 .into(),
             "lodgment-due-date" => r[0]["obligations"][1]["due_date"].as_str().unwrap().into(),
+            "data-freshness" => r[0]["datasets"][0]["as_at_status"].as_str().unwrap().into(),
             other => panic!("unreviewed reference case {other}"),
         };
         assert_eq!(answer, expected, "{id}");

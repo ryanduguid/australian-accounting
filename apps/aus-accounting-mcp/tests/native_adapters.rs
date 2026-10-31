@@ -90,6 +90,9 @@ fn frozen_effective_adapter_contracts() {
                 );
                 expected["structuredContent"]["source_checked"] = json!("2026-10-20");
             }
+            if name == "calculate_tax_worksheet" {
+                expected = moved_lump_sum_page(&expected);
+            }
             if name == "build_payday_super_evidence_pack" {
                 native_pack(&mut expected["structuredContent"]["files"]);
             }
@@ -125,6 +128,16 @@ fn frozen_effective_adapter_contracts() {
         failures.len(),
         failures.join("\n")
     );
+}
+
+/// Reviewed native engine correction, afa19a4 (#474): the ATO moved this page.
+/// Python 0.2.0 still cites the old address; no figure depends on it.
+fn moved_lump_sum_page(value: &Value) -> Value {
+    serde_json::from_str(&value.to_string().replace(
+        "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/lump-sum-payment-in-arrears-tax-offsets",
+        "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/lump-sum-payment-in-arrears",
+    ))
+    .unwrap()
 }
 
 fn native_provenance(value: &mut Value) {
@@ -210,8 +223,73 @@ fn frozen_resource_contracts() {
             study["example_evidence"]["reviewed"] = json!("2026-10-13");
             study["example_evidence"]["checked"] = json!("2026-10-20");
         }
+        let expected = moved_lump_sum_page(&expected);
         let actual = aus_accounting_mcp::resources::read(uri).unwrap();
         assert_eq!(difference(&actual, &expected, ""), None, "{uri}");
+    }
+}
+
+/// The Python report at the oracle base, with only the identities the native
+/// server replaces: its versions, table paths and the reviewed engine corrections.
+fn native_freshness(result: &mut Value) {
+    result["server"]["version"] = json!("1.0.0");
+    for row in result["datasets"].as_array_mut().unwrap() {
+        row["engine_version"] = json!("1.0.0");
+        let provenance = &mut row["provenance"];
+        if let Some(tables) = provenance["tables"].as_array_mut() {
+            for table in tables {
+                table["uri"] = json!("data/benchmark_rates.csv");
+            }
+        }
+        if provenance["table"].is_object() {
+            provenance["table"]["uri"] = json!("data/gic_rates.json");
+        }
+        if row["dataset"] == "tax_worksheet:study_loan_repayment" {
+            row["sources"][0] = json!(
+                "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates"
+            );
+            row["source_checked"] = json!("2026-10-20");
+            row["provenance"]["source_passage"] = json!(
+                row["provenance"]["source_passage"]
+                    .as_str()
+                    .unwrap()
+                    .replace(
+                        "repayment thresholds and rates",
+                        "minimum repayment income and rates"
+                    )
+            );
+        }
+    }
+    *result = moved_lump_sum_page(result);
+}
+
+#[test]
+fn frozen_freshness_contracts() {
+    let cases: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/native/freshness-contracts.json")).unwrap();
+    assert_eq!(cases.len(), 31);
+    for case in cases {
+        let arguments = &case["request"]["arguments"];
+        let actual = AccountingServer.call("get_data_freshness", arguments);
+        let mut expected = case["result"].clone();
+        if expected["isError"] == true {
+            assert_eq!(actual["isError"], true, "{arguments}");
+            assert_eq!(actual["content"], expected["content"], "{arguments}");
+            continue;
+        }
+        native_freshness(&mut expected["structuredContent"]);
+        assert_eq!(
+            difference(
+                &actual["structuredContent"],
+                &expected["structuredContent"],
+                ""
+            ),
+            None,
+            "{arguments}"
+        );
+        let text: Value =
+            serde_json::from_str(actual["content"][0]["text"].as_str().unwrap()).unwrap();
+        assert_eq!(text, actual["structuredContent"]);
     }
 }
 

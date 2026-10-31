@@ -300,7 +300,7 @@ fn extracted_archive_is_complete_and_runs_without_python_or_checkout_assets() {
     }
     assert_eq!(scope, expected_scope, "real sibling MCP scope");
     let case = &fixture["cases"][0];
-    assert_eq!(case["label"], "all-36-complete");
+    assert_eq!(case["label"], "all-37-complete");
     let recording = scratch.0.join("recording.json");
     fs::write(&recording, case["recording"].as_str().unwrap()).unwrap();
     assert_eq!(

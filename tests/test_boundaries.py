@@ -61,12 +61,16 @@ PYTHON_ENGINES = {
 DATASETS = {
     "packages/au-tax-rates-data": "rates",
 }
+# Native candidates beside the Python component that still ships. Rust takes
+# over at the MCP cutover, which retires the Python source and this list; until
+# then each crate's oracle binds it to the Python results.
+NATIVE_CANDIDATES = {"packages/lodgment-calendar", "apps/aus-accounting-mcp"}
 # Every other packages/*/Cargo.toml is a standalone Rust engine, named as its
 # directory (.github/ci/rust_crates.py enforces that); the manifests are the list.
 RUST_ENGINES = {
     manifest.parent.relative_to(ROOT).as_posix(): manifest.parent.name
     for manifest in sorted(ROOT.glob("packages/*/Cargo.toml"))
-    if manifest.parent.relative_to(ROOT).as_posix() not in DATASETS
+    if manifest.parent.relative_to(ROOT).as_posix() not in DATASETS | NATIVE_CANDIDATES
 }
 ENGINES = PYTHON_ENGINES | RUST_ENGINES
 APPLICATIONS = {

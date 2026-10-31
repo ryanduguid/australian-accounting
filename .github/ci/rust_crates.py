@@ -18,7 +18,8 @@ manifests are the only list, so adding a crate edits no workflow. Writes:
 CI smokes one command per crate: its one [[bin]] name, or the crate name from
 src/main.rs. A crate with more commands names the one CI smokes in
 [package.metadata.ci] binary; one with more and no choice, or with none, stops
-the listing. Its smoke arguments are [package.metadata.ci] smoke, or --api-help.
+the listing. Its smoke arguments are [package.metadata.ci] smoke, or --api-help;
+[package.metadata.ci] candidate-test names an ignored test run on its archive.
 """
 
 from __future__ import annotations
@@ -64,6 +65,7 @@ def crates(root: Path = ROOT, ci_yml: bool = False) -> list[dict[str, str]]:
             "root": manifest.parent.parent.name,
             "binary": names[0],
             "smoke": ci.get("smoke", "--api-help"),
+            **({"candidate-test": ci["candidate-test"]} if "candidate-test" in ci else {}),
         })
     if not found:
         sys.exit("No Rust crates found; run from a checkout with packages/ and apps/")

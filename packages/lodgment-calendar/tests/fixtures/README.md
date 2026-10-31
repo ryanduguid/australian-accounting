@@ -32,6 +32,10 @@ Representation adaptations:
 - JSON rejects unknown field names and duplicate object keys. These new boundary
   checks prevent misspelt facts or ambiguous calendars from silently taking effect.
 
+The 2026-10-28 refreeze replayed all 8,636 rows on the Python engine at 3f7815b.
+Each reproduced its original digest with the old check date restored, so only
+`source_checked` moved. `origin.json` keeps the first capture's records.
+
 `origin.json` records the original tracked file hashes, capture counts, fixture
 hashes and hashes of both compiled data files. `program-2026-27.json` copies the
 original rule texts, sources, fact meanings and holiday table. `nonprintable.json`
