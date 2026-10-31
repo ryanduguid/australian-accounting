@@ -128,11 +128,14 @@ impl ServerHandler for AccountingServer {
         request: CallToolRequestParams,
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResponse, ErrorData> {
-        let result: CallToolResult = serde_json::from_value(self.envelope(
+        let envelope = self.envelope(
             self.call(&request.name, &json!(request.arguments.unwrap_or_default())),
             &context,
-        ))
-        .unwrap();
+        );
+        // rmcp's deserialiser turns a number beyond u64 into a float; keep the exact value.
+        let structured = envelope.get("structuredContent").cloned();
+        let mut result: CallToolResult = serde_json::from_value(envelope).unwrap();
+        result.structured_content = structured;
         Ok(result.into())
     }
     async fn list_resources(

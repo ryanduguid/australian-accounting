@@ -485,6 +485,46 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
     }
 }
 #[test]
+fn numbers_beyond_u64_keep_their_digits_in_both_channels() {
+    let directory = SessionDirectory::new();
+    let digits = format!("1{}", "0".repeat(80));
+    let input = format!(
+        concat!(
+            r#"{{"jsonrpc":"2.0","id":1,"method":"initialize","params":{{"protocolVersion":"2025-11-25","capabilities":{{}},"clientInfo":{{"name":"t","version":"1"}}}}}}"#,
+            "\n",
+            r#"{{"jsonrpc":"2.0","method":"notifications/initialized","params":{{}}}}"#,
+            "\n",
+            r#"{{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{{"name":"list_ato_benchmark_industries","arguments":{{"offset":{}}}}}}}"#,
+            "\n"
+        ),
+        digits
+    );
+    let mut child = Command::new(env!("CARGO_BIN_EXE_aus-accounting-mcp"))
+        .current_dir(&directory.0)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    let mut stdin = child.stdin.take().unwrap();
+    stdin.write_all(input.as_bytes()).unwrap();
+    let mut lines = BufReader::new(child.stdout.take().unwrap()).lines();
+    lines.next().unwrap().unwrap();
+    let reply = lines.next().unwrap().unwrap();
+    drop(stdin);
+    child.wait().unwrap();
+    let structured = reply.split(r#""structuredContent":"#).nth(1).unwrap();
+    assert!(
+        structured.contains(&format!(r#""offset":{digits}"#)),
+        "{structured}"
+    );
+    assert!(
+        reply.contains(&format!(r#"\"offset\": {digits}"#)),
+        "{reply}"
+    );
+}
+
+#[test]
 fn demo_calls_reproduce_complete_proof_over_stdio() {
     let original: Vec<Value> =
         serde_json::from_str(include_str!("fixtures/native/wire-sessions.json")).unwrap();
