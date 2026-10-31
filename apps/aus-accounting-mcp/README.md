@@ -133,6 +133,8 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `read_tax_legislation_section` | Read one cited provision in full, in parts when it is long. |
 | `define_tax_term` | Find an expression's statutory definitions in that corpus. |
 | `search_tax_rates` | Find legislated rates and thresholds with the provision that sets them. |
+| `search_ato_rulings` | Find paragraphs in a configured local ATO rulings corpus. |
+| `read_ato_ruling` | Read one cited ruling paragraph. |
 | `generate_synthetic_sbr_fixture` | Generate fabricated CTR/BAS test data. |
 | `get_data_freshness` | Report each bundled dataset's recorded periods, engine version and source dates, with `UNKNOWN` where none is recorded. |
 
