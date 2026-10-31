@@ -144,6 +144,11 @@ explicit assessment date and fund-receipt evidence, both the date and the amount
 received (`received` with `matched_amount`), before reading a Payday Super result
 as `ON_TIME`.
 
+Payday Super tools do not assess a contribution the fund returned, and no input records
+one. Every `ON_TIME`, including a candidate in `horizon_verdicts`, therefore assumes the
+fund kept every receipt and says so in `verdict_qualification` and its caveats, and the
+evidence pack repeats it. Check fund records for returns before relying on `ON_TIME`.
+
 The research tools need a folder you supply: set `AUS_ACCOUNTING_LIBRARY_ROOT` to an
 authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus, or
 `AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by

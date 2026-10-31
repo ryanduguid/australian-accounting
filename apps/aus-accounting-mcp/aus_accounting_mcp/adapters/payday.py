@@ -18,6 +18,7 @@ from typing import Any
 # paydaysuper.report only re-imports them, so Pyright rejects them there
 # against the published wheel.
 from paydaysuper import LAW_CONTENT_DATE, Result, __version__ as PAYDAY_VERSION, assess
+from paydaysuper.assess import ON_TIME
 from paydaysuper.calendar import load_calendar
 from paydaysuper.csv_io import CsvError, cents, parse_date_text
 from paydaysuper.deadlines import ContribLine, PreRegimeError
@@ -48,6 +49,26 @@ SINGLE_CONTRIBUTION_CAVEAT = (
     "full contribution review with the related evidence before drawing a conclusion. "
     "The supplied sg_amount is not a calculation of SG entitlement."
 )
+
+#: Carried by every ON_TIME verdict or horizon candidate, because the checker has
+#: no input for a contribution the fund returned. This states the limit and applies
+#: no rule of its own, so the verdict, exit code and figures stay the engine's. It
+#: goes when the MCP links an engine that assesses returns.
+RETURNED_CONTRIBUTIONS_CAVEAT = (
+    "aus-accounting-mcp: returned contributions were not assessed, so ON_TIME assumes "
+    "the fund kept every receipt. Check fund records before relying on it."
+)
+#: Rows repeat up to 200 times and hold the words in their caveats, so only the
+#: pack's response and exceptions.json carry them in the qualification as well.
+RETURNED_CONTRIBUTIONS_QUALIFICATION = {
+    "code": "RETURNED_CONTRIBUTIONS_NOT_ASSESSED",
+    "returned_contributions_assessed": False,
+    "assumes_fund_kept_every_receipt": True,
+}
+PACK_RETURNED_CONTRIBUTIONS_QUALIFICATION = {
+    **RETURNED_CONTRIBUTIONS_QUALIFICATION,
+    "statement": RETURNED_CONTRIBUTIONS_CAVEAT,
+}
 
 
 def _read_date(text: str, field: str) -> date:
@@ -125,6 +146,11 @@ def _money(value: Decimal | None) -> str | None:
     return str(value)
 
 
+def _relies_on_kept_receipts(result: Result) -> bool:
+    """Whether the row states ON_TIME, as its verdict or as a horizon candidate."""
+    return result.verdict == ON_TIME or ON_TIME in (result.horizon_verdicts or ())
+
+
 def _serialise(result: Result, *, single: bool = True) -> dict[str, Any]:
     due = result.deadline.due
     # The checker's own cents, so a review agrees with the evidence pack's
@@ -137,7 +163,7 @@ def _serialise(result: Result, *, single: bool = True) -> dict[str, Any]:
             name: {k: str(cents(v)) for k, v in scenario.items()}
             for name, scenario in result.uplift.items()
         }
-    return {
+    serialised: dict[str, Any] = {
         "employee_id": result.line.employee_id,
         "qe_day": result.line.qe_day.isoformat(),
         "sg_amount": str(result.line.sg_amount),
@@ -162,6 +188,9 @@ def _serialise(result: Result, *, single: bool = True) -> dict[str, Any]:
             None if result.horizon_verdicts is None else list(result.horizon_verdicts)
         ),
     }
+    if _relies_on_kept_receipts(result):
+        serialised["verdict_qualification"] = dict(RETURNED_CONTRIBUTIONS_QUALIFICATION)
+    return serialised
 
 
 def _line(
@@ -229,6 +258,11 @@ def _review(lines: list[ContribLine], as_at: str) -> tuple[date, list[Result], G
             "a human reconciliation of June-quarter balances; this MCP cannot confirm that",
         )
         raise InputError(message) from exc
+    # On the engine's results, not its output, so report.csv carries the caveat
+    # in the row and the pack's hashes bind the report as returned.
+    for result in results:
+        if _relies_on_kept_receipts(result):
+            result.caveats.append(RETURNED_CONTRIBUTIONS_CAVEAT)
     return as_at_day, results, gic
 
 
@@ -296,6 +330,25 @@ def review_contributions(contributions: list[ContributionInput], as_at: str) -> 
     }
 
 
+def _qualified_pack_files(files: dict[str, str]) -> dict[str, str]:
+    """State the limit in the files too, since they are saved without the envelope.
+
+    The Markdown and exceptions.json may change here because they bind to the
+    report's hash and nothing binds to theirs. The note goes first so that it
+    precedes the engine's status line, whose NO EXCEPTION INDICATORS it qualifies.
+    """
+    heading = "**Limit on every ON_TIME verdict or candidate.**"
+    notice = f"> {heading} {RETURNED_CONTRIBUTIONS_CAVEAT}\n\n"
+    queue = json.loads(files["exceptions.json"])
+    queue["verdict_qualification"] = dict(PACK_RETURNED_CONTRIBUTIONS_QUALIFICATION)
+    return {
+        **files,
+        "practitioner-review.md": notice + files["practitioner-review.md"],
+        "decision-log.md": notice + files["decision-log.md"],
+        "exceptions.json": json.dumps(queue, indent=2, ensure_ascii=True) + "\n",
+    }
+
+
 def evidence_pack(contributions: list[ContributionInput], as_at: str) -> dict[str, Any]:
     """Delegate the pack to an engine that provides it; never accept local paths."""
     try:
@@ -316,7 +369,7 @@ def evidence_pack(contributions: list[ContributionInput], as_at: str) -> dict[st
         gic_provenance=gic.provenance(),
         rate_tables=(gic.source,) if gic.source else (),
     )
-    return {
+    payload: dict[str, Any] = {
         "ok": True, "engine": "payday-super-checker", "engine_version": PAYDAY_VERSION,
         "law_content_date": LAW_CONTENT_DATE, "as_at": as_at_day.isoformat(),
         "disclaimer": DISCLAIMER,
@@ -332,3 +385,8 @@ def evidence_pack(contributions: list[ContributionInput], as_at: str) -> dict[st
             "receives the input references; use an approved environment and fabricated demos.",
         ],
     }
+    if any(_relies_on_kept_receipts(result) for result in results):
+        payload["files"] = _qualified_pack_files(files)
+        payload["caveats"].append(RETURNED_CONTRIBUTIONS_CAVEAT)
+        payload["verdict_qualification"] = dict(PACK_RETURNED_CONTRIBUTIONS_QUALIFICATION)
+    return payload
