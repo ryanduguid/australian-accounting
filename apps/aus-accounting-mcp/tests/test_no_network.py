@@ -2,16 +2,19 @@
 
 The real server runs over stdio in its own process. A CPython audit hook, installed
 before the server is imported, ends that process on any name lookup, socket connect,
-bind or send, or any child process, and each delegated engine then does a calculation.
+bind, sendto or sendmsg, or any child process, and each delegated engine then does a
+calculation.
 
-The hook sees every call through CPython's socket and process modules, on every
-platform. It cannot see a native extension opening its own socket. It proves these
-calls only; the corpus, library and rulings tools are not called. The one exemption
-is CPython's own socketpair: asyncio's event loop wakes itself with one, which on
-Windows is a loopback connection within the process.
+The hook sees those audited CPython events on every platform. CPython raises no event
+for socket.send, so a socket inherited already connected would go unseen, as would a
+native extension's own socket. It proves these calls only; the corpus, library and
+rulings tools are not called. The one exemption is a loopback bind or connect made
+directly by CPython's own socketpair: asyncio's event loop wakes itself with one, which
+on Windows is a loopback connection within the process.
 """
 
 import asyncio
+import subprocess
 import sys
 from pathlib import Path
 
@@ -29,16 +32,16 @@ WATCHED = {
     "os.startfile", "os.system",
 }
 
-def in_socketpair():
-    frame = sys._getframe(2)
-    while frame:
-        if frame.f_globals.get("__name__") == "socket" and "socketpair" in frame.f_code.co_name:
-            return True
-        frame = frame.f_back
-    return False
+def socketpair_loopback(event, args):
+    if event not in {"socket.bind", "socket.connect"}:
+        return False
+    if not (isinstance(args[1], tuple) and args[1][0] in {"127.0.0.1", "::1"}):
+        return False
+    caller = sys._getframe(2)
+    return caller.f_globals.get("__name__") == "socket" and "socketpair" in caller.f_code.co_name
 
 def guard(event, args):
-    if event in WATCHED and not in_socketpair():
+    if event in WATCHED and not socketpair_loopback(event, args):
         os.write(2, f"NETWORK ATTEMPT: {event} {args}".encode())
         os._exit(99)
 
@@ -143,6 +146,28 @@ def test_real_tool_calls_make_no_network_call(tmp_path):
     assert results["calc_payday_super_deadline"]["result"]["verdict"] == "AT_RISK"
     assert results["get_ato_benchmarks"]["ratios"]
     assert results["review_gst_coding"]["lines"][0]["state"] == "gst_differs_from_registration"
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "s = __import__('_socket').socket(); s.connect(('192.0.2.1', 9))",
+        "__import__('os').system('exit 0')",
+        "helper()",
+    ],
+    ids=["external connect", "child process", "call from a nested frame"],
+)
+def test_the_socketpair_exemption_covers_only_its_own_loopback_calls(body):
+    module = (
+        "def helper():\n"
+        "    s = __import__('_socket').socket(); s.connect(('127.0.0.1', 9))\n"
+        f"def socketpair():\n    {body}\n"
+        "socketpair()\n"
+    )
+    # The module name makes the frame look like CPython's own.
+    source = GUARD + f"exec({module!r}, {{'__name__': 'socket'}})\n"
+    completed = subprocess.run([sys.executable, "-c", source], capture_output=True, timeout=30)
+    assert completed.returncode == 99, completed.stderr
 
 
 def test_the_guard_stops_a_connection_made_during_a_tool_call(tmp_path):

@@ -72,8 +72,9 @@ workflow (the adapter from its own workflow), and keeps each platform's binary f
 the tests run under `cargo llvm-cov` with the crate's floor from
 `.github/ci/rust_coverage_floors.json`, its measured line coverage rounded down; raise a
 floor with the tests, never lower it to pass. Each engine's `tests/no_network.rs` watches a
-real calculation with `strace` on Linux, which CI installs, and reads the binary's
-imports on Windows. The `umbrella-parity` job then runs
+real calculation with `strace` on Linux, which CI installs, and scans the binary for
+selected network and process API names on Windows. Neither sees `io_uring` networking
+or, on Windows, a network path opened as a file. The `umbrella-parity` job then runs
 `apps/au-accounting/tests/parity.py` over the engines' and `au-accounting`'s
 binaries; the adapter is not part of it. CodeQL and Dependabot
 include Cargo. All candidate builds have read-only permissions.

@@ -1,9 +1,10 @@
 """README: 'contacts no service'. This watches a real calculation.
 
 A CPython audit hook, installed before the engine is imported, ends the process on
-any name lookup, socket connect, bind or send, or any child process. It sees every
-call through CPython's socket and process modules, on every platform. It cannot see
-a native extension opening its own socket; this engine has no compiled dependency.
+any name lookup, socket connect, bind, sendto or sendmsg, or any child process. It
+sees those audited CPython events on every platform. CPython raises no event for
+socket.send, so a socket inherited already connected would go unseen, as would a
+native extension's own socket; this engine has no compiled dependency.
 """
 
 import subprocess
