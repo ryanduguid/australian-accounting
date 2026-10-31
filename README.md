@@ -21,10 +21,9 @@
 [![VirusTotal](.github/assets/badges/virustotal.svg)](https://github.com/ryanduguid/australian-accounting/releases)<br>
 [![licence: FSL-1.1-ALv2](.github/assets/badges/licence.svg)](LICENSE)
 [![Open in GitHub Codespaces](.github/assets/badges/github.svg)](https://codespaces.new/ryanduguid/australian-accounting)
-[![Glama MCP server score](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/score.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
 
 [![Aus Accounting MCP server](https://mcprush.com/badge/aus-accounting-mcp/card.svg)](https://mcprush.com/to/aus-accounting-mcp?ref=badge)
-[![Australian Accounting MCP MCP server – quality and maintenance score on Glama](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/card.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
+[![Australian Accounting MCP server – quality and maintenance score on Glama](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/card.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
 
 </div>
 
