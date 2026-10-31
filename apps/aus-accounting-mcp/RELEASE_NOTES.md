@@ -1,3 +1,17 @@
+# v0.7.1
+
+- Pins `payday-super-checker` 0.2.3 (was 0.2.2). The checker's only change is to its
+  Employment Hero export profile: a Beam status of Reconciled is no longer read as sent
+  to the fund, so such a row gets no remitted date. This server's tools take structured
+  contributions and import no vendor export, so no tool output changes except
+  `engine_version`, now 0.2.3 for the payday tools. Anyone who ran the checker's own
+  import on an Employment Hero export with 0.2.2 should re-run it; see the checker's
+  [v0.2.3 release](https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.2.3).
+- No other check, comparison or review changed. Retains `ato-benchmark-compare` 0.2.2,
+  `div7a-loan-review` 0.3.2, `australian-tax-calculators` 0.2.0, `gst-review` 0.1.0 and
+  `lodgment-calendar` 0.1.0 unchanged.
+- Aligns citation, compatibility and MCP Registry metadata with 0.7.1.
+
 # v0.7.0
 
 - Adds `get_lodgment_due_dates`, which lists ATO 2026-27 lodgment program due dates

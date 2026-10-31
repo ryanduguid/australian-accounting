@@ -19,7 +19,7 @@ just test      # every component's suite, plus the repository boundary checks
 as editable workspace members. Australian Tax Calculators, Division 7A Loan
 Review, ATO Benchmark Compare, Payday Super Checker and GST Review are Rust crates;
 until the MCP server links them, the workspace installs their last Python
-releases, 0.2.0, 0.3.2, 0.2.2, 0.2.2 and 0.1.0, from PyPI.
+releases, 0.2.0, 0.3.2, 0.2.2, 0.2.3 and 0.1.0, from PyPI.
 
 `just` is optional tooling; install it with `uv tool install rust-just`. The recipes
 are `setup`, `lint`, `typecheck`, `test` and `check` (the last 3 together). Each

@@ -29,7 +29,7 @@ lodgment-calendar = { workspace = true }
 # australian-tax-calculators, div7a-loan-review, ato-benchmark-compare and
 # payday-super-checker are now Rust crates outside the workspace. Until the MCP
 # server links them directly, it takes each engine's last Python release from
-# PyPI (0.2.0, 0.3.2, 0.2.2 and 0.2.2), whose engine code the crates' parity
+# PyPI (0.2.0, 0.3.2, 0.2.2 and 0.2.3), whose engine code the crates' parity
 # corpora pin.
 
 # The shared toolchain for running every component's checks from one
