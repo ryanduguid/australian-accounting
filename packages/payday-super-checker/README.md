@@ -139,7 +139,7 @@ PATH or copy the executable to a directory on PATH. No Python runtime is needed.
 The calendar, the GIC and super rate tables and the vendor profiles are compiled
 into the binary and nothing is fetched at run time.
 
-**Upgrade notice for the Python package.** `payday-super-checker` 0.1.4 to 0.2.2 treat Employment Hero's Beam status Reconciled as sent to the fund, which writes a remittance date for money Beam has cleared but not yet sent. Version 0.2.3 on PyPI corrects this and changes no other check; it needs Python 3.14 or later. Upgrade, and re-run any review of an Employment Hero export that contains Reconciled rows.
+**Upgrade notice for the Python package.** `payday-super-checker` 0.1.3 to 0.2.2 treat Employment Hero's Beam status Reconciled as sent to the fund, which writes a remittance date for money Beam has cleared but not yet sent. Version 0.2.3 on PyPI corrects this and changes no other check; it needs Python 3.14 or later. Upgrade, and re-run any review of an Employment Hero export that contains Reconciled rows.
 
 The native version is unreleased. PyPI still provides the historical Python
 release; `pip install` does not install this binary. Use the synthetic CSV

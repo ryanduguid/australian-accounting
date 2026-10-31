@@ -5,7 +5,7 @@
   to the fund, so such a row gets no remitted date. This server's tools take structured
   contributions and import no vendor export, so no tool output changes except
   `engine_version`, now 0.2.3 for the payday tools. Anyone who ran the checker's own
-  import on an Employment Hero export with 0.2.2 should re-run it; see the checker's
+  import on an Employment Hero export with 0.1.3 to 0.2.2 should re-run it; see the checker's
   [v0.2.3 release](https://github.com/ryanduguid/australian-accounting/releases/tag/payday-super-checker/v0.2.3).
 - No other check, comparison or review changed. Retains `ato-benchmark-compare` 0.2.2,
   `div7a-loan-review` 0.3.2, `australian-tax-calculators` 0.2.0, `gst-review` 0.1.0 and
