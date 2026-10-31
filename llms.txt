@@ -30,7 +30,7 @@ Each component keeps its own distribution, version, release notes, tests and `CI
 - [solomons-sword](https://github.com/ryanduguid/australian-accounting/tree/main/packages/solomons-sword): trust distribution allocation and Division 6, section 100A and section 99B review checks.
 - [the-wip-tally](https://github.com/ryanduguid/australian-accounting/tree/main/packages/the-wip-tally): a deterministic AASB 15 construction WIP schedule.
 - [gst-review](https://github.com/ryanduguid/australian-accounting/tree/main/packages/gst-review): review states for coded bank lines, flagging GST codes that conflict with registration and likely transfers between entities, and a BAS-to-ledger GST reconciliation by period.
-- [lodgment-calendar](https://github.com/ryanduguid/australian-accounting/tree/main/packages/lodgment-calendar): ATO lodgment program due dates for BAS, IAS and income tax returns, with each rule's ATO source and UNKNOWN where a fact is missing. Not yet released.
+- [lodgment-calendar](https://github.com/ryanduguid/australian-accounting/tree/main/packages/lodgment-calendar): ATO lodgment program due dates for BAS, IAS, income tax and FBT returns, with each rule's ATO source and UNKNOWN where a fact is missing. Not yet released.
 - [au-tax-rates-data](https://github.com/ryanduguid/australian-accounting/tree/main/packages/au-tax-rates-data): key ATO rates and thresholds with verbatim source quotes and a validator. Never released.
 
 ## Related
