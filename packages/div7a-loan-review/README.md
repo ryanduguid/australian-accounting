@@ -88,7 +88,7 @@ rather than a number it cannot stand behind.
 | s 109C payments | This engine is loans, not payments. |
 | s 109F forgiven debts | Out of scope. |
 | s 109T, s 109W, s 109C(3A) interposed entities | Out of scope. |
-| s 109XA unpaid present entitlements, sub-trusts, PCG 2017/13, TD 2022/11 | Out of scope. |
+| s 109XA unpaid present entitlements, sub-trusts, PCG 2017/13, TD 2022/11 | Out of scope. See [*Bendel*](#unpaid-present-entitlements-after-bendel). |
 | s 109RB Commissioner's discretion, s 109Q hardship, s 109RD extensions | Out of scope, and each can change the answer. |
 | s 109Y distributable surplus | Not modelled. The shortfall is not the dividend; see below. |
 | Loans made before 4 December 1997 | s 109D(5). `SKIPPED`, including the 1997-98 year that straddles the date. |
@@ -100,6 +100,54 @@ rather than a number it cannot stand behind.
 An `UNKNOWN` is never softened into a best-effort guess, and never coerced to
 `false`. A limb that has not been established is a different finding from a
 limb that has failed, and only one of those is a breach.
+
+## Unpaid present entitlements after *Bendel*
+
+Scope note, read at source on 31 October 2026. It adds no calculation and changes no result.
+
+**What the High Court decided.** In
+[*Commissioner of Taxation v Bendel* [2026] HCA 18](https://www.hcourt.gov.au/cases-and-judgments/cases/decided/case-m472025),
+decided on 10 June 2026, the appeal was dismissed 5 to 2 (Jagot and Beech-Jones JJ
+dissenting). The copy read is subject to formal revision before publication in the
+Commonwealth Law Reports. The majority held that a private company beneficiary that did not
+call for payment of its unpaid present entitlements did not make a s 109D(3) 'loan' to the
+trustee: there is no provision of financial accommodation under s 109D(3)(b) 'when a private
+company does nothing' ([72]), and 'simply doing nothing, or acquiescing to the retention of
+funds' is not a transaction that in substance effects a loan under s 109D(3)(d) ([74]). The
+expanded definition still requires some form of obligation to repay ([76]). On that trust
+deed and those resolutions, the amounts set aside were held on separate trusts and no
+debtor and creditor relationship arose ([6], [57]).
+
+**What it did not decide.** The Commissioner did not rely on Subdivision EA and its application
+was not determined. The majority observed that the facts 'broadly correspond' with the
+circumstances it addresses ([64]) and that the Commissioner had not suggested he could not
+assess Mr Bendel under it ([84]); the ATO reads this as their Honours 'not determining the
+issue' (statement, [28]). The reasons do not mention s 100A. The s 6-25 notice of contention
+was unnecessary to consider ([86]).
+
+**What the ATO says.** The
+[Decision impact statement](https://www.ato.gov.au/law/view/document?DocID=LIT/ICD/M47/2025/00001)
+of 26 June 2026 is the Commissioner's view, not the Court's holding. Where the company has
+taken no relevant action, the Commissioner will not treat the entitlement as a s 109D loan,
+whether or not it is held on a separate trust ([33]). Entitlements simply left outstanding
+are not, 'without more', loans; entitlements made subject to complying loan terms are loans
+and stay so, and a mistaken understanding of the law does not undo that ([34], [38]).
+Subdivision EA and s 100A may still apply ([27], [35], [36]). The statement says TD 2022/11 will be withdrawn and other guidance
+reviewed ([43], [44]); on 31 October 2026 the ATO's TD 2022/11 page says the ruling is being
+reviewed, not that it has been withdrawn. Later guidance may change this note.
+
+**What this tool still does not decide.** It takes the amalgamated loan's facts from the
+operator and does not decide:
+
+- whether an unpaid present entitlement, or any dealing with one, is a loan under s 109D(3);
+- whether an amount is held on a separate trust, or a debt is owed, under a trust deed,
+  resolutions and accounts;
+- whether Subdivision EA, including s 109XA, or s 100A applies; or
+- whether an earlier loan agreement over an entitlement should be treated differently, or
+  whether an assessment can be amended or objected to.
+
+A `COMPLYING` gate or a repayment figure on a supplied row says nothing about whether that
+row should be a loan at all.
 
 ## The shortfall is not the dividend
 

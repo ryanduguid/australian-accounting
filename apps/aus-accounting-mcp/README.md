@@ -125,12 +125,16 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `review_gst_coding` | Give each coded bank line a review state against supplied GST registration dates. |
 | `reconcile_bas` | Compare lodged BAS label figures with ledger lines per period. |
 | `get_lodgment_due_dates` | List ATO 2026-27 lodgment program due dates for BAS, IAS and income tax returns, self-lodged or through an agent, with `UNKNOWN` where a fact is missing. |
+| `validate_abn` | Test an ABN against ABN Lookup's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
+| `validate_acn` | Test an ACN against ASIC's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, best match first. |
 | `read_tax_legislation_section` | Read one cited provision in full, in parts when it is long. |
 | `define_tax_term` | Find an expression's statutory definitions in that corpus. |
 | `search_tax_rates` | Find legislated rates and thresholds with the provision that sets them. |
+| `search_ato_rulings` | Find paragraphs in a configured local ATO rulings corpus. |
+| `read_ato_ruling` | Read one cited ruling paragraph. |
 | `generate_synthetic_sbr_fixture` | Generate fabricated CTR/BAS test data. |
 | `get_data_freshness` | Report each bundled dataset's recorded periods, engine version and source dates, with `UNKNOWN` where none is recorded. |
 
@@ -139,6 +143,11 @@ Missing figures remain unknown. Preserve `UNKNOWN`, `REFUSED`, `not_supplied` an
 explicit assessment date and fund-receipt evidence, both the date and the amount
 received (`received` with `matched_amount`), before reading a Payday Super result
 as `ON_TIME`.
+
+Payday Super tools do not assess a contribution the fund returned, and no input records
+one. Every `ON_TIME`, including a candidate in `horizon_verdicts`, therefore assumes the
+fund kept every receipt and says so in `verdict_qualification` and its caveats, and the
+evidence pack repeats it. Check fund records for returns before relying on `ON_TIME`.
 
 The research tools need a folder you supply: set `AUS_ACCOUNTING_LIBRARY_ROOT` to an
 authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus, or

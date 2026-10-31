@@ -34,7 +34,7 @@ conformance counts move without this page.
 | Name and version | Aus Accounting MCP (`aus-accounting-mcp`) 0.7.1, a local MCP server of Australian accounting tools |
 | Source and updates | Ryan Duguid, the sole maintainer, under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2), with no warranty or support agreement. Each release has [release notes](../RELEASE_NOTES.md). `uvx` keeps the version it first downloaded, so name the release in the client configuration (`aus-accounting-mcp==<version>`) to control which version runs. |
 | Intended use cases | Gives an assistant bounded calculations and reviews (ATO benchmarks, Payday Super timing, Division 7A s 109N and s 109E, 14 worksheets), cited retrieval from folders the firm configures, and synthetic test data |
-| Known limitations and prohibited use | Not tax advice, and not for use without human review; Payday Super and Division 7A reviews are experimental; each worksheet holds only within its stated period and scope; retrieval returns point-in-time copies, and no match does not mean no rule; library search does not rank by authority |
+| Known limitations and prohibited use | Not tax advice, and not for use without human review; Payday Super and Division 7A reviews are experimental; Payday Super does not assess contributions the fund returned, so `ON_TIME` assumes the fund kept every receipt; each worksheet holds only within its stated period and scope; retrieval returns point-in-time copies, and no match does not mean no rule; library search does not rank by authority |
 | Foreseeable misuse and failure | A figure outside its period or scope, or a superseded provision or ruling, is relied on as current. Each worksheet holds only within its stated period and scope, a result the tools cannot establish stays `UNKNOWN` or `REFUSED`, every provision the legislation tools return carries its compilation date, and every rulings paragraph its fetch date. Client data reaching a hosted model through the host is outside the server's control: it makes no network calls, and the README asks for fabricated data whenever the host uses a hosted model. |
 | Data sources and type | Structured tool arguments supplied through the host, text from a Markdown library, a legislation corpus and ATO rulings runs the firm configures, and bundled reference data. The README asks for fabricated data whenever the host uses a hosted model. |
 | Key stakeholders affected | May include the firm's clients, whose tax, super and Division 7A positions can rest on a result; employees, where Payday Super timing is reviewed; and the practitioners who remain responsible for the advice |
@@ -43,7 +43,7 @@ conformance counts move without this page.
 | Technical requirements | Python 3.14 or later, [uv](https://docs.astral.sh/uv/) and an MCP host that runs local stdio servers |
 | Network access | None once installed. The host still sends tool arguments and results to its model provider. |
 | Where a person decides | Every result needs human review before consequential accounting action. `ok: true` means the tool ran, not that a review passed, and `UNKNOWN` and `REFUSED` results stand. |
-| Acceptance and testing | A change reaches `main` only when the required CI checks pass. The test suite replays 37 fabricated evaluation questions, each with an exact expected answer, through a real stdio session, and 23 conformance cases: 8 for Payday Super and Division 7A pinned to this server's own results, and 15 for PAYG withholding taken from the ATO's published sample data. |
+| Acceptance and testing | A change reaches `main` only when the required CI checks pass. The test suite replays 39 fabricated evaluation questions, each with an exact expected answer, through a real stdio session, and 23 conformance cases: 8 for Payday Super and Division 7A pinned to this server's own results, and 15 for PAYG withholding taken from the ATO's published sample data. |
 | Independent assurance | None. No external audit, certification or practitioner review. |
 | Report a problem | A vulnerability through the server's [security policy](../SECURITY.md); a wrong result as an issue reproduced with fabricated data, never client data |
 | For the firm to complete | Owner, status, purpose and business goals, registered date and screening outcome (the template's firm columns); installed version, approved uses, approved hosts and model providers, whether client data may reach a hosted model, impact and risk assessment outcome and treatment, any audit requirement, next review date |
@@ -105,7 +105,7 @@ states at the top of its README when its sources were last checked. Server relea
 are listed in the
 [release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md).
 
-**How is answer quality monitored?** The server's test suite replays 37 fabricated
+**How is answer quality monitored?** The server's test suite replays 39 fabricated
 questions, each with an exact expected answer, through a real stdio session and checks
 both the answer and the tools called. That shows the tools reproduce their answers,
 not that a model picks the right tool: `evaluation/tool_selection.py` scores a

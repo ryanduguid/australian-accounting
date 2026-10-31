@@ -29,6 +29,7 @@
         "/result/due": "2026-08-17",
         "/result/verdict": "UNKNOWN",
         "/result/horizon_verdicts": ["UNPAID", "ON_TIME"],
+        "/result/verdict_qualification/code": "RETURNED_CONTRIBUTIONS_NOT_ASSESSED",
         "/result/final_shortfall": null
       }
     },
@@ -41,6 +42,7 @@
       "expect": {
         "/result/due": "2026-08-17",
         "/result/verdict": "ON_TIME",
+        "/result/verdict_qualification/code": "RETURNED_CONTRIBUTIONS_NOT_ASSESSED",
         "/result/final_shortfall": null
       }
     },

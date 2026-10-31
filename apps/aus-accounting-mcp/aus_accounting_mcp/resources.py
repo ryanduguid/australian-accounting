@@ -34,7 +34,11 @@ from paydaysuper.rates import load_gic
 from .adapters.div7a import DISCLAIMER as DIV7A_DISCLAIMER
 from .adapters.gst import DISCLAIMER as GST_DISCLAIMER
 from .adapters.lodgment import DISCLAIMER as LODGMENT_DISCLAIMER
-from .adapters.payday import DISCLAIMER as PAYDAY_DISCLAIMER, SINGLE_CONTRIBUTION_CAVEAT
+from .adapters.payday import (
+    DISCLAIMER as PAYDAY_DISCLAIMER,
+    RETURNED_CONTRIBUTIONS_CAVEAT,
+    SINGLE_CONTRIBUTION_CAVEAT,
+)
 
 SERVER_DISTRIBUTION = "aus-accounting-mcp"
 RETRIEVAL_FOLDERS = (
@@ -77,6 +81,8 @@ BOUNDARY_PARAGRAPHS = (
     " synthetic fixtures marked `synthetic: true`; they are not lodgements.",
     "Payday Super reviews can mark `UNKNOWN` or refuse where the facts do not"
     " establish the statutory test. A remittance date alone cannot produce `ON_TIME`."
+    " Returned contributions are not assessed: no input records one, so `ON_TIME`"
+    " assumes the fund kept every receipt."
     " Experimental SG-charge figures are exposure flags, not an ATO assessment.",
     "`ok: true` means a tool ran, not that a review passed. Retain `UNKNOWN`,"
     " `REFUSED`, `not_supplied` and `null` outcomes as they are returned, and obtain"
@@ -105,6 +111,10 @@ def scope() -> dict[str, Any]:
             "not BAS preparation or revision.",
             "get_lodgment_due_dates": "List ATO 2026-27 lodgment program due dates for BAS, "
             "IAS and income tax returns, with UNKNOWN where a fact is missing.",
+            "validate_abn": "Test an ABN's check digit; proves neither ABR nor GST "
+            "registration.",
+            "validate_acn": "Test an ACN's check digit; proves neither ABR nor GST "
+            "registration.",
             "calculate_tax_worksheet": "Run one of the bounded calculation_worksheets below.",
             "get_data_freshness": "Report each bundled dataset's recorded periods, engine "
             "version and source dates, with UNKNOWN where none is recorded; never a "
@@ -147,7 +157,7 @@ def scope() -> dict[str, Any]:
             "sg_entitlement": "Worker/earnings classification and post-June 2026 SG entitlement.",
             "payroll_tax": "State and territory payroll tax.",
         },
-        "payday_limitations": SINGLE_CONTRIBUTION_CAVEAT,
+        "payday_limitations": f"{SINGLE_CONTRIBUTION_CAVEAT} {RETURNED_CONTRIBUTIONS_CAVEAT}",
         "div7a_scope": "Read aus-accounting://div7a-scope for exclusions.",
         "reference_policy": (
             "Reference documents are not executable or verified tax rules. Check the "

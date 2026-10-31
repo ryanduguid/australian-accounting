@@ -23,6 +23,7 @@ def requests():
             for obligation in ("bas", "ias"):
                 for cycle in CYCLES:
                     yield obligation, entity_type, "2026-27", channel, cycle
+            yield "fbt_return", entity_type, "2026-27", channel, None
             if channel != "bas_agent":
                 yield "income_tax_return", entity_type, "2025-26", channel, None
 
