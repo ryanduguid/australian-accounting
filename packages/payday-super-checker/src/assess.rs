@@ -1122,9 +1122,9 @@ fn later_contribution_due(
 /// A rejected amount is not a contribution (SIS reg 7.07G(4); LCR 2026/2
 /// paragraphs 24 and 25) and the deadline does not move for a rejection (ATO,
 /// 'Getting it right'). The line is decided only when the kept receipts cover
-/// the SG amount, the fund's period to reject them has ended and every return
-/// is shown to be a rejection; otherwise it is UNKNOWN, carries no exposure and
-/// is not LATE.
+/// the SG amount, every return is shown to be a rejection and, where the line
+/// has a return, the fund's allocation of each counted receipt is evidenced;
+/// otherwise it is UNKNOWN, carries no exposure and is not LATE.
 fn assess_events(
     result: &mut Assessed,
     cal: &BusinessCalendar,
@@ -1197,8 +1197,9 @@ fn assess_events(
     let mut last_credit = None;
     let mut last_counted = None;
     let mut kept_receipts = 0;
-    let mut in_fund_window = false;
     let mut unsettled_on_time = false;
+    let needs_allocation = returned::has_return_event(&line);
+    let mut unallocated = Vec::new();
     for r in returned::receipts(&line)? {
         if not_shown.iter().any(|(day, _)| *day == r.date)
             && r.date <= as_at
@@ -1233,18 +1234,29 @@ fn assess_events(
         let credit = dmin(&eligible, &remaining)?;
         remaining = remaining.sub(&credit)?;
         last_credit = Some(r.date);
-        let window_end = returned::fund_window_end(r.date, cal)?;
-        if as_at <= window_end {
-            in_fund_window = true;
-            result.caveats.push(format!(
-                "the fund has until {} to allocate or refund the receipt dated {} (SIS reg \
-                 7.07G), and a receipt alone does not show it is able to be allocated (SGAA \
-                 s 18A(1)(a)(ii); LCR 2026/2 paragraph 20). The line is left undecided at this \
-                 as-at date; rerun after {}",
-                window_end.isoformat(),
-                r.date.isoformat(),
-                window_end.isoformat()
-            ));
+        if needs_allocation {
+            if credit.gt(&returned::allocated(&line, r.date, as_at)?)? {
+                unallocated.push(r.date.isoformat());
+            } else if r.date <= window
+                && credit.gt(&returned::allocated(&line, r.date, window.min(as_at))?)?
+            {
+                undecided = true;
+                result.caveats.push(format!(
+                    "the receipt dated {} is allocated only after {}. A contribution can be \
+                     able to be allocated before it is allocated (LCR 2026/2 paragraphs 22 and \
+                     23) or some time after receipt (paragraph 20), so this does not show it \
+                     was on time. Confirm with the fund when it was able to be allocated",
+                    r.date.isoformat(),
+                    window.isoformat()
+                ));
+            } else if r.date > window && credit.gt(&returned::allocated(&line, r.date, r.date)?)? {
+                result.caveats.push(format!(
+                    "lateness for the receipt dated {} is measured to the receipt. It was \
+                     allocated later, and it may have become able to be allocated after receipt \
+                     (LCR 2026/2 paragraph 20), which would add days",
+                    r.date.isoformat()
+                ));
+            }
         }
         if r.date <= window {
             on_time = on_time.add(&credit)?;
@@ -1275,6 +1287,17 @@ fn assess_events(
                 last_counted = Some(r.date);
             }
         }
+    }
+
+    if !unallocated.is_empty() {
+        result.caveats.push(format!(
+            "this line has a return, and nothing shows the fund allocated all of the receipt \
+             dated {} by the as-at date. A receipt does not show the money is able to be \
+             allocated (SGAA s 18A(1)(a)(ii); LCR 2026/2 paragraph 20), and it may yet be \
+             rejected. Supply an allocated event from the fund's records, with the date, the \
+             amount and the receipt_date",
+            unallocated.join(", ")
+        ));
     }
 
     if doubtful || remaining.gt(&zero())? {
@@ -1328,15 +1351,10 @@ fn assess_events(
                 money(Some(&owed))?,
                 due.isoformat()
             ));
-            if !doubtful
-                && !undecided
-                && !in_fund_window
-                && !past_horizon
-                && possible.is_none()
-                && as_at > due
-            {
+            if !doubtful && !undecided && !past_horizon && possible.is_none() && as_at > due {
                 result.caveats.push(format!(
-                    "if these events are complete, s 18C gives a base shortfall of ${} for this \
+                    "if these events are complete and the fund allocated what it kept, s 18C \
+                     gives a base shortfall of ${} for this \
                      QE day, and s 19A adds notional earnings for each late-period day on which \
                      the final shortfall is above nil. This is a conditional statement, not an \
                      estimate: no SG charge figure is calculated",
@@ -1348,7 +1366,7 @@ fn assess_events(
     }
 
     result.receipt_established = true;
-    if in_fund_window {
+    if !unallocated.is_empty() {
         result.verdict = UNKNOWN.into();
         result.horizon_verdicts = verdicts(UNPAID, if any_late { LATE } else { ON_TIME });
         return Ok(());
@@ -1358,12 +1376,6 @@ fn assess_events(
         result.horizon_verdicts = verdicts(LATE, ON_TIME);
         return Ok(());
     }
-    result.caveats.push(
-        "this reads the receipts the fund kept as able to be allocated, and assumes no \
-         rejection of them has been notified (SGAA s 18A(1)(a)(ii); ATO, 'Getting it right'). \
-         A receipt date does not prove allocation; the fund's records settle it"
-            .into(),
-    );
     if !any_late {
         result.verdict = ON_TIME.into();
         return Ok(());

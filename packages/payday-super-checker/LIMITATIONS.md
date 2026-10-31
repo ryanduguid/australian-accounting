@@ -138,17 +138,24 @@ receipt has no event, so its row stays `UNKNOWN`. A line whose kept receipts do 
 cover the SG amount is `UNKNOWN` with no exposure, even after the deadline. Its
 caveat states the s 18C base shortfall that applies if the events are complete.
 
-A line with events stays `UNKNOWN` until 3 business days after its last counted
-receipt, because that receipt may still be rejected. After that it can read
-`ON_TIME` or `LATE`, on the assumption that no rejection was notified: a caveat says
-so, and the checker cannot verify it. A return more than 3 business days after its
-receipt is not shown to be a rejection or a reg 7.07G(3) refund, so its line is
-`UNKNOWN`. The checker does not say the credit is gone or that it stands. These
-periods use the national calendar, and the ATO measures the fund's period by holidays
-in the fund's location, so a regional holiday can give a fund one more day than this
-allows. A self-managed fund has longer under reg 7.07H, and the input does not name
-the fund type, so the same 3 business days apply. A row with no events is not held
-for this period: its receipt date keeps its existing reading as an eligible receipt.
+On a line with a return event, a kept receipt reads `ON_TIME` or `LATE` only with an
+`allocated` event from the fund's records covering it by the as-at date; otherwise
+the line is `UNKNOWN`. The checker relies on that event as supplied and cannot verify
+it. A timely receipt allocated only after its deadline stays `UNKNOWN`, which also
+holds back a routine allocation of a receipt that arrived close to the deadline. A
+`LATE` row is measured to the receipt, so a receipt that became allocable later would
+add days, and a caveat says so.
+
+A return more than 3 business days after its receipt is not shown to be a rejection
+or a reg 7.07G(3) refund, so its line is `UNKNOWN`. The checker does not say the
+credit is gone or that it stands. This test uses the national calendar and the same 3
+days for every fund, although the ATO counts holidays in the fund's location and an
+SMSF has longer under reg 7.07H. It can leave a genuine rejection `UNKNOWN`, but
+cannot produce `ON_TIME`.
+
+A line with no return event is not held for allocation: its receipt date keeps its
+existing reading as an eligible receipt. An undisclosed return therefore still reads
+`ON_TIME` when nothing in the file records it.
 
 Where the fund kept part of a first contribution, a later receipt between the end
 of the usual period and the 20th business day stays `UNKNOWN`: LCR 2026/2 paragraph

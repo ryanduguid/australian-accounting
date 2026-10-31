@@ -57,7 +57,8 @@ pub struct ContribLine {
     pub join_caveats: Vec<String>,
     /// A fund or clearing house says some of this contribution came back.
     pub returned_by_fund: bool,
-    /// Dated, amount-specific receipts and returns beyond the row's own columns.
+    /// Dated, amount-specific receipts, returns and allocations beyond the row's
+    /// own columns.
     pub events: Vec<ContribEvent>,
     /// `assess` found a return not shown to be a rejection or a reg 7.07G(3) refund.
     pub return_not_shown: bool,
@@ -74,6 +75,9 @@ pub enum EventKind {
         receipt: Option<Date>,
         notified: Option<Date>,
     },
+    /// The fund's records show it allocated this amount of `receipt` on the
+    /// event's date.
+    Allocated { receipt: Date },
 }
 
 #[derive(Clone, Debug)]
@@ -316,7 +320,17 @@ fn item4_evidence(
         }
         for r in returned::receipts(line)? {
             if r.date >= earliest && r.eligible()?.gt(&zero())? {
-                return Ok(receipt_evidence(r.date));
+                let evidence = receipt_evidence(r.date);
+                // On a line with a return, a receipt confirms nothing until the
+                // fund's allocation of it shows it was an eligible contribution.
+                let by = as_at.map_or(confirmed_due, |a| a.min(confirmed_due));
+                let unproven = returned::has_return_event(line)
+                    && r.eligible()?.gt(&returned::allocated(line, r.date, by)?)?;
+                return Ok(if unproven && matches!(evidence, Evidence::Confirmed) {
+                    Evidence::Possible
+                } else {
+                    evidence
+                });
             }
         }
         return Ok(if as_at.is_none_or(|a| a <= possible_due) {

@@ -712,7 +712,10 @@ fn parse_rows_bytes(
     let unread: Vec<&String> = named
         .iter()
         .filter(|h| {
-            h.to_lowercase().replace(' ', "_") == "returned_by_fund"
+            h.chars()
+                .filter(|c| c.is_alphanumeric())
+                .flat_map(char::to_lowercase)
+                .eq("returnedbyfund".chars())
                 && !(mapping.has("returned_by_fund") && mapping.get("returned_by_fund") == *h)
         })
         .collect();

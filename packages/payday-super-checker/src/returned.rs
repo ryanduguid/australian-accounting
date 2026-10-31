@@ -5,6 +5,8 @@
 //! paragraphs 24 and 25), whatever the as-at date, so a receipt only ever counts
 //! for what the fund kept. A return after the fund's 3 business days is not shown
 //! to be either, so `assess` leaves its line undecided instead of relying on it.
+//! On a line with a return, an `allocated` event is the only evidence that a kept
+//! receipt was an eligible contribution.
 
 use crate::Result;
 use crate::calendar::BusinessCalendar;
@@ -21,12 +23,18 @@ pub fn event_kind(
 ) -> std::result::Result<EventKind, String> {
     match text.to_ascii_lowercase().as_str() {
         "received" if receipt.is_some() || notified.is_some() => {
-            Err("receipt_date and notified_date belong on a returned event".to_string())
+            Err("a received event takes no receipt_date or notified_date".to_string())
         }
         "received" => Ok(EventKind::Received),
         "returned" => Ok(EventKind::Returned { receipt, notified }),
+        "allocated" if notified.is_some() => {
+            Err("an allocated event takes no notified_date".to_string())
+        }
+        "allocated" => receipt
+            .map(|receipt| EventKind::Allocated { receipt })
+            .ok_or_else(|| "an allocated event must name its receipt in receipt_date".to_string()),
         _ => Err(format!(
-            "event {} is neither received nor returned",
+            "event {} is not received, returned or allocated",
             crate::pytext::repr(text)
         )),
     }
@@ -65,26 +73,33 @@ pub fn cannot_reconcile(line: &ContribLine) -> bool {
         || line.return_not_shown
 }
 
-/// The end of the 3 business days a fund has to allocate or refund a receipt
-/// (SIS reg 7.07G(2) and (3)), not counting the day of receipt.
-///
-/// shortcut: this uses the checker's national calendar. The ATO measures the
-/// fund's period by holidays in the fund's location, which the input does not
-/// hold. A location's regional holiday is the one case the fund has longer.
-pub fn fund_window_end(receipt: Date, cal: &BusinessCalendar) -> Result<Date> {
-    cal.add_business_days(receipt, 3)
+/// How much of the receipt dated `receipt` the events show allocated by `until`.
+pub fn allocated(line: &ContribLine, receipt: Date, until: Date) -> Result<Decimal> {
+    let mut total = zero();
+    for event in &line.events {
+        if event.kind == (EventKind::Allocated { receipt }) && event.date <= until {
+            total = total.add(&cents(Some(&event.amount))?)?;
+        }
+    }
+    Ok(total)
 }
 
-/// The (receipt, return) dates of returns later than the fund's window. Only a
-/// refund under reg 7.07G(3) is taken not to have been made, and LCR 2026/2
+/// The (receipt, return) dates of returns more than 3 business days after the
+/// receipt (SIS reg 7.07G(3), not counting the day of receipt). Only a refund
+/// under that subregulation is taken not to have been made, and LCR 2026/2
 /// paragraph 24 speaks of a rejected attempt, so these are neither.
+///
+/// shortcut: this uses the checker's national calendar, not holidays in the
+/// fund's location, and the 3 days whatever the fund type. It only ever moves a
+/// line to `UNKNOWN`, so it can read a genuine rejection as undecided but
+/// cannot produce `ON_TIME`.
 pub fn returns_not_shown(line: &ContribLine, cal: &BusinessCalendar) -> Result<Vec<(Date, Date)>> {
     let mut out = Vec::new();
     for event in &line.events {
         if let EventKind::Returned {
             receipt: Some(day), ..
         } = event.kind
-            && event.date > fund_window_end(day, cal)?
+            && event.date > cal.add_business_days(day, 3)?
         {
             out.push((day, event.date));
         }
@@ -142,6 +157,7 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
     }
     let mut received_days: Vec<Date> = line.received.into_iter().collect();
     let mut returns: Vec<(Option<Date>, Date)> = Vec::new();
+    let mut allocations: Vec<(Date, Date)> = Vec::new();
     for event in &line.events {
         let at = format!("row {row}, event row {}", event.row);
         if !cents(Some(&event.amount))?.gt(&zero())? {
@@ -169,9 +185,44 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
                 }
                 returns.push((receipt, event.date));
             }
+            EventKind::Allocated { receipt } => {
+                if allocations.contains(&(receipt, event.date)) {
+                    problems.push(format!(
+                        "{at}: this receipt already has an allocation dated {}. Put a day's \
+                         allocation of one receipt in one event",
+                        event.date.isoformat()
+                    ));
+                }
+                allocations.push((receipt, event.date));
+                if event.date < receipt {
+                    problems.push(format!(
+                        "{at}: the allocation dated {} is before the receipt it names ({})",
+                        event.date.isoformat(),
+                        receipt.isoformat()
+                    ));
+                }
+            }
         }
     }
     let known = receipts(line)?;
+    allocations.sort_by_key(|(receipt, _)| *receipt);
+    allocations.dedup_by_key(|(receipt, _)| *receipt);
+    for (day, _) in allocations {
+        let total = allocated(line, day, crate::py::MAX_DATE)?;
+        let kept = match known.iter().find(|r| r.date == day) {
+            Some(r) => r.eligible()?,
+            None => zero(),
+        };
+        if total.gt(&kept)? {
+            problems.push(format!(
+                "row {row}: the allocations of the receipt dated {} total ${}, more than the \
+                 ${} the fund kept of it. An allocation needs a matching kept receipt",
+                day.isoformat(),
+                money(Some(&total))?,
+                money(Some(&kept))?
+            ));
+        }
+    }
     for event in &line.events {
         let EventKind::Returned { receipt, notified } = event.kind else {
             continue;
@@ -267,6 +318,11 @@ pub fn trail(line: &ContribLine) -> Result<String> {
                 });
                 entries.push((event.date, 1, format!("returned ${amount} {of}{told}")));
             }
+            EventKind::Allocated { receipt } => entries.push((
+                event.date,
+                2,
+                format!("allocated ${amount} of the {} receipt", receipt.isoformat()),
+            )),
         }
     }
     entries.sort_by_key(|e| (e.0, e.1));

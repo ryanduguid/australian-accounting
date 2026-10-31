@@ -279,6 +279,10 @@ fn event_json(event: &ContribEvent) -> Value {
             out["receipt_date"] = iso(receipt);
             out["notified_date"] = iso(notified);
         }
+        EventKind::Allocated { receipt } => {
+            out["event"] = json!("allocated");
+            out["receipt_date"] = iso(Some(receipt));
+        }
     }
     out
 }

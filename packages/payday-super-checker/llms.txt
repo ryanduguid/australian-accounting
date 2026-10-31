@@ -19,7 +19,7 @@
 - `src/calendar.rs`: the curated national non-business-day calendar and reviewed holiday overrides.
 - `src/rates.rs` and `src/sgc.rs`: the dated General Interest Charge (GIC) table, financial-year SG parameters and the SG charge exposure estimate (notional earnings plus administrative uplift).
 - `src/csv_io.rs`: strict CSV schema parsing; generated files are written atomically.
-- `src/returned.rs`: dated, amount-specific contribution returns and fund receipts (`--events`, `returned_by_fund`). A returned amount is not a contribution, the deadline does not restart, and an unresolved line is `UNKNOWN`, not `LATE`. Rust checker only: https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/docs/primary-source-review-2026-10-31.md
+- `src/returned.rs`: dated, amount-specific contribution returns, fund receipts and fund allocations (`--events`, `returned_by_fund`). A returned amount is not a contribution, the deadline does not restart, a line with a return needs an `allocated` event before it reads `ON_TIME` or `LATE`, and an unresolved line is `UNKNOWN`, not `LATE`. Rust checker only: https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/docs/primary-source-review-2026-10-31.md
 
 ## Release and evidence limits
 - This documentation describes the Rust checker 1.0.0, which gives the results of Python checker 0.2.2, the last release on PyPI (https://pypi.org/project/payday-super-checker/). aus-accounting-mcp 0.2.12 pins checker 0.1.9 (0.2.10 and 0.2.11 pin 0.1.8, 0.2.5 to 0.2.9 pin 0.1.7, 0.2.4 pins 0.1.6); until the MCP server links the crate, the workspace installs Python 0.2.2 from PyPI. Check the installed engine version when comparing CLI and MCP results.

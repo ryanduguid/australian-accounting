@@ -294,30 +294,37 @@ came back. The column appears only when a row needs it.
 employee_id,payment_date,event,event_date,amount,receipt_date,notified_date
 E1,2026-08-06,returned,2026-08-12,40.00,2026-08-10,2026-08-13
 E1,2026-08-06,received,2026-08-14,40.00,,
+E1,2026-08-06,allocated,2026-08-11,80.00,2026-08-10,
+E1,2026-08-06,allocated,2026-08-14,40.00,2026-08-14,
 ```
 
 | Column | Meaning |
 | --- | --- |
 | `employee_id`, `payment_date` | The contribution row, matched exactly. An event matching no row, or several, is refused |
-| `event` | `returned`, or `received` for a fund receipt beyond the row's own `fund_received_date` |
-| `event_date` | The day the fund returned or received the amount |
+| `event` | `returned`; `received` for a fund receipt beyond the row's own `fund_received_date`; or `allocated` for the fund's record that it allocated the amount |
+| `event_date` | The day the fund returned, received or allocated the amount |
 | `amount` | The amount, more than nil |
-| `receipt_date` | On `returned`: the receipt it came out of. Blank only when no receipt is recorded on or before the return |
+| `receipt_date` | On `returned`: the receipt it came out of. Blank only when no receipt is recorded on or before the return. On `allocated`: the receipt it allocates, always required |
 | `notified_date` | On `returned`, optional: the day the employer was told, usually from the fund's error message (CTER) |
 
 The checker walks the kept receipts in date order against the original deadline:
 
 | What the events show | Verdict |
 | --- | --- |
-| Kept receipts cover the SG amount, all on time | `ON_TIME` |
-| Kept receipts cover the SG amount, some after the deadline | `LATE`, with the estimate on the amount not on time |
+| Kept receipts cover the SG amount and are allocated, all received and allocated on time | `ON_TIME` |
+| Kept receipts cover the SG amount and are allocated, some received after the deadline | `LATE`, with the estimate on the amount not on time |
+| A counted receipt on a line with a return has no `allocated` event covering it by the as-at date | `UNKNOWN`, exit 2, no exposure, whatever the as-at date. A caveat names the receipt to evidence |
+| A timely receipt is allocated only after its deadline | `UNKNOWN` between `LATE` and `ON_TIME`: the date it became able to be allocated is not shown |
 | Kept receipts do not cover the SG amount, before or after the deadline | `UNKNOWN`, exit 2, no exposure. After the deadline, a caveat states the s 18C base shortfall that applies if the events are complete |
-| A counted receipt is still inside the fund's 3 business days at the as-at date | `UNKNOWN`, exit 2, no exposure, until that period ends |
 | A return came more than 3 business days after the receipt it names | `UNKNOWN`, exit 2, no exposure: it is not shown to be a rejection or a refund under reg 7.07G(3), so confirm it with the fund |
 | A later receipt falls inside 20 business days, but the fund kept part of the first contribution | `UNKNOWN` between `LATE` and `ON_TIME` |
 
-`ON_TIME` and `LATE` on an events line assume no rejection of the kept receipts has
-been notified, and a caveat says so.
+A receipt shows that money arrived, not that the fund could allocate it, and the
+employer may not see when that happens (LCR 2026/2 paragraphs 19 and 20). So on a
+line with a return, only the fund's own record of allocation decides it. An
+`allocated` event is refused without a matching kept receipt, before that receipt,
+above what the fund kept of it or as a second allocation of that receipt on one day.
+A line with no return event keeps its existing reading and needs no `allocated` event.
 
 Only the first kept contribution has the 20 business days. A wholly returned attempt
 was never made, so its resubmission can be that first contribution, still counted
@@ -500,7 +507,7 @@ Required: `employee_id`, `payment_date`, `sg_amount`. Everything else is optiona
 | `remitted_amount` | `remitted_amount` | Amount covered by `remitted_date`. Blank on a dated row means the whole `sg_amount` was remitted (the operational reading that 9-column files rely on); a value requires `remitted_date` and cannot exceed `sg_amount`. This records operational remittance only. It does not reduce a statutory shortfall without an eligible fund receipt |
 | `matched_amount` | `matched_amount` | Total contribution amount associated with this payday, capped at `sg_amount`. The importer writes an explicit amount even when the vendor supplied no payment date: zero for no match, the partial amount for a short match, and the liability for a full or over match. It is not proof of remittance or fund receipt. When you add `fund_received_date`, it is the amount that date can evidence, and a receipt date with neither this column nor `remitted_amount` evidences no amount at all. If it is below `sg_amount` and `remitted_date` is present, `remitted_amount` is required |
 | `received` | `fund_received_date` | Day the fund received the eligible contribution associated with this QE day. Receipt is necessary for an on-time result; the row association also asserts the contribution was allocable and applied to this QE day under the statutory ordering. The date fixes timing only. The amount it evidences is `matched_amount`, then `remitted_amount` for older 10-column partial files; a row with neither amount is left `UNKNOWN` rather than `ON_TIME` (versions 0.1.6 and earlier read it as the whole `sg_amount`) |
-| `returned_by_fund` | `returned_by_fund` | Optional. Yes when a fund returned some or all of this contribution. A file carrying this column, however it is capitalised or spaced, is refused when the mapping does not read it. See [A contribution the fund returned](#a-contribution-the-fund-returned) |
+| `returned_by_fund` | `returned_by_fund` | Optional. Yes when a fund returned some or all of this contribution. A file carrying this column, however it is capitalised, spaced or punctuated, is refused when the mapping does not read it. See [A contribution the fund returned](#a-contribution-the-fund-returned) |
 | `join_caveats` | `join_caveats` | Optional, appended last. The importer writes the join's structural warnings here, joined with `"\|"`, so they travel with the file into the report's caveats column and the evidence pack instead of living only in the console. Blank on a clean join; absent on canonical files from before 0.1.5 |
 | `first_to_fund` | `first_contribution_to_fund` | Yes for the first contribution to that fund (new starter, or a fund switch) |
 | `out_of_cycle` | `out_of_cycle` | Yes only for an allowance, bonus, commission, loading, payment in advance or back payment made outside an established payment timing, pattern or schedule, where the statutory next-standard-payment conditions are met |

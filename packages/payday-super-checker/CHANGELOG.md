@@ -17,8 +17,9 @@ status and the returned contributions below.
   exposure. `--events`, on the check and `evidence-pack` commands, takes dated,
   amount-specific returns and fund receipts: partial returns, no double counting,
   late notification and the first eligible contribution, against the unchanged
-  deadline. A receipt still inside the fund's 3 business days, or a return after
-  them, stays `UNKNOWN`. A file whose return column the mapping cannot read is
+  deadline. On a line with a return, a kept receipt is `UNKNOWN` until an `allocated`
+  event shows the fund allocated it, and a return more than 3 business days after
+  its receipt stays `UNKNOWN`. A file whose return column the mapping cannot read is
   refused. The JSON `assess` subcommand takes the same facts as `returned_by_fund`
   and `events` on a line. Sources are in
   `docs/primary-source-review-2026-10-31.md`; limits are PSC-3 in `LIMITATIONS.md`.

@@ -244,6 +244,17 @@ fn resubmitted(on: &str, amount: &str) -> String {
     format!("E1,2026-08-06,received,{on},{amount},,\n")
 }
 
+/// A resubmission and the fund's record that it allocated all of it that day.
+fn resent(on: &str, amount: &str) -> String {
+    format!(
+        "{}E1,2026-08-06,allocated,{on},{amount},{on},\n",
+        resubmitted(on, amount)
+    )
+}
+
+/// The fund's record that it allocated the $80 left of the 10 August receipt.
+const KEPT_PART: &str = "E1,2026-08-06,allocated,2026-08-11,80.00,2026-08-10,\n";
+
 fn refused(rows: &str, events: &str, wanted: &str) {
     let run = with_events(rows, events, "2026-09-20");
     assert_eq!(run.code, 1, "{events}: {}", run.stderr);
@@ -255,7 +266,7 @@ fn refused(rows: &str, events: &str, wanted: &str) {
 fn a_resubmission_received_inside_the_original_deadline_is_on_time() {
     let run = with_events(
         ORIGINAL,
-        &format!("{RETURN_ALL}{}", resubmitted("2026-08-14", "120.00")),
+        &format!("{RETURN_ALL}{}", resent("2026-08-14", "120.00")),
         "2026-09-20",
     );
     assert_eq!(run.code, 0, "{}", run.stderr);
@@ -280,7 +291,7 @@ fn a_rejection_does_not_restart_the_deadline() {
         "E1,2026-08-06,120.00,2026-08-07,2026-08-13,no,no,,no,120.00,120.00,,no\n",
         &format!(
             "E1,2026-08-06,returned,2026-08-18,120.00,2026-08-13,\n{}",
-            resubmitted("2026-08-20", "120.00")
+            resent("2026-08-20", "120.00")
         ),
         "2026-09-20",
     );
@@ -320,14 +331,14 @@ fn a_partial_return_counts_only_what_the_fund_kept() {
 
     let timely = with_events(
         ORIGINAL,
-        &format!("{RETURN_PART}{}", resubmitted("2026-08-14", "40.00")),
+        &format!("{RETURN_PART}{KEPT_PART}{}", resent("2026-08-14", "40.00")),
         "2026-09-20",
     );
     assert_eq!(timely.field(0, "verdict"), "ON_TIME");
 
     let late = with_events(
         ORIGINAL,
-        &format!("{RETURN_PART}{}", resubmitted("2026-08-20", "40.00")),
+        &format!("{RETURN_PART}{KEPT_PART}{}", resent("2026-08-20", "40.00")),
         "2026-09-20",
     );
     assert_eq!(late.field(0, "verdict"), "LATE");
@@ -394,7 +405,7 @@ fn malformed_events_are_refused_and_never_dropped() {
     );
     refuse(
         "E1,2026-08-06,reversed,2026-08-14,5.00,,\n",
-        "neither received nor returned",
+        "not received, returned or allocated",
     );
     refuse("E1,2026-08-06,received,,5.00,,\n", "event_date is empty");
     refuse(
@@ -429,7 +440,7 @@ fn malformed_events_are_refused_and_never_dropped() {
     );
     refuse(
         "E1,2026-08-06,received,2026-08-14,5.00,2026-08-10,\n",
-        "belong on a returned",
+        "takes no receipt_date or notified_date",
     );
     refuse("E1,2026-08-06,received,2026-08-14\n", "stops early");
     refuse(
@@ -476,7 +487,7 @@ fn malformed_events_are_refused_and_never_dropped() {
 fn only_the_first_eligible_contribution_has_the_20_business_days() {
     let whole = with_events(
         FIRST_ORIGINAL,
-        &format!("{RETURN_ALL}{}", resubmitted("2026-09-01", "120.00")),
+        &format!("{RETURN_ALL}{}", resent("2026-09-01", "120.00")),
         "2026-09-20",
     );
     assert_eq!(whole.field(0, "due_date"), "2026-09-03");
@@ -484,7 +495,7 @@ fn only_the_first_eligible_contribution_has_the_20_business_days() {
 
     let whole_late = with_events(
         FIRST_ORIGINAL,
-        &format!("{RETURN_ALL}{}", resubmitted("2026-09-04", "120.00")),
+        &format!("{RETURN_ALL}{}", resent("2026-09-04", "120.00")),
         "2026-09-20",
     );
     assert_eq!(whole_late.field(0, "verdict"), "LATE");
@@ -492,14 +503,14 @@ fn only_the_first_eligible_contribution_has_the_20_business_days() {
 
     let inside_usual = with_events(
         FIRST_ORIGINAL,
-        &format!("{RETURN_PART}{}", resubmitted("2026-08-17", "40.00")),
+        &format!("{RETURN_PART}{KEPT_PART}{}", resent("2026-08-17", "40.00")),
         "2026-09-20",
     );
     assert_eq!(inside_usual.field(0, "verdict"), "ON_TIME");
 
     let gap = with_events(
         FIRST_ORIGINAL,
-        &format!("{RETURN_PART}{}", resubmitted("2026-08-18", "40.00")),
+        &format!("{RETURN_PART}{KEPT_PART}{}", resent("2026-08-18", "40.00")),
         "2026-09-20",
     );
     assert_unresolved(&gap, 0, "LATE or ON_TIME");
@@ -507,7 +518,7 @@ fn only_the_first_eligible_contribution_has_the_20_business_days() {
 
     let after = with_events(
         FIRST_ORIGINAL,
-        &format!("{RETURN_PART}{}", resubmitted("2026-09-04", "40.00")),
+        &format!("{RETURN_PART}{KEPT_PART}{}", resent("2026-09-04", "40.00")),
         "2026-09-20",
     );
     assert_eq!(after.field(0, "verdict"), "LATE");
@@ -519,7 +530,7 @@ fn late_notification_changes_no_figure() {
     let events = |told: &str| {
         format!(
             "E1,2026-08-06,returned,2026-08-12,120.00,2026-08-10,{told}\n{}",
-            resubmitted("2026-08-25", "120.00")
+            resent("2026-08-25", "120.00")
         )
     };
     let prompt = with_events(ORIGINAL, &events("2026-08-12"), "2026-09-20");
@@ -582,8 +593,8 @@ fn a_late_receipt_after_the_assessment_does_not_reduce_the_final_shortfall() {
         dir.join("events.csv"),
         format!(
             "{EVENTS_HEADER}{RETURN_ALL}{}{}",
-            resubmitted("2026-08-20", "70.00"),
-            resubmitted("2026-09-10", "50.00")
+            resent("2026-08-20", "70.00"),
+            resent("2026-09-10", "50.00")
         ),
     )
     .unwrap();
@@ -613,7 +624,7 @@ fn a_return_of_money_only_ever_seen_as_a_remittance_never_reads_at_risk() {
     assert_unresolved(&alone, 0, "UNPAID or ON_TIME");
     let resent = with_events(
         remitted,
-        &format!("{no_receipt}{}", resubmitted("2026-08-14", "120.00")),
+        &format!("{no_receipt}{}", resent("2026-08-14", "120.00")),
         "2026-09-20",
     );
     assert_eq!(resent.field(0, "verdict"), "ON_TIME");
@@ -626,7 +637,7 @@ fn the_flag_is_answered_only_by_a_dated_return() {
     let row = flagged(TIMELY_RECEIPT);
     let answered = with_events(
         &row,
-        &format!("{RETURN_ALL}{}", resubmitted("2026-08-14", "120.00")),
+        &format!("{RETURN_ALL}{}", resent("2026-08-14", "120.00")),
         "2026-09-20",
     );
     assert_eq!(answered.field(0, "verdict"), "ON_TIME");
@@ -658,13 +669,31 @@ fn only_what_the_fund_kept_confirms_item_4() {
     assert_ne!(returned.field(1, "pathway"), "ITEM4_ALIGNED");
     assert_ne!(returned.field(1, "verdict"), "ON_TIME");
 
-    let resent = with_events(
+    // A resubmission alone shows no eligible contribution for item 4 to rest on.
+    let unallocated = with_events(
         &rows,
         &format!("{RETURN_ALL}{}", resubmitted("2026-08-20", "120.00")),
         "2026-09-20",
     );
-    assert_eq!(resent.field(1, "pathway"), "ITEM4_ALIGNED");
-    assert_eq!(resent.field(1, "verdict"), "ON_TIME");
+    assert_ne!(unallocated.field(1, "verdict"), "ON_TIME");
+
+    let allocated_late = with_events(
+        &rows,
+        &format!(
+            "{RETURN_ALL}{}E1,2026-08-06,allocated,2026-09-10,120.00,2026-08-20,\n",
+            resubmitted("2026-08-20", "120.00")
+        ),
+        "2026-09-20",
+    );
+    assert_ne!(allocated_late.field(1, "verdict"), "ON_TIME");
+
+    let allocated = with_events(
+        &rows,
+        &format!("{RETURN_ALL}{}", resent("2026-08-20", "120.00")),
+        "2026-09-20",
+    );
+    assert_eq!(allocated.field(1, "pathway"), "ITEM4_ALIGNED");
+    assert_eq!(allocated.field(1, "verdict"), "ON_TIME");
 }
 
 #[test]
@@ -698,7 +727,7 @@ fn the_evidence_pack_carries_the_ordered_trail_without_the_employee() {
         dir.join("events.csv"),
         format!(
             "{EVENTS_HEADER}{RETURN_ALL}{}",
-            resubmitted("2026-08-20", "120.00")
+            resent("2026-08-20", "120.00")
         ),
     )
     .unwrap();
@@ -854,34 +883,36 @@ fn a_mapping_that_cannot_read_the_return_column_refuses_the_file() {
 
 #[test]
 fn a_differently_written_return_column_is_refused_until_mapped() {
-    let dir = scratch();
-    std::fs::write(
-        dir.join("pay.csv"),
-        format!(
-            "{}{}",
-            HEADER.replace("returned_by_fund", "Returned By Fund"),
-            flagged(TIMELY_RECEIPT)
-        ),
-    )
-    .unwrap();
-    let run = |extra: &[&str]| {
-        Command::new(env!("CARGO_BIN_EXE_payday-super-check"))
-            .args(["pay.csv", "--as-at", "2026-09-20", "-o", "report.csv"])
-            .args(extra)
-            .current_dir(&dir)
-            .output()
-            .unwrap()
-    };
-    let refused = run(&[]);
-    assert_eq!(refused.status.code(), Some(1));
-    assert!(String::from_utf8_lossy(&refused.stderr).contains("Returned By Fund"));
-    let mapped = run(&["--map", "returned_by_fund=Returned By Fund"]);
-    assert_eq!(
-        mapped.status.code(),
-        Some(2),
-        "{}",
-        String::from_utf8_lossy(&mapped.stderr)
-    );
+    for column in ["Returned By Fund", "Returned  By Fund", "returned-by-fund"] {
+        let dir = scratch();
+        std::fs::write(
+            dir.join("pay.csv"),
+            format!(
+                "{}{}",
+                HEADER.replace("returned_by_fund", column),
+                flagged(TIMELY_RECEIPT)
+            ),
+        )
+        .unwrap();
+        let run = |extra: &[&str]| {
+            Command::new(env!("CARGO_BIN_EXE_payday-super-check"))
+                .args(["pay.csv", "--as-at", "2026-09-20", "-o", "report.csv"])
+                .args(extra)
+                .current_dir(&dir)
+                .output()
+                .unwrap()
+        };
+        let refused = run(&[]);
+        assert_eq!(refused.status.code(), Some(1), "{column}");
+        assert!(String::from_utf8_lossy(&refused.stderr).contains(column));
+        let mapped = run(&["--map", &format!("returned_by_fund={column}")]);
+        assert_eq!(
+            mapped.status.code(),
+            Some(2),
+            "{}",
+            String::from_utf8_lossy(&mapped.stderr)
+        );
+    }
 }
 
 #[test]
@@ -906,7 +937,9 @@ fn json_events_are_validated_like_csv_events() {
             })),
         );
         assert!(
-            answer.to_string().contains("belong on a returned event"),
+            answer
+                .to_string()
+                .contains("takes no receipt_date or notified_date"),
             "{field}: {answer}"
         );
     }
@@ -917,51 +950,189 @@ fn json_events_are_validated_like_csv_events() {
         })),
     );
     assert!(
-        answer.to_string().contains("neither received nor returned"),
+        answer
+            .to_string()
+            .contains("not received, returned or allocated"),
+        "{answer}"
+    );
+    let answer = api(
+        "assess",
+        &line(serde_json::json!({
+            "event": "allocated", "event_date": "2026-08-14", "amount": "120.00",
+        })),
+    );
+    assert!(
+        answer.to_string().contains("must name its receipt"),
         "{answer}"
     );
 }
 
-const RESENT_14_AUGUST: &str = "E1,2026-08-06,received,2026-08-14,120.00,,\n";
+/// Received on time, returned, and resent on Friday 30 October 2026. A Victorian
+/// fund's third business day is 5 November, because of Melbourne Cup Day on the
+/// 3rd; the national calendar's is the 4th. An SMSF has longer again.
+const BEFORE_THE_CUP: &str =
+    "E2,2026-10-23,120.00,2026-10-24,2026-10-26,no,no,,no,120.00,120.00,,no\n";
+const RESENT_BEFORE_THE_CUP: &str = "E2,2026-10-23,returned,2026-10-27,120.00,2026-10-26,\n\
+                                     E2,2026-10-23,received,2026-10-30,120.00,,\n";
 
 #[test]
-fn a_resubmission_inside_the_funds_window_is_undecided_until_it_ends() {
-    // 3 business days after Friday 14 August 2026 is Wednesday 19 August.
-    let events = format!("{RETURN_ALL}{RESENT_14_AUGUST}");
-    for as_at in ["2026-08-14", "2026-08-19"] {
-        let run = with_events(ORIGINAL, &events, as_at);
+fn a_receipt_on_a_line_with_a_return_needs_the_funds_allocation() {
+    for as_at in ["2026-10-30", "2026-11-05", "2026-12-20", "2028-03-01"] {
+        let run = with_events(BEFORE_THE_CUP, RESENT_BEFORE_THE_CUP, as_at);
         assert_unresolved(&run, 0, "UNPAID or ON_TIME");
-        assert!(run.field(0, "caveats").contains("2026-08-19"), "{as_at}");
-        assert!(run.field(0, "caveats").contains("reg 7.07G"), "{as_at}");
+        let caveats = run.field(0, "caveats");
+        assert!(caveats.contains("Supply an allocated event"), "{caveats}");
+        assert!(caveats.contains("2026-10-30"), "{caveats}");
     }
 
-    let after = with_events(ORIGINAL, &events, "2026-08-20");
-    assert_eq!(after.code, 0, "{}", after.stderr);
-    assert_eq!(after.field(0, "verdict"), "ON_TIME");
+    let allocated = with_events(
+        BEFORE_THE_CUP,
+        &format!("{RESENT_BEFORE_THE_CUP}E2,2026-10-23,allocated,2026-11-02,120.00,2026-10-30,\n"),
+        "2026-11-03",
+    );
+    assert_eq!(allocated.code, 0, "{}", allocated.stderr);
+    assert_eq!(allocated.field(0, "verdict"), "ON_TIME");
     assert!(
-        after
+        allocated
             .field(0, "caveats")
-            .contains("assumes no rejection of them has been notified"),
-        "{}",
-        after.field(0, "caveats")
+            .contains("allocated $120.00 of the 2026-10-30 receipt")
     );
+    assert!(!allocated.field(0, "caveats").contains("assumes"));
 
-    let rejected_too = with_events(
-        ORIGINAL,
-        &format!("{events}E1,2026-08-06,returned,2026-08-19,120.00,2026-08-14,\n"),
-        "2026-08-20",
+    let not_yet = with_events(
+        BEFORE_THE_CUP,
+        &format!("{RESENT_BEFORE_THE_CUP}E2,2026-10-23,allocated,2026-11-02,120.00,2026-10-30,\n"),
+        "2026-11-01",
     );
-    assert_unresolved(&rejected_too, 0, "UNPAID or LATE");
+    assert_unresolved(&not_yet, 0, "UNPAID or ON_TIME");
+
+    let part = with_events(
+        BEFORE_THE_CUP,
+        &format!("{RESENT_BEFORE_THE_CUP}E2,2026-10-23,allocated,2026-11-02,100.00,2026-10-30,\n"),
+        "2026-12-20",
+    );
+    assert_unresolved(&part, 0, "UNPAID or ON_TIME");
 }
 
 #[test]
-fn a_late_resubmission_inside_the_funds_window_is_unpaid_or_late() {
+fn a_partly_returned_receipt_needs_its_kept_part_allocated_too() {
+    let resend_only = with_events(
+        ORIGINAL,
+        &format!("{RETURN_PART}{}", resent("2026-08-14", "40.00")),
+        "2026-09-20",
+    );
+    assert_unresolved(&resend_only, 0, "UNPAID or ON_TIME");
+    assert!(resend_only.field(0, "caveats").contains("2026-08-10"));
+}
+
+#[test]
+fn an_allocation_after_the_deadline_does_not_show_a_timely_receipt_was_on_time() {
     let run = with_events(
         ORIGINAL,
-        &format!("{RETURN_ALL}{}", resubmitted("2026-08-20", "120.00")),
-        "2026-08-21",
+        &format!(
+            "{RETURN_ALL}{}E1,2026-08-06,allocated,2026-08-18,120.00,2026-08-14,\n",
+            resubmitted("2026-08-14", "120.00")
+        ),
+        "2026-09-20",
     );
-    assert_unresolved(&run, 0, "UNPAID or LATE");
+    assert_unresolved(&run, 0, "LATE or ON_TIME");
+    assert!(run.field(0, "caveats").contains("paragraph 20"));
+}
+
+#[test]
+fn a_late_receipt_with_no_allocation_is_unresolved_and_with_one_is_late() {
+    let bare = with_events(
+        ORIGINAL,
+        &format!("{RETURN_ALL}{}", resubmitted("2026-08-20", "120.00")),
+        "2026-09-20",
+    );
+    assert_unresolved(&bare, 0, "UNPAID or LATE");
+
+    let allocated_later = with_events(
+        ORIGINAL,
+        &format!(
+            "{RETURN_ALL}{}E1,2026-08-06,allocated,2026-08-21,120.00,2026-08-20,\n",
+            resubmitted("2026-08-20", "120.00")
+        ),
+        "2026-09-20",
+    );
+    assert_eq!(allocated_later.field(0, "verdict"), "LATE");
+    assert!(
+        allocated_later
+            .field(0, "caveats")
+            .contains("measured to the receipt")
+    );
+}
+
+#[test]
+fn a_line_with_no_return_keeps_its_reading_with_no_allocation() {
+    let extra = "E1,2026-08-06,received,2026-08-11,40.00,,\n";
+    let row = "E1,2026-08-06,120.00,2026-08-07,2026-08-10,no,no,,no,80.00,80.00,,no\n";
+    for as_at in ["2026-08-11", "2026-09-20"] {
+        let run = with_events(row, extra, as_at);
+        assert_eq!(run.code, 0, "{}", run.stderr);
+        assert_eq!(run.field(0, "verdict"), "ON_TIME");
+    }
+}
+
+#[test]
+fn allocated_events_are_validated() {
+    let row = |rest: &str| format!("E1,2026-08-06,allocated,{rest}\n");
+    refused(
+        ORIGINAL,
+        &row("2026-08-11,120.00,2026-08-09,"),
+        "An allocation needs a matching kept receipt",
+    );
+    refused(
+        ORIGINAL,
+        &row("2026-08-09,120.00,2026-08-10,"),
+        "before the receipt it names",
+    );
+    refused(
+        ORIGINAL,
+        &row("2026-08-11,120.01,2026-08-10,"),
+        "more than the $120.00 the fund kept",
+    );
+    refused(
+        ORIGINAL,
+        &format!("{RETURN_ALL}{}", row("2026-08-11,120.00,2026-08-10,")),
+        "more than the $0.00 the fund kept",
+    );
+    refused(
+        ORIGINAL,
+        &format!("{RETURN_PART}{}", row("2026-08-11,120.00,2026-08-10,")),
+        "more than the $80.00 the fund kept",
+    );
+    refused(
+        ORIGINAL,
+        &format!(
+            "{}{}",
+            row("2026-08-11,60.00,2026-08-10,"),
+            row("2026-08-11,60.00,2026-08-10,")
+        ),
+        "already has an allocation",
+    );
+    refused(
+        ORIGINAL,
+        &row("2026-08-11,120.00,,"),
+        "must name its receipt in receipt_date",
+    );
+    refused(
+        ORIGINAL,
+        &row("2026-08-11,120.00,2026-08-10,2026-08-11"),
+        "takes no notified_date",
+    );
+    refused(
+        ORIGINAL,
+        &row("2026-08-11,0.00,2026-08-10,"),
+        "more than nil",
+    );
+    // A row receipt with no amount has nothing kept to match.
+    refused(
+        "E1,2026-08-06,120.00,2026-08-07,2026-08-10,no,no,,no,,,,no\n",
+        &row("2026-08-11,120.00,2026-08-10,"),
+        "An allocation needs a matching kept receipt",
+    );
 }
 
 #[test]
@@ -1020,7 +1191,7 @@ fn a_return_after_the_funds_window_is_not_read_as_a_rejection() {
         ORIGINAL,
         &format!(
             "E1,2026-08-06,returned,2026-08-13,120.00,2026-08-10,\n{}",
-            resubmitted("2026-08-17", "120.00")
+            resent("2026-08-17", "120.00")
         ),
         "2026-09-20",
     );
