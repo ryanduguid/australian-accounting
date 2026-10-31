@@ -5,6 +5,7 @@
 
 use serde_json::{Map, Value, json};
 
+use crate::dates;
 use crate::decimal::{Calc, Decimal, Rounding, Signal, with_precision};
 use crate::metadata::{self as meta, CoefficientRow, Example};
 use crate::pytext;
@@ -60,6 +61,8 @@ pub enum Arg {
     Text(String),
     /// Any other value: a float, None, a list or a mapping.
     Other(String),
+    /// A JSON value for a parameter the original never had (main residence periods).
+    Json(Value),
 }
 
 impl Arg {
@@ -72,6 +75,7 @@ impl Arg {
             Arg::Int(n) => n.to_string(),
             Arg::BigInt(s) | Arg::Other(s) => s.clone(),
             Arg::Text(s) => pytext::repr(s),
+            Arg::Json(v) => v.to_string(),
         }
     }
 
@@ -1121,10 +1125,360 @@ pub fn pension_minimum(
     )
 }
 
-const KINDS: [&str; 16] = [
+/// A period of days, both ends included, and for income use the part of the
+/// dwelling's floor area used.
+struct Span {
+    start: i64,
+    end: i64,
+    part: Option<Decimal>,
+}
+
+fn date_arg(value: &Arg, name: &str) -> Result<i64> {
+    match value.text().and_then(dates::parse) {
+        Some(day) => Ok(day),
+        None => refuse(format!(
+            "{name} must be a YYYY-MM-DD date from 1900 to 2100."
+        )),
+    }
+}
+
+/// A list of periods inside `first..=last`, sorted, refused if two overlap.
+fn spans(value: &Arg, name: &str, with_part: bool, first: i64, last: i64) -> Result<Vec<Span>> {
+    let bad = |why: &str| refuse(format!("{name}: {why}"));
+    let Arg::Json(Value::Array(items)) = value else {
+        return bad("must be a list of periods.");
+    };
+    if items.len() > 1000 {
+        return bad("at most 1000 periods.");
+    }
+    let keys: &[&str] = if with_part {
+        &["start", "end", "floor_area"]
+    } else {
+        &["start", "end"]
+    };
+    let mut out = Vec::new();
+    for item in items {
+        let fields = match item {
+            Value::Object(f)
+                if f.len() == keys.len() && keys.iter().all(|k| f.contains_key(*k)) =>
+            {
+                f
+            }
+            _ => {
+                return bad(&format!(
+                    "each period must be an object with exactly {}.",
+                    keys.join(", ")
+                ));
+            }
+        };
+        let date = |key: &str| fields[key].as_str().and_then(dates::parse);
+        let (Some(start), Some(end)) = (date("start"), date("end")) else {
+            return bad("start and end must be YYYY-MM-DD dates from 1900 to 2100.");
+        };
+        if start > end || start < first || end > last {
+            return bad("each period must run forwards inside the ownership period.");
+        }
+        let part = if with_part {
+            let fraction = fields["floor_area"]
+                .as_str()
+                .and_then(|t| Decimal::parse(t).ok());
+            match fraction {
+                Some(f)
+                    if f.is_finite()
+                        && f.exponent() >= -4
+                        && f.gt(&int(0))?
+                        && f.le(&int(1))? =>
+                {
+                    Some(f)
+                }
+                _ => {
+                    return bad(
+                        "floor_area must be a decimal string above 0 and at most 1, to 4 places.",
+                    );
+                }
+            }
+        } else {
+            None
+        };
+        out.push(Span { start, end, part });
+    }
+    out.sort_by_key(|s| s.start);
+    if out.windows(2).any(|w| w[1].start <= w[0].end) {
+        return bad("periods must not overlap.");
+    }
+    Ok(out)
+}
+
+/// ITAA 1997 Subdiv 118-B: the part of a dwelling's capital gain or loss that
+/// is not exempt, from a taxable weight for each day of the ownership period.
+#[allow(clippy::too_many_arguments)]
+pub fn main_residence(
+    capital_gain: &Arg,
+    capital_loss: &Arg,
+    market_value_basis: &Arg,
+    ownership_start: &Arg,
+    ownership_end: &Arg,
+    lived_periods: &Arg,
+    income_use_periods: &Arg,
+    absence_choice_periods: &Arg,
+    new_home_acquired: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let kind = "main_residence";
+    let year = scope(scope_confirmed, year, kind)?;
+    let gain = money(capital_gain)?;
+    let loss = money(capital_loss)?;
+    if !gain.is_zero() && !loss.is_zero() {
+        return refuse("Supply a capital gain or a capital loss, not both.");
+    }
+    let market_value = flag(market_value_basis, "market_value_basis")?;
+    let first = date_arg(ownership_start, "ownership_start")?;
+    let last = date_arg(ownership_end, "ownership_end")?;
+    if last < first {
+        return refuse("ownership_end must not be before ownership_start.");
+    }
+    let year_start = dates::parse(&format!("{}-07-01", &year[..4])).expect("income year");
+    if last < year_start {
+        return refuse(format!(
+            "ownership_end must not be before the {year} income year began: the ownership period ends on or after the CGT event."
+        ));
+    }
+    if first < dates::parse("1985-09-20").expect("date") {
+        return refuse("A dwelling acquired before 20 September 1985 is out of scope.");
+    }
+    let lived = spans(lived_periods, "lived_periods", false, first, last)?;
+    let income = spans(income_use_periods, "income_use_periods", true, first, last)?;
+    let chosen = spans(
+        absence_choice_periods,
+        "absence_choice_periods",
+        false,
+        first,
+        last,
+    )?;
+    let new_home = match new_home_acquired {
+        Arg::Json(Value::Null) => None,
+        Arg::Json(Value::String(t)) => match dates::parse(t) {
+            Some(day) if day <= last => Some(day),
+            _ => {
+                return refuse(
+                    "new_home_acquired must be null or a YYYY-MM-DD date no later than ownership_end.",
+                );
+            }
+        },
+        _ => {
+            return refuse(
+                "new_home_acquired must be null or a YYYY-MM-DD date no later than ownership_end.",
+            );
+        }
+    };
+
+    let days = (last - first + 1) as usize;
+    let at = |day: i64| (day - first) as usize;
+    let mut is_lived = vec![false; days];
+    let mut part: Vec<Option<Decimal>> = vec![None; days];
+    let mut is_chosen = vec![false; days];
+    for s in &lived {
+        is_lived[at(s.start)..=at(s.end)].fill(true);
+    }
+    for s in &income {
+        part[at(s.start)..=at(s.end)].fill(s.part.clone());
+    }
+    for s in &chosen {
+        if s.start == first
+            || !is_lived[at(s.start - 1)]
+            || is_lived[at(s.start)..=at(s.end)].contains(&true)
+        {
+            return refuse(
+                "absence_choice_periods: each period must start the day after a lived period ends and contain no lived day.",
+            );
+        }
+        is_chosen[at(s.start)..=at(s.end)].fill(true);
+    }
+
+    // s 118-145: a part used to produce income before the move stays taxable
+    // throughout the absence (ATO QC66030, Helen); income use is covered for
+    // 6 years per absence, to the sixth anniversary of its first day inclusive
+    // (ATO QC66030, Roya), counted across breaks in the same absence. A
+    // covered day's weight is that part; a day past the 6 years is taxable.
+    let mut chosen_weight: Vec<Option<Decimal>> = vec![None; days];
+    let mut past_cap = vec![false; days];
+    for s in &chosen {
+        let mut run = at(s.start - 1);
+        while run > 0 && is_lived[run - 1] {
+            run -= 1;
+        }
+        let before = &part[run..at(s.start)];
+        let kept = before.last().cloned().flatten();
+        let mut consistent = true;
+        for p in before.iter().flatten() {
+            consistent &= match &kept {
+                Some(k) => k.equals(p)?,
+                None => false,
+            };
+        }
+        if !consistent {
+            return refuse(
+                "Income use of part of the dwelling changed or stopped before the move that started an absence choice period: out of scope.",
+            );
+        }
+        let kept = kept.unwrap_or_else(|| int(0));
+        let mut cap: Option<i64> = None;
+        let mut used = 0;
+        for day in s.start..=s.end {
+            let i = at(day);
+            chosen_weight[i] = Some(kept.clone());
+            if part[i].is_some() {
+                let limit = *cap.get_or_insert_with(|| dates::add_months(day, 72) - day + 1);
+                used += 1;
+                if used > limit {
+                    chosen_weight[i] = Some(int(1));
+                    past_cap[i] = true;
+                }
+            }
+        }
+    }
+
+    // s 118-140: both homes are main residences for up to 6 months ending
+    // when ownership ends, from the 6-month date itself (Library ¶2-075).
+    let overlap = match new_home {
+        None => Err("not claimed"),
+        Some(acquired) => {
+            let window = dates::add_months(last, -12).max(first);
+            let mut three_months = false;
+            let mut run_start = None;
+            for day in window..=last {
+                if is_lived[at(day)] {
+                    let a = *run_start.get_or_insert(day);
+                    three_months |= day >= dates::add_months(a, 3) - 1;
+                } else {
+                    run_start = None;
+                }
+            }
+            // Not the main residence: neither lived in nor covered by a choice.
+            let income_while_not_home = (window..=last).any(|d| {
+                let i = at(d);
+                part[i].is_some() && !is_lived[i] && (!is_chosen[i] || past_cap[i])
+            });
+            if !three_months {
+                Err(
+                    "not applied: no continuous 3 months as main residence in the 12 months before ownership ended",
+                )
+            } else if income_while_not_home {
+                Err(
+                    "not applied: used to produce income in those 12 months while not the main residence",
+                )
+            } else {
+                Ok(acquired.max(dates::add_months(last, -6)).max(first))
+            }
+        }
+    };
+
+    // Each day's taxable weight: 0 exempt, 1 taxable, or the part of the
+    // floor area used to produce income.
+    let mut weight = vec![int(0); days];
+    for (i, w) in weight.iter_mut().enumerate() {
+        let day = first + i as i64;
+        *w = if is_lived[i] {
+            part[i].clone().unwrap_or_else(|| int(0))
+        } else if let Some(chosen) = &chosen_weight[i] {
+            chosen.clone()
+        } else if matches!(overlap, Ok(from) if day >= from) {
+            int(0)
+        } else {
+            int(1)
+        };
+    }
+
+    // s 118-192: first used to produce income after 20 August 1996 when a
+    // full exemption would have applied just before, and only partly exempt
+    // because of that use: acquired at market value on that day.
+    let first_income = income.first().map(|s| s.start);
+    let cutoff = dates::parse("1996-08-20").expect("date");
+    let mut from = first;
+    if let Some(start) = first_income.filter(|d| *d > first) {
+        let exempt_before = weight[..at(start)]
+            .iter()
+            .try_fold(true, |ok, w| Ok::<bool, Signal>(ok && w.is_zero()))?;
+        let taxable_after = weight[at(start)..].iter().any(|w| !w.is_zero());
+        if exempt_before && taxable_after && start >= cutoff {
+            if start == cutoff {
+                return refuse(
+                    "Income use first started on 20 August 1996, when the market value rule's 7.30 pm start applies: out of scope.",
+                );
+            }
+            let other_cause = (at(start)..days)
+                .any(|i| !weight[i].is_zero() && part[i].is_none() && !is_chosen[i]);
+            if other_cause {
+                return refuse(
+                    "The dwelling is only partly exempt for a reason besides income use as well as that use: out of scope.",
+                );
+            }
+            from = start;
+        }
+    }
+    let applies = from != first;
+    if applies && !market_value {
+        return refuse(format!(
+            "The home first used to produce income rule applies (s 118-192): work out the gain or loss from the dwelling's market value on {}, then set market_value_basis.",
+            dates::format(from)
+        ));
+    }
+    if !applies && market_value {
+        return refuse(
+            "The home first used to produce income rule does not apply: work out the gain or loss from the actual cost base and set market_value_basis to false.",
+        );
+    }
+
+    let period = &weight[at(from)..];
+    let counted = period.len() as i64;
+    let (taxable_days, amounts) = precise(|| {
+        let mut sum = int(0);
+        for w in period {
+            sum = sum.add(w)?;
+        }
+        let taxable = |amount: &Decimal| amount.mul(&sum)?.div(&int(counted));
+        // Round the taxable share first so the exempt share adds back to it.
+        let (g, l) = (cents(taxable(&gain)?)?, cents(taxable(&loss)?)?);
+        Ok((
+            sum.clone(),
+            vec![
+                ("assessable_capital_gain", g.clone()),
+                ("exempt_capital_gain", gain.sub(&g)?),
+                ("assessable_capital_loss", l.clone()),
+                ("exempt_capital_loss", loss.sub(&l)?),
+            ],
+        ))
+    })?;
+    result(
+        kind,
+        &year,
+        amounts,
+        vec![
+            rate("ownership_period_from", dates::format(from)),
+            rate("ownership_period_to", dates::format(last)),
+            rate("ownership_period_days", counted),
+            rate("non_main_residence_days", taxable_days),
+            rate(
+                "home_first_used_to_produce_income",
+                if applies { "applied" } else { "not applied" },
+            ),
+            rate(
+                "changing_main_residence_overlap",
+                match overlap {
+                    Ok(day) => format!("from {}", dates::format(day)),
+                    Err(why) => why.to_string(),
+                },
+            ),
+        ],
+    )
+}
+
+const KINDS: [&str; 17] = [
     "gst",
     "resident_tax",
     "capital_gains",
+    "main_residence",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
@@ -1183,6 +1537,7 @@ fn example_value(value: Example) -> Value {
         Example::Text(s) => json!(s),
         Example::Flag(b) => json!(b),
         Example::Whole(n) => json!(n),
+        Example::Json(text) => serde_json::from_str(text).expect("JSON example"),
     }
 }
 

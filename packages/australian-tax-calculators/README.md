@@ -3,7 +3,7 @@
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same fourteen worksheets, results and refusals, and adds 2 FBT car
-worksheets that no Python release contains. Python releases through 0.1.9
+worksheets and a main residence worksheet that no Python release contains. Python releases through 0.1.9
 contain ten worksheets. Until the MCP server links this crate,
 it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
@@ -19,8 +19,8 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 </div>
 
-Sixteen calculation worksheets for established facts: ordinary GST, resident basic income
-tax, CGT losses and discount, ordinary employer FBT, car fringe benefit taxable values
+Seventeen calculation worksheets for established facts: ordinary GST, resident basic income
+tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, first-year depreciation,
 quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
@@ -89,6 +89,7 @@ lists the commands.
 | `gst` | `amount`, `gst_inclusive`, `scope_confirmed`, `year` |
 | `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
+| `main-residence` | `capital_gain`, `capital_loss`, `market_value_basis`, `ownership_start`, `ownership_end`, `lived_periods`, `income_use_periods`, `absence_choice_periods`, `new_home_acquired`, `year`, `scope_confirmed` |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
@@ -105,8 +106,10 @@ lists the commands.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 
-The 2 car commands have no Python original; their arguments follow the same
-rules. Every argument is required, as the Python functions had no defaults. Input over 8 MiB,
+The 2 car commands and `main-residence` have no Python original; their arguments follow the same
+rules. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
+`{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
+for no new home. Every argument is required, as the Python functions had no defaults. Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Supported periods
@@ -116,6 +119,7 @@ or a decimal string over 8,192 bytes, is refused.
 | GST | 2025-26, one ordinary taxable supply at 10%; no classification or BAS |
 | Resident tax | 2024-25, 2025-26 and 2026-27; full-year resident ordinary income, before offsets and levies |
 | CGT | 2025-26, resident individual's established gains and losses; losses before the 50% discount |
+| Main residence | CGT events in 2024-25 to 2026-27; one dwelling disposed of by a resident individual, before the discount |
 | FBT | Year ended 31 March 2026; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and the 25% deemed depreciation rate |
 | Depreciation | 2025-26, first year of an ordinary tangible Division 40 asset; established life and use |
@@ -266,6 +270,30 @@ of all the employee's reportable fringe benefits for the FBT year, grossed up at
 the type 2 rate, and is reported only when the total exceeds $2,000; a pooled or
 shared car is not reportable. One car cannot know either, so neither worksheet
 grosses up or applies the threshold, and each adds a third warning saying so.
+
+## Main residence
+
+`main_residence` works out how much of an individual's capital gain or loss on
+one dwelling the main residence exemption leaves taxable (ITAA 1997
+Subdiv 118-B). The caller establishes the gain or loss, the ownership period,
+the days the dwelling was their main residence, the days it or part of it
+produced assessable income (with the floor area used), any absence choice
+periods under s 118-145 and when a new home was acquired. Each day, counted
+inclusively, is taxable in full, in part or not at all, and the taxable share is
+the gain or loss times the taxable days over the days in the ownership period
+(s 118-185).
+
+The worksheet applies the 6-year limit on renting a former home, to the sixth
+anniversary inclusive as the ATO's Roya example counts it; keeps a part used for
+income before the move taxable through the absence, as the ATO's Helen example
+does; gives the last 6 months before sale to both homes under s 118-140 when its
+conditions hold; and under s 118-192 restarts the ownership period on the day
+income use first began, refusing a gain worked out from cost when the market
+value rule applies. Results keep cents; the ATO and the Library print whole
+dollars. Pass `assessable_capital_gain` to `capital-gains` as a discount or
+other gain once the 12-month test is established from `ownership_period_from`.
+The tests hold it to the ATO's and the Library's worked examples; see
+[calculation evidence](docs/calculation-evidence.md#main-residence).
 
 ## Worksheet discovery
 

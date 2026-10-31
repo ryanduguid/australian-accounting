@@ -212,6 +212,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
     match kind {
         "gst" | "capital_gains" | "depreciation" | "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
+        "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         "fbt" => vec!["2026"],
         "fbt_car_statutory" | "fbt_car_operating_cost" => keys(FBT_BENCHMARK_INTEREST_RATES),
         "payg_withholding" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
@@ -241,6 +242,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt" => (
             "2026-09-27",
             "Calculating your FBT, steps 3 to 7 and the MantCo example; FBT return 2026 instructions, items 14A to 16",
+        ),
+        "main_residence" => (
+            "2026-11-01",
+            "Treating former home as main residence: the 6-year rule, Roya and Helen examples; Using your home for rental or business: working out the capital gain, the home first used to produce income rule and its examples",
         ),
         "fbt_car_statutory" => (
             "2026-10-29",
@@ -320,6 +325,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-000, 3-020",
             "2026-06-30",
             "2026-09-15",
+        ),
+        "main_residence" => (
+            "tax-examples-capital-gains-tax-cgt",
+            "2-060, 2-075",
+            "2026-06-30",
+            "2026-11-01",
         ),
         "fbt_car_statutory" | "fbt_car_operating_cost" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -415,6 +426,44 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("discount_gains", "AUD"),
             ("current_losses", "AUD"),
             ("prior_losses", "AUD"),
+        ],
+        "main_residence" => vec![
+            (
+                "capital_gain",
+                "AUD, the gain on the caller's whole ownership interest before any exemption or discount; 0.00 when there is a loss",
+            ),
+            (
+                "capital_loss",
+                "AUD, from the reduced cost base; 0.00 when there is a gain",
+            ),
+            (
+                "market_value_basis",
+                "boolean, true when the gain or loss was worked out from market value when income use first began (s 118-192)",
+            ),
+            (
+                "ownership_start",
+                "YYYY-MM-DD, first day of the ownership period",
+            ),
+            (
+                "ownership_end",
+                "YYYY-MM-DD, last day of the ownership period",
+            ),
+            (
+                "lived_periods",
+                "list of {start, end} YYYY-MM-DD, days the dwelling was the main residence, both ends included",
+            ),
+            (
+                "income_use_periods",
+                "list of {start, end, floor_area}, days the dwelling or part of it produced assessable income with interest deductible; floor_area a decimal string above 0 and at most 1",
+            ),
+            (
+                "absence_choice_periods",
+                "list of {start, end}, days covered by the s 118-145 choice, each starting the day after a lived period",
+            ),
+            (
+                "new_home_acquired",
+                "YYYY-MM-DD or null, when a new home that became the main residence was acquired (s 118-140)",
+            ),
         ],
         "fbt" => vec![("type_one_value", "AUD"), ("type_two_value", "AUD")],
         "fbt_car_statutory" => vec![
@@ -528,17 +577,18 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
     }
 }
 
-/// An example fact value: a string, a boolean or an integer.
+/// An example fact value: a string, a boolean, an integer or a JSON literal.
 #[derive(Clone, Copy)]
 pub enum Example {
     Text(&'static str),
     Flag(bool),
     Whole(i64),
+    Json(&'static str),
 }
 
 /// `EXAMPLES[kind]`, in the Python dict's order.
 pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
-    use Example::{Flag, Text, Whole};
+    use Example::{Flag, Json, Text, Whole};
     match kind {
         "gst" => vec![("amount", Text("1100.00")), ("gst_inclusive", Flag(true))],
         "resident_tax" => vec![("taxable_income", Text("45000"))],
@@ -547,6 +597,23 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("discount_gains", Text("1000.00")),
             ("current_losses", Text("200.00")),
             ("prior_losses", Text("300.00")),
+        ],
+        "main_residence" => vec![
+            ("capital_gain", Text("230000.00")),
+            ("capital_loss", Text("0.00")),
+            ("market_value_basis", Flag(false)),
+            ("ownership_start", Text("2013-10-01")),
+            ("ownership_end", Text("2026-03-30")),
+            (
+                "lived_periods",
+                Json(r#"[{"start": "2016-07-01", "end": "2026-03-30"}]"#),
+            ),
+            (
+                "income_use_periods",
+                Json(r#"[{"start": "2013-10-01", "end": "2016-06-30", "floor_area": "1"}]"#),
+            ),
+            ("absence_choice_periods", Json("[]")),
+            ("new_home_acquired", Json("null")),
         ],
         "fbt" => vec![
             ("type_one_value", Text("1000.00")),

@@ -572,3 +572,81 @@ fn car_worksheets_reconcile_and_stay_within_their_bases() {
         );
     }
 }
+
+/// Random alternating lived and absent runs, income use on some days and
+/// choice periods after some lived runs. Inputs the worksheet refuses as out
+/// of scope are skipped; the market value basis is retried when it applies.
+#[test]
+fn main_residence_shares_reconcile_and_stay_within_the_gain() {
+    let mut rng = Rng(20_261_101);
+    let mut checked = 0;
+    for _ in 0..300 {
+        let start = 10_000 + rng.int(0, 3000); // days from 1970: 1997 to 2005
+        let mut day = start;
+        let (mut lived, mut income, mut chosen) = (vec![], vec![], vec![]);
+        let date = |d: i64| {
+            let (y, m, dd) = civil(d);
+            format!("{y:04}-{m:02}-{dd:02}")
+        };
+        let mut was_lived = false;
+        for _ in 0..rng.int(1, 6) {
+            let len = rng.int(1, 3000);
+            let (a, b) = (day, day + len - 1);
+            let is_lived = !was_lived && rng.bool();
+            if is_lived {
+                lived.push(json!({"start": date(a), "end": date(b)}));
+                if rng.int(0, 3) == 0 {
+                    income.push(json!({"start": date(a), "end": date(b), "floor_area": "0.25"}));
+                }
+            } else {
+                if was_lived && rng.bool() {
+                    chosen.push(json!({"start": date(a), "end": date(b)}));
+                }
+                if rng.bool() {
+                    income.push(json!({"start": date(a), "end": date(b), "floor_area": "1"}));
+                }
+            }
+            was_lived = is_lived;
+            day = b + 1;
+        }
+        let end = day.max(20_271) - 1; // 2025-07-01 or later
+        let gain = rng.money();
+        let mut input = json!({
+            "capital_gain": gain, "capital_loss": "0.00", "market_value_basis": false,
+            "ownership_start": date(start), "ownership_end": date(end),
+            "lived_periods": lived, "income_use_periods": income, "absence_choice_periods": chosen,
+            "new_home_acquired": if rng.bool() { json!(date(end - rng.int(0, 400))) } else { json!(null) },
+            "year": "2025-26", "scope_confirmed": true,
+        });
+        let mut outcome = api::evaluate("main-residence", &input);
+        if matches!(&outcome, Err(m) if m.contains("market value on")) {
+            input["market_value_basis"] = json!(true);
+            outcome = api::evaluate("main-residence", &input);
+        }
+        let Ok(r) = outcome else { continue };
+        let (taxable, exempt) = (
+            amount(&r, "assessable_capital_gain"),
+            amount(&r, "exempt_capital_gain"),
+        );
+        assert!(eq(&taxable.add(&exempt).unwrap(), &d(&gain)), "{input}");
+        assert!(le(&n(0), &taxable) && le(&taxable, &d(&gain)), "{input}");
+        let days = d(r["rates"]["ownership_period_days"].as_str().unwrap());
+        let weighted = d(r["rates"]["non_main_residence_days"].as_str().unwrap());
+        assert!(le(&n(0), &weighted) && le(&weighted, &days), "{input}");
+        checked += 1;
+    }
+    assert!(checked > 150, "only {checked} accepted inputs");
+}
+
+/// Howard Hinnant's civil_from_days, for generating dates.
+fn civil(day: i64) -> (i64, i64, i64) {
+    let z = day + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    (yoe + era * 400 + i64::from(m <= 2), m, d)
+}
