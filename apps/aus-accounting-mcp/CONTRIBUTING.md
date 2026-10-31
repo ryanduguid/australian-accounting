@@ -8,7 +8,8 @@ engines and serialise their results; they do not copy statutory calculations, da
 rates or dates into this facade. Shared monetary validation belongs in
 `aus_accounting_mcp/money.py`. `aus_accounting_mcp/identifiers.py` holds the ABN and ACN
 check digit arithmetic, because no published engine holds it and it carries no rate, date or
-dataset. Tests and examples must use fabricated, synthetic data.
+dataset. Tests and examples must use fabricated, synthetic data; the one exception is a
+worked example a source publishes to define a format, attributed where it is used.
 
 ## Compatibility metadata
 

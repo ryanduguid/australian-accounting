@@ -7,6 +7,7 @@ import asyncio
 import importlib.metadata
 import json
 from datetime import date, timedelta
+from pathlib import Path
 
 import pytest
 from lodgmentcalendar.rules import FACT_MEANINGS
@@ -101,6 +102,8 @@ def test_tool_schema_describes_every_fact_and_is_read_only():
 
     # The tool offers no fbt_return until it pins a release that has one. Drop this
     # exclusion with that pin bump, when the tool takes the obligation and the fact.
+    pyproject = (Path(__file__).resolve().parents[1] / "pyproject.toml").read_text(encoding="utf-8")
+    assert '"lodgment-calendar==0.1.0"' in pyproject
     expected = set(FACT_MEANINGS) - {"on_fbt_client_list_by_21_may"}
     assert set(properties) == expected
     assert all(properties[name]["description"].startswith(f"True if {FACT_MEANINGS[name]}")
