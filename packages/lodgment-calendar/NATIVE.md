@@ -8,7 +8,9 @@ Confirm each client's dates with the ATO and obtain human review.
 This is an unreleased 1.0.0 candidate. Python 0.1.0 remains available for the existing
 MCP consumer until its native replacement is qualified. The native command and library
 do not start Python. Published compatibility records and Python release routing still
-describe the Python interface. The umbrella command does not link this candidate yet.
+describe the Python interface. The native MCP candidate links this crate. Rust owns the
+rules from MCP cutover; until then the Python source stays for the supported release and
+rollback, and the oracle below binds this crate to its results. `to_ics` is Python only.
 
 ## Build and call
 
@@ -57,8 +59,8 @@ and unresolved reason. It takes `day`, optional replacement `holidays` and optio
 `covers_to`; the replacement mapping does not imply complete coverage.
 
 The output retains every field documented in README.md. `engine_version` identifies
-the native crate. Rule data and source review date are unchanged from 20 October
-2026; this port does not constitute a new review of ATO law or publications.
+the native crate. Rule data and the source review date of 28 October 2026 match the
+Python source; this port does not constitute a new review of ATO law or publications.
 
 ## Verification
 
@@ -76,6 +78,5 @@ changes from 0.1.0 to 1.0.0. See [oracle provenance](tests/fixtures/README.md) f
 representation adaptations and source bindings. Additional native checks cover JSON
 types, field names, real dates, Unicode holiday names, input bounds and process output.
 
-Root `just` checks and the separate `lodgment-native` CI job include this candidate.
-The existing Python checks continue to cover the current MCP dependency. CI builds
+The Rust crate CI matrix includes this candidate. The existing Python checks continue to cover the current MCP dependency. CI builds
 short-lived candidates on Linux, Windows and macOS; it publishes no release.

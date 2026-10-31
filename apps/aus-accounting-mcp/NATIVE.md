@@ -109,13 +109,13 @@ benchmark name/year and engine date format. These complement frozen payload
 comparisons; neither a captured call nor this set proves every original assertion.
 
 The source-bound [behaviour record](tests/fixtures/native/behaviour-coverage.json)
-reconciles all 375 original test functions across 31 files. It records 279 with
-native observable checks, 50 with explicit native adaptations and 46 retained
+reconciles all 392 original test functions across 32 files. It records 289 with
+native observable checks, 55 with explicit native adaptations and 48 retained
 with the supported Python distribution and its release, Registry, documentation
 or media workflow. Retained checks are active and are not retirement approvals.
 The record identifies proof symbols and limitations for each function; a Rust
 test refuses changed original source hashes until the reconciliation is reviewed.
-These are function dispositions, not 375 independent Rust tests or proof of
+These are function dispositions, not 392 independent Rust tests or proof of
 untested inputs, current law or real taxpayer results.
 
 `tests/original_behaviours.rs` tests relationships that frozen payloads cannot
@@ -173,6 +173,25 @@ The package's `compatibility.json`, `server.json`, Python version and external
 consumer pins still describe the supported distribution. Updating or publishing
 them is a separate release step.
 
+## Scope of this candidate
+
+The contract is the Python server at the oracle base recorded in
+`data/catalogue.v1.json`: 22 tools, including `get_data_freshness`, 6 resources
+and 3 prompts. `get_data_freshness` reports the provenance of the linked Rust
+tables and takes its 31 frozen replies from that server.
+
+The engines also ship the worksheet kinds `fbt_car_statutory` and
+`fbt_car_operating_cost`. The Python server does not advertise them, so there is
+no oracle for them and adding them later is additive. The frozen input schema
+refuses them, and the scope resource lists only the kinds in its discriminator
+mapping.
+
+The lodgment rules have 2 implementations in `packages/lodgment-calendar` until
+MCP cutover: the Python source for the supported release and rollback, and the
+Rust crate bound to its results by oracle. Rust owns the rules from cutover, when
+the Python source and `NATIVE_CANDIDATES` in `tests/test_boundaries.py` retire.
+`to_ics` is Python only and is not exposed through MCP.
+
 ## Runtime qualification
 
 Effective input validation follows the original strict Pydantic models and
@@ -181,7 +200,12 @@ are not imposed as extra input rules where they differ from callable behaviour,
 such as accepted surrounding whitespace in money strings. Every successful
 output is checked against its complete published output schema.
 
-The current native comparison covers 786 captured effective SDK calls for all
+The fixtures were first captured at an earlier Python commit and refrozen with
+reviewed transforms at the recorded base; `tests/fixtures/native/origin.json`
+keeps both commits, and its `oracle_sha256` values remain the first capture's raw
+hashes. The counts below date from the first capture.
+
+The native comparison covers 786 captured effective SDK calls for all
 non-retrieval tools and unknown tools, plus 39 independent validation probes and
 22 further original-only money, date, year and large-pack cases and 9 year-zero
 refusal cases. Three large-catalogue cases compare complete original rulings
@@ -220,6 +244,8 @@ identity and already-reviewed provenance differences are allowed:
   ATO minimum repayment income page and `source_checked: 2026-10-20`. That
   existing engine change records its official-source recheck and changes no
   calculation. The frozen Python oracle retains the historical address.
+- Medicare levy worksheet sources retain native engine commit `afa19a4`: the moved
+  ATO lump-sum payment in arrears page. No figure depends on the address.
 
 No other provenance changes are normalised. The original Python application,
 published compatibility metadata and external consumer pins are unchanged.
