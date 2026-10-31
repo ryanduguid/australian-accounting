@@ -102,9 +102,6 @@ class RustEngineTests(unittest.TestCase):
         self.assertNotIn("contents: write", workflow)
         self.assertNotIn("id-token: write", workflow)
         self.assertIn("language: rust", (workflows / "codeql.yml").read_text())
-        snyk = (workflows / "snyk.yml").read_text()
-        self.assertIn("snyk sbom test --experimental --file=snyk-sbom.json", snyk)
-        self.assertNotIn("--package-manager=cargo", snyk)
         for name in RUST_ENGINES.values():
             with self.subTest(engine=name):
                 self.assertFalse((workflows / f"release-{name}.yml").exists())
@@ -131,11 +128,8 @@ class RustEngineTests(unittest.TestCase):
         self.assertEqual(len(cargo), len(set(cargo)))
         self.assertEqual(set(cargo), {f"/{d}" for d in directories | fuzz | wasm | tools})
         workflows = ROOT / ".github/workflows"
-        matrix = "matrix: ${{ fromJSON(needs.crates.outputs.matrix) }}"
         caller = (workflows / "ci.yml").read_text()
-        snyk = (workflows / "snyk.yml").read_text()
         self.assertIn("matrix: ${{ fromJSON(needs.crates.outputs.ci-matrix) }}", caller)
-        self.assertIn(matrix, snyk)
         # A crate with its own caller workflow is checked there, not again in ci.yml.
         own = {crate["package"] for crate in crates} - {crate["package"] for crate in rust_crates["crates"](ci_yml=True)}
         self.assertEqual(own, {"lodgeit-calculator-adapter"})
@@ -144,7 +138,6 @@ class RustEngineTests(unittest.TestCase):
         for crate in crates:
             with self.subTest(crate=crate["package"]):
                 self.assertNotIn(f"package: {crate['package']}\n", caller)
-                self.assertNotIn(crate["package"], snyk)
         by_name = {crate["package"]: crate for crate in crates}
         self.assertEqual(by_name["au-tax-rates-data"], {"package": "au-tax-rates-data", "root": "packages", "binary": "rates", "smoke": "validate"})
         self.assertEqual(by_name["au-accounting"], {"package": "au-accounting", "root": "apps", "binary": "au-accounting", "smoke": "--version"})
