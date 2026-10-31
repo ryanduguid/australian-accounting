@@ -5,7 +5,7 @@ authors:
     given-names: Ryan
 title: "Aus Accounting MCP (aus-accounting-mcp)"
 abstract: Local MCP facade over reviewed Australian computational accounting engines. Citations and refusals, not advice.
-version: 0.7.0
+version: 0.7.1
 url: "https://duguid.com.au/tools/australian-tax-ai-agents/"
 repository-code: "https://github.com/ryanduguid/australian-accounting"
 license-url: "https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE"
