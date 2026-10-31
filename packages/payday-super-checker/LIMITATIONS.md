@@ -126,6 +126,39 @@ relying on their verdicts.
 **Status.** Open, by design. The tool reports what it matched on rather than
 refusing an export that a firm cannot re-run.
 
+## PSC-3 Returned contributions rest on the rows and events you supply
+
+**Trigger.** A row with `returned_by_fund=yes`, or any `--events` file.
+
+**Effect.** Each event is applied to the one row it names. LCR 2026/2 paragraph 33
+applies contributions automatically to the earliest QE day with a shortfall, so a
+return on one payday can move later money onto it, and the later payday then falls
+short. The checker does not move money between rows. A resubmission with no fund
+receipt has no event, so its row stays `UNKNOWN`. A line whose kept receipts do not
+cover the SG amount is `UNKNOWN` with no exposure, even after the deadline, although
+s 18C gives a base shortfall on those facts.
+
+Where the fund kept part of a first contribution, a later receipt between the end
+of the usual period and the 20th business day stays `UNKNOWN`: LCR 2026/2 paragraph
+54 says it is not on time, and the s 6(1) late period has not started. A payment
+that becomes allocable after it arrives (paragraph 20) is tested on the date you
+supply. The Python package, the MCP server and the Excel workbook do not read a
+return at all, so a returned receipt entered there still reads as received.
+
+**Unaffected.** The deadline never moves for a return or for late notice. A returned
+amount never counts as credit, never confirms an item 4 extension and is excluded
+whatever the as-at date.
+
+**Where it surfaces at runtime.** The caveats column holds the ordered trail and the
+reason for the verdict. An unresolved row names its candidate verdicts and exits 2.
+
+**Operator step.** Reconcile each return against the fund's error message or the
+clearing house batch history. Check the statutory allocation for every affected
+payday before relying on a row. Read
+[the source record](docs/primary-source-review-2026-10-31.md).
+
+**Status.** Open. The rules a source does not settle are left unresolved, not guessed.
+
 ## Not limitations
 
 Recorded here so they are not re-audited:

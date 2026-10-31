@@ -8,7 +8,7 @@ use std::collections::BTreeSet;
 
 use crate::csvread::{self, Reader};
 use crate::dates;
-use crate::deadlines::ContribLine;
+use crate::deadlines::{ContribEvent, ContribLine, EventKind};
 use crate::decimal::{Decimal, Rounding};
 use crate::py::Date;
 use crate::pyjson;
@@ -888,7 +888,184 @@ fn read_line(
         matched_amount,
         join_caveats,
         returned_by_fund,
+        events: Vec::new(),
     })
+}
+
+/// The event file's columns, each with whether a row must fill it.
+const EVENT_COLUMNS: [(&str, bool); 7] = [
+    ("employee_id", true),
+    ("payment_date", true),
+    ("event", true),
+    ("event_date", true),
+    ("amount", true),
+    ("receipt_date", false),
+    ("notified_date", false),
+];
+
+/// Read the events file and attach each event to the one line it names. An
+/// event that names no line, or more than one, is refused rather than dropped.
+pub fn attach_events(path: &str, lines: &mut [ContribLine]) -> Result<()> {
+    let data = read_bytes(path)?;
+    match attach_events_bytes(path, &data, lines) {
+        Err(Failed::Read(ReadFailure::Decode { byte, start })) => Err(not_utf8(path, byte, start)),
+        Err(Failed::Read(ReadFailure::Csv(m))) => Err(csv_module_error(&m)),
+        Err(Failed::Engine(f)) => Err(f),
+        Ok(()) => Ok(()),
+    }
+}
+
+fn attach_events_bytes(
+    path: &str,
+    data: &[u8],
+    lines: &mut [ContribLine],
+) -> std::result::Result<(), Failed> {
+    let mut reader = DictReader::new(data)?;
+    let Some(fieldnames) = reader.fieldnames().map(<[String]>::to_vec) else {
+        return Err(csv_error(format!("{path} has no header row")).into());
+    };
+    let named: Vec<String> = fieldnames
+        .iter()
+        .map(|h| pytext::strip(h).to_string())
+        .collect();
+    let known = |h: &str| EVENT_COLUMNS.iter().any(|(c, _)| *c == h);
+    let mut bad: Vec<String> = named.iter().filter(|h| !known(h)).cloned().collect();
+    for (i, h) in named.iter().enumerate() {
+        if named[..i].contains(h) {
+            bad.push(h.clone());
+        }
+    }
+    let absent: Vec<&str> = EVENT_COLUMNS
+        .iter()
+        .filter(|(c, required)| *required && !named.iter().any(|h| h == c))
+        .map(|(c, _)| *c)
+        .collect();
+    if !bad.is_empty() || !absent.is_empty() {
+        return Err(csv_error(format!(
+            "{path} needs the columns {} with optional {}. Unknown or repeated: {}; \
+             missing: {}",
+            repr_list(&[
+                "employee_id",
+                "payment_date",
+                "event",
+                "event_date",
+                "amount"
+            ]),
+            repr_list(&["receipt_date", "notified_date"]),
+            repr_list(&bad),
+            repr_list(&absent)
+        ))
+        .into());
+    }
+    let mut problems: Vec<String> = Vec::new();
+    let mut i: i64 = 1;
+    let mut any = false;
+    while let Some(raw) = reader.next_row()? {
+        i += 1;
+        any = true;
+        let mut row: DictRow = Vec::new();
+        for (k, v) in raw {
+            dict_set(&mut row, k.map(|k| pytext::strip(&k).to_string()), v);
+        }
+        if let Some(problem) = malformed_row_problem(&row, i) {
+            problems.push(problem);
+            continue;
+        }
+        match read_event(&row, i) {
+            Err(Failure::Value(m)) => problems.push(m),
+            Err(other) => return Err(other.into()),
+            Ok((employee, qe_day, event)) => {
+                let matching: Vec<usize> = (0..lines.len())
+                    .filter(|&l| lines[l].employee_id == employee && lines[l].qe_day == qe_day)
+                    .collect();
+                match matching[..] {
+                    [only] => lines[only].events.push(event),
+                    [] => problems.push(format!(
+                        "event row {i}: no contribution row has employee_id {} and payment \
+                         date {}, and an event is never dropped",
+                        pytext::repr(&employee),
+                        qe_day.isoformat()
+                    )),
+                    _ => problems.push(format!(
+                        "event row {i}: {} contribution rows have employee_id {} and payment \
+                         date {}, so the event cannot be applied to one of them",
+                        matching.len(),
+                        pytext::repr(&employee),
+                        qe_day.isoformat()
+                    )),
+                }
+            }
+        }
+    }
+    if !problems.is_empty() {
+        return Err(problems_error(&problems, path).into());
+    }
+    if !any {
+        return Err(csv_error(format!("{path} has a header but no data rows")).into());
+    }
+    Ok(())
+}
+
+fn read_event(row: &DictRow, i: i64) -> Result<(String, Date, ContribEvent)> {
+    let cell = |column: &str| -> String {
+        row.iter()
+            .find(|(k, _)| k.as_deref() == Some(column))
+            .map(|(_, v)| match v {
+                Cell::Value(s) => pytext::strip(s).to_string(),
+                _ => String::new(),
+            })
+            .unwrap_or_default()
+    };
+    let at = format!("event row {i}");
+    let required = |column: &str| -> Result<String> {
+        let value = cell(column);
+        if value.is_empty() {
+            return Err(csv_error(format!("{at}: {column} is empty")));
+        }
+        Ok(value)
+    };
+    let employee = required("employee_id")?;
+    let qe_day = parse_date(&required("payment_date")?, "payment_date", i)?;
+    let kind_text = required("event")?;
+    let date = parse_date(&required("event_date")?, "event_date", i)?;
+    let amount = parse_amount(&required("amount")?, "amount", i, true)?;
+    let optional_date = |column: &str| -> Result<Option<Date>> {
+        let value = cell(column);
+        if value.is_empty() {
+            Ok(None)
+        } else {
+            parse_date(&value, column, i).map(Some)
+        }
+    };
+    let receipt = optional_date("receipt_date")?;
+    let notified = optional_date("notified_date")?;
+    let kind = match kind_text.to_ascii_lowercase().as_str() {
+        "received" => {
+            if receipt.is_some() || notified.is_some() {
+                return Err(csv_error(format!(
+                    "{at}: receipt_date and notified_date belong on a returned event"
+                )));
+            }
+            EventKind::Received
+        }
+        "returned" => EventKind::Returned { receipt, notified },
+        _ => {
+            return Err(csv_error(format!(
+                "{at}: event {} is neither received nor returned",
+                pytext::repr(&kind_text)
+            )));
+        }
+    };
+    Ok((
+        employee,
+        qe_day,
+        ContribEvent {
+            kind,
+            date,
+            amount,
+            row: i,
+        },
+    ))
 }
 
 /// An `OSError` from reading `path`.

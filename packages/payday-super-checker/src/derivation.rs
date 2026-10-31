@@ -63,6 +63,7 @@ fn line_of(input: &Value) -> Result<ContribLine, String> {
         matched_amount: None,
         join_caveats: Vec::new(),
         returned_by_fund: false,
+        events: Vec::new(),
     })
 }
 

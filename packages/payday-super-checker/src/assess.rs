@@ -3,20 +3,27 @@
 use crate::calendar::BusinessCalendar;
 use crate::csv_io::{cents, dmax, dmin, money, remitted_credit, zero};
 use crate::deadlines::{
-    ContribLine, Deadline, REGIME_START, SKIP_DB, USUAL_7BD, annotate_calendar_risk,
-    annotate_missing_flag, apply_item4, compute_due, earliest_prepayment_day, receipt_amount_cap,
-    receipt_amount_evidenced,
+    ContribLine, Deadline, EventKind, ITEM4_ALIGNED, REGIME_START, SKIP_DB, USUAL_7BD,
+    annotate_calendar_risk, annotate_missing_flag, apply_item4, compute_due,
+    earliest_prepayment_day, receipt_amount_cap, receipt_amount_evidenced,
 };
 use crate::decimal::Decimal;
 use crate::py::Date;
 use crate::rates::GicTable;
 use crate::sgc::{Uplift, exposure_range, notional_earnings, uplift_scenarios};
-use crate::{Failure, Result};
+use crate::{Failure, Result, returned};
 
 pub const TRANSITION_END: Date = Date {
     year: 2026,
     month: 7,
     day: 28,
+};
+
+/// The last QE day PCG 2026/1 covers.
+const FIRST_YEAR_END: Date = Date {
+    year: 2027,
+    month: 6,
+    day: 30,
 };
 
 pub const ON_TIME: &str = "ON_TIME";
@@ -277,13 +284,7 @@ pub fn check_inputs(lines: &[ContribLine]) -> Result<()> {
         if let Some(p) = date_problem(line) {
             problems.push(p);
         }
-        if line.returned_by_fund && (line.db_interest || line.sg_amount.le(&zero())?) {
-            problems.push(format!(
-                "row {}: returned_by_fund=yes needs a row carrying an SG amount that is \
-                 tested for lateness",
-                line.row
-            ));
-        }
+        problems.extend(returned::event_problems(line)?);
     }
     if problems.is_empty() {
         Ok(())
@@ -324,10 +325,12 @@ pub fn assess(
     let mut transition_rows: Vec<&ContribLine> = Vec::new();
     for (i, line) in lines.iter().enumerate() {
         let contribution_date = line.received.or(line.remitted);
+        let event_in_transition = line.events.iter().any(|e| e.date <= TRANSITION_END);
         if !line.db_interest
             && line.sg_amount.gt(&zero())?
-            && receipt_amount_cap(line).gt(&zero())?
-            && contribution_date.is_some_and(|d| d <= TRANSITION_END)
+            && (event_in_transition
+                || (receipt_amount_cap(line).gt(&zero())?
+                    && contribution_date.is_some_and(|d| d <= TRANSITION_END)))
         {
             transition[i] = true;
             transition_rows.push(line);
@@ -388,6 +391,44 @@ struct Facts {
     item4_partial_unknown: String,
     horizon_partial_unknown: String,
     receipt_amount_unevidenced: bool,
+    /// The late credit an event trail counted, which replaces the single
+    /// receipt's s 18D test.
+    event_late_credit: Option<Decimal>,
+    /// The trail keeps more than one receipt, so item 1 would extend only the first.
+    several_receipts: bool,
+}
+
+fn horizon_unknown_text() -> String {
+    "the date recorded here is after that deadline, and a holiday the \
+     calendar does not hold could move the deadline past it, so the line is \
+     left unassessed rather than called late. Supply the missing holidays \
+     with --holidays-override and set its \"verified_until\" to the last date \
+     you entered them for, or extend data/business_days.json, \
+     to assess it"
+        .to_string()
+}
+
+fn horizon_figures_text(due: Date, cal: &BusinessCalendar) -> String {
+    format!(
+        "the deadline {} runs past the calendar's coverage \
+         ({}) and can only move later, so days late \
+         is left blank and the notional earnings and SG charge figures on this \
+         line are a maximum, not a settled amount",
+        due.isoformat(),
+        cal.coverage_until.isoformat()
+    )
+}
+
+fn item4_unknown_text(possible: Date) -> String {
+    format!(
+        "an earlier positive row could extend this deadline to \
+         {} under s 18C(2) item 4, but the \
+         file does not evidence an eligible contribution received by the fund, \
+         applied to that earlier QE day and on time. The deadline shown is the \
+         latest one proved by the supplied facts; reconcile the fund receipt and \
+         statutory allocation before deciding between the candidate verdicts",
+        possible.isoformat()
+    )
 }
 
 fn assessment_facts(result: &mut Assessed, cal: &BusinessCalendar, as_at: Date) -> Result<Facts> {
@@ -468,33 +509,12 @@ fn assessment_facts(result: &mut Assessed, cal: &BusinessCalendar, as_at: Date) 
         ));
     }
     let past_horizon = due > cal.coverage_until;
-    let horizon_unknown = "the date recorded here is after that deadline, and a holiday the \
-        calendar does not hold could move the deadline past it, so the line is \
-        left unassessed rather than called late. Supply the missing holidays \
-        with --holidays-override and set its \"verified_until\" to the last date \
-        you entered them for, or extend data/business_days.json, \
-        to assess it"
-        .to_string();
-    let horizon_figures = format!(
-        "the deadline {} runs past the calendar's coverage \
-         ({}) and can only move later, so days late \
-         is left blank and the notional earnings and SG charge figures on this \
-         line are a maximum, not a settled amount",
-        due.isoformat(),
-        cal.coverage_until.isoformat()
-    );
+    let horizon_unknown = horizon_unknown_text();
+    let horizon_figures = horizon_figures_text(due, cal);
     let possible_item4_due = result.deadline.possible_item4_due;
     let item4_uncertain = possible_item4_due.is_some_and(|p| p > due);
     let item4_unknown = match possible_item4_due {
-        Some(p) if item4_uncertain => format!(
-            "an earlier positive row could extend this deadline to \
-             {} under s 18C(2) item 4, but the \
-             file does not evidence an eligible contribution received by the fund, \
-             applied to that earlier QE day and on time. The deadline shown is the \
-             latest one proved by the supplied facts; reconcile the fund receipt and \
-             statutory allocation before deciding between the candidate verdicts",
-            p.isoformat()
-        ),
+        Some(p) if item4_uncertain => item4_unknown_text(p),
         _ => String::new(),
     };
     Ok(Facts {
@@ -524,6 +544,8 @@ fn assessment_facts(result: &mut Assessed, cal: &BusinessCalendar, as_at: Date) 
             the as-at date"
                 .into(),
         receipt_amount_unevidenced,
+        event_late_credit: None,
+        several_receipts: false,
     })
 }
 
@@ -881,7 +903,9 @@ fn apply_exposure(
     }
 
     let mut offset_credit = zero();
-    if let Some(s) = settled
+    if let Some(counted) = &facts.event_late_credit {
+        offset_credit = dmin(counted, &base_shortfall)?;
+    } else if let Some(s) = settled
         && !stale_prepayment
         && s > due
         && options.assessment_date.is_none_or(|a| s < a)
@@ -1022,6 +1046,7 @@ fn apply_exposure(
     }
 
     if result.deadline.pathway == USUAL_7BD
+        && !facts.several_receipts
         && let Some(landed) = landed
         && !stale_prepayment
         && landed >= line.qe_day
@@ -1065,32 +1090,232 @@ fn apply_exposure(
     Ok(())
 }
 
-/// A fund returned some of this contribution and the file does not say what.
-///
-/// A returned amount is not a contribution (SIS reg 7.07G(4); LCR 2026/2
-/// paragraphs 24 and 25), so the row's receipt cannot be read as eligible, and
-/// the deadline does not move. Nothing shows the row is on time or late.
-fn assess_unreconciled_return(result: &mut Assessed, cal: &BusinessCalendar, as_at: Date) {
-    let due = result.deadline.due.expect("assessed lines have a deadline");
-    let latest = result
-        .deadline
-        .possible_item4_due
-        .map_or(due, |p| p.max(due));
-    let coverage_open = due > cal.coverage_until;
-    let on_time_possible = match result.line.received.filter(|r| *r <= as_at) {
-        Some(received) => received <= latest || coverage_open,
-        None => as_at <= latest || coverage_open,
+/// The latest day a contribution other than the first eligible one can be on
+/// time. Item 1 extends only the first (LCR 2026/2 paragraph 54); items 2 and 4
+/// are not limited to it.
+fn later_contribution_due(
+    line: &ContribLine,
+    deadline: &Deadline,
+    cal: &BusinessCalendar,
+) -> Result<Date> {
+    let due = deadline.due.expect("assessed lines have a deadline");
+    if !line.first_to_fund {
+        return Ok(due);
+    }
+    let paid = match (line.out_of_cycle, line.next_standard_qe_day) {
+        (true, Some(next)) => next,
+        _ => line.qe_day,
     };
-    result.verdict = UNKNOWN.into();
-    result.horizon_verdicts = verdicts(UNPAID, if on_time_possible { ON_TIME } else { LATE });
-    result.caveats.push(format!(
-        "returned_by_fund=yes: a fund returned some or all of this contribution, and a \
-         returned amount is not a contribution (SIS reg 7.07G(4); LCR 2026/2 paragraphs \
-         24 and 25). Nothing on this row says which amount came back, so no receipt on it \
-         is read as eligible. The deadline {} does not restart. No exposure is calculated; \
-         reconcile the contribution with the fund or clearing house",
-        due.isoformat()
-    ));
+    let own = cal.add_business_days(paid, 7)?;
+    Ok(if deadline.pathway == ITEM4_ALIGNED {
+        own.max(due)
+    } else {
+        own
+    })
+}
+
+/// Assess a line that a fund returned money on, or that carries events.
+///
+/// The returned amount is not a contribution (SIS reg 7.07G(4); LCR 2026/2
+/// paragraphs 24 and 25) and the deadline does not move for a rejection (ATO,
+/// 'Getting it right'). The line is decided only when the kept receipts cover
+/// the SG amount; otherwise it is UNKNOWN, carries no exposure and is not LATE.
+fn assess_events(
+    result: &mut Assessed,
+    cal: &BusinessCalendar,
+    gic: &GicTable,
+    as_at: Date,
+    options: Options,
+) -> Result<()> {
+    let line = result.line.clone();
+    let due = result.deadline.due.expect("assessed lines have a deadline");
+    let later_due = later_contribution_due(&line, &result.deadline, cal)?;
+    let earliest = earliest_prepayment_day(line.qe_day)?;
+    let past_horizon = due > cal.coverage_until;
+    let possible = result.deadline.possible_item4_due.filter(|p| *p > due);
+    let doubtful = returned::cannot_reconcile(&line);
+    let owed = cents(Some(&line.sg_amount))?;
+
+    if !line.events.is_empty() {
+        result.caveats.push(returned::trail(&line)?);
+    }
+    for event in &line.events {
+        let EventKind::Returned { notified, .. } = event.kind else {
+            continue;
+        };
+        if event.date > as_at {
+            result.caveats.push(format!(
+                "the return dated {} is after the as-at date {}, but a returned amount \
+                 is not a contribution once it is rejected, so it is not counted here",
+                event.date.isoformat(),
+                as_at.isoformat()
+            ));
+        }
+        if let Some(told) = notified.filter(|n| *n > due) {
+            let posture = if line.qe_day <= FIRST_YEAR_END {
+                " For this first-year QE day, correcting the error as soon as reasonably \
+                 practicable can lower the ATO's compliance risk rating (PCG 2026/1 \
+                 paragraphs 17, 26 and 27); that does not change the shortfall"
+            } else {
+                ""
+            };
+            result.caveats.push(format!(
+                "the employer was told of a return on {}, after the deadline {}. Late \
+                 notice does not move the deadline: s 18C has no notice exception and the \
+                 ATO says the timeframe does not change.{posture}",
+                told.isoformat(),
+                due.isoformat()
+            ));
+        }
+    }
+
+    let mut remaining = owed.clone();
+    let mut on_time = zero();
+    let mut late_counted = zero();
+    let mut any_late = false;
+    let mut undecided = false;
+    let mut first = true;
+    let mut last_credit = None;
+    let mut last_counted = None;
+    let mut kept_receipts = 0;
+    for r in returned::receipts(&line)? {
+        let eligible = r.eligible()?;
+        if !eligible.gt(&zero())? {
+            continue;
+        }
+        if r.date > as_at {
+            result.caveats.push(format!(
+                "the receipt dated {} is after the as-at date {}: it is ignored for this \
+                 as-at report",
+                r.date.isoformat(),
+                as_at.isoformat()
+            ));
+            continue;
+        }
+        if r.date < earliest {
+            result.caveats.push(format!(
+                "received {}, before the 12-month pre-payment window in \
+                 s 18C(1)(c)(ii), so it cannot be applied to this payday",
+                r.date.isoformat()
+            ));
+            continue;
+        }
+        let window = if first { due } else { later_due };
+        first = false;
+        kept_receipts += 1;
+        let credit = dmin(&eligible, &remaining)?;
+        remaining = remaining.sub(&credit)?;
+        last_credit = Some(r.date);
+        if r.date <= window {
+            on_time = on_time.add(&credit)?;
+        } else if r.date <= due {
+            undecided = true;
+            result.caveats.push(format!(
+                "the receipt dated {} is not the first eligible contribution, because the \
+                 fund kept an earlier amount. LCR 2026/2 paragraph 54 gives only the first \
+                 the 20 business days, so this one was on time only to {}. The s 6(1) late \
+                 period starts only after {}, so whether it counts as a late contribution \
+                 is not established here. No exposure is calculated",
+                r.date.isoformat(),
+                later_due.isoformat(),
+                due.isoformat()
+            ));
+        } else if past_horizon || possible.is_some_and(|p| r.date <= p) {
+            undecided = true;
+            if past_horizon {
+                result.caveats.push(horizon_unknown_text());
+            }
+            if let Some(p) = possible {
+                result.caveats.push(item4_unknown_text(p));
+            }
+        } else {
+            any_late = true;
+            if options.assessment_date.is_none_or(|a| r.date < a) {
+                late_counted = late_counted.add(&credit)?;
+                last_counted = Some(r.date);
+            }
+        }
+    }
+
+    if doubtful || remaining.gt(&zero())? {
+        let row_receipt_late = line
+            .received
+            .filter(|r| *r <= as_at)
+            .is_some_and(|r| r > possible.unwrap_or(due) && !past_horizon);
+        let settled_any = last_credit.is_some() || line.received.is_some_and(|r| r <= as_at);
+        let window_left = if first {
+            possible.unwrap_or(due)
+        } else {
+            possible.unwrap_or(later_due)
+        };
+        let window_open = past_horizon || as_at <= window_left;
+        let on_time_possible =
+            !any_late && !row_receipt_late && (window_open || (doubtful && settled_any));
+        result.verdict = UNKNOWN.into();
+        result.horizon_verdicts = verdicts(UNPAID, if on_time_possible { ON_TIME } else { LATE });
+        if line.returned_by_fund && !returned::has_return_event(&line) {
+            result.caveats.push(format!(
+                "returned_by_fund=yes: a fund returned some or all of this contribution, and \
+                 a returned amount is not a contribution (SIS reg 7.07G(4); LCR 2026/2 \
+                 paragraphs 24 and 25). Nothing says which amount came back, so no receipt on \
+                 this row is read as eligible. The deadline {} does not restart. No exposure \
+                 is calculated; reconcile the contribution with the fund or clearing house \
+                 and supply the dated return with --events",
+                due.isoformat()
+            ));
+        } else if doubtful {
+            result.caveats.push(
+                "the fund receipt on this row states no amount, so what the fund kept cannot \
+                 be reconciled against the events. Supply matched_amount and rerun"
+                    .into(),
+            );
+        }
+        if remaining.gt(&zero())? && !line.events.is_empty() {
+            result.caveats.push(format!(
+                "the events leave ${} of the ${} SG amount with no eligible fund receipt on \
+                 or before the as-at date. The deadline {} does not restart on a return. The \
+                 line stays unresolved, not LATE, and no exposure is calculated, until a fund \
+                 receipt for that amount is evidenced",
+                money(Some(&remaining))?,
+                money(Some(&owed))?,
+                due.isoformat()
+            ));
+        }
+        return Ok(());
+    }
+
+    result.receipt_established = true;
+    if undecided {
+        result.verdict = UNKNOWN.into();
+        result.horizon_verdicts = verdicts(LATE, ON_TIME);
+        return Ok(());
+    }
+    if !any_late {
+        result.verdict = ON_TIME.into();
+        return Ok(());
+    }
+    result.verdict = LATE.into();
+    let facts = Facts {
+        settled: last_counted.or(last_credit),
+        remitted: None,
+        credit: zero(),
+        operational_unremitted: zero(),
+        fully_remitted: false,
+        receipt_credit: late_counted.clone(),
+        receipt_covers_all: true,
+        past_horizon,
+        horizon_unknown: horizon_unknown_text(),
+        horizon_figures: horizon_figures_text(due, cal),
+        possible_item4_due: possible,
+        item4_uncertain: possible.is_some(),
+        item4_unknown: possible.map_or_else(String::new, item4_unknown_text),
+        item4_partial_unknown: String::new(),
+        horizon_partial_unknown: String::new(),
+        receipt_amount_unevidenced: false,
+        event_late_credit: Some(late_counted),
+        several_receipts: kept_receipts > 1,
+    };
+    apply_exposure(result, cal, gic, as_at, options, &facts, &on_time, false)
 }
 
 fn assess_line(
@@ -1158,8 +1383,8 @@ fn assess_line(
         }
         return Ok(result);
     }
-    if result.line.returned_by_fund {
-        assess_unreconciled_return(&mut result, cal, as_at);
+    if returned::carries_return_facts(&result.line) {
+        assess_events(&mut result, cal, gic, as_at, options)?;
         return Ok(result);
     }
     let facts = assessment_facts(&mut result, cal, as_at)?;
@@ -1223,6 +1448,7 @@ pub(crate) mod tests {
             matched_amount: None,
             join_caveats: Vec::new(),
             returned_by_fund: false,
+            events: Vec::new(),
         }
     }
 
@@ -1273,6 +1499,8 @@ pub(crate) mod tests {
             item4_partial_unknown: "item 4 partial".into(),
             horizon_partial_unknown: "calendar partial".into(),
             receipt_amount_unevidenced: false,
+            event_late_credit: None,
+            several_receipts: false,
         }
     }
 

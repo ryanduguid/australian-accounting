@@ -10,7 +10,7 @@ use crate::Failure;
 use crate::assess::{self, Assessed, Options};
 use crate::calendar::{self, BusinessCalendar, Holiday};
 use crate::csv_io::{self, Mapping};
-use crate::deadlines::{self, ContribLine, Deadline};
+use crate::deadlines::{self, ContribEvent, ContribLine, Deadline, EventKind};
 use crate::decimal::Decimal;
 use crate::evidence_pack::{self, PackFacts};
 use crate::importers;
@@ -243,7 +243,45 @@ fn line_of(v: &Value) -> Result<ContribLine> {
         matched_amount: optional_decimal(v, "matched_amount")?,
         join_caveats: strings(v, "join_caveats")?,
         returned_by_fund: flag(v, "returned_by_fund")?,
+        events: match v.get("events") {
+            None | Some(Value::Null) => Vec::new(),
+            Some(Value::Array(items)) => items.iter().map(event_of).collect::<Result<_>>()?,
+            Some(_) => return Err("events must be a list of events".into()),
+        },
     })
+}
+
+fn event_of(v: &Value) -> Result<ContribEvent> {
+    let kind = match text(v, "event")? {
+        "received" => EventKind::Received,
+        "returned" => EventKind::Returned {
+            receipt: optional_date(v, "receipt_date")?,
+            notified: optional_date(v, "notified_date")?,
+        },
+        other => return Err(format!("event {other:?} is neither received nor returned")),
+    };
+    Ok(ContribEvent {
+        kind,
+        date: date(v, "event_date")?,
+        amount: decimal(v, "amount")?,
+        row: 0,
+    })
+}
+
+fn event_json(event: &ContribEvent) -> Value {
+    let mut out = json!({
+        "event_date": event.date.isoformat(),
+        "amount": event.amount.to_sci_string(),
+    });
+    match event.kind {
+        EventKind::Received => out["event"] = json!("received"),
+        EventKind::Returned { receipt, notified } => {
+            out["event"] = json!("returned");
+            out["receipt_date"] = iso(receipt);
+            out["notified_date"] = iso(notified);
+        }
+    }
+    out
 }
 
 fn lines_of(v: &Value) -> Result<Vec<ContribLine>> {
@@ -272,6 +310,9 @@ fn line_json(line: &ContribLine) -> Value {
     });
     if line.returned_by_fund {
         out["returned_by_fund"] = json!(true);
+    }
+    if !line.events.is_empty() {
+        out["events"] = line.events.iter().map(event_json).collect();
     }
     out
 }

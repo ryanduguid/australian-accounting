@@ -7806,6 +7806,435 @@
      }
     }
    }
+  },
+  {
+   "change": "--events joins the check and evidence-pack commands (31 October 2026), which changes their usage and help text and nothing else. Each answer here was accepted only after removing the option's usage and help entries, colour and whitespace reproduced the old answer. A case an earlier change also altered keeps its one entry there, updated.",
+   "cases": {
+    "4312": {
+     "test": "generated",
+     "expected": {
+      "code": 0,
+      "stdout": "usage: payday-super-check [-h]\n                          [-o OUTPUT]\n                          [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE]\n                          [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic]\n                          [--confirm-remittance-only]\n                          [--version]\n                          csv_path\n\nExperimental review of super\ncontributions against payday-super\ndeadlines (SGAA 1992 s 18C, in force\nfor paydays from 1 July 2026) and\nexperimental SG-charge exposure\nestimates on established late ones.\n\npositional arguments:\n  csv_path        contribution CSV to\n                  check\n\noptions:\n  -h, --help      show this help\n                  message and exit\n  -o, --output OUTPUT\n                  report CSV to write\n                  (default:\n                  report.csv)\n  --as-at AS_AT   date to measure\n                  unpaid notional\n                  earnings to (YYYY-\n                  MM-DD, default:\n                  today)\n  --assessment-date ASSESSMENT_DATE\n                  date the ATO\n                  assessed the SG\n                  charge for these\n                  paydays (YYYY-MM-\n                  DD). Only\n                  contributions\n                  received before it\n                  clear the shortfall\n                  under s 18D. Omit if\n                  no assessment has\n                  issued.\n  --mapping-file MAPPING_FILE\n                  JSON file mapping\n                  canonical field\n                  names to your CSV\n                  columns\n  --map FIELD=COLUMN\n                  override one column\n                  mapping; repeatable\n                  (e.g. --map\n                  qe_day=PayDate)\n  --events EVENTS\n                  CSV of dated,\n                  amount-specific fund\n                  receipts and returns\n                  for the rows in the\n                  input (see README).\n                  An event that\n                  matches no row is\n                  refused\n  --holidays-override HOLIDAYS_OVERRIDE\n                  JSON file adding or\n                  removing public\n                  holidays from the\n                  bundled calendar\n  --confirm-transition-allocation\n                  confirm you\n                  reconciled every\n                  contribution dated\n                  no later than 28 Jul\n                  2026 under LCR\n                  2026/1: pre-1 Jul\n                  amounts are unused\n                  excess and 1-28 Jul\n                  amounts remain after\n                  any June-quarter\n                  employee shortfall\n  --allow-stale-gic\n                  estimate notional\n                  earnings past the\n                  last published GIC\n                  quarter at the last\n                  known rate, instead\n                  of refusing. The\n                  report says it did\n                  so\n  --confirm-remittance-only\n                  confirm you accept a\n                  remittance-only\n                  review: no in-scope\n                  positive row has a\n                  fund-receipt date on\n                  or before the as-at\n                  date, so the file\n                  cannot produce\n                  ON_TIME\n  --version       show program's\n                  version number and\n                  exit\n",
+      "stderr": ""
+     }
+    },
+    "4332": {
+     "test": "generated",
+     "expected": {
+      "code": 0,
+      "stdout": "usage: payday-super-check [-h]\n                          [-o OUTPUT]\n                          [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE]\n                          [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic]\n                          [--confirm-remittance-only]\n                          [--version]\n                          csv_path\n\nExperimental review of super\ncontributions against payday-super\ndeadlines (SGAA 1992 s 18C, in force\nfor paydays from 1 July 2026) and\nexperimental SG-charge exposure\nestimates on established late ones.\n\npositional arguments:\n  csv_path        contribution CSV to\n                  check\n\noptions:\n  -h, --help      show this help\n                  message and exit\n  -o, --output OUTPUT\n                  report CSV to write\n                  (default:\n                  report.csv)\n  --as-at AS_AT   date to measure\n                  unpaid notional\n                  earnings to (YYYY-\n                  MM-DD, default:\n                  today)\n  --assessment-date ASSESSMENT_DATE\n                  date the ATO\n                  assessed the SG\n                  charge for these\n                  paydays (YYYY-MM-\n                  DD). Only\n                  contributions\n                  received before it\n                  clear the shortfall\n                  under s 18D. Omit if\n                  no assessment has\n                  issued.\n  --mapping-file MAPPING_FILE\n                  JSON file mapping\n                  canonical field\n                  names to your CSV\n                  columns\n  --map FIELD=COLUMN\n                  override one column\n                  mapping; repeatable\n                  (e.g. --map\n                  qe_day=PayDate)\n  --events EVENTS\n                  CSV of dated,\n                  amount-specific fund\n                  receipts and returns\n                  for the rows in the\n                  input (see README).\n                  An event that\n                  matches no row is\n                  refused\n  --holidays-override HOLIDAYS_OVERRIDE\n                  JSON file adding or\n                  removing public\n                  holidays from the\n                  bundled calendar\n  --confirm-transition-allocation\n                  confirm you\n                  reconciled every\n                  contribution dated\n                  no later than 28 Jul\n                  2026 under LCR\n                  2026/1: pre-1 Jul\n                  amounts are unused\n                  excess and 1-28 Jul\n                  amounts remain after\n                  any June-quarter\n                  employee shortfall\n  --allow-stale-gic\n                  estimate notional\n                  earnings past the\n                  last published GIC\n                  quarter at the last\n                  known rate, instead\n                  of refusing. The\n                  report says it did\n                  so\n  --confirm-remittance-only\n                  confirm you accept a\n                  remittance-only\n                  review: no in-scope\n                  positive row has a\n                  fund-receipt date on\n                  or before the as-at\n                  date, so the file\n                  cannot produce\n                  ON_TIME\n  --version       show program's\n                  version number and\n                  exit\n",
+      "stderr": ""
+     }
+    },
+    "4222": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --version: ignored explicit argument '1'\n"
+     }
+    },
+    "4322": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --version: ignored explicit argument '1'\n"
+     }
+    },
+    "4612": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT] [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN] [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE] [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only] [--version]\n                          csv_path\npayday-super-check: error: ambiguous option: --c could match --confirm-transition-allocation, --confirm-remittance-only\n"
+     }
+    },
+    "3902": {
+     "test": "generated",
+     "expected": {
+      "code": 0,
+      "stdout": "usage: payday-super-check [-h]\n                          [-o OUTPUT]\n                          [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE]\n                          [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic]\n                          [--confirm-remittance-only]\n                          [--version]\n                          csv_path\n\nExperimental review of super\ncontributions against payday-super\ndeadlines (SGAA 1992 s 18C, in force\nfor paydays from 1 July 2026) and\nexperimental SG-charge exposure\nestimates on established late ones.\n\npositional arguments:\n  csv_path        contribution CSV to\n                  check\n\noptions:\n  -h, --help      show this help\n                  message and exit\n  -o, --output OUTPUT\n                  report CSV to write\n                  (default:\n                  report.csv)\n  --as-at AS_AT   date to measure\n                  unpaid notional\n                  earnings to (YYYY-\n                  MM-DD, default:\n                  today)\n  --assessment-date ASSESSMENT_DATE\n                  date the ATO\n                  assessed the SG\n                  charge for these\n                  paydays (YYYY-MM-\n                  DD). Only\n                  contributions\n                  received before it\n                  clear the shortfall\n                  under s 18D. Omit if\n                  no assessment has\n                  issued.\n  --mapping-file MAPPING_FILE\n                  JSON file mapping\n                  canonical field\n                  names to your CSV\n                  columns\n  --map FIELD=COLUMN\n                  override one column\n                  mapping; repeatable\n                  (e.g. --map\n                  qe_day=PayDate)\n  --events EVENTS\n                  CSV of dated,\n                  amount-specific fund\n                  receipts and returns\n                  for the rows in the\n                  input (see README).\n                  An event that\n                  matches no row is\n                  refused\n  --holidays-override HOLIDAYS_OVERRIDE\n                  JSON file adding or\n                  removing public\n                  holidays from the\n                  bundled calendar\n  --confirm-transition-allocation\n                  confirm you\n                  reconciled every\n                  contribution dated\n                  no later than 28 Jul\n                  2026 under LCR\n                  2026/1: pre-1 Jul\n                  amounts are unused\n                  excess and 1-28 Jul\n                  amounts remain after\n                  any June-quarter\n                  employee shortfall\n  --allow-stale-gic\n                  estimate notional\n                  earnings past the\n                  last published GIC\n                  quarter at the last\n                  known rate, instead\n                  of refusing. The\n                  report says it did\n                  so\n  --confirm-remittance-only\n                  confirm you accept a\n                  remittance-only\n                  review: no in-scope\n                  positive row has a\n                  fund-receipt date on\n                  or before the as-at\n                  date, so the file\n                  cannot produce\n                  ON_TIME\n  --version       show program's\n                  version number and\n                  exit\n",
+      "stderr": ""
+     }
+    },
+    "4482": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h]\n                          [-o OUTPUT]\n                          [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE]\n                          [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic]\n                          [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: unrecognized arguments: y.csv\n"
+     }
+    },
+    "4342": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check\n       [-h]\n       [-o OUTPUT]\n       [--as-at AS_AT]\n       [--assessment-date ASSESSMENT_DATE]\n       [--mapping-file MAPPING_FILE]\n       [--map FIELD=COLUMN]\n       [--events EVENTS]\n       [--holidays-override HOLIDAYS_OVERRIDE]\n       [--confirm-transition-allocation]\n       [--allow-stale-gic]\n       [--confirm-remittance-only]\n       [--version]\n       csv_path\npayday-super-check: error: ambiguous option: --a could match --as-at, --assessment-date, --allow-stale-gic\n"
+     }
+    },
+    "3912": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --map: expected one argument\n"
+     }
+    },
+    "3942": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --map: expected one argument\n"
+     }
+    },
+    "4272": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --map: expected one argument\n"
+     }
+    },
+    "4452": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --allow-stale-gic: ignored explicit argument '1'\n"
+     }
+    },
+    "4632": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --allow-stale-gic: ignored explicit argument '1'\n"
+     }
+    },
+    "4852": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --allow-stale-gic: ignored explicit argument '1'\n"
+     }
+    },
+    "435": {
+     "test": "test_qualified_reserved_filename_still_runs_the_existing_checker",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check evidence-pack [-h] [-o OUTPUT] [--as-at AS_AT]\n                                        [--assessment-date ASSESSMENT_DATE]\n                                        [--mapping-file MAPPING_FILE]\n                                        [--map FIELD=COLUMN] [--events EVENTS]\n                                        [--holidays-override HOLIDAYS_OVERRIDE]\n                                        [--confirm-transition-allocation]\n                                        [--allow-stale-gic]\n                                        [--confirm-remittance-only]\n                                        [--version]\n                                        csv_path\npayday-super-check evidence-pack: error: the following arguments are required: csv_path\n"
+     }
+    },
+    "4352": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "\u001b[1;34musage: \u001b[0m\u001b[1;35mpayday-super-check\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[32m-o \u001b[33mOUTPUT\u001b[0m] [\u001b[36m--as-at \u001b[33mAS_AT\u001b[0m]\n                          [\u001b[36m--assessment-date \u001b[33mASSESSMENT_DATE\u001b[0m]\n                          [\u001b[36m--mapping-file \u001b[33mMAPPING_FILE\u001b[0m] [\u001b[36m--map \u001b[33mFIELD=COLUMN\u001b[0m]\n                          [\u001b[36m--events \u001b[33mEVENTS\u001b[0m]\n                          [\u001b[36m--holidays-override \u001b[33mHOLIDAYS_OVERRIDE\u001b[0m]\n                          [\u001b[36m--confirm-transition-allocation\u001b[0m]\n                          [\u001b[36m--allow-stale-gic\u001b[0m] [\u001b[36m--confirm-remittance-only\u001b[0m]\n                          [\u001b[36m--version\u001b[0m]\n                          \u001b[32mcsv_path\u001b[0m\npayday-super-check: \u001b[1;35merror:\u001b[0m \u001b[35margument --allow-stale-gic: ignored explicit argument '1'\u001b[0m\n"
+     }
+    },
+    "3922": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "\u001b[1;34musage: \u001b[0m\u001b[1;35mpayday-super-check\u001b[0m\n       [\u001b[32m-h\u001b[0m]\n       [\u001b[32m-o \u001b[33mOUTPUT\u001b[0m]\n       [\u001b[36m--as-at \u001b[33mAS_AT\u001b[0m]\n       [\u001b[36m--assessment-date \u001b[33mASSESSMENT_DATE\u001b[0m]\n       [\u001b[36m--mapping-file \u001b[33mMAPPING_FILE\u001b[0m]\n       [\u001b[36m--map \u001b[33mFIELD=COLUMN\u001b[0m]\n       [\u001b[36m--events \u001b[33mEVENTS\u001b[0m]\n       [\u001b[36m--holidays-override \u001b[33mHOLIDAYS_OVERRIDE\u001b[0m]\n       [\u001b[36m--confirm-transition-allocation\u001b[0m]\n       [\u001b[36m--allow-stale-gic\u001b[0m]\n       [\u001b[36m--confirm-remittance-only\u001b[0m]\n       [\u001b[36m--version\u001b[0m]\n       \u001b[32mcsv_path\u001b[0m\npayday-super-check: \u001b[1;35merror:\u001b[0m \u001b[35margument --map: expected one argument\u001b[0m\n"
+     }
+    },
+    "4072": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check\n       [-h]\n       [-o OUTPUT]\n       [--as-at AS_AT]\n       [--assessment-date ASSESSMENT_DATE]\n       [--mapping-file MAPPING_FILE]\n       [--map FIELD=COLUMN]\n       [--events EVENTS]\n       [--holidays-override HOLIDAYS_OVERRIDE]\n       [--confirm-transition-allocation]\n       [--allow-stale-gic]\n       [--confirm-remittance-only]\n       [--version]\n       csv_path\npayday-super-check: error: argument --confirm-remittance-only: ignored explicit argument '1'\n"
+     }
+    },
+    "4502": {
+     "test": "generated",
+     "expected": {
+      "code": 0,
+      "stdout": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\n\nExperimental review of super contributions against payday-super deadlines\n(SGAA 1992 s 18C, in force for paydays from 1 July 2026) and experimental SG-\ncharge exposure estimates on established late ones.\n\npositional arguments:\n  csv_path              contribution CSV to check\n\noptions:\n  -h, --help            show this help message and exit\n  -o, --output OUTPUT   report CSV to write (default: report.csv)\n  --as-at AS_AT         date to measure unpaid notional earnings to (YYYY-MM-\n                        DD, default: today)\n  --assessment-date ASSESSMENT_DATE\n                        date the ATO assessed the SG charge for these paydays\n                        (YYYY-MM-DD). Only contributions received before it\n                        clear the shortfall under s 18D. Omit if no assessment\n                        has issued.\n  --mapping-file MAPPING_FILE\n                        JSON file mapping canonical field names to your CSV\n                        columns\n  --map FIELD=COLUMN    override one column mapping; repeatable (e.g. --map\n                        qe_day=PayDate)\n  --events EVENTS       CSV of dated, amount-specific fund receipts and\n                        returns for the rows in the input (see README). An\n                        event that matches no row is refused\n  --holidays-override HOLIDAYS_OVERRIDE\n                        JSON file adding or removing public holidays from the\n                        bundled calendar\n  --confirm-transition-allocation\n                        confirm you reconciled every contribution dated no\n                        later than 28 Jul 2026 under LCR 2026/1: pre-1 Jul\n                        amounts are unused excess and 1-28 Jul amounts remain\n                        after any June-quarter employee shortfall\n  --allow-stale-gic     estimate notional earnings past the last published GIC\n                        quarter at the last known rate, instead of refusing.\n                        The report says it did so\n  --confirm-remittance-only\n                        confirm you accept a remittance-only review: no in-\n                        scope positive row has a fund-receipt date on or\n                        before the as-at date, so the file cannot produce\n                        ON_TIME\n  --version             show program's version number and exit\n",
+      "stderr": ""
+     }
+    },
+    "4542": {
+     "test": "generated",
+     "expected": {
+      "code": 0,
+      "stdout": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\n\nExperimental review of super contributions against payday-super deadlines\n(SGAA 1992 s 18C, in force for paydays from 1 July 2026) and experimental SG-\ncharge exposure estimates on established late ones.\n\npositional arguments:\n  csv_path              contribution CSV to check\n\noptions:\n  -h, --help            show this help message and exit\n  -o, --output OUTPUT   report CSV to write (default: report.csv)\n  --as-at AS_AT         date to measure unpaid notional earnings to (YYYY-MM-\n                        DD, default: today)\n  --assessment-date ASSESSMENT_DATE\n                        date the ATO assessed the SG charge for these paydays\n                        (YYYY-MM-DD). Only contributions received before it\n                        clear the shortfall under s 18D. Omit if no assessment\n                        has issued.\n  --mapping-file MAPPING_FILE\n                        JSON file mapping canonical field names to your CSV\n                        columns\n  --map FIELD=COLUMN    override one column mapping; repeatable (e.g. --map\n                        qe_day=PayDate)\n  --events EVENTS       CSV of dated, amount-specific fund receipts and\n                        returns for the rows in the input (see README). An\n                        event that matches no row is refused\n  --holidays-override HOLIDAYS_OVERRIDE\n                        JSON file adding or removing public holidays from the\n                        bundled calendar\n  --confirm-transition-allocation\n                        confirm you reconciled every contribution dated no\n                        later than 28 Jul 2026 under LCR 2026/1: pre-1 Jul\n                        amounts are unused excess and 1-28 Jul amounts remain\n                        after any June-quarter employee shortfall\n  --allow-stale-gic     estimate notional earnings past the last published GIC\n                        quarter at the last known rate, instead of refusing.\n                        The report says it did so\n  --confirm-remittance-only\n                        confirm you accept a remittance-only review: no in-\n                        scope positive row has a fund-receipt date on or\n                        before the as-at date, so the file cannot produce\n                        ON_TIME\n  --version             show program's version number and exit\n",
+      "stderr": ""
+     }
+    },
+    "4292": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "\u001b[1;34musage: \u001b[0m\u001b[1;35mpayday-super-check\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[32m-o \u001b[33mOUTPUT\u001b[0m] [\u001b[36m--as-at \u001b[33mAS_AT\u001b[0m]\n                          [\u001b[36m--assessment-date \u001b[33mASSESSMENT_DATE\u001b[0m]\n                          [\u001b[36m--mapping-file \u001b[33mMAPPING_FILE\u001b[0m] [\u001b[36m--map \u001b[33mFIELD=COLUMN\u001b[0m]\n                          [\u001b[36m--events \u001b[33mEVENTS\u001b[0m]\n                          [\u001b[36m--holidays-override \u001b[33mHOLIDAYS_OVERRIDE\u001b[0m]\n                          [\u001b[36m--confirm-transition-allocation\u001b[0m]\n                          [\u001b[36m--allow-stale-gic\u001b[0m] [\u001b[36m--confirm-remittance-only\u001b[0m]\n                          [\u001b[36m--version\u001b[0m]\n                          \u001b[32mcsv_path\u001b[0m\npayday-super-check: \u001b[1;35merror:\u001b[0m \u001b[35margument --as-at: expected one argument\u001b[0m\n"
+     }
+    },
+    "4802": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "\u001b[1;34musage: \u001b[0m\u001b[1;35mpayday-super-check\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[32m-o \u001b[33mOUTPUT\u001b[0m] [\u001b[36m--as-at \u001b[33mAS_AT\u001b[0m]\n                          [\u001b[36m--assessment-date \u001b[33mASSESSMENT_DATE\u001b[0m]\n                          [\u001b[36m--mapping-file \u001b[33mMAPPING_FILE\u001b[0m] [\u001b[36m--map \u001b[33mFIELD=COLUMN\u001b[0m]\n                          [\u001b[36m--events \u001b[33mEVENTS\u001b[0m]\n                          [\u001b[36m--holidays-override \u001b[33mHOLIDAYS_OVERRIDE\u001b[0m]\n                          [\u001b[36m--confirm-transition-allocation\u001b[0m]\n                          [\u001b[36m--allow-stale-gic\u001b[0m] [\u001b[36m--confirm-remittance-only\u001b[0m]\n                          [\u001b[36m--version\u001b[0m]\n                          \u001b[32mcsv_path\u001b[0m\npayday-super-check: \u001b[1;35merror:\u001b[0m \u001b[35margument --as-at: expected one argument\u001b[0m\n"
+     }
+    },
+    "3982": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument -o/--output: expected one argument\n"
+     }
+    },
+    "4372": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument -o/--output: expected one argument\n"
+     }
+    },
+    "4662": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "\u001b[1;34musage: \u001b[0m\u001b[1;35mpayday-super-check\u001b[0m\n       [\u001b[32m-h\u001b[0m]\n       [\u001b[32m-o \u001b[33mOUTPUT\u001b[0m]\n       [\u001b[36m--as-at \u001b[33mAS_AT\u001b[0m]\n       [\u001b[36m--assessment-date \u001b[33mASSESSMENT_DATE\u001b[0m]\n       [\u001b[36m--mapping-file \u001b[33mMAPPING_FILE\u001b[0m]\n       [\u001b[36m--map \u001b[33mFIELD=COLUMN\u001b[0m]\n       [\u001b[36m--events \u001b[33mEVENTS\u001b[0m]\n       [\u001b[36m--holidays-override \u001b[33mHOLIDAYS_OVERRIDE\u001b[0m]\n       [\u001b[36m--confirm-transition-allocation\u001b[0m]\n       [\u001b[36m--allow-stale-gic\u001b[0m]\n       [\u001b[36m--confirm-remittance-only\u001b[0m]\n       [\u001b[36m--version\u001b[0m]\n       \u001b[32mcsv_path\u001b[0m\npayday-super-check: \u001b[1;35merror:\u001b[0m \u001b[35mambiguous option: --a could match --as-at, --assessment-date, --allow-stale-gic\u001b[0m\n"
+     }
+    },
+    "4232": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h]\n                          [-o OUTPUT]\n                          [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE]\n                          [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic]\n                          [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --as-at: expected one argument\n"
+     }
+    },
+    "4382": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "\u001b[1;34musage: \u001b[0m\u001b[1;35mpayday-super-check\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[32m-o \u001b[33mOUTPUT\u001b[0m] [\u001b[36m--as-at \u001b[33mAS_AT\u001b[0m]\n                          [\u001b[36m--assessment-date \u001b[33mASSESSMENT_DATE\u001b[0m]\n                          [\u001b[36m--mapping-file \u001b[33mMAPPING_FILE\u001b[0m] [\u001b[36m--map \u001b[33mFIELD=COLUMN\u001b[0m]\n                          [\u001b[36m--events \u001b[33mEVENTS\u001b[0m]\n                          [\u001b[36m--holidays-override \u001b[33mHOLIDAYS_OVERRIDE\u001b[0m]\n                          [\u001b[36m--confirm-transition-allocation\u001b[0m]\n                          [\u001b[36m--allow-stale-gic\u001b[0m] [\u001b[36m--confirm-remittance-only\u001b[0m]\n                          [\u001b[36m--version\u001b[0m]\n                          \u001b[32mcsv_path\u001b[0m\npayday-super-check: \u001b[1;35merror:\u001b[0m \u001b[35mambiguous option: --c could match --confirm-transition-allocation, --confirm-remittance-only\u001b[0m\n"
+     }
+    },
+    "4282": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument -h/--help: ignored explicit argument '-'\n"
+     }
+    },
+    "4522": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument -h/--help: ignored explicit argument '-'\n"
+     }
+    },
+    "4582": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument -h/--help: ignored explicit argument '-'\n"
+     }
+    },
+    "3952": {
+     "test": "generated",
+     "expected": {
+      "code": 0,
+      "stdout": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\n\nExperimental review of super contributions against payday-super deadlines\n(SGAA 1992 s 18C, in force for paydays from 1 July 2026) and experimental SG-\ncharge exposure estimates on established late ones.\n\npositional arguments:\n  csv_path              contribution CSV to check\n\noptions:\n  -h, --help            show this help message and exit\n  -o, --output OUTPUT   report CSV to write (default: report.csv)\n  --as-at AS_AT         date to measure unpaid notional earnings to (YYYY-MM-\n                        DD, default: today)\n  --assessment-date ASSESSMENT_DATE\n                        date the ATO assessed the SG charge for these paydays\n                        (YYYY-MM-DD). Only contributions received before it\n                        clear the shortfall under s 18D. Omit if no assessment\n                        has issued.\n  --mapping-file MAPPING_FILE\n                        JSON file mapping canonical field names to your CSV\n                        columns\n  --map FIELD=COLUMN    override one column mapping; repeatable (e.g. --map\n                        qe_day=PayDate)\n  --events EVENTS       CSV of dated, amount-specific fund receipts and\n                        returns for the rows in the input (see README). An\n                        event that matches no row is refused\n  --holidays-override HOLIDAYS_OVERRIDE\n                        JSON file adding or removing public holidays from the\n                        bundled calendar\n  --confirm-transition-allocation\n                        confirm you reconciled every contribution dated no\n                        later than 28 Jul 2026 under LCR 2026/1: pre-1 Jul\n                        amounts are unused excess and 1-28 Jul amounts remain\n                        after any June-quarter employee shortfall\n  --allow-stale-gic     estimate notional earnings past the last published GIC\n                        quarter at the last known rate, instead of refusing.\n                        The report says it did so\n  --confirm-remittance-only\n                        confirm you accept a remittance-only review: no in-\n                        scope positive row has a fund-receipt date on or\n                        before the as-at date, so the file cannot produce\n                        ON_TIME\n  --version             show program's version number and exit\n",
+      "stderr": ""
+     }
+    },
+    "4102": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check evidence-pack [-h] [-o OUTPUT] [--as-at AS_AT]\n                                        [--assessment-date ASSESSMENT_DATE]\n                                        [--mapping-file MAPPING_FILE]\n                                        [--map FIELD=COLUMN] [--events EVENTS]\n                                        [--holidays-override HOLIDAYS_OVERRIDE]\n                                        [--confirm-transition-allocation]\n                                        [--allow-stale-gic]\n                                        [--confirm-remittance-only]\n                                        [--version]\n                                        csv_path\npayday-super-check evidence-pack: error: the following arguments are required: csv_path\n"
+     }
+    },
+    "4392": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check\n       [-h]\n       [-o OUTPUT]\n       [--as-at AS_AT]\n       [--assessment-date ASSESSMENT_DATE]\n       [--mapping-file MAPPING_FILE]\n       [--map FIELD=COLUMN]\n       [--events EVENTS]\n       [--holidays-override HOLIDAYS_OVERRIDE]\n       [--confirm-transition-allocation]\n       [--allow-stale-gic]\n       [--confirm-remittance-only]\n       [--version]\n       csv_path\npayday-super-check: error: argument --allow-stale-gic: ignored explicit argument '1'\n"
+     }
+    },
+    "4532": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "\u001b[1;34musage: \u001b[0m\u001b[1;35mpayday-super-check\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[32m-o \u001b[33mOUTPUT\u001b[0m] [\u001b[36m--as-at \u001b[33mAS_AT\u001b[0m]\n                          [\u001b[36m--assessment-date \u001b[33mASSESSMENT_DATE\u001b[0m]\n                          [\u001b[36m--mapping-file \u001b[33mMAPPING_FILE\u001b[0m] [\u001b[36m--map \u001b[33mFIELD=COLUMN\u001b[0m]\n                          [\u001b[36m--events \u001b[33mEVENTS\u001b[0m]\n                          [\u001b[36m--holidays-override \u001b[33mHOLIDAYS_OVERRIDE\u001b[0m]\n                          [\u001b[36m--confirm-transition-allocation\u001b[0m]\n                          [\u001b[36m--allow-stale-gic\u001b[0m] [\u001b[36m--confirm-remittance-only\u001b[0m]\n                          [\u001b[36m--version\u001b[0m]\n                          \u001b[32mcsv_path\u001b[0m\npayday-super-check: \u001b[1;35merror:\u001b[0m \u001b[35mambiguous option: --a could match --as-at, --assessment-date, --allow-stale-gic\u001b[0m\n"
+     }
+    },
+    "3962": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --confirm-remittance-only: ignored explicit argument '1'\n"
+     }
+    },
+    "4262": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --confirm-remittance-only: ignored explicit argument '1'\n"
+     }
+    },
+    "4682": {
+     "test": "generated",
+     "expected": {
+      "code": 0,
+      "stdout": "usage: payday-super-check evidence-pack [-h] [-o OUTPUT] [--as-at AS_AT]\n                                        [--assessment-date ASSESSMENT_DATE]\n                                        [--mapping-file MAPPING_FILE]\n                                        [--map FIELD=COLUMN] [--events EVENTS]\n                                        [--holidays-override HOLIDAYS_OVERRIDE]\n                                        [--confirm-transition-allocation]\n                                        [--allow-stale-gic]\n                                        [--confirm-remittance-only]\n                                        [--version]\n                                        csv_path\n\nExperimental review of super contributions against payday-super deadlines\n(SGAA 1992 s 18C, in force for paydays from 1 July 2026) and experimental SG-\ncharge exposure estimates on established late ones.\n\npositional arguments:\n  csv_path              contribution CSV to check\n\noptions:\n  -h, --help            show this help message and exit\n  -o, --output OUTPUT   new pack directory (default: evidence-pack)\n  --as-at AS_AT         date to measure unpaid notional earnings to (YYYY-MM-\n                        DD, default: today)\n  --assessment-date ASSESSMENT_DATE\n                        date the ATO assessed the SG charge for these paydays\n                        (YYYY-MM-DD). Only contributions received before it\n                        clear the shortfall under s 18D. Omit if no assessment\n                        has issued.\n  --mapping-file MAPPING_FILE\n                        JSON file mapping canonical field names to your CSV\n                        columns\n  --map FIELD=COLUMN    override one column mapping; repeatable (e.g. --map\n                        qe_day=PayDate)\n  --events EVENTS       CSV of dated, amount-specific fund receipts and\n                        returns for the rows in the input (see README). An\n                        event that matches no row is refused\n  --holidays-override HOLIDAYS_OVERRIDE\n                        JSON file adding or removing public holidays from the\n                        bundled calendar\n  --confirm-transition-allocation\n                        confirm you reconciled every contribution dated no\n                        later than 28 Jul 2026 under LCR 2026/1: pre-1 Jul\n                        amounts are unused excess and 1-28 Jul amounts remain\n                        after any June-quarter employee shortfall\n  --allow-stale-gic     estimate notional earnings past the last published GIC\n                        quarter at the last known rate, instead of refusing.\n                        The report says it did so\n  --confirm-remittance-only\n                        confirm you accept a remittance-only review: no in-\n                        scope positive row has a fund-receipt date on or\n                        before the as-at date, so the file cannot produce\n                        ON_TIME\n  --version             show program's version number and exit\n",
+      "stderr": ""
+     }
+    },
+    "4842": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h]\n                          [-o OUTPUT]\n                          [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE]\n                          [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic]\n                          [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument -o/--output: expected one argument\n"
+     }
+    },
+    "4552": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h]\n                          [-o OUTPUT]\n                          [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE]\n                          [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic]\n                          [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --version: ignored explicit argument '1'\n"
+     }
+    },
+    "4412": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT] [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN] [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE] [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only] [--version]\n                          csv_path\npayday-super-check: error: argument --map: expected one argument\n"
+     }
+    },
+    "4702": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT] [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN] [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE] [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only] [--version]\n                          csv_path\npayday-super-check: error: ambiguous option: --a could match --as-at, --assessment-date, --allow-stale-gic\n"
+     }
+    },
+    "4562": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "\u001b[1;34musage: \u001b[0m\u001b[1;35mpayday-super-check\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[32m-o \u001b[33mOUTPUT\u001b[0m] [\u001b[36m--as-at \u001b[33mAS_AT\u001b[0m]\n                          [\u001b[36m--assessment-date \u001b[33mASSESSMENT_DATE\u001b[0m]\n                          [\u001b[36m--mapping-file \u001b[33mMAPPING_FILE\u001b[0m] [\u001b[36m--map \u001b[33mFIELD=COLUMN\u001b[0m]\n                          [\u001b[36m--events \u001b[33mEVENTS\u001b[0m]\n                          [\u001b[36m--holidays-override \u001b[33mHOLIDAYS_OVERRIDE\u001b[0m]\n                          [\u001b[36m--confirm-transition-allocation\u001b[0m]\n                          [\u001b[36m--allow-stale-gic\u001b[0m] [\u001b[36m--confirm-remittance-only\u001b[0m]\n                          [\u001b[36m--version\u001b[0m]\n                          \u001b[32mcsv_path\u001b[0m\npayday-super-check: \u001b[1;35merror:\u001b[0m \u001b[35margument -o/--output: expected one argument\u001b[0m\n"
+     }
+    },
+    "4722": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "\u001b[1;34musage: \u001b[0m\u001b[1;35mpayday-super-check\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[32m-o \u001b[33mOUTPUT\u001b[0m] [\u001b[36m--as-at \u001b[33mAS_AT\u001b[0m]\n                          [\u001b[36m--assessment-date \u001b[33mASSESSMENT_DATE\u001b[0m]\n                          [\u001b[36m--mapping-file \u001b[33mMAPPING_FILE\u001b[0m] [\u001b[36m--map \u001b[33mFIELD=COLUMN\u001b[0m]\n                          [\u001b[36m--events \u001b[33mEVENTS\u001b[0m]\n                          [\u001b[36m--holidays-override \u001b[33mHOLIDAYS_OVERRIDE\u001b[0m]\n                          [\u001b[36m--confirm-transition-allocation\u001b[0m]\n                          [\u001b[36m--allow-stale-gic\u001b[0m] [\u001b[36m--confirm-remittance-only\u001b[0m]\n                          [\u001b[36m--version\u001b[0m]\n                          \u001b[32mcsv_path\u001b[0m\npayday-super-check: \u001b[1;35merror:\u001b[0m \u001b[35margument -o/--output: expected one argument\u001b[0m\n"
+     }
+    },
+    "3992": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: unrecognized arguments: y.csv\n"
+     }
+    },
+    "4572": {
+     "test": "generated",
+     "expected": {
+      "code": 0,
+      "stdout": "\u001b[1;34musage: \u001b[0m\u001b[1;35mpayday-super-check\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[32m-o \u001b[33mOUTPUT\u001b[0m] [\u001b[36m--as-at \u001b[33mAS_AT\u001b[0m]\n                          [\u001b[36m--assessment-date \u001b[33mASSESSMENT_DATE\u001b[0m]\n                          [\u001b[36m--mapping-file \u001b[33mMAPPING_FILE\u001b[0m] [\u001b[36m--map \u001b[33mFIELD=COLUMN\u001b[0m]\n                          [\u001b[36m--events \u001b[33mEVENTS\u001b[0m]\n                          [\u001b[36m--holidays-override \u001b[33mHOLIDAYS_OVERRIDE\u001b[0m]\n                          [\u001b[36m--confirm-transition-allocation\u001b[0m]\n                          [\u001b[36m--allow-stale-gic\u001b[0m] [\u001b[36m--confirm-remittance-only\u001b[0m]\n                          [\u001b[36m--version\u001b[0m]\n                          \u001b[32mcsv_path\u001b[0m\n\nExperimental review of super contributions against payday-super deadlines\n(SGAA 1992 s 18C, in force for paydays from 1 July 2026) and experimental SG-\ncharge exposure estimates on established late ones.\n\n\u001b[1;34mpositional arguments:\u001b[0m\n  \u001b[1;32mcsv_path\u001b[0m              contribution CSV to check\n\n\u001b[1;34moptions:\u001b[0m\n  \u001b[1;32m-h\u001b[0m, \u001b[1;36m--help\u001b[0m            show this help message and exit\n  \u001b[1;32m-o\u001b[0m, \u001b[1;36m--output\u001b[0m \u001b[1;33mOUTPUT\u001b[0m   report CSV to write (default: report.csv)\n  \u001b[1;36m--as-at\u001b[0m \u001b[1;33mAS_AT\u001b[0m         date to measure unpaid notional earnings to (YYYY-MM-\n                        DD, default: today)\n  \u001b[1;36m--assessment-date\u001b[0m \u001b[1;33mASSESSMENT_DATE\u001b[0m\n                        date the ATO assessed the SG charge for these paydays\n                        (YYYY-MM-DD). Only contributions received before it\n                        clear the shortfall under s 18D. Omit if no assessment\n                        has issued.\n  \u001b[1;36m--mapping-file\u001b[0m \u001b[1;33mMAPPING_FILE\u001b[0m\n                        JSON file mapping canonical field names to your CSV\n                        columns\n  \u001b[1;36m--map\u001b[0m \u001b[1;33mFIELD=COLUMN\u001b[0m    override one column mapping; repeatable (e.g. --map\n                        qe_day=PayDate)\n  \u001b[1;36m--events\u001b[0m \u001b[1;33mEVENTS\u001b[0m       CSV of dated, amount-specific fund receipts and\n                        returns for the rows in the input (see README). An\n                        event that matches no row is refused\n  \u001b[1;36m--holidays-override\u001b[0m \u001b[1;33mHOLIDAYS_OVERRIDE\u001b[0m\n                        JSON file adding or removing public holidays from the\n                        bundled calendar\n  \u001b[1;36m--confirm-transition-allocation\u001b[0m\n                        confirm you reconciled every contribution dated no\n                        later than 28 Jul 2026 under LCR 2026/1: pre-1 Jul\n                        amounts are unused excess and 1-28 Jul amounts remain\n                        after any June-quarter employee shortfall\n  \u001b[1;36m--allow-stale-gic\u001b[0m     estimate notional earnings past the last published GIC\n                        quarter at the last known rate, instead of refusing.\n                        The report says it did so\n  \u001b[1;36m--confirm-remittance-only\u001b[0m\n                        confirm you accept a remittance-only review: no in-\n                        scope positive row has a fund-receipt date on or\n                        before the as-at date, so the file cannot produce\n                        ON_TIME\n  \u001b[1;36m--version\u001b[0m             show program's version number and exit\n",
+      "stderr": ""
+     }
+    },
+    "4432": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT] [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN] [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE] [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only] [--version]\n                          csv_path\npayday-super-check: error: argument --allow-stale-gic: ignored explicit argument '1'\n"
+     }
+    },
+    "4152": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check\n       [-h]\n       [-o OUTPUT]\n       [--as-at AS_AT]\n       [--assessment-date ASSESSMENT_DATE]\n       [--mapping-file MAPPING_FILE]\n       [--map FIELD=COLUMN]\n       [--events EVENTS]\n       [--holidays-override HOLIDAYS_OVERRIDE]\n       [--confirm-transition-allocation]\n       [--allow-stale-gic]\n       [--confirm-remittance-only]\n       [--version]\n       csv_path\npayday-super-check: error: the following arguments are required: csv_path\n"
+     }
+    },
+    "4012": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument --allow-stale-gic: ignored explicit argument '1'\n"
+     }
+    },
+    "4442": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: argument -o/--output: expected one argument\n"
+     }
+    },
+    "4882": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT]\n                          [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN]\n                          [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE]\n                          [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only]\n                          [--version]\n                          csv_path\npayday-super-check: error: the following arguments are required: csv_path\n"
+     }
+    },
+    "4162": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "\u001b[1;34musage: \u001b[0m\u001b[1;35mpayday-super-check evidence-pack\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[32m-o \u001b[33mOUTPUT\u001b[0m] [\u001b[36m--as-at \u001b[33mAS_AT\u001b[0m]\n                                        [\u001b[36m--assessment-date \u001b[33mASSESSMENT_DATE\u001b[0m]\n                                        [\u001b[36m--mapping-file \u001b[33mMAPPING_FILE\u001b[0m]\n                                        [\u001b[36m--map \u001b[33mFIELD=COLUMN\u001b[0m] [\u001b[36m--events \u001b[33mEVENTS\u001b[0m]\n                                        [\u001b[36m--holidays-override \u001b[33mHOLIDAYS_OVERRIDE\u001b[0m]\n                                        [\u001b[36m--confirm-transition-allocation\u001b[0m]\n                                        [\u001b[36m--allow-stale-gic\u001b[0m]\n                                        [\u001b[36m--confirm-remittance-only\u001b[0m]\n                                        [\u001b[36m--version\u001b[0m]\n                                        \u001b[32mcsv_path\u001b[0m\npayday-super-check evidence-pack: \u001b[1;35merror:\u001b[0m \u001b[35mthe following arguments are required: csv_path\u001b[0m\n"
+     }
+    },
+    "4592": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check [-h] [-o OUTPUT] [--as-at AS_AT] [--assessment-date ASSESSMENT_DATE]\n                          [--mapping-file MAPPING_FILE] [--map FIELD=COLUMN] [--events EVENTS]\n                          [--holidays-override HOLIDAYS_OVERRIDE] [--confirm-transition-allocation]\n                          [--allow-stale-gic] [--confirm-remittance-only] [--version]\n                          csv_path\npayday-super-check: error: unrecognized arguments: y.csv\n"
+     }
+    },
+    "4302": {
+     "test": "generated",
+     "expected": {
+      "code": 2,
+      "stdout": "",
+      "stderr": "usage: payday-super-check\n       [-h]\n       [-o OUTPUT]\n       [--as-at AS_AT]\n       [--assessment-date ASSESSMENT_DATE]\n       [--mapping-file MAPPING_FILE]\n       [--map FIELD=COLUMN]\n       [--events EVENTS]\n       [--holidays-override HOLIDAYS_OVERRIDE]\n       [--confirm-transition-allocation]\n       [--allow-stale-gic]\n       [--confirm-remittance-only]\n       [--version]\n       csv_path\npayday-super-check: error: argument -h/--help: ignored explicit argument '-'\n"
+     }
+    }
+   }
   }
  ]
 }
