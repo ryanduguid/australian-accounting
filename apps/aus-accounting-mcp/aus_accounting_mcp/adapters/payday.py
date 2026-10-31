@@ -50,21 +50,23 @@ SINGLE_CONTRIBUTION_CAVEAT = (
     "The supplied sg_amount is not a calculation of SG entitlement."
 )
 
-#: Carried by every ON_TIME, because the checker has no input for a contribution
-#: the fund returned. This states the limit and applies no rule of its own, so
-#: the verdict, exit code and figures stay the engine's. It goes when the MCP
-#: links an engine that assesses returns.
+#: Carried by every ON_TIME verdict or horizon candidate, because the checker has
+#: no input for a contribution the fund returned. This states the limit and applies
+#: no rule of its own, so the verdict, exit code and figures stay the engine's. It
+#: goes when the MCP links an engine that assesses returns.
 RETURNED_CONTRIBUTIONS_CAVEAT = (
-    "aus-accounting-mcp qualification of ON_TIME: returned contributions were not "
-    "assessed. payday-super-checker has no input for a contribution the fund returned, "
-    "so this result assumes the fund kept every receipt. The SGAA 1992 s 18C test turns "
-    "on contributions received by the fund, and a later return can change the outcome. "
-    "Check fund records for returns before relying on ON_TIME."
+    "aus-accounting-mcp: returned contributions were not assessed, so ON_TIME assumes "
+    "the fund kept every receipt. Check fund records before relying on it."
 )
+#: Rows repeat up to 200 times and hold the words in their caveats, so only the
+#: pack's response and exceptions.json carry them in the qualification as well.
 RETURNED_CONTRIBUTIONS_QUALIFICATION = {
     "code": "RETURNED_CONTRIBUTIONS_NOT_ASSESSED",
     "returned_contributions_assessed": False,
     "assumes_fund_kept_every_receipt": True,
+}
+PACK_RETURNED_CONTRIBUTIONS_QUALIFICATION = {
+    **RETURNED_CONTRIBUTIONS_QUALIFICATION,
     "statement": RETURNED_CONTRIBUTIONS_CAVEAT,
 }
 
@@ -144,6 +146,11 @@ def _money(value: Decimal | None) -> str | None:
     return str(value)
 
 
+def _relies_on_kept_receipts(result: Result) -> bool:
+    """Whether the row states ON_TIME, as its verdict or as a horizon candidate."""
+    return result.verdict == ON_TIME or ON_TIME in (result.horizon_verdicts or ())
+
+
 def _serialise(result: Result, *, single: bool = True) -> dict[str, Any]:
     due = result.deadline.due
     # The checker's own cents, so a review agrees with the evidence pack's
@@ -181,7 +188,7 @@ def _serialise(result: Result, *, single: bool = True) -> dict[str, Any]:
             None if result.horizon_verdicts is None else list(result.horizon_verdicts)
         ),
     }
-    if result.verdict == ON_TIME:
+    if _relies_on_kept_receipts(result):
         serialised["verdict_qualification"] = dict(RETURNED_CONTRIBUTIONS_QUALIFICATION)
     return serialised
 
@@ -254,7 +261,7 @@ def _review(lines: list[ContribLine], as_at: str) -> tuple[date, list[Result], G
     # On the engine's results, not its output, so report.csv carries the caveat
     # in the row and the pack's hashes bind the report as returned.
     for result in results:
-        if result.verdict == ON_TIME:
+        if _relies_on_kept_receipts(result):
             result.caveats.append(RETURNED_CONTRIBUTIONS_CAVEAT)
     return as_at_day, results, gic
 
@@ -330,9 +337,10 @@ def _qualified_pack_files(files: dict[str, str]) -> dict[str, str]:
     report's hash and nothing binds to theirs. The note goes first so that it
     precedes the engine's status line, whose NO EXCEPTION INDICATORS it qualifies.
     """
-    notice = f"> **Limit on every ON_TIME row.** {RETURNED_CONTRIBUTIONS_CAVEAT}\n\n"
+    heading = "**Limit on every ON_TIME verdict or candidate.**"
+    notice = f"> {heading} {RETURNED_CONTRIBUTIONS_CAVEAT}\n\n"
     queue = json.loads(files["exceptions.json"])
-    queue["verdict_qualification"] = dict(RETURNED_CONTRIBUTIONS_QUALIFICATION)
+    queue["verdict_qualification"] = dict(PACK_RETURNED_CONTRIBUTIONS_QUALIFICATION)
     return {
         **files,
         "practitioner-review.md": notice + files["practitioner-review.md"],
@@ -377,8 +385,8 @@ def evidence_pack(contributions: list[ContributionInput], as_at: str) -> dict[st
             "receives the input references; use an approved environment and fabricated demos.",
         ],
     }
-    if any(result.verdict == ON_TIME for result in results):
+    if any(_relies_on_kept_receipts(result) for result in results):
         payload["files"] = _qualified_pack_files(files)
         payload["caveats"].append(RETURNED_CONTRIBUTIONS_CAVEAT)
-        payload["verdict_qualification"] = dict(RETURNED_CONTRIBUTIONS_QUALIFICATION)
+        payload["verdict_qualification"] = dict(PACK_RETURNED_CONTRIBUTIONS_QUALIFICATION)
     return payload

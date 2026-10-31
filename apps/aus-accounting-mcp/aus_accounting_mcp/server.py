@@ -135,7 +135,8 @@ classification of the facts the operator supplied, not a determination.
   date. Remittance does not establish fund receipt. Do not infer receipt dates
   or clearing-house latency, or report ON_TIME without evidence of receipt.
   No input records a contribution the fund returned, so ON_TIME assumes the fund
-  kept every receipt and carries verdict_qualification; retain it with ON_TIME.
+  kept every receipt and carries verdict_qualification, as does an UNKNOWN listing
+  ON_TIME in horizon_verdicts; retain it with either.
   Supply matched_amount with every received date, partial or full. Omitting
   the amount leaves a timely receipt UNKNOWN in the pinned checker 0.1.8.
   A late receipt without an amount stays LATE without reducing the shortfall.
@@ -147,7 +148,8 @@ classification of the facts the operator supplied, not a determination.
   into a payroll-wide conclusion or treat supplied sg_amount as verified entitlement.
 - build_payday_super_evidence_pack returns four private review files in memory from
   the same related rows. It omits employee identifiers from outputs and queues every
-  non-ON_TIME result. An exit code of 0 carries the same ON_TIME qualification.
+  non-ON_TIME result. A pack with an ON_TIME verdict or candidate, including any
+  exit code of 0, carries the same qualification.
   It accepts no paths and records no decisions. The installed
   checker must provide evidence-pack; otherwise this tool refuses the request.
   Use response_detail="compact" only if the host reads structuredContent.files;
@@ -539,8 +541,9 @@ def calc_payday_super_deadline(
     transition allocation. Without a fund-receipt date the statutory test
     cannot return ON_TIME. Returned contributions are not assessed: no input
     records one, so ON_TIME assumes the fund kept every receipt, and carries
-    verdict_qualification and a caveat saying so. Check fund records before
-    relying on it. Returns a deadline, pathway, verdict and caveats;
+    verdict_qualification and a caveat saying so, as does an UNKNOWN listing ON_TIME
+    in horizon_verdicts. Check fund records before relying on it. Returns a deadline,
+    pathway, verdict and caveats;
     assessment_scope is single_contribution. Related contributions, receipt
     allocation and s 18C(2) item 4 alignment are not reviewed by this tool.
     sg_amount is operator-supplied; this tool does not calculate SG entitlement.
@@ -824,8 +827,9 @@ def review_payday_super_contributions(
     does not allocate raw payments, calculate SG entitlement or confirm transition
     allocation. Assumes no ATO assessment has issued. Returned contributions are not
     assessed: no input records one, so an ON_TIME row assumes the fund kept every
-    receipt, and carries verdict_qualification and a caveat saying so. Retain every
-    row's warnings, UNKNOWN outcomes and engine metadata. Local review aid, not advice.
+    receipt, and carries verdict_qualification and a caveat saying so, as does an
+    UNKNOWN row listing ON_TIME in horizon_verdicts. Retain every row's warnings,
+    UNKNOWN outcomes and engine metadata. Local review aid, not advice.
     """
     return cast(PaydayGroupReview, review_contributions(contributions, as_at))
 
@@ -849,8 +853,9 @@ def build_payday_super_evidence_pack(
     memory, with no file reads or writes for caller-supplied paths. Missing receipt
     evidence remains missing; all non-ON_TIME rows require human review. Returned
     contributions are not assessed: no input records one, so an ON_TIME row assumes
-    the fund kept every receipt. Any pack with an ON_TIME row, including every exit
-    code 0, carries verdict_qualification, and the limit in its caveats and files. The report
+    the fund kept every receipt. Any pack with an ON_TIME verdict or horizon candidate,
+    including every exit code 0, carries verdict_qualification, and the limit in its
+    caveats and files. The report
     omits employee identifiers, but input references still enter the calling host.
     Review aid, not advice or lodgement. Requires an engine with evidence-pack support.
     Use review_payday_super_contributions for row verdicts alone; use this tool when

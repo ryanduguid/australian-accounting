@@ -197,7 +197,7 @@ class BenchmarkComparison(EngineResult):
 
 
 class VerdictQualification(ResultObject):
-    """What an ON_TIME did not assess. Absent on any other verdict."""
+    """What an ON_TIME verdict or horizon candidate did not assess. Absent otherwise."""
 
     code: Annotated[
         Literal["RETURNED_CONTRIBUTIONS_NOT_ASSESSED"],
@@ -211,28 +211,45 @@ class VerdictQualification(ResultObject):
         Literal[True],
         Field(description="ON_TIME holds only if the fund kept every receipt."),
     ]
-    statement: Annotated[str, Field(description="The limit in words; retain it with ON_TIME.")]
+    statement: NotRequired[
+        Annotated[str, Field(description="The limit in words, on a pack; rows hold it in caveats.")]
+    ]
 
 
 QualifiedVerdict = Annotated[
     VerdictQualification,
-    Field(description="Limit on ON_TIME, required with it; check fund records for returns."),
+    Field(
+        description=(
+            "Limit on an ON_TIME verdict or horizon candidate, required with it; "
+            "check fund records for returns."
+        )
+    ),
 ]
 
 
-def _required_when(condition: dict[str, Any]) -> ConfigDict:
+def _required_when(*conditions: dict[str, Any]) -> ConfigDict:
     """Publish a conditional requirement so a validating client refuses a bare result."""
     return ConfigDict(
         extra="allow",
         strict=True,
         json_schema_extra={
-            "if": {"properties": condition, "required": list(condition)},
+            "if": {
+                "anyOf": [
+                    {"properties": condition, "required": list(condition)}
+                    for condition in conditions
+                ]
+            },
             "then": {"required": ["verdict_qualification"]},
         },
     )
 
 
-@with_config(_required_when({"verdict": {"const": "ON_TIME"}}))
+@with_config(
+    _required_when(
+        {"verdict": {"const": "ON_TIME"}},
+        {"horizon_verdicts": {"type": "array", "contains": {"const": "ON_TIME"}}},
+    )
+)
 class PaydayAssessment(ResultObject):
     employee_id: Annotated[str, Field(description="Operator reference echoed from the input.")]
     qe_day: DateText
@@ -286,7 +303,13 @@ class PaydayAssessment(ResultObject):
     notes: Annotated[list[str], Field(description="Engine assessment notes.")]
     caveats: Caveats
     horizon_verdicts: Annotated[
-        list[str] | None, Field(description="Engine horizon verdicts, when available.")
+        list[str] | None,
+        Field(
+            description=(
+                "Engine horizon verdicts, when available; an ON_TIME candidate carries "
+                "verdict_qualification."
+            )
+        ),
     ]
 
 
