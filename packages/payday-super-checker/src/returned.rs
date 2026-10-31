@@ -177,6 +177,7 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
     let mut received_days: Vec<Date> = line.received.into_iter().collect();
     let mut returns: Vec<(Option<Date>, Date)> = Vec::new();
     let mut allocations: Vec<Date> = Vec::new();
+    let mut entries: Vec<(Date, Date, String)> = Vec::new();
     for event in &line.events {
         let at = format!("row {row}, event row {}", event.row);
         if !cents(Some(&event.amount))?.gt(&zero())? {
@@ -205,6 +206,18 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
                 returns.push((receipt, event.date));
             }
             EventKind::Allocated { receipt } => {
+                let entry = (receipt, event.date, money(Some(&event.amount))?);
+                if entries.contains(&entry) {
+                    problems.push(format!(
+                        "{at}: this repeats an allocation of ${} dated {} from the {} receipt, \
+                         which could count one fund record twice. Remove the duplicate, or \
+                         consolidate genuine equal allocations into one row with their total",
+                        entry.2,
+                        event.date.isoformat(),
+                        receipt.isoformat()
+                    ));
+                }
+                entries.push(entry);
                 allocations.push(receipt);
                 if event.date < receipt {
                     problems.push(format!(

@@ -324,7 +324,10 @@ A receipt shows that money arrived, not that the fund could allocate it, and the
 employer may not see when that happens (LCR 2026/2 paragraphs 19 and 20). So on a
 line with a return, only the fund's own record of allocation decides it. An
 `allocated` event is refused without a matching kept receipt, before that receipt,
-or above what the fund kept of it. Several allocations of one receipt add up.
+or above what the fund kept of it. It is also refused as a repeat of an entry with
+the same receipt, date and amount: consolidate genuine equal allocations into one row
+with their total. Unequal same-day entries add up, with a caveat asking you to check
+them.
 A line with no return event keeps its existing reading and needs no `allocated` event.
 
 Only the first kept contribution has the 20 business days. A wholly returned attempt

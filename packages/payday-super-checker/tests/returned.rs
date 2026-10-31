@@ -1233,11 +1233,11 @@ fn an_allocation_at_or_after_the_assessment_withholds_the_late_figures() {
 }
 
 #[test]
-fn same_day_allocations_of_one_receipt_add_up() {
+fn unequal_same_day_allocations_of_one_receipt_add_up() {
     let part = |amount: &str| format!("E1,2026-08-06,allocated,2026-08-11,{amount},2026-08-10,\n");
     let run = with_events(
         ORIGINAL,
-        &format!("{}{}", part("60.00"), part("60.00")),
+        &format!("{}{}", part("70.00"), part("50.00")),
         "2026-09-20",
     );
     assert_eq!(run.code, 0, "{}", run.stderr);
@@ -1266,12 +1266,58 @@ fn same_day_allocations_of_one_receipt_add_up() {
         ORIGINAL,
         &format!(
             "{RETURN_PART}{}{}{}",
-            part("40.00"),
-            part("40.00"),
+            part("30.00"),
+            part("50.00"),
             resent("2026-08-14", "40.00")
         ),
         "2026-09-20",
     );
     assert_eq!(on_a_return.code, 0, "{}", on_a_return.stderr);
     assert_eq!(on_a_return.field(0, "verdict"), "ON_TIME");
+}
+
+#[test]
+fn identical_allocation_entries_are_refused() {
+    let part = |amount: &str| format!("E1,2026-08-06,allocated,2026-08-11,{amount},2026-08-10,\n");
+    refused(
+        ORIGINAL,
+        &format!(
+            "{RETURN_PART}{}{}{}",
+            part("40.00"),
+            part("40.00"),
+            resent("2026-08-14", "40.00")
+        ),
+        "consolidate genuine equal allocations into one row",
+    );
+    // The same amount written differently is still the same entry.
+    refused(
+        ORIGINAL,
+        &format!("{}{}", part("60"), part("60.00")),
+        "repeats an allocation of $60.00",
+    );
+
+    // A late receipt: without the refusal these would offset the whole shortfall.
+    let dir = scratch();
+    let late = "E1,2026-08-06,allocated,2026-08-20,60.00,2026-08-20,\n";
+    std::fs::write(
+        dir.join("events.csv"),
+        format!(
+            "{EVENTS_HEADER}{RETURN_ALL}{}{late}{late}",
+            resubmitted("2026-08-20", "120.00")
+        ),
+    )
+    .unwrap();
+    let run = check_in(
+        &dir,
+        ORIGINAL,
+        "2026-09-20",
+        &["--events", "events.csv", "--assessment-date", "2026-09-01"],
+    );
+    assert_eq!(run.code, 1, "{}", run.stderr);
+    assert!(
+        run.stderr.contains("repeats an allocation"),
+        "{}",
+        run.stderr
+    );
+    assert!(run.rows.is_empty());
 }
