@@ -42,7 +42,9 @@ recorded in the 26 October sweep and the profile did not need it.
    every return is inside its period and an `allocated` event from the fund's records
    covers each counted receipt by the as-at date. `ON_TIME` needs every kept amount
    received and allocated inside its window; `LATE` needs a dated eligible receipt
-   after the deadline. An item 4 extension resting on such a line needs the same
+   after the deadline, and a late receipt counted against an assessment needs its
+   allocation before that assessment, or the line is `UNKNOWN` with the s 18D figures
+   withheld. An item 4 extension resting on such a line needs the same
    evidence by the earlier QE day's deadline. A line with no return event keeps its
    existing reading.
 4. Otherwise the line is attention-driving `UNKNOWN` with no exposure, including

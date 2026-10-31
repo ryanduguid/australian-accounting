@@ -1107,10 +1107,10 @@ fn allocated_events_are_validated() {
         ORIGINAL,
         &format!(
             "{}{}",
-            row("2026-08-11,60.00,2026-08-10,"),
-            row("2026-08-11,60.00,2026-08-10,")
+            row("2026-08-11,70.00,2026-08-10,"),
+            row("2026-08-11,70.00,2026-08-10,")
         ),
-        "already has an allocation",
+        "more than the $120.00 the fund kept",
     );
     refused(
         ORIGINAL,
@@ -1196,4 +1196,63 @@ fn a_return_after_the_funds_window_is_not_read_as_a_rejection() {
         "2026-09-20",
     );
     assert_eq!(inside.field(0, "verdict"), "ON_TIME");
+}
+
+#[test]
+fn an_allocation_at_or_after_the_assessment_withholds_the_late_figures() {
+    let dir = scratch();
+    let run = |allocated_on: &str, as_at: &str| {
+        std::fs::write(
+            dir.join("events.csv"),
+            format!(
+                "{EVENTS_HEADER}{RETURN_ALL}{}E1,2026-08-06,allocated,{allocated_on},120.00,\
+                 2026-08-20,\n",
+                resubmitted("2026-08-20", "120.00")
+            ),
+        )
+        .unwrap();
+        check_in(
+            &dir,
+            ORIGINAL,
+            as_at,
+            &["--events", "events.csv", "--assessment-date", "2026-08-21"],
+        )
+    };
+    for allocated_on in ["2026-08-24", "2026-08-21"] {
+        let held = run(allocated_on, "2026-08-24");
+        assert_unresolved(&held, 0, "UNPAID or LATE");
+        let caveats = held.field(0, "caveats");
+        assert!(caveats.contains("s 18D"), "{caveats}");
+        assert!(caveats.contains("are withheld"), "{caveats}");
+        assert_eq!(held.field(0, "notional_earnings"), "");
+    }
+
+    let before = run("2026-08-20", "2026-08-24");
+    assert_eq!(before.field(0, "verdict"), "LATE");
+    assert_eq!(before.field(0, "final_shortfall"), "0.00");
+}
+
+#[test]
+fn same_day_allocations_of_one_receipt_add_up() {
+    let part = |amount: &str| format!("E1,2026-08-06,allocated,2026-08-11,{amount},2026-08-10,\n");
+    let run = with_events(
+        ORIGINAL,
+        &format!("{}{}", part("60.00"), part("60.00")),
+        "2026-09-20",
+    );
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(run.field(0, "verdict"), "ON_TIME");
+
+    let on_a_return = with_events(
+        ORIGINAL,
+        &format!(
+            "{RETURN_PART}{}{}{}",
+            part("40.00"),
+            part("40.00"),
+            resent("2026-08-14", "40.00")
+        ),
+        "2026-09-20",
+    );
+    assert_eq!(on_a_return.code, 0, "{}", on_a_return.stderr);
+    assert_eq!(on_a_return.field(0, "verdict"), "ON_TIME");
 }

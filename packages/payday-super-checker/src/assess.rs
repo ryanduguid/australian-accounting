@@ -1200,6 +1200,7 @@ fn assess_events(
     let mut unsettled_on_time = false;
     let needs_allocation = returned::has_return_event(&line);
     let mut unallocated = Vec::new();
+    let mut allocated_at_assessment = Vec::new();
     for r in returned::receipts(&line)? {
         if not_shown.iter().any(|(day, _)| *day == r.date)
             && r.date <= as_at
@@ -1286,6 +1287,12 @@ fn assess_events(
                 late_counted = late_counted.add(&credit)?;
                 last_counted = Some(r.date);
             }
+            if let Some(a) = options.assessment_date.filter(|a| r.date < *a)
+                && needs_allocation
+                && credit.gt(&returned::allocated(&line, r.date, a.add_days(-1)?)?)?
+            {
+                allocated_at_assessment.push(r.date.isoformat());
+            }
         }
     }
 
@@ -1369,6 +1376,21 @@ fn assess_events(
     if !unallocated.is_empty() {
         result.verdict = UNKNOWN.into();
         result.horizon_verdicts = verdicts(UNPAID, if any_late { LATE } else { ON_TIME });
+        return Ok(());
+    }
+    if !allocated_at_assessment.is_empty() {
+        result.caveats.push(format!(
+            "nothing shows the fund allocated all of the late receipt dated {} before the \
+             assessment. It may have been able to be allocated before that (LCR 2026/2 \
+             paragraphs 22 and 23) or only afterwards (paragraph 20), and only an eligible \
+             contribution in the late period, which ends the day before the assessment, reduces \
+             the final shortfall (s 6(1) and s 18D). The final shortfall and SG charge estimate \
+             are withheld. Confirm with the fund when it was able to be \
+             allocated",
+            allocated_at_assessment.join(", ")
+        ));
+        result.verdict = UNKNOWN.into();
+        result.horizon_verdicts = verdicts(UNPAID, LATE);
         return Ok(());
     }
     if undecided {

@@ -144,7 +144,11 @@ the line is `UNKNOWN`. The checker relies on that event as supplied and cannot v
 it. A timely receipt allocated only after its deadline stays `UNKNOWN`, which also
 holds back a routine allocation of a receipt that arrived close to the deadline. A
 `LATE` row is measured to the receipt, so a receipt that became allocable later would
-add days, and a caveat says so.
+add days, and a caveat says so. A late receipt allocated only on or after the
+assessment date stays `UNKNOWN` with its figures withheld, because the s 18D reduction
+is not shown. An allocation later reversed by a partial refund is refused, because
+allocations cannot total more than the fund kept: record the return and only the
+allocation that stands after it.
 
 A return more than 3 business days after its receipt is not shown to be a rejection
 or a reg 7.07G(3) refund, so its line is `UNKNOWN`. The checker does not say the

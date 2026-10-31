@@ -315,6 +315,7 @@ The checker walks the kept receipts in date order against the original deadline:
 | Kept receipts cover the SG amount and are allocated, some received after the deadline | `LATE`, with the estimate on the amount not on time |
 | A counted receipt on a line with a return has no `allocated` event covering it by the as-at date | `UNKNOWN`, exit 2, no exposure, whatever the as-at date. A caveat names the receipt to evidence |
 | A timely receipt is allocated only after its deadline | `UNKNOWN` between `LATE` and `ON_TIME`: the date it became able to be allocated is not shown |
+| A late receipt before `--assessment-date` is allocated only on or after that date | `UNKNOWN` between `UNPAID` and `LATE`, with the final shortfall and estimates withheld, because the s 18D reduction is not shown |
 | Kept receipts do not cover the SG amount, before or after the deadline | `UNKNOWN`, exit 2, no exposure. After the deadline, a caveat states the s 18C base shortfall that applies if the events are complete |
 | A return came more than 3 business days after the receipt it names | `UNKNOWN`, exit 2, no exposure: it is not shown to be a rejection or a refund under reg 7.07G(3), so confirm it with the fund |
 | A later receipt falls inside 20 business days, but the fund kept part of the first contribution | `UNKNOWN` between `LATE` and `ON_TIME` |
@@ -323,7 +324,7 @@ A receipt shows that money arrived, not that the fund could allocate it, and the
 employer may not see when that happens (LCR 2026/2 paragraphs 19 and 20). So on a
 line with a return, only the fund's own record of allocation decides it. An
 `allocated` event is refused without a matching kept receipt, before that receipt,
-above what the fund kept of it or as a second allocation of that receipt on one day.
+or above what the fund kept of it. Several allocations of one receipt add up.
 A line with no return event keeps its existing reading and needs no `allocated` event.
 
 Only the first kept contribution has the 20 business days. A wholly returned attempt

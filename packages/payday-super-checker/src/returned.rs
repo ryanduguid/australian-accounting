@@ -157,7 +157,7 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
     }
     let mut received_days: Vec<Date> = line.received.into_iter().collect();
     let mut returns: Vec<(Option<Date>, Date)> = Vec::new();
-    let mut allocations: Vec<(Date, Date)> = Vec::new();
+    let mut allocations: Vec<Date> = Vec::new();
     for event in &line.events {
         let at = format!("row {row}, event row {}", event.row);
         if !cents(Some(&event.amount))?.gt(&zero())? {
@@ -186,14 +186,7 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
                 returns.push((receipt, event.date));
             }
             EventKind::Allocated { receipt } => {
-                if allocations.contains(&(receipt, event.date)) {
-                    problems.push(format!(
-                        "{at}: this receipt already has an allocation dated {}. Put a day's \
-                         allocation of one receipt in one event",
-                        event.date.isoformat()
-                    ));
-                }
-                allocations.push((receipt, event.date));
+                allocations.push(receipt);
                 if event.date < receipt {
                     problems.push(format!(
                         "{at}: the allocation dated {} is before the receipt it names ({})",
@@ -205,9 +198,9 @@ pub fn event_problems(line: &ContribLine) -> Result<Vec<String>> {
         }
     }
     let known = receipts(line)?;
-    allocations.sort_by_key(|(receipt, _)| *receipt);
-    allocations.dedup_by_key(|(receipt, _)| *receipt);
-    for (day, _) in allocations {
+    allocations.sort();
+    allocations.dedup();
+    for day in allocations {
         let total = allocated(line, day, crate::py::MAX_DATE)?;
         let kept = match known.iter().find(|r| r.date == day) {
             Some(r) => r.eligible()?,
