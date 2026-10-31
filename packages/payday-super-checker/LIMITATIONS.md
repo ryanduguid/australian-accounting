@@ -146,7 +146,10 @@ holds back a routine allocation of a receipt that arrived close to the deadline.
 `LATE` row is measured to the receipt, so a receipt that became allocable later would
 add days, and a caveat says so. A late receipt allocated only on or after the
 assessment date stays `UNKNOWN` with its figures withheld, because the s 18D reduction
-is not shown. An allocation later reversed by a partial refund is refused, because
+is not shown. Several `allocated` entries for one receipt on one day are added
+together, so a duplicated partial row can overstate the allocation and produce a wrong
+`ON_TIME`; a caveat names the entries, and the reader must check they are not
+duplicates. An allocation later reversed by a partial refund is refused, because
 allocations cannot total more than the fund kept: record the return and only the
 allocation that stands after it.
 

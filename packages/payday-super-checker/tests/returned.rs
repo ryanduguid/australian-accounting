@@ -1242,6 +1242,25 @@ fn same_day_allocations_of_one_receipt_add_up() {
     );
     assert_eq!(run.code, 0, "{}", run.stderr);
     assert_eq!(run.field(0, "verdict"), "ON_TIME");
+    let added = "several allocated entries dated 2026-08-11 for the 2026-08-10 receipt";
+    let caveats = run.field(0, "caveats");
+    assert!(caveats.contains(added), "{caveats}");
+    assert!(caveats.contains("not duplicates"), "{caveats}");
+
+    let on_different_days = with_events(
+        ORIGINAL,
+        &format!(
+            "{}E1,2026-08-06,allocated,2026-08-12,60.00,2026-08-10,\n",
+            part("60.00")
+        ),
+        "2026-09-20",
+    );
+    assert_eq!(on_different_days.field(0, "verdict"), "ON_TIME");
+    assert!(
+        !on_different_days
+            .field(0, "caveats")
+            .contains("several allocated")
+    );
 
     let on_a_return = with_events(
         ORIGINAL,

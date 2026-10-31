@@ -1145,6 +1145,14 @@ fn assess_events(
     if !line.events.is_empty() {
         result.caveats.push(returned::trail(&line)?);
     }
+    for (receipt, allocated_on) in returned::repeated_allocations(&line) {
+        result.caveats.push(format!(
+            "several allocated entries dated {} for the {} receipt were added together. Check \
+             they are separate allocations and not duplicates of one row",
+            allocated_on.isoformat(),
+            receipt.isoformat()
+        ));
+    }
     for (receipt, returned_on) in &not_shown {
         result.caveats.push(format!(
             "the return dated {} came more than 3 business days after the {} receipt, so it \

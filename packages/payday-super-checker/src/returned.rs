@@ -84,6 +84,25 @@ pub fn allocated(line: &ContribLine, receipt: Date, until: Date) -> Result<Decim
     Ok(total)
 }
 
+/// The (receipt, allocation) dates with more than one allocated event, in date
+/// order. These are added up, so a repeated row would overstate the allocation.
+pub fn repeated_allocations(line: &ContribLine) -> Vec<(Date, Date)> {
+    let mut seen = Vec::new();
+    for event in &line.events {
+        if let EventKind::Allocated { receipt } = event.kind {
+            seen.push((receipt, event.date));
+        }
+    }
+    seen.sort();
+    let mut repeated: Vec<(Date, Date)> = seen
+        .windows(2)
+        .filter(|pair| pair[0] == pair[1])
+        .map(|pair| pair[0])
+        .collect();
+    repeated.dedup();
+    repeated
+}
+
 /// The (receipt, return) dates of returns more than 3 business days after the
 /// receipt (SIS reg 7.07G(3), not counting the day of receipt). Only a refund
 /// under that subregulation is taken not to have been made, and LCR 2026/2
