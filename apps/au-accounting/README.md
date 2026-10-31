@@ -28,9 +28,8 @@ With [Rust](https://rustup.rs/) 1.99 or later:
 cargo install --locked --git https://github.com/ryanduguid/australian-accounting au-accounting
 ```
 
-Prebuilt binaries are not published yet. Once a release publishes them,
-`cargo binstall au-accounting` will download one for Windows, macOS or Linux; see
-the [root README](../../README.md#install-the-rust-engines).
+Prebuilt binaries are not published yet; see the
+[root README](../../README.md#install-the-rust-engines).
 
 ## Use
 

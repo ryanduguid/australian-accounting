@@ -74,9 +74,9 @@ binaries; the adapter is not part of it. CodeQL and Dependabot
 include Cargo. All candidate builds have read-only permissions.
 
 The former PyPI publishers of these engines are retired. Native publication is not
-configured: no workflow here publishes the binaries. Publishing them needs a
-Release Policy workflow family for Rust binaries and a separate authorised release
-change. Other components retain their Python publishers.
+configured: no workflow here publishes the binaries. Publishing them means adopting
+Release Policy's `release-binary.yml`, which builds Windows and Linux executables, in
+a separate authorised release change. Other components retain their Python publishers.
 
 ## Command routing
 
