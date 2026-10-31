@@ -43,7 +43,7 @@ conformance counts move without this page.
 | Technical requirements | Python 3.14 or later, [uv](https://docs.astral.sh/uv/) and an MCP host that runs local stdio servers |
 | Network access | None once installed. The host still sends tool arguments and results to its model provider. |
 | Where a person decides | Every result needs human review before consequential accounting action. `ok: true` means the tool ran, not that a review passed, and `UNKNOWN` and `REFUSED` results stand. |
-| Acceptance and testing | A change reaches `main` only when the required CI checks pass. The test suite replays 37 fabricated evaluation questions, each with an exact expected answer, through a real stdio session, and 23 conformance cases: 8 for Payday Super and Division 7A pinned to this server's own results, and 15 for PAYG withholding taken from the ATO's published sample data. |
+| Acceptance and testing | A change reaches `main` only when the required CI checks pass. The test suite replays 39 fabricated evaluation questions, each with an exact expected answer, through a real stdio session, and 23 conformance cases: 8 for Payday Super and Division 7A pinned to this server's own results, and 15 for PAYG withholding taken from the ATO's published sample data. |
 | Independent assurance | None. No external audit, certification or practitioner review. |
 | Report a problem | A vulnerability through the server's [security policy](../SECURITY.md); a wrong result as an issue reproduced with fabricated data, never client data |
 | For the firm to complete | Owner, status, purpose and business goals, registered date and screening outcome (the template's firm columns); installed version, approved uses, approved hosts and model providers, whether client data may reach a hosted model, impact and risk assessment outcome and treatment, any audit requirement, next review date |
@@ -105,7 +105,7 @@ states at the top of its README when its sources were last checked. Server relea
 are listed in the
 [release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md).
 
-**How is answer quality monitored?** The server's test suite replays 37 fabricated
+**How is answer quality monitored?** The server's test suite replays 39 fabricated
 questions, each with an exact expected answer, through a real stdio session and checks
 both the answer and the tools called. That shows the tools reproduce their answers,
 not that a model picks the right tool: `evaluation/tool_selection.py` scores a

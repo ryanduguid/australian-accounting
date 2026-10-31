@@ -62,6 +62,7 @@ from .fixtures.synthetic_sbr import (
     generate_synthetic_ctr_payload,
 )
 from .freshness import DataTool, data_freshness
+from .identifiers import check_abn, check_acn
 from .library import MAX_OFFSET, read_reference, search_references
 from .money import MONEY_SCHEMA, parse_amount
 from .outputs import (
@@ -71,6 +72,7 @@ from .outputs import (
     Div7aRate,
     Div7aReview,
     GstCodingReview,
+    IdentifierCheck,
     IndustryList,
     LegislationExcerpt,
     LegislationSearch,
@@ -167,6 +169,9 @@ classification of the facts the operator supplied, not a determination.
 - get_data_freshness reports each bundled dataset's recorded periods, engine version
   and source dates, with UNKNOWN where none is recorded. It never establishes that
   data is current; retain its statement when presenting a rate or date.
+- validate_abn and validate_acn run the check digit arithmetic ABR and ASIC publish.
+  A valid check digit proves neither ABR nor GST registration: retain not_established
+  and send the user to ABN Lookup. Never report a passing number as registered.
 - generate_synthetic_sbr_fixture is only for fabricated integration tests.
   Never use its CTR/BAS output as a real calculation or lodgment.
 Resources carry context without a tool call: aus-accounting://disclaimer for the
@@ -1036,6 +1041,39 @@ def get_data_freshness(
     network and predicts no next change.
     """
     return cast(DataFreshness, data_freshness(as_at, tool))
+
+
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Test an ABN check digit")
+def validate_abn(
+    abn: Annotated[str, Field(
+        max_length=40,
+        description="The ABN as written: 11 digits, optionally separated by spaces.")],
+) -> IdentifierCheck:
+    """Test an ABN against the check digit arithmetic ABN Lookup publishes.
+
+    result is CHECK_DIGIT_VALID, CHECK_DIGIT_INVALID or MALFORMED. Only spaces are
+    removed; any other character is MALFORMED, never cleaned up. A valid check digit
+    proves neither ABR nor GST registration, that the number was issued or that it is
+    active: retain not_established and use ABN Lookup for those. Reads no network.
+    """
+    return cast(IdentifierCheck, check_abn(abn))
+
+
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Test an ACN check digit")
+def validate_acn(
+    acn: Annotated[str, Field(
+        max_length=40,
+        description="The ACN as written: 9 digits, optionally separated by spaces.")],
+) -> IdentifierCheck:
+    """Test an ACN against the check digit arithmetic ASIC publishes.
+
+    result is CHECK_DIGIT_VALID, CHECK_DIGIT_INVALID or MALFORMED. Only spaces are
+    removed; any other character is MALFORMED, never cleaned up. A valid check digit
+    proves neither ABR nor GST registration, that ASIC issued the number or that a
+    company holds it: retain not_established and search ASIC's registers and ABN Lookup
+    for those. Reads no network.
+    """
+    return cast(IdentifierCheck, check_acn(acn))
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Search the configured accounting library")

@@ -6,7 +6,9 @@ Keep MCP registration and policy refusals in `aus_accounting_mcp/server.py`. The
 `aus_accounting_mcp/adapters/` modules validate and translate inputs for the delegated
 engines and serialise their results; they do not copy statutory calculations, datasets,
 rates or dates into this facade. Shared monetary validation belongs in
-`aus_accounting_mcp/money.py`. Tests and examples must use fabricated, synthetic data.
+`aus_accounting_mcp/money.py`. `aus_accounting_mcp/identifiers.py` holds the ABN and ACN
+check digit arithmetic, because no published engine holds it and it carries no rate, date or
+dataset. Tests and examples must use fabricated, synthetic data.
 
 ## Compatibility metadata
 
