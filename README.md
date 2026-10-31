@@ -198,15 +198,10 @@ cargo install --locked --git https://github.com/ryanduguid/australian-accounting
 `au-accounting gst-review review-coding` and `reconcile-bas` read JSON on stdin;
 see the [GST Review schemas](packages/gst-review/README.md).
 
-Prebuilt binaries are coming: CI already builds each crate's Windows, macOS and
-Linux archive, and every crate carries [cargo-binstall](https://github.com/cargo-bins/cargo-binstall)
-metadata naming those release assets. No release publishes them yet; that waits
-for a Release Policy workflow for Rust binaries and for the crates on crates.io.
-Once both ship, this will download a prebuilt binary instead of compiling:
-
-```bash
-cargo binstall au-accounting
-```
+Prebuilt binaries are not published yet, so install from source as above. Release
+Policy's [`release-binary.yml`](https://github.com/ryanduguid/release-policy/blob/main/docs/binary-consumers.md)
+now publishes Windows and Linux executables to GitHub Releases, without crates.io,
+but no crate here has adopted it.
 
 ## Working in a component
 
