@@ -5,6 +5,8 @@ pub mod csv_io;
 pub mod csvread;
 pub mod decimal;
 pub mod engine;
+#[doc(hidden)]
+pub mod fuzzing;
 pub mod job_to_cash;
 pub mod money;
 pub mod py;
