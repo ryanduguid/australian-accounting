@@ -239,6 +239,7 @@ is held to a floor in CI, from `.github/ci/rust_coverage_floors.json`.
 which calls the pinned Release Policy reusable workflow for that component directory only.
 The 8 Rust engines have reserved tags and no publisher yet. `CONTRIBUTING.md` has the table.
 The rates dataset in `packages/au-tax-rates-data/` is never released.
+To check a downloaded release's checksum and SLSA provenance, follow [Verify a release](https://github.com/ryanduguid/release-policy/blob/main/docs/verify-a-release.md).
 
 Each component's `LICENSE` applies to that component, and
 `packages/ato-benchmark-compare/NOTICE` and `packages/au-tax-rates-data/NOTICE` cover their
