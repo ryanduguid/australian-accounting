@@ -9,13 +9,15 @@ use serde_json::Value;
 
 type Result<T> = std::result::Result<T, String>;
 
-/// Argument kinds: a decimal string, or any other JSON value.
+/// Argument kinds: a decimal string, a JSON value the engine reads as JSON
+/// (lists of periods), or any other JSON value.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Kind {
     Dec,
+    Json,
     Raw,
 }
-use Kind::{Dec, Raw};
+use Kind::{Dec, Json, Raw};
 
 /// Command, the worksheet's parameters in the original order.
 const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
@@ -45,6 +47,22 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("prior_losses", Dec),
             ("scope_confirmed", Raw),
             ("year", Raw),
+        ],
+    ),
+    (
+        "main-residence",
+        &[
+            ("capital_gain", Dec),
+            ("capital_loss", Dec),
+            ("market_value_basis", Raw),
+            ("ownership_start", Raw),
+            ("ownership_end", Raw),
+            ("lived_periods", Json),
+            ("income_use_periods", Json),
+            ("absence_choice_periods", Json),
+            ("new_home_acquired", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
         ],
     ),
     (
@@ -319,6 +337,7 @@ fn argument(v: &Value, key: &str, kind: Kind) -> Result<Arg> {
                 .map(Arg::Decimal)
                 .map_err(|s| format!("decimal.{}", s.name()))
         }
+        (Json, _) => Ok(Arg::Json(value.clone())),
         _ => Ok(arg(value)),
     }
 }
@@ -378,6 +397,9 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         "gst" => engine::gst(&a[0], &a[1], &a[2], &a[3]),
         "resident-tax" => engine::resident_tax(&a[0], &a[1], &a[2]),
         "capital-gains" => engine::capital_gains(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5]),
+        "main-residence" => engine::main_residence(
+            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
+        ),
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {
             engine::fbt_car_statutory(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])

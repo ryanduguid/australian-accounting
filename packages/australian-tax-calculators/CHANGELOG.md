@@ -10,6 +10,15 @@ intentionally changed.
 
 ### Added
 
+- `main-residence` works out the taxable share of an individual's capital gain
+  or loss on one dwelling under the main residence exemption (ITAA 1997
+  Subdiv 118-B), for CGT events in 2024-25 to 2026-27, from caller-established
+  day periods. It covers partial income use (s 118-190), the absence choice
+  with its 6-year limit (s 118-145), changing homes (s 118-140) and the home
+  first used to produce income rule (s 118-192). No Python release has it. The
+  worksheet catalogue lists it, so `tests/parity.rs` also drops that entry
+  before comparing, and `tests/main_residence.rs` covers it. Catalogue examples
+  can now hold JSON values.
 - `fbt-car-statutory` and `fbt-car-operating-cost` value one car fringe benefit
   under FBTAA s 9 or s 10 for the FBT years ended 31 March 2026 and 2027; the
   operating cost result takes the lower statutory formula value under s 10(5).

@@ -38,6 +38,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Capital gains | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-040 and ¶2-240 | 30 June 2026 | Established ordinary gains, losses and discount entitlement for 2025–26 |
 | FBT | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
 | FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020 and ¶3-045 (reportable value), with the ATO's FBT return 2026 instructions (item 23), employer's guide (7.8 and 7.9) and reportable fringe benefits page | 30 June 2026; 1 April 2026 (item 23); 12 January 2023 (reportable fringe benefits) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027; the reportable taxable value before the employee's $2,000 threshold and type 2 gross-up |
+| Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
@@ -171,6 +172,36 @@ neither, does not decide whether the car is pooled or shared, and says so in a
 third warning. `tests/fbt_car.rs` checks a taxable car, an exempt electric car
 and a recipient's payment under both methods; `tests/properties.rs` checks the
 equality on every seeded result.
+
+## Main residence
+
+This worksheet was added on 1 November 2026; its example evidence was read
+that day, the ATO pages in a browser. `tests/main_residence.rs` holds each
+case. Every example counts days with both ends included. Where an example gives
+only a month or year, the test states the day it uses; none changes the result.
+
+| Case | Source | Worksheet | Published |
+| --- | --- | --- | --- |
+| Peter: rented 1,004 of 4,564 days before moving in | QC66033 | $50,595.97 | $50,595 |
+| Farnaz: 757 of 2,355 days on contract dates | QC66033 | $173,097.45 | $173,097 |
+| Thomas: 35% rented throughout | QC66033 | $140,000.00 | $140,000 |
+| Fatima: 40% business use; ownership restarts 1 November 2018 at market value; 1,370 of 2,739 days at 40% | QC66033 | $20,007.30 | $20,007 |
+| Erin: rented after moving out, no choice | QC66033 | $46,000.00 | $46,000 |
+| Roya: rented 25 years under the choice; covered 29 September 1999 to 29 September 2005; 6,940 of 9,133 days | QC66030 | $243,162.16 | $243,162 |
+| Helen: 25% surgery before the move, then rented under the choice | QC66030 | $100,000.00 | $100,000 |
+| Lisa and Jez: 6 years of broken rental in one absence; 2 absences | QC66030 | nil | nil |
+| Stella: 1,460 of 3,652 days | ¶2-060 | $239,868.57 | $240,000, on 6 of 10 rounded years |
+| Medfords: both homes from 1 November 2025; 31 of 4,749 days | ¶2-075 | $3,263.85 | $3,264 |
+
+The 6-year limit in s 118-145(2) is 'a maximum period of 6 years'; read
+strictly, it ends the day before the sixth anniversary, one day sooner than
+Roya's count. Acts Interpretation Act s 36 sets no start day for it. The
+worksheet follows the ATO's example.
+
+No example settles 2 s 118-140 boundaries, so the worksheet takes the narrower
+reading: the 12 months before ownership ends start the day after the same date
+a year earlier, and where the same day of the month 6 months before the end does
+not exist (31 August), the 6 months start on the first of the next month.
 
 ## Depreciation
 

@@ -4,10 +4,11 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
-/// `tests/fbt_car.rs` covers them.
-const NEW_KINDS: [(&str, &str); 2] = [
+/// `tests/fbt_car.rs` and `tests/main_residence.rs` cover them.
+const NEW_KINDS: [(&str, &str); 3] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
+    ("main-residence", "main_residence"),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.
