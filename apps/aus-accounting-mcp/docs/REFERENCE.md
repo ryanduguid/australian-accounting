@@ -662,7 +662,9 @@ ownership-test rows, optionally filtered to one `topic` and to one `year` writte
 way the provision writes it, such as `2026-27`; with a year given, rows that state no
 year are left out. Rows whose heading or topic holds the query rank first, ranked
 like provisions. `amounts` and `years` are the strings the provision uses, unparsed
-and uncalculated.
+and uncalculated. A row from a compilation the corpus marks as superseded is left out
+unless `in_force_only` is false, and then carries a caveat; a row whose currency the
+corpus did not record is returned either way with `version_is_current` null.
 
 Every response carries a `corpus` block with the source, retrieval date and licence
 terms from `sources.json`, and a `notice`. Search accepts `limit` up to 20 and
@@ -739,9 +741,10 @@ run is an input error, not a partial result.
 `search_ato_rulings` matches every query word within one paragraph, its heading or
 its document title, without case sensitivity. Matches come best first: the query
 as a phrase in a title or heading, then every word as a whole word in one of them,
-then the phrase in the text, then the words anywhere. Within a tier documents
-follow a fixed display order by family, public rulings first and edited private
-advice last. That order is a presentation choice, not a statement of legal
+then the phrase in the text, then the words anywhere. Within a tier a paragraph
+whose captured page held a withdrawal notice follows those without; it is still
+returned. Documents then follow a fixed display order by family, public rulings
+first and edited private advice last. That order is a presentation choice, not a statement of legal
 authority. `family` narrows to families whose name holds its words. Each match
 carries a `row_ref` naming the run, the document and the paragraph's line, plus the
 docid, family, title, paragraph label, heading, source address, fetch date, page

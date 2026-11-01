@@ -293,6 +293,9 @@ def _section(row: dict[str, Any], cap: int) -> dict[str, Any]:
 
 def _rate(row: dict[str, Any]) -> dict[str, Any]:
     content, total, caveats = _text(row, "content", SEARCH_TEXT_CHARS)
+    current = row.get("version_is_current")
+    if current is False:
+        caveats.append(NOT_CURRENT_CAVEAT)
     amounts = row.get("amounts")
     years = row.get("years")
     return {
@@ -308,6 +311,7 @@ def _rate(row: dict[str, Any]) -> dict[str, Any]:
         "years": [str(year) for year in years] if isinstance(years, list) else [],
         "compilation_number": _string(row, "compilation_number"),
         "compilation_date": _string(row, "compilation_date"),
+        "version_is_current": current if isinstance(current, bool) else None,
         "register_page": _string(row, "register_page"),
         "content": content,
         "total_chars": total,
@@ -621,12 +625,19 @@ def define_term(
 
 
 def search_rates(
-    query: str, limit: int, offset: int, topic: str | None = None, year: str | None = None
+    query: str,
+    limit: int,
+    offset: int,
+    topic: str | None = None,
+    year: str | None = None,
+    in_force_only: bool = True,
 ) -> dict[str, Any]:
     """Search the configured corpus for legislated rate, threshold and factor rows, best first.
 
     year keeps only rows whose stated years include it, written the way the
     provision writes it, such as '2026-27'; a row that states no year is left out.
+    A row from a superseded compilation is left out unless in_force_only is False;
+    a row whose currency the corpus did not record is kept either way.
     """
     terms = _terms(query, "query")
     topic_terms = _terms(topic, "topic") if topic else []
@@ -637,6 +648,8 @@ def search_rates(
         raise InputError("The configured corpus has no rates/rates.jsonl index.")
 
     def confirm(row: dict[str, Any]) -> bool:
+        if in_force_only and row.get("version_is_current") is False:
+            return False
         if topic_terms and not _holds(row, ("topic",), topic_terms):
             return False
         if wanted_year is not None:
