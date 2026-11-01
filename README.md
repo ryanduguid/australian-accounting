@@ -40,7 +40,9 @@ That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh
 
 Each tool returns a calculation, the facts it used and the matters it refuses to
 decide. The engines and the MCP server run locally: they read files you point them at, contact no
-service, write to no ledger and lodge nothing. Two boundaries sit outside that: an MCP host sends every tool argument and result to its model provider, and the optional LodgeiT adapter below makes bounded HTTP calls only when you enable it. Missing facts stay unknown: a Payday Super row with a fund-receipt date but no matched_amount or remitted_amount evidences when the fund received something, not how much, so the checker leaves it UNKNOWN rather than ON_TIME and names the amount it needs (from payday-super-checker 0.1.7; 0.1.6 and earlier read that receipt as covering the whole SG amount and say so in a caveat). Supply the amount the fund received with every receipt date. A person reviews every output before it is relied on.
+service, write to no ledger and lodge nothing. Two boundaries sit outside that: an MCP host sends every tool argument and result to its model provider, and the optional LodgeiT adapter below makes bounded HTTP calls only when you enable it.
+
+Missing facts stay unknown: a Payday Super row with a fund-receipt date but no matched_amount or remitted_amount evidences when the fund received something, not how much, so the checker leaves it UNKNOWN rather than ON_TIME and names the amount it needs (from payday-super-checker 0.1.7; 0.1.6 and earlier read that receipt as covering the whole SG amount and say so in a caveat). Supply the amount the fund received with every receipt date. A person reviews every output before it is relied on.
 
 **Start here:** [what each component is](#components) ·
 [MCP client setup](apps/aus-accounting-mcp/README.md#client-integration) ·
@@ -49,11 +51,11 @@ service, write to no ledger and lodge nothing. Two boundaries sit outside that: 
 
 Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
 
+## Try one contribution
+
 Synthetic examples. Accounting decisions stay with the reviewer.
 
 **Input:** $120 super contribution for payday 6 August 2026, remitted 14 August, with no fund receipt evidence as at 20 August.
-
-## Try one contribution
 
 With [uv](https://docs.astral.sh/uv/) installed, [download the synthetic CSV](https://duguid.com.au/assets/examples/payday/timely_remittance_no_receipt.csv) as `timely_remittance_no_receipt.csv`. Open a terminal in that folder and run:
 
