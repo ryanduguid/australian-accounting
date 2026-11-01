@@ -2,8 +2,8 @@ name: Fuzzing
 
 # A 60-second random exploration is not a repeatable merge gate, so it runs
 # after merge, weekly and on demand rather than on pull requests, and no gate
-# requires it. packages/payday-super-checker/tests/fuzz_corpus.rs replays the
-# seed corpus on every cargo test run.
+# requires it. Each component's tests/fuzz_corpus.rs replays its seed corpus on
+# every cargo test run.
 on:
   push:
     branches: [main]
@@ -36,4 +36,27 @@ jobs:
       - name: Fuzz the readers
         run: >-
           cargo +nightly fuzz run csv_readers fuzz/corpus --
+          -max_total_time=60 -max_len=4096 -timeout=2 -rss_limit_mb=1024
+
+  contracts:
+    name: fuzz the WIP Tally contracts reader
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: packages/the-wip-tally
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the nightly toolchain and the pinned fuzzer
+        run: |
+          rustup toolchain install nightly --profile minimal
+          cargo install cargo-fuzz --locked --version 0.13.2
+      - name: Fuzz the reader
+        run: >-
+          cargo +nightly fuzz run contracts fuzz/corpus --
           -max_total_time=60 -max_len=4096 -timeout=2 -rss_limit_mb=1024

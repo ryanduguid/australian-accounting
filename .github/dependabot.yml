@@ -61,6 +61,7 @@ updates:
       - /packages/the-exchequer-tally
       - /packages/solomons-sword
       - /packages/the-wip-tally
+      - /packages/the-wip-tally/fuzz
       - /packages/australian-tax-calculators
       - /packages/div7a-loan-review
       - /packages/div7a-loan-review/wasm

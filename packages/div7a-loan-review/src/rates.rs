@@ -634,4 +634,52 @@ mod tests {
         assert_eq!(splitlines(""), Vec::<&str>::new());
         assert_eq!(splitlines("a\n\nb"), ["a", "", "b"]);
     }
+
+    fn load_override_text(name: &str, text: &str) -> Result<RateOverride, Failure> {
+        // Under the crate's ignored target/, not the shared system temp folder.
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join(format!("override-tests-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join(format!("{name}.json"));
+        std::fs::write(&path, text).unwrap();
+        let result = load_override(&PyPath::new(path.to_str().unwrap()));
+        std::fs::remove_file(&path).unwrap();
+        result
+    }
+
+    #[test]
+    fn override_rows_read_blank_or_falsy_text_as_the_default() {
+        // `(row.get(key) or default).strip()`
+        let loaded = load_override_text(
+            "falsy-text",
+            r#"{"verified_until": "2027-28", "citation": " RBA F5 ", "rates": [
+                {"year_of_income": "2027-28", "rate": "0.05",
+                 "rba_table": "", "rba_series": null, "source": 0, "seen": false}]}"#,
+        )
+        .unwrap_or_else(|_| panic!("the override should load"));
+        let entry = &loaded.entries[0];
+        assert_eq!(entry.rba_table, "F5");
+        assert_eq!(entry.rba_series, "FILRHLBVS");
+        assert_eq!(entry.source, "RBA F5");
+        assert_eq!(entry.seen, "");
+    }
+
+    #[test]
+    fn an_override_citation_must_be_truthy() {
+        for citation in ["null", "false", "0", "[]", "\"\""] {
+            let text = format!(
+                r#"{{"verified_until": "2027-28", "citation": {citation}, "rates": [{{"year_of_income": "2027-28", "rate": "0.05"}}]}}"#
+            );
+            match load_override_text("citation", &text) {
+                Err(Failure::Value(message)) => {
+                    assert!(
+                        message.contains("has no 'citation'"),
+                        "{citation}: {message}"
+                    )
+                }
+                _ => panic!("{citation}: an override without a citation was accepted"),
+            }
+        }
+    }
 }
