@@ -70,7 +70,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     outputs:
-      matrix: ${{ steps.list.outputs.matrix }}
       ci-matrix: ${{ steps.list.outputs.ci-matrix }}
       parity: ${{ steps.list.outputs.parity }}
       parity-count: ${{ steps.list.outputs.parity-count }}

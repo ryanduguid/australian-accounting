@@ -12,7 +12,6 @@
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![Codecov](https://codecov.io/gh/ryanduguid/australian-accounting/graph/badge.svg)](https://codecov.io/gh/ryanduguid/australian-accounting)
 [![CodeQL](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
-[![Snyk](https://github.com/ryanduguid/australian-accounting/actions/workflows/snyk.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/snyk.yml)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=ryanduguid_australian-accounting&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ryanduguid_australian-accounting)
 [![Codacy code quality](https://app.codacy.com/project/badge/Grade/657574ca064f48499b4839693bafd4bf)](https://app.codacy.com/gh/ryanduguid/australian-accounting/dashboard)<br>
 [![OpenSSF Scorecard](https://raw.githubusercontent.com/ryanduguid/.github/badges/ryanduguid/australian-accounting.svg)](https://scorecard.dev/viewer/?uri=github.com/ryanduguid/australian-accounting)
