@@ -99,6 +99,7 @@ NON_ENDORSEMENT = (
 )
 RANKING_NOTE = (
     "Results rank by where the query words sit, a phrase in the title or heading first, "
+    "then paragraphs whose captured page held a withdrawal notice after those without, "
     "then by document family in a fixed display order. The order is a presentation "
     "choice, not a statement of legal authority."
 )
@@ -481,14 +482,16 @@ def search_rulings(
     """Search every served paragraph for all of the query words, best first.
 
     A paragraph matches when every word appears in its title, heading or text; a
-    word found only in its address, hash or notice does not count.
+    word found only in its address, hash or notice does not count. Within a tier a
+    paragraph whose captured page held a withdrawal notice follows those without;
+    none is left out.
     """
     terms = _terms(query, "query")
     family_terms = _terms(family, "family") if family else []
     catalogue = _catalogue()
     tier = _tier(terms, ("title", "heading"), ("text",))
 
-    def ranked() -> Iterator[tuple[tuple[int, int], int, dict[str, Any]]]:
+    def ranked() -> Iterator[tuple[tuple[int, bool, int], int, dict[str, Any]]]:
         order = 0
         for run in catalogue.runs.values():
             try:
@@ -505,7 +508,8 @@ def search_rulings(
                         if not _holds(row, SEARCH_FIELDS, terms):
                             continue
                         entry = _paragraph(row, run, key, line, catalogue, SEARCH_TEXT_CHARS)
-                        yield (tier(row), _family_priority(row)), order, entry
+                        withdrawn = entry["withdrawal_status"] == "NOTICE_PRESENT"
+                        yield (tier(row), withdrawn, _family_priority(row)), order, entry
                         order += 1
             except (OSError, UnicodeError) as exc:
                 raise InputError(

@@ -729,6 +729,7 @@ class RateEntry(ResultObject):
     ]
     compilation_number: str | None
     compilation_date: str | None
+    version_is_current: bool | None
     register_page: str | None
     content: str
     total_chars: Annotated[

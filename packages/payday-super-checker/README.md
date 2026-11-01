@@ -526,7 +526,9 @@ qualifying-earnings rules, the maximum contribution base and any other relevant
 facts before supplying it. Salary sacrifice and additional contributions have a
 different base and deadline, so filter them out. The tool does not classify raw
 pay, apply regulations 11 or 12, or decide whether a termination payment is
-qualifying earnings. LCR 2026/D1 remains draft, so those decisions stay human.
+qualifying earnings. LCR 2026/D1 remains draft, as does SGD 2026/D1 (2 September
+2026) on the labour payments under SGAA s 12(3) contracts that s 10A(1)(d)
+counts as qualifying earnings, so those decisions stay human.
 
 **Where the fund receipt date comes from.** The supported payroll export profiles provide pay and remittance evidence, which is what `remitted` is for and why those lines come back `AT_RISK`. They do not establish receipt by the fund. Obtain separate receipt evidence from your clearing house's per-contribution settlement or status report, or the fund's own contribution history. Without it the tool tells you what you sent and when, not what the law tests.
 
@@ -735,7 +737,7 @@ The uplift starts at 60% and falls 20 points where the clean-history test is met
 - **Exceptional circumstances determinations** under s 18C(2) item 3 are not detected. If one covers you, your deadline is later than what you see here.
 - **Paydays before 1 July 2026** stop the run. Those are governed by the old quarterly law and this tool does not model it.
 - **Fund deeds, enterprise agreements and awards** can require payment earlier than the SG rules. This tool only tests the SG charge.
-- **Qualifying-earnings and termination classifications** are not decided. LCR 2026/D1 remains draft and the input contains an operator-provided SG amount, not raw pay components.
+- **Qualifying-earnings and termination classifications** are not decided. LCR 2026/D1 remains draft, SGD 2026/D1 (draft, 2 September 2026) covers the labour payments under SGAA s 12(3) contracts that s 10A(1)(d) counts, and the input contains an operator-provided SG amount, not raw pay components.
 - **Assessment rounding** is not reproduced. The tool displays report components to cents with `ROUND_HALF_UP`; TAA 1953 s 16B applies a 5-cent down-round only to the Commissioner's final assessed SG charge. Exposure figures are experimental estimates.
 
 PCG 2026/1 sets out how the ATO will allocate compliance resources for paydays up to 30 June 2027. Fixing a late contribution quickly lowers the chance of review. It does not remove the liability: the Commissioner has no discretion to waive the charge once a shortfall is known (PCG 2026/1 paragraph 11).

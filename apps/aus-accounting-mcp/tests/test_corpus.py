@@ -181,6 +181,24 @@ def test_rates_filter_by_topic(corpus):
     ] == "R00001"
 
 
+def test_a_superseded_rate_is_left_out_unless_asked_for(corpus):
+    path = corpus / "rates" / "rates.jsonl"
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    rows[1]["version_is_current"] = False
+    synthetic_corpus.write(path, rows)
+
+    assert not call("search_tax_rates", query="cap")["matches"]
+
+    hit = call("search_tax_rates", query="cap", in_force_only=False)["matches"][0]
+    assert hit["rate_id"] == "R00002"
+    assert hit["version_is_current"] is False
+    assert any("not the current version" in caveat for caveat in hit["caveats"])
+
+    current = call("search_tax_rates", query="rate", topic="levies")["matches"][0]
+    assert current["version_is_current"] is None
+    assert not current["caveats"]
+
+
 def test_unconfigured_corpus_is_an_input_error(monkeypatch):
     monkeypatch.delenv("AUS_ACCOUNTING_CORPUS_ROOT", raising=False)
     with pytest.raises(ToolError):

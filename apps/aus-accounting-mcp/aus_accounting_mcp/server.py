@@ -1252,6 +1252,9 @@ def search_tax_rates(
     year: Annotated[str | None, Field(max_length=20,
         description="Optional year exactly as the provision states it, such as '2026-27'; "
                     "only rows whose stated years include it are returned.")] = None,
+    in_force_only: Annotated[bool, Field(strict=True,
+        description="Leave out rows from a compilation the corpus marks as superseded. "
+                    "Set false to see them too; each then carries a caveat.")] = True,
 ) -> RateSearch:
     """Search rate, threshold, indexation and factor rows in the configured corpus.
 
@@ -1261,13 +1264,15 @@ def search_tax_rates(
     set them.
     year narrows to rows stating that year; rows that state no year are then
     left out, so drop the filter to see a rate the provision does not date.
+    Rows from a superseded compilation are left out unless in_force_only is
+    false; a row whose currency the corpus did not record is kept either way.
     Amounts are unparsed text, not a calculation: a row can be superseded, indexed
     elsewhere or subject to conditions the row does not carry, so confirm the
     operative figure against the official source. Rates the corpus builds no rows
     for, including any figure set outside legislation, are simply absent. Use the
     reviewed engines for a calculation.
     """
-    return cast(RateSearch, search_rates(query, limit, offset, topic, year))
+    return cast(RateSearch, search_rates(query, limit, offset, topic, year, in_force_only))
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Search the configured ATO rulings")
@@ -1289,8 +1294,9 @@ def search_ato_rulings(
 
     The folder holds runs written by the corpus builder's rulings stage. Returns
     paragraphs best first: the words as a phrase in a title or heading rank above
-    the words in body text, then documents order by family in a fixed display
-    order that states no legal authority. Each paragraph carries its docid,
+    the words in body text; within that, paragraphs whose captured page held a
+    withdrawal notice come after those without, then documents order by family
+    in a fixed display order that states no legal authority. Each paragraph carries its docid,
     family, title, paragraph label, source_url, fetch date and page hash, and a
     row_ref for read_ato_ruling. An edited version of private advice cannot be
     relied on by anyone. Rows are point-in-time copies: a document may since have

@@ -102,6 +102,26 @@ def test_captured_withdrawal_notice_is_citable_and_never_live_status(runs):
     assert read["withdrawal_notice"] == notice
 
 
+def test_a_withdrawal_notice_ranks_later_within_its_tier_and_is_kept(runs):
+    withdrawn, withdrawn_rows = fixture.ruling("2099-03-01", second="synthetic tie evidence")
+    metadata = {"withdrawal_status": "NOTICE_PRESENT", "withdrawal_notice": "Withdrawn."}
+    withdrawn.update(metadata)
+    for row in withdrawn_rows:
+        row.update(metadata)
+    # Same family and tier, written after the withdrawn ruling in the same run.
+    current = fixture.document(
+        "TXR/TR20992/NAT/ATO/00001", "Taxation Ruling", "TR 2099/2 - Income tax: synthetic tie",
+        [("1", "Ruling", "synthetic tie evidence")], fetched_on="2099-03-01",
+    )
+    fixture.write_run(runs / "run-2099-03-01", "2099-03-01", [(withdrawn, withdrawn_rows), current])
+
+    result = call("search_ato_rulings", query="synthetic tie evidence")
+    assert [match["withdrawal_status"] for match in result["matches"]] == [
+        "UNKNOWN", "NOTICE_PRESENT"
+    ]
+    assert "withdrawal notice" in result["corpus"]["ranking"]
+
+
 def test_long_withdrawal_notice_reports_truncation(runs):
     notice = "withdrawal evidence " * 800
     _withdrawal_run(runs, notice)
