@@ -41,3 +41,14 @@ def test_both_review_tools_match_the_evidence_pack_to_the_cent() -> None:
             "notional_earnings", "experimental_sgc_low", "experimental_sgc_high")]
         money += [value for scenario in result["uplift"].values() for value in scenario.values()]
         assert all(CENTS.fullmatch(value) for value in money), money
+
+
+def test_sgc_estimates_say_what_they_exclude() -> None:
+    # The CLI report says its estimates exclude choice loading, the maximum
+    # contributions base and post-assessment penalties; an agent reading only the
+    # tool schema must get the same limit.
+    tools = {tool.name: tool.output_schema for tool in asyncio.run(mcp.list_tools())}
+    exclusions = "exclude choice loading, the maximum contributions base and post-assessment"
+    for schema in (tools["calc_payday_super_deadline"], tools["review_payday_super_contributions"]):
+        text = str(schema)
+        assert text.count(exclusions) >= 2, schema
