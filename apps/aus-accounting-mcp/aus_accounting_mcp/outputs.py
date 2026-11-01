@@ -32,6 +32,19 @@ MaybeDecimal = Annotated[
     DecimalText | None,
     Field(description="Engine decimal string, or null when unavailable; null is not zero."),
 ]
+SGC_EXCLUSIONS = (
+    "Estimates exclude choice loading, the maximum contributions base and "
+    "post-assessment penalties."
+)
+SgcEstimate = Annotated[
+    DecimalText | None,
+    Field(
+        description=(
+            "Experimental SG-charge estimate as an engine decimal string, or null when "
+            f"unavailable; null is not zero. {SGC_EXCLUSIONS}"
+        )
+    ),
+]
 
 
 def _iso_date(value: str) -> str:
@@ -292,8 +305,8 @@ class PaydayAssessment(ResultObject):
     base_shortfall: MaybeDecimal
     final_shortfall: MaybeDecimal
     notional_earnings: MaybeDecimal
-    experimental_sgc_low: MaybeDecimal
-    experimental_sgc_high: MaybeDecimal
+    experimental_sgc_low: SgcEstimate
+    experimental_sgc_high: SgcEstimate
     uplift: Annotated[
         dict[str, dict[str, DecimalText]] | None,
         Field(
