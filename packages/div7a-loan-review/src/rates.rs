@@ -636,7 +636,10 @@ mod tests {
     }
 
     fn load_override_text(name: &str, text: &str) -> Result<RateOverride, Failure> {
-        let dir = std::env::temp_dir().join(format!("div7a-override-{}", std::process::id()));
+        // Under the crate's ignored target/, not the shared system temp folder.
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join(format!("override-tests-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join(format!("{name}.json"));
         std::fs::write(&path, text).unwrap();
