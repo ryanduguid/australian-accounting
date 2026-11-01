@@ -33,8 +33,8 @@ codegen-units = 1
 
 [dev-dependencies]
 roxmltree = "=0.21.2"
-rust_xlsxwriter = "=0.101.0"
-zip = { version = "=9.1.2", default-features = false, features = ["deflate"] }
+rust_xlsxwriter = "=0.102.0"
+zip = { version = "=9.1.3", default-features = false, features = ["deflate"] }
 
 # Asset names the release workflow will publish once release-policy has a Rust
 # binary family; see the root README.
