@@ -77,8 +77,8 @@ fn adapt(command: &str, mut expected: Value) -> Value {
     expected
 }
 
-/// Replays every call the Python 0.4.x tests and the differential generator
-/// made, comparing serialised JSON so key order must match too.
+/// Replays every captured call from the Python 0.2.0 tests and differential
+/// generator, comparing serialised JSON so key order must match too.
 #[test]
 fn python_api_corpus_matches() {
     let corpus: Vec<Value> =

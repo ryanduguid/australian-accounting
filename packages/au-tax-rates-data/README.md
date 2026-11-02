@@ -62,6 +62,7 @@ GitHub Actions runs `cargo fmt --check`, clippy, the tests and `rates validate` 
 
 Where it differs:
 
+- `validate` refuses a record whose `id` differs from its file name without `.json`, including copied records with duplicate IDs and records whose IDs have been swapped. The Python validator did not check that relationship.
 - Help names the command `rates`, and the description lists `rates <command>` rather than `python rates.py <command>`.
 - A run Python would stop with an uncaught exception prints only the traceback's header and its last line, the exception, and exits 1.
 - A record `pattern` using a `\N{name}` escape is reported as `value pattern could not be read: undefined character name ...`; the port carries no Unicode name database.

@@ -1837,6 +1837,14 @@ fn cmd_validate(ctx: &Ctx, out: &mut Out<impl Write>) -> R<i32> {
             _ => None,
         };
         let mut problems = validate_record(&record, text.as_deref())?;
+        if let Some(Json::Str(id)) = record.get("id")
+            && id.code_points() != entry.stem()
+        {
+            problems.push(p!(
+                "id does not match file name ",
+                repr_points(&entry.stem())
+            ));
+        }
         if let Some(snap) = &snap
             && text.is_none()
         {
