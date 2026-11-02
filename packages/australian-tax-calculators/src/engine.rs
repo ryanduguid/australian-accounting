@@ -1000,6 +1000,9 @@ pub fn contribution_caps(
         } else {
             int(0)
         };
+        // s 291-20(3)-(4): the unused cap raises this year's cap only by the
+        // excess it covers; the rest stays unused for later years.
+        let applied = py_min(carried.clone(), py_max(int(0), concessional.sub(&cap)?)?)?;
         let available_concessional = cap.add(&carried)?;
         // s 292-85: nil at or above the transfer balance cap; otherwise the
         // balance band sets how many annual caps the first year can bring forward.
@@ -1019,7 +1022,7 @@ pub fn contribution_caps(
         let triggered = multiple > 1 && non_concessional.gt(&annual)?;
         Ok((
             vec![
-                ("carry_forward_applied", carried),
+                ("carry_forward_applied", applied),
                 ("concessional_available", available_concessional.clone()),
                 (
                     "concessional_remaining",
