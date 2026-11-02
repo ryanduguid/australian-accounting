@@ -143,7 +143,7 @@ jobs:
             esac
           done
           find candidates -mindepth 2 -type f -exec cp {} bin/ \;
-          test "$(ls bin | wc -l)" -eq "$EXPECTED"
+          test "$(find bin -type f | wc -l)" -eq "$EXPECTED"
       - name: Compare every engine with au-accounting
         run: python -I apps/au-accounting/tests/parity.py bin --cap 600
 

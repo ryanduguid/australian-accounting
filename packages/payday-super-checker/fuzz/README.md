@@ -13,7 +13,7 @@ On Linux, from `packages/payday-super-checker`, with a nightly toolchain and
 cargo +nightly fuzz run csv_readers fuzz/corpus -- -max_total_time=60 -max_len=4096 -timeout=2 -rss_limit_mb=1024
 ```
 
-`.github/workflows/fuzzing.yml` runs the target after main pushes, weekly and
+`.github/workflows/fuzzing.yml` runs the target weekly and
 on demand, with read-only repository access and a 10-minute timeout; it is
 not a merge gate. `tests/fuzz_corpus.rs` replays the corpus in
 `cargo test`. A successful run is bounded evidence, not proof that every input

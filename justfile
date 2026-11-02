@@ -106,5 +106,5 @@ rust-lint:
     #!/usr/bin/env bash
     set -euo pipefail
     for manifest in {{ rust_manifests }}; do
-        (cd "${manifest%/Cargo.toml}" && cargo fmt --check && cargo clippy --locked --all-targets -- -D warnings)
+        (cd "${manifest%/Cargo.toml}" && cargo fmt --check && cargo clippy --locked --all-targets -- -D warnings && cargo clippy --locked --all-targets --all-features -- -D warnings)
     done

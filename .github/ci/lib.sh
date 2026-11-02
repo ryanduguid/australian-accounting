@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Helpers shared by the per-package CI scripts. Source it, do not run it.
 #
 # ci-package.yml runs a package's smoke.sh from the package directory with
@@ -34,7 +35,7 @@ run_sdist_tests() {
   tar -xzf dist/*.tar.gz -C "$sdist" --strip-components=1
   python3 -m venv "$work/sdist-venv"
   "$work/sdist-venv/bin/pip" install --quiet --upgrade pip
-  "$work/sdist-venv/bin/pip" install --quiet -e "$sdist[dev]"
+  "$work/sdist-venv/bin/pip" install --quiet -e "${sdist}[dev]"
   # The sdist's fast-check worker, installed with the Node its dev extra pins.
   if [ -f "$sdist/tests/fastcheck/bootstrap.py" ]; then
     "$work/sdist-venv/bin/python" "$sdist/tests/fastcheck/bootstrap.py"

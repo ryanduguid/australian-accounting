@@ -42,8 +42,26 @@ jobs:
           persist-credentials: false
       - name: Install pinned toolchain
         run: rustup toolchain install 1.99 --profile minimal --component rustfmt,clippy
+      # Only the Windows legs, the slowest, restore a dependency cache, which
+      # keeps 11 crates' entries within the repository's cache budget. Only main
+      # saves, so pull requests cannot replace the shared entries. shortcut: the
+      # key hashes the runner image's toolchains, so an image Rust update misses
+      # until the next main push saves.
+      - name: Restore the dependency build cache
+        if: runner.os == 'Windows'
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: ${{ inputs.root }}/${{ inputs.package }}
+          key: ${{ inputs.package }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: cargo fmt --check
       - run: cargo clippy --locked --all-targets -- -D warnings
+      # Code behind a feature, such as the adapter's differential harness, is
+      # linted only with it, and code behind cfg(not(feature)) only without it.
+      # The tests keep the default features, the shipped build: the differential
+      # feature fixes the clock and reads harness variables, and the harness that
+      # compares against Python is kept outside the repository.
+      - run: cargo clippy --locked --all-targets --all-features -- -D warnings
       - name: Run the tests
         if: runner.os != 'Linux'
         run: cargo test --locked
@@ -75,7 +93,10 @@ jobs:
         env:
           BINARY: ${{ inputs.binary || inputs.package }}
           SMOKE: ${{ inputs.smoke }}
-        run: ./target/release/$BINARY $SMOKE
+        run: |
+          # SMOKE holds the arguments, so it is split on purpose.
+          # shellcheck disable=SC2086
+          ./target/release/"$BINARY" $SMOKE
       # The archive layout the cargo-binstall metadata in Cargo.toml names. CI
       # keeps it as a short-lived artefact only; nothing here publishes it.
       - name: Package the native command
@@ -127,8 +148,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: taiki-e/install-action@1e29709c0ec63babbe8f266397a465f29a825f91 # v2.87.31
+        with:
+          tool: cargo-audit@0.22.2
+          fallback: none
       - name: Audit Cargo lock
         working-directory: ${{ inputs.root }}/${{ inputs.package }}
-        run: |
-          cargo install cargo-audit --locked --version 0.22.2
-          cargo audit --deny warnings
+        run: cargo audit --deny warnings
