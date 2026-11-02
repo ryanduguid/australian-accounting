@@ -1,9 +1,9 @@
 # Aus Accounting MCP
 
-Release `aus-accounting-mcp==0.5.0` provides fourteen worksheets through
+Release `aus-accounting-mcp==0.5.0` provides 14 worksheets through
 `australian-tax-calculators==0.2.0`, including Schedule 8 study-loan withholding,
 the bounded annual Medicare levy, LITO and Division 293. The preceding 0.4.0
-release provides ten through calculators 0.1.8. See the
+release provides 10 through calculators 0.1.8. See the
 [worksheet release verification](docs/worksheet-release.md) for the installed
 package checks. The annual Medicare worksheet does not apply Medicare
 adjustments to payroll withholding.
@@ -104,10 +104,10 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 
 | Ask | Tool |
 |---|---|
-| "Compare a hairdresser with $180,000 sales, no other income, $60,000 wages, $30,000 rent and $40,000 other expenses to the ATO benchmarks." | `get_ato_benchmarks` |
-| "Super for a 6 August 2026 payday was $120 and was sent on 14 August. As at 20 August, is it on time?" | `calc_payday_super_deadline` |
-| "What is the Division 7A benchmark interest rate for 2026-27?" | `get_div7a_benchmark_rate` |
-| "An employee who gave a TFN and claims the tax-free threshold (scale 2) is paid a regular $1,000 weekly wage in 2026-27, with no offsets, loans, bonuses or other adjustments. How much PAYG should be withheld?" | `calculate_tax_worksheet` |
+| 'Compare a hairdresser with $180,000 sales, no other income, $60,000 wages, $30,000 rent and $40,000 other expenses to the ATO benchmarks.' | `get_ato_benchmarks` |
+| 'Super for a 6 August 2026 payday was $120 and was sent on 14 August. As at 20 August, is it on time?' | `calc_payday_super_deadline` |
+| 'What is the Division 7A benchmark interest rate for 2026-27?' | `get_div7a_benchmark_rate` |
+| 'An employee who gave a TFN and claims the tax-free threshold (scale 2) is paid a regular $1,000 weekly wage in 2026-27, with no offsets, loans, bonuses or other adjustments. How much PAYG should be withheld?' | `calculate_tax_worksheet` |
 
 ## Tools
 
@@ -150,7 +150,7 @@ fund kept every receipt and says so in `verdict_qualification` and its caveats, 
 evidence pack repeats it. Check fund records for returns before relying on `ON_TIME`.
 
 The research tools need a folder you supply: set `AUS_ACCOUNTING_LIBRARY_ROOT` to an
-authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus, or
+authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus or
 `AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by
 [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus).
 The [corpus setup walkthrough](docs/corpus-setup.md) verifies the existing builder
@@ -197,7 +197,7 @@ those it leaves `UNKNOWN` or refuses, pin this server's own results
 
 ## Licence and releases
 
-Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 two years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Created by Ryan Duguid. If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
+Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Created by Ryan Duguid. If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
 [v0.7.1 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.1),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).

@@ -34,7 +34,7 @@ It replaces the Python `div7a-loan-review` 0.3.2 package and its `div7aloan` imp
 v1 reviews the s 109N terms of a private-company loan and the s 109E minimum
 yearly repayment for an **operator-supplied amalgamated loan**. It does not
 form amalgamated loans, does not classify payments, does not do unpaid present
-entitlements, and does not apply s 109RB.
+entitlements and does not apply s 109RB.
 
 The `australian-accounting` repository contains the maintained source. The
 `div7a-loan-review` command name remains; the `div7aloan` import package is
@@ -62,7 +62,7 @@ The Rust 1.0.0 binary is unreleased.
 Three questions, one job.
 
 1. **`rate`** - the s 109N(2) benchmark interest rate for a year of income,
-   with provenance: RBA table, series, month, and the date this repository
+   with provenance: RBA table, series, month and the date this repository
    last reviewed the figure.
 2. **`gate`** - whether a loan meets every limb of s 109N(1), on facts the
    operator asserts. Written agreement, terms in place before the lodgment
@@ -170,7 +170,7 @@ end of 2026
 This engine has not been compared with that worksheet, and nothing here
 describes how it calculates.
 
-The two overlap on Division 7A loan review but do different jobs. Workpapers
+The 2 overlap on Division 7A loan review but do different jobs. Workpapers
 Plus sits inside a practice's ledger and compliance workflow, with ATO
 pre-population and AI extraction from bank and loan statements. This engine is
 FSL-1.1-ALv2 licensed, runs offline on a register you supply, shows the statutory trace
@@ -260,7 +260,7 @@ div7a-loan-review review --input examples/sample_loans_mixed.csv --year 2026-27
 ```
 
 Add `--format json` for machine-readable output, `--trace` on `review` to
-print the statutory trace for every row, and `--rates-override FILE` to supply
+print the statutory trace for every row and `--rates-override FILE` to supply
 a reviewed benchmark rate for a year outside the frozen table.
 
 ### Which year the gate reads its benchmark from
@@ -283,7 +283,7 @@ for `--year`.
 | Code | Meaning |
 | --- | --- |
 | 0 | Nothing exposed, nothing undecided |
-| 2 | A shortfall, an undecided row, or a loan not on s 109N terms |
+| 2 | A shortfall, an undecided row or a loan not on s 109N terms |
 | 1 | The input, the rate table or the override could not be read |
 
 ## The register CSV
@@ -433,7 +433,7 @@ stable token per reason, in the same order.
 ```
 
 The prose is written for a person and changes with the wording of the Act or
-the engine. The codes are the half a caller branches on. There are three
+the engine. The codes are the half a caller branches on. There are 3
 prefixes, one per question:
 
 | Prefix | Means |
@@ -510,7 +510,7 @@ command line's `review`, `gate` and `myr` commands select valid modes.
 `derive` reads the `minimum-yearly-repayment` input on stdin and writes a
 derivation: the input, one step per statutory question and the result. Each
 step names the provision it applies (`authority`), shows its `working` and
-gives its `value`. The ten steps are the year of income (s 109E(1)), the year
+gives its `value`. The 10 steps are the year of income (s 109E(1)), the year
 the loan was made (s 109E(1)(a), s 109P), complying terms (s 109N(1),
 s 109E(3)(b)), the benchmark rate (s 109N(2)), the opening balance and the
 remaining term (s 109E(6)), the repayment (s 109E(5) and (6)), the payments
@@ -624,4 +624,4 @@ Ryan Duguid. Written independently, in his own time, on his own equipment.
 Provisional member of Chartered Accountants Australia and New Zealand; that
 membership is not an endorsement of this software by CA ANZ.
 
-Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 two years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
+Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).

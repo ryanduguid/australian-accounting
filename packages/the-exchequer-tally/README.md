@@ -33,7 +33,7 @@ the-exchequer-tally dist-statement --entity "Synthetic Pty Ltd" --acn 123456789 
 ```
 
 `--help` and each original command's `--help` preserve the Python help text.
-Money flags accept non-negative AUD amounts up to $1 trillion, with at most two
+Money flags accept non-negative AUD amounts up to $1 trillion, with at most 2
 decimal places. `dist-statement` requires a positive distribution, an explicit
 payment date and tax rate. Rates are fractions strictly between zero and one;
 percentages are between zero and 100 inclusive.
@@ -60,9 +60,9 @@ commands.
 | Command | Input fields | Result |
 | --- | --- | --- |
 | `corporate-tax` | `financial_year`, `aggregated_turnover`, `assessable_income`, `passive_income` | CorporateTaxRate fields |
-| `bre-properties` | Same four fields | Passive percentage, turnover eligibility, BREPI eligibility and BRE status |
+| `bre-properties` | Same 4 fields | Passive percentage, turnover eligibility, BREPI eligibility and BRE status |
 | `turnover-threshold` | `financial_year` | Decimal threshold string |
-| `max-franking-rate` | `current_fy`, optional `prior_year_test` containing the four BRE fields | Decimal rate string; missing or wrong-year evidence is refused |
+| `max-franking-rate` | `current_fy`, optional `prior_year_test` containing the 4 BRE fields | Decimal rate string; missing or wrong-year evidence is refused |
 | `statement` | `entity_name`, `abn_or_acn`, `recipient_name`, `payment_date`, `total_distribution`, `franking_percentage`, `corporate_tax_rate` | Statement fields, total and gross assessable income |
 | `distribution-event` | `event_date`, `recipient_name`, `distribution_amount`, `franking_credit`, optional `corporate_tax_rate` | Event fields, maximum credit, exact ratio and displayed percentage; measurement requires a rate |
 | `benchmark` | `corporate_tax_rate`, optional `distributions` array of event objects | Original-order distributions, benchmark percentage, compliance status and violations |
@@ -115,7 +115,7 @@ still applies. JSON nesting follows serde_json's recursion limit.
 
 ## Integration and releases
 
-The MCP application consumes four other Python engines and has never imported
+The MCP application consumes 4 other Python engines and has never imported
 this engine. Its current tools and pins remain unchanged. When a Rust MCP server
 later exposes this engine, it can launch the relevant JSON subcommand with stdin
 and consume stdout, using the process exit status to distinguish refusal.

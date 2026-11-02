@@ -8,7 +8,7 @@ Excel 2024. Nothing leaves the workbook.
 **Experimental review aid. Not a compliance determination.** Review Checks
 holds input failures, missing evidence and the review assumptions. Read its
 overall status before using a calculated row: invalid input can leave a displayed
-verdict while the workbook is `BLOCKED`.
+verdict whilst the workbook is `BLOCKED`.
 
 ## Version and verification scope
 
@@ -100,7 +100,7 @@ output only when every step succeeds, so a failed build leaves the previous
 workbook in place. The builder's own tests, which hold the formulas it
 writes, run under `cargo test`.
 
-Two things are worth knowing about how the formulas differ from the code while
+Two things are worth knowing about how the formulas differ from the code whilst
 giving the same answers. Item 4 is not swept row by row: the confirmed latest
 deadline for a line is the largest own deadline of an earlier same-employee line
 whose receipt is confirmed against its own deadline, and the possible upper bound

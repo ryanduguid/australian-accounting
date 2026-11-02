@@ -15,13 +15,13 @@ A snapshot records what the provider's public service looked like when it was re
 
 ## Changing one
 
-A person reads the live surface, decides what changed, and edits the file. That
+A person reads the live surface, decides what changed and edits the file. That
 is the whole process, and it is deliberate.
 
 `lodgeit-adapter drift` reports differences between the live catalogue and a
 snapshot. It prints findings and exits non-zero when there are any. It does not
 write anything, and there is no flag that makes it write anything. A contract
-change that arrived while nobody was looking is exactly the change that should
+change that arrived whilst nobody was looking is exactly the change that should
 not be accepted automatically.
 
 When you do update one, move `read_at` and `read_by` with it. A stale reader

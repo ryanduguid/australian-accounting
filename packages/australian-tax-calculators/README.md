@@ -2,9 +2,9 @@
 
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
-API, with the same fourteen worksheets, results and refusals, and adds 2 FBT car
+API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
 worksheets and a main residence worksheet that no Python release contains. Python releases through 0.1.9
-contain ten worksheets. Until the MCP server links this crate,
+contain 10 worksheets. Until the MCP server links this crate,
 it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
 keeps the engine release and MCP integration separate.
@@ -53,7 +53,7 @@ historical Python release; `pip install` does not install this binary.
 
 ## Use
 
-Every worksheet takes its amounts as decimal strings, an explicit period, and a
+Every worksheet takes its amounts as decimal strings, an explicit period and a
 `scope_confirmed` flag the caller sets only once it has established the scope
 conditions the worksheet states. Splitting $1,100.00 GST-inclusive into its
 exclusive amount and its GST:
@@ -199,7 +199,7 @@ who did not claim the tax-free threshold; scales 2, 3, 5 and 6 take the one for
 a payee who claimed it or is a foreign resident. The result gives the Schedule
 1 amount, the component and their total. The ATO also publishes combined
 coefficients and accepts either method; the tests hold the worksheet within $1
-of them for scales 1 and 2, and to the schedule's three worked examples. See
+of them for scales 1 and 2, and to the schedule's 3 worked examples. See
 [calculation evidence](docs/calculation-evidence.md#study-loan-withholding).
 
 ## Medicare levy and low income tax offset
@@ -224,7 +224,7 @@ at 15%. It covers 2024-25 to 2026-27 and holds the ATO's worked example. Working
 out either input, defined benefit interests and deferred debt accounts are
 outside it. See [calculation evidence](docs/calculation-evidence.md#division-293).
 
-These four worksheets are included from release 0.2.0.
+These 4 worksheets are included from release 0.2.0.
 
 ## FBT car benefits
 

@@ -38,7 +38,7 @@ relevant years before relying on the result. See the
 4. **Review Checks.** `BLOCKED` means the register cannot be read: a bad year
    label, a value that is not true, false or unknown, text where a number belongs, a
    formula pasted into an input, or no reviewed rate for the year. `REVIEW` means a
-   loan is not on s 109N terms, a repayment is short, a row is undecided, or a
+   loan is not on s 109N terms, a repayment is short, a row is undecided or a
    repayment figure is refused (read the reason; refusal alone is not a breach),
    which matches the command line tool's attention rule. `PASS` means nothing
    exposed, nothing undecided and nothing refused, which is the command line tool's
@@ -73,7 +73,7 @@ desktop Excel wrote and holds every row of the mixed sample, the summary counts
 and the Rates sheet to the engine's review, frozen in
 `tests/data/workbook-sample.json`, which `cargo test` holds to the engine. A
 change to the engine, the rate table or the workbook that is not rebuilt fails
-one of the two tests.
+one of the 2 tests.
 
 Rebuild on a machine with desktop Excel, from `packages/div7a-loan-review`:
 

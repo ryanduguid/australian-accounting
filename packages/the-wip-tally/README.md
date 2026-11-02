@@ -117,7 +117,7 @@ one period's numbers to another period's header.
 ## Input columns
 
 Required: `contract_id`, `original_contract_sum`, `costs_incurred`,
-`estimated_cost_to_complete`, `certified_billings`, and
+`estimated_cost_to_complete`, `certified_billings` and
 `outcome_reasonably_measurable` on every row. Everything else is optional but
 sharpens the answer. Amounts are exclusive of GST.
 
@@ -144,11 +144,11 @@ para 44 is a judgement about the contract, not a default this engine can pick.
 | `certified_billings` | Amounts certified, exclusive of GST |
 | `uncertified_claims` | Claimed but not certified. Never treated as billing or as entitlement |
 | `retention_withheld` | Retention on this contract |
-| `retention_classification` | `receivable`, `conditional`, or `review` (the default) |
+| `retention_classification` | `receivable`, `conditional` or `review` (the default) |
 | `committed_outstanding` | Open POs and subcontracts still to invoice |
 | `outcome_reasonably_measurable` | `yes` or `no`, per row. There is no default: a blank refuses the contract, because paras 44-45 decide between percentage-of-completion revenue and revenue limited to recoverable cost. `no` applies para 45 recoverable-cost-only revenue |
 | `recoverable_costs` | Required in substance when the outcome is not measurable; defaults to progress cost, and is refused above `costs_incurred` or the transaction price |
-| `progress_method` | `cost_to_cost` (default), `output`, or `right_to_invoice` |
+| `progress_method` | `cost_to_cost` (default), `output` or `right_to_invoice` |
 | `output_percent` | Required for `output` when the outcome is measurable, as `0.40` or `40%` |
 | `prior_*` | Prior-period transaction price, EAC, cost, ETC and revenue, for fade and period revenue |
 | `gst_rate` | Default `0.10`. Used only to *show* GST on certified billings and retention |
@@ -214,7 +214,7 @@ ATO position on long-term construction contracts at ato.gov.au for the year.
 - Decide whether a variation or claim is legally enforceable
 - Measure an onerous-contract provision under AASB 137
 - Prepare a Security of Payment payment claim
-- Lodge a BAS, compute fuel tax credits, or run TPAR
+- Lodge a BAS, compute fuel tax credits or run TPAR
 - Replace the `wip-over-under-billing` skill, which still owns the workflow around this file
 
 Use the [`wip-over-under-billing` skill](https://github.com/ryanduguid/australian-accounting-skills/blob/main/.claude/skills/wip-over-under-billing/SKILL.md)
@@ -281,4 +281,4 @@ or unsuitable for a given set of facts. Check anything material against the
 current standards and the entity's facts, and leave sign-off with a registered
 practitioner.
 
-Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 two years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
+Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).

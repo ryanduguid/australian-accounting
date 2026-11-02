@@ -133,10 +133,10 @@ requests resolves to one tool call:
 
 | Ask | Tool |
 |---|---|
-| "Compare a hairdresser with $180,000 sales, no other income, $60,000 wages, $30,000 rent and $40,000 other expenses to the ATO benchmarks." | `get_ato_benchmarks` |
-| "Super for a 6 August 2026 payday was $120 and was sent on 14 August. As at 20 August, is it on time?" | `calc_payday_super_deadline` |
-| "What is the Division 7A benchmark interest rate for 2026-27?" | `get_div7a_benchmark_rate` |
-| "An employee who gave a TFN and claims the tax-free threshold (scale 2) is paid a regular $1,000 weekly wage in 2026-27, with no offsets, loans, bonuses or other adjustments. How much PAYG should be withheld?" | `calculate_tax_worksheet` |
+| 'Compare a hairdresser with $180,000 sales, no other income, $60,000 wages, $30,000 rent and $40,000 other expenses to the ATO benchmarks.' | `get_ato_benchmarks` |
+| 'Super for a 6 August 2026 payday was $120 and was sent on 14 August. As at 20 August, is it on time?' | `calc_payday_super_deadline` |
+| 'What is the Division 7A benchmark interest rate for 2026-27?' | `get_div7a_benchmark_rate` |
+| 'An employee who gave a TFN and claims the tax-free threshold (scale 2) is paid a regular $1,000 weekly wage in 2026-27, with no offsets, loans, bonuses or other adjustments. How much PAYG should be withheld?' | `calculate_tax_worksheet` |
 
 [Client setup and examples](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#client-integration)
 · [Tool reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#tools)
@@ -145,7 +145,7 @@ requests resolves to one tool call:
 
 The tools list ATO benchmark industries, compare supplied expense buckets,
 review Payday Super timing, look up reviewed Division 7A rates, review an
-operator-supplied Division 7A loan, refuse unsupported Division 7A matters, and
+operator-supplied Division 7A loan, refuse unsupported Division 7A matters and
 generate synthetic CTR/BAS fixtures. They also assess related Payday contributions,
 calculate 14 bounded tax and super worksheets and retrieve cited local Markdown excerpts.
 Division 7A review is limited to the delegated

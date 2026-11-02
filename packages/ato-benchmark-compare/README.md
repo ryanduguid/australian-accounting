@@ -35,7 +35,7 @@ on your own machine, with the working shown.
 The ATO publishes benchmark ranges for 100 industries and uses them to pick which
 small businesses to look at more closely. Checking a client against them is a
 sensible thing to do before lodgement, and it is usually done by hand: find the
-industry page, work out which turnover range applies, add up the right accounts, and
+industry page, work out which turnover range applies, add up the right accounts and
 divide. This does that, and it records which accounts went into which figure so the
 answer can be checked by someone else later.
 
@@ -52,7 +52,7 @@ The arithmetic is not 'expenses over income'. The ATO defines these ratios narro
 and the differences change the answer:
 
 - **Turnover** is the sales of goods and services label, not total income. It falls
-  back to total business income only when sales are blank, zero, or less than 50% of
+  back to total business income only when sales are blank, zero or less than 50% of
   total business income.
 - **Total expenses** for the ratio is total expenses **less payments to associated
   persons**. Wages to a spouse or an associated entity come out before the division.
@@ -107,10 +107,10 @@ The flow is 2 commands, because the middle step is a person reading the ledger.
 ato-benchmark-compare map --profit-and-loss examples/bakery-pnl.csv --out mapping.csv
 ```
 
-That writes one row per account with a suggested bucket, the reason it was suggested,
+That writes one row per account with a suggested bucket, the reason it was suggested
 and the amount it read. Suggestions come from account names alone.
 
-**2. Review it.** Open `mapping.csv`, fix the buckets, and change the `source` column
+**2. Review it.** Open `mapping.csv`, fix the buckets and change the `source` column
 to `reviewed`. `ato-benchmark-compare buckets` explains each bucket. This is the step
 that decides whether the answer is worth anything: no account name tells you whether
 wages went to an associate.
@@ -131,7 +131,7 @@ other spreadsheet applications have not been checked here, so confirm the accoun
 
 The generated mapping includes an `account_key` immediately after `account`. It is a
 SHA-256 digest of the tool's existing case-and-whitespace-insensitive account identity.
-Leave both columns unchanged while reviewing `bucket`, `source` and `note`; `amount` is
+Leave both columns unchanged whilst reviewing `bucket`, `source` and `note`; `amount` is
 shown for context and is not bound by the key. On the next run, the key lets the tool
 recover a formula-guarded logical account without confusing `=cmd|calc` with the genuine
 account `'=cmd|calc` when both look the same in a spreadsheet.
@@ -343,7 +343,7 @@ value, naming what stays correct in each.
 Nothing leaves the machine. There is no network call anywhere in the binary.
 
 The `.gitignore` blocks the file names a real ledger arrives under, including
-`pnl*.csv`, `mapping*.csv`, spreadsheets, and `client-data/`. The example files are
+`pnl*.csv`, `mapping*.csv`, spreadsheets and `client-data/`. The example files are
 invented. Do not commit a real one.
 
 ## Benchmark data
@@ -353,7 +353,7 @@ invented. Do not commit a real one.
 | 2023-24 | 100 | [ATO Small Business Benchmarks, data.gov.au](https://data.gov.au/data/dataset/small-business-benchmarks) |
 | 2022-23 | 100 | same dataset |
 
-Each shipped file records the resource URL, the date it was retrieved, and the SHA-256
+Each shipped file records the resource URL, the date it was retrieved and the SHA-256
 of the ATO workbook it was built from. The comparison prints all of that, so a report
 can be traced back to a specific published file.
 
@@ -426,7 +426,7 @@ interval inferred.
 The code in this repository is licensed under the Functional Source License,
 Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and
 redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service),
-and each version becomes available under Apache-2.0 two years after it is made available. See
+and each version becomes available under Apache-2.0 2 years after it is made available. See
 [LICENSE](LICENSE) and [NOTICE](NOTICE). The data attribution is also
 recorded in [NOTICE](NOTICE); keep it with any copy of the binary or the source.
 
