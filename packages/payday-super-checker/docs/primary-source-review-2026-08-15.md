@@ -209,9 +209,11 @@ Commissioner's final 5-cent assessment rounding.
 ## Whole-of-jurisdiction holiday calendar
 
 SGAA s 6(1) uses one national calendar: weekends and any public holiday for
-the whole of a State, the ACT or the NT. The ATO's [Business days
-decoded](https://www.ato.gov.au/tax-and-super-professionals/for-superannuation-professionals/super-funds-newsroom/business-days-decoded-why-it-matters-for-your-fund)
-guidance confirms that a regional holiday is not enough.
+the whole of a State, the ACT or the NT. The ATO's [Payment deadlines for
+Payday Super](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super)
+guidance confirms that a regional holiday is not enough. This review first
+cited the ATO newsroom article *Business days decoded*, whose address
+redirected to the newsroom index on 2 November 2026.
 
 The bundled dates were checked against each official jurisdiction source:
 
