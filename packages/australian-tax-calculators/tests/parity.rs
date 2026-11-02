@@ -1,4 +1,5 @@
 use australian_tax_calculators::api;
+use australian_tax_calculators::decimal::{Decimal, Rounding};
 use serde_json::{Value, json};
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -33,7 +34,7 @@ fn without_new_kinds(command: &str, mut actual: Value) -> Value {
 
 /// Applies the source-record divergences CHANGELOG.md documents to a frozen
 /// Python result; the frozen corpus itself is never edited.
-fn adapt(command: &str, mut expected: Value) -> Value {
+fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     // The ATO moved its lump sum in arrears page; the redirect was seen on 26 October 2026.
     let lump_sum_old = "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/lump-sum-payment-in-arrears-tax-offsets";
     let lump_sum_new = "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/lump-sum-payment-in-arrears";
@@ -48,6 +49,28 @@ fn adapt(command: &str, mut expected: Value) -> Value {
     }
     if let Some(Value::String(error)) = expected.get_mut("error") {
         *error = error.replace(lump_sum_old, lump_sum_new);
+    }
+    // s 291-20(4): only the unused cap that covers the excess is applied. The
+    // frozen value is all the eligible unused cap, so it is the upper bound.
+    if command == "contribution-caps" && expected.pointer("/ok/amounts").is_some() {
+        let dec = |v: &Value| Decimal::parse(v.as_str().unwrap()).unwrap();
+        let zero = Decimal::from_int(0);
+        let carried = dec(&expected["ok"]["amounts"]["carry_forward_applied"]);
+        let excess = dec(&input["concessional_contributions"])
+            .sub(&dec(&expected["ok"]["rates"]["concessional_cap"]))
+            .unwrap();
+        let needed = if excess.gt(&zero).unwrap() {
+            excess
+        } else {
+            zero
+        };
+        let applied = if needed.lt(&carried).unwrap() {
+            needed
+        } else {
+            carried
+        };
+        let cents = applied.quantize(-2, Rounding::HalfUp).unwrap();
+        expected["ok"]["amounts"]["carry_forward_applied"] = json!(cents.to_string());
     }
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
@@ -97,7 +120,7 @@ fn python_api_corpus_matches() {
     for row in &corpus {
         let command = row["command"].as_str().unwrap();
         let actual = without_new_kinds(command, outcome(command, &row["input"])).to_string();
-        let expected = adapt(command, row["expected"].clone()).to_string();
+        let expected = adapt(command, &row["input"], row["expected"].clone()).to_string();
         if actual != expected {
             failures.push(format!(
                 "{} {command} {}\n  expected {expected}\n  actual   {actual}",
