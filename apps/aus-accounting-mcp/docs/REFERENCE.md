@@ -554,6 +554,13 @@ preceding headings and PDF page markers, and SHA-256 of the source file. Retain
 the hash when checking whether a later read uses the same file version.
 Duplicate exports remain separate cited sources.
 
+Results rank by where the words sit, using the same tiers as the legislation search
+and reading the heading in force at a line as its heading: the query as a phrase in
+that heading, then every word in it, then the phrase in the line, then the words
+anywhere in the line. Ties keep folder and file order. The order is a presentation
+choice, not a ranking of authority. Ranking reads the whole library on every search:
+about 0.3 to 0.5 s for a 2 MB folder and 3 to 4 s at the 1000-file, 64 MB limit.
+
 Search accepts `limit` up to 20 and `offset` for continuation with the same query
 and unchanged library. `offset` counts every eligible matching line the earlier
 pages consumed, including a line too long to excerpt, so a page can return fewer

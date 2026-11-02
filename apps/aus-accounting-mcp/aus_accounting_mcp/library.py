@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import hashlib
+import heapq
 import os
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
+from .corpus import _tier
 from .errors import NOT_CONFIGURED, InputError
 from .paging import page
 
@@ -75,23 +77,33 @@ def _excerpt(name: str, lines: list[str], digest: str, start: int, count: int) -
         raise InputError("start_line must be at least 1.")
     if start > len(lines):
         raise InputError("start_line is beyond the end of the document.")
-    selected = lines[start - 1:start - 1 + count]
+    heading = page = None
+    for line in lines[:start]:
+        heading, page = _context(line, heading, page)
+    return _shape(name, digest, start, len(lines), heading, page,
+                  lines[start - 1:start - 1 + count])
+
+
+def _context(line: str, heading: str | None, page: int | None) -> tuple[str | None, int | None]:
+    """The heading and PDF page in force after line, given those in force before it."""
+    if line.startswith("#"):
+        heading = line[:300]
+    # The substring test spares the regex on almost every line of a whole-library scan.
+    if "<!-- PDF page" in line and (match := re.search(r"<!-- PDF page (\d+)", line)):
+        page = int(match[1])
+    return heading, page
+
+
+def _shape(name: str, digest: str, start: int, total: int, heading: str | None,
+           page: int | None, selected: list[str]) -> dict[str, Any]:
     # Truncate only at a line boundary so citation ranges remain exact.
     while len("\n".join(selected)) > 12000 and len(selected) > 1:
         selected.pop()
     if len("\n".join(selected)) > 12000:
         raise InputError("The selected line exceeds 12000 characters; select another line.")
-    heading = None
-    page = None
-    for line in lines[:start]:
-        if line.startswith("#"):
-            heading = line[:300]
-        match = re.search(r"<!-- PDF page (\d+)", line)
-        if match:
-            page = int(match[1])
     return {
         "path": name, "sha256": digest, "start_line": start,
-        "end_line": start + len(selected) - 1, "total_lines": len(lines),
+        "end_line": start + len(selected) - 1, "total_lines": total,
         "heading": heading, "pdf_page": page, "text": "\n".join(selected),
         "notice": NOTICE,
     }
@@ -106,57 +118,77 @@ def read_reference(path: str, start_line: int, line_count: int) -> dict[str, Any
 
 
 def search_references(query: str, limit: int, offset: int) -> dict[str, Any]:
+    """Every line holding all the query words, best first, as one page of excerpts.
+
+    Lines rank by corpus.py's tiers, reading the heading in force at the line as
+    its heading: the phrase in that heading first, then every word in it, then the
+    phrase in the line, then the words anywhere in the line. Ties keep folder and
+    file order, so pages stay consistent while the library is unchanged. The order
+    says where the words sit, not which source carries more authority.
+    """
     terms = re.findall(r"\w+", query.casefold())
     if not terms:
         raise InputError("Supply at least one word to search for.")
     root = _root()
-    matches: list[dict[str, Any]] = []
+    tier = _tier(terms, ("heading",), ("line",))
     skipped = 0
-    size = 0
-    count = 0
-    seen = 0
-    # ponytail: scan up to 64 MB per request; add an index if measured latency requires it.
-    for directory, folders, files in os.walk(root, followlinks=False):
-        folders[:] = [f for f in sorted(folders) if not f.startswith(".")
-                      and not (Path(directory) / f).is_symlink()
-                      and not bool(getattr((Path(directory) / f).lstat(),
-                                           "st_file_attributes", 0) & 1024)]
-        for filename in sorted(files):
-            if filename.startswith(".") or not filename.lower().endswith(".md"):
-                continue
-            count += 1
-            if count > MAX_FILES:
-                raise InputError("Library exceeds 1000 Markdown files; configure a smaller folder.")
-            name = (Path(directory) / filename).relative_to(root).as_posix()
-            try:
-                raw = _document(_path(root, name), MAX_LIBRARY_BYTES - size)
-            except (InputError, OSError, UnicodeError):
-                skipped += 1
-                continue
-            size += len(raw)
-            if size > MAX_LIBRARY_BYTES:
-                raise InputError("Library exceeds 64 MB; configure a smaller folder.")
-            try:
-                lines, digest = _decode(raw)
-            except (InputError, UnicodeError):
-                skipped += 1
-                continue
-            for index, line in enumerate(lines):
-                if all(term in line.casefold() for term in terms):
-                    # One counter for every eligible match, whether it is skipped past,
-                    # returned or dropped as an oversized line, so the next offset lands
-                    # on the match after the last one this page consumed.
-                    if seen < offset:
-                        seen += 1
-                        continue
-                    if len(matches) >= limit:
-                        return _page(matches, seen, skipped, has_more=True)
-                    seen += 1
-                    try:
-                        matches.append(_excerpt(name, lines, digest, index + 1, 3))
-                    except InputError:
-                        continue
-    return _page(matches, seen, skipped, has_more=False)
+
+    def ranked() -> Iterator[tuple[int, int, tuple[Any, ...]]]:
+        nonlocal skipped
+        size = 0
+        count = 0
+        order = 0
+        # ponytail: ranking scans the whole library on every search. Measured on a
+        # 2 MB folder that takes 0.3 to 0.5 s, and 3.0 to 3.8 s at the 1000-file,
+        # 64 MB cap; add an index only if a measured library query set needs one.
+        for directory, folders, files in os.walk(root, followlinks=False):
+            folders[:] = [f for f in sorted(folders) if not f.startswith(".")
+                          and not (Path(directory) / f).is_symlink()
+                          and not bool(getattr((Path(directory) / f).lstat(),
+                                               "st_file_attributes", 0) & 1024)]
+            for filename in sorted(files):
+                if filename.startswith(".") or not filename.lower().endswith(".md"):
+                    continue
+                count += 1
+                if count > MAX_FILES:
+                    raise InputError(
+                        "Library exceeds 1000 Markdown files; configure a smaller folder.")
+                name = (Path(directory) / filename).relative_to(root).as_posix()
+                try:
+                    raw = _document(_path(root, name), MAX_LIBRARY_BYTES - size)
+                except (InputError, OSError, UnicodeError):
+                    skipped += 1
+                    continue
+                size += len(raw)
+                if size > MAX_LIBRARY_BYTES:
+                    raise InputError("Library exceeds 64 MB; configure a smaller folder.")
+                try:
+                    lines, digest = _decode(raw)
+                except (InputError, UnicodeError):
+                    skipped += 1
+                    continue
+                heading = page = None
+                for index, line in enumerate(lines):
+                    heading, page = _context(line, heading, page)
+                    folded = line.casefold()
+                    if all(term in folded for term in terms):
+                        # Keep only what the excerpt needs, so a deep offset does not
+                        # hold whole files in memory.
+                        excerpt = (name, digest, index + 1, len(lines), heading, page,
+                                   lines[index:index + 3])
+                        yield tier({"heading": heading, "line": line}), order, excerpt
+                        order += 1
+
+    # Every eligible line takes one rank, whether it is returned or dropped as too
+    # long to excerpt, so the next offset lands after the last one this page consumed.
+    best = heapq.nsmallest(offset + limit + 1, ranked(), key=lambda item: item[:2])
+    matches: list[dict[str, Any]] = []
+    for _, _, excerpt in best[offset:offset + limit]:
+        try:
+            matches.append(_shape(*excerpt))
+        except InputError:
+            continue
+    return _page(matches, offset + limit, skipped, has_more=len(best) > offset + limit)
 
 
 def _page(matches: list[dict[str, Any]], seen: int, skipped: int,

@@ -214,6 +214,13 @@ It uses this repository's proposed
 checkout with full commit pins for Accounting Review Pipeline and au-fpa-pack.
 Update companion pins deliberately when adopting compatible changes.
 
+`readme-quick-start.yml` follows the root README's "Try one contribution" in an empty
+directory: it downloads the linked synthetic CSV, runs the README's `uvx` command and
+checks the verdict and due date its **Output:** line states, then the exit 2 it
+promises without `--confirm-remittance-only`. It runs on README changes, pushes to
+`main` that change the README, manual runs and weekly, so a moved CSV or a pinned
+release that stops matching the README surfaces without a README edit.
+
 The existing [joined example driver](https://github.com/ryanduguid/accounting-review-pipeline/blob/3dcb5304f4c67c01de98b34638999b5f274d1810/packages/monthly-close-control-plane/docs/utility-workflows.md)
 checks both fabricated thirteen-week cash scenarios and retains REVIEW findings.
 Processes and fresh environments stay separate; workspace locks remain authoritative.

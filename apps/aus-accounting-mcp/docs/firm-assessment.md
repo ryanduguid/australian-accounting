@@ -78,8 +78,9 @@ obligations, with a link for each source.
 **How does it treat private rulings?** A private ruling protects only its applicant,
 and an edited version of private advice, published without identifying details,
 protects no one else. The legislation tools never return one. The library search does
-not rank by authority: matches come in folder and file order, so an edited version in
-the library sits beside a public ruling with nothing marking it down. Keep such
+not rank by authority: matches rank only by where the query words sit, then by folder
+and file order, so an edited version in the library sits beside a public ruling with
+nothing marking it down. Keep such
 material in its own folder and cite it as background, never as the position. The
 rulings tools label every paragraph with its document family, attach to every
 paragraph of an edited version of private advice the caveat that nobody can rely on

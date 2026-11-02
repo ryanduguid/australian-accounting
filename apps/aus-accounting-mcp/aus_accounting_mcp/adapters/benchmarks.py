@@ -123,7 +123,21 @@ def compare_figures(
 
     try:
         data = load(year)
+    except DatasetError as exc:
+        raise InputError(str(exc)) from exc
+    try:
         business_type = data.get(industry)
+    except DatasetError as exc:
+        if data.search(industry):
+            raise InputError(str(exc)) from exc
+        # The engine's own message sends the reader to its command line, which an
+        # MCP client cannot run; name the tool that lists the names instead.
+        raise InputError(
+            f"no ATO business type matches {industry!r}. Call list_ato_benchmark_industries "
+            f"with a search word and year {data.year!r} to find the exact name among all "
+            f"{len(data.business_types)} of them."
+        ) from exc
+    try:
         figures = compute(totals, w1_amount)
         comparison = compare(data, business_type, figures)
     except (DatasetError, RatioError) as exc:
