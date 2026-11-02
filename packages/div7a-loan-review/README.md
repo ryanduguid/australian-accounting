@@ -157,8 +157,8 @@ deemed-dividend exposure equal to the shortfall. Read it as a review aid.
 s 109E(2) makes the dividend the shortfall **subject to s 109Y**, which caps
 Division 7A dividends at the company's distributable surplus, and s 109E(1)(d)
 removes the dividend entirely where s 109Q applies. Neither is modelled here,
-and neither is s 109RB. This repository does not write "the ATO will assess
-$X", and neither should anything built on it.
+and neither is s 109RB. This repository does not write 'the ATO will assess
+$X', and neither should anything built on it.
 
 ## Next to a commercial Division 7A worksheet
 
