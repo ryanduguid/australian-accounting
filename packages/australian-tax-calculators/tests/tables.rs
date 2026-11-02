@@ -52,11 +52,45 @@ fn every_supported_resident_period_has_its_own_contiguous_scale() {
     }
 }
 
-/// From 1 July 2027 cost base indexation replaces the 50% discount on gains
-/// accruing from that date and a minimum 30% tax applies to certain net capital
-/// gains (https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax/capital-gains-tax-reform).
-/// `capital_gains` halves every discount gain, so it may not take a later
-/// income year until it handles the reform.
+/// The law these worksheets apply is the same in 2026-27, so each result
+/// differs from the 2025-26 one only in its period.
+#[test]
+fn worksheets_opened_for_2026_27_match_2025_26() {
+    for (command, input) in [
+        ("gst", json!({"amount": "1100.00", "gst_inclusive": true})),
+        (
+            "capital-gains",
+            json!({"other_gains": "100.00", "discount_gains": "1000.00",
+                   "current_losses": "200.00", "prior_losses": "300.00"}),
+        ),
+        (
+            "depreciation",
+            json!({"cost": "3000.00", "effective_life": "4", "days": 365,
+                   "taxable_use": "0.4", "method": "diminishing_value"}),
+        ),
+    ] {
+        let run = |year: &str| {
+            let mut input = input.clone();
+            input["year"] = json!(year);
+            input["scope_confirmed"] = json!(true);
+            api::evaluate(command, &input).unwrap()
+        };
+        let mut later = run("2026-27");
+        assert_eq!(later["period"], "2026-27");
+        later["period"] = json!("2025-26");
+        assert_eq!(later, run("2025-26"), "{command}");
+    }
+    let input = json!({"cost": "3000.00", "effective_life": "4", "days": 366,
+        "taxable_use": "0.4", "method": "prime_cost", "scope_confirmed": true, "year": "2026-27"});
+    assert_eq!(
+        api::evaluate("depreciation", &input).unwrap_err(),
+        "days must be an integer from 0 to 365 for 2026-27."
+    );
+}
+
+/// The ATO says CGT reforms take effect from 1 July 2027:
+/// https://softwaredevelopers.ato.gov.au/reforming-negative-gearing-dsp-special-purpose-working-group.
+/// Later income years remain outside this worksheet until it handles the reform.
 #[test]
 fn capital_gains_stops_before_the_income_year_the_reform_affects() {
     for year in supported_periods("capital_gains") {

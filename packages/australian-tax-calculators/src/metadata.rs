@@ -210,7 +210,8 @@ fn keys<T>(table: &[(&'static str, T)]) -> Vec<&'static str> {
 /// `SUPPORTED_PERIODS[kind]`.
 pub fn supported_periods(kind: &str) -> Vec<&'static str> {
     match kind {
-        "gst" | "capital_gains" | "depreciation" | "quarterly_sg" => vec!["2025-26"],
+        "gst" | "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
+        "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         "fbt" => vec!["2026"],

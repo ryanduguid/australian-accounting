@@ -72,6 +72,27 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
         let cents = applied.quantize(-2, Rounding::HalfUp).unwrap();
         expected["ok"]["amounts"]["carry_forward_applied"] = json!(cents.to_string());
     }
+    // gst, capital-gains and depreciation also accept 2026-27 (CHANGELOG.md).
+    let opened = ["gst", "capital_gains", "depreciation"];
+    let period = json!({"id": "2026-27", "basis": "income year", "start": "2026-07-01",
+        "end": "2027-06-30", "arguments": {"year": "2026-27"}});
+    match command {
+        "periods" if opened.iter().any(|kind| input["kind"] == *kind) => {
+            expected["ok"].as_array_mut().unwrap().push(period);
+        }
+        "worksheet-catalogue" => {
+            for kind in opened {
+                let periods = expected["ok"][kind]["supported_periods"].as_array_mut();
+                periods.unwrap().push(period.clone());
+            }
+        }
+        "gst" | "capital-gains" | "depreciation" => {
+            if let Some(Value::String(error)) = expected.get_mut("error") {
+                *error = error.replace("; supported: 2025-26.", "; supported: 2025-26, 2026-27.");
+            }
+        }
+        _ => {}
+    }
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
         "worksheet-catalogue" => expected.pointer_mut("/ok/study_loan_repayment"),
