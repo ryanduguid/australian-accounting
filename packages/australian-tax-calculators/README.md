@@ -155,10 +155,13 @@ This worksheet is published in the 0.1.5 wheel.
 ## Super contribution caps and pension minimums
 
 `contribution_caps` tests one year's classified contributions against the caps.
-Unused concessional cap carries forward only when the total super balance at the
-previous 30 June is below $500,000, and `carry_forward_applied` is only the part
-that covers contributions over the year's cap (ITAA 1997 s 291-20(4)); the rest
-stays unused for later years. The non-concessional cap is 4 times the
+Unused concessional cap can be applied only when the total super balance at the
+previous 30 June is below $500,000. `carry_forward_applied` is only the part that
+covers contributions over the year's cap (ITAA 1997 s 291-20(3)-(4)); unapplied
+amounts remain available subject to the 5-year expiry rule. The caller supplies
+the established eligible unused total. `concessional_available` is the maximum
+potential contribution capacity, including that total, rather than the statutory
+cap after the amount actually applied. The non-concessional cap is 4 times the
 concessional cap, nil at or above the general transfer balance cap, and otherwise
 1, 2 or 3 times the annual cap by the balance bands in ITAA 1997 s 292-85. Bring-forward
 needs the person to be under 75 at any time in the year. The result gives room and

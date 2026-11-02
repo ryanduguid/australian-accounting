@@ -1001,7 +1001,7 @@ pub fn contribution_caps(
             int(0)
         };
         // s 291-20(3)-(4): the unused cap raises this year's cap only by the
-        // excess it covers; the rest stays unused for later years.
+        // excess it covers; unapplied amounts remain subject to 5-year expiry.
         let applied = py_min(carried.clone(), py_max(int(0), concessional.sub(&cap)?)?)?;
         let available_concessional = cap.add(&carried)?;
         // s 292-85: nil at or above the transfer balance cap; otherwise the
