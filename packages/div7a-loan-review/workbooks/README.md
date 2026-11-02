@@ -1,8 +1,8 @@
 # Excel workbook
 
 `div7a-loan-review.xlsx` is the same review as the command line tool, written in
-ordinary worksheet formulas for accountants who work in Excel and do not have
-Python. It is macro-free and needs desktop Excel for Microsoft 365 or Excel 2024.
+ordinary worksheet formulas for accountants who work in Excel rather than at a
+command line. It is macro-free and needs desktop Excel for Microsoft 365 or Excel 2024.
 Nothing leaves the workbook.
 
 **Experimental review aid. Not a Division 7A determination.** Everything the

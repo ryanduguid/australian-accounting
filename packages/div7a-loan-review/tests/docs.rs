@@ -156,7 +156,7 @@ fn the_readme_lists_each_refusal_and_avoids_the_wrong_names() {
         "s 109Y",
         "s 109R",
         "s 109D(6)",
-        "does not write \"the ATO will assess",
+        "does not write 'the ATO will assess",
     ] {
         assert_in(phrase, &readme, "README");
     }

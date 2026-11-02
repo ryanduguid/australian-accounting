@@ -1,7 +1,7 @@
 # Lodgment calendar
 
 `lodgment-calendar` works out lodgement and payment due dates for BAS, IAS, income tax and
-FBT returns under the ATO's 2026–27 lodgment program, for self-lodgers and for clients of
+FBT returns under the ATO's 2026-27 lodgment program, for self-lodgers and for clients of
 registered tax and BAS agents. Each date carries its rule, the ATO page it comes from and
 the date that page was checked. A date that depends on a fact you did not supply, or that
 the ATO pages leave open, comes back `UNKNOWN` with the missing condition named.
@@ -60,7 +60,7 @@ Quarter 4 is `UNKNOWN` because the ATO marks 25 August 2027 'to be confirmed'.
 | `holidays_complete_until` | A `date` to which the ATO table and `extra_holidays` hold every holiday (see below) |
 
 This release records statement periods in 2026-27, income tax returns for the 2025-26
-income year, which are the returns the 2026–27 program covers, and FBT returns for the FBT
+income year, which are the returns the 2026-27 program covers, and FBT returns for the FBT
 year ending 31 March 2027 (`2026-27`, the 2027 return). Any other year returns one `UNKNOWN`
 row.
 

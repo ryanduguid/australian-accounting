@@ -1,6 +1,6 @@
 # Division 7A loan review
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation or lodgement.
 
 ```
 +----------------------------------------------------------------------+
@@ -61,14 +61,14 @@ The Rust 1.0.0 binary is unreleased.
 
 Three questions, one job.
 
-1. **`rate`** - the s 109N(2) benchmark interest rate for a year of income,
+1. **`rate`**: the s 109N(2) benchmark interest rate for a year of income,
    with provenance: RBA table, series, month and the date this repository
    last reviewed the figure.
-2. **`gate`** - whether a loan meets every limb of s 109N(1), on facts the
+2. **`gate`**: whether a loan meets every limb of s 109N(1), on facts the
    operator asserts. Written agreement, terms in place before the lodgment
    day, interest rate at or above the benchmark, term within the s 109N(3)
    maximum.
-3. **`myr`** - the s 109E(5) minimum yearly repayment for a later year of
+3. **`myr`**: the s 109E(5) minimum yearly repayment for a later year of
    income, the payments applied against it, and any shortfall.
 
 `review` runs the gate and the repayment together over a register.
@@ -157,8 +157,8 @@ deemed-dividend exposure equal to the shortfall. Read it as a review aid.
 s 109E(2) makes the dividend the shortfall **subject to s 109Y**, which caps
 Division 7A dividends at the company's distributable surplus, and s 109E(1)(d)
 removes the dividend entirely where s 109Q applies. Neither is modelled here,
-and neither is s 109RB. This repository does not write "the ATO will assess
-$X", and neither should anything built on it.
+and neither is s 109RB. This repository does not write 'the ATO will assess
+$X', and neither should anything built on it.
 
 ## Next to a commercial Division 7A worksheet
 
@@ -215,7 +215,7 @@ gives $19,715.97. Which balance applies is for the reviewer to decide.
 
 ## Excel workbook
 
-No Python? [`workbooks/div7a-loan-review.xlsx`](workbooks/div7a-loan-review.xlsx)
+No command line? [`workbooks/div7a-loan-review.xlsx`](workbooks/div7a-loan-review.xlsx)
 runs the same review in ordinary worksheet formulas: paste the register, pick
 the year of income, read each s 109N(1) limb, the gate verdict, the s 109E(6)
 repayment and the shortfall per loan. REFUSED and UNKNOWN stay REFUSED and
@@ -337,7 +337,7 @@ Two samples ship with the repository:
   3 complying loans that run to a verdict with no confirmation flags.
 - [`examples/sample_loans_mixed.csv`](examples/sample_loans_mixed.csv) -
   `UNKNOWN` rows, a loan whose rate is below the benchmark, a 25-year loan
-  with 109% cover, a nil remaining term, and 2 skipped rows.
+  with 109% cover, a nil remaining term and 2 skipped rows.
 
 Both are fabricated. Every identifier is synthetic.
 
@@ -563,7 +563,7 @@ The module is `wasm/target/wasm32-unknown-unknown/release/div7a_loan_review_wasm
 ## Evaluation pack
 
 [`evaluation/div7a_myr/`](evaluation/div7a_myr/) holds fabricated fixtures,
-pinned expectations, and 3 minimum yearly repayments worked by hand from
+pinned expectations and 3 minimum yearly repayments worked by hand from
 the statutory formula with the arithmetic shown. A reviewer who knows s 109N
 and s 109E can re-perform every one on paper without running the engine.
 
@@ -581,9 +581,9 @@ and command runs, plus generated cases, and `tests/BEHAVIOURS.md` maps each
 original test to its Rust coverage. The formula properties run as seeded Rust
 tests against exact rational arithmetic.
 
-Every frozen rate year, every verdict, every refusal, the 2025-26 May-vs-June
-trap, the formula against exact rational arithmetic, and a check that no
-amount is ever emitted as a JSON number.
+The tests cover every frozen rate year, every verdict, every refusal, the
+2025-26 May-vs-June trap, the formula against exact rational arithmetic and a
+check that no amount is ever emitted as a JSON number.
 
 [GATES.md](GATES.md) is the completion ledger: one gate per acceptance
 criterion, each naming the command that decides it and carrying the recorded
@@ -600,12 +600,12 @@ formula image in that text. It is not a port of any existing Division 7A
 calculator.
 
 Where the compiled Act and a secondary source disagree, this repository
-follows the Act, cites the section, and records the disagreement.
+follows the Act, cites the section and records the disagreement.
 
 The full source trail is in
 [docs/primary-source-review-2026-08-31.md](docs/primary-source-review-2026-08-31.md):
 which sections were read, how the s 109E(6) formula was recovered from the
-compilation's own image, the reviewed position on s 109N(1)(b), and what this
+compilation's own image, the reviewed position on s 109N(1)(b) and what this
 engine deliberately does not establish.
 
 ## Related

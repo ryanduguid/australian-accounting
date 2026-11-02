@@ -1,6 +1,6 @@
 # ATO benchmark comparison
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation or lodgement.
 
 ```
 +----------------------------------------------------------------------+
@@ -16,7 +16,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 +----------------------------------+-----------------------------------+
 ```
 
-![ato-benchmark-compare](assets/banner.svg)
+![ato-benchmark-compare, ATO small business benchmarks](assets/banner.svg)
 
 <div align="center">
 
@@ -195,7 +195,7 @@ JSON callers that distinguish an omitted figure from an evidenced zero can run
 `compare-figures` with `"output": "evidenced"` and list the fields they can vouch
 for in `output_supplied`; include `w1` there when it was supplied. That payload
 masks ratios and prose whose required inputs were not supplied and returns
-`supplied_buckets`, `omitted_buckets`, and `complete_buckets` alongside the
+`supplied_buckets`, `omitted_buckets` and `complete_buckets` alongside the
 ordinary comparison payload.
 
 The comparison applies the same rule to its own verdicts. `compute` and

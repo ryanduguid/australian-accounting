@@ -1,8 +1,8 @@
 # Excel workbook
 
 `payday-super-checker.xlsx` implements the 0.2.2 command line review,
-written in ordinary worksheet formulas for accountants who work in Excel and do
-not have Python. It is macro-free and needs desktop Excel for Microsoft 365 or
+written in ordinary worksheet formulas for accountants who work in Excel rather
+than at a command line. It is macro-free and needs desktop Excel for Microsoft 365 or
 Excel 2024. Nothing leaves the workbook.
 
 **Experimental review aid. Not a compliance determination.** Review Checks
@@ -12,7 +12,8 @@ verdict whilst the workbook is `BLOCKED`.
 
 ## Version and verification scope
 
-This checkout contains the 0.2.2 workbook. The workbook at the
+This checkout contains the 0.2.2 workbook, which records engine version 1.0.0
+on Sources & Version. The workbook at the
 published 0.1.6 tag assumes full receipt when a receipt date has no amount. It
 also extrapolates GIC after 31 December 2026, whereas the 0.1.6 CLI withholds the
 estimate by default. Workbooks from 0.1.7 fix both cases and have no

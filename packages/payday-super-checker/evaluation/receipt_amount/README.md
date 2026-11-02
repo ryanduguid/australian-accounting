@@ -29,7 +29,7 @@ Assessed as at 20 August 2026. The due date for a 6 August payday is
 | `timely_receipt_no_amount` | 17 Aug | none | `UNKNOWN` | 2 | not assessed |
 | `late_receipt_no_amount` | 18 Aug | none | `LATE` | 2 | 120.00, a maximum |
 | `timely_part_receipt` | 17 Aug | remitted 100.00, matched 100.00 | `UNPAID` | 2 | 20.00 |
-| `timely_receipt_remitted_amount_only` | 17 Aug | remitted 120.00, ten-column file | `ON_TIME` | 0 | none |
+| `timely_receipt_remitted_amount_only` | 17 Aug | remitted 120.00, 10-column file | `ON_TIME` | 0 | none |
 | `timely_receipt_matched_amount` | 17 Aug | matched 120.00 | `ON_TIME` | 0 | none |
 
 - **No amount, on time.** The checker cannot tell whether the fund received
@@ -40,7 +40,7 @@ Assessed as at 20 August 2026. The due date for a 6 August payday is
   amount the checker cannot apply the reduction for a late payment, so the
   final shortfall shown is the whole $120.00 and is a maximum.
 - **Part receipt.** $100.00 received on time reduces the shortfall to $20.00.
-- **Remitted amount only.** This fixture uses the older ten-column layout,
+- **Remitted amount only.** This fixture uses the older 10-column layout,
   which has no `matched_amount` column. There, `remitted_amount` on a row with
   a receipt date is read as the amount that receipt covers. The
   result is `ON_TIME`, which rests on that reading: confirm the fund

@@ -1,6 +1,6 @@
 # Construction WIP schedule
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation or lodgement.
 
 ```
 +----------------------------------------------------------------------+
@@ -97,7 +97,7 @@ wip-tally review-pack wip-schedule.csv --source sample_contracts.csv --as-at 202
 ```
 
 The pack binds itself to the source and schedule bytes with SHA-256, lists
-every flagged contract, and puts a sign-off checklist on the page. Keep the
+every flagged contract and puts a sign-off checklist on the page. Keep the
 CSV beside the pack. The CSV is the row-level evidence.
 
 The reporting date is written on every schedule row, so it is inside the bytes
@@ -199,7 +199,7 @@ AASB 137. This engine does not measure the provision and does not post it.
 Where `assets_used_carrying` is supplied it also flags para 69 (impair those
 assets before raising a provision).
 
-**GST.** Certified billings and retention are shown grossed-up at `gst_rate` as
+**GST.** Certified billings and retention are shown grossed up at `gst_rate` as
 a BAS review note. Australian progress claims commonly invoice GST on the full
 certified amount, including retention that has not been paid in cash. This is
 not a BAS engine.
@@ -262,7 +262,7 @@ cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked
 ```
 
-The frozen Python corpus in `tests/data/` is replayed by Rust on both platforms,
+The frozen Python corpus in `tests/data/` is replayed by Rust on all 3 platforms,
 including the original command runs with their input files and every file they
 wrote. [tests/BEHAVIOURS.md](tests/BEHAVIOURS.md) maps the original tests to
 these checks.

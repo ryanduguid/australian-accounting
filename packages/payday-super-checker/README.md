@@ -1,6 +1,6 @@
 # Payday Super timing
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation or lodgement.
 
 ```
 +----------------------------------------------------------------------+
@@ -16,7 +16,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 +----------------------------------+-----------------------------------+
 ```
 
-![payday-super-checker](assets/banner.svg)
+![payday-super-checker, Australian Payday Super](assets/banner.svg)
 
 <div align="center">
 
@@ -43,7 +43,7 @@ fund-receipt date has neither `matched_amount` nor `remitted_amount`; its caveat
 discloses that assumption. Supply and reconcile the receipt amount before relying
 on an `ON_TIME` result. See [release status](#release-status-and-examples).
 
-The `australian-accounting` repository contains the maintained source. The `payday-super-check` command name remains; the `paydaysuper` import package is removed, and its functions are JSON stdin subcommands (see [JSON API](#json-api)). The last Python release, 0.2.2, remains on PyPI; the Rust 1.0.0 binary is unreleased.
+The `australian-accounting` repository contains the maintained source. The `payday-super-check` command name remains; the `paydaysuper` import package is removed, and its functions are JSON stdin subcommands (see [JSON API](#json-api)). The last Python release, 0.2.3, remains on PyPI; the Rust 1.0.0 binary is unreleased.
 
 Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written independently, in his own time and on his own equipment.
 
@@ -63,7 +63,7 @@ for available distributions; a checkout version alone does not establish publica
 
 `aus-accounting-mcp` 0.2.12 pins checker 0.1.9, 0.2.10 and 0.2.11 pin 0.1.8, 0.2.5 to 0.2.9 pin 0.1.7, and 0.2.4 pins 0.1.6,
 which assumes full receipt as described above. Until the MCP server links this
-crate, the monorepo workspace installs Python checker 0.2.2 from PyPI for it.
+crate, the monorepo workspace installs Python checker 0.2.3 from PyPI for it.
 Check the installed engine version when comparing CLI and MCP results.
 
 The quick trial below pins release 0.1.7. The historical public evaluation
@@ -113,7 +113,7 @@ cargo test --locked --test quick_proof
 
 No command line? [`workbooks/payday-super-checker.xlsx`](workbooks/payday-super-checker.xlsx)
 implements the 0.2.2 review in ordinary worksheet formulas: paste the canonical
-contributions register, set the as-at date, and read the deadline, verdict,
+contributions register, set the as-at date and read the deadline, verdict,
 shortfall, notional earnings and SG charge estimate range per line, with the
 0.2.2 checker's UNKNOWN outcomes preserved. The tagged 0.1.6 workbook
 still assumes full receipt without an amount and extrapolates beyond its GIC
@@ -518,7 +518,7 @@ Required: `employee_id`, `payment_date`, `sg_amount`. Everything else is optiona
 | `next_standard_qe_day` | `next_standard_payday` | The next schedule-consistent day on which the employer actually made a subsequent non-out-of-cycle QE payment. A planned payday or a date after employment ended is not enough |
 | `db_interest` | `defined_benefit` | Yes for defined-benefit interests, which are skipped |
 
-Dates read as `YYYY-MM-DD`, day-first `DD/MM/YYYY` or `9 Jul 2026`, and a zone-less time component is ignored. A date-time carrying a `Z` or UTC-offset marker is refused: its as-written day belongs to that zone, and a UTC evening stamp is already the next day in Australia, so keeping the written day could pass a receipt that was actually a day later. Convert it to the Australian local calendar date first. Amounts accept `$` and thousands separators, and are read to the cent (ROUND_HALF_UP) at both the import and check boundaries, so the same figure means the same number whichever door it comes through; a non-zero value under half a cent is refused rather than rounded to nothing. Anything unreadable stops the run and names up to 20 bad cells at once, and so does a truncated row, a duplicated column heading, or a mapping that points at a column your file does not have. This experimental review tool refuses facts it cannot safely infer.
+Dates read as `YYYY-MM-DD`, day-first `DD/MM/YYYY` or `9 Jul 2026`, and a zone-less time component is ignored. A date-time carrying a `Z` or UTC-offset marker is refused: its as-written day belongs to that zone, and a UTC evening stamp is already the next day in Australia, so keeping the written day could pass a receipt that was actually a day later. Convert it to the Australian local calendar date first. Amounts accept `$` and thousands separators, and are read to the cent (ROUND_HALF_UP) at both the import and check boundaries, so the same figure means the same number whichever door it comes through; a non-zero value under half a cent is refused rather than rounded to nothing. Anything unreadable stops the run and names up to 20 bad cells at once, and so does a truncated row, a duplicated column heading or a mapping that points at a column your file does not have. This experimental review tool refuses facts it cannot safely infer.
 
 **The amount column must hold the operator-determined SG amount only.** Apply
 the employee and payment boundaries in regulations 11 and 12, the
@@ -713,7 +713,7 @@ this on its own, because an input is free to carry the same suffix.
 
 ## The rules it applies
 
-The enacted framework is the *Treasury Laws Amendment (Payday Superannuation) Act 2025* (No 57 of 2025, assent 6 November 2025), the *Superannuation Guarantee Charge Amendment Act 2025* (No 58 of 2025), and the regulations registered as F2026L00133, which amend the *Superannuation Guarantee (Administration) Regulations 2018*; the current 1 July 2026 compilation is F2026C00535. It applies to paydays from 1 July 2026. A primary-source implementation review was completed on **15 August 2026**. [The review](docs/primary-source-review-2026-08-15.md) records the exact legislation, final ruling status, holiday authorities, runtime comparison and residual limits. It does not turn this experimental tool into an ATO compliance determination or authorise a release. The 15 August review is the maintained primary-source record.
+The enacted framework is the *Treasury Laws Amendment (Payday Superannuation) Act 2025* (No 57 of 2025, assent 6 November 2025), the *Superannuation Guarantee Charge Amendment Act 2025* (No 58 of 2025) and the regulations registered as F2026L00133, which amend the *Superannuation Guarantee (Administration) Regulations 2018*; the current 1 July 2026 compilation is F2026C00535. It applies to paydays from 1 July 2026. A primary-source implementation review was completed on **15 August 2026**. [The review](docs/primary-source-review-2026-08-15.md) records the exact legislation, final ruling status, holiday authorities, runtime comparison and residual limits. It does not turn this experimental tool into an ATO compliance determination or authorise a release. The 15 August review is the maintained primary-source record.
 
 ATO LCR 2026/1, LCR 2026/2 and LCR 2026/3 were issued on 5 August 2026. LCR 2026/D1 remains draft pending the appeal from *Department of Education v Commissioner of Taxation* [2026] FCA 898. The tool therefore accepts an operator-provided SG amount and does not decide qualifying-earnings or termination classifications.
 

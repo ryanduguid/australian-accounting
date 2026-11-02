@@ -1,13 +1,5 @@
 # Aus Accounting MCP
 
-Release `aus-accounting-mcp==0.5.0` provides 14 worksheets through
-`australian-tax-calculators==0.2.0`, including Schedule 8 study-loan withholding,
-the bounded annual Medicare levy, LITO and Division 293. The preceding 0.4.0
-release provides 10 through calculators 0.1.8. See the
-[worksheet release verification](docs/worksheet-release.md) for the installed
-package checks. The annual Medicare worksheet does not apply Medicare
-adjustments to payroll withholding.
-
 <div align="center">
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
@@ -36,17 +28,22 @@ The listing identifies the distribution; it does not prove a client's installed 
   account-based pension minimums, study and training loan repayments, Schedule 8 study
   loan withholding, a single person's Medicare levy, the low income tax offset and
   Division 293 tax, each within a stated period and scope. The Medicare levy worksheet
-  refuses a person to whom s 9A (lump sum payments in arrears) applies.
+  refuses a person to whom s 9A (lump sum payments in arrears) applies. The annual
+  Medicare worksheet does not apply Medicare adjustments to payroll withholding.
+- **GST and BAS:** give each coded bank line a review state against supplied GST
+  registration dates and compare lodged BAS label figures with ledger lines per period.
+- **Lodgment and identifiers:** list ATO 2026-27 lodgment program due dates and test
+  ABN and ACN check digits. A valid check digit proves neither ABR nor GST registration.
 - **Cited research:** search your own Markdown library, or a local copy of federal tax
   legislation, with every result cited to its file and line, or its Act, section and
-  compilation.
+  compilation. Search a local ATO rulings corpus and read one cited ruling paragraph.
 - **Test data:** generate synthetic CTR and BAS fixtures for integration testing.
 
 > Not tax advice. Payday Super and Division 7A reviews are experimental and need
 > human review before consequential accounting action. Fixtures are not a lodgement.
 > Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited
 > to software issues reproduced with fabricated data. Do not send taxpayer information
-> or request advice, return preparation, tax-treatment confirmation, or lodgement.
+> or request advice, return preparation, tax-treatment confirmation or lodgement.
 > See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).
 
 ## Install
@@ -198,6 +195,14 @@ those it leaves `UNKNOWN` or refuses, pin this server's own results
 ## Licence and releases
 
 Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Created by Ryan Duguid. If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
+
+Release `aus-accounting-mcp==0.5.0` provides 14 worksheets through
+`australian-tax-calculators==0.2.0`, including Schedule 8 study-loan withholding,
+the bounded annual Medicare levy, LITO and Division 293. The preceding 0.4.0
+release provides 10 through calculators 0.1.8. See the
+[worksheet release verification](docs/worksheet-release.md) for the installed
+package checks.
+
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
 [v0.7.1 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.1),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).

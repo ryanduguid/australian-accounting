@@ -151,13 +151,13 @@ recursion limit.
 ## Integration and releases
 
 No other component in this repository imports this engine. Root `just test` and
-`just check` include Cargo. CI builds and tests on Ubuntu and Windows with
-read-only repository permissions; CodeQL includes Rust and Dependabot monitors
+`just check` include Cargo. CI builds and tests on Ubuntu, Windows and macOS
+with read-only repository permissions; CodeQL includes Rust and Dependabot monitors
 this Cargo lock. The former Python/PyPI publisher is retired. Native signing and
 publication need a separate authorised release change; no publisher is
 configured for 1.0.0.
 
-The frozen Python corpus in `tests/data/` is replayed by Rust on both platforms.
+The frozen Python corpus in `tests/data/` is replayed by Rust on all 3 platforms.
 [tests/BEHAVIOURS.md](tests/BEHAVIOURS.md) maps the original tests to these checks.
 See [CHANGELOG.md](CHANGELOG.md) for the documented divergences.
 
