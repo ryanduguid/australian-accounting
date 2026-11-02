@@ -53,7 +53,7 @@ fn difference(left: &Value, right: &Value, path: &str) -> Option<String> {
 fn frozen_effective_adapter_contracts() {
     let mut cases: Vec<Value> =
         serde_json::from_str(include_str!("fixtures/native/adapter-contracts.json")).unwrap();
-    assert_eq!(cases.len(), 929);
+    assert_eq!(cases.len(), 935);
     let edges: Vec<Value> =
         serde_json::from_str(include_str!("fixtures/native/validation-edges.json")).unwrap();
     assert_eq!(edges.len(), 39);

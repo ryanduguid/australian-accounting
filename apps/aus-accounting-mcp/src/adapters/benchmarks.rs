@@ -2,7 +2,7 @@ use ato_benchmark_compare::{
     api,
     dataset::{self, DataDir},
     mapping::BUCKETS,
-    report,
+    py, report,
 };
 use serde_json::{Value, json};
 
@@ -68,9 +68,26 @@ pub fn compare(input: &Value) -> Result<Value, String> {
         "compare-figures",
         &json!({"dataset":{"year":input["year"]},"industry":input["industry"],
         "totals":totals,"w1":w1.map(|n|n.to_sci_string()),"output":"evidenced","output_supplied":supplied}),
-    )?;
+    )
+    .map_err(|error| unmatched(input, error))?;
     result["ok"] = json!(true);
     result["engine"] = json!("ato-benchmark-compare");
     result["engine_version"] = json!(ato_benchmark_compare::VERSION);
     Ok(result)
+}
+
+/// The engine's message for an industry no business type matches sends the reader to
+/// its command line, which an MCP client cannot run; name the tool that lists them.
+fn unmatched(input: &Value, error: String) -> String {
+    let industry = input["industry"].as_str().unwrap_or_default();
+    match dataset::load(input["year"].as_str(), &DataDir::Shipped) {
+        Ok(data) if data.search(industry, false).is_empty() => format!(
+            "no ATO business type matches {}. Call list_ato_benchmark_industries with a \
+             search word and year {} to find the exact name among all {} of them.",
+            py::repr_str(industry),
+            py::repr_str(&data.year),
+            data.business_types.len()
+        ),
+        _ => error,
+    }
 }

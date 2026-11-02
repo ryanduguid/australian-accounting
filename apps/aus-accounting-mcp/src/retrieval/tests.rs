@@ -230,7 +230,7 @@ fn frozen_corpus_contracts() {
         }
         count += 1;
     }
-    assert_eq!(count, 127);
+    assert_eq!(count, 130);
 }
 
 #[test]
@@ -268,7 +268,7 @@ fn frozen_rulings_contracts() {
         }
         count += 1;
     }
-    assert_eq!(count, 76);
+    assert_eq!(count, 77);
 }
 
 #[test]
@@ -328,7 +328,7 @@ fn frozen_library_contracts() {
         }
         count += 1;
     }
-    assert_eq!(count, 38);
+    assert_eq!(count, 43);
 }
 
 fn original_case<'a>(fixture: &'a Value, test: &str, function: &str) -> &'a Value {

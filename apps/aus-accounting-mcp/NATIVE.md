@@ -109,13 +109,13 @@ benchmark name/year and engine date format. These complement frozen payload
 comparisons; neither a captured call nor this set proves every original assertion.
 
 The source-bound [behaviour record](tests/fixtures/native/behaviour-coverage.json)
-reconciles all 426 original test functions across 36 files. It records 317 with
+reconciles all 433 original test functions across 36 files. It records 324 with
 native observable checks, 59 with explicit native adaptations and 50 retained
 with the supported Python distribution and its release, Registry, documentation
 or media workflow. Retained checks are active and are not retirement approvals.
 The record identifies proof symbols and limitations for each function; a Rust
 test refuses changed original source hashes until the reconciliation is reviewed.
-These are function dispositions, not 426 independent Rust tests or proof of
+These are function dispositions, not 433 independent Rust tests or proof of
 untested inputs, current law or real taxpayer results.
 
 `tests/original_behaviours.rs` tests relationships that frozen payloads cannot
@@ -206,10 +206,16 @@ reviewed transforms at the recorded base; `tests/fixtures/native/origin.json`
 keeps both commits, and its `oracle_sha256` values remain the first capture's raw
 hashes. The second refreeze, at 035847a, added main's ABN and ACN tools, the
 returned-contribution qualification on Payday ON_TIME results and packs, and 143
-calls from main's new and changed tests and independent ABN and ACN probes. Other
-counts below date from the first capture.
+calls from main's new and changed tests and independent ABN and ACN probes. The
+third, at 03baab7, followed main's ranked library search, `in_force_only` and
+`version_is_current` on rate searches, later ranking of rulings that carry a
+withdrawal notice, the unmatched-industry refusal naming
+`list_ato_benchmark_industries` and the stated SG-charge estimate exclusions. It
+recaptured the retrieval cases from the Python suite and added 6 benchmark calls
+from main's new tests and independent probes. Other counts below date from the
+first capture.
 
-The native comparison covers 929 captured effective SDK calls for all
+The native comparison covers 935 captured effective SDK calls for all
 non-retrieval tools and unknown tools, plus 39 independent validation probes and
 22 further original-only money, date, year and large-pack cases and 9 year-zero
 refusal cases. Three large-catalogue cases compare complete original rulings
@@ -220,7 +226,7 @@ responses. Six resource payloads, 34 prompt cases and 1,175 JSON-RPC replies acr
 compact packs, pagination and configured-folder status without disclosing paths.
 Negative schema checks reject misleading money, dates, safety markers and missing
 audit sections whilst retaining engine extension fields. All eight retrieval entry points are
-implemented, with 222 captured core/boundary/helper calls from all 165 original
+implemented, with 231 captured core/boundary/helper calls from all 169 original
 retrieval test nodes and 19 further original-only edge cases. Comparisons cover
 complete returned objects and exact refusals. Windows and isolated WSL Linux fmt, locked Clippy, debug/release tests, release
 builds and copied-binary runs with an empty cwd/PATH pass. Root checks and a fresh

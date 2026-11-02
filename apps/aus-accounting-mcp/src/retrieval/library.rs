@@ -1,7 +1,12 @@
-use super::{Context, POLICY, linked, page, splitlines, terms};
+use super::{
+    Context, POLICY,
+    corpus::{self, Ranked},
+    linked, page, splitlines, terms,
+};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
+    collections::BinaryHeap,
     fs,
     path::{Component, Path, PathBuf},
 };
@@ -66,6 +71,50 @@ pub(super) fn excerpt(
     if start > lines.len() {
         return Err("start_line is beyond the end of the document.".into());
     }
+    let (mut heading, mut pdf_page) = (None, Value::Null);
+    for line in &lines[..start] {
+        advance(line, &mut heading, &mut pdf_page)?;
+    }
+    shape(name, digest, lines, start, count, heading, pdf_page)
+}
+
+/// Moves the heading and PDF page in force before `line` to those in force after it.
+/// The heading is kept whole so ranking sees every word; `shape` truncates it.
+fn advance<'a>(
+    line: &'a str,
+    heading: &mut Option<&'a str>,
+    pdf_page: &mut Value,
+) -> Result<(), String> {
+    if line.starts_with('#') {
+        *heading = Some(line);
+    }
+    for (index, _) in line.match_indices("<!-- PDF page ") {
+        let after = &line[index + "<!-- PDF page ".len()..];
+        let digits: String = after
+            .chars()
+            .map_while(payday_super_checker::py::decimal_value)
+            .map(|d| char::from(b'0' + d as u8))
+            .collect();
+        if !digits.is_empty() {
+            let number = digits.trim_start_matches('0');
+            *pdf_page = serde_json::from_str(if number.is_empty() { "0" } else { number })
+                .map_err(|_| READ_ERROR)?;
+            break;
+        }
+    }
+    Ok(())
+}
+
+fn shape(
+    name: &str,
+    digest: &str,
+    lines: &[String],
+    start: usize,
+    count: usize,
+    heading: Option<&str>,
+    pdf_page: Value,
+) -> Result<Value, String> {
+    // Truncate only at a line boundary so citation ranges remain exact.
     let mut end = (start - 1).saturating_add(count).min(lines.len());
     let mut length = lines[start - 1..end]
         .iter()
@@ -79,27 +128,7 @@ pub(super) fn excerpt(
     if length > 12000 {
         return Err("The selected line exceeds 12000 characters; select another line.".into());
     }
-    let mut heading = None;
-    let mut pdf_page = Value::Null;
-    for line in &lines[..start] {
-        if line.starts_with('#') {
-            heading = Some(line.chars().take(300).collect::<String>());
-        }
-        for (index, _) in line.match_indices("<!-- PDF page ") {
-            let after = &line[index + "<!-- PDF page ".len()..];
-            let digits: String = after
-                .chars()
-                .map_while(payday_super_checker::py::decimal_value)
-                .map(|d| char::from(b'0' + d as u8))
-                .collect();
-            if !digits.is_empty() {
-                let number = digits.trim_start_matches('0');
-                pdf_page = serde_json::from_str(if number.is_empty() { "0" } else { number })
-                    .map_err(|_| READ_ERROR)?;
-                break;
-            }
-        }
-    }
+    let heading = heading.map(|h| h.chars().take(300).collect::<String>());
     Ok(
         json!({"path":name,"sha256":digest,"start_line":start,"end_line":end,"total_lines":lines.len(),"heading":heading,"pdf_page":pdf_page,"text":lines[start - 1..end].join("\n"),"notice":POLICY["library"]["NOTICE"]}),
     )
@@ -133,8 +162,11 @@ pub(super) fn search(
         return Err("Supply at least one word to search for.".into());
     }
     let root = context.root("AUS_ACCOUNTING_LIBRARY_ROOT", "Markdown folder")?;
-    let mut matches = Vec::new();
-    let (mut skipped, mut size, mut count, mut seen) = (0, 0, 0, 0);
+    // shortcut: ranking scans the whole library on every search, as the Python server
+    // does; add an index if a measured library query set needs one.
+    let cap = offset + limit + 1;
+    let mut best: BinaryHeap<Ranked<(usize, usize)>> = BinaryHeap::new();
+    let (mut skipped, mut size, mut count, mut order) = (0, 0, 0, 0);
     let mut pending = vec![root.clone()];
     let finish = |matches, seen, skipped, more| {
         let mut value = page(
@@ -219,24 +251,42 @@ pub(super) fn search(
                 skipped += 1;
                 continue;
             };
+            let (mut heading, mut pdf_page) = (None, Value::Null);
             for (index, line) in lines.iter().enumerate() {
+                advance(line, &mut heading, &mut pdf_page)?;
                 let folded = payday_super_checker::py::casefold(line);
                 if !terms.iter().all(|term| folded.contains(term)) {
                     continue;
                 }
-                if seen < offset {
-                    seen += 1;
-                    continue;
-                }
-                if matches.len() >= limit {
-                    return Ok(finish(matches, seen, skipped, true));
-                }
-                seen += 1;
-                if let Ok(value) = excerpt(&name, &lines, &digest, index + 1, 3) {
-                    matches.push(value);
+                let row = json!({"heading":heading,"line":line});
+                let key = (corpus::tier(&terms, &["heading"], &["line"], &row), order);
+                order += 1;
+                if best.len() < cap || best.peek().is_some_and(|worst| key < worst.key) {
+                    // A line too long to excerpt still takes its rank, as null, so the
+                    // next offset lands after the last one this page consumed.
+                    let value = shape(
+                        &name,
+                        &digest,
+                        &lines,
+                        index + 1,
+                        3,
+                        heading,
+                        pdf_page.clone(),
+                    )
+                    .unwrap_or(Value::Null);
+                    corpus::retain(&mut best, Ranked { key, value }, cap);
                 }
             }
         }
     }
-    Ok(finish(matches, seen, skipped, false))
+    let best = best.into_sorted_vec();
+    let more = best.len() > offset + limit;
+    let matches = best
+        .into_iter()
+        .skip(offset)
+        .take(limit)
+        .map(|ranked| ranked.value)
+        .filter(|value| !value.is_null())
+        .collect();
+    Ok(finish(matches, offset + limit, skipped, more))
 }

@@ -673,6 +673,7 @@ fn search(context: &Context, input: &Value) -> Result<Value, String> {
                 Ranked {
                     key: (
                         corpus::tier(&words, &["title", "heading"], &["text"], &row),
+                        value["withdrawal_status"] == "NOTICE_PRESENT",
                         family_priority(&row),
                         order,
                     ),

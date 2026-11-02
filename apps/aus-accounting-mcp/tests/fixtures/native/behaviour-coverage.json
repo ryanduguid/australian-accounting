@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "scope": "All 426 original test functions in 36 files, including their inspected parameterised assertions. Source-bound reconciliation, not a claim that captured-call counts prove coverage.",
+  "scope": "All 433 original test functions in 36 files, including their inspected parameterised assertions. Source-bound reconciliation, not a claim that captured-call counts prove coverage.",
   "status_meanings": {
     "covered": "Inspected observable assertions have explicit native proof, including complete original payload/refusal equality where appropriate. Cross-source relationships use direct checks. Existing NATIVE.md identity/parser allowances still apply.",
     "adapted": "Explicit native representation, static-link or test-instrumentation difference; see per-function limit. This is not support for substituting Python modules or malformed Python-only values at runtime.",
@@ -8,22 +8,22 @@
   },
   "counts": {
     "adapted": 59,
-    "covered": 317,
+    "covered": 324,
     "retained-python-distribution": 50
   },
   "original_sources": {
-    "tests/test_aus_accounting_mcp.py": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+    "tests/test_aus_accounting_mcp.py": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
     "tests/test_cli.py": "534852f7277704d14027b070cf33507db64334d53ba867c926173fce434f5be7",
     "tests/test_compatibility.py": "d0616cd7d9aec8c92464bff989f2ec2119ef16f3e7e11993c792b4ca5268b9cb",
     "tests/test_conformance_cases.py": "6acc9215e8b4cc62317eb926d258d89662eee4fbb239fc2f53860e8bfaa60976",
-    "tests/test_corpus.py": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+    "tests/test_corpus.py": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
     "tests/test_data_freshness.py": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
     "tests/test_demo.py": "1ed98e9286f9f118de7b57042b8c68c27d9a2f4e635d10db0bafe1ee16711d44",
     "tests/test_demo_media.py": "34c7b570a5747651b18aa9a688cbcc9c9da5de34e9fe5b2259d6ebe87610714c",
     "tests/test_div7a.py": "7aff7234554d00835d236cd4a07d8184f6dc18eef28046ce3e42a69fdffb4547",
     "tests/test_engine_versions.py": "581f9c8eeff2fd1ecc6cee16fbdf804ff4daea690b3a4926f2ac728d41724009",
     "tests/test_evidence_pack.py": "5e25b9143a5b4162e51f84541102e43faa0067a176116025eeea6564fd2a8eb9",
-    "tests/test_expansion.py": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+    "tests/test_expansion.py": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
     "tests/test_firm_assessment.py": "976d43a7b671a07112f23f47093555b03949bc244e1629416a4ba3e83203c4b3",
     "tests/test_group_review.py": "e7932ce738953af1b945a32df83dd16070aa36737b8ce0a03a417729fbefe2ca",
     "tests/test_gst_review.py": "da754a17bae3746a3c025679df0b7a17a897345de8561d5a1b98234ff7659c0e",
@@ -36,12 +36,12 @@
     "tests/test_payday_boundary.py": "165ff36bc3500f222a3233368e6709df81004842e8539c25f359607bb7a6aa25",
     "tests/test_payday_receipt_amount.py": "af1e3467d546f3cbd4dd5a104ebd29b23f33d39a0a64101446168449a2e3a58c",
     "tests/test_payday_returned_limit.py": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
-    "tests/test_payday_rounding.py": "6c82c37bfac06ae64280f4c8312e034535e077962c81e7375797ef48b2d46403",
+    "tests/test_payday_rounding.py": "fc6fdcad04276e0bd90a30f31893851db9375cff4758d3ce29105df17048866d",
     "tests/test_payday_scope.py": "d47c12c1515a63d224cac6a5f5d854ceb213e5f221c5e535974e02205f6d351e",
     "tests/test_registry_preflight.py": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
     "tests/test_repository_guidance.py": "c31719384c5e6b5697523ddc184c25a8ded59af05e2d9b73c28ac63d7add1a83",
     "tests/test_resources.py": "3e242411b14321671decf3a3954fac2249343afb8c50d8581f39a5742cf4d551",
-    "tests/test_rulings.py": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+    "tests/test_rulings.py": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
     "tests/test_selection_record_integrity.py": "e1ff4d6b335c5fd06cc5b20a4adb3d40f0529f3ee8ef50bd47dd04ace2c2c0f9",
     "tests/test_server_money.py": "1e45fcffbbed08c03fb999ec0306d60c270c52d38e1809be752029bca492bcfc",
     "tests/test_server_paths.py": "90acde9386b8a2e161990cbda25d4c5c3e826ceef728ef9ee8d3452aaefdd4b9",
@@ -247,7 +247,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:36",
       "function": "test_proof_package_surface_is_versioned_and_keeps_stdio_separate",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -256,7 +256,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:49",
       "function": "test_pypi_facets_are_declared_without_contradicting_the_licence_field",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -265,7 +265,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:72",
       "function": "test_github_about_copy_matches_the_script_that_applies_it",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -274,7 +274,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:96",
       "function": "test_build_backend_is_exactly_pinned_for_reproducible_wheels",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -283,7 +283,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:319",
       "function": "test_inlined_simulators_are_gone",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -292,7 +292,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:329",
       "function": "test_payday_on_time_uses_payday_super_checker",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -301,7 +301,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:346",
       "function": "test_payday_without_fund_receipt_is_at_risk",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -310,7 +310,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:357",
       "function": "test_payday_pre_regime_is_refused",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -319,7 +319,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:367",
       "function": "test_payday_transition_period_cannot_be_confirmed_by_the_mcp",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -328,7 +328,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:377",
       "function": "test_payday_rejects_non_decimal_amounts",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -337,7 +337,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:387",
       "function": "test_ato_benchmarks_use_shipped_dataset",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -346,7 +346,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:419",
       "function": "test_ato_omitted_buckets_are_not_treated_as_zero",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -355,7 +355,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:476",
       "function": "test_ato_other_income_can_move_the_turnover_band",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -364,7 +364,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:504",
       "function": "test_ato_omitted_other_income_withholds_the_turnover_band_and_ranges",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -373,7 +373,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:529",
       "function": "test_ato_omitted_other_income_withholds_notes_that_quote_turnover",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -382,7 +382,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:558",
       "function": "test_ato_w1_without_associated_persons_is_not_supplied",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -391,7 +391,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:576",
       "function": "test_ato_w1_does_not_substitute_for_salary_wages",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -400,7 +400,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:611",
       "function": "test_engine_declares_every_fact_its_labour_check_quotes",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "LABOUR",
@@ -410,7 +410,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:636",
       "function": "test_ato_omitted_salary_wages_withholds_checks_that_quote_the_label",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -419,7 +419,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:678",
       "function": "test_ato_a_check_resting_only_on_supplied_buckets_survives_the_withholding",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -428,7 +428,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:725",
       "function": "test_ato_withholds_every_check_that_states_an_omitted_bucket_as_a_zero",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -437,7 +437,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:770",
       "function": "test_ato_omitted_cost_of_sales_does_not_pick_the_key_ratio",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -446,7 +446,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:800",
       "function": "test_ato_labour_gate_declines_a_ratio_the_engine_computes_correctly",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "LABOUR",
@@ -456,7 +456,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:837",
       "function": "test_ato_partial_labour_picture_is_not_supplied",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -465,7 +465,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:848",
       "function": "test_ato_complete_labour_picture_is_evidenced",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -474,7 +474,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:864",
       "function": "test_ato_omitted_other_income_withholds_every_ratio",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -483,7 +483,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:904",
       "function": "test_ato_refuses_turnover_only",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -492,25 +492,25 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:909",
       "function": "test_ato_unknown_industry_is_refused",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:918",
+      "original": "tests/test_aus_accounting_mcp.py:941",
       "function": "test_div7a_is_refused",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:927",
+      "original": "tests/test_aus_accounting_mcp.py:950",
       "function": "test_div7a_refusal_is_reachable_without_inventing_loan_facts",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "adapted",
       "proofs": [
         "D",
@@ -520,153 +520,144 @@
       "adaptation_or_limit": "Python positional-call TypeError becomes native object/SDK argument validation; standing refusal needs no invented facts."
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:940",
+      "original": "tests/test_aus_accounting_mcp.py:963",
       "function": "test_synthetic_sbr_fixtures_are_labelled",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:951",
+      "original": "tests/test_aus_accounting_mcp.py:974",
       "function": "test_client_snippets_use_uvx_from_pypi",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1008",
+      "original": "tests/test_aus_accounting_mcp.py:1031",
       "function": "test_release_metadata_matches_the_candidate_version",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1029",
+      "original": "tests/test_aus_accounting_mcp.py:1052",
       "function": "test_active_repository_metadata_uses_canonical_identity",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1047",
+      "original": "tests/test_aus_accounting_mcp.py:1070",
       "function": "test_readme_has_stable_proof_anchor_and_mapping",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1077",
+      "original": "tests/test_aus_accounting_mcp.py:1100",
       "function": "test_committed_binary_assets_have_current_provenance",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1093",
+      "original": "tests/test_aus_accounting_mcp.py:1116",
       "function": "test_repository_social_preview_has_current_name_dimensions_and_provenance",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1106",
+      "original": "tests/test_aus_accounting_mcp.py:1129",
       "function": "test_server_metadata_publishes_exact_pypi_release",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1123",
+      "original": "tests/test_aus_accounting_mcp.py:1146",
       "function": "test_pypi_route_rejects_a_second_publisher_workflow",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1138",
+      "original": "tests/test_aus_accounting_mcp.py:1161",
       "function": "test_pypi_route_rejects_controls_parked_in_a_dummy_job",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1167",
+      "original": "tests/test_aus_accounting_mcp.py:1190",
       "function": "test_pypi_route_rejects_a_rebuilt_distribution",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1180",
+      "original": "tests/test_aus_accounting_mcp.py:1203",
       "function": "test_release_workflow_uses_registered_pypi_publisher",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1184",
+      "original": "tests/test_aus_accounting_mcp.py:1207",
       "function": "test_readme_links_to_release_records",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1199",
+      "original": "tests/test_aus_accounting_mcp.py:1222",
       "function": "test_release_uses_the_hardened_shared_policy_contract",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1223",
+      "original": "tests/test_aus_accounting_mcp.py:1246",
       "function": "test_registry_publisher_is_pinned_and_checksum_verified",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1257",
+      "original": "tests/test_aus_accounting_mcp.py:1280",
       "function": "test_payday_reads_the_date_shapes_the_engine_reads",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
-      "status": "covered",
-      "proofs": [
-        "F"
-      ]
-    },
-    {
-      "original": "tests/test_aus_accounting_mcp.py:1263",
-      "function": "test_payday_refuses_a_numeric_date_that_could_be_read_either_way",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -674,35 +665,44 @@
     },
     {
       "original": "tests/test_aus_accounting_mcp.py:1286",
+      "function": "test_payday_refuses_a_numeric_date_that_could_be_read_either_way",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_aus_accounting_mcp.py:1309",
       "function": "test_payday_accepts_a_numeric_date_whose_reading_is_settled",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1291",
+      "original": "tests/test_aus_accounting_mcp.py:1314",
       "function": "test_payday_refuses_a_zone_bearing_stamp_with_the_engine_reason",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1301",
+      "original": "tests/test_aus_accounting_mcp.py:1324",
       "function": "test_payday_still_names_the_field_that_could_not_be_read",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1307",
+      "original": "tests/test_aus_accounting_mcp.py:1330",
       "function": "test_payday_date_shapes_do_not_change_a_verdict",
-      "source_sha256": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
       "status": "covered",
       "proofs": [
         "F"
@@ -790,7 +790,7 @@
     {
       "original": "tests/test_corpus.py:36",
       "function": "test_search_returns_a_traceable_citation",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -799,7 +799,7 @@
     {
       "original": "tests/test_corpus.py:53",
       "function": "test_a_superseded_compilation_is_left_out_unless_asked_for",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -808,7 +808,7 @@
     {
       "original": "tests/test_corpus.py:63",
       "function": "test_retrieval_preserves_the_captured_version_window_without_inventing_dates",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -817,7 +817,7 @@
     {
       "original": "tests/test_corpus.py:77",
       "function": "test_unrecorded_row_dates_remain_unknown",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -826,7 +826,7 @@
     {
       "original": "tests/test_corpus.py:83",
       "function": "test_in_force_only_keeps_a_row_with_unrecorded_currency",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -835,7 +835,7 @@
     {
       "original": "tests/test_corpus.py:95",
       "function": "test_search_matches_every_word_and_filters_by_act",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -844,7 +844,7 @@
     {
       "original": "tests/test_corpus.py:105",
       "function": "test_a_word_only_in_the_stored_metadata_is_not_a_match",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -853,7 +853,7 @@
     {
       "original": "tests/test_corpus.py:112",
       "function": "test_paging_continues_from_the_returned_offset",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -862,7 +862,7 @@
     {
       "original": "tests/test_corpus.py:126",
       "function": "test_search_truncates_a_long_provision_and_reports_the_whole_length",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -871,7 +871,7 @@
     {
       "original": "tests/test_corpus.py:134",
       "function": "test_read_returns_the_cited_provision_in_full",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -880,7 +880,7 @@
     {
       "original": "tests/test_corpus.py:142",
       "function": "test_read_stops_at_the_character_bound",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -889,7 +889,7 @@
     {
       "original": "tests/test_corpus.py:153",
       "function": "test_read_refuses_an_unknown_or_unsafe_row_id",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -898,7 +898,7 @@
     {
       "original": "tests/test_corpus.py:158",
       "function": "test_rates_keep_the_amounts_years_and_provision",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -907,7 +907,7 @@
     {
       "original": "tests/test_corpus.py:169",
       "function": "test_rates_filter_by_stated_year",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -916,106 +916,106 @@
     {
       "original": "tests/test_corpus.py:177",
       "function": "test_rates_filter_by_topic",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:184",
+      "original": "tests/test_corpus.py:202",
       "function": "test_unconfigured_corpus_is_an_input_error",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:190",
+      "original": "tests/test_corpus.py:208",
       "function": "test_a_folder_without_title_indexes_is_refused",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:200",
+      "original": "tests/test_corpus.py:218",
       "function": "test_a_corpus_without_rates_refuses_the_rate_search",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:206",
+      "original": "tests/test_corpus.py:224",
       "function": "test_unknown_arguments_are_rejected",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:211",
+      "original": "tests/test_corpus.py:229",
       "function": "test_a_root_that_is_not_a_folder_is_refused",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:219",
+      "original": "tests/test_corpus.py:237",
       "function": "test_a_query_without_a_word_is_refused",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:226",
+      "original": "tests/test_corpus.py:244",
       "function": "test_an_unparsable_row_is_skipped_rather_than_failing_the_search",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:239",
+      "original": "tests/test_corpus.py:257",
       "function": "test_a_title_folder_without_an_index_is_skipped",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:245",
+      "original": "tests/test_corpus.py:263",
       "function": "test_a_corpus_without_a_manifest_still_cites_each_row",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:254",
+      "original": "tests/test_corpus.py:272",
       "function": "test_an_unreadable_manifest_is_not_fatal",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:260",
+      "original": "tests/test_corpus.py:278",
       "function": "test_a_corpus_past_the_scan_bounds_is_refused",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1023,55 +1023,55 @@
       "adaptation_or_limit": "Original process-global monkeypatches become explicit test Context limits/principal_acts; real IO and complete outputs execute. The combined scan-bounds case retains the original byte restriction when it reduces the file cap, so it is not separate proof of both bounds."
     },
     {
-      "original": "tests/test_corpus.py:270",
+      "original": "tests/test_corpus.py:288",
       "function": "test_the_act_filter_is_not_satisfied_by_body_text",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
-    },
-    {
-      "original": "tests/test_corpus.py:276",
-      "function": "test_the_topic_filter_is_not_satisfied_by_row_content",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
-      "status": "covered",
-      "proofs": [
-        "C"
-      ]
-    },
-    {
-      "original": "tests/test_corpus.py:280",
-      "function": "test_the_offset_boundary_asks_for_a_narrower_query",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
-      "status": "adapted",
-      "proofs": [
-        "C"
-      ],
-      "adaptation_or_limit": "Original process-global monkeypatches become explicit test Context limits/principal_acts; real IO and complete outputs execute. The combined scan-bounds case retains the original byte restriction when it reduces the file cap, so it is not separate proof of both bounds."
     },
     {
       "original": "tests/test_corpus.py:294",
+      "function": "test_the_topic_filter_is_not_satisfied_by_row_content",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
+      "status": "covered",
+      "proofs": [
+        "C"
+      ]
+    },
+    {
+      "original": "tests/test_corpus.py:298",
+      "function": "test_the_offset_boundary_asks_for_a_narrower_query",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
+      "status": "adapted",
+      "proofs": [
+        "C"
+      ],
+      "adaptation_or_limit": "Original process-global monkeypatches become explicit test Context limits/principal_acts; real IO and complete outputs execute. The combined scan-bounds case retains the original byte restriction when it reduces the file cap, so it is not separate proof of both bounds."
+    },
+    {
+      "original": "tests/test_corpus.py:312",
       "function": "test_escaped_and_literal_indexes_search_and_read_alike",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:320",
+      "original": "tests/test_corpus.py:338",
       "function": "test_an_escaped_row_id_reads_back_without_neighbours",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:343",
+      "original": "tests/test_corpus.py:361",
       "function": "test_a_linked_markdown_directory_is_refused_by_read_as_well_as_search",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C",
@@ -1079,81 +1079,63 @@
       ]
     },
     {
-      "original": "tests/test_corpus.py:361",
+      "original": "tests/test_corpus.py:379",
       "function": "test_read_widens_to_the_provisions_either_side",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:375",
+      "original": "tests/test_corpus.py:393",
       "function": "test_neighbours_stop_at_the_edges_of_the_title",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:384",
+      "original": "tests/test_corpus.py:402",
       "function": "test_a_neighbour_is_truncated_like_a_search_match",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:394",
+      "original": "tests/test_corpus.py:412",
       "function": "test_neighbours_outside_the_bound_are_rejected",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:400",
+      "original": "tests/test_corpus.py:418",
       "function": "test_a_definition_carries_its_entry_and_the_dictionary_citation",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:425",
+      "original": "tests/test_corpus.py:443",
       "function": "test_a_note_stays_with_the_definition_it_follows",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:436",
+      "original": "tests/test_corpus.py:454",
       "function": "test_lettered_conditions_stay_with_the_definition_they_complete",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
-      "status": "covered",
-      "proofs": [
-        "C"
-      ]
-    },
-    {
-      "original": "tests/test_corpus.py:448",
-      "function": "test_a_qualified_head_and_a_non_breaking_hyphen_still_match_exactly",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
-      "status": "covered",
-      "proofs": [
-        "C"
-      ]
-    },
-    {
-      "original": "tests/test_corpus.py:456",
-      "function": "test_a_superseded_dictionary_is_left_out_unless_asked_for",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -1161,17 +1143,17 @@
     },
     {
       "original": "tests/test_corpus.py:466",
-      "function": "test_definitions_filter_by_act_and_put_the_exact_match_first",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "function": "test_a_qualified_head_and_a_non_breaking_hyphen_still_match_exactly",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:475",
-      "function": "test_a_word_outside_a_dictionary_section_is_not_a_definition",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "original": "tests/test_corpus.py:474",
+      "function": "test_a_superseded_dictionary_is_left_out_unless_asked_for",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -1179,36 +1161,54 @@
     },
     {
       "original": "tests/test_corpus.py:484",
-      "function": "test_a_definition_beyond_the_partial_cap_is_reported_not_returned",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
-      "status": "adapted",
+      "function": "test_definitions_filter_by_act_and_put_the_exact_match_first",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
+      "status": "covered",
       "proofs": [
         "C"
-      ],
-      "adaptation_or_limit": "Original process-global monkeypatches become explicit test Context limits/principal_acts; real IO and complete outputs execute. The combined scan-bounds case retains the original byte restriction when it reduces the file cap, so it is not separate proof of both bounds."
+      ]
     },
     {
       "original": "tests/test_corpus.py:493",
+      "function": "test_a_word_outside_a_dictionary_section_is_not_a_definition",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
+      "status": "covered",
+      "proofs": [
+        "C"
+      ]
+    },
+    {
+      "original": "tests/test_corpus.py:502",
+      "function": "test_a_definition_beyond_the_partial_cap_is_reported_not_returned",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
+      "status": "adapted",
+      "proofs": [
+        "C"
+      ],
+      "adaptation_or_limit": "Original process-global monkeypatches become explicit test Context limits/principal_acts; real IO and complete outputs execute. The combined scan-bounds case retains the original byte restriction when it reduces the file cap, so it is not separate proof of both bounds."
+    },
+    {
+      "original": "tests/test_corpus.py:511",
       "function": "test_a_term_without_a_word_is_refused",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:498",
+      "original": "tests/test_corpus.py:516",
       "function": "test_a_malformed_line_beside_the_cited_row_costs_no_neighbour_slot",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:512",
+      "original": "tests/test_corpus.py:530",
       "function": "test_a_definition_lookup_refuses_a_corpus_past_the_scan_bounds",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1216,27 +1216,27 @@
       "adaptation_or_limit": "Original process-global monkeypatches become explicit test Context limits/principal_acts; real IO and complete outputs execute. The combined scan-bounds case retains the original byte restriction when it reduces the file cap, so it is not separate proof of both bounds."
     },
     {
-      "original": "tests/test_corpus.py:518",
+      "original": "tests/test_corpus.py:536",
       "function": "test_a_default_read_returns_no_context_even_past_an_escaped_row",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:540",
+      "original": "tests/test_corpus.py:558",
       "function": "test_a_provision_headed_with_the_phrase_outranks_corpus_order",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:553",
+      "original": "tests/test_corpus.py:571",
       "function": "test_a_principal_act_comes_first_within_a_tier",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1244,9 +1244,9 @@
       "adaptation_or_limit": "Original process-global monkeypatches become explicit test Context limits/principal_acts; real IO and complete outputs execute. The combined scan-bounds case retains the original byte restriction when it reduces the file cap, so it is not separate proof of both bounds."
     },
     {
-      "original": "tests/test_corpus.py:582",
+      "original": "tests/test_corpus.py:600",
       "function": "test_ranking_tiers",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C",
@@ -1254,27 +1254,18 @@
       ]
     },
     {
-      "original": "tests/test_corpus.py:590",
+      "original": "tests/test_corpus.py:608",
       "function": "test_ranked_pages_cover_every_match_once",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:602",
+      "original": "tests/test_corpus.py:620",
       "function": "test_a_search_with_no_match_suggests_statutory_wording",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
-      "status": "covered",
-      "proofs": [
-        "C"
-      ]
-    },
-    {
-      "original": "tests/test_corpus.py:612",
-      "function": "test_a_long_provision_is_read_in_parts",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -1282,26 +1273,35 @@
     },
     {
       "original": "tests/test_corpus.py:630",
+      "function": "test_a_long_provision_is_read_in_parts",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
+      "status": "covered",
+      "proofs": [
+        "C"
+      ]
+    },
+    {
+      "original": "tests/test_corpus.py:648",
       "function": "test_a_short_provision_read_whole_carries_no_part_caveat",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:644",
+      "original": "tests/test_corpus.py:662",
       "function": "test_a_start_outside_the_provision_is_refused",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:661",
+      "original": "tests/test_corpus.py:679",
       "function": "test_definitions_put_a_principal_act_first",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1309,9 +1309,9 @@
       "adaptation_or_limit": "Original process-global monkeypatches become explicit test Context limits/principal_acts; real IO and complete outputs execute. The combined scan-bounds case retains the original byte restriction when it reduces the file cap, so it is not separate proof of both bounds."
     },
     {
-      "original": "tests/test_corpus.py:674",
+      "original": "tests/test_corpus.py:692",
       "function": "test_the_partial_cap_keeps_the_best_ranked_definition",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1319,36 +1319,36 @@
       "adaptation_or_limit": "Original process-global monkeypatches become explicit test Context limits/principal_acts; real IO and complete outputs execute. The combined scan-bounds case retains the original byte restriction when it reduces the file cap, so it is not separate proof of both bounds."
     },
     {
-      "original": "tests/test_corpus.py:696",
+      "original": "tests/test_corpus.py:714",
       "function": "test_an_unconfigured_corpus_tells_the_caller_not_to_retry",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:702",
+      "original": "tests/test_corpus.py:720",
       "function": "test_an_index_that_is_not_utf8_is_an_input_error_while_ranking",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:710",
+      "original": "tests/test_corpus.py:728",
       "function": "test_a_rate_phrase_is_not_formed_across_heading_and_topic",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:741",
+      "original": "tests/test_corpus.py:759",
       "function": "test_rate_heading_fields_rank_separately",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1356,36 +1356,18 @@
       "adaptation_or_limit": "Private Python helper observations become direct native definitions/tier checks, preserving all observed pairs/tiers."
     },
     {
-      "original": "tests/test_corpus.py:747",
+      "original": "tests/test_corpus.py:765",
       "function": "test_hidden_folders_and_stray_files_under_markdown_are_passed_over",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:757",
+      "original": "tests/test_corpus.py:775",
       "function": "test_a_manifest_that_is_not_an_object_carries_no_provenance",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
-      "status": "covered",
-      "proofs": [
-        "C"
-      ]
-    },
-    {
-      "original": "tests/test_corpus.py:763",
-      "function": "test_a_manifest_without_attribution_keeps_its_other_facts",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
-      "status": "covered",
-      "proofs": [
-        "C"
-      ]
-    },
-    {
-      "original": "tests/test_corpus.py:773",
-      "function": "test_reading_an_index_that_is_not_utf8_is_an_input_error",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
@@ -1393,26 +1375,44 @@
     },
     {
       "original": "tests/test_corpus.py:781",
+      "function": "test_a_manifest_without_attribution_keeps_its_other_facts",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
+      "status": "covered",
+      "proofs": [
+        "C"
+      ]
+    },
+    {
+      "original": "tests/test_corpus.py:791",
+      "function": "test_reading_an_index_that_is_not_utf8_is_an_input_error",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
+      "status": "covered",
+      "proofs": [
+        "C"
+      ]
+    },
+    {
+      "original": "tests/test_corpus.py:799",
       "function": "test_a_definition_lookup_over_an_index_that_is_not_utf8_is_an_input_error",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:789",
+      "original": "tests/test_corpus.py:807",
       "function": "test_the_act_filter_for_definitions_is_not_satisfied_by_the_heading",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_corpus.py:794",
+      "original": "tests/test_corpus.py:812",
       "function": "test_a_dictionary_paragraph_before_the_first_definition_is_not_part_of_one",
-      "source_sha256": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1714,7 +1714,7 @@
     {
       "original": "tests/test_expansion.py:21",
       "function": "test_group_alignment_and_employee_separation",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "F"
@@ -1723,7 +1723,7 @@
     {
       "original": "tests/test_expansion.py:39",
       "function": "test_group_nested_validation",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "F"
@@ -1732,7 +1732,7 @@
     {
       "original": "tests/test_expansion.py:46",
       "function": "test_group_preserves_partial_and_missing_receipt",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "F"
@@ -1741,7 +1741,7 @@
     {
       "original": "tests/test_expansion.py:56",
       "function": "test_library_search_and_bounded_citation",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "L"
@@ -1750,7 +1750,7 @@
     {
       "original": "tests/test_expansion.py:75",
       "function": "test_library_is_opt_in_and_does_not_read_links",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "L"
@@ -1759,7 +1759,7 @@
     {
       "original": "tests/test_expansion.py:97",
       "function": "test_calculator_transport",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "F"
@@ -1768,7 +1768,7 @@
     {
       "original": "tests/test_expansion.py:108",
       "function": "test_calculators_refuse_unestablished_or_malformed_facts",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "F"
@@ -1777,25 +1777,25 @@
     {
       "original": "tests/test_expansion.py:116",
       "function": "test_library_pagination_unicode_and_external_link",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "L"
       ]
     },
     {
-      "original": "tests/test_expansion.py:133",
+      "original": "tests/test_expansion.py:170",
       "function": "test_library_pagination_does_not_repeat_around_an_oversized_line",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "L"
       ]
     },
     {
-      "original": "tests/test_expansion.py:151",
+      "original": "tests/test_expansion.py:188",
       "function": "test_library_pagination_stops_at_the_offset_bound_instead_of_stranding_the_caller",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1803,9 +1803,9 @@
       "adaptation_or_limit": "Python constant/permission monkeypatches become explicit native Context limits/faults; bounded real-file outputs/refusals are compared completely."
     },
     {
-      "original": "tests/test_expansion.py:166",
+      "original": "tests/test_expansion.py:203",
       "function": "test_library_scan_budget_counts_invalid_utf8",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1813,9 +1813,9 @@
       "adaptation_or_limit": "Python constant/permission monkeypatches become explicit native Context limits/faults; bounded real-file outputs/refusals are compared completely."
     },
     {
-      "original": "tests/test_expansion.py:177",
+      "original": "tests/test_expansion.py:214",
       "function": "test_library_internal_excerpt_rejects_non_positive_start",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1823,27 +1823,27 @@
       "adaptation_or_limit": "Negative private usize indices cannot be represented; captured 0/-1 helper cases map to 0 and retain the refusal. Public input validation separately rejects negatives."
     },
     {
-      "original": "tests/test_expansion.py:186",
+      "original": "tests/test_expansion.py:223",
       "function": "test_library_root_must_be_an_existing_folder",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "L"
       ]
     },
     {
-      "original": "tests/test_expansion.py:192",
+      "original": "tests/test_expansion.py:229",
       "function": "test_library_search_needs_a_word",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "L"
       ]
     },
     {
-      "original": "tests/test_expansion.py:198",
+      "original": "tests/test_expansion.py:235",
       "function": "test_library_read_refuses_a_start_past_the_end_and_an_oversized_file",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1851,18 +1851,18 @@
       "adaptation_or_limit": "Python constant/permission monkeypatches become explicit native Context limits/faults; bounded real-file outputs/refusals are compared completely."
     },
     {
-      "original": "tests/test_expansion.py:210",
+      "original": "tests/test_expansion.py:247",
       "function": "test_library_read_of_a_file_that_is_not_utf8_is_an_input_error",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "covered",
       "proofs": [
         "L"
       ]
     },
     {
-      "original": "tests/test_expansion.py:217",
+      "original": "tests/test_expansion.py:254",
       "function": "test_library_with_too_many_files_is_refused",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1870,9 +1870,9 @@
       "adaptation_or_limit": "Python constant/permission monkeypatches become explicit native Context limits/faults; bounded real-file outputs/refusals are compared completely."
     },
     {
-      "original": "tests/test_expansion.py:228",
+      "original": "tests/test_expansion.py:265",
       "function": "test_library_search_counts_a_file_it_cannot_open_as_skipped",
-      "source_sha256": "481821116e0c066f5a3dd4e5a08f6ea9bc7dd72bbdb5eed522cea0f9ded5af83",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
       "status": "adapted",
       "proofs": [
         "L"
@@ -2505,7 +2505,7 @@
     {
       "original": "tests/test_payday_rounding.py:27",
       "function": "test_both_review_tools_match_the_evidence_pack_to_the_cent",
-      "source_sha256": "6c82c37bfac06ae64280f4c8312e034535e077962c81e7375797ef48b2d46403",
+      "source_sha256": "fc6fdcad04276e0bd90a30f31893851db9375cff4758d3ce29105df17048866d",
       "status": "covered",
       "proofs": [
         "ROUND",
@@ -2891,7 +2891,7 @@
     {
       "original": "tests/test_rulings.py:51",
       "function": "test_search_returns_a_citable_paragraph_from_the_serving_run",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
@@ -2900,7 +2900,7 @@
     {
       "original": "tests/test_rulings.py:73",
       "function": "test_a_later_exclusion_withholds_the_earlier_copy",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
@@ -2909,70 +2909,52 @@
     {
       "original": "tests/test_rulings.py:92",
       "function": "test_captured_withdrawal_notice_is_citable_and_never_live_status",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:105",
+      "original": "tests/test_rulings.py:125",
       "function": "test_long_withdrawal_notice_reports_truncation",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:120",
+      "original": "tests/test_rulings.py:140",
       "function": "test_invalid_withdrawal_metadata_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:126",
+      "original": "tests/test_rulings.py:146",
       "function": "test_withdrawal_metadata_must_agree_with_the_manifest",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:133",
+      "original": "tests/test_rulings.py:153",
       "function": "test_a_replaced_copy_stays_readable_and_says_so",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:141",
+      "original": "tests/test_rulings.py:161",
       "function": "test_edited_private_advice_always_carries_the_reliance_caveat",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
-      "status": "covered",
-      "proofs": [
-        "R"
-      ]
-    },
-    {
-      "original": "tests/test_rulings.py:154",
-      "function": "test_family_filter_and_display_order",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
-      "status": "covered",
-      "proofs": [
-        "R"
-      ]
-    },
-    {
-      "original": "tests/test_rulings.py:167",
-      "function": "test_a_word_only_in_the_address_does_not_match",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
@@ -2980,134 +2962,152 @@
     },
     {
       "original": "tests/test_rulings.py:174",
+      "function": "test_family_filter_and_display_order",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
+      "status": "covered",
+      "proofs": [
+        "R"
+      ]
+    },
+    {
+      "original": "tests/test_rulings.py:187",
+      "function": "test_a_word_only_in_the_address_does_not_match",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
+      "status": "covered",
+      "proofs": [
+        "R"
+      ]
+    },
+    {
+      "original": "tests/test_rulings.py:194",
       "function": "test_paging_is_stable",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:182",
+      "original": "tests/test_rulings.py:202",
       "function": "test_neighbours_come_only_from_the_cited_document",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:198",
+      "original": "tests/test_rulings.py:218",
       "function": "test_a_long_paragraph_is_read_in_parts",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:227",
+      "original": "tests/test_rulings.py:247",
       "function": "test_bad_row_refs_are_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:232",
+      "original": "tests/test_rulings.py:252",
       "function": "test_a_single_run_can_be_configured_directly",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:239",
+      "original": "tests/test_rulings.py:259",
       "function": "test_a_same_day_tie_goes_to_the_later_folder_name",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:249",
+      "original": "tests/test_rulings.py:269",
       "function": "test_an_unconfigured_folder_is_an_input_error",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:255",
+      "original": "tests/test_rulings.py:275",
       "function": "test_a_folder_without_runs_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:286",
+      "original": "tests/test_rulings.py:306",
       "function": "test_an_inconsistent_manifest_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:292",
+      "original": "tests/test_rulings.py:312",
       "function": "test_rows_must_agree_with_their_manifest",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:301",
+      "original": "tests/test_rulings.py:321",
       "function": "test_a_row_with_another_hash_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:307",
+      "original": "tests/test_rulings.py:327",
       "function": "test_a_missing_row_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:313",
+      "original": "tests/test_rulings.py:333",
       "function": "test_a_duplicate_manifest_key_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:322",
+      "original": "tests/test_rulings.py:342",
       "function": "test_a_run_missing_its_rows_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:328",
+      "original": "tests/test_rulings.py:348",
       "function": "test_an_oversized_folder_is_refused_before_anything_is_parsed",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R",
@@ -3115,9 +3115,9 @@
       ]
     },
     {
-      "original": "tests/test_rulings.py:338",
+      "original": "tests/test_rulings.py:358",
       "function": "test_an_oversized_manifest_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "adapted",
       "proofs": [
         "R"
@@ -3125,9 +3125,9 @@
       "adaptation_or_limit": "Explicit Context limits and after-catalogue faults replace Python monkeypatch timing. Changed-run replay uses the same root and live native cache with changed manifest size, proving observable revalidation rather than Python cache instrumentation."
     },
     {
-      "original": "tests/test_rulings.py:344",
+      "original": "tests/test_rulings.py:364",
       "function": "test_a_linked_run_is_not_followed",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R",
@@ -3135,9 +3135,9 @@
       ]
     },
     {
-      "original": "tests/test_rulings.py:356",
+      "original": "tests/test_rulings.py:376",
       "function": "test_a_changed_run_is_validated_again",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "adapted",
       "proofs": [
         "R"
@@ -3145,27 +3145,27 @@
       "adaptation_or_limit": "Explicit Context limits and after-catalogue faults replace Python monkeypatch timing. Changed-run replay uses the same root and live native cache with changed manifest size, proving observable revalidation rather than Python cache instrumentation."
     },
     {
-      "original": "tests/test_rulings.py:383",
+      "original": "tests/test_rulings.py:403",
       "function": "test_a_manifest_missing_a_required_fact_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:389",
+      "original": "tests/test_rulings.py:409",
       "function": "test_a_root_that_is_not_a_folder_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:395",
+      "original": "tests/test_rulings.py:415",
       "function": "test_a_folder_with_too_many_runs_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "adapted",
       "proofs": [
         "R"
@@ -3173,45 +3173,45 @@
       "adaptation_or_limit": "Explicit Context limits and after-catalogue faults replace Python monkeypatch timing. Changed-run replay uses the same root and live native cache with changed manifest size, proving observable revalidation rather than Python cache instrumentation."
     },
     {
-      "original": "tests/test_rulings.py:401",
+      "original": "tests/test_rulings.py:421",
       "function": "test_a_run_folder_name_outside_the_safe_characters_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:414",
+      "original": "tests/test_rulings.py:434",
       "function": "test_an_unparsable_row_is_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:420",
+      "original": "tests/test_rulings.py:440",
       "function": "test_rows_that_are_not_utf8_are_refused",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:427",
+      "original": "tests/test_rulings.py:447",
       "function": "test_a_family_word_only_in_the_title_does_not_satisfy_the_family_filter",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "covered",
       "proofs": [
         "R"
       ]
     },
     {
-      "original": "tests/test_rulings.py:443",
+      "original": "tests/test_rulings.py:463",
       "function": "test_a_run_removed_during_a_search_is_an_input_error",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "adapted",
       "proofs": [
         "R"
@@ -3219,9 +3219,9 @@
       "adaptation_or_limit": "Explicit Context limits and after-catalogue faults replace Python monkeypatch timing. Changed-run replay uses the same root and live native cache with changed manifest size, proving observable revalidation rather than Python cache instrumentation."
     },
     {
-      "original": "tests/test_rulings.py:449",
+      "original": "tests/test_rulings.py:469",
       "function": "test_a_run_rewritten_during_a_read_is_an_input_error",
-      "source_sha256": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
       "status": "adapted",
       "proofs": [
         "R"
@@ -4242,6 +4242,69 @@
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
+      ]
+    },
+    {
+      "original": "tests/test_aus_accounting_mcp.py:921",
+      "function": "test_ato_ambiguous_industry_keeps_the_engine_candidates",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_aus_accounting_mcp.py:934",
+      "function": "test_ato_engine_errors_reach_the_caller",
+      "source_sha256": "68a595bbd798380ef19a0516238c29807d2784e4139ef8c67de1d254d6a43efc",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_corpus.py:184",
+      "function": "test_a_superseded_rate_is_left_out_unless_asked_for",
+      "source_sha256": "9220b1dd617da56a3ef49f826bd5629b846f1523acd8236b69c2b2d07f54edad",
+      "status": "covered",
+      "proofs": [
+        "C"
+      ]
+    },
+    {
+      "original": "tests/test_expansion.py:133",
+      "function": "test_library_search_ranks_by_where_the_words_sit",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
+      "status": "covered",
+      "proofs": [
+        "L"
+      ]
+    },
+    {
+      "original": "tests/test_expansion.py:158",
+      "function": "test_library_ranks_on_the_whole_heading_but_returns_it_truncated",
+      "source_sha256": "94c3b10697d1d7149c39557aed9da2189aecd400347c1e8f91496f44ac2ec8bb",
+      "status": "covered",
+      "proofs": [
+        "L"
+      ]
+    },
+    {
+      "original": "tests/test_payday_rounding.py:46",
+      "function": "test_sgc_estimates_say_what_they_exclude",
+      "source_sha256": "fc6fdcad04276e0bd90a30f31893851db9375cff4758d3ce29105df17048866d",
+      "status": "covered",
+      "proofs": [
+        "D"
+      ]
+    },
+    {
+      "original": "tests/test_rulings.py:105",
+      "function": "test_a_withdrawal_notice_ranks_later_within_its_tier_and_is_kept",
+      "source_sha256": "387b222ca65a816c2c693ba2b7a3aff06236ecb9623103812fd7e82a06b1440e",
+      "status": "covered",
+      "proofs": [
+        "R"
       ]
     }
   ],

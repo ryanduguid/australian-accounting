@@ -243,8 +243,11 @@ fn section(row: &Value, cap: usize) -> Value {
     value
 }
 fn rate(row: &Value, cap: usize) -> Value {
-    let (text, total, caveats) = truncated(string(row, "content").unwrap_or(""), cap);
-    let mut value = json!({"content":text,"total_chars":total,"caveats":caveats});
+    let (text, total, mut caveats) = truncated(string(row, "content").unwrap_or(""), cap);
+    if row["version_is_current"] == false {
+        caveats.push(policy("NOT_CURRENT_CAVEAT").into());
+    }
+    let mut value = json!({"content":text,"total_chars":total,"caveats":caveats,"version_is_current":row["version_is_current"].as_bool()});
     for field in [
         "rate_id",
         "register_id",
@@ -271,27 +274,27 @@ fn rate(row: &Value, cap: usize) -> Value {
     value
 }
 
-pub(super) struct Ranked {
-    pub key: (usize, usize, usize),
+pub(super) struct Ranked<K> {
+    pub key: K,
     pub value: Value,
 }
-impl PartialEq for Ranked {
+impl<K: Ord> PartialEq for Ranked<K> {
     fn eq(&self, other: &Self) -> bool {
         self.key == other.key
     }
 }
-impl Eq for Ranked {}
-impl Ord for Ranked {
+impl<K: Ord> Eq for Ranked<K> {}
+impl<K: Ord> Ord for Ranked<K> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.key.cmp(&other.key)
     }
 }
-impl PartialOrd for Ranked {
+impl<K: Ord> PartialOrd for Ranked<K> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
-pub(super) fn retain(best: &mut BinaryHeap<Ranked>, item: Ranked, cap: usize) {
+pub(super) fn retain<K: Ord>(best: &mut BinaryHeap<Ranked<K>>, item: Ranked<K>, cap: usize) {
     if best.len() < cap {
         best.push(item);
     } else if best.peek().is_some_and(|worst| item.key < worst.key) {
@@ -341,7 +344,7 @@ fn search(context: &Context, input: &Value, rates: bool) -> Result<Value, String
         bounded_size(context, &path, &mut size)?;
         for row in Rows::open(&path, &prefilter).map_err(|_| READ_ERROR)? {
             let row = row.map_err(|_| READ_ERROR)?;
-            if !rates && input["in_force_only"] != false && row["version_is_current"] == false {
+            if input["in_force_only"] != false && row["version_is_current"] == false {
                 continue;
             }
             if !holds(

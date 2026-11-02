@@ -3041,9 +3041,6 @@
   "search_tax_rates": {
     "type": "model",
     "name": "search_tax_ratesArguments",
-    "config": {
-      "title": "search_tax_ratesArguments"
-    },
     "schema": {
       "type": "model-fields",
       "fields": {
@@ -3059,57 +3056,71 @@
           "type": "model-field",
           "schema": {
             "type": "default",
-            "default": null,
             "schema": {
               "type": "nullable",
               "schema": {
                 "type": "str",
                 "max_length": 100
               }
-            }
+            },
+            "default": null
           }
         },
         "limit": {
           "type": "model-field",
           "schema": {
             "type": "default",
-            "default": 5,
             "schema": {
               "type": "int",
               "strict": true,
               "ge": 1,
               "le": 20
-            }
+            },
+            "default": 5
           }
         },
         "offset": {
           "type": "model-field",
           "schema": {
             "type": "default",
-            "default": 0,
             "schema": {
               "type": "int",
               "strict": true,
               "ge": 0,
               "le": 10000
-            }
+            },
+            "default": 0
           }
         },
         "year": {
           "type": "model-field",
           "schema": {
             "type": "default",
-            "default": null,
             "schema": {
               "type": "nullable",
               "schema": {
                 "type": "str",
                 "max_length": 20
               }
-            }
+            },
+            "default": null
+          }
+        },
+        "in_force_only": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "bool",
+              "strict": true
+            },
+            "default": true
           }
         }
       }
+    },
+    "config": {
+      "title": "search_tax_ratesArguments"
     }
   },
   "search_ato_rulings": {
