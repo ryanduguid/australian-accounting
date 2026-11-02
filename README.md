@@ -24,7 +24,7 @@
 [![Aus Accounting MCP server](https://mcprush.com/badge/aus-accounting-mcp/card.svg)](https://mcprush.com/to/aus-accounting-mcp?ref=badge)
 [![Australian Accounting MCP server: quality and maintenance score on Glama](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/card.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
 
-[Try one contribution](#try-one-contribution) · [Next examples](#choose-the-next-example) · [MCP server](#use-aus-accounting-mcp) · [Components](#components)
+[Try one contribution](#try-one-contribution) · [Next examples](#choose-the-next-example) · [MCP server](#use-aus-accounting-mcp) · [Components](#components) · [Licence](#licence)
 
 </div>
 
@@ -248,11 +248,13 @@ The 8 Rust engines have reserved tags and no publisher yet. `CONTRIBUTING.md` ha
 The rates dataset in `packages/au-tax-rates-data/` is never released.
 To check a downloaded release's checksum and SLSA provenance, follow [Verify a release](https://github.com/ryanduguid/release-policy/blob/main/docs/verify-a-release.md).
 
+</details>
+
+## Licence
+
 Each component's `LICENSE` applies to that component, and
 `packages/ato-benchmark-compare/NOTICE` and `packages/au-tax-rates-data/NOTICE` cover their
 ATO material. Outputs are review aids, not advice.
-
-</details>
 
 ---
 
