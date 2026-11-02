@@ -52,11 +52,6 @@ fn every_supported_resident_period_has_its_own_contiguous_scale() {
     }
 }
 
-/// From 1 July 2027 cost base indexation replaces the 50% discount on gains
-/// accruing from that date and a minimum 30% tax applies to certain net capital
-/// gains (https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax/capital-gains-tax-reform).
-/// `capital_gains` halves every discount gain, so it may not take a later
-/// income year until it handles the reform.
 /// The law these worksheets apply is the same in 2026-27, so each result
 /// differs from the 2025-26 one only in its period.
 #[test]
@@ -93,6 +88,9 @@ fn worksheets_opened_for_2026_27_match_2025_26() {
     );
 }
 
+/// The ATO says CGT reforms take effect from 1 July 2027:
+/// https://softwaredevelopers.ato.gov.au/reforming-negative-gearing-dsp-special-purpose-working-group.
+/// Later income years remain outside this worksheet until it handles the reform.
 #[test]
 fn capital_gains_stops_before_the_income_year_the_reform_affects() {
     for year in supported_periods("capital_gains") {

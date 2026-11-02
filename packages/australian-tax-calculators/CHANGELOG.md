@@ -87,9 +87,10 @@ intentionally changed.
 - `gst`, `capital-gains` and `depreciation` also accept 2026-27; Python 0.2.0
   took 2025-26 only. The law they apply is unchanged for that year: the GST rate
   is 10%, the decline in value formulas are those the ATO's prime cost and
-  diminishing value page gives, and the replacement of the 50% CGT discount by
-  cost base indexation applies only from 1 July 2027 (ATO, read on 3 November
-  2026), which `tests/tables.rs` keeps outside `capital-gains`. `quarterly-sg`
+  diminishing value page gives. CGT reforms take effect from 1 July 2027
+  ([ATO](https://softwaredevelopers.ato.gov.au/reforming-negative-gearing-dsp-special-purpose-working-group),
+  read on 3 November 2026); `tests/tables.rs` keeps 2027-28 outside
+  `capital-gains`. `quarterly-sg`
   stays at 2025-26. `tests/parity.rs` adds the period to the 19 `periods` and
   10 `worksheet-catalogue` frozen results and to the 34 refusals that list the
   supported periods.
