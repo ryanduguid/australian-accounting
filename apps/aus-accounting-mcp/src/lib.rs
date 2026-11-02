@@ -2,6 +2,7 @@
 pub mod adapters;
 pub mod contracts;
 pub mod handler;
+mod identifiers;
 pub mod prompts;
 pub mod resources;
 mod retrieval;

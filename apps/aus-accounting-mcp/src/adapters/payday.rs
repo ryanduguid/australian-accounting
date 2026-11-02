@@ -15,6 +15,9 @@ use std::sync::LazyLock;
 
 pub const DISCLAIMER: &str = "Experimental review aid. Not a compliance determination, an ATO assessment or professional advice. payday-super-checker refuses or marks UNKNOWN where the supplied facts do not establish the statutory test (SGAA 1992 s 18C). This MCP does not model clearing-house latency. Fund receipt must be supplied before a contribution can be ON_TIME.";
 const SINGLE: &str = "This review covers one contribution. It does not review related contributions, allocate receipts across QE days or apply s 18C(2) item 4 deadline alignment. Those facts can change the deadline or shortfall. Use payday-super-checker's full contribution review with the related evidence before drawing a conclusion. The supplied sg_amount is not a calculation of SG entitlement.";
+/// Carried by every ON_TIME verdict or horizon candidate, because no tool input
+/// records a contribution the fund returned. It applies no rule of its own.
+const RETURNED: &str = "aus-accounting-mcp: returned contributions were not assessed, so ON_TIME assumes the fund kept every receipt. Check fund records before relying on it.";
 static NUMERIC: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^(\d{1,2})[/-](\d{1,2})[/-]\d{2,4}").unwrap());
 
@@ -100,7 +103,66 @@ fn line(input: &Value, row: i64) -> Result<ContribLine, String> {
         row,
         duplicate_note: String::new(),
         join_caveats: vec![],
+        returned_by_fund: false,
+        events: vec![],
+        return_not_shown: false,
     })
+}
+fn relies_on_kept_receipts(result: &Assessed) -> bool {
+    result.verdict == assess::ON_TIME
+        || result
+            .horizon_verdicts
+            .as_ref()
+            .is_some_and(|(a, b)| a == assess::ON_TIME || b == assess::ON_TIME)
+}
+fn qualification(statement: bool) -> Value {
+    let mut out = json!({"code":"RETURNED_CONTRIBUTIONS_NOT_ASSESSED","returned_contributions_assessed":false,"assumes_fund_kept_every_receipt":true});
+    if statement {
+        out["statement"] = json!(RETURNED);
+    }
+    out
+}
+/// Python's `json.loads` then `json.dumps(indent=2, ensure_ascii=True)`; the
+/// engine's queue holds no floats, so any other number is a broken invariant.
+fn python_json(value: &Value) -> evidence_pack::Out {
+    use evidence_pack::Out;
+    match value {
+        Value::Null => Out::Null,
+        Value::Bool(b) => Out::Bool(*b),
+        Value::Number(n) => {
+            assert!(
+                n.is_i64() || n.is_u64(),
+                "engine pack JSON holds an integer"
+            );
+            Out::Int(n.to_string())
+        }
+        Value::String(s) => Out::Str(s.clone()),
+        Value::Array(items) => Out::List(items.iter().map(python_json).collect()),
+        Value::Object(map) => Out::Object(
+            map.iter()
+                .map(|(k, v)| (k.clone(), python_json(v)))
+                .collect(),
+        ),
+    }
+}
+/// State the limit in the files too, since they are saved without the envelope.
+/// The note precedes the engine's status line, whose verdict it qualifies.
+fn qualify_pack_files(files: &mut Map<String, Value>, exceptions: &mut Value) {
+    let notice = format!(
+        "> **Limit on every ON_TIME verdict or candidate.** {RETURNED}
+
+"
+    );
+    for name in ["practitioner-review.md", "decision-log.md"] {
+        let text = files[name].as_str().unwrap();
+        files[name] = Value::String(format!("{notice}{text}"));
+    }
+    exceptions["verdict_qualification"] = qualification(true);
+    files["exceptions.json"] = Value::String(format!(
+        "{}
+",
+        python_json(exceptions).dumps()
+    ));
 }
 fn money(value: Option<&Decimal>) -> Value {
     value
@@ -130,6 +192,7 @@ fn serialise(result: &Assessed, single: bool) -> Result<Value, String> {
         caveats.push(SINGLE.into());
     }
     let line = &result.line;
+    let qualified = relies_on_kept_receipts(result);
     let mut output = json!({"employee_id":line.employee_id,"qe_day":line.qe_day.isoformat(),"sg_amount":line.sg_amount.to_sci_string(),
         "remitted_amount":money(line.remitted_amount.as_ref()),"matched_amount":money(line.matched_amount.as_ref()),
         "remitted":line.remitted.map(|d|d.isoformat()),"received":line.received.map(|d|d.isoformat()),"due":result.deadline.due.map(|d|d.isoformat()),
@@ -138,6 +201,9 @@ fn serialise(result: &Assessed, single: bool) -> Result<Value, String> {
         "base_shortfall":money(result.base_shortfall.as_ref()),"final_shortfall":money(result.final_shortfall.as_ref()),
         "notional_earnings":money(figures.nec.as_ref()),"experimental_sgc_low":money(figures.low.as_ref()),"experimental_sgc_high":money(figures.high.as_ref()),
         "uplift":uplift,"notes":result.notes,"caveats":caveats,"horizon_verdicts":result.horizon_verdicts.as_ref().map(|(a,b)|json!([a,b]))});
+    if qualified {
+        output["verdict_qualification"] = qualification(false);
+    }
     if !single {
         output["input_row"] = json!(line.row);
     }
@@ -159,13 +225,20 @@ pub fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
     let as_at = required_date(input["as_at"].as_str().unwrap(), "as_at")?;
     let gic = rates::load_gic().map_err(failure)?;
     let calendar = calendar::load_calendar(None).map_err(failure)?;
-    let results = assess::assess(lines, &calendar, &gic, as_at, assess::Options::default())
+    let mut results = assess::assess(lines, &calendar, &gic, as_at, assess::Options::default())
         .map_err(failure)?;
+    // On the engine's results, so report.csv carries the caveat in the row and
+    // the pack's hashes bind the report as returned.
+    for result in &mut results {
+        if relies_on_kept_receipts(result) {
+            result.caveats.push(RETURNED.into());
+        }
+    }
     let mut output = json!({"ok":true,"engine":"payday-super-checker","engine_version":engine::VERSION,"law_content_date":engine::LAW_CONTENT_DATE,"as_at":as_at.isoformat(),"disclaimer":DISCLAIMER});
     if name == "build_payday_super_evidence_pack" {
         let provenance = gic.provenance();
         let tables: Vec<_> = gic.source.clone().into_iter().collect();
-        let files: Map<_, _> = evidence_pack::build_evidence_pack(
+        let mut files: Map<_, _> = evidence_pack::build_evidence_pack(
             &results,
             &evidence_pack::PackFacts {
                 as_at,
@@ -179,14 +252,19 @@ pub fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
         .into_iter()
         .map(|(name, text)| (name, Value::String(text)))
         .collect();
-        let exceptions: Value = serde_json::from_str(files["exceptions.json"].as_str().unwrap())
-            .expect("engine pack JSON");
+        let mut exceptions: Value =
+            serde_json::from_str(files["exceptions.json"].as_str().unwrap())
+                .expect("engine pack JSON");
         output["review_exit_code"] =
             json!(if exceptions["exceptions"].as_array().unwrap().is_empty() {
                 0
             } else {
                 2
             });
+        let qualified = results.iter().any(relies_on_kept_receipts);
+        if qualified {
+            qualify_pack_files(&mut files, &mut exceptions);
+        }
         output["files"] = Value::Object(files);
         output["caveats"] = json!([
             "Private review artefacts. No files are written. Save returned strings as UTF-8 without altering newlines or the CSV's initial BOM, so the report hash matches.",
@@ -194,6 +272,13 @@ pub fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
             "Supply all related rows for one employer with established receipt allocation. No ATO assessment is assumed to have issued. Transition allocation is unconfirmed.",
             "Employee identifiers are omitted from the returned pack. The calling host still receives the input references; use an approved environment and fabricated demos."
         ]);
+        if qualified {
+            output["caveats"]
+                .as_array_mut()
+                .unwrap()
+                .push(json!(RETURNED));
+            output["verdict_qualification"] = qualification(true);
+        }
     } else if single {
         output["assessment_scope"] = json!("single_contribution");
         output["result"] = serialise(&results[0], true)?;

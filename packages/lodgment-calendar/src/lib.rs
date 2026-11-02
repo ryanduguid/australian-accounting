@@ -2,6 +2,7 @@
 //! Missing facts, ambiguous rules and incomplete calendars remain UNKNOWN.
 pub mod api;
 pub mod cli;
+mod fbt;
 pub mod holidays;
 mod returns;
 mod statements;
@@ -12,7 +13,7 @@ use serde_json::Value;
 use std::sync::OnceLock;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
-const CHECKED: &str = "2026-10-28";
+const CHECKED: &str = "2026-10-31";
 
 /// What the program records about its period and sources, for a freshness report.
 pub fn provenance() -> Value {

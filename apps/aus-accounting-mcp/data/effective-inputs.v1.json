@@ -2734,6 +2734,44 @@
       }
     }
   },
+  "validate_abn": {
+    "type": "model",
+    "name": "validate_abnArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "abn": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 40
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "validate_abnArguments"
+    }
+  },
+  "validate_acn": {
+    "type": "model",
+    "name": "validate_acnArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "acn": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 40
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "validate_acnArguments"
+    }
+  },
   "search_accounting_library": {
     "type": "model",
     "name": "search_accounting_libraryArguments",

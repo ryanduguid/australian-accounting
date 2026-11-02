@@ -1,5 +1,5 @@
 //! JSON API for the native engine. All dates use canonical YYYY-MM-DD strings.
-use crate::{CHECKED, Payment, Rule, VERSION, data, holidays, returns, statements};
+use crate::{CHECKED, Payment, Rule, VERSION, data, fbt, holidays, returns, statements};
 use serde_json::{Map, Value, json};
 
 pub const COMMANDS: &[&str] = &["due-dates"];
@@ -123,7 +123,11 @@ fn due_dates(v: &Value) -> Result<Value, String> {
             ));
         }
     }
-    let obligation = choice(v, "obligation", &["bas", "ias", "income_tax_return"])?;
+    let obligation = choice(
+        v,
+        "obligation",
+        &["bas", "ias", "income_tax_return", "fbt_return"],
+    )?;
     let entity = choice(
         v,
         "entity_type",
@@ -150,11 +154,11 @@ fn due_dates(v: &Value) -> Result<Value, String> {
             )
         })?;
     let cycle = v["reporting_cycle"].as_str();
-    if obligation == "income_tax_return" {
+    if ["income_tax_return", "fbt_return"].contains(&obligation) {
         if !v["reporting_cycle"].is_null() {
             return Err("reporting_cycle applies only to bas and ias".into());
         }
-        if channel == "bas_agent" {
+        if obligation == "income_tax_return" && channel == "bas_agent" {
             return Err("a BAS agent cannot lodge an income tax return; use tax_agent".into());
         }
     } else if !matches!(cycle, Some("monthly" | "quarterly")) {
@@ -196,10 +200,10 @@ fn due_dates(v: &Value) -> Result<Value, String> {
     let cal = holidays::calendar(&v["extra_holidays"], &v["holidays_complete_until"])?;
     let family = format!(
         "{}-{}",
-        if obligation == "income_tax_return" {
-            entity.to_uppercase()
-        } else {
-            obligation.to_uppercase()
+        match obligation {
+            "income_tax_return" => entity.to_uppercase(),
+            "fbt_return" => "FBT".into(),
+            _ => obligation.to_uppercase(),
         },
         if channel == "self" { "SELF" } else { "AGENT" }
     );
@@ -213,10 +217,10 @@ fn due_dates(v: &Value) -> Result<Value, String> {
         let mut rule=Rule::new("YEAR-NOT-RECORDED",format!("This release records the 2026-27 lodgment program, which covers {recorded} for this obligation; {year} is not recorded."),"about",None)
             .unresolved(&format!("rules for {year}: this release records only {recorded} for this obligation"));
         rule.payment = Payment::Mode("unknown".into());
-        let label = if obligation == "income_tax_return" {
-            format!("Income tax return {year}")
-        } else {
-            format!("{} {year}", obligation.to_uppercase())
+        let label = match obligation {
+            "income_tax_return" => format!("Income tax return {year}"),
+            "fbt_return" => format!("FBT return, FBT year {year}"),
+            _ => format!("{} {year}", obligation.to_uppercase()),
         };
         rows.extend(make_rows(
             &label,
@@ -224,7 +228,18 @@ fn due_dates(v: &Value) -> Result<Value, String> {
             Some(rule),
             &[],
             "",
-            "unknown",
+            ("unknown", "about"),
+            &cal,
+        )?);
+    } else if obligation == "fbt_return" {
+        let (rule, missing) = fbt::select(channel, &facts);
+        rows.extend(make_rows(
+            &format!("FBT return, FBT year {year}"),
+            year,
+            rule,
+            &missing,
+            &family,
+            ("unknown", "fbt_agent"),
             &cal,
         )?);
     } else if obligation == "income_tax_return" {
@@ -236,11 +251,14 @@ fn due_dates(v: &Value) -> Result<Value, String> {
             rule,
             &missing,
             &family,
-            if entity == "partnership" {
-                "none"
-            } else {
-                "unknown"
-            },
+            (
+                if entity == "partnership" {
+                    "none"
+                } else {
+                    "unknown"
+                },
+                "about",
+            ),
             &cal,
         )?);
         for (rule, missing) in concessions {
@@ -263,7 +281,13 @@ fn due_dates(v: &Value) -> Result<Value, String> {
             &facts,
         ) {
             rows.extend(make_rows(
-                &label, &period, rule, &missing, &family, "unknown", &cal,
+                &label,
+                &period,
+                rule,
+                &missing,
+                &family,
+                ("unknown", "about"),
+                &cal,
             )?);
         }
     }
@@ -282,7 +306,7 @@ fn make_rows(
     rule: Option<Rule>,
     missing: &[String],
     family: &str,
-    pending_payment: &str,
+    (pending_payment, pending_source): (&str, &str),
     cal: &holidays::Calendar,
 ) -> Result<Vec<Value>, String> {
     if rule.is_none() || !missing.is_empty() {
@@ -296,7 +320,7 @@ fn make_rows(
                 "The date depends on facts not supplied: {}.",
                 meanings.join("; ")
             ),
-            "about",
+            pending_source,
             None,
         );
         return Ok(vec![row(

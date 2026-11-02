@@ -7,7 +7,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got \"O'Reilly\""
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got \"O'Reilly\""
   },
   {
     "request": {
@@ -17,7 +17,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got 'O\\'Reilly \"quoted\"'"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 'O\\'Reilly \"quoted\"'"
   },
   {
     "request": {
@@ -27,7 +27,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got 'NUL\\x00ESC\\x1b\\x08\\x0b\\x0c\\x7f'"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 'NUL\\x00ESC\\x1b\\x08\\x0b\\x0c\\x7f'"
   },
   {
     "request": {
@@ -37,7 +37,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got '\\x85\\u202e\\u200b\\U000e0001'"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got '\\x85\\u202e\\u200b\\U000e0001'"
   },
   {
     "request": {
@@ -51,7 +51,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got [True, None, 'x']"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got [True, None, 'x']"
   },
   {
     "request": {
@@ -67,7 +67,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got {'nested': [False, None, 1]}"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got {'nested': [False, None, 1]}"
   },
   {
     "request": {
@@ -77,7 +77,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got 1.0"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1.0"
   },
   {
     "request": {
@@ -87,7 +87,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got 100000.0"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 100000.0"
   },
   {
     "request": {
@@ -97,7 +97,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got 1e+16"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1e+16"
   },
   {
     "request": {
@@ -107,7 +107,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got 1e+20"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1e+20"
   },
   {
     "request": {
@@ -117,7 +117,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got 1e-07"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1e-07"
   },
   {
     "request": {
@@ -127,7 +127,7 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got 1e-05"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1e-05"
   },
   {
     "request": {
@@ -137,6 +137,6 @@
       "channel": "self",
       "reporting_cycle": "monthly"
     },
-    "error": "obligation must be one of bas, ias, income_tax_return; got 1000000000000000000000000000000"
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1000000000000000000000000000000"
   }
 ]

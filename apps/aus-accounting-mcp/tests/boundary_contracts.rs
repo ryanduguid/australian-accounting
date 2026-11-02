@@ -108,6 +108,74 @@ fn declared_outputs_reject_misleading_money_dates_and_safety_markers() {
     }
 }
 #[test]
+fn published_schemas_require_the_returned_contribution_and_registration_limits() {
+    let base = json!({"employee_id":"SYN001","qe_day":"2026-08-06","sg_amount":"800.00","as_at":"2026-09-30"});
+    let with = |facts: Value| {
+        let mut arguments = base.clone();
+        arguments
+            .as_object_mut()
+            .unwrap()
+            .extend(facts.as_object().unwrap().clone());
+        arguments
+    };
+    let on_time = with(json!({"received":"2026-08-10","matched_amount":"800.00"}));
+    let candidate = with(json!({"received":"2026-08-10"}));
+    let single = "calc_payday_super_deadline";
+    assert_eq!(
+        payload(single, &candidate)["result"]["horizon_verdicts"],
+        json!(["UNPAID", "ON_TIME"])
+    );
+    for arguments in [&on_time, &candidate] {
+        rejects(single, arguments, "/result/verdict_qualification", None);
+    }
+    rejects(
+        single,
+        &on_time,
+        "/result/verdict_qualification/returned_contributions_assessed",
+        Some(json!(true)),
+    );
+    let row = |facts: Value| {
+        let mut row = with(facts);
+        row.as_object_mut().unwrap().remove("as_at");
+        row.as_object_mut().unwrap().extend(
+            json!({"first_to_fund":false,"out_of_cycle":false,"db_interest":false})
+                .as_object()
+                .unwrap()
+                .clone(),
+        );
+        row
+    };
+    let rows = json!({"contributions":[row(json!({"received":"2026-08-10","matched_amount":"800.00"}))],"as_at":"2026-09-30"});
+    rejects(
+        "review_payday_super_contributions",
+        &rows,
+        "/results/0/verdict_qualification",
+        None,
+    );
+    let pack = "build_payday_super_evidence_pack";
+    assert_eq!(payload(pack, &rows)["review_exit_code"], 0);
+    rejects(pack, &rows, "/verdict_qualification", None);
+    // An UNKNOWN row with no ON_TIME candidate needs no qualification.
+    let unknown = json!({"employee_id":"SYN001","qe_day":"2031-07-01","sg_amount":"800.00","received":"2031-07-02","matched_amount":"400.00","as_at":"2032-01-01"});
+    let result = payload(single, &unknown);
+    assert_eq!(result["result"]["verdict"], "UNKNOWN");
+    assert!(result["result"].get("verdict_qualification").is_none());
+    for (name, argument, value) in [
+        ("validate_abn", "abn", "51 824 753 556"),
+        ("validate_acn", "acn", "004 085 616"),
+    ] {
+        let arguments = json!({argument: value});
+        assert_eq!(payload(name, &arguments)["result"], "CHECK_DIGIT_VALID");
+        for marker in [
+            "/abr_registration_established",
+            "/gst_registration_established",
+        ] {
+            rejects(name, &arguments, marker, Some(json!(true)));
+        }
+        rejects(name, &arguments, "/result", Some(json!("REGISTERED")));
+    }
+}
+#[test]
 fn variants_require_audit_sections_and_preserve_engine_extensions() {
     for (name, arguments, pointer) in [
         (

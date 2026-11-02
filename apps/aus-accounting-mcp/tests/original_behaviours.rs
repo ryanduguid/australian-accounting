@@ -10,7 +10,7 @@ fn original_behaviour_record_is_complete_and_bound_to_its_reviewed_sources() {
     let record: Value =
         serde_json::from_str(include_str!("fixtures/native/behaviour-coverage.json")).unwrap();
     let sources = record["original_sources"].as_object().unwrap();
-    assert_eq!(sources.len(), 32);
+    assert_eq!(sources.len(), 36);
     for (relative, expected) in sources {
         let path = std::path::Path::new(relative);
         assert!(
@@ -31,7 +31,7 @@ fn original_behaviour_record_is_complete_and_bound_to_its_reviewed_sources() {
         );
     }
     let functions = record["functions"].as_array().unwrap();
-    assert_eq!(functions.len(), 392);
+    assert_eq!(functions.len(), 426);
     let mut identities = BTreeSet::new();
     let mut counts = std::collections::BTreeMap::new();
     for row in functions {
@@ -521,13 +521,21 @@ fn lodgment_fact_descriptions_and_quoted_versions_match_linked_engines() {
         "../../../packages/lodgment-calendar/data/program-2026-27.json"
     ))
     .unwrap();
-    let meanings = data["fact_meanings"].as_object().unwrap();
+    // As in the Python server, the tool offers no fbt_return until the supported
+    // distribution pins a lodgment-calendar release that has one.
+    let meanings: serde_json::Map<_, _> = data["fact_meanings"]
+        .as_object()
+        .unwrap()
+        .iter()
+        .filter(|(name, _)| *name != "on_fbt_client_list_by_21_may")
+        .map(|(name, meaning)| (name.clone(), meaning.clone()))
+        .collect();
     let properties = contracts::tool("get_lodgment_due_dates").unwrap()["inputSchema"]["$defs"]["LodgmentFactsInput"]["properties"].as_object().unwrap();
     assert_eq!(
         properties.keys().collect::<BTreeSet<_>>(),
         meanings.keys().collect()
     );
-    for (name, meaning) in meanings {
+    for (name, meaning) in &meanings {
         assert!(
             properties[name]["description"]
                 .as_str()

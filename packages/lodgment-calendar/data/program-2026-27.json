@@ -511,7 +511,8 @@
     "previous_statement_lodged_electronically": "each statement generates after the client's previous activity statement was lodged electronically; false for a first statement, a paper one or one lodged after the next statement generated",
     "includes_monthly_payg_obligation": "the quarterly statement also carries a monthly PAYG withholding or PAYG instalment obligation",
     "annual_turnover_up_to_10m": "annual turnover is up to $10 million",
-    "deferred_gst_registered": "the business is registered for deferred GST"
+    "deferred_gst_registered": "the business is registered for deferred GST",
+    "on_fbt_client_list_by_21_may": "the tax agent was appointed for the client's FBT role and had the client on its FBT client list by 21 May"
   },
   "fact_names": [
     "prior_returns_outstanding",
@@ -532,7 +533,8 @@
     "previous_statement_lodged_electronically",
     "includes_monthly_payg_obligation",
     "annual_turnover_up_to_10m",
-    "deferred_gst_registered"
+    "deferred_gst_registered",
+    "on_fbt_client_list_by_21_may"
   ],
   "sources": {
     "bas": [
@@ -615,6 +617,14 @@
       "https://www.ato.gov.au/print/section/e18658ad-de6e-49f3-b050-095fdf695f83",
       "Self-managed superannuation fund annual return 2026 instructions: Lodgment due dates, table 'Dates and types of lodgment for self-preparers' (last updated 30 May 2026)"
     ],
+    "fbt_self": [
+      "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/fbt-registration-lodgment-payment-and-reporting/lodging-your-fbt-return-and-paying",
+      "Due date to lodge your return and pay (last updated 10 September 2026)"
+    ],
+    "fbt_agent": [
+      "https://www.ato.gov.au/tax-and-super-professionals/for-tax-professionals/prepare-and-lodge/registered-agent-lodgment-program/due-dates-by-obligation-type/fbt-return",
+      "FBT return: lodgment and payment due dates; client list by 21 May (last updated 1 July 2026)"
+    ],
     "holidays": [
       "https://www.ato.gov.au/tax-and-super-professionals/for-tax-professionals/prepare-and-lodge/registered-agent-lodgment-program/lodgment-and-payment-dates-on-weekends-or-public-holidays",
       "Approach to weekends and public holidays; Table 1: Australian public holidays in 2026; Table 2: Australian public holidays in 2027 (page last updated 1 July 2026)"
@@ -651,6 +661,7 @@
     "Dates the ATO sets for one client override these: a notice requiring earlier lodgement, a prosecution letter, a deferral, an advised first-year date for a new SMSF, or the due date shown on the activity statement or in Online services for agents.",
     "Whether a fact supplied is true. Large or medium status, taxable status, income and liability thresholds, registration and lodgement history are taken as given.",
     "Substituted accounting periods, companies that are not full self-assessment taxpayers, APRA-regulated funds, members exiting a consolidated group, annual GST returns, instalment notices (forms R, S, T and N), PAYG instalments paid in 2 instalments or annually, deferred BAS payers (who pay monthly PAYG instalments on the 28th) and every other obligation type.",
+    "Whether an employer must lodge an FBT return or send a notice of non-lodgment, FBT instalments on activity statements, an extension of time for an FBT return, and state or territory FBT nominations.",
     "Whether a lodgement or payment was on time, and any penalty or general interest charge.",
     "Disaster or other deferrals, and holidays proclaimed after the ATO published its 2026–27 table."
   ],

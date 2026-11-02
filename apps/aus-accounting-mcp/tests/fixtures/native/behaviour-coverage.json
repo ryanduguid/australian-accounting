@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "scope": "All 392 original test functions in 32 files, including their inspected parameterised assertions. Source-bound reconciliation, not a claim that captured-call counts prove coverage.",
+  "scope": "All 426 original test functions in 36 files, including their inspected parameterised assertions. Source-bound reconciliation, not a claim that captured-call counts prove coverage.",
   "status_meanings": {
     "covered": "Inspected observable assertions have explicit native proof, including complete original payload/refusal equality where appropriate. Cross-source relationships use direct checks. Existing NATIVE.md identity/parser allowances still apply.",
     "adapted": "Explicit native representation, static-link or test-instrumentation difference; see per-function limit. This is not support for substituting Python modules or malformed Python-only values at runtime.",
     "retained-python-distribution": "Protects the still-supported Python distribution, release/Registry process or its documentation/media. Kept active; not retired, ported or an approval to publish/cut over."
   },
   "counts": {
-    "adapted": 55,
-    "covered": 289,
-    "retained-python-distribution": 48
+    "adapted": 59,
+    "covered": 317,
+    "retained-python-distribution": 50
   },
   "original_sources": {
     "tests/test_aus_accounting_mcp.py": "7daa89a083dfc926a11b920c971dec06601cb16c07da6403879819af54f4e40a",
@@ -17,7 +17,7 @@
     "tests/test_compatibility.py": "d0616cd7d9aec8c92464bff989f2ec2119ef16f3e7e11993c792b4ca5268b9cb",
     "tests/test_conformance_cases.py": "6acc9215e8b4cc62317eb926d258d89662eee4fbb239fc2f53860e8bfaa60976",
     "tests/test_corpus.py": "ff0262b6eff715e569eee2c0a53cfa7ce29256fde4c160a2994e8677e1141c3d",
-    "tests/test_data_freshness.py": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+    "tests/test_data_freshness.py": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
     "tests/test_demo.py": "1ed98e9286f9f118de7b57042b8c68c27d9a2f4e635d10db0bafe1ee16711d44",
     "tests/test_demo_media.py": "34c7b570a5747651b18aa9a688cbcc9c9da5de34e9fe5b2259d6ebe87610714c",
     "tests/test_div7a.py": "7aff7234554d00835d236cd4a07d8184f6dc18eef28046ce3e42a69fdffb4547",
@@ -27,22 +27,26 @@
     "tests/test_firm_assessment.py": "976d43a7b671a07112f23f47093555b03949bc244e1629416a4ba3e83203c4b3",
     "tests/test_group_review.py": "e7932ce738953af1b945a32df83dd16070aa36737b8ce0a03a417729fbefe2ca",
     "tests/test_gst_review.py": "da754a17bae3746a3c025679df0b7a17a897345de8561d5a1b98234ff7659c0e",
+    "tests/test_identifiers.py": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
     "tests/test_industry_pagination.py": "7f91548bed40ee86edf644daf5ce458d6231d83046de56f39ccb8b11af43fafb",
-    "tests/test_lodgment_calendar.py": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
-    "tests/test_mcp_evaluation.py": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+    "tests/test_lodgment_calendar.py": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
+    "tests/test_mcp_evaluation.py": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
+    "tests/test_no_network.py": "80345078fac0344e03d898fc24e8b834474de5bca2fcf1a7130e877e89b7aa69",
     "tests/test_output_contracts.py": "78e73741bc0e4fd00cc693747c86df7c1174fc54320bb12b6c80de18229e3234",
     "tests/test_payday_boundary.py": "165ff36bc3500f222a3233368e6709df81004842e8539c25f359607bb7a6aa25",
     "tests/test_payday_receipt_amount.py": "af1e3467d546f3cbd4dd5a104ebd29b23f33d39a0a64101446168449a2e3a58c",
+    "tests/test_payday_returned_limit.py": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
     "tests/test_payday_rounding.py": "6c82c37bfac06ae64280f4c8312e034535e077962c81e7375797ef48b2d46403",
     "tests/test_payday_scope.py": "d47c12c1515a63d224cac6a5f5d854ceb213e5f221c5e535974e02205f6d351e",
     "tests/test_registry_preflight.py": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
     "tests/test_repository_guidance.py": "c31719384c5e6b5697523ddc184c25a8ded59af05e2d9b73c28ac63d7add1a83",
     "tests/test_resources.py": "3e242411b14321671decf3a3954fac2249343afb8c50d8581f39a5742cf4d551",
     "tests/test_rulings.py": "fcbe6bc73ac3d4d7e33962a61fa2898b07f7bb6889b76d3f821249d411dde7b1",
-    "tests/test_selection_record_integrity.py": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
+    "tests/test_selection_record_integrity.py": "e1ff4d6b335c5fd06cc5b20a4adb3d40f0529f3ee8ef50bd47dd04ace2c2c0f9",
     "tests/test_server_money.py": "1e45fcffbbed08c03fb999ec0306d60c270c52d38e1809be752029bca492bcfc",
     "tests/test_server_paths.py": "90acde9386b8a2e161990cbda25d4c5c3e826ceef728ef9ee8d3452aaefdd4b9",
-    "tests/test_tool_discovery.py": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+    "tests/test_tool_discovery.py": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
+    "tests/test_tool_table.py": "f958ef3581a04aa16abefa185964b89f2dafedcb39660624996ad306b83566b8",
     "tests/test_worksheet_catalogue.py": "5d6b5a6e3dbd2ec33fe277d00213c6b4ad23b6039167b4f8a90f147f04bc0676"
   },
   "proofs": {
@@ -112,11 +116,11 @@
     },
     "ANSWER": {
       "test": "tests/wire_contracts.rs::current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts",
-      "evidence": "Current XML calls through one actual process; all 37 derived answers/43 calls, extra original assertions, result-dependent argument relationships and complete published-tool selection. Fabricated files bound to original builder hashes."
+      "evidence": "Current XML calls through one actual process; all 39 derived answers/45 calls, extra original assertions, result-dependent argument relationships and complete published-tool selection. Fabricated files bound to original builder hashes."
     },
     "WIRE": {
       "test": "tests/wire_contracts.rs::unknown_arguments_and_expected_input_errors_leave_the_session_usable",
-      "evidence": "All 22 misspelled-argument refusals, partial receipt, ambiguous date, 3 original error probes, 11 rejected evidence-pack argument variants and recovery; response identity, absent structured error content and no cwd writes after each reply checked."
+      "evidence": "All 24 misspelled-argument refusals, partial receipt, ambiguous date, 3 original error probes, 11 rejected evidence-pack argument variants and recovery; response identity, absent structured error content and no cwd writes after each reply checked."
     },
     "W": {
       "test": "tests/wire_contracts.rs::original_large_pack_pagination_and_scope_over_stdio",
@@ -229,6 +233,14 @@
     "FRESH": {
       "test": "tests/native_adapters.rs::frozen_freshness_contracts",
       "evidence": "31 complete replies from the Python server at the oracle base in freshness-contracts.json, with explicit native identity and engine-correction allowances; unit tests in src/adapters/freshness.rs."
+    },
+    "LIMITS": {
+      "test": "tests/boundary_contracts.rs::published_schemas_require_the_returned_contribution_and_registration_limits",
+      "evidence": "Actual current inputs and related outputs, rather than fixture counts."
+    },
+    "NONET": {
+      "test": "tests/no_network.rs::real_tool_calls_make_no_network_syscall",
+      "evidence": "The original no-network calculations and figures over stdio under strace -f on Linux; tests/no_network.rs::the_binary_imports_no_network_or_process_call on Windows."
     }
   },
   "functions": [
@@ -2068,64 +2080,65 @@
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:31",
+      "original": "tests/test_lodgment_calendar.py:32",
       "function": "test_agent_quarterly_bas_returns_the_engine_rows_with_provenance",
-      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
+      "source_sha256": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:53",
+      "original": "tests/test_lodgment_calendar.py:54",
       "function": "test_self_lodged_individual_return_without_facts",
-      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
+      "source_sha256": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:63",
+      "original": "tests/test_lodgment_calendar.py:64",
       "function": "test_missing_program_facts_stay_unknown_and_are_named",
-      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
+      "source_sha256": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:79",
+      "original": "tests/test_lodgment_calendar.py:80",
       "function": "test_engine_refusals_reach_the_caller",
-      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
+      "source_sha256": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:93",
+      "original": "tests/test_lodgment_calendar.py:94",
       "function": "test_malformed_arguments_are_rejected",
-      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
+      "source_sha256": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:98",
+      "original": "tests/test_lodgment_calendar.py:99",
       "function": "test_tool_schema_describes_every_fact_and_is_read_only",
-      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
-      "status": "covered",
+      "source_sha256": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
+      "status": "adapted",
       "proofs": [
         "D",
         "LINKED"
-      ]
+      ],
+      "adaptation_or_limit": "The pyproject.toml pin check stays with the Python distribution; LINKED excludes the same FBT fact while the tool pins lodgment-calendar 0.1.0."
     },
     {
-      "original": "tests/test_lodgment_calendar.py:108",
+      "original": "tests/test_lodgment_calendar.py:114",
       "function": "test_resources_list_the_engine_and_tool",
-      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
+      "source_sha256": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
       "status": "adapted",
       "proofs": [
         "RS",
@@ -2135,36 +2148,36 @@
       "adaptation_or_limit": "Installed distribution lookup becomes linked crate identity; complete disclaimer/scope payloads remain compared."
     },
     {
-      "original": "tests/test_lodgment_calendar.py:121",
+      "original": "tests/test_lodgment_calendar.py:127",
       "function": "test_caller_holidays_settle_dates_after_the_ato_table",
-      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
+      "source_sha256": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:142",
+      "original": "tests/test_lodgment_calendar.py:148",
       "function": "test_invalid_holiday_inputs_reach_the_caller",
-      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
+      "source_sha256": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:152",
+      "original": "tests/test_lodgment_calendar.py:158",
       "function": "test_malformed_holiday_inputs_are_rejected",
-      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
+      "source_sha256": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:163",
+      "original": "tests/test_lodgment_calendar.py:169",
       "function": "test_the_tool_caps_caller_holidays_at_50",
-      "source_sha256": "8bfa3186032299bd23f0595c3c25c94e55f14d6965850fc9e91b797fdafe4218",
+      "source_sha256": "7146a6335768d60efe878f21b5898c1e67c4444e245153b268b7f6c2f6d66d08",
       "status": "covered",
       "proofs": [
         "F",
@@ -2172,27 +2185,27 @@
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:250",
+      "original": "tests/test_mcp_evaluation.py:253",
       "function": "test_evaluation_answer_is_reproducible",
-      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+      "source_sha256": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
       "status": "covered",
       "proofs": [
         "ANSWER"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:265",
+      "original": "tests/test_mcp_evaluation.py:268",
       "function": "test_every_published_tool_selection_names_a_registered_tool",
-      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+      "source_sha256": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
       "status": "covered",
       "proofs": [
         "ANSWER"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:275",
+      "original": "tests/test_mcp_evaluation.py:278",
       "function": "test_the_selection_harness_publishes_questions_without_their_answers",
-      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+      "source_sha256": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
       "status": "covered",
       "proofs": [
         "CONTEXT",
@@ -2200,27 +2213,27 @@
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:296",
+      "original": "tests/test_mcp_evaluation.py:299",
       "function": "test_the_selection_harness_scores_a_recorded_run",
-      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+      "source_sha256": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:323",
+      "original": "tests/test_mcp_evaluation.py:326",
       "function": "test_the_selection_harness_rejects_a_question_it_does_not_know",
-      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+      "source_sha256": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:330",
+      "original": "tests/test_mcp_evaluation.py:333",
       "function": "test_the_selection_harness_context_is_the_whole_tool_definition",
-      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+      "source_sha256": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
       "status": "covered",
       "proofs": [
         "CONTEXT",
@@ -2228,45 +2241,45 @@
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:372",
+      "original": "tests/test_mcp_evaluation.py:375",
       "function": "test_recorded_calls_and_answer_are_scored_together",
-      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+      "source_sha256": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:381",
+      "original": "tests/test_mcp_evaluation.py:384",
       "function": "test_correct_tool_names_cannot_hide_wrong_calls_or_answer",
-      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+      "source_sha256": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:401",
+      "original": "tests/test_mcp_evaluation.py:404",
       "function": "test_invented_zero_fails_even_when_the_answer_and_tools_are_right",
-      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+      "source_sha256": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:422",
+      "original": "tests/test_mcp_evaluation.py:425",
       "function": "test_legacy_tool_names_do_not_claim_argument_or_answer_verification",
-      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+      "source_sha256": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
       "status": "covered",
       "proofs": [
         "SCORE"
       ]
     },
     {
-      "original": "tests/test_mcp_evaluation.py:434",
+      "original": "tests/test_mcp_evaluation.py:437",
       "function": "test_malformed_recordings_return_an_input_error",
-      "source_sha256": "933ab59bc7033a16fa171de18f422b5d17d0131586cc37aeadef1285a7b1ce60",
+      "source_sha256": "2c8b8e809d176d8c4b223fab5649cb9653777789920978f6d0f68dcb335e5c65",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3218,7 +3231,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:19",
       "function": "test_decoded_argument_types_cannot_match_by_python_coercion",
-      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
+      "source_sha256": "e1ff4d6b335c5fd06cc5b20a4adb3d40f0529f3ee8ef50bd47dd04ace2c2c0f9",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3227,7 +3240,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:51",
       "function": "test_ambiguous_or_nonfinite_recordings_are_input_errors",
-      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
+      "source_sha256": "e1ff4d6b335c5fd06cc5b20a4adb3d40f0529f3ee8ef50bd47dd04ace2c2c0f9",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3236,7 +3249,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:58",
       "function": "test_a_recording_can_bind_the_reference_snapshot",
-      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
+      "source_sha256": "e1ff4d6b335c5fd06cc5b20a4adb3d40f0529f3ee8ef50bd47dd04ace2c2c0f9",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3245,7 +3258,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:75",
       "function": "test_invalid_reference_keys_cannot_produce_scores",
-      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
+      "source_sha256": "e1ff4d6b335c5fd06cc5b20a4adb3d40f0529f3ee8ef50bd47dd04ace2c2c0f9",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3254,7 +3267,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:117",
       "function": "test_finite_float_values_are_not_rounded_before_comparison",
-      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
+      "source_sha256": "e1ff4d6b335c5fd06cc5b20a4adb3d40f0529f3ee8ef50bd47dd04ace2c2c0f9",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3263,7 +3276,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:144",
       "function": "test_answer_whitespace_is_symmetric_but_internal_text_is_exact",
-      "source_sha256": "ed699cb8b8d8ed76db7a890a314acd7bad4f2af4e33d53377e0cd3e8273ec5a2",
+      "source_sha256": "e1ff4d6b335c5fd06cc5b20a4adb3d40f0529f3ee8ef50bd47dd04ace2c2c0f9",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3551,7 +3564,7 @@
     {
       "original": "tests/test_tool_discovery.py:18",
       "function": "test_every_input_has_a_description_in_the_public_schema",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "D"
@@ -3560,7 +3573,7 @@
     {
       "original": "tests/test_tool_discovery.py:35",
       "function": "test_no_description_fuses_two_words_across_a_line_break",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "adapted",
       "proofs": [
         "D"
@@ -3570,7 +3583,7 @@
     {
       "original": "tests/test_tool_discovery.py:57",
       "function": "test_every_tool_has_a_readable_title_for_a_host_menu",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "D"
@@ -3579,7 +3592,7 @@
     {
       "original": "tests/test_tool_discovery.py:67",
       "function": "test_no_tool_reachable_only_by_supplying_facts_it_ignores",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "D"
@@ -3588,25 +3601,25 @@
     {
       "original": "tests/test_tool_discovery.py:77",
       "function": "test_local_tools_disclose_their_effects_to_clients",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "D"
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:163",
+      "original": "tests/test_tool_discovery.py:165",
       "function": "test_every_bounded_string_input_publishes_its_length",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "D"
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:177",
+      "original": "tests/test_tool_discovery.py:179",
       "function": "test_the_operator_reference_bound_matches_the_engine_model",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3614,9 +3627,9 @@
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:189",
+      "original": "tests/test_tool_discovery.py:191",
       "function": "test_the_benchmark_money_bound_matches_the_worksheet_money_type",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3624,9 +3637,9 @@
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:198",
+      "original": "tests/test_tool_discovery.py:200",
       "function": "test_every_money_input_shares_the_worksheet_money_bound",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3634,9 +3647,9 @@
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:213",
+      "original": "tests/test_tool_discovery.py:215",
       "function": "test_the_div7a_ratio_bounds_match_the_worksheet_ratio_type",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3644,27 +3657,27 @@
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:229",
+      "original": "tests/test_tool_discovery.py:231",
       "function": "test_the_year_bound_is_the_width_of_the_yyyy_yy_label",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "YEAR"
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:252",
+      "original": "tests/test_tool_discovery.py:254",
       "function": "test_the_date_bound_admits_the_longest_date_the_engine_reads",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "DATE"
       ]
     },
     {
-      "original": "tests/test_tool_discovery.py:283",
+      "original": "tests/test_tool_discovery.py:285",
       "function": "test_the_industry_bound_admits_every_shipped_business_type_name",
-      "source_sha256": "3148b31e714fcf043620a746fd8b882b4e65107ba60a1f3dd4ba82b4b3a5b0fb",
+      "source_sha256": "d620da543c8b16fc8455c3e4f427bc03719324428491d15a45242583415ea64a",
       "status": "covered",
       "proofs": [
         "YEAR"
@@ -3760,27 +3773,27 @@
       ]
     },
     {
-      "original": "tests/test_data_freshness.py:43",
+      "original": "tests/test_data_freshness.py:45",
       "function": "test_every_tool_that_reads_bundled_data_is_covered",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "covered",
       "proofs": [
         "FRESH"
       ]
     },
     {
-      "original": "tests/test_data_freshness.py:53",
+      "original": "tests/test_data_freshness.py:55",
       "function": "test_the_report_never_claims_the_data_is_current",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "covered",
       "proofs": [
         "FRESH"
       ]
     },
     {
-      "original": "tests/test_data_freshness.py:67",
+      "original": "tests/test_data_freshness.py:69",
       "function": "test_versions_come_from_installed_metadata",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "adapted",
       "proofs": [
         "FRESH",
@@ -3789,9 +3802,9 @@
       "adaptation_or_limit": "Native versions are the linked crates' compiled versions; there is no installed metadata to read."
     },
     {
-      "original": "tests/test_data_freshness.py:78",
+      "original": "tests/test_data_freshness.py:80",
       "function": "test_a_cached_older_release_reports_its_own_version_and_no_currency",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "adapted",
       "proofs": [
         "FRESH"
@@ -3799,9 +3812,9 @@
       "adaptation_or_limit": "The binary reports its own compiled version; a cached older binary does the same. Metadata monkeypatching has no native equivalent."
     },
     {
-      "original": "tests/test_data_freshness.py:93",
+      "original": "tests/test_data_freshness.py:95",
       "function": "test_an_uninstalled_distribution_is_unknown_not_guessed",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "adapted",
       "proofs": [
         "FRESH"
@@ -3809,9 +3822,9 @@
       "adaptation_or_limit": "An engine is statically linked, so it cannot be uninstalled; the UNKNOWN branch for a version is unreachable and not ported."
     },
     {
-      "original": "tests/test_data_freshness.py:104",
+      "original": "tests/test_data_freshness.py:106",
       "function": "test_local_metadata_is_read_from_the_installed_engines",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "covered",
       "proofs": [
         "FRESH",
@@ -3819,9 +3832,9 @@
       ]
     },
     {
-      "original": "tests/test_data_freshness.py:131",
+      "original": "tests/test_data_freshness.py:133",
       "function": "test_gic_periods_and_dates_follow_the_shipped_table",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "adapted",
       "proofs": [
         "FRESH"
@@ -3829,9 +3842,9 @@
       "adaptation_or_limit": "Compares the shipped table's complete output; substituting a table at runtime has no native equivalent."
     },
     {
-      "original": "tests/test_data_freshness.py:148",
+      "original": "tests/test_data_freshness.py:150",
       "function": "test_a_fact_the_engine_does_not_record_is_unknown",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "adapted",
       "proofs": [
         "FRESH"
@@ -3839,54 +3852,54 @@
       "adaptation_or_limit": "Unit tests in src/adapters/freshness.rs exercise absent values; engine monkeypatching has no native equivalent."
     },
     {
-      "original": "tests/test_data_freshness.py:181",
+      "original": "tests/test_data_freshness.py:183",
       "function": "test_as_at_boundaries_of_the_lodgment_program",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "covered",
       "proofs": [
         "FRESH"
       ]
     },
     {
-      "original": "tests/test_data_freshness.py:189",
+      "original": "tests/test_data_freshness.py:191",
       "function": "test_a_date_in_a_gap_between_recorded_periods_is_outside",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "covered",
       "proofs": [
         "FRESH"
       ]
     },
     {
-      "original": "tests/test_data_freshness.py:199",
+      "original": "tests/test_data_freshness.py:201",
       "function": "test_without_as_at_no_dataset_carries_a_status",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "covered",
       "proofs": [
         "FRESH"
       ]
     },
     {
-      "original": "tests/test_data_freshness.py:207",
+      "original": "tests/test_data_freshness.py:209",
       "function": "test_invalid_arguments_are_refused",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "covered",
       "proofs": [
         "FRESH"
       ]
     },
     {
-      "original": "tests/test_data_freshness.py:213",
+      "original": "tests/test_data_freshness.py:215",
       "function": "test_a_label_that_is_not_one_financial_year_is_refused",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "covered",
       "proofs": [
         "FRESH"
       ]
     },
     {
-      "original": "tests/test_data_freshness.py:228",
+      "original": "tests/test_data_freshness.py:230",
       "function": "test_only_an_iso_date_is_reported_as_a_date",
-      "source_sha256": "ea1c081c4a3136a474aa0622d1fea8d2448a9a978c6ed239bc7d69ec9a80c54f",
+      "source_sha256": "d45c809835915ea90cf5e238a745c0926927cdd626bdd768adebcdce43ee1c25",
       "status": "covered",
       "proofs": [
         "FRESH"
@@ -3914,6 +3927,318 @@
       "original": "tests/test_registry_preflight.py:184",
       "function": "test_readme_install_pins_must_select_the_published_version",
       "source_sha256": "1b661800e44755d0d04b2ec229b1ff6c0be6571b97adf935c4a5ca5e4e7916dd",
+      "status": "retained-python-distribution",
+      "proofs": [
+        "PY"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:47",
+      "function": "test_abr_worked_example_is_valid_however_it_is_spaced",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:56",
+      "function": "test_an_abn_with_a_wrong_digit_fails",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:65",
+      "function": "test_a_leading_zero_abn_fails_though_its_sum_divides_by_89",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:77",
+      "function": "test_a_malformed_abn_is_reported_and_never_cleaned_up",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:85",
+      "function": "test_asic_worked_example_is_valid",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:92",
+      "function": "test_every_acn_asic_lists_as_valid_passes",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:97",
+      "function": "test_a_complement_of_ten_means_a_check_digit_of_zero",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:104",
+      "function": "test_an_acn_with_a_wrong_digit_fails",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:114",
+      "function": "test_a_malformed_acn_is_reported_and_never_cleaned_up",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:127",
+      "function": "test_every_result_says_a_check_digit_proves_no_registration",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:138",
+      "function": "test_each_identifier_keeps_its_own_statement_and_source",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:150",
+      "function": "test_the_published_description_states_the_limit",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "D"
+      ]
+    },
+    {
+      "original": "tests/test_identifiers.py:160",
+      "function": "test_the_schema_refuses_a_result_claiming_registration",
+      "source_sha256": "c47f1bbd5340ee8dceb3b969ddd0638f5a05a7f92aa9ca46f271fa53e99ece93",
+      "status": "covered",
+      "proofs": [
+        "LIMITS"
+      ]
+    },
+    {
+      "original": "tests/test_no_network.py:138",
+      "function": "test_real_tool_calls_make_no_network_call",
+      "source_sha256": "80345078fac0344e03d898fc24e8b834474de5bca2fcf1a7130e877e89b7aa69",
+      "status": "adapted",
+      "proofs": [
+        "NONET"
+      ],
+      "adaptation_or_limit": "The native test makes the original 6 calculations, with their figures, and an ABN check over stdio. Linux runs it under strace -f rather than a CPython audit hook; Windows reads the binary's imports, which cannot see a library loaded by name at run time."
+    },
+    {
+      "original": "tests/test_no_network.py:160",
+      "function": "test_the_socketpair_exemption_covers_only_its_own_loopback_calls",
+      "source_sha256": "80345078fac0344e03d898fc24e8b834474de5bca2fcf1a7130e877e89b7aa69",
+      "status": "adapted",
+      "proofs": [
+        "NONET"
+      ],
+      "adaptation_or_limit": "Only strace's socketpair(AF_UNIX) lines are exempt, and any connect, bind or child process still fails. The spoofed CPython frame name this guards against has no native counterpart."
+    },
+    {
+      "original": "tests/test_no_network.py:173",
+      "function": "test_the_guard_stops_a_connection_made_during_a_tool_call",
+      "source_sha256": "80345078fac0344e03d898fc24e8b834474de5bca2fcf1a7130e877e89b7aa69",
+      "status": "adapted",
+      "proofs": [
+        "NONET"
+      ],
+      "adaptation_or_limit": "A native server cannot register an extra tool at run time. The injected-connection controls in the Linux locality gate (task evidence, locality.sh) show the same strace assertions catch a connect."
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:125",
+      "function": "test_single_on_time_carries_the_qualification_and_keeps_verdict_and_figures",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:136",
+      "function": "test_group_qualifies_each_on_time_row_and_only_those",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:148",
+      "function": "test_pack_envelope_qualifies_an_all_on_time_exit_zero",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:159",
+      "function": "test_pack_files_carry_the_limit_because_they_are_saved_without_the_envelope",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:184",
+      "function": "test_pack_changes_only_the_caveat_column_of_the_report",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:193",
+      "function": "test_a_mixed_pack_keeps_its_exit_code_and_queue_and_is_still_qualified",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:204",
+      "function": "test_non_on_time_results_are_unchanged",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:225",
+      "function": "test_an_on_time_candidate_is_qualified_and_stays_unknown",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:240",
+      "function": "test_a_pack_with_an_on_time_candidate_is_qualified_and_keeps_exit_and_figures",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "F"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:264",
+      "function": "test_published_schema_refuses_a_bare_on_time_candidate",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "LIMITS"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:273",
+      "function": "test_published_schema_refuses_a_bare_on_time_row",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "LIMITS"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:287",
+      "function": "test_published_schema_refuses_an_unqualified_all_on_time_pack",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "LIMITS"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:294",
+      "function": "test_published_schema_accepts_an_unknown_row_with_no_on_time_candidate",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "F",
+        "LIMITS"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:300",
+      "function": "test_published_schema_refuses_a_qualification_claiming_returns_were_assessed",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "LIMITS"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:308",
+      "function": "test_no_input_claims_to_assess_a_return",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "D"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:315",
+      "function": "test_tool_descriptions_state_the_limit",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "covered",
+      "proofs": [
+        "D"
+      ]
+    },
+    {
+      "original": "tests/test_payday_returned_limit.py:321",
+      "function": "test_the_limit_is_published_everywhere_a_reader_looks",
+      "source_sha256": "a5618a5f2b0abff9c9cae65d4e181b7498ab9bd54ad84cb22796142e6db0b143",
+      "status": "retained-python-distribution",
+      "proofs": [
+        "PY",
+        "D",
+        "RS"
+      ]
+    },
+    {
+      "original": "tests/test_tool_table.py:12",
+      "function": "test_readme_tool_table_matches_the_registered_tools",
+      "source_sha256": "f958ef3581a04aa16abefa185964b89f2dafedcb39660624996ad306b83566b8",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"

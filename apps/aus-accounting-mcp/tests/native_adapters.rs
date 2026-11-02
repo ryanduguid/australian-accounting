@@ -53,7 +53,7 @@ fn difference(left: &Value, right: &Value, path: &str) -> Option<String> {
 fn frozen_effective_adapter_contracts() {
     let mut cases: Vec<Value> =
         serde_json::from_str(include_str!("fixtures/native/adapter-contracts.json")).unwrap();
-    assert_eq!(cases.len(), 786);
+    assert_eq!(cases.len(), 929);
     let edges: Vec<Value> =
         serde_json::from_str(include_str!("fixtures/native/validation-edges.json")).unwrap();
     assert_eq!(edges.len(), 39);
@@ -162,7 +162,12 @@ fn native_provenance(value: &mut Value) {
             }
         }
         Value::String(text) => {
-            *text = text.replace("paydaysuper/data/gic_rates.json", "data/gic_rates.json")
+            *text = text
+                .replace("paydaysuper/data/gic_rates.json", "data/gic_rates.json")
+                .replace(
+                    "paydaysuper/data/business_days.json",
+                    "data/business_days.json",
+                )
         }
         _ => {}
     }
@@ -175,15 +180,21 @@ fn native_pack(files: &mut Value) {
     let old_report = files["report.csv"].as_str().unwrap();
     let old_digest = payday_super_checker::rates::hex(&Sha256::digest(old_report.as_bytes()));
     for text in files.values_mut() {
-        let old = text.as_str().unwrap();
-        *text = json!(
-            old.replace("payday-super-checker 0.2.2", "payday-super-checker 1.0.0")
-                .replace("paydaysuper/data/gic_rates.json", "data/gic_rates.json")
+        let mut new = text.as_str().unwrap().to_string();
+        // 0.2.2 before the 2026-10-31 refreeze, 0.2.3 after it.
+        for version in ["0.2.2", "0.2.3"] {
+            new = new
                 .replace(
-                    "\"engine_version\": \"0.2.2\"",
-                    "\"engine_version\": \"1.0.0\""
+                    &format!("payday-super-checker {version}"),
+                    "payday-super-checker 1.0.0",
                 )
-        );
+                .replace(
+                    &format!("\"engine_version\": \"{version}\""),
+                    "\"engine_version\": \"1.0.0\"",
+                );
+        }
+        *text = json!(new);
+        native_provenance(text);
     }
     let digest = payday_super_checker::rates::hex(&Sha256::digest(
         files["report.csv"].as_str().unwrap().as_bytes(),

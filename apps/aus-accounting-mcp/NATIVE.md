@@ -109,13 +109,13 @@ benchmark name/year and engine date format. These complement frozen payload
 comparisons; neither a captured call nor this set proves every original assertion.
 
 The source-bound [behaviour record](tests/fixtures/native/behaviour-coverage.json)
-reconciles all 392 original test functions across 32 files. It records 289 with
-native observable checks, 55 with explicit native adaptations and 48 retained
+reconciles all 426 original test functions across 36 files. It records 317 with
+native observable checks, 59 with explicit native adaptations and 50 retained
 with the supported Python distribution and its release, Registry, documentation
 or media workflow. Retained checks are active and are not retirement approvals.
 The record identifies proof symbols and limitations for each function; a Rust
 test refuses changed original source hashes until the reconciliation is reviewed.
-These are function dispositions, not 392 independent Rust tests or proof of
+These are function dispositions, not 426 independent Rust tests or proof of
 untested inputs, current law or real taxpayer results.
 
 `tests/original_behaviours.rs` tests relationships that frozen payloads cannot
@@ -125,8 +125,8 @@ related-payday alignment, current GIC provenance, conformance cases, labour
 warning prerequisites, Division 7A response sizes, current lodgment facts and
 linked versions. Retrieval tests use valid external link targets and an invalid
 manifest to test refusal and parse ordering. The stdio tests execute the current
-37 evaluation questions with fabricated files, derive every reference answer and
-check result-dependent arguments. Another session tests all 22 unknown-argument
+39 evaluation questions with fabricated files, derive every reference answer and
+check result-dependent arguments. Another session tests all 24 unknown-argument
 refusals, partial receipts, input errors, all 11 rejected evidence-pack argument
 variants and recovery, checking for working-directory writes after every reply.
 
@@ -176,7 +176,8 @@ them is a separate release step.
 ## Scope of this candidate
 
 The contract is the Python server at the oracle base recorded in
-`data/catalogue.v1.json`: 22 tools, including `get_data_freshness`, 6 resources
+`data/catalogue.v1.json`: 24 tools, including `get_data_freshness`, `validate_abn`
+and `validate_acn`, 6 resources
 and 3 prompts. `get_data_freshness` reports the provenance of the linked Rust
 tables and takes its 31 frozen replies from that server.
 
@@ -203,9 +204,12 @@ output is checked against its complete published output schema.
 The fixtures were first captured at an earlier Python commit and refrozen with
 reviewed transforms at the recorded base; `tests/fixtures/native/origin.json`
 keeps both commits, and its `oracle_sha256` values remain the first capture's raw
-hashes. The counts below date from the first capture.
+hashes. The second refreeze, at 035847a, added main's ABN and ACN tools, the
+returned-contribution qualification on Payday ON_TIME results and packs, and 143
+calls from main's new and changed tests and independent ABN and ACN probes. Other
+counts below date from the first capture.
 
-The native comparison covers 786 captured effective SDK calls for all
+The native comparison covers 929 captured effective SDK calls for all
 non-retrieval tools and unknown tools, plus 39 independent validation probes and
 22 further original-only money, date, year and large-pack cases and 9 year-zero
 refusal cases. Three large-catalogue cases compare complete original rulings
@@ -237,7 +241,8 @@ identity and already-reviewed provenance differences are allowed:
   hash and source remain unchanged.
 - Payday's bundled GIC URI is `data/gic_rates.json`, rather than
   `paydaysuper/data/gic_rates.json`, including the update-path wording in stale
-  rate caveats. Evidence-pack version strings and report SHA-256 references
+  rate caveats. Its business-day calendar caveat likewise names
+  `data/business_days.json`, rather than `paydaysuper/data/business_days.json`. Evidence-pack version strings and report SHA-256 references
   reflect the actual native version and exact returned CSV bytes. All four
   returned files retain their remaining content, BOM and newlines.
 - Study loan repayment results retain native engine commit `4915b94`: the moved

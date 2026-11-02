@@ -51,7 +51,7 @@ fn original_targeted_contracts() {
 fn original_seeded_and_targeted_fact_calendar_matrix() {
     let fixtures: Value =
         serde_json::from_str(include_str!("fixtures/python-contracts.json")).unwrap();
-    assert_eq!(fixtures["matrix"].as_array().unwrap().len(), 8636);
+    assert_eq!(fixtures["matrix"].as_array().unwrap().len(), 17006);
     for (index, case) in fixtures["matrix"].as_array().unwrap().iter().enumerate() {
         let mut request = fixtures["requests"][case[0].as_u64().unwrap() as usize].clone();
         request["facts"] = fixtures["fact_sets"][case[1].as_u64().unwrap() as usize].clone();

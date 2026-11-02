@@ -39,7 +39,7 @@ The request is one JSON object, for example:
 }
 ```
 
-Use the obligation, entity, year, channel, cycle and 19 fact names documented in
+Use the obligation, entity, year, channel, cycle and 20 fact names documented in
 [README.md](README.md). `facts` is an object of booleans or null; omitted facts and a
 null or omitted `facts` object remain unknown. Unknown request or fact fields are
 refused. Dates must be real dates written exactly as `YYYY-MM-DD`, within years
@@ -59,7 +59,7 @@ and unresolved reason. It takes `day`, optional replacement `holidays` and optio
 `covers_to`; the replacement mapping does not imply complete coverage.
 
 The output retains every field documented in README.md. `engine_version` identifies
-the native crate. Rule data and the source review date of 28 October 2026 match the
+the native crate. Rule data and the source review date of 31 October 2026 match the
 Python source; this port does not constitute a new review of ATO law or publications.
 
 ## Verification
@@ -71,9 +71,9 @@ cargo test --locked
 cargo build --locked --release
 ```
 
-The original 150 Python tests passed before capture. Native tests compare 61 targeted
-results or refusals, 13 additional refusal cases and SHA-256 digests of 8,636 complete results over the original
-seeded fact samples and targeted fact/calendar combinations. Only the engine version
+The original 150 Python tests passed before capture. Native tests compare 65 targeted
+results or refusals, 13 additional refusal cases and SHA-256 digests of 17,006 complete results over the original
+seeded fact samples, targeted fact/calendar combinations and FBT returns. Only the engine version
 changes from 0.1.0 to 1.0.0. See [oracle provenance](tests/fixtures/README.md) for
 representation adaptations and source bindings. Additional native checks cover JSON
 types, field names, real dates, Unicode holiday names, input bounds and process output.

@@ -22,6 +22,12 @@ pub fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
         "get_ato_benchmarks" => benchmarks::compare(input),
         "calculate_tax_worksheet" => tax::calculate(input),
         "get_data_freshness" => freshness::report(input),
+        "validate_abn" => Ok(crate::identifiers::check_abn(
+            input["abn"].as_str().unwrap(),
+        )),
+        "validate_acn" => Ok(crate::identifiers::check_acn(
+            input["acn"].as_str().unwrap(),
+        )),
         "review_gst_coding" => gst::coding(input),
         "reconcile_bas" => gst::bas(input),
         "generate_synthetic_sbr_fixture" => synthetic::generate(input),
