@@ -67,8 +67,7 @@ uv workspace. From a crate's directory, run `cargo fmt --check`,
 `cargo clippy --locked --all-targets --all-features -- -D warnings` and `cargo test --locked`.
 `cargo build --locked --release` builds the native command. Root `just test`
 and `just lint` include these checks; typecheck remains Python-only. CI calls
-`ci-rust.yml` once per crate on Ubuntu and Windows, adding macOS on pushes to
-`main` and manual runs, from the anchor
+`ci-rust.yml` once per crate on Ubuntu, Windows and macOS, from the anchor
 workflow (the adapter from its own workflow), and keeps each platform's binary for 7 days as the archive the crate's
 `[package.metadata.binstall]` names (the adapter has none: it is not released). On Ubuntu
 the tests run under `cargo llvm-cov` with the crate's floor from
