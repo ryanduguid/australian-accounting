@@ -24,7 +24,7 @@ npm run dry-run
 The Node.js harness uses Cloudflare's Miniflare runtime to exercise the compiled
 Worker with captured public SVGs and intercepted upstream requests. It makes no
 live provider requests. The production component is Rust. Miniflare is pinned
-to stable 4.20260730.0; Wrangler 4.151.3 also bundles a newer beta runtime for its
+to stable 4.20260730.0; Wrangler 4.152.0 also bundles a newer beta runtime for its
 own commands. Both local integration tests and Wrangler packaging must pass.
 The stable Miniflare test dependency overrides Sharp to 0.35.5, and any
 Undici copy below 7.30.1, including the one under Wrangler's bundled Miniflare,
@@ -62,8 +62,6 @@ limit. Local tests cover a 256-badge cold burst at concurrency 32; they do not
 prove production CPU limits or capacity across all 2,947 identities. A public
 canary must verify HTTPS, freshness, failure responses and resource usage before
 any bulk README migration. Deployment needs Ryan's approval.
-
-Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](../../LICENSE) and [NOTICE](../../NOTICE).
 
 Verify Cache API writes and hits on the exact approved public hostname.
 Cloudflare documents functional caching on custom domains and no effect in
@@ -106,3 +104,5 @@ responses; it does not prevent requests from consuming account quota. Confirm
 account quota and request admission before public exposure. A local pass does
 not prove production CPU usage, global admission or catalogue capacity. No README
 should point at this trial.
+
+Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](../../LICENSE) and [NOTICE](../../NOTICE).

@@ -14,7 +14,7 @@ re-perform them on paper without running the engine.
 ## Intended reviewer
 
 An accountant or tax adviser who can read the compiled Act, decide the facts
-the engine will not decide, and form their own view. The pack demonstrates
+the engine will not decide and form their own view. The pack demonstrates
 the arithmetic and the refusal boundary; it does not replace professional
 judgement, and it is not an ATO assessment.
 
@@ -41,8 +41,8 @@ trail and residual limits.
 
 ## The formula, as compiled
 
-s 109E(5): "The minimum yearly repayment of an amalgamated loan for a year of
-income is the amount worked out using the formula in subsection (6)."
+s 109E(5): 'The minimum yearly repayment of an amalgamated loan for a year of
+income is the amount worked out using the formula in subsection (6).'
 
 s 109E(6):
 
@@ -111,7 +111,7 @@ MYR        = 8770.000000 / 0.343167917653
 Payments applied: 25,556.00. Shortfall: `max(0, 25556.00 - 25556.00)` =
 **0.00**. Verdict **MYR_MET**, exit code 0.
 
-## Hand-worked fixture 2: short by one thousand dollars
+## Hand-worked fixture 2: short by $1,000
 
 `fixtures/myr_short_by_1000.csv`, reviewed for **2023-24**.
 
@@ -190,7 +190,7 @@ last year repays too little this year without changing anything.
 ## Reproduce the result
 
 The engine is a standalone binary with no runtime dependencies. The
-[repository README](../../README.md) carries the build step and the
+[package README](../../README.md) carries the build step and the
 definition of every register column used by the fixtures.
 
 Record the version the figures were reproduced under:
@@ -247,7 +247,7 @@ Fixture 3 is that case.
 
 The Act prescribes no rounding for the s 109E(6) amount. This engine
 quantises to cents with `ROUND_HALF_UP` and says so in every result, in the
-statutory trace, and in the JSON `rounding` field. That is an engineering
+statutory trace and in the JSON `rounding` field. That is an engineering
 choice, not a statutory rule, and it is not the ATO calculator's rounding
 adopted silently. A reviewer who reaches a figure one cent away from this
 one has not necessarily found an error in either.
@@ -271,12 +271,12 @@ compliance conclusion.
 
 These fixtures do not establish that a loan exists, that an entity is a
 shareholder or associate, that a payment is a genuine repayment under
-s 109R, or that a company has a distributable surplus under s 109Y. They do
+s 109R or that a company has a distributable surplus under s 109Y. They do
 not form amalgamated loans from constituent loans (s 109E(3)), do not compute
-the lodgment day (s 109D(6)), and do not touch s 109C payments, s 109F
+the lodgment day (s 109D(6)) and do not touch s 109C payments, s 109F
 forgiven debts, the interposed-entity rules in s 109T to s 109X, unpaid
 present entitlements under s 109XA, the hardship discretion in s 109Q, the
-extension in s 109RD, or the Commissioner's discretion in s 109RB.
+extension in s 109RD or the Commissioner's discretion in s 109RB.
 
 The shortfall figure is an experimental review aid. It is not the dividend:
 s 109E(2) makes the dividend the shortfall *subject to s 109Y*, and

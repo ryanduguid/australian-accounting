@@ -22,7 +22,9 @@
 [![Open in GitHub Codespaces](.github/assets/badges/github.svg)](https://codespaces.new/ryanduguid/australian-accounting)
 
 [![Aus Accounting MCP server](https://mcprush.com/badge/aus-accounting-mcp/card.svg)](https://mcprush.com/to/aus-accounting-mcp?ref=badge)
-[![Australian Accounting MCP server – quality and maintenance score on Glama](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/card.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
+[![Australian Accounting MCP server: quality and maintenance score on Glama](https://glama.ai/mcp/servers/ryanduguid/australian-accounting/badges/card.svg)](https://glama.ai/mcp/servers/ryanduguid/australian-accounting)
+
+[Try one contribution](#try-one-contribution) · [Next examples](#choose-the-next-example) · [MCP server](#use-aus-accounting-mcp) · [Components](#components)
 
 </div>
 
@@ -49,7 +51,7 @@ Missing facts stay unknown: a Payday Super row with a fund-receipt date but no m
 [tool reference](apps/aus-accounting-mcp/README.md#tools) ·
 [scope, limits and examples](https://duguid.com.au/tools/australian-tax-ai-agents/)
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation, or lodgement.
+Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation or lodgement.
 
 ## Try one contribution
 
@@ -97,14 +99,6 @@ tie-out cannot establish correct tax coding. Missing facts remain unresolved for
 the authorised reviewer. The walkthrough explains instruction-file delivery to
 Codex, ChatGPT and Copilot without claiming equivalent tested behaviour.
 
-<details>
-<summary>Installation, component identities, integration and reference</summary>
-
-Development home for the Aus Accounting MCP application and 9 Australian accounting
-engines. Each component keeps its own distribution name, version,
-lockfile, tests, release notes, commands and licence. There is no root distribution,
-shared runtime library or combined version.
-
 ## Use Aus Accounting MCP
 
 For the MCP server, install Python 3.14+ and [uv](https://docs.astral.sh/uv/), then
@@ -147,7 +141,10 @@ The tools list ATO benchmark industries, compare supplied expense buckets,
 review Payday Super timing, look up reviewed Division 7A rates, review an
 operator-supplied Division 7A loan, refuse unsupported Division 7A matters and
 generate synthetic CTR/BAS fixtures. They also assess related Payday contributions,
-calculate 14 bounded tax and super worksheets and retrieve cited local Markdown excerpts.
+build a Payday Super evidence pack, calculate 14 bounded tax and super worksheets,
+review GST coding, reconcile BAS figures with the ledger, list lodgment due dates,
+test ABN and ACN check digits, report data freshness and retrieve cited excerpts
+from a local Markdown library, legislation corpus or ATO rulings corpus.
 Division 7A review is limited to the delegated
 engine's s 109N/s 109E scope; it does not form amalgamated loans or classify
 repayments under s 109R. Outputs are review aids, not advice or lodgements.
@@ -177,13 +174,21 @@ For an editable source installation, run `pip install -e .` from
 MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest); it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
 `div7a-loan-review`, `australian-tax-calculators`, `gst-review` and `lodgment-calendar`
-distributions. In the development workspace, uv takes `gst-review` 0.1.0 and
+distributions. In the development workspace, uv takes `gst-review` 0.1.0,
 `australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2,
 `ato-benchmark-compare` 0.2.2 and `payday-super-checker` 0.2.3, the last Python
 releases, from PyPI.
 
 The uv workspace develops `lodgment-calendar` and the MCP application; the
 MCP server uses none of the Rust crates yet.
+
+<details>
+<summary>Rust engine installation, component development, boundaries and releases</summary>
+
+Development home for the Aus Accounting MCP application and 9 Australian accounting
+engines. Each component keeps its own distribution name, version,
+lockfile, tests, release notes, commands and licence. There is no root distribution,
+shared runtime library or combined version.
 
 ## Install the Rust engines
 

@@ -115,19 +115,19 @@ still applies. JSON nesting follows serde_json's recursion limit.
 
 ## Integration and releases
 
-The MCP application consumes 4 other Python engines and has never imported
+The MCP application consumes 6 other Python engines and has never imported
 this engine. Its current tools and pins remain unchanged. When a Rust MCP server
 later exposes this engine, it can launch the relevant JSON subcommand with stdin
 and consume stdout, using the process exit status to distinguish refusal.
 
-Root `just test` and `just check` include Cargo. CI builds and tests on Ubuntu and
-Windows with read-only repository permissions; CodeQL includes Rust and
+Root `just test` and `just check` include Cargo. CI builds and tests on Ubuntu,
+Windows and macOS with read-only repository permissions; CodeQL includes Rust and
 Dependabot monitors this Cargo lock. CI retains native candidates. The former
 Python/PyPI publisher is retired. Native signing, release-policy integration and
 publication require a separate authorised release change; no publisher is
 configured for 1.0.0.
 
-The frozen Python corpus in `tests/data/` is replayed by Rust on both platforms.
+The frozen Python corpus in `tests/data/` is replayed by Rust on all 3 platforms.
 [tests/BEHAVIOURS.md](tests/BEHAVIOURS.md) maps the original tests to these checks.
 The archive-based differential harness and qualification receipts are retained
 under the Agent Hub task `rust-port-2026-10-11`, outside this repository.

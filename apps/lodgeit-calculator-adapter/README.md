@@ -163,7 +163,7 @@ The evaluation outcomes are `MATCH`, `NUMERIC_DIFFERENCE`, `SCOPE_MISMATCH`,
 `MATCH` says 2 implementations agreed on a number. It does not say a loan
 complies, a benefit is reportable or that a reviewer should sign anything.
 
-- **Division 7A** (`src/trials/div7a.rs`): six conventions are aligned before
+- **Division 7A** (`src/trials/div7a.rs`): 6 conventions are aligned before
   any figure is compared, and the provider's `is_complying` label is recorded
   and never mapped onto the local engine's verdict.
 - **FBT** (`src/trials/fbt.rs`): one benefit category, the car statutory
@@ -276,7 +276,7 @@ compared byte for byte. These differences are deliberate:
   category and status, and the token stays the caller's borrowed string.
   `list_clients_via` takes any dialler, which is how the tests stub the socket.
 - **Engines.** The trials link the in-tree Rust engines, which match
-  `div7a-loan-review` 0.3.2 and `australian-tax-calculators` 0.1.9. The FBT
+  `div7a-loan-review` 0.3.2 and `australian-tax-calculators` 0.2.0. The FBT
   trial's local figures therefore also carry `return_item_14a`, `14b`, `15`
   and `16`, which the Python package's pinned 0.1.3 did not return. They are
   never compared, and every evaluation is unchanged.
