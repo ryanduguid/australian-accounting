@@ -84,6 +84,15 @@ intentionally changed.
   unused and $40,000 contributed, it is now $10,000, not $15,000. The cap
   available, room and excess are unchanged. `tests/parity.rs` applies this to
   the 233 frozen `contribution-caps` results; 18 change.
+- `gst`, `capital-gains` and `depreciation` also accept 2026-27; Python 0.2.0
+  took 2025-26 only. The law they apply is unchanged for that year: the GST rate
+  is 10%, the decline in value formulas are those the ATO's prime cost and
+  diminishing value page gives, and the replacement of the 50% CGT discount by
+  cost base indexation applies only from 1 July 2027 (ATO, read on 3 November
+  2026), which `tests/tables.rs` keeps outside `capital-gains`. `quarterly-sg`
+  stays at 2025-26. `tests/parity.rs` adds the period to the 19 `periods` and
+  10 `worksheet-catalogue` frozen results and to the 34 refusals that list the
+  supported periods.
 
 ### Verification
 

@@ -116,13 +116,13 @@ or a decimal string over 8,192 bytes, is refused.
 
 | Worksheet | Period and boundary |
 | --- | --- |
-| GST | 2025-26, one ordinary taxable supply at 10%; no classification or BAS |
+| GST | 2025-26 and 2026-27, one ordinary taxable supply at 10%; no classification or BAS |
 | Resident tax | 2024-25, 2025-26 and 2026-27; full-year resident ordinary income, before offsets and levies |
-| CGT | 2025-26, resident individual's established gains and losses; losses before the 50% discount |
+| CGT | 2025-26 and 2026-27, resident individual's established gains and losses; losses before the 50% discount |
 | Main residence | CGT events in 2024-25 to 2026-27; one dwelling disposed of by a resident individual, before the discount |
 | FBT | Year ended 31 March 2026; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and the 25% deemed depreciation rate |
-| Depreciation | 2025-26, first year of an ordinary tangible Division 40 asset; established life and use |
+| Depreciation | 2025-26 and 2026-27, first year of an ordinary tangible Division 40 asset; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
 | Pension minimum | 2024-25 to 2026-27; one account-based pension paying under SISR Schedule 7 |

@@ -555,7 +555,7 @@ pub fn depreciation(
         .int()
         .filter(|n| n.is_some_and(|n| (0..=365).contains(&n)))
     else {
-        return refuse("days must be an integer from 0 to 365 for 2025-26.");
+        return refuse(format!("days must be an integer from 0 to 365 for {year}."));
     };
     let factor = match method.text() {
         Some("prime_cost") => int(1),
