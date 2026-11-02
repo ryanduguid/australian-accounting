@@ -384,6 +384,31 @@ fn cap_room_and_excess_reconcile_to_the_cap_available() {
     }
 }
 
+#[test]
+fn carry_forward_applies_only_the_unused_cap_the_excess_needs() {
+    // s 291-20(3)-(4): 2025-26 cap $30,000 and $15,000 unused.
+    for (balance, concessional, applied, excess) in [
+        ("450000", "20000", "0.00", "0.00"),
+        ("450000", "30000", "0.00", "0.00"),
+        ("450000", "40000", "10000.00", "0.00"),
+        ("450000", "50000", "15000.00", "5000.00"),
+        ("499999.99", "40000", "10000.00", "0.00"),
+        ("500000", "40000", "0.00", "10000.00"),
+    ] {
+        let result = run(
+            "contribution-caps",
+            json!({"total_super_balance": balance, "concessional_contributions": concessional,
+                   "unused_concessional_cap": "15000", "non_concessional_contributions": "0",
+                   "under_75_in_year": true, "year": "2025-26", "scope_confirmed": true}),
+        );
+        assert_eq!(
+            result["amounts"]["carry_forward_applied"], applied,
+            "{result}"
+        );
+        assert_eq!(result["amounts"]["excess_concessional"], excess, "{result}");
+    }
+}
+
 // Whole-range sweeps from the Python tests. The frozen corpus keeps only their
 // first 60 calls, so each sweep runs here in full.
 

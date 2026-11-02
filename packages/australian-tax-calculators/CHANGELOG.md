@@ -77,6 +77,13 @@ intentionally changed.
   the s 9A refusal message cite the new address, with no calculation change.
   `tests/parity.rs` applies this to the 162 `medicare-levy` results, 56
   `medicare-levy` refusals and 10 `worksheet-catalogue` frozen results.
+- `contribution-caps` reports as `carry_forward_applied` only the unused
+  concessional cap that covers contributions over the year's cap, as ITAA 1997
+  s 291-20(4) applies it; Python 0.2.0 reported all the eligible unused cap,
+  even when contributions were under the cap. With a $30,000 cap, $15,000
+  unused and $40,000 contributed, it is now $10,000, not $15,000. The cap
+  available, room and excess are unchanged. `tests/parity.rs` applies this to
+  the 233 frozen `contribution-caps` results; 18 change.
 
 ### Verification
 
