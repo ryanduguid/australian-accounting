@@ -63,7 +63,8 @@ The 7 Rust engines under `packages/`, the `au-accounting` command in
 `apps/au-accounting/`, which links them, and the LodgeiT calculator adapter in
 `apps/lodgeit-calculator-adapter/` are standalone Cargo crates excluded from the
 uv workspace. From a crate's directory, run `cargo fmt --check`,
-`cargo clippy --locked --all-targets -- -D warnings` and `cargo test --locked`.
+`cargo clippy --locked --all-targets -- -D warnings`,
+`cargo clippy --locked --all-targets --all-features -- -D warnings` and `cargo test --locked`.
 `cargo build --locked --release` builds the native command. Root `just test`
 and `just lint` include these checks; typecheck remains Python-only. CI calls
 `ci-rust.yml` once per crate on Ubuntu, Windows and macOS, from the anchor
@@ -154,7 +155,8 @@ The existing component lock checks remain required.
 report, and it runs 2 things: the MCP application's own gates, and one call of the
 reusable `ci-package.yml` for each engine, from a package-name matrix.
 The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, pyright and
-pytest commands on Ubuntu with Python 3.15. The adapter's jobs run in their own
+pytest commands on Ubuntu with Python 3.15, shellcheck over the tracked shell scripts
+and actionlint over the workflows. The adapter's jobs run in their own
 workflow with a `lodgeit-gates` result check, keeping the MCP application's existing
 release-check names unchanged. Branch protection requires one aggregate per
 workflow, `tests-gates`, `boundaries-gates`, `lodgeit-gates`, `public-fixtures-gates`
