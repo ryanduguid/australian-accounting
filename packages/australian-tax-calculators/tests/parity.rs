@@ -1,5 +1,5 @@
 use australian_tax_calculators::api;
-use australian_tax_calculators::decimal::Decimal;
+use australian_tax_calculators::decimal::{Decimal, Rounding};
 use serde_json::{Value, json};
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -59,9 +59,18 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
         let excess = dec(&input["concessional_contributions"])
             .sub(&dec(&expected["ok"]["rates"]["concessional_cap"]))
             .unwrap();
-        let needed = if excess.gt(&zero).unwrap() { excess } else { zero };
-        let applied = if needed.lt(&carried).unwrap() { needed } else { carried };
-        expected["ok"]["amounts"]["carry_forward_applied"] = json!(applied.to_string());
+        let needed = if excess.gt(&zero).unwrap() {
+            excess
+        } else {
+            zero
+        };
+        let applied = if needed.lt(&carried).unwrap() {
+            needed
+        } else {
+            carried
+        };
+        let cents = applied.quantize(-2, Rounding::HalfUp).unwrap();
+        expected["ok"]["amounts"]["carry_forward_applied"] = json!(cents.to_string());
     }
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
