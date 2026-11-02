@@ -130,6 +130,43 @@ def test_library_pagination_unicode_and_external_link(tmp_path, monkeypatch):
         call("read_accounting_library", path="link.md")
 
 
+def test_library_search_ranks_by_where_the_words_sit(tmp_path, monkeypatch):
+    """A heading phrase outranks a passing mention, whatever the file order."""
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    (tmp_path / "a.md").write_text(
+        "# Other\nentity that is a small business here\n"
+        "a small business entity mentioned in passing\n", encoding="utf-8")
+    (tmp_path / "b.md").write_text(
+        "# Business entity rules for the small end\nsmall business entity limits\n"
+        "<!-- PDF page 7 -->\n## Meaning of small business entity\n"
+        "A small business entity carries on a business.\n", encoding="utf-8")
+    result = call("search_accounting_library", query="small business entity", limit=20)
+    cited = [(match["path"], match["start_line"]) for match in result["matches"]]
+    # Phrase in the heading (file order within the tier), every word in the
+    # heading, the phrase in the line, then the words anywhere in the line.
+    assert cited == [("b.md", 4), ("b.md", 5), ("b.md", 1), ("b.md", 2), ("a.md", 3),
+                     ("a.md", 2)]
+    assert result["matches"][0]["heading"] == "## Meaning of small business entity"
+    assert result["matches"][0]["pdf_page"] == 7
+    first = call("search_accounting_library", query="small business entity", limit=2)
+    rest = call("search_accounting_library", query="small business entity", limit=20,
+                offset=first["next_offset"])
+    assert [(m["path"], m["start_line"]) for m in first["matches"] + rest["matches"]] == cited
+    assert first["has_more"] and not rest["has_more"]
+
+
+def test_library_ranks_on_the_whole_heading_but_returns_it_truncated(tmp_path, monkeypatch):
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    long_heading = "# " + "x" * 300 + " car limit"
+    (tmp_path / "a.md").write_text("the car limit applies\n", encoding="utf-8")
+    (tmp_path / "b.md").write_text(long_heading + "\ncar limit in this section\n",
+                                   encoding="utf-8")
+    result = call("search_accounting_library", query="car limit")
+    assert [(m["path"], m["start_line"]) for m in result["matches"]] == [
+        ("b.md", 1), ("b.md", 2), ("a.md", 1)]
+    assert result["matches"][1]["heading"] == long_heading[:300]
+
+
 def test_library_pagination_does_not_repeat_around_an_oversized_line(tmp_path, monkeypatch):
     """An eligible line too long to excerpt is consumed once, not skipped then repeated."""
     monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))

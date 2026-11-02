@@ -907,12 +907,35 @@ def test_ato_refuses_turnover_only() -> None:
 
 
 def test_ato_unknown_industry_is_refused() -> None:
-    with pytest.raises(ValueError, match="no ATO business type"):
+    with pytest.raises(ValueError, match="no ATO business type") as refused:
         get_ato_benchmarks(
             industry="interstellar freight",
             turnover="100000.00",
             cost_of_sales="0",
         )
+    # An MCP client cannot run the engine's command line, so the hint names the tool.
+    assert "list_ato_benchmark_industries" in str(refused.value)
+    assert "ato-benchmark-compare industries" not in str(refused.value)
+
+
+def test_ato_ambiguous_industry_keeps_the_engine_candidates() -> None:
+    with pytest.raises(ValueError, match="matches more than one business type") as refused:
+        get_ato_benchmarks(industry="shops", turnover="100000.00", cost_of_sales="0")
+    assert "Bakeries and hot bread shops" in str(refused.value)
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"year": "1900-01"}, "no dataset for benchmark year"),
+        ({"w1": "-1.00"}, "W1 amount cannot be negative"),
+    ],
+)
+def test_ato_engine_errors_reach_the_caller(change: dict, message: str) -> None:
+    arguments = {"industry": "Bakeries and hot bread shops", "turnover": "100000.00",
+                 "cost_of_sales": "0", **change}
+    with pytest.raises(ValueError, match=message):
+        get_ato_benchmarks(**arguments)
 
 
 def test_div7a_is_refused() -> None:

@@ -1,0 +1,77 @@
+name: readme-quick-start
+
+# Follows README.md's "Try one contribution" as a reader would: download the
+# linked synthetic CSV, then run the README's uvx command in an empty directory
+# outside the checkout. The weekly run catches a moved CSV or a pinned release
+# that no longer behaves as the README says, which no README change would show.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays 08:30 AEST.
+    - cron: "30 22 * * 0"
+  push:
+    branches: [main]
+    paths:
+      - "README.md"
+      - ".github/workflows/readme-quick-start.yml"
+  pull_request:
+    paths:
+      - "README.md"
+      - ".github/workflows/readme-quick-start.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: readme-quick-start-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trial:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          version: "0.13.5"
+      - name: Follow the README in an empty directory
+        run: |
+          set -euo pipefail
+          readme="$PWD/README.md"
+          work="$(mktemp -d)"
+          cd "$work"
+          url="$(grep -o '\[download the synthetic CSV\]([^)]*)' "$readme" | sed 's/.*(//; s/)$//')"
+          test -n "$url"
+          curl -fsSL --retry 3 "$url" -o timely_remittance_no_receipt.csv
+          trial="$(grep '^uvx --from payday-super-checker' "$readme")"
+          case "$trial" in *" --confirm-remittance-only "* | *" --confirm-remittance-only") ;; *) exit 1 ;; esac
+          # The README's **Output:** line names the verdict and the due date.
+          output="$(grep '^\*\*Output:\*\*' "$readme")"
+          # shellcheck disable=SC2016 # the backticks are literal Markdown
+          verdict="$(printf '%s' "$output" | grep -o '`[A-Z_]*`' | head -n 1 | tr -d '`')"
+          due_text="$(printf '%s' "$output" | grep -oE 'due [0-9]{1,2} [A-Z][a-z]+ [0-9]{4}' | sed 's/^due //')"
+          test -n "$verdict" && test -n "$due_text"
+          due="$(date -d "$due_text" +%F)"
+          bash -c "$trial" > trial.out
+          python3 - "$verdict" "$due" <<'PY'
+          import csv
+          import sys
+
+          verdict, due = sys.argv[1:]
+          with open("payday-report.csv", encoding="utf-8-sig", newline="") as report:
+              rows = [row for row in csv.DictReader(report) if row["employee_id"] != "NOTE"]
+          assert [(r["verdict"], r["due_date"]) for r in rows] == [(verdict, due)], rows
+          PY
+          # Without the confirmation the README promises the same verdict and exit 2.
+          set +e
+          bash -c "${trial/ --confirm-remittance-only/}" > unconfirmed.out
+          status=$?
+          set -e
+          test "$status" -eq 2
+          grep -Eq "(^|[[:space:]])${verdict}: 1([[:space:]]|$)" unconfirmed.out
