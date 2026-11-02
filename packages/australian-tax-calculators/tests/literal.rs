@@ -1,6 +1,7 @@
 //! JSON numbers as `json.loads` read them from literal bytes; the differential
 //! harness serialises Python values first, which would hide these spellings.
-//! Expected messages are Python 0.2.0's `gst` on the same literals.
+//! Expected messages are Python 0.2.0's `gst` on the same literals, with the
+//! 2026-27 period CHANGELOG.md documents added to the supported list.
 
 use australian_tax_calculators::api::evaluate;
 
@@ -20,7 +21,7 @@ fn a_period_prints_as_pythons_repr_of_the_decoded_value() {
         let err = evaluate("gst", &serde_json::from_str(&input).unwrap()).unwrap_err();
         assert_eq!(
             err,
-            format!("Unsupported period {shown}; supported: 2025-26."),
+            format!("Unsupported period {shown}; supported: 2025-26, 2026-27."),
             "{year}"
         );
     }
