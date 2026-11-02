@@ -155,6 +155,18 @@ def test_library_search_ranks_by_where_the_words_sit(tmp_path, monkeypatch):
     assert first["has_more"] and not rest["has_more"]
 
 
+def test_library_ranks_on_the_whole_heading_but_returns_it_truncated(tmp_path, monkeypatch):
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    long_heading = "# " + "x" * 300 + " car limit"
+    (tmp_path / "a.md").write_text("the car limit applies\n", encoding="utf-8")
+    (tmp_path / "b.md").write_text(long_heading + "\ncar limit in this section\n",
+                                   encoding="utf-8")
+    result = call("search_accounting_library", query="car limit")
+    assert [(m["path"], m["start_line"]) for m in result["matches"]] == [
+        ("b.md", 1), ("b.md", 2), ("a.md", 1)]
+    assert result["matches"][1]["heading"] == long_heading[:300]
+
+
 def test_library_pagination_does_not_repeat_around_an_oversized_line(tmp_path, monkeypatch):
     """An eligible line too long to excerpt is consumed once, not skipped then repeated."""
     monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))

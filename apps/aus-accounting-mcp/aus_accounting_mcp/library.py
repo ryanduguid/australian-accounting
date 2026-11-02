@@ -85,9 +85,12 @@ def _excerpt(name: str, lines: list[str], digest: str, start: int, count: int) -
 
 
 def _context(line: str, heading: str | None, page: int | None) -> tuple[str | None, int | None]:
-    """The heading and PDF page in force after line, given those in force before it."""
+    """The heading and PDF page in force after line, given those in force before it.
+
+    The heading is kept whole so ranking sees every word; _shape truncates it.
+    """
     if line.startswith("#"):
-        heading = line[:300]
+        heading = line
     # The substring test spares the regex on almost every line of a whole-library scan.
     if "<!-- PDF page" in line and (match := re.search(r"<!-- PDF page (\d+)", line)):
         page = int(match[1])
@@ -104,7 +107,8 @@ def _shape(name: str, digest: str, start: int, total: int, heading: str | None,
     return {
         "path": name, "sha256": digest, "start_line": start,
         "end_line": start + len(selected) - 1, "total_lines": total,
-        "heading": heading, "pdf_page": page, "text": "\n".join(selected),
+        "heading": None if heading is None else heading[:300], "pdf_page": page,
+        "text": "\n".join(selected),
         "notice": NOTICE,
     }
 
