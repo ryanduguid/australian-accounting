@@ -52,7 +52,7 @@ Quarter 4 is `UNKNOWN` because the ATO marks 25 August 2027 'to be confirmed'.
 | --- | --- |
 | `obligation` | `bas`, `ias`, `income_tax_return` or `fbt_return` |
 | `entity_type` | `individual`, `trust`, `partnership`, `company` or `smsf` |
-| `financial_year` | The year of the statement periods, the income year a return covers, or the FBT year ending 31 March, as `2026-27` |
+| `financial_year` | The year of the statement periods, the income year a return covers or the FBT year ending 31 March, as `2026-27` |
 | `channel` | `self`, `tax_agent` or `bas_agent` (a BAS agent cannot lodge an income tax return) |
 | `reporting_cycle` | `monthly` or `quarterly`, for `bas` and `ias` only. A monthly `bas` reports GST monthly; other monthly activity statements are `ias`. For a consolidated head company, a quarterly `ias` is its PAYG instalment activity statement |
 | `facts` | A `Facts` with the conditions below; each is `True`, `False` or `None` (not supplied) |
@@ -172,4 +172,4 @@ time.
 
 ## Licence
 
-Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 two years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

@@ -22,7 +22,7 @@ Nothing leaves the workbook.
 3. **Calculation.** Choose the benchmark year and industry. Enter the activity
    statement W1 total if it is higher than the salary and wages label. Set B4 to `Y`
    when the export shows expenses as negatives (the `--flip-expense-signs` switch).
-4. **Results and Review Checks.** Five ratios, the published range for each, and a
+4. **Results and Review Checks.** Five ratios, the published range for each and a
    status of `within`, `below`, `above`, `no benchmark in this dataset` or
    `no turnover band applies`. The overall status is `BLOCKED`, `REVIEW` or `PASS`.
    Blank or an error is never a pass. Sitting outside a range is a review prompt, not
@@ -36,7 +36,7 @@ income when sales are not positive or are less than half of it, payments to
 associated persons are deducted once, cost of sales excludes wages, W1 replaces the
 salary and wages label only when it is larger, ratios are rounded to 4 places
 before comparison, benchmark range boundaries are inclusive, and a band includes
-its upper bound while only the first band includes its lower bound.
+its upper bound whilst only the first band includes its lower bound.
 
 ## How it is kept honest
 
@@ -45,7 +45,7 @@ repository's `tests/test_ato_workbook.py` reads the cached values desktop Excel 
 and holds them to the engine's answer for the bakery example, frozen in
 `tests/data/workbook-sample.json`, which `cargo test` holds to the engine, and holds
 the Benchmarks sheet to the shipped JSON. A change to the engine, the data or the
-workbook that is not rebuilt fails one of the two tests.
+workbook that is not rebuilt fails one of the 2 tests.
 
 Rebuild on Windows with Rust and desktop Excel, from `packages/ato-benchmark-compare`:
 

@@ -2,7 +2,7 @@
 
 `cases.json` holds tool calls with the results this server must return. The
 cases are plain JSON, so another implementation can replay them: a different
-MCP server, an agent tool, or a calculator adapter that claims the same
+MCP server, an agent tool or a calculator adapter that claims the same
 behaviour for Payday Super deadlines, Division 7A loans or PAYG withholding.
 
 ## Basis
@@ -63,7 +63,7 @@ MCP tool-call path, the same one a client uses.
 
 The self-pinned cases have fabricated inputs and expect this server's own
 results; no external practitioner has reviewed them. A matching result on one
-shows two implementations agree; it does not show either is right in law. An
+shows 2 implementations agree; it does not show either is right in law. An
 authority case shows agreement with the ATO's published sample for that pay,
 not that a payee's scale, allowances or declarations are right.
 The rates and law dates come from the delegated engines; each result states

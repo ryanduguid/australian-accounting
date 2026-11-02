@@ -3,11 +3,11 @@
 Crate `lodgeit-calculator-adapter`, command `lodgeit-adapter`. A Rust port of
 the Python `lodgeitadapter` package, which this repository no longer carries.
 
-**Optional, off by default, and never on a fallback path.** This component
+**Optional, off by default and never on a fallback path.** This component
 calls the [LodgeiT Labs calculator constellation](https://lodgeit.org/calculators.html)
 over the network, and it does so only when someone switches it on. Nothing else
 in this repository depends on it. The Aus Accounting MCP stays offline, every
-engine stays offline, and a local calculation that fails does not reach out to
+engine stays offline and a local calculation that fails does not reach out to
 anything.
 
 Unreleased development source. Not on crates.io, not published anywhere.
@@ -26,7 +26,7 @@ LodgeiT's subdomains, including their observed availability and input patterns.
 A request is sent only when all 3 are true:
 
 1. remote access is enabled (`enabled: true` in `AdapterConfig`,
-   `LODGEIT_ADAPTER_ENABLED=1`, or `--enable-network` for one run);
+   `LODGEIT_ADAPTER_ENABLED=1` or `--enable-network` for one run);
 2. a base URL is configured;
 3. that base URL's host is on the allowlist.
 
@@ -134,7 +134,7 @@ the server received, not against a value that has been through a float.
 
 | Path | What |
 | --- | --- |
-| `src/config.rs` | The three switches, the allowlist, the route list |
+| `src/config.rs` | The 3 switches, the allowlist, the route list |
 | `src/transport.rs`, `src/dial.rs`, `src/https.rs` | Bounded HTTP over rustls, no redirects, a byte ceiling, retries only where they are safe |
 | `src/contract.rs` | Reviewed snapshots and drift reporting |
 | `src/client.rs` | Discovery, invocation and the outcome table above |
@@ -160,8 +160,8 @@ and a disagreement is traced back to that.
 The evaluation outcomes are `MATCH`, `NUMERIC_DIFFERENCE`, `SCOPE_MISMATCH`,
 `UNSUPPORTED_PERIOD`, `CONTRACT_FAILURE`, `UPSTREAM_UNAVAILABLE`,
 `LOCAL_REFUSED` and `NOT_RUN`. **They are not accounting-review states.** A
-`MATCH` says two implementations agreed on a number. It does not say a loan
-complies, a benefit is reportable, or that a reviewer should sign anything.
+`MATCH` says 2 implementations agreed on a number. It does not say a loan
+complies, a benefit is reportable or that a reviewer should sign anything.
 
 - **Division 7A** (`src/trials/div7a.rs`): six conventions are aligned before
   any figure is compared, and the provider's `is_complying` label is recorded
@@ -208,7 +208,7 @@ A live probe is separate, manual and small: see
 availability never gates a build.
 
 One was run on 18 September 2026, with the Python package: a drift check and
-eleven invocations across Division 7A, accounting depreciation and one FBT
+11 invocations across Division 7A, accounting depreciation and one FBT
 category, all with fabricated inputs. The arithmetic agreed everywhere it was
 meant to, the provider's own published pre-acquisition limitation was
 reproduced and refused, and the probe found that the live advisory block is
@@ -284,7 +284,7 @@ compared byte for byte. These differences are deliberate:
 
 ## Boundary
 
-This adapter calls a third-party service that says of itself: "Response shapes
+This adapter calls a third-party service that says of itself: 'Response shapes
 are not yet versioned and may change; nothing here is stable for production
-integration." Figures it returns are calculated on facts you supplied. They are
+integration.' Figures it returns are calculated on facts you supplied. They are
 not advice, not a lodgement and not a review sign-off. The contract snapshots record a reading of the public service on one day.

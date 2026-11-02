@@ -2,7 +2,7 @@ The `contracts` target reads fabricated bytes as a contracts CSV under the
 default column mapping, then measures each contract it reads. A malformed
 schedule must come back as a refusal, which the command line reports as
 `error: <message>`; a panic fails the run. The seed corpus holds the
-component's two example schedules, a header-only file, a row of accounting
+component's 2 example schedules, a header-only file, a row of accounting
 amount formats and an empty file.
 
 On Linux, from `packages/the-wip-tally`, with a nightly toolchain and

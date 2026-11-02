@@ -5,7 +5,7 @@
 This evaluation isolates the difference between an employer's operational
 remittance evidence and evidence that an eligible contribution reached the
 fund. Four fabricated rows hold the QE day, SG amount and as-at date constant
-while changing the remittance and fund-receipt facts. The production checker
+whilst changing the remittance and fund-receipt facts. The production checker
 calculates a supported due date of 17 August 2026 for each row.
 
 ## Intended reviewer
@@ -80,7 +80,7 @@ Remittance is not substituted for fund receipt. In the ordinary checker a
 `LATE` result drives exit code 2, and so does `AT_RISK` on its own; the
 remittance-only commands above add `--confirm-remittance-only`, which
 acknowledges the missing receipt evidence and exits 0 on the `AT_RISK` fixture
-while leaving the verdict unchanged. Confirmation does not establish on-time
+whilst leaving the verdict unchanged. Confirmation does not establish on-time
 receipt. The evidence-pack command keeps its own review queue and exits 2
 whenever it queues a row that is not `ON_TIME`. No result authorises payment,
 lodgement, disclosure, accounting entry or a compliance conclusion.
