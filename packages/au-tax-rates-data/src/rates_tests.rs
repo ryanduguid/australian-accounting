@@ -270,6 +270,49 @@ fn every_file_is_named_after_its_unique_id() {
 }
 
 #[test]
+fn validation_accepts_a_record_named_after_its_id() {
+    let record = first_aud();
+    let filename = format!("{}.json", pyvalue::py_str(record.at("id")));
+    let (code, output) = validate_folder(&[(&filename, dumps(&record))]);
+    assert_eq!(code, 0, "{output}");
+    assert_eq!(output, format!("0 record(s) with problems{}", nl()));
+}
+
+#[test]
+fn validation_refuses_a_record_with_the_wrong_filename() {
+    let record = first_aud();
+    let (code, output) = validate_folder(&[("croft-manor.json", dumps(&record))]);
+    assert_eq!(code, 1, "{output}");
+    assert!(output.contains("id does not match file name 'croft-manor'"));
+}
+
+#[test]
+fn validation_refuses_a_copied_record_with_a_duplicate_id() {
+    let record = first_aud();
+    let filename = format!("{}.json", pyvalue::py_str(record.at("id")));
+    let (code, output) = validate_folder(&[
+        (&filename, dumps(&record)),
+        ("duplicate.json", dumps(&record)),
+    ]);
+    assert_eq!(code, 1, "{output}");
+    assert!(output.contains("id does not match file name 'duplicate'"));
+    assert!(output.ends_with(&format!("1 record(s) with problems{}", nl())));
+}
+
+#[test]
+fn validation_refuses_records_with_swapped_ids() {
+    let records: Vec<_> = records().into_iter().take(2).collect();
+    let first_filename = format!("{}.json", pyvalue::py_str(records[0].at("id")));
+    let second_filename = format!("{}.json", pyvalue::py_str(records[1].at("id")));
+    let (code, output) = validate_folder(&[
+        (&first_filename, dumps(&records[1])),
+        (&second_filename, dumps(&records[0])),
+    ]);
+    assert_eq!(code, 1, "{output}");
+    assert!(output.ends_with(&format!("2 record(s) with problems{}", nl())));
+}
+
+#[test]
 fn record_passes_schema_quote_and_pattern_checks() {
     for record in records() {
         let problems = validate_record(&record, Some(&snapshot(&record))).expect("no exception");
