@@ -18,6 +18,9 @@ each keep of `verify` and the WebAssembly `call`. Those checks read rustfmt's
 layout, in which a top-level item and its closing brace start at column 0; each
 package's CI runs `cargo fmt --check`, which refuses a file laid out otherwise.
 
+`CSVREAD_COPIES` pins the div7a and ato-benchmark copies of payday's CSV reader
+to declared substitutions, so payday's fuzz target covers the code they share.
+
 Standard library only, and no component is imported: the files are read and
 parsed.
 """
@@ -68,6 +71,77 @@ RUST_COPIES = {
         "src/derivation.rs": ("first_field", "pick", "difference", "first_difference", "verify"),
         "wasm/src/lib.rs": ("call",),
     },
+}
+
+# The CSV reader payday's fuzz target runs, as the div7a and ato-benchmark
+# engines copy it: (payday text, copy text) pairs, applied in order; every other
+# byte is the same. Neither copy has the strict mode.
+CSVREAD_WITHOUT_STRICT = (
+    ("    strict: bool,\n", ""),
+    ("            strict: false,\n", ""),
+    (
+        "    /// `csv.reader(..., strict=True)`.\n"
+        "    pub fn strict(data: &'a [u8]) -> Self {\n"
+        "        Reader {\n"
+        "            strict: true,\n"
+        "            ..Reader::new(data)\n"
+        "        }\n"
+        "    }\n"
+        "\n",
+        "",
+    ),
+    (
+        "                Input::Char(_) if self.strict => {\n"
+        "                    return Err(ReadError::Csv(\"',' expected after '\\\"'\".into()));\n"
+        "                }\n",
+        "",
+    ),
+    (
+        "                    if self.strict {\n"
+        '                        return Err(ReadError::Csv("unexpected end of data".into()));\n'
+        "                    }\n",
+        "",
+    ),
+)
+CSVREAD_COPIES = {
+    "ato-benchmark-compare": CSVREAD_WITHOUT_STRICT,
+    # div7a's also reads a list of lines, which no fuzz target runs.
+    "div7a-loan-review": CSVREAD_WITHOUT_STRICT
+    + (
+        (
+            "    text: TextReader<'a>,\n",
+            "    text: TextReader<'a>,\n"
+            "    /// `csv.reader(list_of_lines)`: each item is one line with no terminator.\n"
+            "    lines: Option<std::collections::VecDeque<Vec<char>>>,\n",
+        ),
+        (
+            "            text: TextReader::new(data),\n",
+            "            text: TextReader::new(data),\n            lines: None,\n",
+        ),
+        (
+            "    fn save_field(&mut self) {\n",
+            "    /// `csv.reader` over a list of strings, such as `text.splitlines()` gives.\n"
+            "    pub fn from_lines(lines: &[&str]) -> Reader<'static> {\n"
+            "        Reader {\n"
+            "            text: TextReader::new(&[]),\n"
+            "            lines: Some(lines.iter().map(|l| l.chars().collect()).collect()),\n"
+            "            state: State::StartRecord,\n"
+            "            field: Vec::new(),\n"
+            "            fields: Vec::new(),\n"
+            "        }\n"
+            "    }\n"
+            "\n"
+            "    fn save_field(&mut self) {\n",
+        ),
+        (
+            "            let Some(line) = self.text.readline()? else {\n",
+            "            let next = match self.lines.as_mut() {\n"
+            "                Some(lines) => lines.pop_front(),\n"
+            "                None => self.text.readline()?,\n"
+            "            };\n"
+            "            let Some(line) = next else {\n",
+        ),
+    ),
 }
 
 
@@ -255,6 +329,17 @@ class RustCopyTests(unittest.TestCase):
                     self.assertEqual(
                         _rust_function(reference, function), _rust_function(copy, function)
                     )
+
+    def test_the_csv_reader_copies_differ_only_by_their_declared_substitutions(self) -> None:
+        reference = self.read(PACKAGES / "payday-super-checker" / "src", "csvread.rs")
+        for engine, pairs in CSVREAD_COPIES.items():
+            expected = reference
+            for old, new in pairs:
+                with self.subTest(engine=engine, text=old):
+                    self.assertIn(old, expected)
+                expected = expected.replace(old, new)
+            with self.subTest(engine=engine):
+                self.assertEqual(expected, self.read(PACKAGES / engine / "src", "csvread.rs"))
 
     def test_the_engines_no_network_harness_is_identical(self) -> None:
         marker = "// Everything below is the same in every engine;"
