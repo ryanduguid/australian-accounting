@@ -104,7 +104,7 @@ The card comes from the fabricated sample and links to the complete console tran
 cargo test --locked --test quick_proof
 ```
 
-`python tools/render_quick_proof.py` rewrites both proof files from a release build.
+`cargo run --example render_quick_proof` rewrites both proof files.
 
 ## Excel workbook
 
