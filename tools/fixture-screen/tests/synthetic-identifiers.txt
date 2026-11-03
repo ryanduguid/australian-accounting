@@ -1,0 +1,90 @@
+# Checksum-valid values the fixture screen accepts, one per line:
+#   path kind digits reason
+# The path is from the repository root and the kind is tfn, abn, acn or
+# medicare. An entry covers its value in that file only; list each file
+# separately. An entry that matches no finding fails the screen.
+# tests/fixture_screen.rs reads this file. List only:
+# - a documented test vector;
+# - a digit run that is not an identifier, such as an amount or a user name;
+# - a public organisation's ABN or ACN, or an unissued number, with the date
+#   it was checked on ABN Lookup.
+# Never list a value taken from client or personal data.
+apps/aus-accounting-mcp/aus_accounting_mcp/fixtures/synthetic_sbr.py tfn 222333444 last 9 digits of the placeholder ABN 11 222 333 444, which fails the ABN check
+apps/aus-accounting-mcp/aus_accounting_mcp/identifiers.py abn 00000090000 placeholder in a comment on why the ABN check rejects a leading zero
+apps/aus-accounting-mcp/docs/quick-proof.txt tfn 222333444 last 9 digits of the placeholder ABN 11 222 333 444, which fails the ABN check
+apps/aus-accounting-mcp/evaluation/questions.xml acn 004085616 ACN of B P Australia Pty Ltd, a company's public register number used as an ACN check digit example; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/tests/test_identifiers.py abn 00000090000 placeholder the test shows the ABN check rejects
+apps/aus-accounting-mcp/tests/test_identifiers.py abn 51824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/tests/test_identifiers.py abn ٥١824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026, with Arabic-Indic digits the validator must reject
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 000250000 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 000750005 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 001749999 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 002749993 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 003749988 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 004085616 ACN of B P Australia Pty Ltd, a company's public register number used as an ACN check digit example; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 004749982 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 005749986 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 006749980 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 007749975 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 008749979 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 009749964 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 010749961 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/lodgeit-calculator-adapter/tests/review_regressions.rs abn 51824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026
+packages/ato-benchmark-compare/tests/data/python-cases.json acn 142573984 generated value input in the frozen Python differential corpus, not an identifier
+packages/ato-benchmark-compare/tests/data/python-cases.json acn 183415269 generated value input in the frozen Python differential corpus, not an identifier
+packages/ato-benchmark-compare/tests/data/python-cases.json acn 912779830 generated value input in the frozen Python differential corpus, not an identifier
+packages/ato-benchmark-compare/tests/data/python-cases.json tfn 639942383 generated value input in the frozen Python differential corpus, not an identifier
+packages/ato-benchmark-compare/tests/data/python-cases.json tfn 673759175 generated value input in the frozen Python differential corpus, not an identifier
+packages/ato-benchmark-compare/tests/data/python-cases.json tfn 826030703 generated value input in the frozen Python differential corpus, not an identifier
+packages/ato-benchmark-compare/tests/data/python-cases.json tfn 855687005 generated value input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json acn 143895032 generated total_super_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json acn 180300887 generated total_super_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json acn 604579286 generated amount input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json acn 772296858 generated amount input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json acn 824469356 generated taxable_income input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json acn 932124108 generated amount input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json acn 986385497 generated amount input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json medicare 2323364290 generated account_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json medicare 3950836402 generated account_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json medicare 4819334330 generated account_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json medicare 6939511289 generated account_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 131132164 generated total_super_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 153957139 generated total_super_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 168488206 generated total_super_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 222237183 generated total_super_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 235880126 generated total_super_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 287091139 generated total_super_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 369730643 generated amount input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 542763581 generated amount input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 799087919 generated amount input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 916902926 generated amount input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 964938228 generated amount input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json tfn 997093046 generated amount input in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-api.json acn 426979437 generated aggregated_turnover input in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-api.json medicare 4050472082 generated aggregated_turnover input in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-api.json medicare 4649387702 generated aggregated_turnover input in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-api.json medicare 5565239383 generated aggregated_turnover input in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-api.json medicare 6082344856 generated aggregated_turnover input in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-api.json medicare 6113632203 generated aggregated_turnover input in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-api.json tfn 831168945 generated aggregated_turnover input in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-api.json tfn 891384477 generated aggregated_turnover input in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json acn 376170446 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json acn 499032503 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json acn 669771779 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json acn 722534652 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 3017797065 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 3253877639 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 3610687897 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 4794691220 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 5040923909 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 5132806252 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 5896014703 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 6238290596 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 6387130959 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 6427577554 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 6594838493 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json medicare 6850365658 generated turnover argument in the frozen Python differential corpus, not an identifier
+packages/the-exchequer-tally/tests/data/python-cli.json tfn 604134057 generated turnover argument in the frozen Python differential corpus, not an identifier
+tools/fixture-screen/tests/fixture_screen.rs tfn 123456782 the screen's own planted test value
+tools/glama-badge-server/allowed.txt acn 418716640 digits in a GitHub user name in a listed server path, not an identifier
+tools/glama-badge-server/allowed.txt tfn 188838884 digits in a GitHub user name in a listed server path, not an identifier

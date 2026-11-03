@@ -2,7 +2,8 @@ name: boundaries
 
 # Static boundary check for the whole repository: no engine imports the MCP
 # application or another engine, and no production module uses a relative
-# import that leaves its own package. Standard library only.
+# import that leaves its own package. Standard library only. The fixture
+# screen also fails on a checksum-valid identifier in any committed fixture.
 
 on:
   workflow_dispatch:
@@ -85,6 +86,26 @@ jobs:
       - run: uv run --locked --group dev pyright  # NOSONAR: unprivileged job; uv installs the hash-locked set
       - run: uv run --locked --group dev pytest  # NOSONAR: unprivileged job; uv installs the hash-locked set
 
+  # tools/fixture-screen runs evatt's detectors over every tracked file, so it
+  # has no path filter. A release build keeps it near a minute.
+  fixture-screen:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tools/fixture-screen
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pinned toolchain
+        run: rustup toolchain install 1.99 --profile minimal --component rustfmt,clippy
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo test --locked --release
+
   # The rates dataset's validator is a Rust crate now, checked by the
   # au-tax-rates-data job in ci.yml.
   # removed-jobs: rates-dataset
@@ -94,7 +115,7 @@ jobs:
     # unless every job it needs succeeded, when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [boundaries, root-checks]
+    needs: [boundaries, root-checks, fixture-screen]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

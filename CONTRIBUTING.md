@@ -210,6 +210,17 @@ release callers require that test job; no second pytest run is needed.
 
 ## Rules
 
+`tools/fixture-screen` runs in `boundaries.yml` on every pull request and push to
+`main`. It fails on a checksum-valid TFN, ABN, ACN or Medicare number in any tracked
+file, and on a zip archive it cannot read. It reads UTF-8 text as it is, each part of
+a zip archive such as an xlsx workbook, and the printable runs of any other binary
+file. A match is skipped only when its first and last digit groups are both inside
+numbers: a hexadecimal token of 16 or more characters, a `0x` literal, a float's
+exponent or a percentage. Use a value whose check digit fails, or list a documented
+test value for its file, with its reason, in
+`tools/fixture-screen/tests/synthetic-identifiers.txt`. It uses evatt's detectors
+from `ryanduguid/accounting-review-pipeline`, pinned to one commit.
+
 `joined-fixtures.yml` checks the close-to-forecast, quarter and WIP-to-cash examples
 on pull requests, pushes to `main` and manual runs, on Linux and Windows.
 It uses this repository's proposed

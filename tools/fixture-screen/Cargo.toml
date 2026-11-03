@@ -1,0 +1,16 @@
+[package]
+name = "fixture-screen"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.99"
+description = "Fails CI on a checksum-valid Australian identifier in any tracked file"
+license = "FSL-1.1-ALv2"
+repository = "https://github.com/ryanduguid/australian-accounting"
+publish = false
+
+# evatt's detectors and check digits, pinned to the commit whose fixture screen
+# tests/fixture_screen.rs copies (accounting-review-pipeline#492).
+[dev-dependencies]
+evatt = { git = "https://github.com/ryanduguid/accounting-review-pipeline", rev = "40aac54df997491c9ae4c0475118cb36b908b36b" }
+# zip reads xlsx workbooks part by part, pinned as the workbook builders pin it.
+zip = { version = "=9.2.0", default-features = false, features = ["deflate"] }
