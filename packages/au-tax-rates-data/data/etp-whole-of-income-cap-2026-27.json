@@ -1,0 +1,14 @@
+{
+  "id": "etp-whole-of-income-cap-2026-27",
+  "label": "Employment termination payment whole-of-income cap",
+  "value": 180000,
+  "unit": "AUD",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-11-tax-table-for-employment-termination-payments",
+  "retrieved_at": "2026-11-04T03:38:51+11:00",
+  "quote": "The whole-of-income cap amount for the 2026–27 income year is $180,000. This amount is not indexed.",
+  "pattern": "The whole-of-income cap amount for the 2026–27 income year is (\\$[\\d,]+)",
+  "notes": "The page says this cap is reduced by other taxable payments the employee receives in the income year, and that for some ETPs the smaller of the ETP cap and this cap applies."
+}
