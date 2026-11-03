@@ -69,5 +69,4 @@ cargo test --locked
 cargo build --locked --release
 ```
 
-Outputs are review aids, not advice or lodgements. Each engine's `DISCLAIMER.md`
-applies to its subcommand.
+<sub>Outputs are review aids, not tax, legal or financial advice or lodgements. Each engine's `DISCLAIMER.md` applies to its subcommand.</sub>

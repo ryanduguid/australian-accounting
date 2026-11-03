@@ -5,8 +5,7 @@ written in ordinary worksheet formulas for accountants who work in Excel rather
 than at a command line. It is macro-free and needs desktop Excel for Microsoft 365 or
 Excel 2024. Nothing leaves the workbook.
 
-**Experimental review aid. Not a compliance determination.** Review Checks
-holds input failures, missing evidence and the review assumptions. Read its
+Review Checks holds input failures, missing evidence and the review assumptions. Read its
 overall status before using a calculated row: invalid input can leave a displayed
 verdict whilst the workbook is `BLOCKED`.
 

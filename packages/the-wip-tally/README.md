@@ -1,7 +1,5 @@
 # Construction WIP schedule
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation or lodgement.
-
 ```
 +----------------------------------------------------------------------+
 |                      Construction WIP schedule                       |
@@ -26,7 +24,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 Project name The WIP Tally. Cargo package `the-wip-tally`, command `wip-tally`.
 
-**Deterministic work-in-progress schedule for Australian construction, civil, mining-services and power-station packages.** Review aid. Not a determination.
+**Deterministic work-in-progress schedule for Australian construction, civil, mining-services and power-station packages.**
 
 **Package lifecycle:** The WIP Tally 1.0.0 is an unreleased standalone Rust
 binary. It replaces the Python `the-wip-tally` 0.2.0 package and its `wiptally`
@@ -41,16 +39,6 @@ In-repo version: `1.0.0`; see [release notes](RELEASE_NOTES.md) and
 [CHANGELOG.md](CHANGELOG.md).
 
 Built by Ryan Duguid, a provisional member of Chartered Accountants ANZ. Written independently, in his own time and on his own equipment.
-
-## Not advice
-
-Nothing this engine produces is accounting, tax or legal advice, a journal, a
-lodgement, or a conclusion that a contract transfers over time, that a claim is
-enforceable, or that a contract is onerous. Those stay with a person. Confirm
-the operative AASB 15 compilation at standards.aasb.gov.au before relying on a
-paragraph number.
-
-Full boundary statement: [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/DISCLAIMER.md).
 
 ## Build
 
@@ -217,6 +205,10 @@ ATO position on long-term construction contracts at ato.gov.au for the year.
 - Lodge a BAS, compute fuel tax credits or run TPAR
 - Replace the `wip-over-under-billing` skill, which still owns the workflow around this file
 
+Its output is not a journal or a lodgement, and those decisions stay with a
+person. Confirm the operative AASB 15 compilation at standards.aasb.gov.au before
+relying on a paragraph number.
+
 Use the [`wip-over-under-billing` skill](https://github.com/ryanduguid/australian-accounting-skills/blob/main/.claude/skills/wip-over-under-billing/SKILL.md)
 in Australian Accounting Skills for the review steps. Use this engine for the numbers those steps consume.
 
@@ -273,12 +265,8 @@ claim, uninstalled materials on an underwater power-station civil package, and
 para 45 recoverable-cost-only revenue. Test data is synthetic. Never commit
 client job-cost data to this repository.
 
-## Disclaimer
-
-This is an educational tool, not tax, legal or financial advice, and using it
-creates no professional relationship. Outputs can be wrong, incomplete, stale
-or unsuitable for a given set of facts. Check anything material against the
-current standards and the entity's facts, and leave sign-off with a registered
-practitioner.
+## Licence
 
 Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
+
+<sub>Review aid, not a determination or tax, legal or financial advice; using it creates no professional relationship. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/DISCLAIMER.md).</sub>

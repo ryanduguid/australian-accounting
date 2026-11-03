@@ -10,13 +10,10 @@ Distribution `lodgment-calendar`, import package `lodgmentcalendar`. Library onl
 component ships no command.
 
 **Package lifecycle:** published. Install `lodgment-calendar` from PyPI with
-`pip install lodgment-calendar`; see [release notes](RELEASE_NOTES.md) and
-[DISCLAIMER.md](DISCLAIMER.md).
+`pip install lodgment-calendar`; see [release notes](RELEASE_NOTES.md).
 
 It is a preparation aid. It reads the facts you pass, contacts no service, calls no ATO
-API and lodges nothing. Ryan Duguid is not a registered tax agent or BAS agent. Project
-support is limited to software issues reproduced with fabricated data. Do not send
-taxpayer information.
+API and lodges nothing.
 
 ## Example
 
@@ -173,3 +170,5 @@ time.
 ## Licence
 
 Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+<sub>Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/lodgment-calendar/DISCLAIMER.md).</sub>

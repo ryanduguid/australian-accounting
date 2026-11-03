@@ -287,4 +287,4 @@ compared byte for byte. These differences are deliberate:
 This adapter calls a third-party service that says of itself: 'Response shapes
 are not yet versioned and may change; nothing here is stable for production
 integration.' Figures it returns are calculated on facts you supplied. They are
-not advice, not a lodgement and not a review sign-off. The contract snapshots record a reading of the public service on one day.
+not a lodgement and not a review sign-off. The contract snapshots record a reading of the public service on one day.

@@ -82,5 +82,4 @@ suit any particular purpose. A revision to a past May figure would move the
 benchmark rate for that year of income, which is why the digest and the
 retrieval date are recorded beside the figures rather than in a commit message.
 
-This review is not tax, legal or financial advice, and is not an endorsement of
-this software or this review by CA ANZ.
+CA ANZ has not endorsed this software or this review.

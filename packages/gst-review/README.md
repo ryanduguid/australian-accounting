@@ -6,11 +6,6 @@ no files and lodges nothing. Version 1.0.0 is unreleased. The former Python impo
 package `gstreview` is removed from this checkout. Aus Accounting MCP still uses
 the published `gst-review==0.1.0` until its separate migration.
 
-Ryan Duguid is not a registered tax agent or BAS agent. These are experimental
-review aids, not advice or return preparation. Obtain human review before relying
-on an output. Project support covers software issues reproduced with fabricated
-data only. Do not send taxpayer information. See [DISCLAIMER.md](DISCLAIMER.md).
-
 With Rust 1.99, build and run locally:
 
 ```sh
@@ -180,3 +175,5 @@ input and physical command checks. Fixture provenance and adaptations are in
 [tests/fixtures/README.md](tests/fixtures/README.md). No Python interpreter is
 needed to run the native suite. See [RELEASE_NOTES.md](RELEASE_NOTES.md) and
 [RELEASING.md](RELEASING.md).
+
+<sub>Experimental review aids, not tax, legal or financial advice or return preparation; obtain human review before relying on an output. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

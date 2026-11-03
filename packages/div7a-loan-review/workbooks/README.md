@@ -5,9 +5,8 @@ ordinary worksheet formulas for accountants who work in Excel rather than at a
 command line. It is macro-free and needs desktop Excel for Microsoft 365 or Excel 2024.
 Nothing leaves the workbook.
 
-**Experimental review aid. Not a Division 7A determination.** Everything the
-engine refuses, the workbook refuses too, and every caveat the engine attaches is
-printed on Review Checks.
+Everything the engine refuses, the workbook refuses too, and every caveat the
+engine attaches is printed on Review Checks.
 
 **Interest-floor interpretation unresolved.** ATO guidance requires the benchmark
 interest rate for each year of the loan. The workbook compares one selected year's

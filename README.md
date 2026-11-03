@@ -44,14 +44,12 @@ Each tool returns a calculation, the facts it used and the matters it refuses to
 decide. The engines and the MCP server run locally: they read files you point them at, contact no
 service, write to no ledger and lodge nothing. Two boundaries sit outside that: an MCP host sends every tool argument and result to its model provider, and the optional LodgeiT adapter below makes bounded HTTP calls only when you enable it.
 
-Missing facts stay unknown: a Payday Super row with a fund-receipt date but no matched_amount or remitted_amount evidences when the fund received something, not how much, so the checker leaves it UNKNOWN rather than ON_TIME and names the amount it needs (from payday-super-checker 0.1.7; 0.1.6 and earlier read that receipt as covering the whole SG amount and say so in a caveat). Supply the amount the fund received with every receipt date. A person reviews every output before it is relied on.
+Missing facts stay unknown: a Payday Super row with a fund-receipt date but no matched_amount or remitted_amount evidences when the fund received something, not how much, so the checker leaves it UNKNOWN rather than ON_TIME and names the amount it needs (from payday-super-checker 0.1.7; 0.1.6 and earlier read that receipt as covering the whole SG amount and say so in a caveat). Supply the amount the fund received with every receipt date.
 
 **Start here:** [what each component is](#components) ·
 [MCP client setup](apps/aus-accounting-mcp/README.md#client-integration) ·
 [tool reference](apps/aus-accounting-mcp/README.md#tools) ·
 [scope, limits and examples](https://duguid.com.au/tools/australian-tax-ai-agents/)
-
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation or lodgement.
 
 ## Try one contribution
 
@@ -147,7 +145,7 @@ test ABN and ACN check digits, report data freshness and retrieve cited excerpts
 from a local Markdown library, legislation corpus or ATO rulings corpus.
 Division 7A review is limited to the delegated
 engine's s 109N/s 109E scope; it does not form amalgamated loans or classify
-repayments under s 109R. Outputs are review aids, not advice or lodgements.
+repayments under s 109R.
 
 For an editable source installation, run `pip install -e .` from
 `apps/aus-accounting-mcp/`. The repository root is not an installable Python package.
@@ -254,7 +252,9 @@ To check a downloaded release's checksum and SLSA provenance, follow [Verify a r
 
 Each component's `LICENSE` applies to that component, and
 `packages/ato-benchmark-compare/NOTICE` and `packages/au-tax-rates-data/NOTICE` cover their
-ATO material. Outputs are review aids, not advice.
+ATO material.
+
+<sub>Ryan Duguid is not a registered tax agent or BAS agent. Outputs are review aids, not tax, legal or financial advice or lodgements, and a person reviews each one before it is relied on. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. The MCP server and each engine have their own `DISCLAIMER.md`.</sub>
 
 ---
 
