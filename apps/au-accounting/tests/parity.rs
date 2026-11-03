@@ -218,7 +218,11 @@ fn environment(row: &Value) -> Env {
         return Env::new();
     };
     env.iter()
-        .map(|(key, value)| (key.clone(), value.as_str().map(String::from)))
+        .map(|(key, value)| match value {
+            Value::Null => (key.clone(), None),
+            Value::String(text) => (key.clone(), Some(text.clone())),
+            other => panic!("env {key} must be a string or null, not {other}"),
+        })
         .collect()
 }
 
@@ -696,4 +700,10 @@ fn windows_escaped_paths_and_other_errors_are_preserved() {
         ),
         b"<TMP> <TMP> /private/unrelated wrong value"
     );
+}
+
+#[test]
+#[should_panic(expected = "env TZ must be a string or null")]
+fn a_corpus_environment_value_that_is_not_text_is_refused() {
+    environment(&json!({"env": {"HOME": null, "TZ": 10}}));
 }
