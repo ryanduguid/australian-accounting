@@ -19,48 +19,66 @@ const ALLOWLIST: &str = "tools/fixture-screen/tests/synthetic-identifiers.txt";
 /// cannot separate a real value from a fabricated one.
 const CHECKED: [&str; 4] = ["tfn", "abn", "acn", "medicare"];
 
-/// Each finding's line, kind and digits.
-type Findings = BTreeSet<(usize, String, String)>;
+/// Each finding's place, kind and digits. A place is a line, or a byte offset
+/// in a binary file, after the name of any zip part holding it.
+type Findings = BTreeSet<(String, String, String)>;
 
 /// An allowlist entry's path, kind and digits.
 type Entry = (String, String, String);
 
-/// The text a tracked file holds: UTF-8 as it is, each part of a zip archive
-/// such as an xlsx workbook in turn, and otherwise its runs of printable ASCII,
-/// where a DER certificate keeps its subject and issuer strings.
+/// A text the screen reads from a file, with its findings' place prefix and
+/// whether a place is a byte offset rather than a line.
+struct Piece {
+    prefix: String,
+    binary: bool,
+    text: String,
+}
+
+/// The texts a tracked file holds, each screened on its own because evatt
+/// joins digit groups across line breaks: UTF-8 text whole, each part of a zip
+/// archive such as an xlsx workbook, and otherwise the printable ASCII with
+/// every other byte read as NUL, which evatt never joins across and which
+/// keeps offsets in bytes. A DER certificate keeps its subject strings there.
 /// shortcut: UTF-16 text and compressed streams outside a zip archive are not
 /// decoded, so their identifiers are not screened; decode one if it is ever
 /// committed.
-fn text_of(path: &str, bytes: &[u8]) -> Result<String, String> {
+fn pieces(prefix: &str, bytes: &[u8]) -> Result<Vec<Piece>, String> {
     if !bytes.starts_with(b"PK\x03\x04") {
-        return Ok(match std::str::from_utf8(bytes) {
-            Ok(text) => text.to_owned(),
-            Err(_) => bytes
-                .iter()
-                .map(|&b| {
-                    if b == b' ' || b.is_ascii_graphic() {
-                        b as char
-                    } else {
-                        '\n'
-                    }
-                })
-                .collect(),
-        });
+        let piece = match std::str::from_utf8(bytes) {
+            Ok(text) => Piece {
+                prefix: prefix.into(),
+                binary: false,
+                text: text.into(),
+            },
+            Err(_) => Piece {
+                prefix: format!("{prefix}byte "),
+                binary: true,
+                text: bytes
+                    .iter()
+                    .map(|&b| {
+                        if b == b' ' || b.is_ascii_graphic() {
+                            b as char
+                        } else {
+                            '\0'
+                        }
+                    })
+                    .collect(),
+            },
+        };
+        return Ok(vec![piece]);
     }
-    let mut archive = zip::ZipArchive::new(Cursor::new(bytes))
-        .map_err(|error| format!("{path}: unreadable zip archive: {error}"))?;
-    let mut text = String::new();
+    let unreadable = |error| format!("{prefix}unreadable zip archive: {error}");
+    let mut archive = zip::ZipArchive::new(Cursor::new(bytes)).map_err(unreadable)?;
+    let mut found = Vec::new();
     for index in 0..archive.len() {
-        let mut part = archive
-            .by_index(index)
-            .map_err(|error| format!("{path}: unreadable zip archive: {error}"))?;
+        let mut part = archive.by_index(index).map_err(unreadable)?;
+        let name = format!("{prefix}{}:", part.name().map_err(unreadable)?);
         let mut content = Vec::new();
         part.read_to_end(&mut content)
-            .map_err(|error| format!("{path}: unreadable zip part {index}: {error}"))?;
-        text += &text_of(path, &content)?;
-        text.push('\n');
+            .map_err(|error| format!("{name} unreadable: {error}"))?;
+        found.extend(pieces(&name, &content)?);
     }
-    Ok(text)
+    Ok(found)
 }
 
 /// The shortest hexadecimal token read as a digest, float bits or encoded
@@ -120,13 +138,20 @@ fn in_number(text: &str, start: usize, end: usize) -> bool {
 }
 
 /// Each checksum-valid identifier evatt detects outside numbers, other than an
-/// all-zero placeholder.
-fn identifiers(text: &str) -> patterns::Result<Findings> {
+/// all-zero placeholder, at its line, or at its offset in a binary piece.
+fn identifiers(text: &str, binary: bool) -> patterns::Result<BTreeSet<(usize, String, String)>> {
     // evatt skips a bare number that a comma joins to another digit, as part of
     // a longer number. That hides a CSV or JSON value beside a numeric field,
     // so the screen reads each comma as a field break.
     let text = pytext::nfc(&text.replace("\r\n", "\n").replace(',', ";"));
     let lines = Lines::new(&text);
+    let place = |offset| {
+        if binary {
+            offset
+        } else {
+            lines.locate(offset).0
+        }
+    };
     let mut found = BTreeSet::new();
     for span in patterns::structured_spans(&text)? {
         if !CHECKED.contains(&span.kind.as_str()) || in_number(&text, span.start, span.end) {
@@ -140,7 +165,7 @@ fn identifiers(text: &str) -> patterns::Result<Findings> {
         };
         let digits: String = patterns::digits(&span.value).chars().take(width).collect();
         if !digits.bytes().all(|b| b == b'0') && patterns::valid(&span.kind, &digits)? {
-            found.insert((lines.locate(span.start).0, span.kind, digits));
+            found.insert((place(span.start), span.kind, digits));
         }
     }
     // structured_spans leaves a number that runs into a list marker for triage.
@@ -148,7 +173,7 @@ fn identifiers(text: &str) -> patterns::Result<Findings> {
         let digits = patterns::digits(&a.value);
         for kind in CHECKED {
             if patterns::valid(kind, &digits)? {
-                found.insert((lines.locate(a.digit_start).0, kind.into(), digits));
+                found.insert((place(a.digit_start), kind.into(), digits));
                 break;
             }
         }
@@ -157,7 +182,16 @@ fn identifiers(text: &str) -> patterns::Result<Findings> {
 }
 
 fn findings(path: &str, bytes: &[u8]) -> Result<Findings, String> {
-    identifiers(&text_of(path, bytes)?).map_err(|error| format!("{path}: {error}"))
+    let mut found = Findings::new();
+    for piece in pieces("", bytes).map_err(|error| format!("{path}: {error}"))? {
+        let hits =
+            identifiers(&piece.text, piece.binary).map_err(|error| format!("{path}: {error}"))?;
+        found.extend(
+            hits.into_iter()
+                .map(|(place, kind, digits)| (format!("{}{place}", piece.prefix), kind, digits)),
+        );
+    }
+    Ok(found)
 }
 
 /// Each entry's path, kind and digits with its line number. A malformed line
@@ -196,12 +230,12 @@ fn verdict(results: Vec<(String, Result<Findings, String>)>, allowlist_text: &st
         match result {
             Err(error) => failures.push(error),
             Ok(found) => {
-                for (line, kind, digits) in found {
+                for (place, kind, digits) in found {
                     let key = (path.clone(), kind, digits);
                     if entries.contains_key(&key) {
                         used.insert(key);
                     } else {
-                        failures.push(format!("{path}:{line}: checksum-valid {}", key.1));
+                        failures.push(format!("{path}:{place}: checksum-valid {}", key.1));
                     }
                 }
             }
@@ -345,25 +379,31 @@ fn a_planted_checksum_valid_tfn_fails_and_an_invalid_one_passes() {
     );
     assert!(check("p.md", b"TFN: 123 456 789\n", "").is_empty());
     assert!(check("p.csv", b"id,tfn,code\n1,123456789,7\n", "").is_empty());
-    // A binary file is screened by its printable runs and a zip archive part by part.
+    // A binary file is screened by its printable runs at byte offsets and a zip
+    // archive part by part, and digits never join across a run or part.
     assert_eq!(
         check("p.der", b"\x00\xffTFN 123456782\x00", ""),
-        ["p.der:3: checksum-valid tfn"]
+        ["p.der:byte 6: checksum-valid tfn"]
     );
+    assert!(check("p.der", b"\xffTFN 123\x05456 782\x00", "").is_empty());
     let mut workbook = zip::ZipWriter::new(Cursor::new(Vec::new()));
-    workbook
-        .start_file(
+    for (part, text) in [
+        (
             "xl/sharedStrings.xml",
-            zip::write::SimpleFileOptions::default(),
-        )
-        .expect("part starts");
-    workbook
-        .write_all(b"<sst><si><t>123456782</t></si></sst>")
-        .expect("part writes");
+            "<sst><si><t>123456782</t></si></sst>",
+        ),
+        ("xl/a.xml", "<t>TFN 123"),
+        ("xl/b.xml", "456 782</t>"),
+    ] {
+        workbook
+            .start_file(part, zip::write::SimpleFileOptions::default())
+            .expect("part starts");
+        workbook.write_all(text.as_bytes()).expect("part writes");
+    }
     let workbook = workbook.finish().expect("archive closes").into_inner();
     assert_eq!(
         check("p.xlsx", &workbook, ""),
-        ["p.xlsx:1: checksum-valid tfn"]
+        ["p.xlsx:xl/sharedStrings.xml:1: checksum-valid tfn"]
     );
     assert_eq!(check("p.xlsx", b"PK\x03\x04 truncated", "").len(), 1);
 }
