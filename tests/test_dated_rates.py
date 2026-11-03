@@ -35,28 +35,37 @@ DATASET = PACKAGES / "au-tax-rates-data" / "data"
 
 # How many engine copies of dataset figures _dataset_pairs() compares. An engine
 # table that starts holding a dataset figure needs its own entry there.
-DATASET_PAIRS = 25
+DATASET_PAIRS = 46
 
 
 def _metadata_literal(name: str):
     """A `pub const` table in metadata.rs as the dict the Python engine kept."""
     text = CALCULATOR_METADATA.read_text(encoding="utf-8")
-    match = re.search(rf"^pub const {name}: [^=]*= &(\[.*?\]);$", text, re.S | re.M)
+    match = re.search(rf"^pub const {name}: [^=]*=\s*&?(\[.*?\]);$", text, re.S | re.M)
     if match is None:
         raise AssertionError(f"{name} not found in src/metadata.rs")
     literal = re.sub(r"Some\((\d+)\)", r"\1", match.group(1).replace("&[", "["))
     return dict(ast.literal_eval(literal))
 
 
+def _metadata_string(name: str) -> str:
+    """A `pub const` string in metadata.rs."""
+    text = CALCULATOR_METADATA.read_text(encoding="utf-8")
+    match = re.search(rf'^pub const {name}: &str = "([^"]*)";$', text, re.M)
+    if match is None:
+        raise AssertionError(f"{name} not found in src/metadata.rs")
+    return match.group(1)
+
+
 def _calculator_caps() -> dict[str, tuple[str, str]]:
     return _metadata_literal("CONTRIBUTION_CAPS")
 
 
-def _fbt_rate() -> str:
-    """The rate fbt() reports in its working, read from engine.rs."""
-    match = re.search(r'rate\("fbt_rate", "([^"]+)"\)', CALCULATIONS.read_text(encoding="utf-8"))
+def _fbt_working(name: str) -> str:
+    """A rate fbt() reports in its working, read from engine.rs."""
+    match = re.search(rf'rate\("{name}", "([^"]+)"\)', CALCULATIONS.read_text(encoding="utf-8"))
     if match is None:
-        raise AssertionError("fbt() reports no fbt_rate in src/engine.rs")
+        raise AssertionError(f"fbt() reports no {name} in src/engine.rs")
     return match.group(1)
 
 
@@ -83,19 +92,63 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
             pairs.append((f"{where} threshold", Decimal(row["from"]) - 1, Decimal(low)))
             pairs.append((f"{where} rate", Decimal(str(row["marginal_rate"])), Decimal(rate) * 100))
     payday = json.loads(PAYDAY_RATES.read_text(encoding="utf-8"))["financial_years"]["2026-27"]
-    caps = _calculator_caps()["2026-27"]
+    caps = _calculator_caps()
     pairs += [
         ("2026-27 super guarantee rate (paydaysuper rates.json)",
          _value("super-guarantee-rate-2026-27"), Decimal(payday["charge_percentage"])),
         ("2026-27 concessional cap (paydaysuper rates.json)",
          _value("concessional-cap-2026-27"), Decimal(payday["concessional_cap"])),
-        ("2026-27 concessional cap (metadata.rs CONTRIBUTION_CAPS)",
-         _value("concessional-cap-2026-27"), Decimal(caps[0])),
-        # ITAA 1997 s 292-85(2): four times the concessional cap, as the calculators derive it.
-        ("2026-27 non-concessional cap (metadata.rs, 4 x CONTRIBUTION_CAPS)",
-         _value("non-concessional-cap-2026-27"), Decimal(caps[0]) * 4),
-        ("FBT rate (engine.rs fbt())", _value("fbt-rate"), Decimal(_fbt_rate()) * 100),
+        ("2026-27 transfer balance cap (metadata.rs CONTRIBUTION_CAPS)",
+         _value("transfer-balance-cap-2026-27"), Decimal(caps["2026-27"][1])),
+        ("FBT rate (engine.rs fbt())", _value("fbt-rate"), Decimal(_fbt_working("fbt_rate")) * 100),
+        ("FBT type 1 gross-up rate (engine.rs fbt())",
+         _value("fbt-type-1-gross-up-rate"), Decimal(_fbt_working("type_one"))),
+        ("FBT type 2 gross-up rate (engine.rs fbt())",
+         _value("fbt-type-2-gross-up-rate"), Decimal(_fbt_working("type_two"))),
+        ("carry-forward concessional balance limit (metadata.rs CARRY_FORWARD_BALANCE_LIMIT)",
+         _value("carry-forward-concessional-balance-limit"),
+         Decimal(_metadata_string("CARRY_FORWARD_BALANCE_LIMIT"))),
     ]
+    for year in ("2025-26", "2026-27"):
+        pairs += [
+            (f"{year} concessional cap (metadata.rs CONTRIBUTION_CAPS)",
+             _value(f"concessional-cap-{year}"), Decimal(caps[year][0])),
+            # ITAA 1997 s 292-85(2): four times the concessional cap, as the calculators derive it.
+            (f"{year} non-concessional cap (metadata.rs, 4 x CONTRIBUTION_CAPS)",
+             _value(f"non-concessional-cap-{year}"), Decimal(caps[year][0]) * 4),
+        ]
+    medicare = _metadata_literal("MEDICARE_LOW_INCOME_THRESHOLDS")["2025-26"]
+    tables = {
+        "STUDY_LOAN_REPAYMENT_THRESHOLDS 2026-27":
+            dict(_metadata_literal("STUDY_LOAN_REPAYMENT_THRESHOLDS")["2026-27"]),
+        "STUDY_LOAN_REPAYMENT_RATES": _metadata_literal("STUDY_LOAN_REPAYMENT_RATES"),
+        "MEDICARE_LOW_INCOME_THRESHOLDS 2025-26": {"threshold": medicare[0], "phase_in": medicare[1]},
+        "MEDICARE_LEVY_RATES": _metadata_literal("MEDICARE_LEVY_RATES"),
+        "LOW_INCOME_TAX_OFFSET": _metadata_literal("LOW_INCOME_TAX_OFFSET"),
+        "DIVISION_293": _metadata_literal("DIVISION_293"),
+        "FBT_BENCHMARK_INTEREST_RATES": _metadata_literal("FBT_BENCHMARK_INTEREST_RATES"),
+    }
+    for name, table, key in (
+        ("study-loan-repayment-threshold-2026-27", "STUDY_LOAN_REPAYMENT_THRESHOLDS 2026-27", "minimum"),
+        ("study-loan-repayment-upper-threshold-2026-27", "STUDY_LOAN_REPAYMENT_THRESHOLDS 2026-27", "step"),
+        ("study-loan-repayment-base-amount-2026-27", "STUDY_LOAN_REPAYMENT_THRESHOLDS 2026-27", "printed_base"),
+        ("study-loan-repayment-flat-threshold-2026-27", "STUDY_LOAN_REPAYMENT_THRESHOLDS 2026-27", "flat_from"),
+        ("study-loan-repayment-lower-rate-2026-27", "STUDY_LOAN_REPAYMENT_RATES", "lower"),
+        ("study-loan-repayment-upper-rate-2026-27", "STUDY_LOAN_REPAYMENT_RATES", "upper"),
+        ("study-loan-repayment-flat-rate-2026-27", "STUDY_LOAN_REPAYMENT_RATES", "flat"),
+        ("medicare-low-income-lower-threshold-2025-26", "MEDICARE_LOW_INCOME_THRESHOLDS 2025-26", "threshold"),
+        ("medicare-low-income-upper-threshold-2025-26", "MEDICARE_LOW_INCOME_THRESHOLDS 2025-26", "phase_in"),
+        ("medicare-levy-rate", "MEDICARE_LEVY_RATES", "levy"),
+        ("lito-maximum", "LOW_INCOME_TAX_OFFSET", "maximum"),
+        ("lito-income-limit", "LOW_INCOME_TAX_OFFSET", "cut_out"),
+        ("division-293-threshold", "DIVISION_293", "threshold"),
+        ("division-293-tax-rate", "DIVISION_293", "rate"),
+        ("fbt-benchmark-interest-rate-fbt-year-2027", "FBT_BENCHMARK_INTEREST_RATES", "2027"),
+    ):
+        copy = Decimal(tables[table][key])
+        if _record(name)["unit"] == "percent":
+            copy *= 100
+        pairs.append((f"{name} (metadata.rs {table} {key})", _value(name), copy))
     lines = DIV7A_RATES.read_text(encoding="utf-8").splitlines()
     benchmark = {row["year_of_income"]: row["rate"]
                  for row in csv.DictReader(line for line in lines if not line.startswith("#"))}
