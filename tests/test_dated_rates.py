@@ -206,6 +206,31 @@ class DatedRateTests(unittest.TestCase):
                 if code:
                     self.assertIn("gic_rates.json", out.getvalue())
 
+    def test_the_business_day_warning_fires_inside_28_days_only(self) -> None:
+        check = _load_expiry_check()
+        end = check.business_days_end()
+        for days_before, code in ((95, 0), (28, 0), (27, 1), (16, 1)):
+            today = (end - timedelta(days=days_before)).isoformat()
+            with self.subTest(days_before=days_before):
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    self.assertEqual(check.main(["--today", today, "--table", "business-days"]),
+                                     code)
+                if code:
+                    self.assertIn("business_days.json", out.getvalue())
+
+    def test_the_business_day_end_is_verified_until(self) -> None:
+        # verified_until, not the last listed holiday: later rows are provisional and
+        # extend no deadline.
+        check = _load_expiry_check()
+        with tempfile.TemporaryDirectory() as directory:
+            table = Path(directory) / "business_days.json"
+            table.write_text(json.dumps({
+                "verified_until": "2030-06-30",
+                "non_business_days": [{"date": "2030-12-25", "provisional": True}],
+            }), encoding="utf-8")
+            self.assertEqual(check.business_days_end(table).isoformat(), "2030-06-30")
+
     def test_the_holiday_warning_fires_inside_28_days_only(self) -> None:
         check = _load_expiry_check()
         end = check.holidays_end()

@@ -1,10 +1,11 @@
 name: rate expiry
 
 # A warning, not a gate: no branch protection requires it. It fails 28 days
-# before payday-super-checker's GIC table or lodgment-calendar's holiday table
-# ends, so a weekly run gives at least 21 days to extend the table and release
-# before estimates are withheld or due dates turn UNKNOWN. The failed run is the
-# signal; the portfolio audit reporting it is intended.
+# before payday-super-checker's GIC table or business-day calendar, or
+# lodgment-calendar's holiday table, ends, so a weekly run gives at least 21 days
+# to extend the table and release before estimates are withheld, payday lines go
+# unassessed or due dates turn UNKNOWN. The failed run is the signal; the
+# portfolio audit reporting it is intended.
 
 on:
   schedule:

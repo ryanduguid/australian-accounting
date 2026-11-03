@@ -1,18 +1,22 @@
-"""Warn before payday-super-checker's GIC table or lodgment-calendar's holidays run out.
+"""Warn before a dated table in payday-super-checker or lodgment-calendar runs out.
 
 Past the GIC table's last quarter the engine and the MCP withhold notional
 earnings and SG charge estimates (src/rates.rs, the stale-GIC refusal). Past the
+business-day calendar's verified_until, payday-super-checker leaves a line due
+later unassessed or gives only maximum figures (src/assess.rs, past_horizon). Past the
 holiday table's COVERS_TO, lodgment-calendar's roll() cannot show a weekday is a
 business day, so due dates there stay UNKNOWN in the engine and the MCP.
-The ATO publishes the next GIC quarter about four weeks ahead, and either table
+The ATO publishes the next GIC quarter about four weeks ahead, and each table
 still needs an update, a component release, an MCP pin bump and an MCP release.
 The job runs weekly, so failing inside 28 days gives at least 21 days' notice:
 
-    python .github/ci/check_rate_expiry.py [--today YYYY-MM-DD] [--table gic|holidays]
+    python .github/ci/check_rate_expiry.py [--today YYYY-MM-DD]
+        [--table business-days|gic|holidays]
 
 Standard library only, and no component is imported. The GIC table is read the
-way load_gic() reads it, as the end of its last quarter; the holiday table's end
-is its COVERS_TO assignment, read from the source.
+way load_gic() reads it, as the end of its last quarter; the business-day
+calendar's end is its verified_until key, not its last listed holiday; the
+holiday table's end is its COVERS_TO assignment, read from the source.
 """
 
 from __future__ import annotations
@@ -25,6 +29,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 GIC_TABLE = ROOT / "packages" / "payday-super-checker" / "data" / "gic_rates.json"
+BUSINESS_DAYS_TABLE = ROOT / "packages" / "payday-super-checker" / "data" / "business_days.json"
 HOLIDAY_TABLE = ROOT / "packages" / "lodgment-calendar" / "lodgmentcalendar" / "holidays.py"
 WARN_DAYS = 28
 
@@ -32,6 +37,10 @@ WARN_DAYS = 28
 def last_known(path: Path = GIC_TABLE) -> date:
     quarters = json.loads(path.read_text(encoding="utf-8"))["quarters"]
     return max(date.fromisoformat(quarter["to"]) for quarter in quarters)
+
+
+def business_days_end(path: Path = BUSINESS_DAYS_TABLE) -> date:
+    return date.fromisoformat(json.loads(path.read_text(encoding="utf-8"))["verified_until"])
 
 
 def holidays_end(path: Path = HOLIDAY_TABLE) -> date:
@@ -46,7 +55,12 @@ def holidays_end(path: Path = HOLIDAY_TABLE) -> date:
 
 # Name: (table, its end, what it is, how to extend it).
 TABLES = {
-    "gic": (GIC_TABLE, last_known, "The GIC table",
+    "business-days": (BUSINESS_DAYS_TABLE, business_days_end,
+                      "The payday business-day calendar",
+                      "Confirm the next whole-of-state public holidays from the official "
+                      "sources {where} lists, add them and move verified_until, then "
+                      "release payday-super-checker and the MCP."),
+    "gic":(GIC_TABLE, last_known, "The GIC table",
             "Add the next quarter from the ATO 'General interest charge rates' page to "
             "{where}, then release payday-super-checker and the MCP."),
     "holidays": (HOLIDAY_TABLE, holidays_end, "The lodgment calendar's holiday table",
