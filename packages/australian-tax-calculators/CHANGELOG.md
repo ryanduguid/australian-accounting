@@ -94,6 +94,20 @@ intentionally changed.
   stays at 2025-26. `tests/parity.rs` adds the period to the 19 `periods` and
   10 `worksheet-catalogue` frozen results and to the 34 refusals that list the
   supported periods.
+- `payg-withholding` also accepts 2024-25 and 2025-26, using the ATO's Schedule
+  1 coefficients for payments from 1 July 2024 to 30 June 2026 (published 17
+  June 2024); Python 0.2.0 took 2026-27 only. The earnings conversion and
+  rounding rules are the same in both schedules. `tests/tables.rs` reproduces
+  all 720 amounts in that schedule's sample data for each of the 2 years.
+  The scope statement now covers payments from 1 July 2024 and says the income
+  year selects the coefficients; the sources add the 2024-26 schedule, and the
+  source check date is 4 November 2026, when both schedules' coefficient pages
+  were read. `tests/parity.rs` applies this to the 789 frozen
+  `payg-withholding` results, 7 `periods` results, 10 `worksheet-catalogue`
+  results and the 8 refusals that list the supported periods. It skips the 1
+  frozen call that expected 2025-26 to be refused; `tests/tables.rs` now
+  checks that 2023-24 and 2027-28 are refused. The catalogue example stays at
+  2026-27.
 
 ### Verification
 

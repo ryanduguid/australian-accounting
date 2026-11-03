@@ -93,6 +93,7 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
         }
         _ => {}
     }
+    adapt_payg(command, input, &mut expected);
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
         "worksheet-catalogue" => expected.pointer_mut("/ok/study_loan_repayment"),
@@ -121,6 +122,52 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     expected
 }
 
+/// `payg-withholding` also accepts 2024-25 and 2025-26 with the Schedule 1
+/// coefficients for payments from 1 July 2024 to 30 June 2026 (CHANGELOG.md).
+fn adapt_payg(command: &str, input: &Value, expected: &mut Value) {
+    let old_scope = "made from 1 July 2026 to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations.";
+    let new_scope = "made from 1 July 2024, in the income year given, to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. The year selects the Schedule 1 coefficients for payments made in it.";
+    let page = "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026";
+    let passage = "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients, using a formula, working out the weekly earnings";
+    let years = ["2024-25", "2025-26"].map(|year| {
+        let start = format!("{}-07-01", &year[..4]);
+        let end = format!("20{}-06-30", &year[5..]);
+        json!({"id": year, "basis": "income year", "start": start, "end": end,
+               "arguments": {"year": year}})
+    });
+    if command == "payg-withholding"
+        && let Some(Value::String(error)) = expected.get_mut("error")
+    {
+        *error = error.replace(
+            "; supported: 2026-27.",
+            "; supported: 2024-25, 2025-26, 2026-27.",
+        );
+    }
+    let record = match command {
+        "payg-withholding" => expected.pointer_mut("/ok"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/payg_withholding"),
+        "periods" if input["kind"] == "payg_withholding" => {
+            let periods = expected["ok"].as_array_mut().unwrap();
+            periods.splice(0..0, years);
+            return;
+        }
+        _ => None,
+    };
+    let Some(record) = record else {
+        return;
+    };
+    let scope = record["scope"].as_str().unwrap();
+    assert!(scope.contains(old_scope), "frozen PAYG scope changed");
+    record["scope"] = json!(scope.replace(old_scope, new_scope));
+    record["sources"].as_array_mut().unwrap().push(json!(page));
+    record["source_checked"] = json!("2026-11-04");
+    if command == "worksheet-catalogue" {
+        record["source_passage"] = json!(passage);
+        let periods = record["supported_periods"].as_array_mut().unwrap();
+        periods.splice(0..0, years);
+    }
+}
+
 /// Replays every captured call from the Python 0.2.0 tests and differential
 /// generator, comparing serialised JSON so key order must match too.
 #[test]
@@ -138,8 +185,15 @@ fn python_api_corpus_matches() {
         );
     }
     let mut failures = Vec::new();
+    let mut reopened = 0;
     for row in &corpus {
         let command = row["command"].as_str().unwrap();
+        // Python 0.2.0 refused 2025-26 PAYG withholding, which now has its own
+        // coefficients; tests/tables.rs checks that year against the ATO sample.
+        if command == "payg-withholding" && row["input"]["year"] == "2025-26" {
+            reopened += 1;
+            continue;
+        }
         let actual = without_new_kinds(command, outcome(command, &row["input"])).to_string();
         let expected = adapt(command, &row["input"], row["expected"].clone()).to_string();
         if actual != expected {
@@ -149,6 +203,7 @@ fn python_api_corpus_matches() {
             ));
         }
     }
+    assert_eq!(reopened, 1, "frozen 2025-26 PAYG refusals");
     assert!(
         failures.is_empty(),
         "{} of {} differ:\n{}",
