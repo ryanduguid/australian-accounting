@@ -10,5 +10,5 @@
   "retrieved_at": "2026-10-15T00:31:24+11:00",
   "quote": "MLS income thresholds and rates for 2026–27 Threshold Base tier Tier 1 Tier 2 Tier 3 Single threshold $105,000 or less $105,001 – $123,000 $123,001 – $164,000 $164,001 or more Family threshold $210,000 or less $210,001 – $246,000 $246,001 – $328,000 $328,001 or more",
   "pattern": "rates for 2026–27 Threshold Base tier .*? Family threshold \\$[\\d,]+ or less \\$[\\d,]+ – (\\$[\\d,]+)",
-  "notes": "The page adds $1,500 for each MLS dependent child after the first child. The 15 October 2026 snapshot matched the live page when these records were added on 4 November 2026."
+  "notes": "The page says the family income threshold is increased by $1,500 for each MLS dependent child after the first child. The 15 October 2026 snapshot matched the live page when these records were added on 4 November 2026."
 }

@@ -10,5 +10,5 @@
   "retrieved_at": "2026-11-04T03:27:31+11:00",
   "quote": "Table 1: 2026–27 repayment thresholds and rates Repayment income Repayment on this income $0 – $69,528 Nil $69,529 – $129,717 15c for each $1 over $69,528 $129,718 – $186,050 $9,028 plus 17c for each $1 over $129,717 $186,051 and over 10% of your total repayment income",
   "pattern": "Table 1: 2026–27 repayment thresholds and rates Repayment income Repayment on this income \\$0 – (\\$[\\d,]+) Nil",
-  "notes": "Repayment income up to this amount repays nothing. From 2025-26 compulsory repayments use marginal rates on repayment income above it. The same thresholds apply to HELP, VSL, SFSS, SSL, ABSTUDY SSL and AASL."
+  "notes": "Repayment income up to this amount repays nothing. From 2025-26 the 15c and 17c bands apply to repayment income above their thresholds, and from $186,051 the repayment is 10% of total repayment income. The same thresholds apply to HELP, VSL, SFSS, SSL, ABSTUDY SSL and AASL."
 }
