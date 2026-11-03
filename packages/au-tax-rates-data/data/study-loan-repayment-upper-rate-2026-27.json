@@ -1,0 +1,14 @@
+{
+  "id": "study-loan-repayment-upper-rate-2026-27",
+  "label": "Study and training loan repayment rate, second band",
+  "value": 17,
+  "unit": "percent",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates",
+  "retrieved_at": "2026-11-04T03:27:31+11:00",
+  "quote": "Table 1: 2026–27 repayment thresholds and rates Repayment income Repayment on this income $0 – $69,528 Nil $69,529 – $129,717 15c for each $1 over $69,528 $129,718 – $186,050 $9,028 plus 17c for each $1 over $129,717 $186,051 and over 10% of your total repayment income",
+  "pattern": "Table 1: 2026–27 repayment thresholds and rates Repayment income Repayment on this income .*? plus ([\\d.]+)c for each \\$1 over",
+  "notes": "The page writes the rate as 17c for each $1 over $129,717."
+}
