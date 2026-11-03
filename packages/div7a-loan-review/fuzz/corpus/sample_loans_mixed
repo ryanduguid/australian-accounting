@@ -1,0 +1,9 @@
+loan_id,borrower_reference,year_loan_made,written_agreement,terms_in_place_before_lodgment_day,maximum_term_years,secured_by_registered_mortgage_over_real_property,security_coverage_at_first_made,interest_rate_for_years_after_year_loan_made,amalgamated_loan_unpaid_at_end_of_previous_year,remaining_term_years,payments_applied_during_the_year,out_of_scope_reason
+L-101,SYN-SHAREHOLDER-A,2023-24,true,true,7,false,unknown,0.0827,120000.00,3,45000.00,
+L-102,SYN-ASSOCIATE-B,2022-23,true,true,7,false,unknown,0.0400,90000.00,4,20000.00,
+L-103,SYN-SHAREHOLDER-C,2021-22,unknown,true,7,false,unknown,0.0452,50000.00,2,15000.00,
+L-104,SYN-ASSOCIATE-D,2024-25,true,true,7,false,unknown,0.0877,88000.00,5,unknown,
+L-105,SYN-SHAREHOLDER-E,2019-20,true,true,7,false,unknown,0.0537,12000.00,0,12000.00,
+L-106,SYN-ASSOCIATE-F,2020-21,true,true,25,true,1.09,0.0452,300000.00,15,30000.00,
+L-107,SYN-TRUST-G,2023-24,unknown,unknown,unknown,unknown,unknown,unknown,unknown,unknown,unknown,Unpaid present entitlement under s 109XA; sub-trust arrangement not reviewed by this engine
+L-108,SYN-SHAREHOLDER-H,1996-97,true,true,7,false,unknown,0.0700,40000.00,3,10000.00,
