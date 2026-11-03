@@ -244,7 +244,21 @@ to reproduce each one.
 The coefficients in `src/metadata.rs` were transcribed from the ATO page
 "Coefficients to use in formulas for withholding from weekly payments", and the
 earnings conversion and rounding rules from "Using a formula" and "Working out
-the weekly earnings", all read on 24 September 2026. The sample data checks the
+the weekly earnings", all read on 24 September 2026. The coefficients page was
+read again on 4 November 2026 and still matches all 35 rows.
+
+2024-25 and 2025-26 use the schedule for payments from 1 July 2024 to 30 June
+2026, published on 17 June 2024. Its coefficients were transcribed from that
+schedule's coefficients page, read on 4 November 2026 with its "Using a
+formula" and "Working out the weekly earnings" pages, whose earnings conversion
+and rounding rules match the 2026 schedule's. Scale 1 has one
+negative b coefficient (-0.6702), which the schedule says is intentional.
+`tests/payg_withholding_sample_2024_26.csv` holds that schedule's sample data,
+720 amounts at its own 48 earnings points per pay period, and
+`every_scale_matches_the_ato_sample_for_payments_from_july_2024_to_june_2026`
+requires the worksheet to reproduce each one for both years.
+
+The sample data checks the
 transcription; it does not establish that a payee's scale, allowances or
 declarations are right. Scale 4, tax offsets, Medicare levy adjustments, study
 and training support loans, 53 and 27 pay years, quarterly pays and the other

@@ -141,14 +141,16 @@ low-income reduction remain outside these worksheets.
 ## PAYG withholding
 
 `payg_withholding` applies the Schedule 1 (NAT 1004) formulas to one regular
-weekly, fortnightly or monthly pay made from 1 July 2026, on scale 1, 2, 3, 5
-or 6 as the operator established from the payee's declarations. Earnings
+weekly, fortnightly or monthly pay made from 1 July 2024, on scale 1, 2, 3, 5
+or 6 as the operator established from the payee's declarations. The income year
+selects the coefficients: 2024-25 and 2025-26 use those for payments from 1 July
+2024 to 30 June 2026, and 2026-27 those for payments from 1 July 2026. Earnings
 include allowances subject to withholding. The result gives the weekly
 earnings used, the weekly amount and the amount for the pay period, with the
 coefficients applied. Scale 4, tax offsets, Medicare levy adjustments, study
 and training support loans, extra amounts for 53 or 27 pays, quarterly pays
 and the other schedules are outside it. The tests reproduce every amount in
-the ATO's published sample data; see
+the ATO's published sample data for both schedules; see
 [calculation evidence](docs/calculation-evidence.md#payg-withholding).
 This worksheet is published in the 0.1.5 wheel.
 

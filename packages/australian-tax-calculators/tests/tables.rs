@@ -199,16 +199,15 @@ fn every_component_year_has_schedule_1_coefficients() {
     }
 }
 
-#[test]
-fn every_scale_matches_the_ato_sample() {
-    let sample = include_str!("data/payg_withholding_sample_2026_27.csv");
+/// Every amount in one ATO Schedule 1 sample data file, worked out for `year`:
+/// 48 earnings points for each of 3 pay periods on scales 1, 2, 3, 5 and 6.
+fn matches_the_ato_sample(sample: &str, year: &str) {
     let mut lines = sample.lines();
     assert_eq!(
         lines.next(),
         Some("period,earnings,scale1,scale2,scale3,scale5,scale6")
     );
     let rows: Vec<Vec<&str>> = lines.map(|l| l.split(',').collect()).collect();
-    // 48 earnings points for each of 3 pay periods, as published on 17 June 2026.
     assert_eq!(rows.len(), 144);
     for period in ["weekly", "fortnightly", "monthly"] {
         assert_eq!(rows.iter().filter(|r| r[0] == period).count(), 48);
@@ -216,13 +215,41 @@ fn every_scale_matches_the_ato_sample() {
     for row in &rows {
         for (column, scale) in [1, 2, 3, 5, 6].into_iter().enumerate() {
             let input = json!({"earnings": row[1], "pay_period": row[0], "scale": scale,
-                               "year": "2026-27", "scope_confirmed": true});
+                               "year": year, "scope_confirmed": true});
             let result = api::evaluate("payg-withholding", &input).unwrap();
             let expected = d(row[2 + column]).fixed(2, false);
             assert_eq!(
                 result["amounts"]["withholding"], expected,
-                "{row:?} scale {scale}"
+                "{year} {row:?} scale {scale}"
             );
         }
+    }
+}
+
+#[test]
+fn every_scale_matches_the_ato_sample() {
+    // Payments from 1 July 2026; published on 17 June 2026.
+    let sample = include_str!("data/payg_withholding_sample_2026_27.csv");
+    matches_the_ato_sample(sample, "2026-27");
+}
+
+#[test]
+fn every_scale_matches_the_ato_sample_for_payments_from_july_2024_to_june_2026() {
+    // Published on 17 June 2024 for payments from 1 July 2024 to 30 June 2026.
+    let sample = include_str!("data/payg_withholding_sample_2024_26.csv");
+    for year in ["2024-25", "2025-26"] {
+        matches_the_ato_sample(sample, year);
+    }
+}
+
+#[test]
+fn a_year_without_its_own_coefficients_is_refused() {
+    for year in ["2023-24", "2027-28"] {
+        let input = json!({"earnings": "1000", "pay_period": "weekly", "scale": 2,
+                           "year": year, "scope_confirmed": true});
+        assert_eq!(
+            api::evaluate("payg-withholding", &input).unwrap_err(),
+            format!("Unsupported period '{year}'; supported: 2024-25, 2025-26, 2026-27.")
+        );
     }
 }
