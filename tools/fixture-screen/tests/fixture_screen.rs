@@ -1,39 +1,19 @@
-//! Committed fixtures and test inputs may not carry a checksum-valid
-//! Australian identifier unless `synthetic-identifiers.txt` lists it for that
-//! file. The screen runs evatt's own detectors and check digits over the
-//! tracked files `is_fixture` selects anywhere in the repository. Findings name
-//! the file, line and kind, never the value, so a CI log never repeats one.
-//! Copied from accounting-review-pipeline's `packages/evatt/tests/fixture_screen.rs`
-//! at 40aac54, with this repository's allowlist path and directory names.
+//! No tracked file may carry a checksum-valid Australian identifier unless
+//! `synthetic-identifiers.txt` lists it for that file. The screen runs evatt's
+//! own detectors and check digits over every file `git ls-files` lists.
+//! Findings name the file, line and kind, never the value, so a CI log never
+//! repeats one. Adapted from accounting-review-pipeline's
+//! `packages/evatt/tests/fixture_screen.rs` at 40aac54, which screens fixture
+//! directories only.
 use evatt::{patterns, pytext, redact::Lines};
 use std::collections::{BTreeSet, HashMap, HashSet};
+use std::io::{Cursor, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 /// The allowlist, from the repository root. It names the values it allows,
 /// so it is not screened itself.
 const ALLOWLIST: &str = "tools/fixture-screen/tests/synthetic-identifiers.txt";
-
-/// Directory names whose every file is fabricated input, expected results or a
-/// saved source page that tests read.
-const FIXTURE_DIRS: [&str; 8] = [
-    "conformance",
-    "corpus",
-    "evaluation",
-    "examples",
-    "fixtures",
-    "samples",
-    "seeds",
-    "snapshots",
-];
-
-/// Directory names whose data files are test inputs or the records tests
-/// validate: data beside the test code and each package's `data` directory.
-const INPUT_DIRS: [&str; 2] = ["data", "tests"];
-const DATA_EXTENSIONS: [&str; 3] = ["csv", "json", "txt"];
-
-/// Binary fixtures, which hold no text to screen: DER certificates and keys.
-const BINARY_EXTENSIONS: [&str; 1] = ["der"];
 
 /// Kinds with a check digit. BSB, email and phone have none, so a match
 /// cannot separate a real value from a fabricated one.
@@ -45,38 +25,42 @@ type Findings = BTreeSet<(usize, String, String)>;
 /// An allowlist entry's path, kind and digits.
 type Entry = (String, String, String);
 
-fn is_fixture(path: &str) -> bool {
-    let mut dirs: Vec<_> = path.split('/').collect();
-    let name = dirs.pop().unwrap_or_default();
-    let extension = name.rsplit_once('.').map(|(_, e)| e);
-    let data = extension.is_some_and(|e| DATA_EXTENSIONS.contains(&e));
-    path != ALLOWLIST
-        && !extension.is_some_and(|e| BINARY_EXTENSIONS.contains(&e))
-        && (dirs.iter().any(|d| FIXTURE_DIRS.contains(d))
-            || dirs.windows(2).any(|w| w == ["tests", "data"])
-            || data && dirs.iter().any(|d| INPUT_DIRS.contains(d)))
-}
-
-#[test]
-fn every_file_under_tests_data_is_screened_whatever_its_extension() {
-    for path in [
-        "packages/p/tests/data/notes.md",
-        "packages/p/tests/data/sub/record",
-        "tools/tests/data/case.yaml",
-    ] {
-        assert!(is_fixture(path), "{path} must be screened");
+/// The text a tracked file holds: UTF-8 as it is, each part of a zip archive
+/// such as an xlsx workbook in turn, and otherwise its runs of printable ASCII,
+/// where a DER certificate keeps its subject and issuer strings.
+/// shortcut: UTF-16 text and compressed streams outside a zip archive are not
+/// decoded, so their identifiers are not screened; decode one if it is ever
+/// committed.
+fn text_of(path: &str, bytes: &[u8]) -> Result<String, String> {
+    if !bytes.starts_with(b"PK\x03\x04") {
+        return Ok(match std::str::from_utf8(bytes) {
+            Ok(text) => text.to_owned(),
+            Err(_) => bytes
+                .iter()
+                .map(|&b| {
+                    if b == b' ' || b.is_ascii_graphic() {
+                        b as char
+                    } else {
+                        '\n'
+                    }
+                })
+                .collect(),
+        });
     }
-    assert!(is_fixture("packages/p/data/record.json"));
-    assert!(is_fixture("packages/p/snapshots/page.txt"));
-    for path in [
-        "packages/p/tests/screen.rs",
-        "packages/p/src/table.json",
-        "packages/p/data/README.md",
-        "apps/a/fixtures/tls/loopback.cert.der",
-        ALLOWLIST,
-    ] {
-        assert!(!is_fixture(path), "{path} must not be screened");
+    let mut archive = zip::ZipArchive::new(Cursor::new(bytes))
+        .map_err(|error| format!("{path}: unreadable zip archive: {error}"))?;
+    let mut text = String::new();
+    for index in 0..archive.len() {
+        let mut part = archive
+            .by_index(index)
+            .map_err(|error| format!("{path}: unreadable zip archive: {error}"))?;
+        let mut content = Vec::new();
+        part.read_to_end(&mut content)
+            .map_err(|error| format!("{path}: unreadable zip part {index}: {error}"))?;
+        text += &text_of(path, &content)?;
+        text.push('\n');
     }
+    Ok(text)
 }
 
 /// The shortest hexadecimal token read as a digest, float bits or encoded
@@ -85,8 +69,10 @@ fn every_file_under_tests_data_is_screened_whatever_its_extension() {
 const HEX_TOKEN: usize = 16;
 
 /// Whether `start..end` lies in a run of at least [`HEX_TOKEN`] hexadecimal
-/// characters, where a check-digit match is chance. evatt never matches inside
-/// an all-digit run, so such a token always holds a letter.
+/// characters or a `0x` literal such as FNV's `0x100000001b3`, where a
+/// check-digit match is chance. evatt never matches inside an all-digit run,
+/// so such a token always holds a letter. A separator such as a space, colon
+/// or quote ends the token, so a value beside a digest is still screened.
 /// shortcut: an identifier hex-encoded in a recording is not decoded, so it is
 /// not screened; decode the recorded streams if one ever needs to be.
 fn in_hex_token(text: &str, start: usize, end: usize) -> bool {
@@ -102,27 +88,24 @@ fn in_hex_token(text: &str, start: usize, end: usize) -> bool {
         .iter()
         .position(|b| !b.is_ascii_hexdigit())
         .map_or(bytes.len(), |i| end + i);
-    to - from >= HEX_TOKEN
+    to - from >= HEX_TOKEN || bytes[..from].ends_with(b"0x")
 }
 
-/// Whether `start..end` is part of a decimal number, an exponent or a
-/// percentage, such as an amount or a float's digits in the recorded corpora.
-fn in_decimal_number(text: &str, start: usize, end: usize) -> bool {
+/// Whether the digit group `start..end` belongs to a hexadecimal token, is a
+/// float's exponent such as the `123` of `8.51e+123`, or is a percentage.
+/// evatt itself reads a run beside a decimal point as part of an amount.
+fn in_number_group(text: &str, start: usize, end: usize) -> bool {
     let bytes = text.as_bytes();
-    let digit = |i: usize| bytes.get(i).is_some_and(u8::is_ascii_digit);
     let exponent = start >= 3
         && matches!(bytes[start - 1], b'+' | b'-')
         && matches!(bytes[start - 2], b'e' | b'E')
-        && digit(start - 3);
-    bytes.get(end) == Some(&b'.') && digit(end + 1)
-        || bytes.get(end) == Some(&b'%')
-        || start >= 2 && bytes[start - 1] == b'.' && digit(start - 2)
-        || exponent
+        && bytes[start - 3].is_ascii_digit();
+    in_hex_token(text, start, end) || exponent || bytes.get(end) == Some(&b'%')
 }
 
-/// Whether the span's first or last digit group belongs to a hexadecimal token
-/// or a decimal number. evatt joins groups across spaces and line breaks, so a
-/// float's exponent can run into the next line's hex bits.
+/// Whether the span's first and last digit groups both belong to numbers.
+/// evatt joins groups across spaces and line breaks, so a float's exponent can
+/// run into the next line's hex bits.
 fn in_number(text: &str, start: usize, end: usize) -> bool {
     let span = &text.as_bytes()[start..end];
     let first_end = span
@@ -133,13 +116,11 @@ fn in_number(text: &str, start: usize, end: usize) -> bool {
         .iter()
         .rposition(|b| !b.is_ascii_digit())
         .map_or(start, |i| start + i + 1);
-    [(start, first_end), (last_start, end)]
-        .iter()
-        .any(|&(s, e)| in_hex_token(text, s, e) || in_decimal_number(text, s, e))
+    in_number_group(text, start, first_end) && in_number_group(text, last_start, end)
 }
 
-/// Each checksum-valid identifier evatt detects outside a hexadecimal token
-/// or a decimal number, other than an all-zero placeholder.
+/// Each checksum-valid identifier evatt detects outside numbers, other than an
+/// all-zero placeholder.
 fn identifiers(text: &str) -> patterns::Result<Findings> {
     // evatt skips a bare number that a comma joins to another digit, as part of
     // a longer number. That hides a CSV or JSON value beside a numeric field,
@@ -176,9 +157,7 @@ fn identifiers(text: &str) -> patterns::Result<Findings> {
 }
 
 fn findings(path: &str, bytes: &[u8]) -> Result<Findings, String> {
-    let text = std::str::from_utf8(bytes)
-        .map_err(|error| format!("{path}: not UTF-8 text, so it cannot be screened: {error}"))?;
-    identifiers(text).map_err(|error| format!("{path}: {error}"))
+    identifiers(&text_of(path, bytes)?).map_err(|error| format!("{path}: {error}"))
 }
 
 /// Each entry's path, kind and digits with its line number. A malformed line
@@ -194,7 +173,7 @@ fn allowlist(text: &str) -> (HashMap<Entry, usize>, Vec<String>) {
             [path, kind, digits, reason]
                 if CHECKED.contains(&kind)
                     && !digits.is_empty()
-                    && digits.bytes().all(|b| b.is_ascii_digit())
+                    && digits.chars().all(char::is_numeric)
                     && !reason.trim().is_empty() =>
             {
                 entries.insert((path.into(), kind.into(), digits.into()), index + 1);
@@ -253,7 +232,7 @@ fn git(dir: &Path, args: &[&str]) -> Vec<u8> {
     output.stdout
 }
 
-fn tracked_fixtures() -> (PathBuf, Vec<String>) {
+fn tracked_files() -> (PathBuf, Vec<String>) {
     let top = git(
         Path::new(env!("CARGO_MANIFEST_DIR")),
         &["rev-parse", "--show-toplevel"],
@@ -267,17 +246,17 @@ fn tracked_fixtures() -> (PathBuf, Vec<String>) {
         .split(|&b| b == 0)
         .filter(|p| !p.is_empty())
         .map(|p| String::from_utf8(p.to_vec()).expect("tracked paths are UTF-8"))
-        .filter(|p| is_fixture(p))
+        .filter(|p| p != ALLOWLIST)
         .collect();
     (root, paths)
 }
 
 #[test]
-fn committed_fixtures_carry_no_undocumented_identifier() {
-    let (root, paths) = tracked_fixtures();
+fn tracked_files_carry_no_undocumented_identifier() {
+    let (root, paths) = tracked_files();
     assert!(
         !paths.is_empty(),
-        "no tracked fixture files found under {}",
+        "no tracked files found under {}",
         root.display()
     );
     // One thread per file: in a debug build the largest recordings take most of a minute each.
@@ -324,19 +303,26 @@ fn a_checksum_valid_run_inside_a_digest_hex_bytes_or_an_amount_is_not_a_finding(
     assert!(check("p.json", b"\"inclusive\": \"123456782.70\"\n", "").is_empty());
     assert!(check("p.txt", b"12210.123456782\n", "").is_empty());
     assert!(check("p.txt", b"40c7d9a123456782 12210.89\n", "").is_empty());
-    // A float's exponent joined to the next line's hex bits, a percentage and zeros.
+    // A float's exponent joined to the next line's hex bits, a percentage, zeros
+    // and a hex literal.
     assert!(check("p.txt", b"8.51e+123\n456782f100000000 1\n", "").is_empty());
     assert!(check("p.json", b"\"ok\": \"-123456782%\"\n", "").is_empty());
     assert!(check("p.json", b"\"abn_or_acn\": \"000000000\"\n", "").is_empty());
-    // A short token beside letters, and a value ending a sentence, stay findings.
-    assert_eq!(
-        check("p.json", b"\"ref\": \"ab123456782\"\n", ""),
-        ["p.json:1: checksum-valid tfn"]
-    );
-    assert_eq!(
-        check("p.md", b"Their TFN is 123456782.\n", ""),
-        ["p.md:1: checksum-valid tfn"]
-    );
+    assert!(check("p.rs", b"h.wrapping_mul(0x100000001b3);\n", "").is_empty());
+    // A short token beside letters, a value beside a digest or with only its
+    // first group in one, and a value ending a sentence stay findings.
+    for text in [
+        "\"ref\": \"ab123456782\"\n",
+        "7f6401c3b7abba89d0f40cd076101fe4 123456782\n",
+        "7f6401c3b7abba89d0f40cd076101fe123 456 782\n",
+        "Their TFN is 123456782.\n",
+    ] {
+        assert_eq!(
+            check("p.txt", text.as_bytes(), ""),
+            ["p.txt:1: checksum-valid tfn"],
+            "{text}"
+        );
+    }
 }
 
 #[test]
@@ -359,7 +345,27 @@ fn a_planted_checksum_valid_tfn_fails_and_an_invalid_one_passes() {
     );
     assert!(check("p.md", b"TFN: 123 456 789\n", "").is_empty());
     assert!(check("p.csv", b"id,tfn,code\n1,123456789,7\n", "").is_empty());
-    assert_eq!(check("p.csv", b"TFN \xff", "").len(), 1);
+    // A binary file is screened by its printable runs and a zip archive part by part.
+    assert_eq!(
+        check("p.der", b"\x00\xffTFN 123456782\x00", ""),
+        ["p.der:3: checksum-valid tfn"]
+    );
+    let mut workbook = zip::ZipWriter::new(Cursor::new(Vec::new()));
+    workbook
+        .start_file(
+            "xl/sharedStrings.xml",
+            zip::write::SimpleFileOptions::default(),
+        )
+        .expect("part starts");
+    workbook
+        .write_all(b"<sst><si><t>123456782</t></si></sst>")
+        .expect("part writes");
+    let workbook = workbook.finish().expect("archive closes").into_inner();
+    assert_eq!(
+        check("p.xlsx", &workbook, ""),
+        ["p.xlsx:1: checksum-valid tfn"]
+    );
+    assert_eq!(check("p.xlsx", b"PK\x03\x04 truncated", "").len(), 1);
 }
 
 #[test]

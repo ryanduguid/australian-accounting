@@ -5,12 +5,31 @@
 # separately. An entry that matches no finding fails the screen.
 # tests/fixture_screen.rs reads this file. List only:
 # - a documented test vector;
-# - a digit run that is not an identifier, such as hex bytes or float bits;
-# - in a recorded fixture, a public organisation's ABN or an unissued number,
-#   with the date it was checked on ABN Lookup.
+# - a digit run that is not an identifier, such as an amount or a user name;
+# - a public organisation's ABN or ACN, or an unissued number, with the date
+#   it was checked on ABN Lookup.
 # Never list a value taken from client or personal data.
 apps/aus-accounting-mcp/aus_accounting_mcp/fixtures/synthetic_sbr.py tfn 222333444 last 9 digits of the placeholder ABN 11 222 333 444, which fails the ABN check
+apps/aus-accounting-mcp/aus_accounting_mcp/identifiers.py abn 00000090000 placeholder in a comment on why the ABN check rejects a leading zero
+apps/aus-accounting-mcp/docs/quick-proof.txt tfn 222333444 last 9 digits of the placeholder ABN 11 222 333 444, which fails the ABN check
 apps/aus-accounting-mcp/evaluation/questions.xml acn 004085616 ACN of B P Australia Pty Ltd, a company's public register number used as an ACN check digit example; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/tests/test_identifiers.py abn 00000090000 placeholder the test shows the ABN check rejects
+apps/aus-accounting-mcp/tests/test_identifiers.py abn 51824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/tests/test_identifiers.py abn ٥١824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026, with Arabic-Indic digits the validator must reject
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 000250000 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 000750005 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 001749999 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 002749993 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 003749988 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 004085616 ACN of B P Australia Pty Ltd, a company's public register number used as an ACN check digit example; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 004749982 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 005749986 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 006749980 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 007749975 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 008749979 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 009749964 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/test_identifiers.py acn 010749961 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/lodgeit-calculator-adapter/tests/review_regressions.rs abn 51824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026
 packages/ato-benchmark-compare/tests/data/python-cases.json acn 142573984 generated value input in the frozen Python differential corpus, not an identifier
 packages/ato-benchmark-compare/tests/data/python-cases.json acn 183415269 generated value input in the frozen Python differential corpus, not an identifier
 packages/ato-benchmark-compare/tests/data/python-cases.json acn 912779830 generated value input in the frozen Python differential corpus, not an identifier
@@ -66,3 +85,6 @@ packages/the-exchequer-tally/tests/data/python-cli.json medicare 6427577554 gene
 packages/the-exchequer-tally/tests/data/python-cli.json medicare 6594838493 generated turnover argument in the frozen Python differential corpus, not an identifier
 packages/the-exchequer-tally/tests/data/python-cli.json medicare 6850365658 generated turnover argument in the frozen Python differential corpus, not an identifier
 packages/the-exchequer-tally/tests/data/python-cli.json tfn 604134057 generated turnover argument in the frozen Python differential corpus, not an identifier
+tools/fixture-screen/tests/fixture_screen.rs tfn 123456782 the screen's own planted test value
+tools/glama-badge-server/allowed.txt acn 418716640 digits in a GitHub user name in a listed server path, not an identifier
+tools/glama-badge-server/allowed.txt tfn 188838884 digits in a GitHub user name in a listed server path, not an identifier

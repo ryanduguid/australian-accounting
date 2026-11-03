@@ -1,1 +1,1 @@
-//! Test-only crate: `tests/fixture_screen.rs` screens the repository's committed fixtures.
+//! Test-only crate: `tests/fixture_screen.rs` screens every file the repository tracks.
