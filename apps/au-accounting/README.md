@@ -51,7 +51,7 @@ Solomon's Sword and The WIP Tally do not enable both on their own. The JSON
 commands sort keys where required and adapt numbers to the engine's own
 features. Default-number engines use serde_json's decimal conversion rather
 than Rust's string parser, which can round differently. Numbers are converted
-once, before evaluation. `tests/parity.py` holds every engine to its
+once, before evaluation. `tests/parity.rs` holds every engine to its
 own command, byte for byte, over each engine's frozen corpora and edge-case
 JSON; CI runs it on Windows, macOS and Linux. What remains different:
 

@@ -1,3 +1,7 @@
+# Manual desktop Excel control for the shipped workbook's rate-year check:
+# duplicate year labels must block it, even when their rates agree (#175). The
+# builder's tests read formulas, not Excel's results. Needs desktop Excel:
+#   pwsh -File tools/check_workbook_rate_years.ps1 -Workbook (Resolve-Path workbooks/div7a-loan-review.xlsx) -OutputPath result.json
 param([string]$Workbook, [string]$OutputPath)
 $ErrorActionPreference = 'Stop'
 if (Get-Process EXCEL -ErrorAction SilentlyContinue) { throw 'Excel is already running.' }

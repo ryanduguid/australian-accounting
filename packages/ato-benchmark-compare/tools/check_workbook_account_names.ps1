@@ -1,3 +1,8 @@
+# Manual desktop Excel control for the shipped workbook's duplicate account-name
+# checks: Excel itself must treat *, ? and ~ as literal characters (#174). The
+# builder's tests read formulas, not Excel's results. Needs desktop Excel and
+# Windows PowerShell 5.1 (pwsh 7 cannot set Range.Cells.Item over COM):
+#   powershell -File tools/check_workbook_account_names.ps1 -Workbook (Resolve-Path workbooks/ato-benchmark-compare.xlsx) -OutputPath result.json
 param([string]$Workbook, [string]$OutputPath, [switch]$RecordBaseline)
 $ErrorActionPreference = 'Stop'
 if (Get-Process EXCEL -ErrorAction SilentlyContinue) { throw 'Excel is already running.' }

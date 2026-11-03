@@ -58,9 +58,11 @@ status and the returned contributions below.
 - The bundled data moves from `paydaysuper/data/` to `data/` and is compiled
   into the binary; its contents and digests are unchanged. Rebuild after editing
   it.
-- The calendar generator and the quick-proof renderer stay in Python under
-  `tools/`. The calendar generator's tests moved to the repository root, as
-  `tests/test_payday_generate_calendar.py`.
+- The calendar generator stays in Python under `tools/`. Its tests moved to
+  the repository root, as `tests/test_payday_generate_calendar.py`.
+- The quick-proof renderer is the Rust `render_quick_proof` example
+  (`cargo run --example render_quick_proof`), replacing
+  `tools/render_quick_proof.py`.
 - The workbook builder is the Rust `build_workbook` example
   (`cargo run --example build_workbook`), replacing `tools/build_workbook.py`;
   its formula tests run under `cargo test`. The shipped workbook's tests stay

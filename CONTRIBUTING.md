@@ -76,7 +76,7 @@ floor with the tests, never lower it to pass. Each engine's `tests/no_network.rs
 real calculation with `strace` on Linux, which CI installs, and scans the binary for
 selected network and process API names on Windows. Neither sees `io_uring` networking
 or, on Windows, a network path opened as a file. The `umbrella-parity` job then runs
-`apps/au-accounting/tests/parity.py` over the engines' and `au-accounting`'s
+`apps/au-accounting/tests/parity.rs` over the engines' and `au-accounting`'s
 binaries; the adapter is not part of it. CodeQL and Dependabot
 include Cargo. All candidate builds have read-only permissions.
 
