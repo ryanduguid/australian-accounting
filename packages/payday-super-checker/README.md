@@ -1,7 +1,5 @@
 # Payday Super timing
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation or lodgement.
-
 ```
 +----------------------------------------------------------------------+
 |                         Payday Super timing                          |
@@ -29,10 +27,9 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 Payday Super Checker 1.0.0 is a standalone Rust binary, command `payday-super-check`.
 It replaces the Python `payday-super-checker` 0.2.2 package and its `paydaysuper` import API.
 
-**Experimental review aid. Not a compliance determination.** Check Australian
-super contributions against the payday-super deadlines and produce an
-experimental SG-charge estimate for lines that the supplied facts establish as
-late.
+Check Australian super contributions against the payday-super deadlines and
+produce an experimental SG-charge estimate for lines that the supplied facts
+establish as late.
 
 Since 1 July 2026, super is generally due within 7 business days of each payday
 instead of quarterly. A missed deadline can create an SG shortfall, notional
@@ -740,6 +737,8 @@ The uplift starts at 60% and falls 20 points where the clean-history test is met
 - **Qualifying-earnings and termination classifications** are not decided. LCR 2026/D1 remains draft, SGD 2026/D1 (draft, 2 September 2026) covers the labour payments under SGAA s 12(3) contracts that s 10A(1)(d) counts, and the input contains an operator-provided SG amount, not raw pay components.
 - **Assessment rounding** is not reproduced. The tool displays report components to cents with `ROUND_HALF_UP`; TAA 1953 s 16B applies a 5-cent down-round only to the Commissioner's final assessed SG charge. Exposure figures are experimental estimates.
 
+The ATO assesses the SG charge; figures here are experimental estimates that exclude the components listed above. LCR 2026/1, 2026/2 and 2026/3 are final, whilst LCR 2026/D1 remains draft and may change after the pending appeal. Check anything material against current ATO guidance and calculators, and get advice for your circumstances.
+
 PCG 2026/1 sets out how the ATO will allocate compliance resources for paydays up to 30 June 2027. Fixing a late contribution quickly lowers the chance of review. It does not remove the liability: the Commissioner has no discretion to waive the charge once a shortfall is known (PCG 2026/1 paragraph 11).
 
 Those are the things the tool never attempts. Separately, [LIMITATIONS.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/LIMITATIONS.md) records the cases where it does produce a figure that you should not read at face value, naming what stays correct in each.
@@ -787,8 +786,8 @@ cargo test --locked
 
 The suite pins the ATO's own worked examples: a first payday of 9 July 2026 falling due 7 August 2026, and notional earnings on a payday whose usual period ends 18 June 2027 starting to accrue on 19 June 2027. It also pins the traps that make this hard, including the Ekka staying a business day, deadlines that must not change when you reorder rows in the CSV, and the leap-year divisor in the interest calculation. Test data is synthetic. Never commit client payroll data to this repository; `.gitignore` blocks the usual formats, case-insensitively.
 
-## Disclaimer
-
-This is an educational tool, not tax, legal or financial advice, and using it creates no professional relationship. The ATO assesses the SG charge; figures here are experimental estimates that exclude components listed above. LCR 2026/1, 2026/2 and 2026/3 are final, whilst LCR 2026/D1 remains draft and may change after the pending appeal. Check anything material against current ATO guidance and calculators, and get advice for your circumstances.
+## Licence
 
 Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
+
+<sub>Experimental review aid, not a compliance determination or tax, legal or financial advice; using it creates no professional relationship. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

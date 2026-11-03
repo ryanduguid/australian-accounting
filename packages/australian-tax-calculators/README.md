@@ -9,8 +9,6 @@ it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
 keeps the engine release and MCP integration separate.
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation or lodgement.
-
 <div align="center">
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
@@ -25,8 +23,7 @@ under the statutory formula and operating cost methods, first-year depreciation,
 quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, a single person's Medicare levy, the low income tax offset and
-Division 293 tax. These are experimental
-review aids, not advice or return preparation. Callers must establish every scope condition before calculating.
+Division 293 tax. Callers must establish every scope condition before calculating.
 
 Each worksheet is a subcommand that reads one JSON object on stdin and writes
 one JSON result on stdout. Results include amounts, scope exclusions, official
@@ -72,8 +69,6 @@ that leaves a worksheet cannot arrive at a JSON reader as a float. The result
 also carries `scope`, the official `sources` the figures came from, the engine
 version and the warnings that travel with every worksheet. A refusal writes one
 `error:` line to stderr and exits 2, with the original worksheet's message.
-
-Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 
 ## Commands
 
@@ -325,3 +320,5 @@ result. The existing 10 September 2026 source-check baseline is now stored per
 worksheet. A later check of one worksheet cannot refresh another's date. The
 15 September Library example check does not extend that baseline to other periods
 or establish a taxpayer's circumstances.
+
+<sub>Experimental review aids, not tax, legal or financial advice or return preparation. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

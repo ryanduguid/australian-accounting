@@ -5,9 +5,8 @@ ordinary worksheet formulas for accountants who work in Excel rather than at a
 command line. It is macro-free and needs desktop Excel for Microsoft 365 or Excel 2024.
 Nothing leaves the workbook.
 
-**Experimental review aid. Not a Division 7A determination.** Everything the
-engine refuses, the workbook refuses too, and every caveat the engine attaches is
-printed on Review Checks.
+Everything the engine refuses, the workbook refuses too, and every caveat the
+engine attaches is printed on Review Checks.
 
 **Interest-floor interpretation unresolved.** ATO guidance requires the benchmark
 interest rate for each year of the loan. The workbook compares one selected year's
@@ -95,3 +94,5 @@ The s 109E(6) amount is worked in binary floating point and rounded with Excel's
 ROUND, where the engine works in 60-digit decimal and rounds half up. Both were
 fuzzed against each other, including amounts landing on a half cent, before the
 workbook shipped; rerun that check after any change to the formula.
+
+<sub>Experimental review aid, not a Division 7A determination.</sub>

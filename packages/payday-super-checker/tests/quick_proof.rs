@@ -39,10 +39,13 @@ fn the_committed_transcript_is_the_current_run() {
         "ON_TIME: 3  AT_RISK: 1  LATE: 1  UNPAID: 1  UNKNOWN: 0  SKIPPED: 1",
         "shortfall $780.00",
         "experimental estimated SG charge $788.76 - $1262.02",
-        "Educational tool, not advice",
     ] {
         assert!(output.contains(required), "{required}");
     }
+    let advice = "Educational tool, not advice";
+    assert_eq!(output.matches(advice).count(), 1, "{advice}");
+    let last = output.trim_end().lines().next_back().unwrap();
+    assert!(last.starts_with(advice), "{last:?}");
     let committed = std::fs::read_to_string(format!("{ROOT}/assets/quick-proof.md")).unwrap();
     assert_eq!(committed.replace("\r\n", "\n"), transcript(&output));
 }

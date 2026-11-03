@@ -55,7 +55,6 @@ fn engine_percent(year: &str) -> String {
 fn the_first_screen_states_the_scope_and_its_gaps() {
     let screen = first_screen();
     for phrase in [
-        "Experimental review aid. Not a Division 7A determination.",
         "operator-supplied amalgamated loan",
         "does not form amalgamated loans",
         "does not classify payments",
@@ -67,6 +66,23 @@ fn the_first_screen_states_the_scope_and_its_gaps() {
     ] {
         assert_in(phrase, &screen, "the first screen");
     }
+}
+
+#[test]
+fn the_disclaimer_is_one_small_line_at_the_end() {
+    let phrase = "Experimental review aid. Not a Division 7A determination.";
+    assert_eq!(
+        flat(README).matches(phrase).count(),
+        1,
+        "README repeats {phrase:?}"
+    );
+    let last = README.lines().rev().find(|l| !l.trim().is_empty()).unwrap();
+    assert!(
+        last.starts_with("<sub>") && last.ends_with("</sub>"),
+        "{last:?}"
+    );
+    assert_in(phrase, last, "the last line");
+    assert_in("[DISCLAIMER.md](DISCLAIMER.md)", last, "the last line");
 }
 
 #[test]

@@ -6,7 +6,7 @@ is `primary-source-review-2026-08-15.md`.
 
 ## Purpose
 
-Experimental CLI review aid that reads a pay-run/contribution CSV and, for each super contribution line, computes a payday-super deadline supported by the supplied facts, gives a verdict or an attention-driving indeterminate result, and produces an experimental SG-charge exposure estimate for established late lines. Audience: Australian accountants and employers. Not a payroll system, compliance determination or legal advice.
+Experimental CLI review aid that reads a pay-run/contribution CSV and, for each super contribution line, computes a payday-super deadline supported by the supplied facts, gives a verdict or an attention-driving indeterminate result, and produces an experimental SG-charge exposure estimate for established late lines. Audience: Australian accountants and employers. Not a payroll system or compliance determination.
 
 ## Legal basis (current 2026-08-15)
 
@@ -81,4 +81,4 @@ Synthetic fixtures only; no client data.
 
 ## Non-goals / guardrails
 
-Out of scope v1: applying regulations 11 and 12 to raw pay; qualifying-earnings and termination classification while LCR 2026/D1 remains draft; choice loading; maximum-contribution-base application without cumulative earnings; defined-benefit interests (lines flagged and skipped); LPP and post-assessment GIC; old regime calculation; fund-deed/EBA obligations; exceptional-circumstances discovery; and the Commissioner's final assessment rounding. Wording: 'low ATO review risk', never 'no liability' (PCG 2026/1 para 11). No automated payroll payment, lodgement or accounting decision. Experimental review aid, verify against current ATO material/calculators, no professional advice.
+Out of scope v1: applying regulations 11 and 12 to raw pay; qualifying-earnings and termination classification while LCR 2026/D1 remains draft; choice loading; maximum-contribution-base application without cumulative earnings; defined-benefit interests (lines flagged and skipped); LPP and post-assessment GIC; old regime calculation; fund-deed/EBA obligations; exceptional-circumstances discovery; and the Commissioner's final assessment rounding. Wording: 'low ATO review risk', never 'no liability' (PCG 2026/1 para 11). No automated payroll payment, lodgement or accounting decision. Experimental review aid, verify against current ATO material/calculators.

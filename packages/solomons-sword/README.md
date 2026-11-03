@@ -3,11 +3,6 @@
 Solomon's Sword 1.0.0 is a standalone Rust binary. It replaces the Python
 `solomons-sword` 0.3.2 package and its `louisgoldberg` import API.
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited
-to software issues reproduced with fabricated data. Do not send taxpayer
-information or request advice, return preparation, tax-treatment confirmation or
-lodgement.
-
 <div align="center">
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
@@ -20,21 +15,6 @@ lodgement.
 **Trust distribution allocation, Section 100A / 99B risk evaluation and Division 6 ITAA 1936 review helpers for Australian trusts.**
 
 Named for the judgement of Solomon, where the threat of dividing the child in proportion is what reveals who the true claimant is. Division 6 allocates trust income by proportionate entitlement following *Bamford*; Section 100A asks who actually ended up with the benefit. The name is a tribute only.
-
-## Not advice
-
-Nothing this engine produces is tax, legal or financial advice, an assessment or
-a determination. Outputs are review aids: confirm every allocation, zone and
-exemption against the current law, the trust deed and the entity's facts before
-acting, and leave lodgement decisions with a registered practitioner. Where the
-model does not implement a rule it refuses the input rather than returning a
-number it cannot stand behind.
-
-Command output carries the beneficiary name you supply, because a workpaper line
-item is unusable without it. Treat that output as client data: write it to the
-firm's approved secure location, never to a path inside a repository.
-
-Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 
 ## Build and check
 
@@ -54,6 +34,13 @@ native version is unreleased. PyPI still provides the historical Python release;
 `pip install` does not install this binary.
 
 ## What it checks
+
+Confirm every allocation, zone and exemption against the current law, the trust
+deed and the entity's facts before acting, and leave lodgement decisions with a
+registered practitioner.
+
+Where the model does not implement a rule it refuses the input rather than
+returning a number it cannot stand behind.
 
 Every fact is `True`, `False` or unstated. Amounts are exact decimals, and the
 reports write them out in full. `s100a-check` refuses an amount of `1E+1000000`
@@ -86,6 +73,10 @@ solomons-sword s99b-check --beneficiary "Jane Doe" --gross 150000 --corpus 50000
 `--help` and each command's `--help` preserve the Python help text, flags,
 abbreviations, exit codes and error lines. Both output streams write a lone
 surrogate from the command line as its `\udcXX` escape.
+
+Command output carries the beneficiary name you supply, because a workpaper line
+item is unusable without it. Treat that output as client data: write it to the
+firm's approved secure location, never to a path inside a repository.
 
 ## Former Python API
 
@@ -164,3 +155,5 @@ See [CHANGELOG.md](CHANGELOG.md) for the documented divergences.
 ## Licence
 
 Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Created by Ryan Duguid. If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
+
+<sub>Review aid, not tax, legal or financial advice, an assessment or a determination. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

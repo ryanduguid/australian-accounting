@@ -1,7 +1,5 @@
 # Division 7A loan review
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation or lodgement.
-
 ```
 +----------------------------------------------------------------------+
 |                       Division 7A loan review                        |
@@ -28,8 +26,6 @@ Ryan Duguid is not a registered tax agent or BAS agent. Project support is limit
 
 Division 7A Loan Review 1.0.0 is a standalone Rust binary, command `div7a-loan-review`.
 It replaces the Python `div7a-loan-review` 0.3.2 package and its `div7aloan` import API.
-
-**Experimental review aid. Not a Division 7A determination.**
 
 v1 reviews the s 109N terms of a private-company loan and the s 109E minimum
 yearly repayment for an **operator-supplied amalgamated loan**. It does not
@@ -610,7 +606,6 @@ engine deliberately does not establish.
 
 ## Related
 
-- [DISCLAIMER.md](DISCLAIMER.md) - read it.
 - [SECURITY.md](SECURITY.md)
 - Benchmark rate explainer: <https://duguid.com.au/rates/div7a-benchmark-rate/>
 - Australian tax AI agents: <https://duguid.com.au/tools/australian-tax-ai-agents/>
@@ -625,3 +620,5 @@ Provisional member of Chartered Accountants Australia and New Zealand; that
 membership is not an endorsement of this software by CA ANZ.
 
 Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
+
+<sub>Experimental review aid. Not a Division 7A determination. Not tax, legal or financial advice. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

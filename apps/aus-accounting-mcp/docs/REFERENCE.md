@@ -44,7 +44,7 @@ minimum_yearly_repayment.myr_required: "108770.00"
 minimum_yearly_repayment.shortfall: "0.00"
 ```
 
-The example is fabricated, is not a lodgement or Division 7A determination, is not tax advice, and requires human review before any consequential accounting action. It does not model s 109R, distributable surplus, unpaid present entitlements or the other refused areas. It neither uses client data nor contacts external services.
+The example is fabricated, is not a lodgement or Division 7A determination, and requires human review before any consequential accounting action. It does not model s 109R, distributable surplus, unpaid present entitlements or the other refused areas. It neither uses client data nor contacts external services.
 
 ### Asset provenance
 

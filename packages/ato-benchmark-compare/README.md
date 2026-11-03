@@ -1,7 +1,5 @@
 # ATO benchmark comparison
 
-Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited to software issues reproduced with fabricated data. Do not send taxpayer information or request advice, return preparation, tax-treatment confirmation or lodgement.
-
 ```
 +----------------------------------------------------------------------+
 |                       ATO benchmark comparison                       |
@@ -39,8 +37,7 @@ industry page, work out which turnover range applies, add up the right accounts 
 divide. This does that, and it records which accounts went into which figure so the
 answer can be checked by someone else later.
 
-Australian tax rules only. Every figure comes from the ATO's own published dataset,
-and the comparison is a comparison, not advice.
+Australian tax rules only. Every figure comes from the ATO's own published dataset.
 
 The `ato-benchmark-compare` command name remains; the `atobenchmark` import package is
 removed, and its functions are JSON stdin subcommands (see [JSON API](#json-api)). The
@@ -320,8 +317,8 @@ and use `--amount-column` if it picked the wrong period.
 
 ## What it does not do
 
-- It is not tax advice, and sitting outside a range is not a finding that anything is
-  wrong. The ATO publishes ranges precisely because businesses differ.
+- Sitting outside a range is not a finding that anything is wrong. The ATO
+  publishes ranges precisely because businesses differ.
 - The bulk dataset the ATO publishes carries the key ranges only. Labour, rent and
   motor vehicle ranges, and cost of sales where it is not the key range, come from
   the ATO's individual industry pages, read into a separate data file. They are
@@ -440,3 +437,5 @@ Every ATO rule it
 implements was checked against the ATO's own published pages, and the shipped
 benchmark figures were cross checked against the ATO's industry page for the same
 industry.
+
+<sub>Review aid, not tax, legal or financial advice. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

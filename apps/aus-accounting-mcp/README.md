@@ -39,13 +39,6 @@ The listing identifies the distribution; it does not prove a client's installed 
   compilation. Search a local ATO rulings corpus and read one cited ruling paragraph.
 - **Test data:** generate synthetic CTR and BAS fixtures for integration testing.
 
-> Not tax advice. Payday Super and Division 7A reviews are experimental and need
-> human review before consequential accounting action. Fixtures are not a lodgement.
-> Ryan Duguid is not a registered tax agent or BAS agent. Project support is limited
-> to software issues reproduced with fabricated data. Do not send taxpayer information
-> or request advice, return preparation, tax-treatment confirmation or lodgement.
-> See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).
-
 ## Install
 
 Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/):
@@ -206,5 +199,7 @@ package checks.
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
 [v0.7.1 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.1),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
+
+<sub>Not tax, legal or financial advice. Payday Super and Division 7A reviews are experimental and need human review before consequential accounting action; fixtures are not a lodgement. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).</sub>
 
 <!-- mcp-name: io.github.ryanduguid/aus-accounting -->

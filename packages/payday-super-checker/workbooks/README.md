@@ -5,8 +5,7 @@ written in ordinary worksheet formulas for accountants who work in Excel rather
 than at a command line. It is macro-free and needs desktop Excel for Microsoft 365 or
 Excel 2024. Nothing leaves the workbook.
 
-**Experimental review aid. Not a compliance determination.** Review Checks
-holds input failures, missing evidence and the review assumptions. Read its
+Review Checks holds input failures, missing evidence and the review assumptions. Read its
 overall status before using a calculated row: invalid input can leave a displayed
 verdict whilst the workbook is `BLOCKED`.
 
@@ -110,3 +109,5 @@ to. Notional earnings are not accrued day by day: the daily compounding over eac
 GIC quarter is one power, so the exact formula is `base x (product of
 (1 + rate/days in year)^days) - 1`. Both were fuzzed against the engine before
 the workbook shipped.
+
+<sub>Experimental review aid, not a compliance determination.</sub>
