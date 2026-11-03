@@ -273,8 +273,12 @@ fn the_evidence_pack_guide_keeps_its_boundaries_and_is_discoverable() {
     }
     let advice = "not tax, legal or financial advice";
     assert_eq!(guide.matches(advice).count(), 1, "{advice}");
-    let (_, last_section) = guide.rsplit_once("## ").unwrap();
-    assert!(last_section.contains(advice), "{advice}");
+    let raw = read("evaluation/payday_super_evidence/README.md");
+    let last_paragraph = raw.trim_end().rsplit("\n\n").next().unwrap();
+    assert!(
+        squeeze(last_paragraph).to_lowercase().contains(advice),
+        "{last_paragraph}"
+    );
     for discovery in ["README.md", "llms.txt"] {
         assert!(
             read(discovery).contains("evaluation/payday_super_evidence"),

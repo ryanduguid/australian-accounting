@@ -438,4 +438,4 @@ implements was checked against the ATO's own published pages, and the shipped
 benchmark figures were cross checked against the ATO's industry page for the same
 industry.
 
-<sub>Review aid, not tax, legal or financial advice. See [DISCLAIMER.md](DISCLAIMER.md).</sub>
+<sub>Review aid, not tax, legal or financial advice. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

@@ -127,4 +127,4 @@ The frozen Python corpus in `tests/data/` is replayed by Rust on all 3 platforms
 The archive-based differential harness and qualification receipts are retained
 under the Agent Hub task `rust-port-2026-10-11`, outside this repository.
 
-<sub>Review aid, not tax, legal or financial advice. See [DISCLAIMER.md](DISCLAIMER.md).</sub>
+<sub>Review aid, not tax, legal or financial advice. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

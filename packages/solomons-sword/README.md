@@ -35,6 +35,10 @@ native version is unreleased. PyPI still provides the historical Python release;
 
 ## What it checks
 
+Confirm every allocation, zone and exemption against the current law, the trust
+deed and the entity's facts before acting, and leave lodgement decisions with a
+registered practitioner.
+
 Where the model does not implement a rule it refuses the input rather than
 returning a number it cannot stand behind.
 
@@ -152,4 +156,4 @@ See [CHANGELOG.md](CHANGELOG.md) for the documented divergences.
 
 Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Created by Ryan Duguid. If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
 
-<sub>Review aid, not tax, legal or financial advice, an assessment or a determination. See [DISCLAIMER.md](DISCLAIMER.md).</sub>
+<sub>Review aid, not tax, legal or financial advice, an assessment or a determination. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

@@ -737,7 +737,7 @@ The uplift starts at 60% and falls 20 points where the clean-history test is met
 - **Qualifying-earnings and termination classifications** are not decided. LCR 2026/D1 remains draft, SGD 2026/D1 (draft, 2 September 2026) covers the labour payments under SGAA s 12(3) contracts that s 10A(1)(d) counts, and the input contains an operator-provided SG amount, not raw pay components.
 - **Assessment rounding** is not reproduced. The tool displays report components to cents with `ROUND_HALF_UP`; TAA 1953 s 16B applies a 5-cent down-round only to the Commissioner's final assessed SG charge. Exposure figures are experimental estimates.
 
-The ATO assesses the SG charge; figures here are experimental estimates that exclude the components listed above. LCR 2026/1, 2026/2 and 2026/3 are final, whilst LCR 2026/D1 remains draft and may change after the pending appeal.
+The ATO assesses the SG charge; figures here are experimental estimates that exclude the components listed above. LCR 2026/1, 2026/2 and 2026/3 are final, whilst LCR 2026/D1 remains draft and may change after the pending appeal. Check anything material against current ATO guidance and calculators.
 
 PCG 2026/1 sets out how the ATO will allocate compliance resources for paydays up to 30 June 2027. Fixing a late contribution quickly lowers the chance of review. It does not remove the liability: the Commissioner has no discretion to waive the charge once a shortfall is known (PCG 2026/1 paragraph 11).
 
@@ -790,4 +790,4 @@ The suite pins the ATO's own worked examples: a first payday of 9 July 2026 fall
 
 Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
 
-<sub>Experimental review aid, not a compliance determination or tax, legal or financial advice; using it creates no professional relationship. See [DISCLAIMER.md](DISCLAIMER.md).</sub>
+<sub>Experimental review aid, not a compliance determination or tax, legal or financial advice; using it creates no professional relationship. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

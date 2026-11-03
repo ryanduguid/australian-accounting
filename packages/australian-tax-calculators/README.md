@@ -321,4 +321,4 @@ worksheet. A later check of one worksheet cannot refresh another's date. The
 15 September Library example check does not extend that baseline to other periods
 or establish a taxpayer's circumstances.
 
-<sub>Experimental review aids, not tax, legal or financial advice or return preparation. See [DISCLAIMER.md](DISCLAIMER.md).</sub>
+<sub>Experimental review aids, not tax, legal or financial advice or return preparation. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

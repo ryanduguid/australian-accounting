@@ -288,3 +288,5 @@ This adapter calls a third-party service that says of itself: 'Response shapes
 are not yet versioned and may change; nothing here is stable for production
 integration.' Figures it returns are calculated on facts you supplied. They are
 not a lodgement and not a review sign-off. The contract snapshots record a reading of the public service on one day.
+
+<sub>Not tax, legal or financial advice. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement.</sub>

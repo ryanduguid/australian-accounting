@@ -205,8 +205,9 @@ ATO position on long-term construction contracts at ato.gov.au for the year.
 - Lodge a BAS, compute fuel tax credits or run TPAR
 - Replace the `wip-over-under-billing` skill, which still owns the workflow around this file
 
-Its output is not a journal or a lodgement, and those decisions stay with a
-person. Confirm the operative AASB 15 compilation at standards.aasb.gov.au before
+Its output is not a journal, a lodgement, or a conclusion that a contract
+transfers over time, that a claim is enforceable or that a contract is onerous;
+those decisions stay with a person. Confirm the operative AASB 15 compilation at standards.aasb.gov.au before
 relying on a paragraph number.
 
 Use the [`wip-over-under-billing` skill](https://github.com/ryanduguid/australian-accounting-skills/blob/main/.claude/skills/wip-over-under-billing/SKILL.md)
@@ -269,4 +270,4 @@ client job-cost data to this repository.
 
 Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
 
-<sub>Review aid, not a determination or tax, legal or financial advice; using it creates no professional relationship. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/DISCLAIMER.md).</sub>
+<sub>Review aid, not a determination or tax, legal or financial advice; using it creates no professional relationship. Outputs can be wrong, incomplete, stale or unsuitable for a given set of facts: check anything material against the current standards and the entity's facts, and leave sign-off with a registered practitioner. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/DISCLAIMER.md).</sub>

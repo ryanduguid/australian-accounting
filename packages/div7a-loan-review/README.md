@@ -621,4 +621,4 @@ membership is not an endorsement of this software by CA ANZ.
 
 Licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2). You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
 
-<sub>Experimental review aid. Not a Division 7A determination. Not tax, legal or financial advice; see [DISCLAIMER.md](DISCLAIMER.md).</sub>
+<sub>Experimental review aid. Not a Division 7A determination. Not tax, legal or financial advice. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>

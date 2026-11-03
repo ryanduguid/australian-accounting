@@ -176,4 +176,4 @@ input and physical command checks. Fixture provenance and adaptations are in
 needed to run the native suite. See [RELEASE_NOTES.md](RELEASE_NOTES.md) and
 [RELEASING.md](RELEASING.md).
 
-<sub>Experimental review aids, not tax, legal or financial advice or return preparation; obtain human review before relying on an output. See [DISCLAIMER.md](DISCLAIMER.md).</sub>
+<sub>Experimental review aids, not tax, legal or financial advice or return preparation; obtain human review before relying on an output. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](DISCLAIMER.md).</sub>
