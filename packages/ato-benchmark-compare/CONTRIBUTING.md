@@ -52,6 +52,10 @@ a change that alters any of them fails it. The data build tools in `tools/` are
 Python and are tested from the repository root; the workbook builder is the Rust
 `build_workbook` example, whose tests run under `cargo test`. CI runs the crate on
 Ubuntu and Windows. Keep runtime strings ASCII.
+After changing the workbook's duplicate account-name checks, run the manual control
+`tools/check_workbook_account_names.ps1` in Windows PowerShell 5.1 with desktop
+Excel; it shows Excel itself treats `*`, `?` and `~` literally, which the builder's
+tests cannot.
 
 ## Pull requests
 

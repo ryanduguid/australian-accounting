@@ -89,6 +89,9 @@ other than the shipped file. The build works on a staging file and replaces the
 output only when every step succeeds, so a failed build leaves the previous
 workbook in place. The builder's own tests, which hold the formulas it writes,
 run under `cargo test`.
+After changing the rate-year check, run the manual control
+`tools/check_workbook_rate_years.ps1` with desktop Excel; it shows duplicate year
+labels block the workbook even when their rates agree, which those tests cannot.
 
 The s 109E(6) amount is worked in binary floating point and rounded with Excel's
 ROUND, where the engine works in 60-digit decimal and rounds half up. Both were
