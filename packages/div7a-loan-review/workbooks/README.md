@@ -94,3 +94,5 @@ The s 109E(6) amount is worked in binary floating point and rounded with Excel's
 ROUND, where the engine works in 60-digit decimal and rounds half up. Both were
 fuzzed against each other, including amounts landing on a half cent, before the
 workbook shipped; rerun that check after any change to the formula.
+
+<sub>Experimental review aid, not a Division 7A determination.</sub>

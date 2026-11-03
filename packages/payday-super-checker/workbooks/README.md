@@ -109,3 +109,5 @@ to. Notional earnings are not accrued day by day: the daily compounding over eac
 GIC quarter is one power, so the exact formula is `base x (product of
 (1 + rate/days in year)^days) - 1`. Both were fuzzed against the engine before
 the workbook shipped.
+
+<sub>Experimental review aid, not a compliance determination.</sub>

@@ -737,7 +737,7 @@ The uplift starts at 60% and falls 20 points where the clean-history test is met
 - **Qualifying-earnings and termination classifications** are not decided. LCR 2026/D1 remains draft, SGD 2026/D1 (draft, 2 September 2026) covers the labour payments under SGAA s 12(3) contracts that s 10A(1)(d) counts, and the input contains an operator-provided SG amount, not raw pay components.
 - **Assessment rounding** is not reproduced. The tool displays report components to cents with `ROUND_HALF_UP`; TAA 1953 s 16B applies a 5-cent down-round only to the Commissioner's final assessed SG charge. Exposure figures are experimental estimates.
 
-The ATO assesses the SG charge; figures here are experimental estimates that exclude the components listed above. LCR 2026/1, 2026/2 and 2026/3 are final, whilst LCR 2026/D1 remains draft and may change after the pending appeal. Check anything material against current ATO guidance and calculators.
+The ATO assesses the SG charge; figures here are experimental estimates that exclude the components listed above. LCR 2026/1, 2026/2 and 2026/3 are final, whilst LCR 2026/D1 remains draft and may change after the pending appeal. Check anything material against current ATO guidance and calculators, and get advice for your circumstances.
 
 PCG 2026/1 sets out how the ATO will allocate compliance resources for paydays up to 30 June 2027. Fixing a late contribution quickly lowers the chance of review. It does not remove the liability: the Commissioner has no discretion to waive the charge once a shortfall is known (PCG 2026/1 paragraph 11).
 
