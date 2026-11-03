@@ -1,0 +1,22 @@
+The `csv_readers` target writes fabricated bytes to a CSV file and reads it
+as a loan register and as a benchmark rate table. Both use this engine's copy
+of payday's CSV reader, which the root `tests/test_shared_blocks.py` pins to
+payday's fuzzed original; the rate table goes through the copy's
+`Reader::from_lines`, which payday's reader does not have. A malformed file
+must come back as a refusal, which the command line reports as
+`error: <message>`; a panic fails the run. The seed corpus holds the
+component's 3 example registers, the frozen benchmark rate table cut to its
+first 4 rows to fit 4 KiB, and an empty file.
+
+On Linux, from `packages/div7a-loan-review`, with a nightly toolchain and
+`cargo-fuzz` installed, run:
+
+```sh
+cargo +nightly fuzz run csv_readers fuzz/corpus -- -max_total_time=60 -max_len=4096 -timeout=2 -rss_limit_mb=1024
+```
+
+`.github/workflows/fuzzing.yml` runs the target weekly and
+on demand, with read-only repository access and a 10-minute timeout; it is
+not a merge gate. `tests/fuzz_corpus.rs` replays the corpus in
+`cargo test`. A successful run is bounded evidence, not proof that every input
+is handled.

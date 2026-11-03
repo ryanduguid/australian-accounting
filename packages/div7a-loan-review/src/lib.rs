@@ -5,6 +5,8 @@ mod csvread;
 pub mod decimal;
 pub mod derivation;
 pub mod facts;
+#[doc(hidden)]
+pub mod fuzzing;
 pub mod gate;
 pub mod money;
 pub mod myr;

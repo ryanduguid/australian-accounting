@@ -65,6 +65,7 @@ updates:
       - /packages/australian-tax-calculators
       - /packages/div7a-loan-review
       - /packages/div7a-loan-review/wasm
+      - /packages/div7a-loan-review/fuzz
       - /packages/ato-benchmark-compare
       - /packages/payday-super-checker
       - /packages/payday-super-checker/wasm

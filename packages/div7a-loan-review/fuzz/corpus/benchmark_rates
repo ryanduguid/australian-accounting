@@ -1,0 +1,34 @@
+# Division 7A benchmark interest rates, ITAA 1936 s 109N(2).
+#
+# s 109N(2): "The benchmark interest rate for the year of income is the
+# Indicator Lending Rates-Bank variable housing loans interest rate last
+# published by the Reserve Bank of Australia before the start of the year of
+# income."
+#
+# A year of income starts on 1 July. The RBA publishes statistical table F5
+# monthly, in arrears, in the first week of the following month. The last
+# figure published BEFORE 1 July is therefore the MAY figure. The June figure
+# is published in early July, after the year of income has started, and is the
+# usual wrong rate. For 2025-26: May 2025 was 8.37 per cent and June 2025 was
+# 8.27 per cent; 8.37 is the benchmark rate.
+#
+# Each row also names the primary source it was read from: primary_url is the
+# RBA workbook itself, retrieved_on is the date it was downloaded, and
+# snapshot_sha256 is the SHA-256 of those bytes. verify_at stays a convenience
+# link for a human, not the source of the figure.
+#
+# rate is the annual rate as a decimal fraction, not a percentage.
+#
+# reviewed_until: 2026-27
+# reviewed_on: 2026-08-28
+#
+# The 2026-08-28 review predates the separately recorded 2026-09-20 download.
+# An automated row comparison on 2026-09-23 confirmed all values in that exact
+# workbook hash. This is not a new human review. workbook_cell locates the
+# observation; workbook_value preserves its underlying Excel numeric text.
+# Divide its percentage, rounded to 2 decimal places, by 100 for rate.
+year_of_income,rate,rba_table,rba_series,rba_month,source,verify_at,seen,primary_url,retrieved_on,snapshot_sha256,workbook_cell,workbook_value,row_verified_on
+2019-20,0.0537,F5,FILRHLBVS,2019-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2019; cross-checked against the published Division 7A benchmark rate table. Automated comparison 23 September 2026: xl/worksheets/sheet1.xml!D736, series identifier D11.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28,https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx,2026-09-20,40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0,xl/worksheets/sheet1.xml!D736,5.37,2026-09-23
+2020-21,0.0452,F5,FILRHLBVS,2020-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2020; cross-checked against the published Division 7A benchmark rate table. Automated comparison 23 September 2026: xl/worksheets/sheet1.xml!D748, series identifier D11.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28,https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx,2026-09-20,40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0,xl/worksheets/sheet1.xml!D748,4.5199999999999996,2026-09-23
+2021-22,0.0452,F5,FILRHLBVS,2021-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2021; cross-checked against the published Division 7A benchmark rate table. Automated comparison 23 September 2026: xl/worksheets/sheet1.xml!D760, series identifier D11.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28,https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx,2026-09-20,40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0,xl/worksheets/sheet1.xml!D760,4.5199999999999996,2026-09-23
+2022-23,0.0477,F5,FILRHLBVS,2022-05,"RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2022; cross-checked against the published Division 7A benchmark rate table. Automated comparison 23 September 2026: xl/worksheets/sheet1.xml!D772, series identifier D11.",https://duguid.com.au/rates/div7a-benchmark-rate/,2026-08-28,https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx,2026-09-20,40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0,xl/worksheets/sheet1.xml!D772,4.7699999999999996,2026-09-23
