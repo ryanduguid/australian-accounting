@@ -354,6 +354,21 @@ def test_the_instructions_name_the_guardrail_guide_and_its_outcome_classes() -> 
     assert "not a determination" in flat
 
 
+def test_the_instructions_keep_a_differing_figure_beside_the_tool_figure() -> None:
+    """A model that quietly replaces its own or the operator's figure with the
+    tool's, or the reverse, hides the difference a reviewer needs to see."""
+    from aus_accounting_mcp.server import SERVER_INSTRUCTIONS
+
+    flat = _normalise(SERVER_INSTRUCTIONS)
+
+    assert (
+        "When your own working, or a figure the operator supplies, differs from a tool figure"
+        in flat
+    )
+    assert "recheck the inputs, state both figures and flag the difference for review" in flat
+    assert "never substitute either silently" in flat
+
+
 def test_scope_reports_which_retrieval_folders_are_configured(tmp_path, monkeypatch):
     monkeypatch.delenv("AUS_ACCOUNTING_LIBRARY_ROOT", raising=False)
     monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path / "missing"))

@@ -195,6 +195,9 @@ Preserve UNKNOWN, REFUSED, not_supplied and null outcomes. ok=true means
 execution succeeded, not that a review passed. For Division 7A, summary is the
 default; request response_detail="full" when the full audit trail is needed.
 Retain engine versions, source/review dates, citations, warnings and caveats.
+When your own working, or a figure the operator supplies, differs from a tool
+figure, recheck the inputs, state both figures and flag the difference for
+review; never substitute either silently.
 Bundled data is not a live lookup. These tools do not access the network, write
 records or lodge; the host transmits every argument and result to its model
 provider, which these tools cannot control. Results are review aids, not advice
