@@ -210,6 +210,17 @@ release callers require that test job; no second pytest run is needed.
 
 ## Rules
 
+`tools/fixture-screen` runs in `boundaries.yml` on every pull request and push to
+`main`. It screens every tracked file under a `conformance`, `corpus`, `evaluation`,
+`examples`, `fixtures`, `samples`, `seeds` or `snapshots` directory or under
+`tests/data`, and each CSV, JSON or text file under a `data` or `tests` directory,
+apart from DER certificates and keys. It fails when a screened file is not UTF-8 text
+or holds a checksum-valid TFN, ABN, ACN or Medicare number outside a hexadecimal
+token of 16 or more characters, a decimal number or a percentage. Use a value whose
+check digit fails, or list a documented test value for its file, with its reason, in
+`tools/fixture-screen/tests/synthetic-identifiers.txt`. It uses evatt's detectors
+from `ryanduguid/accounting-review-pipeline`, pinned to one commit.
+
 `joined-fixtures.yml` checks the close-to-forecast, quarter and WIP-to-cash examples
 on pull requests, pushes to `main` and manual runs, on Linux and Windows.
 It uses this repository's proposed

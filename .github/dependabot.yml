@@ -94,6 +94,14 @@ updates:
       glama-rust:
         patterns: ["*"]
 
+  # The fixture screen's evatt is a git dependency pinned to one
+  # accounting-review-pipeline commit; updates also cover its locked crates.
+  - package-ecosystem: cargo
+    directory: /tools/fixture-screen
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 1
+
   # The Worker's Miniflare and Wrangler test harness. Its package.json
   # overrides are keyed to the pinned Miniflare and to Undici below 7.30.1, so
   # a bump drops what no longer applies; check the README's override note.
