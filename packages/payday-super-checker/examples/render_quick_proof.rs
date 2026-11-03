@@ -26,8 +26,11 @@ fn command() -> String {
 /// The sample's console output, with the report path as `report.csv`.
 fn run_example() -> Result<String, String> {
     std::env::set_current_dir(ROOT).map_err(|e| e.to_string())?;
+    // The report is a throwaway copy of fabricated output, and create_dir refuses
+    // a path that already exists.
+    // nosemgrep: rust.lang.security.temp-dir.temp-dir
     let directory = std::env::temp_dir().join(format!("payday-super-proof-{}", std::process::id()));
-    std::fs::create_dir_all(&directory).map_err(|e| e.to_string())?;
+    std::fs::create_dir(&directory).map_err(|e| e.to_string())?;
     let report = directory.join("report.csv").to_string_lossy().into_owned();
     let args = [SAMPLE, "--as-at", "2026-09-10", "-o", &report].map(String::from);
     let (code, out, err) = cli::dispatch(&args);
@@ -60,10 +63,8 @@ fn render_transcript(output: &str) -> String {
     )
 }
 
-fn render_svg() -> String {
-    let command = command();
-    format!(
-        r##"<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="450" viewBox="0 0 1000 450" role="img" aria-labelledby="title desc">
+/// The README card; `{command}` stands for the sample command.
+const SVG: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="450" viewBox="0 0 1000 450" role="img" aria-labelledby="title desc">
   <title id="title">Fabricated Payday Super review</title>
   <desc id="desc">A fabricated seven-line review with three on-time lines and three lines requiring attention.</desc>
   <rect width="1000" height="450" rx="20" fill="#000000"/>
@@ -82,11 +83,15 @@ fn render_svg() -> String {
   <text x="807" y="380" text-anchor="middle" fill="#FFFFF0" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="15" font-weight="700">REVIEW REQUIRED</text>
   <text x="68" y="380" fill="#C8C8C8" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="15">exit 2  |  full transcript linked</text>
 </svg>
-"##
-    )
+"##;
+
+fn render_svg() -> String {
+    SVG.replace("{command}", &command())
 }
 
 fn main() -> ExitCode {
+    // Only the --check flag is read; nothing is trusted from argv.
+    // nosemgrep: rust.lang.security.args.args
     let check = match std::env::args().skip(1).collect::<Vec<_>>().as_slice() {
         [] => false,
         [flag] if flag == "--check" => true,
