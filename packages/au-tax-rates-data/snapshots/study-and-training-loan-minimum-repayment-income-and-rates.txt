@@ -1,0 +1,1202 @@
+Skip to main content
+Skip To search
+Skip To Alex Virtual Assistant
+ATO Community
+Legal Database
+What's New
+Log in to online services
+Search
+Menu
+Home
+Individuals and families
+Businesses and organisations
+Tax and super professionals
+Individuals and families
+Businesses and organisations
+Tax and super professionals
+ATO Community
+Legal database
+What's New
+Individuals and families
+Businesses and organisations
+Tax and super professionals
+ATO Community
+Legal database
+What's New
+Individuals and families
+Businesses and organisations
+Tax and super professionals
+ATO Community
+Legal database
+What's New
+Study and training loan repayment thresholds and rates
+
+Current and previous repayment thresholds and rates for the compulsory repayment of study and training support loans.
+
+Last updated 30 June 2026
+
+Print or Download
+On this page
+About compulsory repayment thresholds and rates
+Repayment thresholds and rates
+Repayment income
+Examples of calculating repayment amounts
+Repayment calculator
+Previous repayment thresholds and rates
+About compulsory repayment thresholds and rates
+
+The thresholds and rates for study and training loan compulsory repayments are updated each year. They apply to the following types of study and training loans:
+
+Higher Education Loan Program (HELP)
+VET Student Loan (VSL)
+Student Financial Supplement Scheme (SFSS)
+Student Start-up Loan (SSL)
+ABSTUDY Student Start-up Loan (ABSTUDY SSL)
+Australian Apprenticeship Support Loan (AASL) – previously known as Trade Support Loan (TSL).
+
+All study and training loan types are covered by the same set of thresholds and rates applicable for each financial year.
+
+If you have more than one loan type, your compulsory repayments are used to pay off your loans in the following order:
+
+HELP
+VSL
+SFSS
+SSL
+ABSTUDY SSL
+AASL.
+Repayment thresholds and rates
+
+From the 2025–26 income year, compulsory repayments are calculated using marginal rates. This means your compulsory repayment is calculated only on the income above the minimum repayment threshold. It is not a single rate, rather a range of rates dependent on income.
+
+For more information on this change, see Study and training loans – what's new.
+
+Table 1: 2026–27 repayment thresholds and rates
+
+Repayment income
+
+	
+
+Repayment on this income
+
+
+
+
+$0 – $69,528
+
+	
+
+Nil
+
+
+
+
+$69,529 – $129,717
+
+	
+
+15c for each $1 over $69,528
+
+
+
+
+$129,718 – $186,050
+
+	
+
+$9,028 plus 17c for each $1 over $129,717
+
+
+
+
+$186,051 and over
+
+	
+
+10% of your total repayment income
+
+Table 2: 2025–26 repayment thresholds and rates
+
+Repayment income
+
+	
+
+Repayment on this income
+
+
+
+
+$0 – $67,000
+
+	
+
+Nil
+
+
+
+
+$67,001 – $125,000
+
+	
+
+15c for each $1 over $67,000
+
+
+
+
+$125,001 – $179,285
+
+	
+
+$8,700 plus 17c for each $1 over $125,000
+
+
+
+
+$179,286 and over
+
+	
+
+10% of your total repayment income
+
+Repayment income
+
+Your repayment income amount is calculated by adding up all of the following amounts:
+
+taxable income (excluding any assessable First Home Super Saver (FHSS) released amounts)
+reportable fringe benefits (regardless of the exempt status of your employer)
+total net investment loss (including net rental losses)
+reportable super contributions
+exempt foreign employment income amounts.
+Examples of calculating repayment amounts
+
+The following examples show how compulsory repayments are calculated from 2025–26 onwards.
+
+Example 1: 2026–27 repayment
+
+In the 2026–27 financial year, Christina has:
+
+taxable income of $60,470
+total reportable fringe benefits of $5,400
+total net investment loss of $1,330
+reportable super contributions of $16,500
+exempt foreign employment income of $2,680.
+
+Christina's repayment income is
+
+$60,470 + $5,400 + $1,330 + $16,500 + $2,680 = $86,380.
+
+Christina's income is above the minimum threshold of $69,528 but below $129,717. This means Christina's repayment is 15c for each $1 over $69,528, which is calculated as follows:
+
+$86,380 − $69,528 = $16,852
+
+$16,852 × 15% = $2,527.80
+
+Christina's compulsory repayment towards her study or training loan for 2026–27 would be $2,527.80.
+
+End of example
+
+ 
+
+Example 2: 2026–27 repayment
+
+In the 2026–27 financial year, Barry has:
+
+taxable income of $118,450
+reportable super contributions of $18,614.
+
+Barry's repayment income is $118,450 + $18,614 = $137,064.
+
+This is within the repayment income range of $129,718 to $186,050. This means Barry's repayment is $9,028 plus 17c for each $1 over $129,717, which is calculated as follows:
+
+$137,064 − $129,717 = $7,347
+
+$7,347 × 17% = $1,248.99
+
+$1,248.99 + $9,028 = $10,276.99
+
+Barry's compulsory repayment towards his study or training loan for 2026–27 would be $10,276.99.
+
+End of example
+
+ 
+
+Example 3: 2026–27 repayment
+
+In the 2026–27 financial year, Priya has
+
+taxable income of $227,123
+reportable super contributions of $27,657.
+
+Priya's repayment income is $227,123 + $27,657 = $254,780.
+
+This is above the threshold of $179,286. This means Priya's repayment is 10% of her repayment income, which is calculated as follows:
+
+$254,780 × 10% = $25,478
+
+Priya's compulsory repayment towards her study or training loan for 2026–27 would be $25,478.
+
+End of example
+Repayment calculator
+
+You can use our Study and training loan repayment calculator to enter your repayment income and work out repayment amounts.
+
+Previous repayment thresholds and rates
+
+Compulsory repayments for 2024–25 and earlier years were based on applying the relevant repayment rate to your total repayment income:
+
+2024–25 repayment income thresholds and rates
+2023–24 repayment income thresholds and rates
+2022–23 repayment income thresholds and rates
+2021–22 repayment income thresholds and rates
+2020–21 repayment income thresholds and rates.
+
+ 
+
+Example 4: 2024–25 repayment
+
+In the 2024–25 financial year, Branson had:
+
+taxable income of $89,450
+reportable super contributions of $10,286.
+
+Branson's repayment income is $89,450 + $10,286 = $99,736.
+
+This is within the repayment income range of $94,504 to $100,174. This means Branson's repayment rate is 5.5%. His repayment amount is calculated as follows:
+
+$99,736 × 5.5% = $5,485.52
+
+Branson's compulsory repayment towards his study or training loan for 2024–25 would be $5,485.52.
+
+End of example
+2024–25 repayment income thresholds and rates
+Table 3: 2024–25 repayment income thresholds and rates
+
+Repayment income
+
+	
+
+Repayment rate (% of repayment income)
+
+
+
+
+Below $54,435
+
+	
+
+Nil
+
+
+
+
+$54,435 – $62,850
+
+	
+
+1.0%
+
+
+
+
+$62,851 – $66,620
+
+	
+
+2.0%
+
+
+
+
+$66,621 – $70,618
+
+	
+
+2.5%
+
+
+
+
+$70,619 – $74,855
+
+	
+
+3.0%
+
+
+
+
+$74,856 – $79,346
+
+	
+
+3.5%
+
+
+
+
+$79,347 – $84,107
+
+	
+
+4.0%
+
+
+
+
+$84,108 – $89,154
+
+	
+
+4.5%
+
+
+
+
+$89,155 – $94,503
+
+	
+
+5.0%
+
+
+
+
+$94,504 – $100,174
+
+	
+
+5.5%
+
+
+
+
+$100,175 – $106,185
+
+	
+
+6.0%
+
+
+
+
+$106,186 – $112,556
+
+	
+
+6.5%
+
+
+
+
+$112,557 – $119,309
+
+	
+
+7.0%
+
+
+
+
+$119,310 – $126,467
+
+	
+
+7.5%
+
+
+
+
+$126,468 – $134,056
+
+	
+
+8.0%
+
+
+
+
+$134,057 – $142,100
+
+	
+
+8.5%
+
+
+
+
+$142,101 – $150,626
+
+	
+
+9.0%
+
+
+
+
+$150,627 – $159,663
+
+	
+
+9.5%
+
+
+
+
+$159,664 and above
+
+	
+
+10.0%
+
+2023–24 repayment income thresholds and rates
+Table 4: 2023–24 repayment income thresholds and rates
+
+Repayment income
+
+	
+
+Repayment rate
+
+
+
+
+Below $51,550
+
+	
+
+Nil
+
+
+
+
+$51,550 – $59,518
+
+	
+
+1.0%
+
+
+
+
+$59,519 – $63,089
+
+	
+
+2.0%
+
+
+
+
+$63,090 – $66,875
+
+	
+
+2.5%
+
+
+
+
+$66,876 – $70,888
+
+	
+
+3.0%
+
+
+
+
+$70,889 – $75,140
+
+	
+
+3.5%
+
+
+
+
+$75,141 – $79,649
+
+	
+
+4.0%
+
+
+
+
+$79,650 – $84,429
+
+	
+
+4.5%
+
+
+
+
+$84,430 – $89,494
+
+	
+
+5.0%
+
+
+
+
+$89,495 – $94,865
+
+	
+
+5.5%
+
+
+
+
+$94,866 – $100,557
+
+	
+
+6.0%
+
+
+
+
+$100,558 – $106,590
+
+	
+
+6.5%
+
+
+
+
+$106,591 – $112,985
+
+	
+
+7.0%
+
+
+
+
+$112,986 – $119,764
+
+	
+
+7.5%
+
+
+
+
+$119,765 – $126,950
+
+	
+
+8.0%
+
+
+
+
+$126,951 – $134,568
+
+	
+
+8.5%
+
+
+
+
+$134,569 – $142,642
+
+	
+
+9.0%
+
+
+
+
+$142,643–$151,200
+
+	
+
+9.5%
+
+
+
+
+$151,201 and above
+
+	
+
+10.0%
+
+2022–23 repayment income thresholds and rates
+Table 5: 2022–23 repayment income thresholds and rates
+
+Repayment income
+
+	
+
+Repayment rate
+
+
+
+
+Below $48,361
+
+	
+
+Nil
+
+
+
+
+$48,361 – $55,836
+
+	
+
+1.0%
+
+
+
+
+$55,837 – $59,186
+
+	
+
+2.0%
+
+
+
+
+$59,187 – $62,738
+
+	
+
+2.5%
+
+
+
+
+$62,739 – $66,502
+
+	
+
+3.0%
+
+
+
+
+$66,503 – $70,492
+
+	
+
+3.5%
+
+
+
+
+$70,493 – $74,722
+
+	
+
+4.0%
+
+
+
+
+$74,723 – $79,206
+
+	
+
+4.5%
+
+
+
+
+$79,207 – $83,958
+
+	
+
+5.0%
+
+
+
+
+$83,959 – $88,996
+
+	
+
+5.5%
+
+
+
+
+$88,997 – $94,336
+
+	
+
+6.0%
+
+
+
+
+$94,337 – $99,996
+
+	
+
+6.5%
+
+
+
+
+$99,997 – $105,996
+
+	
+
+7.0%
+
+
+
+
+$105,997 – $112,355
+
+	
+
+7.5%
+
+
+
+
+$112,356 – $119,097
+
+	
+
+8.0%
+
+
+
+
+$119,098 – $126,243
+
+	
+
+8.5%
+
+
+
+
+$126,244 – $133,818
+
+	
+
+9.0%
+
+
+
+
+$133,819 – $141,847
+
+	
+
+9.5%
+
+
+
+
+$141,848 and above
+
+	
+
+10.0%
+
+2021–22 repayment income thresholds and rates
+Table 6: 2021–22 repayment income thresholds and rates
+
+Repayment income range
+
+	
+
+Repayment rate
+
+
+
+
+Below $47,014
+
+	
+
+Nil
+
+
+
+
+$47,014 – $54,282
+
+	
+
+1.0%
+
+
+
+
+$54,283 – $57,538
+
+	
+
+2.0%
+
+
+
+
+$57,539 – $60,991
+
+	
+
+2.5%
+
+
+
+
+$60,992 – $64,651
+
+	
+
+3.0%
+
+
+
+
+$64,652 – $68,529
+
+	
+
+3.5%
+
+
+
+
+$68,530 – $72,641
+
+	
+
+4.0%
+
+
+
+
+$72,642 – $77,001
+
+	
+
+4.5%
+
+
+
+
+$77,002 – $81,620
+
+	
+
+5.0%
+
+
+
+
+$81,621 – $86,518
+
+	
+
+5.5%
+
+
+
+
+$86,519 – $91,709
+
+	
+
+6.0%
+
+
+
+
+$91,710 – $97,212
+
+	
+
+6.5%
+
+
+
+
+$97,213 – $103,045
+
+	
+
+7.0%
+
+
+
+
+$103,046 – $109,227
+
+	
+
+7.5%
+
+
+
+
+$109,228 – $115,781
+
+	
+
+8.0%
+
+
+
+
+$115,782 – $122,728
+
+	
+
+8.5%
+
+
+
+
+$122,729 – $130,092
+
+	
+
+9.0%
+
+
+
+
+$130,093 – $137,897
+
+	
+
+9.5%
+
+
+
+
+$137,898 and above
+
+	
+
+10.0%
+
+2020–21 repayment income thresholds and rates
+Table 7: 2020–21 repayment income thresholds and rates
+
+Repayment income
+
+	
+
+Repayment rate
+
+
+
+
+Below $46,620
+
+	
+
+Nil
+
+
+
+
+$46,620 – $53,826
+
+	
+
+1.0%
+
+
+
+
+$53,827 – $57,055
+
+	
+
+2.0%
+
+
+
+
+$57,056 – $60,479
+
+	
+
+2.5%
+
+
+
+
+$60,480 – $64,108
+
+	
+
+3.0%
+
+
+
+
+$64,109 – $67,954
+
+	
+
+3.5%
+
+
+
+
+$67,955 – $72,031
+
+	
+
+4.0%
+
+
+
+
+$72,032 – $76,354
+
+	
+
+4.5%
+
+
+
+
+$76,355 – $80,935
+
+	
+
+5.0%
+
+
+
+
+$80,936 – $85,792
+
+	
+
+5.5%
+
+
+
+
+$85,793 – $90,939
+
+	
+
+6.0%
+
+
+
+
+$90,940 – $96,396
+
+	
+
+6.5%
+
+
+
+
+$96,397 – $102,179
+
+	
+
+7.0%
+
+
+
+
+$102,180 – $108,309
+
+	
+
+7.5%
+
+
+
+
+$108,310 – $114,809
+
+	
+
+8.0%
+
+
+
+
+$114,810 – $121,698
+
+	
+
+8.5%
+
+
+
+
+$121,699 – $128,999
+
+	
+
+9.0%
+
+
+
+
+$129,000 – $136,739
+
+	
+
+9.5%
+
+
+
+
+$136,740 and above
+
+	
+
+10.0%
+
+ 
+
+QC16176
+
+Print or Download
+Tools
+Media centre
+Forms and instructions
+Tax rates and codes
+Calculators and tools
+Tax information for
+People with disability
+Aboriginal and Torres Strait Islander peoples
+Norfolk Island
+Other languages
+Help and support
+Top call centre questions
+Contact us
+Identity security and scams
+Financial difficulties and disasters
+About ATO
+Careers
+Privacy policy
+ATOtv
+Other languages
+facebook Opens in a new window
+Linkedin Opens in a new window
+Instagram Opens in a new window
+
+We acknowledge the Traditional Owners and Custodians of Country throughout Australia and their continuing connection to land, waters and community. We pay our respects to them, their cultures, and Elders past and present.
+
+© Commonwealth of Australia | View related websites
