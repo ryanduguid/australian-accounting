@@ -1,6 +1,3 @@
-// Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
-
 //! JSON read as Python's `json` module reads it (adapted from llm-tax-guardrails).
 //!
 //! Text is read with Python's C scanner semantics, so a refusal names the same
