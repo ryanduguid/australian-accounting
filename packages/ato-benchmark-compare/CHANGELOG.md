@@ -9,6 +9,16 @@ codes. The former API functions are JSON stdin subcommands, documented in
 README.md. No benchmark figure, ratio rule, rounding, refusal or message is
 intentionally changed.
 
+### Added
+
+- `compare-figures` takes `"output": "gaps"`: for each ratio the comparison
+  reports `above` or `below` its range, the nearest edge, the figure behind the
+  ratio, that edge times turnover and the exact difference, with a note that
+  each gap is a working, not an ATO figure, adjustment or finding. It refuses an
+  edge with more than 4 decimal places, the precision ratios are compared at, so
+  a gap never contradicts its verdict. No other output and no command-line
+  behaviour changes. `tests/gaps.rs` covers it.
+
 ### Migration
 
 - `atobenchmark` imports become JSON stdin subcommands. The Python `compare()`

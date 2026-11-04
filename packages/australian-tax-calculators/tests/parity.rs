@@ -8,11 +8,13 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
-/// `tests/fbt_car.rs` and `tests/main_residence.rs` cover them.
-const NEW_KINDS: [(&str, &str); 3] = [
+/// `tests/fbt_car.rs`, `tests/main_residence.rs` and
+/// `tests/borrowing_expenses.rs` cover them.
+const NEW_KINDS: [(&str, &str); 4] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("main-residence", "main_residence"),
+    ("borrowing-expenses", "borrowing_expenses"),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.
@@ -97,6 +99,7 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
         _ => {}
     }
     adapt_payg(command, input, &mut expected);
+    adapt_fbt(command, input, &mut expected);
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
         "worksheet-catalogue" => expected.pointer_mut("/ok/study_loan_repayment"),
@@ -171,6 +174,58 @@ fn adapt_payg(command: &str, input: &Value, expected: &mut Value) {
     }
 }
 
+/// `fbt` also accepts the FBT year ending 31 March 2027, at the same rates
+/// (CHANGELOG.md).
+fn adapt_fbt(command: &str, input: &Value, expected: &mut Value) {
+    let old_scope = "for the year ended 31 March 2026. Excludes";
+    let new_scope = "for the year ended 31 March 2026 or 2027, both at the 47% FBT rate and the 2.0802 and 1.8868 gross-up rates. Excludes";
+    let old_end = "before any optional rounding down to 5 cents.";
+    let new_end = "before any optional rounding down to 5 cents. For 2027 the items follow the FBT return 2026 instructions until the ATO publishes the 2027 return.";
+    let rates =
+        "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds";
+    let year = json!({"id": "2027", "basis": "FBT year", "start": "2026-04-01",
+        "end": "2027-03-31", "arguments": {"year_ended": 2027}});
+    if command == "fbt"
+        && let Some(Value::String(error)) = expected.get_mut("error")
+    {
+        *error = error.replace("; supported: 2026.", "; supported: 2026, 2027.");
+    }
+    let record = match command {
+        "fbt" => expected.pointer_mut("/ok"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/fbt"),
+        "periods" if input["kind"] == "fbt" => {
+            expected["ok"].as_array_mut().unwrap().push(year);
+            return;
+        }
+        _ => None,
+    };
+    let Some(record) = record else {
+        return;
+    };
+    let scope = record["scope"].as_str().unwrap();
+    assert!(
+        scope.contains(old_scope) && scope.ends_with(old_end),
+        "frozen FBT scope changed"
+    );
+    record["scope"] = json!(
+        scope
+            .replace(old_scope, new_scope)
+            .replace(old_end, new_end)
+    );
+    record["sources"].as_array_mut().unwrap().push(json!(rates));
+    record["source_checked"] = json!("2026-11-04");
+    if command == "worksheet-catalogue" {
+        let passage = record["source_passage"].as_str().unwrap();
+        record["source_passage"] = json!(format!(
+            "{passage}; FBT rates and thresholds, the FBT rate and gross-up rates for years ending 31 March 2023 to 2027"
+        ));
+        record["supported_periods"]
+            .as_array_mut()
+            .unwrap()
+            .push(year);
+    }
+}
+
 /// Replays every captured call from the Python 0.2.0 tests and differential
 /// generator, comparing serialised JSON so key order must match too.
 #[test]
@@ -188,13 +243,19 @@ fn python_api_corpus_matches() {
         );
     }
     let mut failures = Vec::new();
-    let mut reopened = 0;
+    let (mut reopened, mut reopened_fbt) = (0, 0);
     for row in &corpus {
         let command = row["command"].as_str().unwrap();
         // Python 0.2.0 refused 2025-26 PAYG withholding, which now has its own
         // coefficients; tests/tables.rs checks that year against the ATO sample.
         if command == "payg-withholding" && row["input"]["year"] == "2025-26" {
             reopened += 1;
+            continue;
+        }
+        // It refused the FBT year ending 31 March 2027 too; tests/tables.rs
+        // checks it against the ATO's MantCo example.
+        if command == "fbt" && row["input"]["year_ended"] == 2027 {
+            reopened_fbt += 1;
             continue;
         }
         let actual = without_new_kinds(command, outcome(command, &row["input"])).to_string();
@@ -207,6 +268,7 @@ fn python_api_corpus_matches() {
         }
     }
     assert_eq!(reopened, 1, "frozen 2025-26 PAYG refusals");
+    assert_eq!(reopened_fbt, 1, "frozen 2027 FBT refusals");
     assert!(
         failures.is_empty(),
         "{} of {} differ:\n{}",

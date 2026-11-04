@@ -496,6 +496,7 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                 )
                 .map(|b| json!(b))
                 .map_err(failure),
+                "gaps" => report::gaps(&comparison).map_err(failure),
                 other => Err(format!("unknown output {other}")),
             }
         }
