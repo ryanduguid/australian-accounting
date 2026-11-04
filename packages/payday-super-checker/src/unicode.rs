@@ -1,6 +1,3 @@
-// Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
-
 //! `unicodedata.normalize("NFKD", text)` and `str.casefold()`, as Python 3.15
 //! computes them, for matching business type names.
 

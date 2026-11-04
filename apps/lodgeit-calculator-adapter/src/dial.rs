@@ -1,6 +1,3 @@
-// Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
-
 //! The dialler `transport::request` uses outside the differential:
 //! `socket.create_connection((host, port), timeout)` and, for https,
 //! `SSLContext.wrap_socket(sock, server_hostname=host)` with the default

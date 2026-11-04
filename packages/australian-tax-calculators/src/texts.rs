@@ -1,6 +1,3 @@
-// Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
-
 //! Scope statements and sources, generated from `austaxcalc.calculations`
 //! at the base revision so their wording is exactly the original.
 

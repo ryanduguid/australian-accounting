@@ -1,6 +1,3 @@
-// Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
-
 //! The `wip-tally` command line. argparse formatting and option parsing are
 //! reused from the Solomon's Sword and Exchequer ports; positional arguments
 //! follow Python 3.15's `_parse_known_args` (the first `--` marks the rest as

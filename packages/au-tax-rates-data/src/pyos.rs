@@ -1,6 +1,3 @@
-// Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
-
 //! The `os` calls the rates tool makes, failing with the text of CPython's `OSError`.
 //!
 //! On Windows, `open` goes through the C runtime and reports an errno; the

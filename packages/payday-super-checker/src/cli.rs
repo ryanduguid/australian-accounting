@@ -1,6 +1,3 @@
-// Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
-
 //! The `payday-super-check` command line. argparse formatting and option
 //! parsing are reused from the earlier engine ports, generalised to the three
 //! flat parsers this command builds (check and evidence-pack, import,
