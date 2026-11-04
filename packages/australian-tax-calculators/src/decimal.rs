@@ -92,6 +92,15 @@ impl Signal {
             Signal::Overflow => "Overflow",
         }
     }
+
+    /// The stable refusal code for the signal.
+    pub fn code(self) -> &'static str {
+        match self {
+            Signal::InvalidOperation => "decimal.invalid_operation",
+            Signal::DivisionByZero => "decimal.division_by_zero",
+            Signal::Overflow => "decimal.overflow",
+        }
+    }
 }
 
 pub type Calc<T> = Result<T, Signal>;

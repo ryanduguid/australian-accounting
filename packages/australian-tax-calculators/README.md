@@ -70,6 +70,13 @@ also carries `scope`, the official `sources` the figures came from, the engine
 version and the warnings that travel with every worksheet. A refusal writes one
 `error:` line to stderr and exits 2, with the original worksheet's message.
 
+Add `--refusal-json` after the command to read the refusal as data as well: stdout
+then carries one JSON line, `{"ok":false,"code":"scope.not_confirmed","message":"..."}`,
+beside the same `error:` line and exit 2. A code names the failure, stays when a
+message is reworded and never moves to a different failure. `REFUSAL_CODES` in
+`src/texts.rs` is the catalogue, and a test holds every refusal to it. Without the
+flag, stdout stays empty on a refusal.
+
 ## Commands
 
 Each command takes the original function's keyword arguments, in this order, as
