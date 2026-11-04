@@ -69,6 +69,20 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "borrowing-expenses",
+        &[
+            ("borrowing_expenses", Dec),
+            ("other_borrowing_expenses_in_year", Dec),
+            ("income_use", Dec),
+            ("loan_start", Raw),
+            ("loan_term_end", Json),
+            ("repaid_on", Json),
+            ("section_26_50_applies", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "fbt",
         &[
             ("type_one_value", Dec),
@@ -402,6 +416,9 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         "capital-gains" => engine::capital_gains(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5]),
         "main-residence" => engine::main_residence(
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
+        ),
+        "borrowing-expenses" => engine::borrowing_expenses(
+            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8],
         ),
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {

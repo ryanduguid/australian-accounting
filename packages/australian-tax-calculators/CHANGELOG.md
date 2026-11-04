@@ -19,6 +19,17 @@ intentionally changed.
   worksheet catalogue lists it, so `tests/parity.rs` also drops that entry
   before comparing, and `tests/main_residence.rs` covers it. Catalogue examples
   can now hold JSON values.
+- `borrowing-expenses` works out one income year's deduction for one loan's
+  borrowing expenses under ITAA 1997 s 25-25, for 2024-25 to 2026-27: the
+  s 25-25(6) $100 rule, the spread by days over the period of the loan (the
+  shortest of the contract's period, the period to repayment and 5 years), the
+  write-off in the year of repayment and the income-producing share. It refuses
+  a leisure facility unless s 26-50(3) applies at all times in the year, and
+  stops before 2027-28, when s 26-155 (Treasury Laws Amendment (Tax Reform No.
+  1) Act 2026, Schedule 2) quarantines residential rental deductions. No Python
+  release has it. `tests/parity.rs` drops its catalogue entry before comparing,
+  and `tests/borrowing_expenses.rs` holds it to the ATO's Peter and Fiona and
+  Max examples and Library ¶4-160 (Ben).
 - `fbt-car-statutory` and `fbt-car-operating-cost` value one car fringe benefit
   under FBTAA s 9 or s 10 for the FBT years ended 31 March 2026 and 2027; the
   operating cost result takes the lower statutory formula value under s 10(5).
@@ -108,6 +119,22 @@ intentionally changed.
   frozen call that expected 2025-26 to be refused; `tests/tables.rs` now
   checks that 2023-24 and 2027-28 are refused. The catalogue example stays at
   2026-27.
+- `fbt` also accepts the FBT year ended 31 March 2027; Python 0.2.0 took 2026
+  only. The ATO's FBT rates and thresholds page (updated 20 May 2026, read 4
+  November 2026) gives the 47% rate and the 2.0802 and 1.8868 gross-up rates
+  for years ending 31 March 2023 to 2027, so no figure changes. The Federal
+  Register's 2026 Acts, read on 4 November 2026 to the latest made on 26
+  October, change no FBT rule for that year: the Tax Reform No. 1 Act's FBT
+  amendments apply from 1 April 2027, and no Act amends the electric car
+  exemption in s 8A. The result's period now names its own year. The scope
+  statement names both years and their rates and says the 2027 return items
+  follow the FBT return 2026 instructions until the ATO publishes the 2027
+  return; the sources add the rates page, and the source check date is 4
+  November 2026. `tests/parity.rs` applies this to the 103 frozen `fbt`
+  results, 6 `periods` results, 10 `worksheet-catalogue` results and the 56
+  refusals that list the supported periods. It skips the 1 frozen call that
+  expected 2027 to be refused; `tests/tables.rs` checks 2027 against the ATO's
+  MantCo example and that 2028 is refused. The catalogue example stays at 2026.
 
 ### Verification
 

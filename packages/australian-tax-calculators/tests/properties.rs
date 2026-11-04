@@ -666,6 +666,55 @@ fn main_residence_shares_reconcile_and_stay_within_the_gain() {
     assert!(checked > 150, "only {checked} accepted inputs");
 }
 
+/// Loans whose whole period falls in 2024-25 to 2026-27, ended by the contract
+/// or by repayment: each year's remaining expenditure is the last year's less
+/// its maximum deduction (s 25-25(4) step 1), the maximums add up to the
+/// expenditure, and no deduction exceeds its maximum.
+#[test]
+fn borrowing_expense_maximums_carry_forward_and_add_up() {
+    let mut rng = Rng(20_261_104);
+    let years = ["2024-25", "2025-26", "2026-27"];
+    let year_of = |day: i64| (day >= 20_270) as usize + (day >= 20_635) as usize;
+    let date = |d: i64| {
+        let (y, m, dd) = civil(d);
+        format!("{y:04}-{m:02}-{dd:02}")
+    };
+    for _ in 0..300 {
+        let start = rng.int(19_905, 20_999); // 2024-07-01 to 2027-06-30
+        let end = rng.int(start, 20_999);
+        let expenditure = format!("{}.{:02}", rng.int(500, 100_000_000), rng.int(0, 99));
+        let repaid = rng.bool();
+        let share = *rng.pick(&["1", "0.5", "0.25"]);
+        let input = |year: &str| {
+            json!({
+                "borrowing_expenses": expenditure, "other_borrowing_expenses_in_year": "0.00",
+                "income_use": share,
+                "loan_start": date(start),
+                "loan_term_end": if repaid { json!(null) } else { json!(date(end)) },
+                "repaid_on": if repaid { json!(date(end)) } else { json!(null) },
+                "section_26_50_applies": false, "year": year, "scope_confirmed": true,
+            })
+        };
+        let (mut carried, mut total) = (d(&expenditure), n(0));
+        for year in &years[year_of(start)..=year_of(end)] {
+            let facts = input(year);
+            let r = run("borrowing-expenses", facts.clone());
+            let maximum = amount(&r, "maximum_deduction");
+            assert!(
+                eq(&amount(&r, "remaining_expenditure"), &carried),
+                "{facts}"
+            );
+            assert!(le(&amount(&r, "deduction"), &maximum), "{facts}");
+            carried = amount(&r, "remaining_expenditure_after_year");
+            total = total.add(&maximum).unwrap();
+        }
+        assert!(
+            eq(&total, &d(&expenditure)) && eq(&carried, &n(0)),
+            "{expenditure}"
+        );
+    }
+}
+
 /// Howard Hinnant's civil_from_days, for generating dates.
 fn civil(day: i64) -> (i64, i64, i64) {
     let z = day + 719_468;
