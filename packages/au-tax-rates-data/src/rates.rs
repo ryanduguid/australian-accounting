@@ -161,7 +161,7 @@ static JSON_NAME: LazyLock<Pattern> = LazyLock::new(|| {
 });
 static NUMBER: LazyLock<[(&str, Pattern); 4]> = LazyLock::new(|| {
     [
-        ("AUD", r"^\$?([\d,]+(?:\.\d+)?)$"),
+        ("AUD", r"^\$?([\d,]+(?:\.\d+)?)( million)?$"),
         ("percent", r"^([\d.]+)\s?%?$"),
         ("factor", r"^(\d+(?:\.\d+)?)$"),
         (
@@ -1539,11 +1539,14 @@ fn parse_text(unit: &Json, text: &[u32]) -> R<Found> {
         )));
     };
     let (start, end) = m.span(1).unwrap_or((0, 0));
-    let digits: S = text[start..end]
+    let mut digits: S = text[start..end]
         .iter()
         .copied()
         .filter(|&c| c != u32::from(','))
         .collect();
+    if m.span(2).is_some() {
+        digits.extend(pts("E6"));
+    }
     Decimal::parse_points(&digits)
         .map(Found::Number)
         .map_err(conversion)

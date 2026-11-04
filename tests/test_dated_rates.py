@@ -267,6 +267,9 @@ class DatedRateTests(unittest.TestCase):
         self.assertIn("holidays.py", out.getvalue())
 
 
+ACT_SHORT_NAMES = {"Income Tax Assessment Act 1997": "ITAA 1997"}
+
+
 class LegislationCitationTests(unittest.TestCase):
     """CI has no corpus, so citations are held to the list built from one."""
 
@@ -297,10 +300,39 @@ class LegislationCitationTests(unittest.TestCase):
             with self.subTest(provision=provision["provision"]):
                 self.assertRegex(provision["sections_sha256"], r"^[0-9a-f]{64}$")
                 self.assertRegex(provision["compilation_date"], r"^\d{4}-\d{2}-\d{2}$")
-                self.assertTrue(provision["row_ids"])
-                for row_id in provision["row_ids"]:
-                    self.assertEqual(row_id.split(":")[0], provision["title_id"])
-                    self.assertEqual(row_id.split(":")[2], provision["provision"])
+                self.assertEqual(provision["row_id"].split(":")[0], provision["title_id"])
+                self.assertEqual(
+                    provision["heading"].replace("\u2011", "-").split()[0],
+                    provision["provision"],
+                )
+
+    def test_each_citation_is_one_its_own_notes_make(self) -> None:
+        acts = {p["title_id"]: p["act"] for p in self.listing["provisions"]}
+        for record in self.records:
+            for citation in record.get("legislation", ()):
+                with self.subTest(record=record["id"], provision=citation["provision"]):
+                    act = acts[citation["title_id"]]
+                    self.assertTrue(
+                        act in record["notes"] or ACT_SHORT_NAMES.get(act, act) in record["notes"],
+                        act,
+                    )
+                    self.assertRegex(
+                        record["notes"],
+                        r"(?:\bss?|\bsections?|\bregulations?) "
+                        + re.escape(citation["provision"])
+                        + r"(?![\w-]|\.\d)",
+                    )
+
+    def test_a_quoted_income_year_is_the_records_period(self) -> None:
+        checked = 0
+        for record in self.records:
+            quoted = re.search(r"(\d{4})[\u2013-](\d{2}) income year", record["quote"])
+            year = record["period"].get("income_year")
+            if quoted and year:
+                checked += 1
+                with self.subTest(record=record["id"]):
+                    self.assertEqual(f"{quoted[1]}-{quoted[2]}", year)
+        self.assertGreaterEqual(checked, 2)
 
     def test_an_application_provision_quotes_the_notes(self) -> None:
         for record in self.records:

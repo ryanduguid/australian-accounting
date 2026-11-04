@@ -2014,6 +2014,46 @@ fn an_invalid_browser_reply_fails_only_its_own_page_through_fetch_text() {
 }
 
 #[test]
+fn an_amount_in_millions_is_held_to_the_record_with_its_unit() {
+    let records = records();
+    let large = by_id(
+        &records,
+        "division-296-large-super-balance-threshold-2026-27",
+    );
+    let snapshot = snapshot(&large);
+    let check = |record: &Json| texts(&page_problems(record, &snapshot).expect("no exception"));
+    assert_eq!(check(&large), Vec::<String>::new());
+    assert_eq!(
+        check(&with(&large, "value", int(3_500_000))),
+        ["value changed: 3500000 -> $3 million"]
+    );
+    assert_eq!(
+        check(&with(&large, "value", int(3))),
+        ["value changed: 3 -> $3 million"]
+    );
+    let very_large = by_id(
+        &records,
+        "division-296-very-large-super-balance-threshold-2026-27",
+    );
+    assert_eq!(
+        check(&with(&very_large, "value", int(3_000_000))),
+        ["value changed: 3000000 -> $10 million"]
+    );
+    let page = replace(
+        &snapshot,
+        "the VLSBT is $10 million",
+        "the VLSBT is $12 million",
+    );
+    assert_eq!(
+        texts(&page_problems(&very_large, &page).expect("no exception")),
+        [
+            "quote not found on page",
+            "value changed: 10000000 -> $12 million"
+        ]
+    );
+}
+
+#[test]
 fn every_cited_provision_has_the_shape_the_corpus_keys() {
     let records = records();
     let record = &records[0];

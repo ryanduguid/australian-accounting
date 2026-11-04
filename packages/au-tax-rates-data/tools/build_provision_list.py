@@ -6,8 +6,9 @@
 Development-time script, like the crate's other tools, and standard library only.
 CI has no corpus, so the root tests/test_dated_rates.py holds each record's
 `legislation` citations to this checked-in list, which records where each provision
-came from: the corpus retrieval date, each title's compilation and the digest of the
-sections.jsonl it was read from. Run it after changing a citation or the corpus:
+came from: the corpus retrieval date, each title's compilation, the one corpus row
+whose heading is that provision and the digest of the sections.jsonl it was read from.
+Run it after changing a citation or the corpus:
 
     python tools/build_provision_list.py <corpus folder>
 """
@@ -29,6 +30,12 @@ def citations():
     return sorted(pairs)
 
 
+def heading_number(row):
+    """The provision a row's heading starts with, with an ASCII hyphen."""
+    words = row.get("heading", "").replace("\u2011", "-").split()
+    return words[0] if words else None
+
+
 def main():
     corpus = Path(sys.argv[1])
     sources = json.loads((corpus / "sources.json").read_text(encoding="utf-8"))
@@ -36,9 +43,9 @@ def main():
     for title_id, provision in citations():
         data = (corpus / "markdown" / title_id / "sections.jsonl").read_bytes()
         rows = [json.loads(line) for line in data.splitlines()]
-        found = [row for row in rows if row.get("section") == provision]
-        if not found:
-            raise SystemExit(f"{title_id} has no provision {provision} in this corpus")
+        found = [row for row in rows if heading_number(row) == provision]
+        if len(found) != 1:
+            raise SystemExit(f"{title_id} has {len(found)} rows for {provision} in this corpus")
         provisions.append(
             {
                 "title_id": title_id,
@@ -46,7 +53,8 @@ def main():
                 "act": found[0]["act"],
                 "compilation_number": found[0]["compilation_number"],
                 "compilation_date": found[0]["compilation_date"],
-                "row_ids": [row["row_id"] for row in found],
+                "row_id": found[0]["row_id"],
+                "heading": found[0]["heading"],
                 "sections_sha256": hashlib.sha256(data).hexdigest(),
             }
         )
