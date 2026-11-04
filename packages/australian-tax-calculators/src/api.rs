@@ -417,9 +417,14 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         "main-residence" => engine::main_residence(
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
         ),
-        "borrowing-expenses" => engine::borrowing_expenses(
-            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8],
-        ),
+        "borrowing-expenses" => {
+            let loan = engine::LoanDates {
+                start: &a[3],
+                term_end: &a[4],
+                repaid_on: &a[5],
+            };
+            engine::borrowing_expenses(&a[0], &a[1], &a[2], loan, &a[6], &a[7], &a[8])
+        }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {
             engine::fbt_car_statutory(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
