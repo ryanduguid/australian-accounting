@@ -39,3 +39,7 @@ Each component keeps its own distribution, version, release notes, tests and `CI
 - [Australian Accounting Skills](https://github.com/ryanduguid/australian-accounting-skills): preparation-only agent workflows that can call this server.
 - [Release history](https://github.com/ryanduguid/australian-accounting/releases): one release per component tag.
 - [Security policy](https://github.com/ryanduguid/australian-accounting/blob/main/SECURITY.md)
+
+## Reuse
+
+- [Reusing this code](https://github.com/ryanduguid/australian-accounting/blob/main/AGENTS.md#reusing-this-code): Ryan Duguid's work under FSL-1.1-ALv2; keep its notices and licence; public credit is requested.
