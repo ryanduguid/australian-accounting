@@ -141,7 +141,7 @@ pub fn run_local_aggregate(arguments: &(Decimal, Decimal), year_ended: i64) -> R
         &Arg::Bool(true),
     )
     .map_err(|error| match error {
-        engine::Error::Value(message) => Exc::msg("ValueError", &message),
+        engine::Error::Value { message, .. } => Exc::msg("ValueError", &message),
         engine::Error::Decimal(signal) => decimal_signal(match signal.name() {
             "DivisionByZero" => Signal::DivisionByZero,
             "Overflow" => Signal::Overflow,
