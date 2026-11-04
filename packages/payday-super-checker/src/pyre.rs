@@ -393,7 +393,8 @@ impl Parser<'_> {
 }
 
 impl Regex {
-    pub fn new(pattern: &str) -> Regex {
+    /// A fixed pattern in Python's `re` dialect, not the `regex` crate's.
+    pub fn python(pattern: &str) -> Regex {
         Regex::with_case(pattern, false)
     }
 
@@ -762,7 +763,7 @@ mod tests {
 
     #[test]
     fn unicode_classes_and_anchors_follow_python() {
-        let number = Regex::new(r"^[\d,]*+(?:\.\d++|(?<=\d))$");
+        let number = Regex::python(r"^[\d,]*+(?:\.\d++|(?<=\d))$");
         assert!(number.matches_start("00123"));
         assert!(number.matches_start("\u{663}\u{664}"));
         assert!(number.matches_start("1,234.5\n"));
@@ -777,12 +778,12 @@ mod tests {
 
     #[test]
     fn groups_lookahead_and_substitution_follow_python() {
-        let pad = Regex::new(r"(:\d{2})\.(\d{1,5})(?!\d)");
+        let pad = Regex::python(r"(:\d{2})\.(\d{1,5})(?!\d)");
         let padded = pad.sub_with("12:00:00.12 and 12:00:00.1234567", |m| {
             format!("{}.{:0<6}", m.group(1).unwrap(), m.group(2).unwrap())
         });
         assert_eq!(padded, "12:00:00.120000 and 12:00:00.1234567");
-        let overflow = Regex::new(r"(:\d{2}\.\d{6})\d+");
+        let overflow = Regex::python(r"(:\d{2}\.\d{6})\d+");
         assert_eq!(
             overflow.sub_with("T00:00:00.0000000", |m| m.group(1).unwrap()),
             "T00:00:00.000000"

@@ -65,8 +65,8 @@ const SOURCE_FIELDS: [&str; 9] = [
 ];
 
 thread_local! {
-    static PUNCT: Regex = Regex::new(r"[^0-9a-z ]+");
-    static SPACES: Regex = Regex::new(r"\s+");
+    static PUNCT: Regex = Regex::python(r"[^0-9a-z ]+");
+    static SPACES: Regex = Regex::python(r"\s+");
     static LOADED: RefCell<Option<std::result::Result<Vec<Profile>, String>>> =
         const { RefCell::new(None) };
 }

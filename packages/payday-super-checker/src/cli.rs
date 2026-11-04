@@ -1225,8 +1225,8 @@ fn import_main(args: &[String]) -> (i32, String, String) {
             .into(),
     ];
     if !report.warnings.is_empty() {
-        let row_level = Regex::new(r"^(row|super row) \d+: ");
-        let uncappable = Regex::new(
+        let row_level = Regex::python(r"^(row|super row) \d+: ");
+        let uncappable = Regex::python(
             r"^row \d+: (partial|over): |carry no payment date|matched has no payment date on record",
         );
         lines.push(String::new());

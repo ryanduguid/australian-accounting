@@ -135,15 +135,15 @@ struct Patterns {
 impl Patterns {
     fn new() -> Patterns {
         Patterns {
-            amount_text: Regex::new(
+            amount_text: Regex::python(
                 r"^[-+]?(?:\d{1,3}(?:[ ,]\d{3})+|\d+)(?:\.\d*)?(?:[eE][-+]?\d+)?$|^[-+]?\.\d+(?:[eE][-+]?\d+)?$",
             ),
-            fraction_overflow: Regex::new(r"(:\d{2}\.\d{6})\d+"),
-            fraction_pad: Regex::new(r"(:\d{2})\.(\d{1,5})(?!\d)"),
-            iso_shape: Regex::new(
+            fraction_overflow: Regex::python(r"(:\d{2}\.\d{6})\d+"),
+            fraction_pad: Regex::python(r"(:\d{2})\.(\d{1,5})(?!\d)"),
+            iso_shape: Regex::python(
                 r"\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?)?$",
             ),
-            iso_offset_shape: Regex::new(
+            iso_offset_shape: Regex::python(
                 r"\d{4}-\d{2}-\d{2}[T ]\d{2}(?::\d{2}(?::\d{2}(?:\.\d{1,6})?)?)?(?:[Zz]|[+-]\d{2}:\d{2}(?::\d{2})?)$",
             ),
         }
