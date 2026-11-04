@@ -146,7 +146,7 @@ PYTEST = re.compile(
     rf"uv run(?: --locked| --extra {NAME}| --group {NAME})* pytest(?P<arguments>(?: {PLAIN})*)"
 )
 PYTEST_OPTION = re.compile(r"-q|--cov(?:=[\w.-]+)?|--cov-branch|--cov-report=[\w.:-]+")
-# Whitespace a shell does not split words at, which str.split() would.
+# A line break, or whitespace a shell does not split words at but str.split() does.
 UNSPLIT = re.compile(r"[^\S \t]")
 # The environment main's test steps have; another variable could change what a runner runs.
 ENVIRONMENT = {
@@ -212,11 +212,12 @@ def block_scalar(body: list[str], indicator: str, broken: bool) -> str:
 
 def load_yaml(text: str) -> object:
     """Parse the block YAML workflows use into dicts, lists and strings."""
-    # YAML breaks lines only at LF and CR; splitlines() also breaks at these.
-    odd = re.search("[\v\f\x1c-\x1e\x85  ]", text)
+    # YAML and bash treat only space, tab, LF and CR as whitespace; str methods
+    # such as splitlines(), split() and strip() also treat others as whitespace.
+    odd = re.search(r"[^\S \t\n\r]", text)
     if odd:
         line = text.count("\n", 0, odd.start()) + 1
-        raise Unreadable(f"line {line}: {odd.group()!r} breaks a line where YAML does not")
+        raise Unreadable(f"line {line}: {odd.group()!r} is whitespace other than space and tab")
     lines = text.splitlines()
     terminated = text.endswith(("\n", "\r"))
     pos = 0
@@ -644,8 +645,6 @@ def commands(where: str, script: str) -> list[re.Match[str]]:
     each backslash-newline. Each line must fit the step grammar."""
     found = []
     for line in script.replace("\\\n", "").splitlines():
-        if UNSPLIT.search(line):
-            raise Unreadable(f"{where}: {line!r} holds whitespace bash does not split at")
         line = " ".join(line.split())
         if not line or line.startswith("#") or CAPTURE.fullmatch(line) or OTHER.fullmatch(line):
             continue

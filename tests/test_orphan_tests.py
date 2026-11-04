@@ -540,14 +540,24 @@ class OrphanTestsTests(unittest.TestCase):
                 {caller: CALLER.replace(
                     "        run: |\n          # npm test runs package.json's test script.\n"
                     + TOOL_TEST + "          npm test\n",
-                    "        run: |\n          # npm test runs package.json's test script.           npm test\n",
+                    "        run: |\n          # npm test runs package.json's test script.\u2028          npm test\n",
                 )},
-                "breaks a line where YAML does not",
+                "whitespace other than space and tab",
             ),
             # Bash passes a no-break space inside a word; str.split() would split there.
             "a no-break space in a test step": (
-                {caller: CALLER.replace("          npm test\n", "          npm test\n")},
-                "whitespace bash does not split at",
+                {caller: CALLER.replace("          npm test\n", "          npm\u00a0test\n")},
+                "whitespace other than space and tab",
+            ),
+            # YAML keeps a trailing no-break space in a plain scalar, and npm looks up
+            # a script named with it.
+            "a no-break space ending a plain scalar": (
+                {caller: CALLER.replace(
+                    "        run: |\n          # npm test runs package.json's test script.\n"
+                    + TOOL_TEST + "          npm test\n",
+                    "        run: npm run test\u00a0\n",
+                )},
+                "whitespace other than space and tab",
             ),
             "a line separator in an npm script": (
                 {"tools/tool/package.json": FILES["tools/tool/package.json"].replace(
