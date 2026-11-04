@@ -63,6 +63,18 @@ impl Figures {
     pub fn ratio(&self, name: &str) -> Option<&Decimal> {
         self.ratios.iter().find(|(k, _)| k == name).map(|(_, v)| v)
     }
+
+    /// The figure a ratio divides by turnover, as `compute` divides it.
+    pub fn numerator(&self, name: &str) -> Option<&Decimal> {
+        match name {
+            "total_expenses_to_turnover" => Some(&self.total_expenses_for_ratio),
+            "cost_of_sales_to_turnover" => Some(&self.cost_of_sales_for_ratio),
+            "labour_to_turnover" => Some(&self.labour),
+            "rent_to_turnover" => Some(self.amount("rent")),
+            "motor_vehicle_to_turnover" => Some(self.amount("motor_vehicle")),
+            _ => None,
+        }
+    }
 }
 
 fn amount_error(value: &Decimal) -> Failure {

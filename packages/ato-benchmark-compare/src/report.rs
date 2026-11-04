@@ -10,7 +10,7 @@ use crate::dataset::{Band, BusinessType, Dataset, Range, ratio_label};
 use crate::decimal::Decimal;
 use crate::mapping::{BUCKETS, EXPENSE_BUCKETS, is_bucket};
 use crate::money::{money, percent, percent_range};
-use crate::ratios::{EvidenceMessage, Figures};
+use crate::ratios::{EvidenceMessage, Figures, quantise};
 use crate::raw::Raw;
 
 pub const WITHIN: &str = "within";
@@ -33,6 +33,10 @@ pub const RATIO_ORDER: [&str; 5] = [
     "rent_to_turnover",
     "motor_vehicle_to_turnover",
 ];
+
+pub const GAP_NOTE: &str = "Each gap is a working, not an ATO figure, adjustment or finding: \
+how far the figure behind a ratio reported above or below its range is from the figure at the \
+nearest range edge, that edge times turnover. Nothing here says any figure should change.";
 
 const OTHER_INCOME_NOTE: &str = "other_business_income was omitted. The ATO rule divides by \
 sales, or by total business income once other income exceeds sales, so every ratio is \
@@ -748,6 +752,57 @@ pub fn to_dict(comparison: &Comparison, unreviewed: Value) -> Result<Map<String,
     );
     out.insert("disclaimer".into(), json!(DISCLAIMER));
     Ok(out)
+}
+
+/// For each ratio the comparison reports above or below its range, the dollar
+/// distance from the figure behind it to the nearest range edge at the same
+/// turnover, exactly: a working, not an ATO adjustment.
+pub fn gaps(comparison: &Comparison) -> Result<Value, Failure> {
+    let figures = &comparison.figures;
+    let mut rows = Vec::new();
+    for v in &comparison.verdicts {
+        let Some(range) = v
+            .benchmark
+            .as_ref()
+            .filter(|_| [ABOVE, BELOW].contains(&v.status))
+        else {
+            continue;
+        };
+        let (edge, side) = if v.status == ABOVE {
+            (&range.maximum, "maximum")
+        } else {
+            (&range.minimum, "minimum")
+        };
+        // Ratios are compared at 4 places. An edge on that grid keeps the
+        // exact figure on the verdict's side of it, so the gap is positive.
+        if !edge.equals(&quantise(edge)?)? {
+            return Err(Failure::Value(format!(
+                "{}: the range edge {edge} has more than 4 decimal places, the precision \
+                 ratios are compared at, so no gap is worked out",
+                v.label
+            )));
+        }
+        let figure = figures.numerator(&v.key).expect("a compared ratio");
+        let at_edge = edge.mul(&figures.turnover)?;
+        let gap = if v.status == ABOVE {
+            figure.sub(&at_edge)?
+        } else {
+            at_edge.sub(figure)?
+        };
+        rows.push(json!({
+            "ratio": v.key,
+            "label": v.label,
+            "status": v.status,
+            "is_key_ratio": v.is_key,
+            "edge": side,
+            "benchmark_edge": text_of(edge),
+            "turnover": text_of(&figures.turnover),
+            "figure": text_of(figure),
+            "figure_at_edge": text_of(&at_edge),
+            "gap": text_of(&gap),
+        }));
+    }
+    Ok(json!({"gaps": rows, "note": GAP_NOTE, "disclaimer": DISCLAIMER}))
 }
 
 /// Serialise a comparison without presenting unsupplied amounts as zero.

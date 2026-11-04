@@ -3,7 +3,7 @@
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets and a main residence worksheet that no Python release contains. Python releases through 0.1.9
+worksheets, a main residence worksheet and a borrowing expenses worksheet that no Python release contains. Python releases through 0.1.9
 contain 10 worksheets. Until the MCP server links this crate,
 it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
@@ -17,8 +17,8 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Seventeen calculation worksheets for established facts: ordinary GST, resident basic income
-tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, ordinary employer FBT, car fringe benefit taxable values
+Eighteen calculation worksheets for established facts: ordinary GST, resident basic income
+tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, first-year depreciation,
 quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
@@ -85,6 +85,7 @@ lists the commands.
 | `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
 | `main-residence` | `capital_gain`, `capital_loss`, `market_value_basis`, `ownership_start`, `ownership_end`, `lived_periods`, `income_use_periods`, `absence_choice_periods`, `new_home_acquired`, `year`, `scope_confirmed` |
+| `borrowing-expenses` | `borrowing_expenses`, `other_borrowing_expenses_in_year`, `income_use`, `loan_start`, `loan_term_end`, `repaid_on`, `section_26_50_applies`, `year`, `scope_confirmed` |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
@@ -101,10 +102,11 @@ lists the commands.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 
-The 2 car commands and `main-residence` have no Python original; their arguments follow the same
+The 2 car commands, `main-residence` and `borrowing-expenses` have no Python original; their arguments follow the same
 rules. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
-for no new home. Every argument is required, as the Python functions had no defaults. Input over 8 MiB,
+for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
+string and `loan_term_end` and `repaid_on` as dates or `null`. Every argument is required, as the Python functions had no defaults. Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Supported periods
@@ -115,7 +117,8 @@ or a decimal string over 8,192 bytes, is refused.
 | Resident tax | 2024-25, 2025-26 and 2026-27; full-year resident ordinary income, before offsets and levies |
 | CGT | 2025-26 and 2026-27, resident individual's established gains and losses; losses before the 50% discount |
 | Main residence | CGT events in 2024-25 to 2026-27; one dwelling disposed of by a resident individual, before the discount |
-| FBT | Year ended 31 March 2026; established type 1 and type 2 taxable values, ordinary employer |
+| Borrowing expenses | 2024-25 to 2026-27, before s 26-155 from 2027-28; one loan's established expenditure, use and dates |
+| FBT | Years ended 31 March 2026 and 2027; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and the 25% deemed depreciation rate |
 | Depreciation | 2025-26 and 2026-27, first year of an ordinary tangible Division 40 asset; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
@@ -256,9 +259,8 @@ payment cannot take the taxable value below nil, and any excess is reported,
 not applied to another benefit. An exempt electric car's `taxable_value` is nil;
 `taxable_value_before_exemption` is the notional value its reportable fringe
 benefits amount is worked out from, which neither worksheet grosses up. The
-results are taxable values before gross-up: for the year ended 31 March 2026,
-the only year `fbt` supports, pass them to `fbt` as type 1 or type 2 values once
-that classification is established. Only the gross taxable value is rounded to
+results are taxable values before gross-up: pass them to `fbt` for the same
+year as type 1 or type 2 values once that classification is established. Only the gross taxable value is rounded to
 cents, so the displayed base value or deemed amounts can differ by a cent from
 the figures behind it. The tests hold both
 worksheets to the ATO's and the Library's worked examples; see
@@ -296,6 +298,29 @@ dollars. Pass `assessable_capital_gain` to `capital-gains` as a discount or
 other gain once the 12-month test is established from `ownership_period_from`.
 The tests hold it to the ATO's and the Library's worked examples; see
 [calculation evidence](docs/calculation-evidence.md#main-residence).
+
+## Borrowing expenses
+
+`borrowing_expenses` works out one income year's deduction for one loan's
+borrowing expenses under ITAA 1997 s 25-25. The caller establishes the
+expenditure, the extent the money is used to produce assessable income, the
+first day it was borrowed, the end of the original contract's period, any
+repayment day and the income-producing share of other borrowing expenses
+incurred that year. A total of $100 or less is deducted in the year incurred
+(s 25-25(6)). Otherwise the period of the loan is the shortest of the
+contract's period, the period to repayment and 5 years from the first
+borrowing, every day counted, both ends included, as the ATO counts it; each
+year's maximum is the remaining expenditure over the days left times the
+year's days in the period, so the year of repayment takes the rest; and the
+deduction is the maximum times the income-producing share.
+
+Each maximum is rounded to cents and carried forward at that amount, as the
+ATO's examples are; the Library prints whole dollars. The worksheet refuses a
+holiday home or other leisure facility unless s 26-50(3) applies at all times
+in the year, a loan first drawn on 29 February, and income years from 2027-28,
+when s 26-155 quarantines residential rental deductions. The tests hold it to
+the ATO's and the Library's worked examples; see
+[calculation evidence](docs/calculation-evidence.md#borrowing-expenses).
 
 ## Worksheet discovery
 

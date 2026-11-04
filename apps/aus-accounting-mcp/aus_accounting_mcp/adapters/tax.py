@@ -186,3 +186,57 @@ def calculate(facts: TaxFacts) -> dict[str, Any]:
         return function(**arguments)
     except (ValueError, InvalidOperation) as exc:
         raise InputError(str(exc)) from exc
+
+
+def _table(heading: str, values: dict[str, Any]) -> list[str]:
+    if not values:
+        return []
+    rows = (f"| `{name}` | {value} |" for name, value in values.items())
+    return [f"| {heading} | Value |", "| --- | --- |", *rows, ""]
+
+
+def render_file_note(facts: TaxFacts, result: dict[str, Any]) -> str:
+    """Restate one worksheet result as a Markdown file note.
+
+    Every figure, provision, date and caveat is the engine's or the operator's; the
+    note adds none. The facts are as supplied, the assumptions are the engine's scope
+    statement and the open issues are its warnings.
+    """
+    passage = calculations.worksheet_catalogue()[result["calculation"]]["source_passage"]
+    supplied = (
+        f"- `{name}`: {str(value).lower() if isinstance(value, bool) else value}"
+        for name, value in facts.model_dump().items()
+    )
+    return "\n".join([
+        f"# File note: {result['calculation']} worksheet, {result['period']}",
+        "",
+        f"Drafted from the {result['engine']} {result['engine_version']} result, which it "
+        "restates without adding any figure.",
+        "",
+        "## Facts relied on",
+        "",
+        "Established by the operator and not verified by this server.",
+        "",
+        *supplied,
+        "",
+        "## Calculation",
+        "",
+        *_table("Amount (AUD)", result["amounts"]),
+        *_table("Rate", result["rates"]),
+        "## Assumptions",
+        "",
+        "The operator confirmed this scope:",
+        "",
+        result["scope"],
+        "",
+        "## Provisions and sources",
+        "",
+        f"The engine's source check covered: {passage}.",
+        "",
+        *(f"- {url} (checked {result['source_checked']})" for url in result["sources"]),
+        "",
+        "## Open issues",
+        "",
+        *(f"- {warning}" for warning in result["warnings"]),
+        "",
+    ])

@@ -50,7 +50,7 @@ from .adapters.payday import (
     review_contribution,
     review_contributions,
 )
-from .adapters.tax import TaxFacts, calculate
+from .adapters.tax import TaxFacts, calculate, render_file_note
 from .corpus import (
     MAX_CORPUS_BYTES,
     MAX_OFFSET as CORPUS_MAX_OFFSET,
@@ -1014,6 +1014,10 @@ def calculate_tax_worksheet(
     facts: Annotated[TaxFacts, Field(description="Established facts for one worksheet kind. "
         "Read calculation_worksheets in aus-accounting://scope before confirming scope. "
         "Supply established zero amounts explicitly; do not infer missing facts.")],
+    file_note: Annotated[bool, Field(strict=True,
+        description="True also returns file_note, a Markdown note restating the result: "
+        "facts relied on, calculation, assumptions, provisions and dated sources, and open "
+        "issues. False, the default, leaves the result unchanged.")] = False,
 ) -> TaxCalculation:
     """Calculate one of fourteen bounded tax and super worksheets, GST to Division 293.
 
@@ -1032,12 +1036,17 @@ def calculate_tax_worksheet(
     field is a non-negative AUD amount in plain decimal notation, such as 1234.56,
     with at most 2 decimal places and at most 1000000000000.00.
     Results include engine version, source-check date, citations and exclusions.
+    With file_note true the result also carries a Markdown file note that restates
+    it for a workpaper; a refused worksheet still returns only its refusal.
     These worksheets do not prepare a BAS or return, apply Medicare family reductions,
     exemptions or the surcharge, limit a study loan repayment to the loan balance,
     value benefits or assets, or establish post-June 2026 SG entitlement.
     All maths stays in australian-tax-calculators. Local review aid, not advice.
     """
-    return cast(TaxCalculation, calculate(facts))
+    result = calculate(facts)
+    if file_note:
+        result = {**result, "file_note": render_file_note(facts, result)}
+    return cast(TaxCalculation, result)
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Report bundled data periods and sources")

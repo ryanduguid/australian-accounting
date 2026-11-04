@@ -771,6 +771,10 @@ class TaxCalculation(EngineResult):
     sources: list[str]
     source_checked: DateText
     warnings: list[str]
+    file_note: NotRequired[Annotated[str, Field(
+        description="Markdown file note restating this result, present only when requested: "
+        "facts relied on, calculation, assumptions, provisions and dated sources, and open "
+        "issues. It adds no figure; retain its caveats.")]]
 
 
 Unknown = Annotated[

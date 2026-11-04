@@ -250,8 +250,16 @@ and `dataset_digest`.
 
 `compare-figures` returns the comparison by default; `output` selects
 `to_dict` (the raw payload), `evidenced` (the evidenced payload described
-above), `text` (the printed report) or `evidenced_ratio` (whether `ratio` rests
-on supplied fields).
+above), `text` (the printed report), `evidenced_ratio` (whether `ratio` rests
+on supplied fields) or `gaps`.
+
+`gaps` lists each ratio the comparison reports `above` or `below` its range,
+with the nearest edge, the figure behind the ratio, that edge times turnover
+and the exact difference. For the bakery, motor vehicle expenses of $9,500 are
+$1,000 above the 1% figure: 0.01 × $850,000 is $8,500. Each gap is a working,
+not an ATO figure, adjustment or finding, and the payload says so. A ratio that
+is within its range or `not_supplied` has no gap. An edge with more than 4
+decimal places, finer than the ratios are compared at, is refused.
 
 ```sh
 echo '{"totals": {"turnover": "850000", "cost_of_sales": "270000"}}' \

@@ -39,6 +39,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
 | FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020 and ¶3-045 (reportable value), with the ATO's FBT return 2026 instructions (item 23), employer's guide (7.8 and 7.9) and reportable fringe benefits page | 30 June 2026; 1 April 2026 (item 23); 12 January 2023 (reportable fringe benefits) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027; the reportable taxable value before the employee's $2,000 threshold and type 2 gross-up |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
+| Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
@@ -113,6 +114,17 @@ to the nearest dollar, so the engine does too: 14A $34,323, 14B $11,321 (from
 $11,320.80), item 15 $45,644 and item 16 $21,452.68, against the $21,452.73 estimate.
 The optional rounding of item 16 down to a multiple of 5 cents is left to the
 preparer.
+
+The year ended 31 March 2027 was opened on 4 November 2026. The ATO's FBT rates
+and thresholds page, updated 20 May 2026, gives 47% and the 2.0802 and 1.8868
+gross-up rates for years ending 31 March 2023 to 2027, as the Fringe Benefits
+Tax Rates Act 1986 s 6 and FBTAA s 5B give them. The Federal Register's 2026
+Acts, to the latest made on 26 October, amend no FBT rule for that year; the
+Tax Reform No. 1 Act's FBT amendments apply from 1 April 2027, and none amends
+the s 8A electric car exemption. The ATO has not published the FBT return 2027
+instructions (the address the 2026 instructions' pattern gives returned 'Page
+not found' that day), so the items follow the 2026 instructions.
+`tests/tables.rs` gives MantCo's figures for 2027.
 
 ## FBT car benefits
 
@@ -202,6 +214,44 @@ No example settles 2 s 118-140 boundaries, so the worksheet takes the narrower
 reading: the 12 months before ownership ends start the day after the same date
 a year earlier, and where the same day of the month 6 months before the end does
 not exist (31 August), the 6 months start on the first of the next month.
+
+## Borrowing expenses
+
+This worksheet was added on 4 November 2026. ITAA 1997 s 25-25 was read in
+compilation 268 (1 October 2026) on the Federal Register and in the ATO's legal
+database, and the ATO's Borrowing expenses page (updated 22 May 2026) that day.
+`tests/borrowing_expenses.rs` holds each case, with every day counted, both
+ends included. The ATO's examples give a day and a month only; the tests put
+each one's Year 4, which it says is a leap year, on 2023-24.
+
+| Case | Source | Worksheet | Published |
+| --- | --- | --- | --- |
+| Peter: $1,600 over 5 years from 3 July; Year 5 $321.58 × 365 ÷ 367; Year 6 $1.75 × 2 ÷ 2 | ATO page | $319.83; $1.75 | $1,598.25 claimed by the end of Year 5; $1.75 |
+| Fiona and Max: $1,670 from 17 July, 170,000 ÷ 209,000 for rent; Year 5 $348.45 × 365 ÷ 381; Year 6 $14.63 × 16 ÷ 16 | ATO page | $271.53; $11.90 | $271.53; $11.90 |
+| Ben: $3,600 over a 4-year loan from 1 September 2025; $3,600 × 303 ÷ 1,461, then $2,853.39 × 365 ÷ 1,158 | ¶4-160 | $746.61; $899.38 | $747; $899, in whole dollars |
+
+Each year's maximum is rounded to cents and carried forward at that amount:
+Peter's first 4 years, $318.07, $319.83, $319.82 and $320.70, leave the
+$321.58 of Year 5, and the ATO's Year 6 remainder, $1.75, follows. The
+Library carries whole dollars, so its later years differ by cents.
+
+The s 25-25(4) example counts 302 days from 1 September 1997 to 30 June 1998
+and 183 from 1 July to 31 December 1998, one fewer than every day both ends
+included, though its 4-year period is 1,461 days, counted that way. The ATO's
+examples and ¶4-160 count every day (303 days from 1 September 2025 to 30 June
+2026), and the worksheet does too. Acts Interpretation Act 1901 s 15AD, as
+substituted from 27 December 2011, says only that an example is not exhaustive
+and may extend a provision, so it does not settle which count prevails. Where
+the period ends in the year, as in the example's second year, the count does
+not change the result.
+
+The $100 test in s 25-25(6) is '$100 or less'; ¶4-160 says 'less than $100',
+and the worksheet follows the Act. Money not used to produce income at all is
+outside s 25-25(6)(a) and (b), so its expenditure is spread and nothing is
+deducted (s 25-25(3), note). No source settles when 5 years from 29 February
+end, so a loan first drawn that day is refused. Treasury Laws Amendment (Tax
+Reform No. 1) Act 2026, Schedule 2 item 5, applies s 26-155 from the 2027-28
+income year, so later years are refused.
 
 ## Depreciation
 
@@ -465,5 +515,6 @@ means the document bytes changed; it does not establish that the rule changed.
 | `Tax/Individuals.md` | `311921374a9b011b35d999de38e02458a0b286472c72ea9b3420c41e89ba9a6c` |
 | `Tax/Capital Gains Tax (CGT).md` | `beb27226cbb502ecec1432603fcab5d2859efa3d9a437898bdc7fe3c2870a970` |
 | `Tax/Fringe Benefits Tax (FBT).md` | `770dc63fda18062c4785ea625cd772391753501e05873a4bbcc099d65e332fc8` |
+| `Tax/Deductions.md` | `d8134b72378f43b2f7c9d4312518a3d8974d2421e859e1e8e983eabd010302cb` |
 | `Tax/Depreciation.md` | `395195f3422f9695fee4ea409e34b241384002091b9ea67a8bbd75197d1912e1` |
 | `Superannuation/Instant Reference – Rates, Thresholds and Checklists.md` | `de94931c47597286f33e0a952ff1686cbe7120bca48def74d1a44dd388922bf6` |

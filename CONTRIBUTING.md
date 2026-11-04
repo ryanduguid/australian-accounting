@@ -203,6 +203,11 @@ release callers require that test job; no second pytest run is needed.
   dependency lists against each application's manifest on every change. The aggregate requires a
   successful selection and exactly the corresponding successful or skipped app jobs.
   Every main push and manual run executes all app checks, preserving release evidence.
+- `devcontainer.yml`, `glama-badges.yml` and `readme-quick-start.yml` have no pull request
+  path filter, so `devcontainer-gates`, `glama-badges-gates` and `readme-quick-start-gates`
+  report on every pull request. Each changes job passes its former trigger paths to
+  `app_ci.py` in `CI_PATHS`. A pull request runs the other jobs only when its merge
+  changes one of those paths or what changed is unknown; any other run executes them all.
 - `.github/ci/<engine>/checks.sh` holds an engine's own source guards, and
   `.github/ci/<engine>/smoke.sh` its checks against the built wheel. Both are optional.
 - `boundaries.yml` and `codeql.yml` run on every change.

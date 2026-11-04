@@ -307,11 +307,8 @@ pub fn fbt(
     year_ended: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<Value> {
-    scope(scope_confirmed, &Arg::Text(year_ended.py_str()), "fbt").map_err(|e| match e {
-        // `_scope` reports the period as the original's `str(year_ended)`.
-        Error::Value(m) => Error::Value(m),
-        other => other,
-    })?;
+    // `_scope` reports the period as the original's `str(year_ended)`.
+    let year = scope(scope_confirmed, &Arg::Text(year_ended.py_str()), "fbt")?;
     let amounts = precise(|| {
         let first = money(type_one_value)?.mul(&d("2.0802"))?;
         let second = money(type_two_value)?.mul(&d("1.8868"))?;
@@ -330,7 +327,7 @@ pub fn fbt(
     })?;
     result(
         "fbt",
-        "year ended 31 March 2026",
+        &format!("year ended 31 March {year}"),
         amounts,
         vec![
             rate("type_one", "2.0802"),
@@ -1494,11 +1491,243 @@ pub fn main_residence(
     )
 }
 
-const KINDS: [&str; 17] = [
+/// The dates that fix the period of a loan under s 25-25(5): the first day
+/// it was borrowed, the end of its original contract and the day it was
+/// repaid.
+pub struct LoanDates<'a> {
+    pub start: &'a Arg,
+    pub term_end: &'a Arg,
+    pub repaid_on: &'a Arg,
+}
+
+/// A loan's validated dates as day numbers, read against the income year
+/// claimed.
+struct Loan {
+    start: i64,
+    term_end: Option<i64>,
+    repaid: Option<i64>,
+    /// The income year the loan began in, by the calendar year it starts in.
+    first_year: i64,
+    /// The income year claimed, by the calendar year it starts in.
+    claim_year: i64,
+    /// The first day of the income year claimed.
+    year_start: i64,
+    /// The last day of the income year claimed.
+    year_end: i64,
+}
+
+impl LoanDates<'_> {
+    /// Each date in turn, then `loan_start` against the income year claimed.
+    fn parse(&self, year: &str) -> Result<Loan> {
+        let start = date_arg(self.start, "loan_start")?;
+        let (first_year, month, day) = dates::to_civil(start);
+        if (month, day) == (2, 29) {
+            return refuse(
+                "A loan first drawn on 29 February is out of scope: no source settles when its 5 years end.",
+            );
+        }
+        let later = |value: &Arg, name: &str| match value {
+            Arg::Json(Value::Null) => Ok(None),
+            Arg::Json(Value::String(t)) if dates::parse(t).is_some_and(|day| day >= start) => {
+                Ok(dates::parse(t))
+            }
+            _ => refuse(format!(
+                "{name} must be null or a YYYY-MM-DD date no earlier than loan_start."
+            )),
+        };
+        let term_end = later(self.term_end, "loan_term_end")?;
+        let repaid = later(self.repaid_on, "repaid_on")?;
+        let claim_year: i64 = year[..4].parse().expect("income year");
+        let year_start = dates::parse(&format!("{claim_year}-07-01")).expect("income year");
+        let year_end = dates::add_months(year_start, 12) - 1;
+        if start > year_end {
+            return refuse(format!(
+                "loan_start must not be after the {year} income year ended."
+            ));
+        }
+        let first_year = if month >= 7 {
+            first_year
+        } else {
+            first_year - 1
+        };
+        Ok(Loan {
+            start,
+            term_end,
+            repaid,
+            first_year,
+            claim_year,
+            year_start,
+            year_end,
+        })
+    }
+}
+
+impl Loan {
+    /// s 25-25(5): the shortest of the contract's period, the period to the
+    /// day the loan is repaid and 5 years from the first day it was borrowed,
+    /// each day counted (the ATO's 3 July to 2 July 5 years later), as
+    /// determined at the end of the income year ending on `last`.
+    fn end_at(&self, last: i64) -> i64 {
+        let five_years = dates::add_months(self.start, 60) - 1;
+        let planned = self.term_end.map_or(five_years, |end| end.min(five_years));
+        // Determined at the end of each income year: a repayment counts from then.
+        match self.repaid {
+            Some(day) if day <= last => planned.min(day),
+            _ => planned,
+        }
+    }
+
+    /// The last day of the period of the loan at the end of the income year
+    /// claimed, and the paragraph of s 25-25(5) that fixes it.
+    fn period(&self, year: &str) -> Result<(i64, &'static str)> {
+        let end = self.end_at(self.year_end);
+        if end < self.year_start {
+            return refuse(format!(
+                "The period of the loan ended on {}, before the {year} income year began: nothing remains to deduct.",
+                dates::format(end)
+            ));
+        }
+        let basis = if self.term_end == Some(end) {
+            "s 25-25(5)(a): the original loan contract"
+        } else if self.repaid == Some(end) {
+            "s 25-25(5)(b): to the day the loan was repaid"
+        } else {
+            "s 25-25(5)(c): 5 years from the first borrowing"
+        };
+        Ok((end, basis))
+    }
+
+    /// For the income year claimed: the remaining expenditure, the maximum
+    /// deduction, the days left in the period of the loan and its days in
+    /// the year.
+    fn maximum_deduction(&self, expenditure: &Decimal) -> Result<(Decimal, Decimal, i64, i64)> {
+        // s 25-25(4), year by year from the one the loan began: the remaining
+        // expenditure over the days left, times those days in the year. Each
+        // maximum is rounded to cents and carried forward at that amount, as the
+        // ATO's examples are.
+        precise(|| {
+            let mut remaining = expenditure.clone();
+            let mut from =
+                dates::add_months(self.year_start, 12 * (self.first_year - self.claim_year));
+            loop {
+                let last = dates::add_months(from, 12) - 1;
+                let end = self.end_at(last);
+                let begin = self.start.max(from);
+                let (left, days) = (end - begin + 1, end.min(last) - begin + 1);
+                let maximum = cents(remaining.mul(&int(days))?.div(&int(left))?)?;
+                if from == self.year_start {
+                    return Ok((remaining, maximum, left, days));
+                }
+                remaining = remaining.sub(&maximum)?;
+                from = last + 1;
+            }
+        })
+    }
+}
+
+/// s 25-25(6): the deduction, not spread, in the income year the expenditure
+/// was incurred.
+fn not_spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -> Result<Value> {
+    let first_year = loan.first_year;
+    let incurred_in = format!("{first_year}-{:02}", (first_year + 1) % 100);
+    if incurred_in != year {
+        return refuse(format!(
+            "s 25-25(6) applied in the {incurred_in} income year the expenditure was incurred, so its deduction is not spread to {year}."
+        ));
+    }
+    let amounts = precise(|| {
+        Ok(vec![
+            ("borrowing_expenses", expenditure.clone()),
+            ("remaining_expenditure", expenditure.clone()),
+            ("maximum_deduction", expenditure.clone()),
+            ("deduction", cents(expenditure.mul(share)?)?),
+            ("remaining_expenditure_after_year", int(0)),
+        ])
+    })?;
+    result(
+        "borrowing_expenses",
+        year,
+        amounts,
+        vec![
+            rate("spread", "not spread: $100 or less (s 25-25(6))"),
+            rate("income_use", share),
+        ],
+    )
+}
+
+/// s 25-25(4): the expenditure spread by days over the period of the loan.
+fn spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -> Result<Value> {
+    let (end, basis) = loan.period(year)?;
+    let (remaining, maximum, days_left, days_in_year) = loan.maximum_deduction(expenditure)?;
+    let amounts = precise(|| {
+        Ok(vec![
+            ("borrowing_expenses", expenditure.clone()),
+            ("remaining_expenditure", remaining.clone()),
+            ("maximum_deduction", maximum.clone()),
+            ("deduction", cents(maximum.mul(share)?)?),
+            ("remaining_expenditure_after_year", remaining.sub(&maximum)?),
+        ])
+    })?;
+    result(
+        "borrowing_expenses",
+        year,
+        amounts,
+        vec![
+            rate("spread", "spread over the period of the loan (s 25-25(4))"),
+            rate("income_use", share),
+            rate("period_of_the_loan_from", dates::format(loan.start)),
+            rate("period_of_the_loan_to", dates::format(end)),
+            rate("period_of_the_loan", basis),
+            rate("remaining_loan_period_days", days_left),
+            rate("days_in_year", days_in_year),
+        ],
+    )
+}
+
+/// ITAA 1997 s 25-25: one income year's deduction for one loan's borrowing
+/// expenses. Under s 25-25(6) a total of $100 or less is deducted when
+/// incurred; otherwise s 25-25(4) spreads it by days over the period of the
+/// loan, as determined at the end of each income year, so the year the loan
+/// is repaid takes what remains.
+pub fn borrowing_expenses(
+    borrowing_expenses: &Arg,
+    other_borrowing_expenses_in_year: &Arg,
+    income_use: &Arg,
+    loan: LoanDates<'_>,
+    section_26_50_applies: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, "borrowing_expenses")?;
+    let expenditure = money(borrowing_expenses)?;
+    let other = money(other_borrowing_expenses_in_year)?;
+    let Some(share) = finite_between(income_use, "0", "1")? else {
+        return refuse("income_use must be a finite Decimal fraction from 0 to 1.");
+    };
+    if flag(section_26_50_applies, "section_26_50_applies")? {
+        return refuse(
+            "Section 26-50 denies deductions for a leisure facility, such as a holiday home, unless s 26-50(3) applies at all times in the income year; part-year use under s 26-50(4) is out of scope.",
+        );
+    }
+    let loan = loan.parse(&year)?;
+
+    // s 25-25(6): this loan's income-producing share plus the taxpayer's
+    // other borrowing expenditure that year, at $100 or less, is not spread.
+    // Money not used to produce income at all is outside s 25-25(6)(a) and
+    // (b), so it is spread and nothing is deducted (s 25-25(3), note).
+    let total = precise(|| Ok(expenditure.mul(&share)?.add(&other)?))?;
+    if !share.is_zero() && total.le(&int(100))? {
+        return not_spread(&year, &loan, &expenditure, &share);
+    }
+    spread(&year, &loan, &expenditure, &share)
+}
+
+const KINDS: [&str; 18] = [
     "gst",
     "resident_tax",
     "capital_gains",
     "main_residence",
+    "borrowing_expenses",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",

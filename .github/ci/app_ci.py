@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import fnmatch
 import json
 import os
 import subprocess
@@ -37,6 +38,15 @@ APP_JOBS = {
     "aus-accounting-mcp": frozenset({"test", "lint", "dependency-audit"}),
     "lodgeit-calculator-adapter": frozenset({"rust"}),
 }
+# Workflows that once filtered pull requests by path, and the jobs that filter
+# ran. Each one's changes job passes the former trigger paths in CI_PATHS.
+PATH_JOBS = {
+    "devcontainer": frozenset({"setup"}),
+    "glama-badges": frozenset({"check", "dependency-audit", "worker"}),
+    "readme-quick-start": frozenset({"trial"}),
+}
+# Every selection's jobs, by the name its select and gate commands take.
+SELECTED_JOBS = APP_JOBS | PATH_JOBS
 KNOWN_PREFIXES = tuple(f"packages/{name}/" for name in PACKAGES) + tuple(
     f"apps/{name}/" for name in DEPENDENCIES
 )
@@ -56,6 +66,24 @@ def should_run(app: str, paths: list[str]) -> bool:
         if not path.startswith(KNOWN_PREFIXES):
             return True
     return False
+
+
+def trigger_paths() -> list[str]:
+    """The CI_PATHS patterns, one per line; none is an error rather than a skip."""
+    lines = os.environ.get("CI_PATHS", "").splitlines()
+    patterns = [line.strip() for line in lines if line.strip()]
+    if not patterns:
+        raise ValueError("CI_PATHS names no paths")
+    return patterns
+
+
+def path_selected(paths: list[str], patterns: list[str]) -> bool:
+    """True when a changed path matches a pattern, or what changed is unknown."""
+    # fnmatch's * also matches /, unlike GitHub's. CI_PATHS holds only literal paths
+    # and a trailing /**, which select the same paths in both.
+    return not paths or any(
+        fnmatch.fnmatchcase(path, pattern) for path in paths for pattern in patterns
+    )
 
 
 def changed_paths(root: Path) -> list[str]:
@@ -86,7 +114,7 @@ def check_results(results: object, event: str, app: str) -> None:
     run = outputs.get("run") if isinstance(outputs, dict) else None
     if run not in ("true", "false") or (event != "pull_request" and run != "true"):
         raise ValueError("Invalid application selection")
-    app_jobs = APP_JOBS[app]
+    app_jobs = SELECTED_JOBS[app]
     if not app_jobs <= results.keys():
         raise ValueError("Missing application job results")
     expected_app = "success" if run == "true" else "skipped"
@@ -102,11 +130,15 @@ def check_results(results: object, event: str, app: str) -> None:
 def main(argv: list[str]) -> int:
     event = os.environ.get("GITHUB_EVENT_NAME", "")
     try:
-        if len(argv) == 3 and argv[1] == "gate" and argv[2] in DEPENDENCIES:
+        if len(argv) == 3 and argv[1] == "gate" and argv[2] in SELECTED_JOBS:
             check_results(json.loads(os.environ.get("RESULTS", "")), event, argv[2])
-        elif len(argv) == 3 and argv[1] == "select" and argv[2] in DEPENDENCIES:
+        elif len(argv) == 3 and argv[1] == "select" and argv[2] in SELECTED_JOBS:
             paths = changed_paths(Path.cwd()) if event == "pull_request" else []
-            run = event != "pull_request" or should_run(argv[2], paths)
+            if argv[2] in PATH_JOBS:
+                selected = path_selected(paths, trigger_paths())
+            else:
+                selected = should_run(argv[2], paths)
+            run = event != "pull_request" or selected
             reason = "relevant or unknown change" if run else "only known unrelated paths"
             print(f"Application checks: {reason}", file=sys.stderr)
             print(f"run={'true' if run else 'false'}")

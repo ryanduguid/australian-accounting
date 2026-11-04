@@ -1,11 +1,10 @@
 name: Glama badge adapter
 
+# Every pull request runs the workflow so glama-badges-gates always reports;
+# the changes job skips the other jobs when none of its paths changed.
+
 on:
   pull_request:
-    paths:
-      - tools/glama-badge-server/**
-      - tools/glama-badge-worker/**
-      - .github/workflows/glama-badges.yml
   push:
     branches: [main]
     paths:
@@ -22,7 +21,33 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      run: ${{ steps.select.outputs.run }}
+    steps:
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - id: select
+        env:
+          # The former pull_request trigger paths.
+          CI_PATHS: |
+            tools/glama-badge-server/**
+            tools/glama-badge-worker/**
+            .github/workflows/glama-badges.yml
+        run: python3 .github/ci/app_ci.py select glama-badges >> "$GITHUB_OUTPUT"
+
   check:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -44,6 +69,8 @@ jobs:
       - run: cargo +1.99 build --locked --release
 
   dependency-audit:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -63,6 +90,8 @@ jobs:
         run: cargo audit --deny warnings
 
   worker:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -95,3 +124,29 @@ jobs:
       - run: worker-build --release --out-dir build-synthetic -- --features synthetic-trial
       - run: npm run test:synthetic
       - run: npm run dry-run:synthetic
+
+  glama-badges-gates:
+    needs: [changes, check, dependency-audit, worker]
+    if: always()
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The merge commit's first parent holds the base branch's workflow.
+          fetch-depth: 2
+          sparse-checkout: .github
+      - name: Require selected checks to succeed and unselected checks to skip
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: python3 .github/ci/app_ci.py gate glama-badges
+      - name: Require every job to be listed and kept
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: python3 .github/ci/check_gates.py .github/workflows/glama-badges.yml glama-badges-gates --no-results

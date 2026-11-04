@@ -1,8 +1,9 @@
 // Copyright 2026 Ryan Duguid
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-//! Calendar days for the main residence worksheet: ISO dates as day numbers
-//! (days since 1970-01-01, proleptic Gregorian) and calendar month steps.
+//! Calendar days for the main residence and borrowing expenses worksheets: ISO
+//! dates as day numbers (days since 1970-01-01, proleptic Gregorian) and
+//! calendar month steps.
 
 /// A strict `YYYY-MM-DD` date from 1900 to 2100, as its day number.
 pub fn parse(text: &str) -> Option<i64> {
@@ -73,7 +74,8 @@ fn from_civil(y: i64, m: i64, d: i64) -> i64 {
     era * 146_097 + doe - 719_468
 }
 
-fn to_civil(day: i64) -> (i64, i64, i64) {
+/// The year, month and day of a day number.
+pub fn to_civil(day: i64) -> (i64, i64, i64) {
     let z = day + 719_468;
     let era = z.div_euclid(146_097);
     let doe = z - era * 146_097;

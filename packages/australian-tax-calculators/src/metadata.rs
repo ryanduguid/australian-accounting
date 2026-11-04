@@ -286,7 +286,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
-        "fbt" => vec!["2026"],
+        // s 26-155 quarantines residential rental deductions from 2027-28.
+        "borrowing_expenses" => vec!["2024-25", "2025-26", "2026-27"],
+        "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" => keys(FBT_BENCHMARK_INTEREST_RATES),
         "payg_withholding" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
         "contribution_caps" => keys(CONTRIBUTION_CAPS),
@@ -313,12 +315,16 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Capital gains tax guide 2014, step 6: Applying current year capital losses",
         ),
         "fbt" => (
-            "2026-09-27",
-            "Calculating your FBT, steps 3 to 7 and the MantCo example; FBT return 2026 instructions, items 14A to 16",
+            "2026-11-04",
+            "Calculating your FBT, steps 3 to 7 and the MantCo example; FBT return 2026 instructions, items 14A to 16; FBT rates and thresholds, the FBT rate and gross-up rates for years ending 31 March 2023 to 2027",
         ),
         "main_residence" => (
             "2026-11-01",
             "Treating former home as main residence: the 6-year rule, Roya and Helen examples; Using your home for rental or business: working out the capital gain, the home first used to produce income rule and its examples",
+        ),
+        "borrowing_expenses" => (
+            "2026-11-04",
+            "ITAA 1997 s 25-25 and s 26-50, compilation 268 (1 October 2026); Borrowing expenses: the Peter and the Fiona and Max examples",
         ),
         "fbt_car_statutory" => (
             "2026-10-29",
@@ -404,6 +410,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2-060, 2-075",
             "2026-06-30",
             "2026-11-01",
+        ),
+        "borrowing_expenses" => (
+            "tax-examples-deductions",
+            "4-160",
+            "2026-06-30",
+            "2026-11-04",
         ),
         "fbt_car_statutory" | "fbt_car_operating_cost" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -536,6 +548,36 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "new_home_acquired",
                 "YYYY-MM-DD or null, when a new home that became the main residence was acquired (s 118-140)",
+            ),
+        ],
+        "borrowing_expenses" => vec![
+            (
+                "borrowing_expenses",
+                "AUD, this loan's expenditure for borrowing the money, such as establishment, valuation and mortgage document fees and stamp duty on the mortgage, but not interest; incurred in the income year the loan began",
+            ),
+            (
+                "other_borrowing_expenses_in_year",
+                "AUD, the income-producing share of the taxpayer's other borrowing expenses incurred in that income year, for the s 25-25(6) $100 test",
+            ),
+            (
+                "income_use",
+                "decimal fraction from 0 to 1, the extent the borrowed money is used to produce assessable income, the same in every income year of the loan",
+            ),
+            (
+                "loan_start",
+                "YYYY-MM-DD, the first day the money was borrowed",
+            ),
+            (
+                "loan_term_end",
+                "YYYY-MM-DD or null, the last day of the period the original loan contract specifies",
+            ),
+            (
+                "repaid_on",
+                "YYYY-MM-DD or null, the day the loan was repaid",
+            ),
+            (
+                "section_26_50_applies",
+                "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
             ),
         ],
         "fbt" => vec![("type_one_value", "AUD"), ("type_two_value", "AUD")],
@@ -687,6 +729,15 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ),
             ("absence_choice_periods", Json("[]")),
             ("new_home_acquired", Json("null")),
+        ],
+        "borrowing_expenses" => vec![
+            ("borrowing_expenses", Text("1600.00")),
+            ("other_borrowing_expenses_in_year", Text("0.00")),
+            ("income_use", Text("1")),
+            ("loan_start", Text("2024-07-03")),
+            ("loan_term_end", Text("2049-07-02")),
+            ("repaid_on", Json("null")),
+            ("section_26_50_applies", Flag(false)),
         ],
         "fbt" => vec![
             ("type_one_value", Text("1000.00")),
