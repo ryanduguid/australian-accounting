@@ -177,12 +177,14 @@ class Unreadable(Exception):
     """Something outside the grammar, so the check stops rather than guess."""
 
 
-def block_scalar(body: list[str], indicator: str) -> str:
+def block_scalar(body: list[str], indicator: str, broken: bool) -> str:
     """A block scalar's value as YAML 1.2 gives it, from its lines without their
-    indentation. Folded (>), the break between 2 lines that start with no space
-    is a space, or dropped when empty lines between them stay as breaks; every
-    other break stays, as in a literal (|) scalar. Then - drops the final break,
-    + keeps the trailing empty lines and no sign keeps one break."""
+    indentation; broken says whether the last line ends in a line break, as the
+    end of a file may not. Folded (>), the break between 2 lines that start with
+    no space is a space, or dropped when empty lines between them stay as
+    breaks; every other break stays, as in a literal (|) scalar. Then - drops
+    the breaks after the last line with content, + keeps them all and no sign
+    keeps its own, if any."""
     end = len(body)
     while end and not body[end - 1]:
         end -= 1
@@ -199,14 +201,17 @@ def block_scalar(body: list[str], indicator: str) -> str:
             value += "\n" * (empty + 1)
         value += line
         previous, empty = line, 0
-    if previous is None:
-        return ""
-    return value + {"-": "", "+": "\n" * (len(body) - end + 1)}.get(indicator[1:], "\n")
+    # The breaks after the last line with content: its own and each empty line's.
+    breaks = max(0, len(body) - end + (previous is not None) - (not broken))
+    if indicator[1:] == "+":
+        return value + "\n" * breaks
+    return value + "\n" if indicator[1:] == "" and previous is not None and breaks else value
 
 
 def load_yaml(text: str) -> object:
     """Parse the block YAML workflows use into dicts, lists and strings."""
     lines = text.splitlines()
+    terminated = text.endswith(("\n", "\r"))
     pos = 0
 
     def fail(why: str) -> Unreadable:
@@ -286,8 +291,13 @@ def load_yaml(text: str) -> object:
             ):
                 pos += 1
             body = lines[start:pos]
-            margin = next((len(line) - len(line.lstrip(" ")) for line in body if line.strip()), 0)
-            return block_scalar([line[margin:] for line in body], text)
+            # Without a line with content, every line is empty.
+            margin = next(
+                (len(line) - len(line.lstrip(" ")) for line in body if line.strip()),
+                max(map(len, body), default=0),
+            )
+            broken = pos < len(lines) or terminated
+            return block_scalar([line[margin:] for line in body], text, broken)
         if text:
             return text
         head = peek()

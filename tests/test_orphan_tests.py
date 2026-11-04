@@ -226,6 +226,24 @@ class OrphanTestsTests(unittest.TestCase):
                 )},
                 UNRUN | crates,
             ),
+            # An empty keep block is its line breaks, so the input is not ''.
+            "an input from an empty keep block": (
+                {
+                    caller: CALLER.replace(
+                        "      package: ${{ matrix.crate }}\n", "      package: ${{ matrix.crate }}\n      gate: |+\n\n"
+                    ),
+                    called: CALLED.replace("      root:\n", "      gate:\n        type: string\n      root:\n")
+                    .replace(CONDITION, "inputs.gate == '' && " + CONDITION),
+                },
+                UNRUN | {"crates/covered/wasm"},
+            ),
+            # A block that ends the file without a line break has none to keep.
+            "an input from a block at the end of the file": (
+                {caller: CALLER.split("  tool:\n")[0].replace(
+                    "      package: ${{ matrix.crate }}\n", "      package: |\n        covered"
+                )},
+                UNRUN | {"crates/second", "tools/tool", "tools/tool/tests/runtime.test.mjs"},
+            ),
             # YAML reads '' between single quotes as one quote.
             "a doubled single quote": (
                 {called: CALLED.replace(STEP_IF, "      - if: 'runner.os != ''Linux'''\n")},
