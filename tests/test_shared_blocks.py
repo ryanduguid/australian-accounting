@@ -24,14 +24,23 @@ package's CI runs `cargo fmt --check`, which refuses a file laid out otherwise.
 `CSVREAD_COPIES` pins the div7a and ato-benchmark copies of payday's CSV reader
 to declared substitutions, so payday's fuzz target covers the code they share.
 
+`PYTHON_COPIES` pins the Python-compatibility modules every Rust crate copies:
+each file belongs to a family of byte-identical files, and a new copy has to
+join one. The Unicode tables are pinned harder: a family with fewer tables keeps
+each one as `packages/au-tax-rates-data/src/pyunicode.rs` has it, and that file
+is what `tools/gen_pyunicode.py` beside it generates.
+
 Standard library only, and no component is imported: the files are read and
-parsed.
+parsed, and the generator runs as a script.
 """
 
 from __future__ import annotations
 
 import ast
 import re
+import subprocess
+import sys
+import unicodedata
 import unittest
 from pathlib import Path
 
@@ -147,6 +156,38 @@ CSVREAD_COPIES = {
     ),
 }
 
+
+# The Python-compatibility modules, by file: each family lists the crates whose
+# copies are the same bytes. The first family of pyunicode.rs has every table.
+RATES_DATA = "packages/au-tax-rates-data"
+LODGEIT_ADAPTER = "apps/lodgeit-calculator-adapter"
+ATO_BENCHMARK = "packages/ato-benchmark-compare"
+DIV7A = "packages/div7a-loan-review"
+PAYDAY = "packages/payday-super-checker"
+WIP_TALLY = "packages/the-wip-tally"
+PYTHON_COPIES = {
+    "pyunicode.rs": (
+        (RATES_DATA, LODGEIT_ADAPTER),
+        (ATO_BENCHMARK, DIV7A, PAYDAY, WIP_TALLY),
+    ),
+    "py.rs": (
+        (RATES_DATA, LODGEIT_ADAPTER),
+        (ATO_BENCHMARK, DIV7A),
+        (PAYDAY,),
+        (WIP_TALLY,),
+    ),
+    "pyjson.rs": (
+        (ATO_BENCHMARK, DIV7A, PAYDAY, WIP_TALLY),
+        (RATES_DATA,),
+        (LODGEIT_ADAPTER,),
+    ),
+}
+UNICODE_GENERATOR = ROOT / RATES_DATA / "tools" / "gen_pyunicode.py"
+EXACT_UNICODE = (
+    sys.implementation.name == "cpython"
+    and sys.version_info[:3] == (3, 15, 0)
+    and unicodedata.unidata_version == "17.0.0"
+)
 
 
 def _definitions(path: Path) -> dict[str, str]:
@@ -357,6 +398,63 @@ class RustCopyTests(unittest.TestCase):
         self.assertEqual(_rust_function(text, "b"), "pub fn b() {\n}\n")
         # A longer name sharing the prefix is a different function.
         self.assertEqual(_rust_function("fn ab() {\n}\nfn a() {\n}\n", "a"), "fn a() {\n}\n")
+
+
+def _rust_tables(text: str) -> dict[str, str]:
+    """Each `pub static` item, by name, with comments and layout removed.
+
+    rustfmt alone decides the layout, which the generator's output has not had.
+    """
+    code = re.sub(r"^\s*//.*\n", "", text, flags=re.M)
+    return {
+        match.group(1): "".join(match.group(0).split()).replace(",]", "]")
+        for match in re.finditer(r"^pub static (\w+):.*?\];\n", code, re.M | re.S)
+    }
+
+
+class PythonCopyTests(unittest.TestCase):
+    def test_every_copy_belongs_to_a_family(self) -> None:
+        for name, families in PYTHON_COPIES.items():
+            listed = [crate for family in families for crate in family]
+            found = [path.parents[1].relative_to(ROOT).as_posix()
+                     for path in (*PACKAGES.glob(f"*/src/{name}"), *ROOT.glob(f"apps/*/src/{name}"))]
+            with self.subTest(name=name):
+                self.assertEqual(len(listed), len(set(listed)))
+                self.assertEqual(set(listed), set(found))
+
+    def test_a_family_is_the_same_bytes(self) -> None:
+        for name, families in PYTHON_COPIES.items():
+            for family in families:
+                contents = {crate: (ROOT / crate / "src" / name).read_bytes() for crate in family}
+                with self.subTest(name=name, family=family):
+                    self.assertEqual(len(set(contents.values())), 1, sorted(contents))
+
+    def test_a_family_with_fewer_tables_keeps_them_as_the_full_file_has_them(self) -> None:
+        full, *others = PYTHON_COPIES["pyunicode.rs"]
+        tables = _rust_tables((ROOT / full[0] / "src" / "pyunicode.rs").read_text(encoding="utf-8"))
+        for family in others:
+            copy = _rust_tables((ROOT / family[0] / "src" / "pyunicode.rs").read_text(encoding="utf-8"))
+            self.assertTrue(copy)
+            for table, body in copy.items():
+                with self.subTest(family=family, table=table):
+                    self.assertEqual(body, tables.get(table))
+
+    @unittest.skipUnless(EXACT_UNICODE, "the tables record CPython 3.15.0's Unicode 17.0.0")
+    def test_the_generator_reproduces_the_saved_unicode_tables(self) -> None:
+        generated = subprocess.run(
+            [sys.executable, "-I", str(UNICODE_GENERATOR)], capture_output=True, check=True
+        ).stdout.decode("utf-8")
+        saved = _rust_tables((ROOT / RATES_DATA / "src" / "pyunicode.rs").read_text(encoding="utf-8"))
+        tables = _rust_tables(generated)
+        # WORD_DIFF also depends on the regex crate, so the generator leaves it out.
+        self.assertEqual(set(saved) - set(tables), {"WORD_DIFF"})
+        for table, body in tables.items():
+            with self.subTest(table=table):
+                self.assertEqual(body, saved[table])
+
+    def test_a_table_name_ends_at_its_own_closing_bracket(self) -> None:
+        text = "// Header.\npub static A: &[u32] = &[\n    1,\n];\n\n/// Doc.\npub static B: &[u32] = &[2];\n"
+        self.assertEqual(_rust_tables(text), {"A": "pubstaticA:&[u32]=&[1];", "B": "pubstaticB:&[u32]=&[2];"})
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -9,6 +9,8 @@ mod csvread;
 pub mod csvsafe;
 pub mod dataset;
 pub mod decimal;
+#[doc(hidden)]
+pub mod fuzzing;
 pub mod mapping;
 pub mod money;
 pub mod pnl;
