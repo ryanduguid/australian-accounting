@@ -211,7 +211,10 @@ release callers require that test job; no second pytest run is needed.
   location needs a step that runs it; a deliberate exception goes in
   `.github/ci/orphan_tests_allowed.txt` with its reason. The check reads only the
   forms its docstring lists and stops on a test step that uses any other; extend
-  that grammar exactly when a workflow needs a new form.
+  that grammar exactly when a workflow needs a new form. It guarantees that a
+  credited target runs in any CI run in which the crediting job runs and passes.
+  A failing step turns CI red, which puts it outside that scope only when
+  `continue-on-error` is absent, so the check stops on `continue-on-error`.
 - Only root workflows run; component directories carry no workflow files.
 
 ## Rules

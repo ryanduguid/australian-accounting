@@ -96,6 +96,8 @@ TOOL_TEST = "          cargo +1.99 test --locked\n"
 CONDITION = "runner.os == 'Linux' && (inputs.package == 'covered' || inputs.package == 'elsewhere')"
 PYTEST = "pytest -q --cov=app"
 LINUX = "    runs-on: ubuntu-latest\n"
+# A job for others to need.
+SETUP = "  setup:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo ready\n"
 # The called job on 2 runners, each with its own tier.
 TIERS = (
     "    runs-on: ${{ matrix.os }}\n"
@@ -154,58 +156,96 @@ class OrphanTestsTests(unittest.TestCase):
         self.assertNotIn("crates/unlisted: no workflow step runs this crate", problems)
 
     def test_credits_only_what_a_step_runs(self) -> None:
+        caller, called = ".github/workflows/ci.yml", ".github/workflows/rust.yml"
+        crates = {"crates/covered", "crates/covered/wasm", "crates/second"}
         cases = {
             # A job runs only when the jobs it needs succeed.
             "a caller that never runs": (
-                "ci.yml",
-                CALLER.replace("  rust:\n", "  rust:\n    needs: setup\n    if: needs.setup.result == 'skipped'\n"),
-                UNRUN | {"crates/covered", "crates/covered/wasm", "crates/second"},
+                {caller: CALLER.replace(
+                    "  rust:\n", SETUP + "  rust:\n    needs: setup\n    if: needs.setup.result == 'skipped'\n"
+                )},
+                UNRUN | crates,
+            ),
+            "a caller whose needed job never runs": (
+                {caller: CALLER.replace("  rust:\n", SETUP + SETUP.replace(
+                    "  setup:\n", "  gate:\n    needs: setup\n    if: needs.setup.result == 'skipped'\n"
+                ) + "  rust:\n    needs: gate\n")},
+                UNRUN | crates,
+            ),
+            "a needed job that never runs": (
+                {called: CALLED.replace("  check:\n", SETUP.replace(
+                    "    runs-on:", "    if: inputs.package == 'neither'\n    runs-on:"
+                ) + "  check:\n    needs: setup\n")},
+                UNRUN | crates,
+            ),
+            "a job needed by a needed job that never runs": (
+                {called: CALLED.replace("  check:\n", SETUP.replace(
+                    "    runs-on:", "    if: inputs.package == 'neither'\n    runs-on:"
+                ) + SETUP.replace("  setup:\n", "  middle:\n    needs: setup\n") + "  check:\n    needs: middle\n")},
+                UNRUN | crates,
             ),
             "input tests no call can pass": (
-                "rust.yml",
-                CALLED.replace(CONDITION, "inputs.package == 'covered' && inputs.package == 'second'"),
+                {called: CALLED.replace(CONDITION, "inputs.package == 'covered' && inputs.package == 'second'")},
                 UNRUN | {"crates/covered/wasm"},
             ),
             "2 runner systems at once": (
-                "rust.yml",
-                CALLED.replace(
+                {called: CALLED.replace(
                     CONDITION,
                     "runner.os == 'Linux' && runner.os == 'Windows' && (inputs.package == 'covered')",
-                ),
+                )},
                 UNRUN | {"crates/covered/wasm"},
             ),
             "a runner system the job does not use": (
-                "rust.yml",
-                CALLED.replace(CONDITION, "runner.os == 'Windows' && (inputs.package == 'covered')"),
+                {called: CALLED.replace(CONDITION, "runner.os == 'Windows' && (inputs.package == 'covered')")},
                 UNRUN | {"crates/covered/wasm"},
             ),
             "a runner system one matrix row uses": (
-                "rust.yml",
-                CALLED.replace(LINUX, TIERS).replace(
+                {called: CALLED.replace(LINUX, TIERS).replace(
                     CONDITION, "runner.os == 'Windows' && (inputs.package == 'covered')"
-                ),
+                )},
                 UNRUN,
             ),
             "a needs output the job and step set apart": (
-                "rust.yml",
-                CALLED.replace(LINUX, "    needs: setup\n    if: needs.setup.outputs.run == 'true'\n" + LINUX)
-                .replace(CONDITION, "needs.setup.outputs.run == 'false' && " + CONDITION),
+                {called: CALLED.replace(
+                    "  check:\n", SETUP + "  check:\n    needs: setup\n    if: needs.setup.outputs.run == 'true'\n"
+                ).replace(CONDITION, "needs.setup.outputs.run == 'false' && " + CONDITION)},
                 UNRUN | {"crates/covered/wasm"},
             ),
-            # GitHub compares strings without regard to case.
+            # GitHub compares strings without regard to case, but keeps their spaces.
             "an input in another case": (
-                "rust.yml",
-                CALLED.replace(CONDITION, "runner.os == 'Linux' && inputs.package != 'COVERED'"),
+                {called: CALLED.replace(CONDITION, "runner.os == 'Linux' && inputs.package != 'COVERED'")},
                 UNRUN - {"crates/second/wasm"} | {"crates/covered/wasm"},
+            ),
+            "an input with other spacing": (
+                {
+                    caller: CALLER.replace(
+                        "      package: ${{ matrix.crate }}\n", "      package: ${{ matrix.crate }}\n      label: a b\n"
+                    ),
+                    called: CALLED.replace("      root:\n", "      label:\n        type: string\n      root:\n")
+                    .replace(CONDITION, "inputs.label == 'a  b' && " + CONDITION),
+                },
+                UNRUN | {"crates/covered/wasm"},
             ),
             # Bash deletes a backslash-newline.
             "a command split over 2 lines": (
-                "ci.yml", CALLER.replace(TOOL_TEST, "          cargo +1.99 test --lock\\\n          ed\n"), UNRUN,
+                {caller: CALLER.replace(TOOL_TEST, "          cargo +1.99 test --lock\\\n          ed\n")}, UNRUN,
+            ),
+            "a coverage run with a floor": (
+                {caller: CALLER.replace(TOOL_TEST, "          cargo llvm-cov --locked --fail-under-lines 80\n")},
+                UNRUN,
+            ),
+            # pytest skips these directories.
+            "a test file under a default norecursedirs name": (
+                {"app/tests/build/test_built.py": ""}, UNRUN | {"app/tests/build/test_built.py"},
+            ),
+            "a test file in a virtual environment": (
+                {"app/tests/env/pyvenv.cfg": "", "app/tests/env/test_env.py": ""},
+                UNRUN | {"app/tests/env/test_env.py"},
             ),
         }
-        for case, (workflow, text, unrun) in cases.items():
+        for case, (files, unrun) in cases.items():
             with self.subTest(case=case):
-                self.assertEqual(self.unrun({f".github/workflows/{workflow}": text}), unrun)
+                self.assertEqual(self.unrun(files), unrun)
 
     def test_stops_outside_the_grammar(self) -> None:
         caller, called = ".github/workflows/ci.yml", ".github/workflows/rust.yml"
@@ -239,6 +279,46 @@ class OrphanTestsTests(unittest.TestCase):
             "a needs output of a job it does not need": (
                 {called: CALLED.replace(CONDITION, "needs.setup.outputs.run == 'true' && " + CONDITION)},
                 "a job it does not need",
+            ),
+            "a needed job's condition outside the grammar": (
+                {called: CALLED.replace("  check:\n", SETUP.replace(
+                    "    runs-on:", "    if: github.ref == 'refs/heads/main'\n    runs-on:"
+                ) + "  check:\n    needs: setup\n")},
+                "outside the condition grammar",
+            ),
+            "a needed job that may fail": (
+                {called: CALLED.replace("  check:\n", SETUP.replace(
+                    "    runs-on:", "    continue-on-error: true\n    runs-on:"
+                ) + "  check:\n    needs: setup\n")},
+                "job setup: continue-on-error",
+            ),
+            "a test job that may fail": (
+                {called: CALLED.replace(LINUX, LINUX + "    continue-on-error: true\n")},
+                "job check: continue-on-error",
+            ),
+            "a needed job that is not there": (
+                {called: CALLED.replace("  check:\n", "  check:\n    needs: setup\n")},
+                "'setup', which is not a job",
+            ),
+            "a needs list outside the grammar": (
+                {called: CALLED.replace("  check:\n", SETUP.replace(
+                    "    runs-on:", "    if: inputs.package == 'neither'\n    runs-on:"
+                ) + "  check:\n    needs:\n      - setup: x\n")},
+                "needs .* is outside the grammar",
+            ),
+            "a test step that may fail": (
+                {caller: CALLER.replace(
+                    "        working-directory: tools/tool\n",
+                    "        working-directory: tools/tool\n        continue-on-error: ${{ matrix.experimental }}\n",
+                )},
+                "step 1: continue-on-error",
+            ),
+            "a call from a workflow nothing calls": (
+                {".github/workflows/nested.yml": (
+                    "name: nested\non:\n  workflow_call:\njobs:\n  rust:\n"
+                    "    uses: ./.github/workflows/rust.yml\n    with:\n      package: unlisted\n"
+                )},
+                "a reusable workflow's call",
             ),
             # GitHub compares a boolean with a string as numbers.
             "a boolean input": (
@@ -325,6 +405,42 @@ class OrphanTestsTests(unittest.TestCase):
                 {caller: CALLER.replace(TOOL_TEST, "          cargo +1.99 test --locked -p other\n")},
                 "outside the step grammar",
             ),
+            # Only cargo llvm-cov takes a coverage floor.
+            "a coverage floor on cargo test": (
+                {caller: CALLER.replace(TOOL_TEST, "          cargo +1.99 test --locked --fail-under-lines 0\n")},
+                "outside the step grammar",
+            ),
+            "an unreadable script behind a false condition": (
+                {called: CALLED.replace(CONDITION, "runner.os != 'Linux'").replace(
+                    "          cargo test\n          --manifest-path wasm/Cargo.toml --locked\n",
+                    "          false && cargo test\n",
+                )},
+                "outside the step grammar",
+            ),
+            "an unreadable npm script behind a false condition": (
+                {
+                    caller: CALLER.replace(
+                        "      - name: Test the tool\n", "      - name: Test the tool\n        if: runner.os != 'Linux'\n"
+                    ),
+                    "tools/tool/package.json": FILES["tools/tool/package.json"].replace(
+                        "tests/runtime.test.mjs", "tests/*.test.mjs"
+                    ),
+                },
+                "outside the step grammar",
+            ),
+            "an unreadable script in a workflow nothing calls": (
+                {".github/workflows/unused.yml": (
+                    "name: unused\non:\n  workflow_call:\njobs:\n  check:\n" + LINUX
+                    + "    steps:\n      - run: false && cargo test\n"
+                )},
+                "outside the step grammar",
+            ),
+            "an npm pretest script": (
+                {"tools/tool/package.json": FILES["tools/tool/package.json"].replace(
+                    '{"scripts": {', '{"scripts": {"pretest": "exit 0", '
+                )},
+                "pretest",
+            ),
             "another fuzz directory": (
                 {caller: CALLER.replace(TOOL_TEST, "          cargo +1.99 fuzz run --fuzz-dir other\n")},
                 "outside the step grammar",
@@ -358,6 +474,21 @@ class OrphanTestsTests(unittest.TestCase):
             ),
             "pytest without its pyproject table": (
                 {"app/pyproject.toml": '[project]\nname = "app"\n'}, "pytest table",
+            ),
+            # pytest reads pytest.toml first, and a parent directory's settings without a table.
+            "a pytest.toml beside the table": (
+                {"app/pytest.toml": "[pytest]\n"}, "pytest table",
+            ),
+            "an empty pytest table": (
+                {"app/pyproject.toml": "[tool.pytest]\n"}, "pytest table",
+            ),
+            "a norecursedirs setting": (
+                {"app/pyproject.toml": FILES["app/pyproject.toml"] + 'norecursedirs = ["skip"]\n'},
+                "pytest setting 'norecursedirs'",
+            ),
+            "a python_files pattern with a directory": (
+                {"app/pyproject.toml": FILES["app/pyproject.toml"].replace('"test_*.py"', '"tests/test_*.py"')},
+                "python_files pattern 'tests/test_\\*.py'",
             ),
             "a recursive glob": (
                 {"tools/tool/package.json": FILES["tools/tool/package.json"].replace(

@@ -4,33 +4,46 @@ usage: python .github/ci/check_orphan_tests.py
 
 The targets are the tracked crates (each directory with a Cargo.toml), Python
 test files (test_*.py, *_test.py) and JavaScript test files (*.test.js, .mjs,
-.cjs). A target is run when a step of a workflow directly in .github/workflows
-runs it. The check reads the workflows in the small grammar below, which is
-what main's workflows use. A step that names a test runner (cargo test,
-llvm-cov or fuzz, pytest, unittest, npm test or run, node --test) must fit it,
-with its job and any caller of its workflow; anything outside it stops the
-check, naming the file, job and step. Other steps are ignored.
+.cjs). A target is credited when a step of a workflow directly in
+.github/workflows runs it. The check guarantees that a credited target runs in
+any CI run in which the crediting job runs and passes. A failing step turns CI
+red, which puts it outside that scope only when continue-on-error is absent,
+so continue-on-error stops the check.
 
-Steps. The shell is bash (unset, or shell: bash). The env of the step, its job
-and its workflow sets only the variables in ENVIRONMENT, which main's test
-steps have. With each backslash-newline deleted, each line is blank, a
-comment, ci-rust.yml's capture of its coverage floor (name="$(jq ...)") or one
-of the commands below. A word is letters, digits and _+=:./-, or a
-double-quoted word with $NAME in it; a path or name does not start with -.
-Each command runs:
+The check reads the workflows in the small grammar below, which is what main's
+workflows use. Every step that names a test runner (cargo test, llvm-cov or
+fuzz, pytest, unittest, npm test or run, node --test) must fit it, with its
+job and any caller of its workflow, whether or not its conditions can hold;
+anything outside it stops the check, naming the file, job and step. Other
+steps are ignored.
 
-- cargo [+TOOLCHAIN] test or llvm-cov with --locked, --release, --features F,
-  --manifest-path P and --fail-under-lines N: that crate, or P's. With
-  --test T -- --ignored --nocapture it runs part of the crate: nothing.
+Steps. The shell is bash (unset, or shell: bash), and the step has no
+continue-on-error. The env of the step, its job and its workflow sets only the
+variables in ENVIRONMENT, which main's test steps have. With each
+backslash-newline deleted, each line is blank, a comment, ci-rust.yml's
+capture of its coverage floor (name="$(jq ...)") or one of the commands below.
+A word is letters, digits and _+=:./-, or a double-quoted word with $NAME in
+it; a path or name does not start with -. Each command runs:
+
+- cargo [+TOOLCHAIN] test with --locked, --release, --features F and
+  --manifest-path P: that crate, or P's. With --test T -- --ignored
+  --nocapture it runs part of the crate: nothing.
+- cargo [+TOOLCHAIN] llvm-cov with --locked and --fail-under-lines N: that
+  crate.
 - cargo [+TOOLCHAIN] fuzz run [--target T] TARGET [CORPUS] [-- -flag=N ...]:
   the crate in fuzz/.
 - uv run [--locked] [--extra or --group G] pytest OPTIONS: the files under the
-  testpaths of the pytest table in that directory's pyproject.toml that its
-  python_files match. Its options, addopts and PYTEST_ADDOPTS (literal, or
+  testpaths of the pytest table in that directory's pyproject.toml whose names
+  its python_files match, outside the directories pytest skips: those its
+  default norecursedirs names (regardless of case), __pycache__ and virtual
+  environments. No pytest.toml, .pytest.toml, pytest.ini or .pytest.ini is
+  beside it, and the table sets only addopts, python_files, pythonpath and
+  testpaths. Its options, addopts and PYTEST_ADDOPTS (literal, or
   ${{ TERMS && 'OPTIONS' || '' }} as ci.yml has it) are -q, --cov[=M],
   --cov-branch and --cov-report=R; it takes no paths.
 - python -m unittest [-v] FILE.py ...: those files.
-- npm test or npm run NAME: that package.json script, read as a step.
+- npm test or npm run NAME: that package.json script, read as a step; the
+  package has no preNAME or postNAME script.
 - node --test [--test-concurrency=N] FILE.test.js ...: those files.
 - cargo build, clippy or fmt, rustup target add or node SCRIPT.mjs: nothing.
 
@@ -40,17 +53,19 @@ reusable workflow, a step's runner.os (from runs-on ubuntu-latest,
 windows-latest or macos-latest) or needs.JOB.result (success, as a job runs
 only when the jobs it needs succeed); or needs.JOB.outputs.NAME == 'value',
 which holds unless the caller, job and step require 2 values of it. JOB must
-be in the job's needs:. Comparisons ignore case, as GitHub's do.
+be in the job's needs:. Comparisons ignore case but not spaces, as GitHub's
+do. A job can run only if its condition can hold and each job it needs can
+run in the same call; none of them has continue-on-error.
 
 Matrices. Plain axes, include rows alone or the matrix ci.yml computes with
 rust_crates.py; runs-on and a caller's with: values may name a row's values.
 
-A reusable workflow's steps run for each call of it (a job of another workflow
-whose uses: names it and whose condition can hold), once for each row of the
-caller's matrix, with its with: values. The check does not follow scripts,
-what earlier steps write (such as $GITHUB_ENV and $GITHUB_PATH), configuration
-files (such as .cargo/config.toml and conftest.py), cargo workspace members,
-ignored Rust tests or the tests inside a file.
+A reusable workflow's steps run for each call of it (a job of a workflow that
+is not reusable itself, whose uses: names it and which can run), once for each
+row of the caller's matrix, with its with: values. The check does not follow
+scripts, what earlier steps write (such as $GITHUB_ENV and $GITHUB_PATH),
+configuration files (such as .cargo/config.toml and conftest.py), cargo
+workspace members, ignored Rust tests or the tests inside a file.
 
 Deliberate exceptions go in orphan_tests_allowed.txt beside this script, one
 '<path> <reason>' per line. The check fails on an entry without a reason. It
@@ -76,6 +91,15 @@ ALLOWED = Path(__file__).with_name("orphan_tests_allowed.txt")
 WORKFLOWS = ".github/workflows"
 TEST_FILES = ("test_*.py", "*_test.py", "*.test.js", "*.test.mjs", "*.test.cjs")
 PYTEST_FILES = ["test_*.py", "*_test.py"]
+# The pytest settings main uses; the others can change what pytest collects.
+PYTEST_SETTINGS = {"addopts", "python_files", "pythonpath", "testpaths"}
+# The directories pytest does not collect from: its default norecursedirs, and __pycache__.
+PYTEST_SKIPPED = [
+    "*.egg", ".*", "_darcs", "build", "CVS", "dist", "node_modules", "venv", "{arch}",
+    "__pycache__",
+]
+# Config files that pytest reads before pyproject.toml.
+PYTEST_FIRST = ("pytest.toml", ".pytest.toml", "pytest.ini", ".pytest.ini")
 # ci.yml's crates job prints this matrix with rust_crates.py.
 COMPUTED_MATRICES = {
     "${{ fromJSON(needs.crates.outputs.ci-matrix) }}": lambda root: crates(root, ci_yml=True),
@@ -99,10 +123,11 @@ CARGO = r"cargo(?: \+[\w.-]+)?"
 # A path or name, which an option cannot pass for.
 NAME = r"[\w.][\w./-]*"
 CARGO_TEST = re.compile(
-    rf"{CARGO} (?:test|llvm-cov)(?: --locked| --release| --features {NAME}"
-    rf'| --manifest-path (?P<manifest>{NAME})| --fail-under-lines (?:\d+|"\$[a-z_]+"))*'
+    rf"{CARGO} test(?: --locked| --release| --features {NAME}"
+    rf"| --manifest-path (?P<manifest>{NAME}))*"
     rf"(?P<part> --test {NAME} -- --ignored --nocapture)?"
 )
+LLVM_COV = re.compile(rf'{CARGO} llvm-cov(?: --locked| --fail-under-lines (?:\d+|"\$[a-z_]+"))*')
 FUZZ = re.compile(
     rf"{CARGO} fuzz run(?: --target {NAME})? {NAME}(?: {NAME})?(?: --(?: -\w+=\d+)+)?"
 )
@@ -121,12 +146,15 @@ ADDOPTS = re.compile(r"\$\{\{ (?:[\w.-]+ == '[^']*' && )+'(?P<options>[^']*)' \|
 UNITTEST = re.compile(rf"python -m unittest(?: -v)?(?P<files>(?: {NAME}\.py)+)")
 NODE = re.compile(rf"node --test(?: --test-concurrency=\d+)?(?P<files>(?: {NAME}\.test\.[cm]?js)+)")
 NPM = re.compile(r"npm (?:test|run (?P<script>[\w:-]+))")
+COMMANDS = (CARGO_TEST, LLVM_COV, FUZZ, PYTEST, UNITTEST, NODE, NPM)
 # The condition grammar.
 BOUND = re.compile(
     r"(?P<name>inputs\.[\w-]+|runner\.os|needs\.[\w-]+\.result) (?P<op>==|!=) '(?P<value>[^']*)'"
 )
 OUTPUT = re.compile(r"(?P<name>needs\.(?P<job>[\w-]+)\.outputs\.[\w-]+) == '(?P<value>[^']*)'")
 CHOICE = re.compile(r"\( ?(.*?) ?\)")
+# A quoted literal, whose spaces count, or whitespace outside one.
+LITERAL_OR_SPACE = re.compile(r"('[^']*')|\s+")
 KEY = re.compile(r"""(?P<key>[\w-][\w.-]*|"[^"]*"|'[^']*'):(?:[ \t]+(?P<rest>.*))?""")
 QUOTED = re.compile(r"""("(?:[^"\\]|\\.)*"|'(?:[^']|'')*')[ \t]*(?:#.*)?""")
 BLOCK_SCALARS = {"|", "|-", "|+", ">", ">-", ">+"}
@@ -281,25 +309,42 @@ def matrix_rows(root: Path, job: object, where: str) -> list[dict[str, str]]:
     raise Unreadable(f"{where}: the matrix is outside the matrix grammar")
 
 
-def needed(job: object) -> dict[str, str]:
-    """needs.JOB.result for each job this one needs: success, as a job with no
-    status function in its condition runs only when they succeed."""
+def reusable(flow: dict) -> bool:
+    return "workflow_call" in (flow.get("on") or "")
+
+
+def needed(job: object, where: str) -> list[str]:
     needs = at(job, "needs")
-    jobs = [needs] if isinstance(needs, str) and needs[:1] != "[" else items(needs) or []
-    return {f"needs.{name}.result": "success" for name in jobs}
+    if needs is None:
+        return []
+    jobs = [needs] if isinstance(needs, str) and needs[:1] != "[" else items(needs)
+    if jobs is None:
+        raise Unreadable(f"{where}: needs {needs!r} is outside the grammar")
+    return jobs
+
+
+def context(inputs: dict[str, str], job: object, where: str) -> dict[str, str]:
+    """The values a job's conditions can test: its call's string inputs, and
+    needs.JOB.result for each job it needs, which is success, as a job with no
+    status function in its condition runs only when they succeed."""
+    return {f"inputs.{key}": value for key, value in inputs.items()} | {
+        f"needs.{name}.result": "success" for name in needed(job, where)
+    }
 
 
 def holds(
-    condition: object, where: str, flow: str, names: dict[str, str], free: Needs
+    condition: object, where: str, flow: str, names: dict[str, str], free: Needs | None
 ) -> Needs | None:
-    """Whether a job's or step's condition can hold with the values in names:
-    if so, free with the needs outputs it requires added; if not, None."""
+    """Whether a job's or step's condition can hold with the values in names,
+    given the needs outputs in free (None when it cannot run anyway): if so, free
+    with the needs outputs it requires added; if not, None. Either way the
+    condition must fit the grammar."""
     if condition is None:
         return free
-    text = " ".join(str(condition).split())
+    text = LITERAL_OR_SPACE.sub(lambda match: match[1] or " ", str(condition)).strip()
     if text.startswith("${{") and text.endswith("}}"):
         text = text[3:-2].strip()
-    free, possible = dict(free), True
+    possible, free = free is not None, dict(free or {})
     for term in text.split(" && "):
         if output := OUTPUT.fullmatch(term):
             if f"needs.{output['job']}.result" not in names:
@@ -322,9 +367,29 @@ def holds(
     return free if possible else None
 
 
-def calls(root: Path, flows: dict[str, dict], name: str) -> list[tuple[dict[str, str], Needs]]:
+def runnable(
+    flows: dict[str, dict], name: str, job_id: str, inputs: dict[str, str], free: Needs | None
+) -> Needs | None:
+    """As holds, for a job in a call with these inputs: whether its condition
+    can hold, and in turn that of each job it needs, as it runs only when they
+    succeed. No such job may have continue-on-error."""
+    where = f"{WORKFLOWS}/{name} job {job_id}"
+    job = flows[name]["jobs"][job_id]
+    if at(job, "continue-on-error") is not None:
+        raise Unreadable(f"{where}: continue-on-error is outside the grammar")
+    for need in needed(job, where):
+        if need not in flows[name]["jobs"]:
+            raise Unreadable(f"{where}: needs {need!r}, which is not a job")
+        free = runnable(flows, name, need, inputs, free)
+    return holds(at(job, "if"), where, name, context(inputs, job, where), free)
+
+
+def calls(
+    root: Path, flows: dict[str, dict], name: str
+) -> list[tuple[dict[str, str], Needs | None]]:
     """The string inputs of each call of a reusable workflow, once for each row
-    of the caller's matrix, with the needs outputs the caller's condition requires."""
+    of the caller's matrix, with the needs outputs the caller requires to run,
+    or None when it cannot. A caller must not be reusable itself."""
     specs = at(flows[name], "on", "workflow_call", "inputs")
     # Conditions compare strings; GitHub compares a boolean or number otherwise.
     defaults = {
@@ -338,9 +403,11 @@ def calls(root: Path, flows: dict[str, dict], name: str) -> list[tuple[dict[str,
             if at(job, "uses") != f"./{WORKFLOWS}/{name}":
                 continue
             where = f"{WORKFLOWS}/{caller} job {job_id}"
-            free = holds(at(job, "if"), where, caller, needed(job), {})
-            if free is None:
-                continue
+            if reusable(flow):
+                raise Unreadable(
+                    f"{where}: a reusable workflow's call of another is outside the grammar"
+                )
+            free = runnable(flows, caller, job_id, {}, {})
             given = at(job, "with")
             given = given if isinstance(given, dict) else {}
             for row in matrix_rows(root, job, where):
@@ -357,8 +424,9 @@ def setting(flow: dict, job: object, step: object, key: str) -> object:
 
 
 def test_steps(root: Path, flows: dict[str, dict]):
-    """Yield (where, working directory, script, PYTEST_ADDOPTS) for each step
-    that names a test runner, for each call and matrix row it runs under."""
+    """Yield (where, working directory, commands, PYTEST_ADDOPTS, whether it can
+    run) for each step that names a test runner, for each call and matrix row,
+    whether or not it can run there."""
     for name, flow in flows.items():
         for job_id, job in flow["jobs"].items():
             where = f"{WORKFLOWS}/{name} job {job_id}"
@@ -368,6 +436,8 @@ def test_steps(root: Path, flows: dict[str, dict]):
                 if not isinstance(script, str) or not TESTS.search(script.replace("\\\n", "")):
                     continue
                 here = f"{where} step {index}"
+                if at(step, "continue-on-error") is not None:
+                    raise Unreadable(f"{here}: continue-on-error is outside the step grammar")
                 shell = setting(flow, job, step, "shell")
                 if shell not in (None, "bash"):
                     raise Unreadable(f"{here}: shell {shell!r} is outside the step grammar")
@@ -381,22 +451,20 @@ def test_steps(root: Path, flows: dict[str, dict]):
                         raise Unreadable(f"{here}: env {unknown!r} is outside the step grammar")
                     env |= variables or {}
                 directory = str(setting(flow, job, step, "working-directory") or ".")
-                steps.append((here, step, script, directory, str(env.get("PYTEST_ADDOPTS", ""))))
+                addopts = str(env.get("PYTEST_ADDOPTS", ""))
+                steps.append((here, step, commands(here, script), directory, addopts))
             if not steps:
                 continue
             rows = matrix_rows(root, job, where)
-            called = "workflow_call" in (flow.get("on") or "")
-            for inputs, free in calls(root, flows, name) if called else [({}, {})]:
-                names = {f"inputs.{key}": value for key, value in inputs.items()} | needed(job)
-                running = holds(at(job, "if"), where, name, names, free)
-                if running is None:
-                    continue
-                for row, (here, step, script, directory, addopts) in itertools.product(rows, steps):
+            for inputs, free in calls(root, flows, name) if reusable(flow) else [({}, {})]:
+                running = runnable(flows, name, job_id, inputs, free)
+                names = context(inputs, job, where)
+                for row, (here, step, found, directory, addopts) in itertools.product(rows, steps):
                     label = at(job, "runs-on")
                     label = substitute(label, inputs, row) if isinstance(label, str) else ""
                     runner = {"runner.os": HOSTED[label]} if label in HOSTED else {}
-                    if holds(at(step, "if"), here, name, names | runner, running) is not None:
-                        yield here, substitute(directory, inputs, {}), script, addopts
+                    can_run = holds(at(step, "if"), here, name, names | runner, running) is not None
+                    yield here, substitute(directory, inputs, {}), found, addopts, can_run
 
 
 def join(base: str, path: str) -> str:
@@ -412,21 +480,40 @@ def listed(value: str | list[str]) -> list[str]:
     return value.split() if isinstance(value, str) else value
 
 
+def collected(path: str, base: str, tracked: set[str]) -> bool:
+    """Whether pytest reaches a file from base: no directory on the way is one
+    that PYTEST_SKIPPED names (in any case, as on Windows) or a virtual
+    environment, which holds pyvenv.cfg or conda-meta/history."""
+    parts = posixpath.relpath(path, base).split("/")
+    for index, part in enumerate(parts[:-1], 1):
+        directory = join(base, "/".join(parts[:index]))
+        if any(fnmatch.fnmatchcase(part.casefold(), name.casefold()) for name in PYTEST_SKIPPED):
+            return False
+        if {f"{directory}/pyvenv.cfg", f"{directory}/conda-meta/history"} & tracked:
+            return False
+    return True
+
+
 def pytest_runs(
     root: Path, files: list[str], where: str, base: str, arguments: list[str], addopts: str
 ) -> set[str]:
     """The files pytest collects from base: those under its testpaths that its
-    python_files match. It takes no paths, so every argument is an option."""
+    python_files match and it reaches. It takes no paths, so every argument is
+    an option."""
     pyproject = root / base / "pyproject.toml"
     table = None
     if pyproject.is_file():
         table = at(tomllib.loads(pyproject.read_text(encoding="utf-8")), "tool", "pytest")
-    # pytest.ini wins over pyproject.toml. Without either, pytest reads tox.ini,
-    # setup.cfg or a parent directory's settings.
-    ini = any((root / base / name).is_file() for name in ("pytest.ini", ".pytest.ini"))
-    if ini or not isinstance(table, dict):
+    # pytest reads PYTEST_FIRST before pyproject.toml. Without them or a pytest
+    # table (an empty [tool.pytest] counts as none), it reads tox.ini, setup.cfg
+    # or a parent directory's settings.
+    first = any((root / base / name).is_file() for name in PYTEST_FIRST)
+    if first or not isinstance(table, dict) or not table:
         raise Unreadable(f"{where}: pytest in {base} must read its pyproject.toml's pytest table")
-    config = table.get("ini_options", table)
+    config = table["ini_options"] if list(table) == ["ini_options"] else table
+    unknown = sorted(config.keys() - PYTEST_SETTINGS)
+    if unknown:
+        raise Unreadable(f"{where}: pytest setting {unknown[0]!r} is outside the step grammar")
     if "${{" in addopts:
         expression = ADDOPTS.fullmatch(" ".join(addopts.split()))
         if expression is None:
@@ -436,55 +523,77 @@ def pytest_runs(
         if not PYTEST_OPTION.fullmatch(argument):
             raise Unreadable(f"{where}: pytest argument {argument!r} is outside the step grammar")
     patterns = listed(config.get("python_files", PYTEST_FILES))
+    for pattern in patterns:
+        # pytest matches a pattern with a separator against the whole path.
+        if "/" in pattern or "\\" in pattern:
+            raise Unreadable(
+                f"{where}: python_files pattern {pattern!r} is outside the step grammar"
+            )
     roots = [join(base, path) for path in listed(config.get("testpaths", ["."]))]
+    tracked = set(files)
     return {
         path for path in files
         if any(inside(path, root) for root in roots)
         and any(fnmatch.fnmatchcase(posixpath.basename(path), pattern) for pattern in patterns)
+        and collected(path, base, tracked)
     }
 
 
-def runs(
-    root: Path, files: list[str], where: str, directory: str, line: str, addopts: str
-) -> set[str]:
-    """The targets one test command runs from its working directory."""
-    if "${{" in directory:
-        raise Unreadable(f"{where}: cannot resolve the working directory {directory!r}")
-    base = posixpath.normpath(directory)
-    if cargo := CARGO_TEST.fullmatch(line):
-        if cargo["part"]:
-            return set()
-        return {posixpath.dirname(join(base, cargo["manifest"])) if cargo["manifest"] else base}
-    if FUZZ.fullmatch(line):
-        return {join(base, "fuzz")}
-    if pytest := PYTEST.fullmatch(line):
-        return pytest_runs(root, files, where, base, pytest["arguments"].split(), addopts)
-    if named := UNITTEST.fullmatch(line) or NODE.fullmatch(line):
-        return {join(base, path) for path in named["files"].split()}
-    if npm := NPM.fullmatch(line):
-        package = root / base / "package.json"
-        scripts = {}
-        if package.is_file():
-            scripts = json.loads(package.read_text(encoding="utf-8")).get("scripts", {})
-        script = scripts.get(npm["script"] or "test")
-        if isinstance(script, str) and TESTS.search(script):
-            return step_runs(root, files, where, directory, script, addopts)
-        return set()
-    raise Unreadable(f"{where}: {line!r} is outside the step grammar")
-
-
-def step_runs(
-    root: Path, files: list[str], where: str, directory: str, script: str, addopts: str
-) -> set[str]:
-    """The targets a step's script runs, read a line at a time once bash has
-    deleted each backslash-newline."""
-    found: set[str] = set()
+def commands(where: str, script: str) -> list[re.Match[str]]:
+    """A script's test commands, read a line at a time once bash has deleted
+    each backslash-newline. Each line must fit the step grammar."""
+    found = []
     for line in script.replace("\\\n", "").splitlines():
         line = " ".join(line.split())
         if not line or line.startswith("#") or CAPTURE.fullmatch(line) or OTHER.fullmatch(line):
             continue
-        found |= runs(root, files, where, directory, line, addopts)
+        command = next(filter(None, (pattern.fullmatch(line) for pattern in COMMANDS)), None)
+        if command is None:
+            raise Unreadable(f"{where}: {line!r} is outside the step grammar")
+        found.append(command)
     return found
+
+
+def runs(
+    root: Path,
+    files: list[str],
+    where: str,
+    directory: str,
+    found: list[re.Match[str]],
+    addopts: str,
+) -> set[str]:
+    """The targets a step's commands run from its working directory."""
+    if "${{" in directory:
+        raise Unreadable(f"{where}: cannot resolve the working directory {directory!r}")
+    base = posixpath.normpath(directory)
+    run: set[str] = set()
+    for command in found:
+        if command.re is CARGO_TEST:
+            if not command["part"]:
+                manifest = command["manifest"]
+                run.add(posixpath.dirname(join(base, manifest)) if manifest else base)
+        elif command.re is LLVM_COV:
+            run.add(base)
+        elif command.re is FUZZ:
+            run.add(join(base, "fuzz"))
+        elif command.re is PYTEST:
+            run |= pytest_runs(root, files, where, base, command["arguments"].split(), addopts)
+        elif command.re is NPM:
+            name = command["script"] or "test"
+            package = root / base / "package.json"
+            scripts = {}
+            if package.is_file():
+                scripts = json.loads(package.read_text(encoding="utf-8")).get("scripts", {})
+            # npm runs preNAME before NAME and postNAME after it.
+            for hook in (f"pre{name}", f"post{name}"):
+                if hook in scripts:
+                    raise Unreadable(f"{where}: npm script {hook!r} is outside the step grammar")
+            script = scripts.get(name)
+            if isinstance(script, str) and TESTS.search(script):
+                run |= runs(root, files, where, directory, commands(where, script), addopts)
+        else:
+            run |= {join(base, path) for path in command["files"].split()}
+    return run
 
 
 def targets(files: list[str]) -> set[str]:
@@ -511,7 +620,12 @@ def problems(root: Path, files: list[str], allowed: dict[str, str]) -> list[str]
     """Name each orphan and each allow-list entry that no longer applies."""
     wanted = targets(files)
     flows = workflows(root)
-    run = set().union(*(step_runs(root, files, *step) for step in test_steps(root, flows)))
+    run = set()
+    for where, directory, commands_run, addopts, can_run in test_steps(root, flows):
+        # Every step is read, so a condition cannot hide one outside the grammar.
+        ran = runs(root, files, where, directory, commands_run, addopts)
+        if can_run:
+            run |= ran
     found = [
         f"{path}: no workflow step runs this {'test file' if path in files else 'crate'}"
         for path in sorted(wanted - run - set(allowed))
