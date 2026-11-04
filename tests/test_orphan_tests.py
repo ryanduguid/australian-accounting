@@ -219,6 +219,13 @@ class OrphanTestsTests(unittest.TestCase):
                 ).replace(CONDITION, "needs.setup.outputs.run == 'true' && " + CONDITION)},
                 UNRUN,
             ),
+            # A literal block keeps its final line break, so no call passes 'covered'.
+            "an input from a literal block": (
+                {caller: CALLER.replace(
+                    "      package: ${{ matrix.crate }}\n", "      package: |\n        covered\n"
+                )},
+                UNRUN | crates,
+            ),
             # YAML reads '' between single quotes as one quote.
             "a doubled single quote": (
                 {called: CALLED.replace(STEP_IF, "      - if: 'runner.os != ''Linux'''\n")},
@@ -308,7 +315,8 @@ class OrphanTestsTests(unittest.TestCase):
                 {called: CALLED.replace(STEP_IF, "      - \"i\\u0066\": runner.os != 'Linux'\n")},
                 "an escape in a double-quoted scalar",
             ),
-            # Unset, the shell is PowerShell on Windows, which carries on after a failing command.
+            # Unset, the shell is PowerShell on Windows, where a failing native command fails
+            # the step only if it is the last.
             "several lines on Windows without shell: bash": (
                 {called: CALLED.replace(LINUX, TIERS).replace(
                     "      - run: cargo test --locked\n",
@@ -491,6 +499,23 @@ class OrphanTestsTests(unittest.TestCase):
                     + "    steps:\n      - working-directory: ${{ inputs.dir }}\n        run: cargo test --locked\n"
                 )},
                 "cannot resolve the working directory",
+            ),
+            # A folded scalar keeps the line breaks around a deeper line and at an empty one.
+            "a deeper line in a folded script": (
+                {caller: CALLER.replace(
+                    "        run: |\n          # npm test runs package.json's test script.\n"
+                    + TOOL_TEST + "          npm test\n",
+                    "        run: >-\n          npm run\n            test\n",
+                )},
+                "'npm run' is outside the step grammar",
+            ),
+            "an empty line in a folded script": (
+                {caller: CALLER.replace(
+                    "        run: |\n          # npm test runs package.json's test script.\n"
+                    + TOOL_TEST + "          npm test\n",
+                    "        run: >-\n          cargo +1.99 test\n\n          --locked\n",
+                )},
+                "'--locked' is outside the step grammar",
             ),
             # npm's shell carries on after a failing command.
             "an npm script of 2 commands": (

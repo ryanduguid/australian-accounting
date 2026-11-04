@@ -16,12 +16,14 @@ fuzz, pytest, unittest, npm test or run, node --test) must fit it, with its
 job and any caller of its workflow, whether or not its conditions can hold;
 anything outside it stops the check, naming the file, job and step. Other
 steps are ignored. The YAML reader takes block YAML and one-line quoted
-scalars: it reads '' between single quotes as ', as YAML 1.2 does, and stops
-on a double-quoted scalar with a backslash, whose escapes it does not decode.
+scalars. It reads block scalars (| or >, with - or +) and '' between single
+quotes as YAML 1.2 does, and stops on a double-quoted scalar with a
+backslash, whose escapes it does not decode.
 
 Steps. The shell is bash: shell: bash, or unset on a Linux or macOS runner,
-where GitHub runs bash -e. Unset on another runner it is PowerShell, which
-fails a step only when its last command fails, so there the script is one
+where GitHub runs bash -e. Unset on another runner it is PowerShell, where
+GitHub fails a step on a terminating PowerShell error or a failing last native
+command, but not on an earlier native command, so there the script is one
 line. The step has no continue-on-error. The env of the step, its job and its
 workflow sets only the variables in ENVIRONMENT, which main's test steps have.
 With each backslash-newline deleted, each line is blank, a comment,
@@ -175,6 +177,33 @@ class Unreadable(Exception):
     """Something outside the grammar, so the check stops rather than guess."""
 
 
+def block_scalar(body: list[str], indicator: str) -> str:
+    """A block scalar's value as YAML 1.2 gives it, from its lines without their
+    indentation. Folded (>), the break between 2 lines that start with no space
+    is a space, or dropped when empty lines between them stay as breaks; every
+    other break stays, as in a literal (|) scalar. Then - drops the final break,
+    + keeps the trailing empty lines and no sign keeps one break."""
+    end = len(body)
+    while end and not body[end - 1]:
+        end -= 1
+    value, previous, empty = "", None, 0
+    for line in body[:end]:
+        if not line:
+            empty += 1
+            continue
+        if previous is None:
+            value += "\n" * empty
+        elif indicator[0] == ">" and previous[:1] not in " \t" and line[:1] not in " \t":
+            value += "\n" * empty if empty else " "
+        else:
+            value += "\n" * (empty + 1)
+        value += line
+        previous, empty = line, 0
+    if previous is None:
+        return ""
+    return value + {"-": "", "+": "\n" * (len(body) - end + 1)}.get(indicator[1:], "\n")
+
+
 def load_yaml(text: str) -> object:
     """Parse the block YAML workflows use into dicts, lists and strings."""
     lines = text.splitlines()
@@ -258,8 +287,7 @@ def load_yaml(text: str) -> object:
                 pos += 1
             body = lines[start:pos]
             margin = next((len(line) - len(line.lstrip(" ")) for line in body if line.strip()), 0)
-            body = [line[margin:] for line in body]
-            return " ".join(filter(None, body)) if text[0] == ">" else "\n".join(body)
+            return block_scalar([line[margin:] for line in body], text)
         if text:
             return text
         head = peek()
@@ -512,8 +540,8 @@ def test_steps(root: Path, flows: dict[str, dict]):
                     label = at(job, "runs-on")
                     label = substitute(label, inputs, row) if isinstance(label, str) else ""
                     runner = {"runner.os": HOSTED[label]} if label in HOSTED else {}
-                    # Unset, the shell is PowerShell off Linux and macOS: it fails a step
-                    # only when its last command fails.
+                    # Unset off Linux and macOS, the shell is PowerShell, where a failing
+                    # native command fails the step only if it is the last.
                     if several and runner.get("runner.os") not in ("Linux", "macOS"):
                         raise Unreadable(f"{here}: several lines on {label!r} need shell: bash")
                     reached = holds(at(step, "if"), here, name, names | runner, running, step=True)
