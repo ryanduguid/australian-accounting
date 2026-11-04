@@ -154,7 +154,7 @@ copy without a download until the uv cache is cleaned.
 | `calc_payday_super_deadline` | Review one contribution against Payday Super timing | payday-super-checker |
 | `review_payday_super_contributions` | Assess up to 200 related contributions for one employer | payday-super-checker |
 | `build_payday_super_evidence_pack` | Return 4 in-memory review files for supplied contributions; requires checker evidence-pack support | payday-super-checker |
-| `calculate_tax_worksheet` | Run one of 14 bounded worksheets with established scope | australian-tax-calculators |
+| `calculate_tax_worksheet` | Run one of 14 bounded worksheets with established scope, optionally with a file note | australian-tax-calculators |
 | `search_accounting_library` | Search explicitly configured local Markdown files | local read-only retrieval |
 | `read_accounting_library` | Read bounded lines with file, line, page and hash citations | local read-only retrieval |
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page | local read-only retrieval |
@@ -526,6 +526,15 @@ the person is under 75 at any time in the year. For `pension_minimum`, `days`
 counts from and including the commencement day to 30 June, or every day of the
 year for a pension running on 1 July; a pension commencing on or after 1 June
 needs no payment that year.
+
+Pass `file_note: true` beside `facts` to add `file_note` to the result: a Markdown
+note for a workpaper with 5 sections. Facts relied on lists the facts as supplied.
+Calculation tabulates the amounts and rates. Assumptions gives the scope the
+operator confirmed. Provisions and sources gives the engine's source passage and
+each source URL with its source-check date. Open issues lists the warnings. The
+note restates the result and adds no figure, provision or date; every other field
+is unchanged, and a refused worksheet returns only its refusal. `file_note` takes
+a JSON boolean and defaults to false.
 
 With the development worksheet engine, `aus-accounting://scope` also includes
 engine-owned period dates, required inputs and units, methods, Library example
