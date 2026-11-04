@@ -4,11 +4,11 @@
   "value": 700,
   "unit": "AUD",
   "period": {
-    "as_at": "2026-10-15"
+    "effective_from": "2020-07-01"
   },
   "source_url": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset",
   "retrieved_at": "2026-10-15T00:31:17+11:00",
   "quote": "$37,500 or less, you will get the maximum offset of $700",
   "pattern": "maximum offset of (\\$[\\d,]+)",
-  "notes": "The page names no income year, so the period is the retrieval date."
+  "notes": "The page names no income year. The table in ITAA 1997 s 61-115(1), substituted by the Treasury Laws Amendment (Tax Relief So Working Australians Keep More Of Their Money) Act 2019 (No. 52, 2019) Sch 1 item 3, gives the $700 maximum. The Treasury Laws Amendment (A Tax Plan for the COVID-19 Economic Recovery) Act 2020 (No. 92, 2020) Sch 1 items 19 and 24 apply it from the 2020-21 income year: https://www.legislation.gov.au/C2020A00092/asmade"
 }

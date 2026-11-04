@@ -4,11 +4,11 @@
   "value": 2,
   "unit": "percent",
   "period": {
-    "as_at": "2026-09-24"
+    "effective_from": "2014-07-01"
   },
   "source_url": "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/what-is-the-medicare-levy",
   "retrieved_at": "2026-09-28T20:59:55+10:00",
   "quote": "The Medicare levy is 2% of your taxable income.",
   "pattern": "The Medicare levy is ([\\d.]+%) of your taxable income",
-  "notes": "The page states no income year, so the period is the retrieval date."
+  "notes": "The page states no income year. The 2% rate applies from the 2014-15 year of income: Medicare Levy Act 1986 s 6, as amended by the Medicare Levy Amendment (DisabilityCare Australia) Act 2013 (No. 43, 2013) Sch 1 items 1 to 3 and 7: https://www.legislation.gov.au/C2013A00043/asmade"
 }
