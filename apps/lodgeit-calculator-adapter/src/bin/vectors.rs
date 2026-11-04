@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! The differential vector runner: JSON cases on stdin, results on stdout.
 //! It runs on the CLI's 512 MB stack, which deep cases need.

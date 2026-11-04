@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! Period, input and example metadata owned by the worksheet engine, ported
 //! from `austaxcalc.metadata` without changing a rate, threshold or wording.

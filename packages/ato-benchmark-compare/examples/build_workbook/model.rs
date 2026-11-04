@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! A semantic model of an .xlsx package, read straight from its OOXML parts,
 //! for comparing the Rust builder's workbook with the Python builder's. It

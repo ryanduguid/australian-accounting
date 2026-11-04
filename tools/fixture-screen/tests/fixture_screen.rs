@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! No tracked file may carry a checksum-valid Australian identifier unless
 //! `synthetic-identifiers.txt` lists it for that file. The screen runs evatt's

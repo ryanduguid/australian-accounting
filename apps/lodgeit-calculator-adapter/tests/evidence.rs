@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! `tests/test_evidence.py`: evidence, repeatable where it must be and
 //! honest about the rest. The calls go to a loopback stub this file starts.

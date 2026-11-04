@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! Read a profit and loss export into account and amount rows: the neutral
 //! `account,amount` CSV, or a report style export on a best effort basis,

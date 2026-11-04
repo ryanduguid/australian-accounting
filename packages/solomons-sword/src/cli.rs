@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! argparse compatibility for the two original commands. Formatting and parsing
 //! are adapted from The Exchequer Tally's port of the qualified

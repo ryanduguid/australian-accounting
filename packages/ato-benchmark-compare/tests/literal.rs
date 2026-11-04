@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! JSON numbers as `json.loads` read them from literal bytes. The differential
 //! harness serialises a Python value first, which would normalise `1.2300` or

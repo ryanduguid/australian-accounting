@@ -1,5 +1,5 @@
 # Copyright 2026 Ryan Duguid
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 """The ATO pages each rule comes from, the facts a date can depend on, and the
 rule and fact-reading types the statement and return modules share."""

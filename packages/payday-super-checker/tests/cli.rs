@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! Command runs the frozen corpus cannot replay: those that read the machine's
 //! clock, which differs on every replay, and those that name a directory or a

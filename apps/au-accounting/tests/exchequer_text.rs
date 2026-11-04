@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! The Exchequer Tally's JSON results are plain UTF-8 here too: its CLI encoder
 //! reads U+10F7FF pairs as OS-string escapes, which JSON text never carries.

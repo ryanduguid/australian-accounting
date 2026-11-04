@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! `tests/test_module_paths.py`: refusals and edge paths in the
 //! configuration, contract, Core, wire and evidence modules. Everything here
