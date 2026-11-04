@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! One command for the Rust engines in this repository. `au-accounting <engine> ...`
 //! hands the remaining arguments to that engine's library exactly as the engine's

@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! The desktop Excel pass: one COM session recalculates the built workbook so
 //! the shipped file carries real cached values, then the build-machine path

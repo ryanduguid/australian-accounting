@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! Fuzz the contracts CSV reader with fabricated schedules under the default
 //! mapping, then measure each contract read. A refusal is a result; a panic

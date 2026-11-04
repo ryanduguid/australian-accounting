@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! Replays every case the differential harness froze: the calls the Python
 //! 0.3.2 tests made, generated API calls and generated command runs, with the

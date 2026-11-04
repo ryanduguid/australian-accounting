@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! Calendar days for the main residence worksheet: ISO dates as day numbers
 //! (days since 1970-01-01, proleptic Gregorian) and calendar month steps.

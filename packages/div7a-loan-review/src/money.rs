@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! Decimal money, rate and ratio handling. No float anywhere: money is
 //! quantised to cents with ROUND_HALF_UP, the engine's own documented choice.

@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! The evaluation pack against its pinned expectations, re-performed through
 //! the command line, and the workbook's frozen copy of the engine's review.

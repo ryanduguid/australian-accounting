@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! A value as the Python engine received it: a CSV cell, a JSON value from an
 //! override file or the JSON API, or nothing at all. The engine's messages

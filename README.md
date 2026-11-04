@@ -18,7 +18,7 @@
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15429/badge)](https://www.bestpractices.dev/projects/15429)
 [![SLSA 3](.github/assets/badges/slsa.svg)](https://github.com/ryanduguid/australian-accounting/attestations)
 [![VirusTotal](.github/assets/badges/virustotal.svg)](https://github.com/ryanduguid/australian-accounting/releases)<br>
-[![licence: FSL-1.1-ALv2](.github/assets/badges/licence.svg)](LICENSE)
+[![licence: Ryan Duguid Public Attribution Licence 1.0](.github/assets/badges/licence.svg)](LICENSE)
 [![Open in GitHub Codespaces](.github/assets/badges/github.svg)](https://codespaces.new/ryanduguid/australian-accounting)
 
 [![Aus Accounting MCP server](https://mcprush.com/badge/aus-accounting-mcp/card.svg)](https://mcprush.com/to/aus-accounting-mcp?ref=badge)
@@ -258,4 +258,4 @@ ATO material.
 
 ---
 
-<p align="center"><sub>Solomon Grundy, born on a Monday, reconciled by Sunday.<br>Reusing this code? Keep its notices and licence, and please credit Ryan Duguid. AI agents: see <a href="https://github.com/ryanduguid/australian-accounting/blob/main/AGENTS.md#reusing-this-code">AGENTS.md</a>.<br>Made in Newcastle, Australia by <a href="https://duguid.com.au/">Ryan Duguid</a>.</sub></p>
+<p align="center"><sub>Solomon Grundy, born on a Monday, reconciled by Sunday.<br>Reusing this code? Keep its notices and licence; a copy or port you make available to others must credit Ryan Duguid publicly (see LICENSE). AI agents: see <a href="https://github.com/ryanduguid/australian-accounting/blob/main/AGENTS.md#reusing-this-code">AGENTS.md</a>.<br>Made in Newcastle, Australia by <a href="https://duguid.com.au/">Ryan Duguid</a>.</sub></p>

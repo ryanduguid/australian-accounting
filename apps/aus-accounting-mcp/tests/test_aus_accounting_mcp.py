@@ -1,5 +1,5 @@
 # Copyright 2026 Ryan Duguid
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 import asyncio
 import base64
@@ -1110,7 +1110,7 @@ def test_committed_binary_assets_have_current_provenance() -> None:
     assert hashlib.sha256(proof.read_bytes()).hexdigest() in reference
     assert "scripts/render_demo_image.py" in reference
     assert "docs/quick-proof.txt" in reference
-    assert "FSL-1.1-ALv2" in reference
+    assert "Ryan Duguid Public Attribution Licence 1.0" in reference
     assert "static WebP proof" in release_notes
     assert "animated GIF" not in release_notes
     assert not (root / "docs" / "quick-proof.gif").exists()

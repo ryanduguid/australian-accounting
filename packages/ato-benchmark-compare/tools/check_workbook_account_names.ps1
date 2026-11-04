@@ -1,5 +1,5 @@
 # Copyright 2026 Ryan Duguid
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 # Manual desktop Excel control for the shipped workbook's duplicate account-name
 # checks: Excel itself must treat *, ? and ~ as literal characters (#174). The

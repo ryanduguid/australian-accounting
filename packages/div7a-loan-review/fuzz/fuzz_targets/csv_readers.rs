@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! Fuzz the CSV reader with fabricated files: as a loan register read from the
 //! bytes, and as a benchmark rate table read from the decoded lines through

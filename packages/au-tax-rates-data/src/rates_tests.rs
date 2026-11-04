@@ -1,5 +1,5 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! The behaviours of `tests/test_dataset.py`, `test_numeric_validation.py`,
 //! `test_pattern_reports.py` and `test_ato_tables.py` at 24fcf24, one test
