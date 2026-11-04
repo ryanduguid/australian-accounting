@@ -336,7 +336,8 @@ impl Parser<'_> {
 }
 
 impl Regex {
-    pub fn new(pattern: &str) -> Regex {
+    /// A fixed pattern in Python's `re` dialect, not the `regex` crate's.
+    pub fn python(pattern: &str) -> Regex {
         Regex::with_case(pattern, false)
     }
 
@@ -633,7 +634,7 @@ mod tests {
 
     #[test]
     fn unicode_classes_and_anchors_follow_python() {
-        let number = Regex::new(r"^[\d,]*+(?:\.\d++|(?<=\d))$");
+        let number = Regex::python(r"^[\d,]*+(?:\.\d++|(?<=\d))$");
         assert!(number.matches_start("00123"));
         assert!(number.matches_start("\u{663}\u{664}"));
         assert!(number.matches_start("1,234.5\n"));
@@ -654,7 +655,7 @@ mod tests {
 
     #[test]
     fn sub_replaces_leftmost_non_overlapping_matches() {
-        let spaces = Regex::new(r"\s+");
+        let spaces = Regex::python(r"\s+");
         assert_eq!(spaces.sub(" ", "a \t b\u{3000}c"), "a b c");
         let cleaned = Regex::ignore_case(r"[\s$,()]|CR$|DR$");
         assert_eq!(cleaned.sub("", "$ (1,234.50) cr"), "1234.50");

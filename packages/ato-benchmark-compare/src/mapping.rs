@@ -169,8 +169,8 @@ static RULES: LazyLock<Vec<(Regex, &'static str, &'static str)>> = LazyLock::new
     .map(|(p, b, r)| (Regex::ignore_case(p), b, r))
     .collect()
 });
-static SPACES: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+"));
-static ACCOUNT_KEY: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[0-9a-f]{64}"));
+static SPACES: LazyLock<Regex> = LazyLock::new(|| Regex::python(r"\s+"));
+static ACCOUNT_KEY: LazyLock<Regex> = LazyLock::new(|| Regex::python(r"[0-9a-f]{64}"));
 
 fn fail<T>(message: impl Into<String>) -> Result<T, Failure> {
     Err(Failure::Value(message.into()))

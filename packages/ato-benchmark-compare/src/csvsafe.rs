@@ -10,7 +10,7 @@ use std::sync::LazyLock;
 use crate::pyre::Regex;
 use crate::pytext;
 
-static NUMBER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[\d,]*+(?:\.\d++|(?<=\d))$"));
+static NUMBER: LazyLock<Regex> = LazyLock::new(|| Regex::python(r"^[\d,]*+(?:\.\d++|(?<=\d))$"));
 
 /// `str.lstrip()`.
 fn lstrip(text: &str) -> &str {

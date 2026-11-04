@@ -54,10 +54,10 @@ pub fn ratio_label(key: &str) -> &str {
 }
 
 static FILENAME: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^benchmarks-(\d{4}-\d{2})\.json$"));
+    LazyLock::new(|| Regex::python(r"^benchmarks-(\d{4}-\d{2})\.json$"));
 static PUNCTUATION: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new("[-\u{2010}-\u{2015}\u{2018}\u{2019}\u{201c}\u{201d}'\"]+"));
-static SPACES: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+"));
+    LazyLock::new(|| Regex::python("[-\u{2010}-\u{2015}\u{2018}\u{2019}\u{201c}\u{201d}'\"]+"));
+static SPACES: LazyLock<Regex> = LazyLock::new(|| Regex::python(r"\s+"));
 
 fn fail<T>(message: impl Into<String>) -> Result<T, Failure> {
     Err(Failure::Value(message.into()))
