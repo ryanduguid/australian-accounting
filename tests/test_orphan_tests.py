@@ -98,6 +98,8 @@ PYTEST = "pytest -q --cov=app"
 LINUX = "    runs-on: ubuntu-latest\n"
 # A job for others to need.
 SETUP = "  setup:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo ready\n"
+SETUP_RUN = SETUP.replace("    runs-on:", "    outputs:\n      run: ${{ steps.select.outputs.run }}\n    runs-on:")
+STEP_IF = "      - if: " + CONDITION + "\n"
 # The called job on 2 runners, each with its own tier.
 TIERS = (
     "    runs-on: ${{ matrix.os }}\n"
@@ -207,8 +209,19 @@ class OrphanTestsTests(unittest.TestCase):
             ),
             "a needs output the job and step set apart": (
                 {called: CALLED.replace(
-                    "  check:\n", SETUP + "  check:\n    needs: setup\n    if: needs.setup.outputs.run == 'true'\n"
+                    "  check:\n", SETUP_RUN + "  check:\n    needs: setup\n    if: needs.setup.outputs.run == 'true'\n"
                 ).replace(CONDITION, "needs.setup.outputs.run == 'false' && " + CONDITION)},
+                UNRUN | {"crates/covered/wasm"},
+            ),
+            "a needs output the job sets for the step": (
+                {called: CALLED.replace(
+                    "  check:\n", SETUP_RUN + "  check:\n    needs: setup\n    if: needs.setup.outputs.run == 'true'\n"
+                ).replace(CONDITION, "needs.setup.outputs.run == 'true' && " + CONDITION)},
+                UNRUN,
+            ),
+            # YAML reads '' between single quotes as one quote.
+            "a doubled single quote": (
+                {called: CALLED.replace(STEP_IF, "      - if: 'runner.os != ''Linux'''\n")},
                 UNRUN | {"crates/covered/wasm"},
             ),
             # GitHub compares strings without regard to case, but keeps their spaces.
@@ -275,6 +288,33 @@ class OrphanTestsTests(unittest.TestCase):
                 {called: CALLED.replace(LINUX, "    if: github.ref == 'refs/heads/main'\n" + LINUX)
                  .replace(CONDITION, "github.ref != 'refs/heads/main' && " + CONDITION)},
                 "outside the condition grammar",
+            ),
+            # A step's condition cannot fix an output: its job passes either way.
+            "a step output its job leaves open": (
+                {called: CALLED.replace("  check:\n", SETUP_RUN + "  check:\n    needs: setup\n")
+                 .replace(CONDITION, "needs.setup.outputs.run == 'true' && " + CONDITION)},
+                "leaves open",
+            ),
+            "an output its job does not declare": (
+                {called: CALLED.replace("  check:\n", SETUP + "  check:\n    needs: setup\n")
+                 .replace(CONDITION, "needs.setup.outputs.run == 'true' && " + CONDITION)},
+                "does not declare",
+            ),
+            "an escape in a double-quoted condition": (
+                {called: CALLED.replace(STEP_IF, "      - if: \"runner.os != 'Lin\\u0075x'\"\n")},
+                "an escape in a double-quoted scalar",
+            ),
+            "an escape in a double-quoted key": (
+                {called: CALLED.replace(STEP_IF, "      - \"i\\u0066\": runner.os != 'Linux'\n")},
+                "an escape in a double-quoted scalar",
+            ),
+            # Unset, the shell is PowerShell on Windows, which carries on after a failing command.
+            "several lines on Windows without shell: bash": (
+                {called: CALLED.replace(LINUX, TIERS).replace(
+                    "      - run: cargo test --locked\n",
+                    "      - run: |\n          cargo test --locked\n          cargo fmt --check\n",
+                )},
+                "need shell: bash",
             ),
             "a needs output of a job it does not need": (
                 {called: CALLED.replace(CONDITION, "needs.setup.outputs.run == 'true' && " + CONDITION)},
@@ -434,6 +474,30 @@ class OrphanTestsTests(unittest.TestCase):
                     + "    steps:\n      - run: false && cargo test\n"
                 )},
                 "outside the step grammar",
+            ),
+            "an npm script in a workflow nothing calls": (
+                {
+                    ".github/workflows/unused.yml": (
+                        "name: unused\non:\n  workflow_call:\njobs:\n  check:\n" + LINUX
+                        + "    steps:\n      - working-directory: tools/unused\n        run: npm test\n"
+                    ),
+                    "tools/unused/package.json": '{"scripts": {"test": "false && cargo test"}}',
+                },
+                "outside the step grammar",
+            ),
+            "a workflow nothing calls whose steps need inputs": (
+                {".github/workflows/unused.yml": (
+                    "name: unused\non:\n  workflow_call:\njobs:\n  check:\n" + LINUX
+                    + "    steps:\n      - working-directory: ${{ inputs.dir }}\n        run: cargo test --locked\n"
+                )},
+                "cannot resolve the working directory",
+            ),
+            # npm's shell carries on after a failing command.
+            "an npm script of 2 commands": (
+                {"tools/tool/package.json": FILES["tools/tool/package.json"].replace(
+                    "tests/runtime.test.mjs", "tests/runtime.test.mjs\\ncargo fmt"
+                )},
+                re.escape("(one command)"),
             ),
             "an npm pretest script": (
                 {"tools/tool/package.json": FILES["tools/tool/package.json"].replace(

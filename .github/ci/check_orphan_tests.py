@@ -15,15 +15,19 @@ workflows use. Every step that names a test runner (cargo test, llvm-cov or
 fuzz, pytest, unittest, npm test or run, node --test) must fit it, with its
 job and any caller of its workflow, whether or not its conditions can hold;
 anything outside it stops the check, naming the file, job and step. Other
-steps are ignored.
+steps are ignored. The YAML reader takes block YAML and one-line quoted
+scalars: it reads '' between single quotes as ', as YAML 1.2 does, and stops
+on a double-quoted scalar with a backslash, whose escapes it does not decode.
 
-Steps. The shell is bash (unset, or shell: bash), and the step has no
-continue-on-error. The env of the step, its job and its workflow sets only the
-variables in ENVIRONMENT, which main's test steps have. With each
-backslash-newline deleted, each line is blank, a comment, ci-rust.yml's
-capture of its coverage floor (name="$(jq ...)") or one of the commands below.
-A word is letters, digits and _+=:./-, or a double-quoted word with $NAME in
-it; a path or name does not start with -. Each command runs:
+Steps. The shell is bash: shell: bash, or unset on a Linux or macOS runner,
+where GitHub runs bash -e. Unset on another runner it is PowerShell, which
+fails a step only when its last command fails, so there the script is one
+line. The step has no continue-on-error. The env of the step, its job and its
+workflow sets only the variables in ENVIRONMENT, which main's test steps have.
+With each backslash-newline deleted, each line is blank, a comment,
+ci-rust.yml's capture of its coverage floor (name="$(jq ...)") or one of the
+commands below. A word is letters, digits and _+=:./-, or a double-quoted word
+with $NAME in it; a path or name does not start with -. Each command runs:
 
 - cargo [+TOOLCHAIN] test with --locked, --release, --features F and
   --manifest-path P: that crate, or P's. With --test T -- --ignored
@@ -42,7 +46,8 @@ it; a path or name does not start with -. Each command runs:
   ${{ TERMS && 'OPTIONS' || '' }} as ci.yml has it) are -q, --cov[=M],
   --cov-branch and --cov-report=R; it takes no paths.
 - python -m unittest [-v] FILE.py ...: those files.
-- npm test or npm run NAME: that package.json script, read as a step; the
+- npm test or npm run NAME: that package.json script, which is one command
+  in this list, as npm's shell carries on after a failing command; the
   package has no preNAME or postNAME script.
 - node --test [--test-concurrency=N] FILE.test.js ...: those files.
 - cargo build, clippy or fmt, rustup target add or node SCRIPT.mjs: nothing.
@@ -51,21 +56,25 @@ Conditions. A job's or step's if: is a && of terms: NAME == 'value' or
 NAME != 'value', or a parenthesised || of those, on a string input of a
 reusable workflow, a step's runner.os (from runs-on ubuntu-latest,
 windows-latest or macos-latest) or needs.JOB.result (success, as a job runs
-only when the jobs it needs succeed); or needs.JOB.outputs.NAME == 'value',
-which holds unless the caller, job and step require 2 values of it. JOB must
-be in the job's needs:. Comparisons ignore case but not spaces, as GitHub's
-do. A job can run only if its condition can hold and each job it needs can
-run in the same call; none of them has continue-on-error.
+only when the jobs it needs succeed); or needs.JOB.outputs.NAME == 'value' for
+an output JOB declares. A job's or caller's output test fixes that value in
+any run in which that job runs; a step's may test only a value fixed so, as
+its job runs and passes whatever the output. JOB must be in the job's needs:.
+Comparisons ignore case but not spaces, as GitHub's do. A job can run only if
+its condition can hold and each job it needs can run in the same call; none of
+them has continue-on-error.
 
 Matrices. Plain axes, include rows alone or the matrix ci.yml computes with
 rust_crates.py; runs-on and a caller's with: values may name a row's values.
 
 A reusable workflow's steps run for each call of it (a job of a workflow that
 is not reusable itself, whose uses: names it and which can run), once for each
-row of the caller's matrix, with its with: values. The check does not follow
-scripts, what earlier steps write (such as $GITHUB_ENV and $GITHUB_PATH),
-configuration files (such as .cargo/config.toml and conftest.py), cargo
-workspace members, ignored Rust tests or the tests inside a file.
+row of the caller's matrix, with its with: values. One that nothing calls is
+read without inputs, so a step that needs one stops the check. The check does
+not follow scripts, what earlier steps write (such as $GITHUB_ENV and
+$GITHUB_PATH), configuration files (such as .cargo/config.toml and
+conftest.py), cargo workspace members, ignored Rust tests or the tests inside
+a file.
 
 Deliberate exceptions go in orphan_tests_allowed.txt beside this script, one
 '<path> <reason>' per line. The check fails on an entry without a reason. It
@@ -186,6 +195,18 @@ def load_yaml(text: str) -> object:
     def is_item(body: str) -> bool:
         return body == "-" or body.startswith("- ")
 
+    def unquote(scalar: str) -> str:
+        """A one-line scalar as YAML 1.2 reads it: between single quotes, '' is ';
+        between double quotes, a backslash starts an escape, which this reader
+        does not decode."""
+        if scalar[:1] == "'":
+            return scalar[1:-1].replace("''", "'")
+        if scalar[:1] == '"':
+            if "\\" in scalar:
+                raise fail("an escape in a double-quoted scalar")
+            return scalar[1:-1]
+        return scalar
+
     def mapping(indent: int) -> dict[str, object]:
         nonlocal pos
         found: dict[str, object] = {}
@@ -193,8 +214,9 @@ def load_yaml(text: str) -> object:
             match = KEY.fullmatch(head[1])
             if match is None:
                 raise fail("not a key")
+            key = unquote(match["key"])
             pos += 1
-            found[match["key"].strip("\"'")] = value(indent, match["rest"] or "")
+            found[key] = value(indent, match["rest"] or "")
         if head is not None and head[0] > indent:
             raise fail("unexpected indentation")
         return found
@@ -222,7 +244,7 @@ def load_yaml(text: str) -> object:
             match = QUOTED.fullmatch(rest)
             if match is None:
                 raise fail("a quoted scalar over several lines")
-            return match[1][1:-1]
+            return unquote(match[1])
         text = re.split(r"[ \t]#", rest, maxsplit=1)[0].rstrip()
         if text[:1] in ("&", "*", "!", "?", "%", "@", "`"):
             raise fail("an anchor, alias, tag or reserved indicator")
@@ -323,34 +345,56 @@ def needed(job: object, where: str) -> list[str]:
     return jobs
 
 
-def context(inputs: dict[str, str], job: object, where: str) -> dict[str, str]:
-    """The values a job's conditions can test: its call's string inputs, and
+def context(inputs: dict[str, str], job: object, jobs: dict, where: str) -> dict[str, str]:
+    """The names a job's conditions can test: its call's string inputs;
     needs.JOB.result for each job it needs, which is success, as a job with no
-    status function in its condition runs only when they succeed."""
-    return {f"inputs.{key}": value for key, value in inputs.items()} | {
-        f"needs.{name}.result": "success" for name in needed(job, where)
-    }
+    status function in its condition runs only when they succeed; and
+    needs.JOB.outputs.NAME for each output those jobs declare, with its
+    declared expression, as its value is not known."""
+    names = {f"inputs.{key}": value for key, value in inputs.items()}
+    for need in needed(job, where):
+        if need not in jobs:
+            raise Unreadable(f"{where}: needs {need!r}, which is not a job")
+        names[f"needs.{need}.result"] = "success"
+        outputs = at(jobs[need], "outputs")
+        for output, expression in (outputs.items() if isinstance(outputs, dict) else []):
+            names[f"needs.{need}.outputs.{output}"] = str(expression)
+    return names
 
 
 def holds(
-    condition: object, where: str, flow: str, names: dict[str, str], free: Needs | None
+    condition: object,
+    where: str,
+    flow: str,
+    names: dict[str, str],
+    free: Needs | None,
+    step: bool = False,
 ) -> Needs | None:
     """Whether a job's or step's condition can hold with the values in names,
     given the needs outputs in free (None when it cannot run anyway): if so, free
     with the needs outputs it requires added; if not, None. Either way the
-    condition must fit the grammar."""
+    condition must fit the grammar. A job runs only with the outputs its
+    condition requires, but a step's condition cannot set one: its job runs and
+    passes either way, so the step may test only an output that free sets."""
     if condition is None:
         return free
     text = LITERAL_OR_SPACE.sub(lambda match: match[1] or " ", str(condition)).strip()
     if text.startswith("${{") and text.endswith("}}"):
         text = text[3:-2].strip()
-    possible, free = free is not None, dict(free or {})
+    known = free is not None
+    possible, free = known, dict(free or {})
     for term in text.split(" && "):
         if output := OUTPUT.fullmatch(term):
             if f"needs.{output['job']}.result" not in names:
                 raise Unreadable(f"{where}: {term!r} names a job it does not need")
-            value = output["value"].casefold()
-            possible &= free.setdefault((flow, output["name"]), value) == value
+            if output["name"] not in names:
+                raise Unreadable(f"{where}: {term!r} names an output its job does not declare")
+            key, value = (flow, output["name"]), output["value"].casefold()
+            if step and known and key not in free:
+                raise Unreadable(
+                    f"{where}: {term!r} tests an output its job's condition leaves open"
+                )
+            possible &= free.setdefault(key, value) == value
             continue
         parts = choice[1].split(" || ") if (choice := CHOICE.fullmatch(term)) else [term]
         tests = [test for part in parts if (test := BOUND.fullmatch(part))]
@@ -374,14 +418,14 @@ def runnable(
     can hold, and in turn that of each job it needs, as it runs only when they
     succeed. No such job may have continue-on-error."""
     where = f"{WORKFLOWS}/{name} job {job_id}"
-    job = flows[name]["jobs"][job_id]
+    jobs = flows[name]["jobs"]
+    job = jobs[job_id]
     if at(job, "continue-on-error") is not None:
         raise Unreadable(f"{where}: continue-on-error is outside the grammar")
+    names = context(inputs, job, jobs, where)
     for need in needed(job, where):
-        if need not in flows[name]["jobs"]:
-            raise Unreadable(f"{where}: needs {need!r}, which is not a job")
         free = runnable(flows, name, need, inputs, free)
-    return holds(at(job, "if"), where, name, context(inputs, job, where), free)
+    return holds(at(job, "if"), where, name, names, free)
 
 
 def calls(
@@ -452,19 +496,30 @@ def test_steps(root: Path, flows: dict[str, dict]):
                     env |= variables or {}
                 directory = str(setting(flow, job, step, "working-directory") or ".")
                 addopts = str(env.get("PYTEST_ADDOPTS", ""))
-                steps.append((here, step, commands(here, script), directory, addopts))
+                several = shell is None and len(script.strip().splitlines()) > 1
+                steps.append((here, step, commands(here, script), directory, addopts, several))
             if not steps:
                 continue
             rows = matrix_rows(root, job, where)
-            for inputs, free in calls(root, flows, name) if reusable(flow) else [({}, {})]:
+            calling = calls(root, flows, name) if reusable(flow) else [({}, {})]
+            # Without a call, its steps are read without inputs, in a run that cannot happen.
+            for inputs, free in calling or [({}, None)]:
                 running = runnable(flows, name, job_id, inputs, free)
-                names = context(inputs, job, where)
-                for row, (here, step, found, directory, addopts) in itertools.product(rows, steps):
+                names = context(inputs, job, flow["jobs"], where)
+                for row, (here, step, found, directory, addopts, several) in itertools.product(
+                    rows, steps
+                ):
                     label = at(job, "runs-on")
                     label = substitute(label, inputs, row) if isinstance(label, str) else ""
                     runner = {"runner.os": HOSTED[label]} if label in HOSTED else {}
-                    can_run = holds(at(step, "if"), here, name, names | runner, running) is not None
-                    yield here, substitute(directory, inputs, {}), found, addopts, can_run
+                    # Unset, the shell is PowerShell off Linux and macOS: it fails a step
+                    # only when its last command fails.
+                    if several and runner.get("runner.os") not in ("Linux", "macOS"):
+                        raise Unreadable(f"{here}: several lines on {label!r} need shell: bash")
+                    reached = holds(at(step, "if"), here, name, names | runner, running, step=True)
+                    yield (
+                        here, substitute(directory, inputs, {}), found, addopts, reached is not None
+                    )
 
 
 def join(base: str, path: str) -> str:
@@ -547,11 +602,14 @@ def commands(where: str, script: str) -> list[re.Match[str]]:
         line = " ".join(line.split())
         if not line or line.startswith("#") or CAPTURE.fullmatch(line) or OTHER.fullmatch(line):
             continue
-        command = next(filter(None, (pattern.fullmatch(line) for pattern in COMMANDS)), None)
-        if command is None:
+        if (command := as_command(line)) is None:
             raise Unreadable(f"{where}: {line!r} is outside the step grammar")
         found.append(command)
     return found
+
+
+def as_command(line: str) -> re.Match[str] | None:
+    return next(filter(None, (pattern.fullmatch(line) for pattern in COMMANDS)), None)
 
 
 def runs(
@@ -590,7 +648,14 @@ def runs(
                     raise Unreadable(f"{where}: npm script {hook!r} is outside the step grammar")
             script = scripts.get(name)
             if isinstance(script, str) and TESTS.search(script):
-                run |= runs(root, files, where, directory, commands(where, script), addopts)
+                # npm's shell does not stop at a failing command, so a script is one command.
+                single = as_command(" ".join(script.split())) if "\n" not in script else None
+                if single is None:
+                    raise Unreadable(
+                        f"{where}: npm script {name!r} {script!r} is outside the step grammar"
+                        " (one command)"
+                    )
+                run |= runs(root, files, where, directory, [single], addopts)
         else:
             run |= {join(base, path) for path in command["files"].split()}
     return run
