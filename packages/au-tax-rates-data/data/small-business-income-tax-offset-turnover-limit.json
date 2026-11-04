@@ -9,5 +9,12 @@
   "source_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/concessions",
   "retrieved_at": "2026-10-15T00:33:59+11:00",
   "quote": "$5 million, you can access the small business income tax offset",
+  "legislation": [
+    {
+      "title_id": "C2004A05138",
+      "provision": "328-357",
+      "application": "Treasury Laws Amendment (Enterprise Tax Plan) Act 2017 (No. 41, 2017) Sch 3 item 20 for the 2016-17 income year and later income years (item 22)"
+    }
+  ],
   "notes": "Turnover must be less than this amount. The page prints $5 million, so the record has no pattern. The page states no start date. The $5 million threshold is in ITAA 1997 s 328-357, inserted by the Treasury Laws Amendment (Enterprise Tax Plan) Act 2017 (No. 41, 2017) Sch 3 item 20 for the 2016-17 income year and later income years (item 22): https://www.legislation.gov.au/C2017A00041/asmade"
 }

@@ -11,5 +11,11 @@
   "retrieved_at": "2026-10-15T00:31:57+11:00",
   "quote": "Ending 31 March 2023, 2024, 2025, 2026 and 2027 47% 2.0802",
   "pattern": "Type 1 gross-up rate FBT year FBT rate Type 1 gross-up rate Ending 31 March 2023, 2024, 2025, 2026 and 2027 [\\d.]+% ([\\d.]+)",
+  "legislation": [
+    {
+      "title_id": "C2004A03280",
+      "provision": "5B"
+    }
+  ],
   "notes": "Used where the benefit provider can claim a GST credit for the benefit. The page lists the FBT years ending 31 March 2023 to 31 March 2027, and its last year sets the end date. Fringe Benefits Tax Assessment Act 1986 s 5B(1B) grosses up type 1 benefits by (FBT rate + GST rate) / ((1 - FBT rate) × (1 + GST rate) × FBT rate), which is 2.0802 to 4 decimal places at the 47% FBT rate and the 10% GST rate (A New Tax System (Goods and Services Tax) Act 1999 s 9-70). The FBT rate has been 47% since the year of tax starting 1 April 2017 (see the fbt-rate record), and s 5B has changed since then only in subsection (1E) (Treasury Laws Amendment (2022 Measures No. 1) Act 2022, No. 35, 2022, Sch 4 item 16): https://www.legislation.gov.au/C2004A03280/latest. The tables the ATO's calculators read (TC2TAXRTE) also show 2.0802 from 1 April 2017."
 }

@@ -11,5 +11,11 @@
   "quote": "the full cost of eligible depreciating assets costing less than $20,000 that are first used or installed ready for use in an income year",
   "period_quote": "Under the measure, from 1 July 2026, small businesses with an aggregated turnover of less than $10 million, can deduct:",
   "pattern": "eligible depreciating assets costing less than (\\$[\\d,]+) that are first used",
+  "legislation": [
+    {
+      "title_id": "C2004A05138",
+      "provision": "328-180"
+    }
+  ],
   "notes": "Permanent from 1 July 2026: the Treasury Laws Amendment (Tax Reform No. 2) Act 2026 (No. 71, 2026) Sch 2 item 3 replaced $1,000 with $20,000 in ITAA 1997 s 328-180(1)(b) for assets first used, or installed ready for use, for a taxable purpose on or after 1 July 2026 (item 15(1)): https://www.legislation.gov.au/C2026A00071/asmade. The page says 'This measure is now law.' The same limit applies to the first later amount included in the second element of an asset's cost (items 4, 5 and 15(2)); other conditions and exclusions apply."
 }

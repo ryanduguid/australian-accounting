@@ -1,0 +1,185 @@
+{
+  "corpus": {
+    "name": "Commonwealth tax statutes and legislative instruments",
+    "retrieved": "2026-08-04"
+  },
+  "provisions": [
+    {
+      "title_id": "C1953A00001",
+      "provision": "45-15",
+      "act": "Taxation Administration Act 1953",
+      "compilation_number": "225",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C1953A00001:0436:45-15"
+      ],
+      "sections_sha256": "c152146edbf9ee69f936b75b04f9a8ac8423909f014e6a12a693586717da0854"
+    },
+    {
+      "title_id": "C1953A00001",
+      "provision": "8AAD",
+      "act": "Taxation Administration Act 1953",
+      "compilation_number": "225",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C1953A00001:0035:8AAD"
+      ],
+      "sections_sha256": "c152146edbf9ee69f936b75b04f9a8ac8423909f014e6a12a693586717da0854"
+    },
+    {
+      "title_id": "C2004A03280",
+      "provision": "5B",
+      "act": "Fringe Benefits Tax Assessment Act 1986",
+      "compilation_number": "97",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C2004A03280:0008:5B"
+      ],
+      "sections_sha256": "2ec3ae739a5375dfcb663cd8c77413ed68f2adab89ff95a85875d6df5d1393c3"
+    },
+    {
+      "title_id": "C2004A03281",
+      "provision": "6",
+      "act": "Fringe Benefits Tax Act 1986",
+      "compilation_number": "9",
+      "compilation_date": "2018-06-19",
+      "row_ids": [
+        "C2004A03281:0006:6"
+      ],
+      "sections_sha256": "0d5d98bd3bfebb271fc86ccff00692c15f1117907d70cf8c1d847ee4109e243c"
+    },
+    {
+      "title_id": "C2004A03348",
+      "provision": "23",
+      "act": "Income Tax Rates Act 1986",
+      "compilation_number": "66",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C2004A03348:0017:23"
+      ],
+      "sections_sha256": "e285dc1aacdeefda5e44a292e2ce8525b57adacfb17dc642691a041ccd7073ea"
+    },
+    {
+      "title_id": "C2004A03348",
+      "provision": "23AA",
+      "act": "Income Tax Rates Act 1986",
+      "compilation_number": "66",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C2004A03348:0018:23AA"
+      ],
+      "sections_sha256": "e285dc1aacdeefda5e44a292e2ce8525b57adacfb17dc642691a041ccd7073ea"
+    },
+    {
+      "title_id": "C2004A03351",
+      "provision": "3",
+      "act": "Medicare Levy Act 1986",
+      "compilation_number": "53",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C2004A03351:0003:3"
+      ],
+      "sections_sha256": "6c5cc5531638458d4413122f92c0e02f42be790055cde61611aecbdfb5c54ec3"
+    },
+    {
+      "title_id": "C2004A03351",
+      "provision": "6",
+      "act": "Medicare Levy Act 1986",
+      "compilation_number": "53",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C2004A03351:0007:6"
+      ],
+      "sections_sha256": "6c5cc5531638458d4413122f92c0e02f42be790055cde61611aecbdfb5c54ec3"
+    },
+    {
+      "title_id": "C2004A05128",
+      "provision": "293-10",
+      "act": "Income Tax (Transitional Provisions) Act 1997",
+      "compilation_number": "103",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C2004A05128:0318:293-10"
+      ],
+      "sections_sha256": "9df781fc3db6d00ebd4cc1a828404eda3612e1a111150988d84433fc9dcf35a0"
+    },
+    {
+      "title_id": "C2004A05138",
+      "provision": "152-10",
+      "act": "Income Tax Assessment Act 1997",
+      "compilation_number": "266",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C2004A05138:1518:152-10"
+      ],
+      "sections_sha256": "ccc93d188d7df820c476b6f379dd9b8a88571e1d6dc800bef0290730bfecc5df"
+    },
+    {
+      "title_id": "C2004A05138",
+      "provision": "291-20",
+      "act": "Income Tax Assessment Act 1997",
+      "compilation_number": "266",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C2004A05138:2529:291-20"
+      ],
+      "sections_sha256": "ccc93d188d7df820c476b6f379dd9b8a88571e1d6dc800bef0290730bfecc5df"
+    },
+    {
+      "title_id": "C2004A05138",
+      "provision": "328-180",
+      "act": "Income Tax Assessment Act 1997",
+      "compilation_number": "266",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C2004A05138:3003:328-180"
+      ],
+      "sections_sha256": "ccc93d188d7df820c476b6f379dd9b8a88571e1d6dc800bef0290730bfecc5df"
+    },
+    {
+      "title_id": "C2004A05138",
+      "provision": "328-357",
+      "act": "Income Tax Assessment Act 1997",
+      "compilation_number": "266",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C2004A05138:3027:328-357"
+      ],
+      "sections_sha256": "ccc93d188d7df820c476b6f379dd9b8a88571e1d6dc800bef0290730bfecc5df"
+    },
+    {
+      "title_id": "C2004A05138",
+      "provision": "61-115",
+      "act": "Income Tax Assessment Act 1997",
+      "compilation_number": "266",
+      "compilation_date": "2026-07-01",
+      "row_ids": [
+        "C2004A05138:0733:61-115"
+      ],
+      "sections_sha256": "ccc93d188d7df820c476b6f379dd9b8a88571e1d6dc800bef0290730bfecc5df"
+    },
+    {
+      "title_id": "C2013A00087",
+      "provision": "5",
+      "act": "Superannuation (Sustaining the Superannuation Contribution Concession) Imposition Act 2013",
+      "compilation_number": "0",
+      "compilation_date": "2013-06-28",
+      "row_ids": [
+        "C2013A00087:0005:5"
+      ],
+      "sections_sha256": "4b1806b14de6247d757b4737be695a67b113d8872d7007385e7e7124dd4147f2"
+    },
+    {
+      "title_id": "F2019L00417",
+      "provision": "23-15",
+      "act": "A New Tax System (Goods and Services Tax) Regulations 2019",
+      "compilation_number": "5",
+      "compilation_date": "2025-11-01",
+      "row_ids": [
+        "F2019L00417:0003:23-15",
+        "F2019L00417:0004:23-15"
+      ],
+      "sections_sha256": "d87722edf8bb0cb28453086edc1481d0ebc8c7e223de0badf4995905de87aac0"
+    }
+  ]
+}

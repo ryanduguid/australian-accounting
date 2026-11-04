@@ -11,5 +11,11 @@
   "quote": "All other taxpayers $28,011 $35,013",
   "period_quote": "In 2025–26, you don't have to pay the Medicare levy if your taxable income is equal to or less than the lower Medicare levy threshold.",
   "pattern": "All other taxpayers (\\$[\\d,]+) \\$[\\d,]+",
+  "legislation": [
+    {
+      "title_id": "C2004A03351",
+      "provision": "3"
+    }
+  ],
   "notes": "2026-27 thresholds were not on the page at retrieval. The Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 (No. 58, 2026, assented 30 June 2026) Sch 5 items 3, 5 and 14 set $28,011 and $35,013 in Medicare Levy Act 1986 s 3(1) for the 2025-26 year of income and later years of income, so they also apply for 2026-27 unless amended: https://www.legislation.gov.au/C2026A00058/asmade"
 }

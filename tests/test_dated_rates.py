@@ -267,6 +267,49 @@ class DatedRateTests(unittest.TestCase):
         self.assertIn("holidays.py", out.getvalue())
 
 
+class LegislationCitationTests(unittest.TestCase):
+    """CI has no corpus, so citations are held to the list built from one."""
+
+    package = ROOT / "packages" / "au-tax-rates-data"
+
+    def setUp(self) -> None:
+        self.records = [
+            json.loads(path.read_text(encoding="utf-8"))
+            for path in sorted((self.package / "data").glob("*.json"))
+        ]
+        self.listing = json.loads(
+            (self.package / "legislation-provisions.json").read_text(encoding="utf-8")
+        )
+
+    def test_every_citation_resolves_and_every_listed_provision_is_cited(self) -> None:
+        listed = {(p["title_id"], p["provision"]) for p in self.listing["provisions"]}
+        cited = {
+            (c["title_id"], c["provision"])
+            for record in self.records
+            for c in record.get("legislation", ())
+        }
+        self.assertTrue(cited)
+        self.assertEqual(cited, listed)
+
+    def test_the_list_records_where_each_provision_came_from(self) -> None:
+        self.assertRegex(self.listing["corpus"]["retrieved"], r"^\d{4}-\d{2}-\d{2}$")
+        for provision in self.listing["provisions"]:
+            with self.subTest(provision=provision["provision"]):
+                self.assertRegex(provision["sections_sha256"], r"^[0-9a-f]{64}$")
+                self.assertRegex(provision["compilation_date"], r"^\d{4}-\d{2}-\d{2}$")
+                self.assertTrue(provision["row_ids"])
+                for row_id in provision["row_ids"]:
+                    self.assertEqual(row_id.split(":")[0], provision["title_id"])
+                    self.assertEqual(row_id.split(":")[2], provision["provision"])
+
+    def test_an_application_provision_quotes_the_notes(self) -> None:
+        for record in self.records:
+            for citation in record.get("legislation", ()):
+                if "application" in citation:
+                    with self.subTest(record=record["id"]):
+                        self.assertIn(citation["application"], record["notes"])
+
+
 class DatasetAgreementTests(unittest.TestCase):
     def test_every_engine_copy_equals_the_dataset_record(self) -> None:
         for figure, dataset, engine in _dataset_pairs():

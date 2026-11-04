@@ -10,5 +10,11 @@
   "retrieved_at": "2026-10-15T00:30:39+11:00",
   "quote": "2021–22 and future years $50m 25.0% 30.0%",
   "pattern": "2021–22 and future years \\$50m [\\d.]+% ([\\d.]+%)",
+  "legislation": [
+    {
+      "title_id": "C2004A03348",
+      "provision": "23"
+    }
+  ],
   "notes": "Applies to companies that are not base rate entities. The page shows 30% for every year from 2017–18. The 30% rate in Income Tax Rates Act 1986 s 23(2) applies from the 2001-02 year of income (New Business Tax System (Income Tax Rates) Act (No. 1) 1999, No. 167, 1999, Sch 2 items 1 and 12): https://www.legislation.gov.au/C2004A00558/asmade. The tables the ATO's calculators read (TC2TAXRTE) also show 30% from 1 July 2001."
 }

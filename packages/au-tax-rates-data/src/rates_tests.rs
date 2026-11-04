@@ -2012,3 +2012,46 @@ fn an_invalid_browser_reply_fails_only_its_own_page_through_fetch_text() {
     assert_eq!(st(&error.text), "the browser's reply is not a page");
     assert_eq!(st(pages[1].1.as_ref().unwrap()), "x".repeat(250));
 }
+
+#[test]
+fn every_cited_provision_has_the_shape_the_corpus_keys() {
+    let records = records();
+    let record = &records[0];
+    let cited = |entries: &str| with(record, "legislation", j(entries));
+    assert_eq!(
+        validate(&cited(
+            r#"[{"title_id": "C2004A05138", "provision": "291-20", "application": "Sch 1"}]"#
+        )),
+        Vec::<String>::new()
+    );
+    for (entries, problem) in [
+        ("[]", "legislation must be a non-empty list"),
+        (r#""s 5""#, "legislation must be a non-empty list"),
+        (r#"["s 5"]"#, "legislation entries must be objects"),
+        (
+            r#"[{"title_id": "ITAA 1997", "provision": "5"}]"#,
+            "title_id is not like C2004A05138",
+        ),
+        (
+            r#"[{"provision": "5"}]"#,
+            "title_id is not like C2004A05138",
+        ),
+        (
+            r#"[{"title_id": "C2004A05138", "provision": " "}]"#,
+            "a legislation entry needs title_id and provision, and may add application",
+        ),
+        (
+            r#"[{"title_id": "C2004A05138", "provision": "5", "section": "5"}]"#,
+            "a legislation entry needs title_id and provision, and may add application",
+        ),
+        (
+            r#"[{"title_id": "C2004A05138", "provision": "5", "application": ""}]"#,
+            "application must be non-empty text",
+        ),
+    ] {
+        assert!(
+            validate(&cited(entries)).contains(&problem.to_string()),
+            "{entries}"
+        );
+    }
+}

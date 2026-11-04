@@ -11,5 +11,11 @@
   "retrieved_at": "2026-09-28T21:00:16+10:00",
   "quote": "July – September 2026 11.43% 0.03131507%",
   "pattern": "July – September 2026 ([\\d.]+%)",
+  "legislation": [
+    {
+      "title_id": "C1953A00001",
+      "provision": "8AAD"
+    }
+  ],
   "notes": "Quarterly rate under Taxation Administration Act 1953 s 8AAD. The daily rate is the annual rate divided by the days in the calendar year. payday-super-checker's gic_rates.json carries the same quarter."
 }
