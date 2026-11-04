@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! JSON numbers as `json.loads` read them from literal bytes; the differential
 //! harness serialises Python values first, which would hide these spellings.
 //! Expected messages are Python 0.2.0's `gst` on the same literals, with the

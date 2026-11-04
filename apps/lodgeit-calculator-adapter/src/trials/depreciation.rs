@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `trials/depreciation.py`: accounting depreciation, a movement that has
 //! to close, or a refusal.
 //!

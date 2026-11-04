@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Decide whether one engine's CI gates run for a set of changed paths.
 
 `ci.yml` calls `ci-package.yml` once per engine, unconditionally, so that every

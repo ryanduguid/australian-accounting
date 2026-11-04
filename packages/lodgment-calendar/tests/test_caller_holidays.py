@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Caller-supplied holidays settle dates after the ATO table ends.
 
 Every holiday here is fabricated for the test; none is a real proclamation.

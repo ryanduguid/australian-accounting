@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Python operations on decoded JSON values, and Python exceptions as values,
 //! shared with the rates port: indexing, iteration, hashing, ordering and
 //! `Decimal()` of a JSON value.

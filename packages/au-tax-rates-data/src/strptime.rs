@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `datetime.strptime(text, "%d %B %Y").date()` in the C locale, as CPython
 //! 3.15's `_strptime` reads it: the regular expression it builds for the
 //! format, matched case-insensitively from the start, then the month looked

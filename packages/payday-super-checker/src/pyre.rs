@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The subset of Python's `re` the engine's fixed patterns use, with CPython's
 //! Unicode semantics: `\d`, `\s` and `\w` are Unicode classes, `$` also matches
 //! before a final newline, and IGNORECASE compares simple lowercase forms plus

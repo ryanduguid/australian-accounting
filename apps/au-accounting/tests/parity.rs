@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Holds `au-accounting ENGINE` to each engine's own command, byte for byte.
 //!
 //! Every input in each engine's frozen corpora (tests/data/python-*.json), plus

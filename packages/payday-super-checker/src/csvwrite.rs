@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `csv.writer` with the excel dialect: QUOTE_MINIMAL and `\r\n` line ends.
 
 /// One row as `writer.writerow(fields)` writes it.

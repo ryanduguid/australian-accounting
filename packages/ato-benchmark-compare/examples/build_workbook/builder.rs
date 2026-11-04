@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The workbook before its desktop Excel pass. Formula text is that of the
 //! Python builder it replaced (tools/build_workbook.py), character for
 //! character; the frozen model of the Python output holds the two together.

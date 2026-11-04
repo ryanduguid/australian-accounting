@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! JSON boundary for the removed Python import API. Amounts are decimal strings;
 //! facts are true, false or null. README.md documents each schema.
 use crate::cli;

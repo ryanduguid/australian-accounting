@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `tests/test_evidence_flags.py`: evidence flags keep their stated boolean
 //! meaning across writing and reading.
 use std::path::PathBuf;

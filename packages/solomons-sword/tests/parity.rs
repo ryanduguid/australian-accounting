@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 use serde_json::{Value, json};
 use solomons_sword::api;
 use solomons_sword::decimal::Decimal;

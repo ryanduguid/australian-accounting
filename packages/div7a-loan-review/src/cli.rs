@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The `div7a-loan-review` command line. argparse formatting and option
 //! parsing are reused from The WIP Tally's port, extended with option choices,
 //! a flag option, an epilog and subcommands without positionals.

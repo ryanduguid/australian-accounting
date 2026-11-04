@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """An ON_TIME verdict or candidate must say returned contributions were not assessed.
 
 The pinned checker has no input for a contribution the fund returned, so a receipt

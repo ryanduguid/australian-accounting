@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Exercise the merge gates: result rules, job lists and the removed-job tripwire."""
 
 import copy

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `HTTPSConnection(host, timeout=60)`, `request("GET", path)`,
 //! `getresponse()` and `read()`, as CPython 3.15's `http.client` runs them for
 //! `rates ato-tables`: the request it writes, and `HTTPResponse`'s status

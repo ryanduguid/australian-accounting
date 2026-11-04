@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The `ato-benchmark-compare` command line. argparse formatting and option
 //! parsing are reused from The WIP Tally's and Division 7A's ports.
 //!

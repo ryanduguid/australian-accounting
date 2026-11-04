@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """List the repository's Rust crates for the CI matrices.
 
 usage: python .github/ci/rust_crates.py >> "$GITHUB_OUTPUT"

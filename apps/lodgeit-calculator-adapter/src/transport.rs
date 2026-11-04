@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `transport.py`: one bounded HTTP request, as urllib and CPython 3.15's
 //! `http.client` run it with the adapter's handlers and response class.
 //!

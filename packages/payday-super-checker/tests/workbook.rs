@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The Excel workbook restates the checker's rules in worksheet formulas. Its
 //! cached values are held to tests/data/workbook-sample.json by the
 //! repository's tests/test_payday_workbook.py; this test holds the engine to

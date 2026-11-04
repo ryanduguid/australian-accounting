@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Both payday review tools report the cents the server's own evidence pack writes."""
 
 from __future__ import annotations

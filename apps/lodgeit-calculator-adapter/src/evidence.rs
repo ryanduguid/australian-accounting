@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `evidence.py`: local, digest-bound evidence of one remote call.
 //!
 //! `calculation` is the deterministic content and `calculation_sha256` its

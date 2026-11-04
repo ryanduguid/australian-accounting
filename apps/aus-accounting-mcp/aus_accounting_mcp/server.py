@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Australian accounting MCP server.
 
 Statutory tools are facades over reviewed delegated engines. SBR payloads are synthetic.

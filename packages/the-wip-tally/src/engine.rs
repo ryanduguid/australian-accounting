@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! AASB 15 WIP arithmetic for a single unit of account, ported from Python
 //! `wiptally.schedule` and `wiptally.model`. Subsequent corrections are recorded
 //! in RELEASE_NOTES.md. It computes; it does not decide transfer over time,

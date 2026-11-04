@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Warn before a dated table in payday-super-checker or lodgment-calendar runs out.
 
 Past the GIC table's last quarter the engine and the MCP withhold notional

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! One command for the Rust engines in this repository. `au-accounting <engine> ...`
 //! hands the remaining arguments to that engine's library exactly as the engine's
 //! own command does: JSON stdin commands, `--api-help` and the engine's CLI.

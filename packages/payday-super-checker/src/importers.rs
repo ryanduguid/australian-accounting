@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Read a payroll export and a super payments export, join them, and write
 //! the canonical contributions CSV.
 //!

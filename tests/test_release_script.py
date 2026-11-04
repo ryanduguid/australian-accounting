@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """The sequential release script refuses before tagging and stops on the first failure.
 
 Standard library only; git, gh and PyPI are replaced by an in-memory repository.

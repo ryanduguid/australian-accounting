@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `datetime` behaviour the engine depends on: date arithmetic with Python's
 //! `OverflowError`, `datetime.strptime` through the regexes `_strptime`
 //! compiles, and `datetime.fromisoformat` for the ISO shapes the reader

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `csv.reader(open(path, encoding="utf-8-sig", newline=""))` as CPython runs it.
 //!
 //! The text layer reads 8,192-byte chunks and decodes each one as it is needed,

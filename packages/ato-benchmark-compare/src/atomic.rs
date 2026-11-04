@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `atomic_write_text`: stage beside the destination, flush, then replace it
 //! in one filesystem operation so a failed rewrite cannot truncate it.
 

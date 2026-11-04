@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Deadline engine: SGAA 1992 s 18C pathways.
 //!
 //! - USUAL_7BD: s 6(1) usual period, the 7th business day after the QE day

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Dated legal rates: GIC quarters and financial-year super parameters.
 //!
 //! Every rate lives in data/*.json, compiled into the binary, recording where

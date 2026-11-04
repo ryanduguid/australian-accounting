@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Build the fabricated ATO rulings runs the rulings tests and evaluation replay use.
 
 Every docid, title, paragraph and page hash here is invented, in the shape the corpus

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Keep the documentation honest against the code. Prose checks run on a
 //! whitespace-flattened copy, because the files are hard-wrapped; structural
 //! checks (table rows, the banner) read the raw text.

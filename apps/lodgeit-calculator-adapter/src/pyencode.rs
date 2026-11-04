@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `json.dumps` through CPython 3.15's C encoder: its layout, its escapes, its
 //! `ValueError` for NaN and infinity, the note it adds at each enclosing list
 //! item and dict item when encoding fails, and the depth at which its C stack

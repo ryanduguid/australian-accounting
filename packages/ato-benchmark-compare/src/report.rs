@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Compare computed ratios against a benchmark and render the result.
 
 use serde_json::{Map, Value, json};

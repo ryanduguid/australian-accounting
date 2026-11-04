@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The s 109E minimum yearly repayment as a saved derivation: the input, one
 //! step per statutory question with the provision it applies, and the result.
 //! `verify` rederives a saved derivation from its input, offline, and names the

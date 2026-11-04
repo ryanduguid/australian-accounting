@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Next-business-day roll under the ATO lodgment program's public holiday rule.
 
 The ATO's "Lodgment and payment dates on weekends or public holidays" page for the

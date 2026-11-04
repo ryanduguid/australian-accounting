@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! argparse compatibility for the two original commands. Formatting and parsing
 //! are adapted from the already qualified elizabeth-anne-alexander Rust port.
 const NOT_ADVICE: &str = "Not advice. Review aid only; confirm against current law before acting.";

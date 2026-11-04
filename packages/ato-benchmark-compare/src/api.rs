@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! JSON stdin boundary for the removed Python import API. Decimals are
 //! strings, files are paths, and a dataset is a year (with an optional data
 //! directory) or JSON text. Results mirror the Python objects' fields.

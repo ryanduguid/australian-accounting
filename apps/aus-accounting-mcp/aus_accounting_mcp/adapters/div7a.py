@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Thin adapter over div7a-loan-review.
 
 The delegated engine owns the statutory tests, rates, arithmetic, refusals and

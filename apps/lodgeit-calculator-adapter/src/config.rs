@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `config.py`: configuration, and the rule that nothing leaves the machine by default.
 //!
 //! Three separate things have to be true before a request is sent:

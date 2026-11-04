@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 use glama_badge_server::restyle_mcprush_card;
 use roxmltree::{Document, Node};
 

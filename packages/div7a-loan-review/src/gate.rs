@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The complying-loan gate: ITAA 1936 s 109N(1). Every limb must be
 //! established; a failed limb gives NOT_COMPLYING and an unestablished one
 //! UNKNOWN. The lodgment day is the operator's assertion, not computed here.

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The benchmark interest rate for a year of income: ITAA 1936 s 109N(2).
 //!
 //! The rate is the RBA indicator rate last published before 1 July, which is

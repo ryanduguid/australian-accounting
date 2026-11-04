@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `tests/test_wire_precision.py`: precision on the wire, checked as bytes.
 //!
 //! The assertions read the request body the loopback stub received, not a

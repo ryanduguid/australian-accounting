@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Income tax return due dates for the 2025-26 income year, for fictional entities.
 
 Every entity named here is synthetic: Synthetic Grevillea (an individual), Synthetic

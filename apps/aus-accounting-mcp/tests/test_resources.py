@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Check the prompts and resources a host receives, and what they may state."""
 
 from __future__ import annotations

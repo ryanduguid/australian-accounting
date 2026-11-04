@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Regression coverage for Payday Super Checker's hand-review-only calendar generator.
 
 The generator is a Python tool beside the Rust engine; it writes the calendar the

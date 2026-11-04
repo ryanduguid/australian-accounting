@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 fn main() {
     // `verify` and `contract` walk untrusted JSON recursively, as Python's C
     // encoder does, so the commands run on a large stack.

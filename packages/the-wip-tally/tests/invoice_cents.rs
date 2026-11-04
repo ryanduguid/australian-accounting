@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 use serde_json::json;
 use the_wip_tally::{api, csv_io, engine, money::d};
 

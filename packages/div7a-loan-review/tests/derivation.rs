@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `derive` and `verify` on the command line: a derivation verifies, an edited
 //! one exits 1 naming its step, and an unreadable file exits 2.
 

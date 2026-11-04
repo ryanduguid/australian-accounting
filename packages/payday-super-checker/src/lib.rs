@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! payday-super-checker: payday-super deadline and SG-charge exposure checker.
 //!
 //! Educational tool. Not legal, tax or financial advice. Verify outcomes

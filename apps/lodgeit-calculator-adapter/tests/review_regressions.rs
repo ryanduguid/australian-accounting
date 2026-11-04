@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `tests/test_review_regressions.py`: regressions for defects an independent
 //! review pass demonstrated, one test per defect, named for the behaviour it
 //! pins. Everything here runs offline against a loopback stub this file

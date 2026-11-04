@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """README: the MCP server 'contact[s] no service'. This watches real tool calls.
 
 The real server runs over stdio in its own process. A CPython audit hook, installed

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Keep the documentation honest against the code.
 
 use ato_benchmark_compare::{VERSION, api};
