@@ -621,6 +621,28 @@ fn a_record_ending_without_a_successor_is_a_finding() {
     assert!(text.contains("`super-guarantee-rate-2026-27`: ends 2027-06-30"));
 }
 
+#[test]
+fn only_figures_with_no_known_start_keep_the_retrieval_date() {
+    // Eight figures whose page names no year once took the retrieval date as
+    // their period, although the law gives their start. No law was found that
+    // sets the PAYG entry thresholds, and the update date is the page's own.
+    let mut retrieval_only: Vec<String> = records()
+        .iter()
+        .filter(|r| !has(r.at("period"), "effective_from") && !has(r.at("period"), "income_year"))
+        .map(|r| pyvalue::py_str(r.at("id")))
+        .collect();
+    retrieval_only.sort();
+    assert_eq!(
+        retrieval_only,
+        [
+            "key-super-rates-page-updated",
+            "payg-instalments-entry-instalment-income",
+            "payg-instalments-entry-notional-tax",
+            "payg-instalments-entry-tax-payable",
+        ]
+    );
+}
+
 fn renderings(value: &Json) -> Vec<String> {
     texts(&scale_renderings(&json_scale_rows(value).unwrap()).unwrap())
 }
