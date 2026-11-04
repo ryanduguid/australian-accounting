@@ -643,6 +643,129 @@ fn only_figures_with_no_known_start_keep_the_retrieval_date() {
     );
 }
 
+/// The first and last day a record's period covers, with no last day for a
+/// figure still in force. `None` for a period that is only a retrieval date.
+fn span(record: &Json) -> Option<(Date, Date)> {
+    let period = record.at("period");
+    let day = |key: &str| period.get(key).and_then(Json::as_str).map(date);
+    if let Some(from) = day("effective_from") {
+        return Some((from, day("effective_to").unwrap_or(crate::py::MAX_DATE)));
+    }
+    let year = period.get("income_year")?.as_str()?;
+    let first: i32 = year[..4].parse().expect("income year");
+    Some((
+        date(&format!("{first}-07-01")),
+        date(&format!("{}-06-30", first + 1)),
+    ))
+}
+
+/// The value of the figure `id` records, on `day`, from whichever record for
+/// that figure (its label) is in force then.
+fn figure_on(records: &[Json], id: &str, day: Date) -> Option<String> {
+    let label = pyvalue::py_str(by_id(records, id).at("label"));
+    let values: Vec<String> = records
+        .iter()
+        .filter(|r| pyvalue::py_str(r.at("label")) == label)
+        .filter(|r| span(r).is_some_and(|(from, to)| from <= day && day <= to))
+        .map(|r| pyvalue::py_str(r.at("value")))
+        .collect();
+    assert!(
+        values.len() <= 1,
+        "{id}: {values:?} in force on {}",
+        day.isoformat()
+    );
+    values.into_iter().next()
+}
+
+#[test]
+fn moved_starts_apply_from_their_first_day_only() {
+    // These figures once started on a date taken from the page or from a later
+    // provision, not when the law first applied them. The FBT years starting
+    // 1 April 2015 and 2016 had the 49% rate, and the carry-forward balance
+    // test first applies to the 2019-20 cap.
+    let records = records();
+    let cases = [
+        ("lito-income-limit", "2012-06-30", "2012-07-01", "66667"),
+        ("fbt-rate", "2016-04-01", "2017-04-01", "47"),
+        (
+            "fbt-type-1-gross-up-rate",
+            "2016-04-01",
+            "2017-04-01",
+            "2.0802",
+        ),
+        (
+            "fbt-type-2-gross-up-rate",
+            "2016-04-01",
+            "2017-04-01",
+            "1.8868",
+        ),
+        (
+            "carry-forward-concessional-balance-limit",
+            "2018-07-01",
+            "2019-07-01",
+            "500000",
+        ),
+    ];
+    let mut wrong = Vec::new();
+    for (id, earlier, start, value) in cases {
+        let (earlier, start) = (date(earlier), date(start));
+        let got = figure_on(&records, id, start);
+        if got.as_deref() != Some(value) {
+            wrong.push(format!(
+                "{id} on {}: {got:?}, not {value}",
+                start.isoformat()
+            ));
+        }
+        let mut day = earlier;
+        while day < start {
+            if figure_on(&records, id, day).as_deref() == Some(value) {
+                wrong.push(format!("{id} is already {value} on {}", day.isoformat()));
+                break;
+            }
+            day = day.add_days(1).expect("date in range");
+        }
+    }
+    assert!(wrong.is_empty(), "{wrong:#?}");
+}
+
+#[test]
+fn records_for_one_figure_do_not_overlap() {
+    // `validate` requires each id to match its file name, so an id has one
+    // record. A figure can have several, matched by label as `expiring` does:
+    // the instant asset write-off record must close before its successor opens.
+    let overlaps = |records: &[Json]| -> Vec<String> {
+        let mut found = Vec::new();
+        for (i, a) in records.iter().enumerate() {
+            for b in &records[i + 1..] {
+                if pyvalue::py_str(a.at("label")) != pyvalue::py_str(b.at("label")) {
+                    continue;
+                }
+                if let (Some((a_from, a_to)), Some((b_from, b_to))) = (span(a), span(b))
+                    && a_from <= b_to
+                    && b_from <= a_to
+                {
+                    let mut ids = [pyvalue::py_str(a.at("id")), pyvalue::py_str(b.at("id"))];
+                    ids.sort();
+                    found.push(ids.join(" and "));
+                }
+            }
+        }
+        found
+    };
+    let records = records();
+    assert_eq!(overlaps(&records), Vec::<String>::new());
+    let mut reopened = records.clone();
+    let old = reopened
+        .iter_mut()
+        .find(|r| r.at("id").as_str() == Some("instant-asset-write-off-threshold"))
+        .expect("record id");
+    set(old, "period", j(r#"{"effective_from": "2023-07-01"}"#));
+    assert_eq!(
+        overlaps(&reopened),
+        ["instant-asset-write-off-threshold and instant-asset-write-off-threshold-from-2026-07-01"]
+    );
+}
+
 fn renderings(value: &Json) -> Vec<String> {
     texts(&scale_renderings(&json_scale_rows(value).unwrap()).unwrap())
 }
