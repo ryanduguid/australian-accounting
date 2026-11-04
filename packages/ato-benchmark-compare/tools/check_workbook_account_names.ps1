@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 # Manual desktop Excel control for the shipped workbook's duplicate account-name
 # checks: Excel itself must treat *, ? and ~ as literal characters (#174). The
 # builder's tests read formulas, not Excel's results. Needs desktop Excel and

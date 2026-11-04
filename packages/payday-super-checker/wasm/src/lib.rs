@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The Payday Super due date derivation for wasm32-unknown-unknown.
 //!
 //! Exports, all over UTF-8 JSON in linear memory:

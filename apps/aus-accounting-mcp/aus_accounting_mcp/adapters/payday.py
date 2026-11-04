@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Adapter over payday-super-checker.
 
 This module does not compute deadlines, holidays or SG charge. It translates

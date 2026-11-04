@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Verify installed facade/engine wheels, without editable workspace sources."""
 
 from __future__ import annotations

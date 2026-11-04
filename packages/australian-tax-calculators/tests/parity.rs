@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 use australian_tax_calculators::api;
 use australian_tax_calculators::decimal::{Decimal, Rounding};
 use serde_json::{Value, json};

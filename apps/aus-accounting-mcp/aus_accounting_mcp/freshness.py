@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """What each bundled dataset records about its period, version and sources.
 
 Every period, date and URL here is read from the installed engines: their

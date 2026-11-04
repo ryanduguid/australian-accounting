@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Generate data/business_days.json: the national non-business-day table.
 
 DEV-TIME TOOL ONLY. The runtime never imports python-holidays: compliance

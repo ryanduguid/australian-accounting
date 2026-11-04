@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Pin dated figures that more than one copy keeps, and the table expiry warnings.
 
 The 2026-27 concessional cap sits in payday-super-checker's rates.json and in

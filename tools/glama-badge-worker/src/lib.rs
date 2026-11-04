@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The Worker shares the checked offline renderer with the native prototype.
 
 #![cfg(any(target_arch = "wasm32", test))]

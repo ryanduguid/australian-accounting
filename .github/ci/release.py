@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Release components one at a time from the current `main` commit.
 
     python .github/ci/release.py [--dry-run] <component> [<component> ...]

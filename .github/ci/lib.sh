@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 # shellcheck shell=bash
 # Helpers shared by the per-package CI scripts. Source it, do not run it.
 #

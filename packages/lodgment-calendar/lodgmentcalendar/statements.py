@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Activity statement rules: monthly and quarterly BAS and IAS for 2026–27."""
 
 from __future__ import annotations

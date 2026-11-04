@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Rust owns its checks, command and release format independently of Python."""
 import runpy
 import tempfile

@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """The lodgment due-date tool for fictional entities, through the MCP boundary.
 
 Synthetic Banksia Pty Ltd and Synthetic Grevillea are fabricated.

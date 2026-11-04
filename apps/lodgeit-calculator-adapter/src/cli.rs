@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `cli.py`: the `lodgeit-adapter` command line. Nothing here reaches the
 //! network without `--enable-network`.
 //!

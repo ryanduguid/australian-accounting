@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Convert an ATO small business benchmarks workbook into the shipped JSON dataset.
 
 Development-time script. It is not imported by the runtime package and openpyxl is

@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Write a ``due_dates`` result as an iCalendar file (RFC 5545).
 
 Each DETERMINED row becomes one all-day event. An UNKNOWN row has no date to put in

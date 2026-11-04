@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Replays every case the differential harness froze: the calls and command
 //! runs the Python 0.2.2 tests made, plus generated ones, with the files each
 //! names. Results are compared as text, key order included, and every file a

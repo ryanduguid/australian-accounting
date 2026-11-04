@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """The next-business-day roll against the ATO's own published table."""
 
 from datetime import date

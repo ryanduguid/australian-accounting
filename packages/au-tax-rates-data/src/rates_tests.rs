@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The behaviours of `tests/test_dataset.py`, `test_numeric_validation.py`,
 //! `test_pattern_reports.py` and `test_ato_tables.py` at 24fcf24, one test
 //! here per Python test. Where Python monkeypatched `subprocess.run`,

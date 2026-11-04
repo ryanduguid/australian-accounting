@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Rewrites the README's quick proof from the fabricated sample: the console
 //! transcript `assets/quick-proof.md` and its card `assets/quick-proof.svg`.
 //!

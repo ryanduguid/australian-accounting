@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 // Exercise the exported ABI and compare its derivations with the native CLI.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';

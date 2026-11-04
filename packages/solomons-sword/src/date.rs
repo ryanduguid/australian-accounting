@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! A calendar date in Python's `date.isoformat()` form. Years 1 to 9999 are
 //! always four digits, so the text orders the same way the dates do.
 

@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Score recorded tool calls, supplied arguments and final answers.
 
 The pytest suite replays `questions.xml` through a real stdio session and checks

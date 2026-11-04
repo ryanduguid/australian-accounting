@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Guard values written to CSV against spreadsheet formula injection. A
 //! leading `=` or `@` is always escaped; a leading `+` or `-` only when what
 //! follows is not a plain number, so a ledger code like -00123 still joins.

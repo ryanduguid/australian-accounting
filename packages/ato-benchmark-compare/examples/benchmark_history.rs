@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Compare periods using the existing benchmark engine and reviewed mappings.
 //!
 //! Use --previous-expenses-negative and --current-expenses-negative for snapshots

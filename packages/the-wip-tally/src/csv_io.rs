@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Read the contract CSV and the optional heading map, as `wiptally.csv_io` did.
 
 use crate::csvread::{ReadError, Reader};

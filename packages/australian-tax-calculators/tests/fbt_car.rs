@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The car fringe benefit worksheets against the ATO's and the Library's worked
 //! examples (docs/calculation-evidence.md#fbt-car-benefits), and their refusals.
 use australian_tax_calculators::api;

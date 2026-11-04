@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 use gst_review::{api, bas::Period, coding::Registration, decimal};
 use serde_json::{Value, json};
 

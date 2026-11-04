@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """ABN and ACN check digits through the MCP boundary.
 
 The numbers are the ones ABR and ASIC publish as worked examples and valid

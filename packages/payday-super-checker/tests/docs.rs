@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Guards binding the documentation to the behaviour it describes: the
 //! primary-source review and the claims it settled, the limitations register,
 //! the evaluation packs' guides, the OpenAccountants handoff and the

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! BAS label attribution and whole-dollar comparison of supplied ledger facts.
 use crate::decimal::{Decimal, Rounding};
 use crate::{

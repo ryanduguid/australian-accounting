@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """The GST review tools on fabricated lines, through the MCP boundary."""
 
 import asyncio

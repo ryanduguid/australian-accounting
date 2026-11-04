@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Fuzz the CSV readers with fabricated exports: the payroll and super-export
 //! importers with vendor detection, and the canonical row parser under the
 //! default column mapping. A refusal is a result; a panic is a crash.

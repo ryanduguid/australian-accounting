@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Contributions a fund returned: SIS reg 7.07G(4) and LCR 2026/2 paragraphs
 //! 24 and 25 say a returned amount is not a contribution, and the ATO says the
 //! timeframe does not change. All fixtures are fabricated.

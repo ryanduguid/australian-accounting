@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Trace one fabricated contract through the existing WIP engine to cash inputs.
 //!
 //! The Rust form of `examples/job_to_cash.py`: the same files and stdout bytes.

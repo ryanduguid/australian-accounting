@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Payday-super assessment orchestration, verdicts and exposure figures.
 
 use crate::calendar::BusinessCalendar;

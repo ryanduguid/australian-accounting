@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `decimals.py`: exact decimal handling on the wire, in both directions.
 //!
 //! A response's money is read from decimal strings and nothing else; a request

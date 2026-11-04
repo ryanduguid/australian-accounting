@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 fn main() {
     // A record's pattern is matched by a backtracking matcher that recurses
     // once per repeat iteration, so the commands run on a large stack.

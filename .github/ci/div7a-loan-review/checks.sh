@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 # Source guards for div7a-loan-review, run from the package directory.
 #
 # The benchmark rate table is a reviewed local dataset. A module that reaches

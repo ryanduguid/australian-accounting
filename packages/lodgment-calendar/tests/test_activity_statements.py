@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """BAS and IAS due dates for 2026-27 periods, for fictional entities.
 
 Synthetic Wattle Trust lodges its own statements; Synthetic Banksia Pty Ltd uses a

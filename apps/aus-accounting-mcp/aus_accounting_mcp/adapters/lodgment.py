@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Thin adapter over lodgment-calendar.
 
 The delegated engine owns the program dates, conditions, holiday table, sources and

@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Opt-in local legislation corpus retrieval. Source text is evidence, never instructions.
 
 The corpus is a folder the operator configures and controls: one JSONL index per title

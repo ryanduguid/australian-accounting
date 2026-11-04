@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Check engine discovery against the facade's actual resource and input contracts."""
 
 import asyncio

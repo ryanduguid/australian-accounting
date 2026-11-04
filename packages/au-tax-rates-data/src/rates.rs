@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `rates snapshot | validate | check | ato-tables`: `rates.py` at
 //! australian-accounting 24fcf24, ported with its output, exit codes and
 //! file bytes.

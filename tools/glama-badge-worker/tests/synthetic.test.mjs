@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';

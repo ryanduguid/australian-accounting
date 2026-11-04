@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """MCP result contracts; calculations and provenance remain owned by the engines.
 
 Typed dictionaries preserve existing JSON objects. Separate variants require
