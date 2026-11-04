@@ -108,6 +108,23 @@ fn the_final_ruling_status_and_transition_gate_are_current() {
 }
 
 #[test]
+fn heroclear_statuses_stay_unmapped_until_a_real_export_shows_them() {
+    // The profile classifies Beam's ladder only, and Employment Hero creates no
+    // new Beam batches for an entity once HeroClear is enabled.
+    let readme = squeeze(&read("README.md"));
+    for phrase in [
+        "HeroClear statuses are not mapped",
+        "creates no new Beam batches",
+        "the import refuses those rows",
+        "only after a real export",
+    ] {
+        assert!(readme.contains(phrase), "{phrase}");
+    }
+    let profile = read("data/profiles/employment-hero-super.json");
+    assert!(!profile.contains("HeroClear"));
+}
+
+#[test]
 fn the_item_4_and_import_allocation_boundaries_stay_visible() {
     for document in [
         read("docs/primary-source-review-2026-08-15.md"),
