@@ -209,7 +209,9 @@ release callers require that test job; no second pytest run is needed.
 - The `boundaries` job runs `.github/ci/check_orphan_tests.py`, which reads the workflows
   and fails on a tracked test file or crate that no workflow step runs. A new test
   location needs a step that runs it; a deliberate exception goes in
-  `.github/ci/orphan_tests_allowed.txt` with its reason.
+  `.github/ci/orphan_tests_allowed.txt` with its reason. The check reads only the
+  forms its docstring lists and stops on a test step that uses any other; extend
+  that grammar exactly when a workflow needs a new form.
 - Only root workflows run; component directories carry no workflow files.
 
 ## Rules
