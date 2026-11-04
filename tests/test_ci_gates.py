@@ -20,14 +20,18 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github/workflows"
 CHECK = ROOT / ".github/ci/check_gates.py"
-# Each aggregate that branch protection requires, or that a required one needs.
+# Each aggregate that branch protection requires or can require, or that a
+# required one needs.
 GATES = {
     "boundaries.yml": "boundaries-gates",
     "ci.yml": "tests-gates",
     "ci-lodgeit-adapter.yml": "lodgeit-gates",
     "ci-package.yml": "gates",
     "codeql.yml": "codeql-gates",
+    "devcontainer.yml": "devcontainer-gates",
+    "glama-badges.yml": "glama-badges-gates",
     "joined-fixtures.yml": "public-fixtures-gates",
+    "readme-quick-start.yml": "readme-quick-start-gates",
 }
 SAMPLE = """name: ci
 on: [push]
@@ -56,6 +60,14 @@ def job_block(text: str, name: str) -> str:
         raise AssertionError(name)
     # A trailing "# NOSONAR: reason" is a YAML comment, not part of the command.
     return re.sub(r"[ \t]+# NOSONAR[^\n]*", "", match.group(1))
+
+
+def ci_paths(workflow: str) -> str:
+    """The CI_PATHS block a workflow's changes job passes to app_ci.py."""
+    text = (WORKFLOWS / workflow).read_text(encoding="utf-8")
+    match = re.search(r"(?m)^( +)CI_PATHS: \|\n((?:\1  .*\n)+)", text)
+    assert match is not None, f"{workflow} declares no CI_PATHS block"
+    return match.group(2)
 
 
 def git(cwd: Path, *args: str) -> bytes:
@@ -251,6 +263,32 @@ class ApplicationSelectionTests(unittest.TestCase):
                     self.assertTrue(self.ci.should_run(app, [*unrelated, path]))
             self.assertTrue(self.ci.should_run(app, []))
 
+    def test_gated_workflows_select_their_former_trigger_paths(self) -> None:
+        # These workflows dropped on.pull_request.paths for a changes job, so every pull
+        # request reports their gate, and CI_PATHS must still select each path the
+        # trigger filter selected.
+        former = {
+            "devcontainer": (".devcontainer/devcontainer.json", ".github/workflows/devcontainer.yml",
+                             "uv.lock"),
+            "glama-badges": ("tools/glama-badge-server/src/main.rs",
+                             "tools/glama-badge-worker/package.json",
+                             ".github/workflows/glama-badges.yml"),
+            "readme-quick-start": ("README.md", ".github/workflows/readme-quick-start.yml"),
+        }
+        self.assertEqual(former.keys(), self.ci.PATH_JOBS.keys())
+        for name, paths in former.items():
+            workflow = f"{name}.yml"
+            with self.subTest(workflow=workflow):
+                text = (WORKFLOWS / workflow).read_text(encoding="utf-8")
+                self.assertRegex(text, r"(?m)^  pull_request:\n(?!    )")
+                with patch.dict(os.environ, {"CI_PATHS": ci_paths(workflow)}):
+                    patterns = self.ci.trigger_paths()
+                for path in paths:
+                    self.assertTrue(self.ci.path_selected([path], patterns), path)
+                for path in ("docs/note.md", "apps/aus-accounting-mcp/README.md", "apps/uv.lock"):
+                    self.assertFalse(self.ci.path_selected([path], patterns), path)
+                self.assertTrue(self.ci.path_selected([], patterns))
+
     def test_nul_paths_survive_unusual_filenames_and_diff_failure_runs_all(self) -> None:
         names = ["packages/solomons-sword/a\nb\t-é.md", "apps/aus-accounting-mcp/-option.py"]
         header = b"tree t\nparent a\nparent b\n\nmessage"
@@ -295,14 +333,18 @@ class ApplicationGitTests(unittest.TestCase):
         git(self.root, "checkout", "-q", "main")
         git(self.root, "merge", "-q", "--no-ff", "--no-edit", "feature")
 
-    def select(self, event: str) -> str:
+    def run_select(self, event: str, name: str, **env: str) -> subprocess.CompletedProcess[str]:
+        clean = {key: value for key, value in os.environ.items() if key != "CI_PATHS"}
         # The current interpreter runs the repository selector with fixed arguments and no shell.
         # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
-        done = subprocess.run(  # nosec B603
-            [sys.executable, str(CHECK.parent / "app_ci.py"), "select", "aus-accounting-mcp"],
-            cwd=self.root, env={**os.environ, "GITHUB_EVENT_NAME": event},
+        return subprocess.run(  # nosec B603
+            [sys.executable, str(CHECK.parent / "app_ci.py"), "select", name],
+            cwd=self.root, env={**clean, "GITHUB_EVENT_NAME": event, **env},
             capture_output=True, text=True, check=False,
         )
+
+    def select(self, event: str, name: str = "aus-accounting-mcp", **env: str) -> str:
+        done = self.run_select(event, name, **env)
         self.assertEqual(done.returncode, 0, done.stderr)
         return done.stdout.strip()
 
@@ -338,6 +380,28 @@ class ApplicationGitTests(unittest.TestCase):
                 self.tearDown()
                 self.setUp()
 
+    def test_a_merge_runs_path_jobs_only_when_it_changes_a_former_trigger_path(self) -> None:
+        patterns = ci_paths("devcontainer.yml")
+        git(self.root, "checkout", "-q", "-b", "feature")
+        (self.root / self.other).write_text("unrelated\n")
+        self.merge()
+        self.assertEqual(self.select("pull_request", "devcontainer", CI_PATHS=patterns), "run=false")
+        for event in ("push", "workflow_dispatch", "schedule"):
+            with self.subTest(event=event):
+                self.assertEqual(self.select(event, "devcontainer", CI_PATHS=patterns), "run=true")
+        # A missing or blank CI_PATHS fails the changes job rather than skipping the jobs.
+        for event in ("pull_request", "push"):
+            for blank in ({}, {"CI_PATHS": " \n"}):
+                with self.subTest(event=event, blank=blank):
+                    done = self.run_select(event, "devcontainer", **blank)
+                    self.assertEqual((done.returncode, done.stdout), (1, ""), done.stderr)
+                    self.assertIn("CI_PATHS names no paths", done.stderr)
+        git(self.root, "checkout", "-q", "-B", "feature")
+        (self.root / ".devcontainer").mkdir()
+        (self.root / ".devcontainer/devcontainer.json").write_text("{}\n")
+        self.merge()
+        self.assertEqual(self.select("pull_request", "devcontainer", CI_PATHS=patterns), "run=true")
+
     def test_empty_merge_and_non_repository_run_all(self) -> None:
         git(self.root, "checkout", "-q", "-b", "feature")
         self.merge()
@@ -349,7 +413,7 @@ class ApplicationGitTests(unittest.TestCase):
 class ApplicationGateTests(unittest.TestCase):
     def test_gate_truth_table_and_every_malformed_or_unsuccessful_job(self) -> None:
         ci = application_ci()
-        for app, app_jobs in ci.APP_JOBS.items():
+        for app, app_jobs in ci.SELECTED_JOBS.items():
             for selection, result in (("true", "success"), ("false", "skipped")):
                 success = {name: {"result": result} for name in app_jobs}
                 success.update(changes={"result": "success", "outputs": {"run": selection}},
@@ -394,7 +458,7 @@ class ApplicationGateTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             shutil.copytree(CHECK.parent, root / ".github/ci", ignore=shutil.ignore_patterns("__pycache__"))
-            for app, app_jobs in application_ci().APP_JOBS.items():
+            for app, app_jobs in application_ci().SELECTED_JOBS.items():
                 results = {name: {"result": "skipped"} for name in app_jobs}
                 results["changes"] = {"result": "success", "outputs": {"run": "false"}}
                 for raw, gate, expected in ((json.dumps(results), [app], 0), ("{invalid", [app], 1),
@@ -432,14 +496,15 @@ class GateWiringTests(unittest.TestCase):
 
     def test_application_selection_wiring_preserves_required_guards(self) -> None:
         for workflow, app in (("ci.yml", "aus-accounting-mcp"),
-                              ("ci-lodgeit-adapter.yml", "lodgeit-calculator-adapter")):
+                              ("ci-lodgeit-adapter.yml", "lodgeit-calculator-adapter"),
+                              *((f"{name}.yml", name) for name in application_ci().PATH_JOBS)):
             text = (WORKFLOWS / workflow).read_text(encoding="utf-8")
             changes = job_block(text, "changes")
             self.assertIn("fetch-depth: 2", changes)
             self.assertIn("persist-credentials: false", changes)
             self.assertIn(f'run: python3 .github/ci/app_ci.py select {app} >> "$GITHUB_OUTPUT"', changes)
             self.assertIn("run: ${{ steps.select.outputs.run }}", changes)
-            for name in application_ci().APP_JOBS[app]:
+            for name in application_ci().SELECTED_JOBS[app]:
                 job = job_block(text, name)
                 self.assertIn("needs: changes\n", job)
                 self.assertIn("if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'", job)
