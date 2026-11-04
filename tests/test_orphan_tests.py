@@ -535,6 +535,26 @@ class OrphanTestsTests(unittest.TestCase):
                 )},
                 "'--locked' is outside the step grammar",
             ),
+            # Bash reads one comment line; splitlines() would read a command after it.
+            "a line separator YAML does not break at": (
+                {caller: CALLER.replace(
+                    "        run: |\n          # npm test runs package.json's test script.\n"
+                    + TOOL_TEST + "          npm test\n",
+                    "        run: |\n          # npm test runs package.json's test script.           npm test\n",
+                )},
+                "breaks a line where YAML does not",
+            ),
+            # Bash passes a no-break space inside a word; str.split() would split there.
+            "a no-break space in a test step": (
+                {caller: CALLER.replace("          npm test\n", "          npm test\n")},
+                "whitespace bash does not split at",
+            ),
+            "a line separator in an npm script": (
+                {"tools/tool/package.json": FILES["tools/tool/package.json"].replace(
+                    "--test-concurrency=1 tests/", "--test-concurrency=1\\u2028tests/"
+                )},
+                re.escape("(one command)"),
+            ),
             # npm's shell carries on after a failing command.
             "an npm script of 2 commands": (
                 {"tools/tool/package.json": FILES["tools/tool/package.json"].replace(

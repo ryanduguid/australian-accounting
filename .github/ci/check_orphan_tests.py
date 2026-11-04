@@ -146,6 +146,8 @@ PYTEST = re.compile(
     rf"uv run(?: --locked| --extra {NAME}| --group {NAME})* pytest(?P<arguments>(?: {PLAIN})*)"
 )
 PYTEST_OPTION = re.compile(r"-q|--cov(?:=[\w.-]+)?|--cov-branch|--cov-report=[\w.:-]+")
+# Whitespace a shell does not split words at, which str.split() would.
+UNSPLIT = re.compile(r"[^\S \t]")
 # The environment main's test steps have; another variable could change what a runner runs.
 ENVIRONMENT = {
     "ACTIONLINT_SHA256", "ACTIONLINT_VERSION", "AU_ACCOUNTING_PARITY_BIN",
@@ -210,6 +212,11 @@ def block_scalar(body: list[str], indicator: str, broken: bool) -> str:
 
 def load_yaml(text: str) -> object:
     """Parse the block YAML workflows use into dicts, lists and strings."""
+    # YAML breaks lines only at LF and CR; splitlines() also breaks at these.
+    odd = re.search("[\v\f\x1c-\x1e\x85  ]", text)
+    if odd:
+        line = text.count("\n", 0, odd.start()) + 1
+        raise Unreadable(f"line {line}: {odd.group()!r} breaks a line where YAML does not")
     lines = text.splitlines()
     terminated = text.endswith(("\n", "\r"))
     pos = 0
@@ -637,6 +644,8 @@ def commands(where: str, script: str) -> list[re.Match[str]]:
     each backslash-newline. Each line must fit the step grammar."""
     found = []
     for line in script.replace("\\\n", "").splitlines():
+        if UNSPLIT.search(line):
+            raise Unreadable(f"{where}: {line!r} holds whitespace bash does not split at")
         line = " ".join(line.split())
         if not line or line.startswith("#") or CAPTURE.fullmatch(line) or OTHER.fullmatch(line):
             continue
@@ -687,7 +696,7 @@ def runs(
             script = scripts.get(name)
             if isinstance(script, str) and TESTS.search(script):
                 # npm's shell does not stop at a failing command, so a script is one command.
-                single = as_command(" ".join(script.split())) if "\n" not in script else None
+                single = None if UNSPLIT.search(script) else as_command(" ".join(script.split()))
                 if single is None:
                     raise Unreadable(
                         f"{where}: npm script {name!r} {script!r} is outside the step grammar"
