@@ -1,0 +1,13 @@
+{
+  "id": "division-296-very-large-super-balance-threshold-2026-27",
+  "label": "Division 296 very large super balance threshold (VLSBT)",
+  "value": 10000000,
+  "unit": "AUD",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/division-296-tax/division-296-tax-on-large-super-balances",
+  "retrieved_at": "2026-11-05T08:30:00+11:00",
+  "quote": "For the 2026–27 income year, the LSBT is $3 million and the VLSBT is $10 million.",
+  "notes": "The page gives the threshold in millions of dollars, so the record has no pattern. It says the threshold is indexed in $500,000 increments in later years."
+}
