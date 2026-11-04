@@ -206,6 +206,10 @@ release callers require that test job; no second pytest run is needed.
 - `.github/ci/<engine>/checks.sh` holds an engine's own source guards, and
   `.github/ci/<engine>/smoke.sh` its checks against the built wheel. Both are optional.
 - `boundaries.yml` and `codeql.yml` run on every change.
+- The `boundaries` job runs `.github/ci/check_orphan_tests.py`, which reads the workflows
+  and fails on a tracked test file or crate that no workflow step runs. A new test
+  location needs a step that runs it; a deliberate exception goes in
+  `.github/ci/orphan_tests_allowed.txt` with its reason.
 - Only root workflows run; component directories carry no workflow files.
 
 ## Rules
