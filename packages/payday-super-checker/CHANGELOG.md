@@ -12,6 +12,12 @@ status and the returned contributions below.
 
 ### Added
 
+- `usi-check` reads the USIs in a CSV against your local copy of the daily USI
+  extract from Super Fund Lookup. `LISTED` means only that the extract shows the
+  USI in date with no contribution restrictions; anything else is `UNVERIFIED`
+  with a reason. It is a separate command, so no deadline, verdict or report
+  column of the check changes. The extract is never downloaded, bundled or
+  republished.
 - A contribution a fund returned can no longer stay `ON_TIME`. The optional
   `returned_by_fund` column leaves a row `UNKNOWN`, attention-driving and with no
   exposure. `--events`, on the check and `evidence-pack` commands, takes dated,

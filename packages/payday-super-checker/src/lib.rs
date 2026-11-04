@@ -44,6 +44,7 @@ mod textwrap;
 pub mod unicode;
 #[allow(dead_code)]
 mod unitables;
+pub mod usi;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 

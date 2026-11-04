@@ -529,6 +529,37 @@ counts as qualifying earnings, so those decisions stay human.
 
 **Where the fund receipt date comes from.** The supported payroll export profiles provide pay and remittance evidence, which is what `remitted` is for and why those lines come back `AT_RISK`. They do not establish receipt by the fund. Obtain separate receipt evidence from your clearing house's per-contribution settlement or status report, or the fund's own contribution history. Without it the tool tells you what you sent and when, not what the law tests.
 
+### Check fund USIs against your copy of the extract
+
+`usi-check` reads each USI in a CSV against the daily USI extract from
+[Super Fund Lookup](https://superfundlookup.gov.au/Tools/DownloadUsiList). Download
+`SflUsiExtract.txt` yourself: this tool never downloads, bundles or republishes it.
+
+```bash
+payday-super-check usi-check funds.csv --usi-extract SflUsiExtract.txt --as-at 2026-11-05 -o usi-check.csv
+```
+
+The CSV needs one `usi` column; other columns are ignored. The report has one line
+per row, with a status and a reason:
+
+| Status | Reason | Meaning |
+| --- | --- | --- |
+| `LISTED` | | The extract shows the USI in date on `--as-at`, with restrictions `N` |
+| `UNVERIFIED` | `restricted` | Restrictions `Y`: contact the fund before contributing; this does not say a contribution is prohibited |
+| `UNVERIFIED` | `end_dated`, `not_yet_effective` | No row for the USI is in date on `--as-at` |
+| `UNVERIFIED` | `not_listed`, `usi_blank` | The extract does not show the USI, or the row has none |
+| `UNVERIFIED` | `extract_stale`, `extract_after_as_at` | The extract is more than `--max-extract-age-days` (default 2) older than `--as-at`, or newer than it |
+| `UNVERIFIED` | `extract_unreadable`, `extract_undated` | The extract is missing, damaged or has no run date, so every row carries this reason |
+
+Exit 0 means every row is `LISTED`, 2 that a row is `UNVERIFIED`, and 1 that the
+extract or the input could not be used. A 2-day limit is this tool's own safeguard:
+the source says only that the extract is generated daily.
+
+`LISTED` does not establish that a fund can accept a contribution. The extract covers
+APRA funds, so an SMSF is never `LISTED`, and it can differ from the ATO's Fund
+Validation Service because of update timing. The command changes no deadline or
+verdict in the check.
+
 ## Import from your payroll system
 
 Two commands turn a payroll export and a super payments export into a checked report, with no column mapping to write by hand:
