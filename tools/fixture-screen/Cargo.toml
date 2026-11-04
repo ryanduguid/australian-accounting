@@ -4,7 +4,7 @@ version = "0.0.0"
 edition = "2024"
 rust-version = "1.99"
 description = "Fails CI on a checksum-valid Australian identifier in any tracked file"
-license = "FSL-1.1-ALv2"
+license = "LicenseRef-Duguid-Public-Attribution-1.0"
 repository = "https://github.com/ryanduguid/australian-accounting"
 publish = false
 

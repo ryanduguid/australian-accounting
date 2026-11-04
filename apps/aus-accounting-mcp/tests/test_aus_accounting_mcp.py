@@ -60,7 +60,7 @@ def test_pypi_facets_are_declared_without_contradicting_the_licence_field() -> N
 
     # PEP 639: the SPDX license expression replaces the licence classifier, and
     # a distribution carrying both is rejected at build or upload.
-    assert project["license"] == "FSL-1.1-ALv2"
+    assert project["license"] == "LicenseRef-Duguid-Public-Attribution-1.0"
     assert not [entry for entry in classifiers if entry.startswith("License ::")]
 
     # "Typed" is a claim about a shipped py.typed marker, and this distribution
