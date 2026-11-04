@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `errors.py`: the failure kinds, kept apart from one another on purpose.
 //!
 //! A caller has to be able to tell "the provider refused" from "the provider

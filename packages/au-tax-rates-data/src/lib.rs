@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The AU tax rates dataset tool: `rates snapshot`, `validate`, `check` and
 //! `ato-tables`, ported from `rates.py` with its output, exit codes and file
 //! bytes. The `py*` modules reproduce the Python behaviour it relied on.

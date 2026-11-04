@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Trust distribution engine: Division 6 proportionate allocation, s 100A risk
 //! zoning, s 99B assessment and trust resolution checks. Ported from Python
 //! package louisgoldberg 0.2.0 without changing a rule, rounding step or message.

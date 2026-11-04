@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The shipped ATO benchmark datasets and turnover band selection. Every ratio
 //! is a decimal string, so no binary floating point enters the comparison.
 

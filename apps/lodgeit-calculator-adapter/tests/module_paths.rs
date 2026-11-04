@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `tests/test_module_paths.py`: refusals and edge paths in the
 //! configuration, contract, Core, wire and evidence modules. Everything here
 //! is offline; the client tests use a loopback stub this file starts.

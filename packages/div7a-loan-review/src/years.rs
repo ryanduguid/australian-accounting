@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The year of income, written the way the Act's readers write it: 2026-27.
 //! A year starts on 1 July; a substituted accounting period is outside v1.
 

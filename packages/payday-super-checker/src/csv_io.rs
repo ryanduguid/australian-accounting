@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! CSV reading with loud failures.
 //!
 //! Payroll exports vary, so column names are mapped explicitly. Nothing is

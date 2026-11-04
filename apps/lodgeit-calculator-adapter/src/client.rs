@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `client.py`: discovery and bounded invocation, with honest outcomes.
 //!
 //! Every call returns an [`Outcome`] whose `status` says what happened. There

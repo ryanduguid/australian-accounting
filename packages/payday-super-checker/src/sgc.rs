@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! SG-charge exposure estimates for late contributions.
 //!
 //! Components (SGAA s 16B(2)) modelled here:

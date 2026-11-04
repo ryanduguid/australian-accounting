@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 # The desktop Excel pass: open the built workbook at $env:PAYDAY_WORKBOOK once,
 # record the Excel build on Sources & Version, recalculate, save and print
 # overall=<Review Checks B16>. Run by build_workbook through -EncodedCommand.

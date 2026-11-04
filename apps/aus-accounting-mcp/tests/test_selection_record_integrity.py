@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """A model recording must preserve argument types and its answer-key identity."""
 import hashlib
 import json

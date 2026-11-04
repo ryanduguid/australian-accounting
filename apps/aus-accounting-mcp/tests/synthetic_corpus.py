@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Build the fabricated legislation corpus the retrieval tests and evaluation replay use.
 
 Every title, provision, rate and register link here is invented. The real corpus is the

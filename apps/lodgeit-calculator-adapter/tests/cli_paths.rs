@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `tests/test_cli_paths.py`: command-line paths the regression suites do
 //! not reach. All offline; the network commands talk to a loopback stub
 //! this file starts. The MCP tests were retired with the MCP surface.

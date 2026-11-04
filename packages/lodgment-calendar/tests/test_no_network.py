@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """README: 'contacts no service'. This watches a real calculation.
 
 A CPython audit hook, installed before the engine is imported, ends the process on

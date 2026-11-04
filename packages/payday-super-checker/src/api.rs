@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! JSON stdin boundary for the removed Python import API. Decimals are
 //! strings, dates are `YYYY-MM-DD` strings, files are paths. A calendar is
 //! the bundled table with an optional override file, or explicit holidays; a

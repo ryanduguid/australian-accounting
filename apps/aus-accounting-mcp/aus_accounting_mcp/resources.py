@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Payloads for the MCP resources and prompts this server publishes.
 
 A host can read these without calling a tool, so they carry the context a model

@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Preflight for the MCP Registry publication of aus-accounting-mcp.
 
 The registry lists ``server.json`` and points at a PyPI package. Nothing on the

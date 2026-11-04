@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! JSON boundary for the removed Python import API. Each command takes the
 //! original function's keyword arguments as one JSON object: amounts and
 //! ratios as decimal strings, the rest as JSON booleans, integers or strings.

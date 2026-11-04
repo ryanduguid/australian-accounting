@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Seeded properties that hold for every input the worksheets accept. The
 //! seeds, run counts, explicit examples and input domains are the Python
 //! fast-check properties'; the generator is a local SplitMix64.

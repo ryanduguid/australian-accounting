@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Seeded properties for account identity and mapping round trips. Seeds, run
 //! counts, examples and input domains are the Python fast-check properties'; a
 //! local SplitMix64 replaces fast-check's generator.

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `tests/test_client_outcomes.py`: every failure keeps its own name, and
 //! none of them becomes a figure.
 //!

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! README: the engines 'contact no service'. This watches a real calculation.
 //!
 //! Linux runs it under `strace -f`, so any network syscall, from any library or

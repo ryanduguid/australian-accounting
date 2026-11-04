@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Locate the monorepo root for the tests that audit its workflows and policy."""
 
 from __future__ import annotations

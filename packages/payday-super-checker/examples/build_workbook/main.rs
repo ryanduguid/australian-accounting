@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Builds workbooks/payday-super-checker.xlsx, the accountant-facing Excel
 //! front end. Run from the package directory on a machine with desktop Excel:
 //!

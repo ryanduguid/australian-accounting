@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Synthetic checks for cited retrieval from configured ATO rulings runs.
 
 Every run here is fabricated in the shape the corpus builder's rulings stage writes.

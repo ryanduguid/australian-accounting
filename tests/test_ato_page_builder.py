@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """The ato-benchmark-compare industry-page builder, tools/build_other_benchmarks.py.
 
 The builder is a Python development tool; the Rust engine only reads the page file it

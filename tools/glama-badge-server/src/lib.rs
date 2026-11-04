@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Bounded, offline transformation of the observed Glama score SVG grammar.
 
 use roxmltree::Node;

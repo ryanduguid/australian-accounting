@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Shared MCP money parsing. No statutory arithmetic lives here."""
 
 from __future__ import annotations

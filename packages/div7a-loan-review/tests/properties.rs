@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The s 109E(6) formula's seeded properties. Seeds, run counts and input
 //! domains are the Python fast-check properties'; a local SplitMix64 replaces
 //! fast-check's generator, and exact rational arithmetic is the reference.

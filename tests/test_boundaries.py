@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Static boundary checks for this repository. Standard library only.
 
 Two properties are proved with the ast module over every production module:

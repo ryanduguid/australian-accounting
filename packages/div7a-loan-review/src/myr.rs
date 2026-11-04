@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The minimum yearly repayment: ITAA 1936 s 109E(5) and (6).
 //!
 //! The operator supplies the remaining term as (a) minus (b); the engine

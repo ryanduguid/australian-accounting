@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `core.py`: opt-in, single-page client catalogue reads against the pinned
 //! Core preview.
 //!

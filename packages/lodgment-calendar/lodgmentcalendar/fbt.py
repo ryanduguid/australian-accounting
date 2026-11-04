@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """FBT return rules: the 2027 return, for the FBT year ending 31 March 2027."""
 
 from __future__ import annotations

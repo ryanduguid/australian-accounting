@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 use ato_benchmark_compare::{api, cli};
 use std::io::{Read, Write};
 

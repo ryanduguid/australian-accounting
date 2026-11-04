@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 use crate::decimal::Decimal;
 use crate::{
     Result, VERSION, array, categories, codes, constants, date, field, money, optional_date,

@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """The ato-benchmark-compare Excel workbook is a second implementation of the engine's rules.
 
 It ships with cached values written by desktop Excel (the Rust `build_workbook` example,

@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """The root first screen and llms.txt must agree with the MCP application they describe."""
 
 import re

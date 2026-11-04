@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `trials/fano.py`: mapping suggestions, and nothing that follows from
 //! them.
 //!

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The transcribed tables checked against each other and the published figures,
 //! and every value in the ATO's Schedule 1 sample data.
 use australian_tax_calculators::api;

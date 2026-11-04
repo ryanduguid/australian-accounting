@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! National business-day calendar for SGAA 1992 s 6(1).
 //!
 //! "business day means a day other than: (a) a Saturday or a Sunday; or

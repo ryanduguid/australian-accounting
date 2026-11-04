@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `tests/test_no_network_by_default.py`: nothing leaves unless asked.
 //!
 //! Python sabotages `socket.create_connection` and `socket.socket.connect`.

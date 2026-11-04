@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! `trials/fbt.py`: FBT car benefits, the provider's statutory formula
 //! against the local aggregate worksheet.
 //!

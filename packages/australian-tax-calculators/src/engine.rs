@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! Explicitly bounded worksheets using Decimal and published official methods,
 //! ported from `austaxcalc.calculations` without changing a rate, rounding
 //! step, scope statement or message. Every worksheet computes in a 40-digit

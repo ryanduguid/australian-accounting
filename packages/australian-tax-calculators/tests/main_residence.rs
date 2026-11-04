@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! The main residence worksheet against the ATO's and the Library's worked
 //! examples (docs/calculation-evidence.md#main-residence), its day-counting
 //! boundaries and its refusals. Where an example gives only a month or a year,

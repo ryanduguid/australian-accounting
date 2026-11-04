@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! JSON boundary for the removed Python import API (`measure`, `parse_money`).
 //! Amounts are decimal strings; README.md documents both schemas.
 use crate::decimal::Decimal;

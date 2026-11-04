@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: FSL-1.1-ALv2
+
 //! JSON stdin boundary for the removed Python import API. Each command takes
 //! one JSON object: decimals as strings, years of income as labels such as
 //! "2026-27", facts as JSON booleans or null, and rate tables and overrides

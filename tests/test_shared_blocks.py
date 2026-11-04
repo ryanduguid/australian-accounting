@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Pin the code that several engines each keep a copy of.
 
 Engines are released on their own and never import a sibling, and the root may

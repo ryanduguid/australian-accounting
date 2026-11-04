@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Lodgment and payment due dates under the ATO's 2026–27 lodgment program.
 
 The calendar reads the facts the caller supplies, applies the dates the ATO

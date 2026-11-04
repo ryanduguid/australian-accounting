@@ -1,3 +1,6 @@
+# Copyright 2026 Ryan Duguid
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
 """Synthetic checks for cited retrieval from a configured legislation corpus.
 
 Every row here is fabricated. The real corpus is the operator's own folder and never
