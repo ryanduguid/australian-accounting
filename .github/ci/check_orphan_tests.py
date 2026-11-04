@@ -8,26 +8,32 @@ test files (test_*.py, *_test.py) and JavaScript test files (*.test.js, .mjs,
 runs one of these commands from its working directory (the step's, else the
 job's or the workflow's default):
 
-- cargo [+toolchain] test or llvm-cov: that crate, or the one --manifest-path names;
+- cargo [+toolchain] test or llvm-cov, without --no-run: that crate, or the one
+  --manifest-path names;
 - cargo [+toolchain] fuzz run: the crate in fuzz/;
 - pytest, bare or after uv run or python -m: each file it names, and under the
   directories it names (else the testpaths of the pytest table in the
   pyproject.toml there, else that directory) the files its python_files match;
 - python -m unittest: the files it names;
 - npm test or npm run NAME: that package.json script's commands;
-- node --test: the files and globs it names.
+- node --test: the files and single-level globs it names.
 
 A reusable workflow's steps run once for each call of it, with the caller's
 with: values, which may come from the caller's matrix include rows or, for the
-one matrix CI computes, from rust_crates.py. A job or step condition holds
-unless it is false, tests an input other than with inputs.NAME == 'value' (a
-negation counts as another test), or names other values for that input.
+one matrix CI computes, from rust_crates.py. A caller job, job or step runs
+when its condition is absent, names no input or is a && of terms in which each
+term naming an input is one inputs.NAME == 'value', or several joined by ||
+(in parentheses beside another term), that the call's inputs satisfy. Terms
+naming no input are taken to hold on some run. A literal false, or any other
+condition naming an input (a negation included), runs nothing.
 
 The model is narrow and fails closed. A command it does not recognise runs
-nothing, so its targets are reported; YAML it cannot read, a test step whose
-working directory it cannot resolve and a test step that changes directory stop
-the check. It does not follow scripts, cargo workspace members, pytest's
---ignore, -k or -m, ignored Rust tests or the tests inside a file.
+nothing, so its targets are reported. These stop the check: YAML it cannot
+read; a test step whose working directory it cannot resolve, or that changes
+directory, uses shell control flow, a function or a heredoc; pytest's --ignore,
+--ignore-glob, --deselect, -k or -m, on the command line or in addopts; and
+node --test with a ** glob. It does not follow scripts, cargo workspace
+members, ignored Rust tests or the tests inside a file.
 
 Deliberate exceptions go in orphan_tests_allowed.txt beside this script, one
 '<path> <reason>' per line. The check fails on an entry without a reason. It
@@ -60,10 +66,18 @@ COMPUTED_MATRICES = {
 RUNNER = re.compile(r"\b(?:cargo|pytest|unittest|npm|node)\b")
 EXPRESSION = re.compile(r"\$\{\{\s*(inputs|matrix)\.([\w-]+)\s*\}\}")
 INPUT_TEST = re.compile(r"inputs\.([\w-]+) == '([^']*)'")
+DISJUNCTION = re.compile(
+    r"(?P<open>\(\s*)?inputs\.[\w-]+ == '[^']*'(?:\s*\|\|\s*inputs\.[\w-]+ == '[^']*')*(?(open)\s*\))"
+)
+NARROWING = ("--ignore", "--ignore-glob", "--deselect")
 KEY = re.compile(r"""(?P<key>[\w-][\w.-]*|"[^"]*"|'[^']*'):(?:[ \t]+(?P<rest>.*))?""")
 QUOTED = re.compile(r"""("(?:[^"\\]|\\.)*"|'(?:[^']|'')*')[ \t]*(?:#.*)?""")
 BLOCK_SCALARS = {"|", "|-", "|+", ">", ">-", ">+"}
-SHELL_WORDS = {"if", "then", "else", "elif", "while", "until", "do", "!", "{", "time"}
+# Control flow can skip a command or run it more than once, so a test step
+# that uses it stops the check rather than being read line by line.
+CONTROL = {"if", "then", "else", "elif", "fi", "case", "esac", "for", "select", "while", "until",
+           "do", "done", "function"}
+PREFIXES = {"!", "{", "time"}
 
 
 class Unreadable(Exception):
@@ -187,7 +201,7 @@ def calls(root: Path, flows: dict[str, dict]) -> dict[str, list[dict[str, str]]]
         for job in flow["jobs"].values():
             uses = at(job, "uses")
             name = uses.removeprefix("./.github/workflows/") if isinstance(uses, str) else ""
-            if name == uses or name not in flows:
+            if name == uses or name not in flows or not holds(at(job, "if"), {}):
                 continue
             specs = at(flows[name], "on", "workflow_call", "inputs")
             defaults = {
@@ -214,13 +228,31 @@ def holds(condition: object, inputs: dict[str, str]) -> bool:
     """Whether a job or step condition can hold for these inputs."""
     if not isinstance(condition, str):
         return True
-    if condition.strip() in ("false", "${{ false }}"):
+    text = condition.strip()
+    if text.startswith("${{") and text.endswith("}}"):
+        text = text[3:-2].strip()
+    if text == "false":
         return False
-    tests = INPUT_TEST.findall(condition)
-    # A negation could turn an input test around, so it counts as another test.
-    if "inputs." in INPUT_TEST.sub("", condition) or (tests and re.search(r"!(?!=)", condition)):
+    if "inputs." not in text:
+        return True
+    # A negation could turn an input test around.
+    if "!" in text:
         return False
-    return all(inputs.get(name) in {v for n, v in tests if n == name} for name, _ in tests)
+    terms, depth, start = [], 0, 0
+    for index, char in enumerate(text):
+        depth += (char == "(") - (char == ")")
+        if depth == 0 and text.startswith("&&", index):
+            terms.append(text[start:index].strip())
+            start = index + 2
+    terms.append(text[start:].strip())
+    for term in terms:
+        if "inputs." not in term:
+            continue
+        if not DISJUNCTION.fullmatch(term) or (len(terms) > 1 and "||" in term and term[0] != "("):
+            return False
+        if not any(inputs.get(name) == value for name, value in INPUT_TEST.findall(term)):
+            return False
+    return True
 
 
 def steps(root: Path, flows: dict[str, dict]):
@@ -245,9 +277,11 @@ def steps(root: Path, flows: dict[str, dict]):
                     yield where, substitute(str(directory), inputs, {}), step["run"]
 
 
-def shell_commands(script: str, where: str) -> list[list[str]]:
-    """Split a step's script into commands, one line at a time."""
+def shell_commands(script: str, where: str) -> tuple[list[list[str]], bool]:
+    """Split a step's script into commands, one line at a time, and say whether
+    it uses control flow, a function or a heredoc."""
     commands = []
+    control = False
     for line in script.replace("\\\n", " ").splitlines():
         # shlex would also end a word at a "#" inside it, which the shell does not.
         line = re.split(r"(?:^|\s)#", line, maxsplit=1)[0]
@@ -262,15 +296,17 @@ def shell_commands(script: str, where: str) -> list[list[str]]:
             continue
         command: list[str] = []
         for token in [*tokens, ";"]:
+            if token == "()" or token.startswith("<<") or (not command and token in CONTROL):
+                control = True
             if token and set(token) <= set("();&|<>"):
                 if command:
                     commands.append(command)
                 command = []
-            elif command or not (token in SHELL_WORDS or re.match(r"[A-Za-z_]\w*=", token)):
+            elif command or not (token in CONTROL | PREFIXES or re.match(r"[A-Za-z_]\w*=", token)):
                 command.append(token)
         if command:
             commands.append(command)
-    return commands
+    return commands, control
 
 
 def join(base: str, path: str) -> str:
@@ -294,6 +330,11 @@ def pytest_runs(root: Path, files: list[str], base: str, args: list[str]) -> set
     if pyproject.is_file():
         table = at(tomllib.loads(pyproject.read_text(encoding="utf-8")), "tool", "pytest") or {}
     config = table.get("ini_options", table)
+    addopts = config.get("addopts", [])
+    options = [*args, *(shlex.split(addopts) if isinstance(addopts, str) else addopts)]
+    for option in options:
+        if option.split("=", 1)[0] in NARROWING or option[:2] in ("-k", "-m"):
+            raise Unreadable(f"{base}: pytest {option} would narrow what it collects")
     patterns = listed(config.get("python_files", PYTEST_FILES))
     named = [join(base, arg) for arg in args if not arg.startswith("-")]
     roots = named or [join(base, path) for path in listed(config.get("testpaths", ["."]))]
@@ -311,7 +352,7 @@ def runs(root: Path, files: list[str], where: str, directory: str, argv: list[st
     name, args = argv[0], argv[1:]
     if name == "cargo" and args[:1] and args[0].startswith("+"):
         args = args[1:]
-    cargo_test = name == "cargo" and args[:1] in (["test"], ["llvm-cov"])
+    cargo_test = name == "cargo" and args[:1] in (["test"], ["llvm-cov"]) and "--no-run" not in args
     fuzz = name == "cargo" and args[:2] == ["fuzz", "run"]
     at_pytest = argv.index("pytest") if "pytest" in argv else -1
     pytest = at_pytest == 0 or (at_pytest > 0 and (
@@ -346,14 +387,19 @@ def runs(root: Path, files: list[str], where: str, directory: str, argv: list[st
     patterns = [join(base, arg) for arg in args if not arg.startswith("-")]
     if not patterns:
         raise Unreadable(f"{where}: node --test without file arguments")
+    # A shell without globstar reads ** as *, and node expands a quoted one itself.
+    if any("**" in pattern for pattern in patterns):
+        raise Unreadable(f"{where}: node --test with a recursive glob")
     return {path for path in files if any(PurePosixPath(path).full_match(p) for p in patterns)}
 
 
 def step_runs(root: Path, files: list[str], where: str, directory: str, script: str) -> set[str]:
-    commands = shell_commands(script, where)
+    commands, control = shell_commands(script, where)
     found = set().union(*(runs(root, files, where, directory, argv) for argv in commands))
     if found and any(argv[0] in ("cd", "pushd") for argv in commands):
         raise Unreadable(f"{where}: a test step changes directory; set its working-directory")
+    if found and control:
+        raise Unreadable(f"{where}: a test step uses shell control flow or a heredoc")
     return found
 
 

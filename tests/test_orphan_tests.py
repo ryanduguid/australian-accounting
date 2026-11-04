@@ -67,7 +67,7 @@ jobs:
         working-directory: ${{ inputs.root }}/${{ inputs.package }}
     steps:
       - run: cargo test --locked
-      - if: runner.os == 'Linux' && (inputs.package == 'covered')
+      - if: runner.os == 'Linux' && (inputs.package == 'covered' || inputs.package == 'elsewhere')
         run: >-
           cargo test
           --manifest-path wasm/Cargo.toml --locked
@@ -89,6 +89,12 @@ FILES = {
     "tools/tool/tests/runtime.test.mjs": "",
     "tools/kept/Cargo.toml": "",
 }
+KEPT = {"tools/kept": "a fixture crate, built by hand"}
+# What the fixture leaves unrun, each for the reason the first test gives.
+UNRUN = {"app/scripts/test_outside.py", "app/tests/helper_test.py", "crates/second/wasm", "crates/unlisted"}
+TOOL_TEST = "          cargo +1.99 test --locked\n"
+CONDITION = "runner.os == 'Linux' && (inputs.package == 'covered' || inputs.package == 'elsewhere')"
+PYTEST = "pytest -q --cov=app"
 
 
 class OrphanTestsTests(unittest.TestCase):
@@ -100,8 +106,14 @@ class OrphanTestsTests(unittest.TestCase):
                 (root / path).write_text(text, encoding="utf-8")
             return orphans.problems(root, list(files), allowed)
 
+    def unrun(self, files: dict[str, str]) -> set[str]:
+        return {
+            problem.split(": no workflow step runs", 1)[0]
+            for problem in self.check(FILES | files, KEPT)
+        }
+
     def test_names_each_orphan_and_nothing_a_step_runs(self) -> None:
-        self.assertEqual(self.check(FILES, {"tools/kept": "a fixture crate, built by hand"}), [
+        self.assertEqual(self.check(FILES, KEPT), [
             # python_files leaves it out, although it is under testpaths.
             "app/scripts/test_outside.py: no workflow step runs this test file",
             "app/tests/helper_test.py: no workflow step runs this test file",
@@ -129,21 +141,77 @@ class OrphanTestsTests(unittest.TestCase):
         )
         self.assertNotIn("crates/unlisted: no workflow step runs this crate", problems)
 
-    def test_stops_on_what_it_does_not_model(self) -> None:
+    def test_credits_nothing_a_step_does_not_run(self) -> None:
         cases = {
-            "an anchor": (CALLER.replace("fail-fast: false", "fail-fast: &off false"), "anchor"),
+            "a caller that never runs": (
+                "ci.yml", CALLER.replace("  rust:\n", "  rust:\n    if: ${{ false }}\n"),
+                {"crates/covered", "crates/covered/wasm", "crates/second"},
+            ),
+            "input tests no call can pass": (
+                "rust.yml",
+                CALLED.replace(CONDITION, "inputs.package == 'covered' && inputs.package == 'second'"),
+                {"crates/covered/wasm"},
+            ),
+            "an input test beside another term in a disjunction": (
+                "rust.yml",
+                CALLED.replace(CONDITION, "runner.os == 'Linux' || inputs.package == 'covered'"),
+                {"crates/covered/wasm"},
+            ),
+            "a build without the tests": (
+                "ci.yml", CALLER.replace(TOOL_TEST, "          cargo +1.99 test --locked --no-run\n"),
+                {"tools/tool"},
+            ),
+        }
+        for case, (workflow, text, unrun) in cases.items():
+            with self.subTest(case=case):
+                self.assertEqual(self.unrun({f".github/workflows/{workflow}": text}), UNRUN | unrun)
+
+    def test_stops_on_what_it_does_not_model(self) -> None:
+        caller = ".github/workflows/ci.yml"
+        cases = {
+            "an anchor": (
+                {caller: CALLER.replace("fail-fast: false", "fail-fast: &off false")}, "anchor",
+            ),
             "a directory change": (
-                CALLER.replace("          npm test\n", "          cd .. && npm test\n"),
+                {caller: CALLER.replace("          npm test\n", "          cd .. && npm test\n")},
                 "changes directory",
             ),
             "an unresolved directory": (
-                CALLER.replace("working-directory: tools/tool", "working-directory: ${{ matrix.tool }}"),
+                {caller: CALLER.replace(
+                    "working-directory: tools/tool", "working-directory: ${{ matrix.tool }}"
+                )},
                 "cannot resolve the working directory",
             ),
+            "a keyword filter": (
+                {caller: CALLER.replace(PYTEST, "pytest -q -k covered --cov=app")}, "narrow",
+            ),
+            "an ignored path in addopts": (
+                {"app/pyproject.toml": FILES["app/pyproject.toml"]
+                 + 'addopts = "--ignore=tests/test_covered.py"\n'},
+                "narrow",
+            ),
+            "a heredoc": (
+                {caller: CALLER.replace(
+                    TOOL_TEST, "          cat > notes.txt <<'EOF'\n          cargo test\n          EOF\n"
+                )},
+                "control flow or a heredoc",
+            ),
+            "a condition in the script": (
+                {caller: CALLER.replace(
+                    TOOL_TEST, "          if false; then cargo +1.99 test --locked; fi\n"
+                )},
+                "control flow or a heredoc",
+            ),
+            "a recursive glob": (
+                {"tools/tool/package.json": FILES["tools/tool/package.json"].replace(
+                    "tests/*.test.mjs", "tests/**/*.test.mjs"
+                )},
+                "recursive glob",
+            ),
         }
-        for case, (caller, message) in cases.items():
+        for case, (files, message) in cases.items():
             with self.subTest(case=case), self.assertRaisesRegex(orphans.Unreadable, message):
-                self.check(FILES | {".github/workflows/ci.yml": caller}, {})
+                self.check(FILES | files, {})
 
     def test_every_change_runs_the_check(self) -> None:
         workflow = (ROOT / ".github/workflows/boundaries.yml").read_text(encoding="utf-8")
