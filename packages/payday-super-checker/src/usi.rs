@@ -39,6 +39,7 @@ const HEADER: [(usize, &str); 7] = [
     (471, "To"),
 ];
 const ROW_BYTES: usize = 481;
+const RUN_AT: &str = "This Report Run at:";
 const MONTHS: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
@@ -89,7 +90,7 @@ fn product(line: &[u8]) -> Option<(String, Product)> {
 
 /// `This Report Run at:  Nov  5 2026  7:46AM`, the only date in the file.
 fn run_date(line: &str) -> Option<Date> {
-    let mut words = line.strip_prefix("This Report Run at:")?.split_whitespace();
+    let mut words = line.strip_prefix(RUN_AT)?.split_whitespace();
     let month = words.next()?;
     let month = MONTHS.iter().position(|m| *m == month)? as i64 + 1;
     let day = words.next()?.parse().ok()?;
@@ -124,32 +125,38 @@ pub fn parse_extract(data: &[u8]) -> std::result::Result<Extract, &'static str> 
     }
     let mut products: BTreeMap<String, Vec<Product>> = BTreeMap::new();
     let mut count = 0;
-    let (mut declared, mut run_on) = (None, None);
+    let mut footer = Vec::new();
+    let mut past_rows = false;
     for line in lines {
-        if line.len() == ROW_BYTES {
+        if !past_rows && line.len() == ROW_BYTES {
             let (usi, product) = product(line).ok_or(unreadable)?;
             products.entry(usi).or_default().push(product);
             count += 1;
             continue;
         }
+        past_rows = true;
         let line = text(line).ok_or(unreadable)?;
-        if line.is_empty() {
-            continue;
-        }
-        if let Some(rows) = rows_affected(line) {
-            declared = Some(rows);
-        } else if line.starts_with("This Report Run at:") {
-            run_on = Some(run_date(line).ok_or("extract_undated")?);
-        } else {
-            return Err(unreadable);
+        if !line.is_empty() {
+            footer.push(line);
         }
     }
-    // A missing or short row count means the copy was cut.
-    if declared != Some(count) {
+    // One row count, one run date and nothing after them. Anything else could
+    // let a later row or value stand in for the real one, and a missing or short
+    // count means the copy was cut.
+    let (rows, run) = match footer[..] {
+        [rows] => (rows, None),
+        [rows, run] => (rows, Some(run)),
+        _ => return Err(unreadable),
+    };
+    if rows_affected(rows) != Some(count) {
+        return Err(unreadable);
+    }
+    let run = run.ok_or("extract_undated")?;
+    if !run.starts_with(RUN_AT) {
         return Err(unreadable);
     }
     Ok(Extract {
-        run_on: run_on.ok_or("extract_undated")?,
+        run_on: run_date(run).ok_or("extract_undated")?,
         products,
     })
 }
@@ -199,7 +206,8 @@ pub struct Finding {
     pub reason: &'static str,
 }
 
-/// The USI in each data row of a CSV with one `usi` column.
+/// The USI in each data row of a CSV with one `usi` column. A row of another
+/// width could hide a USI, and a file with no rows checks nothing, so both refuse.
 pub fn read_usis(path: &str, data: &[u8]) -> Result<Vec<(i64, String)>> {
     let body = data.strip_prefix(b"\xef\xbb\xbf").unwrap_or(data);
     let failed = |e: ReadError| match e {
@@ -224,10 +232,20 @@ pub fn read_usis(path: &str, data: &[u8]) -> Result<Vec<(i64, String)>> {
     while let Some(cells) = reader.next_row().map_err(failed)? {
         row += 1;
         // The csv module's blank line is no row at all.
-        if !cells.is_empty() {
-            let usi = cells.get(column).map_or("", |cell| pytext::strip(cell));
-            usis.push((row, usi.to_string()));
+        if cells.is_empty() {
+            continue;
         }
+        if cells.len() != header.len() {
+            return Err(Failure::Value(format!(
+                "{path} row {row} has {} fields, but the header has {}",
+                cells.len(),
+                header.len()
+            )));
+        }
+        usis.push((row, pytext::strip(&cells[column]).to_string()));
+    }
+    if usis.is_empty() {
+        return Err(Failure::Value(format!("{path} has no data rows")));
     }
     Ok(usis)
 }

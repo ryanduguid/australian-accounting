@@ -380,7 +380,7 @@ fn argument(v: &Value, key: &str, kind: Kind) -> Result<Arg> {
             }
             Decimal::parse(text)
                 .map(Arg::Decimal)
-                .or_else(|s| refusal(s.code(), format!("decimal.{}", s.name())))
+                .or_else(|s| refusal("input.decimal_unreadable", format!("decimal.{}", s.name())))
         }
         (Json, _) => Ok(Arg::Json(value.clone())),
         _ => Ok(arg(value)),

@@ -272,7 +272,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "decimal.invalid_operation",
-        "Decimal text cannot be read, or a worksheet step is undefined.",
+        "A worksheet step is undefined, such as an order comparison with NaN.",
     ),
     (
         "decimal.overflow",
@@ -305,6 +305,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "input.decimal_too_long",
         "A decimal string exceeds 8192 bytes.",
+    ),
+    (
+        "input.decimal_unreadable",
+        "Decimal text cannot be read as a number.",
     ),
     (
         "input.depreciation_method_invalid",

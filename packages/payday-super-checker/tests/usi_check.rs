@@ -7,6 +7,8 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use payday_super_checker::usi::parse_extract;
+
 fn extract() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("fuzz/corpus/usi_extract")
 }
@@ -142,4 +144,107 @@ fn the_report_cannot_replace_the_extract() {
         std::fs::read(&copy).unwrap(),
         std::fs::read(extract()).unwrap()
     );
+}
+
+/// A valid fabricated row for a USI the seed does not list.
+fn added_row() -> String {
+    let seed = String::from_utf8(std::fs::read(extract()).unwrap()).unwrap();
+    let row = seed.lines().find(|line| line.contains("FAB0001")).unwrap();
+    row.trim_end().replacen("FAB0001", "FAB0009", 1) + "\n"
+}
+
+/// The seed cut before its footer, and the footer as written.
+fn body_and_footer() -> (String, String, String) {
+    let seed = String::from_utf8(std::fs::read(extract()).unwrap()).unwrap();
+    let rows_end = seed.find("\n\n(").unwrap() + 1;
+    let run_at = seed.find("This Report").unwrap();
+    let end = seed[run_at..].find('\n').unwrap() + run_at + 1;
+    (
+        seed[..rows_end].to_string(),
+        seed[rows_end + 1..run_at].to_string(),
+        seed[run_at..end].to_string(),
+    )
+}
+
+#[test]
+fn a_row_after_the_footer_cannot_list_a_usi() {
+    let (body, count, run) = body_and_footer();
+    let raised = count.replace("(3 rows", "(4 rows");
+    let dir = folder("after-footer");
+    let injected = dir.join("injected.txt");
+    let text = format!("{body}\n{raised}{run}{}", added_row());
+    std::fs::write(&injected, text).unwrap();
+    let (code, report, ..) = run_check(&dir, &injected);
+    assert_eq!(code, 1, "{report}");
+    assert!(
+        report.contains("2,FAB0009,UNVERIFIED,extract_unreadable,\n"),
+        "{report}"
+    );
+}
+
+#[test]
+fn the_footer_is_one_count_then_one_run_date_then_nothing() {
+    let (body, count, run) = body_and_footer();
+    let raised = count.replace("(3 rows", "(4 rows");
+    let earlier = run.replace("Nov  5", "Nov  1");
+    let row = added_row();
+    let cases = [
+        (
+            "row after the run date",
+            format!("{body}\n{raised}{run}{row}"),
+        ),
+        (
+            "row before the run date",
+            format!("{body}\n{raised}{row}{run}"),
+        ),
+        (
+            "row after the blank line",
+            format!("{body}\n{row}{raised}{run}"),
+        ),
+        (
+            "second count",
+            format!("{body}\n(9 rows affected)\n{count}{run}"),
+        ),
+        ("second run date", format!("{body}\n{count}{earlier}{run}")),
+        ("run date before the count", format!("{body}\n{run}{count}")),
+        ("trailing text", format!("{body}\n{count}{run}more\n")),
+        ("cut row", format!("{body}{}", &row[..100])),
+        ("cut count", format!("{body}\n(3 rows aff")),
+    ];
+    for (name, text) in cases {
+        assert_eq!(
+            parse_extract(text.as_bytes()).err(),
+            Some("extract_unreadable"),
+            "{name}"
+        );
+    }
+    assert!(parse_extract(format!("{body}\n{count}{run} \n").as_bytes()).is_ok());
+}
+
+#[test]
+fn a_row_wider_or_narrower_than_the_header_writes_no_report() {
+    for (name, input) in [
+        ("wider", "usi\nFAB0001,FAB9999\n"),
+        ("narrower", "employee,usi\nE1\n"),
+    ] {
+        let dir = folder(name);
+        let (code, report, _, err) = run(&dir, input, &extract(), &[]);
+        assert_eq!((code, report.as_str()), (1, ""), "{name}");
+        assert!(err.contains("row 2 has"), "{err}");
+    }
+}
+
+#[test]
+fn an_input_with_no_data_rows_writes_no_report() {
+    for (name, input) in [("header-only", "usi\n"), ("blank-rows", "usi\n\n\n")] {
+        let dir = folder(name);
+        let (code, report, _, err) = run(&dir, input, &extract(), &[]);
+        assert_eq!((code, report.as_str()), (1, ""), "{name}");
+        assert!(err.contains("has no data rows"), "{err}");
+    }
+}
+
+/// `usi-check` for the one USI `added_row` adds.
+fn run_check(dir: &Path, extract: &Path) -> (i32, String, String, String) {
+    run(dir, "usi\nFAB0009\n", extract, &[])
 }

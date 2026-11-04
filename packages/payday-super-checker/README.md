@@ -539,7 +539,7 @@ counts as qualifying earnings, so those decisions stay human.
 payday-super-check usi-check funds.csv --usi-extract SflUsiExtract.txt --as-at 2026-11-05 -o usi-check.csv
 ```
 
-The CSV needs one `usi` column; other columns are ignored. The report has one line
+The CSV needs one `usi` column and at least 1 data row, and every row must have as many fields as the header; otherwise the command exits 1 and writes no report. Other columns are ignored. The report has one line
 per row, with a status and a reason:
 
 | Status | Reason | Meaning |
@@ -554,6 +554,12 @@ per row, with a status and a reason:
 Exit 0 means every row is `LISTED`, 2 that a row is `UNVERIFIED`, and 1 that the
 extract or the input could not be used. A 2-day limit is this tool's own safeguard:
 the source says only that the extract is generated daily.
+
+The reader's column offsets come from the layout published with the extract. The
+repository's tests and fuzz seed use fabricated files only, so they cannot show that
+the layout still holds: a moved column reads as `extract_unreadable`, and the first run
+against a current download is the check of that. The file carries no signature, so
+this command cannot tell an edited copy from a genuine one. Use a copy you downloaded.
 
 `LISTED` does not establish that a fund can accept a contribution. The extract covers
 APRA funds, so an SMSF is never `LISTED`, and it can differ from the ATO's Fund

@@ -4,6 +4,7 @@
 //! Every refusal carries a catalogued code, and the code changes nothing a
 //! caller already reads: the frozen messages, `error:` line and exit 2 stay.
 use australian_tax_calculators::api;
+use australian_tax_calculators::decimal::Decimal;
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
 use std::io::Write;
@@ -103,13 +104,20 @@ fn an_interpolated_message_keeps_one_code_for_one_failure() {
 }
 
 #[test]
-fn decimal_signals_have_their_own_codes() {
-    let input = json!({"amount": "nope", "gst_inclusive": true, "scope_confirmed": true, "year": "2025-26"});
-    let refusal = api::evaluate_coded("gst", &input).unwrap_err();
+fn unreadable_decimal_text_and_an_undefined_step_have_their_own_codes() {
+    let refused = |amount: &str| {
+        let input = json!({"amount": amount, "gst_inclusive": true, "scope_confirmed": true, "year": "2025-26"});
+        api::evaluate_coded("gst", &input).unwrap_err()
+    };
+    let text = refused("nope");
     assert_eq!(
-        (refusal.code, refusal.message.as_str()),
-        ("decimal.invalid_operation", "decimal.InvalidOperation")
+        (text.code, text.message.as_str()),
+        ("input.decimal_unreadable", "decimal.InvalidOperation")
     );
+    // Worksheet inputs refuse NaN first, so this arithmetic origin shows at the signal.
+    let nan = Decimal::parse("NaN").unwrap();
+    let step = nan.lt(&Decimal::parse("1").unwrap()).unwrap_err();
+    assert_eq!(step.code(), "decimal.invalid_operation");
 }
 
 fn run(args: &[&str], stdin: &[u8]) -> (i32, String, String) {
