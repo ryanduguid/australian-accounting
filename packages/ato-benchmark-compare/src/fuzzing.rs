@@ -32,16 +32,34 @@ fn scratch() -> Option<&'static Path> {
 /// Read untrusted bytes as a profit and loss export, in both of its forms, and
 /// as an account mapping. Refusals are results; only a panic is a defect.
 pub fn read_csv(data: &[u8]) {
-    let Some(dir) = scratch() else { return };
+    read_csv_in(
+        scratch().expect("a fuzz run needs a scratch directory"),
+        data,
+    );
+}
+
+/// A run that cannot place its input has read nothing, so it must not pass.
+fn read_csv_in(dir: &Path, data: &[u8]) {
     let path = dir.join("input.csv");
-    if std::fs::write(&path, data).is_err() {
-        return;
-    }
+    std::fs::write(&path, data).expect("the input must reach the readers");
     let path = PyPath::new(&path.to_string_lossy());
     let _ = pnl::read(&path, None);
     // The `--amount-column` route picks the column by name instead of by shape.
     let _ = pnl::read(&path, Some("amount"));
     let _ = mapping::read_mapping(&path);
+}
+
+#[cfg(test)]
+mod unwritable {
+    use super::read_csv_in;
+
+    /// A file stands in for the directory, which refuses the write on every
+    /// platform and for every user, root included.
+    #[test]
+    #[should_panic(expected = "the input must reach the readers")]
+    fn an_input_that_cannot_be_written_fails_the_run() {
+        read_csv_in(&std::env::current_exe().unwrap(), b"a,b\n1,2\n");
+    }
 }
 
 #[cfg(all(test, unix))]
