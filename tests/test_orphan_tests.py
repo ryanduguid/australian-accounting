@@ -95,6 +95,17 @@ UNRUN = {"app/scripts/test_outside.py", "app/tests/helper_test.py", "crates/seco
 TOOL_TEST = "          cargo +1.99 test --locked\n"
 CONDITION = "runner.os == 'Linux' && (inputs.package == 'covered' || inputs.package == 'elsewhere')"
 PYTEST = "pytest -q --cov=app"
+# The called job on 2 runners, each with its own tier.
+TIERS = (
+    "    runs-on: ${{ matrix.os }}\n"
+    "    strategy:\n"
+    "      matrix:\n"
+    "        include:\n"
+    "          - os: ubuntu-latest\n"
+    "            tier: full\n"
+    "          - os: windows-latest\n"
+    "            tier: quick\n"
+)
 
 
 class OrphanTestsTests(unittest.TestCase):
@@ -161,6 +172,43 @@ class OrphanTestsTests(unittest.TestCase):
                 "ci.yml", CALLER.replace(TOOL_TEST, "          cargo +1.99 test --locked --no-run\n"),
                 {"tools/tool"},
             ),
+            "a false term beside an input test": (
+                "rust.yml", CALLED.replace(CONDITION, "false && inputs.package == 'covered'"),
+                {"crates/covered/wasm"},
+            ),
+            "2 runner systems at once": (
+                "rust.yml",
+                CALLED.replace(
+                    CONDITION,
+                    "runner.os == 'Linux' && runner.os == 'Windows' && (inputs.package == 'covered')",
+                ),
+                {"crates/covered/wasm"},
+            ),
+            "a runner system the job does not use": (
+                "rust.yml",
+                CALLED.replace(CONDITION, "runner.os == 'Windows' && (inputs.package == 'covered')"),
+                {"crates/covered/wasm"},
+            ),
+            "a runner and tier no matrix row pairs": (
+                "rust.yml",
+                CALLED.replace("    runs-on: ubuntu-latest\n", TIERS).replace(
+                    CONDITION,
+                    "runner.os == 'Windows' && matrix.tier == 'full' && (inputs.package == 'covered')",
+                ),
+                {"crates/covered/wasm"},
+            ),
+            "a runner and tier one matrix row pairs": (
+                "rust.yml",
+                CALLED.replace("    runs-on: ubuntu-latest\n", TIERS).replace(
+                    CONDITION,
+                    "runner.os == 'Windows' && matrix.tier == 'quick' && (inputs.package == 'covered')",
+                ),
+                set(),
+            ),
+            "quoted shell punctuation": (
+                "ci.yml", CALLER.replace(TOOL_TEST, "          printf '%s\\n' '()'\n" + TOOL_TEST),
+                set(),
+            ),
         }
         for case, (workflow, text, unrun) in cases.items():
             with self.subTest(case=case):
@@ -200,6 +248,14 @@ class OrphanTestsTests(unittest.TestCase):
                 {caller: CALLER.replace(
                     TOOL_TEST, "          if false; then cargo +1.99 test --locked; fi\n"
                 )},
+                "control flow or a heredoc",
+            ),
+            "a short-circuit": (
+                {caller: CALLER.replace(TOOL_TEST, "          false && cargo +1.99 test --locked\n")},
+                "control flow or a heredoc",
+            ),
+            "a function that is never called": (
+                {caller: CALLER.replace(TOOL_TEST, "          f ( ) { cargo +1.99 test --locked; }\n")},
                 "control flow or a heredoc",
             ),
             "a recursive glob": (

@@ -19,18 +19,23 @@ job's or the workflow's default):
 - node --test: the files and single-level globs it names.
 
 A reusable workflow's steps run once for each call of it, with the caller's
-with: values, which may come from the caller's matrix include rows or, for the
-one matrix CI computes, from rust_crates.py. A caller job, job or step runs
-when its condition is absent, names no input or is a && of terms in which each
-term naming an input is one inputs.NAME == 'value', or several joined by ||
-(in parentheses beside another term), that the call's inputs satisfy. Terms
-naming no input are taken to hold on some run. A literal false, or any other
-condition naming an input (a negation included), runs nothing.
+with: values for each row of the caller's matrix: its include rows, the product
+of its axes or, for the one matrix CI computes, rust_crates.py's rows.
+
+A caller job, job or step runs when it has no condition, or one that is a && of
+terms, each NAME == 'value', NAME != 'value' or a parenthesised || of
+inputs.NAME == 'value'. Inputs, matrix values and runner.os (from an ubuntu,
+windows or macos runs-on label) are decided together for each call and matrix
+row. Other names, such as needs and github, are known only at run time, so
+their terms are taken to hold on some run unless they compare one name with 2
+values, or with a value they also exclude. Any other condition, a literal false
+or a negation included, runs nothing.
 
 The model is narrow and fails closed. A command it does not recognise runs
 nothing, so its targets are reported. These stop the check: YAML it cannot
 read; a test step whose working directory it cannot resolve, or that changes
-directory, uses shell control flow, a function or a heredoc; pytest's --ignore,
+directory, uses shell control flow, && or ||, a function or a heredoc
+(quoted text is not shell syntax); pytest's --ignore,
 --ignore-glob, --deselect, -k or -m, on the command line or in addopts; and
 node --test with a ** glob. It does not follow scripts, cargo workspace
 members, ignored Rust tests or the tests inside a file.
@@ -43,6 +48,7 @@ also fails on an entry naming no target or one a step now runs.
 from __future__ import annotations
 
 import fnmatch
+import itertools
 import json
 import posixpath
 import re
@@ -65,19 +71,23 @@ COMPUTED_MATRICES = {
 }
 RUNNER = re.compile(r"\b(?:cargo|pytest|unittest|npm|node)\b")
 EXPRESSION = re.compile(r"\$\{\{\s*(inputs|matrix)\.([\w-]+)\s*\}\}")
-INPUT_TEST = re.compile(r"inputs\.([\w-]+) == '([^']*)'")
-DISJUNCTION = re.compile(
-    r"(?P<open>\(\s*)?inputs\.[\w-]+ == '[^']*'(?:\s*\|\|\s*inputs\.[\w-]+ == '[^']*')*(?(open)\s*\))"
-)
+# The condition terms the check decides: a comparison with a literal, and a
+# parenthesised choice of input values.
+COMPARISON = re.compile(r"(?P<name>[a-z]+(?:\.[\w-]+)+) (?P<op>==|!=) '(?P<value>[^']*)'")
+CHOICE = re.compile(r"\(\s*inputs\.[\w-]+ == '[^']*'(?:\s*\|\|\s*inputs\.[\w-]+ == '[^']*')*\s*\)")
+CHOSEN = re.compile(r"(inputs\.[\w-]+) == '([^']*)'")
+# runner.os for the image a GitHub-hosted runs-on label names.
+SYSTEMS = {"ubuntu": "Linux", "windows": "Windows", "macos": "macOS"}
 NARROWING = ("--ignore", "--ignore-glob", "--deselect")
 KEY = re.compile(r"""(?P<key>[\w-][\w.-]*|"[^"]*"|'[^']*'):(?:[ \t]+(?P<rest>.*))?""")
 QUOTED = re.compile(r"""("(?:[^"\\]|\\.)*"|'(?:[^']|'')*')[ \t]*(?:#.*)?""")
 BLOCK_SCALARS = {"|", "|-", "|+", ">", ">-", ">+"}
 # Control flow can skip a command or run it more than once, so a test step
-# that uses it stops the check rather than being read line by line.
+# that uses it, or && or ||, stops the check rather than being read line by line.
 CONTROL = {"if", "then", "else", "elif", "fi", "case", "esac", "for", "select", "while", "until",
            "do", "done", "function"}
 PREFIXES = {"!", "{", "time"}
+OPERATORS = "();&|<>"
 
 
 class Unreadable(Exception):
@@ -201,22 +211,15 @@ def calls(root: Path, flows: dict[str, dict]) -> dict[str, list[dict[str, str]]]
         for job in flow["jobs"].values():
             uses = at(job, "uses")
             name = uses.removeprefix("./.github/workflows/") if isinstance(uses, str) else ""
-            if name == uses or name not in flows or not holds(at(job, "if"), {}):
+            if name == uses or name not in flows:
                 continue
             specs = at(flows[name], "on", "workflow_call", "inputs")
             defaults = {
                 key: str(at(spec, "default") or "")
                 for key, spec in (specs.items() if isinstance(specs, dict) else [])
             }
-            matrix = at(job, "strategy", "matrix")
-            if isinstance(matrix, str) and matrix in COMPUTED_MATRICES:
-                rows = COMPUTED_MATRICES[matrix](root)
-            elif isinstance(at(matrix, "include"), list):
-                rows = [row for row in at(matrix, "include") if isinstance(row, dict)]
-            else:
-                rows = [{}]
             given = at(job, "with")
-            for row in rows:
+            for row, _ in satisfying(at(job, "if"), contexts(root, job, {})):
                 found[name].append(defaults | {
                     key: substitute(str(text), {}, row)
                     for key, text in (given.items() if isinstance(given, dict) else [])
@@ -224,20 +227,53 @@ def calls(root: Path, flows: dict[str, dict]) -> dict[str, list[dict[str, str]]]
     return found
 
 
-def holds(condition: object, inputs: dict[str, str]) -> bool:
-    """Whether a job or step condition can hold for these inputs."""
+def matrix_rows(root: Path, job: object) -> list[dict] | None:
+    """A job's matrix rows: its include rows, the product of its axes or a
+    computed matrix; None for any other matrix."""
+    matrix = at(job, "strategy", "matrix")
+    if matrix is None:
+        return [{}]
+    if isinstance(matrix, str):
+        return COMPUTED_MATRICES[matrix](root) if matrix in COMPUTED_MATRICES else None
+    if not isinstance(matrix, dict):
+        return None
+    if list(matrix) == ["include"]:
+        rows = matrix["include"]
+        return rows if isinstance(rows, list) and all(isinstance(r, dict) for r in rows) else None
+    axes = []
+    for values in matrix.values():
+        if isinstance(values, str) and values[:1] == "[" and values[-1:] == "]":
+            values = [value.strip().strip("'\"") for value in values[1:-1].split(",")]
+        if not isinstance(values, list) or not all(isinstance(value, str) for value in values):
+            return None
+        axes.append(values)
+    return [dict(zip(matrix, combination)) for combination in itertools.product(*axes)]
+
+
+def contexts(root: Path, job: object, inputs: dict[str, str]) -> list[tuple[dict, dict]]:
+    """Each matrix row of a job, with the values a condition can test under it:
+    the inputs, the row and the runner.os of its runs-on label."""
+    rows = matrix_rows(root, job)
+    found = []
+    for row in [{}] if rows is None else rows:
+        names = {f"inputs.{key}": value for key, value in inputs.items()}
+        names |= {f"matrix.{key}": str(value) for key, value in row.items()}
+        label = at(job, "runs-on")
+        if isinstance(label, str):
+            system = SYSTEMS.get(substitute(label, inputs, row).split("-", 1)[0])
+            if system:
+                names["runner.os"] = system
+        found.append((row, names))
+    return found
+
+
+def satisfying(condition: object, options: list[tuple[dict, dict]]) -> list[tuple[dict, dict]]:
+    """The contexts under which a job or step condition can hold."""
     if not isinstance(condition, str):
-        return True
+        return options
     text = condition.strip()
     if text.startswith("${{") and text.endswith("}}"):
         text = text[3:-2].strip()
-    if text == "false":
-        return False
-    if "inputs." not in text:
-        return True
-    # A negation could turn an input test around.
-    if "!" in text:
-        return False
     terms, depth, start = [], 0, 0
     for index, char in enumerate(text):
         depth += (char == "(") - (char == ")")
@@ -245,14 +281,30 @@ def holds(condition: object, inputs: dict[str, str]) -> bool:
             terms.append(text[start:index].strip())
             start = index + 2
     terms.append(text[start:].strip())
+    tests: list[list[tuple[str, str, str]]] = []
+    # Other names, such as needs and github, are known only at run time, so a
+    # term on one holds on some run unless the condition contradicts it.
+    free: dict[str, tuple[set[str], set[str]]] = {}
     for term in terms:
-        if "inputs." not in term:
-            continue
-        if not DISJUNCTION.fullmatch(term) or (len(terms) > 1 and "||" in term and term[0] != "("):
-            return False
-        if not any(inputs.get(name) == value for name, value in INPUT_TEST.findall(term)):
-            return False
-    return True
+        match = COMPARISON.fullmatch(term)
+        if CHOICE.fullmatch(term):
+            tests.append([(name, "==", value) for name, value in CHOSEN.findall(term)])
+        elif match is None:
+            return []
+        elif match["name"].startswith(("inputs.", "matrix.")) or match["name"] == "runner.os":
+            tests.append([(match["name"], match["op"], match["value"])])
+        else:
+            equal, unequal = free.setdefault(match["name"], (set(), set()))
+            (equal if match["op"] == "==" else unequal).add(match["value"])
+    if any(len(equal) > 1 or equal & unequal for equal, unequal in free.values()):
+        return []
+    return [
+        (row, names) for row, names in options
+        if all(
+            any(name in names and (names[name] == value) == (op == "==") for name, op, value in test)
+            for test in tests
+        )
+    ]
 
 
 def steps(root: Path, flows: dict[str, dict]):
@@ -262,10 +314,9 @@ def steps(root: Path, flows: dict[str, dict]):
         on = flow.get("on") or ""
         for inputs in called[name] if "workflow_call" in on else [{}]:
             for job_id, job in flow["jobs"].items():
-                if not holds(at(job, "if"), inputs):
-                    continue
+                running = satisfying(at(job, "if"), contexts(root, job, inputs))
                 for step in at(job, "steps") or []:
-                    if not isinstance(at(step, "run"), str) or not holds(at(step, "if"), inputs):
+                    if not isinstance(at(step, "run"), str) or not satisfying(at(step, "if"), running):
                         continue
                     directory = (
                         at(step, "working-directory")
@@ -277,33 +328,76 @@ def steps(root: Path, flows: dict[str, dict]):
                     yield where, substitute(str(directory), inputs, {}), step["run"]
 
 
+def shell_words(line: str) -> list[tuple[str, str]]:
+    """Split a shell line into (text, kind) pairs: a word without its quotes
+    ("word", or "quoted" if any of it was quoted) or a run of unquoted operator
+    characters ("operator"). An unquoted # starting a word ends the line."""
+    found: list[tuple[str, str]] = []
+    word, quoted, quote, index = "", False, "", 0
+    while index < len(line):
+        char = line[index]
+        if quote:
+            if char == quote:
+                quote = ""
+            elif char == "\\" and quote == '"' and line[index + 1 : index + 2] in ('"', "\\", "$", "`"):
+                index += 1
+                word += line[index]
+            else:
+                word += char
+        elif char in "'\"":
+            quote, quoted = char, True
+        elif char == "\\":
+            index += 1
+            word, quoted = word + line[index : index + 1], True
+        elif char == "#" and not word and not quoted:
+            break
+        elif char.isspace() or char in OPERATORS:
+            if word or quoted:
+                found.append((word, "quoted" if quoted else "word"))
+                word, quoted = "", False
+            if char in OPERATORS and found and found[-1][1] == "operator" and line[index - 1] in OPERATORS:
+                found[-1] = (found[-1][0] + char, "operator")
+            elif char in OPERATORS:
+                found.append((char, "operator"))
+        else:
+            word += char
+        index += 1
+    if quote:
+        raise ValueError("an unclosed quote")
+    if word or quoted:
+        found.append((word, "quoted" if quoted else "word"))
+    return found
+
+
 def shell_commands(script: str, where: str) -> tuple[list[list[str]], bool]:
     """Split a step's script into commands, one line at a time, and say whether
-    it uses control flow, a function or a heredoc."""
+    it uses control flow, && or ||, a function or a heredoc."""
     commands = []
     control = False
     for line in script.replace("\\\n", " ").splitlines():
-        # shlex would also end a word at a "#" inside it, which the shell does not.
-        line = re.split(r"(?:^|\s)#", line, maxsplit=1)[0]
-        lexer = shlex.shlex(line, posix=True, punctuation_chars=True)
-        lexer.whitespace_split = True
-        lexer.commenters = ""
         try:
-            tokens = list(lexer)
+            words = shell_words(line)
         except ValueError:
             if RUNNER.search(line):
                 raise Unreadable(f"{where}: cannot split {line.strip()!r}") from None
             continue
         command: list[str] = []
-        for token in [*tokens, ";"]:
-            if token == "()" or token.startswith("<<") or (not command and token in CONTROL):
-                control = True
-            if token and set(token) <= set("();&|<>"):
+        previous = ""
+        for text, kind in [*words, (";", "operator")]:
+            if kind == "operator":
+                function = text == "()" or (previous == "(" and text == ")")
+                if function or text in ("&&", "||") or text.startswith("<<"):
+                    control = True
                 if command:
                     commands.append(command)
                 command = []
-            elif command or not (token in CONTROL | PREFIXES or re.match(r"[A-Za-z_]\w*=", token)):
-                command.append(token)
+            elif not command and kind == "word" and text in CONTROL:
+                control = True
+            elif command or not (
+                (kind == "word" and text in PREFIXES) or re.match(r"[A-Za-z_]\w*=", text)
+            ):
+                command.append(text)
+            previous = text if kind == "operator" else ""
         if command:
             commands.append(command)
     return commands, control
