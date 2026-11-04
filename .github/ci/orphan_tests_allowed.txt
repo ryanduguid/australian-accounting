@@ -1,0 +1,4 @@
+# Test files and crates that no workflow step runs, on purpose. One per line:
+# the path from the repository root, a space, then the reason.
+# check_orphan_tests.py fails on an entry without a reason. It also fails on
+# an entry naming no test file or crate, or one that a workflow step now runs.

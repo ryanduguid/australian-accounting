@@ -3,7 +3,8 @@ name: boundaries
 # Static boundary check for the whole repository: no engine imports the MCP
 # application or another engine, and no production module uses a relative
 # import that leaves its own package. Standard library only. The fixture
-# screen also fails on a checksum-valid identifier in any committed fixture.
+# screen also fails on a checksum-valid identifier in any committed fixture, and
+# the orphan check on a test file or crate that no workflow step runs.
 
 on:
   workflow_dispatch:
@@ -37,6 +38,7 @@ jobs:
           python-version: "3.15"
           allow-prereleases: true
       - run: python -m unittest -v tests/test_boundaries.py tests/test_release_checks.py
+      - run: python .github/ci/check_orphan_tests.py
 
   root-checks:
     env:
