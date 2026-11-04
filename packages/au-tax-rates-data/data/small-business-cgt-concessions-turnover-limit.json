@@ -4,10 +4,10 @@
   "value": 2000000,
   "unit": "AUD",
   "period": {
-    "as_at": "2026-10-15"
+    "effective_from": "2007-07-01"
   },
   "source_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/concessions",
   "retrieved_at": "2026-10-15T00:33:59+11:00",
   "quote": "If you have an aggregated turnover less than: $2 million, you can access the small business CGT concessions",
-  "notes": "Turnover must be less than this amount. The page prints $2 million, so the record has no pattern. Other eligibility conditions apply."
+  "notes": "Turnover must be less than this amount. The page prints $2 million, so the record has no pattern. Other eligibility conditions apply. The page states no start date. The $2 million test has applied to CGT events from the 2007-08 income year, first through the small business entity definition (Tax Laws Amendment (Small Business) Act 2007, No. 80, 2007, Sch 1 and Sch 4 items 3 and 31: https://www.legislation.gov.au/C2007A00080/asmade) and from 2016-17 through the CGT small business entity in ITAA 1997 s 152-10(1AA) (Treasury Laws Amendment (Enterprise Tax Plan) Act 2017, No. 41, 2017, Sch 3 items 5 and 22). Enacted change: from the income year that includes 1 July 2027, the $2 million threshold is disregarded for the small business 50% active asset reduction (Subdivision 152-C) only; the other concessions keep it (ss 152-10(1AA) note 2, 152-200 and 152-205(2), inserted by the Treasury Laws Amendment (Tax Reform No. 1) Act 2026, No. 49, 2026, Sch 1 items 77B, 78A, 79A and 82, assented 26 June 2026): https://www.legislation.gov.au/C2026A00049/asmade"
 }

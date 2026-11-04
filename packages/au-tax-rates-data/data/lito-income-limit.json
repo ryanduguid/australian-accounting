@@ -4,11 +4,11 @@
   "value": 66667,
   "unit": "AUD",
   "period": {
-    "as_at": "2026-10-15"
+    "effective_from": "2012-07-01"
   },
   "source_url": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset",
   "retrieved_at": "2026-10-15T00:31:17+11:00",
   "quote": "You may be eligible for the low income tax offset (LITO) if you earn up to $66,667.",
   "pattern": "\\(LITO\\) if you earn up to (\\$[\\d,]+)",
-  "notes": "The page names no income year, so the period is the retrieval date."
+  "notes": "The page names no income year. The $66,667 limit has applied since the 2012-13 income year. Former ITAA 1936 s 159N(1), as amended by the Clean Energy (Tax Laws Amendments) Act 2011 (No. 159, 2011) Sch 1 items 1 and 3, gave the offset for taxable income less than $66,667 from 2012-13; those items commenced on 1 July 2012: https://www.legislation.gov.au/C2011A00159/asmade. Part 2 of that Schedule, which would have raised the limit to $67,000 from 2015-16, was repealed before it commenced (Labor 2013-14 Budget Savings (Measures No. 1) Act 2015, No. 72, 2015, Sch 2 item 2). The table in ITAA 1997 s 61-115(1), substituted by the Treasury Laws Amendment (Tax Relief So Working Australians Keep More Of Their Money) Act 2019 (No. 52, 2019) Sch 1 item 3, keeps the limit at relevant income of $66,667. The Treasury Laws Amendment (A Tax Plan for the COVID-19 Economic Recovery) Act 2020 (No. 92, 2020) Sch 1 items 17, 19 and 24 repealed s 159N and applied that table from the 2020-21 income year: https://www.legislation.gov.au/C2020A00092/asmade"
 }

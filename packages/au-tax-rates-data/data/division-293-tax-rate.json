@@ -4,11 +4,11 @@
   "value": 15,
   "unit": "percent",
   "period": {
-    "as_at": "2026-10-15"
+    "effective_from": "2012-07-01"
   },
   "source_url": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/division-293-tax",
   "retrieved_at": "2026-10-15T00:30:51+11:00",
   "quote": "The rate of Division 293 tax is 15%.",
   "pattern": "The rate of Division 293 tax is ([\\d.]+%)",
-  "notes": "The page states no start date, so the period is the retrieval date."
+  "notes": "The page states no start date. The 15% rate is set by s 5 of the Superannuation (Sustaining the Superannuation Contribution Concession) Imposition Act 2013 (No. 87, 2013), and Division 293 applies from the 2012-13 income year (Income Tax (Transitional Provisions) Act 1997 s 293-10, inserted by the Tax and Superannuation Laws Amendment (Increased Concessional Contributions Cap and Other Measures) Act 2013, No. 82, 2013, Sch 3 item 38): https://www.legislation.gov.au/C2013A00087/asmade"
 }
