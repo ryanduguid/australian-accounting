@@ -17,6 +17,7 @@ import json
 import os
 import re
 from collections import deque
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Iterable, Iterator
 
@@ -564,15 +565,22 @@ def _scan(
     return [entry for _, _, entry in heapq.nsmallest(count, ranked(), key=lambda item: item[:2])]
 
 
+@dataclass(frozen=True)
+class _Rows:
+    """How a search reads one kind of row: what it matches, ranks and returns."""
+
+    fields: tuple[str, ...]
+    heading: tuple[str, ...]
+    body: tuple[str, ...]
+    build: Callable[[dict[str, Any]], dict[str, Any]]
+
+
 def _search(
     files: list[Path],
     query: list[str],
     scope_terms: list[str],
     scope: Callable[[dict[str, Any]], bool],
-    fields: tuple[str, ...],
-    heading: tuple[str, ...],
-    body: tuple[str, ...],
-    build: Callable[[dict[str, Any]], dict[str, Any]],
+    rows: _Rows,
     limit: int,
     offset: int,
     corpus: dict[str, Any],
@@ -592,15 +600,15 @@ def _search(
         term: _pattern(_opposite(term)) for term in words if term.split()[0] in MODALS
     }
     parts = _parts(words)
-    rank = _ranking(words, heading, body, query)
+    rank = _ranking(words, rows.heading, rows.body, query)
     holds_words = _matcher(words)
 
     def is_match(row: dict[str, Any]) -> bool:
-        return holds_words(_joined(row, fields))
+        return holds_words(_joined(row, rows.fields))
 
     def assess(row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
         if scope(row) and is_match(row):
-            return rank(row), build(row)
+            return rank(row), rows.build(row)
         return None
 
     end = offset + limit
@@ -617,7 +625,7 @@ def _search(
             files,
             parts,
             lambda held: sum(held) >= MIN_PARTIAL_WORDS,
-            _partial(patterns, opposites, is_match, heading, body, scope, build),
+            _partial(patterns, opposites, is_match, rows.heading, rows.body, scope, rows.build),
             end + 1 - len(full),
         )
     hits = (full + partial)[offset:end]
@@ -657,10 +665,9 @@ def search_sections(
         terms,
         act_terms,
         scope,
-        SECTION_FIELDS,
-        ("heading",),
-        ("text",),
-        lambda row: _section(row, SEARCH_TEXT_CHARS),
+        _Rows(
+            SECTION_FIELDS, ("heading",), ("text",), lambda row: _section(row, SEARCH_TEXT_CHARS)
+        ),
         limit,
         offset,
         _provenance(root),
@@ -895,10 +902,7 @@ def search_rates(
         terms,
         topic_terms,
         scope,
-        RATE_FIELDS,
-        ("heading", "topic"),
-        ("content",),
-        _rate,
+        _Rows(RATE_FIELDS, ("heading", "topic"), ("content",), _rate),
         limit,
         offset,
         _provenance(root),
