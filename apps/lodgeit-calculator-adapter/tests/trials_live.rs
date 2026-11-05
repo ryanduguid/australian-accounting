@@ -210,6 +210,24 @@ fn len(json: &Json) -> usize {
     items.len()
 }
 
+fn kind(json: &Json) -> &'static str {
+    match json {
+        Json::Null => "null",
+        Json::Bool(_) => "bool",
+        Json::Int(_) => "int",
+        Json::Float(_) | Json::Dec(_) => "number",
+        Json::Str(_) => "str",
+        Json::Array(_) => "list",
+        Json::Object(_) => "object",
+    }
+}
+
+fn shaped(json: &Json, fields: &[(&str, &str)]) {
+    for (path, want) in fields {
+        assert_eq!(kind(at(json, path)), *want, "{path}");
+    }
+}
+
 fn keys(json: &Json) -> Vec<String> {
     let Json::Object(pairs) = json else {
         panic!("an object")
@@ -349,6 +367,56 @@ fn the_attempt_is_on_disk_before_the_request_arrives() {
     );
 }
 
+/// `invoke` itself returns an error here: the first answer is a 503, and the
+/// back-off before the retry fails. `Client` takes its `sleep`, so no seam is
+/// needed. `run_to_file` turns any error from `run` into the record's `error`,
+/// as `an_error_part_way_through_keeps_what_was_sent` shows.
+#[test]
+fn an_error_from_invoke_leaves_the_saved_attempt() {
+    let stub = stub(503, &Json::obj([("error", Json::str("unavailable"))]));
+    let config = AdapterConfig {
+        max_attempts: BigInt::from(2),
+        ..to_stub(&stub)
+    }
+    .checked()
+    .expect("a loopback config");
+    let contract = contract::load("lodgeit-calculators", None).expect("the snapshot loads");
+    let mut net = Net;
+    let mut sleep = |_: f64| {
+        Err(Exc {
+            class: "OSError",
+            text: "no back-off".chars().map(u32::from).collect(),
+            notes: Vec::new(),
+        })
+    };
+    let mut client = Client {
+        config: &config,
+        contract: &contract,
+        dial: &mut net,
+        sleep: &mut sleep,
+    };
+    let mut result = live::Pass::default();
+    let mut saved = Vec::new();
+    let mut save = |pass: &live::Pass| {
+        saved.push(live::record(pass, "https://example.invalid", &Json::Null));
+        Ok(())
+    };
+    let error = live::run(&mut client, &mut || Ok(()), &mut result, &mut save)
+        .err()
+        .expect("invoke's error");
+    assert_eq!(error.class, "OSError");
+    assert_eq!(stub.requests(), 1);
+    assert_eq!(saved.len(), 1);
+    let record = pyjson::loads_standard(&saved[0]).expect("JSON");
+    assert_eq!(len(at(&record, "records")), 1);
+    assert_eq!(at(&record, "records/0/attempted"), &Json::Bool(true));
+    assert_eq!(
+        text(&record, "records/0/request/amalgamated_base"),
+        "100000.00"
+    );
+    assert_eq!(result.records.len(), 1);
+}
+
 #[test]
 fn a_lost_connection_keeps_the_request_and_stops() {
     let stub = start(200, None);
@@ -444,15 +512,61 @@ fn the_committed_record_keeps_its_schema_and_says_how_it_differs_from_the_writer
         .collect();
     assert_eq!(sent.len(), 12);
     for record in sent {
+        shaped(
+            record,
+            &[
+                ("http_status", "int"),
+                ("observed_at", "str"),
+                ("findings", "list"),
+                ("comparisons", "list"),
+                ("comparisons/0/trial", "str"),
+                ("comparisons/0/result", "object"),
+                ("comparisons/0/result/evaluation", "str"),
+                ("request", "object"),
+                ("provider_result", "object"),
+                ("provider_result/advisory", "object"),
+                ("provider_result/manifest", "object"),
+                ("provider_result/manifest/rate_table_uris", "list"),
+                ("provider_result/rate_uris_consumed", "list"),
+                ("provider_result/rounding_policy", "str"),
+            ],
+        );
         assert_eq!(at(record, "http_status"), &Json::Int(200.into()));
-        for key in [
-            "comparisons",
-            "findings",
-            "observed_at",
-            "provider_result",
-            "request",
-        ] {
-            assert!(record.get(key).is_some(), "{key}");
+        if at(record, "request").get("amalgamated_base").is_some() {
+            shaped(
+                record,
+                &[
+                    ("request/amalgamated_base", "str"),
+                    ("request/income_year_start_date", "str"),
+                    ("request/is_first_real_myr_year", "bool"),
+                    ("request/loan_origination_date", "str"),
+                    ("request/loan_term_years", "int"),
+                    ("request/repayments", "list"),
+                    ("provider_result/benchmark_rate", "str"),
+                    ("provider_result/deemed_dividend", "str"),
+                    ("provider_result/is_complying", "bool"),
+                    ("provider_result/remaining_term_years", "str"),
+                    ("provider_result/shortfall", "str"),
+                    ("provider_result/statutory_myr", "str"),
+                    ("provider_result/total_repayments", "str"),
+                ],
+            );
+        } else {
+            shaped(
+                record,
+                &[
+                    ("request/accessories", "str"),
+                    ("request/baseValue", "str"),
+                    ("request/daysAvailable", "int"),
+                    ("request/employeeContribution", "str"),
+                    ("request/fbtType", "str"),
+                    ("comparisons/1/result", "object"),
+                    ("provider_result/fbt_payable", "str"),
+                    ("provider_result/gross_up_factor", "str"),
+                    ("provider_result/grossed_up_taxable_value", "str"),
+                    ("provider_result/taxable_value", "str"),
+                ],
+            );
         }
     }
     let reasons = pyjson::dumps(at(&records[3], "comparisons"), Layout::Canonical);
