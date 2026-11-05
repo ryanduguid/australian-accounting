@@ -376,6 +376,28 @@ fn the_local_engine_reproduces_the_independently_derived_figure() {
 }
 
 #[test]
+fn every_remaining_term_follows_s_109e_6() {
+    // s 109E(6): the longest term, less the years between the end of the year
+    // the loan was made and the end of the year before the year being worked
+    // out. D7A-4 supplies a wrong term on purpose.
+    let year_of = |date: &str| -> i64 { date[..4].parse().unwrap() };
+    for case in trial::load_cases(None).expect("the packaged cases load") {
+        if case.case_id == "D7A-4-later-year-not-first" {
+            continue;
+        }
+        let month: i64 = case.loan_origination_date[5..7].parse().unwrap();
+        let loan_year_ends = year_of(&case.loan_origination_date) + i64::from(month >= 7);
+        let previous_year_ends = year_of(&case.income_year_start_date);
+        assert_eq!(
+            case.remaining_term_years,
+            case.loan_term_years - (previous_year_ends - loan_year_ends),
+            "{}",
+            case.case_id
+        );
+    }
+}
+
+#[test]
 fn a_nil_remaining_term_is_refused_by_the_local_engine_not_divided() {
     let stub = Stub::start();
     let case = case("D7A-8-nil-remaining-term-refused");
@@ -401,11 +423,11 @@ fn a_matching_provider_answer_is_a_match() {
     assert_eq!(comparison.evaluation, Evaluation::Match);
     assert!(equals(
         money(&comparison.local, "statutory_myr"),
-        "21874.92"
+        "19450.97"
     ));
     assert!(equals(
         money(&comparison.upstream, "statutory_myr"),
-        "21874.92"
+        "19450.97"
     ));
     // The stub saw one POST to the snapshot's route.
     let state = stub.state.lock().unwrap();
@@ -415,12 +437,27 @@ fn a_matching_provider_answer_is_a_match() {
 }
 
 #[test]
+fn the_deliberately_wrong_case_names_its_expectation_for_what_it_is() {
+    let stub = Stub::start();
+    let case = case("D7A-4-later-year-not-first");
+    let overrides = [("remaining_term_years", Json::Int(5.into()))];
+    stub.respond(&provider_body(&case, &overrides), 200);
+    let comparison =
+        with_client(&stub, |client| trial::evaluate(&case, Some(client))).expect("a comparison");
+    let reasons: Vec<String> = comparison.reasons.iter().map(|r| points_lossy(r)).collect();
+    let reason = "statutory_myr: local 29297.01 differs from the intentionally inconsistent \
+                  fixture expectation 29507.73";
+    assert!(reasons.iter().any(|r| r == reason), "{reasons:?}");
+    assert!(!reasons.iter().any(|r| r.contains("independently")));
+}
+
+#[test]
 fn a_cent_of_disagreement_is_a_numeric_difference_not_a_match() {
     let stub = Stub::start();
     let case = case("D7A-2-short-repayment");
     let overrides = [
-        ("statutory_myr", Json::str("21874.90")),
-        ("shortfall", Json::str("6874.90")),
+        ("statutory_myr", Json::str("19450.95")),
+        ("shortfall", Json::str("4450.95")),
     ];
     stub.respond(&provider_body(&case, &overrides), 200);
     let comparison =
@@ -467,11 +504,11 @@ fn the_rate_trap_case_reports_a_difference_and_names_the_rate() {
 
 #[test]
 fn the_rate_trap_case_reaches_the_outcome_its_fixture_records() {
-    // On 18 September 2026 the provider derived a remaining term of 4 where
-    // the case supplied 3, so the term convention outranks the rate.
+    // Under s 109E(6) the provider derives a remaining term of 5 where the
+    // case supplies 3, so the term convention outranks the rate.
     let stub = Stub::start();
     let case = case("D7A-4-later-year-not-first");
-    let overrides = [("remaining_term_years", Json::Int(4.into()))];
+    let overrides = [("remaining_term_years", Json::Int(5.into()))];
     stub.respond(&provider_body(&case, &overrides), 200);
     let comparison =
         with_client(&stub, |client| trial::evaluate(&case, Some(client))).expect("a comparison");
@@ -504,7 +541,7 @@ fn a_provider_outage_never_becomes_agreement() {
     assert_eq!(comparison.evaluation, Evaluation::UpstreamUnavailable);
     assert!(comparison.upstream.is_empty());
     assert!(
-        equals(money(&comparison.local, "statutory_myr"), "21874.92"),
+        equals(money(&comparison.local, "statutory_myr"), "19450.97"),
         "the local side still answered"
     );
 }
@@ -537,7 +574,7 @@ fn the_local_side_runs_without_a_client_and_says_so() {
     assert_eq!(comparison.evaluation, Evaluation::NotRun);
     assert!(equals(
         money(&comparison.local, "statutory_myr"),
-        "21874.92"
+        "19450.97"
     ));
     assert!(comparison.upstream.is_empty());
 }

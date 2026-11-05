@@ -46,7 +46,21 @@ cargo run --locked --release -- verify --evidence out/div7a-live.json
 
 `out/` is not tracked. An evidence file from a live probe is a local record of
 what the service said on a day, not a fixture: committing one would turn a
-point-in-time observation into an expectation.
+point-in-time observation into an expectation. The one committed record,
+[`live-trials-2026-11-06.json`](live-trials-2026-11-06.json), is published
+evidence for the differential below. No trial reads it, and a test holds only its
+shape, so it is no expectation.
+
+To run the Division 7A and FBT car cases once, with a record, use the example.
+It sends one request a case, waits 3 seconds between them, never retries and stops
+at the first answer that is not `COMPUTED`. It refuses an `--out` that already
+exists, before any request. The record is saved as it grows, with each attempt
+saved before it goes out, so an error or an interruption keeps what was sent:
+
+```bash
+cargo run --locked --example live_trials -- --enable-network \
+  --base-url "$BASE" --out out/live-trials.json
+```
 
 ## Reading the result
 
@@ -62,6 +76,12 @@ where their engine was right.
 Before reporting anything, check the case's own derivation. The expected figure
 in a case file was derived from the statute; if it disagrees with both engines,
 the case is what is wrong.
+
+## What a pass on 6 November 2026 found
+
+[differential-2026-11-06.md](differential-2026-11-06.md) is the record: the cases,
+the outcomes and each difference traced to statute. It corrects the
+Division 7A table below.
 
 ## What a probe on 18 September 2026 found
 
@@ -84,6 +104,13 @@ reason, which is what it is for. The snapshot now records both keys under
 `amalgamated_base` echoed back, `period_uri`, and `rate_uris_consumed` beside
 the manifest. The manifest's entries use `content_hash`, not the `sha256` key
 the publishing standard's example shows.
+
+**Correction, 6 November 2026.** The matches in the next paragraph and table were
+at a remaining term one year short of s 109E(6). The case file took 1 off the term
+in the year after the loan year, and LodgeiT's note states its remaining term was
+one year short until its correction of 28 September 2026. The 2 agreed with each
+other and not with the statute. The record of 6 November 2026 has the corrected figures. The paragraph
+stands as what was seen on the day.
 
 **The arithmetic agreed.** Seven fabricated loans ran through the trial. Six
 matched to the cent across three independent derivations: the figure worked out
