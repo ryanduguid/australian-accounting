@@ -693,7 +693,8 @@ Each match returns the full citation set above, the
 text truncated at 1200 characters with `total_chars` reporting the whole length,
 and `caveats` naming any truncation or superseded compilation.
 
-If the page has room after the matches and the query has 3 or more words,
+If the page has room after the matches and the query keeps at least 3 words, or 2
+where a modal's opposite form counts towards the threshold,
 `partial_hits` fills it with provisions whose heading and text hold at least 2 of them
 as whole words, most words first, then most of them in the heading, then the principal
 Acts. An Act name or section label counts for nothing here, so a title named with a
