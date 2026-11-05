@@ -1,6 +1,10 @@
 {
   "base_url": "https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app",
   "contract_snapshot": "lodgeit-calculators-2026-09-18",
+  "edits_after_the_run": [
+    "On 6 November 2026, after the run, the D7A-4 reason for statutory_myr was reworded. As generated it read 'differs from the independently derived 29507.73'. That figure is the fixture's intentionally inconsistent expectation, not a statutory figure; ITAA 1936 s 109E(6) gives 18967.77. Nothing else the run wrote was changed.",
+    "The run wrote this record with the writer's first revision, which had no `error` field. The field was added afterwards. No error ended this pass, so it would have been null. This field, edits_after_the_run, is not written by the run either."
+  ],
   "records": [
     {
       "comparisons": [
@@ -322,7 +326,7 @@
             "local_verdict": "MYR_MET",
             "reasons": [
               "The s 109N gate was supplied to this trial as an asserted fact, so the repayment arithmetic could be compared. It was not derived from the provider and it is not a conclusion about the loan.",
-              "statutory_myr: local 29297.01 differs from the independently derived 29507.73",
+              "statutory_myr: local 29297.01 differs from the intentionally inconsistent fixture expectation 29507.73",
               "statutory_myr: local 29297.01 against provider 18967.77",
               "remaining term: the provider used 5, the case supplied 3. A term difference is a convention difference, not an arithmetic one.",
               "the provider returned is_complying; it is its own label for its own arithmetic and is not carried into any local verdict"

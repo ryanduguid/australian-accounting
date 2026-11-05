@@ -48,12 +48,14 @@ cargo run --locked --release -- verify --evidence out/div7a-live.json
 what the service said on a day, not a fixture: committing one would turn a
 point-in-time observation into an expectation. The one committed record,
 [`live-trials-2026-11-06.json`](live-trials-2026-11-06.json), is published
-evidence for the differential below, and no test or trial reads it.
+evidence for the differential below. No trial reads it, and a test holds only its
+shape, so it is no expectation.
 
 To run the Division 7A and FBT car cases once, with a record, use the example.
 It sends one request a case, waits 3 seconds between them, never retries and stops
 at the first answer that is not `COMPUTED`. It refuses an `--out` that already
-exists, before any request, and an error part way through keeps what was sent:
+exists, before any request. The record is saved as it grows, with each attempt
+saved before it goes out, so an error or an interruption keeps what was sent:
 
 ```bash
 cargo run --locked --example live_trials -- --enable-network \
@@ -104,10 +106,10 @@ the manifest. The manifest's entries use `content_hash`, not the `sha256` key
 the publishing standard's example shows.
 
 **Correction, 6 November 2026.** The matches in the next paragraph and table were
-at a remaining term one year short of s 109E(6), on both sides. The case file took
-1 off the term in the year after the loan year, and the provider did the same until
-its correction of 28 September 2026. They agreed with each other and not with the
-statute. The record of 6 November 2026 has the corrected figures. The paragraph
+at a remaining term one year short of s 109E(6). The case file took 1 off the term
+in the year after the loan year, and LodgeiT's note states its remaining term was
+one year short until its correction of 28 September 2026. The 2 agreed with each
+other and not with the statute. The record of 6 November 2026 has the corrected figures. The paragraph
 stands as what was seen on the day.
 
 **The arithmetic agreed.** Seven fabricated loans ran through the trial. Six

@@ -2,7 +2,7 @@
   "schema": "lodgeit-div7a-trial-cases/1",
   "synthetic": true,
   "note": "Fabricated loans. Every expected figure was derived by evaluating the s 109E(6) formula directly at 40 significant digits and quantising once to cents, independently of both engines. The derivation is written out per case.",
-  "correction": "On 6 November 2026 the remaining terms were corrected to s 109E(6): the first MYR year of a 7-year loan has a remaining term of 7, not 6. The cases read on 18 September 2026 were one year short, as was the provider until 28 September 2026 by its own correction note, which is how they agreed.",
+  "correction": "On 6 November 2026 the remaining terms were corrected to s 109E(6): the first MYR year of a 7-year loan has a remaining term of 7, not 6. The cases read on 18 September 2026 were one year short. LodgeiT's correction note states its remaining term was one year short until 28 September 2026.",
   "formula": "MYR = (amount not repaid at the end of the previous income year x current year's benchmark interest rate) / (1 - (1 / (1 + rate)) ^ remaining term), ITAA 1936 s 109E(6). The remaining term is rounded up to the next whole number by the closing words of s 109E(6).",
   "rates_used": {
     "2025-26 (provider fy2026)": "0.0837",
@@ -90,6 +90,7 @@
     },
     {
       "case_id": "D7A-4-later-year-not-first",
+      "expected_is_inconsistent": true,
       "period_uri": "urn:sbrm:period:div7a:fy2026",
       "amalgamated_base": "75000.00",
       "loan_term_years": 7,

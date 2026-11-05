@@ -162,6 +162,24 @@ pub fn compare_values(
     upstream: &Money,
     tolerance: &Decimal,
 ) -> R<(Evaluation, Money, Vec<S>)> {
+    compare_against(
+        "the independently derived",
+        expected,
+        local,
+        upstream,
+        tolerance,
+    )
+}
+
+/// `compare_values`, with `label` saying in its reasons what the expected
+/// figures are.
+pub fn compare_against(
+    label: &str,
+    expected: &Money,
+    local: &Money,
+    upstream: &Money,
+    tolerance: &Decimal,
+) -> R<(Evaluation, Money, Vec<S>)> {
     let (expected, local, upstream) = (&dict(expected), &dict(local), &dict(upstream));
     let mut reasons: Vec<S> = Vec::new();
     let mut differences = Money::new();
@@ -173,7 +191,9 @@ pub fn compare_values(
                 name,
                 ": local ",
                 shown(have),
-                " differs from the independently derived ",
+                " differs from ",
+                label,
+                " ",
                 shown(want)
             )),
             Some(_) => {}

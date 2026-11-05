@@ -15,7 +15,7 @@ use div7a_loan_review::myr::{GateSummary, MyrFacts, minimum_yearly_repayment};
 use div7a_loan_review::raw::Raw;
 use div7a_loan_review::years::parse_year;
 
-use super::{Comparison, Evaluation, Money, compare_values, put};
+use super::{Comparison, Evaluation, Money, compare_against, put};
 use crate::client::{Client, Outcome, Status};
 use crate::decimal::{Decimal, Signal};
 use crate::p;
@@ -57,9 +57,20 @@ pub struct Case {
     /// date recorded in `docs/live-probe.md`.
     pub expect_evaluation: String,
     pub note: String,
+    /// `expected` is wrong on purpose, so it is no statutory figure.
+    pub expected_is_inconsistent: bool,
 }
 
 impl Case {
+    /// What `expected` is, for the reasons a comparison gives.
+    fn expected_label(&self) -> &'static str {
+        if self.expected_is_inconsistent {
+            "the intentionally inconsistent fixture expectation"
+        } else {
+            "the independently derived"
+        }
+    }
+
     /// The local income-year label, or `None` when the period is unmapped:
     /// one side covers a year the other does not, which the trial reports
     /// rather than guessing a mapping for.
@@ -137,6 +148,7 @@ pub fn load_cases(text_of_file: Option<&str>) -> R<Vec<Case>> {
 fn load_case(raw: &Json) -> R<Case> {
     let field = |name: &str| getitem(raw, name);
     Ok(Case {
+        expected_is_inconsistent: raw.get("expected_is_inconsistent") == Some(&Json::Bool(true)),
         case_id: text(field("case_id")?)?,
         period_uri: text(field("period_uri")?)?,
         amalgamated_base: decimal(field("amalgamated_base")?)?,
@@ -423,8 +435,13 @@ pub fn evaluate_outcome(
         &Json::Null
     };
     let upstream = extract_upstream(result)?;
-    let (mut evaluation, differences, mut extra) =
-        compare_values(&case.expected, local_values, &upstream, &super::cent())?;
+    let (mut evaluation, differences, mut extra) = compare_against(
+        case.expected_label(),
+        &case.expected,
+        local_values,
+        &upstream,
+        &super::cent(),
+    )?;
     let recorded = result
         .get("remaining_term_years")
         .filter(|v| **v != Json::Null);

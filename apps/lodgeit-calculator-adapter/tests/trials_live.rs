@@ -20,30 +20,54 @@ use lodgeit_calculator_adapter::pyops::Exc;
 use lodgeit_calculator_adapter::trials::{Evaluation, fbt, live};
 use num_bigint::BigInt;
 
+const COMMITTED: &str = include_str!("../docs/live-trials-2026-11-06.json");
+
+/// What the stub saw: how many requests, and, if a test named a file to watch,
+/// what that file held when the last request arrived.
+#[derive(Default)]
+struct Seen {
+    requests: Mutex<usize>,
+    watch: Mutex<Option<PathBuf>>,
+    on_disk: Mutex<Option<String>>,
+}
+
 struct Stub {
     base_url: String,
-    requests: Arc<Mutex<usize>>,
+    seen: Arc<Seen>,
+}
+
+impl Stub {
+    fn requests(&self) -> usize {
+        *self.seen.requests.lock().unwrap()
+    }
 }
 
 /// Answers every request with `status` and `body`, counting them.
 fn stub(status: u16, body: &Json) -> Stub {
+    start(
+        status,
+        Some(pyjson::dumps(body, Layout::Canonical).into_bytes()),
+    )
+}
+
+/// As `stub`, with raw bytes, or closing the connection unanswered for `None`.
+fn start(status: u16, reply: Option<Vec<u8>>) -> Stub {
     let listener = TcpListener::bind("127.0.0.1:0").expect("a loopback port");
     let port = listener.local_addr().expect("a bound address").port();
-    let requests = Arc::new(Mutex::new(0));
-    let shared = Arc::clone(&requests);
-    let reply = pyjson::dumps(body, Layout::Canonical).into_bytes();
+    let seen = Arc::new(Seen::default());
+    let shared = Arc::clone(&seen);
     thread::spawn(move || {
         for stream in listener.incoming().flatten() {
-            serve(stream, status, &reply, &shared);
+            serve(stream, status, reply.as_deref(), &shared);
         }
     });
     Stub {
         base_url: format!("http://127.0.0.1:{port}"),
-        requests,
+        seen,
     }
 }
 
-fn serve(stream: TcpStream, status: u16, reply: &[u8], requests: &Mutex<usize>) {
+fn serve(stream: TcpStream, status: u16, reply: Option<&[u8]>, seen: &Seen) {
     let mut reader = BufReader::new(stream.try_clone().expect("a second handle"));
     let mut length = 0usize;
     loop {
@@ -65,7 +89,13 @@ fn serve(stream: TcpStream, status: u16, reply: &[u8], requests: &Mutex<usize>) 
     if reader.read_exact(&mut body).is_err() {
         return;
     }
-    *requests.lock().unwrap() += 1;
+    *seen.requests.lock().unwrap() += 1;
+    if let Some(path) = seen.watch.lock().unwrap().as_ref() {
+        *seen.on_disk.lock().unwrap() = fs::read_to_string(path).ok();
+    }
+    let Some(reply) = reply else {
+        return;
+    };
     let mut stream = stream;
     let head = format!(
         "HTTP/1.0 {status} Stub\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n",
@@ -132,7 +162,7 @@ fn pass(stub: &Stub) -> (live::Pass, usize) {
         pauses += 1;
         Ok(())
     };
-    live::run(&mut client, &mut pause, &mut result).expect("a pass");
+    live::run(&mut client, &mut pause, &mut result, &mut |_| Ok(())).expect("a pass");
     (result, pauses)
 }
 
@@ -156,13 +186,49 @@ fn written(path: &PathBuf) -> Json {
     pyjson::loads_standard(&fs::read_to_string(path).expect("a record")).expect("JSON")
 }
 
+/// `records/0/request`, through objects and lists.
+fn at<'a>(json: &'a Json, path: &str) -> &'a Json {
+    path.split('/')
+        .fold(json, |node, step| match (node, step.parse::<usize>()) {
+            (Json::Array(items), Ok(index)) => &items[index],
+            _ => node
+                .get(step)
+                .unwrap_or_else(|| panic!("{path}: no {step}")),
+        })
+}
+
+fn text<'a>(json: &'a Json, path: &str) -> &'a str {
+    at(json, path)
+        .as_str()
+        .unwrap_or_else(|| panic!("{path} is not a string"))
+}
+
+fn len(json: &Json) -> usize {
+    let Json::Array(items) = json else {
+        panic!("a list")
+    };
+    items.len()
+}
+
+fn keys(json: &Json) -> Vec<String> {
+    let Json::Object(pairs) = json else {
+        panic!("an object")
+    };
+    let mut keys: Vec<String> = pairs
+        .iter()
+        .map(|(key, _)| key.as_str().expect("a key").to_owned())
+        .collect();
+    keys.sort();
+    keys
+}
+
 #[test]
 fn a_clean_pass_sends_each_sendable_case_once_and_pauses_after_each() {
     let stub = stub(200, &answer());
     let (result, pauses) = pass(&stub);
     assert_eq!(result.stopped, None);
     // 7 Division 7A and 5 FBT car requests; D7A-8 and D7A-9 are never sent.
-    assert_eq!(*stub.requests.lock().unwrap(), 12);
+    assert_eq!(stub.requests(), 12);
     assert_eq!(pauses, 12);
     assert_eq!(result.records.len(), 14);
 }
@@ -171,16 +237,31 @@ fn a_clean_pass_sends_each_sendable_case_once_and_pauses_after_each() {
 fn the_record_of_a_pass_is_written_with_its_money_as_exact_digits() {
     let stub = stub(200, &answer());
     let (result, _) = pass(&stub);
-    let text = live::record(result, "https://example.invalid", Json::str("snapshot"));
+    let written = live::record(&result, "https://example.invalid", &Json::str("snapshot"));
     assert!(
-        text.contains("\"amalgamated_base\": \"100000.00\""),
-        "{text}"
+        written.contains("\"amalgamated_base\": \"100000.00\""),
+        "{written}"
     );
-    let parsed = pyjson::loads_standard(&text).expect("the record is JSON");
-    let Some(Json::Array(records)) = parsed.get("records") else {
-        panic!("a list of records")
-    };
-    assert_eq!(records.len(), 14);
+    let parsed = pyjson::loads_standard(&written).expect("the record is JSON");
+    assert_eq!(len(at(&parsed, "records")), 14);
+    let local = "comparisons/0/result/local";
+    assert_eq!(
+        text(&parsed, &format!("records/0/{local}/statutory_myr")),
+        "19450.97"
+    );
+    // Records 7 and 8 are the 2 unsent cases, so 9 is FBT-1.
+    assert_eq!(
+        text(&parsed, &format!("records/9/{local}/taxable_value")),
+        "8000.00"
+    );
+    assert_eq!(
+        text(&parsed, "records/9/comparisons/1/result/local/fbt_estimate"),
+        "7094.37"
+    );
+    assert_eq!(
+        text(&parsed, "records/9/provider_result/fbt_payable"),
+        "7094.37"
+    );
 }
 
 #[test]
@@ -188,7 +269,7 @@ fn the_first_answer_that_is_not_computed_stops_the_pass() {
     let stub = stub(503, &Json::obj([("error", Json::str("unavailable"))]));
     let (result, pauses) = pass(&stub);
     assert_eq!(result.stopped.as_deref(), Some("D7A-1-met-first-real-year"));
-    assert_eq!(*stub.requests.lock().unwrap(), 1);
+    assert_eq!(stub.requests(), 1);
     assert_eq!(pauses, 0);
     assert_eq!(result.records.len(), 1);
 }
@@ -199,7 +280,7 @@ fn a_refusal_stops_the_pass_too() {
     let stub = stub(400, &body);
     let (result, _) = pass(&stub);
     assert_eq!(result.stopped.as_deref(), Some("D7A-1-met-first-real-year"));
-    assert_eq!(*stub.requests.lock().unwrap(), 1);
+    assert_eq!(stub.requests(), 1);
 }
 
 #[test]
@@ -217,7 +298,7 @@ fn without_enable_network_nothing_is_sent_and_no_file_is_made() {
     // settings refuse the loopback stub before any request.
     assert_eq!(live::cli(&args(&["--enable-network"])), 1);
     assert!(out.exists());
-    assert_eq!(*stub.requests.lock().unwrap(), 0);
+    assert_eq!(stub.requests(), 0);
 }
 
 #[test]
@@ -230,11 +311,8 @@ fn the_real_path_makes_one_attempt_where_the_default_settings_would_retry() {
         stopped.expect("a pass").as_deref(),
         Some("D7A-1-met-first-real-year")
     );
-    assert_eq!(*stub.requests.lock().unwrap(), 1);
-    let Some(Json::Array(records)) = written(&out).get("records").cloned() else {
-        panic!("a list of records")
-    };
-    assert_eq!(records.len(), 1);
+    assert_eq!(stub.requests(), 1);
+    assert_eq!(len(at(&written(&out), "records")), 1);
 }
 
 #[test]
@@ -250,16 +328,141 @@ fn an_error_part_way_through_keeps_what_was_sent() {
     };
     let result = live::run_to_file(to_stub(&stub), &out, &mut pause);
     assert_eq!(result, Err("OSError: stub failure".to_string()));
-    assert_eq!(*stub.requests.lock().unwrap(), 1);
+    assert_eq!(stub.requests(), 1);
     let record = written(&out);
-    let Some(Json::Array(records)) = record.get("records").cloned() else {
-        panic!("a list of records")
-    };
-    assert_eq!(records.len(), 1);
+    assert_eq!(len(at(&record, "records")), 1);
+    assert_eq!(text(&record, "error"), "OSError: stub failure");
+}
+
+#[test]
+fn the_attempt_is_on_disk_before_the_request_arrives() {
+    let stub = start(200, None);
+    let out = record_path("attempt");
+    *stub.seen.watch.lock().unwrap() = Some(out.clone());
+    let _ = live::run_to_file(to_stub(&stub), &out, &mut || Ok(()));
+    let on_disk = stub.seen.on_disk.lock().unwrap().clone().expect("a copy");
+    let record = pyjson::loads_standard(&on_disk).expect("JSON");
+    assert_eq!(at(&record, "records/0/attempted"), &Json::Bool(true));
     assert_eq!(
-        record.get("error").cloned(),
-        Some(Json::str("OSError: stub failure"))
+        text(&record, "records/0/request/amalgamated_base"),
+        "100000.00"
     );
+}
+
+#[test]
+fn a_lost_connection_keeps_the_request_and_stops() {
+    let stub = start(200, None);
+    let out = record_path("lost");
+    let result = live::run_to_file(to_stub(&stub), &out, &mut || Ok(()));
+    assert_eq!(stub.requests(), 1);
+    let record = written(&out);
+    assert_eq!(len(at(&record, "records")), 1);
+    assert_eq!(
+        text(&record, "records/0/request/amalgamated_base"),
+        "100000.00"
+    );
+    assert_eq!(
+        result.expect("an outcome").as_deref(),
+        Some("D7A-1-met-first-real-year")
+    );
+    assert_eq!(text(&record, "stopped_at"), "D7A-1-met-first-real-year");
+}
+
+#[test]
+fn a_malformed_response_keeps_the_request_and_stops() {
+    for reply in [
+        b"not JSON".to_vec(),
+        br#"{"statutory_myr": "not a number"}"#.to_vec(),
+    ] {
+        let stub = start(200, Some(reply));
+        let out = record_path("malformed");
+        let result = live::run_to_file(to_stub(&stub), &out, &mut || Ok(()));
+        assert_eq!(stub.requests(), 1);
+        let record = written(&out);
+        assert_eq!(len(at(&record, "records")), 1);
+        assert_eq!(
+            text(&record, "records/0/request/amalgamated_base"),
+            "100000.00"
+        );
+        assert_eq!(
+            result.expect("an outcome").as_deref(),
+            Some("D7A-1-met-first-real-year")
+        );
+    }
+}
+
+#[test]
+fn each_completed_response_is_on_disk_at_the_next_pause() {
+    let stub = stub(200, &answer());
+    let out = record_path("incremental");
+    let mut counts = Vec::new();
+    let mut pause = || {
+        let record = written(&out);
+        counts.push(len(at(&record, "records")));
+        assert_eq!(text(&record, "records/0/comparisons/0/trial"), "div7a");
+        if counts.len() == 2 {
+            return Err(Exc {
+                class: "OSError",
+                text: "enough".chars().map(u32::from).collect(),
+                notes: Vec::new(),
+            });
+        }
+        Ok(())
+    };
+    assert!(live::run_to_file(to_stub(&stub), &out, &mut pause).is_err());
+    assert_eq!(counts, [1, 2]);
+}
+
+#[test]
+fn the_committed_record_keeps_its_schema_and_says_how_it_differs_from_the_writer() {
+    let committed = pyjson::loads_standard(COMMITTED).expect("the record is JSON");
+    let mut writer: Vec<String> = keys(
+        &pyjson::loads_standard(&live::record(
+            &live::Pass::default(),
+            "https://example.invalid",
+            &Json::Null,
+        ))
+        .expect("JSON"),
+    );
+    writer.retain(|key| key != "error");
+    writer.push("edits_after_the_run".to_owned());
+    writer.sort();
+    assert_eq!(keys(&committed), writer);
+
+    let edits = pyjson::dumps(at(&committed, "edits_after_the_run"), Layout::Canonical);
+    for named in ["independently derived", "`error`"] {
+        assert!(edits.contains(named), "{edits}");
+    }
+
+    let Json::Array(records) = at(&committed, "records") else {
+        panic!("a list")
+    };
+    assert_eq!(records.len(), 14);
+    let sent: Vec<&Json> = records
+        .iter()
+        .filter(|record| record.get("sent") == Some(&Json::Bool(true)))
+        .collect();
+    assert_eq!(sent.len(), 12);
+    for record in sent {
+        assert_eq!(at(record, "http_status"), &Json::Int(200.into()));
+        for key in [
+            "comparisons",
+            "findings",
+            "observed_at",
+            "provider_result",
+            "request",
+        ] {
+            assert!(record.get(key).is_some(), "{key}");
+        }
+    }
+    let reasons = pyjson::dumps(at(&records[3], "comparisons"), Layout::Canonical);
+    assert!(reasons.contains("D7A-4-later-year-not-first"));
+    assert!(
+        reasons
+            .contains("differs from the intentionally inconsistent fixture expectation 29507.73"),
+        "{reasons}"
+    );
+    assert!(!COMMITTED.contains("from the independently derived 29507.73\","));
 }
 
 #[test]
@@ -272,7 +475,7 @@ fn a_pass_that_could_not_keep_its_record_never_starts() {
         let result = live::run_to_file(to_stub(&stub), out, &mut || Ok(()));
         assert!(result.is_err(), "{}", out.display());
     }
-    assert_eq!(*stub.requests.lock().unwrap(), 0);
+    assert_eq!(stub.requests(), 0);
     assert_eq!(fs::read_to_string(&taken).unwrap(), "an earlier record");
 }
 

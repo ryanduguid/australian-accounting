@@ -6,7 +6,6 @@
 //! first answer that is not `COMPUTED`. Nothing here retries, and nothing
 //! calls it except `examples/live_trials.rs`, which a person runs by hand.
 use std::fs::File;
-use std::io::Write;
 use std::path::Path;
 use std::time::Duration;
 
@@ -18,7 +17,7 @@ use crate::config::AdapterConfig;
 use crate::contract;
 use crate::dial::{self, Net};
 use crate::pyjson::{self, Json, Layout};
-use crate::pyops::{R, json_str, pts};
+use crate::pyops::{Exc, R, json_str, pts};
 use crate::pyvalue::points_lossy;
 
 /// The gap between requests. The service runs at its operator's expense.
@@ -66,9 +65,39 @@ fn sent(comparisons: Vec<(&str, Comparison)>, outcome: &Outcome, body: Json) -> 
     ])
 }
 
-/// Run every case once, calling `pause` between requests. `pass` holds what
-/// was sent even if this returns an error.
-pub fn run(client: &mut Client<'_>, pause: &mut dyn FnMut() -> R<()>, pass: &mut Pass) -> R<()> {
+/// One request. The attempt is saved before it goes out and the answer before
+/// it is compared, so a failure at either point leaves what was sent. Returns
+/// whether the answer was computed.
+fn exchange(
+    pass: &mut Pass,
+    save: &mut dyn FnMut(&Pass) -> R<()>,
+    body: Json,
+    invoke: impl FnOnce(&Json) -> R<Outcome>,
+    compare: impl FnOnce(&Outcome) -> R<Vec<(&'static str, Comparison)>>,
+) -> R<bool> {
+    let at = pass.records.len();
+    pass.records.push(Json::obj([
+        ("attempted", Json::Bool(true)),
+        ("request", body.clone()),
+    ]));
+    save(pass)?;
+    let outcome = invoke(&body)?;
+    pass.records[at] = sent(Vec::new(), &outcome, body.clone());
+    save(pass)?;
+    let comparisons = compare(&outcome)?;
+    pass.records[at] = sent(comparisons, &outcome, body);
+    save(pass)?;
+    Ok(outcome.computed())
+}
+
+/// Run every case once, calling `pause` between requests and `save` as the
+/// record grows. `pass` holds what was sent even if this returns an error.
+pub fn run(
+    client: &mut Client<'_>,
+    pause: &mut dyn FnMut() -> R<()>,
+    pass: &mut Pass,
+    save: &mut dyn FnMut(&Pass) -> R<()>,
+) -> R<()> {
     for case in div7a::load_cases(None)? {
         let unsent = div7a::evaluate(&case, None)?;
         if unsent.evaluation != Evaluation::NotRun {
@@ -80,11 +109,18 @@ pub fn run(client: &mut Client<'_>, pause: &mut dyn FnMut() -> R<()>, pass: &mut
         }
         let (verdict, values, reasons) = div7a::run_local(&case)?;
         let body = div7a::build_request(&case);
-        let outcome = client.invoke(&pts(div7a::CALC_URI), &pts(&case.period_uri), &body)?;
-        let comparison = div7a::evaluate_outcome(&case, &verdict, &values, &reasons, &outcome)?;
-        pass.records
-            .push(sent(vec![("div7a", comparison)], &outcome, body));
-        if !outcome.computed() {
+        let computed = exchange(
+            pass,
+            save,
+            body,
+            |body| client.invoke(&pts(div7a::CALC_URI), &pts(&case.period_uri), body),
+            |outcome| {
+                let comparison =
+                    div7a::evaluate_outcome(&case, &verdict, &values, &reasons, outcome)?;
+                Ok(vec![("div7a", comparison)])
+            },
+        )?;
+        if !computed {
             pass.stopped = Some(case.case_id);
             return Ok(());
         }
@@ -92,19 +128,26 @@ pub fn run(client: &mut Client<'_>, pause: &mut dyn FnMut() -> R<()>, pass: &mut
     }
     for case in fbt::load_cases()? {
         let body = case.benefit.request()?;
-        let outcome = client.invoke(&pts(fbt::CALC_URI), &pts(&case.benefit.period_uri), &body)?;
-        let mut comparisons = vec![(
-            "fbt-gross-up",
-            fbt::evaluate_outcome(&case.benefit, &outcome)?,
-        )];
-        if outcome.computed() {
-            comparisons.insert(
-                0,
-                ("fbt-car-formula", fbt::compare_formula(&case, &outcome)?),
-            );
-        }
-        pass.records.push(sent(comparisons, &outcome, body));
-        if !outcome.computed() {
+        let computed = exchange(
+            pass,
+            save,
+            body,
+            |body| client.invoke(&pts(fbt::CALC_URI), &pts(&case.benefit.period_uri), body),
+            |outcome| {
+                let mut comparisons = vec![(
+                    "fbt-gross-up",
+                    fbt::evaluate_outcome(&case.benefit, outcome)?,
+                )];
+                if outcome.computed() {
+                    comparisons.insert(
+                        0,
+                        ("fbt-car-formula", fbt::compare_formula(&case, outcome)?),
+                    );
+                }
+                Ok(comparisons)
+            },
+        )?;
+        if !computed {
             pass.stopped = Some(case.benefit.case_id);
             return Ok(());
         }
@@ -114,18 +157,26 @@ pub fn run(client: &mut Client<'_>, pause: &mut dyn FnMut() -> R<()>, pass: &mut
 }
 
 /// The written record of a pass, with its money as exact digits.
-pub fn record(pass: Pass, base_url: &str, snapshot: Json) -> String {
+pub fn record(pass: &Pass, base_url: &str, snapshot: &Json) -> String {
     let stopped_at = pass.stopped.as_deref().map_or(Json::Null, Json::str);
     let error = pass.error.as_deref().map_or(Json::Null, Json::str);
     let record = Json::obj([
         ("base_url", Json::str(base_url)),
-        ("contract_snapshot", snapshot),
+        ("contract_snapshot", snapshot.clone()),
         ("synthetic_input", Json::Bool(true)),
         ("stopped_at", stopped_at),
         ("error", error),
-        ("records", Json::Array(pass.records)),
+        ("records", Json::Array(pass.records.clone())),
     ]);
     pyjson::dumps(&record, Layout::Indented) + "\n"
+}
+
+/// Rewrite the record through a temporary file, so an interrupted pass leaves
+/// the last complete copy.
+fn keep(pass: &Pass, base_url: &str, snapshot: &Json, out: &Path) -> std::io::Result<()> {
+    let partial = out.with_extension("partial");
+    std::fs::write(&partial, record(pass, base_url, snapshot))?;
+    std::fs::rename(&partial, out)
 }
 
 /// The real path's settings: enabled for this pass, with no retries.
@@ -138,17 +189,16 @@ pub fn pass_config(base_url: &str) -> AdapterConfig {
     }
 }
 
-/// One pass over the real network, its record in `out`, which must not yet
-/// exist: a pass that cannot keep its record never starts, and an error part
-/// way through keeps what came before it. Returns the case the pass stopped
-/// at, or an error's text.
+/// One pass over the real network, its record kept in `out` as it grows. `out`
+/// must not yet exist: a pass that cannot keep its record never starts. Returns
+/// the case the pass stopped at, or an error's text.
 pub fn run_to_file(
     config: AdapterConfig,
     out: &Path,
     pause: &mut dyn FnMut() -> R<()>,
 ) -> Result<Option<String>, String> {
     let shown = |error: std::io::Error| format!("{}: {error}", out.display());
-    let mut file = File::create_new(out).map_err(shown)?;
+    File::create_new(out).map_err(shown)?;
     let base_url = config.base_url.clone().unwrap_or_default();
     let mut pass = Pass::default();
     let mut snapshot = Json::Null;
@@ -164,14 +214,17 @@ pub fn run_to_file(
             dial: &mut net,
             sleep: &mut sleep,
         };
-        run(&mut client, pause, &mut pass)
+        let mut save = |pass: &Pass| {
+            keep(pass, &base_url, &contract.snapshot_id, out)
+                .map_err(|error| Exc::msg("OSError", &error.to_string()))
+        };
+        run(&mut client, pause, &mut pass, &mut save)
     })();
     pass.error = result
         .err()
         .map(|error| format!("{}: {}", error.class, points_lossy(&error.text)));
     let (stopped, error) = (pass.stopped.clone(), pass.error.clone());
-    file.write_all(record(pass, &base_url, snapshot).as_bytes())
-        .map_err(shown)?;
+    keep(&pass, &base_url, &snapshot, out).map_err(shown)?;
     error.map_or(Ok(stopped), Err)
 }
 

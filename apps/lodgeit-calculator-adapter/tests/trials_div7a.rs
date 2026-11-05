@@ -437,6 +437,21 @@ fn a_matching_provider_answer_is_a_match() {
 }
 
 #[test]
+fn the_deliberately_wrong_case_names_its_expectation_for_what_it_is() {
+    let stub = Stub::start();
+    let case = case("D7A-4-later-year-not-first");
+    let overrides = [("remaining_term_years", Json::Int(5.into()))];
+    stub.respond(&provider_body(&case, &overrides), 200);
+    let comparison =
+        with_client(&stub, |client| trial::evaluate(&case, Some(client))).expect("a comparison");
+    let reasons: Vec<String> = comparison.reasons.iter().map(|r| points_lossy(r)).collect();
+    let reason = "statutory_myr: local 29297.01 differs from the intentionally inconsistent \
+                  fixture expectation 29507.73";
+    assert!(reasons.iter().any(|r| r == reason), "{reasons:?}");
+    assert!(!reasons.iter().any(|r| r.contains("independently")));
+}
+
+#[test]
 fn a_cent_of_disagreement_is_a_numeric_difference_not_a_match() {
     let stub = Stub::start();
     let case = case("D7A-2-short-repayment");

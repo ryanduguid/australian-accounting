@@ -21,6 +21,11 @@ The pass ran twice. An earlier run at 18:07 UTC sent the same requests, but a bu
 in this repository's record writer lost its record after the last request, so
 nothing from it is used here. The bug is fixed and tested.
 
+The JSON is what the run wrote, with 1 reason on D7A-4 reworded afterwards, because
+it called that case's deliberately wrong figure 'independently derived'. It has no
+`error` field because the writer gained one later. Its `edits_after_the_run` field
+states both.
+
 A match says 2 implementations and a separate calculation agreed on a number. It
 does not say either implementation is right about the law, and it approves
 nothing. No practitioner has reviewed this record.
@@ -93,9 +98,14 @@ On 18 September 2026, 6 Division 7A cases matched, and they matched at the wrong
 remaining term. This repository's case file took 1 off the term in the year after
 the loan year, giving 6 for a 7-year loan. Section 109E(6) gives 7: the years
 between the end of the loan year and the end of the year before are 0. The figure
-in the case file was 21,874.92 and the statutory figure is 19,450.97. The provider's
-`llms.txt` says its own remaining term was one year short for every repayment year
-until its correction of 28 September 2026 (D57), which is why the 2 agreed.
+in the case file was 21,874.92 and the statutory figure is 19,450.97.
+
+LodgeiT's note states: 'CORRECTED 2026-09-28 (D57): before this date
+remaining_term_years was one year short for every MYR year'
+([`llms.txt`](https://lodgeit.org/llms.txt), read 6 November 2026). The contract
+snapshot records the route returning 21,874.92 for a fabricated loan on
+18 September 2026, which is consistent with that note. This run did not observe the
+provider's behaviour before 28 September.
 
 The case file is corrected, and a test now derives each remaining term from the
 dates. The local engine's formula was not affected: it takes the remaining term
