@@ -56,7 +56,7 @@ Missing facts stay unknown: a Payday Super row with a fund-receipt date but no m
 
 ## Try one contribution
 
-The Payday Super example below is synthetic, and accounting decisions stay with the reviewer.
+All examples are synthetic, and accounting decisions stay with the reviewer.
 
 **Input:** $120 super contribution for payday 6 August 2026, remitted 14 August, with no fund receipt evidence as at 20 August.
 
@@ -189,11 +189,12 @@ MCP server uses none of the Rust crates yet.
 
 ## Alternatives
 
-Australian Accounting calculates from figures you supply, and its research tools read only a local
-library you configure. As read on 5 November 2026, these projects cover nearby ground:
+Australian Accounting calculates from figures you supply, and its research tools read only folders
+you configure. As read on 5 November 2026, these projects cover nearby ground:
 
 - [william-laverty/ato-mcp](https://github.com/william-laverty/ato-mcp): hosted retrieval over ATO
-  documents with point-in-time queries, AGPL-3.0, with a proprietary corpus.
+  documents with point-in-time legislation queries. The repository is AGPL-3.0, and its README calls
+  the hosted platform and corpus proprietary.
 - [darrentmorgan/au-accounting](https://github.com/darrentmorgan/au-accounting): MIT-licensed
   Australian calculators with refusal codes in YAML.
 - [PolicyEngine/policyengine-au](https://github.com/PolicyEngine/policyengine-au): microsimulation
