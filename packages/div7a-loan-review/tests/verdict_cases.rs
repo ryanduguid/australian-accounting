@@ -50,12 +50,20 @@ fn every_edge_case_has_a_case_or_a_stated_reason() {
 fn every_case_reaches_its_stated_result() {
     let file = cases();
     let all = file["edge_cases"].as_array().unwrap();
+    let mut executed = 0;
     for case in all.iter().filter_map(|e| e["cases"].as_array()).flatten() {
+        executed += 1;
         let name = &case["name"];
         let result = run(case);
-        for (key, want) in case["expect"].as_object().unwrap() {
+        let expect = case["expect"].as_object().unwrap();
+        assert!(
+            !expect.is_empty(),
+            "{name}: expect must name at least one result"
+        );
+        for (key, want) in expect {
             if key == "caveats_mention" {
                 let needle = want.as_str().unwrap();
+                assert!(!needle.is_empty(), "{name}: caveats_mention is empty");
                 let caveats = result["caveats"].as_array().unwrap();
                 assert!(
                     caveats.iter().any(|c| c.as_str().unwrap().contains(needle)),
@@ -67,6 +75,7 @@ fn every_case_reaches_its_stated_result() {
             }
         }
     }
+    assert_eq!(executed, 27);
 }
 
 #[test]
