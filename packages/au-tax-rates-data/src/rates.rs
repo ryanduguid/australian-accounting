@@ -161,7 +161,7 @@ static JSON_NAME: LazyLock<Pattern> = LazyLock::new(|| {
 });
 static NUMBER: LazyLock<[(&str, Pattern); 4]> = LazyLock::new(|| {
     [
-        ("AUD", r"^\$?([\d,]+(?:\.\d+)?)$"),
+        ("AUD", r"^\$?([\d,]+(?:\.\d+)?)( million)?$"),
         ("percent", r"^([\d.]+)\s?%?$"),
         ("factor", r"^(\d+(?:\.\d+)?)$"),
         (
@@ -1350,6 +1350,9 @@ fn validate_record(record: &Json, page_text: Option<&[u32]>) -> R<Vec<S>> {
     if crate::pydatetime::datetime_fromisoformat(&str_points(record.at("retrieved_at"))).is_err() {
         problems.push(pts("retrieved_at is not an ISO timestamp"));
     }
+    if let Some(cited) = record.get("legislation") {
+        problems.extend(legislation_problems(cited));
+    }
     let quote_len = str_points(record.at("quote")).len();
     if !(1..=400).contains(&quote_len) {
         problems.push(pts("quote must be 1 to 400 characters"));
@@ -1358,6 +1361,57 @@ fn validate_record(record: &Json, page_text: Option<&[u32]>) -> R<Vec<S>> {
         problems.extend(page_problems(record, text)?);
     }
     Ok(problems)
+}
+
+/// The optional `legislation` list: each entry names a provision as the
+/// legislation corpus keys it, with the application provision where the notes
+/// give one. The root tests hold each pair to `legislation-provisions.json`.
+fn legislation_problems(cited: &Json) -> Vec<S> {
+    let items = match cited {
+        Json::Array(items) if !items.is_empty() => items,
+        _ => return vec![pts("legislation must be a non-empty list")],
+    };
+    let text = |item: &Json, key: &str| {
+        item.get(key)
+            .and_then(Json::as_str)
+            .filter(|value| !value.trim().is_empty())
+            .map(str::to_string)
+    };
+    let mut problems = Vec::new();
+    for item in items {
+        let Json::Object(fields) = item else {
+            problems.push(pts("legislation entries must be objects"));
+            continue;
+        };
+        let known = fields.iter().all(|(key, _)| {
+            key.as_str()
+                .is_some_and(|key| ["title_id", "provision", "application"].contains(&key))
+        });
+        if !known || text(item, "provision").is_none() {
+            problems.push(pts(
+                "a legislation entry needs title_id and provision, and may add application",
+            ));
+        }
+        if !text(item, "title_id").is_some_and(|id| is_title_id(&id)) {
+            problems.push(pts("title_id is not like C2004A05138"));
+        }
+        if item.get("application").is_some() && text(item, "application").is_none() {
+            problems.push(pts("application must be non-empty text"));
+        }
+    }
+    problems
+}
+
+/// A Federal Register title ID: a letter, the year, a letter and 5 digits.
+fn is_title_id(id: &str) -> bool {
+    let bytes = id.as_bytes();
+    bytes.len() == 11
+        && bytes[0].is_ascii_uppercase()
+        && bytes[5].is_ascii_uppercase()
+        && bytes[1..5]
+            .iter()
+            .chain(&bytes[6..])
+            .all(u8::is_ascii_digit)
 }
 
 /// `norm(value)`, where `re.sub` refuses anything but a str.
@@ -1485,11 +1539,14 @@ fn parse_text(unit: &Json, text: &[u32]) -> R<Found> {
         )));
     };
     let (start, end) = m.span(1).unwrap_or((0, 0));
-    let digits: S = text[start..end]
+    let mut digits: S = text[start..end]
         .iter()
         .copied()
         .filter(|&c| c != u32::from(','))
         .collect();
+    if m.span(2).is_some() {
+        digits.extend(pts("E6"));
+    }
     Decimal::parse_points(&digits)
         .map(Found::Number)
         .map_err(conversion)

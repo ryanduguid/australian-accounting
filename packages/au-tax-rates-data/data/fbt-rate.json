@@ -11,5 +11,12 @@
   "retrieved_at": "2026-10-15T00:31:57+11:00",
   "quote": "A fringe benefits tax (FBT) rate of 47% applies across the 31 March 2023 to 31 March 2027 FBT years.",
   "pattern": "fringe benefits tax \\(FBT\\) rate of ([\\d.]+%) applies",
+  "legislation": [
+    {
+      "title_id": "C2004A03281",
+      "provision": "6",
+      "application": "Fringe Benefits Tax Amendment (DisabilityCare Australia) Act 2013, No. 39, 2013, Sch 1 items 1 and 2"
+    }
+  ],
   "notes": "The page lists the FBT years ending 31 March 2023 to 31 March 2027, and its last year sets the end date. The 47% rate has applied since the year of tax starting 1 April 2017. Fringe Benefits Tax Act 1986 s 6 sets 47% for the year of tax beginning 1 April 2014 and later years (Fringe Benefits Tax Amendment (DisabilityCare Australia) Act 2013, No. 39, 2013, Sch 1 items 1 and 2, commenced 28 May 2013: https://www.legislation.gov.au/C2013A00039/asmade). Section 6A, inserted by the Fringe Benefits Tax Amendment (Temporary Budget Repair Levy) Act 2014 (No. 42, 2014) Sch 1 item 1 and commenced 25 June 2014, added 2 percentage points for the years of tax starting 1 April 2015 and 1 April 2016 only: https://www.legislation.gov.au/C2014A00042/asmade. Neither section has changed since; the compilation of 19 June 2018 is the latest. The tables the ATO's calculators read (TC2TAXRTE) also show 47% from 1 April 2017."
 }
