@@ -35,8 +35,9 @@ Each `source` cites the ATO page or section, and each `worked` shows the figure
 worked by hand. `tests/test_conformance_cases.py` works the `expect` figures again
 without the server: it counts business days, derives the remaining term and applies
 the s 109E(6) formula, and holds the ATO's published dates and rate, so changing a
-figure in `expect` fails the test. The test needs `worked` to exist; it does not
-read what the text says.
+figure in `expect`, or dropping one the working settles, fails the test. A Payday
+verdict is worked only from a whole receipt counted by the as-at date. The test
+needs `worked` to exist; it does not read what the text says.
 
 The 6 self-pinned cases pin what a reviewer would rely on, and most of all what the
 server declines to conclude. Each `source` says why the case stays self-pinned and

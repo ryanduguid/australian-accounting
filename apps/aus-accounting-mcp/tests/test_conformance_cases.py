@@ -105,6 +105,8 @@ def _problems(contract: dict, tools: set[str]) -> list[str]:
             problems.append(f"{name}: source must name where the expected values come from")
         if ("expect" in case) == ("expect_error_contains" in case):
             problems.append(f"{name}: needs exactly one of expect and expect_error_contains")
+        if "expect" in case and not case["expect"]:
+            problems.append(f"{name}: expect must name at least one result")
         if not all(pointer.startswith("/") for pointer in case.get("expect", {})):
             problems.append(f"{name}: every expect key must be a JSON Pointer")
         if case.get("basis") == "self-pinned" and KEPT_PINNED not in str(case.get("source")):
@@ -123,20 +125,24 @@ def _business_days_after(start: date, count: int) -> date:
 
 
 def _worked_payday(case: dict) -> dict[str, object]:
-    """Every figure a payday case may name, from the statute's count and its facts."""
+    """The figures a payday case's facts settle: a verdict needs a whole receipt by as_at."""
     facts = case["arguments"]
     start = date.fromisoformat(facts.get("next_standard_qe_day", facts["qe_day"]))
     due = _business_days_after(start, 20 if facts.get("first_to_fund") else 7)
-    received = date.fromisoformat(facts["received"]) if "received" in facts else None
-    last = received or date.fromisoformat(facts["as_at"])
-    worked: dict[str, object] = {
-        "/result/due": due.isoformat(),
-        "/result/days_late": max((last - due).days, 0),
-    }
-    if received is None:
-        worked |= {"/result/verdict": "UNPAID", "/result/final_shortfall": facts["sg_amount"]}
-    else:
-        worked["/result/verdict"] = "ON_TIME" if received <= due else "LATE"
+    as_at = date.fromisoformat(facts["as_at"])
+    worked: dict[str, object] = {"/result/due": due.isoformat()}
+    if "received" not in facts:
+        if as_at > due:
+            worked |= {"/result/verdict": "UNPAID", "/result/days_late": (as_at - due).days,
+                       "/result/final_shortfall": facts["sg_amount"]}
+        return worked
+    received = date.fromisoformat(facts["received"])
+    whole = Decimal(facts.get("matched_amount", "0")) >= Decimal(facts["sg_amount"])
+    if received <= as_at and whole:
+        if received <= due:
+            worked["/result/verdict"] = "ON_TIME"
+        else:
+            worked |= {"/result/verdict": "LATE", "/result/days_late": (received - due).days}
     return worked
 
 
@@ -203,6 +209,8 @@ def _authority_problems(case: dict) -> list[str]:
     if published is not None and worked["/result/due"] != published:
         problems.append(f"{name}: /result/due is worked as {worked['/result/due']!r}, "
                         f"not the ATO's {published!r}")
+    for pointer in sorted(worked.keys() - case["expect"].keys()):
+        problems.append(f"{name}: {pointer} is worked but not expected")
     for pointer, expected in case["expect"].items():
         if pointer not in worked:
             problems.append(f"{name}: {pointer} has no independent working")
@@ -292,6 +300,50 @@ def test_a_term_changed_with_its_figure_is_rejected() -> None:
     assert any("s 109E(6) gives 7" in found for found in _authority_problems(case))
     case["arguments"]["remaining_term_years"] = "7"
     assert any("myr_required" in found for found in _authority_problems(case))
+
+
+@pytest.mark.parametrize(
+    "case_id,dropped",
+    [
+        ("div7a_rate_known_year", "/benchmark_rate"),
+        ("div7a_myr_seven_year_term", "/minimum_yearly_repayment/shortfall"),
+        ("payday_ato_example_1_second_payment", "/result/verdict"),
+        ("payday_ato_example_1_second_payment_a_day_late", "/result/days_late"),
+        ("payday_nothing_received", "/result/final_shortfall"),
+    ],
+)
+def test_a_worked_figure_must_be_expected(case_id, dropped) -> None:
+    case = _case(case_id)
+    del case["expect"][dropped]
+
+    assert any(f"{dropped} is worked but not expected" in found
+               for found in _authority_problems(case))
+
+
+def test_an_empty_expect_is_rejected() -> None:
+    case = _case("div7a_rate_known_year")
+    case["expect"] = {}
+
+    assert len(_authority_problems(case)) == 2
+    assert _problems({**CONTRACT, "cases": [case]}, TOOLS) == [
+        "div7a_rate_known_year: expect must name at least one result"
+    ]
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"matched_amount": "0.01"},
+        {"matched_amount": "119.99"},
+        {"received": "2026-08-11", "as_at": "2026-08-10"},
+    ],
+    ids=["a_cent", "a_cent_short", "after_as_at"],
+)
+def test_a_receipt_that_does_not_settle_the_line_has_no_verdict(change) -> None:
+    case = _case("payday_ato_example_1_second_payment")
+    case["arguments"] |= change
+
+    assert "/result/verdict has no independent working" in "\n".join(_authority_problems(case))
 
 
 def test_an_authority_case_needs_a_citation_and_a_working() -> None:
