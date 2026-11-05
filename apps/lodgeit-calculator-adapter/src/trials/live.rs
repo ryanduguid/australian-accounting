@@ -98,6 +98,19 @@ pub fn run(
     pass: &mut Pass,
     save: &mut dyn FnMut(&Pass) -> R<()>,
 ) -> R<()> {
+    run_div7a(client, pause, pass, save)?;
+    if pass.stopped.is_none() {
+        run_fbt(client, pause, pass, save)?;
+    }
+    Ok(())
+}
+
+fn run_div7a(
+    client: &mut Client<'_>,
+    pause: &mut dyn FnMut() -> R<()>,
+    pass: &mut Pass,
+    save: &mut dyn FnMut(&Pass) -> R<()>,
+) -> R<()> {
     for case in div7a::load_cases(None)? {
         let unsent = div7a::evaluate(&case, None)?;
         if unsent.evaluation != Evaluation::NotRun {
@@ -126,6 +139,15 @@ pub fn run(
         }
         pause()?;
     }
+    Ok(())
+}
+
+fn run_fbt(
+    client: &mut Client<'_>,
+    pause: &mut dyn FnMut() -> R<()>,
+    pass: &mut Pass,
+    save: &mut dyn FnMut(&Pass) -> R<()>,
+) -> R<()> {
     for case in fbt::load_cases()? {
         let body = case.benefit.request()?;
         let computed = exchange(

@@ -171,18 +171,9 @@ pub fn compare_values(
     )
 }
 
-/// `compare_values`, with `label` saying in its reasons what the expected
-/// figures are.
-pub fn compare_against(
-    label: &str,
-    expected: &Money,
-    local: &Money,
-    upstream: &Money,
-    tolerance: &Decimal,
-) -> R<(Evaluation, Money, Vec<S>)> {
-    let (expected, local, upstream) = (&dict(expected), &dict(local), &dict(upstream));
+/// How each expected figure stands against the local and provider figures.
+fn expected_reasons(label: &str, expected: &Money, local: &Money, upstream: &Money) -> R<Vec<S>> {
     let mut reasons: Vec<S> = Vec::new();
-    let mut differences = Money::new();
     for name in keys(expected) {
         let want = get(expected, name).expect("a key of expected");
         match get(local, name) {
@@ -202,9 +193,14 @@ pub fn compare_against(
             reasons.push(p!(name, ": the provider returned no figure"));
         }
     }
-    // A field one side produced and the other did not is a coverage
-    // difference and is named, whether or not the case expected it. Leaving
-    // it out let a trial report MATCH on a field nobody compared.
+    Ok(reasons)
+}
+
+/// A field one side produced and the other did not is a coverage difference
+/// and is named, whether or not the case expected it. Leaving it out let a
+/// trial report MATCH on a field nobody compared.
+fn coverage_reasons(local: &Money, upstream: &Money) -> Vec<S> {
+    let mut reasons: Vec<S> = Vec::new();
     for name in keys(local) {
         if get(upstream, name).is_none() {
             reasons.push(p!(
@@ -221,16 +217,19 @@ pub fn compare_against(
             ));
         }
     }
-    let shared: Vec<&S> = keys(local)
-        .into_iter()
-        .filter(|name| get(upstream, name).is_some())
-        .collect();
-    if shared.is_empty() {
-        reasons.push(pts(
-            "no field is present on both sides, so nothing was compared",
-        ));
-        return Ok((Evaluation::ScopeMismatch, differences, reasons));
-    }
+    reasons
+}
+
+/// The figures in `shared` that differ by more than `tolerance`, each with a
+/// reason.
+fn shared_differences(
+    shared: &[&S],
+    local: &Money,
+    upstream: &Money,
+    tolerance: &Decimal,
+    reasons: &mut Vec<S>,
+) -> R<Money> {
+    let mut differences = Money::new();
     for name in shared {
         let (mine, theirs) = (get(local, name).unwrap(), get(upstream, name).unwrap());
         let difference = mine.sub(theirs).map_err(decimal_signal)?;
@@ -249,6 +248,32 @@ pub fn compare_against(
             ));
         }
     }
+    Ok(differences)
+}
+
+/// `compare_values`, with `label` saying in its reasons what the expected
+/// figures are.
+pub fn compare_against(
+    label: &str,
+    expected: &Money,
+    local: &Money,
+    upstream: &Money,
+    tolerance: &Decimal,
+) -> R<(Evaluation, Money, Vec<S>)> {
+    let (expected, local, upstream) = (&dict(expected), &dict(local), &dict(upstream));
+    let mut reasons = expected_reasons(label, expected, local, upstream)?;
+    reasons.extend(coverage_reasons(local, upstream));
+    let shared: Vec<&S> = keys(local)
+        .into_iter()
+        .filter(|name| get(upstream, name).is_some())
+        .collect();
+    if shared.is_empty() {
+        reasons.push(pts(
+            "no field is present on both sides, so nothing was compared",
+        ));
+        return Ok((Evaluation::ScopeMismatch, Money::new(), reasons));
+    }
+    let differences = shared_differences(&shared, local, upstream, tolerance, &mut reasons)?;
     if !differences.is_empty() {
         return Ok((Evaluation::NumericDifference, differences, reasons));
     }

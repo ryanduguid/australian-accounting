@@ -14,6 +14,8 @@ use std::process::ExitCode;
 use lodgeit_calculator_adapter::trials::live;
 
 fn main() -> ExitCode {
+    // Discard the executable name; `live::cli` sends nothing without `--enable-network`.
+    // nosemgrep: rust.lang.security.args.args
     let args: Vec<String> = std::env::args().skip(1).collect();
     ExitCode::from(live::cli(&args))
 }
