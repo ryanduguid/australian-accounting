@@ -27,7 +27,10 @@ fn every_edge_case_has_a_case_or_a_stated_reason() {
     let file = cases();
     assert_eq!(file["synthetic"], true);
     let edge_cases = file["edge_cases"].as_array().unwrap();
-    let ids: Vec<&str> = edge_cases.iter().filter_map(|e| e["id"].as_str()).collect();
+    let ids: Vec<&str> = edge_cases
+        .iter()
+        .map(|e| e["id"].as_str().expect("an edge case id is a string"))
+        .collect();
     assert_eq!(
         ids,
         [
