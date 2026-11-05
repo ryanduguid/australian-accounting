@@ -153,7 +153,7 @@ fn the_lower_of_the_two_methods_is_the_taxable_value() {
 fn operating_cost_matches_the_fbt_return_2026_example() {
     // Item 23B example 7: $10,000 total operating costs at 30% private use.
     let a = amounts(operating(json!({
-        "running_costs": "10000.00", "depreciated_value": "0.00", "business_use": "0.7", "effective_life_years": "0",
+        "running_costs": "10000.00", "depreciated_value": "0.00", "business_use": "0.7",
         "employee_contribution": "0.00",
     })));
     assert_eq!(a["operating_costs"], "10000.00");
@@ -210,7 +210,7 @@ fn deemed_depreciation_follows_the_cars_effective_life() {
 
 #[test]
 fn an_owned_car_needs_an_effective_life_and_a_leased_car_takes_none() {
-    let message = "effective_life_years must be a finite Decimal from 2 to 1000 years where depreciated_value is above 0, or 0 otherwise, as for a leased car.";
+    let message = "effective_life_years must be a finite Decimal from 2 to 1000 years, or 0 for a leased car or an owned car with no depreciated value left.";
     // 0.25, the old rate in the new field, would deem 240000.00 on 30000.00.
     for life in ["0", "0.009", "0.25", "1", "1.99", "1001", "-1", "NaN"] {
         assert_eq!(
@@ -219,22 +219,40 @@ fn an_owned_car_needs_an_effective_life_and_a_leased_car_takes_none() {
             "{life}"
         );
     }
-    for life in ["8", "2", "0.01"] {
-        assert_eq!(
-            operating(json!({
-                "lease_charges": "9000.00", "depreciated_value": "0.00",
-                "effective_life_years": life,
-            })),
-            Err(message.to_string()),
-            "{life}"
-        );
+    let leased = |life: &str| {
+        operating(json!({
+            "lease_charges": "9000.00", "depreciated_value": "0.00",
+            "effective_life_years": life,
+        }))
+    };
+    for life in ["0.01", "1", "1.99", "1001", "NaN"] {
+        assert_eq!(leased(life), Err(message.to_string()), "{life}");
     }
-    let result = operating(json!({
-        "lease_charges": "9000.00", "depreciated_value": "0.00", "effective_life_years": "0",
-    }))
-    .unwrap();
-    assert_eq!(result["amounts"]["deemed_depreciation"], "0.00");
-    assert_eq!(result["rates"]["depreciation_rate"], "0");
+    for life in ["0", "2", "8"] {
+        let result = leased(life).unwrap();
+        assert_eq!(result["amounts"]["deemed_depreciation"], "0.00");
+        assert_eq!(result["rates"]["depreciation_rate"], "0");
+    }
+}
+
+#[test]
+fn a_two_year_life_reaches_nil_and_the_car_runs_the_next_year_at_that_life() {
+    let year = |value: &str, life: &str| {
+        operating(json!({
+            "running_costs": "1000.00", "depreciated_value": value,
+            "effective_life_years": life, "business_use": "0", "employee_contribution": "0.00",
+            "statutory_formula_taxable_value": "99999.00",
+        }))
+    };
+    let first = year("40000.00", "2").unwrap();
+    assert_eq!(first["amounts"]["deemed_depreciation"], "40000.00");
+    // s 12: 40000.00 less 40000.00 leaves nil for the second year.
+    for life in ["2", "0"] {
+        let second = year("0.00", life).unwrap();
+        assert_eq!(second["amounts"]["deemed_depreciation"], "0.00");
+        assert_eq!(second["amounts"]["deemed_interest"], "0.00");
+        assert_eq!(second["amounts"]["operating_costs"], "1000.00");
+    }
 }
 
 #[test]
@@ -291,7 +309,7 @@ fn the_gross_value_is_rounded_to_cents_before_the_contribution() {
     // 10.01 x 0.5 = 5.005, rounded half up to 5.01; the $6 contribution then
     // splits into 5.01 applied and 0.99 excess, which add back to $6.
     let a = amounts(operating(json!({
-        "running_costs": "10.01", "depreciated_value": "0.00", "business_use": "0.5", "effective_life_years": "0",
+        "running_costs": "10.01", "depreciated_value": "0.00", "business_use": "0.5",
         "employee_contribution": "6.00",
     })));
     assert_eq!(a["gross_taxable_value"], "5.01");
@@ -302,7 +320,7 @@ fn the_gross_value_is_rounded_to_cents_before_the_contribution() {
 #[test]
 fn a_leased_car_uses_its_lease_charges() {
     let a = amounts(operating(json!({
-        "running_costs": "3000.00", "lease_charges": "9000.00", "depreciated_value": "0.00", "effective_life_years": "0",
+        "running_costs": "3000.00", "lease_charges": "9000.00", "depreciated_value": "0.00",
         "business_use": "0.5", "employee_contribution": "0.00",
     })));
     assert_eq!(a["deemed_depreciation"], "0.00");
@@ -456,7 +474,7 @@ fn the_reportable_value_is_after_the_recipients_payment() {
     check_reportable(&result, "0.00", "0.00");
     // Item 23B example 7 less a $500 payment, below the $8,500 statutory value.
     let result = operating(json!({
-        "running_costs": "10000.00", "depreciated_value": "0.00", "business_use": "0.7", "effective_life_years": "0",
+        "running_costs": "10000.00", "depreciated_value": "0.00", "business_use": "0.7",
         "employee_contribution": "500.00", "electric_car_exempt": true,
     }))
     .unwrap();

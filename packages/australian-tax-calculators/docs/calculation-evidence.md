@@ -163,6 +163,8 @@ effect falls under the determination then in effect, such as TR 2022/1. Table B 
 both gives 8 years for cars generally, so 25%, and 5 for rental cars and
 4 for taxis, so 40% and 50%. The worksheet refuses an owned car's life under 2
 years: s 11 has no cost cap, so a shorter life would deem more than the car's value.
+With no depreciated value, as for a leased car or an owned car at a life of 2 after
+its first full year, the life may be 0 or 2 to 1000, and deemed depreciation is nil.
 
 Rounding is a worksheet convention: only the gross taxable value is rounded half
 up to cents, before the recipient's payment. The payment is in cents, so this

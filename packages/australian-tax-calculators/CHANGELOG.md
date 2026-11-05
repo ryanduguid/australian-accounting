@@ -40,8 +40,8 @@ intentionally changed.
 - `fbt-car-operating-cost` takes a required `effective_life_years` and works out
   deemed depreciation at 200% over it (FBTAA s 11(1AA)). It had applied 25% to
   every owned car, which is right for an 8-year life and understates a taxi's
-  4-year life or a rental car's 5. An owned car's life under 2 is refused, and so
-  is any life but 0 without a depreciated value.
+  4-year life or a rental car's 5. A life under 2 is refused, except 0 for a leased
+  car or an owned car with no depreciated value left.
 - `fbt-car-statutory` and `fbt-car-operating-cost` value one car fringe benefit
   under FBTAA s 9 or s 10 for the FBT years ended 31 March 2026 and 2027; the
   operating cost result takes the lower statutory formula value under s 10(5).

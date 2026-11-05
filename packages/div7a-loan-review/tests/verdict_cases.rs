@@ -27,7 +27,14 @@ fn every_edge_case_has_a_case_or_a_stated_reason() {
     let file = cases();
     assert_eq!(file["synthetic"], true);
     let edge_cases = file["edge_cases"].as_array().unwrap();
-    assert_eq!(edge_cases.len(), 14);
+    let ids: Vec<&str> = edge_cases.iter().filter_map(|e| e["id"].as_str()).collect();
+    assert_eq!(
+        ids,
+        [
+            "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13",
+            "V14",
+        ]
+    );
     for edge in edge_cases {
         let has_case = edge["cases"].as_array().is_some_and(|c| !c.is_empty());
         let has_reason = edge["reason"].as_str().is_some_and(|r| !r.is_empty());

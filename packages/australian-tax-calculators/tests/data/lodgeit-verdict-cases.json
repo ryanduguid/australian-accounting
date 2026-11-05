@@ -157,7 +157,7 @@
       "id": "7",
       "edge_case": "A taxi's effective life is 4 years, so its deemed depreciation rate is not 25%.",
       "provisions": "FBTAA s 11(1AA); ITAA 1997 s 40-72(1); Table B of LI 2025/20 (F2025L01097) and TR 2022/1",
-      "defect": "A defect in this repository's engine. The worksheet applied 25% to every owned car. It now takes effective_life_years, a required input of at least 2 for an owned car, and applies 200% over it.",
+      "defect": "A defect in this repository's engine. The worksheet applied 25% to every owned car. It now takes effective_life_years, a required input of at least 2 for a car with a depreciated value, and applies 200% over it.",
       "cases": [
         {
           "name": "a taxi at 4 years",

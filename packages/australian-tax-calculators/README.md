@@ -251,7 +251,8 @@ accessories fitted after the earliest holding time, are never reduced. `fbt_car_
 holding period, lease charges for a leased car, and for an owned car (including
 one under hire purchase) deemed depreciation at 200% over `effective_life_years`
 (s 11(1AA): 25% for the 8-year life of cars generally, 50% for a taxi's 4 years,
-and a life under 2 is refused)
+a life under 2 refused, and 0 for a leased car or an owned car with no depreciated
+value left)
 and deemed interest at the year's benchmark rate (8.62% for 2026, 8.27% for 2027)
 on its s 12 depreciated value, apportioned to the days held, times the private
 use percentage, less the
