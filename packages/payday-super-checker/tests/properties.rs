@@ -6,12 +6,16 @@
 //! SplitMix64 replaces fast-check's generator.
 
 use payday_super_checker::api;
-use payday_super_checker::assess::{EXPOSED, VERDICTS};
+use payday_super_checker::assess::VERDICTS;
 use payday_super_checker::calendar::{BusinessCalendar, load_calendar};
 use payday_super_checker::decimal::Decimal;
 use payday_super_checker::py::Date;
 use payday_super_checker::sgc::{exposure_range, scenario, uplift_scenarios};
 use serde_json::{Value, json};
+
+// The verdicts that carry exposure figures, spelled here so the engine's list
+// cannot move them.
+const EXPOSED: [&str; 2] = ["LATE", "UNPAID"];
 
 const RUNS: usize = 100;
 
@@ -194,7 +198,13 @@ fn cents_at(value: &Value) -> i64 {
     let text = value
         .as_str()
         .unwrap_or_else(|| panic!("{value} is not a money string"));
-    text.replace('.', "").parse::<i64>().unwrap() * 10_i64.pow(2 - places(text))
+    let (whole, part) = text.split_once('.').unwrap_or((text, "00"));
+    let digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
+    assert!(
+        digits(whole) && digits(part) && part.len() <= 2,
+        "{text} is not a money string"
+    );
+    format!("{whole}{part:0<2}").parse().unwrap()
 }
 
 /// A money field that must be present, and may be null where nothing is owed.
@@ -205,9 +215,17 @@ fn optional_cents(result: &Value, key: &str) -> i64 {
     if value.is_null() { 0 } else { cents_at(value) }
 }
 
-fn places(text: &str) -> u32 {
-    text.split_once('.')
-        .map_or(0, |(_, cents)| cents.len() as u32)
+#[test]
+fn a_money_string_reads_to_the_cent() {
+    for (text, cents) in [("120.00", 12_000), ("0.5", 50), ("7", 700)] {
+        assert_eq!(cents_at(&json!(text)), cents, "{text}");
+    }
+}
+
+#[test]
+#[should_panic(expected = "1..2 is not a money string")]
+fn a_doubled_decimal_point_is_not_a_money_string() {
+    cents_at(&json!("1..2"));
 }
 
 fn figure(result: &Value, key: &str) -> i64 {
