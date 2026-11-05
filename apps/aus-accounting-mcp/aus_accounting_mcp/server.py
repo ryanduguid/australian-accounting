@@ -144,7 +144,7 @@ classification of the facts the operator supplied, not a determination.
   ON_TIME assumes the fund kept every receipt and carries verdict_qualification, as
   does an UNKNOWN listing ON_TIME in horizon_verdicts; retain it with either.
   Supply matched_amount with every received date, partial or full. Omitting
-  the amount leaves a timely receipt UNKNOWN in the pinned checker 0.1.8.
+  the amount leaves a timely receipt UNKNOWN in the pinned checker 0.2.3.
   A late receipt without an amount stays LATE without reducing the shortfall.
   Read aus-accounting://payday-coverage for bundled rate and calendar coverage.
   This reviews one contribution only. Related contributions can change the
