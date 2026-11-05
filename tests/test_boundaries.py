@@ -94,6 +94,13 @@ NETWORK_CRATES = frozenset({
 NETWORK_MODULES = frozenset({
     "aiohttp", "http", "httpx", "requests", "socket", "urllib", "urllib3",
 })
+# Every crate an engine or its fuzz and wasm crates may name directly. NETWORK_CRATES
+# cannot list every client, so a new dependency is approved here first. A change to
+# what one of these pulls in is what the Cargo.lock scan above reads.
+APPROVED_CRATES = frozenset({
+    "chrono", "libc", "libfuzzer-sys", "num-bigint", "num-integer", "num-traits",
+    "roxmltree", "rust_xlsxwriter", "serde_json", "sha2", "zip",
+})
 PATH_FILTER_KEY = re.compile(
     r"(?<![\w-])['\"]?(paths(?:-ignore)?)['\"]?\s*:"
 )
@@ -164,6 +171,11 @@ def dependency_names(table: dict) -> set[str]:
         else:
             names |= dependency_names(value)
     return names
+
+
+def unapproved_dependencies(manifest: str) -> set[str]:
+    """The crates a Cargo manifest names that are neither approved nor an engine here."""
+    return dependency_names(tomllib.loads(manifest)) - APPROVED_CRATES - set(RUST_ENGINES.values())
 
 
 def network_use(name: str, text: str) -> list[str]:
@@ -431,6 +443,19 @@ class BoundaryTests(unittest.TestCase):
                 with self.subTest(file=str(path.relative_to(ROOT))):
                     text = path.read_text(encoding="utf-8")
                     self.assertEqual(network_use(path.name, text), [])
+
+    def test_engine_crates_depend_only_on_approved_crates(self) -> None:
+        for component in RUST_ENGINES:
+            for path in rust_crate_files(ROOT / component):
+                if path.name == "Cargo.toml":
+                    with self.subTest(file=str(path.relative_to(ROOT))):
+                        text = path.read_text(encoding="utf-8")
+                        self.assertEqual(unapproved_dependencies(text), set())
+
+    def test_positive_control_for_an_unlisted_client(self) -> None:
+        manifest = '[dependencies]\nminreq = "2"\nsha2 = "0.11"\n'
+        self.assertEqual(network_use("Cargo.toml", manifest), [])
+        self.assertEqual(unapproved_dependencies(manifest), {"minreq"})
 
     def test_no_python_engine_imports_the_network(self) -> None:
         self.assertIn("packages/lodgment-calendar", PYTHON_ENGINES)
