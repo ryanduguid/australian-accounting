@@ -143,6 +143,7 @@ the server received, not against a value that has been through a float.
 | `src/cli.rs` | The command line |
 | `src/core.rs` | The Core client catalogue preview |
 | `src/trials/` | Comparison trials against the local engines |
+| `examples/live_trials.rs` | One manual pass over the Division 7A and FBT car cases, with a record |
 | `src/py*.rs` and the rest | The Python behaviour the port reproduces: JSON, text, paths, URLs, `argparse` |
 | `src/bin/vectors.rs` | The differential harness's runner, built only with the `differential` feature |
 | `contracts/` | The reviewed snapshots, with provenance |
@@ -174,7 +175,8 @@ complies, a benefit is reportable or that a reviewer should sign anything.
   wrong field keeps the right name. Both derived figures are then compared, the
   grossed-up amount and the FBT payable; a response carrying neither is a scope
   mismatch, not a match. Type 1 or type 2 is a required reviewed input, never
-  the provider's engine-side default.
+  the provider's engine-side default. A manual pass also compares the provider's
+  taxable value with the local `fbt-car-statutory` worksheet and a separate figure.
 - **Accounting depreciation** (`src/trials/depreciation.rs`): the provider's
   own movement has to close, or it is refused. It is deliberately not compared
   with the local Division 40 worksheet, which answers a different question.
@@ -214,8 +216,12 @@ meant to, the provider's own published pre-acquisition limitation was
 reproduced and refused, and the probe found that the live advisory block is
 shaped differently from the published standard. What it found, and the caveat
 that it is a point-in-time reading, are in that document. Fano was not probed
-and its live compatibility is unverified. The Rust port has not been run
-against the live service.
+and its live compatibility is unverified.
+
+The Rust port ran fabricated Division 7A and FBT car cases against the live
+service on 6 November 2026. [The record](docs/differential-2026-11-06.md) gives
+each case, outcome and difference, and corrects the 18 September Division 7A
+matches, which were at a remaining term one year short of s 109E(6).
 
 ## Core client catalogue preview
 

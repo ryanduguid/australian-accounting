@@ -192,6 +192,17 @@ it rounds its result half up to cents.
 records the method, the files compared and what the comparison does not
 establish.
 
+## Reviewer edge cases
+
+`tests/verdict_cases.rs` runs the edge cases from a practitioner's published
+review of another Division 7A calculator, as fabricated loans
+([`tests/data/lodgeit-verdict-cases.json`](tests/data/lodgeit-verdict-cases.json),
+attributed in [NOTICE](NOTICE)). Each has a case, a stated reason or both. The
+reasons mark what stays with the operator. In particular, the balance a year
+opens with is the operator's: repayments before the lodgment day for the loan
+year reduce the amalgamated amount (s 109E(3)), and a shortfall that gave rise
+to a dividend does not reduce the balance ([ATO ID 2013/36](https://www.ato.gov.au/law/view/document?docid=AID/AID201336/00001)).
+
 In the first year after the loan year, the calculator's opening balance can be
 lower than the balance at the end of the loan year. The ATO's guidance on
 [loans by private companies](https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/private-company-benefits-division-7a-dividends/in-detail/division-7a-loans)

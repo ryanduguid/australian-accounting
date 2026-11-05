@@ -53,3 +53,18 @@ which adapted them from The Exchequer Tally's port of
 accounting-review-pipeline/packages/elizabeth-anne-alexander and from
 llm-tax-guardrails tools/drdebits_build (Apache-2.0), Copyright 2026 Ryan
 Duguid.
+
+Cases in tests/data/lodgeit-verdict-cases.json are adapted from a reviewer
+verdict on LodgeiT's Division 7A minimum yearly repayment calculator:
+bounty-01-div7a-minimum-yearly-repayment, by Bhunesh Patel, CPA, dated
+13 July 2026, published by LodgeiT at
+https://lodgeit.org/bounties/registry/bounty-01-div7a-minimum-yearly-repayment/bhunesh-patel.yml
+(SHA-256 c223dbc59b53c98abc4cbba62e5afd26514e062ab86c97f56e5be26e0dbf42d7).
+
+The verdict is licensed under Creative Commons Attribution 4.0 International,
+https://creativecommons.org/licenses/by/4.0/, the default stated in the bounty's terms; neither
+the verdict nor its registry entry names another licence. Changes: edge cases
+paraphrased, split or merged, with new fabricated figures and this repository's
+findings added. The verdict reviewed LodgeiT's calculator, not this code, and
+neither the reviewer nor LodgeiT endorses this work. The licence's disclaimer
+of warranties applies.
