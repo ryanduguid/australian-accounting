@@ -86,6 +86,7 @@ from .outputs import (
     PaydayGroupReview,
     PaydayReview,
     RateSearch,
+    ReviewedRate,
     RulingExcerpt,
     RulingsSearch,
     ScopeRefusal,
@@ -100,6 +101,7 @@ from .resources import (
     payday_coverage,
     scope,
 )
+from .reviewed_rates import reviewed_rate
 from .rulings import read_ruling, search_rulings
 
 SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operator-supplied facts.
@@ -124,6 +126,9 @@ classification of the facts the operator supplied, not a determination.
   instructions, and a point-in-time copy, never a live lookup or a current figure.
   A read that returns next_start is incomplete; continue with it as start before
   quoting the whole provision.
+  Words like "what" and "the" are dropped from a corpus search. partial_hits hold
+  at least 2 of the words, in matched_words, and are never matches: they show shared
+  words, not an answer, so do not present one as an answer, and say what it lacks.
   Keep every citation, caveat and attribution a result carries. Absence of a row is
   not absence of a rule, and no definition found is not proof an expression is
   undefined; never present an ordinary meaning as a statutory one. Retrieval never
@@ -177,6 +182,10 @@ classification of the facts the operator supplied, not a determination.
 - get_data_freshness reports each bundled dataset's recorded periods, engine version
   and source dates, with UNKNOWN where none is recorded. It never establishes that
   data is current; retain its statement when presenting a rate or date.
+- get_reviewed_rate returns one bundled ATO record for a date, with its source page
+  and verbatim quote. The records cover 2025-26 and 2026-27 only. REFUSED carries no
+  figure: never answer with a nearby year, and use covering_ids or known_ids to choose
+  another record. A FOUND record is a point-in-time copy; retain its statement.
 - validate_abn and validate_acn run the check digit arithmetic ABR and ASIC publish.
   A valid check digit proves neither ABR nor GST registration: retain not_established
   and send the user to ABN Lookup. Never report a passing number as registered.
@@ -1062,16 +1071,45 @@ def get_data_freshness(
     """Report what the installed release records about each bundled dataset.
 
     For the ATO benchmarks, Division 7A rates, Payday Super GIC quarters, business-day
-    calendar and SG parameters, each worksheet's rates, the lodgment program and the
-    GST review rules: the effective periods recorded, the installed engine version,
-    source URLs and retrieval and review dates, with UNKNOWN where the engine records
-    none. With as_at, each dataset says whether that date falls inside a recorded
-    period. currency is always NOT_ESTABLISHED: a cached uvx release can be older than
-    the latest, and official figures can change after a source was checked. Retain the
-    statement. Pass tool to report only the datasets that tool reads. Reads no
-    network and predicts no next change.
+    calendar and SG parameters, each worksheet's rates, the lodgment program, the GST
+    review rules and the reviewed ATO records: the effective periods recorded, the
+    installed engine version, source URLs and retrieval and review dates, with UNKNOWN
+    where the engine records none. With as_at, each dataset says whether that date
+    falls inside a recorded period. currency is always NOT_ESTABLISHED: a cached uvx
+    release can be older than the latest, and official figures can change after a
+    source was checked. Retain the statement. Pass tool to report only the datasets
+    that tool reads. Reads no network and predicts no next change.
     """
     return cast(DataFreshness, data_freshness(as_at, tool))
+
+
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Look up a reviewed ATO rate for a date")
+def get_reviewed_rate(
+    record_id: Annotated[str, Field(min_length=1, max_length=100,
+        description="Record id, such as 'concessional-cap-2026-27' or 'gst-registration-"
+                    "threshold'. An unknown id is refused with every id in known_ids.")],
+    as_at: Annotated[str, Field(
+        max_length=10, pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+        json_schema_extra={"format": "date"},
+        description="The YYYY-MM-DD date the figure is needed for. Do not infer today.")],
+) -> ReviewedRate:
+    """Return one reviewed ATO rate or threshold for a date, with its source and quote.
+
+    Reads a bundled copy of reviewed records, each holding the figure, its unit and
+    period, the ATO page, when that page was captured and a verbatim quote containing
+    the figure, with no folder to configure. The records cover 2025-26 and 2026-27
+    only. status is FOUND only when as_at falls in those years and in the named
+    record's own period. Otherwise status is REFUSED, the reason says so and no figure
+    is returned: a date outside those years, even for an open-ended record; a date
+    outside the record's period, with covering_ids naming any record of the same
+    figure that holds that date; a record with no recorded period; or an unknown id.
+    Never answer a refusal with a nearby year. A record is a point-in-time copy, not a
+    live lookup, and takes no account of an entity's facts: retain source_url, quote,
+    notes and the statement, and confirm the figure at the source. Use
+    search_tax_rates for a configured legislation corpus and the reviewed engines for
+    a calculation. Reads no network.
+    """
+    return cast(ReviewedRate, reviewed_rate(record_id, as_at))
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Test an ABN check digit")
@@ -1158,8 +1196,8 @@ def read_accounting_library(
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Search the configured legislation corpus")
 def search_tax_legislation(
     query: Annotated[str, Field(min_length=1, max_length=200,
-        description="Words to find together in one provision, case-insensitive; "
-                    "no regular expressions.")],
+        description="Words to find together in one provision, or a plain question, "
+                    "case-insensitive; no regular expressions.")],
     act: Annotated[str | None, Field(max_length=200,
         description="Optional words the title's name must contain, such as "
                     "'income tax assessment 1997'.")] = None,
@@ -1180,6 +1218,11 @@ def search_tax_legislation(
     section, compilation number, compilation date, register page and licence
     attribution, so every quotation stays traceable. Read the whole provision with
     read_tax_legislation_section.
+    Stop words such as 'what' and 'the' are dropped and listed in dropped_words.
+    matches hold every remaining word. Room left on a page goes to partial_hits,
+    ranked below every match, which hold at least 2 of 3 or more words: each is
+    labelled partial with its matched_words and missing_words. A partial hit shows
+    shared words, not an answer, so never present one as a match.
     Superseded compilations are left out unless in_force_only is false; a
     provision whose currency the corpus did not record is kept either way.
     Rows are point-in-time copies, not a live lookup: check compilation dates
@@ -1256,7 +1299,8 @@ def define_tax_term(
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Search legislated rates and thresholds")
 def search_tax_rates(
     query: Annotated[str, Field(min_length=1, max_length=200,
-        description="Words to find together in one rate or threshold row, case-insensitive.")],
+        description="Words to find together in one rate or threshold row, or a plain "
+                    "question, case-insensitive.")],
     topic: Annotated[str | None, Field(max_length=100,
         description="Optional words the corpus topic must contain, such as 'superannuation' "
                     "or 'capital gains'.")] = None,
@@ -1279,6 +1323,9 @@ def search_tax_rates(
     that does. Each row carries the amounts and years exactly as the provision
     states them, with the Act, section, compilation number and register page that
     set them.
+    Stop words are dropped and listed in dropped_words. Room left on a page goes to
+    partial_hits, ranked below every match, which hold at least 2 of 3 or more words:
+    they show shared words, not an answer, so never present one as a match.
     year narrows to rows stating that year; rows that state no year are then
     left out, so drop the filter to see a rate the provision does not date.
     Rows from a superseded compilation are left out unless in_force_only is

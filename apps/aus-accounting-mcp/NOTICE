@@ -25,3 +25,14 @@ conditions.
 
 This product includes work by Ryan Duguid
 (https://github.com/ryanduguid/australian-accounting/tree/main/apps/aus-accounting-mcp).
+
+Third-party data notice
+
+The values, quotations and patterns in aus_accounting_mcp/rate_records/ are reproduced
+from Australian Taxation Office web pages under the ATO's copyright notice
+(https://www.ato.gov.au/about-ato/using-our-website/copyright-notice), which permits
+copying and adaptation provided nothing suggests the ATO or the Commonwealth endorses
+the user or its products. Each record names its source page and retrieval time.
+
+That material is not licensed under LICENSE. The Australian Taxation Office has not
+endorsed this software.

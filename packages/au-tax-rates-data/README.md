@@ -85,6 +85,10 @@ Where it differs:
 
 The instant asset write-off has 2 records. The first retains the source table's temporary $20,000 limit from 1 July 2023 and ends on 30 June 2026. The second, from the [ATO legislation update](https://www.ato.gov.au/about-ato/new-legislation/in-detail/businesses/20000-dollars-instant-asset-write-off), is the permanent limit from 1 July 2026 under the Treasury Laws Amendment (Tax Reform No. 2) Act 2026. For the full-cost deduction, each eligible depreciating asset must cost less than $20,000. Separate rules cover later additions to an asset's cost; other conditions and exclusions apply.
 
+## The copy in Aus Accounting MCP
+
+`apps/aus-accounting-mcp/aus_accounting_mcp/rate_records/` is a copy of `data/`, which the MCP server's `get_reviewed_rate` tool reads, because no published engine carries these records. After changing `data/`, copy it there too: `tests/test_rate_records_copy.py` at the repository root fails until the 2 folders hold the same records.
+
 ## Known gaps
 
 - The car cost limit record uses an ATO newsroom item; next year's figure may be published at a different URL.

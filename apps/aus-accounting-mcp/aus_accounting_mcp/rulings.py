@@ -530,6 +530,24 @@ def search_rulings(
     return page
 
 
+def census() -> dict[str, Any]:
+    """What the configured runs serve, for `aus-accounting-mcp doctor`."""
+    catalogue = _catalogue()
+    rows = 0
+    for run in catalogue.runs.values():
+        with run.rows_path.open(encoding="utf-8") as stream:
+            rows += sum(
+                catalogue.owner.get(_canonical(_string(json.loads(raw), "docid") or "")) == run.name
+                for raw in stream
+            )
+    return {
+        "runs": len(catalogue.runs),
+        "documents": len(catalogue.owner),
+        "withheld": len(catalogue.withheld),
+        "rows": rows,
+    }
+
+
 def _part(
     row: dict[str, Any], run: _Run, key: str, line: int, catalogue: _Catalogue, start: int
 ) -> tuple[dict[str, Any], int | None]:

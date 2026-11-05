@@ -1,0 +1,13 @@
+{
+  "id": "cents-per-km-2026-27",
+  "label": "Cents per kilometre rate for car expenses",
+  "value": 91,
+  "unit": "cents_per_km",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/work-related-deductions/cars-transport-and-travel/motor-vehicle-and-car-expenses/expenses-for-a-car-you-own-or-lease/cents-per-kilometre-method",
+  "retrieved_at": "2026-09-28T20:59:29+10:00",
+  "quote": "2026-27: use 91 cents per kilometre",
+  "pattern": "2026-27: use (\\d+ cents) per kilometre"
+}

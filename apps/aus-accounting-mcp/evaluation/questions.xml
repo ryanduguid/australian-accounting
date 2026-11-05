@@ -269,6 +269,12 @@
     <calls>[{"name": "get_data_freshness", "arguments": {"as_at": "2027-07-15", "tool": "get_lodgment_due_dates"}}]</calls>
     <tools><tool>get_data_freshness</tool></tools>
   </qa_pair>
+  <qa_pair id="reviewed-rate-outside-years">
+    <question>Using the server's reviewed ATO records, look up record concessional-cap-2026-27 for 15 March 2024. Return only the refusal code the server reports.</question>
+    <answer>OUTSIDE_COVERED_YEARS</answer>
+    <calls>[{"name": "get_reviewed_rate", "arguments": {"record_id": "concessional-cap-2026-27", "as_at": "2024-03-15"}}]</calls>
+    <tools><tool>get_reviewed_rate</tool></tools>
+  </qa_pair>
   <qa_pair id="abn-check-digit">
     <question>A fabricated supplier invoice quotes ABN 51 824 753 557. Does that number pass the ABN check digit test? Return only the result the server reports.</question>
     <answer>CHECK_DIGIT_INVALID</answer>

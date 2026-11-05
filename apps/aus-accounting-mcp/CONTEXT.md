@@ -27,6 +27,11 @@ does not lodge, approve, pay, or make compliance determinations.
   corpus of rulings, legislation and other source documents. This server is not
   one. Do not present it as one, and do not present a retrieved passage as a
   determination, as advice or as a confirmation of current law.
+- **Reviewed record**: one ATO rate or threshold in the copy of
+  `packages/au-tax-rates-data` this package bundles, with its source page and a
+  verbatim quote. `get_reviewed_rate` returns it for a date inside the income years
+  the records cover, and refuses any other date. Like a retrieved row, it is a
+  point-in-time copy, never a confirmation of current law.
 - **Operator-supplied fact**: an input supplied to a tool invocation. Preserve
   its stated meaning; do not infer missing facts or silently replace it.
 - **Structured result**: the machine-readable output of a tool. Reviewed-engine

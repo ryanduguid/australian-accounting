@@ -1,0 +1,32 @@
+{
+  "id": "foreign-resident-tax-rates-2025-26",
+  "label": "Foreign resident individual income tax rates",
+  "value": [
+    {
+      "from": 0,
+      "to": 135000,
+      "base_tax": 0,
+      "marginal_rate": 30
+    },
+    {
+      "from": 135001,
+      "to": 190000,
+      "base_tax": 40500,
+      "marginal_rate": 37
+    },
+    {
+      "from": 190001,
+      "to": null,
+      "base_tax": 60850,
+      "marginal_rate": 45
+    }
+  ],
+  "unit": "tax_scale",
+  "period": {
+    "income_year": "2025-26"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/tax-rates-foreign-residents",
+  "retrieved_at": "2026-10-15T00:34:46+11:00",
+  "quote": "Foreign resident tax rates 2025–26 Taxable income Tax on this income 0 – $135,000 30c for each $1 $135,001 – $190,000 $40,500 plus 37c for each $1 over $135,000 $190,001 and over $60,850 plus 45c for each $1 over $190,000",
+  "notes": "Foreign residents have no tax-free threshold and do not pay the Medicare levy. The page listed no 2026-27 table at retrieval."
+}

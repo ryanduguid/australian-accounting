@@ -34,6 +34,9 @@ The listing identifies the distribution; it does not prove a client's installed 
   registration dates and compare lodged BAS label figures with ledger lines per period.
 - **Lodgment and identifiers:** list ATO 2026-27 lodgment program due dates and test
   ABN and ACN check digits. A valid check digit proves neither ABR nor GST registration.
+- **Reviewed rates:** look up an ATO rate or threshold by record id and date, with its
+  source page and a verbatim quote. The records cover 2025-26 and 2026-27 only, and any
+  other date is refused.
 - **Cited research:** search your own Markdown library, or a local copy of federal tax
   legislation, with every result cited to its file and line, or its Act, section and
   compilation. Search a local ATO rulings corpus and read one cited ruling paragraph.
@@ -117,9 +120,10 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `get_lodgment_due_dates` | List ATO 2026-27 lodgment program due dates for BAS, IAS and income tax returns, self-lodged or through an agent, with `UNKNOWN` where a fact is missing. |
 | `validate_abn` | Test an ABN against ABN Lookup's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
 | `validate_acn` | Test an ACN against ASIC's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
+| `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote. Records cover 2025-26 and 2026-27 only; any other date is refused. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
-| `search_tax_legislation` | Find provisions in a configured local legislation corpus, best match first. |
+| `search_tax_legislation` | Find provisions in a configured local legislation corpus, best match first. A plain question works: stop words are dropped, and provisions holding at least 2 of the words but not all come back labelled as partial hits, never as matches. |
 | `read_tax_legislation_section` | Read one cited provision in full, in parts when it is long. |
 | `define_tax_term` | Find an expression's statutory definitions in that corpus. |
 | `search_tax_rates` | Find legislated rates and thresholds with the provision that sets them. |
@@ -145,7 +149,9 @@ authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus
 [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus).
 The [corpus setup walkthrough](docs/corpus-setup.md) verifies the existing builder
 and MCP tools together using a fabricated page before any live capture.
-The package ships none of them. A corpus or rulings row is a point-in-time copy, not
+The package ships none of them. Run `aus-accounting-mcp doctor` with the same variables
+set to see each folder's row count; it exits 1 if a configured folder is broken.
+A corpus or rulings row is a point-in-time copy, not
 a live lookup, and an edited version of private advice cannot be relied on by anyone.
 Legislation results preserve a row's capture date and recorded successor date when
 available. Rulings results expose a captured withdrawal notice; `UNKNOWN` means

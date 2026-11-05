@@ -63,8 +63,8 @@ Missing facts stay unknown: a Payday Super row with a fund-receipt date but no m
   [ATO's worked example](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super)
   gives the same date on the usual 7 business day path. Run and read 5 November 2026.
 - **MCP tools.** Aus Accounting MCP 0.7.1, the published release, listed 22 local tools on
-  5 November 2026. The source on `main` defines 24: `validate_abn` and `validate_acn` are not yet
-  released.
+  5 November 2026. The source on `main` defines 25: `validate_abn`, `validate_acn` and
+  `get_reviewed_rate` are not yet released.
 
 <details>
 <summary>Commands for the Payday Super date and the tool count</summary>
@@ -238,8 +238,8 @@ you configure. As read on 5 November 2026, these projects cover nearby ground:
 - [Nagaris](https://nagaris.com/llms.txt): a hosted practice platform for Australian accounting
   firms, with proposals, AML/CTF checks, e-signing, job tracking and an AI assistant on one client
   file. It publishes browser calculators, including [Division 7A](https://nagaris.com/division-7a-calculator)
-  and [Payday Super due dates](https://nagaris.com/payday-super-due-date-calculator), and the second
-  also gives 11 August 2026 for a 30 July 2026 payday. Its
+  and [Payday Super due dates](https://nagaris.com/payday-super-due-date-calculator), and the page for
+  the second also states 11 August 2026 for a 30 July 2026 payday. Its
   [AI Accounting Index](https://nagaris.com/ai-accounting-index), which tested third-party AI models
   with each question answered once, reports that none of the 14 setups that answered that question
   reached 11 August, and says Ask Nagaris adds lookup tables for business days. Read 5 November 2026.
@@ -322,7 +322,8 @@ Four structural boundaries hold across Australian Accounting:
 `<component>/vX.Y.Z` by their own root workflow `.github/workflows/release-<component>.yml`,
 which calls the pinned Release Policy reusable workflow for that component directory only.
 The 8 Rust engines have reserved tags and no publisher yet. `CONTRIBUTING.md` has the table.
-The rates dataset in `packages/au-tax-rates-data/` is never released.
+The rates dataset in `packages/au-tax-rates-data/` is never released on its own; the next
+`aus-accounting-mcp` release bundles a copy of its records.
 To check a downloaded release's checksum and SLSA provenance, follow [Verify a release](https://github.com/ryanduguid/release-policy/blob/main/docs/verify-a-release.md).
 
 </details>
@@ -330,8 +331,8 @@ To check a downloaded release's checksum and SLSA provenance, follow [Verify a r
 ## Licence
 
 Each component's `LICENSE` applies to that component, and
-`packages/ato-benchmark-compare/NOTICE` and `packages/au-tax-rates-data/NOTICE` cover their
-ATO material.
+`packages/ato-benchmark-compare/NOTICE`, `packages/au-tax-rates-data/NOTICE` and
+`apps/aus-accounting-mcp/NOTICE` cover their ATO material.
 
 <sub>Ryan Duguid is not a registered tax agent or BAS agent. Outputs are review aids, not tax, legal or financial advice or lodgements, and a person reviews each one before it is relied on. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. The MCP server and each engine have their own `DISCLAIMER.md`.</sub>
 

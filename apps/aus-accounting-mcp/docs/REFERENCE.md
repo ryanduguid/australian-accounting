@@ -138,6 +138,13 @@ stay on your machine.
 `uvx aus-accounting-mcp --help` names the optional folders. Run with no arguments,
 the command waits silently for an MCP client, which is expected.
 
+`uvx aus-accounting-mcp doctor` prints the version, the periods each bundled dataset
+records and each retrieval folder with its row count. A folder that is not set is
+fine, because all 3 are optional. It exits 1 if a configured folder is broken: missing,
+the wrong shape, empty, or holding a file or row a search would skip. It reads the
+variables from its own environment, so set them as your MCP client's configuration does.
+A period it prints is what the release records, not that a figure is current.
+
 ### Upgrading
 
 `uvx` keeps using the version it first downloaded, so a new release does not reach
@@ -167,6 +174,7 @@ copy without a download until the uv cache is cleaned.
 | `generate_synthetic_sbr_fixture` | Synthetic CTR/BAS for agent tests (`synthetic: true`) | local fixture |
 | `validate_abn` | Test an ABN's check digit; proves neither ABR nor GST registration | local arithmetic |
 | `validate_acn` | Test an ACN's check digit; proves neither ABR nor GST registration | local arithmetic |
+| `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote, or refuse | bundled reviewed records |
 | `get_data_freshness` | Report each bundled dataset's recorded periods, engine version, source URLs and retrieval and review dates, or `UNKNOWN` | every engine above |
 
 `validate_abn` and `validate_acn` return `CHECK_DIGIT_VALID`, `CHECK_DIGIT_INVALID` or
@@ -180,10 +188,22 @@ a leading zero fails, because ABR's first step of subtracting 1 from the first d
 give an 11 digit number. The arithmetic sits in this facade because no published engine
 holds it, and it has no rate, date or dataset to go stale.
 
-`get_data_freshness` reads only what the installed engines record: the ATO
+`get_reviewed_rate` takes a `record_id`, such as `concessional-cap-2026-27`, and an
+`as_at` date, and needs no folder. It reads a bundled copy of the records in
+`packages/au-tax-rates-data`, which that package's validator holds to their ATO pages.
+`FOUND` returns the record as it stands: value, unit, period, `source_url`, `retrieved_at`,
+`quote` and any `notes`. The records cover 2025-26 and 2026-27 only, so `as_at` must fall
+in those years and in the record's own period; an open-ended record is no exception.
+Anything else is `REFUSED` with no figure, and the `refusal` code says why:
+`OUTSIDE_COVERED_YEARS`, `OUTSIDE_RECORD_PERIOD` (with `covering_ids` naming any record
+of the same figure that holds the date), `NO_RECORDED_PERIOD` for a record that states
+only when its page was read, or `UNKNOWN_ID` (with every id in `known_ids`). It never
+returns a nearest-year figure, and `currency` is always `NOT_ESTABLISHED`.
+
+`get_data_freshness` reads only what the installed release records: the ATO
 benchmark years, the Division 7A rate table, the Payday Super GIC quarters,
 business-day calendar and SG parameters, each worksheet's supported periods, the
-lodgment program and the GST review rules. A fact an engine does not record, such
+lodgment program, the GST review rules and the reviewed ATO records. A fact an engine does not record, such
 as the GST review rules' effective period, is `UNKNOWN`. With `as_at`, each dataset
 reports `INSIDE_RECORDED_PERIOD`, `OUTSIDE_RECORDED_PERIOD` or `UNKNOWN`; inside a
 recorded period means the release holds data for that date, not that the data is
@@ -378,11 +398,11 @@ Their rules and sources come from `australian-tax-calculators`. Broader classifi
 exemptions, BAS/returns, trusts, partnerships, SMSF fund tax and audit, the transfer
 balance cap and payroll tax remain unsupported. Reference text cannot establish calculation support.
 
-The evaluation includes 39 cases: 10 original workflows, 10 unsupported-topic
+The evaluation includes 40 cases: 10 original workflows, 10 unsupported-topic
 questions, grouped Payday, a tax worksheet, synthetic library retrieval, the
 Payday evidence pack, which needs checker evidence-pack support, a synthetic ruling
-paragraph, GST coding, BAS reconciliation, a lodgment due date, data freshness, 2
-identifier check digits and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
+paragraph, GST coding, BAS reconciliation, a lodgment due date, data freshness, a refused
+rate lookup, 2 identifier check digits and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
 parts, rates, definitions, an injected instruction, an undefined term and a
 stored rate's date.
 The unsupported-topic answers require no tool calls. The
@@ -557,7 +577,8 @@ configuration, replacing the placeholder:
 ```
 
 `search_accounting_library` finds query words together on a line, without case
-sensitivity. Use short phrases, then read surrounding context with
+sensitivity. Every word counts, including 'what' and 'the', so this search takes
+keywords rather than plain questions. Use short phrases, then read surrounding context with
 `read_accounting_library`. Search results include relative paths, line ranges,
 preceding headings and PDF page markers, and SHA-256 of the source file. Retain
 the hash when checking whether a later read uses the same file version.
@@ -617,7 +638,9 @@ builds a corpus in this shape from the Federal Register of Legislation.
 
 ### What the tools return
 
-`search_tax_legislation` matches every query word within one provision, without
+`search_tax_legislation` first drops stop words such as 'what', 'is' and 'the', listing
+them in `dropped_words`, so a plain question can match; a query of only stop words is
+searched as written. It then matches every remaining word within one provision, without
 case sensitivity, across the Act name, section label, heading, container and text.
 A word that appears only in stored metadata, such as the attribution or licence
 fields, is not a match. Matches come best first: the query as a phrase in the
@@ -630,7 +653,43 @@ keep corpus order. So a search for "small business entity" puts ITAA 1997
 s 328-110, headed "Meaning of small business entity", above a dictionary that
 only mentions the expression. When nothing matches, the `notice` suggests the
 statutory wording, because statutes often name a concept differently from ATO
-guidance. Narrow to one title with `act`, which takes words the title's name
+guidance. If the page has room after the matches and the query has 3 or more words,
+`partial_hits` fills it with provisions holding at least 2 of them as whole words,
+most words first, then most of them in the heading, then the principal Acts. These
+rank below every match and are never one: each is labelled `match: partial` with its
+`matched_words` and `missing_words`, and the `notice` says so. `has_more` and
+`next_offset` run on through them. `search_tax_rates` drops stop words and reports
+partial hits the same way.
+
+A partial hit proves only that the provision shares those words with the question. It
+does not prove that the provision answers the question, applies to the facts or is the
+only relevant provision, and a missing word can be the point of the question. An empty
+`partial_hits` does not prove the law is silent: words are compared exactly, so
+'contractors' does not meet 'contractor', and a statute can name a concept in other
+words.
+
+`evaluation/search_relevance.json` is a fixed relevance set dated 6 November 2026: 40
+fabricated provisions, and plain questions that have an answer among them or have none.
+Run `python evaluation/search_relevance.py` to reproduce these figures, which a test
+holds to the file. Hits are answerable questions with a relevant row in the top 5.
+Precision is the share of partial hits that are relevant; the first-hit figure counts
+only questions whose first result is a partial hit. Unanswerable is the share of
+unanswerable questions that got any partial hit.
+
+| Questions | Answerable | Hits before | Hits, stop words dropped | Hits with partial hits | First-hit precision | All partial hit precision | Unanswerable |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| One-word floor, not shipped, 28 questions | 20 | 0 | 2 | 17 | 0.455 | 0.25 | 0.625 |
+| Two-word floor, the same 28 | 20 | 0 | 2 | 9 | 0.75 | 0.6 | 0 |
+| Two-word floor, 18 held-out questions | 12 | 0 | 3 | 10 | 0.75 | 0.533 | 0 |
+
+The gate, set before the first run, asks for first-hit precision of at least 0.6, all
+partial hit precision of at least 0.3 and unanswerable of at most 0.25. A plain any-word
+fallback failed it, so a row must hold 2 words to be offered. That failure chose the
+floor, so the 28 questions are not independent of it; the 18 were written before the
+floor first ran. The same author wrote the corpus, questions and labels, and 40
+provisions hold far fewer chance word overlaps than a real corpus, so read these as a
+regression gate, not as the precision on a real one, which has not been measured.
+Narrow to one title with `act`, which takes words the title's name
 must contain. A provision the corpus marks as a superseded
 compilation is left out unless `in_force_only` is false; a provision whose currency
 the corpus did not record is returned either way with `version_is_current` null.
