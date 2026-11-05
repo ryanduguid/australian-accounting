@@ -43,7 +43,7 @@ and uploads the same distribution files to PyPI through OIDC.
 Verify the release before installing it. `signer` is the release-policy commit
 the release workflow pinned when `tag` was cut:
 `a601f1d8b143f92b0517f709216993660d21f480` up to and including `v0.2.2`, and
-`0f7ca4ce0ba2e7ea52fc611149a42cd5d0a26f6c`, the current pin, for later releases.
+`0f7ca4ce0ba2e7ea52fc611149a42cd5d0a26f6c` for later releases.
 
 ```bash
 tag=payday-super-checker/v0.2.2

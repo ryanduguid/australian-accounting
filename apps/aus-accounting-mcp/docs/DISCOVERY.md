@@ -177,7 +177,9 @@ to the release-policy commit the release workflow pinned when `tag` was cut:
 
 - `a601f1d8b143f92b0517f709216993660d21f480` for releases up to and including
   `aus-accounting-mcp/v0.6.0`;
-- `0f7ca4ce0ba2e7ea52fc611149a42cd5d0a26f6c` for later releases, the commit the
+- `0f7ca4ce0ba2e7ea52fc611149a42cd5d0a26f6c` for later releases up to and
+  including `aus-accounting-mcp/v0.7.1`;
+- `ca5492bd09693be9e1fd47d980e2740ef8daf023` for later releases, the commit the
   release workflow now pins.
 
 Update `tag` and `signer` if the intended version changes and run these checks
