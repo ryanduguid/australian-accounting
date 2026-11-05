@@ -1,4 +1,4 @@
-# Australian accounting engines and MCP server
+# Australian Accounting
 
 > Nine engines (8 in Rust, 1 in Python) that apply Australian tax and payroll rules
 > to figures you supply, plus Aus Accounting MCP, a local Model Context Protocol
@@ -11,6 +11,8 @@ Ryan Duguid is not a registered tax agent or BAS agent. Fixtures and examples ar
 fabricated. Nothing here is tax, legal or financial advice. An MCP host sends every
 tool argument and result to its model provider.
 
+Each component keeps its own distribution, version, release notes, tests and `CITATION.cff`. The MCP server and lodgment-calendar are released on the tag `<component>/vX.Y.Z`; the 8 Rust engines have reserved tags and no publisher yet.
+
 ## Start
 
 - [README](https://github.com/ryanduguid/australian-accounting#readme): what each component does, a one-contribution Payday Super trial and the evidence boundary.
@@ -19,8 +21,6 @@ tool argument and result to its model provider.
 - [Tool reference](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/README.md#tools): every MCP tool, its inputs and what it refuses.
 
 ## Components
-
-Each component keeps its own distribution, version, release notes, tests and `CITATION.cff`. The MCP server and lodgment-calendar are released on the tag `<component>/vX.Y.Z`; the 8 Rust engines have reserved tags and no publisher yet.
 
 - [aus-accounting-mcp](https://github.com/ryanduguid/australian-accounting/tree/main/apps/aus-accounting-mcp): the MCP server.
 - [payday-super-checker](https://github.com/ryanduguid/australian-accounting/tree/main/packages/payday-super-checker): Payday Super contribution timing review from supplied payroll and fund-receipt evidence.
