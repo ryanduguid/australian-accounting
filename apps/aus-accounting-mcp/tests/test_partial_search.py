@@ -265,25 +265,148 @@ def test_permission_and_obligation_stay_apart_in_a_rate_search(root, asked, othe
     assert result["partial_hits"][0]["missing_words"] == [asked]
 
 
-def test_a_match_compares_words_and_does_not_read_a_negative(root):
-    # The limit REFERENCE states: "must lodge" holds in "must not lodge", "can" in "cannot".
-    write_title(root, "C9999A00011", MINOR_ACT, [
-        ("30-3", "Returns", "A trustee must not lodge a return of income."),
-        ("30-4", "Meals", "A trustee cannot deduct a meal."),
-    ])
+def search(root, tool, rows, query):
+    """The labels of the matches and of the partial hits, and the partial hits themselves."""
+    if tool == "search_tax_legislation":
+        write_title(root, "C9999A00011", MINOR_ACT, [
+            (label, "Duties", text) for label, text in rows.items()
+        ])
+    else:
+        synthetic_corpus.write(root / "rates" / "rates.jsonl", [
+            synthetic_corpus.rate(label, "Duties", text, amounts=["$1"], years=["2098-99"])
+            for label, text in rows.items()
+        ])
+    key = "section" if tool == "search_tax_legislation" else "rate_id"
+    result = call(tool, query=query)
+    labels = [match[key] for match in result["matches"]]
+    return labels, [hit[key] for hit in result["partial_hits"]], result
 
-    for query, section in (("must lodge a return", "30-3"), ("Can I deduct a meal?", "30-4")):
-        result = call("search_tax_legislation", query=query)
-        assert [match["section"] for match in result["matches"]] == [section]
+
+TOOLS = pytest.mark.parametrize("tool", ["search_tax_legislation", "search_tax_rates"])
 
 
-def test_a_substring_match_is_not_also_reported_as_a_partial_hit(root):
-    # "scarred" holds "car" as a substring, so the all-words search takes the row;
-    # the whole-word test must not then offer it again as a hit lacking "car".
+def duty(modal):
+    return f"A trustee {modal} lodge a return of income."
+
+
+@TOOLS
+@pytest.mark.parametrize("asked,negated", [
+    ("must", "must not"), ("may", "may not"), ("shall", "shall not"), ("can", "cannot"),
+    ("can", "can not"), ("should", "should not"), ("would", "would not"),
+])
+def test_a_negated_modal_never_matches_the_positive_question(root, tool, asked, negated):
+    rows = {"60-1": duty(asked), "60-2": duty(negated)}
+
+    labels, partial, result = search(root, tool, rows, f"{asked} lodge a return")
+
+    assert labels == ["60-1"]
+    assert partial == ["60-2"]
+    assert result["partial_hits"][0]["missing_words"] == [asked]
+    assert asked not in result["partial_hits"][0]["matched_words"]
+    assert "'must' is missing from 'must not'" in result["notice"]
+
+
+@TOOLS
+@pytest.mark.parametrize("asked,word,positive,negated", [
+    ("must not", "must not", "must", "must not"),
+    ("may not", "may not", "may", "may not"),
+    ("shall not", "shall not", "shall", "shall not"),
+    ("cannot", "can not", "can", "cannot"),
+    ("cannot", "can not", "can", "can not"),
+    ("can not", "can not", "can", "cannot"),
+])
+def test_a_negated_question_never_matches_the_positive_row(
+    root, tool, asked, word, positive, negated
+):
+    rows = {"60-1": duty(positive), "60-2": duty(negated)}
+
+    labels, partial, result = search(root, tool, rows, f"{asked} lodge a return")
+
+    assert labels == ["60-2"]
+    assert partial == ["60-1"]
+    assert result["partial_hits"][0]["missing_words"] == [word]
+
+
+@TOOLS
+def test_a_short_question_still_names_the_opposite_row(root, tool):
+    rows = {"60-1": duty("must"), "60-2": duty("must not")}
+
+    labels, partial, result = search(root, tool, rows, "must lodge")
+
+    assert labels == ["60-1"]
+    assert partial == ["60-2"]
+    assert result["partial_hits"][0]["missing_words"] == ["must"]
+
+
+@TOOLS
+def test_a_short_question_offers_no_row_merely_sharing_the_modal(root, tool):
+    rows = {"60-1": "A trustee must not retain a record."}
+
+    labels, partial, _ = search(root, tool, rows, "must lodge")
+
+    assert labels == []
+    assert partial == []
+
+
+@TOOLS
+def test_a_row_holding_both_forms_matches_each(root, tool):
+    rows = {"60-1": "A trustee must lodge a return and must not lodge it twice."}
+
+    for query in ("must lodge a return", "must not lodge a return"):
+        assert search(root, tool, rows, query)[:2] == (["60-1"], [])
+
+
+@TOOLS
+@pytest.mark.parametrize("text", ["MUST NOT lodge a return.", "must\nnot lodge a return."])
+def test_a_negated_modal_is_read_across_case_and_a_line_break(root, tool, text):
+    labels, partial, _ = search(root, tool, {"60-1": text}, "must lodge a return")
+
+    assert labels == []
+    assert partial == ["60-1"]
+
+
+@TOOLS
+def test_a_plain_question_keeps_its_not_with_the_modal(root, tool):
+    rows = {"60-1": duty("must"), "60-2": duty("must not")}
+
+    labels, partial, result = search(root, tool, rows, "Must I not lodge a return?")
+
+    assert labels == ["60-2"]
+    assert partial == ["60-1"]
+    assert result["dropped_words"] == ["i", "a"]
+
+
+def test_a_negated_modal_is_found_through_a_json_escape(root):
+    # A raw line with an escape skips the line filter, and the row is still judged.
+    index = root / "markdown" / "C9999A00012" / "sections.jsonl"
+    synthetic_corpus.write(index, [synthetic_corpus.section(
+        "C9999A00012", "0001", "60-3", "A caf\u00e9 must not lodge a return.", act=MINOR_ACT,
+    )])
+    raw = index.read_text(encoding="utf-8").replace("\u00e9", "\\u00e9")
+    index.write_text(raw, encoding="utf-8")
+
+    result = call("search_tax_legislation", query="must lodge a return")
+
+    assert result["matches"] == []
+    assert [hit["section"] for hit in result["partial_hits"]] == ["60-3"]
+
+
+@TOOLS
+def test_sense_beyond_the_word_next_to_the_modal_is_not_read(root, tool):
+    # The limit REFERENCE states: only the word beside the modal is read.
+    rows = {"60-1": "A trustee must, unless exempt, lodge a return of income.",
+            "60-2": "A trustee must never lodge a return of income."}
+
+    assert search(root, tool, rows, "must lodge a return")[:2] == (["60-1", "60-2"], [])
+
+
+def test_a_word_inside_a_longer_word_is_not_a_match(root):
+    # "scarred" holds "car" as a substring, which is not the word "car".
     result = call("search_tax_legislation", query="car asset written")
 
-    assert [match["section"] for match in result["matches"]] == ["20-2"]
-    assert result["partial_hits"] == []
+    assert result["matches"] == []
+    assert [hit["section"] for hit in result["partial_hits"]] == ["20-2"]
+    assert result["partial_hits"][0]["missing_words"] == ["car"]
 
 
 def test_a_phrase_of_stop_words_still_ranks_as_a_phrase(root):

@@ -655,11 +655,20 @@ kept: the modal verbs 'can', 'could', 'may', 'might', 'must', 'shall', 'should' 
 'would', and 'not', 'no', 'cannot', 'unless', 'except' and 'but'. So 'must lodge a
 return' does not match a provision saying 'may lodge a return', which comes back as a
 partial hit missing 'must'. 'Can I deduct a meal?' needs 'can', so a provision saying
-'may deduct' comes back as a partial hit. Search compares words and does not read
-sense: 'must lodge' still matches 'must not lodge', and 'can' still matches inside
-'cannot', so read a match before relying on it. 'And', 'or' and 'if' are dropped,
-because they join a question's words and nearly every provision holds them.
-It then matches every remaining word within one provision, without
+'may deduct' comes back as a partial hit. A modal and the 'not' after it count as one
+word, as 'cannot' does: 'must lodge' does not match a provision holding only 'must not
+lodge', and 'must not lodge' does not match one holding only 'must lodge'. Each such
+provision comes back as a partial hit with that word in `missing_words`.
+
+Search reads only the word next to the modal. It does not read sense beyond that: 'must,
+unless exempt, lodge' still matches 'must lodge', and 'must never lodge' counts as
+'must'. It does not read conditions or alternatives either: 'and', 'or', 'if', 'when'
+and 'where' are dropped, because they join a question's words and nearly every provision
+holds them, so 'lodge or pay' is treated as 'lodge pay'. Read a match before relying on
+it. `search_accounting_library` and `search_ato_rulings` make none of these distinctions:
+they still match inside longer words, so 'must lodge' finds 'must not lodge' there.
+
+The search then matches every remaining word as a whole word within one provision, without
 case sensitivity, across the Act name, section label, heading, container and text.
 A word that appears only in stored metadata, such as the attribution or licence
 fields, is not a match. Matches come best first: the query as a phrase in the
@@ -696,8 +705,8 @@ A partial hit proves only that the provision shares those words with the questio
 does not prove that the provision answers the question, applies to the facts or is the
 only relevant provision, and a missing word can be the point of the question. An empty
 `partial_hits` does not prove the law is silent: words are compared exactly, so
-'contractors' does not meet 'contractor', and a statute can name a concept in other
-words.
+'contractors' does not meet 'contractor' or 'deduct' meet 'deductible', and a statute
+can name a concept in other words.
 
 `evaluation/search_relevance.json` is a fixed relevance set dated 6 November 2026: 40
 fabricated provisions, and plain questions that have an answer among them or have none.
@@ -706,15 +715,15 @@ if either list fails the gate. The test
 `test_the_one_word_floor_fails_the_gate_as_recorded` measures the one-word row, and
 tests hold all 3 to the file. Hits are answerable questions with a relevant row in the
 top 5. Precision is the share of partial hits that are relevant; the first-hit figure
-counts only questions whose first result is a partial hit, which is 9 questions on each
-two-word list, so one question moves it by 0.111. Unanswerable is the share of
+counts only questions whose first result is a partial hit, which is 9 questions on the
+28 and 10 on the 18, so one question moves it by 0.111 and 0.1. Unanswerable is the share of
 unanswerable questions that got any partial hit.
 
 | Questions | Answerable | Hits before | Hits, stop words dropped | Hits with partial hits | First-hit precision | All partial hit precision | Unanswerable |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | One-word floor, not shipped, 28 questions | 20 | 0 | 1 | 17 | 0.478 | 0.271 | 0.625 |
 | Two-word floor, the same 28 | 20 | 0 | 1 | 9 | 0.778 | 0.625 | 0 |
-| Two-word floor, 18 held-out questions | 12 | 0 | 2 | 10 | 0.778 | 0.562 | 0 |
+| Two-word floor, 18 held-out questions | 12 | 0 | 1 | 10 | 0.8 | 0.588 | 0 |
 
 The gate, set before the first run, asks for first-hit precision of at least 0.6, all
 partial hit precision of at least 0.3 and unanswerable of at most 0.25. A plain any-word
@@ -724,9 +733,10 @@ floor first ran. A review then limited partial hits to a row's heading and text 
 added the digit rule, so all 3 rows above come from the changed code and the 18 are no
 longer unseen, though no question or label changed. The one-word floor measured 0.25
 all partial hit precision before that change. Keeping the modal verbs then took one
-full match off each list and moved that relevant row into partial hits. No more answers
-were found: the two-word lists read 0.75, 0.6 and 0.75, 0.533 before it, and the rise is
-that move alone, not better search. The same author wrote the corpus,
+full match off each list and moved that relevant row into partial hits, and whole-word
+full matches moved one more on the 18. No more answers were found: the two-word lists
+read 0.75, 0.6 and 0.75, 0.533 before those changes, and the rise is those moves alone,
+not better search. The same author wrote the corpus,
 questions and labels, and 40 provisions hold far fewer chance word overlaps than a
 real corpus, so read these as a regression gate, not as the precision on a real one,
 which has not been measured.

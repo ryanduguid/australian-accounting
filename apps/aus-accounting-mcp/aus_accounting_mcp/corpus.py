@@ -62,7 +62,8 @@ PARTIAL_NOTICE = (
     "partial_hits are not matches: the heading and text of each hold only the words in "
     "its matched_words, not those in its missing_words. That shows the provision shares "
     "those words, not that it answers the question, applies to these facts or is the only "
-    "relevant provision. "
+    "relevant provision. A modal word is missing when the row has only its opposite: "
+    "'must' is missing from 'must not' and 'must not' from 'must'. "
     "Do not present one as an answer or as the law on the point. Read the provision and "
     "judge it first, or search again with the statutory wording."
 )
@@ -79,6 +80,7 @@ STOP_WORDS = frozenset((
     "the their them there these they this those to was we were what when where "
     "which who whom whose why with you your"
 ).split())
+MODALS = frozenset("can could may might must shall should would".split())
 # How many of a query's words a row must hold to be offered as a partial hit. One shared
 # word proved no evidence of relevance: evaluation/search_relevance.py measures this.
 MIN_PARTIAL_WORDS = 2
@@ -178,8 +180,48 @@ def _terms(query: str, field: str) -> list[str]:
 
 
 def _words(terms: list[str]) -> list[str]:
-    """The distinct words a query asks for, or its own terms if it holds only stop words."""
-    return list(dict.fromkeys(term for term in terms if term not in STOP_WORDS)) or terms
+    """The distinct words a query asks for, or its own terms if it holds only stop words.
+
+    A modal verb and the "not" after it are one word, as "cannot" is, because together
+    they say the opposite of the modal alone. "cannot" is kept as "can not".
+    """
+    words: list[str] = []
+    for term in [term for term in terms if term not in STOP_WORDS] or terms:
+        if term == "not" and words and words[-1] in MODALS:
+            words[-1] += " not"
+        else:
+            words.append("can not" if term == "cannot" else term)
+    return list(dict.fromkeys(words))
+
+
+def _pattern(term: str) -> re.Pattern[str]:
+    """The whole-word test for one word of _words. A modal alone refuses its negated form.
+
+    shortcut: only the word next to the modal is read, so "must, unless exempt, lodge" is
+    not seen as qualified, and "must never lodge" counts as "must". Parse clauses only
+    if a reference question set shows the cost.
+    """
+    if term == "can not":
+        return re.compile(r"\b(?:cannot|can\s+not)\b")
+    if term.endswith(" not"):
+        return re.compile(rf"\b{term[:-4]}\s+not\b")
+    if term in MODALS:
+        return re.compile(rf"\b{term}\b(?!\s+not\b)")
+    return re.compile(rf"\b{re.escape(term)}\b")
+
+
+def _has(term: str, pattern: re.Pattern[str], text: str) -> bool:
+    """Whether text holds term or, given its opposite's pattern, the opposite form.
+
+    The substring test spares the regex: a pattern opening with \\b scans the whole text
+    for a word that is not there, and every form of a word opens with its first part.
+    """
+    return term.split()[0] in text and pattern.search(text) is not None
+
+
+def _opposite(term: str) -> str:
+    """The other form of a modal word of _words: "must" for "must not", and back."""
+    return term[:-4] if term.endswith(" not") else f"{term} not"
 
 
 def _rows(
@@ -274,7 +316,7 @@ def _tier(
     somewhere. Tiers 0 to 2 match whole words within a single field, so "scar
     limitation" is no heading match for "car limit", and a rate heading ending in
     one query word does not join the topic that starts with the next into a phrase.
-    Tier 3 is the substring match every eligible row already passed. phrase_terms
+    Tier 3 is every other row the caller's search let through. phrase_terms
     is the phrase when it differs from terms, as the whole query does once its stop
     words are out of terms: "cost of a car" stays a phrase.
     """
@@ -416,14 +458,18 @@ def _within_bounds(files: list[Path]) -> Iterator[Path]:
 
 
 def _partial(
-    words: list[str],
-    fields: tuple[str, ...],
+    patterns: dict[str, re.Pattern[str]],
+    opposites: dict[str, re.Pattern[str]],
+    is_match: Callable[[dict[str, Any]], bool],
     heading: tuple[str, ...],
     body: tuple[str, ...],
     scope: Callable[[dict[str, Any]], bool],
     build: Callable[[dict[str, Any]], dict[str, Any]],
 ) -> Assessor:
-    """Judge a row whose heading and body hold at least MIN_PARTIAL_WORDS of words.
+    """Judge a row whose heading and body hold at least MIN_PARTIAL_WORDS of patterns.
+
+    A row with a modal word's opposite counts towards that floor but reports the word as
+    missing, so "must not lodge" is offered for "must lodge" and named as lacking "must".
 
     Only the provision's own wording counts: every row of the Income Tax Assessment Act
     1997 holds "income" and "tax" in its Act name, which says nothing about the provision.
@@ -438,25 +484,26 @@ def _partial(
     "tax", weighs as much as a rare one. Weigh words by rarity, or add vectors, only
     if a reference question set shows the order needs it.
     """
-    word = re.compile(r"\b(?:" + "|".join(map(re.escape, words)) + r")\b")
-    numbers = {term for term in words if re.search(r"\d", term)}
+    numbers = {term for term in patterns if re.search(r"\d", term)}
 
     def assess(row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
-        found = set(word.findall(_joined(row, heading + body)))
-        if len(found) < MIN_PARTIAL_WORDS or not numbers <= found:
+        text = _joined(row, heading + body)
+        found = {term for term, pattern in patterns.items() if _has(term, pattern, text)}
+        opposed = sum(
+            term not in found and _has(term, pattern, text)
+            for term, pattern in opposites.items()
+        )
+        if len(found) + opposed < MIN_PARTIAL_WORDS or not numbers <= found:
             return None
-        # A row holding every word, even inside longer ones, is already a match.
-        joined = _joined(row, fields)
-        if all(term in joined for term in words):
+        if is_match(row) or not scope(row):
             return None
-        if not scope(row):
-            return None
-        titled = len(set(word.findall(_joined(row, heading))))
+        title = _joined(row, heading)
+        titled = sum(_has(term, pattern, title) for term, pattern in patterns.items())
         return (-len(found), -titled, _priority(row)), {
             **build(row),
             "match": "partial",
-            "matched_words": [term for term in words if term in found],
-            "missing_words": [term for term in words if term not in found],
+            "matched_words": [term for term in patterns if term in found],
+            "missing_words": [term for term in patterns if term not in found],
         }
 
     return assess
@@ -478,7 +525,7 @@ def _scan(
     the first full page. Measured on the 946-title corpus that takes about 0.5 s, and
     about 1.6 s for a word nearly every row holds such as "tax". A query that reaches
     partial hits reads the corpus twice: on a 78 MB fabricated corpus "zebra income tax",
-    whose last 2 words nearly every row holds, took 1.9 s against 0.25 s without them.
+    whose last 2 words nearly every row holds, took 0.8 s against 0.25 s without them.
     Add an index only if a measured corpus needs one.
     """
 
@@ -521,30 +568,48 @@ def _search(
     a page of matches with more behind it never reads the corpus for partial hits.
     """
     words = _words(query)
+    patterns = {term: _pattern(term) for term in words}
+    opposites = {
+        term: _pattern(_opposite(term)) for term in words if term.split()[0] in MODALS
+    }
+    # Every part of a word is in the raw line of a row holding it or its opposite, so
+    # the line filter stays sound: "cannot" holds "can" and "not".
+    parts = " ".join(words).split()
     rank = _ranking(words, heading, body, query)
 
+    def is_match(row: dict[str, Any]) -> bool:
+        joined = _joined(row, fields)
+        return all(_has(term, pattern, joined) for term, pattern in patterns.items())
+
     def assess(row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
-        if scope(row) and _holds(row, fields, words):
+        if scope(row) and is_match(row):
             return rank(row), build(row)
         return None
 
     end = offset + limit
-    full = _scan(files, words + scope_terms, all, assess, end + 1)
+    full = _scan(files, parts + scope_terms, all, assess, end + 1)
     partial: list[dict[str, Any]] = []
-    # A shorter query has no way to be partly held, and stop words alone name nothing.
-    if len(full) <= end and len(words) > MIN_PARTIAL_WORDS and words[0] not in STOP_WORDS:
+    # A shorter query has no way to be partly held, unless a row holds a modal word's
+    # opposite, and stop words alone name nothing.
+    if (
+        len(full) <= end
+        and len(words) + bool(opposites) > MIN_PARTIAL_WORDS
+        and words[0] not in STOP_WORDS
+    ):
         partial = _scan(
             files,
-            words,
+            parts,
             lambda held: sum(held) >= MIN_PARTIAL_WORDS,
-            _partial(words, fields, heading, body, scope, build),
+            _partial(patterns, opposites, is_match, heading, body, scope, build),
             end + 1 - len(full),
         )
     hits = (full + partial)[offset:end]
     matches = hits[:max(len(full) - offset, 0)]
     result = _page(matches, end, corpus, has_more=len(full) + len(partial) > end)
     result["partial_hits"] = hits[len(matches):]
-    result["dropped_words"] = [term for term in dict.fromkeys(query) if term not in words]
+    result["dropped_words"] = [
+        term for term in dict.fromkeys(query) if term in STOP_WORDS and term not in parts
+    ]
     if result["partial_hits"]:
         result["notice"] += " " + PARTIAL_NOTICE
     return result

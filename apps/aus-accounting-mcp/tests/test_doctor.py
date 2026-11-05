@@ -96,10 +96,16 @@ def test_a_corpus_without_a_rates_index_is_broken(capsys, monkeypatch, tmp_path)
     assert_rates_are_broken(capsys)
 
 
-def test_a_linked_rates_index_is_broken(capsys, monkeypatch, tmp_path):
-    synthetic_corpus.build(tmp_path)
-    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
-    monkeypatch.setattr(corpus, "_linked", lambda path: path.name == "rates.jsonl")
+@pytest.mark.parametrize("linked", ["rates/rates.jsonl", "rates"])
+def test_a_linked_rates_index_is_broken(capsys, monkeypatch, tmp_path, linked):
+    root, outside = tmp_path / "corpus", tmp_path / "outside"
+    synthetic_corpus.build(root)
+    (root / linked).replace(outside)
+    try:
+        (root / linked).symlink_to(outside, target_is_directory=outside.is_dir())
+    except OSError as exc:  # pragma: no cover - the platform or account forbids symlinks
+        pytest.skip(f"this platform forbids creating a symlink: {exc}")
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(root))
 
     assert_rates_are_broken(capsys)
 

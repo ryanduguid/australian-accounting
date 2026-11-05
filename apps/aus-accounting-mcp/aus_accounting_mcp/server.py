@@ -1237,7 +1237,9 @@ def search_tax_legislation(
     read_tax_legislation_section.
     Stop words such as 'what' and 'the' are dropped and listed in dropped_words;
     words of legal force such as 'must', 'may' and 'not' are kept.
-    matches hold every remaining word. Room left on a page goes to partial_hits,
+    matches hold every remaining word as a whole word, and a modal word in its stated
+    form: 'must lodge' does not match 'must not lodge', and the reverse holds too. Room
+    left on a page goes to partial_hits,
     ranked below every match, whose heading and text hold at least 2 of 3 or more
     words and every word with a digit, such as a year or a section number: each is
     labelled partial with its matched_words and missing_words. A partial hit shows
@@ -1343,7 +1345,8 @@ def search_tax_rates(
     states them, with the Act, section, compilation number and register page that
     set them.
     Stop words are dropped and listed in dropped_words; words of legal force such as
-    'must', 'may' and 'not' are kept. Room left on a page goes to
+    'must', 'may' and 'not' are kept. matches hold every remaining word as a whole
+    word, and a modal word in its stated form. Room left on a page goes to
     partial_hits, ranked below every match, whose heading, topic and content hold at
     least 2 of 3 or more words and every word with a digit, such as a year: they show
     shared words, not an answer, so never present one as a match.

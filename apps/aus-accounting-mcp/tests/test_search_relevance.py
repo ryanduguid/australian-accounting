@@ -80,7 +80,7 @@ def test_the_reference_publishes_the_figures_and_the_limits():
             RELEVANCE["one_word_floor"],
         "| Two-word floor, the same 28 | 20 | 0 | 1 | 9 | 0.778 | 0.625 | 0 |":
             RELEVANCE["published"]["queries"],
-        "| Two-word floor, 18 held-out questions | 12 | 0 | 2 | 10 | 0.778 | 0.562 | 0 |":
+        "| Two-word floor, 18 held-out questions | 12 | 0 | 1 | 10 | 0.8 | 0.588 | 0 |":
             RELEVANCE["published"]["held_out"],
     }
     for row, figures in rows.items():
