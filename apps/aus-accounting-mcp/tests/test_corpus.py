@@ -127,7 +127,7 @@ def test_paging_continues_from_the_returned_offset(corpus):
 
 
 def test_search_truncates_a_long_provision_and_reports_the_whole_length(corpus):
-    hit = call("search_tax_legislation", query="xxxx")["matches"][0]
+    hit = call("search_tax_legislation", query="filler")["matches"][0]
 
     assert len(hit["text"]) == 1200
     assert hit["total_chars"] == synthetic_corpus.LONG_TEXT_CHARS

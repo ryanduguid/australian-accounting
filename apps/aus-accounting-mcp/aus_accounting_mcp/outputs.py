@@ -592,8 +592,42 @@ class LegislationSection(ResultObject):
     caveats: Caveats
 
 
+PartialLabel = Annotated[
+    Literal["partial"],
+    Field(description="Holds at least 2 of the query's words but not all, a modal word's "
+                      "opposite form counting towards the 2: not a match."),
+]
+MatchedWords = Annotated[list[str], Field(description="The query words this row holds.")]
+MissingWords = Annotated[list[str], Field(description="The query words this row lacks.")]
+DroppedWords = Annotated[
+    list[str],
+    Field(description="Stop words left out of the query before searching; matches need not "
+                      "hold them."),
+]
+
+
+class PartialLegislationHit(LegislationSection):
+    """A provision holding only some of the query's words, which is not a match."""
+
+    match: PartialLabel
+    matched_words: MatchedWords
+    missing_words: MissingWords
+
+
 class LegislationSearch(ResultObject):
-    matches: list[LegislationSection]
+    matches: Annotated[
+        list[LegislationSection],
+        Field(description="Provisions holding every query word other than dropped_words."),
+    ]
+    partial_hits: Annotated[
+        list[PartialLegislationHit],
+        Field(description="Provisions whose heading and text hold at least 2 of the words "
+                          "and every word with a digit, but not all the words, ranked below "
+                          "every match. A modal word's opposite form counts towards the 2 but "
+                          "stays in missing_words, so matched_words can hold fewer than 2 "
+                          "words. Never present one as a match."),
+    ]
+    dropped_words: DroppedWords
     has_more: bool
     next_offset: int | None
     corpus: CorpusProvenance
@@ -754,8 +788,28 @@ class RateEntry(ResultObject):
     caveats: Caveats
 
 
+class PartialRateHit(RateEntry):
+    """A rate row holding only some of the query's words, which is not a match."""
+
+    match: PartialLabel
+    matched_words: MatchedWords
+    missing_words: MissingWords
+
+
 class RateSearch(ResultObject):
-    matches: list[RateEntry]
+    matches: Annotated[
+        list[RateEntry],
+        Field(description="Rows holding every query word other than dropped_words."),
+    ]
+    partial_hits: Annotated[
+        list[PartialRateHit],
+        Field(description="Rows whose heading, topic and content hold at least 2 of the words "
+                          "and every word with a digit, but not all the words, ranked below "
+                          "every match. A modal word's opposite form counts towards the 2 but "
+                          "stays in missing_words, so matched_words can hold fewer than 2 "
+                          "words. Never present one as a match."),
+    ]
+    dropped_words: DroppedWords
     has_more: bool
     next_offset: int | None
     corpus: CorpusProvenance
@@ -832,6 +886,87 @@ class DataFreshness(ResultObject):
     tool: Annotated[str | None, Field(description="The tool filter supplied, or null.")]
     datasets: list[DatasetFreshness]
     not_listed: Annotated[str, Field(description="Tools whose data is not bundled.")]
+
+
+class ReviewedRateRecord(ResultObject):
+    """One reviewed record exactly as the bundled dataset holds it."""
+
+    id: str
+    label: str
+    value: Annotated[
+        Any, Field(description="A number, an ISO date or a list of tax brackets, per unit.")
+    ]
+    unit: Annotated[
+        str, Field(description="AUD, percent, cents_per_km, factor, date or tax_scale.")
+    ]
+    period: Annotated[
+        dict[str, str], Field(description="The record's income_year or effective dates.")
+    ]
+    source_url: Annotated[str, Field(description="The ATO page the value was read from.")]
+    retrieved_at: Annotated[
+        str, Field(description="When that page was captured, not a live check.")
+    ]
+    quote: Annotated[str, Field(description="Verbatim page text containing the value.")]
+    period_quote: NotRequired[Annotated[
+        str, Field(description="Verbatim page text naming the year, when quote does not.")
+    ]]
+    pattern: NotRequired[Annotated[
+        str, Field(description="Regex with one group that re-reads the value from the page.")
+    ]]
+    legislation: NotRequired[Annotated[
+        list[dict[str, str]],
+        Field(description="Provisions the notes cite: title_id, provision, any application."),
+    ]]
+    notes: NotRequired[Annotated[
+        str, Field(description="The record's caveats; retain them with the value.")
+    ]]
+
+
+class ReviewedRate(ResultObject):
+    ok: Annotated[Literal[True], Field(description="The lookup ran; see status for its outcome.")]
+    status: Annotated[
+        Literal["FOUND", "REFUSED"],
+        Field(description="REFUSED carries no figure; never fill the gap with a nearby year."),
+    ]
+    record_id: str
+    as_at: DateText
+    covered_years: Annotated[
+        list[YearText], Field(description="The income years the bundled records cover.")
+    ]
+    record: Annotated[
+        ReviewedRateRecord | None, Field(description="The record when FOUND, otherwise null.")
+    ]
+    refusal: Annotated[
+        Literal["UNKNOWN_ID", "OUTSIDE_COVERED_YEARS", "OUTSIDE_RECORD_PERIOD",
+                "NO_RECORDED_PERIOD"] | None,
+        Field(description="Why no figure came back, or null when FOUND."),
+    ]
+    reason: Annotated[str | None, Field(description="The refusal in words; null when FOUND.")]
+    record_period: Annotated[
+        dict[str, str] | None,
+        Field(description="The period the named record holds; null when FOUND or unknown."),
+    ]
+    covering_ids: Annotated[
+        list[str],
+        Field(description="Records of the same figure that do cover as_at, if any."),
+    ]
+    known_ids: Annotated[
+        list[str], Field(description="Every record id; supplied for an unknown id only.")
+    ]
+    after_last_read: Annotated[
+        bool,
+        Field(description="True when an open-ended record is asked about a date after it was "
+                          "last read, so it does not show the figure still applied."),
+    ]
+    after_last_read_note: Annotated[
+        str | None,
+        Field(description="That limit in words; retain it. Null when after_last_read is false."),
+    ]
+    currency: Annotated[
+        Literal["NOT_ESTABLISHED"],
+        Field(description="A record never establishes that a figure is current."),
+    ]
+    statement: Annotated[str, Field(description="Limits to retain when presenting the result.")]
 
 
 class Div7aResult(EngineResult):

@@ -1,0 +1,15 @@
+{
+  "id": "instant-asset-write-off-threshold",
+  "label": "Instant asset write-off limit (aggregated turnover under $10 million)",
+  "value": 20000,
+  "unit": "AUD",
+  "period": {
+    "effective_from": "2023-07-01",
+    "effective_to": "2026-06-30"
+  },
+  "source_url": "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/simpler-depreciation-for-small-business/instant-asset-write-off",
+  "retrieved_at": "2026-09-28T20:59:02+10:00",
+  "quote": "On or after 1 July 2023 $20,000",
+  "pattern": "On or after 1 July 2023 (\\$[\\d,]+)",
+  "notes": "The table gives no end date. The $20,000 limit from 1 July 2023 was a temporary increase, which the ATO legislation update says was last extended to 30 June 2026 by the Treasury Laws Amendment (Strengthening Financial Systems and Other Measures) Act 2025. From 1 July 2026 the permanent limit is the record instant-asset-write-off-threshold-from-2026-07-01. For the full-cost deduction, each eligible depreciating asset must cost less than $20,000. Separate rules cover later additions to an asset's cost; other conditions and exclusions apply."
+}

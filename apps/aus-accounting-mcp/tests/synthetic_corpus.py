@@ -129,7 +129,8 @@ def build(root: Path) -> Path:
             section("C9999A00002", "0001", "2",
                     "The synthetic levy rate is not applied here.",
                     act=CHARGE_ACT, current=False),
-            section("C9999A00002", "0002", "3", "x" * LONG_TEXT_CHARS, act=CHARGE_ACT),
+            section("C9999A00002", "0002", "3", "filler " + "x" * (LONG_TEXT_CHARS - 7),
+                    act=CHARGE_ACT),
         ],
     )
     # A dictionary section in the shape Commonwealth Acts use: the defined expression

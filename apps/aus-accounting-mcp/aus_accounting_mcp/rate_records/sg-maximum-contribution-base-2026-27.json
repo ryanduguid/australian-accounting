@@ -1,0 +1,14 @@
+{
+  "id": "sg-maximum-contribution-base-2026-27",
+  "label": "Super guarantee maximum contribution base (annual)",
+  "value": 270830,
+  "unit": "AUD",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+  "retrieved_at": "2026-10-15T00:31:50+11:00",
+  "quote": "Table 23: Maximum contribution base from 1 July 2026 Income year Maximum contribution base (annual) 2026–27 $270,830",
+  "pattern": "Maximum contribution base \\(annual\\) 2026–27 (\\$[\\d,]+)",
+  "notes": "An annual amount from 1 July 2026 under Payday Super. Up to 30 June 2026 the base was a quarterly earnings amount."
+}

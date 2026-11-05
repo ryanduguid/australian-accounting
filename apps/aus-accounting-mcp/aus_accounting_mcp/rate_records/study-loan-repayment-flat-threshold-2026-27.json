@@ -1,0 +1,14 @@
+{
+  "id": "study-loan-repayment-flat-threshold-2026-27",
+  "label": "Study and training loan repayment income from which the flat rate applies",
+  "value": 186051,
+  "unit": "AUD",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates",
+  "retrieved_at": "2026-11-04T03:27:31+11:00",
+  "quote": "Table 1: 2026–27 repayment thresholds and rates Repayment income Repayment on this income $0 – $69,528 Nil $69,529 – $129,717 15c for each $1 over $69,528 $129,718 – $186,050 $9,028 plus 17c for each $1 over $129,717 $186,051 and over 10% of your total repayment income",
+  "pattern": "Table 1: 2026–27 repayment thresholds and rates Repayment income Repayment on this income .*? (\\$[\\d,]+) and over [\\d.]+% of your total repayment income",
+  "notes": "From this repayment income the repayment is a share of total repayment income, not a marginal amount. The page's Example 3 for 2026-27 says $179,286, which is the 2025-26 figure in its Table 2; Table 1 gives $186,051."
+}

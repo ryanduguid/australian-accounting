@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 from typing import Any, Iterator
 
-from .corpus import _tier
+from .corpus import _matcher, _query_words, _tier
 from .errors import NOT_CONFIGURED, InputError
 from .paging import page
 
@@ -124,9 +124,47 @@ def read_reference(path: str, start_line: int, line_count: int) -> dict[str, Any
         raise InputError("Cannot read that UTF-8 Markdown file in the configured library.") from exc
 
 
+def _documents(root: Path, skipped: list[str]) -> Iterator[tuple[str, list[str], str]]:
+    """Each readable Markdown file with its lines and digest, within the library's bounds.
+
+    A file that cannot be read is named in skipped and left out.
+    """
+    size = 0
+    count = 0
+    for directory, folders, files in os.walk(root, followlinks=False):
+        folders[:] = [f for f in sorted(folders) if not f.startswith(".")
+                      and not (Path(directory) / f).is_symlink()
+                      and not bool(getattr((Path(directory) / f).lstat(),
+                                           "st_file_attributes", 0) & 1024)]
+        for filename in sorted(files):
+            if filename.startswith(".") or not filename.lower().endswith(".md"):
+                continue
+            count += 1
+            if count > MAX_FILES:
+                raise InputError(
+                    "Library exceeds 1000 Markdown files; configure a smaller folder.")
+            name = (Path(directory) / filename).relative_to(root).as_posix()
+            try:
+                raw = _document(_path(root, name), MAX_LIBRARY_BYTES - size)
+            except (InputError, OSError, UnicodeError):
+                skipped.append(name)
+                continue
+            size += len(raw)
+            if size > MAX_LIBRARY_BYTES:
+                raise InputError("Library exceeds 64 MB; configure a smaller folder.")
+            try:
+                lines, digest = _decode(raw)
+            except (InputError, UnicodeError):
+                skipped.append(name)
+                continue
+            yield name, lines, digest
+
+
 def search_references(query: str, limit: int, offset: int) -> dict[str, Any]:
     """Every line holding all the query words, best first, as one page of excerpts.
 
+    Each word counts, stop words too, and is compared whole. A modal and the "not" after
+    it are one word, so "must lodge" does not find a line holding only "must not lodge".
     Lines rank by corpus.py's tiers, reading the heading in force at the line as
     its heading: the phrase in that heading first, then every word in it, then the
     phrase in the line, then the words anywhere in the line. Ties keep folder and
@@ -137,54 +175,27 @@ def search_references(query: str, limit: int, offset: int) -> dict[str, Any]:
     if not terms:
         raise InputError("Supply at least one word to search for.")
     root = _root()
-    tier = _tier(terms, ("heading",), ("line",))
-    skipped = 0
+    words = _query_words(terms)
+    holds_words = _matcher(words)
+    tier = _tier(words, ("heading",), ("line",), terms)
+    skipped: list[str] = []
 
     def ranked() -> Iterator[tuple[int, int, tuple[Any, ...]]]:
-        nonlocal skipped
-        size = 0
-        count = 0
         order = 0
         # ponytail: ranking scans the whole library on every search. Measured on a
         # 2 MB folder that takes 0.3 to 0.5 s, and 3.0 to 3.8 s at the 1000-file,
         # 64 MB cap; add an index only if a measured library query set needs one.
-        for directory, folders, files in os.walk(root, followlinks=False):
-            folders[:] = [f for f in sorted(folders) if not f.startswith(".")
-                          and not (Path(directory) / f).is_symlink()
-                          and not bool(getattr((Path(directory) / f).lstat(),
-                                               "st_file_attributes", 0) & 1024)]
-            for filename in sorted(files):
-                if filename.startswith(".") or not filename.lower().endswith(".md"):
-                    continue
-                count += 1
-                if count > MAX_FILES:
-                    raise InputError(
-                        "Library exceeds 1000 Markdown files; configure a smaller folder.")
-                name = (Path(directory) / filename).relative_to(root).as_posix()
-                try:
-                    raw = _document(_path(root, name), MAX_LIBRARY_BYTES - size)
-                except (InputError, OSError, UnicodeError):
-                    skipped += 1
-                    continue
-                size += len(raw)
-                if size > MAX_LIBRARY_BYTES:
-                    raise InputError("Library exceeds 64 MB; configure a smaller folder.")
-                try:
-                    lines, digest = _decode(raw)
-                except (InputError, UnicodeError):
-                    skipped += 1
-                    continue
-                heading = page = None
-                for index, line in enumerate(lines):
-                    heading, page = _context(line, heading, page)
-                    folded = line.casefold()
-                    if all(term in folded for term in terms):
-                        # Keep only what the excerpt needs, so a deep offset does not
-                        # hold whole files in memory.
-                        excerpt = (name, digest, index + 1, len(lines), heading, page,
-                                   lines[index:index + 3])
-                        yield tier({"heading": heading, "line": line}), order, excerpt
-                        order += 1
+        for name, lines, digest in _documents(root, skipped):
+            heading = page = None
+            for index, line in enumerate(lines):
+                heading, page = _context(line, heading, page)
+                if holds_words(line.casefold()):
+                    # Keep only what the excerpt needs, so a deep offset does not
+                    # hold whole files in memory.
+                    excerpt = (name, digest, index + 1, len(lines), heading, page,
+                               lines[index:index + 3])
+                    yield tier({"heading": heading, "line": line}), order, excerpt
+                    order += 1
 
     # Every eligible line takes one rank, whether it is returned or dropped as too
     # long to excerpt, so the next offset lands after the last one this page consumed.
@@ -195,7 +206,18 @@ def search_references(query: str, limit: int, offset: int) -> dict[str, Any]:
             matches.append(_shape(*excerpt))
         except InputError:
             continue
-    return _page(matches, offset + limit, skipped, has_more=len(best) > offset + limit)
+    return _page(matches, offset + limit, len(skipped), has_more=len(best) > offset + limit)
+
+
+def census() -> dict[str, Any]:
+    """What the configured library holds, for `aus-accounting-mcp doctor`."""
+    skipped: list[str] = []
+    documents = list(_documents(_root(), skipped))
+    return {
+        "files": len(documents),
+        "rows": sum(len(lines) for _, lines, _ in documents),
+        "skipped": skipped,
+    }
 
 
 def _page(matches: list[dict[str, Any]], seen: int, skipped: int,

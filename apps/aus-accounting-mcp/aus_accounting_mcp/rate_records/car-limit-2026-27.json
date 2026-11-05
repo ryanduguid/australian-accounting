@@ -1,0 +1,14 @@
+{
+  "id": "car-limit-2026-27",
+  "label": "Car cost limit for depreciation",
+  "value": 69883,
+  "unit": "AUD",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/businesses-and-organisations/small-business-newsroom/car-thresholds-from-1-july",
+  "retrieved_at": "2026-09-28T20:59:15+10:00",
+  "quote": "The car limit threshold for 2026–27 is $69,883.",
+  "pattern": "car limit threshold for 2026–27 is (\\$[\\d,]+)",
+  "notes": "Source is a newsroom item published 9 June 2026. No evergreen ATO rates page for the car limit was found; next year's figure may appear at a different URL."
+}

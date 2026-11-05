@@ -121,6 +121,8 @@ def scope() -> dict[str, Any]:
             "validate_acn": "Test an ACN's check digit; proves neither ABR nor GST "
             "registration.",
             "calculate_tax_worksheet": "Run one of the bounded calculation_worksheets below.",
+            "get_reviewed_rate": "Return one reviewed ATO record for a date in 2025-26 or "
+            "2026-27 with its source and verbatim quote; any other date is refused.",
             "get_data_freshness": "Report each bundled dataset's recorded periods, engine "
             "version and source dates, with UNKNOWN where none is recorded; never a "
             "statement that data is current.",

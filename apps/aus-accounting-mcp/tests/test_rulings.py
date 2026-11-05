@@ -475,3 +475,72 @@ def test_a_run_rewritten_during_a_read_is_an_input_error(runs, monkeypatch):
     )
     with pytest.raises(InputError, match="Cannot read that rulings run as UTF-8 JSONL"):
         rulings_module.read_ruling(f"{fixture.NEWER_RUN}|{fixture.RULING}|2")
+
+
+MODAL_PARAGRAPHS = {
+    "1": "A partner must lodge a statement.",
+    "2": "A trustee must\nnot lodge a statement.",
+    "3": "A partner can claim a car.",
+    "4": "A trustee cannot claim a scar.",
+    "5": "A trustee can not claim a loan.",
+    "6": "A partner may lodge a statement but need not pay.",
+}
+
+
+def _modal_run(root: Path) -> None:
+    fixture.write_run(root / fixture.NEWER_RUN, "2099-02-01", [fixture.document(
+        fixture.GUIDELINE, "Practical Compliance Guideline", "Modal wording",
+        [(label, "Wording", text) for label, text in MODAL_PARAGRAPHS.items()],
+        fetched_on="2099-02-01",
+    )])
+
+
+@pytest.mark.parametrize(("query", "found"), [
+    ("must lodge", {"1"}),
+    ("MUST NOT lodge", {"2"}),
+    ("can claim", {"3"}),
+    ("cannot claim", {"4", "5"}),
+    ("can not claim", {"4", "5"}),
+    ("car", {"3"}),
+    ("may lodge", {"6"}),
+    ("may not lodge", set()),
+    ("the car", set()),
+])
+def test_search_compares_whole_words_and_keeps_a_modal_with_its_not(
+    query, found, tmp_path, monkeypatch
+):
+    monkeypatch.setenv("AUS_ACCOUNTING_RULINGS_ROOT", str(tmp_path))
+    _modal_run(tmp_path)
+    result = call("search_ato_rulings", query=query)
+    assert {match["paragraph"] for match in result["matches"]} == found  # nosec B101
+
+
+def test_search_finds_a_modal_with_its_not_through_a_json_escape(tmp_path, monkeypatch):
+    monkeypatch.setenv("AUS_ACCOUNTING_RULINGS_ROOT", str(tmp_path))
+    _modal_run(tmp_path)
+    path = tmp_path / fixture.NEWER_RUN / "rulings.jsonl"
+    path.write_text(path.read_text(encoding="utf-8").replace("lodge", "lodg\\u0065"),
+                    encoding="utf-8")
+    [match] = call("search_ato_rulings", query="must not lodge")["matches"]
+    assert match["paragraph"] == "2"  # nosec B101
+
+
+@pytest.mark.parametrize(("query", "paragraphs", "cited"), [
+    ("must lodge",
+     [("1", "Other", "you must lodge"), ("2", "Must not lodge", "you must lodge")], ["1", "2"]),
+    ("must not lodge",
+     [("1", "Other", "you must not lodge"), ("2", "Lodge, you must not", "you must not lodge")],
+     ["2", "1"]),
+    ("cannot claim",
+     [("1", "Other", "cannot, as a rule, claim"), ("2", "Other", "cannot claim")], ["2", "1"]),
+])
+def test_search_ranks_on_the_words_as_it_matches_them(
+    query, paragraphs, cited, tmp_path, monkeypatch
+):
+    monkeypatch.setenv("AUS_ACCOUNTING_RULINGS_ROOT", str(tmp_path))
+    fixture.write_run(tmp_path / fixture.NEWER_RUN, "2099-02-01", [fixture.document(
+        fixture.GUIDELINE, "Practical Compliance Guideline", "Modal wording", paragraphs,
+        fetched_on="2099-02-01",
+    )])
+    result = call("search_ato_rulings", query=query)
+    assert [match["paragraph"] for match in result["matches"]] == cited  # nosec B101
