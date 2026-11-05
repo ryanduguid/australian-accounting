@@ -63,6 +63,7 @@ fn every_case_reaches_its_stated_result() {
         for (key, want) in expect {
             if key == "caveats_mention" {
                 let needle = want.as_str().unwrap();
+                assert!(!needle.is_empty(), "{name}: caveats_mention is empty");
                 let caveats = result["caveats"].as_array().unwrap();
                 assert!(
                     caveats.iter().any(|c| c.as_str().unwrap().contains(needle)),

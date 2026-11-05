@@ -18,7 +18,6 @@ use lodgeit_calculator_adapter::contract;
 use lodgeit_calculator_adapter::dial::{self, Net};
 use lodgeit_calculator_adapter::pyjson::{self, Json, Layout};
 use lodgeit_calculator_adapter::pyops::Exc;
-use lodgeit_calculator_adapter::pyvalue::points_lossy;
 use lodgeit_calculator_adapter::trials::{Evaluation, div7a, fbt, live};
 use lodgeit_calculator_adapter::wire;
 use num_bigint::BigInt;
@@ -29,7 +28,7 @@ const COMMITTED: &str = include_str!("../docs/live-trials-2026-11-06.json");
 /// a test named a file to watch, what that file held when the last one arrived.
 #[derive(Default)]
 struct Seen {
-    requests: Mutex<Vec<(String, String)>>,
+    requests: Mutex<Vec<(String, Vec<u8>)>>,
     watch: Mutex<Option<PathBuf>>,
     on_disk: Mutex<Option<String>>,
 }
@@ -97,10 +96,10 @@ fn serve(stream: TcpStream, status: u16, reply: Option<&[u8]>, seen: &Seen) {
     if reader.read_exact(&mut body).is_err() {
         return;
     }
-    seen.requests.lock().unwrap().push((
-        target.to_owned(),
-        String::from_utf8_lossy(&body).into_owned(),
-    ));
+    seen.requests
+        .lock()
+        .unwrap()
+        .push((target.to_owned(), body));
     if let Some(path) = seen.watch.lock().unwrap().as_ref() {
         *seen.on_disk.lock().unwrap() = fs::read_to_string(path).ok();
     }
@@ -147,8 +146,8 @@ fn answer() -> Json {
     ])
 }
 
-/// The pass against `stub`, with how many pauses it took.
-fn pass(stub: &Stub) -> (live::Pass, usize) {
+/// The pass against `stub`, with how many requests it had seen at each pause.
+fn pass(stub: &Stub) -> (live::Pass, Vec<usize>) {
     let config = AdapterConfig {
         enabled: true,
         base_url: Some(stub.base_url.clone()),
@@ -167,10 +166,10 @@ fn pass(stub: &Stub) -> (live::Pass, usize) {
         dial: &mut net,
         sleep: &mut sleep,
     };
-    let mut pauses = 0;
+    let mut pauses = Vec::new();
     let mut result = live::Pass::default();
     let mut pause = || {
-        pauses += 1;
+        pauses.push(stub.requests());
         Ok(())
     };
     live::run(&mut client, &mut pause, &mut result, &mut |_| Ok(())).expect("a pass");
@@ -253,13 +252,20 @@ fn keys(json: &Json) -> Vec<String> {
 
 /// The target and exact wire body of each sendable case, in case file order:
 /// Division 7A, then FBT car, without the 2 cases the pass must never send.
-fn sendable_requests() -> Vec<(String, String)> {
+fn sendable_requests() -> Vec<(String, Vec<u8>)> {
     const UNSENT: [&str; 2] = [
         "D7A-8-nil-remaining-term-refused",
         "D7A-9-unsupported-period",
     ];
     let field: Vec<u32> = "body".chars().map(u32::from).collect();
-    let on_wire = |body: Json| points_lossy(&wire::dumps(&body, &field).expect("exact"));
+    let on_wire = |body: Json| {
+        let points = wire::dumps(&body, &field).expect("exact");
+        let text: String = points
+            .iter()
+            .map(|&point| char::from_u32(point).expect("a scalar"))
+            .collect();
+        text.into_bytes()
+    };
     let div7a_cases = div7a::load_cases(None).expect("the packaged cases load");
     let div7a_requests = div7a_cases
         .iter()
@@ -291,7 +297,8 @@ fn a_clean_pass_sends_each_sendable_case_once_and_pauses_after_each() {
     assert_eq!(result.stopped, None);
     // 7 Division 7A and 5 FBT car requests; D7A-8 and D7A-9 are never sent.
     assert_eq!(stub.requests(), 12);
-    assert_eq!(pauses, 12);
+    // A pause follows each request before the next goes out.
+    assert_eq!(pauses, (1..=12).collect::<Vec<usize>>());
     assert_eq!(result.records.len(), 14);
     let want = sendable_requests();
     let distinct: HashSet<_> = want.iter().collect();
@@ -336,7 +343,7 @@ fn the_first_answer_that_is_not_computed_stops_the_pass() {
     let (result, pauses) = pass(&stub);
     assert_eq!(result.stopped.as_deref(), Some("D7A-1-met-first-real-year"));
     assert_eq!(stub.requests(), 1);
-    assert_eq!(pauses, 0);
+    assert!(pauses.is_empty());
     assert_eq!(result.records.len(), 1);
 }
 

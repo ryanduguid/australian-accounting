@@ -55,12 +55,19 @@ fn every_case_reaches_its_stated_result() {
             input[key] = value.clone();
         }
         let result = api::evaluate(command, &input);
-        if let Some(message) = case["refused"].as_str() {
+        let (refused, expect) = (case.get("refused"), case.get("expect"));
+        assert!(
+            refused.is_some() != expect.is_some(),
+            "{name}: needs exactly one of expect and refused"
+        );
+        if let Some(message) = refused {
+            let message = message.as_str().unwrap();
+            assert!(!message.is_empty(), "{name}: refused must name a message");
             assert_eq!(result, Err(message.to_string()), "{name}");
             continue;
         }
         let result = result.unwrap_or_else(|e| panic!("{name}: {e}"));
-        let expect = case["expect"].as_object().unwrap();
+        let expect = expect.unwrap().as_object().unwrap();
         assert!(
             !expect.is_empty(),
             "{name}: expect must name at least one result"
