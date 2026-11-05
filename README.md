@@ -49,6 +49,42 @@ service, write to no ledger and lodge nothing. Two boundaries sit outside that: 
 
 Missing facts stay unknown: a Payday Super row with a fund-receipt date but no matched_amount or remitted_amount evidences when the fund received something, not how much, so the checker leaves it UNKNOWN rather than ON_TIME and names the amount it needs (from payday-super-checker 0.1.7; 0.1.6 and earlier read that receipt as covering the whole SG amount and say so in a caveat). Supply the amount the fund received with every receipt date.
 
+**Results you can check**, dated because sources and releases move:
+
+- **Division 7A.** On 7 October 2026 the minimum yearly repayment function of the ATO's
+  [Division 7A calculator and decision tool](https://www.ato.gov.au/calculators-and-tools/division-7a-calculator-and-decision-tool)
+  and the `div7a-loan-review` Python 0.2.0 source agreed to the cent on 12,800 fabricated cases with no
+  repayments, for 2019-20 to 2026-27. Its repayment code and rate table are unchanged to the
+  published 0.3.2, but the comparison was not rerun on later releases or the unreleased Rust port.
+  It covers the repayment figure only, not the calculator's interest or closing balance
+  ([record and limits](packages/div7a-loan-review/docs/ato-calculator-comparison-2026-10-07.md)).
+- **Payday Super.** For wages paid on 30 July 2026, `payday-super-check` 0.2.3 gives a due date of
+  11 August 2026, because NT Picnic Day on 3 August is not a business day. The
+  [ATO's worked example](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super)
+  gives the same date on the usual 7 business day path. Run and read 5 November 2026.
+- **MCP tools.** Aus Accounting MCP 0.7.1, the published release, listed 22 local tools on
+  5 November 2026. The source on `main` defines 24: `validate_abn` and `validate_acn` are not yet
+  released.
+
+<details>
+<summary>Commands for the Payday Super date and the tool count</summary>
+
+The first command downloads a fabricated register, and row 4 of the second prints
+`QE day 2026-07-30  due 2026-08-11`. Its rows are late, so that command exits 2.
+
+```bash
+curl -sSLO https://raw.githubusercontent.com/ryanduguid/australian-accounting/main/packages/payday-super-checker/examples/quarterly_remittance_2026_27.csv
+uvx --from payday-super-checker==0.2.3 payday-super-check quarterly_remittance_2026_27.csv --as-at 2026-11-05 -o report.csv
+```
+
+This asks the published server for its tools and prints the count, with `jq` installed:
+
+```bash
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"0"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp | tail -1 | jq '.result.tools | length'
+```
+
+</details>
+
 **Start here:** [what each component is](#components) ·
 [MCP client setup](apps/aus-accounting-mcp/README.md#client-integration) ·
 [tool reference](apps/aus-accounting-mcp/README.md#tools) ·
@@ -199,6 +235,27 @@ you configure. As read on 5 November 2026, these projects cover nearby ground:
   Australian calculators with refusal codes in YAML.
 - [PolicyEngine/policyengine-au](https://github.com/PolicyEngine/policyengine-au): microsimulation
   for Australia, a different purpose.
+- [Nagaris](https://nagaris.com/llms.txt): a hosted practice platform for Australian accounting
+  firms, with proposals, AML/CTF checks, e-signing, job tracking and an AI assistant on one client
+  file. It publishes browser calculators, including [Division 7A](https://nagaris.com/division-7a-calculator)
+  and [Payday Super due dates](https://nagaris.com/payday-super-due-date-calculator), and the second
+  also gives 11 August 2026 for a 30 July 2026 payday. Its
+  [AI Accounting Index](https://nagaris.com/ai-accounting-index), which tested third-party AI models
+  with each question answered once, reports that none of the 14 setups that answered that question
+  reached 11 August, and says Ask Nagaris adds lookup tables for business days. Read 5 November 2026.
+- [Lodgeit](https://lodgeit.net.au/): a hosted platform that
+  [prepares and lodges](https://lodgeit.net.au/for-accountants/) returns, BAS and financial reports.
+  Its home page calls it an 'Official ATO Standard Business Reporting platform' and states
+  ISO 27001:2022 certification. Read 5 November 2026.
+- [LodgeiT Labs](https://lodgeit.org/calculators.html): a public HTTP gateway for deterministic
+  calculators with no key or signup, which its page describes as 'Not stable yet'. Its
+  [listing](https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app/v1/calculators) showed 23 calculators,
+  with Division 7A periods `fy2025` and `fy2026` and FBT period `fy2026`. Its page also lists a
+  Coal LSL calculator that external contributor Ryan Duguid built and hosts, and this repository has
+  an optional adapter for the gateway. Read 5 November 2026.
+
+This repository offers none of those hosted services. It is not a registered tax or BAS agent,
+does not lodge and holds no third-party certification such as ISO 27001.
 
 <details>
 <summary>Rust engine installation, component development, boundaries and releases</summary>
