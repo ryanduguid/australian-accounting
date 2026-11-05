@@ -10,6 +10,10 @@ Two properties are proved with the ast module over every production module:
 2. no production module, engine or application, uses a relative import whose level
    climbs out of its own top-level package directory.
 
+A third reads the network: no Python engine module imports a network library, no
+Rust engine crate's source names std::net, and no manifest or lockfile lists a
+network crate, directly or transitively.
+
 Each property has an in-memory positive control so a scan that silently finds
 nothing cannot pass. The remaining tests hold the CI routing: every engine is
 called with the same gates, and the package path filter still routes a change to
@@ -22,8 +26,10 @@ from __future__ import annotations
 
 import ast
 import importlib.util
+import os
 import re
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -76,6 +82,25 @@ RUST_APPLICATIONS = {
 # and the engine that owns each set.
 CHANGED_LINE_COVERAGE: dict[str, str] = {}
 FORBIDDEN_FOR_ENGINES = frozenset({*APPLICATIONS.values(), *ENGINES.values()})
+# `[^;]*?` reaches `net` through nested braces, up to the end of the `use`.
+NETWORK_CODE = re.compile(
+    r"\b(?:std|core)::net\b|\b(?:std|core)::\{[^;]*?\bnet\b"
+    r"|\b(?:TcpStream|TcpListener|UdpSocket)\b"
+)
+NETWORK_CRATES = frozenset({
+    "attohttpc", "awc", "curl", "h2", "h3", "hyper", "isahc", "mio", "native-tls",
+    "quinn", "reqwest", "rustls", "socket2", "surf", "tokio", "ureq",
+})
+NETWORK_MODULES = frozenset({
+    "aiohttp", "http", "httpx", "requests", "socket", "urllib", "urllib3",
+})
+# Every crate an engine or its fuzz and wasm crates may name directly. NETWORK_CRATES
+# cannot list every client, so a new dependency is approved here first. A change to
+# what one of these pulls in is what the Cargo.lock scan above reads.
+APPROVED_CRATES = frozenset({
+    "chrono", "libc", "libfuzzer-sys", "num-bigint", "num-integer", "num-traits",
+    "roxmltree", "rust_xlsxwriter", "serde_json", "sha2", "zip",
+})
 PATH_FILTER_KEY = re.compile(
     r"(?<![\w-])['\"]?(paths(?:-ignore)?)['\"]?\s*:"
 )
@@ -122,6 +147,45 @@ def escaping_relative_imports(tree: ast.AST, depth: int) -> list[str]:
             names = ", ".join(alias.name for alias in node.names)
             found.append(f"level {node.level} import of {node.module or '.'} ({names})")
     return found
+
+
+def rust_crate_files(crate: Path) -> list[Path]:
+    """Every Rust source and manifest in a crate, its fuzz and wasm crates included."""
+    found: list[Path] = []
+    for directory, subdirectories, names in os.walk(crate):
+        subdirectories[:] = [name for name in subdirectories if name != "target"]
+        found += [Path(directory) / name for name in names
+                  if name in {"Cargo.toml", "Cargo.lock"} or name.endswith(".rs")]
+    return found
+
+
+def dependency_names(table: dict) -> set[str]:
+    """Every crate a parsed manifest table depends on, under any target, renames resolved."""
+    names: set[str] = set()
+    for key, value in table.items():
+        if not isinstance(value, dict):
+            continue
+        if key.endswith("dependencies"):
+            names.update(spec.get("package", name) if isinstance(spec, dict) else name
+                         for name, spec in value.items())
+        else:
+            names |= dependency_names(value)
+    return names
+
+
+def unapproved_dependencies(manifest: str) -> set[str]:
+    """The crates a Cargo manifest names that are neither approved nor an engine here."""
+    return dependency_names(tomllib.loads(manifest)) - APPROVED_CRATES - set(RUST_ENGINES.values())
+
+
+def network_use(name: str, text: str) -> list[str]:
+    """What a Rust source, Cargo manifest or lockfile names that could reach a network."""
+    if name == "Cargo.toml":
+        return sorted(dependency_names(tomllib.loads(text)) & NETWORK_CRATES)
+    if name == "Cargo.lock":
+        locked = {package["name"] for package in tomllib.loads(text).get("package", [])}
+        return sorted(locked & NETWORK_CRATES)
+    return [match.group() for match in NETWORK_CODE.finditer(text)]
 
 
 def production_modules(component: str, package: str) -> list[tuple[Path, int]]:
@@ -368,6 +432,79 @@ class BoundaryTests(unittest.TestCase):
                 with self.subTest(module=str(path.relative_to(ROOT))):
                     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
                     self.assertEqual(escaping_relative_imports(tree, depth), [])
+
+    def test_no_engine_crate_names_the_network(self) -> None:
+        self.assertIn("packages/payday-super-checker", RUST_ENGINES)
+        for component in RUST_ENGINES:
+            files = rust_crate_files(ROOT / component)
+            self.assertIn(ROOT / component / "Cargo.toml", files)
+            self.assertIn(ROOT / component / "Cargo.lock", files)
+            for path in files:
+                with self.subTest(file=str(path.relative_to(ROOT))):
+                    text = path.read_text(encoding="utf-8")
+                    self.assertEqual(network_use(path.name, text), [])
+
+    def test_engine_crates_depend_only_on_approved_crates(self) -> None:
+        for component in RUST_ENGINES:
+            for path in rust_crate_files(ROOT / component):
+                if path.name == "Cargo.toml":
+                    with self.subTest(file=str(path.relative_to(ROOT))):
+                        text = path.read_text(encoding="utf-8")
+                        self.assertEqual(unapproved_dependencies(text), set())
+
+    def test_positive_control_for_an_unlisted_client(self) -> None:
+        manifest = '[dependencies]\nminreq = "2"\nsha2 = "0.11"\n'
+        self.assertEqual(network_use("Cargo.toml", manifest), [])
+        self.assertEqual(unapproved_dependencies(manifest), {"minreq"})
+
+    def test_no_python_engine_imports_the_network(self) -> None:
+        self.assertIn("packages/lodgment-calendar", PYTHON_ENGINES)
+        for component, package in PYTHON_ENGINES.items():
+            for path, _depth in production_modules(component, package):
+                with self.subTest(module=str(path.relative_to(ROOT))):
+                    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+                    self.assertEqual(imported_top_levels(tree) & NETWORK_MODULES, set())
+
+    def test_the_rates_dataset_is_the_named_network_exception(self) -> None:
+        # Its https.rs fetches official pages for the dataset, and nothing links it.
+        self.assertEqual(set(DATASETS), {"packages/au-tax-rates-data"})
+        crate = ROOT / "packages" / "au-tax-rates-data"
+        https = (crate / "src" / "https.rs").read_text(encoding="utf-8")
+        manifest = (crate / "Cargo.toml").read_text(encoding="utf-8")
+        self.assertTrue(network_use("https.rs", https))
+        self.assertTrue(network_use("Cargo.toml", manifest))
+        for other in ROOT.glob("*/*/Cargo.toml"):
+            self.assertNotIn("au-tax-rates-data =", other.read_text(encoding="utf-8"), other)
+
+    def test_positive_control_for_network_code(self) -> None:
+        for source in (
+            "use std::net::TcpStream;",
+            "use std::{fs, net::IpAddr};",
+            "use std::{fs::{self, File}, net::IpAddr};",
+            "use core::net::Ipv4Addr;",
+            "let socket = UdpSocket::bind(address);",
+        ):
+            with self.subTest(source=source):
+                self.assertTrue(network_use("lib.rs", source))
+        self.assertEqual(network_use("lib.rs", "// no network\nuse std::fs;\n"), [])
+
+    def test_positive_control_for_http_clients(self) -> None:
+        for manifest in (
+            '[dependencies]\nreqwest = "0.12"\n',
+            '[dev-dependencies]\n  ureq = { version = "3" }\n',
+            "[target.'cfg(unix)'.dependencies.hyper]\nversion = \"1\"\n",
+            '[dependencies]\nfetch = { package = "reqwest", version = "0.12" }\n',
+            '[dependencies]\nreqwest.version = "0.12"\n',
+            "[dependencies]\nhyper.workspace = true\n",
+            '[dependencies]\n"reqwest" = "0.12"\n',
+            '[workspace.dependencies]\ntokio = "1"\n',
+        ):
+            with self.subTest(manifest=manifest):
+                self.assertTrue(network_use("Cargo.toml", manifest))
+        self.assertEqual(network_use("Cargo.lock", '[[package]]\nname = "mio"\n'), ["mio"])
+        self.assertEqual(network_use("Cargo.lock", '[[package]]\nname = "sha2"\n'), [])
+        quiet = '[package]\ndescription = "no reqwest here"\n[dependencies]\nsha2 = "0.11"\n'
+        self.assertEqual(network_use("Cargo.toml", quiet), [])
 
     def test_positive_control_for_forbidden_imports(self) -> None:
         tree = ast.parse(

@@ -252,7 +252,7 @@ at the end. Limits must be integers from 1 to 100 and offsets non-negative integ
 Omitting `limit` or setting it to null preserves full-list calls; an offset still
 skips that many matching entries. Source metadata accompanies every page.
 
-Thirty-nine fabricated, read-only agent evaluation questions are in
+Forty fabricated, read-only agent evaluation questions are in
 [evaluation/questions.xml](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/evaluation/questions.xml), each with its exact expected
 answer and the tools a correct answer needs. The normal pytest suite replays them
 through a real stdio MCP session using the locked engines, checking both the

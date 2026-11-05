@@ -35,13 +35,31 @@ fn scratch() -> Option<&'static Path> {
 pub fn read_export(data: &[u8]) {
     let _ = usi::parse_extract(data);
     let _ = usi::read_usis("export.csv", data);
-    let Some(dir) = scratch() else { return };
+    read_export_in(
+        scratch().expect("a fuzz run needs a scratch directory"),
+        data,
+    );
+}
+
+/// A run that cannot place its input has read nothing, so it must not pass.
+fn read_export_in(dir: &Path, data: &[u8]) {
     let path = dir.join("export.csv");
-    if std::fs::write(&path, data).is_err() {
-        return;
-    }
+    std::fs::write(&path, data).expect("the input must reach the readers");
     let path = path.to_string_lossy().into_owned();
     let _ = importers::read_payroll(&path, None);
     let _ = importers::read_super(&path, None);
     let _ = csv_io::parse_rows(&path, &Mapping::default_mapping());
+}
+
+#[cfg(test)]
+mod unwritable {
+    use super::read_export_in;
+
+    /// A file stands in for the directory, which refuses the write on every
+    /// platform and for every user, root included.
+    #[test]
+    #[should_panic(expected = "the input must reach the readers")]
+    fn an_input_that_cannot_be_written_fails_the_run() {
+        read_export_in(&std::env::current_exe().unwrap(), b"a,b");
+    }
 }

@@ -186,10 +186,11 @@ record the expected output, limitations and asset source.
 
 ## Conformance cases
 
-[`conformance/cases.json`](conformance/cases.json) holds 23 calls. Fifteen PAYG
+[`conformance/cases.json`](conformance/cases.json) holds 32 calls. Fifteen PAYG
 withholding cases take their expected amounts from the ATO's published Schedule 1
-sample data (`basis: authority`). Eight Payday Super and Division 7A cases, including
-those it leaves `UNKNOWN` or refuses, pin this server's own results
+sample data, and 11 Payday Super and Division 7A cases take theirs from an ATO
+example or a section worked by hand (`basis: authority`). Six cases, including those
+it leaves `UNKNOWN` or refuses, pin this server's own results, each with its reason
 (`basis: self-pinned`). Another implementation can replay them; see
 [conformance/README.md](conformance/README.md).
 
