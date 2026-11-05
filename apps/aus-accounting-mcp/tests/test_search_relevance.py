@@ -42,6 +42,30 @@ def test_the_one_word_floor_fails_the_gate_as_recorded(monkeypatch):
     assert not search_relevance.passes(figures, RELEVANCE["gate"])
 
 
+def test_the_command_exits_zero_when_both_lists_pass(capsys):
+    assert search_relevance.main() == 0
+    assert capsys.readouterr().out.count("gate: PASS") == 2
+
+
+def test_the_command_exits_one_on_a_threshold_nothing_can_meet(capsys, monkeypatch):
+    relevance = search_relevance.load()
+    relevance["gate"]["first_hit_precision_at_least"] = 1.1
+    monkeypatch.setattr(search_relevance, "load", lambda: relevance)
+
+    assert search_relevance.main() == 1
+    assert capsys.readouterr().out.count("gate: FAIL") == 2
+
+
+@pytest.mark.parametrize("questions", [28, 18])
+def test_either_list_failing_fails_the_command(capsys, monkeypatch, questions):
+    monkeypatch.setattr(
+        search_relevance, "passes", lambda figures, gate: figures["questions"] != questions
+    )
+
+    assert search_relevance.main() == 1
+    assert capsys.readouterr().out.count("gate: FAIL") == 1
+
+
 def test_a_question_with_no_answer_is_held_on_each_list():
     for name in ("queries", "held_out"):
         assert any(not query["relevant"] for query in RELEVANCE[name])
@@ -52,11 +76,11 @@ def test_the_reference_publishes_the_figures_and_the_limits():
     assert "dated 6 November 2026" in REFERENCE
     assert RELEVANCE["dated"] == "2026-11-06"
     rows = {
-        "| One-word floor, not shipped, 28 questions | 20 | 0 | 2 | 17 | 0.455 | 0.262 | 0.625 |":
+        "| One-word floor, not shipped, 28 questions | 20 | 0 | 1 | 17 | 0.478 | 0.271 | 0.625 |":
             RELEVANCE["one_word_floor"],
-        "| Two-word floor, the same 28 | 20 | 0 | 2 | 9 | 0.75 | 0.6 | 0 |":
+        "| Two-word floor, the same 28 | 20 | 0 | 1 | 9 | 0.778 | 0.625 | 0 |":
             RELEVANCE["published"]["queries"],
-        "| Two-word floor, 18 held-out questions | 12 | 0 | 3 | 10 | 0.75 | 0.533 | 0 |":
+        "| Two-word floor, 18 held-out questions | 12 | 0 | 2 | 10 | 0.778 | 0.562 | 0 |":
             RELEVANCE["published"]["held_out"],
     }
     for row, figures in rows.items():

@@ -4,9 +4,10 @@
 """Opt-in local legislation corpus retrieval. Source text is evidence, never instructions.
 
 The corpus is a folder the operator configures and controls: one JSONL index per title
-under `markdown/<register id>/sections.jsonl`, an optional `rates/rates.jsonl` of rate
-and threshold rows, and an optional `sources.json` manifest. Nothing here is bundled,
-downloaded or written, and a row is a point-in-time copy, never a statement of current law.
+under `markdown/<register id>/sections.jsonl`, `rates/rates.jsonl` of rate and threshold
+rows, which search_tax_rates needs, and an optional `sources.json` manifest. Nothing here
+is bundled, downloaded or written, and a row is a point-in-time copy, never a statement
+of current law.
 """
 
 from __future__ import annotations
@@ -66,15 +67,17 @@ PARTIAL_NOTICE = (
     "judge it first, or search again with the statutory wording."
 )
 # Words a plain question carries that name no tax concept, so that "what is the limit
-# for a car" asks for the rows holding "limit" and "car". "not" and "no" stay, because
-# they change what is asked and "not for profit" is a term of its own. "s" and "t" are
-# what "\w+" leaves of "dog's" and "don't".
+# for a car" asks for the rows holding "limit" and "car". A word a statute uses to give,
+# impose, deny or qualify force stays, so that "must lodge" never fully matches "may
+# lodge": the modal verbs, "not", "no", "but" and the like. "and", "or" and "if" go,
+# because they join a question's words and nearly every row holds them, so keeping them
+# would separate nothing. "s" and "t" are what "\w+" leaves of "dog's" and "don't".
 STOP_WORDS = frozenset((
-    "a about am an and any are as at be been being but by can could did do does for "
-    "from get got had has have he her here his how i if in into is it its me might "
-    "many may much must my of on or our please s shall she should some t tell than that "
+    "a about am an and any are as at be been being by did do does for "
+    "from get got had has have he her here his how i if in into is it its me "
+    "many much my of on or our please s she some t tell than that "
     "the their them there these they this those to was we were what when where "
-    "which who whom whose why with would you your"
+    "which who whom whose why with you your"
 ).split())
 # How many of a query's words a row must hold to be offered as a partial hit. One shared
 # word proved no evidence of relevance: evaluation/search_relevance.py measures this.

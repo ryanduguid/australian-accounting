@@ -1,29 +1,29 @@
 {
   "dated": "2026-11-06",
-  "note": "Fixed, fabricated relevance set for corpus search. Every provision is invented and states no law. The gate, the corpus, the queries and their relevant rows were written before the fallback was measured, and do not change to suit a result. queries failed the gate with a one-word floor, shown in one_word_floor, which set the two-word floor and the 's' and 't' stop words, so they are not independent of those. held_out was written after that failure and before the two-word floor first ran. A review then narrowed partial hits to a row's heading and text and required a query word with a digit, so both lists have now been measured against changed code and held_out is no longer unseen; no question or label changed. The one-word floor measured 0.25 all-hit precision when Act names counted. Every row now carries a real principal Act's name, because a title's name holds words plain questions use; the provisions stay invented.",
+  "note": "Fixed, fabricated relevance set for corpus search. Every provision is invented and states no law. The gate, the corpus, the queries and their relevant rows were written before the fallback was measured, and do not change to suit a result. queries failed the gate with a one-word floor, shown in one_word_floor, which set the two-word floor and the 's' and 't' stop words, so they are not independent of those. held_out was written after that failure and before the two-word floor first ran. A review then narrowed partial hits to a row's heading and text and required a query word with a digit, so both lists have now been measured against changed code and held_out is no longer unseen; no question or label changed. The modal verbs and 'but' then stopped being stop words, which took one full match off each list and moved that relevant row into partial hits: no more answers were found, and the precision rise on these lists comes from that move alone. The one-word floor measured 0.25 all-hit precision when Act names counted. Every row now carries a real principal Act's name, because a title's name holds words plain questions use; the provisions stay invented.",
   "one_word_floor": {
     "hits_as_written": 0,
-    "hits_stop_words_dropped": 2,
+    "hits_stop_words_dropped": 1,
     "hits_with_partial": 17,
-    "first_hit_precision": 0.455,
-    "all_hit_precision": 0.262,
+    "first_hit_precision": 0.478,
+    "all_hit_precision": 0.271,
     "unanswerable_with_partial_hits": 0.625
   },
   "published": {
     "queries": {
       "questions": 28, "answerable": 20, "unanswerable": 8,
-      "hits_as_written": 0, "hits_stop_words_dropped": 2, "hits_with_partial": 9,
-      "matches": 2, "match_precision": 1.0,
-      "partial_hits": 15, "all_hit_precision": 0.6,
-      "first_hit_questions": 8, "first_hit_precision": 0.75,
+      "hits_as_written": 0, "hits_stop_words_dropped": 1, "hits_with_partial": 9,
+      "matches": 1, "match_precision": 1.0,
+      "partial_hits": 16, "all_hit_precision": 0.625,
+      "first_hit_questions": 9, "first_hit_precision": 0.778,
       "unanswerable_with_partial_hits": 0.0
     },
     "held_out": {
       "questions": 18, "answerable": 12, "unanswerable": 6,
-      "hits_as_written": 0, "hits_stop_words_dropped": 3, "hits_with_partial": 10,
-      "matches": 3, "match_precision": 1.0,
-      "partial_hits": 15, "all_hit_precision": 0.533,
-      "first_hit_questions": 8, "first_hit_precision": 0.75,
+      "hits_as_written": 0, "hits_stop_words_dropped": 2, "hits_with_partial": 10,
+      "matches": 2, "match_precision": 1.0,
+      "partial_hits": 16, "all_hit_precision": 0.562,
+      "first_hit_questions": 9, "first_hit_precision": 0.778,
       "unanswerable_with_partial_hits": 0.0
     }
   },

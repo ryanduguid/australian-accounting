@@ -130,11 +130,14 @@ def passes(figures: dict[str, Any], gate: dict[str, float]) -> bool:
 
 def main() -> int:
     relevance = load()
+    failed = 0
     for name in ("queries", "held_out"):
         figures = measure(relevance, relevance[name])
+        passed = passes(figures, relevance["gate"])
+        failed += not passed
         print(name, json.dumps(figures, indent=2))
-        print(name, "gate:", "PASS" if passes(figures, relevance["gate"]) else "FAIL")
-    return 0
+        print(name, "gate:", "PASS" if passed else "FAIL")
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

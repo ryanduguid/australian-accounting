@@ -145,7 +145,8 @@ it, so `uvx aus-accounting-mcp doctor` fails until the next release; in a checko
 set is fine, because all 3 are optional. It exits 1 if a configured folder is broken:
 missing, the wrong shape, empty, or holding a file, folder or row a search would skip,
 such as a title folder with no `sections.jsonl`, a row with no string id or text, or
-an empty rates index. It reads the
+a missing, linked or empty rates index, because `search_tax_rates` fails without one. It
+reads the
 variables from its own environment, so set them as your MCP client's configuration does.
 A period it prints is what the release records, not that a figure is current.
 
@@ -633,7 +634,7 @@ control, in this layout:
 ```text
 <corpus root>/
   markdown/<register id>/sections.jsonl   one JSON row per provision
-  rates/rates.jsonl                       optional rate and threshold rows
+  rates/rates.jsonl                       rate and threshold rows; search_tax_rates needs it
   sources.json                            optional licence and retrieval manifest
 ```
 
@@ -649,7 +650,16 @@ builds a corpus in this shape from the Federal Register of Legislation.
 
 `search_tax_legislation` first drops stop words such as 'what', 'is' and 'the', listing
 them in `dropped_words`, so a plain question can match; a query of only stop words is
-searched as written. It then matches every remaining word within one provision, without
+searched as written. Words a statute uses to give, impose, deny or qualify force are
+kept: the modal verbs 'can', 'could', 'may', 'might', 'must', 'shall', 'should' and
+'would', and 'not', 'no', 'cannot', 'unless', 'except' and 'but'. So 'must lodge a
+return' does not match a provision saying 'may lodge a return', which comes back as a
+partial hit missing 'must'. 'Can I deduct a meal?' needs 'can', so a provision saying
+'may deduct' comes back as a partial hit. Search compares words and does not read
+sense: 'must lodge' still matches 'must not lodge', and 'can' still matches inside
+'cannot', so read a match before relying on it. 'And', 'or' and 'if' are dropped,
+because they join a question's words and nearly every provision holds them.
+It then matches every remaining word within one provision, without
 case sensitivity, across the Act name, section label, heading, container and text.
 A word that appears only in stored metadata, such as the attribution or licence
 fields, is not a match. Matches come best first: the query as a phrase in the
@@ -691,19 +701,20 @@ words.
 
 `evaluation/search_relevance.json` is a fixed relevance set dated 6 November 2026: 40
 fabricated provisions, and plain questions that have an answer among them or have none.
-Run `python evaluation/search_relevance.py` to reproduce the 2 two-word rows; the test
+Run `python evaluation/search_relevance.py` to reproduce the 2 two-word rows; it exits 1
+if either list fails the gate. The test
 `test_the_one_word_floor_fails_the_gate_as_recorded` measures the one-word row, and
 tests hold all 3 to the file. Hits are answerable questions with a relevant row in the
 top 5. Precision is the share of partial hits that are relevant; the first-hit figure
-counts only questions whose first result is a partial hit, which is 8 questions on each
-two-word list, so one question moves it by 0.125. Unanswerable is the share of
+counts only questions whose first result is a partial hit, which is 9 questions on each
+two-word list, so one question moves it by 0.111. Unanswerable is the share of
 unanswerable questions that got any partial hit.
 
 | Questions | Answerable | Hits before | Hits, stop words dropped | Hits with partial hits | First-hit precision | All partial hit precision | Unanswerable |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| One-word floor, not shipped, 28 questions | 20 | 0 | 2 | 17 | 0.455 | 0.262 | 0.625 |
-| Two-word floor, the same 28 | 20 | 0 | 2 | 9 | 0.75 | 0.6 | 0 |
-| Two-word floor, 18 held-out questions | 12 | 0 | 3 | 10 | 0.75 | 0.533 | 0 |
+| One-word floor, not shipped, 28 questions | 20 | 0 | 1 | 17 | 0.478 | 0.271 | 0.625 |
+| Two-word floor, the same 28 | 20 | 0 | 1 | 9 | 0.778 | 0.625 | 0 |
+| Two-word floor, 18 held-out questions | 12 | 0 | 2 | 10 | 0.778 | 0.562 | 0 |
 
 The gate, set before the first run, asks for first-hit precision of at least 0.6, all
 partial hit precision of at least 0.3 and unanswerable of at most 0.25. A plain any-word
@@ -712,7 +723,10 @@ floor, so the 28 questions are not independent of it; the 18 were written before
 floor first ran. A review then limited partial hits to a row's heading and text and
 added the digit rule, so all 3 rows above come from the changed code and the 18 are no
 longer unseen, though no question or label changed. The one-word floor measured 0.25
-all partial hit precision before that change. The same author wrote the corpus,
+all partial hit precision before that change. Keeping the modal verbs then took one
+full match off each list and moved that relevant row into partial hits. No more answers
+were found: the two-word lists read 0.75, 0.6 and 0.75, 0.533 before it, and the rise is
+that move alone, not better search. The same author wrote the corpus,
 questions and labels, and 40 provisions hold far fewer chance word overlaps than a
 real corpus, so read these as a regression gate, not as the precision on a real one,
 which has not been measured.

@@ -7,7 +7,8 @@ import pytest
 
 import synthetic_corpus
 import synthetic_rulings
-from aus_accounting_mcp import __version__, cli, doctor
+from aus_accounting_mcp import __version__, cli, corpus, doctor
+from aus_accounting_mcp.errors import InputError
 
 ROOTS = (
     "AUS_ACCOUNTING_LIBRARY_ROOT", "AUS_ACCOUNTING_CORPUS_ROOT", "AUS_ACCOUNTING_RULINGS_ROOT",
@@ -78,15 +79,29 @@ def test_a_working_corpus_reports_its_rows(capsys, monkeypatch, tmp_path):
             f"{titles} title indexes, {rates} rate rows\n") in out
 
 
-def test_a_corpus_without_a_rates_index_still_works(capsys, monkeypatch, tmp_path):
+def assert_rates_are_broken(capsys):
+    code, out = run(capsys)
+
+    assert code == 1
+    assert "it has no usable rates/rates.jsonl, so search_tax_rates will fail." in out
+    with pytest.raises(InputError, match="no rates/rates.jsonl"):
+        corpus.search_rates("levy", 5, 0)
+
+
+def test_a_corpus_without_a_rates_index_is_broken(capsys, monkeypatch, tmp_path):
     synthetic_corpus.build(tmp_path)
     (tmp_path / "rates" / "rates.jsonl").unlink()
     monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
 
-    code, out = run(capsys)
+    assert_rates_are_broken(capsys)
 
-    assert code == 0
-    assert "no rates index\n" in out
+
+def test_a_linked_rates_index_is_broken(capsys, monkeypatch, tmp_path):
+    synthetic_corpus.build(tmp_path)
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    monkeypatch.setattr(corpus, "_linked", lambda path: path.name == "rates.jsonl")
+
+    assert_rates_are_broken(capsys)
 
 
 def test_working_rulings_report_the_rows_they_serve(capsys, monkeypatch, tmp_path):
@@ -286,6 +301,9 @@ def test_a_corpus_of_empty_indexes_is_broken(capsys, monkeypatch, tmp_path):
     index = tmp_path / "markdown" / "C9999A00001" / "sections.jsonl"
     index.parent.mkdir(parents=True)
     index.write_text("", encoding="utf-8")
+    synthetic_corpus.write(tmp_path / "rates" / "rates.jsonl", [
+        synthetic_corpus.rate("r1", "Levies", "A cap of $6.", amounts=["$6"], years=["2098-99"]),
+    ])
     monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
 
     code, out = run(capsys)

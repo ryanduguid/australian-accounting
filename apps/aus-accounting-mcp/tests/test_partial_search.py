@@ -64,7 +64,7 @@ def test_a_plain_question_that_found_nothing_returns_labelled_partial_hits(root)
     first = result["partial_hits"][0]
     assert first["match"] == "partial"
     assert first["matched_words"] == ["home", "office"]
-    assert first["missing_words"] == ["claim", "running", "costs"]
+    assert first["missing_words"] == ["can", "claim", "running", "costs"]
     assert "partial_hits are not matches" in result["notice"]
     assert "not that it answers the question" in result["notice"]
     # The no-match guidance stays, because no row holds every word.
@@ -223,11 +223,58 @@ def test_a_word_with_a_letter_and_a_digit_is_held_to_the_same_rule(root):
     assert call("search_tax_legislation", query="fuel cap form s99")["partial_hits"] == []
 
 
-@pytest.mark.parametrize("word", ["will", "us"])
-def test_a_word_with_a_tax_meaning_is_not_a_stop_word(root, word):
+@pytest.mark.parametrize("word", [
+    "will", "us", "can", "cannot", "could", "may", "might", "must", "shall", "should", "would",
+    "not", "no", "unless", "except", "but",
+])
+def test_a_word_with_a_tax_or_legal_meaning_is_not_a_stop_word(root, word):
     result = call("search_tax_legislation", query=f"a {word} trust")
 
     assert result["dropped_words"] == ["a"]
+
+
+FORCE = {"may": "A trustee may lodge a return of income.",
+         "must": "A trustee must lodge a return of income."}
+
+
+@pytest.mark.parametrize("asked,other", [("must", "may"), ("may", "must")])
+def test_permission_and_obligation_stay_apart_in_a_legislation_search(root, asked, other):
+    write_title(root, "C9999A00011", MINOR_ACT, [
+        ("30-1", "Returns", FORCE["may"]), ("30-2", "Returns", FORCE["must"]),
+    ])
+    labels = {"may": "30-1", "must": "30-2"}
+
+    result = call("search_tax_legislation", query=f"{asked} lodge a return")
+
+    assert [match["section"] for match in result["matches"]] == [labels[asked]]
+    assert [hit["section"] for hit in result["partial_hits"]] == [labels[other]]
+    assert result["partial_hits"][0]["missing_words"] == [asked]
+
+
+@pytest.mark.parametrize("asked,other", [("must", "may"), ("may", "must")])
+def test_permission_and_obligation_stay_apart_in_a_rate_search(root, asked, other):
+    synthetic_corpus.write(root / "rates" / "rates.jsonl", [
+        synthetic_corpus.rate(word, "Returns", text, amounts=["$1"], years=["2098-99"])
+        for word, text in FORCE.items()
+    ])
+
+    result = call("search_tax_rates", query=f"{asked} lodge a return")
+
+    assert [match["rate_id"] for match in result["matches"]] == [asked]
+    assert [hit["rate_id"] for hit in result["partial_hits"]] == [other]
+    assert result["partial_hits"][0]["missing_words"] == [asked]
+
+
+def test_a_match_compares_words_and_does_not_read_a_negative(root):
+    # The limit REFERENCE states: "must lodge" holds in "must not lodge", "can" in "cannot".
+    write_title(root, "C9999A00011", MINOR_ACT, [
+        ("30-3", "Returns", "A trustee must not lodge a return of income."),
+        ("30-4", "Meals", "A trustee cannot deduct a meal."),
+    ])
+
+    for query, section in (("must lodge a return", "30-3"), ("Can I deduct a meal?", "30-4")):
+        result = call("search_tax_legislation", query=query)
+        assert [match["section"] for match in result["matches"]] == [section]
 
 
 def test_a_substring_match_is_not_also_reported_as_a_partial_hit(root):

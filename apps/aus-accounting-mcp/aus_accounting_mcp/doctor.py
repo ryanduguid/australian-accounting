@@ -46,10 +46,11 @@ def _corpus(found: dict[str, Any]) -> str:
             f"entries under markdown holding no index a search reads: {found['skipped_entries']}."
         )
     rates = found["rate_rows"]
-    if rates == 0:
+    if rates is None:
+        raise ValueError("it has no usable rates/rates.jsonl, so search_tax_rates will fail.")
+    if not rates:
         raise ValueError("its rates index holds no rows, so a rate search would come back empty.")
-    held = "no rates index" if rates is None else f"{rates} rate rows"
-    return f"{found['rows']} section rows in {found['indexes']} title indexes, {held}"
+    return f"{found['rows']} section rows in {found['indexes']} title indexes, {rates} rate rows"
 
 
 def _rulings(found: dict[str, Any]) -> str:
