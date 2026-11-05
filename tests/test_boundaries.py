@@ -10,6 +10,9 @@ Two properties are proved with the ast module over every production module:
 2. no production module, engine or application, uses a relative import whose level
    climbs out of its own top-level package directory.
 
+A third is a text scan: no Rust engine crate's source or manifest names std::net
+or an HTTP client.
+
 Each property has an in-memory positive control so a scan that silently finds
 nothing cannot pass. The remaining tests hold the CI routing: every engine is
 called with the same gates, and the package path filter still routes a change to
@@ -22,6 +25,7 @@ from __future__ import annotations
 
 import ast
 import importlib.util
+import os
 import re
 import tempfile
 import unittest
@@ -76,6 +80,18 @@ RUST_APPLICATIONS = {
 # and the engine that owns each set.
 CHANGED_LINE_COVERAGE: dict[str, str] = {}
 FORBIDDEN_FOR_ENGINES = frozenset({*APPLICATIONS.values(), *ENGINES.values()})
+NETWORK_CODE = re.compile(
+    r"\b(?:std|core)::net\b|\bstd::\{[^}]*\bnet\b|\b(?:TcpStream|TcpListener|UdpSocket)\b"
+)
+NETWORK_CRATES = "|".join((
+    "attohttpc", "awc", "curl", "h2", "h3", "hyper", "isahc", "mio", "native-tls",
+    "quinn", "reqwest", "rustls", "socket2", "surf", "tokio", "ureq",
+))
+# A dependency line, a `[dependencies.name]` table or a renamed `package = "name"`.
+NETWORK_DEPENDENCY = re.compile(
+    rf"(?m)^\s*(?:\[[^\]\n]*dependencies\.)?(?:{NETWORK_CRATES})\s*[=\]]"
+    rf"|\bpackage\s*=\s*\"(?:{NETWORK_CRATES})\""
+)
 PATH_FILTER_KEY = re.compile(
     r"(?<![\w-])['\"]?(paths(?:-ignore)?)['\"]?\s*:"
 )
@@ -122,6 +138,22 @@ def escaping_relative_imports(tree: ast.AST, depth: int) -> list[str]:
             names = ", ".join(alias.name for alias in node.names)
             found.append(f"level {node.level} import of {node.module or '.'} ({names})")
     return found
+
+
+def rust_crate_files(crate: Path) -> list[Path]:
+    """Every Rust source and manifest in a crate, its fuzz and wasm crates included."""
+    found: list[Path] = []
+    for directory, subdirectories, names in os.walk(crate):
+        subdirectories[:] = [name for name in subdirectories if name != "target"]
+        found += [Path(directory) / name for name in names
+                  if name == "Cargo.toml" or name.endswith(".rs")]
+    return found
+
+
+def network_use(name: str, text: str) -> list[str]:
+    """What a Rust source or Cargo manifest names that could reach a network."""
+    pattern = NETWORK_DEPENDENCY if name == "Cargo.toml" else NETWORK_CODE
+    return [match.group() for match in pattern.finditer(text)]
 
 
 def production_modules(component: str, package: str) -> list[tuple[Path, int]]:
@@ -368,6 +400,50 @@ class BoundaryTests(unittest.TestCase):
                 with self.subTest(module=str(path.relative_to(ROOT))):
                     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
                     self.assertEqual(escaping_relative_imports(tree, depth), [])
+
+    def test_no_engine_crate_names_the_network(self) -> None:
+        self.assertIn("packages/payday-super-checker", RUST_ENGINES)
+        for component in RUST_ENGINES:
+            files = rust_crate_files(ROOT / component)
+            self.assertIn(ROOT / component / "Cargo.toml", files)
+            for path in files:
+                with self.subTest(file=str(path.relative_to(ROOT))):
+                    text = path.read_text(encoding="utf-8")
+                    self.assertEqual(network_use(path.name, text), [])
+
+    def test_the_rates_dataset_is_the_named_network_exception(self) -> None:
+        # Its https.rs fetches official pages for the dataset, and nothing links it.
+        self.assertEqual(set(DATASETS), {"packages/au-tax-rates-data"})
+        crate = ROOT / "packages" / "au-tax-rates-data"
+        https = (crate / "src" / "https.rs").read_text(encoding="utf-8")
+        manifest = (crate / "Cargo.toml").read_text(encoding="utf-8")
+        self.assertTrue(network_use("https.rs", https))
+        self.assertTrue(network_use("Cargo.toml", manifest))
+        for other in ROOT.glob("*/*/Cargo.toml"):
+            self.assertNotIn("au-tax-rates-data =", other.read_text(encoding="utf-8"), other)
+
+    def test_positive_control_for_network_code(self) -> None:
+        for source in (
+            "use std::net::TcpStream;",
+            "use std::{fs, net::IpAddr};",
+            "use core::net::Ipv4Addr;",
+            "let socket = UdpSocket::bind(address);",
+        ):
+            with self.subTest(source=source):
+                self.assertTrue(network_use("lib.rs", source))
+        self.assertEqual(network_use("lib.rs", "// no network\nuse std::fs;\n"), [])
+
+    def test_positive_control_for_http_clients(self) -> None:
+        for manifest in (
+            '[dependencies]\nreqwest = "0.12"\n',
+            '[dev-dependencies]\n  ureq = { version = "3" }\n',
+            "[target.'cfg(unix)'.dependencies.hyper]\nversion = \"1\"\n",
+            '[dependencies]\nfetch = { package = "reqwest", version = "0.12" }\n',
+        ):
+            with self.subTest(manifest=manifest):
+                self.assertTrue(network_use("Cargo.toml", manifest))
+        quiet = '[package]\ndescription = "no reqwest here"\n[dependencies]\nsha2 = "0.11"\n'
+        self.assertEqual(network_use("Cargo.toml", quiet), [])
 
     def test_positive_control_for_forbidden_imports(self) -> None:
         tree = ast.parse(
