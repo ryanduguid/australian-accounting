@@ -587,7 +587,8 @@ cargo test --locked
 `tests/parity.rs` replays the frozen corpus of the Python 0.3.2 suite's calls
 and command runs, plus generated cases, and `tests/BEHAVIOURS.md` maps each
 original test to its Rust coverage. The formula properties run as seeded Rust
-tests against exact rational arithmetic.
+tests against exact rational arithmetic, beside the ATO's 2 worked repayments and
+how the shortfall must move when one fact moves.
 
 The tests cover every frozen rate year, every verdict, every refusal, the
 2025-26 May-vs-June trap, the formula against exact rational arithmetic and a

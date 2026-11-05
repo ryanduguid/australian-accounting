@@ -23,7 +23,7 @@ import json
 import re
 import tempfile
 import unittest
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -31,6 +31,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGES = ROOT / "packages"
 PAYDAY_RATES = PACKAGES / "payday-super-checker" / "data" / "rates.json"
 PAYDAY_GIC = PACKAGES / "payday-super-checker" / "data" / "gic_rates.json"
+PAYDAY_CALENDAR = PACKAGES / "payday-super-checker" / "data" / "business_days.json"
+LODGMENT_HOLIDAYS = PACKAGES / "lodgment-calendar" / "lodgmentcalendar" / "holidays.py"
 CALCULATOR_METADATA = PACKAGES / "australian-tax-calculators" / "src" / "metadata.rs"
 CALCULATIONS = PACKAGES / "australian-tax-calculators" / "src" / "engine.rs"
 DIV7A_RATES = PACKAGES / "div7a-loan-review" / "data" / "benchmark_rates.csv"
@@ -175,6 +177,40 @@ def _load_expiry_check():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+# The weekdays the ATO's lodgment program lists that the payday table counts as
+# business days, because SGAA 1992 s 6(1) needs a public holiday for the whole of
+# a State or Territory. The payday README and its 15 August 2026 source review
+# record each reason.
+LODGMENT_ONLY = {
+    date(2026, 9, 28): "King's Birthday: some regional WA areas keep another date",
+    date(2026, 11, 3): "Melbourne Cup: non-metro Victorian councils may arrange another day",
+    date(2026, 12, 24): "Christmas Eve: a part-day holiday in QLD, NT and SA",
+    date(2026, 12, 31): "New Year's Eve: a part-day holiday in NT and SA",
+}
+
+
+def _lodgment_holidays() -> set[date]:
+    tree = ast.parse(LODGMENT_HOLIDAYS.read_text(encoding="utf-8"))
+    table = next(node.value for node in tree.body if isinstance(node, ast.AnnAssign)
+                 and isinstance(node.target, ast.Name) and node.target.id == "HOLIDAYS")
+    return {date(*(part.value for part in key.args)) for key in table.keys}
+
+
+def _payday_holidays() -> set[date]:
+    rows = json.loads(PAYDAY_CALENDAR.read_text(encoding="utf-8"))["non_business_days"]
+    return {date.fromisoformat(row["date"]) for row in rows if not row["provisional"]}
+
+
+class HolidayTableTests(unittest.TestCase):
+    def test_the_payday_and_lodgment_tables_differ_only_on_the_recorded_days(self) -> None:
+        lodgment = _lodgment_holidays()
+        first, last = min(lodgment), max(lodgment)
+        payday = {day for day in _payday_holidays()
+                  if first <= day <= last and day.weekday() < 5}
+        self.assertEqual(lodgment - payday, set(LODGMENT_ONLY))
+        self.assertEqual(payday - lodgment, set())
 
 
 class DatedRateTests(unittest.TestCase):
