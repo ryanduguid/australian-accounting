@@ -53,6 +53,8 @@ CASES = [
     ("get_data_freshness", {}),
     ("get_data_freshness", {"as_at": "2026-10-28"}),
     ("get_data_freshness", {"as_at": "2026-10-28", "tool": "review_gst_coding"}),
+    ("get_reviewed_rate", {"record_id": "resident-tax-rates-2026-27", "as_at": "2026-10-28"}),
+    ("get_reviewed_rate", {"record_id": "resident-tax-rates-2026-27", "as_at": "2020-01-01"}),
 ]
 for detail in ("summary", "full"):
     for year in ("2025-26", "2027-28"):

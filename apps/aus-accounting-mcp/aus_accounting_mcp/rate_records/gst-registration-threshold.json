@@ -1,0 +1,20 @@
+{
+  "id": "gst-registration-threshold",
+  "label": "GST registration turnover threshold (business)",
+  "value": 75000,
+  "unit": "AUD",
+  "period": {
+    "effective_from": "2007-07-01"
+  },
+  "source_url": "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst",
+  "retrieved_at": "2026-10-15T00:31:40+11:00",
+  "quote": "when your business or enterprise has a GST turnover (gross income from all businesses minus GST) of $75,000 or more (the GST threshold)",
+  "pattern": "minus GST\\) of (\\$[\\d,]+) or more \\(the GST threshold\\)",
+  "legislation": [
+    {
+      "title_id": "F2019L00417",
+      "provision": "23-15.01"
+    }
+  ],
+  "notes": "Non-profit threshold is $150,000. The page states no start date. $75,000 was first specified in regulation 23-15.01 of the 1999 regulations by the A New Tax System (Goods and Services Tax) Amendment Regulations 2007 (No. 2) (SLI 2007 No. 206), which commenced on 1 July 2007: https://www.ato.gov.au/law/view/pdf/reg/r20070206.pdf. The A New Tax System (Goods and Services Tax) Regulations 2019 keep the amount in s 23-15.01: https://www.legislation.gov.au/F2019L00417/latest"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "mls-single-threshold-2026-27",
+  "label": "Medicare levy surcharge threshold, single (top of base tier)",
+  "value": 105000,
+  "unit": "AUD",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy-surcharge/medicare-levy-surcharge-income-thresholds-and-rates",
+  "retrieved_at": "2026-10-15T00:31:24+11:00",
+  "quote": "MLS income thresholds and rates for 2026–27 Threshold Base tier Tier 1 Tier 2 Tier 3 Single threshold $105,000 or less",
+  "pattern": "rates for 2026–27 Threshold Base tier Tier 1 Tier 2 Tier 3 Single threshold (\\$[\\d,]+) or less",
+  "notes": "No surcharge applies at or below this income for MLS purposes."
+}

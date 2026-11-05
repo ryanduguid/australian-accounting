@@ -1,0 +1,13 @@
+{
+  "id": "co-contribution-higher-threshold-2026-27",
+  "label": "Super co-contribution, higher income threshold",
+  "value": 64293,
+  "unit": "AUD",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/government-contributions",
+  "retrieved_at": "2026-10-15T00:31:03+11:00",
+  "quote": "Year Maximum entitlement Lower income threshold Higher income threshold 2026–27 $500 $49,293 $64,293",
+  "pattern": "Higher income threshold 2026–27 \\$[\\d,]+ \\$[\\d,]+ (\\$[\\d,]+)"
+}

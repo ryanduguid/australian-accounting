@@ -1,0 +1,14 @@
+{
+  "id": "etp-cap-life-benefit-2026-27",
+  "label": "Employment termination payment cap, life benefit",
+  "value": 270000,
+  "unit": "AUD",
+  "period": {
+    "income_year": "2026-27"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/employment-termination-payments",
+  "retrieved_at": "2026-11-04T03:38:29+11:00",
+  "quote": "Table 17: Life benefit termination payments ETP cap Income year Amount of cap 2026–27 $270,000",
+  "pattern": "Table 17: Life benefit termination payments ETP cap Income year Amount of cap 2026–27 (\\$[\\d,]+)",
+  "notes": "Concessional tax applies up to this cap; the excess is taxed at the top marginal rate. For some payments the smaller of this cap and the whole-of-income cap applies. The page says the cap is indexed in line with average weekly ordinary time earnings, in increments of $5,000 (rounded down)."
+}

@@ -4,9 +4,10 @@
 """Opt-in local legislation corpus retrieval. Source text is evidence, never instructions.
 
 The corpus is a folder the operator configures and controls: one JSONL index per title
-under `markdown/<register id>/sections.jsonl`, an optional `rates/rates.jsonl` of rate
-and threshold rows, and an optional `sources.json` manifest. Nothing here is bundled,
-downloaded or written, and a row is a point-in-time copy, never a statement of current law.
+under `markdown/<register id>/sections.jsonl`, `rates/rates.jsonl` of rate and threshold
+rows, which search_tax_rates needs, and an optional `sources.json` manifest. Nothing here
+is bundled, downloaded or written, and a row is a point-in-time copy, never a statement
+of current law.
 """
 
 from __future__ import annotations
@@ -16,8 +17,9 @@ import json
 import os
 import re
 from collections import deque
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Iterable, Iterator
 
 from .errors import NOT_CONFIGURED, InputError
 from .paging import page
@@ -57,6 +59,32 @@ NO_MATCH_HINT = (
     "expression (define_tax_term finds defined ones) or a section number. No match is "
     "not evidence that the law is silent."
 )
+PARTIAL_NOTICE = (
+    "partial_hits are not matches: the heading and text of each hold only the words in "
+    "its matched_words, not those in its missing_words. That shows the provision shares "
+    "those words, not that it answers the question, applies to these facts or is the only "
+    "relevant provision. A modal word is missing when the row has only its opposite: "
+    "'must' is missing from 'must not' and 'must not' from 'must'. "
+    "Do not present one as an answer or as the law on the point. Read the provision and "
+    "judge it first, or search again with the statutory wording."
+)
+# Words a plain question carries that name no tax concept, so that "what is the limit
+# for a car" asks for the rows holding "limit" and "car". A word a statute uses to give,
+# impose, deny or qualify force stays, so that "must lodge" never fully matches "may
+# lodge": the modal verbs, "not", "no", "but" and the like. "and", "or" and "if" go,
+# because they join a question's words and nearly every row holds them, so keeping them
+# would separate nothing. "s" and "t" are what "\w+" leaves of "dog's" and "don't".
+STOP_WORDS = frozenset((
+    "a about am an and any are as at be been being by did do does for "
+    "from get got had has have he her here his how i if in into is it its me "
+    "many much my of on or our please s she some t tell than that "
+    "the their them there these they this those to was we were what when where "
+    "which who whom whose why with you your"
+).split())
+MODALS = frozenset("can could may might must shall should would".split())
+# How many of a query's words a row must hold to be offered as a partial hit. One shared
+# word proved no evidence of relevance: evaluation/search_relevance.py measures this.
+MIN_PARTIAL_WORDS = 2
 # Commonwealth tax law's principal Acts, in the order a search presents them when the
 # other ranking signals tie. A title must equal one of these names, so an instrument
 # named after an Act ("... in accordance with the Income Tax Assessment Act 1936") is
@@ -99,6 +127,8 @@ SUBSECTION_LABEL = re.compile(r"^\(\d+[A-Za-z]*\)")
 # pad labels with U+00A0, a non-breaking space; a caller types the plain characters.
 PLAIN = str.maketrans({"\u2011": "-", "\u00a0": " ", "*": ""})
 MAX_DEFINITIONS = 20
+# Judges one row: its sort key, lower first, and its result, or None to leave it out.
+Assessor = Callable[[dict[str, Any]], tuple[tuple[int, ...], dict[str, Any]] | None]
 
 
 def _root() -> Path:
@@ -150,11 +180,78 @@ def _terms(query: str, field: str) -> list[str]:
     return terms
 
 
-def _rows(path: Path, prefilter: list[str]) -> Iterator[dict[str, Any]]:
+def _query_words(terms: list[str]) -> list[str]:
+    """The distinct words of terms, which every search compares with its text.
+
+    A modal verb and the "not" after it are one word, as "cannot" is, because together
+    they say the opposite of the modal alone. "cannot" is kept as "can not".
+    """
+    words: list[str] = []
+    for term in terms:
+        if term == "not" and words and words[-1] in MODALS:
+            words[-1] += " not"
+        else:
+            words.append("can not" if term == "cannot" else term)
+    return list(dict.fromkeys(words))
+
+
+def _words(terms: list[str]) -> list[str]:
+    """_query_words of a query without its stop words, unless it holds nothing else."""
+    return _query_words([term for term in terms if term not in STOP_WORDS] or terms)
+
+
+def _pattern(term: str) -> re.Pattern[str]:
+    """The whole-word test for one query word. A modal alone refuses its negated form.
+
+    shortcut: only the word next to the modal is read, so "must, unless exempt, lodge" is
+    not seen as qualified, and "must never lodge" counts as "must". Parse clauses only
+    if a reference question set shows the cost.
+    """
+    if term == "can not":
+        return re.compile(r"\b(?:cannot|can\s+not)\b")
+    if term.endswith(" not"):
+        return re.compile(rf"\b{term[:-4]}\s+not\b")
+    if term in MODALS:
+        return re.compile(rf"\b{term}\b(?!\s+not\b)")
+    return re.compile(rf"\b{re.escape(term)}\b")
+
+
+def _has(term: str, pattern: re.Pattern[str], text: str) -> bool:
+    """Whether text holds term or, given its opposite's pattern, the opposite form.
+
+    The substring test spares the regex: a pattern opening with \\b scans the whole text
+    for a word that is not there, and every form of a word opens with its first part.
+    """
+    return term.split()[0] in text and pattern.search(text) is not None
+
+
+def _matcher(words: list[str]) -> Callable[[str], bool]:
+    """The test that casefolded text holds every word of words, as _pattern reads it."""
+    patterns = {term: _pattern(term) for term in words}
+    return lambda text: all(_has(term, pattern, text) for term, pattern in patterns.items())
+
+
+def _parts(words: list[str]) -> list[str]:
+    """What a raw line holds if its row holds words or their opposites.
+
+    The line filter stays sound with these: "cannot" holds "can" and "not".
+    """
+    return " ".join(words).split()
+
+
+def _opposite(term: str) -> str:
+    """The other form of a modal query word: "must" for "must not", and back."""
+    return term[:-4] if term.endswith(" not") else f"{term} not"
+
+
+def _rows(
+    path: Path, prefilter: list[str], every: Callable[[Iterable[bool]], bool] = all
+) -> Iterator[dict[str, Any]]:
     """Parse only the lines that could match, so a whole-corpus scan stays subsecond.
 
-    Every searchable field is part of the raw line, so a line missing a term cannot
-    match; the caller still confirms each parsed row against the fields themselves.
+    Every searchable field is part of the raw line, so a line failing every(), which
+    asks for all the terms or for as many of them as a partial hit needs, cannot match;
+    the caller still confirms each parsed row against the fields themselves.
 
     ponytail: no index. Measured against a 946-title, 60 MB, 21916-row corpus, a
     whole-corpus read returns in about 0.5 s. Add an index only if a measured corpus
@@ -162,12 +259,14 @@ def _rows(path: Path, prefilter: list[str]) -> Iterator[dict[str, Any]]:
     """
     with path.open(encoding="utf-8") as stream:
         for line in stream:
-            row = _row(line, prefilter)
+            row = _row(line, prefilter, every)
             if row is not None:
                 yield row
 
 
-def _row(line: str, prefilter: list[str]) -> dict[str, Any] | None:
+def _row(
+    line: str, prefilter: list[str], every: Callable[[Iterable[bool]], bool] = all
+) -> dict[str, Any] | None:
     """The parsed row when the raw line could match, else None."""
     # A JSON escape hides the characters it encodes from a raw scan:
     # an index written with ensure_ascii=True spells "e acute" as six
@@ -180,7 +279,7 @@ def _row(line: str, prefilter: list[str]) -> dict[str, Any] | None:
     # characters, none of which a query term or row_id can hold.
     if "\\u" not in line and "\\/" not in line:
         folded = line.casefold()
-        if not all(term in folded for term in prefilter):
+        if not every(term in folded for term in prefilter):
             return None
     try:
         row = json.loads(line)
@@ -189,9 +288,13 @@ def _row(line: str, prefilter: list[str]) -> dict[str, Any] | None:
     return row if isinstance(row, dict) else None
 
 
-def _holds(row: dict[str, Any], fields: tuple[str, ...], terms: list[str]) -> bool:
+def _joined(row: dict[str, Any], fields: tuple[str, ...]) -> str:
     values = [row.get(field) for field in fields]
-    joined = " ".join(value for value in values if isinstance(value, str)).casefold()
+    return " ".join(value for value in values if isinstance(value, str)).casefold()
+
+
+def _holds(row: dict[str, Any], fields: tuple[str, ...], terms: list[str]) -> bool:
+    joined = _joined(row, fields)
     return all(term in joined for term in terms)
 
 
@@ -202,14 +305,17 @@ def _priority(row: dict[str, Any]) -> int:
 
 
 def _ranking(
-    terms: list[str], heading: tuple[str, ...], body: tuple[str, ...]
+    terms: list[str],
+    heading: tuple[str, ...],
+    body: tuple[str, ...],
+    phrase_terms: list[str] | None = None,
 ) -> Callable[[dict[str, Any]], tuple[int, int]]:
     """The sort key for a matching row, lower first: its tier, then its principal Act.
 
     A "Meaning of small business entity" heading therefore outranks a dictionary
     that only mentions the expression, and within a tier a principal Act comes first.
     """
-    tier = _tier(terms, heading, body)
+    tier = _tier(terms, heading, body, phrase_terms)
 
     def rank(row: dict[str, Any]) -> tuple[int, int]:
         return tier(row), _priority(row)
@@ -218,7 +324,10 @@ def _ranking(
 
 
 def _tier(
-    terms: list[str], heading: tuple[str, ...], body: tuple[str, ...]
+    terms: list[str],
+    heading: tuple[str, ...],
+    body: tuple[str, ...],
+    phrase_terms: list[str] | None = None,
 ) -> Callable[[dict[str, Any]], int]:
     """Where the words sit in a matching row, lower first.
 
@@ -227,12 +336,14 @@ def _tier(
     somewhere. Tiers 0 to 2 match whole words within a single field, so "scar
     limitation" is no heading match for "car limit", and a rate heading ending in
     one query word does not join the topic that starts with the next into a phrase.
-    Tier 3 is the substring match every eligible row already passed.
+    Tier 3 is every other row the caller's search let through. phrase_terms
+    is the phrase when it differs from terms, as the whole query does once its stop
+    words are out of terms: "cost of a car" stays a phrase.
     """
     # Punctuation and the U+2011 hyphen statutes print sit between the words, so a
     # query for "40-230" or "write-off" still meets its phrase.
-    phrase = re.compile(r"\b" + r"\W+".join(map(re.escape, terms)) + r"\b")
-    words = [re.compile(rf"\b{re.escape(term)}\b") for term in terms]
+    phrase = re.compile(r"\b" + r"\W+".join(map(re.escape, phrase_terms or terms)) + r"\b")
+    words = [_pattern(term) for term in terms]
 
     def values(row: dict[str, Any], fields: tuple[str, ...]) -> list[str]:
         return [value.casefold() for field in fields if isinstance(value := row.get(field), str)]
@@ -366,52 +477,176 @@ def _within_bounds(files: list[Path]) -> Iterator[Path]:
         yield path
 
 
+def _partial(
+    patterns: dict[str, re.Pattern[str]],
+    opposites: dict[str, re.Pattern[str]],
+    is_match: Callable[[dict[str, Any]], bool],
+    heading: tuple[str, ...],
+    body: tuple[str, ...],
+    scope: Callable[[dict[str, Any]], bool],
+    build: Callable[[dict[str, Any]], dict[str, Any]],
+) -> Assessor:
+    """Judge a row whose heading and body hold at least MIN_PARTIAL_WORDS of patterns.
+
+    A row with a modal word's opposite counts towards that floor but reports the word as
+    missing, so "must not lodge" is offered for "must lodge" and named as lacking "must".
+
+    Only the provision's own wording counts: every row of the Income Tax Assessment Act
+    1997 holds "income" and "tax" in its Act name, which says nothing about the provision.
+    A word holding a digit, such as a year or a section number, must be there as well,
+    because a row for another year or section does not partly answer the question.
+
+    Rows holding more of the words come first, then those holding more of them in a
+    heading, then the principal Acts. The whole-word test keeps "scar" from counting
+    as "car" here, where no other word vouches for the row.
+
+    shortcut: every word counts the same, so a word nearly every row holds, such as
+    "tax", weighs as much as a rare one. Weigh words by rarity, or add vectors, only
+    if a reference question set shows the order needs it.
+    """
+    numbers = {term for term in patterns if re.search(r"\d", term)}
+
+    def assess(row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
+        text = _joined(row, heading + body)
+        found = {term for term, pattern in patterns.items() if _has(term, pattern, text)}
+        opposed = sum(
+            term not in found and _has(term, pattern, text)
+            for term, pattern in opposites.items()
+        )
+        if len(found) + opposed < MIN_PARTIAL_WORDS or not numbers <= found:
+            return None
+        if is_match(row) or not scope(row):
+            return None
+        title = _joined(row, heading)
+        titled = sum(_has(term, pattern, title) for term, pattern in patterns.items())
+        return (-len(found), -titled, _priority(row)), {
+            **build(row),
+            "match": "partial",
+            "matched_words": [term for term in patterns if term in found],
+            "missing_words": [term for term in patterns if term not in found],
+        }
+
+    return assess
+
+
 def _scan(
     files: list[Path],
     prefilter: list[str],
-    confirm: Callable[[dict[str, Any]], bool],
-    build: Callable[[dict[str, Any]], dict[str, Any]],
-    rank: Callable[[dict[str, Any]], tuple[int, int]],
-    limit: int,
-    offset: int,
-    corpus: dict[str, Any],
-) -> dict[str, Any]:
-    """Rank every eligible match, best first, and return the requested page.
+    every: Callable[[Iterable[bool]], bool],
+    assess: Assessor,
+    count: int,
+) -> list[dict[str, Any]]:
+    """The best count rows assess accepts, best first.
 
     Ties keep corpus order, so pages stay consistent while the corpus is unchanged.
-    Only the best offset + limit + 1 matches are kept, already cut to search length,
-    which is enough to tell whether more follow.
+    Only the rows asked for are kept, already cut to search length.
 
     ponytail: ranking reads the whole corpus on every search rather than stopping at
     the first full page. Measured on the 946-title corpus that takes about 0.5 s, and
-    about 1.6 s for a word nearly every row holds such as "tax"; add an index only
-    if a measured corpus needs one.
+    about 1.6 s for a word nearly every row holds such as "tax". A query that reaches
+    partial hits reads the corpus twice: on a 78 MB fabricated corpus "zebra income tax",
+    whose last 2 words nearly every row holds, took 0.8 s against 0.25 s without them.
+    Add an index only if a measured corpus needs one.
     """
 
-    def ranked() -> Iterator[tuple[tuple[int, int], int, dict[str, Any]]]:
+    def ranked() -> Iterator[tuple[tuple[int, ...], int, dict[str, Any]]]:
         order = 0
         for path in _within_bounds(files):
             try:
-                for row in _rows(path, prefilter):
-                    if confirm(row):
-                        yield rank(row), order, build(row)
+                for row in _rows(path, prefilter, every):
+                    if (assessed := assess(row)) is not None:
+                        yield assessed[0], order, assessed[1]
                         order += 1
             except (OSError, UnicodeError) as exc:
                 raise InputError(
                     "Cannot read a UTF-8 JSONL index in the configured corpus."
                 ) from exc
 
-    best = heapq.nsmallest(offset + limit + 1, ranked(), key=lambda item: item[:2])
-    matches = [entry for _, _, entry in best[offset:offset + limit]]
-    return _page(matches, offset + limit, corpus, has_more=len(best) > offset + limit)
+    return [entry for _, _, entry in heapq.nsmallest(count, ranked(), key=lambda item: item[:2])]
+
+
+@dataclass(frozen=True)
+class _Rows:
+    """How a search reads one kind of row: what it matches, ranks and returns."""
+
+    fields: tuple[str, ...]
+    heading: tuple[str, ...]
+    body: tuple[str, ...]
+    build: Callable[[dict[str, Any]], dict[str, Any]]
+
+
+def _search(
+    files: list[Path],
+    query: list[str],
+    scope_terms: list[str],
+    scope: Callable[[dict[str, Any]], bool],
+    rows: _Rows,
+    limit: int,
+    offset: int,
+    corpus: dict[str, Any],
+) -> dict[str, Any]:
+    """One page of the rows holding every word of the query, then of those holding some.
+
+    Stop words leave the query first, so a plain question can match; the phrase tiers
+    still read the whole query. Rows holding every remaining word fill `matches`.
+    Any room left on the page goes to rows holding some of the words, in `partial_hits`,
+    so a partial hit always ranks below every match and is never reported as one. Only
+    the best offset + limit + 1 rows are kept, enough to tell whether more follow, and
+    a page of matches with more behind it never reads the corpus for partial hits.
+    """
+    words = _words(query)
+    patterns = {term: _pattern(term) for term in words}
+    opposites = {
+        term: _pattern(_opposite(term)) for term in words if term.split()[0] in MODALS
+    }
+    parts = _parts(words)
+    rank = _ranking(words, rows.heading, rows.body, query)
+    holds_words = _matcher(words)
+
+    def is_match(row: dict[str, Any]) -> bool:
+        return holds_words(_joined(row, rows.fields))
+
+    def assess(row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
+        if scope(row) and is_match(row):
+            return rank(row), rows.build(row)
+        return None
+
+    end = offset + limit
+    full = _scan(files, parts + scope_terms, all, assess, end + 1)
+    partial: list[dict[str, Any]] = []
+    # A shorter query has no way to be partly held, unless a row holds a modal word's
+    # opposite, and stop words alone name nothing.
+    if (
+        len(full) <= end
+        and len(words) + bool(opposites) > MIN_PARTIAL_WORDS
+        and words[0] not in STOP_WORDS
+    ):
+        partial = _scan(
+            files,
+            parts,
+            lambda held: sum(held) >= MIN_PARTIAL_WORDS,
+            _partial(patterns, opposites, is_match, rows.heading, rows.body, scope, rows.build),
+            end + 1 - len(full),
+        )
+    hits = (full + partial)[offset:end]
+    matches = hits[:max(len(full) - offset, 0)]
+    result = _page(matches, end, corpus, has_more=len(full) + len(partial) > end)
+    result["partial_hits"] = hits[len(matches):]
+    result["dropped_words"] = [
+        term for term in dict.fromkeys(query) if term in STOP_WORDS and term not in parts
+    ]
+    if result["partial_hits"]:
+        result["notice"] += " " + PARTIAL_NOTICE
+    return result
 
 
 def search_sections(
     query: str, limit: int, offset: int, act: str | None = None, in_force_only: bool = True
 ) -> dict[str, Any]:
-    """Search the configured corpus for sections holding every supplied word, best first.
+    """Search the configured corpus for sections holding the query's words, best first.
 
-    A superseded compilation is left out unless in_force_only is False; a row
+    _search says how a row holding only some of them is reported. A superseded
+    compilation is left out unless in_force_only is False; a row
     whose currency the corpus did not record is kept either way, with its
     version_is_current reported as null.
     """
@@ -420,19 +655,19 @@ def search_sections(
     root = _root()
     files = _index_files(root)
 
-    def confirm(row: dict[str, Any]) -> bool:
+    def scope(row: dict[str, Any]) -> bool:
         if in_force_only and row.get("version_is_current") is False:
             return False
-        if act_terms and not _holds(row, ("act",), act_terms):
-            return False
-        return _holds(row, SECTION_FIELDS, terms)
+        return not act_terms or _holds(row, ("act",), act_terms)
 
-    page = _scan(
+    page = _search(
         files,
-        terms + act_terms,
-        confirm,
-        lambda row: _section(row, SEARCH_TEXT_CHARS),
-        _ranking(terms, ("heading",), ("text",)),
+        terms,
+        act_terms,
+        scope,
+        _Rows(
+            SECTION_FIELDS, ("heading",), ("text",), lambda row: _section(row, SEARCH_TEXT_CHARS)
+        ),
         limit,
         offset,
         _provenance(root),
@@ -650,26 +885,59 @@ def search_rates(
     if not path.is_file() or _linked(path) or _linked(path.parent):
         raise InputError("The configured corpus has no rates/rates.jsonl index.")
 
-    def confirm(row: dict[str, Any]) -> bool:
+    def scope(row: dict[str, Any]) -> bool:
         if in_force_only and row.get("version_is_current") is False:
             return False
         if topic_terms and not _holds(row, ("topic",), topic_terms):
             return False
-        if wanted_year is not None:
-            years = row.get("years")
-            if not isinstance(years, list) or wanted_year not in {
-                str(stated).casefold() for stated in years
-            }:
-                return False
-        return _holds(row, RATE_FIELDS, terms)
+        if wanted_year is None:
+            return True
+        years = row.get("years")
+        return isinstance(years, list) and wanted_year in {
+            str(stated).casefold() for stated in years
+        }
 
-    return _scan(
+    return _search(
         [path],
-        terms + topic_terms,
-        confirm,
-        _rate,
-        _ranking(terms, ("heading", "topic"), ("content",)),
+        terms,
+        topic_terms,
+        scope,
+        _Rows(RATE_FIELDS, ("heading", "topic"), ("content",), _rate),
         limit,
         offset,
         _provenance(root),
     )
+
+
+def _count_rows(paths: Iterable[Path], *required: str) -> tuple[int, int]:
+    """How many lines are rows a search can return, and how many are not."""
+    rows = unreadable = 0
+    for path in paths:
+        with path.open(encoding="utf-8") as stream:
+            for line in stream:
+                row = _row(line, [])
+                if row is not None and all(isinstance(row.get(key), str) for key in required):
+                    rows += 1
+                elif line.strip():
+                    unreadable += 1
+    return rows, unreadable
+
+
+def census() -> dict[str, Any]:
+    """What the configured corpus holds, for `aus-accounting-mcp doctor`."""
+    root = _root()
+    files = _index_files(root)
+    rows, unreadable = _count_rows(_within_bounds(files), "row_id", "text")
+    path = root / "rates" / "rates.jsonl"
+    rates = None
+    if path.is_file() and not _linked(path) and not _linked(path.parent):
+        rates, unreadable_rates = _count_rows([path], "rate_id", "content")
+        unreadable += unreadable_rates
+    entries = [name for name in os.listdir(root / "markdown") if not name.startswith(".")]
+    return {
+        "indexes": len(files),
+        "rows": rows,
+        "rate_rows": rates,
+        "unreadable": unreadable,
+        "skipped_entries": len(entries) - len(files),
+    }

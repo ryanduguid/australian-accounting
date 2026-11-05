@@ -126,7 +126,7 @@ commands:
 |---|---|---|
 | Aus Accounting MCP | `apps/aus-accounting-mcp/` | `uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing`; `uv run --locked --extra dev --with "pip-audit==2.10.1" pip-audit --local --strict`; `uv run --locked --extra dev ruff check aus_accounting_mcp tests`; `uv run --locked --extra dev pyright aus_accounting_mcp` |
 | LodgeiT calculator adapter (Rust) | `apps/lodgeit-calculator-adapter/` | `cargo fmt --check`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo test --locked`. Its gates run from `.github/workflows/ci-lodgeit-adapter.yml`, not `ci.yml`. |
-| AU tax rates data (Rust) | `packages/au-tax-rates-data/` | `cargo fmt --check`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo test --locked`; `cargo run --locked --release -- validate`. These run in the `au-tax-rates-data` job of `.github/workflows/ci.yml` on Ubuntu, Windows and macOS. The dataset is never released. |
+| AU tax rates data (Rust) | `packages/au-tax-rates-data/` | `cargo fmt --check`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo test --locked`; `cargo run --locked --release -- validate`. These run in the `au-tax-rates-data` job of `.github/workflows/ci.yml` on Ubuntu, Windows and macOS. The dataset is never released on its own. |
 | Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py tests/test_shared_blocks.py` |
 
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,

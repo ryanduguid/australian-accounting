@@ -91,6 +91,8 @@ class ReleaseChecksTests(unittest.TestCase):
             'pins/bin/python -I "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/scripts/check_installed_worksheets.py"',
             job,
         )
+        check = ROOT / "apps" / "aus-accounting-mcp" / "scripts" / "check_installed_worksheets.py"
+        self.assertIn('"get_reviewed_rate"', check.read_text(encoding="utf-8"))
         release = text.split("\n  release:\n", 1)[1].split("\n  pypi:", 1)[0]
         self.assertRegex(release, r"(?m)^    needs: published-pins$")
 

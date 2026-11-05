@@ -83,6 +83,9 @@ packages = [
 ]
 include-package-data = false
 
+[tool.setuptools.package-data]
+aus_accounting_mcp = ["rate_records/*.json"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

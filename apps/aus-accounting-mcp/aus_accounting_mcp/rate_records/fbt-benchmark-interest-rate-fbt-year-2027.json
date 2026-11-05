@@ -1,0 +1,15 @@
+{
+  "id": "fbt-benchmark-interest-rate-fbt-year-2027",
+  "label": "FBT statutory or benchmark interest rate",
+  "value": 8.27,
+  "unit": "percent",
+  "period": {
+    "effective_from": "2026-04-01",
+    "effective_to": "2027-03-31"
+  },
+  "source_url": "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds",
+  "retrieved_at": "2026-10-15T00:31:57+11:00",
+  "quote": "Statutory or benchmark interest rate FBT year ending Interest rate 31 March 2027 8.27%",
+  "pattern": "benchmark interest rate FBT year ending Interest rate 31 March 2027 ([\\d.]+%)",
+  "notes": "FBT year ending 31 March 2027. Used for loan fringe benefits and the car operating cost method."
+}

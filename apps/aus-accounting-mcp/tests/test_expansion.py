@@ -158,6 +158,42 @@ def test_library_search_ranks_by_where_the_words_sit(tmp_path, monkeypatch):
     assert first["has_more"] and not rest["has_more"]
 
 
+@pytest.mark.parametrize(("query", "found"), [
+    ("must lodge", {"must lodge a return"}),
+    ("MUST NOT lodge", {"Must  not lodge a return"}),
+    ("may lodge", {"may lodge a return but need not pay"}),
+    ("may not lodge", set()),
+    ("can claim", {"can claim a car"}),
+    ("cannot claim", {"cannot claim a scar", "can not claim a loan"}),
+    ("can not claim", {"cannot claim a scar", "can not claim a loan"}),
+    ("car", {"can claim a car"}),
+    ("the car", set()),
+])
+def test_library_compares_whole_words_and_keeps_a_modal_with_its_not(
+        query, found, tmp_path, monkeypatch):
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    (tmp_path / "a.md").write_text(
+        "must lodge a return\nMust  not lodge a return\nmay lodge a return but need not pay\n"
+        "can claim a car\ncannot claim a scar\ncan not claim a loan\n", encoding="utf-8")
+    result = call("search_accounting_library", query=query, limit=20)
+    assert {match["text"].splitlines()[0] for match in result["matches"]} == found
+
+
+@pytest.mark.parametrize(("query", "first", "second", "cited"), [
+    ("must lodge", "you must lodge\n", "# Must not lodge\nyou must lodge\n", ["a.md", "b.md"]),
+    ("must not lodge", "you must not lodge\n", "# Lodge, you must not\nyou must not lodge\n",
+     ["b.md", "b.md", "a.md"]),
+    ("cannot claim", "cannot, as a rule, claim\n", "cannot claim\n", ["b.md", "a.md"]),
+])
+def test_library_ranks_on_the_words_as_it_matches_them(
+        query, first, second, cited, tmp_path, monkeypatch):
+    monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
+    (tmp_path / "a.md").write_text(first, encoding="utf-8")
+    (tmp_path / "b.md").write_text(second, encoding="utf-8")
+    result = call("search_accounting_library", query=query)
+    assert [match["path"] for match in result["matches"]] == cited
+
+
 def test_library_ranks_on_the_whole_heading_but_returns_it_truncated(tmp_path, monkeypatch):
     monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
     long_heading = "# " + "x" * 300 + " car limit"

@@ -138,6 +138,18 @@ stay on your machine.
 `uvx aus-accounting-mcp --help` names the optional folders. Run with no arguments,
 the command waits silently for an MCP client, which is expected.
 
+`aus-accounting-mcp doctor` prints the version, the periods each bundled dataset
+records and each retrieval folder with its row count. The published 0.7.1 does not have
+it, so `uvx aus-accounting-mcp doctor` fails until the next release; in a checkout, run
+`uv run aus-accounting-mcp doctor` from `apps/aus-accounting-mcp`. A folder that is not
+set is fine, because all 3 are optional. It exits 1 if a configured folder is broken:
+missing, the wrong shape, empty, or holding a file, folder or row a search would skip,
+such as a title folder with no `sections.jsonl`, a row with no string id or text, or
+a missing, linked or empty rates index, because `search_tax_rates` fails without one. It
+reads the
+variables from its own environment, so set them as your MCP client's configuration does.
+A period it prints is what the release records, not that a figure is current.
+
 ### Upgrading
 
 `uvx` keeps using the version it first downloaded, so a new release does not reach
@@ -167,6 +179,7 @@ copy without a download until the uv cache is cleaned.
 | `generate_synthetic_sbr_fixture` | Synthetic CTR/BAS for agent tests (`synthetic: true`) | local fixture |
 | `validate_abn` | Test an ABN's check digit; proves neither ABR nor GST registration | local arithmetic |
 | `validate_acn` | Test an ACN's check digit; proves neither ABR nor GST registration | local arithmetic |
+| `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote, or refuse | bundled reviewed records |
 | `get_data_freshness` | Report each bundled dataset's recorded periods, engine version, source URLs and retrieval and review dates, or `UNKNOWN` | every engine above |
 
 `validate_abn` and `validate_acn` return `CHECK_DIGIT_VALID`, `CHECK_DIGIT_INVALID` or
@@ -180,10 +193,25 @@ a leading zero fails, because ABR's first step of subtracting 1 from the first d
 give an 11 digit number. The arithmetic sits in this facade because no published engine
 holds it, and it has no rate, date or dataset to go stale.
 
-`get_data_freshness` reads only what the installed engines record: the ATO
+`get_reviewed_rate` takes a `record_id`, such as `concessional-cap-2026-27`, and an
+`as_at` date, and needs no folder. It reads a bundled copy of the records in
+`packages/au-tax-rates-data`, which that package's validator holds to their ATO pages.
+`FOUND` returns the record as it stands: value, unit, period, `source_url`, `retrieved_at`,
+`quote` and any `period_quote`, `pattern`, `legislation` and `notes`. An open-ended record
+stays `FOUND` for a date after its page was last read, with `after_last_read` true and
+`after_last_read_note` saying that it was last read on that date and does not show the
+figure still applied on `as_at`. The records cover 2025-26 and 2026-27 only, so `as_at` must fall
+in those years and in the record's own period; an open-ended record is no exception.
+Anything else is `REFUSED` with no figure, and the `refusal` code says why:
+`OUTSIDE_COVERED_YEARS`, `OUTSIDE_RECORD_PERIOD` (with `covering_ids` naming any record
+of the same figure that holds the date), `NO_RECORDED_PERIOD` for a record that states
+only when its page was read, or `UNKNOWN_ID` (with every id in `known_ids`). It never
+returns a nearest-year figure, and `currency` is always `NOT_ESTABLISHED`.
+
+`get_data_freshness` reads only what the installed release records: the ATO
 benchmark years, the Division 7A rate table, the Payday Super GIC quarters,
 business-day calendar and SG parameters, each worksheet's supported periods, the
-lodgment program and the GST review rules. A fact an engine does not record, such
+lodgment program, the GST review rules and the reviewed ATO records. A fact an engine does not record, such
 as the GST review rules' effective period, is `UNKNOWN`. With `as_at`, each dataset
 reports `INSIDE_RECORDED_PERIOD`, `OUTSIDE_RECORDED_PERIOD` or `UNKNOWN`; inside a
 recorded period means the release holds data for that date, not that the data is
@@ -224,7 +252,7 @@ at the end. Limits must be integers from 1 to 100 and offsets non-negative integ
 Omitting `limit` or setting it to null preserves full-list calls; an offset still
 skips that many matching entries. Source metadata accompanies every page.
 
-Thirty-nine fabricated, read-only agent evaluation questions are in
+Forty fabricated, read-only agent evaluation questions are in
 [evaluation/questions.xml](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/evaluation/questions.xml), each with its exact expected
 answer and the tools a correct answer needs. The normal pytest suite replays them
 through a real stdio MCP session using the locked engines, checking both the
@@ -378,11 +406,11 @@ Their rules and sources come from `australian-tax-calculators`. Broader classifi
 exemptions, BAS/returns, trusts, partnerships, SMSF fund tax and audit, the transfer
 balance cap and payroll tax remain unsupported. Reference text cannot establish calculation support.
 
-The evaluation includes 39 cases: 10 original workflows, 10 unsupported-topic
+The evaluation includes 40 cases: 10 original workflows, 10 unsupported-topic
 questions, grouped Payday, a tax worksheet, synthetic library retrieval, the
 Payday evidence pack, which needs checker evidence-pack support, a synthetic ruling
-paragraph, GST coding, BAS reconciliation, a lodgment due date, data freshness, 2
-identifier check digits and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
+paragraph, GST coding, BAS reconciliation, a lodgment due date, data freshness, a refused
+rate lookup, 2 identifier check digits and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
 parts, rates, definitions, an injected instruction, an undefined term and a
 stored rate's date.
 The unsupported-topic answers require no tool calls. The
@@ -559,7 +587,11 @@ configuration, replacing the placeholder:
 ```
 
 `search_accounting_library` finds query words together on a line, without case
-sensitivity. Use short phrases, then read surrounding context with
+sensitivity. Every word counts, including 'what' and 'the', so this search takes
+keywords rather than plain questions. Each word is compared whole, and a modal and the
+'not' after it count as one word, as 'cannot' does, so 'must lodge' does not find a line
+holding only 'must not lodge'. This tool has no partial hits, so such a line is simply
+not a match. Use short phrases, then read surrounding context with
 `read_accounting_library`. Search results include relative paths, line ranges,
 preceding headings and PDF page markers, and SHA-256 of the source file. Retain
 the hash when checking whether a later read uses the same file version.
@@ -605,7 +637,7 @@ control, in this layout:
 ```text
 <corpus root>/
   markdown/<register id>/sections.jsonl   one JSON row per provision
-  rates/rates.jsonl                       optional rate and threshold rows
+  rates/rates.jsonl                       rate and threshold rows; search_tax_rates needs it
   sources.json                            optional licence and retrieval manifest
 ```
 
@@ -619,7 +651,28 @@ builds a corpus in this shape from the Federal Register of Legislation.
 
 ### What the tools return
 
-`search_tax_legislation` matches every query word within one provision, without
+`search_tax_legislation` first drops stop words such as 'what', 'is' and 'the', listing
+them in `dropped_words`, so a plain question can match; a query of only stop words is
+searched as written. Words a statute uses to give, impose, deny or qualify force are
+kept: the modal verbs 'can', 'could', 'may', 'might', 'must', 'shall', 'should' and
+'would', and 'not', 'no', 'cannot', 'unless', 'except' and 'but'. So 'must lodge a
+return' does not match a provision saying 'may lodge a return', which comes back as a
+partial hit missing 'must'. 'Can I deduct a meal?' needs 'can', so a provision saying
+'may deduct' comes back as a partial hit. A modal and the 'not' after it count as one
+word, as 'cannot' does: 'must lodge' does not match a provision holding only 'must not
+lodge', and 'must not lodge' does not match one holding only 'must lodge'. Each such
+provision comes back as a partial hit with that word in `missing_words`.
+
+Search reads only the word next to the modal. It does not read sense beyond that: 'must,
+unless exempt, lodge' still matches 'must lodge', and 'must never lodge' counts as
+'must'. It does not read conditions or alternatives either: 'and', 'or', 'if', 'when'
+and 'where' are dropped, because they join a question's words and nearly every provision
+holds them, so 'lodge or pay' is treated as 'lodge pay'. Read a match before relying on
+it. `search_accounting_library` and `search_ato_rulings` treat modals the same way and
+compare whole words, but they drop no stop words and have no partial hits: a row holding
+only the opposite form is simply not a match there.
+
+The search then matches every remaining word as a whole word within one provision, without
 case sensitivity, across the Act name, section label, heading, container and text.
 A word that appears only in stored metadata, such as the attribution or licence
 fields, is not a match. Matches come best first: the query as a phrase in the
@@ -639,6 +692,66 @@ the corpus did not record is returned either way with `version_is_current` null.
 Each match returns the full citation set above, the
 text truncated at 1200 characters with `total_chars` reporting the whole length,
 and `caveats` naming any truncation or superseded compilation.
+
+If the page has room after the matches and the query keeps at least 3 words, or 2
+where a modal's opposite form counts towards the threshold,
+`partial_hits` fills it with provisions whose heading and text hold at least 2 of them
+as whole words, most words first, then most of them in the heading, then the principal
+Acts. An Act name or section label counts for nothing here, so a title named with a
+query's words is no evidence about its provisions. A word with a digit, such as a year
+or a section number, must be in the heading or text, so a row for another year is left
+out. These rank below every match and are never one: each is labelled `match: partial`
+with its `matched_words` and `missing_words`, and the `notice` says so. `has_more` and
+`next_offset` run on through them.
+
+A modal word's opposite form counts towards those 2 words but stays in `missing_words`,
+so `matched_words` can hold fewer than 2 words. It is also the one way a 2-word query gets
+partial hits: 'must lodge' offers a provision saying 'must not lodge', with 'lodge' in
+`matched_words` and 'must' in `missing_words`. 'home office' offers none.
+
+`search_tax_rates` drops stop words and reports
+partial hits the same way, reading the heading, topic and content; a row's `years` list
+does not count, so pass `year` to narrow by year.
+
+A partial hit proves only that the provision shares those words with the question. It
+does not prove that the provision answers the question, applies to the facts or is the
+only relevant provision, and a missing word can be the point of the question. An empty
+`partial_hits` does not prove the law is silent: words are compared exactly, so
+'contractors' does not meet 'contractor' or 'deduct' meet 'deductible', and a statute
+can name a concept in other words.
+
+`evaluation/search_relevance.json` is a fixed relevance set dated 6 November 2026: 40
+fabricated provisions, and plain questions that have an answer among them or have none.
+Run `python evaluation/search_relevance.py` to reproduce the 2 two-word rows; it exits 1
+if either list fails the gate. The test
+`test_the_one_word_floor_fails_the_gate_as_recorded` measures the one-word row, and
+tests hold all 3 to the file. Hits are answerable questions with a relevant row in the
+top 5. Precision is the share of partial hits that are relevant; the first-hit figure
+counts only questions whose first result is a partial hit, which is 9 questions on the
+28 and 10 on the 18, so one question moves it by 0.111 and 0.1. Unanswerable is the share of
+unanswerable questions that got any partial hit.
+
+| Questions | Answerable | Hits before | Hits, stop words dropped | Hits with partial hits | First-hit precision | All partial hit precision | Unanswerable |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| One-word floor, not shipped, 28 questions | 20 | 0 | 1 | 17 | 0.478 | 0.271 | 0.625 |
+| Two-word floor, the same 28 | 20 | 0 | 1 | 9 | 0.778 | 0.625 | 0 |
+| Two-word floor, 18 held-out questions | 12 | 0 | 1 | 10 | 0.8 | 0.588 | 0 |
+
+The gate, set before the first run, asks for first-hit precision of at least 0.6, all
+partial hit precision of at least 0.3 and unanswerable of at most 0.25. A plain any-word
+fallback failed it, so a row must hold 2 words to be offered. That failure chose the
+floor, so the 28 questions are not independent of it; the 18 were written before the
+floor first ran. A review then limited partial hits to a row's heading and text and
+added the digit rule, so all 3 rows above come from the changed code and the 18 are no
+longer unseen, though no question or label changed. The one-word floor measured 0.25
+all partial hit precision before that change. Keeping the modal verbs then took one
+full match off each list and moved that relevant row into partial hits, and whole-word
+full matches moved one more on the 18. No more answers were found: the two-word lists
+read 0.75, 0.6 and 0.75, 0.533 before those changes, and the rise is those moves alone,
+not better search. The same author wrote the corpus,
+questions and labels, and 40 provisions hold far fewer chance word overlaps than a
+real corpus, so read these as a regression gate, not as the precision on a real one,
+which has not been measured.
 
 `read_tax_legislation_section` takes a `row_id` from a search result and returns
 that provision with the same citation fields and up to 12000 characters of text
@@ -756,8 +869,11 @@ run is an input error, not a partial result.
 
 ### What the tools return
 
-`search_ato_rulings` matches every query word within one paragraph, its heading or
-its document title, without case sensitivity. Matches come best first: the query
+`search_ato_rulings` matches every query word, whole, within one paragraph, its heading
+or its document title, without case sensitivity. A modal and the 'not' after it count as
+one word, as 'cannot' does, so 'must lodge' does not find a paragraph holding only 'must
+not lodge'. This tool has no partial hits, so such a paragraph is simply not a match.
+Matches come best first: the query
 as a phrase in a title or heading, then every word as a whole word in one of them,
 then the phrase in the text, then the words anywhere. Within a tier a paragraph
 whose captured page held a withdrawal notice follows those without; it is still

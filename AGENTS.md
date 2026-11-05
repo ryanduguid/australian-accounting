@@ -16,7 +16,9 @@ checks from its own directory.
   workspace),
   `packages/<distribution>/` (one directory per engine) and `packages/au-tax-rates-data/`
   (sourced ATO rates and thresholds with their Rust validator, `rates`; not an engine,
-  linked by nothing, excluded from the uv workspace and never released).
+  linked by nothing, excluded from the uv workspace and never released on its own;
+  `aus-accounting-mcp` bundles a copy of `data/`, and `tests/test_rate_records_copy.py`
+  holds the copy equal).
 - Dependency direction: the MCP application depends on engines only through their
   published distributions. The root workspace redirects 2 of those dependencies to the
   checked-out sources so the application is developed and tested against the tree, but
