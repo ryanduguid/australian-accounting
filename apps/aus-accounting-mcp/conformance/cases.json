@@ -3,14 +3,15 @@
   "matching": "Each key in expect is a JSON Pointer (RFC 6901) into the tool's structured result; the value is the exact JSON value expected there. Fields not named are not part of the case. A case with expect_error_contains expects the call to fail with an error message containing that text.",
   "basis": {
     "authority": "The expected values come from an official publication named in source, not from this server.",
-    "self-pinned": "The expected values are this server's own results, kept as regression pins; no external authority was checked."
+    "self-pinned": "The expected values are this server's own results, kept as regression pins; source says why no authority settles them."
   },
   "cases": [
     {
       "id": "payday_nothing_received",
       "tool": "calc_payday_super_deadline",
-      "basis": "self-pinned",
-      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
+      "basis": "authority",
+      "source": "Deadline: ATO, Payment deadlines for Payday Super (last updated 29 September 2026, read 5 November 2026), and Superannuation Guarantee (Administration) Act 1992, compilation 78 (C2026C00272), s 6(1) (business day) and s 18C. Shortfall: that Act's s 18C(1), under which only eligible contributions reduce the shortfall, so nothing received leaves the whole amount short.",
+      "worked": "7 business days after Thursday 6 August 2026: 7, 10, 11, 12, 13, 14 and 17 August, so due 17 August. As at 20 August that is 3 days late, and the 120.00 unpaid is the shortfall. UNPAID is this server's word for that.",
       "arguments": {"qe_day": "2026-08-06", "sg_amount": "120.00", "as_at": "2026-08-20"},
       "expect": {
         "/result/due": "2026-08-17",
@@ -23,7 +24,7 @@
       "id": "payday_receipt_without_amount",
       "tool": "calc_payday_super_deadline",
       "basis": "self-pinned",
-      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
+      "source": "This server's own result, recorded when the case was written. Kept self-pinned because no authority says how to read a receipt date with no amount: UNKNOWN between the 2 outcomes is this server's refusal to conclude. The due date follows Superannuation Guarantee (Administration) Act 1992, compilation 78 (C2026C00272), s 6(1) (business day) and s 18C.",
       "arguments": {"qe_day": "2026-08-06", "sg_amount": "120.00", "as_at": "2026-08-20", "received": "2026-08-17"},
       "expect": {
         "/result/due": "2026-08-17",
@@ -37,7 +38,7 @@
       "id": "payday_receipt_with_matched_amount",
       "tool": "calc_payday_super_deadline",
       "basis": "self-pinned",
-      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
+      "source": "This server's own result, recorded when the case was written. Kept self-pinned because the case also pins RETURNED_CONTRIBUTIONS_NOT_ASSESSED, this server's own qualification. The due date and ON_TIME follow Superannuation Guarantee (Administration) Act 1992, compilation 78 (C2026C00272), s 6(1) (business day) and s 18C; payday_ato_example_1_second_payment holds them without the qualification.",
       "arguments": {"qe_day": "2026-08-06", "sg_amount": "120.00", "as_at": "2026-08-20", "received": "2026-08-17", "matched_amount": "120.00"},
       "expect": {
         "/result/due": "2026-08-17",
@@ -50,15 +51,16 @@
       "id": "payday_before_1_july_2026_refused",
       "tool": "calc_payday_super_deadline",
       "basis": "self-pinned",
-      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
+      "source": "This server's own result, recorded when the case was written. Kept self-pinned because the refusal and its wording are this server's. The date is the ATO's: ATO, Payment deadlines for Payday Super (last updated 29 September 2026, read 5 November 2026) applies Payday Super to earnings paid from 1 July 2026 and the quarterly rules before it.",
       "arguments": {"qe_day": "2026-06-25", "sg_amount": "120.00", "as_at": "2026-08-20"},
       "expect_error_contains": "QE day before 1 Jul 2026"
     },
     {
       "id": "div7a_rate_known_year",
       "tool": "get_div7a_benchmark_rate",
-      "basis": "self-pinned",
-      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
+      "basis": "authority",
+      "source": "ATO, Division 7A - benchmark interest rate (last updated 1 July 2026, read 5 November 2026): table row 'Income year ended 30 June 2027'.",
+      "worked": "The table gives 8.77% for the income year ended 30 June 2027, which is 2026-27, so 0.0877. KNOWN is this server's word for a rate it holds.",
       "arguments": {"year_of_income": "2026-27"},
       "expect": {
         "/verdict": "KNOWN",
@@ -69,7 +71,7 @@
       "id": "div7a_rate_unsupported_year",
       "tool": "get_div7a_benchmark_rate",
       "basis": "self-pinned",
-      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
+      "source": "This server's own result, recorded when the case was written. Kept self-pinned because UNKNOWN is this server's refusal to go past its reviewed table. ATO, Division 7A - benchmark interest rate (last updated 1 July 2026, read 5 November 2026) publishes no rate after the income year ended 30 June 2027.",
       "arguments": {"year_of_income": "2031-32"},
       "expect": {
         "/verdict": "UNKNOWN",
@@ -80,13 +82,13 @@
       "id": "div7a_minimum_repayment_met",
       "tool": "review_div7a_loan",
       "basis": "self-pinned",
-      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
+      "source": "This server's own result, recorded when the case was written. Kept self-pinned because COMPLYING rests on comparing the agreed rate with the benchmark for the year the loan was made, which packages/div7a-loan-review/docs/primary-source-review-2026-08-31.md records as unresolved against the ATO's guidance. The repayment figures follow Income Tax Assessment Act 1936, compilation 193 (C2026C00454), s 109E(5) and (6), and ATO, Loans by private companies, 'Minimum yearly repayment' (last updated 2 July 2026, read 5 November 2026; a banner says the page is under review after the Bendel High Court decision); div7a_myr_one_year_term holds them on a rate that meets both years' benchmarks.",
       "arguments": {
         "year_of_income": "2026-27",
         "year_loan_made": "2025-26",
         "written_agreement": true,
         "terms_in_place_before_lodgment_day": true,
-        "maximum_term_years": "7",
+        "maximum_term_years": "1",
         "secured_by_registered_mortgage_over_real_property": false,
         "interest_rate_for_years_after_year_loan_made": "0.0837",
         "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
@@ -106,13 +108,13 @@
       "id": "div7a_written_agreement_not_established",
       "tool": "review_div7a_loan",
       "basis": "self-pinned",
-      "source": "This server's own result, recorded when the case was written. No external authority was checked, so a match shows agreement with this server, not correctness in law.",
+      "source": "This server's own result, recorded when the case was written. Kept self-pinned because s 109N of the Income Tax Assessment Act 1936 requires a written agreement but says nothing about an unknown fact: UNKNOWN and REFUSED are this server's refusal to conclude.",
       "arguments": {
         "year_of_income": "2026-27",
         "year_loan_made": "2025-26",
         "written_agreement": null,
         "terms_in_place_before_lodgment_day": true,
-        "maximum_term_years": "7",
+        "maximum_term_years": "1",
         "secured_by_registered_mortgage_over_real_property": false,
         "interest_rate_for_years_after_year_loan_made": "0.0837",
         "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
@@ -247,6 +249,114 @@
       "source": "ATO Schedule 1 (NAT 1004) withholding amounts sample data, weekly, fortnightly and monthly tables published 17 June 2026, as held in packages/australian-tax-calculators/tests/data/payg_withholding_sample_2026_27.csv (SHA-256 8e669fa4b0c0b1367d9f7f71021fb10db550e94e889faedd2119edc26974d733): row monthly,15829.67, column scale6.",
       "arguments": {"facts": {"kind": "payg_withholding", "scope_confirmed": true, "year": "2026-27", "earnings": "15829.67", "pay_period": "monthly", "scale": 6}},
       "expect": {"/amounts/withholding": "4442.00"}
+    },
+    {
+      "id": "payday_ato_example_1_first_payment",
+      "tool": "calc_payday_super_deadline",
+      "basis": "authority",
+      "source": "ATO, Payment deadlines for Payday Super (last updated 29 September 2026, read 5 November 2026), Example 1, QE day 1: 'a later due date of 7 August 2026'; Superannuation Guarantee (Administration) Act 1992, compilation 78 (C2026C00272), s 6(1) (business day) and s 18C.",
+      "worked": "20 business days after Thursday 9 July 2026: 10 July is the 1st, 17 July the 6th, 24 July the 11th, 31 July the 16th; NT Picnic Day, 3 August, is skipped; 7 August is the 20th.",
+      "arguments": {"qe_day": "2026-07-09", "sg_amount": "120.00", "as_at": "2026-08-07", "first_to_fund": true},
+      "expect": {
+        "/result/due": "2026-08-07"
+      }
+    },
+    {
+      "id": "payday_ato_example_1_second_payment",
+      "tool": "calc_payday_super_deadline",
+      "basis": "authority",
+      "source": "ATO, Payment deadlines for Payday Super (last updated 29 September 2026, read 5 November 2026), Example 1, QE day 2: 'within 7 business days of 30 July 2026, which is 11 August 2026'; Superannuation Guarantee (Administration) Act 1992, compilation 78 (C2026C00272), s 6(1) (business day) and s 18C.",
+      "worked": "7 business days after Thursday 30 July 2026: 31 July; NT Picnic Day, 3 August, is skipped; 4, 5, 6, 7, 10 and 11 August. The whole amount arrives on the last day.",
+      "arguments": {"qe_day": "2026-07-30", "sg_amount": "120.00", "as_at": "2026-08-11", "received": "2026-08-11", "matched_amount": "120.00"},
+      "expect": {
+        "/result/due": "2026-08-11",
+        "/result/verdict": "ON_TIME"
+      }
+    },
+    {
+      "id": "payday_ato_example_1_second_payment_a_day_late",
+      "tool": "calc_payday_super_deadline",
+      "basis": "authority",
+      "source": "ATO, Payment deadlines for Payday Super (last updated 29 September 2026, read 5 November 2026), Example 1, QE day 2, with the amount received the next day; Superannuation Guarantee (Administration) Act 1992, compilation 78 (C2026C00272), s 6(1) (business day) and s 18C.",
+      "worked": "Due 11 August 2026 as in payday_ato_example_1_second_payment. Received 12 August, 1 day after it.",
+      "arguments": {"qe_day": "2026-07-30", "sg_amount": "120.00", "as_at": "2026-08-12", "received": "2026-08-12", "matched_amount": "120.00"},
+      "expect": {
+        "/result/due": "2026-08-11",
+        "/result/verdict": "LATE",
+        "/result/days_late": 1
+      }
+    },
+    {
+      "id": "payday_ato_example_2_first_contribution",
+      "tool": "calc_payday_super_deadline",
+      "basis": "authority",
+      "source": "ATO, Payment deadlines for Payday Super (last updated 29 September 2026, read 5 November 2026), Example 2, QE day 1: 'a later due date of 4 September 2026'; Superannuation Guarantee (Administration) Act 1992, compilation 78 (C2026C00272), s 6(1) (business day) and s 18C.",
+      "worked": "20 business days after Friday 7 August 2026: 14 August is the 5th, 21 August the 10th, 28 August the 15th and 4 September the 20th.",
+      "arguments": {"qe_day": "2026-08-07", "sg_amount": "120.00", "as_at": "2026-09-04", "first_to_fund": true},
+      "expect": {
+        "/result/due": "2026-09-04"
+      }
+    },
+    {
+      "id": "payday_ato_example_2_next_payment",
+      "tool": "calc_payday_super_deadline",
+      "basis": "authority",
+      "source": "ATO, Payment deadlines for Payday Super (last updated 29 September 2026, read 5 November 2026), Example 2, QE day 2: 'by 15 September 2026'; Superannuation Guarantee (Administration) Act 1992, compilation 78 (C2026C00272), s 6(1) (business day) and s 18C.",
+      "worked": "7 business days after Friday 4 September 2026: 7, 8, 9, 10, 11, 14 and 15 September.",
+      "arguments": {"qe_day": "2026-09-04", "sg_amount": "120.00", "as_at": "2026-09-15"},
+      "expect": {
+        "/result/due": "2026-09-15"
+      }
+    },
+    {
+      "id": "payday_ato_example_3_out_of_cycle",
+      "tool": "calc_payday_super_deadline",
+      "basis": "authority",
+      "source": "ATO, Payment deadlines for Payday Super (last updated 29 September 2026, read 5 November 2026), Example 3, a bonus 'due on 21 December 2026'; Superannuation Guarantee (Administration) Act 1992, compilation 78 (C2026C00272), s 6(1) (business day) and s 18C.",
+      "worked": "7 business days after the regular Thursday 10 December 2026 payday: 11, 14, 15, 16, 17, 18 and 21 December.",
+      "arguments": {"qe_day": "2026-12-07", "sg_amount": "120.00", "as_at": "2026-12-21", "out_of_cycle": true, "next_standard_qe_day": "2026-12-10"},
+      "expect": {
+        "/result/due": "2026-12-21"
+      }
+    },
+    {
+      "id": "payday_ato_example_4_out_of_cycle",
+      "tool": "calc_payday_super_deadline",
+      "basis": "authority",
+      "source": "ATO, Payment deadlines for Payday Super (last updated 29 September 2026, read 5 November 2026), Example 4, a back payment 'due on 14 September 2026'; Superannuation Guarantee (Administration) Act 1992, compilation 78 (C2026C00272), s 6(1) (business day) and s 18C.",
+      "worked": "7 business days after the regular Thursday 3 September 2026 payday: 4, 7, 8, 9, 10, 11 and 14 September.",
+      "arguments": {"qe_day": "2026-08-29", "sg_amount": "120.00", "as_at": "2026-09-14", "out_of_cycle": true, "next_standard_qe_day": "2026-09-03"},
+      "expect": {
+        "/result/due": "2026-09-14"
+      }
+    },
+    {
+      "id": "div7a_myr_one_year_term",
+      "tool": "review_div7a_loan",
+      "basis": "authority",
+      "source": "Income Tax Assessment Act 1936, compilation 193 (C2026C00454), s 109E(5) and (6), and ATO, Loans by private companies, 'Minimum yearly repayment' (last updated 2 July 2026, read 5 November 2026; a banner says the page is under review after the Bendel High Court decision); rate from ATO, Division 7A - benchmark interest rate (last updated 1 July 2026, read 5 November 2026).",
+      "worked": "s 109E(6) remaining term: a 1-year term less 0 years since the 2025-26 year made is 1. Step 1: 100,000 x 0.0877 = 8,770. Steps 2 to 4: 1 - 1 / 1.0877 = 0.0877 / 1.0877. Step 5: 8,770 x 1.0877 / 0.0877 = 108,770.00, the balance plus a year's interest. Paying that leaves no shortfall.",
+      "arguments": {"year_of_income": "2026-27", "year_loan_made": "2025-26", "written_agreement": true, "terms_in_place_before_lodgment_day": true, "maximum_term_years": "1", "secured_by_registered_mortgage_over_real_property": false, "interest_rate_for_years_after_year_loan_made": "0.0877", "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00", "remaining_term_years": "1", "payments_applied_during_the_year": "108770.00", "loan_id": "synthetic-conformance-loan"},
+      "expect": {
+        "/minimum_yearly_repayment/verdict": "MYR_MET",
+        "/minimum_yearly_repayment/benchmark_rate": "0.0877",
+        "/minimum_yearly_repayment/myr_required": "108770.00",
+        "/minimum_yearly_repayment/shortfall": "0.00"
+      }
+    },
+    {
+      "id": "div7a_myr_seven_year_term",
+      "tool": "review_div7a_loan",
+      "basis": "authority",
+      "source": "Income Tax Assessment Act 1936, compilation 193 (C2026C00454), s 109E(5) and (6), and ATO, Loans by private companies, 'Minimum yearly repayment' (last updated 2 July 2026, read 5 November 2026; a banner says the page is under review after the Bendel High Court decision); rate from ATO, Division 7A - benchmark interest rate (last updated 1 July 2026, read 5 November 2026).",
+      "worked": "s 109E(6) remaining term: a 7-year term less 0 years since the 2025-26 year made is 7. Step 1: 100,000 x 0.0877 = 8,770. Step 2: 1 / 1.0877 = 0.919371150. Step 3: that to the power 7 = 0.555182925. Step 4: 1 - 0.555182925 = 0.444817075. Step 5: 8,770 / 0.444817075 = 19,715.97. Paying 19,000.00 leaves 715.97 short.",
+      "arguments": {"year_of_income": "2026-27", "year_loan_made": "2025-26", "written_agreement": true, "terms_in_place_before_lodgment_day": true, "maximum_term_years": "7", "secured_by_registered_mortgage_over_real_property": false, "interest_rate_for_years_after_year_loan_made": "0.0877", "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00", "remaining_term_years": "7", "payments_applied_during_the_year": "19000.00", "loan_id": "synthetic-conformance-loan"},
+      "expect": {
+        "/minimum_yearly_repayment/verdict": "MYR_SHORT",
+        "/minimum_yearly_repayment/benchmark_rate": "0.0877",
+        "/minimum_yearly_repayment/myr_required": "19715.97",
+        "/minimum_yearly_repayment/shortfall": "715.97"
+      }
     }
   ]
 }
