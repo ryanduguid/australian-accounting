@@ -28,11 +28,14 @@
 
 </div>
 
-Nine engines (8 in Rust, 1 in Python) that apply Australian tax and payroll rules
-to figures you supply, plus **Aus Accounting MCP**, a local Model Context Protocol
-server that gives an AI assistant the published Python releases of 6 of them; it
-loads none of the Rust crates yet. It serves Australian accountants and bookkeepers,
-and the developers who build tooling for them.
+Australian Accounting is a set of local tax and payroll calculation engines and an
+MCP server for Australian accountants and bookkeepers, and the developers who build
+tooling for them.
+
+Nine engines (8 in Rust, 1 in Python) apply Australian tax and payroll rules to figures
+you supply. **Aus Accounting MCP**, a local Model Context Protocol server, gives an AI
+assistant the published Python releases of 6 of them; it loads none of the Rust crates
+yet.
 
 ```bash
 claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
@@ -53,7 +56,7 @@ Missing facts stay unknown: a Payday Super row with a fund-receipt date but no m
 
 ## Try one contribution
 
-Synthetic examples. Accounting decisions stay with the reviewer.
+The Payday Super example below is synthetic, and accounting decisions stay with the reviewer.
 
 **Input:** $120 super contribution for payday 6 August 2026, remitted 14 August, with no fund receipt evidence as at 20 August.
 
@@ -79,6 +82,8 @@ The confirmation acknowledges the missing receipt; it does not establish payment
 The [recorded public evaluation](https://duguid.com.au/evaluate/payday-super-evidence/) uses release 0.1.3. Follow its fixed revision and commands to reproduce that historical run; the quick trial above uses release 0.2.3, which, like every release from 0.1.7, requires an evidenced amount alongside a fund-receipt date.
 
 ## Choose the next example
+
+The next Australian Accounting example depends on the task:
 
 | Your task | Start here |
 | --- | --- |
@@ -152,6 +157,8 @@ For an editable source installation, run `pip install -e .` from
 
 ## Components
 
+Australian Accounting holds 13 components, each in its own directory:
+
 | Path | Distribution | Import package | Commands |
 |---|---|---|---|
 | `packages/australian-tax-calculators/` | `australian-tax-calculators` (Rust) | none | `australian-tax-calculators` (JSON stdin worksheets) |
@@ -179,6 +186,18 @@ releases, from PyPI.
 
 The uv workspace develops `lodgment-calendar` and the MCP application; the
 MCP server uses none of the Rust crates yet.
+
+## Alternatives
+
+Australian Accounting calculates from figures you supply, and its research tools read only a local
+library you configure. As read on 5 November 2026, these projects cover nearby ground:
+
+- [william-laverty/ato-mcp](https://github.com/william-laverty/ato-mcp): hosted retrieval over ATO
+  documents with point-in-time queries, AGPL-3.0, with a proprietary corpus.
+- [darrentmorgan/au-accounting](https://github.com/darrentmorgan/au-accounting): MIT-licensed
+  Australian calculators with refusal codes in YAML.
+- [PolicyEngine/policyengine-au](https://github.com/PolicyEngine/policyengine-au): microsimulation
+  for Australia, a different purpose.
 
 <details>
 <summary>Rust engine installation, component development, boundaries and releases</summary>
@@ -229,6 +248,8 @@ The Codecov badge reports the Python components only. Each Rust crate's line cov
 is held to a floor in CI, from `.github/ci/rust_coverage_floors.json`.
 
 ## Boundaries
+
+Four structural boundaries hold across Australian Accounting:
 
 - The MCP application depends on engines only through their published distributions.
 - Engines never import `aus_accounting_mcp` or another engine, and no production module
