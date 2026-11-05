@@ -189,11 +189,20 @@ fn received(case: &Case, day: Date, matched_cents: i64) -> Value {
     out
 }
 
-/// A money string in cents, or 0 where the figure is absent.
+/// A money string in cents. Anything else fails the test.
 fn cents_at(value: &Value) -> i64 {
-    value.as_str().map_or(0, |text| {
-        text.replace('.', "").parse::<i64>().unwrap() * 10_i64.pow(2 - places(text))
-    })
+    let text = value
+        .as_str()
+        .unwrap_or_else(|| panic!("{value} is not a money string"));
+    text.replace('.', "").parse::<i64>().unwrap() * 10_i64.pow(2 - places(text))
+}
+
+/// A money field that must be present, and may be null where nothing is owed.
+fn optional_cents(result: &Value, key: &str) -> i64 {
+    let value = result
+        .get(key)
+        .unwrap_or_else(|| panic!("no {key} in {result}"));
+    if value.is_null() { 0 } else { cents_at(value) }
 }
 
 fn places(text: &str) -> u32 {
@@ -202,11 +211,20 @@ fn places(text: &str) -> u32 {
 }
 
 fn figure(result: &Value, key: &str) -> i64 {
-    cents_at(&result["figures"][key])
+    optional_cents(&result["figures"], key)
 }
 
+/// A count that must be present, and is null on a line that was not late.
 fn days_late(result: &Value) -> i64 {
-    result["days_late"].as_i64().unwrap_or(0)
+    let value = result
+        .get("days_late")
+        .unwrap_or_else(|| panic!("no days_late in {result}"));
+    if value.is_null() {
+        return 0;
+    }
+    value
+        .as_i64()
+        .unwrap_or_else(|| panic!("days_late is {value}"))
 }
 
 /// What every assessed line must say, whatever its facts.
@@ -215,14 +233,24 @@ fn check_sanity(result: &Value) {
     assert!(VERDICTS.contains(&verdict), "{result}");
     let sg = cents_at(&result["line"]["sg_amount"]);
     let (base, last) = (
-        cents_at(&result["base_shortfall"]),
-        cents_at(&result["final_shortfall"]),
+        optional_cents(result, "base_shortfall"),
+        optional_cents(result, "final_shortfall"),
     );
     assert!((0..=sg).contains(&base), "{result}");
     assert!((0..=base).contains(&last), "{result}");
     assert!(days_late(result) >= 0, "{result}");
     assert!(figure(result, "low") <= figure(result, "high"), "{result}");
-    if !EXPOSED.contains(&verdict) {
+    if EXPOSED.contains(&verdict) {
+        assert!(result["days_late"].is_i64(), "{result}");
+        for figure in [
+            &result["base_shortfall"],
+            &result["final_shortfall"],
+            &result["figures"]["low"],
+            &result["figures"]["high"],
+        ] {
+            assert!(figure.is_string(), "{result}");
+        }
+    } else {
         assert_eq!(last, 0, "{result}");
         assert_eq!(figure(result, "high"), 0, "{result}");
     }
@@ -276,7 +304,7 @@ fn more_of_the_amount_received_never_raises_the_shortfall() {
         let first = assessed(received(&case, day, less), as_at);
         let second = assessed(received(&case, day, more), as_at);
         assert!(
-            cents_at(&second["final_shortfall"]) <= cents_at(&first["final_shortfall"]),
+            optional_cents(&second, "final_shortfall") <= optional_cents(&first, "final_shortfall"),
             "{case:?} {first} {second}"
         );
         assert!(
@@ -296,7 +324,7 @@ fn a_later_review_date_never_lowers_an_unpaid_exposure() {
         let first = assessed(line(&case), earlier);
         let second = assessed(line(&case), later);
         assert!(
-            cents_at(&first["final_shortfall"]) <= cents_at(&second["final_shortfall"]),
+            optional_cents(&first, "final_shortfall") <= optional_cents(&second, "final_shortfall"),
             "{case:?}"
         );
         assert!(

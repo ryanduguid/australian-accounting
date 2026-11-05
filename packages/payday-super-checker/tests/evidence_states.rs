@@ -16,13 +16,20 @@
 use std::collections::BTreeSet;
 
 use payday_super_checker::api;
-use payday_super_checker::assess::{AT_RISK, LATE, ON_TIME, SKIPPED, UNKNOWN, UNPAID, VERDICTS};
 use payday_super_checker::py::Date;
 use serde_json::{Value, json};
 
 const SG: &str = "120.00";
 const PART: &str = "40.00";
 const REST: &str = "80.00";
+// The README's words, spelled here so the engine's own constants cannot move them.
+const ON_TIME: &str = "ON_TIME";
+const AT_RISK: &str = "AT_RISK";
+const LATE: &str = "LATE";
+const UNPAID: &str = "UNPAID";
+const UNKNOWN: &str = "UNKNOWN";
+const SKIPPED: &str = "SKIPPED";
+const VERDICTS: [&str; 6] = [ON_TIME, AT_RISK, LATE, UNPAID, UNKNOWN, SKIPPED];
 const REFUSED: &str = "REFUSED";
 
 fn date(text: &str) -> Date {
