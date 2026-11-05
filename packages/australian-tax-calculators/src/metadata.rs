@@ -332,7 +332,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "fbt_car_operating_cost" => (
             "2026-10-29",
-            "Fringe benefits tax - a guide for employers, 7.9 operating cost method and example 31; FBT return 2026 instructions, item 23B and example 7; FBT rates and thresholds, benchmark interest rate; Electric cars exemption, reportable fringe benefits",
+            "Fringe benefits tax - a guide for employers, 7.9 operating cost method and example 31; FBT return 2026 instructions, item 23B and example 7; FBT rates and thresholds, benchmark interest rate; Electric cars exemption, reportable fringe benefits; TR 2022/1 Table B, effective lives of cars",
         ),
         "depreciation" => (
             "2026-09-24",
@@ -584,7 +584,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "fbt_car_statutory" => vec![
             (
                 "cost_price",
-                "AUD, the part of the base value the one-third reduction applies to: for a car the provider or an associate owned at the earliest holding time, its cost price with dealer delivery and accessories fitted at acquisition; otherwise its leased car value then, the lessor's cost price only if the lease began then and the lessor bought the car at or about that time, else its arm's-length purchase price",
+                "AUD, the part of the base value the one-third reduction applies to: for a car the provider or an associate owned at the earliest holding time, its cost price with dealer delivery and accessories fitted at acquisition, excluding registration, tax on registration, insurance and extended warranty; otherwise its leased car value then, the lessor's cost price only if the lease began then and the lessor bought the car at or about that time, else its arm's-length purchase price",
             ),
             (
                 "later_accessories",
@@ -595,7 +595,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "days_available",
                 "integer from 0 to the days in the FBT year",
             ),
-            ("employee_contribution", "AUD"),
+            (
+                "employee_contribution",
+                "AUD, the recipient's payment under FBTAA s 9(2)(e), net of any reimbursement",
+            ),
             ("electric_car_exempt", "boolean"),
         ],
         "fbt_car_operating_cost" => vec![
@@ -612,11 +615,18 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, an owned car's FBTAA s 12 depreciated value at the start of the FBT year (cost price less earlier FBT deemed depreciation, not the income tax value), or its cost price if acquired in the year; a hire purchase car is owned; 0 for a leased car",
             ),
             (
+                "effective_life_years",
+                "years, the Commissioner's effective life of the car in effect when the provider last became its owner (FBTAA s 11(1AA)): 8 for cars generally, 4 for taxis and 5 for rental cars in TR 2022/1 Table B; 0 for a leased car",
+            ),
+            (
                 "days_held",
                 "integer, the days in the holding period the car was owned or leased, from 0 to the days in the FBT year",
             ),
             ("business_use", "decimal fraction from 0 to 1"),
-            ("employee_contribution", "AUD"),
+            (
+                "employee_contribution",
+                "AUD, the recipient's payment under FBTAA s 10(3)(c), net of any reimbursement",
+            ),
             (
                 "statutory_formula_taxable_value",
                 "AUD, the same car's s 9 value for the same holding period: fbt_car_statutory's taxable_value_before_exemption",
@@ -755,6 +765,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("running_costs", Text("5200.00")),
             ("lease_charges", Text("0.00")),
             ("depreciated_value", Text("50000.00")),
+            ("effective_life_years", Text("8")),
             ("days_held", Whole(365)),
             ("business_use", Text("0.3636")),
             ("employee_contribution", Text("1500.00")),

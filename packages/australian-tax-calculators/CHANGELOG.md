@@ -34,6 +34,12 @@ intentionally changed.
   release has it. `tests/parity.rs` drops its catalogue entry before comparing,
   and `tests/borrowing_expenses.rs` holds it to the ATO's Peter and Fiona and
   Max examples and Library ¶4-160 (Ben).
+- `tests/verdict_cases.rs` turns the edge cases in a published CC BY 4.0 reviewer
+  verdict into fabricated cases, or states why one does not apply.
+- `fbt-car-operating-cost` takes a required `effective_life_years` and works out
+  deemed depreciation at 200% over it (FBTAA s 11(1AA)). It had applied 25% to
+  every owned car, which is right for an 8-year life and understates a taxi's
+  4-year life or a rental car's 5.
 - `fbt-car-statutory` and `fbt-car-operating-cost` value one car fringe benefit
   under FBTAA s 9 or s 10 for the FBT years ended 31 March 2026 and 2027; the
   operating cost result takes the lower statutory formula value under s 10(5).

@@ -23,6 +23,10 @@ intentionally changed.
 - `api::myr_facts` is visible inside the crate for the derivation; the public
   library API is unchanged apart from the new `derivation` module.
 
+- `tests/verdict_cases.rs` turns the edge cases in a published CC BY 4.0
+  reviewer verdict into fabricated cases, or states why one does not apply. The
+  engine needed no change.
+
 ### Documented divergences
 
 - Python imports, dataclasses, enums, exception classes and package version

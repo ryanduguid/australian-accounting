@@ -152,6 +152,12 @@ of total operating costs for **$3,000**. The guide's example 31 used 5.20% for
 2020-21; the tests rerun its facts at 8.62% (`7500 + 10000 + 3448 = 20948`,
 `× 0.25 − 2000 = 3237`) and 8.27% (`7500 + 10000 + 3308`, giving $3,202).
 
+Deemed depreciation. FBTAA s 11(1AA) sets the rate at the DV percentage over the
+car's effective life, in a determination in effect when the provider last became
+its owner. For a car first held on or after 10 May 2006 the percentage is 200%
+(ITAA 1997 s 40-72(1)). TR 2022/1 Table B, read 6 November 2026, gives 8 years
+for cars generally, so 25%, and 5 for rental cars and 4 for taxis, so 40% and 50%.
+
 Rounding is a worksheet convention: only the gross taxable value is rounded half
 up to cents, before the recipient's payment. The payment is in cents, so this
 moves no taxable value and keeps the applied and excess parts adding up. The

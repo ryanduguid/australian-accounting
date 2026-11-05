@@ -21,7 +21,7 @@ fn statutory(overrides: Value) -> Result<Value, String> {
 fn operating(overrides: Value) -> Result<Value, String> {
     let mut input = json!({
         "running_costs": "5200.00", "lease_charges": "0.00", "depreciated_value": "50000.00",
-        "days_held": 365, "business_use": "0.3636", "employee_contribution": "1500.00",
+        "effective_life_years": "8", "days_held": 365, "business_use": "0.3636", "employee_contribution": "1500.00",
         "statutory_formula_taxable_value": "8500.00", "electric_car_exempt": false, "year_ended": 2026, "scope_confirmed": true,
     });
     for (k, v) in overrides.as_object().unwrap() {
@@ -191,6 +191,39 @@ fn deemed_amounts_are_apportioned_to_the_days_held() {
     assert_eq!(a["deemed_interest"], "1649.47");
     assert_eq!(a["operating_costs"], "6635.77");
     assert_eq!(a["taxable_value"], "6635.77");
+}
+
+#[test]
+fn deemed_depreciation_follows_the_cars_effective_life() {
+    // s 11(1AA): 200% over the effective life. TR 2022/1 Table B gives taxis 4
+    // years and rental cars 5, so 40000 x 0.5 and 40000 x 0.4 for the full year.
+    for (life, rate, depreciation) in [("4", "0.5", "20000.00"), ("5", "0.4", "16000.00")] {
+        let result = operating(json!({
+            "running_costs": "0.00", "depreciated_value": "40000.00",
+            "effective_life_years": life, "business_use": "0", "employee_contribution": "0.00",
+        }))
+        .unwrap();
+        assert_eq!(result["amounts"]["deemed_depreciation"], depreciation);
+        assert_eq!(result["rates"]["depreciation_rate"], rate);
+    }
+}
+
+#[test]
+fn an_owned_car_needs_an_effective_life_and_a_leased_car_takes_none() {
+    let message = "effective_life_years must be a finite Decimal from 0.01 to 1000 years for an owned car, or 0 for a leased car.";
+    for life in ["0", "0.009", "1001", "-1", "NaN"] {
+        assert_eq!(
+            operating(json!({"effective_life_years": life})),
+            Err(message.to_string()),
+            "{life}"
+        );
+    }
+    let result = operating(json!({
+        "lease_charges": "9000.00", "depreciated_value": "0.00", "effective_life_years": "0",
+    }))
+    .unwrap();
+    assert_eq!(result["amounts"]["deemed_depreciation"], "0.00");
+    assert_eq!(result["rates"]["depreciation_rate"], "0");
 }
 
 #[test]

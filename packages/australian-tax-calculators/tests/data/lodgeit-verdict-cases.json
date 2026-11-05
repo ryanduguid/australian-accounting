@@ -1,0 +1,411 @@
+{
+  "schema": "lodgeit-verdict-cases/1",
+  "synthetic": true,
+  "verdict": {
+    "reviewer": "Sami Charaf",
+    "credential": "FIPA + Tax Agent (TPB)",
+    "bounty": "bounty-05-fbt-car-statutory-vs-operating",
+    "outcome": "FIX",
+    "date": "2026-07-19",
+    "url": "https://lodgeit.org/bounties/registry/bounty-05-fbt-car-statutory-vs-operating/sami-charaf.yml",
+    "sha256": "a8fd916641f6fedecb49ae06b6e05e7297d2eb6fbe86c2e1b65a5366562b90ad",
+    "licence": "Creative Commons Attribution 4.0 International, the default in 06-terms.md section 3; neither the verdict nor its registry entry names another licence",
+    "licence_source": "https://lodgeit.org/bounties/bounty-05-fbt-car-statutory-vs-operating/artefacts/06-terms.md",
+    "read_on": "2026-11-06",
+    "changes": "Edge cases paraphrased, some split or merged, with new fabricated figures and this repository's findings. No verdict text is reproduced at length."
+  },
+  "note": "Every car here is fabricated, apart from S1, which reruns the reviewer's corrected arithmetic on a fabricated car from the bounty. The verdict reviewed another calculator. Edge cases 1 to 19 follow section 4 of the verdict; F1 to F5 come from its other sections. Statutory text was read in FBTAA 1986 compilation 97.",
+  "defaults": {
+    "fbt-car-statutory": {
+      "cost_price": "40000.00",
+      "later_accessories": "0.00",
+      "one_third_reduction": false,
+      "days_available": 365,
+      "employee_contribution": "0.00",
+      "electric_car_exempt": false,
+      "year_ended": 2026,
+      "scope_confirmed": true
+    },
+    "fbt-car-operating-cost": {
+      "running_costs": "0.00",
+      "lease_charges": "0.00",
+      "depreciated_value": "30000.00",
+      "effective_life_years": "8",
+      "days_held": 365,
+      "business_use": "0",
+      "employee_contribution": "0.00",
+      "statutory_formula_taxable_value": "99999.00",
+      "electric_car_exempt": false,
+      "year_ended": 2026,
+      "scope_confirmed": true
+    }
+  },
+  "edge_cases": [
+    {
+      "id": "1",
+      "edge_case": "The 20% formula applies from the 2015 FBT year; earlier years had transitional rates.",
+      "provisions": "FBTAA s 9(1)",
+      "reason": "The worksheets support the years ended 31 March 2026 and 2027, and the scope excludes a pre-10 May 2011 commitment.",
+      "cases": [
+        {
+          "name": "an earlier year is refused",
+          "command": "fbt-car-statutory",
+          "input": {
+            "year_ended": 2025
+          },
+          "refused": "Unsupported period 2025; supported: 2026, 2027."
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "edge_case": "Log book and non-log book years have different record rules.",
+      "provisions": "FBTAA ss 10(2), 10A, 10B, 162G",
+      "reason": "The operator establishes the business use percentage from the records. The case shows the s 10(2) result when no reduction is available: business use nil.",
+      "cases": [
+        {
+          "name": "no records, business use nil",
+          "command": "fbt-car-operating-cost",
+          "input": {
+            "running_costs": "2500.00",
+            "year_ended": 2027
+          },
+          "expect": {
+            "amounts.gross_taxable_value": "12481.00",
+            "amounts.deemed_interest": "2481.00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "edge_case": "A log book must fall within the last 4 FBT years and the pattern of use must not have changed.",
+      "provisions": "FBTAA s 162G(1)",
+      "reason": "Not checked. The worksheet holds no record dates; business_use is the operator's established figure and s 162G(1) decides when a year is a log book year."
+    },
+    {
+      "id": "4",
+      "edge_case": "The base value falls by one-third, once, from the FBT year after the fourth anniversary, leaving later accessories whole.",
+      "provisions": "FBTAA s 9(2)(a)(i), (ii), (iii); TD 94/28",
+      "cases": [
+        {
+          "name": "reduced cost price plus unreduced accessory",
+          "command": "fbt-car-statutory",
+          "input": {
+            "cost_price": "45000.00",
+            "later_accessories": "1000.00",
+            "one_third_reduction": true
+          },
+          "expect": {
+            "amounts.base_value": "31000.00",
+            "amounts.gross_taxable_value": "6200.00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "edge_case": "A transaction not at arm's length takes an arm's-length cost.",
+      "provisions": "FBTAA s 13(2)",
+      "reason": "Arm's-length deeming is excluded by both worksheets' scope statements; the operator supplies the figure."
+    },
+    {
+      "id": "6",
+      "edge_case": "Leased cars are valued differently.",
+      "provisions": "FBTAA ss 9(2)(a)(ii), 10(3)(a)(v), 136(1) leased car value",
+      "cases": [
+        {
+          "name": "a leased car value takes the same formula",
+          "command": "fbt-car-statutory",
+          "input": {
+            "cost_price": "36000.00"
+          },
+          "expect": {
+            "amounts.base_value": "36000.00",
+            "amounts.gross_taxable_value": "7200.00"
+          }
+        },
+        {
+          "name": "lease charges replace deemed amounts",
+          "command": "fbt-car-operating-cost",
+          "input": {
+            "running_costs": "2000.00",
+            "lease_charges": "6000.00",
+            "depreciated_value": "0.00",
+            "effective_life_years": "0",
+            "business_use": "0.6"
+          },
+          "expect": {
+            "amounts.deemed_depreciation": "0.00",
+            "amounts.deemed_interest": "0.00",
+            "amounts.taxable_value": "3200.00",
+            "rates.depreciation_rate": "0"
+          }
+        },
+        {
+          "name": "owned and leased together is refused",
+          "command": "fbt-car-operating-cost",
+          "input": {
+            "lease_charges": "1.00"
+          },
+          "refused": "A car is either owned, with a depreciated_value, or leased, with lease_charges; set the other to 0."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "edge_case": "A taxi's effective life is 4 years, so its deemed depreciation rate is not 25%.",
+      "provisions": "FBTAA s 11(1AA); ITAA 1997 s 40-72(1); TR 2022/1 Table B",
+      "defect": "A defect in this repository's engine. The worksheet applied 25% to every owned car. It now takes effective_life_years, a required input, and applies 200% over it.",
+      "cases": [
+        {
+          "name": "a taxi at 4 years",
+          "command": "fbt-car-operating-cost",
+          "input": {
+            "depreciated_value": "40000.00",
+            "effective_life_years": "4"
+          },
+          "expect": {
+            "rates.depreciation_rate": "0.5",
+            "amounts.deemed_depreciation": "20000.00"
+          }
+        },
+        {
+          "name": "a rental car at 5 years",
+          "command": "fbt-car-operating-cost",
+          "input": {
+            "effective_life_years": "5"
+          },
+          "expect": {
+            "rates.depreciation_rate": "0.4",
+            "amounts.deemed_depreciation": "12000.00"
+          }
+        },
+        {
+          "name": "a car generally at 8 years",
+          "command": "fbt-car-operating-cost",
+          "input": {},
+          "expect": {
+            "rates.depreciation_rate": "0.25",
+            "amounts.deemed_depreciation": "7500.00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "edge_case": "Deemed depreciation and interest must follow the full s 11 formulas, not assume the days held equal the days owned.",
+      "provisions": "FBTAA s 11(1), (1A), (1B), (2)",
+      "reason": "days_held is the days in the holding period the car was owned, DHP in s 11(1A). (A x B x C / D) x (DHP / C) reduces to A x B x DHP / D, so the days owned cancel. The case has a car owned all year and held for 200 days.",
+      "cases": [
+        {
+          "name": "owned 365 days, held 200",
+          "command": "fbt-car-operating-cost",
+          "input": {
+            "depreciated_value": "40000.00",
+            "days_held": 200
+          },
+          "expect": {
+            "amounts.deemed_depreciation": "5479.45",
+            "amounts.deemed_interest": "1889.32",
+            "amounts.operating_costs": "7368.77"
+          }
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "edge_case": "A contribution the employee was reimbursed for does not count.",
+      "provisions": "FBTAA ss 9(2)(e), 10(3)(c)",
+      "reason": "employee_contribution is the net figure, and the catalogue now says so."
+    },
+    {
+      "id": "10",
+      "edge_case": "A direct contribution and a payment to a third party differ for GST.",
+      "provisions": "FBTAA ss 9(2)(e), 10(3)(c)",
+      "reason": "No GST is worked out. Both can be a recipient's payment; the operator establishes the amount, and third-party fuel and oil need the declaration or evidence s 9(2)(e)(ia) asks for."
+    },
+    {
+      "id": "11",
+      "edge_case": "Where the statutory formula gives less, the operating cost election is treated as never made.",
+      "provisions": "FBTAA s 10(5)",
+      "cases": [
+        {
+          "name": "the lower statutory value is the taxable value",
+          "command": "fbt-car-operating-cost",
+          "input": {
+            "running_costs": "12000.00",
+            "depreciated_value": "0.00",
+            "effective_life_years": "0",
+            "statutory_formula_taxable_value": "8500.00"
+          },
+          "expect": {
+            "amounts.operating_cost_taxable_value": "12000.00",
+            "amounts.taxable_value": "8500.00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "edge_case": "A car unregistered all year and used wholly or principally in the business is exempt.",
+      "provisions": "FBTAA s 8(3)",
+      "reason": "Deciding whether a benefit or exemption arises is outside both scope statements. An exempt benefit has no taxable value to work out."
+    },
+    {
+      "id": "13",
+      "edge_case": "An emergency service vehicle not actually used privately may not be available for private use.",
+      "provisions": "The verdict cites the ATO guide to FBT; no provision traced here",
+      "reason": "Whether a car benefit arises is outside both scope statements, and days available are established by the operator."
+    },
+    {
+      "id": "14",
+      "edge_case": "A personal services entity providing more than one car: the others are exempt.",
+      "provisions": "FBTAA s 8(4); ITAA 1997 s 86-60",
+      "reason": "One car for one ordinary taxable employer is the scope; whether an exemption arises is outside it."
+    },
+    {
+      "id": "15",
+      "edge_case": "A vehicle may not be a car at all.",
+      "provisions": "FBTAA s 136(1) car; ITAA 1997 s 995-1(1)",
+      "reason": "Whether a car benefit arises is outside both scope statements."
+    },
+    {
+      "id": "16",
+      "edge_case": "A changed pattern of use calls for a new log book.",
+      "provisions": "FBTAA s 162G(1)(b)",
+      "reason": "As for 3. The operator establishes the percentage, and s 162G(1)(b) lets the employer elect a new log book year."
+    },
+    {
+      "id": "17",
+      "edge_case": "Cars owned by foreign companies have separate rules.",
+      "provisions": "None given in the verdict",
+      "reason": "Outside the scope of an ordinary taxable employer. The verdict names no provision and this repository has not found which rule it means."
+    },
+    {
+      "id": "18",
+      "edge_case": "Electric and hydrogen fuel cell cars may be exempt.",
+      "provisions": "FBTAA s 8A",
+      "reason": "Whether s 8A applies is the operator's established fact; the worksheet then gives nil and keeps the notional value.",
+      "cases": [
+        {
+          "name": "an exempt car keeps its notional value",
+          "command": "fbt-car-statutory",
+          "input": {
+            "electric_car_exempt": true
+          },
+          "expect": {
+            "amounts.taxable_value": "0.00",
+            "amounts.taxable_value_before_exemption": "8000.00",
+            "amounts.reportable_taxable_value": "8000.00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "edge_case": "Days unavailable, such as repairs or being overseas, reduce the days used.",
+      "provisions": "FBTAA s 9(1)",
+      "reason": "days_available is established by the operator; a car garaged at home can still be available.",
+      "cases": [
+        {
+          "name": "30 days out of use",
+          "command": "fbt-car-statutory",
+          "input": {
+            "days_available": 335
+          },
+          "expect": {
+            "amounts.gross_taxable_value": "7342.47"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S1",
+      "edge_case": "The reviewer's corrected statutory figure: 65000.00 for 335 days is 11931.51, or 9931.51 after a 2000.00 payment.",
+      "provisions": "FBTAA s 9(1)",
+      "reason": "The reviewer's corrected operating cost figure of 6981.23 uses the FBT 2025 rate of 8.77%, a year the worksheet does not support, so it is not rerun.",
+      "cases": [
+        {
+          "name": "the corrected figure",
+          "command": "fbt-car-statutory",
+          "input": {
+            "cost_price": "65000.00",
+            "days_available": 335,
+            "employee_contribution": "2000.00"
+          },
+          "expect": {
+            "amounts.gross_taxable_value": "11931.51",
+            "amounts.taxable_value": "9931.51"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F1",
+      "edge_case": "Base value excludes stamp duty on registration, registration, CTP insurance and extended warranty.",
+      "provisions": "FBTAA s 136(1) cost price; TR 2011/3 paragraphs 81 and 83",
+      "reason": "cost_price is the operator's established figure, and the catalogue now names these exclusions."
+    },
+    {
+      "id": "F2",
+      "edge_case": "Prepaid registration and insurance must be apportioned to the holding period, and the operating cost must not be apportioned a second time.",
+      "provisions": "FBTAA s 10(2), (3)(a)(ii)",
+      "reason": "running_costs is the amount attributable to the period. The case has 1460.00 of annual registration and insurance held 335 of 365 days, so 1340.00, plus 2660.00 of fuel. The private share applies once to the operating cost.",
+      "cases": [
+        {
+          "name": "private share applied once",
+          "command": "fbt-car-operating-cost",
+          "input": {
+            "running_costs": "4000.00",
+            "days_held": 335,
+            "business_use": "0.68",
+            "employee_contribution": "1000.00"
+          },
+          "expect": {
+            "amounts.operating_costs": "13257.01",
+            "amounts.gross_taxable_value": "4242.24",
+            "amounts.taxable_value": "3242.24"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F3",
+      "edge_case": "Deemed interest uses the FBT benchmark rate, not the Division 7A rate.",
+      "provisions": "FBTAA ss 11(2), 136(1) benchmark interest rate",
+      "cases": [
+        {
+          "name": "the 2026 FBT rate is 8.62%, where Division 7A 2025-26 is 8.37%",
+          "command": "fbt-car-operating-cost",
+          "input": {},
+          "expect": {
+            "rates.benchmark_interest_rate": "0.0862"
+          }
+        },
+        {
+          "name": "the 2027 FBT rate is 8.27%, where Division 7A 2026-27 is 8.77%",
+          "command": "fbt-car-operating-cost",
+          "input": {
+            "year_ended": 2027
+          },
+          "expect": {
+            "rates.benchmark_interest_rate": "0.0827"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F4",
+      "edge_case": "An election is made by notice to the Commissioner on or before the declaration date, and keeping a log book is not one.",
+      "provisions": "FBTAA ss 10(1), 10(4), 136(1) declaration date",
+      "reason": "The operating cost scope assumes a written election. The worksheet does not decide whether one was made."
+    },
+    {
+      "id": "F5",
+      "edge_case": "A log book covers a continuous period of at least 12 weeks, or a shorter holding period.",
+      "provisions": "FBTAA s 162H(1)",
+      "reason": "As for 3: the worksheet holds no record dates."
+    }
+  ]
+}
