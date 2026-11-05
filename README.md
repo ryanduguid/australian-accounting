@@ -16,7 +16,7 @@
 [![Codacy code quality](https://app.codacy.com/project/badge/Grade/657574ca064f48499b4839693bafd4bf)](https://app.codacy.com/gh/ryanduguid/australian-accounting/dashboard)<br>
 [![OpenSSF Scorecard](https://raw.githubusercontent.com/ryanduguid/.github/badges/ryanduguid/australian-accounting.svg)](https://scorecard.dev/viewer/?uri=github.com/ryanduguid/australian-accounting)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15429/badge)](https://www.bestpractices.dev/projects/15429)
-[![SLSA 3](.github/assets/badges/slsa.svg)](https://github.com/ryanduguid/australian-accounting/attestations)
+[![SLSA provenance](.github/assets/badges/slsa.svg)](https://github.com/ryanduguid/australian-accounting/attestations)
 [![VirusTotal](.github/assets/badges/virustotal.svg)](https://github.com/ryanduguid/australian-accounting/releases)<br>
 [![licence: Ryan Duguid Public Attribution Licence 1.0](.github/assets/badges/licence.svg)](LICENSE)
 [![Open in GitHub Codespaces](.github/assets/badges/github.svg)](https://codespaces.new/ryanduguid/australian-accounting)
