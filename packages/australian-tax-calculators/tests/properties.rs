@@ -72,7 +72,39 @@ fn n(value: i64) -> Decimal {
 }
 
 fn run(command: &str, input: Value) -> Value {
-    api::evaluate(command, &input).unwrap_or_else(|e| panic!("{command} {input}: {e}"))
+    let result =
+        api::evaluate(command, &input).unwrap_or_else(|e| panic!("{command} {input}: {e}"));
+    check_sanity(command, &result);
+    result
+}
+
+/// What every worksheet result must say, whatever its inputs: it names its
+/// period, scope and sources, and every amount is whole cents and not negative.
+fn check_sanity(command: &str, result: &Value) {
+    assert_eq!(result["ok"], json!(true), "{command} {result}");
+    for key in ["period", "scope"] {
+        let text = result[key].as_str().unwrap_or_default();
+        assert!(!text.is_empty(), "{command} has no {key}: {result}");
+    }
+    let sources = result["sources"].as_array();
+    assert!(
+        sources.is_some_and(|s| !s.is_empty()),
+        "{command} cites nothing: {result}"
+    );
+    for (name, value) in result["amounts"].as_object().unwrap() {
+        let text = value.as_str().unwrap_or("0.00");
+        let (whole, cents) = text
+            .split_once('.')
+            .unwrap_or_else(|| panic!("{command} {name} is {text}"));
+        assert!(
+            cents.len() == 2
+                && whole
+                    .chars()
+                    .chain(cents.chars())
+                    .all(|c| c.is_ascii_digit()),
+            "{command} {name} is {text}"
+        );
+    }
 }
 
 fn amount(result: &Value, key: &str) -> Decimal {
@@ -713,6 +745,111 @@ fn borrowing_expense_maximums_carry_forward_and_add_up() {
             "{expenditure}"
         );
     }
+}
+
+// Metamorphic relations: how the answer must move when one fact moves.
+
+fn decline(cost: &str, life: &str, days: i64, method: &str) -> Value {
+    run(
+        "depreciation",
+        json!({"cost": cost, "effective_life": life, "days": days, "taxable_use": "0.75",
+               "method": method, "scope_confirmed": true, "year": "2025-26"}),
+    )
+}
+
+#[test]
+fn holding_an_asset_longer_never_lowers_its_decline_and_its_value_is_conserved() {
+    let mut rng = Rng(0xDEC1);
+    for _ in 0..RUNS {
+        let cost = rng.cents(100_000_000);
+        let life = rng.int(1, 40).to_string();
+        let fewer = rng.int(0, 365);
+        let more = rng.int(fewer, 365);
+        for method in ["prime_cost", "diminishing_value"] {
+            let low = decline(&cost, &life, fewer, method);
+            let high = decline(&cost, &life, more, method);
+            assert!(le(
+                &amount(&low, "decline_in_value"),
+                &amount(&high, "decline_in_value")
+            ));
+            for result in [&low, &high] {
+                let taken = amount(result, "decline_in_value");
+                let kept = amount(result, "closing_adjustable_value");
+                assert!(le(&taken, &d(&cost)), "{cost} {result}");
+                assert!(le(&amount(result, "deduction"), &taken), "{cost} {result}");
+                let gap = taken.add(&kept).unwrap().sub(&d(&cost)).unwrap();
+                assert!(
+                    le(&gap, &d("0.01")) && le(&d("-0.01"), &gap),
+                    "{cost} {result}"
+                );
+            }
+        }
+        let prime = decline(&cost, &life, more, "prime_cost");
+        let diminishing = decline(&cost, &life, more, "diminishing_value");
+        assert!(le(
+            &amount(&prime, "decline_in_value"),
+            &amount(&diminishing, "decline_in_value")
+        ));
+    }
+}
+
+fn quarter(earnings: &str, paid: &str) -> Value {
+    run(
+        "quarterly-sg",
+        json!({"ordinary_time_earnings": earnings, "qualifying_contributions": paid,
+               "year": "2025-26", "quarter": 1, "scope_confirmed": true}),
+    )
+}
+
+#[test]
+fn paying_more_super_never_raises_the_amount_still_owing() {
+    let mut rng = Rng(0xDEC2);
+    for _ in 0..RUNS {
+        let earnings = rng.cents(10_000_000);
+        let (paid_less, paid_more) = sorted_dec(rng.cents(2_000_000), rng.cents(2_000_000));
+        let low = quarter(&earnings, &paid_less);
+        let high = quarter(&earnings, &paid_more);
+        let still_low = amount(&low, "additional_contribution");
+        let still_high = amount(&high, "additional_contribution");
+        assert!(le(&still_high, &still_low), "{earnings} {low} {high}");
+        assert!(le(&still_low, &amount(&low, "minimum_sg")), "{low}");
+        assert!(eq(
+            &amount(&quarter(&earnings, "0.00"), "additional_contribution"),
+            &amount(&low, "minimum_sg")
+        ));
+    }
+}
+
+#[test]
+fn more_ordinary_earnings_never_lower_the_minimum_and_the_base_caps_it() {
+    let mut rng = Rng(0xDEC3);
+    for _ in 0..RUNS {
+        let (less, more) = sorted_dec(rng.cents(10_000_000), rng.cents(10_000_000));
+        let low = amount(&quarter(&less, "0.00"), "minimum_sg");
+        let high = amount(&quarter(&more, "0.00"), "minimum_sg");
+        assert!(le(&low, &high), "{less} {more}");
+        assert!(le(&high, &d("7500.00")), "{more}");
+    }
+}
+
+#[test]
+fn a_worked_quarter_and_asset_hold() {
+    // Worked by hand: 12% of 10,000.00 is 1,200.00, less 200.00 paid. The base
+    // caps 100,000.00 at 62,500.00, and 12% of that is 7,500.00.
+    let result = quarter("10000.00", "200.00");
+    assert_eq!(result["amounts"]["minimum_sg"], "1200.00");
+    assert_eq!(result["amounts"]["additional_contribution"], "1000.00");
+    let capped = quarter("100000.00", "0.00");
+    assert_eq!(capped["amounts"]["earnings_used"], "62500.00");
+    assert_eq!(capped["amounts"]["minimum_sg"], "7500.00");
+    // 10,000.00 over 5 years for a full year: prime cost 2,000.00, diminishing
+    // value twice that, and 75% of each is the deduction.
+    let prime = decline("10000.00", "5", 365, "prime_cost");
+    assert_eq!(prime["amounts"]["decline_in_value"], "2000.00");
+    assert_eq!(prime["amounts"]["deduction"], "1500.00");
+    assert_eq!(prime["amounts"]["closing_adjustable_value"], "8000.00");
+    let diminishing = decline("10000.00", "5", 365, "diminishing_value");
+    assert_eq!(diminishing["amounts"]["decline_in_value"], "4000.00");
 }
 
 /// Howard Hinnant's civil_from_days, for generating dates.

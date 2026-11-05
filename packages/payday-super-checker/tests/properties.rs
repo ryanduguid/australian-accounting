@@ -5,10 +5,13 @@
 //! examples and input domains are the Python fast-check properties'; a local
 //! SplitMix64 replaces fast-check's generator.
 
+use payday_super_checker::api;
+use payday_super_checker::assess::{EXPOSED, VERDICTS};
 use payday_super_checker::calendar::{BusinessCalendar, load_calendar};
 use payday_super_checker::decimal::Decimal;
 use payday_super_checker::py::Date;
 use payday_super_checker::sgc::{exposure_range, scenario, uplift_scenarios};
+use serde_json::{Value, json};
 
 const RUNS: usize = 100;
 
@@ -125,5 +128,214 @@ fn exposure_scenarios_conserve_the_shortfall_plus_nec_base() {
         let shortfall = money(&mut rng);
         let nec = money(&mut rng);
         check_exposure(&shortfall, &nec);
+    }
+}
+
+// Metamorphic relations: how the answer must move when one fact moves. Every
+// date stays inside the bundled calendar, so no line is left undecided by a
+// table running out, and after the 28 July 2026 transition.
+
+/// One contribution's facts, in cents and dates.
+#[derive(Debug, Clone)]
+struct Case {
+    qe_day: Date,
+    cents: i64,
+    first_to_fund: bool,
+}
+
+fn case(rng: &mut Rng) -> Case {
+    Case {
+        qe_day: date("2026-07-29").add_days(rng.below(120) as i64).unwrap(),
+        cents: 1 + rng.below(2_000_000) as i64,
+        first_to_fund: rng.below(2) == 1,
+    }
+}
+
+fn dollars(cents: i64) -> String {
+    format!("{}.{:02}", cents / 100, cents % 100)
+}
+
+fn after(day: Date, days: u64) -> Date {
+    day.add_days(days as i64).unwrap()
+}
+
+fn assessed(line: Value, as_at: Date) -> Value {
+    let results = api::evaluate(
+        "assess",
+        &json!({"lines": [line], "as_at": as_at.isoformat(), "allow_stale_gic": true}),
+    )
+    .unwrap_or_else(|e| panic!("{e}"));
+    let result = results[0].clone();
+    check_sanity(&result);
+    result
+}
+
+fn line(case: &Case) -> Value {
+    json!({
+        "employee_id": "E1",
+        "qe_day": case.qe_day.isoformat(),
+        "sg_amount": dollars(case.cents),
+        "first_to_fund": case.first_to_fund,
+    })
+}
+
+/// The line after the fund received `matched_cents` of it on `day`.
+fn received(case: &Case, day: Date, matched_cents: i64) -> Value {
+    let mut out = line(case);
+    out["remitted"] = json!(case.qe_day.isoformat());
+    out["remitted_amount"] = json!(dollars(matched_cents));
+    out["received"] = json!(day.isoformat());
+    out["matched_amount"] = json!(dollars(matched_cents));
+    out
+}
+
+/// A money string in cents, or 0 where the figure is absent.
+fn cents_at(value: &Value) -> i64 {
+    value.as_str().map_or(0, |text| {
+        text.replace('.', "").parse::<i64>().unwrap() * 10_i64.pow(2 - places(text))
+    })
+}
+
+fn places(text: &str) -> u32 {
+    text.split_once('.')
+        .map_or(0, |(_, cents)| cents.len() as u32)
+}
+
+fn figure(result: &Value, key: &str) -> i64 {
+    cents_at(&result["figures"][key])
+}
+
+fn days_late(result: &Value) -> i64 {
+    result["days_late"].as_i64().unwrap_or(0)
+}
+
+/// What every assessed line must say, whatever its facts.
+fn check_sanity(result: &Value) {
+    let verdict = result["verdict"].as_str().unwrap();
+    assert!(VERDICTS.contains(&verdict), "{result}");
+    let sg = cents_at(&result["line"]["sg_amount"]);
+    let (base, last) = (
+        cents_at(&result["base_shortfall"]),
+        cents_at(&result["final_shortfall"]),
+    );
+    assert!((0..=sg).contains(&base), "{result}");
+    assert!((0..=base).contains(&last), "{result}");
+    assert!(days_late(result) >= 0, "{result}");
+    assert!(figure(result, "low") <= figure(result, "high"), "{result}");
+    if !EXPOSED.contains(&verdict) {
+        assert_eq!(last, 0, "{result}");
+        assert_eq!(figure(result, "high"), 0, "{result}");
+    }
+    if verdict == "ON_TIME" {
+        assert_eq!(days_late(result), 0, "{result}");
+        let due = result["deadline"]["due"].as_str().unwrap();
+        assert!(
+            result["line"]["received"].as_str().unwrap() <= due,
+            "{result}"
+        );
+    }
+    if verdict == "LATE" {
+        assert!(days_late(result) > 0, "{result}");
+    }
+}
+
+#[test]
+fn a_later_receipt_never_improves_timeliness() {
+    let mut rng = Rng(0xFACE);
+    for _ in 0..RUNS {
+        let case = case(&mut rng);
+        let earlier = after(case.qe_day, rng.below(45));
+        let later = after(earlier, rng.below(45));
+        let as_at = after(later, rng.below(30));
+        let first = assessed(received(&case, earlier, case.cents), as_at);
+        let second = assessed(received(&case, later, case.cents), as_at);
+        let rank = |result: &Value| match result["verdict"].as_str().unwrap() {
+            "ON_TIME" => 0,
+            "LATE" => 1,
+            other => panic!("{other} from a whole receipt: {result}"),
+        };
+        assert!(rank(&first) <= rank(&second), "{case:?} {first} {second}");
+        assert!(days_late(&first) <= days_late(&second), "{case:?}");
+        assert!(figure(&first, "low") <= figure(&second, "low"), "{case:?}");
+        assert!(
+            figure(&first, "high") <= figure(&second, "high"),
+            "{case:?}"
+        );
+    }
+}
+
+#[test]
+fn more_of_the_amount_received_never_raises_the_shortfall() {
+    let mut rng = Rng(0xFACF);
+    for _ in 0..RUNS {
+        let case = case(&mut rng);
+        let less = rng.below(case.cents as u64 + 1) as i64;
+        let more = less + rng.below((case.cents - less) as u64 + 1) as i64;
+        let day = after(case.qe_day, rng.below(5));
+        let as_at = after(day, 60 + rng.below(30));
+        let first = assessed(received(&case, day, less), as_at);
+        let second = assessed(received(&case, day, more), as_at);
+        assert!(
+            cents_at(&second["final_shortfall"]) <= cents_at(&first["final_shortfall"]),
+            "{case:?} {first} {second}"
+        );
+        assert!(
+            figure(&second, "high") <= figure(&first, "high"),
+            "{case:?}"
+        );
+    }
+}
+
+#[test]
+fn a_later_review_date_never_lowers_an_unpaid_exposure() {
+    let mut rng = Rng(0xFAD0);
+    for _ in 0..RUNS {
+        let case = case(&mut rng);
+        let earlier = after(case.qe_day, rng.below(90));
+        let later = after(earlier, rng.below(90));
+        let first = assessed(line(&case), earlier);
+        let second = assessed(line(&case), later);
+        assert!(
+            cents_at(&first["final_shortfall"]) <= cents_at(&second["final_shortfall"]),
+            "{case:?}"
+        );
+        assert!(
+            figure(&first, "high") <= figure(&second, "high"),
+            "{case:?}"
+        );
+        assert!(days_late(&first) <= days_late(&second), "{case:?}");
+    }
+}
+
+#[test]
+fn a_return_never_leaves_a_line_on_time_or_late() {
+    let mut rng = Rng(0xFAD1);
+    for _ in 0..RUNS {
+        let case = case(&mut rng);
+        let day = after(case.qe_day, rng.below(60));
+        let as_at = after(day, rng.below(30));
+        let mut flagged = received(&case, day, case.cents);
+        flagged["returned_by_fund"] = json!(true);
+        let result = assessed(flagged, as_at);
+        assert_eq!(result["verdict"], "UNKNOWN", "{case:?} {result}");
+    }
+}
+
+#[test]
+fn a_first_contribution_never_shortens_the_deadline() {
+    let mut rng = Rng(0xFAD2);
+    for _ in 0..RUNS {
+        let mut case = case(&mut rng);
+        let due = |case: &Case| {
+            let deadline = api::evaluate("compute-due", &json!({"line": line(case)})).unwrap();
+            deadline["due"].as_str().unwrap().to_string()
+        };
+        case.first_to_fund = false;
+        let usual = due(&case);
+        case.first_to_fund = true;
+        assert!(usual <= due(&case), "{case:?}");
+        let mut next_day = case.clone();
+        next_day.qe_day = after(case.qe_day, 1);
+        assert!(due(&case) <= due(&next_day), "{case:?}");
     }
 }

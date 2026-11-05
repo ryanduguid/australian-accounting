@@ -9,7 +9,7 @@ use div7a_loan_review::api;
 use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::{One, Signed, Zero};
-use serde_json::json;
+use serde_json::{Value, json};
 
 struct Rng(u64);
 
@@ -218,4 +218,120 @@ fn regression_points_hold() {
         amount("100000", "1E-70", "5").unwrap_err(),
         "decimal.DivisionByZero"
     );
+}
+
+// Metamorphic relations: how the answer must move when one fact moves. The cases
+// use 2024-25, whose benchmark rate is 8.77%.
+
+/// The repayment review of one loan on complying terms, with `paid` applied.
+fn reviewed(loan: Loan, paid_cents: i64) -> Value {
+    api::evaluate(
+        "minimum-yearly-repayment",
+        &json!({"facts": {
+            "year_of_income": "2024-25",
+            "year_loan_made": "2023-24",
+            "amalgamated_loan_unpaid_at_end_of_previous_year": text(loan.cents, 2),
+            "remaining_term_years": loan.term.to_string(),
+            "payments_applied_during_the_year": text(paid_cents, 2),
+            "gate_result": {"verdict": "COMPLYING", "benchmark_year_used": "2023-24"},
+            "loan_id": "L-1",
+        }}),
+    )
+    .unwrap()
+}
+
+fn cents_of(result: &Value, key: &str) -> i64 {
+    result[key]
+        .as_str()
+        .unwrap_or_else(|| panic!("{key} missing from {result}"))
+        .replace('.', "")
+        .parse()
+        .unwrap()
+}
+
+/// What every completed review must say, whatever its facts.
+fn check_sanity(result: &Value, paid_cents: i64) {
+    let required = cents_of(result, "myr_required");
+    let shortfall = cents_of(result, "shortfall");
+    assert!(required > 0, "{result}");
+    assert_eq!(cents_of(result, "payments_applied"), paid_cents, "{result}");
+    assert_eq!(shortfall, (required - paid_cents).max(0), "{result}");
+    if shortfall == 0 {
+        assert_eq!(result["verdict"], "MYR_MET", "{result}");
+        assert!(result["experimental_deemed_dividend_exposure"].is_null());
+    } else {
+        assert_eq!(result["verdict"], "MYR_SHORT", "{result}");
+        assert_eq!(
+            cents_of(result, "experimental_deemed_dividend_exposure"),
+            shortfall,
+            "{result}"
+        );
+    }
+}
+
+#[test]
+fn more_repayment_never_raises_the_shortfall() {
+    let mut rng = Rng(0xD17E);
+    for loan in loans(0xD17F, 25) {
+        let required = cents_of(&reviewed(loan, 0), "myr_required");
+        // Either side of the figure, and the figure itself.
+        let less = rng.int(0, required);
+        let more = rng.int(less, required + 100);
+        let (low, high) = (reviewed(loan, less), reviewed(loan, more));
+        check_sanity(&low, less);
+        check_sanity(&high, more);
+        assert!(
+            cents_of(&high, "shortfall") <= cents_of(&low, "shortfall"),
+            "{loan:?} {less} {more}"
+        );
+        assert_eq!(cents_of(&reviewed(loan, 0), "shortfall"), required);
+        assert_eq!(reviewed(loan, required)["verdict"], "MYR_MET", "{loan:?}");
+        let cent_short = reviewed(loan, required - 1);
+        assert_eq!(cents_of(&cent_short, "shortfall"), 1, "{loan:?}");
+    }
+}
+
+#[test]
+fn a_larger_balance_or_rate_never_lowers_the_figure() {
+    let mut rng = Rng(0xD180);
+    for loan in loans(0xD181, 25) {
+        let larger = Loan {
+            cents: rng.int(loan.cents, 10_000_000_000),
+            ..loan
+        };
+        let dearer = Loan {
+            rate: rng.int(loan.rate, 2_500),
+            ..loan
+        };
+        let base = figure(loan, loan.term);
+        assert!(base <= figure(larger, loan.term), "{loan:?} {larger:?}");
+        assert!(base <= figure(dearer, loan.term), "{loan:?} {dearer:?}");
+    }
+}
+
+#[test]
+fn doubling_the_balance_doubles_the_figure_to_the_cent() {
+    for loan in loans(0xD182, 25) {
+        let doubled = Loan {
+            cents: loan.cents * 2,
+            ..loan
+        };
+        let gap: BigInt = figure(doubled, loan.term) - figure(loan, loan.term) * 2;
+        assert!(gap.abs() <= BigInt::one(), "{loan:?}");
+    }
+}
+
+#[test]
+fn a_worked_shortfall_holds_through_the_full_review() {
+    // Worked by hand: 100,000 x 0.0877 / (1 - 1.0877^-5) = 25,556.00, the
+    // regression point above, less 20,000.00 applied.
+    let loan = Loan {
+        cents: 10_000_000,
+        rate: 877,
+        term: 5,
+    };
+    let result = reviewed(loan, 2_000_000);
+    assert_eq!(result["myr_required"], "25556.00");
+    assert_eq!(result["shortfall"], "5556.00");
+    assert_eq!(result["verdict"], "MYR_SHORT");
 }
