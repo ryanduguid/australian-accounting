@@ -21,7 +21,7 @@ fn statutory(overrides: Value) -> Result<Value, String> {
 fn operating(overrides: Value) -> Result<Value, String> {
     let mut input = json!({
         "running_costs": "5200.00", "lease_charges": "0.00", "depreciated_value": "50000.00",
-        "days_held": 365, "business_use": "0.3636", "employee_contribution": "1500.00",
+        "effective_life_years": "8", "days_held": 365, "business_use": "0.3636", "employee_contribution": "1500.00",
         "statutory_formula_taxable_value": "8500.00", "electric_car_exempt": false, "year_ended": 2026, "scope_confirmed": true,
     });
     for (k, v) in overrides.as_object().unwrap() {
@@ -194,6 +194,103 @@ fn deemed_amounts_are_apportioned_to_the_days_held() {
 }
 
 #[test]
+fn deemed_depreciation_follows_the_cars_effective_life() {
+    // s 11(1AA): 200% over the effective life. Table B gives taxis 4
+    // years and rental cars 5, so 40000 x 0.5 and 40000 x 0.4 for the full year.
+    for (life, rate, depreciation) in [("4", "0.5", "20000.00"), ("5", "0.4", "16000.00")] {
+        let result = operating(json!({
+            "running_costs": "0.00", "depreciated_value": "40000.00",
+            "effective_life_years": life, "business_use": "0", "employee_contribution": "0.00",
+        }))
+        .unwrap();
+        assert_eq!(result["amounts"]["deemed_depreciation"], depreciation);
+        assert_eq!(result["rates"]["depreciation_rate"], rate);
+    }
+}
+
+#[test]
+fn an_owned_car_needs_an_effective_life_and_a_leased_car_takes_none() {
+    let message = "effective_life_years must be a finite Decimal from 2 to 1000 years, or 0 for a leased car or an owned car with no depreciated value left.";
+    // 0.25, the old rate in the new field, would deem 240000.00 on 30000.00.
+    for life in ["0", "0.009", "0.25", "1", "1.99", "1001", "-1", "NaN"] {
+        assert_eq!(
+            operating(json!({"effective_life_years": life})),
+            Err(message.to_string()),
+            "{life}"
+        );
+    }
+    let leased = |life: &str| {
+        operating(json!({
+            "lease_charges": "9000.00", "depreciated_value": "0.00",
+            "effective_life_years": life,
+        }))
+    };
+    for life in ["0.01", "1", "1.99", "1001", "NaN"] {
+        assert_eq!(leased(life), Err(message.to_string()), "{life}");
+    }
+    for life in ["0", "2", "8"] {
+        let result = leased(life).unwrap();
+        assert_eq!(result["amounts"]["deemed_depreciation"], "0.00");
+        assert_eq!(result["rates"]["depreciation_rate"], "0");
+    }
+}
+
+#[test]
+fn a_two_year_life_reaches_nil_and_the_car_runs_the_next_year_at_that_life() {
+    let year = |value: &str, life: &str| {
+        operating(json!({
+            "running_costs": "1000.00", "depreciated_value": value,
+            "effective_life_years": life, "business_use": "0", "employee_contribution": "0.00",
+            "statutory_formula_taxable_value": "99999.00",
+        }))
+    };
+    let first = year("40000.00", "2").unwrap();
+    assert_eq!(first["amounts"]["deemed_depreciation"], "40000.00");
+    // s 12: 40000.00 less 40000.00 leaves nil for the second year.
+    for life in ["2", "0"] {
+        let second = year("0.00", life).unwrap();
+        assert_eq!(second["amounts"]["deemed_depreciation"], "0.00");
+        assert_eq!(second["amounts"]["deemed_interest"], "0.00");
+        assert_eq!(second["amounts"]["operating_costs"], "1000.00");
+    }
+}
+
+#[test]
+fn a_life_of_2_a_fractional_life_and_a_non_terminating_rate_work_through() {
+    for (life, rate, depreciation) in [
+        ("2", "1", "40000.00"),
+        ("2.5", "0.8", "32000.00"),
+        (
+            "3",
+            "0.6666666666666666666666666666666666666667",
+            "26666.67",
+        ),
+    ] {
+        let result = operating(json!({
+            "running_costs": "0.00", "depreciated_value": "40000.00",
+            "effective_life_years": life, "business_use": "0", "employee_contribution": "0.00",
+        }))
+        .unwrap();
+        assert_eq!(result["amounts"]["deemed_depreciation"], depreciation);
+        assert_eq!(result["rates"]["depreciation_rate"], rate);
+    }
+}
+
+#[test]
+fn a_call_with_no_effective_life_is_refused() {
+    let input = json!({
+        "running_costs": "5200.00", "lease_charges": "0.00", "depreciated_value": "50000.00",
+        "days_held": 365, "business_use": "0.3636", "employee_contribution": "1500.00",
+        "statutory_formula_taxable_value": "8500.00", "electric_car_exempt": false,
+        "year_ended": 2026, "scope_confirmed": true,
+    });
+    assert_eq!(
+        api::evaluate("fbt-car-operating-cost", &input),
+        Err("effective_life_years is required".to_string())
+    );
+}
+
+#[test]
 fn deemed_amounts_stay_unrounded_until_the_gross_value() {
     // 500 + 2739.726... + 944.657... = 4184.383...; x 0.5 = 2092.19, where
     // deemed amounts rounded first would give 4184.39 and 2092.20.
@@ -291,14 +388,18 @@ fn refusals_name_the_fact_to_establish() {
 #[test]
 fn the_catalogue_and_periods_describe_both_worksheets() {
     let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
-    for (kind, command) in [
-        ("fbt_car_statutory", "fbt-car-statutory"),
-        ("fbt_car_operating_cost", "fbt-car-operating-cost"),
+    for (kind, command, checked) in [
+        ("fbt_car_statutory", "fbt-car-statutory", "2026-10-29"),
+        (
+            "fbt_car_operating_cost",
+            "fbt-car-operating-cost",
+            "2026-11-06",
+        ),
     ] {
         let entry = &catalogue[kind];
         assert_eq!(entry["required_inputs"]["year_ended"], "integer");
         assert_eq!(entry["supported_periods"][1]["end"], "2027-03-31");
-        assert_eq!(entry["source_checked"], "2026-10-29");
+        assert_eq!(entry["source_checked"], checked);
         // The catalogue's own example runs as given.
         let mut facts = entry["example"]["facts"].clone();
         facts.as_object_mut().unwrap().remove("kind");

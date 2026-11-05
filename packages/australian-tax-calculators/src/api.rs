@@ -135,6 +135,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("running_costs", Dec),
             ("lease_charges", Dec),
             ("depreciated_value", Dec),
+            ("effective_life_years", Dec),
             ("days_held", Raw),
             ("business_use", Dec),
             ("employee_contribution", Dec),
@@ -469,7 +470,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::fbt_car_statutory(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
         "fbt-car-operating-cost" => engine::fbt_car_operating_cost(
-            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9],
+            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
         ),
         "depreciation" => engine::depreciation(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6]),
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
