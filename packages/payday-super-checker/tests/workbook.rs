@@ -13,6 +13,7 @@ use payday_super_checker::py::Date;
 use payday_super_checker::sgc::scenario;
 use payday_super_checker::{calendar, rates};
 use serde_json::{Value, json};
+use std::process::Command;
 
 fn money(value: &Decimal) -> String {
     value.to_sci_string()
@@ -95,4 +96,101 @@ fn the_engine_matches_the_frozen_workbook_sample() {
         },
     });
     assert_eq!(actual, frozen);
+}
+
+/// A run of the checker over a fixture in tests/data.
+fn check_fixture(file: &str, as_at: &str, scratch: &str) -> std::process::Output {
+    let dir = std::env::temp_dir().join(format!("payday-{scratch}-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let out = Command::new(env!("CARGO_BIN_EXE_payday-super-check"))
+        .arg(format!("{}/tests/data/{file}", env!("CARGO_MANIFEST_DIR")))
+        .args(["--as-at", as_at, "-o", "report.csv"])
+        .current_dir(&dir)
+        .output()
+        .unwrap();
+    std::fs::remove_dir_all(&dir).unwrap();
+    out
+}
+
+/// The exit code the README gives the checker for each Review Checks status.
+fn exit_code(overall: &Value) -> i32 {
+    match overall.as_str().unwrap() {
+        "PASS" => 0,
+        "BLOCKED" => 1,
+        "REVIEW" => 2,
+        other => panic!("{other}"),
+    }
+}
+
+/// The shipped sample has no returned row, so these fixtures carry them.
+/// workbook-returned.json holds what Excel answered for them, and its
+/// `produced_by` says how to reproduce that. These tests do not rerun the
+/// workbook: they hold the engine to Excel's frozen answers, so a changed
+/// formula fails nothing here until the file is reproduced.
+fn frozen_returned() -> Value {
+    serde_json::from_str(include_str!("data/workbook-returned.json")).expect("frozen rows")
+}
+
+#[test]
+fn the_engine_matches_excel_on_returned_rows() {
+    let frozen = frozen_returned();
+    let as_at = frozen["as_at"].as_str().unwrap();
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/data/workbook-returned.csv"
+    );
+    let results = assess::assess(
+        csv_io::parse_rows(path, &Mapping::default_mapping()).unwrap(),
+        &calendar::load_calendar(None).unwrap(),
+        &rates::load_gic().unwrap(),
+        Date::fromisoformat(as_at).unwrap(),
+        Options::default(),
+    )
+    .unwrap();
+    let rows: Vec<Value> = results
+        .iter()
+        .map(|r| {
+            json!({
+                "employee_id": r.line.employee_id,
+                "verdict": r.verdict,
+                "final_due": r.deadline.due.map(|d| d.isoformat()),
+                "unassessable_between": r.horizon_verdicts.as_ref().map(|(a, b)| format!("{a} or {b}")).unwrap_or_default(),
+                "exposed": u8::from(r.is_exposed()),
+                "final_shortfall": r.final_shortfall.as_ref().map(money).unwrap_or_default(),
+                // The checker read every row, so Excel must have too.
+                "row_problem": "",
+            })
+        })
+        .collect();
+    assert_eq!(json!(rows), frozen["rows"]);
+    let run = check_fixture("workbook-returned.csv", as_at, "returned");
+    assert_eq!(run.status.code(), Some(exit_code(&frozen["overall"])));
+}
+
+#[test]
+fn the_checker_refuses_the_rows_excel_blocks_for_the_same_reason() {
+    let frozen = frozen_returned();
+    let refused = &frozen["refused"];
+    let run = check_fixture(
+        "workbook-returned-refused.csv",
+        frozen["as_at"].as_str().unwrap(),
+        "refused",
+    );
+    assert_eq!(run.status.code(), Some(exit_code(&refused["overall"])));
+    let reasons: Vec<String> = refused["rows"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| {
+            let reason = refused["reasons"][r["row_problem"].as_str().unwrap()]
+                .as_str()
+                .unwrap();
+            format!("row {}: {reason}", r["row"])
+        })
+        .collect();
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert_eq!(
+        stderr.trim().strip_prefix("error: ").unwrap(),
+        reasons.join("; ")
+    );
 }

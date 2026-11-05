@@ -14,8 +14,10 @@ practitioner-review.md
 exceptions.json
 decision-log.md
 # The only CSV exceptions are examples, importer test fixtures, and the
-# fabricated Payday Super evaluation fixtures listed by name below.
+# fabricated Payday Super evaluation and workbook fixtures listed by name below.
 !examples/*.csv
+!tests/data/workbook-returned.csv
+!tests/data/workbook-returned-refused.csv
 !evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv
 !evaluation/payday_super_evidence/fixtures/late_remittance_no_receipt.csv
 !evaluation/payday_super_evidence/fixtures/receipt_on_due_date.csv

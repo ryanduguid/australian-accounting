@@ -1,8 +1,8 @@
 # Excel workbook
 
-`payday-super-checker.xlsx` implements the 0.2.2 command line review,
-written in ordinary worksheet formulas for accountants who work in Excel rather
-than at a command line. It is macro-free and needs desktop Excel for Microsoft 365 or
+`payday-super-checker.xlsx` implements the 0.2.2 command line review and the
+later `returned_by_fund` column, written in ordinary worksheet formulas for
+accountants who work in Excel rather than at a command line. It is macro-free and needs desktop Excel for Microsoft 365 or
 Excel 2024. Nothing leaves the workbook.
 
 Review Checks holds input failures, missing evidence and the review assumptions. Read its
@@ -27,11 +27,11 @@ specific parity checks, not proof of every input or option. See the
 ## Using it
 
 1. **Register.** Paste one contribution line per row over the example rows in
-   the 11 canonical columns the checker reads and `import` writes:
+   the 12 canonical columns the checker reads and `import` writes:
    `employee_id`, `payment_date`, `sg_amount`, `remitted_date`,
    `remitted_amount`, `matched_amount`, `fund_received_date`,
    `first_contribution_to_fund`, `out_of_cycle`, `next_standard_payday`,
-   `defined_benefit`. Dates are real Excel dates, amounts are dollars, the
+   `defined_benefit`, `returned_by_fund`. Dates are real Excel dates, amounts are dollars, the
    yes/no columns take `yes`, `no` or blank. The column meanings are in the
    package README. Rows pasted below the example pick up the calculated columns.
    Delete any example rows you did not overwrite: Review Checks flags a
@@ -64,6 +64,11 @@ specific parity checks, not proof of every input or option. See the
    (`UNKNOWN`, between `ON_TIME` and the partial-receipt outcome): the date
    shows when the fund received something, not how much, so state the amount
    the fund received before reading the line as on time.
+   `returned_by_fund=yes` says a fund returned some or all of the contribution
+   and nothing yet says what: the line is `UNKNOWN` with no exposure, and no
+   receipt on it counts. Dated returns need the checker's `--events`, which the
+   workbook has no equivalent for, so reconcile the line with the fund and use
+   the command line for those rows.
 5. **Holidays and GIC.** The whole-of-jurisdiction holiday table and the
    quarterly general interest charge rates the engine ships. To review a
    deadline past the holiday coverage, add the official dates and move the
