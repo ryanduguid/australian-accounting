@@ -401,9 +401,8 @@ fn an_error_from_invoke_leaves_the_saved_attempt() {
         saved.push(live::record(pass, "https://example.invalid", &Json::Null));
         Ok(())
     };
-    let error = live::run(&mut client, &mut || Ok(()), &mut result, &mut save)
-        .err()
-        .expect("invoke's error");
+    let error =
+        live::run(&mut client, &mut || Ok(()), &mut result, &mut save).expect_err("invoke's error");
     assert_eq!(error.class, "OSError");
     assert_eq!(stub.requests(), 1);
     assert_eq!(saved.len(), 1);
