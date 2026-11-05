@@ -60,7 +60,10 @@ mod unwritable {
     #[test]
     #[should_panic(expected = "the input must reach the readers")]
     fn an_input_that_cannot_be_written_fails_the_run() {
-        read_csv_in(&std::env::current_exe().unwrap(), b"a,b");
+        read_csv_in(
+            std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/Cargo.toml")),
+            b"a,b",
+        );
     }
 }
 
