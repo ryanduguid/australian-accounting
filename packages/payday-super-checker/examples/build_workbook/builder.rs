@@ -461,7 +461,9 @@ fn formulas() -> BTreeMap<&'static str, String> {
         .join(",");
     // Mirrors mark_unresolved on a row with no events: a receipt after the last
     // possible deadline rules ON_TIME out, and so does that deadline passing with
-    // no receipt, while the calendar still covers it.
+    // no receipt, while the calendar still covers it. A receipt before the
+    // pre-payment window leaves ON_TIME open there too, so Earliest_prepay plays
+    // no part.
     let last_due = format!("MAX({due},{poss})");
     let returned_may_be_timely = format!(
         "IF({settled}<>\"\",OR({horizon},{settled}<={last_due}),OR({horizon},{AS_AT}<={last_due}))"
@@ -560,7 +562,8 @@ fn formulas() -> BTreeMap<&'static str, String> {
                 "=IF(ISNUMBER({rem_amt}),IF({remit}<>\"\",MIN(ROUND({rem_amt},2),ROUND({sg},2)),0),IF({remit}<>\"\",ROUND({sg},2),0))"
             ),
         ),
-        // Evidence against the row's own deadline.
+        // Evidence against the row's own deadline. A returned row is possible
+        // whatever its Cap: item4_evidence decides it before the cap test.
         (
             "Evidence_own",
             format!(
@@ -862,7 +865,8 @@ pub fn build() -> Result<Vec<u8>> {
         "3. Read the calculated columns on Register: pathway, final deadline, verdict (ON_TIME, AT_RISK, LATE, UNPAID, UNKNOWN, SKIPPED), the conservative outer outcomes where the facts cannot decide, days late, final shortfall after s 18D, notional earnings, the uplift range and the experimental SG charge estimate range.",
         "4. Review Checks: BLOCKED means the register cannot be read or a required confirmation is missing. REVIEW means a line is exposed, a line is undecided, or the file cannot produce ON_TIME and remittance-only review is not confirmed. PASS mirrors the command line tool's exit code 0.",
         "5. The statutory test is receipt by the fund. A remittance date alone gives AT_RISK, never ON_TIME. Fill fund_received_date from the clearing house or fund before treating a verdict as final.",
-        "6. Experimental review aid. Not a compliance determination. The ATO makes the assessment; choice loading, the maximum contributions base and post-assessment charges are not estimated.",
+        "6. A line with returned_by_fund=yes stays UNKNOWN with no exposure, and no receipt on it counts. The workbook cannot read dated returns: reconcile the line with the fund, then assess it with the command line tool's --events.",
+        "7. Experimental review aid. Not a compliance determination. The ATO makes the assessment; choice loading, the maximum contributions base and post-assessment charges are not estimated.",
     ];
     let wrap_top = Format::new().set_text_wrap().set_align(FormatAlign::Top);
     for (i, step) in steps.iter().enumerate() {
@@ -1455,7 +1459,8 @@ mod tests {
     #[test]
     fn the_workbook_matches_the_frozen_python_model() {
         // The model of tools/build_workbook.py --no-excel at 4987fd6, with the
-        // returned_by_fund input, Flag_ret and the RET codes added since.
+        // returned_by_fund input, Flag_ret, the RET codes and the Start Here step
+        // for a returned row added since.
         let frozen: Vec<String> = include_str!("../../tests/data/workbook-model.txt")
             .lines()
             .map(accepted)
@@ -1640,5 +1645,16 @@ mod tests {
         }
         assert!(calc["Row_problem"].contains("returned-needs-an-sg-amount"));
         assert!(calc["Evidence_own"].starts_with("=IF(AND(tblLines[[#This Row],[Flag_ret]]=1"));
+    }
+
+    /// The workbook has no way to read dated returns, so it says where they go.
+    #[test]
+    fn start_here_sends_a_returned_row_to_the_checkers_events() {
+        let built = model(&super::build().unwrap()).unwrap();
+        assert!(built.iter().any(|line| {
+            line.starts_with("sheet Start Here")
+                && line.contains("returned_by_fund")
+                && line.contains("--events")
+        }));
     }
 }

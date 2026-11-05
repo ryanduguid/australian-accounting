@@ -96,3 +96,45 @@ fn the_engine_matches_the_frozen_workbook_sample() {
     });
     assert_eq!(actual, frozen);
 }
+
+/// The shipped sample has no returned row, so these fixtures carry them. The
+/// answers in workbook-returned.json are Excel's: the rows of each CSV filled
+/// into a copy of the workbook and recalculated at `as_at`. `refused` holds
+/// Excel's Row_problem for the rows the checker refuses, along with their file.
+#[test]
+fn the_engine_matches_excel_on_returned_rows() {
+    let frozen: Value =
+        serde_json::from_str(include_str!("data/workbook-returned.json")).expect("frozen rows");
+    let as_at = Date::fromisoformat(frozen["as_at"].as_str().unwrap()).unwrap();
+    let assessed = |file: &str| {
+        let path = format!("{}/tests/data/{file}", env!("CARGO_MANIFEST_DIR"));
+        assess::assess(
+            csv_io::parse_rows(&path, &Mapping::default_mapping()).unwrap(),
+            &calendar::load_calendar(None).unwrap(),
+            &rates::load_gic().unwrap(),
+            as_at,
+            Options::default(),
+        )
+    };
+    let rows: Vec<Value> = assessed("workbook-returned.csv")
+        .unwrap()
+        .iter()
+        .map(|r| {
+            json!({
+                "employee_id": r.line.employee_id,
+                "verdict": r.verdict,
+                "final_due": r.deadline.due.map(|d| d.isoformat()),
+                "unassessable_between": r.horizon_verdicts.as_ref().map(|(a, b)| format!("{a} or {b}")).unwrap_or_default(),
+                "exposed": u8::from(r.is_exposed()),
+            })
+        })
+        .collect();
+    assert_eq!(json!(rows), frozen["rows"]);
+    let refusal = format!(
+        "{:?}",
+        assessed("workbook-returned-refused.csv").unwrap_err()
+    );
+    for row in frozen["refused"].as_object().unwrap().keys() {
+        assert!(refusal.contains(&format!("{row}:")), "{refusal}");
+    }
+}

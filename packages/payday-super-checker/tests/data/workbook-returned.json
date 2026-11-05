@@ -1,0 +1,79 @@
+{
+  "as_at": "2027-08-20",
+  "rows": [
+    {
+      "employee_id": "TIMELY",
+      "verdict": "UNKNOWN",
+      "final_due": "2027-08-16",
+      "unassessable_between": "UNPAID or ON_TIME",
+      "exposed": 0
+    },
+    {
+      "employee_id": "LATE",
+      "verdict": "UNKNOWN",
+      "final_due": "2027-08-16",
+      "unassessable_between": "UNPAID or LATE",
+      "exposed": 0
+    },
+    {
+      "employee_id": "MISSING",
+      "verdict": "UNKNOWN",
+      "final_due": "2027-08-16",
+      "unassessable_between": "UNPAID or LATE",
+      "exposed": 0
+    },
+    {
+      "employee_id": "OPEN",
+      "verdict": "UNKNOWN",
+      "final_due": "2027-08-23",
+      "unassessable_between": "UNPAID or ON_TIME",
+      "exposed": 0
+    },
+    {
+      "employee_id": "PREWINDOW",
+      "verdict": "UNKNOWN",
+      "final_due": "2027-08-16",
+      "unassessable_between": "UNPAID or ON_TIME",
+      "exposed": 0
+    },
+    {
+      "employee_id": "CAPPED",
+      "verdict": "UNKNOWN",
+      "final_due": "2027-08-20",
+      "unassessable_between": "UNPAID or ON_TIME",
+      "exposed": 0
+    },
+    {
+      "employee_id": "CAPPED",
+      "verdict": "UNKNOWN",
+      "final_due": "2027-08-10",
+      "unassessable_between": "LATE or ON_TIME",
+      "exposed": 0
+    },
+    {
+      "employee_id": "FUTURE",
+      "verdict": "UNKNOWN",
+      "final_due": "2027-08-16",
+      "unassessable_between": "UNPAID or LATE",
+      "exposed": 0
+    },
+    {
+      "employee_id": "KEPT",
+      "verdict": "ON_TIME",
+      "final_due": "2027-08-16",
+      "unassessable_between": "",
+      "exposed": 0
+    },
+    {
+      "employee_id": "FUTUREOPEN",
+      "verdict": "UNKNOWN",
+      "final_due": "2027-08-23",
+      "unassessable_between": "UNPAID or ON_TIME",
+      "exposed": 0
+    }
+  ],
+  "refused": {
+    "row 2": "returned-needs-an-sg-amount-tested-for-lateness",
+    "row 3": "returned-needs-an-sg-amount-tested-for-lateness"
+  }
+}
