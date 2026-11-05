@@ -53,13 +53,22 @@ SINGLE_CONTRIBUTION_CAVEAT = (
     "The supplied sg_amount is not a calculation of SG entitlement."
 )
 
-#: Carried by every ON_TIME verdict or horizon candidate, because the checker has
-#: no input for a contribution the fund returned. This states the limit and applies
-#: no rule of its own, so the verdict, exit code and figures stay the engine's. It
-#: goes when the MCP links an engine that assesses returns.
+#: Carried by every ON_TIME verdict or horizon candidate, because the linked checker
+#: has no input for a contribution the fund returned. This states the limit and
+#: applies no rule of its own, so the verdict, exit code and figures stay the
+#: engine's. It goes when the MCP links an engine that assesses returns.
 RETURNED_CONTRIBUTIONS_CAVEAT = (
     "aus-accounting-mcp: returned contributions were not assessed, so ON_TIME assumes "
     "the fund kept every receipt. Check fund records before relying on it."
+)
+#: A caller that knows of a return gets a refusal: the linked checker would read the
+#: receipt as kept. Only the native checker assesses returns.
+RETURNED_CONTRIBUTION_REFUSAL = (
+    "row {row}: the fund returned some or all of this contribution, and the "
+    "payday-super-checker this server links cannot assess that, so it would read the "
+    "receipt as kept. Review the row with the native payday-super-check command, using "
+    "its returned_by_fund column and --events file, or remove the row once the fund's "
+    "records settle it."
 )
 #: Rows repeat up to 200 times and hold the words in their caveats, so only the
 #: pack's response and exceptions.json carry them in the qualification as well.
@@ -210,8 +219,11 @@ def _line(
     db_interest: bool = False,
     remitted_amount: str | None = None,
     matched_amount: str | None = None,
+    returned_by_fund: bool = False,
 ) -> ContribLine:
     """Translate one row using the shared date and money boundary."""
+    if returned_by_fund:
+        raise InputError(RETURNED_CONTRIBUTION_REFUSAL.format(row=row))
     return ContribLine(
         employee_id=employee_id,
         qe_day=_required_date(qe_day, "qe_day"),
@@ -312,6 +324,12 @@ class ContributionInput(BaseModel):
         description="AUD the fund received for this row. Supply it with every received date: "
         "a receipt date alone evidences no amount, and an engine with the receipt-amount "
         "rule will not assess a full receipt as ON_TIME without it.",
+    )
+    returned_by_fund: bool = Field(
+        default=False,
+        description="True when the fund returned some or all of this contribution. The "
+        "linked checker cannot assess a return, so true refuses the review instead of "
+        "reading the receipt as kept.",
     )
 
 

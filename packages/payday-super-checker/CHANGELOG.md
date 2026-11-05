@@ -30,6 +30,9 @@ status and the returned contributions below.
   refused. The JSON `assess` subcommand takes the same facts as `returned_by_fund`
   and `events` on a line. Sources are in
   `docs/primary-source-review-2026-10-31.md`; limits are PSC-3 in `LIMITATIONS.md`.
+- The Excel workbook has a `returned_by_fund` column with the same meaning: the row
+  is `UNKNOWN`, with no exposure, between `UNPAID` and `ON_TIME` or `LATE`, and such a
+  row with no SG amount to test is `BLOCKED`. Events stay in the checker.
 - `import` writes `returned_by_fund=yes` for Beam's 'Sent to fund with refund', in
   a column that appears only when a row needs it. It says no supported export
   carries a fund receipt date, because only the shipped profiles were inspected.

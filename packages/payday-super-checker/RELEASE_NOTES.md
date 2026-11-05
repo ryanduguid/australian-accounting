@@ -6,8 +6,9 @@ for migration, verification and documented divergences, and
 [README.md](README.md) to build it.
 
 A contribution a fund returned can no longer stay `ON_TIME`: see `returned_by_fund`
-and `--events` in [README.md](README.md). This reaches the Rust checker only, not
-the Python package, the MCP server or the workbook.
+and `--events` in [README.md](README.md). The workbook reads `returned_by_fund`
+as well. The Python package reads neither, and the MCP server refuses a contribution
+marked `returned_by_fund`.
 
 Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
 Apache-2.0 as the future licence). Released versions keep their licence.

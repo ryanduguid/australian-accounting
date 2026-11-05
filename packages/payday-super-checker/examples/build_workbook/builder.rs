@@ -35,7 +35,7 @@ const TEXT: &str = "@";
 const MONEY: &str = r#"_(* #,##0.00_);_(* (#,##0.00);_(* "-"??_);_(@_)"#;
 const DATE: &str = "yyyy-mm-dd";
 
-const INPUT_COLUMNS: [&str; 11] = [
+const INPUT_COLUMNS: [&str; 12] = [
     "employee_id",
     "payment_date",
     "sg_amount",
@@ -47,6 +47,7 @@ const INPUT_COLUMNS: [&str; 11] = [
     "out_of_cycle",
     "next_standard_payday",
     "defined_benefit",
+    "returned_by_fund",
 ];
 const DATE_COLUMNS: [&str; 4] = [
     "payment_date",
@@ -55,10 +56,11 @@ const DATE_COLUMNS: [&str; 4] = [
     "next_standard_payday",
 ];
 const AMOUNT_COLUMNS: [&str; 3] = ["sg_amount", "remitted_amount", "matched_amount"];
-const BOOL_COLUMNS: [&str; 3] = [
+const BOOL_COLUMNS: [&str; 4] = [
     "first_contribution_to_fund",
     "out_of_cycle",
     "defined_benefit",
+    "returned_by_fund",
 ];
 
 // The register compares whole calendar days, as the checker does: B2 and B3
@@ -73,7 +75,7 @@ const REMIT_ONLY_OK: &str = "Summary!$B$5";
 const COVERAGE: &str = "Summary!$B$6";
 const GIC_LAST: &str = "Summary!$B$7";
 
-const CALC_ORDER: [&str; 54] = [
+const CALC_ORDER: [&str; 55] = [
     "Pay_day",
     "Remit_day",
     "Recv_day",
@@ -81,6 +83,7 @@ const CALC_ORDER: [&str; 54] = [
     "Flag_db",
     "Flag_ooc",
     "Flag_ftf",
+    "Flag_ret",
     "Row_problem",
     "Guard",
     "Cap",
@@ -168,7 +171,7 @@ const MONEY_CALCS: [&str; 14] = [
 /// Branch codes: verdict, unassessable outer outcomes, whether the on-time
 /// receipt credit applies, whether the receipt is a stale pre-payment, whether
 /// exposed.
-const CODES: [(&str, &str, &str, u8, u8, u8); 29] = [
+const CODES: [(&str, &str, &str, u8, u8, u8); 31] = [
     ("DB", "SKIPPED", "", 0, 0, 0),
     ("NIL", "UNKNOWN", "", 0, 0, 0),
     ("A1", "ON_TIME", "", 1, 0, 0),
@@ -201,6 +204,11 @@ const CODES: [(&str, &str, &str, u8, u8, u8); 29] = [
     ("U1", "UNKNOWN", "LATE or ON_TIME", 0, 0, 0),
     ("U2", "UNKNOWN", "UNPAID or ON_TIME", 0, 0, 0),
     ("U3", "UNKNOWN", "NOT_YET_DUE or ON_TIME", 0, 0, 0),
+    // A return with nothing to say what came back: no receipt on the row reads as
+    // eligible and no exposure is calculated. The better outcome stays ON_TIME
+    // until the deadline has passed with no timely receipt on the row.
+    ("RET1", "UNKNOWN", "UNPAID or ON_TIME", 0, 0, 0),
+    ("RET2", "UNKNOWN", "UNPAID or LATE", 0, 0, 0),
 ];
 
 fn t(column: &str) -> String {
@@ -359,7 +367,7 @@ fn formulas() -> BTreeMap<&'static str, String> {
     let (pay, sg) = (t("Pay_day"), t("sg_amount"));
     let (rem, rem_amt, matched) = (t("Remit_day"), t("remitted_amount"), t("matched_amount"));
     let (rec, nxt) = (t("Recv_day"), t("Next_day"));
-    let (db, ooc, ftf) = (t("Flag_db"), t("Flag_ooc"), t("Flag_ftf"));
+    let (db, ooc, ftf, ret) = (t("Flag_db"), t("Flag_ooc"), t("Flag_ftf"), t("Flag_ret"));
     let (due, settled, remit) = (t("Final_due"), t("Settled"), t("Remit"));
     let poss = t("Possible_item4");
     let horizon = format!("({due}>{COVERAGE})");
@@ -410,7 +418,7 @@ fn formulas() -> BTreeMap<&'static str, String> {
     );
     let bool_bad = join(
         &|s| format!("{}=\"\"", t(&format!("Flag_{s}"))),
-        &["ftf", "ooc", "db"],
+        &["ftf", "ooc", "db", "ret"],
     );
     let (own_due, cap, prepay) = (t("Own_due"), t("Cap"), t("Earliest_prepay"));
     let (confirmed, possible) = (t("Confirmed_latest"), t("Possible_latest"));
@@ -442,7 +450,8 @@ fn formulas() -> BTreeMap<&'static str, String> {
         format!("&IF(AND(ISNUMBER({matched}),ISNUMBER({sg}),ROUND({matched},2)<ROUND({sg},2),ISNUMBER({rem}),NOT(ISNUMBER({rem_amt}))),\"partial-match-needs-remitted_amount \",\"\")"),
         format!("&IF(AND(ISNUMBER({rec}),ISNUMBER({rem}),{rec}<{rem}),\"receipt-before-remittance \",\"\")"),
         format!("&IF(AND({ooc}=1,NOT(ISNUMBER({nxt}))),\"out_of_cycle-needs-next_standard_payday \",\"\")"),
-        format!("&IF(AND({ooc}=1,ISNUMBER({nxt}),ISNUMBER({pay}),{nxt}<={pay}),\"next_standard_payday-not-after-payday \",\"\"))"),
+        format!("&IF(AND({ooc}=1,ISNUMBER({nxt}),ISNUMBER({pay}),{nxt}<={pay}),\"next_standard_payday-not-after-payday \",\"\")"),
+        format!("&IF(AND({ret}=1,OR({db}=1,AND(ISNUMBER({sg}),ROUND({sg},2)<=0))),\"returned-needs-an-sg-amount-tested-for-lateness \",\"\"))"),
     ]
     .concat();
     let guard = INPUT_COLUMNS
@@ -450,8 +459,16 @@ fn formulas() -> BTreeMap<&'static str, String> {
         .map(|c| format!("_xlfn.ISFORMULA({})", t(c)))
         .collect::<Vec<_>>()
         .join(",");
+    // Mirrors mark_unresolved on a row with no events: a receipt after the last
+    // possible deadline rules ON_TIME out, and so does that deadline passing with
+    // no receipt, while the calendar still covers it.
+    let last_due = format!("MAX({due},{poss})");
+    let returned_may_be_timely = format!(
+        "IF({settled}<>\"\",OR({horizon},{settled}<={last_due}),OR({horizon},{AS_AT}<={last_due}))"
+    );
     let branch_formula = [
         format!("=IF({db}=1,\"DB\",IF({due}=\"\",\"\",IF(ROUND({sg},2)<=0,\"NIL\","),
+        format!("IF({ret}=1,IF({returned_may_be_timely},\"RET1\",\"RET2\"),"),
         format!("IF({settled}<>\"\","),
         // Received: a receipt with no stated amount that could be timely is
         // left between the full and partial outcomes (U codes).
@@ -469,7 +486,7 @@ fn formulas() -> BTreeMap<&'static str, String> {
         format!("IF(AND({remit}<>\"\",{sg}-{}<=0),", t("Credit")),
         format!("IF(AND({unc},{due}<{remit},{remit}<={poss}),\"R1\","),
         format!("IF(AND({horizon},{remit}>{due}),\"R2\",IF({remit}<={due},\"R3\",\"R4\"))),"),
-        format!("IF({due}<{AS_AT},IF({later_gate},\"N1\",\"N2\"),\"N3\"))))))"),
+        format!("IF({due}<{AS_AT},IF({later_gate},\"N1\",\"N2\"),\"N3\")))))))"),
     ]
     .concat();
     let receipt_applies = format!("{settled}<>\"\",{stale}=0");
@@ -490,6 +507,7 @@ fn formulas() -> BTreeMap<&'static str, String> {
             "Flag_ftf",
             format!("={}", bool_expr("first_contribution_to_fund")),
         ),
+        ("Flag_ret", format!("={}", bool_expr("returned_by_fund"))),
         ("Row_problem", row_problem),
         ("Guard", format!("=IF(OR({guard}),1,0)")),
         (
@@ -546,7 +564,7 @@ fn formulas() -> BTreeMap<&'static str, String> {
         (
             "Evidence_own",
             format!(
-                "=IF(OR({own_due}=0,ROUND({sg},2)<=0,{db}=1,ROUND({cap},2)<=0),\"impossible\",IF(ISNUMBER({rec}),IF({rec}<{prepay},\"impossible\",IF({rec}<={AS_AT},IF(OR({rec}<{pay},{rec}<={own_due}),\"confirmed\",IF({rec}>{own_due},\"impossible\",\"possible\")),IF({rec}<={own_due},\"possible\",\"impossible\"))),IF(AND(ISNUMBER({rem}),{rem}>{own_due}),\"impossible\",\"possible\")))"
+                "=IF(AND({ret}=1,{own_due}<>0,ROUND({sg},2)>0,{db}=0),\"possible\",IF(OR({own_due}=0,ROUND({sg},2)<=0,{db}=1,ROUND({cap},2)<=0),\"impossible\",IF(ISNUMBER({rec}),IF({rec}<{prepay},\"impossible\",IF({rec}<={AS_AT},IF(OR({rec}<{pay},{rec}<={own_due}),\"confirmed\",IF({rec}>{own_due},\"impossible\",\"possible\")),IF({rec}<={own_due},\"possible\",\"impossible\"))),IF(AND(ISNUMBER({rem}),{rem}>{own_due}),\"impossible\",\"possible\"))))"
             ),
         ),
         // EXACT keeps employee ids case-sensitive, as the engine groups them.
@@ -839,7 +857,7 @@ pub fn build() -> Result<Vec<u8>> {
             .set_font_color(Color::RGB(PURPLE)),
     )?;
     let steps = [
-        "1. On Register, paste one contribution line per row over the example rows, in the eleven canonical columns the command line tool reads and the importer writes. Dates are real Excel dates; amounts are dollars; yes/no columns take yes, no or blank (no).",
+        "1. On Register, paste one contribution line per row over the example rows, in the twelve canonical columns the command line tool reads and the importer writes. Dates are real Excel dates; amounts are dollars; yes/no columns take yes, no or blank (no).",
         "2. On Summary, set the as-at date (notional earnings on unpaid lines run to it), an assessment date if the ATO has assessed, and the two confirmations the command line tool asks for: LCR 2026/1 transition allocation and remittance-only review.",
         "3. Read the calculated columns on Register: pathway, final deadline, verdict (ON_TIME, AT_RISK, LATE, UNPAID, UNKNOWN, SKIPPED), the conservative outer outcomes where the facts cannot decide, days late, final shortfall after s 18D, notional earnings, the uplift range and the experimental SG charge estimate range.",
         "4. Review Checks: BLOCKED means the register cannot be read or a required confirmation is missing. REVIEW means a line is exposed, a line is undecided, or the file cannot produce ON_TIME and remittance-only review is not confirmed. PASS mirrors the command line tool's exit code 0.",
@@ -1436,7 +1454,8 @@ mod tests {
 
     #[test]
     fn the_workbook_matches_the_frozen_python_model() {
-        // The model of tools/build_workbook.py --no-excel at 4987fd6.
+        // The model of tools/build_workbook.py --no-excel at 4987fd6, with the
+        // returned_by_fund input, Flag_ret and the RET codes added since.
         let frozen: Vec<String> = include_str!("../../tests/data/workbook-model.txt")
             .lines()
             .map(accepted)
@@ -1603,5 +1622,23 @@ mod tests {
             let entry = CODES.iter().find(|c| c.0 == code).unwrap();
             assert_eq!(*entry, (code, "UNKNOWN", outer, 0, 0, 0));
         }
+    }
+
+    /// `returned_by_fund=yes` on the checker: `UNKNOWN`, no exposure, ahead of
+    /// every receipt rule, and refused where the row carries nothing to test.
+    #[test]
+    fn a_returned_row_is_left_unknown_in_the_workbook() {
+        let calc = formulas();
+        let branch = &calc["Branch"];
+        let flag = branch.find("Flag_ret").unwrap();
+        assert!(flag < branch.find("Settled").unwrap(), "{branch}");
+        assert!(branch.find("\"NIL\"").unwrap() < flag, "{branch}");
+        for (code, outer) in [("RET1", "UNPAID or ON_TIME"), ("RET2", "UNPAID or LATE")] {
+            assert!(branch.contains(code), "{code}");
+            let entry = CODES.iter().find(|c| c.0 == code).unwrap();
+            assert_eq!(*entry, (code, "UNKNOWN", outer, 0, 0, 0));
+        }
+        assert!(calc["Row_problem"].contains("returned-needs-an-sg-amount"));
+        assert!(calc["Evidence_own"].starts_with("=IF(AND(tblLines[[#This Row],[Flag_ret]]=1"));
     }
 }
