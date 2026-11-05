@@ -51,7 +51,7 @@ PYTHON_ENGINES = {
     "packages/lodgment-calendar": "lodgmentcalendar",
 }
 # Sourced records with their validator, a standalone Rust crate. Not an engine
-# or an application: nothing links it, and it is never released.
+# or an application: nothing links it, and it is never released on its own.
 DATASETS = {
     "packages/au-tax-rates-data": "rates",
 }

@@ -64,7 +64,7 @@ Missing facts stay unknown: a Payday Super row with a fund-receipt date but no m
   gives the same date on the usual 7 business day path. Run and read 5 November 2026.
 - **MCP tools.** Aus Accounting MCP 0.7.1, the published release, listed 22 local tools on
   5 November 2026. The source on `main` defines 25: `validate_abn`, `validate_acn` and
-  `get_reviewed_rate` are not yet released.
+  `get_reviewed_rate` are not yet released, and neither is the `doctor` command.
 
 <details>
 <summary>Commands for the Payday Super date and the tool count</summary>
@@ -209,7 +209,7 @@ Australian Accounting holds 13 components, each in its own directory:
 | `packages/gst-review/` | `gst-review` (Rust) | none | `gst-review`: GST coding states against registration and BAS-to-ledger reconciliation |
 | `packages/lodgment-calendar/` | `lodgment-calendar` | `lodgmentcalendar` | Python function: ATO lodgment program due dates for BAS, IAS, income tax and FBT returns, `UNKNOWN` where a fact is missing |
 | `apps/lodgeit-calculator-adapter/` | `lodgeit-calculator-adapter` (Rust, not released) | none | `lodgeit-adapter`: optional adapter for a third-party calculator service; off by default, makes HTTP calls only when enabled (`LODGEIT_ADAPTER_ENABLED=1` or `--enable-network`) |
-| `packages/au-tax-rates-data/` | `au-tax-rates-data` (Rust, never released) | none | `rates validate`, `snapshot`, `check` and `ato-tables`: ATO rates and thresholds with verbatim source quotes, validated offline |
+| `packages/au-tax-rates-data/` | `au-tax-rates-data` (Rust, never released on its own) | none | `rates validate`, `snapshot`, `check` and `ato-tables`: ATO rates and thresholds with verbatim source quotes, validated offline |
 
 `IMPORTS.md` records the source repository, commit and tree of every imported component. The
 MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest); it

@@ -149,8 +149,9 @@ authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus
 [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus).
 The [corpus setup walkthrough](docs/corpus-setup.md) verifies the existing builder
 and MCP tools together using a fabricated page before any live capture.
-The package ships none of them. Run `aus-accounting-mcp doctor` with the same variables
-set to see each folder's row count; it exits 1 if a configured folder is broken.
+The package ships none of them. From the release after 0.7.1, run
+`aus-accounting-mcp doctor` with the same variables set to see each folder's row count;
+it exits 1 if a configured folder is broken.
 A corpus or rulings row is a point-in-time copy, not
 a live lookup, and an edited version of private advice cannot be relied on by anyone.
 Legislation results preserve a row's capture date and recorded successor date when
