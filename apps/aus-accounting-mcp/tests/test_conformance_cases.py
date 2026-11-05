@@ -9,8 +9,10 @@ import csv
 import hashlib
 import json
 import re
+from collections import Counter
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal, localcontext
+from math import ceil
 from pathlib import Path
 
 import pytest
@@ -138,6 +140,22 @@ def _worked_payday(case: dict) -> dict[str, object]:
     return worked
 
 
+def _remaining_term(facts: dict) -> int:
+    """s 109E(6): the term less the years from the year made to the year before this one."""
+    years_between = int(facts["year_of_income"][:4]) - int(facts["year_loan_made"][:4]) - 1
+    return ceil(Decimal(facts["maximum_term_years"]) - years_between)
+
+
+def _term_problems(case: dict) -> list[str]:
+    """A supplied remaining term the statute does not give for the case's own facts."""
+    facts = case["arguments"]
+    term = _remaining_term(facts)
+    if str(term) == facts["remaining_term_years"]:
+        return []
+    return [f"{case['id']}: remaining_term_years is {facts['remaining_term_years']!r}, "
+            f"s 109E(6) gives {term}"]
+
+
 def _worked_repayment(case: dict) -> dict[str, object]:
     """s 109E(6), by the ATO's 5 steps, in exact decimals rounded to the cent."""
     facts = case["arguments"]
@@ -145,7 +163,7 @@ def _worked_repayment(case: dict) -> dict[str, object]:
     paid = Decimal(facts["payments_applied_during_the_year"])
     rate = ATO_BENCHMARK_2026_27
     with localcontext(prec=60):
-        required = balance * rate / (1 - (1 / (1 + rate)) ** int(facts["remaining_term_years"]))
+        required = balance * rate / (1 - (1 / (1 + rate)) ** _remaining_term(facts))
     required = required.quantize(Decimal("0.01"), ROUND_HALF_UP)
     shortfall = max(required - paid, Decimal("0.00"))
     return {
@@ -179,6 +197,8 @@ def _authority_problems(case: dict) -> list[str]:
     if case["tool"] not in WORKINGS:
         return [*problems, f"{name}: no independent working for {case['tool']}"]
     worked = WORKINGS[case["tool"]](case)
+    if case["tool"] == "review_div7a_loan":
+        problems += _term_problems(case)
     published = ATO_DUE_DATES.get(name)
     if published is not None and worked["/result/due"] != published:
         problems.append(f"{name}: /result/due is worked as {worked['/result/due']!r}, "
@@ -227,7 +247,7 @@ def _case(case_id: str) -> dict:
 
 
 def test_fewer_cases_are_self_pinned_and_example_1_is_held() -> None:
-    assert sum(case["basis"] == "self-pinned" for case in CASES) < 8
+    assert Counter(case["basis"] for case in CASES) == {"authority": 26, "self-pinned": 6}
     assert set(ATO_DUE_DATES) <= {case["id"] for case in WORKED_CASES}
 
 
@@ -253,6 +273,25 @@ def test_a_changed_authority_figure_is_rejected(case_id, pointer, figure) -> Non
     case["expect"][pointer] = figure
 
     assert any(pointer in found for found in _authority_problems(case))
+
+
+@pytest.mark.parametrize(
+    "case",
+    [case for case in CASES if "remaining_term_years" in case.get("arguments", {})],
+    ids=lambda case: case["id"],
+)
+def test_a_supplied_remaining_term_is_the_statutory_one(case: dict) -> None:
+    assert _term_problems(case) == []
+
+
+def test_a_term_changed_with_its_figure_is_rejected() -> None:
+    case = _case("div7a_myr_one_year_term")
+    case["arguments"]["maximum_term_years"] = "7"
+    case["expect"]["/minimum_yearly_repayment/myr_required"] = "108770.00"
+
+    assert any("s 109E(6) gives 7" in found for found in _authority_problems(case))
+    case["arguments"]["remaining_term_years"] = "7"
+    assert any("myr_required" in found for found in _authority_problems(case))
 
 
 def test_an_authority_case_needs_a_citation_and_a_working() -> None:

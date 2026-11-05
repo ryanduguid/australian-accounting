@@ -450,6 +450,23 @@ lodge, disclose or turn the checker output into a compliance determination.
 
 Verdicts are `ON_TIME`, `AT_RISK` (remitted in time but no fund receipt recorded), `LATE`, `UNPAID` (a supported deadline has passed and a full eligible fund receipt is not established, including where there is no receipt or only a partial receipt), `UNKNOWN` (the verdict is not available) and `SKIPPED` (defined-benefit interests). `LATE` and `UNPAID` both carry experimental exposure figures.
 
+For one line on its own, the first row here that fits decides the verdict. Dates after the as-at date are ignored, and past the holiday table's horizon means the deadline runs beyond its complete years.
+
+| Evidence on the line | Verdict |
+| --- | --- |
+| A defined-benefit interest | `SKIPPED` |
+| A return the fund made | `UNKNOWN` |
+| Fund receipt before the 12 months ending the day before the QE day (SGAA s 18C(1)(c)(ii)) | `LATE` once the deadline has passed, `UNKNOWN` until then or past the horizon |
+| Fund receipt after the deadline | `LATE`, or `UNKNOWN` past the horizon |
+| Fund receipt in time, the whole amount evidenced | `ON_TIME` |
+| Fund receipt in time, no amount on the row | `UNKNOWN` |
+| Fund receipt in time, part of the amount | `UNPAID` once the deadline has passed, `UNKNOWN` until then or past the horizon |
+| No fund receipt, remitted in time, in full or with no amount | `AT_RISK` |
+| No fund receipt, remitted late, in full or with no amount | `LATE`, or `UNKNOWN` past the horizon |
+| No fund receipt, nothing or part remitted | `UNPAID` once the deadline has passed, `UNKNOWN` until then or past the horizon |
+
+Before any of these, the review refuses a line whose amounts or dates conflict: a `remitted_amount` with no remittance date, a part `matched_amount` beside a remittance date with no `remitted_amount` or beside a whole `remitted_amount`, or a fund receipt dated before the remittance.
+
 Some `UNKNOWN` rows are quiet because there is nothing to assess yet: a
 supported deadline has not passed, the row carries no SG amount, or a stale
 pre-payment is recorded before a supported deadline. Other `UNKNOWN` rows need
@@ -821,7 +838,7 @@ Part-day holidays, such as Christmas Eve evening in South Australia, Queensland 
 cargo test --locked
 ```
 
-`tests/parity.rs` replays the Python 0.2.2 tests' engine calls and command runs, and generated ones, from frozen Python results. `tests/BEHAVIOURS.md` maps each Python test to its Rust coverage. The property tests are seeded Rust tests over the fast-check properties' input domains, and they hold how an answer must move when one fact moves. `tests/evidence_states.rs` walks every combination of a row's evidence, and of a return's dated trail, against the verdict tables here, so each state reaches one verdict or a refusal. `tests/authority.rs` holds the ATO's Payday Super Examples 1 to 4 and 6.
+`tests/parity.rs` replays the Python 0.2.2 tests' engine calls and command runs, and generated ones, from frozen Python results. `tests/BEHAVIOURS.md` maps each Python test to its Rust coverage. The property tests are seeded Rust tests over the fast-check properties' input domains, and they hold how an answer must move when one fact moves. `tests/evidence_states.rs` walks every combination of a single row's evidence, and of a return's dated trail, against the tables here, so each of those states reaches one verdict or a refusal. It sends one line at a time and asserts the verdict alone: item 4 alignment across lines, the transition path and `horizon_verdicts` are outside it and stay with `tests/parity.rs`. `tests/authority.rs` holds the ATO's Payday Super Examples 1 to 4 and 6.
 
 The suite pins the ATO's own worked examples: a first payday of 9 July 2026 falling due 7 August 2026, and notional earnings on a payday whose usual period ends 18 June 2027 starting to accrue on 19 June 2027. It also pins the traps that make this hard, including the Ekka staying a business day, deadlines that must not change when you reorder rows in the CSV, and the leap-year divisor in the interest calculation. Test data is synthetic. Never commit client payroll data to this repository; `.gitignore` blocks the usual formats, case-insensitively.
 

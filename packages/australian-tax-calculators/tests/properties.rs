@@ -92,7 +92,12 @@ fn check_sanity(command: &str, result: &Value) {
         "{command} cites nothing: {result}"
     );
     for (name, value) in result["amounts"].as_object().unwrap() {
-        let text = value.as_str().unwrap_or("0.00");
+        if value.is_null() {
+            continue;
+        }
+        let text = value
+            .as_str()
+            .unwrap_or_else(|| panic!("{command} {name} is {value}"));
         let (whole, cents) = text
             .split_once('.')
             .unwrap_or_else(|| panic!("{command} {name} is {text}"));

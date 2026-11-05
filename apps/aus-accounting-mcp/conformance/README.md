@@ -32,9 +32,11 @@ held CSV no longer has that digest or an expected amount differs from it.
 The other authority cases cover the ATO's Payday Super Examples 1 to 4, a statutory
 deadline, the 2026-27 Division 7A benchmark rate and 2 minimum yearly repayments.
 Each `source` cites the ATO page or section, and each `worked` shows the figure
-worked by hand. `tests/test_conformance_cases.py` works the same figures again
-without the server: it counts business days, applies the s 109E(6) formula and holds
-the ATO's published dates and rate, so changing an authority figure fails the test.
+worked by hand. `tests/test_conformance_cases.py` works the `expect` figures again
+without the server: it counts business days, derives the remaining term and applies
+the s 109E(6) formula, and holds the ATO's published dates and rate, so changing a
+figure in `expect` fails the test. The test needs `worked` to exist; it does not
+read what the text says.
 
 The 6 self-pinned cases pin what a reviewer would rely on, and most of all what the
 server declines to conclude. Each `source` says why the case stays self-pinned and

@@ -220,10 +220,12 @@ fn regression_points_hold() {
     );
 }
 
-/// The 2 minimum yearly repayments worked on the ATO's 'Division 7A loans' page,
-/// read on 5 November 2026. The ATO rounds each to the closest dollar, so the
-/// engine's cents are held to that. Their rates, for income years 2015 and 2016,
-/// are older than the engine's rate table, so the formula takes them directly.
+/// The 2 minimum yearly repayments worked on the ATO's 'Loans by private companies'
+/// page (last updated 2 July 2026, read on 5 November 2026; a banner says it is
+/// under review after the Bendel High Court decision). The ATO rounds each to the
+/// closest dollar, so the engine's cents are held to that. Their rates, for income
+/// years 2015 and 2016, are older than the engine's rate table, so the formula
+/// takes them directly.
 #[test]
 fn the_ato_worked_repayments_hold() {
     let dollars = |principal: &str, rate: &str, term: &str| {

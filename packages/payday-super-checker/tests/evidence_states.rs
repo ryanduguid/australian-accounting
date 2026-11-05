@@ -3,11 +3,15 @@
 
 //! Every evidence state reaches exactly one answer: one verdict or a refusal.
 //!
-//! The rules are restated here from the README's tables, apart from
-//! `src/assess.rs`, and every combination of the listed facts is walked, so a
-//! changed branch in the engine disagrees with the table for some state. The
-//! walk counts its states and needs every answer to occur, so it cannot pass
-//! by reaching none. All facts are fabricated.
+//! The rules are restated here from the README's row-verdict and return-event
+//! tables, apart from `src/assess.rs`, and every combination of the listed facts
+//! is walked, so a changed branch in the engine disagrees with a table for some
+//! state. The walk counts its states and needs every answer to occur, so it
+//! cannot pass by reaching none. All facts are fabricated.
+//!
+//! The walk stops at one line in a run, each with the transition allocation
+//! confirmed, and it asserts the verdict alone. Item 4 alignment across lines,
+//! the transition path and `horizon_verdicts` stay with `tests/parity.rs`.
 
 use std::collections::BTreeSet;
 
@@ -119,7 +123,7 @@ impl Row {
             || matches!((self.received, self.remitted), (Some(r), Some(s)) if r < s)
     }
 
-    /// The verdict table, from the rows the README sets out.
+    /// The README's table of row verdicts.
     fn expected(&self) -> &'static str {
         if self.refused() {
             return REFUSED;
@@ -136,7 +140,7 @@ impl Row {
 
     fn with_receipt(&self, received: Date) -> &'static str {
         let (due, past) = (self.due(), self.payday.past_calendar);
-        // A day before the 12 months the law lets a pre-payment reach back.
+        // A day before the 12 months s 18C(1)(c)(ii) lets a pre-payment reach back.
         if received < after(self.payday.qe_day(), -365) {
             return if past || due >= self.as_at {
                 UNKNOWN
