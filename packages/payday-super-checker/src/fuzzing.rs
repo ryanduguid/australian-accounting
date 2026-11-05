@@ -9,7 +9,7 @@ use std::sync::OnceLock;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::csv_io::{self, Mapping};
-use crate::importers;
+use crate::{importers, usi};
 
 /// A directory this process created under an unpredictable name. `create_dir`
 /// fails on any existing path, link or not, so no one else can redirect the
@@ -30,9 +30,11 @@ fn scratch() -> Option<&'static Path> {
     .as_deref()
 }
 
-/// Read untrusted bytes as every CSV reader would. Refusals are results;
-/// only a panic is a defect.
+/// Read untrusted bytes as every CSV reader would, and as a USI extract and
+/// `usi-check` input. Refusals are results; only a panic is a defect.
 pub fn read_export(data: &[u8]) {
+    let _ = usi::parse_extract(data);
+    let _ = usi::read_usis("export.csv", data);
     let Some(dir) = scratch() else { return };
     let path = dir.join("export.csv");
     if std::fs::write(&path, data).is_err() {

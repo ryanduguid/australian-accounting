@@ -10,7 +10,32 @@ use crate::decimal::Decimal;
 use crate::engine::{self, Arg};
 use serde_json::Value;
 
-type Result<T> = std::result::Result<T, String>;
+/// A refusal at the JSON boundary: its stable code and the message.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Refusal {
+    pub code: &'static str,
+    pub message: String,
+}
+
+impl Refusal {
+    pub fn new(code: &'static str, message: impl Into<String>) -> Refusal {
+        Refusal {
+            code,
+            message: message.into(),
+        }
+    }
+}
+
+/// Every refusal code and the failure it names.
+pub fn refusal_codes() -> &'static [(&'static str, &'static str)] {
+    crate::texts::REFUSAL_CODES
+}
+
+fn refusal<T>(code: &'static str, message: impl Into<String>) -> Result<T> {
+    Err(Refusal::new(code, message))
+}
+
+type Result<T> = std::result::Result<T, Refusal>;
 
 /// Argument kinds: a decimal string, a JSON value the engine reads as JSON
 /// (lists of periods), or any other JSON value.
@@ -343,23 +368,25 @@ fn float_repr(value: f64) -> String {
 
 fn argument(v: &Value, key: &str, kind: Kind) -> Result<Arg> {
     let Some(value) = v.get(key) else {
-        return Err(format!("{key} is required"));
+        return refusal("input.missing_field", format!("{key} is required"));
     };
     match (kind, value) {
         (Dec, Value::String(text)) => {
             if text.len() > 8192 {
-                return Err(format!("{key}: decimal input exceeds 8192 bytes"));
+                return refusal(
+                    "input.decimal_too_long",
+                    format!("{key}: decimal input exceeds 8192 bytes"),
+                );
             }
             Decimal::parse(text)
                 .map(Arg::Decimal)
-                .map_err(|s| format!("decimal.{}", s.name()))
+                .or_else(|s| refusal("input.decimal_unreadable", format!("decimal.{}", s.name())))
         }
         (Json, _) => Ok(Arg::Json(value.clone())),
         _ => Ok(arg(value)),
     }
 }
 
-/// Run one JSON stdin command: the result value, or the refusal message.
 /// `json.loads` refuses an integer token of more than 4,300 digits, as
 /// `int(text)` does under Python's default limit.
 fn int_limit(value: &Value) -> Result<()> {
@@ -368,11 +395,14 @@ fn int_limit(value: &Value) -> Result<()> {
             let text = n.to_string();
             let digits = text.strip_prefix('-').unwrap_or(&text);
             if digits.len() > 4300 && digits.bytes().all(|b| b.is_ascii_digit()) {
-                return Err(format!(
-                    "ValueError: Exceeds the limit (4300 digits) for integer string conversion: \
-                     value has {} digits; use sys.set_int_max_str_digits() to increase the limit",
-                    digits.len()
-                ));
+                return refusal(
+                    "input.integer_too_long",
+                    format!(
+                        "ValueError: Exceeds the limit (4300 digits) for integer string conversion: \
+                         value has {} digits; use sys.set_int_max_str_digits() to increase the limit",
+                        digits.len()
+                    ),
+                );
             }
             Ok(())
         }
@@ -382,29 +412,38 @@ fn int_limit(value: &Value) -> Result<()> {
     }
 }
 
-pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
+/// Run one JSON stdin command: the result value, or the refusal message.
+pub fn evaluate(command: &str, v: &Value) -> std::result::Result<Value, String> {
+    evaluate_coded(command, v).map_err(|refusal| refusal.message)
+}
+
+/// [`evaluate`], keeping each refusal's stable code beside its message.
+pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     if !v.is_object() {
-        return Err("input must be a JSON object".into());
+        return refusal("input.not_object", "input must be a JSON object");
     }
     int_limit(v)?;
     match command {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
         "periods" => {
             let kind = match v.get("kind") {
-                None => return Err("kind is required".into()),
+                None => return refusal("input.missing_field", "kind is required"),
                 Some(Value::String(kind)) => kind.as_str(),
-                Some(_) => return Err("kind must be a string".into()),
+                Some(_) => return refusal("input.kind_invalid", "kind must be a string"),
             };
             // Python raised KeyError for a worksheet it does not have.
             if crate::metadata::supported_periods(kind).is_empty() {
-                return Err(format!("unknown worksheet {}", crate::pytext::repr(kind)));
+                return refusal(
+                    "worksheet.unknown",
+                    format!("unknown worksheet {}", crate::pytext::repr(kind)),
+                );
             }
             return Ok(engine::periods(kind));
         }
         _ => {}
     }
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
-        return Err(format!("unknown command {command}"));
+        return refusal("command.unknown", format!("unknown command {command}"));
     };
     let a: Vec<Arg> = params
         .iter()
@@ -448,7 +487,7 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         "pension-minimum" => engine::pension_minimum(&a[0], &a[1], &a[2], &a[3], &a[4]),
         _ => unreachable!("listed command"),
     };
-    result.map_err(|e| e.to_string())
+    result.or_else(|e| refusal(e.code(), e.to_string()))
 }
 
 #[cfg(test)]

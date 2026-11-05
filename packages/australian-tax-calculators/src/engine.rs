@@ -20,7 +20,11 @@ const WORKING_PRECISION: i128 = 40;
 /// A refusal: Python's ValueError with its message, or a trapped decimal signal.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {
-    Value(String),
+    Value {
+        /// The refused rule's stable code, from `texts::REFUSAL_CODES`.
+        code: &'static str,
+        message: String,
+    },
     Decimal(Signal),
 }
 
@@ -33,16 +37,29 @@ impl From<Signal> for Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::Value(m) => f.write_str(m),
+            Error::Value { message, .. } => f.write_str(message),
             Error::Decimal(s) => write!(f, "decimal.{}", s.name()),
+        }
+    }
+}
+
+impl Error {
+    /// The refusal's stable code; the message beside it may be reworded.
+    pub fn code(&self) -> &'static str {
+        match self {
+            Error::Value { code, .. } => code,
+            Error::Decimal(signal) => signal.code(),
         }
     }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-fn refuse<T>(message: impl Into<String>) -> Result<T> {
-    Err(Error::Value(message.into()))
+fn refuse<T>(code: &'static str, message: impl Into<String>) -> Result<T> {
+    Err(Error::Value {
+        code,
+        message: message.into(),
+    })
 }
 
 pub fn d(text: &str) -> Decimal {
@@ -134,7 +151,12 @@ fn sources(kind: &str) -> Vec<&'static str> {
 
 /// `_money`: a finite non-negative Decimal at most 2dp and 1e12.
 fn money(value: &Arg) -> Result<Decimal> {
-    let bad = || refuse("Amounts must be finite non-negative Decimals, at most 2dp and 1e12.");
+    let bad = || {
+        refuse(
+            "input.amount_invalid",
+            "Amounts must be finite non-negative Decimals, at most 2dp and 1e12.",
+        )
+    };
     let Arg::Decimal(v) = value else {
         return bad();
     };
@@ -147,22 +169,31 @@ fn money(value: &Arg) -> Result<Decimal> {
 /// `_scope`: confirmation, then a supported period.
 fn scope(confirmed: &Arg, year: &Arg, kind: &str) -> Result<String> {
     if !matches!(confirmed, Arg::Bool(true)) {
-        return refuse("Establish all stated scope conditions before calculating.");
+        return refuse(
+            "scope.not_confirmed",
+            "Establish all stated scope conditions before calculating.",
+        );
     }
     let supported = meta::supported_periods(kind);
     match year.text() {
         Some(y) if supported.contains(&y) => Ok(y.to_string()),
-        _ => refuse(format!(
-            "Unsupported period {}; supported: {}.",
-            year.repr(),
-            supported.join(", ")
-        )),
+        _ => refuse(
+            "period.unsupported",
+            format!(
+                "Unsupported period {}; supported: {}.",
+                year.repr(),
+                supported.join(", ")
+            ),
+        ),
     }
 }
 
 fn whole_dollars(income: &Decimal, what: &str) -> Result<()> {
     if !income.equals(&income.to_integral_value()?)? {
-        return refuse(format!("Supply established whole-dollar {what}."));
+        return refuse(
+            "input.amount_not_whole_dollars",
+            format!("Supply established whole-dollar {what}."),
+        );
     }
     Ok(())
 }
@@ -215,7 +246,7 @@ pub fn gst(amount: &Arg, gst_inclusive: &Arg, scope_confirmed: &Arg, year: &Arg)
     let year = scope(scope_confirmed, year, "gst")?;
     let amount = money(amount)?;
     let Arg::Bool(inclusive) = gst_inclusive else {
-        return refuse("gst_inclusive must be a boolean.");
+        return refuse("input.flag_invalid", "gst_inclusive must be a boolean.");
     };
     let (tax, exclusive) = precise(|| {
         if *inclusive {
@@ -356,16 +387,17 @@ fn fbt_year(confirmed: &Arg, year_ended: &Arg, kind: &str) -> Result<(String, St
 fn day_count(value: &Arg, days_in_year: i64, name: &str) -> Result<i64> {
     match value.int() {
         Some(Some(n)) if (0..=days_in_year).contains(&n) => Ok(n),
-        _ => refuse(format!(
-            "{name} must be an integer from 0 to {days_in_year}."
-        )),
+        _ => refuse(
+            "input.day_count_invalid",
+            format!("{name} must be an integer from 0 to {days_in_year}."),
+        ),
     }
 }
 
 fn flag(value: &Arg, name: &str) -> Result<bool> {
     match value {
         Arg::Bool(b) => Ok(*b),
-        _ => refuse(format!("{name} must be a boolean.")),
+        _ => refuse("input.flag_invalid", format!("{name} must be a boolean.")),
     }
 }
 
@@ -478,12 +510,16 @@ pub fn fbt_car_operating_cost(
     let value = money(depreciated_value)?;
     if lease.gt(&int(0))? && value.gt(&int(0))? {
         return refuse(
+            "fbt_car.cost_basis_conflict",
             "A car is either owned, with a depreciated_value, or leased, with lease_charges; set the other to 0.",
         );
     }
     let days = day_count(days_held, days_in_year, "days_held")?;
     let Some(business) = finite_between(business_use, "0", "1")? else {
-        return refuse("business_use must be a finite Decimal fraction from 0 to 1.");
+        return refuse(
+            "input.fraction_invalid",
+            "business_use must be a finite Decimal fraction from 0 to 1.",
+        );
     };
     let contribution = money(employee_contribution)?;
     let statutory = money(statutory_formula_taxable_value)?;
@@ -546,21 +582,35 @@ pub fn depreciation(
     let year = scope(scope_confirmed, year, "depreciation")?;
     let cost = money(cost)?;
     let Some(life) = finite_between(effective_life, "0.01", "1000")? else {
-        return refuse("effective_life must be a finite Decimal between 0.01 and 1000 years.");
+        return refuse(
+            "input.effective_life_invalid",
+            "effective_life must be a finite Decimal between 0.01 and 1000 years.",
+        );
     };
     let Some(use_) = finite_between(taxable_use, "0", "1")? else {
-        return refuse("taxable_use must be a finite Decimal fraction from 0 to 1.");
+        return refuse(
+            "input.fraction_invalid",
+            "taxable_use must be a finite Decimal fraction from 0 to 1.",
+        );
     };
     let Some(Some(days)) = days
         .int()
         .filter(|n| n.is_some_and(|n| (0..=365).contains(&n)))
     else {
-        return refuse(format!("days must be an integer from 0 to 365 for {year}."));
+        return refuse(
+            "input.day_count_invalid",
+            format!("days must be an integer from 0 to 365 for {year}."),
+        );
     };
     let factor = match method.text() {
         Some("prime_cost") => int(1),
         Some("diminishing_value") => int(2),
-        _ => return refuse("method must be prime_cost or diminishing_value."),
+        _ => {
+            return refuse(
+                "input.depreciation_method_invalid",
+                "method must be prime_cost or diminishing_value.",
+            );
+        }
     };
     let amounts = precise(|| {
         let raw = cost
@@ -590,7 +640,10 @@ pub fn quarterly_sg(
         .int()
         .filter(|n| n.is_some_and(|n| (1..=4).contains(&n)))
     else {
-        return refuse("quarter must be 1 (Jul-Sep), 2, 3 or 4 (Apr-Jun).");
+        return refuse(
+            "input.quarter_invalid",
+            "quarter must be 1 (Jul-Sep), 2, 3 or 4 (Apr-Jun).",
+        );
     };
     let amounts = precise(|| {
         let earnings = py_min(money(ordinary_time_earnings)?, d("62500"))?;
@@ -637,13 +690,24 @@ fn payg_checks(
     let earnings = money(earnings)?;
     let period = match pay_period.text() {
         Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
-        _ => return refuse("pay_period must be weekly, fortnightly or monthly."),
+        _ => {
+            return refuse(
+                "input.pay_period_invalid",
+                "pay_period must be weekly, fortnightly or monthly.",
+            );
+        }
     };
     let Some(Some(scale)) = scale.int() else {
-        return refuse("scale must be 1, 2, 3, 5 or 6; scale 4 is not supported.");
+        return refuse(
+            "input.tax_scale_unsupported",
+            "scale must be 1, 2, 3, 5 or 6; scale 4 is not supported.",
+        );
     };
     if payg_rows(&year, scale).is_none() {
-        return refuse("scale must be 1, 2, 3, 5 or 6; scale 4 is not supported.");
+        return refuse(
+            "input.tax_scale_unsupported",
+            "scale must be 1, 2, 3, 5 or 6; scale 4 is not supported.",
+        );
     }
     Ok((year, earnings, period, scale))
 }
@@ -798,7 +862,10 @@ pub fn medicare_levy(
     let income = money(taxable_income)?;
     whole_dollars(&income, "taxable income")?;
     let Arg::Bool(adjusted) = section_9a_adjustment_applies else {
-        return refuse("section_9a_adjustment_applies must be a boolean.");
+        return refuse(
+            "input.flag_invalid",
+            "section_9a_adjustment_applies must be a boolean.",
+        );
     };
     if *adjusted {
         let extra = texts::EXTRA_SOURCES
@@ -806,10 +873,13 @@ pub fn medicare_levy(
             .find(|(k, _)| *k == "medicare_levy")
             .expect("medicare sources")
             .1[2];
-        return refuse(format!(
-            "Medicare Levy Act 1986 s 9A (lump sum payments in arrears) applies, and this \
+        return refuse(
+            "medicare.s9a_adjustment_out_of_scope",
+            format!(
+                "Medicare Levy Act 1986 s 9A (lump sum payments in arrears) applies, and this \
              worksheet does not make that adjustment. See {extra}"
-        ));
+            ),
+        );
     }
     let (threshold, limit) = lookup(meta::MEDICARE_LOW_INCOME_THRESHOLDS, &year);
     let (threshold, limit) = (d(threshold), d(limit));
@@ -989,7 +1059,7 @@ pub fn contribution_caps(
     let unused = money(unused_concessional_cap)?;
     let non_concessional = money(non_concessional_contributions)?;
     let Arg::Bool(under_75) = under_75_in_year else {
-        return refuse("under_75_in_year must be a boolean.");
+        return refuse("input.flag_invalid", "under_75_in_year must be a boolean.");
     };
     let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, &year);
     let (amounts, rates) = precise(|| {
@@ -1078,7 +1148,10 @@ pub fn pension_minimum(
         .int()
         .filter(|n| n.is_some_and(|n| (0..=150).contains(&n)))
     else {
-        return refuse("age must be an integer number of years from 0 to 150.");
+        return refuse(
+            "input.age_invalid",
+            "age must be an integer number of years from 0 to 150.",
+        );
     };
     let start: i64 = year[..4].parse().expect("supported period");
     let days_in_year: i64 = if is_leap(start + 1) { 366 } else { 365 };
@@ -1086,9 +1159,10 @@ pub fn pension_minimum(
         .int()
         .filter(|n| n.is_some_and(|n| (1..=days_in_year).contains(&n)))
     else {
-        return refuse(format!(
-            "days must be an integer from 1 to {days_in_year} for {year}."
-        ));
+        return refuse(
+            "input.day_count_invalid",
+            format!("days must be an integer from 1 to {days_in_year} for {year}."),
+        );
     };
     let factor = d(meta::PENSION_MINIMUM_FACTORS
         .iter()
@@ -1139,20 +1213,24 @@ struct Span {
 fn date_arg(value: &Arg, name: &str) -> Result<i64> {
     match value.text().and_then(dates::parse) {
         Some(day) => Ok(day),
-        None => refuse(format!(
-            "{name} must be a YYYY-MM-DD date from 1900 to 2100."
-        )),
+        None => refuse(
+            "input.date_invalid",
+            format!("{name} must be a YYYY-MM-DD date from 1900 to 2100."),
+        ),
     }
 }
 
 /// A list of periods inside `first..=last`, sorted, refused if two overlap.
 fn spans(value: &Arg, name: &str, with_part: bool, first: i64, last: i64) -> Result<Vec<Span>> {
-    let bad = |why: &str| refuse(format!("{name}: {why}"));
+    let bad = |code, why: &str| refuse(code, format!("{name}: {why}"));
     let Arg::Json(Value::Array(items)) = value else {
-        return bad("must be a list of periods.");
+        return bad(
+            "main_residence.periods_not_a_list",
+            "must be a list of periods.",
+        );
     };
     if items.len() > 1000 {
-        return bad("at most 1000 periods.");
+        return bad("main_residence.periods_too_many", "at most 1000 periods.");
     }
     let keys: &[&str] = if with_part {
         &["start", "end", "floor_area"]
@@ -1168,18 +1246,27 @@ fn spans(value: &Arg, name: &str, with_part: bool, first: i64, last: i64) -> Res
                 f
             }
             _ => {
-                return bad(&format!(
-                    "each period must be an object with exactly {}.",
-                    keys.join(", ")
-                ));
+                return bad(
+                    "main_residence.period_shape_invalid",
+                    &format!(
+                        "each period must be an object with exactly {}.",
+                        keys.join(", ")
+                    ),
+                );
             }
         };
         let date = |key: &str| fields[key].as_str().and_then(dates::parse);
         let (Some(start), Some(end)) = (date("start"), date("end")) else {
-            return bad("start and end must be YYYY-MM-DD dates from 1900 to 2100.");
+            return bad(
+                "main_residence.period_date_invalid",
+                "start and end must be YYYY-MM-DD dates from 1900 to 2100.",
+            );
         };
         if start > end || start < first || end > last {
-            return bad("each period must run forwards inside the ownership period.");
+            return bad(
+                "main_residence.period_outside_ownership",
+                "each period must run forwards inside the ownership period.",
+            );
         }
         let part = if with_part {
             let fraction = fields["floor_area"]
@@ -1196,6 +1283,7 @@ fn spans(value: &Arg, name: &str, with_part: bool, first: i64, last: i64) -> Res
                 }
                 _ => {
                     return bad(
+                        "main_residence.floor_area_invalid",
                         "floor_area must be a decimal string above 0 and at most 1, to 4 places.",
                     );
                 }
@@ -1207,7 +1295,10 @@ fn spans(value: &Arg, name: &str, with_part: bool, first: i64, last: i64) -> Res
     }
     out.sort_by_key(|s| s.start);
     if out.windows(2).any(|w| w[1].start <= w[0].end) {
-        return bad("periods must not overlap.");
+        return bad(
+            "main_residence.periods_overlap",
+            "periods must not overlap.",
+        );
     }
     Ok(out)
 }
@@ -1233,28 +1324,43 @@ pub fn main_residence(
     let gain = money(capital_gain)?;
     let loss = money(capital_loss)?;
     if !gain.is_zero() && !loss.is_zero() {
-        return refuse("Supply a capital gain or a capital loss, not both.");
+        return refuse(
+            "main_residence.gain_and_loss_both_supplied",
+            "Supply a capital gain or a capital loss, not both.",
+        );
     }
     let market_value = flag(market_value_basis, "market_value_basis")?;
     let first = date_arg(ownership_start, "ownership_start")?;
     let last = date_arg(ownership_end, "ownership_end")?;
     if last < first {
-        return refuse("ownership_end must not be before ownership_start.");
+        return refuse(
+            "main_residence.ownership_dates_reversed",
+            "ownership_end must not be before ownership_start.",
+        );
     }
     let year_start = dates::parse(&format!("{}-07-01", &year[..4])).expect("income year");
     if last < year_start {
-        return refuse(format!(
-            "ownership_end must not be before the {year} income year began: the ownership period ends on or after the CGT event."
-        ));
+        return refuse(
+            "main_residence.ownership_ends_before_year",
+            format!(
+                "ownership_end must not be before the {year} income year began: the ownership period ends on or after the CGT event."
+            ),
+        );
     }
     let year_end = dates::add_months(year_start, 12) - 1;
     if first > year_end {
-        return refuse(format!(
-            "ownership_start must not be after the {year} income year ended: the dwelling is acquired before the CGT event."
-        ));
+        return refuse(
+            "main_residence.ownership_starts_after_year",
+            format!(
+                "ownership_start must not be after the {year} income year ended: the dwelling is acquired before the CGT event."
+            ),
+        );
     }
     if first < dates::parse("1985-09-20").expect("date") {
-        return refuse("A dwelling acquired before 20 September 1985 is out of scope.");
+        return refuse(
+            "main_residence.pre_cgt_dwelling",
+            "A dwelling acquired before 20 September 1985 is out of scope.",
+        );
     }
     let lived = spans(lived_periods, "lived_periods", false, first, last)?;
     let income = spans(income_use_periods, "income_use_periods", true, first, last)?;
@@ -1271,12 +1377,14 @@ pub fn main_residence(
             Some(day) if day <= last => Some(day),
             _ => {
                 return refuse(
+                    "main_residence.new_home_date_invalid",
                     "new_home_acquired must be null or a YYYY-MM-DD date no later than ownership_end.",
                 );
             }
         },
         _ => {
             return refuse(
+                "main_residence.new_home_date_invalid",
                 "new_home_acquired must be null or a YYYY-MM-DD date no later than ownership_end.",
             );
         }
@@ -1299,6 +1407,7 @@ pub fn main_residence(
             || is_lived[at(s.start)..=at(s.end)].contains(&true)
         {
             return refuse(
+                "main_residence.absence_choice_period_invalid",
                 "absence_choice_periods: each period must start the day after a lived period ends and contain no lived day.",
             );
         }
@@ -1334,6 +1443,7 @@ pub fn main_residence(
         }
         if !consistent {
             return refuse(
+                "main_residence.income_use_changed_before_absence",
                 "Income use of part of the dwelling changed or stopped before the move that started an absence choice period: out of scope.",
             );
         }
@@ -1421,6 +1531,7 @@ pub fn main_residence(
         if exempt_before && taxable_after && start >= cutoff {
             if start == cutoff {
                 return refuse(
+                    "main_residence.income_use_started_20_august_1996",
                     "Income use first started on 20 August 1996, when the market value rule's 7.30 pm start applies: out of scope.",
                 );
             }
@@ -1428,6 +1539,7 @@ pub fn main_residence(
                 .any(|i| !weight[i].is_zero() && part[i].is_none() && !is_chosen[i]);
             if other_cause {
                 return refuse(
+                    "main_residence.partial_exemption_other_cause",
                     "The dwelling is only partly exempt for a reason besides income use as well as that use: out of scope.",
                 );
             }
@@ -1436,13 +1548,17 @@ pub fn main_residence(
     }
     let applies = from != first;
     if applies && !market_value {
-        return refuse(format!(
-            "The home first used to produce income rule applies (s 118-192): work out the gain or loss from the dwelling's market value on {}, then set market_value_basis.",
-            dates::format(from)
-        ));
+        return refuse(
+            "main_residence.first_income_use_rule_applies",
+            format!(
+                "The home first used to produce income rule applies (s 118-192): work out the gain or loss from the dwelling's market value on {}, then set market_value_basis.",
+                dates::format(from)
+            ),
+        );
     }
     if !applies && market_value {
         return refuse(
+            "main_residence.first_income_use_rule_does_not_apply",
             "The home first used to produce income rule does not apply: work out the gain from the actual cost base, or the loss from the actual reduced cost base, and set market_value_basis to false.",
         );
     }
@@ -1523,6 +1639,7 @@ impl LoanDates<'_> {
         let (first_year, month, day) = dates::to_civil(start);
         if (month, day) == (2, 29) {
             return refuse(
+                "borrowing.loan_start_29_february",
                 "A loan first drawn on 29 February is out of scope: no source settles when its 5 years end.",
             );
         }
@@ -1531,9 +1648,10 @@ impl LoanDates<'_> {
             Arg::Json(Value::String(t)) if dates::parse(t).is_some_and(|day| day >= start) => {
                 Ok(dates::parse(t))
             }
-            _ => refuse(format!(
-                "{name} must be null or a YYYY-MM-DD date no earlier than loan_start."
-            )),
+            _ => refuse(
+                "borrowing.loan_date_invalid",
+                format!("{name} must be null or a YYYY-MM-DD date no earlier than loan_start."),
+            ),
         };
         let term_end = later(self.term_end, "loan_term_end")?;
         let repaid = later(self.repaid_on, "repaid_on")?;
@@ -1541,9 +1659,10 @@ impl LoanDates<'_> {
         let year_start = dates::parse(&format!("{claim_year}-07-01")).expect("income year");
         let year_end = dates::add_months(year_start, 12) - 1;
         if start > year_end {
-            return refuse(format!(
-                "loan_start must not be after the {year} income year ended."
-            ));
+            return refuse(
+                "borrowing.loan_starts_after_year",
+                format!("loan_start must not be after the {year} income year ended."),
+            );
         }
         let first_year = if month >= 7 {
             first_year
@@ -1582,10 +1701,13 @@ impl Loan {
     fn period(&self, year: &str) -> Result<(i64, &'static str)> {
         let end = self.end_at(self.year_end);
         if end < self.year_start {
-            return refuse(format!(
-                "The period of the loan ended on {}, before the {year} income year began: nothing remains to deduct.",
-                dates::format(end)
-            ));
+            return refuse(
+                "borrowing.loan_period_ended",
+                format!(
+                    "The period of the loan ended on {}, before the {year} income year began: nothing remains to deduct.",
+                    dates::format(end)
+                ),
+            );
         }
         let basis = if self.term_end == Some(end) {
             "s 25-25(5)(a): the original loan contract"
@@ -1631,9 +1753,12 @@ fn not_spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -
     let first_year = loan.first_year;
     let incurred_in = format!("{first_year}-{:02}", (first_year + 1) % 100);
     if incurred_in != year {
-        return refuse(format!(
-            "s 25-25(6) applied in the {incurred_in} income year the expenditure was incurred, so its deduction is not spread to {year}."
-        ));
+        return refuse(
+            "borrowing.s25_25_6_not_spread",
+            format!(
+                "s 25-25(6) applied in the {incurred_in} income year the expenditure was incurred, so its deduction is not spread to {year}."
+            ),
+        );
     }
     let amounts = precise(|| {
         Ok(vec![
@@ -1702,10 +1827,14 @@ pub fn borrowing_expenses(
     let expenditure = money(borrowing_expenses)?;
     let other = money(other_borrowing_expenses_in_year)?;
     let Some(share) = finite_between(income_use, "0", "1")? else {
-        return refuse("income_use must be a finite Decimal fraction from 0 to 1.");
+        return refuse(
+            "input.fraction_invalid",
+            "income_use must be a finite Decimal fraction from 0 to 1.",
+        );
     };
     if flag(section_26_50_applies, "section_26_50_applies")? {
         return refuse(
+            "borrowing.s26_50_denied",
             "Section 26-50 denies deductions for a leisure facility, such as a holiday home, unless s 26-50(3) applies at all times in the income year; part-year use under s 26-50(4) is out of scope.",
         );
     }

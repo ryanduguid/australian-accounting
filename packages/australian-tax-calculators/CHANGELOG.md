@@ -10,6 +10,10 @@ intentionally changed.
 
 ### Added
 
+- `--refusal-json`, after a command, adds a stable refusal code on stdout as
+  `{"ok":false,"code":...,"message":...}`. The `error:` line, the message and
+  exit 2 stay as they were, and stdout stays empty on a refusal without the flag.
+  `REFUSAL_CODES` in `src/texts.rs` is the catalogue.
 - `main-residence` works out the taxable share of an individual's capital gain
   or loss on one dwelling under the main residence exemption (ITAA 1997
   Subdiv 118-B), for CGT events in 2024-25 to 2026-27, from caller-established

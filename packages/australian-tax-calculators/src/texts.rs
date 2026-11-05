@@ -236,3 +236,196 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
     ("fbt_car_operating_cost", &[CAR_REPORTABLE_NOTE]),
 ];
+
+/// Every refusal code and the failure it names. A code stays when a message is
+/// reworded and never moves to a different failure; a new failure gets a new code.
+/// A code carries no message text, parameter value or source location.
+pub const REFUSAL_CODES: &[(&str, &str)] = &[
+    (
+        "borrowing.loan_date_invalid",
+        "A loan date is neither null nor a date on or after the start of the loan.",
+    ),
+    (
+        "borrowing.loan_period_ended",
+        "The period of the loan ended before the income year began.",
+    ),
+    (
+        "borrowing.loan_start_29_february",
+        "A loan first drawn on 29 February, for which no source settles when 5 years end.",
+    ),
+    (
+        "borrowing.loan_starts_after_year",
+        "The loan starts after the income year ended.",
+    ),
+    (
+        "borrowing.s25_25_6_not_spread",
+        "s 25-25(6) applied in the income year the expenditure was incurred, so nothing spreads to this year.",
+    ),
+    (
+        "borrowing.s26_50_denied",
+        "s 26-50 denies the deduction for a leisure facility, or the worksheet does not cover a part-year exception.",
+    ),
+    ("command.unknown", "The command does not exist."),
+    (
+        "decimal.division_by_zero",
+        "A worksheet step divided by zero.",
+    ),
+    (
+        "decimal.invalid_operation",
+        "A worksheet step is undefined, such as an order comparison with NaN.",
+    ),
+    (
+        "decimal.overflow",
+        "A worksheet step exceeded the decimal range.",
+    ),
+    (
+        "fbt_car.cost_basis_conflict",
+        "A car has neither or both of a depreciated value and lease charges.",
+    ),
+    (
+        "input.age_invalid",
+        "An age is not a whole number of years from 0 to 150.",
+    ),
+    (
+        "input.amount_invalid",
+        "An amount is not a finite non-negative decimal of at most 2dp and 1e12.",
+    ),
+    (
+        "input.amount_not_whole_dollars",
+        "An amount the worksheet reads in whole dollars has cents.",
+    ),
+    (
+        "input.date_invalid",
+        "A date is not YYYY-MM-DD from 1900 to 2100.",
+    ),
+    (
+        "input.day_count_invalid",
+        "A count of days is outside the range for the year.",
+    ),
+    (
+        "input.decimal_too_long",
+        "A decimal string exceeds 8192 bytes.",
+    ),
+    (
+        "input.decimal_unreadable",
+        "Decimal text cannot be read as a number.",
+    ),
+    (
+        "input.depreciation_method_invalid",
+        "The method is neither prime_cost nor diminishing_value.",
+    ),
+    (
+        "input.effective_life_invalid",
+        "An effective life is outside 0.01 to 1000 years.",
+    ),
+    ("input.flag_invalid", "A flag is not a JSON boolean."),
+    ("input.fraction_invalid", "A fraction is outside 0 to 1."),
+    (
+        "input.integer_too_long",
+        "A JSON integer has more than 4,300 digits.",
+    ),
+    ("input.invalid_json", "The input is not JSON."),
+    ("input.kind_invalid", "A worksheet kind is not a string."),
+    ("input.missing_field", "A required argument is absent."),
+    ("input.not_object", "The JSON input is not an object."),
+    (
+        "input.pay_period_invalid",
+        "The pay period is not weekly, fortnightly or monthly.",
+    ),
+    ("input.quarter_invalid", "A quarter is not 1, 2, 3 or 4."),
+    (
+        "input.tax_scale_unsupported",
+        "The withholding scale is not 1, 2, 3, 5 or 6, or has no table for the period.",
+    ),
+    ("input.too_large", "The JSON input exceeds 8 MiB."),
+    ("input.unreadable", "Standard input could not be read."),
+    (
+        "main_residence.absence_choice_period_invalid",
+        "An absence choice period does not start the day after a lived period ends, or holds a lived day.",
+    ),
+    (
+        "main_residence.first_income_use_rule_applies",
+        "The home first used to produce income rule (s 118-192) applies, and the market value basis was not supplied.",
+    ),
+    (
+        "main_residence.first_income_use_rule_does_not_apply",
+        "The market value basis was supplied, and the home first used to produce income rule does not apply.",
+    ),
+    (
+        "main_residence.floor_area_invalid",
+        "A floor area is not a decimal string above 0 and at most 1, to 4 places.",
+    ),
+    (
+        "main_residence.gain_and_loss_both_supplied",
+        "Both a capital gain and a capital loss were supplied.",
+    ),
+    (
+        "main_residence.income_use_changed_before_absence",
+        "Income use changed or stopped before the move that started an absence choice period.",
+    ),
+    (
+        "main_residence.income_use_started_20_august_1996",
+        "Income use first started on 20 August 1996, when the market value rule's 7.30 pm start applies.",
+    ),
+    (
+        "main_residence.new_home_date_invalid",
+        "A new home's date is neither null nor a date no later than the end of ownership.",
+    ),
+    (
+        "main_residence.ownership_dates_reversed",
+        "Ownership ends before it starts.",
+    ),
+    (
+        "main_residence.ownership_ends_before_year",
+        "Ownership ends before the income year began.",
+    ),
+    (
+        "main_residence.ownership_starts_after_year",
+        "Ownership starts after the income year ended.",
+    ),
+    (
+        "main_residence.partial_exemption_other_cause",
+        "The dwelling is only partly exempt for a reason besides income use as well as that use.",
+    ),
+    (
+        "main_residence.period_date_invalid",
+        "A period's start or end is not a YYYY-MM-DD date from 1900 to 2100.",
+    ),
+    (
+        "main_residence.period_outside_ownership",
+        "A period runs backwards or leaves the ownership period.",
+    ),
+    (
+        "main_residence.period_shape_invalid",
+        "A period is not an object with exactly the required keys.",
+    ),
+    (
+        "main_residence.periods_not_a_list",
+        "A list of periods is not a list.",
+    ),
+    (
+        "main_residence.periods_overlap",
+        "Periods in a list overlap.",
+    ),
+    (
+        "main_residence.periods_too_many",
+        "A list holds more than 1,000 periods.",
+    ),
+    (
+        "main_residence.pre_cgt_dwelling",
+        "The dwelling was acquired before 20 September 1985.",
+    ),
+    (
+        "medicare.s9a_adjustment_out_of_scope",
+        "Medicare Levy Act 1986 s 9A applies, and the worksheet does not make that adjustment.",
+    ),
+    (
+        "period.unsupported",
+        "The worksheet has no rates for the period.",
+    ),
+    (
+        "scope.not_confirmed",
+        "The stated scope conditions were not confirmed.",
+    ),
+    ("worksheet.unknown", "The worksheet does not exist."),
+];

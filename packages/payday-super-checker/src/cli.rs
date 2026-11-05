@@ -28,6 +28,7 @@ use crate::rates;
 use crate::raw::Raw;
 use crate::report::{self, NoteFacts, SummaryFacts};
 use crate::textwrap::wrap;
+use crate::usi;
 use crate::{Failure, LAW_CONTENT_DATE, VERSION};
 
 const PROG: &str = "payday-super-check";
@@ -247,6 +248,41 @@ fn import_parser() -> Parser {
                 "confirm you reconciled LCR 2026/2 allocation using actual fund-receipt \
                  order, every relevant payday and contribution, and any SG-charge \
                  assessment; required when one employee has multiple positive paydays",
+            ),
+        ],
+    }
+}
+
+fn usi_check_parser() -> Parser {
+    Parser {
+        prog: format!("{PROG} usi-check"),
+        description: "Read each USI in a CSV against your local copy of the daily USI \
+             extract from Super Fund Lookup. LISTED means only that the extract shows the \
+             USI in date with no contribution restrictions; anything else is UNVERIFIED \
+             with a reason. Exit 0 all rows LISTED; 2 a row is UNVERIFIED; 1 the extract \
+             is missing, unreadable or undated, or the input cannot be read.",
+        positional: Some(("input", "CSV with a usi column")),
+        options: vec![
+            help_opt(),
+            opt(
+                kind_opt(&["--usi-extract"], "usi_extract", "FILE", Kind::Store),
+                true,
+                "your downloaded SflUsiExtract.txt; never bundled or republished",
+            ),
+            opt(
+                kind_opt(&["--as-at"], "as_at", "AS_AT", Kind::Store),
+                true,
+                "the date to read the listings at",
+            ),
+            opt(
+                kind_opt(&["--max-extract-age-days"], "max_age", "DAYS", Kind::Store),
+                false,
+                "oldest extract to accept, in days before --as-at (default: 2)",
+            ),
+            opt(
+                kind_opt(&["-o", "--output"], "output", "OUTPUT", Kind::Store),
+                false,
+                "report CSV to write (default: usi-check.csv)",
             ),
         ],
     }
@@ -1288,6 +1324,85 @@ fn import_main(args: &[String]) -> (i32, String, String) {
     })
 }
 
+fn usi_check_main(args: &[String]) -> (i32, String, String) {
+    let parser = usi_check_parser();
+    let parsed = match run_parser(&parser, args) {
+        Ok(parsed) => parsed,
+        Err(done) => return done,
+    };
+    let input = parsed.positional.clone().expect("required");
+    let extract_path = parsed.get("usi_extract").expect("required").to_string();
+    let output = parsed.get("output").unwrap_or("usi-check.csv").to_string();
+    let mut s = Streams::default();
+    let result = (|| -> Result<(usize, usize, Option<&'static str>), Failure> {
+        let as_at = parse_cli_date(parsed.get("as_at"), "--as-at")?.expect("required");
+        let max_age = match parsed.get("max_age") {
+            None => usi::DEFAULT_MAX_AGE_DAYS,
+            Some(days) => days
+                .parse()
+                .ok()
+                .filter(|days| (0..=366).contains(days))
+                .ok_or_else(|| {
+                    Failure::Value(format!(
+                        "--max-extract-age-days expects a whole number from 0 to 366, got {}",
+                        pytext::repr_os(days)
+                    ))
+                })?,
+        };
+        if same_local_path(&input, &output) || same_local_path(&extract_path, &output) {
+            return Err(Failure::Value(format!(
+                "the report would overwrite an input file. Choose a different path with -o, \
+                 not {output}."
+            )));
+        }
+        let usis = usi::read_usis(&input, &csv_io::read_bytes(&input)?)?;
+        // A missing file is a reason like any other: the rows stay UNVERIFIED.
+        let extract = match std::fs::read(&extract_path) {
+            Ok(data) => usi::parse_extract(&data),
+            Err(_) => Err("extract_unreadable"),
+        };
+        let findings = usi::check(&usis, extract.as_ref().map_err(|e| *e), as_at, max_age);
+        let run_on = extract.as_ref().ok().map(|e| e.run_on);
+        atomic::write(
+            &output,
+            usi::report(&findings, run_on).as_bytes(),
+            atomic::csv_destination,
+        )?;
+        let listed = findings.iter().filter(|f| f.status == usi::LISTED).count();
+        Ok((findings.len(), listed, extract.err()))
+    })();
+    let (rows, listed, unusable) = match result {
+        Ok(counts) => counts,
+        Err(f @ Failure::Value(_)) => {
+            s.err(&format!("error: {}", f.message()));
+            return s.done(EXIT_ERROR);
+        }
+        Err(Failure::Os(e)) => {
+            s.err(&format!(
+                "error: cannot read {}: {}",
+                e.filename.clone().unwrap_or_else(|| input.clone()),
+                strerror(&e)
+            ));
+            return s.done(EXIT_ERROR);
+        }
+        Err(f) => return uncaught(s, &f),
+    };
+    s.out(&format!(
+        "{rows} rows: {listed} LISTED, {} UNVERIFIED. LISTED does not establish that a fund \
+         can accept a contribution. Wrote {output}",
+        rows - listed
+    ));
+    if let Some(reason) = unusable {
+        s.err(&format!("error: {extract_path}: {reason}"));
+        return s.done(EXIT_ERROR);
+    }
+    s.done(if listed < rows {
+        EXIT_LATE_FOUND
+    } else {
+        EXIT_OK
+    })
+}
+
 fn review_pack_main(args: &[String]) -> (i32, String, String) {
     let parser = review_pack_parser();
     let parsed = match run_parser(&parser, args) {
@@ -1356,6 +1471,7 @@ pub fn run(args: &[String]) -> (i32, String, String) {
     match args.first().map(String::as_str) {
         Some("import") => import_main(&args[1..]),
         Some("review-pack") => review_pack_main(&args[1..]),
+        Some("usi-check") => usi_check_main(&args[1..]),
         Some("evidence-pack") => check_main(&args[1..], true),
         _ => check_main(args, false),
     }

@@ -2,25 +2,41 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 use australian_tax_calculators::api;
+use serde_json::json;
 use std::io::{Read, Write};
 
-/// One JSON stdin command: (exit code, stdout, stderr).
-fn run(command: &str) -> (i32, String, String) {
+/// One JSON stdin command: (exit code, stdout, stderr). A refusal always keeps
+/// its `error:` line on stderr; `refusal_json` adds its code on stdout.
+fn run(command: &str, refusal_json: bool) -> (i32, String, String) {
     let mut bytes = Vec::new();
     // Bound the JSON boundary before allocating the complete input.
-    if let Err(e) = std::io::stdin().take((8 << 20) + 1).read_to_end(&mut bytes) {
-        return (2, String::new(), format!("error: {e}\n"));
-    }
-    let result = if bytes.len() > 8 << 20 {
-        Err("JSON input exceeds 8 MiB".into())
+    let result = if let Err(e) = std::io::stdin().take((8 << 20) + 1).read_to_end(&mut bytes) {
+        Err(api::Refusal::new("input.unreadable", e.to_string()))
+    } else if bytes.len() > 8 << 20 {
+        Err(api::Refusal::new(
+            "input.too_large",
+            "JSON input exceeds 8 MiB",
+        ))
     } else {
-        serde_json::from_slice(&bytes)
-            .map_err(|e| format!("invalid JSON: {e}"))
-            .and_then(|v| api::evaluate(command, &v))
+        match serde_json::from_slice(&bytes) {
+            Err(e) => Err(api::Refusal::new(
+                "input.invalid_json",
+                format!("invalid JSON: {e}"),
+            )),
+            Ok(v) => api::evaluate_coded(command, &v),
+        }
     };
     match result {
         Ok(v) => (0, format!("{v}\n"), String::new()),
-        Err(m) => (2, String::new(), format!("error: {m}\n")),
+        Err(api::Refusal { code, message }) => {
+            let out = if refusal_json {
+                let refusal = json!({"ok": false, "code": code, "message": message});
+                format!("{refusal}\n")
+            } else {
+                String::new()
+            };
+            (2, out, format!("error: {message}\n"))
+        }
     }
 }
 
@@ -28,7 +44,10 @@ fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let commands = api::commands();
     let (code, out, err) = match args.as_slice() {
-        [command] if commands.contains(&command.as_str()) => run(command),
+        [command] if commands.contains(&command.as_str()) => run(command, false),
+        [command, flag] if flag == "--refusal-json" && commands.contains(&command.as_str()) => {
+            run(command, true)
+        }
         [flag] if flag == "--api-help" => (
             0,
             format!(

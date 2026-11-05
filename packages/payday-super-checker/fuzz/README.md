@@ -1,10 +1,11 @@
 The `csv_readers` target writes fabricated bytes to a CSV file and reads it
 with the payroll and super-export importers, with vendor detection, and with
-the canonical row parser under the default column mapping. A malformed export
+the canonical row parser under the default column mapping. It also reads the
+bytes as a USI extract and as `usi-check` input. A malformed export
 must come back as a refusal, which the command line reports as
 `error: <message>`; a panic fails the run. The seed corpus holds the
-component's examples, its former importer fixtures truncated to 4 KiB, and an
-empty file.
+component's examples, its former importer fixtures truncated to 4 KiB, a
+fabricated USI extract and an empty file.
 
 On Linux, from `packages/payday-super-checker`, with a nightly toolchain and
 `cargo-fuzz` installed, run:
