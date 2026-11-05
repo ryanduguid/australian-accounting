@@ -442,7 +442,7 @@ fn a_cent_of_disagreement_is_a_numeric_difference_not_a_match() {
     let case = case("D7A-2-short-repayment");
     let overrides = [
         ("statutory_myr", Json::str("19450.95")),
-        ("shortfall", Json::str("6874.90")),
+        ("shortfall", Json::str("4450.95")),
     ];
     stub.respond(&provider_body(&case, &overrides), 200);
     let comparison =

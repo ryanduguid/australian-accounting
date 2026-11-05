@@ -5,6 +5,8 @@
 //! service: one request a case, a pause between requests, and a stop at the
 //! first answer that is not `COMPUTED`. Nothing here retries, and nothing
 //! calls it except `examples/live_trials.rs`, which a person runs by hand.
+use std::fs::File;
+use std::io::Write;
 use std::path::Path;
 use std::time::Duration;
 
@@ -17,14 +19,18 @@ use crate::contract;
 use crate::dial::{self, Net};
 use crate::pyjson::{self, Json, Layout};
 use crate::pyops::{R, json_str, pts};
+use crate::pyvalue::points_lossy;
 
 /// The gap between requests. The service runs at its operator's expense.
 const PAUSE: Duration = Duration::from_secs(3);
 
-/// The record of one pass. `stopped` names the case the pass stopped at.
+/// The record of one pass. `stopped` names the case the pass stopped at and
+/// `error` what ended it early.
+#[derive(Default)]
 pub struct Pass {
     pub records: Vec<Json>,
     pub stopped: Option<String>,
+    pub error: Option<String>,
 }
 
 fn sent(comparisons: Vec<(&str, Comparison)>, outcome: &Outcome, body: Json) -> Json {
@@ -60,12 +66,9 @@ fn sent(comparisons: Vec<(&str, Comparison)>, outcome: &Outcome, body: Json) -> 
     ])
 }
 
-/// Run every case once, calling `pause` between requests.
-pub fn run(client: &mut Client<'_>, pause: &mut dyn FnMut() -> R<()>) -> R<Pass> {
-    let mut pass = Pass {
-        records: Vec::new(),
-        stopped: None,
-    };
+/// Run every case once, calling `pause` between requests. `pass` holds what
+/// was sent even if this returns an error.
+pub fn run(client: &mut Client<'_>, pause: &mut dyn FnMut() -> R<()>, pass: &mut Pass) -> R<()> {
     for case in div7a::load_cases(None)? {
         let unsent = div7a::evaluate(&case, None)?;
         if unsent.evaluation != Evaluation::NotRun {
@@ -83,7 +86,7 @@ pub fn run(client: &mut Client<'_>, pause: &mut dyn FnMut() -> R<()>) -> R<Pass>
             .push(sent(vec![("div7a", comparison)], &outcome, body));
         if !outcome.computed() {
             pass.stopped = Some(case.case_id);
-            return Ok(pass);
+            return Ok(());
         }
         pause()?;
     }
@@ -103,38 +106,56 @@ pub fn run(client: &mut Client<'_>, pause: &mut dyn FnMut() -> R<()>) -> R<Pass>
         pass.records.push(sent(comparisons, &outcome, body));
         if !outcome.computed() {
             pass.stopped = Some(case.benefit.case_id);
-            return Ok(pass);
+            return Ok(());
         }
         pause()?;
     }
-    Ok(pass)
+    Ok(())
 }
 
 /// The written record of a pass, with its money as exact digits.
 pub fn record(pass: Pass, base_url: &str, snapshot: Json) -> String {
     let stopped_at = pass.stopped.as_deref().map_or(Json::Null, Json::str);
+    let error = pass.error.as_deref().map_or(Json::Null, Json::str);
     let record = Json::obj([
         ("base_url", Json::str(base_url)),
         ("contract_snapshot", snapshot),
         ("synthetic_input", Json::Bool(true)),
         ("stopped_at", stopped_at),
+        ("error", error),
         ("records", Json::Array(pass.records)),
     ]);
     pyjson::dumps(&record, Layout::Indented) + "\n"
 }
 
-/// One pass over the real network with no retries, its record written to
-/// `out`. Returns the case the pass stopped at, or an error's text.
-pub fn run_to_file(base_url: &str, out: &Path) -> Result<Option<String>, String> {
-    let attempt = || -> R<(Pass, Json)> {
-        let config = AdapterConfig {
-            enabled: true,
-            base_url: Some(base_url.to_owned()),
-            max_attempts: BigInt::from(1),
-            ..AdapterConfig::default()
-        }
-        .checked()?;
+/// The real path's settings: enabled for this pass, with no retries.
+pub fn pass_config(base_url: &str) -> AdapterConfig {
+    AdapterConfig {
+        enabled: true,
+        base_url: Some(base_url.to_owned()),
+        max_attempts: BigInt::from(1),
+        ..AdapterConfig::default()
+    }
+}
+
+/// One pass over the real network, its record in `out`, which must not yet
+/// exist: a pass that cannot keep its record never starts, and an error part
+/// way through keeps what came before it. Returns the case the pass stopped
+/// at, or an error's text.
+pub fn run_to_file(
+    config: AdapterConfig,
+    out: &Path,
+    pause: &mut dyn FnMut() -> R<()>,
+) -> Result<Option<String>, String> {
+    let shown = |error: std::io::Error| format!("{}: {error}", out.display());
+    let mut file = File::create_new(out).map_err(shown)?;
+    let base_url = config.base_url.clone().unwrap_or_default();
+    let mut pass = Pass::default();
+    let mut snapshot = Json::Null;
+    let result = (|| {
+        let config = config.checked()?;
         let contract = contract::load("lodgeit-calculators", None)?;
+        snapshot = contract.snapshot_id.clone();
         let mut net = Net;
         let mut sleep = dial::sleep;
         let mut client = Client {
@@ -143,23 +164,46 @@ pub fn run_to_file(base_url: &str, out: &Path) -> Result<Option<String>, String>
             dial: &mut net,
             sleep: &mut sleep,
         };
-        let mut pause = || {
-            std::thread::sleep(PAUSE);
-            Ok(())
-        };
-        Ok((run(&mut client, &mut pause)?, contract.snapshot_id.clone()))
+        run(&mut client, pause, &mut pass)
+    })();
+    pass.error = result
+        .err()
+        .map(|error| format!("{}: {}", error.class, points_lossy(&error.text)));
+    let (stopped, error) = (pass.stopped.clone(), pass.error.clone());
+    file.write_all(record(pass, &base_url, snapshot).as_bytes())
+        .map_err(shown)?;
+    error.map_or(Ok(stopped), Err)
+}
+
+/// The example's command line. Without `--enable-network`, `--base-url` and
+/// `--out` it exits 2, having sent nothing and made no file.
+pub fn cli(args: &[String]) -> u8 {
+    let value = |flag: &str| {
+        args.iter()
+            .position(|arg| arg == flag)
+            .and_then(|at| args.get(at + 1))
     };
-    let (pass, snapshot) = attempt().map_err(|error| {
-        let text: String = error
-            .text
-            .iter()
-            .copied()
-            .filter_map(char::from_u32)
-            .collect();
-        format!("{}: {text}", error.class)
-    })?;
-    let stopped = pass.stopped.clone();
-    std::fs::write(out, record(pass, base_url, snapshot))
-        .map_err(|error| format!("{}: {error}", out.display()))?;
-    Ok(stopped)
+    let (Some(base_url), Some(out), true) = (
+        value("--base-url"),
+        value("--out"),
+        args.iter().any(|arg| arg == "--enable-network"),
+    ) else {
+        eprintln!("usage: live_trials --enable-network --base-url URL --out FILE");
+        return 2;
+    };
+    let mut pause = || {
+        std::thread::sleep(PAUSE);
+        Ok(())
+    };
+    match run_to_file(pass_config(base_url), Path::new(out), &mut pause) {
+        Ok(None) => 0,
+        Ok(Some(case)) => {
+            eprintln!("stopped at {case}; read {out}");
+            1
+        }
+        Err(message) => {
+            eprintln!("{message}");
+            1
+        }
+    }
 }

@@ -46,11 +46,14 @@ cargo run --locked --release -- verify --evidence out/div7a-live.json
 
 `out/` is not tracked. An evidence file from a live probe is a local record of
 what the service said on a day, not a fixture: committing one would turn a
-point-in-time observation into an expectation.
+point-in-time observation into an expectation. The one committed record,
+[`live-trials-2026-11-06.json`](live-trials-2026-11-06.json), is published
+evidence for the differential below, and no test or trial reads it.
 
 To run the Division 7A and FBT car cases once, with a record, use the example.
 It sends one request a case, waits 3 seconds between them, never retries and stops
-at the first answer that is not `COMPUTED`:
+at the first answer that is not `COMPUTED`. It refuses an `--out` that already
+exists, before any request, and an error part way through keeps what was sent:
 
 ```bash
 cargo run --locked --example live_trials -- --enable-network \
@@ -74,8 +77,8 @@ the case is what is wrong.
 
 ## What a pass on 6 November 2026 found
 
-[differential-2026-11-06.md](differential-2026-11-06.md) is the record: 12 requests,
-the cases, the outcomes and each difference traced to statute. It corrects the
+[differential-2026-11-06.md](differential-2026-11-06.md) is the record: the cases,
+the outcomes and each difference traced to statute. It corrects the
 Division 7A table below.
 
 ## What a probe on 18 September 2026 found

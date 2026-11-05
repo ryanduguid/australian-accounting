@@ -1,27 +1,27 @@
 # Division 7A and FBT car differential, 6 November 2026
 
 This repository's engines against the LodgeiT Labs calculator gateway, on
-fabricated inputs, with each case's figure also worked out by hand from the
-statute. The 11 cases compared agree to the cent. The 1 numeric difference is a
+fabricated inputs, with each case's figure also worked out separately from the
+statute. 12 cases were compared and 11 agreed to the cent. The 1 difference is a
 wrong term this repository's trial case supplies on purpose, and it traces to
 ITAA 1936 s 109E(6).
 
 | | |
 | --- | --- |
-| Run | 6 November 2026 AEDT; 2026-11-05 18:12:53 to 18:13:36 UTC |
+| Run | 6 November 2026 AEDT; 2026-11-05 18:12:53 to 18:13:32 UTC, the first and last `observed_at` in the record |
 | Gateway | `https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app` |
-| Gateway state | All 12 requests answered 200. No error, throttle, block or terms notice. 23 calculators listed; OpenAPI version `0.1.0a0` |
+| Gateway state | All 12 requests in the record answered 200. No error, throttle, block or terms notice. The listing read at 17:53:21 UTC showed 23 calculators, and the OpenAPI document read at 17:53:25 UTC was version `0.1.0a0`, both about 19 minutes before the pass |
 | Provider's stability wording | 'Not stable yet. Response shapes may change. Nothing here is versioned for production integration.' ([calculators page](https://lodgeit.org/calculators.html), read the same day) |
 | Local engines | `div7a-loan-review` and `australian-tax-calculators` at this repository's commit 2384216a, in the adapter's trials |
 | Inputs | Fabricated: [`fixtures/div7a-cases.json`](../fixtures/div7a-cases.json), [`fixtures/fbt-car-cases.json`](../fixtures/fbt-car-cases.json) |
-| Request rate | One a case, 3 seconds apart, no retries |
-| Full record | [`live-trials-2026-11-06.json`](live-trials-2026-11-06.json): every request and response |
+| Requests | 24 POSTs and 3 GETs in all: 2 passes, and GETs for the listing, the OpenAPI document and the drift check. One POST a case, 3 seconds apart, no retries |
+| Full record | [`live-trials-2026-11-06.json`](live-trials-2026-11-06.json): the second pass's POSTs, each with its response. It does not hold the first pass or the GETs |
 
-The pass ran twice. An earlier run at 18:07 UTC sent the same 12 requests, but a
-bug in this repository's record writer lost its record after the last request, so
+The pass ran twice. An earlier run at 18:07 UTC sent the same requests, but a bug
+in this repository's record writer lost its record after the last request, so
 nothing from it is used here. The bug is fixed and tested.
 
-A match says 2 implementations and a hand calculation agreed on a number. It
+A match says 2 implementations and a separate calculation agreed on a number. It
 does not say either implementation is right about the law, and it approves
 nothing. No practitioner has reviewed this record.
 
@@ -30,7 +30,7 @@ nothing. No practitioner has reviewed this record.
 Rates: 8.37% for 2025-26 (`fy2026`) and 8.77% for 2024-25 (`fy2025`), both sides.
 The term is the remaining term under s 109E(6).
 
-| Case | Base | Term | Worked by hand | This repository | LodgeiT | Outcome |
+| Case | Base | Term | Worked out separately | This repository | LodgeiT | Outcome |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | D7A-1, repayment met | 100,000.00 | 7 | 19,450.97 | 19,450.97 | 19,450.97 | MATCH |
 | D7A-2, short repayment | 100,000.00 | 7 | 19,450.97 | 19,450.97 | 19,450.97 | MATCH |
@@ -47,12 +47,12 @@ D7A-5 at 857.98.
 
 ## FBT car statutory formula
 
-`fy2026` is the FBT year ended 31 March 2026, 365 days. The hand figure is
+`fy2026` is the FBT year ended 31 March 2026, 365 days. The separate figure is
 FBTAA s 9(1). Grossed-up amounts and FBT payable were compared on each case and
 also agreed to the cent, at gross-up rates of 2.0802 and 1.8868 and an FBT rate
 of 47%.
 
-| Case | Base value and accessories | Days | Recipient's payment | Worked by hand | This repository | LodgeiT | Outcome |
+| Case | Base value and accessories | Days | Recipient's payment | Worked out separately | This repository | LodgeiT | Outcome |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | FBT-1, full year | 40,000.00 | 365 | 0.00 | 8,000.00 | 8,000.00 | 8,000.00 | MATCH |
 | FBT-2, part year | 32,000.00 | 274 | 0.00 | 4,804.38 | 4,804.38 | 4,804.38 | MATCH |
@@ -65,7 +65,7 @@ of 47%.
 **D7A-4.** A 7-year loan made in 2022-23, worked out for 2025-26. Section 109E(6)
 makes the remaining term the longest term, 7, less the 2 years between the end of
 2022-23 and the end of 2024-25: 5. LodgeiT used 5 and returned 18,967.77, which is
-the hand figure. The case supplies 3 and expects a figure at the 2024-25 rate, both
+the separate figure. The case supplies 3 and expects a figure at the 2024-25 rate, both
 wrong on purpose, to test that a term difference is reported as a convention
 difference and not as agreement. This repository's engine takes the remaining term
 from its operator, so it used the supplied 3 at the 2025-26 rate, for 29,297.01.

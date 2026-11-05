@@ -3,9 +3,11 @@
 
 //! The manual pass over the trial cases, against a loopback stub: one
 //! request a case, a pause between requests, and a stop at the first answer
-//! that is not `COMPUTED`.
+//! that is not `COMPUTED`. Nothing here leaves the loopback interface.
+use std::fs;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -14,6 +16,7 @@ use lodgeit_calculator_adapter::config::AdapterConfig;
 use lodgeit_calculator_adapter::contract;
 use lodgeit_calculator_adapter::dial::{self, Net};
 use lodgeit_calculator_adapter::pyjson::{self, Json, Layout};
+use lodgeit_calculator_adapter::pyops::Exc;
 use lodgeit_calculator_adapter::trials::{Evaluation, fbt, live};
 use num_bigint::BigInt;
 
@@ -124,12 +127,33 @@ fn pass(stub: &Stub) -> (live::Pass, usize) {
         sleep: &mut sleep,
     };
     let mut pauses = 0;
-    let result = live::run(&mut client, &mut || {
+    let mut result = live::Pass::default();
+    let mut pause = || {
         pauses += 1;
         Ok(())
-    })
-    .expect("a pass");
+    };
+    live::run(&mut client, &mut pause, &mut result).expect("a pass");
     (result, pauses)
+}
+
+/// A path for a record, with nothing at it.
+fn record_path(name: &str) -> PathBuf {
+    let dir = std::env::temp_dir().join(format!("lodgeit-live-{}-{name}", std::process::id()));
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(&dir).expect("a temporary directory");
+    dir.join("record.json")
+}
+
+/// The real path's settings, except that they may reach the stub.
+fn to_stub(stub: &Stub) -> AdapterConfig {
+    AdapterConfig {
+        allow_loopback: true,
+        ..live::pass_config(&stub.base_url)
+    }
+}
+
+fn written(path: &PathBuf) -> Json {
+    pyjson::loads_standard(&fs::read_to_string(path).expect("a record")).expect("JSON")
 }
 
 #[test]
@@ -176,6 +200,80 @@ fn a_refusal_stops_the_pass_too() {
     let (result, _) = pass(&stub);
     assert_eq!(result.stopped.as_deref(), Some("D7A-1-met-first-real-year"));
     assert_eq!(*stub.requests.lock().unwrap(), 1);
+}
+
+#[test]
+fn without_enable_network_nothing_is_sent_and_no_file_is_made() {
+    let stub = stub(200, &answer());
+    let out = record_path("no-flag");
+    let path = out.display().to_string();
+    let args = |flags: &[&str]| -> Vec<String> {
+        let tail = ["--base-url", &stub.base_url, "--out", &path];
+        flags.iter().chain(&tail).map(ToString::to_string).collect()
+    };
+    assert_eq!(live::cli(&args(&[])), 2);
+    assert!(!out.exists());
+    // The flag is the difference: with it the pass starts, and the real
+    // settings refuse the loopback stub before any request.
+    assert_eq!(live::cli(&args(&["--enable-network"])), 1);
+    assert!(out.exists());
+    assert_eq!(*stub.requests.lock().unwrap(), 0);
+}
+
+#[test]
+fn the_real_path_makes_one_attempt_where_the_default_settings_would_retry() {
+    assert!(AdapterConfig::default().max_attempts > BigInt::from(1));
+    let stub = stub(503, &Json::obj([("error", Json::str("unavailable"))]));
+    let out = record_path("one-attempt");
+    let stopped = live::run_to_file(to_stub(&stub), &out, &mut || Ok(()));
+    assert_eq!(
+        stopped.expect("a pass").as_deref(),
+        Some("D7A-1-met-first-real-year")
+    );
+    assert_eq!(*stub.requests.lock().unwrap(), 1);
+    let Some(Json::Array(records)) = written(&out).get("records").cloned() else {
+        panic!("a list of records")
+    };
+    assert_eq!(records.len(), 1);
+}
+
+#[test]
+fn an_error_part_way_through_keeps_what_was_sent() {
+    let stub = stub(200, &answer());
+    let out = record_path("error");
+    let mut pause = || {
+        Err(Exc {
+            class: "OSError",
+            text: "stub failure".chars().map(u32::from).collect(),
+            notes: Vec::new(),
+        })
+    };
+    let result = live::run_to_file(to_stub(&stub), &out, &mut pause);
+    assert_eq!(result, Err("OSError: stub failure".to_string()));
+    assert_eq!(*stub.requests.lock().unwrap(), 1);
+    let record = written(&out);
+    let Some(Json::Array(records)) = record.get("records").cloned() else {
+        panic!("a list of records")
+    };
+    assert_eq!(records.len(), 1);
+    assert_eq!(
+        record.get("error").cloned(),
+        Some(Json::str("OSError: stub failure"))
+    );
+}
+
+#[test]
+fn a_pass_that_could_not_keep_its_record_never_starts() {
+    let stub = stub(200, &answer());
+    let taken = record_path("taken");
+    fs::write(&taken, "an earlier record").expect("a file");
+    let missing = record_path("missing").with_file_name("no-such-folder/record.json");
+    for out in [&taken, &missing] {
+        let result = live::run_to_file(to_stub(&stub), out, &mut || Ok(()));
+        assert!(result.is_err(), "{}", out.display());
+    }
+    assert_eq!(*stub.requests.lock().unwrap(), 0);
+    assert_eq!(fs::read_to_string(&taken).unwrap(), "an earlier record");
 }
 
 #[test]
