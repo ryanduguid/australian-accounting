@@ -67,6 +67,7 @@ updates:
       - /packages/div7a-loan-review/wasm
       - /packages/div7a-loan-review/fuzz
       - /packages/ato-benchmark-compare
+      - /packages/ato-benchmark-compare/fuzz
       - /packages/payday-super-checker
       - /packages/payday-super-checker/wasm
       - /packages/payday-super-checker/fuzz
