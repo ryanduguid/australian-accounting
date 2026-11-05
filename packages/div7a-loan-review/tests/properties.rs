@@ -220,6 +220,27 @@ fn regression_points_hold() {
     );
 }
 
+/// The 2 minimum yearly repayments worked on the ATO's 'Division 7A loans' page,
+/// read on 5 November 2026. The ATO rounds each to the closest dollar, so the
+/// engine's cents are held to that. Their rates, for income years 2015 and 2016,
+/// are older than the engine's rate table, so the formula takes them directly.
+#[test]
+fn the_ato_worked_repayments_hold() {
+    let dollars = |principal: &str, rate: &str, term: &str| {
+        let result = api::evaluate(
+            "minimum-yearly-repayment-amount",
+            &json!({"principal": principal, "rate": rate, "remaining_term": term}),
+        )
+        .unwrap();
+        let cents: i64 = result.as_str().unwrap().replace('.', "").parse().unwrap();
+        (cents + 50) / 100
+    };
+    // 55,000 x 0.0595 / (1 - 1.0595^-7) = 3,272.50 / 0.332742794 = 9,834.92.
+    assert_eq!(dollars("55000.00", "0.0595", "7"), 9_835);
+    // 50,430 x 0.0545 / (1 - 1.0545^-6) = 2,748.435 / 0.272688431 = 10,079.03.
+    assert_eq!(dollars("50430.00", "0.0545", "6"), 10_079);
+}
+
 // Metamorphic relations: how the answer must move when one fact moves. The cases
 // use 2024-25, whose benchmark rate is 8.77%.
 
