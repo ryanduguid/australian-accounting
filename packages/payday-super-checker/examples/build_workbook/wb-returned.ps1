@@ -27,13 +27,16 @@ try {
         'defined_benefit', 'returned_by_fund'
     $dates = 'payment_date', 'remitted_date', 'fund_received_date', 'next_standard_payday'
     $amounts = 'sg_amount', 'remitted_amount', 'matched_amount'
-    $tableRows = $reg.ListObjects.Item('tblLines').ListRows.Count
-    if ($rows.Count -gt $tableRows) { throw "only $tableRows rows" }
-    for ($i = 0; $i -lt $tableRows; $i++) {
+    $table = $reg.ListObjects.Item('tblLines')
+    if ($rows.Count -gt $table.ListRows.Count) { throw "only $($table.ListRows.Count) rows" }
+    # An empty table row reads as BLOCKED, so the table must hold the fixture's rows and no others.
+    while ($table.ListRows.Count -gt $rows.Count) { $table.ListRows.Item($table.ListRows.Count).Delete() | Out-Null }
+    if ($table.ListRows.Count -ne $rows.Count) { throw "table holds $($table.ListRows.Count) rows, not $($rows.Count)" }
+    for ($i = 0; $i -lt $rows.Count; $i++) {
         $r = $i + 2
         foreach ($name in $inputs) {
             $cell = $reg.Cells.Item($r, $headers[$name])
-            $value = if ($i -lt $rows.Count) { $rows[$i].$name } else { '' }
+            $value = $rows[$i].$name
             if ($value -eq '' -or $null -eq $value) { $cell.ClearContents() | Out-Null }
             elseif ($dates -contains $name) { $cell.Value2 = [double](& $serial $value) }
             elseif ($amounts -contains $name) { $cell.Value2 = [double]$value }
