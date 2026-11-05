@@ -79,7 +79,7 @@ impl Case {
 }
 
 /// `Decimal(value)` for a str, an int or a float.
-fn decimal(value: &Json) -> R<Decimal> {
+pub(super) fn decimal(value: &Json) -> R<Decimal> {
     match value {
         Json::Int(i) => Ok(Decimal::from_bigint(i)),
         Json::Bool(b) => Ok(Decimal::from_int(i64::from(*b))),
@@ -95,14 +95,14 @@ fn decimal(value: &Json) -> R<Decimal> {
     }
 }
 
-fn text(value: &Json) -> R<String> {
+pub(super) fn text(value: &Json) -> R<String> {
     value
         .as_str()
         .map(str::to_owned)
         .ok_or_else(|| Exc::msg("TypeError", "a fixture field is not a str"))
 }
 
-fn int(value: &Json) -> R<i64> {
+pub(super) fn int(value: &Json) -> R<i64> {
     match value {
         Json::Int(i) => i
             .try_into()
@@ -573,7 +573,7 @@ mod tests {
         assert_eq!(comparison.evaluation, Evaluation::Match);
         let statutory = pts("statutory_myr");
         let local = super::super::get(&comparison.local, &statutory).unwrap();
-        assert!(local.equals(&dec("21874.92")).unwrap());
+        assert!(local.equals(&dec("19450.97")).unwrap());
         // The compliance label is recorded and never mapped.
         assert!(
             comparison
@@ -584,8 +584,8 @@ mod tests {
 
         let short = case("D7A-2-short-repayment");
         let cent = [
-            ("statutory_myr", Json::str("21874.90")),
-            ("shortfall", Json::str("6874.90")),
+            ("statutory_myr", Json::str("19450.95")),
+            ("shortfall", Json::str("4450.95")),
         ];
         let comparison = compared(&short, &answered(&short, &cent));
         assert_eq!(comparison.evaluation, Evaluation::NumericDifference);

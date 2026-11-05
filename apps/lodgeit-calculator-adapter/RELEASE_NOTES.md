@@ -21,5 +21,9 @@ First cut. Not released, not published, not tagged.
 - Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
   Apache-2.0 as the future licence). Released versions keep their licence.
 
-Nothing here has been verified against the live service beyond the contract
-reading recorded in `contracts/` on 18 September 2026.
+- A manual pass over the Division 7A and FBT car cases, recorded in
+  `docs/differential-2026-11-06.md`. The Division 7A cases are corrected to
+  s 109E(6): their remaining terms were one year short.
+
+The live service was last read on 6 November 2026. The contract snapshot in
+`contracts/` stays the reading of 18 September 2026.

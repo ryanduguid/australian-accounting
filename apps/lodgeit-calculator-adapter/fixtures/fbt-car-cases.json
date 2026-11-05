@@ -1,0 +1,73 @@
+{
+  "schema": "lodgeit-fbt-car-trial-cases/1",
+  "synthetic": true,
+  "note": "Fabricated cars. Every expected taxable value was worked out from FBTAA s 9(1) by hand, independently of both engines, and is written out per case.",
+  "formula": "Taxable value = (base value x 0.20 x days the benefit was provided) / days in the FBT year - recipient's payment, FBTAA s 9(1), with the base value under s 9(2)(a). The provider's fy2026 is the FBT year ended 31 March 2026, which has 365 days.",
+  "cases": [
+    {
+      "case_id": "FBT-1-full-year",
+      "period_uri": "urn:sbrm:period:fbt:fy2026",
+      "base_value": "40000.00",
+      "days_available": 365,
+      "accessories": "0.00",
+      "employee_contribution": "0.00",
+      "fbt_type": "Type 2",
+      "expected": {
+        "taxable_value": "8000.00"
+      },
+      "derivation": "40000.00 x 0.20 x 365 / 365 = 8000.00. The car read on 18 September 2026."
+    },
+    {
+      "case_id": "FBT-2-part-year",
+      "period_uri": "urn:sbrm:period:fbt:fy2026",
+      "base_value": "32000.00",
+      "days_available": 274,
+      "accessories": "0.00",
+      "employee_contribution": "0.00",
+      "fbt_type": "Type 1",
+      "expected": {
+        "taxable_value": "4804.38"
+      },
+      "derivation": "32000.00 x 0.20 x 274 / 365 = 4804.3835... rounded half up to 4804.38."
+    },
+    {
+      "case_id": "FBT-3-accessories-and-contribution",
+      "period_uri": "urn:sbrm:period:fbt:fy2026",
+      "base_value": "55000.10",
+      "days_available": 200,
+      "accessories": "2500.50",
+      "employee_contribution": "1000.00",
+      "fbt_type": "Type 2",
+      "expected": {
+        "taxable_value": "5301.44"
+      },
+      "derivation": "(55000.10 + 2500.50) x 0.20 x 200 / 365 = 6301.4356... rounded half up to 6301.44, less the 1000.00 recipient's payment under s 9(2)(e) = 5301.44."
+    },
+    {
+      "case_id": "FBT-4-contribution-above-value",
+      "period_uri": "urn:sbrm:period:fbt:fy2026",
+      "base_value": "10000.00",
+      "days_available": 73,
+      "accessories": "0.00",
+      "employee_contribution": "900.00",
+      "fbt_type": "Type 2",
+      "expected": {
+        "taxable_value": "0.00"
+      },
+      "derivation": "10000.00 x 0.20 x 73 / 365 = 400.00, less a recipient's payment of 900.00, stops at nil. The 500.00 excess reduces nothing else."
+    },
+    {
+      "case_id": "FBT-5-large-type-1",
+      "period_uri": "urn:sbrm:period:fbt:fy2026",
+      "base_value": "72345.67",
+      "days_available": 365,
+      "accessories": "1250.25",
+      "employee_contribution": "0.00",
+      "fbt_type": "Type 1",
+      "expected": {
+        "taxable_value": "14719.18"
+      },
+      "derivation": "(72345.67 + 1250.25) x 0.20 x 365 / 365 = 14719.184 rounded half up to 14719.18."
+    }
+  ]
+}

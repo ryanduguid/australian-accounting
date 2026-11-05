@@ -12,17 +12,19 @@
 //! and 16, which appear in `local` and are not compared.
 use australian_tax_calculators::engine::{self, Arg};
 
-use super::{Comparison, Evaluation, Money, dict, get, put, shown};
+use super::div7a::{decimal, int, text};
+use super::{Comparison, Evaluation, Money, compare_values, dict, get, put, shown};
 use crate::client::{Client, Outcome, Status};
 use crate::decimal::{Decimal, Signal};
 use crate::errors::CONTRACT;
 use crate::p;
-use crate::pyjson::Json;
-use crate::pyops::{Exc, R, S, decimal_signal, pts};
+use crate::pyjson::{self, Json};
+use crate::pyops::{Exc, R, S, decimal_signal, getitem, iterate, pts};
 
 pub const CALC_URI: &str = "urn:sbrm:calculator:fbt:car-statutory-formula";
 pub const PERIOD_URI: &str = "urn:sbrm:period:fbt:fy2026";
 const CLASSIFICATION_REQUIRED: &str = "lodgeitadapter.trials.fbt.ClassificationRequired";
+const CASES: &str = include_str!("../../fixtures/fbt-car-cases.json");
 
 /// The provider's FBT year against the local worksheet's `year_ended`: the
 /// provider's fy2026 is the FBT year ending 31 March 2026.
@@ -42,6 +44,43 @@ pub struct CarBenefit {
     /// "Type 1", "Type 2" or "unknown".
     pub fbt_type: String,
     pub period_uri: String,
+}
+
+/// A fabricated benefit with its taxable value worked out from s 9(1).
+#[derive(Clone, Debug)]
+pub struct Case {
+    pub benefit: CarBenefit,
+    pub expected: Money,
+}
+
+/// The packaged case file.
+pub fn load_cases() -> R<Vec<Case>> {
+    let payload = pyjson::loads_standard(CASES).expect("the packaged FBT cases are JSON");
+    iterate(getitem(&payload, "cases")?)?
+        .iter()
+        .map(|raw| {
+            let field = |name: &str| getitem(raw, name);
+            let mut expected = Money::new();
+            let taxable_value = getitem(field("expected")?, "taxable_value")?;
+            put(
+                &mut expected,
+                &pts("taxable_value"),
+                decimal(taxable_value)?,
+            );
+            Ok(Case {
+                benefit: CarBenefit {
+                    case_id: text(field("case_id")?)?,
+                    base_value: decimal(field("base_value")?)?,
+                    days_available: int(field("days_available")?)?,
+                    accessories: decimal(field("accessories")?)?,
+                    employee_contribution: decimal(field("employee_contribution")?)?,
+                    fbt_type: text(field("fbt_type")?)?,
+                    period_uri: text(field("period_uri")?)?,
+                },
+                expected,
+            })
+        })
+        .collect()
 }
 
 impl CarBenefit {
@@ -125,29 +164,34 @@ pub fn prepare_aggregate_input(
     }
 }
 
-/// `run_local_aggregate(arguments, year_ended)`: the local aggregate
-/// worksheet on established taxable values.
-pub fn run_local_aggregate(arguments: &(Decimal, Decimal), year_ended: i64) -> R<Money> {
-    let engine_decimal = |value: &Decimal| {
-        Arg::Decimal(
-            australian_tax_calculators::decimal::Decimal::parse(&value.to_sci_string())
-                .expect("an adapter Decimal reads back"),
-        )
-    };
-    let result = engine::fbt(
-        &engine_decimal(&arguments.0),
-        &engine_decimal(&arguments.1),
-        &Arg::Int(year_ended),
-        &Arg::Bool(true),
+fn engine_decimal(value: &Decimal) -> Arg {
+    Arg::Decimal(
+        australian_tax_calculators::decimal::Decimal::parse(&value.to_sci_string())
+            .expect("an adapter Decimal reads back"),
     )
-    .map_err(|error| match error {
+}
+
+fn worksheet_error(error: engine::Error) -> Exc {
+    match error {
         engine::Error::Value { message, .. } => Exc::msg("ValueError", &message),
         engine::Error::Decimal(signal) => decimal_signal(match signal.name() {
             "DivisionByZero" => Signal::DivisionByZero,
             "Overflow" => Signal::Overflow,
             _ => Signal::InvalidOperation,
         }),
-    })?;
+    }
+}
+
+/// `run_local_aggregate(arguments, year_ended)`: the local aggregate
+/// worksheet on established taxable values.
+pub fn run_local_aggregate(arguments: &(Decimal, Decimal), year_ended: i64) -> R<Money> {
+    let result = engine::fbt(
+        &engine_decimal(&arguments.0),
+        &engine_decimal(&arguments.1),
+        &Arg::Int(year_ended),
+        &Arg::Bool(true),
+    )
+    .map_err(worksheet_error)?;
     let mut amounts = Money::new();
     for (name, value) in result["amounts"]
         .as_object()
@@ -161,6 +205,65 @@ pub fn run_local_aggregate(arguments: &(Decimal, Decimal), year_ended: i64) -> R
         );
     }
     Ok(amounts)
+}
+
+/// The local s 9 worksheet's taxable value on the facts the provider was sent,
+/// so the formula itself is compared, not only the gross-up after it.
+pub fn run_local_statutory(benefit: &CarBenefit) -> R<Money> {
+    let Some((_, year_ended)) = PERIOD_MAP
+        .iter()
+        .find(|(uri, _)| *uri == benefit.period_uri)
+    else {
+        return Err(Exc::msg(
+            "KeyError",
+            &crate::py::repr_str(&benefit.period_uri),
+        ));
+    };
+    let result = engine::fbt_car_statutory(
+        &engine_decimal(&benefit.base_value),
+        &engine_decimal(&benefit.accessories),
+        &Arg::Bool(false),
+        &Arg::Int(benefit.days_available),
+        &engine_decimal(&benefit.employee_contribution),
+        &Arg::Bool(false),
+        &Arg::Int(*year_ended),
+        &Arg::Bool(true),
+    )
+    .map_err(worksheet_error)?;
+    let text = result["amounts"]["taxable_value"]
+        .as_str()
+        .expect("an amount is a str");
+    let mut taxable = Money::new();
+    put(
+        &mut taxable,
+        &pts("taxable_value"),
+        Decimal::parse_exact(text).expect("a worksheet amount reads"),
+    );
+    Ok(taxable)
+}
+
+/// The provider's taxable value against the case's s 9(1) figure and the
+/// local s 9 worksheet.
+pub fn compare_formula(case: &Case, outcome: &Outcome) -> R<Comparison> {
+    let local = run_local_statutory(&case.benefit)?;
+    let name = pts("taxable_value");
+    let mut upstream = Money::new();
+    if let Some(value) = get(&dict(&outcome.values), &name) {
+        put(&mut upstream, &name, value.clone());
+    }
+    let (evaluation, differences, reasons) =
+        compare_values(&case.expected, &local, &upstream, &super::cent())?;
+    Ok(Comparison {
+        case_id: pts(&case.benefit.case_id),
+        evaluation,
+        expected: case.expected.clone(),
+        local,
+        upstream,
+        differences,
+        reasons,
+        upstream_status: Some(pts(outcome.status.as_str())),
+        ..Comparison::default()
+    })
 }
 
 /// `evaluate(benefit, client)`: fetch one category taxable value and carry

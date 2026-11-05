@@ -252,7 +252,10 @@ you configure. As read on 5 November 2026, these projects cover nearby ground:
   [listing](https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app/v1/calculators) showed 23 calculators,
   with Division 7A periods `fy2025` and `fy2026` and FBT period `fy2026`. Its page also lists a
   Coal LSL calculator that external contributor Ryan Duguid built and hosts, and this repository has
-  an optional adapter for the gateway. Read 5 November 2026.
+  an optional adapter for the gateway. Read 5 November 2026. A
+  [differential](apps/lodgeit-calculator-adapter/docs/differential-2026-11-06.md) of 6 November 2026
+  ran 12 fabricated Division 7A and FBT car formula cases against the gateway and records each
+  outcome, with differences traced to statute.
 
 This repository offers none of those hosted services. It is not a registered tax or BAS agent,
 does not lodge and holds no third-party certification such as ISO 27001.

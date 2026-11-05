@@ -48,6 +48,15 @@ cargo run --locked --release -- verify --evidence out/div7a-live.json
 what the service said on a day, not a fixture: committing one would turn a
 point-in-time observation into an expectation.
 
+To run the Division 7A and FBT car cases once, with a record, use the example.
+It sends one request a case, waits 3 seconds between them, never retries and stops
+at the first answer that is not `COMPUTED`:
+
+```bash
+cargo run --locked --example live_trials -- --enable-network \
+  --base-url "$BASE" --out out/live-trials.json
+```
+
 ## Reading the result
 
 An `UPSTREAM_UNAVAILABLE` means the service did not answer. It is not a
@@ -62,6 +71,12 @@ where their engine was right.
 Before reporting anything, check the case's own derivation. The expected figure
 in a case file was derived from the statute; if it disagrees with both engines,
 the case is what is wrong.
+
+## What a pass on 6 November 2026 found
+
+[differential-2026-11-06.md](differential-2026-11-06.md) is the record: 12 requests,
+the cases, the outcomes and each difference traced to statute. It corrects the
+Division 7A table below.
 
 ## What a probe on 18 September 2026 found
 
@@ -84,6 +99,13 @@ reason, which is what it is for. The snapshot now records both keys under
 `amalgamated_base` echoed back, `period_uri`, and `rate_uris_consumed` beside
 the manifest. The manifest's entries use `content_hash`, not the `sha256` key
 the publishing standard's example shows.
+
+**Correction, 6 November 2026.** The matches in the next paragraph and table were
+at a remaining term one year short of s 109E(6), on both sides. The case file took
+1 off the term in the year after the loan year, and the provider did the same until
+its correction of 28 September 2026. They agreed with each other and not with the
+statute. The record of 6 November 2026 has the corrected figures. The paragraph
+stands as what was seen on the day.
 
 **The arithmetic agreed.** Seven fabricated loans ran through the trial. Six
 matched to the cent across three independent derivations: the figure worked out

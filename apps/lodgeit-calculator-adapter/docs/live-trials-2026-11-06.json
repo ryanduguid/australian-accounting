@@ -1,0 +1,1404 @@
+{
+  "base_url": "https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app",
+  "contract_snapshot": "lodgeit-calculators-2026-09-18",
+  "records": [
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "D7A-1-met-first-real-year",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "19450.97",
+              "total_repayments": "22000.00"
+            },
+            "local": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "19450.97",
+              "total_repayments": "22000.00"
+            },
+            "local_verdict": "MYR_MET",
+            "reasons": [
+              "The s 109N gate was supplied to this trial as an asserted fact, so the repayment arithmetic could be compared. It was not derived from the provider and it is not a conclusion about the loan.",
+              "the provider returned is_complying; it is its own label for its own arithmetic and is not carried into any local verdict"
+            ],
+            "upstream": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "19450.97",
+              "total_repayments": "22000.00"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "div7a"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:12:53+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, benchmark rate at 4 dp, ties away from zero. Rules 5\u20137 do not apply.",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "amalgamated_base": "100000.00",
+        "benchmark_rate": "0.0837",
+        "deemed_dividend": "0.00",
+        "interest_accrued": "294.80",
+        "is_complying": true,
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "e34ad275d625b8a1bfa4fa719d2da2d060a14760d464926758a251665b5e1c12",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "period_uri": "urn:sbrm:period:div7a:fy2026",
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+        ],
+        "remaining_term_years": "7",
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "shortfall": "0.00",
+        "statutory_myr": "19450.97",
+        "total_repayments": "22000.00"
+      },
+      "request": {
+        "amalgamated_base": "100000.00",
+        "income_year_start_date": "2025-07-01",
+        "is_first_real_myr_year": true,
+        "loan_origination_date": "2024-09-01",
+        "loan_term_years": 7,
+        "repayments": [
+          {
+            "amount": "11000.00",
+            "date": "2025-12-15"
+          },
+          {
+            "amount": "11000.00",
+            "date": "2026-06-15"
+          }
+        ]
+      },
+      "sent": true
+    },
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "D7A-2-short-repayment",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "4450.97",
+              "statutory_myr": "19450.97",
+              "total_repayments": "15000.00"
+            },
+            "local": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "4450.97",
+              "statutory_myr": "19450.97",
+              "total_repayments": "15000.00"
+            },
+            "local_verdict": "MYR_SHORT",
+            "reasons": [
+              "The s 109N gate was supplied to this trial as an asserted fact, so the repayment arithmetic could be compared. It was not derived from the provider and it is not a conclusion about the loan.",
+              "the provider returned is_complying; it is its own label for its own arithmetic and is not carried into any local verdict"
+            ],
+            "upstream": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "4450.97",
+              "statutory_myr": "19450.97",
+              "total_repayments": "15000.00"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "div7a"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:12:57+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, benchmark rate at 4 dp, ties away from zero. Rules 5\u20137 do not apply.",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "amalgamated_base": "100000.00",
+        "benchmark_rate": "0.0837",
+        "deemed_dividend": "4450.97",
+        "interest_accrued": "658.53",
+        "is_complying": false,
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "e34ad275d625b8a1bfa4fa719d2da2d060a14760d464926758a251665b5e1c12",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "period_uri": "urn:sbrm:period:div7a:fy2026",
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+        ],
+        "remaining_term_years": "7",
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "shortfall": "4450.97",
+        "statutory_myr": "19450.97",
+        "total_repayments": "15000.00"
+      },
+      "request": {
+        "amalgamated_base": "100000.00",
+        "income_year_start_date": "2025-07-01",
+        "is_first_real_myr_year": true,
+        "loan_origination_date": "2024-09-01",
+        "loan_term_years": 7,
+        "repayments": [
+          {
+            "amount": "15000.00",
+            "date": "2026-05-30"
+          }
+        ]
+      },
+      "sent": true
+    },
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "D7A-3-excess-repayment",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "19450.97",
+              "total_repayments": "40000.00"
+            },
+            "local": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "19450.97",
+              "total_repayments": "40000.00"
+            },
+            "local_verdict": "MYR_MET",
+            "reasons": [
+              "The s 109N gate was supplied to this trial as an asserted fact, so the repayment arithmetic could be compared. It was not derived from the provider and it is not a conclusion about the loan.",
+              "the provider returned is_complying; it is its own label for its own arithmetic and is not carried into any local verdict"
+            ],
+            "upstream": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "19450.97",
+              "total_repayments": "40000.00"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "div7a"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:13:00+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, benchmark rate at 4 dp, ties away from zero. Rules 5\u20137 do not apply.",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "amalgamated_base": "100000.00",
+        "benchmark_rate": "0.0837",
+        "deemed_dividend": "0.00",
+        "interest_accrued": "4636.00",
+        "is_complying": true,
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "e34ad275d625b8a1bfa4fa719d2da2d060a14760d464926758a251665b5e1c12",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "period_uri": "urn:sbrm:period:div7a:fy2026",
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+        ],
+        "remaining_term_years": "7",
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "shortfall": "0.00",
+        "statutory_myr": "19450.97",
+        "total_repayments": "40000.00"
+      },
+      "request": {
+        "amalgamated_base": "100000.00",
+        "income_year_start_date": "2025-07-01",
+        "is_first_real_myr_year": true,
+        "loan_origination_date": "2024-09-01",
+        "loan_term_years": 7,
+        "repayments": [
+          {
+            "amount": "40000.00",
+            "date": "2025-08-01"
+          }
+        ]
+      },
+      "sent": true
+    },
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "D7A-4-later-year-not-first",
+            "differences": {
+              "statutory_myr": "10329.24"
+            },
+            "evaluation": "SCOPE_MISMATCH",
+            "expected": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "29507.73",
+              "total_repayments": "29507.73"
+            },
+            "local": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "29297.01",
+              "total_repayments": "29507.73"
+            },
+            "local_verdict": "MYR_MET",
+            "reasons": [
+              "The s 109N gate was supplied to this trial as an asserted fact, so the repayment arithmetic could be compared. It was not derived from the provider and it is not a conclusion about the loan.",
+              "statutory_myr: local 29297.01 differs from the independently derived 29507.73",
+              "statutory_myr: local 29297.01 against provider 18967.77",
+              "remaining term: the provider used 5, the case supplied 3. A term difference is a convention difference, not an arithmetic one.",
+              "the provider returned is_complying; it is its own label for its own arithmetic and is not carried into any local verdict"
+            ],
+            "upstream": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "18967.77",
+              "total_repayments": "29507.73"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "div7a"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:13:04+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, benchmark rate at 4 dp, ties away from zero. Rules 5\u20137 do not apply.",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "amalgamated_base": "75000.00",
+        "benchmark_rate": "0.0837",
+        "deemed_dividend": "0.00",
+        "interest_accrued": "118.28",
+        "is_complying": true,
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "e34ad275d625b8a1bfa4fa719d2da2d060a14760d464926758a251665b5e1c12",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "period_uri": "urn:sbrm:period:div7a:fy2026",
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+        ],
+        "remaining_term_years": "5",
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "shortfall": "0.00",
+        "statutory_myr": "18967.77",
+        "total_repayments": "29507.73"
+      },
+      "request": {
+        "amalgamated_base": "75000.00",
+        "income_year_start_date": "2025-07-01",
+        "is_first_real_myr_year": false,
+        "loan_origination_date": "2022-10-01",
+        "loan_term_years": 7,
+        "repayments": [
+          {
+            "amount": "29507.73",
+            "date": "2026-06-20"
+          }
+        ]
+      },
+      "sent": true
+    },
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "D7A-5-earlier-year-rate",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {
+              "benchmark_rate": "0.0877",
+              "shortfall": "857.98",
+              "statutory_myr": "9857.98",
+              "total_repayments": "9000.00"
+            },
+            "local": {
+              "benchmark_rate": "0.0877",
+              "shortfall": "857.98",
+              "statutory_myr": "9857.98",
+              "total_repayments": "9000.00"
+            },
+            "local_verdict": "MYR_SHORT",
+            "reasons": [
+              "The s 109N gate was supplied to this trial as an asserted fact, so the repayment arithmetic could be compared. It was not derived from the provider and it is not a conclusion about the loan.",
+              "the provider returned is_complying; it is its own label for its own arithmetic and is not carried into any local verdict"
+            ],
+            "upstream": {
+              "benchmark_rate": "0.0877",
+              "shortfall": "857.98",
+              "statutory_myr": "9857.98",
+              "total_repayments": "9000.00"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "div7a"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:13:07+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, benchmark rate at 4 dp, ties away from zero. Rules 5\u20137 do not apply.",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "amalgamated_base": "50000.00",
+        "benchmark_rate": "0.0877",
+        "deemed_dividend": "857.98",
+        "interest_accrued": "957.79",
+        "is_complying": false,
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "eb203be2431484215fd5b8ce310fa1645a5638e7dcda2491712faeea6fff4045",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:div7a:fy2025:benchmark-interest"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "period_uri": "urn:sbrm:period:div7a:fy2025",
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:div7a:fy2025:benchmark-interest"
+        ],
+        "remaining_term_years": "7",
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "shortfall": "857.98",
+        "statutory_myr": "9857.98",
+        "total_repayments": "9000.00"
+      },
+      "request": {
+        "amalgamated_base": "50000.00",
+        "income_year_start_date": "2024-07-01",
+        "is_first_real_myr_year": true,
+        "loan_origination_date": "2023-11-01",
+        "loan_term_years": 7,
+        "repayments": [
+          {
+            "amount": "9000.00",
+            "date": "2025-04-01"
+          }
+        ]
+      },
+      "sent": true
+    },
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "D7A-6-term-of-one-year",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "108370.00",
+              "total_repayments": "108370.00"
+            },
+            "local": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "108370.00",
+              "total_repayments": "108370.00"
+            },
+            "local_verdict": "MYR_MET",
+            "reasons": [
+              "The s 109N gate was supplied to this trial as an asserted fact, so the repayment arithmetic could be compared. It was not derived from the provider and it is not a conclusion about the loan.",
+              "the provider returned is_complying; it is its own label for its own arithmetic and is not carried into any local verdict"
+            ],
+            "upstream": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "108370.00",
+              "total_repayments": "108370.00"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "div7a"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:13:11+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, benchmark rate at 4 dp, ties away from zero. Rules 5\u20137 do not apply.",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "amalgamated_base": "100000.00",
+        "benchmark_rate": "0.0837",
+        "deemed_dividend": "0.00",
+        "interest_accrued": "0.00",
+        "is_complying": true,
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "e34ad275d625b8a1bfa4fa719d2da2d060a14760d464926758a251665b5e1c12",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "period_uri": "urn:sbrm:period:div7a:fy2026",
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+        ],
+        "remaining_term_years": "1",
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "shortfall": "0.00",
+        "statutory_myr": "108370.00",
+        "total_repayments": "108370.00"
+      },
+      "request": {
+        "amalgamated_base": "100000.00",
+        "income_year_start_date": "2025-07-01",
+        "is_first_real_myr_year": true,
+        "loan_origination_date": "2024-08-01",
+        "loan_term_years": 1,
+        "repayments": [
+          {
+            "amount": "108370.00",
+            "date": "2026-06-30"
+          }
+        ]
+      },
+      "sent": true
+    },
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "D7A-7-secured-25-year-term",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "24164.27",
+              "total_repayments": "24164.27"
+            },
+            "local": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "24164.27",
+              "total_repayments": "24164.27"
+            },
+            "local_verdict": "MYR_MET",
+            "reasons": [
+              "The s 109N gate was supplied to this trial as an asserted fact, so the repayment arithmetic could be compared. It was not derived from the provider and it is not a conclusion about the loan.",
+              "the provider returned is_complying; it is its own label for its own arithmetic and is not carried into any local verdict"
+            ],
+            "upstream": {
+              "benchmark_rate": "0.0837",
+              "shortfall": "0.00",
+              "statutory_myr": "24164.27",
+              "total_repayments": "24164.27"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "div7a"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:13:14+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, benchmark rate at 4 dp, ties away from zero. Rules 5\u20137 do not apply.",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "amalgamated_base": "250000.00",
+        "benchmark_rate": "0.0837",
+        "deemed_dividend": "0.00",
+        "interest_accrued": "1629.56",
+        "is_complying": true,
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "e34ad275d625b8a1bfa4fa719d2da2d060a14760d464926758a251665b5e1c12",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "period_uri": "urn:sbrm:period:div7a:fy2026",
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:div7a:fy2026:benchmark-interest"
+        ],
+        "remaining_term_years": "25",
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "shortfall": "0.00",
+        "statutory_myr": "24164.27",
+        "total_repayments": "24164.27"
+      },
+      "request": {
+        "amalgamated_base": "250000.00",
+        "income_year_start_date": "2025-07-01",
+        "is_first_real_myr_year": true,
+        "loan_origination_date": "2024-07-15",
+        "loan_term_years": 25,
+        "repayments": [
+          {
+            "amount": "24164.27",
+            "date": "2026-06-01"
+          }
+        ]
+      },
+      "sent": true
+    },
+    {
+      "comparison": {
+        "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+        "case_id": "D7A-8-nil-remaining-term-refused",
+        "differences": {},
+        "evaluation": "LOCAL_REFUSED",
+        "expected": {},
+        "local": {
+          "benchmark_rate": "0.0837",
+          "total_repayments": "0"
+        },
+        "local_verdict": "REFUSED",
+        "reasons": [
+          "The s 109N gate was supplied to this trial as an asserted fact, so the repayment arithmetic could be compared. It was not derived from the provider and it is not a conclusion about the loan.",
+          "remaining_term_years is 0, which leaves a remaining term of 0 under s 109E(6). The formula divides by a term that is nil at that point, and the loan should have been repaid in full by the end of the previous year of income. No MYR figure is emitted."
+        ],
+        "upstream": {},
+        "upstream_status": null
+      },
+      "sent": false
+    },
+    {
+      "comparison": {
+        "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+        "case_id": "D7A-9-unsupported-period",
+        "differences": {},
+        "evaluation": "UNSUPPORTED_PERIOD",
+        "expected": {},
+        "local": {},
+        "local_verdict": "UNMAPPED_PERIOD",
+        "reasons": [
+          "urn:sbrm:period:div7a:fy2024 has no entry in PERIOD_MAP, so no local income year is established for it. A mapping is a reviewed fact, not a guess from the label."
+        ],
+        "upstream": {},
+        "upstream_status": null
+      },
+      "sent": false
+    },
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "FBT-1-full-year",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {
+              "taxable_value": "8000.00"
+            },
+            "local": {
+              "taxable_value": "8000.00"
+            },
+            "local_verdict": null,
+            "reasons": [],
+            "upstream": {
+              "taxable_value": "8000.00"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "fbt-car-formula"
+        },
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "FBT-1-full-year",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {},
+            "local": {
+              "fbt_estimate": "7094.37",
+              "return_item_14a": "0.00",
+              "return_item_14b": "15094.00",
+              "return_item_15": "15094.00",
+              "return_item_16": "7094.18",
+              "type_one_grossed_up": "0.00",
+              "type_two_grossed_up": "15094.40"
+            },
+            "local_verdict": null,
+            "reasons": [
+              "note: response carries unrecorded fields: rounding_policy, taxable_value_before_statutory, verification_required",
+              "only taxable_value crossed into the aggregate worksheet, as a Type 2 amount"
+            ],
+            "upstream": {
+              "fbt_payable": "7094.37",
+              "grossed_up_taxable_value": "15094.40",
+              "taxable_value": "8000.00"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "fbt-gross-up"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy, taxable_value_before_statutory, verification_required"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:13:18+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, rates and gross-up factors at 4 dp, ties away from zero. Rules 5\u20137 do not apply (single-figure calculator).",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "counts_towards_fbt_cap": true,
+        "employee_contribution": "0.00",
+        "exempt_under": null,
+        "exemption_provenance": null,
+        "fbt_payable": "7094.37",
+        "fbt_type": "Type 2",
+        "gross_taxable_value": "8000.00",
+        "gross_up_factor": "1.8868",
+        "grossed_up_taxable_value": "15094.40",
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "31b00d8bd461bca03827679c34d99421c64555f72ca3548b2fc024b99443e826",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:statutory-fraction"
+            },
+            {
+              "content_hash": "1786274a6a9dd3cc9a9edb2092f071bc2dd042c369a98603867036c74b4cfc87",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:days-in-year"
+            },
+            {
+              "content_hash": "18a4f0ebca4a1a6dd92c8e768b9bd3286e864fde3a5d909afb2eb3198a252236",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:gross-up-type-2"
+            },
+            {
+              "content_hash": "099d493830393cd1d4e7dcb09831b4b03c8f5fa3ba8e4612efa7f6dc49826c74",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:fbt-rate"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:fbt:fy2026:statutory-fraction",
+          "urn:sbrm:rate:fbt:fy2026:days-in-year",
+          "urn:sbrm:rate:fbt:fy2026:gross-up-type-2",
+          "urn:sbrm:rate:fbt:fy2026:fbt-rate"
+        ],
+        "reductions": "0.00",
+        "rfba_notional_grossed_up_t2": null,
+        "rfba_notional_taxable_value": null,
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "s8a_inputs": "none",
+        "taxable_value": "8000.00",
+        "taxable_value_before_statutory": "8000.00",
+        "trace": {},
+        "verification_required": null
+      },
+      "request": {
+        "accessories": "0.00",
+        "baseValue": "40000.00",
+        "daysAvailable": 365,
+        "employeeContribution": "0.00",
+        "fbtType": "Type 2"
+      },
+      "sent": true
+    },
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "FBT-2-part-year",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {
+              "taxable_value": "4804.38"
+            },
+            "local": {
+              "taxable_value": "4804.38"
+            },
+            "local_verdict": null,
+            "reasons": [],
+            "upstream": {
+              "taxable_value": "4804.38"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "fbt-car-formula"
+        },
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "FBT-2-part-year",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {},
+            "local": {
+              "fbt_estimate": "4697.21",
+              "return_item_14a": "9994.00",
+              "return_item_14b": "0.00",
+              "return_item_15": "9994.00",
+              "return_item_16": "4697.18",
+              "type_one_grossed_up": "9994.07",
+              "type_two_grossed_up": "0.00"
+            },
+            "local_verdict": null,
+            "reasons": [
+              "note: response carries unrecorded fields: rounding_policy, taxable_value_before_statutory, verification_required",
+              "only taxable_value crossed into the aggregate worksheet, as a Type 1 amount"
+            ],
+            "upstream": {
+              "fbt_payable": "4697.21",
+              "grossed_up_taxable_value": "9994.07",
+              "taxable_value": "4804.38"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "fbt-gross-up"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy, taxable_value_before_statutory, verification_required"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:13:22+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, rates and gross-up factors at 4 dp, ties away from zero. Rules 5\u20137 do not apply (single-figure calculator).",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "counts_towards_fbt_cap": true,
+        "employee_contribution": "0.00",
+        "exempt_under": null,
+        "exemption_provenance": null,
+        "fbt_payable": "4697.21",
+        "fbt_type": "Type 1",
+        "gross_taxable_value": "6400.00",
+        "gross_up_factor": "2.0802",
+        "grossed_up_taxable_value": "9994.07",
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "31b00d8bd461bca03827679c34d99421c64555f72ca3548b2fc024b99443e826",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:statutory-fraction"
+            },
+            {
+              "content_hash": "1786274a6a9dd3cc9a9edb2092f071bc2dd042c369a98603867036c74b4cfc87",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:days-in-year"
+            },
+            {
+              "content_hash": "ba2c147c437e3c7aed69e748b6d64ed580e5eed896e72ec3865e215e22878d68",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:gross-up-type-1"
+            },
+            {
+              "content_hash": "099d493830393cd1d4e7dcb09831b4b03c8f5fa3ba8e4612efa7f6dc49826c74",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:fbt-rate"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:fbt:fy2026:statutory-fraction",
+          "urn:sbrm:rate:fbt:fy2026:days-in-year",
+          "urn:sbrm:rate:fbt:fy2026:gross-up-type-1",
+          "urn:sbrm:rate:fbt:fy2026:fbt-rate"
+        ],
+        "reductions": "0.00",
+        "rfba_notional_grossed_up_t2": null,
+        "rfba_notional_taxable_value": null,
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "s8a_inputs": "none",
+        "taxable_value": "4804.38",
+        "taxable_value_before_statutory": "4804.38",
+        "trace": {},
+        "verification_required": null
+      },
+      "request": {
+        "accessories": "0.00",
+        "baseValue": "32000.00",
+        "daysAvailable": 274,
+        "employeeContribution": "0.00",
+        "fbtType": "Type 1"
+      },
+      "sent": true
+    },
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "FBT-3-accessories-and-contribution",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {
+              "taxable_value": "5301.44"
+            },
+            "local": {
+              "taxable_value": "5301.44"
+            },
+            "local_verdict": null,
+            "reasons": [],
+            "upstream": {
+              "taxable_value": "5301.44"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "fbt-car-formula"
+        },
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "FBT-3-accessories-and-contribution",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {},
+            "local": {
+              "fbt_estimate": "4701.30",
+              "return_item_14a": "0.00",
+              "return_item_14b": "10003.00",
+              "return_item_15": "10003.00",
+              "return_item_16": "4701.41",
+              "type_one_grossed_up": "0.00",
+              "type_two_grossed_up": "10002.76"
+            },
+            "local_verdict": null,
+            "reasons": [
+              "note: response carries unrecorded fields: rounding_policy, taxable_value_before_statutory, verification_required",
+              "only taxable_value crossed into the aggregate worksheet, as a Type 2 amount"
+            ],
+            "upstream": {
+              "fbt_payable": "4701.30",
+              "grossed_up_taxable_value": "10002.76",
+              "taxable_value": "5301.44"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "fbt-gross-up"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy, taxable_value_before_statutory, verification_required"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:13:25+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, rates and gross-up factors at 4 dp, ties away from zero. Rules 5\u20137 do not apply (single-figure calculator).",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "counts_towards_fbt_cap": true,
+        "employee_contribution": "1000.00",
+        "exempt_under": null,
+        "exemption_provenance": null,
+        "fbt_payable": "4701.30",
+        "fbt_type": "Type 2",
+        "gross_taxable_value": "11500.12",
+        "gross_up_factor": "1.8868",
+        "grossed_up_taxable_value": "10002.76",
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "31b00d8bd461bca03827679c34d99421c64555f72ca3548b2fc024b99443e826",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:statutory-fraction"
+            },
+            {
+              "content_hash": "1786274a6a9dd3cc9a9edb2092f071bc2dd042c369a98603867036c74b4cfc87",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:days-in-year"
+            },
+            {
+              "content_hash": "18a4f0ebca4a1a6dd92c8e768b9bd3286e864fde3a5d909afb2eb3198a252236",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:gross-up-type-2"
+            },
+            {
+              "content_hash": "099d493830393cd1d4e7dcb09831b4b03c8f5fa3ba8e4612efa7f6dc49826c74",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:fbt-rate"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:fbt:fy2026:statutory-fraction",
+          "urn:sbrm:rate:fbt:fy2026:days-in-year",
+          "urn:sbrm:rate:fbt:fy2026:gross-up-type-2",
+          "urn:sbrm:rate:fbt:fy2026:fbt-rate"
+        ],
+        "reductions": "0.00",
+        "rfba_notional_grossed_up_t2": null,
+        "rfba_notional_taxable_value": null,
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "s8a_inputs": "none",
+        "taxable_value": "5301.44",
+        "taxable_value_before_statutory": "6301.44",
+        "trace": {},
+        "verification_required": null
+      },
+      "request": {
+        "accessories": "2500.50",
+        "baseValue": "55000.10",
+        "daysAvailable": 200,
+        "employeeContribution": "1000.00",
+        "fbtType": "Type 2"
+      },
+      "sent": true
+    },
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "FBT-4-contribution-above-value",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {
+              "taxable_value": "0.00"
+            },
+            "local": {
+              "taxable_value": "0.00"
+            },
+            "local_verdict": null,
+            "reasons": [],
+            "upstream": {
+              "taxable_value": "0.00"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "fbt-car-formula"
+        },
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "FBT-4-contribution-above-value",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {},
+            "local": {
+              "fbt_estimate": "0.00",
+              "return_item_14a": "0.00",
+              "return_item_14b": "0.00",
+              "return_item_15": "0.00",
+              "return_item_16": "0.00",
+              "type_one_grossed_up": "0.00",
+              "type_two_grossed_up": "0.00"
+            },
+            "local_verdict": null,
+            "reasons": [
+              "note: response carries unrecorded fields: rounding_policy, taxable_value_before_statutory, verification_required",
+              "only taxable_value crossed into the aggregate worksheet, as a Type 2 amount"
+            ],
+            "upstream": {
+              "fbt_payable": "0.00",
+              "grossed_up_taxable_value": "0.00",
+              "taxable_value": "0.00"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "fbt-gross-up"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy, taxable_value_before_statutory, verification_required"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:13:29+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, rates and gross-up factors at 4 dp, ties away from zero. Rules 5\u20137 do not apply (single-figure calculator).",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "counts_towards_fbt_cap": true,
+        "employee_contribution": "400.00",
+        "exempt_under": null,
+        "exemption_provenance": null,
+        "fbt_payable": "0.00",
+        "fbt_type": "Type 2",
+        "gross_taxable_value": "2000.00",
+        "gross_up_factor": "1.8868",
+        "grossed_up_taxable_value": "0.00",
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "31b00d8bd461bca03827679c34d99421c64555f72ca3548b2fc024b99443e826",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:statutory-fraction"
+            },
+            {
+              "content_hash": "1786274a6a9dd3cc9a9edb2092f071bc2dd042c369a98603867036c74b4cfc87",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:days-in-year"
+            },
+            {
+              "content_hash": "18a4f0ebca4a1a6dd92c8e768b9bd3286e864fde3a5d909afb2eb3198a252236",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:gross-up-type-2"
+            },
+            {
+              "content_hash": "099d493830393cd1d4e7dcb09831b4b03c8f5fa3ba8e4612efa7f6dc49826c74",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:fbt-rate"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:fbt:fy2026:statutory-fraction",
+          "urn:sbrm:rate:fbt:fy2026:days-in-year",
+          "urn:sbrm:rate:fbt:fy2026:gross-up-type-2",
+          "urn:sbrm:rate:fbt:fy2026:fbt-rate"
+        ],
+        "reductions": "0.00",
+        "rfba_notional_grossed_up_t2": null,
+        "rfba_notional_taxable_value": null,
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "s8a_inputs": "none",
+        "taxable_value": "0.00",
+        "taxable_value_before_statutory": "400.00",
+        "trace": {},
+        "verification_required": null
+      },
+      "request": {
+        "accessories": "0.00",
+        "baseValue": "10000.00",
+        "daysAvailable": 73,
+        "employeeContribution": "900.00",
+        "fbtType": "Type 2"
+      },
+      "sent": true
+    },
+    {
+      "comparisons": [
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "FBT-5-large-type-1",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {
+              "taxable_value": "14719.18"
+            },
+            "local": {
+              "taxable_value": "14719.18"
+            },
+            "local_verdict": null,
+            "reasons": [],
+            "upstream": {
+              "taxable_value": "14719.18"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "fbt-car-formula"
+        },
+        {
+          "result": {
+            "boundary": "An evaluation outcome compares arithmetic. It is not a readiness, close or ledger-review state and it approves nothing.",
+            "case_id": "FBT-5-large-type-1",
+            "differences": {},
+            "evaluation": "MATCH",
+            "expected": {},
+            "local": {
+              "fbt_estimate": "14390.85",
+              "return_item_14a": "30619.00",
+              "return_item_14b": "0.00",
+              "return_item_15": "30619.00",
+              "return_item_16": "14390.93",
+              "type_one_grossed_up": "30618.84",
+              "type_two_grossed_up": "0.00"
+            },
+            "local_verdict": null,
+            "reasons": [
+              "note: response carries unrecorded fields: rounding_policy, taxable_value_before_statutory, verification_required",
+              "only taxable_value crossed into the aggregate worksheet, as a Type 1 amount"
+            ],
+            "upstream": {
+              "fbt_payable": "14390.85",
+              "grossed_up_taxable_value": "30618.84",
+              "taxable_value": "14719.18"
+            },
+            "upstream_status": "COMPUTED"
+          },
+          "trial": "fbt-gross-up"
+        }
+      ],
+      "findings": [
+        "note: response carries unrecorded fields: rounding_policy, taxable_value_before_statutory, verification_required"
+      ],
+      "http_status": 200,
+      "observed_at": "2026-11-05T18:13:32+00:00",
+      "provider_result": {
+        "advisory": {
+          "disclaimer": "This is calculator output, not advice. Consult a registered tax agent before relying on these numbers for any return, position, or advice provided to a third party. Calculator outputs reflect the period-scoped statutory rate-tables cited in the manifest block; statute may have changed since the rate-table was last anchored. Statutory framing: TAA 1953 s284-15 (false or misleading statements; penalty bands escalate with culpability) and the Tax Agent Services Act 2009 (registered-agent requirement). Rounding: lodgeit-rounding-1.0 rule 3 \u2014 money at 2 dp, rates and gross-up factors at 4 dp, ties away from zero. Rules 5\u20137 do not apply (single-figure calculator).",
+          "jurisdiction": "AU",
+          "registered_agent_required": true,
+          "statutory_basis": [
+            {
+              "section": "s284-15",
+              "statute": "TAA 1953"
+            },
+            {
+              "section": "s50-5",
+              "statute": "Tax Agent Services Act 2009"
+            }
+          ]
+        },
+        "counts_towards_fbt_cap": true,
+        "employee_contribution": "0.00",
+        "exempt_under": null,
+        "exemption_provenance": null,
+        "fbt_payable": "14390.85",
+        "fbt_type": "Type 1",
+        "gross_taxable_value": "14719.18",
+        "gross_up_factor": "2.0802",
+        "grossed_up_taxable_value": "30618.84",
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "content_hash": "31b00d8bd461bca03827679c34d99421c64555f72ca3548b2fc024b99443e826",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:statutory-fraction"
+            },
+            {
+              "content_hash": "1786274a6a9dd3cc9a9edb2092f071bc2dd042c369a98603867036c74b4cfc87",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:days-in-year"
+            },
+            {
+              "content_hash": "ba2c147c437e3c7aed69e748b6d64ed580e5eed896e72ec3865e215e22878d68",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:gross-up-type-1"
+            },
+            {
+              "content_hash": "099d493830393cd1d4e7dcb09831b4b03c8f5fa3ba8e4612efa7f6dc49826c74",
+              "hash_algorithm": "sha256",
+              "uri": "urn:sbrm:rate:fbt:fy2026:fbt-rate"
+            }
+          ],
+          "rounding_policy": "lodgeit-rounding-1.0"
+        },
+        "rate_uris_consumed": [
+          "urn:sbrm:rate:fbt:fy2026:statutory-fraction",
+          "urn:sbrm:rate:fbt:fy2026:days-in-year",
+          "urn:sbrm:rate:fbt:fy2026:gross-up-type-1",
+          "urn:sbrm:rate:fbt:fy2026:fbt-rate"
+        ],
+        "reductions": "0.00",
+        "rfba_notional_grossed_up_t2": null,
+        "rfba_notional_taxable_value": null,
+        "rounding_policy": "lodgeit-rounding-1.0",
+        "s8a_inputs": "none",
+        "taxable_value": "14719.18",
+        "taxable_value_before_statutory": "14719.18",
+        "trace": {},
+        "verification_required": null
+      },
+      "request": {
+        "accessories": "1250.25",
+        "baseValue": "72345.67",
+        "daysAvailable": 365,
+        "employeeContribution": "0.00",
+        "fbtType": "Type 1"
+      },
+      "sent": true
+    }
+  ],
+  "stopped_at": null,
+  "synthetic_input": true
+}
