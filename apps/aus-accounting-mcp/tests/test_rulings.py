@@ -483,6 +483,7 @@ MODAL_PARAGRAPHS = {
     "3": "A partner can claim a car.",
     "4": "A trustee cannot claim a scar.",
     "5": "A trustee can not claim a loan.",
+    "6": "A partner may lodge a statement but need not pay.",
 }
 
 
@@ -501,6 +502,7 @@ def _modal_run(root: Path) -> None:
     ("cannot claim", {"4", "5"}),
     ("can not claim", {"4", "5"}),
     ("car", {"3"}),
+    ("may lodge", {"6"}),
     ("may not lodge", set()),
     ("the car", set()),
 ])

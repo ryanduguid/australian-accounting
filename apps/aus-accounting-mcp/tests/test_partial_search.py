@@ -335,7 +335,15 @@ def test_a_short_question_still_names_the_opposite_row(root, tool):
 
     assert labels == ["60-1"]
     assert partial == ["60-2"]
+    assert result["partial_hits"][0]["matched_words"] == ["lodge"]
     assert result["partial_hits"][0]["missing_words"] == ["must"]
+
+
+@TOOLS
+def test_the_schema_says_an_opposite_form_counts_towards_the_two_words(tool):
+    described = SCHEMAS[tool]["properties"]["partial_hits"]["description"]
+    assert "opposite form counts towards the 2" in described
+    assert "matched_words can hold fewer than 2" in described
 
 
 @TOOLS

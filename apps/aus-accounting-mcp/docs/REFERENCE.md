@@ -701,7 +701,14 @@ query's words is no evidence about its provisions. A word with a digit, such as 
 or a section number, must be in the heading or text, so a row for another year is left
 out. These rank below every match and are never one: each is labelled `match: partial`
 with its `matched_words` and `missing_words`, and the `notice` says so. `has_more` and
-`next_offset` run on through them. `search_tax_rates` drops stop words and reports
+`next_offset` run on through them.
+
+A modal word's opposite form counts towards those 2 words but stays in `missing_words`,
+so `matched_words` can hold fewer than 2 words. It is also the one way a 2-word query gets
+partial hits: 'must lodge' offers a provision saying 'must not lodge', with 'lodge' in
+`matched_words` and 'must' in `missing_words`. 'home office' offers none.
+
+`search_tax_rates` drops stop words and reports
 partial hits the same way, reading the heading, topic and content; a row's `years` list
 does not count, so pass `year` to narrow by year.
 

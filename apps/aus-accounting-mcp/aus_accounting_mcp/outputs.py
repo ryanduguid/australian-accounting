@@ -594,7 +594,8 @@ class LegislationSection(ResultObject):
 
 PartialLabel = Annotated[
     Literal["partial"],
-    Field(description="Holds at least 2 of the query's words but not all: not a match."),
+    Field(description="Holds at least 2 of the query's words but not all, a modal word's "
+                      "opposite form counting towards the 2: not a match."),
 ]
 MatchedWords = Annotated[list[str], Field(description="The query words this row holds.")]
 MissingWords = Annotated[list[str], Field(description="The query words this row lacks.")]
@@ -622,7 +623,9 @@ class LegislationSearch(ResultObject):
         list[PartialLegislationHit],
         Field(description="Provisions whose heading and text hold at least 2 of the words "
                           "and every word with a digit, but not all the words, ranked below "
-                          "every match. Never present one as a match."),
+                          "every match. A modal word's opposite form counts towards the 2 but "
+                          "stays in missing_words, so matched_words can hold fewer than 2 "
+                          "words. Never present one as a match."),
     ]
     dropped_words: DroppedWords
     has_more: bool
@@ -802,7 +805,9 @@ class RateSearch(ResultObject):
         list[PartialRateHit],
         Field(description="Rows whose heading, topic and content hold at least 2 of the words "
                           "and every word with a digit, but not all the words, ranked below "
-                          "every match. Never present one as a match."),
+                          "every match. A modal word's opposite form counts towards the 2 but "
+                          "stays in missing_words, so matched_words can hold fewer than 2 "
+                          "words. Never present one as a match."),
     ]
     dropped_words: DroppedWords
     has_more: bool

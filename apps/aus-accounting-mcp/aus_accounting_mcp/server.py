@@ -127,8 +127,9 @@ classification of the facts the operator supplied, not a determination.
   A read that returns next_start is incomplete; continue with it as start before
   quoting the whole provision.
   Words like "what" and "the" are dropped from a corpus search. partial_hits hold
-  at least 2 of the words, in matched_words, and are never matches: they show shared
-  words, not an answer, so do not present one as an answer, and say what it lacks.
+  at least 2 of the words, a modal word's opposite form counting towards the 2 but
+  staying in missing_words, and are never matches: they show shared words, not an
+  answer, so do not present one as an answer, and say what it lacks.
   Keep every citation, caveat and attribution a result carries. Absence of a row is
   not absence of a rule, and no definition found is not proof an expression is
   undefined; never present an ordinary meaning as a statutory one. Retrieval never
@@ -1242,9 +1243,12 @@ def search_tax_legislation(
     matches hold every remaining word as a whole word, and a modal word in its stated
     form: 'must lodge' does not match 'must not lodge', and the reverse holds too. Room
     left on a page goes to partial_hits,
-    ranked below every match, whose heading and text hold at least 2 of 3 or more
-    words and every word with a digit, such as a year or a section number: each is
-    labelled partial with its matched_words and missing_words. A partial hit shows
+    ranked below every match, whose heading and text hold at least 2 of the words
+    and every word with a digit, such as a year or a section number: each is
+    labelled partial with its matched_words and missing_words. A modal word's opposite
+    form counts towards the 2 but stays in missing_words, and only that gives a 2-word
+    query partial hits: 'must lodge' offers a row saying 'must not lodge' with just
+    'lodge' matched. A partial hit shows
     shared words, not an answer, so never present one as a match.
     Superseded compilations are left out unless in_force_only is false; a
     provision whose currency the corpus did not record is kept either way.
@@ -1350,7 +1354,10 @@ def search_tax_rates(
     'must', 'may' and 'not' are kept. matches hold every remaining word as a whole
     word, and a modal word in its stated form. Room left on a page goes to
     partial_hits, ranked below every match, whose heading, topic and content hold at
-    least 2 of 3 or more words and every word with a digit, such as a year: they show
+    least 2 of the words and every word with a digit, such as a year. A modal word's
+    opposite form counts towards the 2 but stays in missing_words, and only that gives
+    a 2-word query partial hits: 'must lodge' offers a row saying 'must not lodge' with
+    just 'lodge' matched. They show
     shared words, not an answer, so never present one as a match.
     year narrows to rows stating that year; rows that state no year are then
     left out, so drop the filter to see a rate the provision does not date.

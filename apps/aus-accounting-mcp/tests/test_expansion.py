@@ -161,7 +161,7 @@ def test_library_search_ranks_by_where_the_words_sit(tmp_path, monkeypatch):
 @pytest.mark.parametrize(("query", "found"), [
     ("must lodge", {"must lodge a return"}),
     ("MUST NOT lodge", {"Must  not lodge a return"}),
-    ("may lodge", {"may lodge a return"}),
+    ("may lodge", {"may lodge a return but need not pay"}),
     ("may not lodge", set()),
     ("can claim", {"can claim a car"}),
     ("cannot claim", {"cannot claim a scar", "can not claim a loan"}),
@@ -173,7 +173,7 @@ def test_library_compares_whole_words_and_keeps_a_modal_with_its_not(
         query, found, tmp_path, monkeypatch):
     monkeypatch.setenv("AUS_ACCOUNTING_LIBRARY_ROOT", str(tmp_path))
     (tmp_path / "a.md").write_text(
-        "must lodge a return\nMust  not lodge a return\nmay lodge a return\n"
+        "must lodge a return\nMust  not lodge a return\nmay lodge a return but need not pay\n"
         "can claim a car\ncannot claim a scar\ncan not claim a loan\n", encoding="utf-8")
     result = call("search_accounting_library", query=query, limit=20)
     assert {match["text"].splitlines()[0] for match in result["matches"]} == found
