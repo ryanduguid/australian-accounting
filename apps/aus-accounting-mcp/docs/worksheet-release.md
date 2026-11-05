@@ -31,7 +31,8 @@ Run the existing engine smoke check, adjusted to the candidate version, and
 `scripts/check_installed_worksheets.py` with that environment's Python and `-I`.
 The latter requires installed packages, verifies all four first-party dependency
 pins, exercises every advertised worksheet and period through registered MCP
-tools, and checks returned engine versions and warnings. It must also pass
+tools, and checks returned engine versions and warnings. It also requires a figure from
+`get_reviewed_rate`, so a wheel without its rate records fails. It must also pass
 before a future facade publication; the historical BAS demonstration alone
 does not exercise the new kinds.
 

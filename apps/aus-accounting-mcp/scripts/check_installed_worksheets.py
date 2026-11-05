@@ -47,11 +47,18 @@ async def check() -> None:
             if data["engine_version"] != versions["australian-tax-calculators"]:
                 raise ValueError(f"{kind} reported another engine's version")
             calls += 1
+    # A wheel without rate_records refuses every lookup and returns no figure.
+    rate = (await server.mcp.call_tool(
+        "get_reviewed_rate", {"record_id": "concessional-cap-2026-27", "as_at": "2027-03-01"}
+    )).structured_content
+    if not rate or rate["status"] != "FOUND" or not rate["record"]["value"]:
+        raise ValueError(f"the wheel returned no reviewed rate figure: {rate}")
     print(json.dumps({
         "facade": importlib.metadata.version("aus-accounting-mcp"),
         "engines": versions,
         "worksheet_kinds": len(catalogue),
         "supported_period_calls": calls,
+        "reviewed_rate": rate["record"]["id"],
         "scope": "Installed wheels; declared exact pins; synthetic examples, not tax validation.",
     }, indent=2))
 

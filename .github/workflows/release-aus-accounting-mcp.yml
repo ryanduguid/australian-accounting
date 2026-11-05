@@ -67,7 +67,7 @@ jobs:
           pins/bin/aus-accounting-mcp-demo > demo.txt
           diff -u "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/docs/quick-proof.txt" demo.txt
 
-      - name: Exercise all worksheets from the installed PyPI pins
+      - name: Exercise all worksheets and a reviewed rate from the installed wheel
         shell: bash
         working-directory: ${{ runner.temp }}
         run: pins/bin/python -I "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/scripts/check_installed_worksheets.py"
