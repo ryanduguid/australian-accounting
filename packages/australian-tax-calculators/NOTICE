@@ -31,3 +31,18 @@ repository, which adapted them from The Exchequer Tally's port of
 accounting-review-pipeline/packages/elizabeth-anne-alexander (Apache-2.0),
 Copyright 2026 Ryan Duguid. Reference checkout revision at reuse:
 01d1e83352708c43029c0f229fc22aa929767b49.
+
+Cases in tests/data/lodgeit-verdict-cases.json are adapted from a reviewer
+verdict on LodgeiT's FBT car calculators:
+bounty-05-fbt-car-statutory-vs-operating, by Sami Charaf, FIPA + Tax Agent (TPB),
+dated 19 July 2026, published by LodgeiT at
+https://lodgeit.org/bounties/registry/bounty-05-fbt-car-statutory-vs-operating/sami-charaf.yml
+(SHA-256 a8fd916641f6fedecb49ae06b6e05e7297d2eb6fbe86c2e1b65a5366562b90ad).
+
+The verdict is licensed under Creative Commons Attribution 4.0 International,
+https://creativecommons.org/licenses/by/4.0/, the default stated in the bounty's terms; neither
+the verdict nor its registry entry names another licence. Changes: edge cases
+paraphrased, split or merged, with new fabricated figures and this repository's
+findings added. The verdict reviewed LodgeiT's calculator, not this code, and
+neither the reviewer nor LodgeiT endorses this work. The licence's disclaimer
+of warranties applies.

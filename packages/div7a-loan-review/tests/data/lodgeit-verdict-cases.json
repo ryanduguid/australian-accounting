@@ -1,0 +1,673 @@
+{
+  "schema": "lodgeit-verdict-cases/1",
+  "synthetic": true,
+  "verdict": {
+    "reviewer": "Bhunesh Patel",
+    "credential": "CPA",
+    "bounty": "bounty-01-div7a-minimum-yearly-repayment",
+    "outcome": "FIX_THEN_RE_REVIEW",
+    "date": "2026-07-13",
+    "url": "https://lodgeit.org/bounties/registry/bounty-01-div7a-minimum-yearly-repayment/bhunesh-patel.yml",
+    "sha256": "c223dbc59b53c98abc4cbba62e5afd26514e062ab86c97f56e5be26e0dbf42d7",
+    "licence": "Creative Commons Attribution 4.0 International, the default in 06-terms.md section 3; neither the verdict nor its registry entry names another licence",
+    "licence_source": "https://lodgeit.org/bounties/bounty-01-div7a-minimum-yearly-repayment/artefacts/06-terms.md",
+    "read_on": "2026-11-06",
+    "changes": "Edge cases paraphrased, some split or merged, with new fabricated figures and this repository's findings. No verdict text is reproduced at length."
+  },
+  "note": "Every loan here is fabricated. The verdict reviewed another calculator. An edge case is listed for what it asks of a Division 7A engine, with a case, a stated reason or both. Statutory text was read in ITAA 1936 compilation 192.",
+  "edge_cases": [
+    {
+      "id": "V1",
+      "severity": "CRITICAL",
+      "edge_case": "A repayment figure must not be produced where no written s 109N agreement was in place before the lodgment day.",
+      "provisions": "ITAA 1936 ss 109D(1), 109N(1), 109E(3)(b)",
+      "cases": [
+        {
+          "name": "no written agreement fails the gate",
+          "command": "complying-loan-gate",
+          "input": {
+            "facts": {
+              "written_agreement": false,
+              "terms_in_place_before_lodgment_day": true,
+              "maximum_term_years": "7",
+              "secured_by_registered_mortgage_over_real_property": false,
+              "interest_rate_for_years_after_year_loan_made": "0.0900",
+              "year_loan_made": "2023-24"
+            }
+          },
+          "expect": {
+            "verdict": "NOT_COMPLYING"
+          }
+        },
+        {
+          "name": "written after the lodgment day fails the gate",
+          "command": "complying-loan-gate",
+          "input": {
+            "facts": {
+              "written_agreement": true,
+              "terms_in_place_before_lodgment_day": false,
+              "maximum_term_years": "7",
+              "secured_by_registered_mortgage_over_real_property": false,
+              "interest_rate_for_years_after_year_loan_made": "0.0900",
+              "year_loan_made": "2023-24"
+            }
+          },
+          "expect": {
+            "verdict": "NOT_COMPLYING"
+          }
+        },
+        {
+          "name": "an agreement nobody has established is unknown, not a fail",
+          "command": "complying-loan-gate",
+          "input": {
+            "facts": {
+              "terms_in_place_before_lodgment_day": true,
+              "maximum_term_years": "7",
+              "secured_by_registered_mortgage_over_real_property": false,
+              "interest_rate_for_years_after_year_loan_made": "0.0900",
+              "year_loan_made": "2023-24"
+            }
+          },
+          "expect": {
+            "verdict": "UNKNOWN"
+          }
+        },
+        {
+          "name": "no repayment figure on a failed gate",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "written_agreement": false,
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2024-25",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": "80000.00",
+              "remaining_term_years": "7",
+              "payments_applied_during_the_year": "20000.00"
+            }
+          },
+          "expect": {
+            "verdict": "REFUSED",
+            "myr_required": null,
+            "shortfall": null
+          }
+        },
+        {
+          "name": "no repayment figure on an unknown gate",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2024-25",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": "80000.00",
+              "remaining_term_years": "7",
+              "payments_applied_during_the_year": "20000.00"
+            }
+          },
+          "expect": {
+            "verdict": "REFUSED",
+            "myr_required": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2",
+      "severity": "CRITICAL",
+      "edge_case": "The output must say which income year a repayment belongs to, and none is due for the year the loan was made.",
+      "provisions": "ITAA 1936 ss 109E(1)(a), 109P",
+      "cases": [
+        {
+          "name": "the result names its year",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "written_agreement": true,
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2024-25",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": "80000.00",
+              "remaining_term_years": "7",
+              "payments_applied_during_the_year": "15772.78"
+            }
+          },
+          "expect": {
+            "verdict": "MYR_MET",
+            "year_of_income": "2024-25"
+          }
+        },
+        {
+          "name": "the year the loan was made is refused",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "written_agreement": true,
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2023-24",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": "80000.00",
+              "remaining_term_years": "7",
+              "payments_applied_during_the_year": "0.00"
+            }
+          },
+          "expect": {
+            "verdict": "REFUSED",
+            "myr_required": null,
+            "reason_codes": [
+              "REFUSED_YEAR_IS_YEAR_OF_LOAN"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V3",
+      "severity": "WARNING",
+      "edge_case": "The remaining term must fall each year after the year following the loan.",
+      "provisions": "ITAA 1936 s 109E(6), remaining term. The verdict cites s 109E(7); in compilation 192 the definition is in s 109E(6) and s 109E(7) is the interest rule for working out what has been repaid",
+      "reason": "The engine takes the remaining term from its operator and applies the statutory rounding up; it does not derive it. The cases show the term falling from 7 to 5, and a part year rounding up.",
+      "cases": [
+        {
+          "name": "year 1 of 3: remaining term 7",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "written_agreement": true,
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2024-25",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": "80000.00",
+              "remaining_term_years": "7",
+              "payments_applied_during_the_year": "15772.78"
+            }
+          },
+          "expect": {
+            "myr_required": "15772.78",
+            "remaining_term_years_used": "7",
+            "benchmark_rate": "0.0877"
+          }
+        },
+        {
+          "name": "year 2 of 3: remaining term 6",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "written_agreement": true,
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2025-26",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": "71243.22",
+              "remaining_term_years": "6",
+              "payments_applied_during_the_year": "15584.40"
+            }
+          },
+          "expect": {
+            "myr_required": "15584.40",
+            "remaining_term_years_used": "6",
+            "benchmark_rate": "0.0837"
+          }
+        },
+        {
+          "name": "year 3 of 3: remaining term 5",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "written_agreement": true,
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2026-27",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": "61621.88",
+              "remaining_term_years": "5",
+              "payments_applied_during_the_year": "15748.09"
+            }
+          },
+          "expect": {
+            "myr_required": "15748.09",
+            "remaining_term_years_used": "5",
+            "benchmark_rate": "0.0877"
+          }
+        },
+        {
+          "name": "a part year rounds up",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "written_agreement": true,
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2025-26",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": "71243.22",
+              "remaining_term_years": "5.5",
+              "payments_applied_during_the_year": "15584.40"
+            }
+          },
+          "expect": {
+            "myr_required": "15584.40",
+            "remaining_term_years_used": "6"
+          }
+        }
+      ]
+    },
+    {
+      "id": "V4",
+      "severity": "WARNING",
+      "edge_case": "After the first repayment year the formula works on the year's opening balance, not the original amalgamated amount.",
+      "provisions": "ITAA 1936 s 109E(6), (7)",
+      "reason": "The input is named amalgamated_loan_unpaid_at_end_of_previous_year, so the two figures cannot share a name. V3 year 2 runs on an opening balance of 71243.22, not 80000.00."
+    },
+    {
+      "id": "V5",
+      "severity": "WARNING",
+      "edge_case": "A 25-year term needs a registered mortgage over real property for the whole loan and 110% cover when first made.",
+      "provisions": "ITAA 1936 s 109N(3)(a), (b)",
+      "cases": [
+        {
+          "name": "a registered mortgage at exactly 110% allows 25 years",
+          "command": "complying-loan-gate",
+          "input": {
+            "facts": {
+              "written_agreement": true,
+              "terms_in_place_before_lodgment_day": true,
+              "maximum_term_years": "25",
+              "secured_by_registered_mortgage_over_real_property": true,
+              "security_coverage_at_first_made": "1.10",
+              "interest_rate_for_years_after_year_loan_made": "0.0900",
+              "year_loan_made": "2023-24"
+            }
+          },
+          "expect": {
+            "verdict": "COMPLYING",
+            "maximum_term_years_allowed": "25"
+          }
+        },
+        {
+          "name": "109% cover falls back to 7 years",
+          "command": "complying-loan-gate",
+          "input": {
+            "facts": {
+              "written_agreement": true,
+              "terms_in_place_before_lodgment_day": true,
+              "maximum_term_years": "25",
+              "secured_by_registered_mortgage_over_real_property": true,
+              "security_coverage_at_first_made": "1.09",
+              "interest_rate_for_years_after_year_loan_made": "0.0900",
+              "year_loan_made": "2023-24"
+            }
+          },
+          "expect": {
+            "verdict": "NOT_COMPLYING",
+            "maximum_term_years_allowed": "7"
+          }
+        },
+        {
+          "name": "a chattel mortgage or guarantee is not this security",
+          "command": "complying-loan-gate",
+          "input": {
+            "facts": {
+              "written_agreement": true,
+              "terms_in_place_before_lodgment_day": true,
+              "maximum_term_years": "25",
+              "secured_by_registered_mortgage_over_real_property": false,
+              "interest_rate_for_years_after_year_loan_made": "0.0900",
+              "year_loan_made": "2023-24"
+            }
+          },
+          "expect": {
+            "verdict": "NOT_COMPLYING",
+            "maximum_term_years_allowed": "7"
+          }
+        },
+        {
+          "name": "security nobody has established is unknown",
+          "command": "complying-loan-gate",
+          "input": {
+            "facts": {
+              "written_agreement": true,
+              "terms_in_place_before_lodgment_day": true,
+              "maximum_term_years": "25",
+              "interest_rate_for_years_after_year_loan_made": "0.0900",
+              "year_loan_made": "2023-24"
+            }
+          },
+          "expect": {
+            "verdict": "UNKNOWN"
+          }
+        },
+        {
+          "name": "cover nobody has established is unknown",
+          "command": "complying-loan-gate",
+          "input": {
+            "facts": {
+              "written_agreement": true,
+              "terms_in_place_before_lodgment_day": true,
+              "maximum_term_years": "25",
+              "secured_by_registered_mortgage_over_real_property": true,
+              "interest_rate_for_years_after_year_loan_made": "0.0900",
+              "year_loan_made": "2023-24"
+            }
+          },
+          "expect": {
+            "verdict": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "id": "V6",
+      "severity": "NOTE",
+      "edge_case": "A benchmark rate must be pinned to its income year, not accepted as a bare number.",
+      "provisions": "ITAA 1936 s 109N(2)",
+      "cases": [
+        {
+          "name": "2023-24 reads 8.27%",
+          "command": "benchmark-rate",
+          "input": {
+            "year_of_income": "2023-24"
+          },
+          "expect": {
+            "verdict": "KNOWN",
+            "benchmark_rate": "0.0827"
+          }
+        },
+        {
+          "name": "2024-25 reads 8.77%",
+          "command": "benchmark-rate",
+          "input": {
+            "year_of_income": "2024-25"
+          },
+          "expect": {
+            "verdict": "KNOWN",
+            "benchmark_rate": "0.0877"
+          }
+        },
+        {
+          "name": "2025-26 reads 8.37%",
+          "command": "benchmark-rate",
+          "input": {
+            "year_of_income": "2025-26"
+          },
+          "expect": {
+            "verdict": "KNOWN",
+            "benchmark_rate": "0.0837"
+          }
+        },
+        {
+          "name": "a year outside the table gives no rate",
+          "command": "benchmark-rate",
+          "input": {
+            "year_of_income": "2027-28"
+          },
+          "expect": {
+            "verdict": "UNKNOWN",
+            "benchmark_rate": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "V7",
+      "severity": "NOTE",
+      "edge_case": "A shortfall that gives rise to a dividend does not reduce the next year's opening balance.",
+      "provisions": "ITAA 1936 s 109E(6); ATO ID 2013/36",
+      "reason": "The engine does not chain years; the operator supplies the balance. The case shows a year short by 5000.00 with the shortfall left in the balance.",
+      "cases": [
+        {
+          "name": "the next year works on a balance that keeps the shortfall",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "written_agreement": true,
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2025-26",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": "76243.22",
+              "remaining_term_years": "6",
+              "payments_applied_during_the_year": "0.00"
+            }
+          },
+          "expect": {
+            "myr_required": "16678.14",
+            "amalgamated_loan_unpaid_at_end_of_previous_year": "76243.22"
+          }
+        }
+      ]
+    },
+    {
+      "id": "V8",
+      "edge_case": "A repayment before the lodgment day for the loan year reduces the amalgamated amount rather than being credited against a repayment figure.",
+      "provisions": "ITAA 1936 s 109E(3), closing words",
+      "reason": "The engine does not form the amalgamated loan; the operator supplies the balance. The case runs on 70000.00 after 30000.00 repaid before the lodgment day.",
+      "cases": [
+        {
+          "name": "the formula runs on the net amount",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "written_agreement": true,
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2024-25",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": "70000.00",
+              "remaining_term_years": "7",
+              "payments_applied_during_the_year": "13801.18"
+            }
+          },
+          "expect": {
+            "verdict": "MYR_MET",
+            "myr_required": "13801.18"
+          }
+        }
+      ]
+    },
+    {
+      "id": "V9",
+      "edge_case": "Several loans in a year amalgamate if each has the same maximum term.",
+      "provisions": "ITAA 1936 ss 109E(3)(c), 109N(3), 109E(6) paragraph (a)",
+      "reason": "Not formed here: the README lists it as refused and a missing balance is UNKNOWN. The verdict says a 5-year loan beside 7-year loans fails the test and stands alone. That is not adopted: s 109E(3)(c) asks for the same maximum term, which s 109N(3)(b) sets at 7 years for every unsecured loan whatever its actual term, and s 109E(6) then uses the longest term. The engine takes the term from its operator, so it does not apply that rule itself.",
+      "cases": [
+        {
+          "name": "no balance, no figure",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "written_agreement": true,
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2024-25",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": null,
+              "remaining_term_years": "7",
+              "payments_applied_during_the_year": "0.00"
+            }
+          },
+          "expect": {
+            "verdict": "UNKNOWN",
+            "myr_required": null,
+            "reason_codes": [
+              "UNPAID_BALANCE_UNKNOWN"
+            ]
+          }
+        },
+        {
+          "name": "the term the operator supplies is the term used",
+          "command": "minimum-yearly-repayment",
+          "gate_facts": {
+            "written_agreement": true,
+            "terms_in_place_before_lodgment_day": true,
+            "maximum_term_years": "7",
+            "secured_by_registered_mortgage_over_real_property": false,
+            "interest_rate_for_years_after_year_loan_made": "0.0900",
+            "year_loan_made": "2023-24"
+          },
+          "input": {
+            "facts": {
+              "year_of_income": "2024-25",
+              "year_loan_made": "2023-24",
+              "amalgamated_loan_unpaid_at_end_of_previous_year": "80000.00",
+              "remaining_term_years": "7",
+              "payments_applied_during_the_year": "15772.78"
+            }
+          },
+          "expect": {
+            "myr_required": "15772.78",
+            "remaining_term_years_used": "7"
+          }
+        }
+      ]
+    },
+    {
+      "id": "V10",
+      "edge_case": "Refinancing an unsecured loan onto a mortgage does not reset the clock.",
+      "provisions": "ITAA 1936 ss 109N(3A), (3B), 109E(3A), (3B)",
+      "reason": "Refinancing is not modelled, and the gate says so whenever it allows 25 years. The operator states the reduced term and works out the balance.",
+      "cases": [
+        {
+          "name": "the 25-year result carries the refinancing caveat",
+          "command": "complying-loan-gate",
+          "input": {
+            "facts": {
+              "written_agreement": true,
+              "terms_in_place_before_lodgment_day": true,
+              "maximum_term_years": "25",
+              "secured_by_registered_mortgage_over_real_property": true,
+              "security_coverage_at_first_made": "1.25",
+              "interest_rate_for_years_after_year_loan_made": "0.0900",
+              "year_loan_made": "2023-24"
+            }
+          },
+          "expect": {
+            "verdict": "COMPLYING",
+            "caveats_mention": "s 109N(3A) to (3D)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "V11",
+      "edge_case": "Open question: can a partly secured loan keep any of the 25-year term?",
+      "provisions": "ITAA 1936 s 109N(3)(a)(i), (b)",
+      "reason": "Not an open question for the gate: s 109N(3)(a)(i) asks that 100% of the value of the loan be secured and paragraph (b) gives 7 years to any other loan. The operator answers secured_by_registered_mortgage_over_real_property for the whole loan. V5 covers the fallback to 7 years."
+    },
+    {
+      "id": "V12",
+      "edge_case": "Open question: does under-charging interest in one year undo s 109N for the whole loan?",
+      "provisions": "ITAA 1936 ss 109N(1)(b), 109E",
+      "reason": "Unresolved here too. The gate compares the agreement's rate with one nominated year's benchmark and carries a caveat that the annual requirement is not established. It does not test what was charged in later years.",
+      "cases": [
+        {
+          "name": "a rate below the nominated year's benchmark fails that limb",
+          "command": "complying-loan-gate",
+          "input": {
+            "facts": {
+              "written_agreement": true,
+              "terms_in_place_before_lodgment_day": true,
+              "maximum_term_years": "7",
+              "secured_by_registered_mortgage_over_real_property": false,
+              "interest_rate_for_years_after_year_loan_made": "0.0826",
+              "year_loan_made": "2023-24"
+            }
+          },
+          "expect": {
+            "verdict": "NOT_COMPLYING"
+          }
+        },
+        {
+          "name": "a passing rate still carries the caveat",
+          "command": "complying-loan-gate",
+          "input": {
+            "facts": {
+              "written_agreement": true,
+              "terms_in_place_before_lodgment_day": true,
+              "maximum_term_years": "7",
+              "secured_by_registered_mortgage_over_real_property": false,
+              "interest_rate_for_years_after_year_loan_made": "0.0900",
+              "year_loan_made": "2023-24"
+            }
+          },
+          "expect": {
+            "verdict": "COMPLYING",
+            "caveats_mention": "Interest-floor interpretation unresolved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "V13",
+      "edge_case": "Open question: when is a loan made if an arrangement is later reduced to writing?",
+      "provisions": "ITAA 1936 s 109N(1); ATO ID 2012/61",
+      "reason": "A question of contract on the facts. year_loan_made is the operator's assertion. ATO ID 2012/61 treats a loan papered before the lodgment day as made when it was made, which the gate's terms_in_place_before_lodgment_day accommodates."
+    },
+    {
+      "id": "V14",
+      "edge_case": "With no complying agreement the dividend is capped at the distributable surplus.",
+      "provisions": "ITAA 1936 ss 109D(1), 109Y",
+      "reason": "Not modelled: the README lists s 109Y as out of scope and every repayment result carries a caveat that the shortfall is not the dividend. V1 shows no figure is produced."
+    }
+  ]
+}

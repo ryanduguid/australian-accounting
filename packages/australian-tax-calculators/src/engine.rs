@@ -489,12 +489,14 @@ pub fn fbt_car_statutory(
 
 /// FBTAA s 10: `C x (100% - BP) - R`, with deemed depreciation and interest on
 /// an owned car's depreciated value (ss 11 and 12), apportioned to the days in
-/// the holding period it was owned, and the s 10(5) statutory comparison.
+/// the holding period it was owned, and the s 10(5) statutory comparison. The
+/// deemed depreciation rate is 200% over the car's effective life (s 11(1AA)).
 #[allow(clippy::too_many_arguments)]
 pub fn fbt_car_operating_cost(
     running_costs: &Arg,
     lease_charges: &Arg,
     depreciated_value: &Arg,
+    effective_life_years: &Arg,
     days_held: &Arg,
     business_use: &Arg,
     employee_contribution: &Arg,
@@ -514,6 +516,18 @@ pub fn fbt_car_operating_cost(
             "A car is either owned, with a depreciated_value, or leased, with lease_charges; set the other to 0.",
         );
     }
+    // An owned car can reach a nil depreciated value, so a nil value does not
+    // mean a leased car; either way it deems no depreciation.
+    let depreciable = value.gt(&int(0))?;
+    // s 11 has no cost cap, so a life under 2 would deem more than the car's value.
+    let usable = finite_between(effective_life_years, "2", "1000")?;
+    let nil = finite_between(effective_life_years, "0", "0")?;
+    let Some(life) = usable.or(if depreciable { None } else { nil }) else {
+        return refuse(
+            "input.effective_life_invalid",
+            "effective_life_years must be a finite Decimal from 2 to 1000 years, or 0 for a leased car or an owned car with no depreciated value left.",
+        );
+    };
     let days = day_count(days_held, days_in_year, "days_held")?;
     let Some(business) = finite_between(business_use, "0", "1")? else {
         return refuse(
@@ -526,9 +540,16 @@ pub fn fbt_car_operating_cost(
     let exempt = flag(electric_car_exempt, "electric_car_exempt")?;
     let interest_rate = d(lookup(meta::FBT_BENCHMARK_INTEREST_RATES, &year));
     let private = precise(|| Ok(int(1).sub(&business)?))?;
+    let depreciation_rate = precise(|| {
+        Ok(if depreciable {
+            int(2).div(&life)?
+        } else {
+            int(0)
+        })
+    })?;
     let amounts = precise(|| {
         let deemed = |rate: &Decimal| value.mul(rate)?.mul(&int(days))?.div(&int(days_in_year));
-        let depreciation = deemed(&d("0.25"))?;
+        let depreciation = deemed(&depreciation_rate)?;
         let interest = deemed(&interest_rate)?;
         let costs = running.add(&lease)?.add(&depreciation)?.add(&interest)?;
         let gross = costs.mul(&private)?;
@@ -550,7 +571,7 @@ pub fn fbt_car_operating_cost(
         &period,
         amounts,
         vec![
-            rate("depreciation_rate", "0.25"),
+            rate("depreciation_rate", &depreciation_rate),
             rate("benchmark_interest_rate", &interest_rate),
             rate("days_held", days),
             rate("days_in_year", days_in_year),

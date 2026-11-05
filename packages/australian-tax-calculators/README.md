@@ -95,7 +95,7 @@ lists the commands.
 | `borrowing-expenses` | `borrowing_expenses`, `other_borrowing_expenses_in_year`, `income_use`, `loan_start`, `loan_term_end`, `repaid_on`, `section_26_50_applies`, `year`, `scope_confirmed` |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
-| `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
+| `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
@@ -126,7 +126,7 @@ or a decimal string over 8,192 bytes, is refused.
 | Main residence | CGT events in 2024-25 to 2026-27; one dwelling disposed of by a resident individual, before the discount |
 | Borrowing expenses | 2024-25 to 2026-27, before s 26-155 from 2027-28; one loan's established expenditure, use and dates |
 | FBT | Years ended 31 March 2026 and 2027; established type 1 and type 2 taxable values, ordinary employer |
-| FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and the 25% deemed depreciation rate |
+| FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and a deemed depreciation rate of 200% over the established effective life |
 | Depreciation | 2025-26 and 2026-27, first year of an ordinary tangible Division 40 asset; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
@@ -249,9 +249,13 @@ value, the lessor's cost price only if the lease began then and the lessor
 bought the car at or about that time. `later_accessories`, the non-business
 accessories fitted after the earliest holding time, are never reduced. `fbt_car_operating_cost` applies s 10: car expenses for the
 holding period, lease charges for a leased car, and for an owned car (including
-one under hire purchase) deemed depreciation at 25% and deemed interest at the
-year's benchmark rate (8.62% for 2026, 8.27% for 2027) on its s 12 depreciated
-value, apportioned to the days held, times the private use percentage, less the
+one under hire purchase) deemed depreciation at 200% over `effective_life_years`
+(s 11(1AA): 25% for the 8-year life of cars generally, 50% for a taxi's 4 years,
+a life under 2 refused, and 0 for a leased car or an owned car with no depreciated
+value left)
+and deemed interest at the year's benchmark rate (8.62% for 2026, 8.27% for 2027)
+on its s 12 depreciated value, apportioned to the days held, times the private
+use percentage, less the
 recipient's payment. Under s 10(5) its taxable value is the lower of that value
 and `statutory_formula_taxable_value`, the same car's
 `taxable_value_before_exemption` from `fbt-car-statutory`. Its gross value and
@@ -281,6 +285,11 @@ of all the employee's reportable fringe benefits for the FBT year, grossed up at
 the type 2 rate, and is reported only when the total exceeds $2,000; a pooled or
 shared car is not reportable. One car cannot know either, so neither worksheet
 grosses up or applies the threshold, and each adds a third warning saying so.
+
+`tests/verdict_cases.rs` runs the edge cases from a practitioner's published
+review of another FBT car calculator, as fabricated cars
+([`tests/data/lodgeit-verdict-cases.json`](tests/data/lodgeit-verdict-cases.json),
+attributed in [NOTICE](NOTICE)). Each has a case, a stated reason or both.
 
 ## Main residence
 
