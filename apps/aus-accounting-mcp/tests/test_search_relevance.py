@@ -52,7 +52,7 @@ def test_the_reference_publishes_the_figures_and_the_limits():
     assert "dated 6 November 2026" in REFERENCE
     assert RELEVANCE["dated"] == "2026-11-06"
     rows = {
-        "| One-word floor, not shipped, 28 questions | 20 | 0 | 2 | 17 | 0.455 | 0.25 | 0.625 |":
+        "| One-word floor, not shipped, 28 questions | 20 | 0 | 2 | 17 | 0.455 | 0.262 | 0.625 |":
             RELEVANCE["one_word_floor"],
         "| Two-word floor, the same 28 | 20 | 0 | 2 | 9 | 0.75 | 0.6 | 0 |":
             RELEVANCE["published"]["queries"],

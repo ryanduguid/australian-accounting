@@ -24,6 +24,9 @@ from aus_accounting_mcp import corpus
 
 SET = Path(__file__).with_name("search_relevance.json")
 REGISTER = "C9999A00099"
+# A real principal Act's name on invented rows: every row of a title holds its name, and a
+# name such as this shares words with plain questions.
+ACT = "Income Tax Assessment Act 1997"
 
 
 def load() -> dict[str, Any]:
@@ -37,7 +40,7 @@ def _write(root: Path, rows: list[list[str]]) -> None:
         "".join(
             json.dumps({
                 "row_id": f"{REGISTER}:{label}:{label}", "register_id": REGISTER,
-                "act": "Synthetic Relevance Act 2099", "section": label, "heading": heading,
+                "act": ACT, "section": label, "heading": heading,
                 "text": text, "version_is_current": True,
             }) + "\n"
             for label, heading, text in rows
@@ -55,7 +58,9 @@ def _as_written(question: str, rows: list[list[str]], limit: int) -> list[str]:
     terms = corpus._terms(question, "query")
     held = [
         label for label, heading, text in rows
-        if corpus._holds({"heading": heading, "text": text}, ("heading", "text"), terms)
+        if corpus._holds(
+            {"act": ACT, "heading": heading, "text": text}, ("act", "heading", "text"), terms
+        )
     ]
     return held[:limit]
 

@@ -40,10 +40,14 @@ def _library(found: dict[str, Any]) -> str:
 
 def _corpus(found: dict[str, Any]) -> str:
     if found["unreadable"]:
+        raise ValueError(f"lines a search cannot return: {found['unreadable']}.")
+    if found["skipped_entries"]:
         raise ValueError(
-            f"lines that are not JSON rows, which search skips: {found['unreadable']}."
+            f"entries under markdown holding no index a search reads: {found['skipped_entries']}."
         )
     rates = found["rate_rows"]
+    if rates == 0:
+        raise ValueError("its rates index holds no rows, so a rate search would come back empty.")
     held = "no rates index" if rates is None else f"{rates} rate rows"
     return f"{found['rows']} section rows in {found['indexes']} title indexes, {held}"
 
@@ -69,7 +73,9 @@ def _check(
     try:
         found = census()
         held = describe(found)
-    except (OSError, ValueError) as exc:  # InputError is a ValueError, as a bad row's error is
+    # InputError is a ValueError, as a bad row's error is. A row nested past Python's
+    # limit raises RecursionError.
+    except (OSError, ValueError, RecursionError) as exc:
         return False, str(exc).replace(NOT_CONFIGURED, "").strip()
     if not found["rows"]:
         return False, "it holds no rows, so every search would come back empty."

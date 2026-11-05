@@ -138,10 +138,14 @@ stay on your machine.
 `uvx aus-accounting-mcp --help` names the optional folders. Run with no arguments,
 the command waits silently for an MCP client, which is expected.
 
-`uvx aus-accounting-mcp doctor` prints the version, the periods each bundled dataset
-records and each retrieval folder with its row count. A folder that is not set is
-fine, because all 3 are optional. It exits 1 if a configured folder is broken: missing,
-the wrong shape, empty, or holding a file or row a search would skip. It reads the
+`aus-accounting-mcp doctor` prints the version, the periods each bundled dataset
+records and each retrieval folder with its row count. The published 0.7.1 does not have
+it, so `uvx aus-accounting-mcp doctor` fails until the next release; in a checkout, run
+`uv run aus-accounting-mcp doctor` from `apps/aus-accounting-mcp`. A folder that is not
+set is fine, because all 3 are optional. It exits 1 if a configured folder is broken:
+missing, the wrong shape, empty, or holding a file, folder or row a search would skip,
+such as a title folder with no `sections.jsonl`, a row with no string id or text, or
+an empty rates index. It reads the
 variables from its own environment, so set them as your MCP client's configuration does.
 A period it prints is what the release records, not that a figure is current.
 
@@ -192,7 +196,10 @@ holds it, and it has no rate, date or dataset to go stale.
 `as_at` date, and needs no folder. It reads a bundled copy of the records in
 `packages/au-tax-rates-data`, which that package's validator holds to their ATO pages.
 `FOUND` returns the record as it stands: value, unit, period, `source_url`, `retrieved_at`,
-`quote` and any `notes`. The records cover 2025-26 and 2026-27 only, so `as_at` must fall
+`quote` and any `period_quote`, `pattern`, `legislation` and `notes`. An open-ended record
+stays `FOUND` for a date after its page was last read, with `after_last_read` true and
+`after_last_read_note` saying that it was last read on that date and does not show the
+figure still applied on `as_at`. The records cover 2025-26 and 2026-27 only, so `as_at` must fall
 in those years and in the record's own period; an open-ended record is no exception.
 Anything else is `REFUSED` with no figure, and the `refusal` code says why:
 `OUTSIDE_COVERED_YEARS`, `OUTSIDE_RECORD_PERIOD` (with `covering_ids` naming any record
@@ -653,13 +660,25 @@ keep corpus order. So a search for "small business entity" puts ITAA 1997
 s 328-110, headed "Meaning of small business entity", above a dictionary that
 only mentions the expression. When nothing matches, the `notice` suggests the
 statutory wording, because statutes often name a concept differently from ATO
-guidance. If the page has room after the matches and the query has 3 or more words,
-`partial_hits` fills it with provisions holding at least 2 of them as whole words,
-most words first, then most of them in the heading, then the principal Acts. These
-rank below every match and are never one: each is labelled `match: partial` with its
-`matched_words` and `missing_words`, and the `notice` says so. `has_more` and
+guidance. Narrow to one title with `act`, which takes words the title's name
+must contain. A provision the corpus marks as a superseded
+compilation is left out unless `in_force_only` is false; a provision whose currency
+the corpus did not record is returned either way with `version_is_current` null.
+Each match returns the full citation set above, the
+text truncated at 1200 characters with `total_chars` reporting the whole length,
+and `caveats` naming any truncation or superseded compilation.
+
+If the page has room after the matches and the query has 3 or more words,
+`partial_hits` fills it with provisions whose heading and text hold at least 2 of them
+as whole words, most words first, then most of them in the heading, then the principal
+Acts. An Act name or section label counts for nothing here, so a title named with a
+query's words is no evidence about its provisions. A word with a digit, such as a year
+or a section number, must be in the heading or text, so a row for another year is left
+out. These rank below every match and are never one: each is labelled `match: partial`
+with its `matched_words` and `missing_words`, and the `notice` says so. `has_more` and
 `next_offset` run on through them. `search_tax_rates` drops stop words and reports
-partial hits the same way.
+partial hits the same way, reading the heading, topic and content; a row's `years` list
+does not count, so pass `year` to narrow by year.
 
 A partial hit proves only that the provision shares those words with the question. It
 does not prove that the provision answers the question, applies to the facts or is the
@@ -670,15 +689,17 @@ words.
 
 `evaluation/search_relevance.json` is a fixed relevance set dated 6 November 2026: 40
 fabricated provisions, and plain questions that have an answer among them or have none.
-Run `python evaluation/search_relevance.py` to reproduce these figures, which a test
-holds to the file. Hits are answerable questions with a relevant row in the top 5.
-Precision is the share of partial hits that are relevant; the first-hit figure counts
-only questions whose first result is a partial hit. Unanswerable is the share of
+Run `python evaluation/search_relevance.py` to reproduce the 2 two-word rows; the test
+`test_the_one_word_floor_fails_the_gate_as_recorded` measures the one-word row, and
+tests hold all 3 to the file. Hits are answerable questions with a relevant row in the
+top 5. Precision is the share of partial hits that are relevant; the first-hit figure
+counts only questions whose first result is a partial hit, which is 8 questions on each
+two-word list, so one question moves it by 0.125. Unanswerable is the share of
 unanswerable questions that got any partial hit.
 
 | Questions | Answerable | Hits before | Hits, stop words dropped | Hits with partial hits | First-hit precision | All partial hit precision | Unanswerable |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| One-word floor, not shipped, 28 questions | 20 | 0 | 2 | 17 | 0.455 | 0.25 | 0.625 |
+| One-word floor, not shipped, 28 questions | 20 | 0 | 2 | 17 | 0.455 | 0.262 | 0.625 |
 | Two-word floor, the same 28 | 20 | 0 | 2 | 9 | 0.75 | 0.6 | 0 |
 | Two-word floor, 18 held-out questions | 12 | 0 | 3 | 10 | 0.75 | 0.533 | 0 |
 
@@ -686,16 +707,13 @@ The gate, set before the first run, asks for first-hit precision of at least 0.6
 partial hit precision of at least 0.3 and unanswerable of at most 0.25. A plain any-word
 fallback failed it, so a row must hold 2 words to be offered. That failure chose the
 floor, so the 28 questions are not independent of it; the 18 were written before the
-floor first ran. The same author wrote the corpus, questions and labels, and 40
-provisions hold far fewer chance word overlaps than a real corpus, so read these as a
-regression gate, not as the precision on a real one, which has not been measured.
-Narrow to one title with `act`, which takes words the title's name
-must contain. A provision the corpus marks as a superseded
-compilation is left out unless `in_force_only` is false; a provision whose currency
-the corpus did not record is returned either way with `version_is_current` null.
-Each match returns the full citation set above, the
-text truncated at 1200 characters with `total_chars` reporting the whole length,
-and `caveats` naming any truncation or superseded compilation.
+floor first ran. A review then limited partial hits to a row's heading and text and
+added the digit rule, so all 3 rows above come from the changed code and the 18 are no
+longer unseen, though no question or label changed. The one-word floor measured 0.25
+all partial hit precision before that change. The same author wrote the corpus,
+questions and labels, and 40 provisions hold far fewer chance word overlaps than a
+real corpus, so read these as a regression gate, not as the precision on a real one,
+which has not been measured.
 
 `read_tax_legislation_section` takes a `row_id` from a search result and returns
 that provision with the same citation fields and up to 12000 characters of text

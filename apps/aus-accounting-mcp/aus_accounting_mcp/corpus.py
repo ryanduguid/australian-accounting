@@ -58,9 +58,10 @@ NO_MATCH_HINT = (
     "not evidence that the law is silent."
 )
 PARTIAL_NOTICE = (
-    "partial_hits are not matches: each holds only the words in its matched_words, not "
-    "those in its missing_words. That shows the provision shares those words, not that "
-    "it answers the question, applies to these facts or is the only relevant provision. "
+    "partial_hits are not matches: the heading and text of each hold only the words in "
+    "its matched_words, not those in its missing_words. That shows the provision shares "
+    "those words, not that it answers the question, applies to these facts or is the only "
+    "relevant provision. "
     "Do not present one as an answer or as the law on the point. Read the provision and "
     "judge it first, or search again with the statutory wording."
 )
@@ -72,8 +73,8 @@ STOP_WORDS = frozenset((
     "a about am an and any are as at be been being but by can could did do does for "
     "from get got had has have he her here his how i if in into is it its me might "
     "many may much must my of on or our please s shall she should some t tell than that "
-    "the their them there these they this those to us was we were what when where "
-    "which who whom whose why will with would you your"
+    "the their them there these they this those to was we were what when where "
+    "which who whom whose why with would you your"
 ).split())
 # How many of a query's words a row must hold to be offered as a partial hit. One shared
 # word proved no evidence of relevance: evaluation/search_relevance.py measures this.
@@ -184,8 +185,8 @@ def _rows(
     """Parse only the lines that could match, so a whole-corpus scan stays subsecond.
 
     Every searchable field is part of the raw line, so a line failing every(), which
-    asks for all the terms or, with every=any, at least one, cannot match; the caller
-    still confirms each parsed row against the fields themselves.
+    asks for all the terms or for as many of them as a partial hit needs, cannot match;
+    the caller still confirms each parsed row against the fields themselves.
 
     ponytail: no index. Measured against a 946-title, 60 MB, 21916-row corpus, a
     whole-corpus read returns in about 0.5 s. Add an index only if a measured corpus
@@ -415,10 +416,16 @@ def _partial(
     words: list[str],
     fields: tuple[str, ...],
     heading: tuple[str, ...],
+    body: tuple[str, ...],
     scope: Callable[[dict[str, Any]], bool],
     build: Callable[[dict[str, Any]], dict[str, Any]],
 ) -> Assessor:
-    """Judge a row holding at least MIN_PARTIAL_WORDS of words as whole words.
+    """Judge a row whose heading and body hold at least MIN_PARTIAL_WORDS of words.
+
+    Only the provision's own wording counts: every row of the Income Tax Assessment Act
+    1997 holds "income" and "tax" in its Act name, which says nothing about the provision.
+    A word holding a digit, such as a year or a section number, must be there as well,
+    because a row for another year or section does not partly answer the question.
 
     Rows holding more of the words come first, then those holding more of them in a
     heading, then the principal Acts. The whole-word test keeps "scar" from counting
@@ -429,12 +436,15 @@ def _partial(
     if a reference question set shows the order needs it.
     """
     word = re.compile(r"\b(?:" + "|".join(map(re.escape, words)) + r")\b")
+    numbers = {term for term in words if re.search(r"\d", term)}
 
     def assess(row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
-        joined = _joined(row, fields)
-        found = set(word.findall(joined))
+        found = set(word.findall(_joined(row, heading + body)))
+        if len(found) < MIN_PARTIAL_WORDS or not numbers <= found:
+            return None
         # A row holding every word, even inside longer ones, is already a match.
-        if len(found) < MIN_PARTIAL_WORDS or all(term in joined for term in words):
+        joined = _joined(row, fields)
+        if all(term in joined for term in words):
             return None
         if not scope(row):
             return None
@@ -463,8 +473,10 @@ def _scan(
 
     ponytail: ranking reads the whole corpus on every search rather than stopping at
     the first full page. Measured on the 946-title corpus that takes about 0.5 s, and
-    about 1.6 s for a word nearly every row holds such as "tax"; add an index only
-    if a measured corpus needs one.
+    about 1.6 s for a word nearly every row holds such as "tax". A query that reaches
+    partial hits reads the corpus twice: on a 78 MB fabricated corpus "zebra income tax",
+    whose last 2 words nearly every row holds, took 1.9 s against 0.25 s without them.
+    Add an index only if a measured corpus needs one.
     """
 
     def ranked() -> Iterator[tuple[tuple[int, ...], int, dict[str, Any]]]:
@@ -519,7 +531,11 @@ def _search(
     # A shorter query has no way to be partly held, and stop words alone name nothing.
     if len(full) <= end and len(words) > MIN_PARTIAL_WORDS and words[0] not in STOP_WORDS:
         partial = _scan(
-            files, words, any, _partial(words, fields, heading, scope, build), end + 1 - len(full)
+            files,
+            words,
+            lambda held: sum(held) >= MIN_PARTIAL_WORDS,
+            _partial(words, fields, heading, body, scope, build),
+            end + 1 - len(full),
         )
     hits = (full + partial)[offset:end]
     matches = hits[:max(len(full) - offset, 0)]
@@ -804,13 +820,14 @@ def search_rates(
     )
 
 
-def _count_rows(paths: Iterable[Path]) -> tuple[int, int]:
-    """How many lines parse as rows, and how many a search would silently skip."""
+def _count_rows(paths: Iterable[Path], *required: str) -> tuple[int, int]:
+    """How many lines are rows a search can return, and how many are not."""
     rows = unreadable = 0
     for path in paths:
         with path.open(encoding="utf-8") as stream:
             for line in stream:
-                if _row(line, []) is not None:
+                row = _row(line, [])
+                if row is not None and all(isinstance(row.get(key), str) for key in required):
                     rows += 1
                 elif line.strip():
                     unreadable += 1
@@ -821,10 +838,17 @@ def census() -> dict[str, Any]:
     """What the configured corpus holds, for `aus-accounting-mcp doctor`."""
     root = _root()
     files = _index_files(root)
-    rows, unreadable = _count_rows(_within_bounds(files))
+    rows, unreadable = _count_rows(_within_bounds(files), "row_id", "text")
     path = root / "rates" / "rates.jsonl"
     rates = None
     if path.is_file() and not _linked(path) and not _linked(path.parent):
-        rates, unreadable_rates = _count_rows([path])
+        rates, unreadable_rates = _count_rows([path], "rate_id", "content")
         unreadable += unreadable_rates
-    return {"indexes": len(files), "rows": rows, "rate_rows": rates, "unreadable": unreadable}
+    entries = [name for name in os.listdir(root / "markdown") if not name.startswith(".")]
+    return {
+        "indexes": len(files),
+        "rows": rows,
+        "rate_rows": rates,
+        "unreadable": unreadable,
+        "skipped_entries": len(entries) - len(files),
+    }

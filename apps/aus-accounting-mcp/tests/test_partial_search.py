@@ -157,6 +157,79 @@ def test_a_possessive_is_not_a_word(root):
     assert result["partial_hits"] == []
 
 
+def test_an_act_name_is_no_evidence_about_a_provision(root):
+    # Every row of the principal Act holds "income" and "tax" in its name.
+    result = call("search_tax_legislation", query="What is the income tax rate in Tasmania?")
+
+    assert result["partial_hits"] == []
+
+
+def test_a_word_only_in_the_act_name_is_reported_as_missing(root):
+    write_title(root, "C2099A00038", PRINCIPAL_ACT, [
+        ("20-1", "Fuel records", "An entity keeps fuel records for a motor vehicle."),
+    ])
+
+    result = call("search_tax_legislation", query="income fuel records queensland")
+
+    hit = result["partial_hits"][0]
+    assert hit["matched_words"] == ["fuel", "records"]
+    assert hit["missing_words"] == ["income", "queensland"]
+    assert "the heading and text of each hold only" in result["notice"]
+
+
+def test_a_section_label_is_not_the_provision_s_wording(root):
+    write_title(root, "C9999A00011", MINOR_ACT, [
+        ("99-1", "Fuel", "The fuel of a motor is not covered."),
+        ("10-9", "Fuel", "Section 99-1 sets the fuel cap of a motor vehicle."),
+    ])
+
+    result = call("search_tax_legislation", query="How does section 99-1 treat a motor vehicle?")
+
+    assert [hit["section"] for hit in result["partial_hits"]] == ["10-9"]
+    assert result["partial_hits"][0]["missing_words"] == ["treat"]
+
+
+def test_another_section_number_is_not_a_partial_hit(root):
+    result = call("search_tax_legislation", query="How does section 99-1 treat a motor vehicle?")
+
+    assert result["partial_hits"] == []
+
+
+def rate_rows(root):
+    synthetic_corpus.write(root / "rates" / "rates.jsonl", [
+        synthetic_corpus.rate("old", "Caps", "The concessional contributions cap is $30,000.",
+                              amounts=["$30,000"], years=["2024-25"]),
+        synthetic_corpus.rate("new", "Caps", "For 2026-27 the concessional cap is $32,500.",
+                              amounts=["$32,500"], years=["2026-27"]),
+    ])
+
+
+def test_a_row_for_another_year_is_not_a_partial_hit(root):
+    rate_rows(root)
+
+    result = call(
+        "search_tax_rates", query="What is the concessional contributions cap for 2026-27?"
+    )
+
+    assert [hit["rate_id"] for hit in result["partial_hits"]] == ["new"]
+    assert result["partial_hits"][0]["missing_words"] == ["contributions"]
+
+
+def test_a_word_with_a_letter_and_a_digit_is_held_to_the_same_rule(root):
+    write_title(root, "C9999A00011", MINOR_ACT, [
+        ("10-9", "Form", "The fuel cap of a motor vehicle."),
+    ])
+
+    assert call("search_tax_legislation", query="fuel cap form s99")["partial_hits"] == []
+
+
+@pytest.mark.parametrize("word", ["will", "us"])
+def test_a_word_with_a_tax_meaning_is_not_a_stop_word(root, word):
+    result = call("search_tax_legislation", query=f"a {word} trust")
+
+    assert result["dropped_words"] == ["a"]
+
+
 def test_a_substring_match_is_not_also_reported_as_a_partial_hit(root):
     # "scarred" holds "car" as a substring, so the all-words search takes the row;
     # the whole-word test must not then offer it again as a hit lacking "car".

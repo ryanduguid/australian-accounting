@@ -185,7 +185,9 @@ classification of the facts the operator supplied, not a determination.
 - get_reviewed_rate returns one bundled ATO record for a date, with its source page
   and verbatim quote. The records cover 2025-26 and 2026-27 only. REFUSED carries no
   figure: never answer with a nearby year, and use covering_ids or known_ids to choose
-  another record. A FOUND record is a point-in-time copy; retain its statement.
+  another record. A FOUND record is a point-in-time copy; retain its statement. If
+  after_last_read is true, the open-ended record was last read before as_at and does
+  not show the figure still applied then: retain after_last_read_note.
 - validate_abn and validate_acn run the check digit arithmetic ABR and ASIC publish.
   A valid check digit proves neither ABR nor GST registration: retain not_established
   and send the user to ABN Lookup. Never report a passing number as registered.
@@ -1103,7 +1105,10 @@ def get_reviewed_rate(
     is returned: a date outside those years, even for an open-ended record; a date
     outside the record's period, with covering_ids naming any record of the same
     figure that holds that date; a record with no recorded period; or an unknown id.
-    Never answer a refusal with a nearby year. A record is a point-in-time copy, not a
+    Never answer a refusal with a nearby year. An open-ended record stays FOUND for a
+    date after it was last read, with after_last_read true and after_last_read_note
+    saying that it was last read on that date and does not show the figure still applied
+    on as_at. A record is a point-in-time copy, not a
     live lookup, and takes no account of an entity's facts: retain source_url, quote,
     notes and the statement, and confirm the figure at the source. Use
     search_tax_rates for a configured legislation corpus and the reviewed engines for
@@ -1220,7 +1225,8 @@ def search_tax_legislation(
     read_tax_legislation_section.
     Stop words such as 'what' and 'the' are dropped and listed in dropped_words.
     matches hold every remaining word. Room left on a page goes to partial_hits,
-    ranked below every match, which hold at least 2 of 3 or more words: each is
+    ranked below every match, whose heading and text hold at least 2 of 3 or more
+    words and every word with a digit, such as a year or a section number: each is
     labelled partial with its matched_words and missing_words. A partial hit shows
     shared words, not an answer, so never present one as a match.
     Superseded compilations are left out unless in_force_only is false; a
@@ -1324,8 +1330,9 @@ def search_tax_rates(
     states them, with the Act, section, compilation number and register page that
     set them.
     Stop words are dropped and listed in dropped_words. Room left on a page goes to
-    partial_hits, ranked below every match, which hold at least 2 of 3 or more words:
-    they show shared words, not an answer, so never present one as a match.
+    partial_hits, ranked below every match, whose heading, topic and content hold at
+    least 2 of 3 or more words and every word with a digit, such as a year: they show
+    shared words, not an answer, so never present one as a match.
     year narrows to rows stating that year; rows that state no year are then
     left out, so drop the filter to see a rate the provision does not date.
     Rows from a superseded compilation are left out unless in_force_only is

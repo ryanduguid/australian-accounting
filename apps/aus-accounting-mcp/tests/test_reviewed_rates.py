@@ -5,6 +5,7 @@
 
 import asyncio
 import json
+import re
 import tomllib
 from datetime import date
 from pathlib import Path
@@ -16,8 +17,9 @@ from mcp.server.mcpserver.exceptions import ToolError
 from aus_accounting_mcp import freshness, reviewed_rates
 from aus_accounting_mcp.server import mcp
 
+SCHEMA_TOOL = "get_reviewed_rate"
 SCHEMA = next(
-    tool.output_schema for tool in asyncio.run(mcp.list_tools()) if tool.name == "get_reviewed_rate"
+    tool.output_schema for tool in asyncio.run(mcp.list_tools()) if tool.name == SCHEMA_TOOL
 )
 DATA = Path(reviewed_rates.__file__).parent / "rate_records"
 
@@ -32,8 +34,21 @@ def call(record_id, as_at):
 def assert_no_figure(result):
     assert result["status"] == "REFUSED"
     assert result["record"] is None
-    assert "value" not in json.dumps(result)
-    assert "quote" not in result
+    assert set(result) == set(SCHEMA["properties"])
+    assert result["after_last_read"] is False
+    assert result["after_last_read_note"] is None
+    record = reviewed_rates.records().get(result["record_id"])
+    if record is None:
+        return
+    assert result["record_period"] == record["period"]
+    assert result["statement"] == reviewed_rates.STATEMENT
+    assert record["quote"] not in json.dumps(result, ensure_ascii=False)
+    # Every value and tax scale holds a digit, so once the reason's own date, id and year
+    # labels are out, a digit left in it is a figure.
+    said = result["reason"].replace(result["as_at"], "").replace(result["record_id"], "")
+    for year in result["covered_years"]:
+        said = said.replace(year, "")
+    assert not re.search(r"\d", said), said
 
 
 def test_a_covered_date_returns_the_figure_with_its_source_and_quote():
@@ -94,6 +109,42 @@ def test_an_open_ended_record_answers_inside_the_covered_years():
     assert "no effective_to" in result["statement"]
 
 
+def test_an_open_ended_record_is_flagged_after_the_day_it_was_last_read():
+    # gst-registration-threshold is open-ended and was read on 15 October 2026.
+    on_the_day = call("gst-registration-threshold", "2026-10-15")
+    day_after = call("gst-registration-threshold", "2026-10-16")
+
+    assert on_the_day["status"] == day_after["status"] == "FOUND"
+    assert on_the_day["after_last_read"] is False
+    assert on_the_day["after_last_read_note"] is None
+    assert day_after["after_last_read"] is True
+    assert day_after["after_last_read_note"] == (
+        "This record was last read on 2026-10-15 and does not show that the figure still "
+        "applied on 2026-10-16."
+    )
+    assert day_after["record"]["value"] == 75000
+
+
+@pytest.mark.parametrize("record_id,as_at", [
+    # The law sets an income year's figure for the whole year, and a closed period ends itself.
+    ("concessional-cap-2026-27", "2027-06-30"),
+    ("gic-annual-rate-oct-dec-2026", "2026-12-31"),
+])
+def test_a_record_with_an_end_is_not_flagged(record_id, as_at):
+    result = call(record_id, as_at)
+
+    assert result["status"] == "FOUND"
+    assert result["after_last_read"] is False
+    assert result["after_last_read_note"] is None
+
+
+def test_the_tool_description_states_the_limit():
+    tool = next(tool for tool in asyncio.run(mcp.list_tools()) if tool.name == SCHEMA_TOOL)
+
+    assert "after_last_read" in tool.description
+    assert "last read" in tool.description
+
+
 def test_a_dated_record_ends_on_its_last_day():
     assert call("gic-annual-rate-jul-sep-2026", "2026-09-30")["status"] == "FOUND"
     assert call("instant-asset-write-off-threshold", "2026-06-30")["status"] == "FOUND"
@@ -106,6 +157,24 @@ def test_a_date_outside_the_record_names_the_record_that_holds_it():
     assert result["refusal"] == "OUTSIDE_RECORD_PERIOD"
     assert result["record_period"] == {"income_year": "2026-27"}
     assert result["covering_ids"] == ["concessional-cap-2025-26"]
+
+
+def test_no_refusal_at_a_boundary_date_carries_any_record_s_figure():
+    boundaries = (
+        "2025-06-30", "2025-07-01", "2026-06-30", "2026-07-01", "2027-06-30", "2027-07-01",
+    )
+    refused = {}
+
+    for record_id in reviewed_rates.records():
+        for as_at in boundaries:
+            result = call(record_id, as_at)
+            if result["status"] == "REFUSED":
+                assert_no_figure(result)
+                refused.setdefault(result["refusal"], set()).add(record_id)
+
+    assert set(refused) == {"OUTSIDE_COVERED_YEARS", "OUTSIDE_RECORD_PERIOD", "NO_RECORDED_PERIOD"}
+    assert "resident-tax-rates-2026-27" in refused["OUTSIDE_RECORD_PERIOD"]
+    assert reviewed_rates.records()["resident-tax-rates-2026-27"]["unit"] == "tax_scale"
 
 
 def test_a_date_between_quarters_names_the_quarter_that_holds_it():

@@ -171,7 +171,92 @@ def test_a_malformed_corpus_row_is_broken(capsys, monkeypatch, tmp_path):
     code, out = run(capsys)
 
     assert code == 1
-    assert "lines that are not JSON rows, which search skips: 1." in out
+    assert "lines a search cannot return: 1." in out
+
+
+@pytest.mark.parametrize("line", [
+    '{"text": "no row id"}',
+    '{"row_id": "C9999A00001:9:9"}',
+    '{"row_id": 7, "text": "a number is no row id"}',
+    '{"row_id": "C9999A00001:9:9", "text": null}',
+])
+def test_a_row_a_search_could_never_return_is_broken(capsys, monkeypatch, tmp_path, line):
+    synthetic_corpus.build(tmp_path)
+    with next(tmp_path.glob("markdown/*/sections.jsonl")).open("a", encoding="utf-8") as stream:
+        stream.write(line + "\n")
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+
+    code, out = run(capsys)
+
+    assert code == 1
+    assert "lines a search cannot return: 1." in out
+
+
+def test_a_rates_row_needs_a_rate_id_and_content(capsys, monkeypatch, tmp_path):
+    synthetic_corpus.build(tmp_path)
+    with (tmp_path / "rates" / "rates.jsonl").open("a", encoding="utf-8") as stream:
+        stream.write('{"rate_id": "r9"}\n{"content": "no id"}\n')
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+
+    code, out = run(capsys)
+
+    assert code == 1
+    assert "lines a search cannot return: 2." in out
+
+
+def test_an_empty_rates_index_is_broken(capsys, monkeypatch, tmp_path):
+    synthetic_corpus.build(tmp_path)
+    (tmp_path / "rates" / "rates.jsonl").write_text("", encoding="utf-8")
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+
+    code, out = run(capsys)
+
+    assert code == 1
+    assert "its rates index holds no rows" in out
+
+
+def test_a_title_folder_with_no_index_is_broken(capsys, monkeypatch, tmp_path):
+    synthetic_corpus.build(tmp_path)
+    (tmp_path / "markdown" / "C9999A00077").mkdir()
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+
+    code, out = run(capsys)
+
+    assert code == 1
+    assert "entries under markdown holding no index a search reads: 1." in out
+
+
+def test_a_file_beside_the_title_folders_is_broken(capsys, monkeypatch, tmp_path):
+    synthetic_corpus.build(tmp_path)
+    (tmp_path / "markdown" / "stray.txt").write_text("not a title", encoding="utf-8")
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+
+    code, out = run(capsys)
+
+    assert code == 1
+    assert "entries under markdown holding no index a search reads: 1." in out
+
+
+def test_a_hidden_entry_is_not_a_title(capsys, monkeypatch, tmp_path):
+    synthetic_corpus.build(tmp_path)
+    (tmp_path / "markdown" / ".cache").mkdir()
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+
+    code, _ = run(capsys)
+
+    assert code == 0
+
+
+def test_a_row_nested_past_the_limit_is_broken_not_a_crash(capsys, monkeypatch, tmp_path):
+    synthetic_corpus.build(tmp_path)
+    with next(tmp_path.glob("markdown/*/sections.jsonl")).open("a", encoding="utf-8") as stream:
+        stream.write("[" * 1_000_000 + "\n")
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+
+    code, out = run(capsys)
+
+    assert code == 1
+    assert "AUS_ACCOUNTING_CORPUS_ROOT: BROKEN" in out
 
 
 def test_a_malformed_rates_row_is_broken(capsys, monkeypatch, tmp_path):
@@ -183,7 +268,7 @@ def test_a_malformed_rates_row_is_broken(capsys, monkeypatch, tmp_path):
     code, out = run(capsys)
 
     assert code == 1
-    assert "which search skips: 1." in out
+    assert "lines a search cannot return: 1." in out
 
 
 def test_a_corpus_that_cannot_be_decoded_is_broken(capsys, monkeypatch, tmp_path):

@@ -620,8 +620,9 @@ class LegislationSearch(ResultObject):
     ]
     partial_hits: Annotated[
         list[PartialLegislationHit],
-        Field(description="Provisions holding at least 2 of the words but not all, ranked "
-                          "below every match. Never present one as a match."),
+        Field(description="Provisions whose heading and text hold at least 2 of the words "
+                          "and every word with a digit, but not all the words, ranked below "
+                          "every match. Never present one as a match."),
     ]
     dropped_words: DroppedWords
     has_more: bool
@@ -799,7 +800,8 @@ class RateSearch(ResultObject):
     ]
     partial_hits: Annotated[
         list[PartialRateHit],
-        Field(description="Rows holding at least 2 of the words but not all, ranked below "
+        Field(description="Rows whose heading, topic and content hold at least 2 of the words "
+                          "and every word with a digit, but not all the words, ranked below "
                           "every match. Never present one as a match."),
     ]
     dropped_words: DroppedWords
@@ -903,6 +905,13 @@ class ReviewedRateRecord(ResultObject):
     period_quote: NotRequired[Annotated[
         str, Field(description="Verbatim page text naming the year, when quote does not.")
     ]]
+    pattern: NotRequired[Annotated[
+        str, Field(description="Regex with one group that re-reads the value from the page.")
+    ]]
+    legislation: NotRequired[Annotated[
+        list[dict[str, str]],
+        Field(description="Provisions the notes cite: title_id, provision, any application."),
+    ]]
     notes: NotRequired[Annotated[
         str, Field(description="The record's caveats; retain them with the value.")
     ]]
@@ -938,6 +947,15 @@ class ReviewedRate(ResultObject):
     ]
     known_ids: Annotated[
         list[str], Field(description="Every record id; supplied for an unknown id only.")
+    ]
+    after_last_read: Annotated[
+        bool,
+        Field(description="True when an open-ended record is asked about a date after it was "
+                          "last read, so it does not show the figure still applied."),
+    ]
+    after_last_read_note: Annotated[
+        str | None,
+        Field(description="That limit in words; retain it. Null when after_last_read is false."),
     ]
     currency: Annotated[
         Literal["NOT_ESTABLISHED"],

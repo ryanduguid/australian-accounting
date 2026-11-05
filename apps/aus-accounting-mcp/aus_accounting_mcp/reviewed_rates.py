@@ -25,6 +25,10 @@ STATEMENT = (
     "applied when it was retrieved. Retain source_url, quote and notes, and confirm the "
     "figure at the source before relying on it."
 )
+AFTER_LAST_READ = (
+    "This record was last read on {read} and does not show that the figure still applied "
+    "on {as_at}."
+)
 
 
 @cache
@@ -94,6 +98,8 @@ def _result(record_id: str, day: date, status: str) -> dict[str, Any]:
         "record_period": None,
         "covering_ids": [],
         "known_ids": [],
+        "after_last_read": False,
+        "after_last_read_note": None,
         "currency": "NOT_ESTABLISHED",
         "statement": STATEMENT,
     }
@@ -137,4 +143,9 @@ def reviewed_rate(record_id: str, as_at: str) -> dict[str, Any]:
                 if other["label"] == record["label"] and _covers(other, day)
             ],
         )
-    return {**_result(record_id, day, "FOUND"), "record": record}
+    found = {**_result(record_id, day, "FOUND"), "record": record}
+    period, read = record["period"], date.fromisoformat(record["retrieved_at"][:10])
+    if day > read and "effective_from" in period and "effective_to" not in period:
+        found["after_last_read"] = True
+        found["after_last_read_note"] = AFTER_LAST_READ.format(read=read, as_at=day)
+    return found
