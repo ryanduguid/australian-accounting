@@ -42,8 +42,12 @@ from typing import Any, Iterator
 from .corpus import (
     MAX_CORPUS_BYTES,
     _holds,
+    _joined,
     _linked,
+    _matcher,
     _page,
+    _parts,
+    _query_words,
     _row,
     _string,
     _terms,
@@ -484,15 +488,19 @@ def search_rulings(
 ) -> dict[str, Any]:
     """Search every served paragraph for all of the query words, best first.
 
-    A paragraph matches when every word appears in its title, heading or text; a
-    word found only in its address, hash or notice does not count. Within a tier a
-    paragraph whose captured page held a withdrawal notice follows those without;
-    none is left out.
+    A paragraph matches when every word appears whole in its title, heading or text; a
+    word found only in its address, hash or notice does not count. A modal and the "not"
+    after it are one word, so "must lodge" does not find a paragraph holding only "must
+    not lodge". Within a tier a paragraph whose captured page held a withdrawal notice
+    follows those without; none is left out.
     """
     terms = _terms(query, "query")
     family_terms = _terms(family, "family") if family else []
     catalogue = _catalogue()
-    tier = _tier(terms, ("title", "heading"), ("text",))
+    words = _query_words(terms)
+    holds_words = _matcher(words)
+    tier = _tier(words, ("title", "heading"), ("text",), terms)
+    prefilter = _parts(words) + family_terms
 
     def ranked() -> Iterator[tuple[tuple[int, bool, int], int, dict[str, Any]]]:
         order = 0
@@ -500,7 +508,7 @@ def search_rulings(
             try:
                 with run.rows_path.open(encoding="utf-8") as stream:
                     for line, raw in enumerate(stream, start=1):
-                        row = _row(raw, terms + family_terms)
+                        row = _row(raw, prefilter)
                         if row is None:
                             continue
                         key = _canonical(_string(row, "docid") or "")
@@ -508,7 +516,7 @@ def search_rulings(
                             continue
                         if family_terms and not _holds(row, ("family",), family_terms):
                             continue
-                        if not _holds(row, SEARCH_FIELDS, terms):
+                        if not holds_words(_joined(row, SEARCH_FIELDS)):
                             continue
                         entry = _paragraph(row, run, key, line, catalogue, SEARCH_TEXT_CHARS)
                         withdrawn = entry["withdrawal_status"] == "NOTICE_PRESENT"

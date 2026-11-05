@@ -1177,7 +1177,9 @@ def search_accounting_library(
 
     Returns excerpts with relative paths, line numbers, hashes and preceding PDF
     page markers. All library topics are searchable. Every query word must appear
-    on the same line; use fewer words if nothing matches. Lines whose heading holds
+    whole on the same line. A modal verb and the 'not' after it count as one word, so
+    'must lodge' does not find a line holding only 'must not lodge'. There is no list
+    of partial hits, so use fewer words if nothing matches. Lines whose heading holds
     the words come first, then lines holding them as a phrase; the order is not
     one of authority. For the next page, repeat
     the call with offset set to next_offset. Read surrounding lines with
@@ -1380,7 +1382,10 @@ def search_ato_rulings(
 ) -> RulingsSearch:
     """Search local ATO rulings when AUS_ACCOUNTING_RULINGS_ROOT is configured.
 
-    The folder holds runs written by the corpus builder's rulings stage. Returns
+    The folder holds runs written by the corpus builder's rulings stage. Every query
+    word must appear whole in a paragraph, its heading or its title. A modal verb and
+    the 'not' after it count as one word, so 'must lodge' does not find a paragraph
+    holding only 'must not lodge', and there is no list of partial hits. Returns
     paragraphs best first: the words as a phrase in a title or heading rank above
     the words in body text; within that, paragraphs whose captured page held a
     withdrawal notice come after those without, then documents order by family

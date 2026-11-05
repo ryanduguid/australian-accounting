@@ -588,7 +588,10 @@ configuration, replacing the placeholder:
 
 `search_accounting_library` finds query words together on a line, without case
 sensitivity. Every word counts, including 'what' and 'the', so this search takes
-keywords rather than plain questions. Use short phrases, then read surrounding context with
+keywords rather than plain questions. Each word is compared whole, and a modal and the
+'not' after it count as one word, as 'cannot' does, so 'must lodge' does not find a line
+holding only 'must not lodge'. This tool has no partial hits, so such a line is simply
+not a match. Use short phrases, then read surrounding context with
 `read_accounting_library`. Search results include relative paths, line ranges,
 preceding headings and PDF page markers, and SHA-256 of the source file. Retain
 the hash when checking whether a later read uses the same file version.
@@ -665,8 +668,9 @@ unless exempt, lodge' still matches 'must lodge', and 'must never lodge' counts 
 'must'. It does not read conditions or alternatives either: 'and', 'or', 'if', 'when'
 and 'where' are dropped, because they join a question's words and nearly every provision
 holds them, so 'lodge or pay' is treated as 'lodge pay'. Read a match before relying on
-it. `search_accounting_library` and `search_ato_rulings` make none of these distinctions:
-they still match inside longer words, so 'must lodge' finds 'must not lodge' there.
+it. `search_accounting_library` and `search_ato_rulings` treat modals the same way and
+compare whole words, but they drop no stop words and have no partial hits: a row holding
+only the opposite form is simply not a match there.
 
 The search then matches every remaining word as a whole word within one provision, without
 case sensitivity, across the Act name, section label, heading, container and text.
@@ -857,8 +861,11 @@ run is an input error, not a partial result.
 
 ### What the tools return
 
-`search_ato_rulings` matches every query word within one paragraph, its heading or
-its document title, without case sensitivity. Matches come best first: the query
+`search_ato_rulings` matches every query word, whole, within one paragraph, its heading
+or its document title, without case sensitivity. A modal and the 'not' after it count as
+one word, as 'cannot' does, so 'must lodge' does not find a paragraph holding only 'must
+not lodge'. This tool has no partial hits, so such a paragraph is simply not a match.
+Matches come best first: the query
 as a phrase in a title or heading, then every word as a whole word in one of them,
 then the phrase in the text, then the words anywhere. Within a tier a paragraph
 whose captured page held a withdrawal notice follows those without; it is still

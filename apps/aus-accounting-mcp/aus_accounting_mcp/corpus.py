@@ -179,14 +179,14 @@ def _terms(query: str, field: str) -> list[str]:
     return terms
 
 
-def _words(terms: list[str]) -> list[str]:
-    """The distinct words a query asks for, or its own terms if it holds only stop words.
+def _query_words(terms: list[str]) -> list[str]:
+    """The distinct words of terms, which every search compares with its text.
 
     A modal verb and the "not" after it are one word, as "cannot" is, because together
     they say the opposite of the modal alone. "cannot" is kept as "can not".
     """
     words: list[str] = []
-    for term in [term for term in terms if term not in STOP_WORDS] or terms:
+    for term in terms:
         if term == "not" and words and words[-1] in MODALS:
             words[-1] += " not"
         else:
@@ -194,8 +194,13 @@ def _words(terms: list[str]) -> list[str]:
     return list(dict.fromkeys(words))
 
 
+def _words(terms: list[str]) -> list[str]:
+    """_query_words of a query without its stop words, unless it holds nothing else."""
+    return _query_words([term for term in terms if term not in STOP_WORDS] or terms)
+
+
 def _pattern(term: str) -> re.Pattern[str]:
-    """The whole-word test for one word of _words. A modal alone refuses its negated form.
+    """The whole-word test for one query word. A modal alone refuses its negated form.
 
     shortcut: only the word next to the modal is read, so "must, unless exempt, lodge" is
     not seen as qualified, and "must never lodge" counts as "must". Parse clauses only
@@ -219,8 +224,22 @@ def _has(term: str, pattern: re.Pattern[str], text: str) -> bool:
     return term.split()[0] in text and pattern.search(text) is not None
 
 
+def _matcher(words: list[str]) -> Callable[[str], bool]:
+    """The test that casefolded text holds every word of words, as _pattern reads it."""
+    patterns = {term: _pattern(term) for term in words}
+    return lambda text: all(_has(term, pattern, text) for term, pattern in patterns.items())
+
+
+def _parts(words: list[str]) -> list[str]:
+    """What a raw line holds if its row holds words or their opposites.
+
+    The line filter stays sound with these: "cannot" holds "can" and "not".
+    """
+    return " ".join(words).split()
+
+
 def _opposite(term: str) -> str:
-    """The other form of a modal word of _words: "must" for "must not", and back."""
+    """The other form of a modal query word: "must" for "must not", and back."""
     return term[:-4] if term.endswith(" not") else f"{term} not"
 
 
@@ -323,7 +342,7 @@ def _tier(
     # Punctuation and the U+2011 hyphen statutes print sit between the words, so a
     # query for "40-230" or "write-off" still meets its phrase.
     phrase = re.compile(r"\b" + r"\W+".join(map(re.escape, phrase_terms or terms)) + r"\b")
-    words = [re.compile(rf"\b{re.escape(term)}\b") for term in terms]
+    words = [_pattern(term) for term in terms]
 
     def values(row: dict[str, Any], fields: tuple[str, ...]) -> list[str]:
         return [value.casefold() for field in fields if isinstance(value := row.get(field), str)]
@@ -572,14 +591,12 @@ def _search(
     opposites = {
         term: _pattern(_opposite(term)) for term in words if term.split()[0] in MODALS
     }
-    # Every part of a word is in the raw line of a row holding it or its opposite, so
-    # the line filter stays sound: "cannot" holds "can" and "not".
-    parts = " ".join(words).split()
+    parts = _parts(words)
     rank = _ranking(words, heading, body, query)
+    holds_words = _matcher(words)
 
     def is_match(row: dict[str, Any]) -> bool:
-        joined = _joined(row, fields)
-        return all(_has(term, pattern, joined) for term, pattern in patterns.items())
+        return holds_words(_joined(row, fields))
 
     def assess(row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
         if scope(row) and is_match(row):

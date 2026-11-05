@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 from typing import Any, Iterator
 
-from .corpus import _tier
+from .corpus import _matcher, _query_words, _tier
 from .errors import NOT_CONFIGURED, InputError
 from .paging import page
 
@@ -163,6 +163,8 @@ def _documents(root: Path, skipped: list[str]) -> Iterator[tuple[str, list[str],
 def search_references(query: str, limit: int, offset: int) -> dict[str, Any]:
     """Every line holding all the query words, best first, as one page of excerpts.
 
+    Each word counts, stop words too, and is compared whole. A modal and the "not" after
+    it are one word, so "must lodge" does not find a line holding only "must not lodge".
     Lines rank by corpus.py's tiers, reading the heading in force at the line as
     its heading: the phrase in that heading first, then every word in it, then the
     phrase in the line, then the words anywhere in the line. Ties keep folder and
@@ -173,7 +175,9 @@ def search_references(query: str, limit: int, offset: int) -> dict[str, Any]:
     if not terms:
         raise InputError("Supply at least one word to search for.")
     root = _root()
-    tier = _tier(terms, ("heading",), ("line",))
+    words = _query_words(terms)
+    holds_words = _matcher(words)
+    tier = _tier(words, ("heading",), ("line",), terms)
     skipped: list[str] = []
 
     def ranked() -> Iterator[tuple[int, int, tuple[Any, ...]]]:
@@ -185,8 +189,7 @@ def search_references(query: str, limit: int, offset: int) -> dict[str, Any]:
             heading = page = None
             for index, line in enumerate(lines):
                 heading, page = _context(line, heading, page)
-                folded = line.casefold()
-                if all(term in folded for term in terms):
+                if holds_words(line.casefold()):
                     # Keep only what the excerpt needs, so a deep offset does not
                     # hold whole files in memory.
                     excerpt = (name, digest, index + 1, len(lines), heading, page,
