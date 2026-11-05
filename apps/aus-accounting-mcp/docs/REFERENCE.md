@@ -448,10 +448,12 @@ coverage, and retain the result's caveats.
 ### Returned contributions
 
 The Payday Super tools do not assess a contribution the fund returned. The pinned
-checker has no input for one, and none is offered here, so a receipt the fund later
-sent back still reads as received. SGAA 1992 s 18C turns on contributions received
-by the fund, so a later return can change the outcome. Every `ON_TIME` result
-assumes the fund kept every receipt. Check fund records before relying on it.
+checker has no input for one, so a receipt the fund later sent back still reads as
+received. SGAA 1992 s 18C turns on contributions received by the fund, so a later
+return can change the outcome. Set `returned_by_fund` on a contribution when you know
+of a return: the tool refuses, because it cannot assess the row, and names the native
+`payday-super-check` command that can. Otherwise every `ON_TIME` result assumes the
+fund kept every receipt. Check fund records before relying on it.
 
 Each `ON_TIME` row in `calc_payday_super_deadline` and
 `review_payday_super_contributions` carries a caveat saying so and this field:

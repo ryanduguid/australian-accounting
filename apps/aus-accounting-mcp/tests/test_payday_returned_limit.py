@@ -4,7 +4,8 @@
 """An ON_TIME verdict or candidate must say returned contributions were not assessed.
 
 The pinned checker has no input for a contribution the fund returned, so a receipt
-the fund later sent back still reads as received. All facts here are fabricated.
+the fund later sent back still reads as received. A caller that knows of a return is
+refused. All facts here are fabricated.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator, ValidationError
+from mcp.server.mcpserver.exceptions import ToolError
 from paydaysuper import assess
 from paydaysuper.calendar import load_calendar
 from paydaysuper.evidence_pack import build_evidence_pack
@@ -26,6 +28,7 @@ from paydaysuper.rates import load_gic
 
 from aus_accounting_mcp import resources
 from aus_accounting_mcp.adapters import payday
+from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.server import mcp
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -311,7 +314,10 @@ def test_published_schema_refuses_a_qualification_claiming_returns_were_assessed
 def test_no_input_claims_to_assess_a_return(name: str) -> None:
     schema = TOOLS[name].input_schema
     rows = schema["$defs"]["ContributionInput"] if name != SINGLE else schema
-    assert not [field for field in rows["properties"] if "return" in field]
+    assert [field for field in rows["properties"] if "return" in field] == ["returned_by_fund"]
+    field = rows["properties"]["returned_by_fund"]
+    assert field["default"] is False
+    assert "refuses the review" in _flat(field["description"])
 
 
 @pytest.mark.parametrize("name", [SINGLE, GROUP, PACK])
@@ -328,3 +334,34 @@ def test_the_limit_is_published_everywhere_a_reader_looks() -> None:
         text = _flat((ROOT / name).read_text(encoding="utf-8"))
         assert "assumes the fund kept every receipt" in text, name
     assert "s 18C(2) item 4" in resources.scope()["payday_limitations"]
+
+
+def test_a_known_return_refuses_the_single_review():
+    with pytest.raises(InputError, match="row 1: the fund returned") as refusal:
+        payday.review_contribution(
+            as_at=AS_AT, **BASE, **ON_TIME, returned_by_fund=True,
+        )
+    assert "payday-super-check" in str(refusal.value)
+    kept = payday.review_contribution(
+        as_at=AS_AT, **BASE, **ON_TIME, returned_by_fund=False,
+    )
+    assert kept["result"]["verdict"] == "ON_TIME"
+
+
+def test_the_single_tool_hands_a_known_return_to_the_review():
+    with pytest.raises(ToolError, match="row 1: the fund returned"):
+        asyncio.run(mcp.call_tool(SINGLE, {
+            "as_at": AS_AT, **BASE, **ON_TIME, "returned_by_fund": True,
+        }))
+
+
+@pytest.mark.parametrize("build", [payday.review_contributions, payday.evidence_pack])
+def test_one_known_return_refuses_the_whole_group(build):
+    rows = [
+        payday.ContributionInput(**BASE, **FLAGS, **ON_TIME),
+        payday.ContributionInput(
+            **{**BASE, "qe_day": "2026-08-13"}, **FLAGS, **ON_TIME, returned_by_fund=True,
+        ),
+    ]
+    with pytest.raises(InputError, match="row 2: the fund returned"):
+        build(rows, AS_AT)
