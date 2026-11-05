@@ -260,8 +260,7 @@ pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 
 /// Statutory or benchmark interest rate by FBT year ended 31 March, for the
 /// car operating cost method's deemed interest. Its keys are both car
-/// worksheets' supported years; the 20% statutory rate and the 25% deemed
-/// depreciation rate apply in each.
+/// worksheets' supported years; the 20% statutory rate applies in each.
 pub const FBT_BENCHMARK_INTEREST_RATES: &[(&str, &str)] = &[("2026", "0.0862"), ("2027", "0.0827")];
 
 /// SISR Schedule 7 factors as (lowest age, factor), oldest band first.
@@ -331,8 +330,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Fringe benefits tax - a guide for employers, 7.8 statutory formula method and examples 23 and 26; FBT return 2026 instructions, item 23A and example 6; Electric cars exemption, reportable fringe benefits",
         ),
         "fbt_car_operating_cost" => (
-            "2026-10-29",
-            "Fringe benefits tax - a guide for employers, 7.9 operating cost method and example 31; FBT return 2026 instructions, item 23B and example 7; FBT rates and thresholds, benchmark interest rate; Electric cars exemption, reportable fringe benefits; TR 2022/1 Table B, effective lives of cars",
+            "2026-11-06",
+            "Fringe benefits tax - a guide for employers, 7.9 operating cost method and example 31; FBT return 2026 instructions, item 23B and example 7; FBT rates and thresholds, benchmark interest rate; Electric cars exemption, reportable fringe benefits; Income Tax Assessment (Effective Life of Depreciating Assets) Determination 2025 (LI 2025/20, F2025L01097) and TR 2022/1, Table B, effective lives of cars",
         ),
         "depreciation" => (
             "2026-09-24",
@@ -616,7 +615,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "effective_life_years",
-                "years, the Commissioner's effective life of the car in effect when the provider last became its owner (FBTAA s 11(1AA)): 8 for cars generally, 4 for taxis and 5 for rental cars in TR 2022/1 Table B; 0 for a leased car",
+                "years from 2, the car's effective life in the Commissioner's determination in effect when the provider last became its owner (FBTAA s 11(1AA)): 8 for cars generally, 5 for rental cars and 4 for taxis in Table B of the 2025 determination (LI 2025/20, F2025L01097) and TR 2022/1; 0 for a leased car",
             ),
             (
                 "days_held",

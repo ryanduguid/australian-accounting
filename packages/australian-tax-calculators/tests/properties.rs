@@ -578,7 +578,7 @@ fn car_worksheets_reconcile_and_stay_within_their_bases() {
         let result = run(
             "fbt-car-operating-cost",
             json!({"running_costs": running, "lease_charges": lease, "depreciated_value": value,
-                   "effective_life_years": "8",
+                   "effective_life_years": if value == "0.00" { "0" } else { "8" },
                    "days_held": rng.int(0, 365), "business_use": business,
                    "employee_contribution": contribution,
                    "statutory_formula_taxable_value": rng.pay(), "electric_car_exempt": exempt,

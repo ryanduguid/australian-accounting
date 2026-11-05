@@ -11,9 +11,10 @@ fn cases() -> Value {
     serde_json::from_str(include_str!("data/lodgeit-verdict-cases.json")).unwrap()
 }
 
-/// `a.b` read out of nested objects.
-fn at<'a>(value: &'a Value, path: &str) -> &'a Value {
-    path.split('.').fold(value, |node, key| &node[key])
+/// `a.b` read out of nested objects; `None` for an absent key, so that an
+/// expected null cannot pass on a key the result never had.
+fn at<'a>(value: &'a Value, path: &str) -> Option<&'a Value> {
+    value.pointer(&format!("/{}", path.replace('.', "/")))
 }
 
 #[test]
@@ -48,7 +49,7 @@ fn every_case_reaches_its_stated_result() {
         }
         let result = result.unwrap_or_else(|e| panic!("{name}: {e}"));
         for (path, want) in case["expect"].as_object().unwrap() {
-            assert_eq!(at(&result, path), want, "{name}: {path}");
+            assert_eq!(at(&result, path), Some(want), "{name}: {path}");
         }
     }
 }

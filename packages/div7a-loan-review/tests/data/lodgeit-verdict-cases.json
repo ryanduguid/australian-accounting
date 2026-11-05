@@ -524,7 +524,7 @@
       "id": "V9",
       "edge_case": "Several loans in a year amalgamate if each has the same maximum term.",
       "provisions": "ITAA 1936 ss 109E(3)(c), 109N(3), 109E(6) paragraph (a)",
-      "reason": "Not formed here: the README lists it as refused and a missing balance is UNKNOWN. The verdict says a 5-year loan beside 7-year loans fails the test and stands alone. That is not adopted: s 109E(3)(c) asks for the same maximum term, which s 109N(3)(b) sets at 7 years for every unsecured loan whatever its actual term, and s 109E(6) then uses the longest term.",
+      "reason": "Not formed here: the README lists it as refused and a missing balance is UNKNOWN. The verdict says a 5-year loan beside 7-year loans fails the test and stands alone. That is not adopted: s 109E(3)(c) asks for the same maximum term, which s 109N(3)(b) sets at 7 years for every unsecured loan whatever its actual term, and s 109E(6) then uses the longest term. The engine takes the term from its operator, so it does not apply that rule itself.",
       "cases": [
         {
           "name": "no balance, no figure",
@@ -555,7 +555,7 @@
           }
         },
         {
-          "name": "an unsecured 5-year and 7-year pair uses the longest term",
+          "name": "the term the operator supplies is the term used",
           "command": "minimum-yearly-repayment",
           "gate_facts": {
             "written_agreement": true,

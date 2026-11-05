@@ -23,9 +23,9 @@ intentionally changed.
 - `api::myr_facts` is visible inside the crate for the derivation; the public
   library API is unchanged apart from the new `derivation` module.
 
-- `tests/verdict_cases.rs` turns the edge cases in a published CC BY 4.0
-  reviewer verdict into fabricated cases, or states why one does not apply. The
-  engine needed no change.
+- `tests/verdict_cases.rs` turns the edge cases in a published reviewer verdict,
+  under CC BY 4.0, the default in the bounty's terms, into fabricated cases, or
+  states why one does not apply. The engine needed no change.
 
 ### Documented divergences
 

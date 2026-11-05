@@ -52,7 +52,8 @@ fn every_case_reaches_its_stated_result() {
                     "{name}: {caveats:?}"
                 );
             } else {
-                assert_eq!(&result[key], want, "{name}: {key}");
+                // get, not indexing: an expected null must not pass on an absent key.
+                assert_eq!(result.get(key), Some(want), "{name}: {key}");
             }
         }
     }

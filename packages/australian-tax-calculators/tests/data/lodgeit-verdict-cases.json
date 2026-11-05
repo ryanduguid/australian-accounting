@@ -12,7 +12,8 @@
     "licence": "Creative Commons Attribution 4.0 International, the default in 06-terms.md section 3; neither the verdict nor its registry entry names another licence",
     "licence_source": "https://lodgeit.org/bounties/bounty-05-fbt-car-statutory-vs-operating/artefacts/06-terms.md",
     "read_on": "2026-11-06",
-    "changes": "Edge cases paraphrased, some split or merged, with new fabricated figures and this repository's findings. No verdict text is reproduced at length."
+    "changes": "Edge cases paraphrased, some split or merged, with new fabricated figures and this repository's findings. No verdict text is reproduced at length.",
+    "attribution_basis": "Named as the registry entry and the header of the verdict name him. The verdict frontmatter says attribution_posture initialled, and the attestation refers to that posture; the published record gives his full name."
   },
   "note": "Every car here is fabricated, apart from S1, which reruns the reviewer's corrected arithmetic on a fabricated car from the bounty. The verdict reviewed another calculator. Edge cases 1 to 19 follow section 4 of the verdict; F1 to F5 come from its other sections. Statutory text was read in FBTAA 1986 compilation 97.",
   "defaults": {
@@ -155,8 +156,8 @@
     {
       "id": "7",
       "edge_case": "A taxi's effective life is 4 years, so its deemed depreciation rate is not 25%.",
-      "provisions": "FBTAA s 11(1AA); ITAA 1997 s 40-72(1); TR 2022/1 Table B",
-      "defect": "A defect in this repository's engine. The worksheet applied 25% to every owned car. It now takes effective_life_years, a required input, and applies 200% over it.",
+      "provisions": "FBTAA s 11(1AA); ITAA 1997 s 40-72(1); Table B of LI 2025/20 (F2025L01097) and TR 2022/1",
+      "defect": "A defect in this repository's engine. The worksheet applied 25% to every owned car. It now takes effective_life_years, a required input of at least 2 for an owned car, and applies 200% over it.",
       "cases": [
         {
           "name": "a taxi at 4 years",

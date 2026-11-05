@@ -26,8 +26,9 @@ conditions.
 This product includes work by Ryan Duguid
 (https://github.com/ryanduguid/australian-accounting).
 
-Case files under packages/div7a-loan-review/tests/data and
-packages/australian-tax-calculators/tests/data adapt reviewer verdicts by
-Bhunesh Patel, CPA, and Sami Charaf, FIPA + Tax Agent (TPB), published by LodgeiT
-under Creative Commons Attribution 4.0 International, https://creativecommons.org/licenses/by/4.0/.
+tests/data/lodgeit-verdict-cases.json in packages/div7a-loan-review and in
+packages/australian-tax-calculators adapts reviewer verdicts by Bhunesh Patel,
+CPA, and Sami Charaf, FIPA + Tax Agent (TPB), published by LodgeiT under Creative
+Commons Attribution 4.0 International,
+https://creativecommons.org/licenses/by/4.0/, the default in the bounty's terms.
 Each package's NOTICE gives the source and the changes.

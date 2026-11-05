@@ -516,19 +516,15 @@ pub fn fbt_car_operating_cost(
             "A car is either owned, with a depreciated_value, or leased, with lease_charges; set the other to 0.",
         );
     }
-    let bad_life = || {
-        refuse(
-            "input.effective_life_invalid",
-            "effective_life_years must be a finite Decimal from 0.01 to 1000 years for an owned car, or 0 for a leased car.",
-        )
-    };
-    let Some(life) = finite_between(effective_life_years, "0", "1000")? else {
-        return bad_life();
-    };
     let owned = value.gt(&int(0))?;
-    if owned && life.lt(&d("0.01"))? {
-        return bad_life();
-    }
+    // s 11 has no cost cap, so a life under 2 would deem more than the car's value.
+    let (shortest, longest) = if owned { ("2", "1000") } else { ("0", "0") };
+    let Some(life) = finite_between(effective_life_years, shortest, longest)? else {
+        return refuse(
+            "input.effective_life_invalid",
+            "effective_life_years must be a finite Decimal from 2 to 1000 years where depreciated_value is above 0, or 0 otherwise, as for a leased car.",
+        );
+    };
     let days = day_count(days_held, days_in_year, "days_held")?;
     let Some(business) = finite_between(business_use, "0", "1")? else {
         return refuse(
