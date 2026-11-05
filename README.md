@@ -7,6 +7,12 @@
   </picture>
 </p>
 
+```bash
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
+```
+
+That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
+
 <div align="center">
 
 [![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
@@ -36,12 +42,6 @@ Nine engines (8 in Rust, 1 in Python) apply Australian tax and payroll rules to 
 you supply. **Aus Accounting MCP**, a local Model Context Protocol server, gives an AI
 assistant the published Python releases of 6 of them; it loads none of the Rust crates
 yet.
-
-```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
-```
-
-That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
 
 Each tool returns a calculation, the facts it used and the matters it refuses to
 decide. The engines and the MCP server run locally: they read files you point them at, contact no
