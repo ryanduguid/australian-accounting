@@ -46,7 +46,9 @@ fn every_edge_case_has_a_case_or_a_stated_reason() {
 fn every_case_reaches_its_stated_result() {
     let file = cases();
     let all = file["edge_cases"].as_array().unwrap();
+    let mut executed = 0;
     for case in all.iter().filter_map(|e| e["cases"].as_array()).flatten() {
+        executed += 1;
         let (name, command) = (&case["name"], case["command"].as_str().unwrap());
         let mut input = file["defaults"][command].clone();
         for (key, value) in case["input"].as_object().unwrap() {
@@ -58,10 +60,16 @@ fn every_case_reaches_its_stated_result() {
             continue;
         }
         let result = result.unwrap_or_else(|e| panic!("{name}: {e}"));
-        for (path, want) in case["expect"].as_object().unwrap() {
+        let expect = case["expect"].as_object().unwrap();
+        assert!(
+            !expect.is_empty(),
+            "{name}: expect must name at least one result"
+        );
+        for (path, want) in expect {
             assert_eq!(at(&result, path), Some(want), "{name}: {path}");
         }
     }
+    assert_eq!(executed, 17);
 }
 
 #[test]

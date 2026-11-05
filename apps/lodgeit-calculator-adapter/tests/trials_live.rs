@@ -4,6 +4,7 @@
 //! The manual pass over the trial cases, against a loopback stub: one
 //! request a case, a pause between requests, and a stop at the first answer
 //! that is not `COMPUTED`. Nothing here leaves the loopback interface.
+use std::collections::HashSet;
 use std::fs;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -17,16 +18,18 @@ use lodgeit_calculator_adapter::contract;
 use lodgeit_calculator_adapter::dial::{self, Net};
 use lodgeit_calculator_adapter::pyjson::{self, Json, Layout};
 use lodgeit_calculator_adapter::pyops::Exc;
-use lodgeit_calculator_adapter::trials::{Evaluation, fbt, live};
+use lodgeit_calculator_adapter::pyvalue::points_lossy;
+use lodgeit_calculator_adapter::trials::{Evaluation, div7a, fbt, live};
+use lodgeit_calculator_adapter::wire;
 use num_bigint::BigInt;
 
 const COMMITTED: &str = include_str!("../docs/live-trials-2026-11-06.json");
 
-/// What the stub saw: how many requests, and, if a test named a file to watch,
-/// what that file held when the last request arrived.
+/// What the stub saw: each request's target and body in arrival order, and, if
+/// a test named a file to watch, what that file held when the last one arrived.
 #[derive(Default)]
 struct Seen {
-    requests: Mutex<usize>,
+    requests: Mutex<Vec<(String, String)>>,
     watch: Mutex<Option<PathBuf>>,
     on_disk: Mutex<Option<String>>,
 }
@@ -38,7 +41,7 @@ struct Stub {
 
 impl Stub {
     fn requests(&self) -> usize {
-        *self.seen.requests.lock().unwrap()
+        self.seen.requests.lock().unwrap().len()
     }
 }
 
@@ -69,6 +72,11 @@ fn start(status: u16, reply: Option<Vec<u8>>) -> Stub {
 
 fn serve(stream: TcpStream, status: u16, reply: Option<&[u8]>, seen: &Seen) {
     let mut reader = BufReader::new(stream.try_clone().expect("a second handle"));
+    let mut request_line = String::new();
+    if reader.read_line(&mut request_line).unwrap_or(0) == 0 {
+        return;
+    }
+    let target = request_line.split_whitespace().nth(1).unwrap_or_default();
     let mut length = 0usize;
     loop {
         let mut line = String::new();
@@ -89,7 +97,10 @@ fn serve(stream: TcpStream, status: u16, reply: Option<&[u8]>, seen: &Seen) {
     if reader.read_exact(&mut body).is_err() {
         return;
     }
-    *seen.requests.lock().unwrap() += 1;
+    seen.requests.lock().unwrap().push((
+        target.to_owned(),
+        String::from_utf8_lossy(&body).into_owned(),
+    ));
     if let Some(path) = seen.watch.lock().unwrap().as_ref() {
         *seen.on_disk.lock().unwrap() = fs::read_to_string(path).ok();
     }
@@ -240,6 +251,39 @@ fn keys(json: &Json) -> Vec<String> {
     keys
 }
 
+/// The target and exact wire body of each sendable case, in case file order:
+/// Division 7A, then FBT car, without the 2 cases the pass must never send.
+fn sendable_requests() -> Vec<(String, String)> {
+    const UNSENT: [&str; 2] = [
+        "D7A-8-nil-remaining-term-refused",
+        "D7A-9-unsupported-period",
+    ];
+    let field: Vec<u32> = "body".chars().map(u32::from).collect();
+    let on_wire = |body: Json| points_lossy(&wire::dumps(&body, &field).expect("exact"));
+    let div7a_cases = div7a::load_cases(None).expect("the packaged cases load");
+    let div7a_requests = div7a_cases
+        .iter()
+        .filter(|case| !UNSENT.contains(&case.case_id.as_str()))
+        .map(|case| {
+            (
+                format!("/v1/calculators/div7a/at/{}", case.period_uri),
+                on_wire(div7a::build_request(case)),
+            )
+        });
+    let fbt_cases = fbt::load_cases().expect("the packaged cases load");
+    let fbt_requests = fbt_cases.iter().map(|case| {
+        (
+            format!(
+                "/v1/calculators/{}/{}",
+                fbt::CALC_URI,
+                case.benefit.period_uri
+            ),
+            on_wire(case.benefit.request().expect("a sendable case")),
+        )
+    });
+    div7a_requests.chain(fbt_requests).collect()
+}
+
 #[test]
 fn a_clean_pass_sends_each_sendable_case_once_and_pauses_after_each() {
     let stub = stub(200, &answer());
@@ -249,6 +293,10 @@ fn a_clean_pass_sends_each_sendable_case_once_and_pauses_after_each() {
     assert_eq!(stub.requests(), 12);
     assert_eq!(pauses, 12);
     assert_eq!(result.records.len(), 14);
+    let want = sendable_requests();
+    let distinct: HashSet<_> = want.iter().collect();
+    assert_eq!(distinct.len(), want.len(), "two cases share a request");
+    assert_eq!(*stub.seen.requests.lock().unwrap(), want);
 }
 
 #[test]
@@ -606,7 +654,7 @@ fn the_local_worksheet_reproduces_each_cases_derived_taxable_value() {
 }
 
 #[test]
-fn a_cent_of_formula_difference_is_named() {
+fn a_formula_difference_past_the_last_cent_is_named() {
     let case = fbt::load_cases()
         .expect("the packaged cases load")
         .remove(1);
@@ -637,6 +685,10 @@ fn a_cent_of_formula_difference_is_named() {
     outcome.values = vec![(name.clone(), figure("4804.38"))];
     let agreed = fbt::compare_formula(&case, &outcome).expect("a comparison");
     assert_eq!(agreed.evaluation, Evaluation::Match);
+    // 1 cent is the deliberate last-cent tolerance; 2 cents is a difference.
+    outcome.values = vec![(name.clone(), figure("4804.39"))];
+    let tolerated = fbt::compare_formula(&case, &outcome).expect("a comparison");
+    assert_eq!(tolerated.evaluation, Evaluation::Match);
     outcome.values = vec![(name, figure("4804.40"))];
     let differed = fbt::compare_formula(&case, &outcome).expect("a comparison");
     assert_eq!(differed.evaluation, Evaluation::NumericDifference);
