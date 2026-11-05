@@ -1,79 +1,119 @@
 {
+  "produced_by": [
+    "A test cannot recalculate Excel, so this file holds what Excel answered. To reproduce it on Windows with desktop Excel, from the package directory:",
+    "1. cargo run --example build_workbook. recalc.ps1 recalculates and saves workbooks/payday-super-checker.xlsx.",
+    "2. pwsh -File examples/build_workbook/wb-returned.ps1 -Workbook <absolute path to that workbook> -Csv <absolute path to tests/data/workbook-returned.csv> -Out <absolute path to a scratch CSV> -AsAt <as_at below>. Repeat with workbook-returned-refused.csv.",
+    "3. Each run prints overall=, Review Checks B16: overall here and refused.overall. In its scratch CSV, verdict, between, exposed, due and problem are verdict, unassessable_between, exposed, final_due and row_problem; shortfall, trimmed, is final_shortfall.",
+    "4. refused.rows lists the rows with a problem, numbered as in their CSV. refused.reasons pairs each problem with the checker's reason for that row, copied from its stderr."
+  ],
   "as_at": "2027-08-20",
+  "overall": "REVIEW",
   "rows": [
     {
       "employee_id": "TIMELY",
       "verdict": "UNKNOWN",
       "final_due": "2027-08-16",
       "unassessable_between": "UNPAID or ON_TIME",
-      "exposed": 0
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
     },
     {
       "employee_id": "LATE",
       "verdict": "UNKNOWN",
       "final_due": "2027-08-16",
       "unassessable_between": "UNPAID or LATE",
-      "exposed": 0
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
     },
     {
       "employee_id": "MISSING",
       "verdict": "UNKNOWN",
       "final_due": "2027-08-16",
       "unassessable_between": "UNPAID or LATE",
-      "exposed": 0
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
     },
     {
       "employee_id": "OPEN",
       "verdict": "UNKNOWN",
       "final_due": "2027-08-23",
       "unassessable_between": "UNPAID or ON_TIME",
-      "exposed": 0
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
     },
     {
       "employee_id": "PREWINDOW",
       "verdict": "UNKNOWN",
       "final_due": "2027-08-16",
       "unassessable_between": "UNPAID or ON_TIME",
-      "exposed": 0
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
     },
     {
       "employee_id": "CAPPED",
       "verdict": "UNKNOWN",
       "final_due": "2027-08-20",
       "unassessable_between": "UNPAID or ON_TIME",
-      "exposed": 0
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
     },
     {
       "employee_id": "CAPPED",
       "verdict": "UNKNOWN",
       "final_due": "2027-08-10",
       "unassessable_between": "LATE or ON_TIME",
-      "exposed": 0
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
     },
     {
       "employee_id": "FUTURE",
       "verdict": "UNKNOWN",
       "final_due": "2027-08-16",
       "unassessable_between": "UNPAID or LATE",
-      "exposed": 0
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
     },
     {
       "employee_id": "KEPT",
       "verdict": "ON_TIME",
       "final_due": "2027-08-16",
       "unassessable_between": "",
-      "exposed": 0
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
     },
     {
       "employee_id": "FUTUREOPEN",
       "verdict": "UNKNOWN",
       "final_due": "2027-08-23",
       "unassessable_between": "UNPAID or ON_TIME",
-      "exposed": 0
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
     }
   ],
   "refused": {
-    "row 2": "returned-needs-an-sg-amount-tested-for-lateness",
-    "row 3": "returned-needs-an-sg-amount-tested-for-lateness"
+    "overall": "BLOCKED",
+    "reasons": {
+      "returned-needs-an-sg-amount-tested-for-lateness": "a return or an event needs a row carrying an SG amount that is tested for lateness (returned_by_fund=yes or --events)"
+    },
+    "rows": [
+      {
+        "row": 2,
+        "row_problem": "returned-needs-an-sg-amount-tested-for-lateness"
+      },
+      {
+        "row": 3,
+        "row_problem": "returned-needs-an-sg-amount-tested-for-lateness"
+      }
+    ]
   }
 }
