@@ -821,7 +821,7 @@ Part-day holidays, such as Christmas Eve evening in South Australia, Queensland 
 cargo test --locked
 ```
 
-`tests/parity.rs` replays the Python 0.2.2 tests' engine calls and command runs, and generated ones, from frozen Python results. `tests/BEHAVIOURS.md` maps each Python test to its Rust coverage. The property tests are seeded Rust tests over the fast-check properties' input domains.
+`tests/parity.rs` replays the Python 0.2.2 tests' engine calls and command runs, and generated ones, from frozen Python results. `tests/BEHAVIOURS.md` maps each Python test to its Rust coverage. The property tests are seeded Rust tests over the fast-check properties' input domains, and they hold how an answer must move when one fact moves. `tests/evidence_states.rs` walks every combination of a row's evidence, and of a return's dated trail, against the verdict tables here, so each state reaches one verdict or a refusal. `tests/authority.rs` holds the ATO's Payday Super Examples 1 to 4 and 6.
 
 The suite pins the ATO's own worked examples: a first payday of 9 July 2026 falling due 7 August 2026, and notional earnings on a payday whose usual period ends 18 June 2027 starting to accrue on 19 June 2027. It also pins the traps that make this hard, including the Ekka staying a business day, deadlines that must not change when you reorder rows in the CSV, and the leap-year divisor in the interest calculation. Test data is synthetic. Never commit client payroll data to this repository; `.gitignore` blocks the usual formats, case-insensitively.
 
