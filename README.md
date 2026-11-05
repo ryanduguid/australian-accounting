@@ -189,7 +189,7 @@ MCP server uses none of the Rust crates yet.
 
 ## Alternatives
 
-Australian Accounting calculates from figures you supply, and its research tools read only folders
+Australian Accounting calculates from figures you supply, and its research tools use folders
 you configure. As read on 5 November 2026, these projects cover nearby ground:
 
 - [william-laverty/ato-mcp](https://github.com/william-laverty/ato-mcp): hosted retrieval over ATO
