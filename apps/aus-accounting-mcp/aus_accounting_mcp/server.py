@@ -139,11 +139,12 @@ classification of the facts the operator supplied, not a determination.
 - Use calc_payday_super_deadline for one contribution, with an explicit as_at
   date. Remittance does not establish fund receipt. Do not infer receipt dates
   or clearing-house latency, or report ON_TIME without evidence of receipt.
-  No input records a contribution the fund returned, so ON_TIME assumes the fund
-  kept every receipt and carries verdict_qualification, as does an UNKNOWN listing
-  ON_TIME in horizon_verdicts; retain it with either.
+  The linked checker cannot assess a contribution the fund returned. Set
+  returned_by_fund when you know of a return, which refuses the review. Otherwise
+  ON_TIME assumes the fund kept every receipt and carries verdict_qualification, as
+  does an UNKNOWN listing ON_TIME in horizon_verdicts; retain it with either.
   Supply matched_amount with every received date, partial or full. Omitting
-  the amount leaves a timely receipt UNKNOWN in the pinned checker 0.1.8.
+  the amount leaves a timely receipt UNKNOWN in the pinned checker 0.2.3.
   A late receipt without an amount stays LATE without reducing the shortfall.
   Read aus-accounting://payday-coverage for bundled rate and calendar coverage.
   This reviews one contribution only. Related contributions can change the
@@ -541,6 +542,14 @@ def calc_payday_super_deadline(
             'a late receipt remains LATE without reducing the shortfall.'
         )),
     ] = None,
+    returned_by_fund: Annotated[
+        bool,
+        Field(description=(
+            'True when the fund returned some or all of this contribution. The linked '
+            'checker cannot assess a return, so true refuses the review instead of reading '
+            'the receipt as kept.'
+        )),
+    ] = False,
 ) -> PaydayReview:
     """Review one contribution against payday-super-checker.
 
@@ -550,11 +559,11 @@ def calc_payday_super_deadline(
     received is fund receipt. remitted is the day money was sent. This tool
     does not invent clearing-house latency and cannot confirm LCR 2026/1
     transition allocation. Without a fund-receipt date the statutory test
-    cannot return ON_TIME. Returned contributions are not assessed: no input
-    records one, so ON_TIME assumes the fund kept every receipt, and carries
-    verdict_qualification and a caveat saying so, as does an UNKNOWN listing ON_TIME
-    in horizon_verdicts. Check fund records before relying on it. Returns a deadline,
-    pathway, verdict and caveats;
+    cannot return ON_TIME. Returned contributions are not assessed: returned_by_fund
+    refuses the review, and otherwise ON_TIME assumes the fund kept every receipt, and
+    carries verdict_qualification and a caveat saying so, as does an UNKNOWN listing
+    ON_TIME in horizon_verdicts. Check fund records before relying on it. Returns a
+    deadline, pathway, verdict and caveats;
     assessment_scope is single_contribution. Related contributions, receipt
     allocation and s 18C(2) item 4 alignment are not reviewed by this tool.
     sg_amount is operator-supplied; this tool does not calculate SG entitlement.
@@ -576,6 +585,7 @@ def calc_payday_super_deadline(
             db_interest=db_interest,
             remitted_amount=remitted_amount,
             matched_amount=matched_amount,
+            returned_by_fund=returned_by_fund,
         ),
     )
 
@@ -837,10 +847,11 @@ def review_payday_super_contributions(
     eligibility flags before calling. Allocate receipts to rows first; this tool
     does not allocate raw payments, calculate SG entitlement or confirm transition
     allocation. Assumes no ATO assessment has issued. Returned contributions are not
-    assessed: no input records one, so an ON_TIME row assumes the fund kept every
-    receipt, and carries verdict_qualification and a caveat saying so, as does an
-    UNKNOWN row listing ON_TIME in horizon_verdicts. Retain every row's warnings,
-    UNKNOWN outcomes and engine metadata. Local review aid, not advice.
+    assessed: a row's returned_by_fund refuses the review, and otherwise an ON_TIME row
+    assumes the fund kept every receipt, and carries verdict_qualification and a caveat
+    saying so, as does an UNKNOWN row listing ON_TIME in horizon_verdicts. Retain
+    every row's warnings, UNKNOWN outcomes and engine metadata. Local review aid, not
+    advice.
     """
     return cast(PaydayGroupReview, review_contributions(contributions, as_at))
 
@@ -863,8 +874,9 @@ def build_payday_super_evidence_pack(
     The engine owns all assessment and rendering. Returns UTF-8 file contents in
     memory, with no file reads or writes for caller-supplied paths. Missing receipt
     evidence remains missing; all non-ON_TIME rows require human review. Returned
-    contributions are not assessed: no input records one, so an ON_TIME row assumes
-    the fund kept every receipt. Any pack with an ON_TIME verdict or horizon candidate,
+    contributions are not assessed: a row's returned_by_fund refuses the pack, and
+    otherwise an ON_TIME row assumes the fund kept every receipt. Any pack with an
+    ON_TIME verdict or horizon candidate,
     including every exit code 0, carries verdict_qualification, and the limit in its
     caveats and files. The report
     omits employee identifiers, but input references still enter the calling host.

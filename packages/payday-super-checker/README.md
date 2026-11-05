@@ -276,8 +276,10 @@ rerun before treating any verdict here as final.
 
 A returned amount is not a contribution (SIS Regulations reg 7.07G(4); LCR 2026/2
 paragraphs 24 and 25), and the deadline does not restart on a rejection. Two inputs
-say so. Both reach this Rust checker only: the published Python package, the MCP
-server and the Excel workbook do not read them.
+say so. This Rust checker reads both. The Excel workbook reads `returned_by_fund`
+and sends you here for events. Aus Accounting MCP links the published Python package,
+which reads neither, so the server refuses a contribution marked `returned_by_fund`
+instead of reading its receipt as kept.
 
 **`returned_by_fund=yes` on a row** says some or all of the contribution came back
 and nothing yet says what. The line is `UNKNOWN`, exits 2, carries no exposure and
