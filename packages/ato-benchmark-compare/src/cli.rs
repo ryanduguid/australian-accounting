@@ -1200,7 +1200,16 @@ fn cmd_compare(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
     if w1.is_some() {
         supplied.push("w1".into());
     }
-    if parsed.flag("confirm_other_income_nil") && !supplied.iter().any(|f| f == "other_income") {
+    if parsed.flag("confirm_other_income_nil")
+        && !supplied.iter().any(|f| f == "other_income")
+        && mapping.iter().all(|(key, row)| {
+            row.bucket != "other_income"
+                || source
+                    .rows
+                    .iter()
+                    .any(|pnl| mapping::account_key(&pnl.account) == *key)
+        })
+    {
         supplied.push("other_income".into());
     }
     let mut comparison = report::compare(&data, bt, &figures, Some(&supplied))?;
