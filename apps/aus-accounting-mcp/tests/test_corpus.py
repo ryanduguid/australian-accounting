@@ -36,6 +36,19 @@ def corpus(tmp_path, monkeypatch):
     return synthetic_corpus.build(tmp_path)
 
 
+@pytest.mark.parametrize("configured", [None, "does-not-exist"])
+def test_an_unconfigured_corpus_names_the_build_route(tmp_path, monkeypatch, configured):
+    monkeypatch.delenv("AUS_ACCOUNTING_CORPUS_ROOT", raising=False)
+    if configured:
+        monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path / configured))
+
+    with pytest.raises(ToolError) as caught:
+        asyncio.run(mcp.call_tool("search_tax_legislation", {"query": "levy"}))
+
+    assert "python -m fadden quick --out" in str(caught.value)
+    assert "do not retry" in str(caught.value)
+
+
 def test_search_returns_a_traceable_citation(corpus):
     result = call("search_tax_legislation", query="synthetic levy rate")
     hit = next(match for match in result["matches"] if match["register_id"] == "C9999A00001")

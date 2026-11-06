@@ -169,8 +169,8 @@ copy without a download until the uv cache is cleaned.
 | `calculate_tax_worksheet` | Run one of 14 bounded worksheets with established scope, optionally with a file note | australian-tax-calculators |
 | `search_accounting_library` | Search explicitly configured local Markdown files | local read-only retrieval |
 | `read_accounting_library` | Read bounded lines with file, line, page and hash citations | local read-only retrieval |
-| `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page | local read-only retrieval |
-| `read_tax_legislation_section` | Read one cited provision from that corpus in full, optionally with the provisions either side | local read-only retrieval |
+| `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page; `as_at` answers for a date or refuses by name | local read-only retrieval |
+| `read_tax_legislation_section` | Read one cited provision from that corpus in full, optionally with the provisions either side; `as_at` adds the title's status and window | local read-only retrieval |
 | `define_tax_term` | Find an expression's statutory definitions in that corpus's dictionary, definitions and interpretation sections | local read-only retrieval |
 | `search_tax_rates` | Find legislated rate, threshold, indexation and factor rows with the provision that sets them | local read-only retrieval |
 | `get_div7a_benchmark_rate` | Return the reviewed s 109N(2) rate for a year, or `UNKNOWN` | div7a-loan-review |
@@ -643,11 +643,14 @@ control, in this layout:
 
 A `sections.jsonl` row carries `row_id`, `register_id`, `act`, `collection`,
 `section`, `heading`, `container`, `kind`, `compilation_number`,
-`compilation_date`, `version_is_current`, `register_page`, `source_url`, `licence`,
-`attribution` and `text`. A `rates.jsonl` row carries `rate_id`, `topic`, `kind`,
+`compilation_date`, `superseded_from`, `retrieved`, `version_is_current`,
+`register_page`, `source_url`, `licence`, `attribution` and `text`. A `rates.jsonl` row carries `rate_id`, `topic`, `kind`,
 `amounts`, `years` and `content` alongside the same title and section fields.
 [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus)
-builds a corpus in this shape from the Federal Register of Legislation.
+builds a corpus in this shape from the Federal Register of Legislation. Its
+`python -m fadden quick --out <empty folder>` builds 9 principal Acts and prints the
+setting; [the setup guide](corpus-setup.md#build-the-principal-acts-with-one-command) gives
+the steps and what that folder lacks.
 
 ### What the tools return
 
@@ -691,7 +694,8 @@ compilation is left out unless `in_force_only` is false; a provision whose curre
 the corpus did not record is returned either way with `version_is_current` null.
 Each match returns the full citation set above, the
 text truncated at 1200 characters with `total_chars` reporting the whole length,
-and `caveats` naming any truncation or superseded compilation.
+and `caveats` naming any truncation or superseded compilation. `as_at` replaces
+`in_force_only`; [Dates](#dates) says how.
 
 If the page has room after the matches and the query keeps at least 3 words, or 2
 where a modal's opposite form counts towards the threshold,
@@ -787,6 +791,58 @@ because the title may be absent, the definition may sit in an operative provisio
 or the dictionary may write the expression differently, and an ordinary meaning
 must never be presented as the statutory one. Superseded dictionaries are left out
 unless `in_force_only` is false.
+
+### Dates
+
+From the release after 0.7.1, `search_tax_legislation` and
+`read_tax_legislation_section` take `as_at`, a `YYYY-MM-DD` date. A malformed date, or
+one that does not exist, is an input error. These are the statuses and field names of
+the corpus builder's own `as_at` stage ([contract](https://github.com/ryanduguid/au-tax-legislation-corpus/blob/main/docs/scope.md)),
+worked out from each row's `compilation_date`, `superseded_from`, `retrieved` and
+`version_is_current`.
+
+| Status | Rows | What it covers | Next step |
+| --- | --- | --- | --- |
+| `captured` | Returned | The corpus holds the compilation for that date. It is not a finding that the text was the law then | Read the Register's version history and endnotes for a past date |
+| `before_compilation` | Refused | The date is before this compilation's start, so the corpus holds no text for it | Read the Register's earlier compilations |
+| `superseded` | Refused | A later version had started by that date, and the Register had no compilation for it when the corpus was built | A later version started; check the Register and application provisions |
+| `after_retrieval` | Refused | The date is after the build retrieved this title, so the corpus cannot say what changed | Run `check_current` and read the Register |
+
+A search returns rows only from `captured` titles, each with an `as_at` object holding
+`date`, `status`, `compilation_date`, `superseded_from`, `retrieved`, `covers` and
+`next_step`. The status decides instead of `in_force_only`, so a superseded compilation
+comes back for a date inside its window. `refusals` holds one object for each other title
+with rows the search would have returned, or that `act` names: `refused`, `register_id`,
+`act`, `matching_rows`, `partial_rows` and the same `as_at`. If the whole search has no
+eligible rows, it refuses every title in scope that is not `captured`. An exhausted page
+keeps the same refusals as the first page. Empty `matches` beside a refusal do not mean
+nothing matched.
+It lists at most 20, principal Acts first. `as_at_summary` counts `rows`, `withheld_rows`,
+`refused_titles` and `titles` at each status, names any further refused titles under their
+status in `unlisted_titles`, and repeats `covers`.
+Pass one of those Register IDs as `act`, with the same query and date, to read its full
+refusal. With `as_at`, `act` accepts title words or a Register ID.
+
+A read of a `captured` title returns its text, with `as_at` on the section and each
+neighbour. Any other status keeps the citation and window, returns empty `text` with the
+stored `total_chars`, no neighbours and null `next_start`, and names the status in
+`refusals`. A read without `as_at` still returns the compilation the corpus holds, which
+is not text for that date.
+
+A status reads the compilation window, not the law on that date. A compilation does not
+show application, saving or transitional provisions elsewhere, modification by another
+law, or an amendment with retrospective effect registered after the build was retrieved,
+so a date inside a window can still carry text amended without a new compilation, and a
+provision's text can differ from what applied to that date. Read the Register's version
+history and endnotes for any question about a past date. The corpus holds one compilation
+of a title, so a refusal is the answer for any earlier date: no earlier text is held.
+
+`as_at` needs every row's window, so a row without its dates, as in an older build, or
+with dates that cannot all be true, or a title whose rows disagree, stops a dated call
+with an input error until the corpus is rebuilt. An undated call still answers.
+`define_tax_term` and `search_tax_rates` take no date. A dated search streams every title
+once to validate its window before searching; withheld-row counts also stream without
+retaining every result. A dated read validates its title before returning any text.
 
 `search_tax_rates` matches rate, threshold, indexation, table, factor and
 ownership-test rows, optionally filtered to one `topic` and to one `year` written the
