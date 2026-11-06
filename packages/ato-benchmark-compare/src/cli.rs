@@ -1176,7 +1176,8 @@ fn cmd_compare(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
     let bt = data.get(parsed.get("industry").unwrap_or(""))?;
     let pnl_path = parsed.get("profit_and_loss").unwrap_or("");
     let mapping_path = parsed.get("mapping").unwrap_or("");
-    let source = pnl::read(&PyPath::new(pnl_path), parsed.get("amount_column"))?;
+    let (source, skipped_accounts) =
+        pnl::read_for_compare(&PyPath::new(pnl_path), parsed.get("amount_column"))?;
     if !source.skipped.is_empty() {
         s.err(&format!(
             "{} row(s) carried no readable amount and are not in these totals:",
@@ -1190,7 +1191,18 @@ fn cmd_compare(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
         }
     }
     let mapping = mapping::read_mapping(&PyPath::new(mapping_path))?;
-    let routing = mapping::route(&source.rows, &mapping, parsed.flag("flip_expense_signs"))?;
+    let mut routing = mapping::route(&source.rows, &mapping, parsed.flag("flip_expense_signs"))?;
+    let skipped_keys: Vec<_> = skipped_accounts
+        .iter()
+        .map(|account| mapping::account_key(account))
+        .collect();
+    for (key, row) in &mapping {
+        if skipped_keys.contains(key) {
+            routing
+                .supplied_buckets
+                .retain(|bucket| bucket != &row.bucket);
+        }
+    }
     let w1 = match parsed.get("w1") {
         Some(raw) => Some(parse_amount(Some(raw), "--w1").map_err(|e| Failure::Value(e.0))?),
         None => None,
@@ -1200,7 +1212,17 @@ fn cmd_compare(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
     if w1.is_some() {
         supplied.push("w1".into());
     }
-    if parsed.flag("confirm_other_income_nil") && !supplied.iter().any(|f| f == "other_income") {
+    if parsed.flag("confirm_other_income_nil")
+        && !supplied.iter().any(|f| f == "other_income")
+        && mapping.iter().all(|(key, row)| {
+            row.bucket != "other_income"
+                || (!skipped_keys.contains(key)
+                    && source
+                        .rows
+                        .iter()
+                        .any(|pnl| mapping::account_key(&pnl.account) == *key))
+        })
+    {
         supplied.push("other_income".into());
     }
     let mut comparison = report::compare(&data, bt, &figures, Some(&supplied))?;
