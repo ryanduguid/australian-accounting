@@ -1271,9 +1271,11 @@ def search_tax_legislation(
     holding rows the search would return is listed in refusals with its status,
     next_step and rows withheld, and as_at_summary counts them. If the whole search has
     no eligible rows, every title in scope that is not captured is refused. An exhausted
-    page keeps the same refusals as the first page, and empty matches beside a refusal do
-    not mean nothing matched. Past 20 refusals, as_at_summary.unlisted_titles names the
-    rest under their status; pass a listed Register ID as act to read its refusal.
+    page keeps the same refusals as the first page. Empty matches alone do not show
+    whether rows were withheld: check each refusal's matching_rows and partial_rows;
+    a refused title can have zero matching rows. Past 20 refusals,
+    as_at_summary.unlisted_titles names the rest under their status; pass a listed
+    Register ID as act to read its refusal.
     captured is not a finding that the text was
     the law on that date: a compilation does not show application, saving or
     transitional provisions elsewhere, modification by another law, or an amendment

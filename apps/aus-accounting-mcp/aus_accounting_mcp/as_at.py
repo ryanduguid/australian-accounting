@@ -41,7 +41,9 @@ AS_AT_NOTICE = (
 )
 REFUSED_NOTICE = (
     "refusals names each title withheld for this date, with its status, window and "
-    "next_step. Empty matches beside a refusal do not mean nothing matched. The build holds "
+    "next_step. Empty matches alone do not show whether rows were withheld: check "
+    "matching_rows and partial_rows in each refusal. A refused title can have zero "
+    "matching rows. The build holds "
     "one compilation of a title, so a refusal is the answer for any earlier date: no "
     "earlier text is held."
 )
@@ -91,6 +93,8 @@ def _superseded(row: dict[str, Any], start: str, retrieved: str) -> str | None:
     if not isinstance(current, bool):
         raise _broken(row, "version_is_current must be true or false")
     if current:
+        if row.get("superseded_from") is not None:
+            raise _broken(row, "superseded_from must be null when version_is_current is true")
         return None
     superseded = _date(row, "superseded_from")
     if not start < superseded <= retrieved:

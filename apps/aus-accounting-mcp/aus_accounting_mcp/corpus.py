@@ -63,7 +63,7 @@ QUICK_BUILD = (
 )
 WITHHELD_CAVEAT = (
     "Text withheld: this title's status for {date} is {status}. Follow as_at.next_step. A "
-    "read without as_at returns the compilation the corpus holds, which is not text "
+    "read without as_at returns the compilation the corpus holds, which is not established as text "
     "for this date."
 )
 OMITTED_REFUSALS = (
@@ -781,7 +781,7 @@ def _dated_search(
         return _search(indexes, terms, act_terms, in_act, rows, count, start, corpus)
 
     titles = [
-        (path, row, standing(row, on))
+        (path, {key: row.get(key) for key in ("register_id", "act")}, standing(row, on))
         for path in _within_bounds(files)
         if (row := _first_row(path, on)) is not None
     ]

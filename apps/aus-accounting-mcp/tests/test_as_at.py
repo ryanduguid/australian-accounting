@@ -158,7 +158,7 @@ def test_a_date_before_every_compilation_returns_no_rows_and_says_so(dated):
     assert summary["titles"]["before_compilation"] == 3
     # A refusal is not the empty search's advice to reword the query.
     assert "No provision holds every word" not in result["notice"]
-    assert "do not mean nothing matched" in result["notice"]
+    assert "check matching_rows and partial_rows" in result["notice"]
 
 
 def test_a_refusal_carries_the_status_window_and_next_step(dated):
@@ -381,6 +381,23 @@ def test_withheld_counts_stream_without_retaining_every_result(tmp_path, monkeyp
     assert peak < 1_000_000, f"counting 10000 withheld rows retained {peak} bytes"
 
 
+def test_dated_search_does_not_retain_each_titles_first_text(tmp_path, monkeypatch):
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    for number in range(32):
+        write_title(tmp_path, title(f"C9999B{number:05}", f"Synthetic Title {number}",
+                                     "2098-07-01", texts=["synthetic levy " + "x" * 100000]))
+    tracemalloc.start()
+    try:
+        result = corpus.search_sections("synthetic levy", 5, 0, as_at="2098-01-01")
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+
+    assert result["as_at_summary"]["refused_titles"] == 32
+    assert result["as_at_summary"]["withheld_rows"] == 32
+    assert peak < 2_000_000, f"dated title metadata retained {peak} bytes"
+
+
 @pytest.mark.parametrize("first_start", ["2098-12-01", "2098-07-01"])
 @pytest.mark.parametrize("tool", [SEARCH, READ])
 def test_different_windows_of_one_title_stop_search_and_read(
@@ -476,7 +493,7 @@ def test_a_read_refused_for_the_date_keeps_the_citation_and_withholds_the_text(d
     assert result["next_start"] is None
     assert result["refusals"][0]["refused"] is True
     assert result["refusals"][0]["matching_rows"] == 3
-    assert "do not mean nothing matched" in result["notice"]
+    assert "check matching_rows and partial_rows" in result["notice"]
 
 
 def test_a_read_after_retrieval_is_refused_too(dated):
@@ -531,6 +548,10 @@ def test_a_date_that_is_not_text_is_an_input_error(dated):
         ({"compilation_date": "July 2098"}, "compilation_date is not a"),
         ({"version_is_current": None}, "version_is_current must be"),
         ({"version_is_current": "yes"}, "version_is_current must be"),
+        ({"version_is_current": True, "superseded_from": "2098-10-01"},
+         "superseded_from must be null"),
+        ({"version_is_current": True, "superseded_from": "not a date"},
+         "superseded_from must be null"),
         ({"version_is_current": False, "superseded_from": None}, "superseded_from is not a"),
         ({"version_is_current": False, "superseded_from": "2098-07-01"}, "superseded_from must"),
         ({"version_is_current": False, "superseded_from": "2099-01-02"}, "superseded_from must"),

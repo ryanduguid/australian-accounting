@@ -800,6 +800,10 @@ one that does not exist, is an input error. These are the statuses and field nam
 the corpus builder's own `as_at` stage ([contract](https://github.com/ryanduguid/au-tax-legislation-corpus/blob/main/docs/scope.md)),
 worked out from each row's `compilation_date`, `superseded_from`, `retrieved` and
 `version_is_current`.
+An observed later-version start takes precedence over `after_retrieval`: once a title
+is `superseded`, a later requested date does not make that known boundary uncertain.
+Current-version rows must have a null or absent `superseded_from`; contradictory metadata
+is an input error.
 
 | Status | Rows | What it covers | Next step |
 | --- | --- | --- | --- |
@@ -815,8 +819,9 @@ comes back for a date inside its window. `refusals` holds one object for each ot
 with rows the search would have returned, or that `act` names: `refused`, `register_id`,
 `act`, `matching_rows`, `partial_rows` and the same `as_at`. If the whole search has no
 eligible rows, it refuses every title in scope that is not `captured`. An exhausted page
-keeps the same refusals as the first page. Empty `matches` beside a refusal do not mean
-nothing matched.
+keeps the same refusals as the first page. Empty `matches` alone do not show whether rows
+were withheld: check each refusal's `matching_rows` and `partial_rows`, or the total
+`as_at_summary.withheld_rows`. A refused title can have zero matching rows.
 It lists at most 20, principal Acts first. `as_at_summary` counts `rows`, `withheld_rows`,
 `refused_titles` and `titles` at each status, names any further refused titles under their
 status in `unlisted_titles`, and repeats `covers`.
@@ -827,7 +832,7 @@ A read of a `captured` title returns its text, with `as_at` on the section and e
 neighbour. Any other status keeps the citation and window, returns empty `text` with the
 stored `total_chars`, no neighbours and null `next_start`, and names the status in
 `refusals`. A read without `as_at` still returns the compilation the corpus holds, which
-is not text for that date.
+is not established as text for that date.
 
 A status reads the compilation window, not the law on that date. A compilation does not
 show application, saving or transitional provisions elsewhere, modification by another
