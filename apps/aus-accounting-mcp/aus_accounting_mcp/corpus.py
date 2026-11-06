@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Iterable, Iterator
 
+from .as_at import AS_AT_NOTICE, CAPTURED, COVERS, REFUSED_NOTICE, STATUSES, checked_date, standing
 from .errors import NOT_CONFIGURED, InputError
 from .paging import page
 
@@ -33,6 +34,9 @@ MAX_CORPUS_BYTES = 320_000_000
 MAX_OFFSET = 10000
 SEARCH_TEXT_CHARS = 1200
 READ_TEXT_CHARS = 12000
+# Search results stay small enough for a model's context: a date before most of a corpus
+# would otherwise list hundreds of titles. as_at_summary still names every one.
+MAX_REFUSALS = 20
 ROW_ID = re.compile(r"^[A-Za-z0-9]{1,32}:[^\s]{1,64}:.{0,200}$")
 
 NOTICE = (
@@ -52,6 +56,20 @@ TRUNCATED_CAVEAT = (
 PART_CAVEAT = (
     "This part holds characters {start} to {end} of {total}. Pass next_start as start "
     "to read the next part; the register page has the whole provision."
+)
+QUICK_BUILD = (
+    "`python -m fadden quick --out <empty folder>` in au-tax-legislation-corpus builds 9 "
+    "principal Acts on this machine and prints the setting. "
+)
+WITHHELD_CAVEAT = (
+    "Text withheld: this title's status for {date} is {status}. Follow as_at.next_step. A "
+    "read without as_at returns the compilation the corpus holds, which is not established as text "
+    "for this date."
+)
+OMITTED_REFUSALS = (
+    "refusals lists {listed} of {total} refused titles, principal Acts first; "
+    "as_at_summary.unlisted_titles names the rest under their status. Pass one of those "
+    "Register IDs as act to see that title's refusal."
 )
 NO_MATCH_HINT = (
     "No provision holds every word. Statutes often word a concept differently from "
@@ -136,12 +154,15 @@ def _root() -> Path:
     if not configured:
         raise InputError(
             "Set AUS_ACCOUNTING_CORPUS_ROOT to an authorised legislation corpus folder. "
+            + QUICK_BUILD
             + NOT_CONFIGURED
         )
     root = Path(configured).resolve()
     if not root.is_dir():
         raise InputError(
-            "AUS_ACCOUNTING_CORPUS_ROOT must name an existing folder. " + NOT_CONFIGURED
+            "AUS_ACCOUNTING_CORPUS_ROOT must name an existing folder. "
+            + QUICK_BUILD
+            + NOT_CONFIGURED
         )
     return root
 
@@ -640,20 +661,204 @@ def _search(
     return result
 
 
+def _window_error(row: dict[str, Any]) -> InputError:
+    return InputError(
+        f"Rows of {row.get('register_id')!s:.32} disagree about their compilation window; "
+        "the title's index is broken: tell the user, and do not retry."
+    )
+
+
+def _first_row(path: Path, on: str) -> dict[str, Any] | None:
+    """The first row, after verifying every row shares its title and compilation window."""
+    first = None
+    window = None
+    try:
+        with path.open(encoding="utf-8") as stream:
+            for line in stream:
+                row = _row(line, [])
+                if row is None:
+                    continue
+                found = standing(row, on)
+                if first is None:
+                    first, window = row, found
+                elif found != window or row.get("register_id") != first.get("register_id"):
+                    raise _window_error(row)
+    except (OSError, UnicodeError) as exc:
+        raise InputError("Cannot read a UTF-8 JSONL index in the configured corpus.") from exc
+    return first
+
+
+def _dated_section(row: dict[str, Any], cap: int, on: str) -> dict[str, Any]:
+    """A row of a title held for on, with its standing.
+
+    A title is classified from one row, so a row disagreeing with it is a broken index.
+    Returning it would break the rule that a dated result holds only captured rows.
+    """
+    found = standing(row, on)
+    if found["status"] != CAPTURED:
+        raise _window_error(row)
+    return {**_section(row, cap), "as_at": found}
+
+
+def _refusal(
+    row: dict[str, Any], found: dict[str, Any], matching: int, partial: int = 0
+) -> dict[str, Any]:
+    """What a date withheld from one title, in the corpus builder's field names."""
+    return {
+        "refused": True,
+        "register_id": _string(row, "register_id"),
+        "act": _string(row, "act"),
+        "matching_rows": matching,
+        "partial_rows": partial,
+        "as_at": found,
+    }
+
+
+def _withheld_counts(
+    path: Path, terms: list[str], act_terms: list[str], scope: Callable[[dict[str, Any]], bool]
+) -> tuple[int, int]:
+    """Count the same full and partial matches as _search without retaining their rows."""
+    words = _words(terms)
+    holds_words = _matcher(words)
+
+    def is_match(row: dict[str, Any]) -> bool:
+        return holds_words(_joined(row, SECTION_FIELDS))
+
+    patterns = {term: _pattern(term) for term in words}
+    opposites = {
+        term: _pattern(_opposite(term)) for term in words if term.split()[0] in MODALS
+    }
+    parts = _parts(words)
+    try:
+        matching = sum(
+            scope(row) and is_match(row)
+            for row in _rows(path, parts + act_terms, all)
+        )
+        partial = 0
+        if len(words) + bool(opposites) > MIN_PARTIAL_WORDS and words[0] not in STOP_WORDS:
+            assess = _partial(
+                patterns, opposites, is_match, ("heading",), ("text",), scope, lambda _: {}
+            )
+            partial = sum(
+                assess(row) is not None
+                for row in _rows(path, parts, lambda held: sum(held) >= MIN_PARTIAL_WORDS)
+            )
+    except (OSError, UnicodeError) as exc:
+        raise InputError("Cannot read a UTF-8 JSONL index in the configured corpus.") from exc
+    return matching, partial
+
+
+def _dated_search(
+    files: list[Path],
+    on: str,
+    terms: list[str],
+    act_terms: list[str],
+    limit: int,
+    offset: int,
+    corpus: dict[str, Any],
+) -> dict[str, Any]:
+    """One page from titles held for on, and a refusal for each title that holds no answer.
+
+    A title is refused when it holds rows the same search would have returned, as matches
+    or partial hits, or when act names it. If the whole search has no eligible rows, every
+    title in scope that is not captured is refused. An exhausted page keeps the same
+    refusals as the first page. An index with no row has no window to withhold, so it is not
+    a title here. The status replaces in_force_only: a superseded compilation is the right
+    text for a date inside its window. Window validation streams each title once before
+    searching it; refused-title counts also stream without retaining result rows.
+    """
+
+    def in_act(row: dict[str, Any]) -> bool:
+        return not act_terms or _holds(row, ("act", "register_id"), act_terms)
+
+    def search(
+        indexes: list[Path],
+        build: Callable[[dict[str, Any]], dict[str, Any]],
+        count: int,
+        start: int,
+    ) -> dict[str, Any]:
+        rows = _Rows(SECTION_FIELDS, ("heading",), ("text",), build)
+        return _search(indexes, terms, act_terms, in_act, rows, count, start, corpus)
+
+    titles = [
+        (path, {key: row.get(key) for key in ("register_id", "act")}, standing(row, on))
+        for path in _within_bounds(files)
+        if (row := _first_row(path, on)) is not None
+    ]
+    held = [path for path, _, found in titles if found["status"] == CAPTURED]
+    result = search(held, lambda row: _dated_section(row, SEARCH_TEXT_CHARS, on), limit, offset)
+    no_rows = not result["matches"] and not result["partial_hits"]
+    if no_rows and offset:
+        first = search(held, lambda _: {}, 1, 0)
+        no_rows = not first["matches"] and not first["partial_hits"]
+    refusals = []
+    for path, row, found in titles:
+        if found["status"] == CAPTURED:
+            continue
+        rows = _withheld_counts(path, terms, act_terms, in_act)
+        if any(rows) or (in_act(row) and (no_rows or act_terms)):
+            refusals.append((_priority(row), _refusal(row, found, *rows)))
+    refusals.sort(key=lambda item: item[0])
+    statuses = [found["status"] for _, _, found in titles]
+    return _dated_page(result, [refusal for _, refusal in refusals], statuses, on, offset)
+
+
+def _dated_page(
+    result: dict[str, Any],
+    refusals: list[dict[str, Any]],
+    statuses: list[str],
+    on: str,
+    offset: int,
+) -> dict[str, Any]:
+    """A dated search page with its refusals, its summary and the limits of a status."""
+    notice = [result["notice"]]
+    if refusals:
+        notice.append(REFUSED_NOTICE)
+    elif not result["matches"] and not offset:
+        notice.append(NO_MATCH_HINT)
+    if len(refusals) > MAX_REFUSALS:
+        notice.append(OMITTED_REFUSALS.format(listed=MAX_REFUSALS, total=len(refusals)))
+    notice.append(AS_AT_NOTICE)
+    unlisted: dict[str, list[str | None]] = {}
+    for item in refusals[MAX_REFUSALS:]:
+        unlisted.setdefault(item["as_at"]["status"], []).append(item["register_id"])
+    result["notice"] = " ".join(notice)
+    result["refusals"] = refusals[:MAX_REFUSALS]
+    result["as_at_summary"] = {
+        "date": on,
+        "rows": len(result["matches"]) + len(result["partial_hits"]),
+        "withheld_rows": sum(item["matching_rows"] + item["partial_rows"] for item in refusals),
+        "refused_titles": len(refusals),
+        "unlisted_titles": unlisted,
+        "titles": {status: statuses.count(status) for status in STATUSES},
+        "covers": COVERS,
+    }
+    return result
+
+
 def search_sections(
-    query: str, limit: int, offset: int, act: str | None = None, in_force_only: bool = True
+    query: str,
+    limit: int,
+    offset: int,
+    act: str | None = None,
+    in_force_only: bool = True,
+    as_at: str | None = None,
 ) -> dict[str, Any]:
     """Search the configured corpus for sections holding the query's words, best first.
 
     _search says how a row holding only some of them is reported. A superseded
     compilation is left out unless in_force_only is False; a row
     whose currency the corpus did not record is kept either way, with its
-    version_is_current reported as null.
+    version_is_current reported as null. as_at answers for a date instead:
+    _dated_search says how.
     """
+    on = None if as_at is None else checked_date(as_at)
     terms = _terms(query, "query")
     act_terms = _terms(act, "act") if act else []
     root = _root()
     files = _index_files(root)
+    if on is not None:
+        return _dated_search(files, on, terms, act_terms, limit, offset, _provenance(root))
 
     def scope(row: dict[str, Any]) -> bool:
         if in_force_only and row.get("version_is_current") is False:
@@ -692,32 +897,10 @@ def _part(row: dict[str, Any], start: int) -> tuple[dict[str, Any], int | None]:
     return section, end if end < len(whole) else None
 
 
-def read_section(row_id: str, neighbours: int = 0, start: int = 0) -> dict[str, Any]:
-    """Read one cited section from the title index that owns it.
-
-    start is the character to read from, so a provision longer than one read is
-    taken in parts by passing each part's next_start back. neighbours adds up to
-    that many provisions on each side in the title's document order, at search
-    length, so a subsection can be read with the provisions around it without
-    guessing their labels.
-    """
-    if not ROW_ID.match(row_id):
-        raise InputError("Use a row_id returned by search_tax_legislation.")
-    # ROW_ID already holds everything before the first colon to 32 alphanumerics,
-    # so the folder name below cannot traverse or escape the corpus.
-    register_id = row_id.split(":", 1)[0]
-    root = _root()
-    path = root / "markdown" / register_id / "sections.jsonl"
-    # The same no-links rule _index_files applies to a search, component by
-    # component: a linked markdown directory let a direct read reach an index
-    # outside the configured root that search had refused.
-    if (
-        not path.is_file()
-        or _linked(path)
-        or _linked(path.parent)
-        or _linked(path.parent.parent)
-    ):
-        raise InputError("No title index for that row_id in the configured corpus.")
+def _around(
+    path: Path, row_id: str, neighbours: int
+) -> tuple[dict[str, Any] | None, list[dict[str, Any]], list[dict[str, Any]]]:
+    """The cited row of a title index, if any, and up to neighbours rows on each side."""
     # A title index is written in document order, so the parsed rows either side of the
     # cited one are the neighbouring provisions, including any container heading. The
     # file is streamed once: the last `neighbours` valid rows are kept in a bounded
@@ -751,17 +934,94 @@ def read_section(row_id: str, neighbours: int = 0, start: int = 0) -> dict[str, 
                     break
     except (OSError, UnicodeError) as exc:
         raise InputError("Cannot read that UTF-8 JSONL index in the configured corpus.") from exc
+    return found, list(before), after
+
+
+def _read_rows(
+    row_id: str, neighbours: int, on: str | None = None
+) -> tuple[Path, dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
+    """The corpus root, the cited row and up to neighbours rows on each side of it."""
+    if not ROW_ID.match(row_id):
+        raise InputError("Use a row_id returned by search_tax_legislation.")
+    # ROW_ID already holds everything before the first colon to 32 alphanumerics,
+    # so the folder name below cannot traverse or escape the corpus.
+    register_id = row_id.split(":", 1)[0]
+    root = _root()
+    path = root / "markdown" / register_id / "sections.jsonl"
+    # The same no-links rule _index_files applies to a search, component by
+    # component: a linked markdown directory let a direct read reach an index
+    # outside the configured root that search had refused.
+    if (
+        not path.is_file()
+        or _linked(path)
+        or _linked(path.parent)
+        or _linked(path.parent.parent)
+    ):
+        raise InputError("No title index for that row_id in the configured corpus.")
+    if on is not None:
+        _first_row(path, on)
+    found, before, after = _around(path, row_id, neighbours)
     if found is None:
         raise InputError("No section with that row_id in the configured corpus.")
-    section, next_start = _part(found, start)
+    return root, found, before, after
+
+
+def _withheld_read(
+    root: Path, row: dict[str, Any], found: dict[str, Any], start: int, withheld: int
+) -> dict[str, Any]:
+    """A read refused for a date: the cited row's citation and window, without its text."""
+    section = _section({**row, "text": ""}, READ_TEXT_CHARS)
+    section["total_chars"] = len(_string(row, "text") or "")
+    section["caveats"].insert(
+        0, WITHHELD_CAVEAT.format(date=found["date"], status=found["status"])
+    )
     return {
-        "section": section,
+        "section": {**section, "as_at": found},
+        "start": start,
+        "next_start": None,
+        "before": [],
+        "after": [],
+        "refusals": [_refusal(row, found, withheld)],
+        "corpus": _provenance(root),
+        "notice": f"{NOTICE} {REFUSED_NOTICE} {AS_AT_NOTICE}",
+    }
+
+
+def read_section(
+    row_id: str, neighbours: int = 0, start: int = 0, as_at: str | None = None
+) -> dict[str, Any]:
+    """Read one cited section from the title index that owns it.
+
+    start is the character to read from, so a provision longer than one read is
+    taken in parts by passing each part's next_start back. neighbours adds up to
+    that many provisions on each side in the title's document order, at search
+    length, so a subsection can be read with the provisions around it without
+    guessing their labels.
+
+    as_at reports the title's standing on that date. Only a title held for the date gives
+    text, as in a dated search; any other keeps the citation and window and withholds the
+    text, so a date never returns a row it cannot answer for.
+    """
+    on = None if as_at is None else checked_date(as_at)
+    root, row, before, after = _read_rows(row_id, neighbours, on)
+    found = None if on is None else standing(row, on)
+    if found is not None and found["status"] != CAPTURED:
+        return _withheld_read(root, row, found, start, 1 + len(before) + len(after))
+
+    def near(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        if on is None:
+            return [_section(item, SEARCH_TEXT_CHARS) for item in rows]
+        return [_dated_section(item, SEARCH_TEXT_CHARS, on) for item in rows]
+
+    section, next_start = _part(row, start)
+    return {
+        "section": section if found is None else {**section, "as_at": found},
         "start": start,
         "next_start": next_start,
-        "before": [_section(near, SEARCH_TEXT_CHARS) for near in before],
-        "after": [_section(near, SEARCH_TEXT_CHARS) for near in after],
+        "before": near(before),
+        "after": near(after),
         "corpus": _provenance(root),
-        "notice": NOTICE,
+        "notice": NOTICE if found is None else f"{NOTICE} {AS_AT_NOTICE}",
     }
 
 

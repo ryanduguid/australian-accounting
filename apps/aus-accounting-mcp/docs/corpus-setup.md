@@ -7,9 +7,51 @@ point the server at the resulting files. Keep generated material outside every
 source checkout. A successful search establishes retrieval, not current law or
 the applicability of a passage.
 
+## Build the principal Acts with one command
+
+This is the shortest route to a working `search_tax_legislation`. It needs Rust,
+Python 3.14 or later, `curl` and network access, and it fetches each Act from the Federal Register
+of Legislation onto your machine. Choose an absent or empty folder outside every source
+checkout:
+
+```bash
+git clone https://github.com/ryanduguid/au-tax-legislation-corpus
+cd au-tax-legislation-corpus
+cargo build --locked --release
+python -m fadden quick --out ../tax-law
+```
+
+It builds and indexes 9 Acts: the ITAA 1997, ITAA 1936, GST Act, TAA 1953, FBTAA 1986,
+*Superannuation Guarantee (Administration) Act 1992*, *Income Tax (Transitional
+Provisions) Act 1997*, *Income Tax Rates Act 1986* and *Superannuation Industry
+(Supervision) Act 1993*. It works in a sibling `<folder>.building` and moves the build
+into your folder only once each Act holds rows and a query gets a hit. It then prints
+that hit, the elapsed time and the setting for this server:
+
+```text
+AUS_ACCOUNTING_CORPUS_ROOT=<that folder as an absolute path>
+```
+
+Add that line to the `env` block of the server's entry in the MCP host's configuration,
+then restart the server. Search 'general deductions' with `search_tax_legislation`, then
+read a returned `row_id` with `read_tax_legislation_section`.
+
+One run on 6 November 2026 took 116 seconds on a Windows 11 desktop PC with an Intel
+Core i7-12700K, for 9 titles and 9,439 rows, and `search_tax_legislation` returned
+section 8-1 of the ITAA 1997 first. Network speed and the Register's load will change
+the figure, and one run is not a benchmark
+([build evidence](https://github.com/ryanduguid/au-tax-legislation-corpus/blob/main/docs/build-evidence.md#one-command-preset-build)).
+
+The folder holds these 9 Acts only, so a 'no match' says nothing about any other
+title. It has no rates index: `search_tax_rates` refuses it and, from the release after 0.7.1,
+`aus-accounting-mcp doctor` reports the folder as broken for that reason and exits 1. `define_tax_term` and
+the 2 legislation tools work. The
+[full build](https://github.com/ryanduguid/au-tax-legislation-corpus/blob/main/BUILD.md)
+covers the rest of the corpus and the rates index.
+
 ## First verify the connection with fabricated evidence
 
-Use Python 3.14 or later and uv. Clone both public repositories into sibling
+This route tests the rulings tools without building any legislation. Use Python 3.14 or later and uv. Clone both public repositories into sibling
 directories. From `australian-accounting/apps/aus-accounting-mcp`, run:
 
 ```bash

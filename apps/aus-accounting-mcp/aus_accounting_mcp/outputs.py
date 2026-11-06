@@ -560,6 +560,68 @@ CorpusProvenance = Annotated[
 ]
 
 
+class AsAtStanding(ResultObject):
+    """A title's compilation window against one date, in the corpus builder's field names."""
+
+    date: DateText
+    status: Annotated[
+        Literal["captured", "before_compilation", "superseded", "after_retrieval"],
+        Field(description="How the compilation the corpus holds relates to date. captured is "
+                          "not a finding that the text was the law then."),
+    ]
+    compilation_date: DateText
+    superseded_from: Annotated[
+        DateText | None, Field(description="When a later version started, or null if the "
+                                           "version was current when the corpus was built."),
+    ]
+    retrieved: DateText
+    covers: Annotated[str, Field(description="What the status covers. Retain it.")]
+    next_step: Annotated[
+        str | None, Field(description="What to do about a refused title; null for captured."),
+    ]
+
+
+class AsAtRefusal(ResultObject):
+    """One title a date withheld, so that no row is left out silently."""
+
+    refused: Literal[True]
+    register_id: str | None
+    act: str | None
+    matching_rows: Annotated[
+        int, Field(ge=0, description="Rows withheld that hold every word, or for a read, "
+                                     "the rows that read asked for.")
+    ]
+    partial_rows: Annotated[
+        int, Field(ge=0, description="Rows withheld that the search would have offered as "
+                                     "partial hits.")
+    ]
+    as_at: AsAtStanding
+
+
+class AsAtSummary(ResultObject):
+    date: DateText
+    rows: Annotated[int, Field(ge=0, description="Rows returned on this page.")]
+    withheld_rows: Annotated[int, Field(ge=0, description="Rows withheld across all refusals.")]
+    refused_titles: Annotated[
+        int, Field(ge=0, description="Titles refused, which can exceed the refusals listed.")
+    ]
+    unlisted_titles: Annotated[
+        dict[str, list[str | None]],
+        Field(description="Register ids of refused titles past the refusals list, by status."),
+    ]
+    titles: Annotated[
+        dict[str, int], Field(description="Titles in the corpus at each status for date.")
+    ]
+    covers: Annotated[str, Field(description="What the status covers. Retain it.")]
+
+
+Refusals = Annotated[
+    list[AsAtRefusal],
+    Field(description="Only with as_at. Each title withheld for that date, with its status "
+                      "and next step. A refusal is an answer, not an empty search."),
+]
+
+
 class LegislationSection(ResultObject):
     """One cited provision copied from the operator's corpus at its build date."""
 
@@ -590,6 +652,9 @@ class LegislationSection(ResultObject):
         int, Field(ge=0, description="Characters in the stored provision before truncation.")
     ]
     caveats: Caveats
+    as_at: NotRequired[Annotated[
+        AsAtStanding, Field(description="Only with as_at. This row's status and window."),
+    ]]
 
 
 PartialLabel = Annotated[
@@ -632,6 +697,10 @@ class LegislationSearch(ResultObject):
     next_offset: int | None
     corpus: CorpusProvenance
     notice: str
+    refusals: NotRequired[Refusals]
+    as_at_summary: NotRequired[Annotated[
+        AsAtSummary, Field(description="Only with as_at. Counts rows and every title's status."),
+    ]]
 
 
 class LegislationExcerpt(ResultObject):
@@ -656,6 +725,7 @@ class LegislationExcerpt(ResultObject):
     ]
     corpus: CorpusProvenance
     notice: str
+    refusals: NotRequired[Refusals]
 
 
 RulingsProvenance = Annotated[

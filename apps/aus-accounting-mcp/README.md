@@ -123,8 +123,8 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote. Records cover 2025-26 and 2026-27 only; any other date is refused. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
-| `search_tax_legislation` | Find provisions in a configured local legislation corpus, best match first. A plain question works: stop words are dropped, and provisions holding at least 2 of the words but not all, a modal word's opposite form counting towards the 2, come back labelled as partial hits, never as matches. |
-| `read_tax_legislation_section` | Read one cited provision in full, in parts when it is long. |
+| `search_tax_legislation` | Find provisions in a configured local legislation corpus, best match first. A plain question works: stop words are dropped, and provisions holding at least 2 of the words but not all, a modal word's opposite form counting towards the 2, come back labelled as partial hits, never as matches. `as_at` answers for a date from each title's compilation window and refuses by name any title it cannot answer for. |
+| `read_tax_legislation_section` | Read one cited provision in full, in parts when it is long. `as_at` adds the title's status and window, and withholds the text unless the status is `captured`. |
 | `define_tax_term` | Find an expression's statutory definitions in that corpus. |
 | `search_tax_rates` | Find legislated rates and thresholds with the provision that sets them. |
 | `search_ato_rulings` | Find paragraphs in a configured local ATO rulings corpus. |
@@ -148,7 +148,9 @@ The research tools need a folder you supply: set `AUS_ACCOUNTING_LIBRARY_ROOT` t
 authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus or
 `AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by
 [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus).
-The [corpus setup walkthrough](docs/corpus-setup.md) verifies the existing builder
+[`python -m fadden quick --out <empty folder>`](docs/corpus-setup.md#build-the-principal-acts-with-one-command)
+in that repository builds 9 principal Acts on your machine and prints the setting. The
+[corpus setup walkthrough](docs/corpus-setup.md) also verifies the existing builder
 and MCP tools together using a fabricated page before any live capture.
 The package ships none of them. From the release after 0.7.1, run
 `aus-accounting-mcp doctor` with the same variables set to see each folder's row count;
@@ -156,7 +158,10 @@ it exits 1 if a configured folder is broken.
 A corpus or rulings row is a point-in-time copy, not
 a live lookup, and an edited version of private advice cannot be relied on by anyone.
 Legislation results preserve a row's capture date and recorded successor date when
-available. Rulings results expose a captured withdrawal notice; `UNKNOWN` means
+available. From the release after 0.7.1, `as_at` on the legislation search and read
+tools reports each title's status for a date: `captured` is not a finding that the text
+was the law then, and a date inside a window can still carry text amended without a new
+compilation. Rulings results expose a captured withdrawal notice; `UNKNOWN` means
 withdrawal status was not established, including in older runs. Notice presence
 does not decide its effect for an earlier period or establish today's status.
 Point the library at reference material, or at one engagement at a time, never at a
