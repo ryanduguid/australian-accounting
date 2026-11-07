@@ -588,7 +588,11 @@ cargo test --locked
 and command runs, plus generated cases, and `tests/BEHAVIOURS.md` maps each
 original test to its Rust coverage. The formula properties run as seeded Rust
 tests against exact rational arithmetic, beside the ATO's 2 worked repayments and
-how the shortfall must move when one fact moves.
+how the shortfall must move when one fact moves. `tests/evidence_states.rs`
+walks every combination of a register row's gate and repayment facts through one
+review, against the s 109N tables restated there, so each row reaches one gate
+verdict, one code per limb that did not pass and one repayment verdict. A new
+register column or summary count fails it until the walk covers it.
 
 The tests cover every frozen rate year, every verdict, every refusal, the
 2025-26 May-vs-June trap, the formula against exact rational arithmetic and a
