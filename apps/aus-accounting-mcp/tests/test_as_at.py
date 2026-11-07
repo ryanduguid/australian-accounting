@@ -3,7 +3,7 @@
 
 """`as_at` on the legislation search and read tools, against fabricated titles.
 
-The status rules follow docs/scope.md in au-tax-legislation-corpus. Every row is invented.
+The status rules follow docs/scope.md in PaulGoodman. Every row is invented.
 """
 
 import asyncio

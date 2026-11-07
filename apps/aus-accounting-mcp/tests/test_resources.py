@@ -346,7 +346,7 @@ def test_the_instructions_name_the_guardrail_guide_and_its_outcome_classes() -> 
     flat = _normalise(SERVER_INSTRUCTIONS)
 
     assert "DrDebits" in flat
-    assert "https://github.com/ryanduguid/llm-tax-guardrails" in flat
+    assert "https://github.com/ryanduguid/DrDebits" in flat
     assert "guide version 0.3.3" in flat
     for outcome in ("PROCEED_DRAFT_ONLY", "NEEDS_FACTS", "ESCALATE", "HARD_STOP"):
         assert outcome in flat, outcome

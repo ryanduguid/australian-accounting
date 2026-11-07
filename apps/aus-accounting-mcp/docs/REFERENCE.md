@@ -646,7 +646,7 @@ A `sections.jsonl` row carries `row_id`, `register_id`, `act`, `collection`,
 `compilation_date`, `superseded_from`, `retrieved`, `version_is_current`,
 `register_page`, `source_url`, `licence`, `attribution` and `text`. A `rates.jsonl` row carries `rate_id`, `topic`, `kind`,
 `amounts`, `years` and `content` alongside the same title and section fields.
-[au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus)
+[PaulGoodman](https://github.com/ryanduguid/PaulGoodman)
 builds a corpus in this shape from the Federal Register of Legislation. Its
 `python -m fadden quick --out <empty folder>` builds 9 principal Acts and prints the
 setting; [the setup guide](corpus-setup.md#build-the-principal-acts-with-one-command) gives
@@ -797,7 +797,7 @@ unless `in_force_only` is false.
 From the release after 0.7.1, `search_tax_legislation` and
 `read_tax_legislation_section` take `as_at`, a `YYYY-MM-DD` date. A malformed date, or
 one that does not exist, is an input error. These are the statuses and field names of
-the corpus builder's own `as_at` stage ([contract](https://github.com/ryanduguid/au-tax-legislation-corpus/blob/main/docs/scope.md)),
+the corpus builder's own `as_at` stage ([contract](https://github.com/ryanduguid/PaulGoodman/blob/main/docs/scope.md)),
 worked out from each row's `compilation_date`, `superseded_from`, `retrieved` and
 `version_is_current`.
 An observed later-version start takes precedence over `after_retrieval`: once a title
@@ -903,7 +903,7 @@ enters the calling assistant's context.
 ## Local ATO rulings runs
 
 Set `AUS_ACCOUNTING_RULINGS_ROOT` to a folder of runs written by the rulings stage
-of [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus)
+of [PaulGoodman](https://github.com/ryanduguid/PaulGoodman)
 (`python -m fadden rulings TARGETS.json --out NEW_DIR`), or to one such run:
 
 ```json
