@@ -221,6 +221,18 @@ pub fn minimum_yearly_repayment(
     table: Option<&BenchmarkTable>,
     over: Option<&RateOverride>,
 ) -> Result<MyrResult, Failure> {
+    repayment_within(facts, None, table, over)
+}
+
+/// `minimum_yearly_repayment`, also refusing a remaining term longer than
+/// `maximum_term`: the s 109N(3) maximum term the same register row's security
+/// facts establish.
+pub(crate) fn repayment_within(
+    facts: &MyrFacts,
+    maximum_term: Option<&Decimal>,
+    table: Option<&BenchmarkTable>,
+    over: Option<&RateOverride>,
+) -> Result<MyrResult, Failure> {
     let mut refusals: Vec<(&str, String)> = Vec::new();
     let mut unknowns: Vec<(&str, String)> = Vec::new();
     let mut caveats: Vec<String> = vec![
@@ -371,6 +383,25 @@ pub fn minimum_yearly_repayment(
                 caveats.push(format!(
                     "remaining_term_years {supplied} was rounded up to {used} under the closing \
                      words of s 109E(6)."
+                ));
+            }
+            if let Some(maximum) = maximum_term
+                && gate.is_some_and(|g| g.verdict == "COMPLYING")
+                && used.gt(maximum)?
+            {
+                refusals.push((
+                    "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM",
+                    format!(
+                        "remaining_term_years is {supplied}, a remaining term of {used} under \
+                         s 109E(6), longer than the {maximum}-year maximum term this row's \
+                         security facts give under s 109N(3), yet the gate found the loan on \
+                         s 109N terms. Both cannot hold: each constituent loan is one s 109N \
+                         saves (s 109E(3)(b)), so its term is within its maximum term \
+                         (s 109N(1)(c)); the constituent loans share one maximum term \
+                         (s 109E(3)(c)); and the remaining term is the longest constituent \
+                         term less the years since the loan year (s 109E(6)). Correct the \
+                         remaining term or the security facts. No MYR figure is emitted."
+                    ),
                 ));
             }
             term_used = Some(used);

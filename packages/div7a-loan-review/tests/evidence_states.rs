@@ -315,3 +315,73 @@ fn every_row_of_evidence_reaches_the_one_answer_the_tables_give() {
         assert_eq!(summary[key], want, "{key}");
     }
 }
+
+/// A loan the gate passes on a maximum term its security facts establish
+/// cannot have a remaining term longer than that maximum (s 109E(3)(b) and (c),
+/// s 109N(1)(c) and (3), s 109E(6)). Where the security facts leave the maximum
+/// open, or the gate did not pass, nothing conflicts and nothing more is refused.
+#[test]
+fn a_remaining_term_past_the_maximum_term_cannot_hold() {
+    let conflict = "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM";
+    let base = Row {
+        written: Some(true),
+        in_time: Some(true),
+        made: "2024-25",
+        rate: Some(RATE_2024_25),
+        term: Some(7),
+        secured: Some(false),
+        coverage: None,
+        paid: Some(REQUIRED),
+    };
+    let secured = |coverage, term| Row {
+        secured: Some(true),
+        coverage: Some(coverage),
+        term: Some(term),
+        ..base
+    };
+    let unsecured_unknown = Row {
+        secured: None,
+        ..base
+    };
+    let not_complying = Row {
+        written: Some(false),
+        ..base
+    };
+    let cases: [(Row, &str, &[&str]); 9] = [
+        (base, "7", &[]),
+        (base, "7.5", &[conflict]),
+        (base, "8", &[conflict]),
+        (secured("1.09", 7), "8", &[conflict]),
+        (secured("1.10", 25), "25", &[]),
+        (secured("1.10", 25), "26", &[conflict]),
+        (unsecured_unknown, "8", &[]),
+        (not_complying, "30", &["REFUSED_GATE_NOT_COMPLYING"]),
+        (base, "0", &["REFUSED_REMAINING_TERM_NOT_POSITIVE"]),
+    ];
+    let cells: Vec<Value> = cases
+        .iter()
+        .enumerate()
+        .map(|(i, (row, remaining, _))| {
+            let mut cell = row.json(&format!("C{i}"));
+            cell["remaining_term_years"] = json!(remaining);
+            cell
+        })
+        .collect();
+    let report = review(cells);
+    for (i, (row, remaining, want)) in cases.iter().enumerate() {
+        let id = format!("C{i}");
+        let line = report["lines"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|l| l["loan_id"] == id.as_str())
+            .unwrap();
+        assert_eq!(codes(&line["myr"]), *want, "{row:?} {remaining}");
+        if want.is_empty() {
+            assert!(
+                line["myr"]["myr_required"].is_string(),
+                "{row:?} {remaining}"
+            );
+        }
+    }
+}
