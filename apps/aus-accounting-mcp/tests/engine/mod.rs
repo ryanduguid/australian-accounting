@@ -139,9 +139,10 @@ pub fn freshness(row: &mut Value) {
 /// the catalogue passage. The note's layout is Python's.
 pub fn file_note(kind: &str, note: &str, before: &Value, after: &Value) -> String {
     let mut note = note.to_owned();
-    for (old, new) in [(&before["scope"], &after["scope"])] {
-        note = note.replace(old.as_str().unwrap(), new.as_str().unwrap());
-    }
+    note = note.replace(
+        before["scope"].as_str().unwrap(),
+        after["scope"].as_str().unwrap(),
+    );
     let lines = |result: &Value| -> String {
         result["sources"]
             .as_array()
