@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Point-in-time legislation indexes supplied by the operator. No downloads.
 use super::{Context, POLICY, linked, page, terms};
 use payday_super_checker::{py, pyre::Regex};

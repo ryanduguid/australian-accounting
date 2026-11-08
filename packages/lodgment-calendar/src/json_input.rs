@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Reject duplicate object fields before serde_json constructs its value map.
 use serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
 use std::collections::HashSet;

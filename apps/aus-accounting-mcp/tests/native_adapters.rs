@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 use aus_accounting_mcp::handler::AccountingServer;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! README: the server "makes no network calls once installed". This watches the original
 //! `tests/test_no_network.py` calculations over stdio.
 //!

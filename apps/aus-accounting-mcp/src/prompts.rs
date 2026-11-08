@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Preserve the published guidance, including historical version references.
 use serde_json::{Map, Value, json};
 pub fn get(name: &str, arguments: Option<&Map<String, Value>>) -> Result<Value, String> {

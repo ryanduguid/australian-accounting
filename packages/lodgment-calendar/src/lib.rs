@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Local preparation aid for the recorded 2026-27 ATO lodgment program.
 //! Missing facts, ambiguous rules and incomplete calendars remain UNKNOWN.
 pub mod api;

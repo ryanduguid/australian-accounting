@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! What each bundled dataset records about its period, version and sources.
 //! Every value is read from the linked engines; a fact an engine does not record
 //! is reported as UNKNOWN, and nothing here says that a figure is current.

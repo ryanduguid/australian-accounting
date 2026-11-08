@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Frozen discovery is metadata, never a replacement calculation or dataset.
 use serde_json::{Value, json};
 use std::collections::HashMap;

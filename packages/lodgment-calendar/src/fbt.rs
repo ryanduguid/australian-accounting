@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! FBT return rules: the 2027 return, for the FBT year ending 31 March 2027.
 use crate::{Payment, Rule, date};
 use serde_json::Value;

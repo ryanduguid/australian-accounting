@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! ABN and ACN check digits. Arithmetic only: no lookup, and nothing about registration.
 //!
 //! These live in the facade, as in the Python server, because no linked engine

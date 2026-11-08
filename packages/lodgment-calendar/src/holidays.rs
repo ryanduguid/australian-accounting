@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Recorded whole-of-state holidays and caller-supplied calendar coverage.
 use crate::{data, date};
 use chrono::{Datelike, NaiveDate};

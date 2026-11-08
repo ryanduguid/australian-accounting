@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! JSON API for the native engine. All dates use canonical YYYY-MM-DD strings.
 use crate::{CHECKED, Payment, Rule, VERSION, data, fbt, holidays, returns, statements};
 use serde_json::{Map, Value, json};

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Policy is embedded; mutable engine metadata comes from the linked engines.
 use ato_benchmark_compare::{
     dataset::{self, DataDir},

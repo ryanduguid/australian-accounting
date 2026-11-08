@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Offline supplementary evaluation; recordings are never executed.
 #[path = "../evaluation/mod.rs"]
 mod evaluation;

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 use div7a_loan_review::{decimal::Decimal, raw::Raw};
 use regex::Regex;
 use serde_json::Value;

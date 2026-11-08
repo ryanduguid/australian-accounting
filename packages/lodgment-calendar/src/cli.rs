@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Small native interface, shared with the umbrella command.
 use std::ffi::OsStr;
 pub type Outcome = (i32, String, String);

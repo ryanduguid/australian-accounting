@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Distribution checks use a copied server, registered tools and an empty PATH.
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};

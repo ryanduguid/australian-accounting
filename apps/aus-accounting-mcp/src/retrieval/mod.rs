@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Opt-in, bounded reads of operator-configured reference folders.
 mod corpus;
 mod library;

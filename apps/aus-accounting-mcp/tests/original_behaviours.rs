@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Relationships and negative observations from the original Python assertions.
 use aus_accounting_mcp::{contracts, handler::AccountingServer};
 use regex::Regex;

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Negative schema and CLI contracts from the original application's tests.
 use aus_accounting_mcp::{contracts, handler::AccountingServer};
 use serde_json::{Value, json};

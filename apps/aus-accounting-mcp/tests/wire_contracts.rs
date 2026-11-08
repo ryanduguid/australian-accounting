@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Frozen original JSON-RPC exchanges, replayed through the actual stdio binary.
 use serde_json::Value;
 use std::{

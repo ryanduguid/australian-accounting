@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! The original Pydantic core descriptors preserve effective input behaviour.
 //! They contain no executable Python and no statutory calculation.
 use div7a_loan_review::raw::Raw;

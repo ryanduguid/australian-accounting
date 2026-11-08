@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Complete output oracles captured from the unchanged Python evaluation tool.
 use serde_json::Value;
 use std::{

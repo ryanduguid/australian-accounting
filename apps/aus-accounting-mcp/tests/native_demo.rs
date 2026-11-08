@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Compare the complete native proof with the checked Python proof.
 use serde_json::{Value, json};
 use std::process::{Command, Stdio};

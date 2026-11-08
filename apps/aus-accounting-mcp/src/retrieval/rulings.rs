@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Validated, immutable operator runs. Metadata signatures avoid repeat validation.
 use super::Lines;
 use super::{

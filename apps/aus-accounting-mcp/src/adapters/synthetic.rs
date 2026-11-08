@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Fixed fabricated demonstrations, not statutory calculations or SBR lodgments.
 use div7a_loan_review::decimal::{Decimal, Rounding};
 use serde_json::{Value, json};

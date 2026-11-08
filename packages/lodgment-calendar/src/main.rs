@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 use lodgment_calendar::{api, cli};
 use std::io::{Read, Write};
 mod json_input;

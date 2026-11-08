@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Translation to the linked checker's public assessment and pack APIs.
 use payday_super_checker::{
     self as engine, Failure,

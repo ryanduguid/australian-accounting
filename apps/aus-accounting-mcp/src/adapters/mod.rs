@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Translation only. All statutory calculation and provenance belong to engines.
 mod benchmarks;
 mod div7a;

@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Index local engine reports without merging their conclusions or scope.
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};

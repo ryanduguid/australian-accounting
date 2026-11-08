@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 use serde_json::{Map, Value, json};
 
 const DISCLAIMER: &str = "Experimental review aid. Not a BAS, a revised BAS, a lodgement or a GST determination. The operator supplies registration dates, codes, periods, lodged figures and the basis, and none of them is verified. Obtain human review before acting.";

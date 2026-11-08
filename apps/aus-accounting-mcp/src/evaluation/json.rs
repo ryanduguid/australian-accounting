@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Keep JSON integer/decimal types and exact decimal values without serde's
 //! synthetic-number map representation colliding with a real user object.
 use div7a_loan_review::decimal::Decimal;

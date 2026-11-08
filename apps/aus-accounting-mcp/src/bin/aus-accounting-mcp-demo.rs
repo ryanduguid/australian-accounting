@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Fabricated proof through the same validated dispatcher as MCP tools/call.
 use aus_accounting_mcp::handler::AccountingServer;
 use serde_json::{Value, json};

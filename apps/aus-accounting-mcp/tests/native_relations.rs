@@ -1,3 +1,6 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+
 //! Preserve original cross-source assertions that frozen payloads cannot prove.
 use ato_benchmark_compare::dataset::{self, DataDir};
 use aus_accounting_mcp::{contracts, handler::AccountingServer, prompts, resources};
