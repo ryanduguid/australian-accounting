@@ -21,8 +21,10 @@ fn corpus() -> Vec<Value> {
 
 /// Applies `data/amendments.json`: the answers that deliberate changes made
 /// since Python 0.3.2 replace, kept apart so the frozen record never changes.
-/// Each override names its case's test and may replace only its `expected`,
-/// once, so a stale index or a typo fails the replay.
+/// Each override replaces one command run's `expected`, once. It names the
+/// case's test and, in `was`, the frozen exit code and the FNV-1a hashes of
+/// the frozen stdout and stderr, and it keeps that exit code and stderr, so a
+/// stale index or an override that absorbs another change fails the replay.
 fn amend(cases: &mut [Value]) {
     let amendments: Value =
         serde_json::from_str(include_str!("data/amendments.json")).expect("amendments parse");
@@ -31,16 +33,47 @@ fn amend(cases: &mut [Value]) {
         for (index, fields) in change["cases"].as_object().unwrap() {
             let at = index.parse::<usize>().unwrap();
             assert!(seen.insert(at), "case {index} amended twice");
+            for key in fields.as_object().unwrap().keys() {
+                assert!(
+                    ["test", "was", "expected"].contains(&key.as_str()),
+                    "case {index}: cannot amend {key}"
+                );
+            }
             let case = &mut cases[at];
             assert_eq!(case["test"], fields["test"], "case {index} is another test");
-            for (key, value) in fields.as_object().unwrap() {
-                match key.as_str() {
-                    "test" => {}
-                    "expected" => case[key] = value.clone(),
-                    _ => panic!("case {index}: cannot amend {key}"),
-                }
-            }
+            assert_eq!(
+                case["kind"], "cli",
+                "case {index}: only command runs are amended"
+            );
+            let frozen = &case["expected"];
+            let was = json!({
+                "code": frozen["code"],
+                "stdout": stored_fnv(&frozen["stdout"]),
+                "stderr": stored_fnv(&frozen["stderr"]),
+            });
+            assert_eq!(
+                fields["was"], was,
+                "case {index}: supersedes another answer"
+            );
+            let new = &fields["expected"];
+            assert_eq!(
+                new["code"], frozen["code"],
+                "case {index}: exit code changed"
+            );
+            assert_eq!(
+                new["stderr"], frozen["stderr"],
+                "case {index}: stderr changed"
+            );
+            case["expected"] = new.clone();
         }
+    }
+}
+
+/// The FNV-1a hash of a frozen output, stored as its text or as its hash.
+fn stored_fnv(stored: &Value) -> String {
+    match stored {
+        Value::String(text) => fnv(text.as_bytes()),
+        hashed => hashed["fnv"].as_str().expect("a stored output").to_string(),
     }
 }
 
