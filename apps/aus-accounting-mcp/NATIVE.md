@@ -291,8 +291,12 @@ identity and already-reviewed provenance differences are allowed:
   refuses them. #551 and #567 also widen the PAYG and FBT scope text to name those
   periods; the server serves the 0.2.0 words for the periods its schema admits
   (`NARROWED_SCOPE` in `src/adapters/tax.rs`), so the scope a caller confirms is
-  the scope it gets. A unit test fails if a served scope names a year outside the
-  worksheet's advertised periods.
+  the scope it gets. A unit test fails if a served scope names a year from 2024
+  on, the earliest advertised period, outside the worksheet's advertised periods;
+  earlier years name legislation or history. `tests/narrowed_scope.rs` fails if a
+  worksheet's served scope differs from the engine's without an engine period the
+  schema refuses, so a narrowing cannot outlive the schema change that opens its
+  periods.
 
 No other provenance changes are normalised. The original Python application,
 published compatibility metadata and external consumer pins are unchanged.
@@ -398,6 +402,6 @@ Worksheet engine changes:
   $15,000. Available capacity, remaining room and excess are unchanged. No other
   figure differed in the 1,716-call parity replay against the Python server,
   which runs 0.7.1's engine releases.
-- The PAYG withholding and FBT worksheets cite an added ATO source
-  (`b4a70733`, `d8f34dc2`). Their scope and input schema are unchanged: the
+- The PAYG withholding and FBT worksheets cite an added ATO source and extend
+  the source passage (`b4a70733`, `d8f34dc2`). Their scope and input schema are unchanged: the
   2026-27 PAYG year and the FBT year ending 31 March 2026.
