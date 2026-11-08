@@ -377,6 +377,11 @@ fn the_checker_reads_the_columns_and_the_report_carries_them() {
     let (plain_code, ..) = check_file(&format!("{header}\n{without}"));
     assert_eq!(plain_code, Some(2));
     assert_eq!(code, plain_code, "{stderr}");
+    // The report keeps its 18 columns; the evidence goes in notes and caveats.
+    assert_eq!(
+        report.trim_start_matches('\u{feff}').lines().next(),
+        Some(payday_super_checker::report::CSV_HEADER.join(",").as_str())
+    );
     assert!(report.contains(FIRST_YEAR), "{report}");
     assert!(
         report.contains("a fund error (CTER-0002) is recorded"),
@@ -418,7 +423,7 @@ fn pack(csv: &str) -> (Option<i32>, Vec<Vec<u8>>) {
     (out.status.code(), files)
 }
 
-/// The pack keeps its 18-column report and its bytes when no evidence is given,
+/// The pack keeps its report header and its bytes when no evidence is given,
 /// and carries evidence through the report it is rebuilt from.
 #[test]
 fn the_evidence_pack_is_unchanged_without_evidence_and_carries_it() {
@@ -440,7 +445,12 @@ fn the_evidence_pack_is_unchanged_without_evidence_and_carries_it() {
         .lines()
         .next()
         .unwrap();
-    assert_eq!(first, payday_super_checker::report::CSV_HEADER.join(","));
+    // The pack's report is the 18-column report without employee_id.
+    let pack_header: Vec<&str> = payday_super_checker::report::CSV_HEADER
+        .into_iter()
+        .filter(|c| *c != "employee_id")
+        .collect();
+    assert_eq!(first, pack_header.join(","));
 
     let evidenced = pack(&format!(
         "{header},receipt_evidence,mvr_status,fund_error_ref\n{},sent,,none\n{},fund,matched,CTER-0003\n",
