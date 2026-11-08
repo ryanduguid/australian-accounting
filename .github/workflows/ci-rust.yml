@@ -207,7 +207,7 @@ jobs:
           cargo clippy --manifest-path wasm/Cargo.toml --locked --target wasm32-unknown-unknown --lib -- -D warnings
           cargo build --manifest-path wasm/Cargo.toml --locked --release --target wasm32-unknown-unknown
           node ../../.github/ci/check_engine_wasm.mjs "$ENGINE" "target/release/$BINARY"
-      - name: Verify the extracted native candidate
+      - name: Extract the native candidate
         if: inputs.candidate-test != ''
         env:
           CANDIDATE_TEST: ${{ inputs.candidate-test }}
@@ -215,19 +215,26 @@ jobs:
           BASE: ${{ steps.archive.outputs.base }}
         run: |
           set -euo pipefail
+          # The next step names its ignored test literally, as check_orphan_tests.py reads it.
+          if [[ "$CANDIDATE_TEST" != native_candidate ]]; then
+            echo "::error::No step verifies candidate test $CANDIDATE_TEST."
+            exit 1
+          fi
+          # The runner empties RUNNER_TEMP after the job.
           unpacked="$(mktemp -d "$RUNNER_TEMP/native-candidate.XXXXXX")"
           [[ "$unpacked" == "$RUNNER_TEMP"/native-candidate.* && -d "$unpacked" && ! -L "$unpacked" ]]
-          trap 'rm -rf "$unpacked"' EXIT
           if [[ "$RUNNER_OS" == Windows ]]; then
             7z x -y "-o$unpacked" "dist/$ARCHIVE" >/dev/null
-            NATIVE_CANDIDATE_ROOT="$(cygpath -w "$unpacked/$BASE")"
+            root="$(cygpath -w "$unpacked/$BASE")"
           else
             tar -xzf "dist/$ARCHIVE" -C "$unpacked"
-            NATIVE_CANDIDATE_ROOT="$unpacked/$BASE"
+            root="$unpacked/$BASE"
           fi
-          export NATIVE_CANDIDATE_ROOT
-          export NATIVE_CANDIDATE_COMMIT="$GITHUB_SHA"
-          cargo test --locked --release --test "$CANDIDATE_TEST" -- --ignored
+          echo "NATIVE_CANDIDATE_ROOT=$root" >> "$GITHUB_ENV"
+          echo "NATIVE_CANDIDATE_COMMIT=$GITHUB_SHA" >> "$GITHUB_ENV"
+      - name: Verify the extracted native candidate
+        if: inputs.candidate-test == 'native_candidate'
+        run: cargo test --locked --release --test native_candidate -- --ignored --nocapture
       - name: Keep native candidate
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

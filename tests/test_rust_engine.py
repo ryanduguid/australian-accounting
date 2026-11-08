@@ -8,7 +8,14 @@ import tomllib
 import unittest
 from pathlib import Path
 
-from test_boundaries import DATASETS, NATIVE_CANDIDATES, ROOT, RUST_APPLICATIONS, RUST_ENGINES, select_package
+from test_boundaries import (
+    DATASETS,
+    NATIVE_CANDIDATES,
+    ROOT,
+    RUST_APPLICATIONS,
+    RUST_ENGINES,
+    select_package,
+)
 
 rust_crates = runpy.run_path(str(ROOT / ".github/ci/rust_crates.py"))
 
@@ -145,12 +152,12 @@ class RustEngineTests(unittest.TestCase):
             with self.subTest(crate=crate["package"]):
                 self.assertNotIn(f"package: {crate['package']}\n", caller)
         by_name = {crate["package"]: crate for crate in crates}
-        self.assertEqual(by_name["au-tax-rates-data"], {"package": "au-tax-rates-data", "root": "packages", "binary": "rates", "smoke": "validate"})
-        self.assertEqual(by_name["au-accounting"], {"package": "au-accounting", "root": "apps", "binary": "au-accounting", "smoke": "--version"})
+        self.assertEqual(by_name["au-tax-rates-data"], {"package": "au-tax-rates-data", "root": "packages", "binary": "rates", "smoke": "validate", "candidate-test": ""})
+        self.assertEqual(by_name["au-accounting"], {"package": "au-accounting", "root": "apps", "binary": "au-accounting", "smoke": "--version", "candidate-test": ""})
         self.assertEqual(by_name["the-wip-tally"]["binary"], "wip-tally")
         self.assertEqual(by_name["gst-review"]["smoke"], "--api-help")
         self.assertEqual(by_name["aus-accounting-mcp"], {"package": "aus-accounting-mcp", "root": "apps", "binary": "aus-accounting-mcp", "smoke": "--version", "candidate-test": "native_candidate"})
-        self.assertEqual(by_name["lodgeit-calculator-adapter"], {"package": "lodgeit-calculator-adapter", "root": "apps", "binary": "lodgeit-adapter", "smoke": "contract"})
+        self.assertEqual(by_name["lodgeit-calculator-adapter"], {"package": "lodgeit-calculator-adapter", "root": "apps", "binary": "lodgeit-adapter", "smoke": "contract", "candidate-test": ""})
 
     def test_crate_lister_rejects_what_ci_rust_cannot_check(self):
         engine = '[package]\nname = "engine"\n'
