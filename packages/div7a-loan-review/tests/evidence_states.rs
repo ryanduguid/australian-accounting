@@ -126,13 +126,13 @@ impl Row {
         }
     }
 
-    /// s 109N(3): 25 years for a registered mortgage covering 110% when the
+    /// s 109N(3): 25 years for a registered mortgage covering at least 110% when the
     /// loan is first made, 7 for any other loan, and not known until the
     /// security facts are.
     fn maximum(&self) -> Option<u32> {
         match (self.secured, self.coverage) {
             (Some(false), _) => Some(7),
-            (Some(true), Some("1.10")) => Some(25),
+            (Some(true), Some("1.10" | "1.11")) => Some(25),
             (Some(true), Some(_)) => Some(7),
             _ => None,
         }
@@ -199,7 +199,7 @@ fn rows() -> Vec<Row> {
                 for rate in [None, Some(BELOW), Some(RATE_2024_25), Some("0.0900")] {
                     for term in [None, Some(7), Some(8), Some(25), Some(26)] {
                         for secured in known {
-                            for coverage in [None, Some("1.09"), Some("1.10")] {
+                            for coverage in [None, Some("1.09"), Some("1.10"), Some("1.11")] {
                                 for paid in [None, Some(CENT_SHORT), Some(REQUIRED)] {
                                     rows.push(Row {
                                         written,
@@ -242,7 +242,7 @@ fn review(rows: Vec<Value>) -> Value {
 #[test]
 fn every_row_of_evidence_reaches_the_one_answer_the_tables_give() {
     let rows = rows();
-    assert_eq!(rows.len(), 3 * 3 * 2 * 4 * 5 * 3 * 3 * 3);
+    assert_eq!(rows.len(), 3 * 3 * 2 * 4 * 5 * 3 * 4 * 3);
     let mut cells: Vec<Value> = rows
         .iter()
         .enumerate()
