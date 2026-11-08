@@ -13,11 +13,11 @@ use std::{
 const READ_ERROR: &str = "Cannot read a UTF-8 JSONL index in the configured corpus.";
 const SECTION_FIELDS: &[&str] = &["act", "section", "heading", "container", "text"];
 const RATE_FIELDS: &[&str] = &["act", "section", "heading", "topic", "content"];
-static ROW_ID: LazyLock<Regex> = LazyLock::new(|| Regex::new(policy("ROW_ID")));
+static ROW_ID: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("ROW_ID")));
 static DICTIONARY: LazyLock<Regex> =
     LazyLock::new(|| Regex::ignore_case(policy("DICTIONARY_HEADING")));
-static DEFINITION: LazyLock<Regex> = LazyLock::new(|| Regex::new(policy("DEFINITION_HEAD")));
-static SUBSECTION: LazyLock<Regex> = LazyLock::new(|| Regex::new(policy("SUBSECTION_LABEL")));
+static DEFINITION: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("DEFINITION_HEAD")));
+static SUBSECTION: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("SUBSECTION_LABEL")));
 
 fn policy(name: &str) -> &'static str {
     POLICY["corpus"][name].as_str().unwrap()

@@ -23,11 +23,11 @@ use std::{
 fn policy(name: &str) -> &'static str {
     POLICY["rulings"][name].as_str().unwrap()
 }
-static RUN_NAME: LazyLock<Regex> = LazyLock::new(|| Regex::new(policy("RUN_NAME")));
-static DOCID: LazyLock<Regex> = LazyLock::new(|| Regex::new(policy("DOCID")));
-static ROW_REF: LazyLock<Regex> = LazyLock::new(|| Regex::new(policy("ROW_REF")));
-static ISO_DATE: LazyLock<Regex> = LazyLock::new(|| Regex::new(policy("ISO_DATE")));
-static SHA256: LazyLock<Regex> = LazyLock::new(|| Regex::new(policy("SHA256")));
+static RUN_NAME: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("RUN_NAME")));
+static DOCID: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("DOCID")));
+static ROW_REF: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("ROW_REF")));
+static ISO_DATE: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("ISO_DATE")));
+static SHA256: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("SHA256")));
 
 #[derive(Clone)]
 struct Run {
