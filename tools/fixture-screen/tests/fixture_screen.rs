@@ -302,7 +302,7 @@ fn tracked_files_carry_no_undocumented_identifier() {
     // One worker per core pulls the next path; a thread per file outgrows task limits.
     let next = AtomicUsize::new(0);
     let threads = std::thread::available_parallelism().map_or(1, NonZeroUsize::get);
-    let results = std::thread::scope(|scope| {
+    let mut results: Vec<_> = std::thread::scope(|scope| {
         let workers: Vec<_> = (0..threads)
             .map(|_| {
                 scope.spawn(|| {
@@ -322,6 +322,8 @@ fn tracked_files_carry_no_undocumented_identifier() {
             .flat_map(|w| w.join().expect("screen thread"))
             .collect()
     });
+    // Back in `git ls-files` order, so failures are listed the same way every run.
+    results.sort_unstable_by(|a, b| a.0.cmp(&b.0));
     let failures = verdict(results, include_str!("synthetic-identifiers.txt"));
     assert!(
         failures.is_empty(),
