@@ -347,7 +347,11 @@ fn a_remaining_term_past_the_maximum_term_cannot_hold() {
         written: Some(false),
         ..base
     };
-    let cases: [(Row, &str, &[&str]); 9] = [
+    let undecided = Row {
+        written: None,
+        ..base
+    };
+    let cases: [(Row, &str, &[&str]); 10] = [
         (base, "7", &[]),
         (base, "7.5", &[conflict]),
         (base, "8", &[conflict]),
@@ -356,6 +360,7 @@ fn a_remaining_term_past_the_maximum_term_cannot_hold() {
         (secured("1.10", 25), "26", &[conflict]),
         (unsecured_unknown, "8", &[]),
         (not_complying, "30", &["REFUSED_GATE_NOT_COMPLYING"]),
+        (undecided, "8", &["REFUSED_GATE_UNKNOWN"]),
         (base, "0", &["REFUSED_REMAINING_TERM_NOT_POSITIVE"]),
     ];
     let cells: Vec<Value> = cases

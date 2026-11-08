@@ -394,13 +394,16 @@ pub(crate) fn repayment_within(
                     format!(
                         "remaining_term_years is {supplied}, a remaining term of {used} under \
                          s 109E(6), longer than the {maximum}-year maximum term this row's \
-                         security facts give under s 109N(3), yet the gate found the loan on \
+                         security facts give under s 109N(3) before any s 109N(3A) to (3D) \
+                         reduction, which can only shorten it, yet the gate found the loan on \
                          s 109N terms. Both cannot hold: each constituent loan is one s 109N \
                          saves (s 109E(3)(b)), so its term is within its maximum term \
                          (s 109N(1)(c)); the constituent loans share one maximum term \
                          (s 109E(3)(c)); and the remaining term is the longest constituent \
                          term less the years since the loan year (s 109E(6)). Correct the \
-                         remaining term or the security facts. No MYR figure is emitted."
+                         remaining term or the security facts. Enter a loan secured and \
+                         extended under s 109E(3A) as the new amalgamated loan s 109E(3B) \
+                         creates, with its 25-year security facts. No MYR figure is emitted."
                     ),
                 ));
             }

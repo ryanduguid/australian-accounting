@@ -77,7 +77,7 @@ rather than a number it cannot stand behind.
 | Refused | Why |
 | --- | --- |
 | Forming the amalgamated loan from constituent loans | s 109E(3). v1 takes the unpaid balance at the end of the previous year from the operator. A list of component loans gets `UNKNOWN`. |
-| A remaining term longer than the maximum term, on a loan the gate passed | In a register review, the row's security facts give the s 109N(3) maximum term. Each constituent loan is one s 109N saves (s 109E(3)(b)), so its term is within that maximum (s 109N(1)(c)), and the constituent loans share one maximum term (s 109E(3)(c)). The s 109E(6) remaining term, the longest constituent term less the years since the loan year, cannot be longer. Where the security facts are unknown, nothing is refused. |
+| A remaining term longer than the maximum term, on a loan the gate passed | In a register review, the row's security facts give the s 109N(3) maximum term, before any s 109N(3A) to (3D) reduction, which can only shorten it. Each constituent loan is one s 109N saves (s 109E(3)(b)), so its term is within that maximum (s 109N(1)(c)), and the constituent loans share one maximum term (s 109E(3)(c)). The s 109E(6) remaining term, the longest constituent term less the years since the loan year, cannot be longer. Where the security facts are unknown, nothing is refused. Enter a loan secured and extended under s 109E(3A) as the new amalgamated loan s 109E(3B) creates, with its 25-year security facts. |
 | A minimum yearly repayment for the year the loan was made | s 109E(1)(a) reaches a loan made 'in an earlier year of income'; s 109P puts an amalgamated loan outside s 109D in the year it is made. |
 | A repayment figure for a loan that is not on s 109N terms | A constituent loan is one that would be a s 109D dividend apart from s 109N (s 109E(3)(b)), so a loan that fails s 109N is not one. Absent another Subdivision D exclusion, s 109D(1) treats it as a dividend in the year it was made (s 109D(1AA)). A schedule does not save it. |
 | Whether a payment is a genuine repayment | s 109R turns on what a reasonable person would conclude about intention. The operator asserts the amount applied. Bank credits are not a substitute. |
@@ -590,8 +590,9 @@ and command runs, plus generated cases, and `tests/BEHAVIOURS.md` maps each
 original test to its Rust coverage. The formula properties run as seeded Rust
 tests against exact rational arithmetic, beside the ATO's 2 worked repayments and
 how the shortfall must move when one fact moves. `tests/evidence_states.rs`
-walks every combination of a register row's gate and repayment facts through one
-review, against the s 109N tables restated there, so each row reaches one gate
+walks every combination of representative values of a register row's gate facts
+and payment through one review, with the review year, balance and remaining term
+fixed, against the s 109N tables restated there, so each row reaches one gate
 verdict, one code per limb that did not pass and one repayment verdict. A new
 register column or summary count fails it until the walk covers it.
 

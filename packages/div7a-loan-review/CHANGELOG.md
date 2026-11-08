@@ -91,11 +91,14 @@ divergences.
 - A register review (`review`, `myr` and `review-register`) refuses the minimum
   yearly repayment with `REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM` where the
   gate passed the loan, its security facts establish the s 109N(3) maximum term
-  (7 or 25 years), and `remaining_term_years`, rounded up, is longer. Python
+  (7 or 25 years, before any s 109N(3A) to (3D) reduction, which can only
+  shorten it), and `remaining_term_years`, rounded up, is longer. Python
   0.3.2 worked a repayment from those facts. They cannot both hold: each
   constituent loan's term is within its maximum term (s 109E(3)(b),
   s 109N(1)(c)), the constituent loans share one maximum term (s 109E(3)(c)),
-  and the s 109E(6) remaining term is at most the longest of their terms. A row
+  and the s 109E(6) remaining term is at most the longest of their terms. The
+  refusal tells the caller to enter a loan secured and extended under
+  s 109E(3A) as the new amalgamated loan s 109E(3B) creates. A row
   whose security facts are unknown, a gate that did not pass and the
   `minimum-yearly-repayment` command are unchanged. The replay applies the 17
   changed generated answers from `tests/data/amendments.json`, leaving the
