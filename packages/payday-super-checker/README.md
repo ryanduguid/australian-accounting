@@ -276,8 +276,9 @@ rerun before treating any verdict here as final.
 
 A returned amount is not a contribution (SIS Regulations reg 7.07G(4); LCR 2026/2
 paragraphs 24 and 25), and the deadline does not restart on a rejection. Two inputs
-say so. This Rust checker reads both. The Excel workbook reads `returned_by_fund`
-and sends you here for events. Aus Accounting MCP links the published Python package,
+say so. This Rust checker reads both. The Excel workbook reads `returned_by_fund` and an
+Events sheet in the `--events` columns, leaves every line they touch `UNKNOWN` and
+sends you here to decide it. Aus Accounting MCP links the published Python package,
 which reads neither, so the server refuses a contribution marked `returned_by_fund`
 instead of reading its receipt as kept.
 
@@ -341,6 +342,42 @@ of `report.csv`, so `evidence-pack` carries it. A resubmission with no fund rece
 yet has no event: the line stays `UNKNOWN` until the fund receipt is evidenced. See
 [LIMITATIONS.md](LIMITATIONS.md#psc-3-returned-contributions-rest-on-the-rows-and-events-you-supply)
 and the [source record](docs/primary-source-review-2026-10-31.md).
+
+### What stands behind a receipt
+
+Three optional columns record what you know about a contribution: `receipt_evidence`,
+`mvr_status` and `fund_error_ref` (the table under [Input columns](#input-columns)).
+They never change a verdict, a figure or the exit code, and the report keeps its 18
+columns. The report's `notes` and `caveats` columns list them for the row, so
+`evidence-pack` carries them in its `report.csv` and `exceptions.json`;
+`practitioner-review.md` repeats the caveats of rows not `ON_TIME`, never notes. The
+JSON `assess` subcommand takes and returns them on a line.
+
+- A fund error reference adds a caveat: a fund that rejects a contribution must send
+  an error message saying why, and a rejected amount is not a contribution. The
+  reference alone does not say an amount came back; if one did, record it with
+  `returned_by_fund` or `--events`.
+- `mvr_status=not_matched` adds a separate caveat: the fund could not match the member
+  or accept a contribution. It is not a fund error and is not refused, even on an
+  `ON_TIME` row.
+- A row is refused when its evidence contradicts it: `fund` or `clearing_house` with
+  no fund receipt recorded, `sent` with one, or `sent` with no `remitted_date`. A
+  receipt is recorded by `fund_received_date` or by an event that names one: a
+  `received` event, an `allocated` event or a `returned` event with a `receipt_date`.
+- From 1 July 2026 an employer must send a member verification request before a first
+  contribution to a fund, where its software supports it. The checker records the
+  answer and does not test whether one was needed.
+
+For QE days to 30 June 2027, an `AT_RISK` row whose `remitted_date` (the day you sent
+the money) is the QE day itself, with `fund_error_ref=none`, gets a note quoting the
+ATO: if no errors have been received, the employer can assume the fund received the
+contribution on time. The checker also leaves the note off a row with a `not_matched`
+verification or a return; those are its own conservative additions, not ATO
+conditions. A `remitted_date` that is a clearing house's later date withholds the
+note. The row stays `AT_RISK`. That is the ATO's first-year compliance approach
+(PCG 2026/1), not evidence of receipt, and the ATO still applies the law where it has
+definitive information of a shortfall (paragraph 11). Sources are in the
+[8 November source record](docs/primary-source-review-2026-11-08.md).
 
 ### A receipt date needs an amount
 
@@ -528,6 +565,9 @@ Required: `employee_id`, `payment_date`, `sg_amount`. Everything else is optiona
 | `matched_amount` | `matched_amount` | Total contribution amount associated with this payday, capped at `sg_amount`. The importer writes an explicit amount even when the vendor supplied no payment date: zero for no match, the partial amount for a short match, and the liability for a full or over match. It is not proof of remittance or fund receipt. When you add `fund_received_date`, it is the amount that date can evidence, and a receipt date with neither this column nor `remitted_amount` evidences no amount at all. If it is below `sg_amount` and `remitted_date` is present, `remitted_amount` is required |
 | `received` | `fund_received_date` | Day the fund received the eligible contribution associated with this QE day. Receipt is necessary for an on-time result; the row association also asserts the contribution was allocable and applied to this QE day under the statutory ordering. The date fixes timing only. The amount it evidences is `matched_amount`, then `remitted_amount` for older 10-column partial files; a row with neither amount is left `UNKNOWN` rather than `ON_TIME` (versions 0.1.6 and earlier read it as the whole `sg_amount`) |
 | `returned_by_fund` | `returned_by_fund` | Optional. Yes when a fund returned some or all of this contribution. A file carrying this column, however it is capitalised, spaced or punctuated, is refused when the mapping does not read it. See [A contribution the fund returned](#a-contribution-the-fund-returned) |
+| `receipt_evidence` | `receipt_evidence` | Optional. Where the receipt is known from: `fund` (the fund's own record dates `fund_received_date`), `clearing_house` (a clearing house's record of the fund's receipt dates it) or `sent` (a record shows the contribution sent to the fund, with no receipt confirmed). See [What stands behind a receipt](#what-stands-behind-a-receipt) |
+| `mvr_status` | `mvr_status` | Optional. The fund's answer to a member verification request: `matched`, `not_matched` or `not_sent` |
+| `fund_error_ref` | `fund_error_ref` | Optional. The reference of a fund error message (CTER) for this contribution, or `none` when you checked and none was received |
 | `join_caveats` | `join_caveats` | Optional, appended last. The importer writes the join's structural warnings here, joined with `"\|"`, so they travel with the file into the report's caveats column and the evidence pack instead of living only in the console. Blank on a clean join; absent on canonical files from before 0.1.5 |
 | `first_to_fund` | `first_contribution_to_fund` | Yes for the first contribution to that fund (new starter, or a fund switch) |
 | `out_of_cycle` | `out_of_cycle` | Yes only for an allowance, bonus, commission, loading, payment in advance or back payment made outside an established payment timing, pattern or schedule, where the statutory next-standard-payment conditions are met |
@@ -644,7 +684,8 @@ takes the Python function's default and a field it required must be given;
 has the canonical field names (`employee_id`, `qe_day`, `sg_amount`,
 `remitted`, `remitted_amount`, `received`, `first_to_fund`, `out_of_cycle`,
 `next_standard_qe_day`, `db_interest`, `row`, `matched_amount`,
-`join_caveats`). A `calendar` is the bundled table, `{"override_path": ...}`
+`join_caveats`), and optionally `returned_by_fund`, `events`, `receipt_evidence`,
+`mvr_status` and `fund_error_ref`. A `calendar` is the bundled table, `{"override_path": ...}`
 for an override file, or explicit `holidays` with `verified_from`,
 `verified_until` and `coverage_until`. `quarters` replaces the bundled GIC
 table with explicit `from`, `to` and `annual_pct` entries.
