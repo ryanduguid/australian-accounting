@@ -66,7 +66,9 @@ fn lax_bool(value: &Value) -> Result<bool, &'static str> {
             let whole = number.as_i64().or_else(|| {
                 number
                     .as_f64()
-                    .filter(|float| float.fract() == 0.0 && float.abs() < 9.2e18)
+                    .filter(|float| {
+                        float.fract() == 0.0 && *float > i64::MIN as f64 && *float < i64::MAX as f64
+                    })
                     .map(|float| float as i64)
             });
             match whole {
@@ -586,5 +588,22 @@ mod tests {
         let huge: serde_json::Value =
             serde_json::from_str("1000000000000000000000000000000").unwrap();
         assert_eq!(super::lax_bool(&huge), Err("bool_type"));
+    }
+
+    /// Pydantic 2.13.5 reads a whole float strictly inside the i64 range as an integer
+    /// (B-1 receipts, lax_bool_bound.py).
+    #[test]
+    fn a_whole_float_inside_the_i64_range_is_an_integer_to_pydantic() {
+        for (input, expected) in [
+            (9.21e18, "bool_parsing"),
+            (9_223_372_036_854_774_784.0, "bool_parsing"),
+            (9_223_372_036_854_775_808.0, "bool_type"),
+            (-9.21e18, "bool_parsing"),
+            (-9_223_372_036_854_774_784.0, "bool_parsing"),
+            (-9_223_372_036_854_775_808.0, "bool_type"),
+            (9.3e18, "bool_type"),
+        ] {
+            assert_eq!(super::lax_bool(&json!(input)), Err(expected), "{input}");
+        }
     }
 }
