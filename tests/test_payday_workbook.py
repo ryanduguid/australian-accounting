@@ -29,8 +29,8 @@ ENGINE_SAMPLE = ROOT / "tests" / "data" / "workbook-sample.json"
 WORKBOOK_ENGINE_VERSION = "1.0.0"
 WORKBOOK = ROOT / "workbooks" / "payday-super-checker.xlsx"
 AS_AT = date(2026, 8, 10)
-SHEETS = ("Start Here", "Register", "Codes", "Holidays", "GIC", "Summary", "Review Checks",
-          "Sources & Version")
+SHEETS = ("Start Here", "Register", "Events", "Codes", "Holidays", "GIC", "Summary",
+          "Review Checks", "Sources & Version")
 EXPOSED = ("LATE", "UNPAID")
 
 
@@ -174,5 +174,11 @@ def test_input_columns_are_formatted_so_pasted_values_stay_inert():
     assert date_format.replace("\\", "") == "yyyy-mm-dd"
     assert "ISFORMULA(" in ws.cell(row=2, column=titles.index("Guard") + 1).value
     assert ws.protection.sheet is False, "pasting extends the table"
+    events = book["Events"]
+    titles = [c.value for c in events[1]]
+    assert events.cell(row=2, column=titles.index("employee_id") + 1).number_format == "@"
+    date_format = events.cell(row=2, column=titles.index("event_date") + 1).number_format
+    assert date_format.replace("\\", "") == "yyyy-mm-dd"
+    assert events.protection.sheet is False, "pasting extends the table"
     assert book["Summary"].protection.sheet is True
     assert book["Review Checks"].protection.sheet is True

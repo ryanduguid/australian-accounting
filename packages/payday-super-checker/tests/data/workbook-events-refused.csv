@@ -1,0 +1,4 @@
+employee_id,payment_date,sg_amount,remitted_date,remitted_amount,matched_amount,fund_received_date,first_contribution_to_fund,out_of_cycle,next_standard_payday,defined_benefit,returned_by_fund
+PLAIN,2027-08-05,500.00,2027-08-06,500.00,500.00,2027-08-09,no,no,,no,no
+TWIN,2027-08-05,500.00,2027-08-06,500.00,500.00,2027-08-09,no,no,,no,no
+TWIN,2027-08-05,500.00,2027-08-06,500.00,500.00,2027-08-09,no,no,,no,no
