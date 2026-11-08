@@ -1,11 +1,11 @@
 {
-  "base": "03baab7",
-  "catalogue_sha256": "20a83c189f6f58eeda792f699556723417d29827b61679b1a388e2dab0a707eb",
+  "base": "d87dac3",
+  "catalogue_sha256": "5865c232a0f8f7f546bcf0049e8e4c9cc322fb42ec77750b95fff58fa3aec934",
   "wire_transcript_sha256": "2d7f9fb8a586f1d319c7253a252c5b993c6deade68656c14030fe68584c04434",
   "full_effective_contracts_sha256": "4141727745a0e3693e22a91aa24181ff99da1ee5b88581a0ca54162b75f7c28f",
-  "native_fixture_sha256": "1e49a21ecfdaa35722055be8ed8683428094c55522eed9ce6c3a481cc7aea04d",
+  "native_fixture_sha256": "fa5587a653ff9050201cf21b903d5a80b335af2e96e2fcf6bda4d6df4409a6c6",
   "capture": "The unchanged Python application passed all 1,083 original tests under read-only instrumentation. Original-only additional captures cover effective validation, fabricated retrieval and protocol boundaries. All expected values were frozen before native comparison.",
-  "fixture_scope": "1005 non-retrieval effective SDK calls, 6 resources, 34 prompts, 250 retrieval cases plus 3 large-catalogue provenance cases and 1,175 JSON-RPC replies across 34 sessions. Complete results/refusals are compared, with only the identities and provenance allowances in NATIVE.md. Additional negative schema, extension and CLI assertions are in boundary_contracts.rs. This does not assert every original test is covered.",
+  "fixture_scope": "1653 non-retrieval effective SDK calls, 6 resources, 34 prompts, 842 retrieval cases plus 3 large-catalogue provenance cases and 1,175 JSON-RPC replies across 34 sessions. Complete results/refusals are compared, with only the identities and provenance allowances in NATIVE.md. Additional negative schema, extension and CLI assertions are in boundary_contracts.rs. This does not assert every original test is covered.",
   "oracle_sha256": {
     "calvino-followups-v1.json": "6a1cfb42c762b2b5fea35928a296284573571f11b7599e2c1ab63283bc31b70e",
     "coverage-edges-v2.json": "86af4c1cbfc04b1ef6b4382370db5173a41e7f46c7d0f23a1c75633aa25c8f69",
@@ -20,28 +20,28 @@
     "wire-coverage-v1.json": "621f21c655294a4d55bf119f49a750e956f6601e640556fbe226de4af310aea4"
   },
   "fixture_sha256": {
-    "tests/fixtures/native/adapter-contracts.json": "1e49a21ecfdaa35722055be8ed8683428094c55522eed9ce6c3a481cc7aea04d",
+    "tests/fixtures/native/adapter-contracts.json": "fa5587a653ff9050201cf21b903d5a80b335af2e96e2fcf6bda4d6df4409a6c6",
     "tests/fixtures/native/calvino-followups.json": "98ae641df911e3d57f14777b02357d497b691092a349572a92846042217e504c",
     "tests/fixtures/native/coverage-edges.json": "6676a59037ac1d851b3d4be588b62fdaf7f002896885305cbef70c82fd4d0828",
-    "tests/fixtures/native/legacy-openers.json": "78280b3db961c041f9a7fcfd2738300c447c7fbe7c488a38933cf0525dfcaf6d",
-    "tests/fixtures/native/lifecycle-edges.json": "d08b3279a1445c89d4fa70bac69552195f1b4920e4f3052c664b57255db16445",
-    "tests/fixtures/native/lifecycle-sessions.json": "220aa4ce560022c473dba42d64ebafe88bfd963001669798615001f332e73ff6",
+    "tests/fixtures/native/legacy-openers.json": "97654a2ec9debe19162c96c926b86ea07412f59391c6cf4cd6a8a0d546d3892d",
+    "tests/fixtures/native/lifecycle-edges.json": "df98ad14f72ef21847fac754be3d91a2c917b1d80fd2b20d6d22889c66ce9202",
+    "tests/fixtures/native/lifecycle-sessions.json": "0b447cae04967b6fa12b963ac1f8967c8014c3943a9632dd145c6ffd06f6f3d2",
     "tests/fixtures/native/prompt-contracts.json": "a47c53ee05d234c2eb5020fae4d28240f93c7bf91106aa11508bea213d591afa",
-    "tests/fixtures/native/resource-contracts.json": "bf6bf675613e6dbb270f1cff7ce7696abe90168b76947a30d9386948cf3ae0bb",
-    "tests/fixtures/native/retrieval-contracts.json": "09f17293fd639d11321e1b15c33d7730bacf3230f50fa286f6818fa74d631110",
-    "tests/fixtures/native/retrieval-edges.json": "d9111c4a95db3a97eb68e4707bb014f66769e53add29673a5196b621b5301c39",
+    "tests/fixtures/native/resource-contracts.json": "467b9f88a19fd1ddb6f80f2c0c1d6076093d5c214fef61c4f10872a4f7cdf257",
+    "tests/fixtures/native/retrieval-contracts.json": "a20f660aa7cc466f175fa09ca611ca5c44bd23260bc1540ae4dd91b5820e6351",
+    "tests/fixtures/native/retrieval-edges.json": "31beec8bb07fe2996b62f778f6506ac64221eb32cea4abd5eb80f33939da1b42",
     "tests/fixtures/native/validation-edges.json": "b50c86b340df2b0af7c2107ffc578862de57cd2a02da9d8983ab5cc6549ddd7a",
-    "tests/fixtures/native/wire-coverage.json": "6c6d19563b91aca9d80e4f3dca6520ca8e1f185ab3f81fed74dc54a43aa2f1fa",
-    "tests/fixtures/native/wire-sessions.json": "d2ea5770fe60cf394eb237ef3db22457c218eb2cd2a81d105f8bb8087fc4fa16",
-    "tests/fixtures/native/freshness-contracts.json": "b6f70854f71e4049070bdb83cc8b526edeac9610c606b695fe847e21eb34f37a"
+    "tests/fixtures/native/wire-coverage.json": "c4cc469c0cc4a64f547581d2404fa59eba9365ce14cf6982f61a5d25e3809cea",
+    "tests/fixtures/native/wire-sessions.json": "ab7060ed04fe1df09e4573d1a92df5cbf865ccb3665080774645310d0ddc4827",
+    "tests/fixtures/native/freshness-contracts.json": "77e3b1ae568d38aa550c98db606a409f7ce1afddcd64609710faa7c1fdd6c469"
   },
   "data_sha256": {
-    "data/catalogue.v1.json": "20a83c189f6f58eeda792f699556723417d29827b61679b1a388e2dab0a707eb",
-    "data/effective-inputs.v1.json": "bcb9596eb48268afecb113c38e617e5a56388f73da55ceebf99fd3b753765a0f",
-    "data/resource-policy.v1.json": "74eb5693d8d8f72c67c585d07f75d48c0908d24c3898f466c868bb4d11facea3",
-    "data/retrieval-policy.v1.json": "8ded8cb8576335891251b4c2f0ecf668531d204cbd6762b97bbd0df7ba9abae6"
+    "data/catalogue.v1.json": "5865c232a0f8f7f546bcf0049e8e4c9cc322fb42ec77750b95fff58fa3aec934",
+    "data/effective-inputs.v1.json": "e8702dddeab3cb5bacaf3648b5cf1cf7aa139805c6dbd3316423ce8c11f54cd9",
+    "data/resource-policy.v1.json": "63ff46ae95114d120416d6d2077849a720ad76ae683f199dc6d284a1a1a39d68",
+    "data/retrieval-policy.v1.json": "96b819d1d94124947b883391d90287aaaea1af34a1d55e86351c78da75a89bac"
   },
   "first_capture_base": "c940a25bb6a89d71be8c0d21ab853e3b92566445",
-  "refreeze": "Refrozen against the Python server at the base above. Python's delta since the first capture is get_data_freshness, its scope line and instructions, the lodgment source_checked date (2026-10-28), one question in evaluation/questions.xml and conformance schema 2. Transforms were named and counted, the scoring cases re-captured from tool_selection.py, and freshness-contracts.json captured over stdio from the Python server. oracle_sha256 records the first capture's raw files, which are not in this repository. Refrozen again on 1 November 2026 at 035847a, after main added validate_abn and validate_acn (24 tools), the returned-contribution qualification on Payday ON_TIME results and packs, Payday 0.2.3 and FBT return dates in the lodgment engine, which the tool does not expose. Every differing path was in a named category of main's changes, reviewed identity leaves were kept, and 143 calls from main's new and changed tests and independent ABN/ACN probes were added from the Python server's own replies. Refrozen again on 3 November 2026 at 03baab7, after main ranked library search by where the query words sit, added in_force_only and version_is_current to search_tax_rates, ranked rulings whose captured page held a withdrawal notice later within a tier, named list_ato_benchmark_industries in the unmatched-industry refusal and stated the SG-charge estimate exclusions. Every differing fixture path was in a named category of those changes. The retrieval cases were recaptured from the Python suite (1,246 tests passed) with the original capture scripts, and 6 calls from main's new benchmark tests and independent probes were added from the Python server's own replies.",
-  "previous_refreeze_base": "035847a"
+  "refreeze": "Refrozen against the Python server at the base above. Python's delta since the first capture is get_data_freshness, its scope line and instructions, the lodgment source_checked date (2026-10-28), one question in evaluation/questions.xml and conformance schema 2. Transforms were named and counted, the scoring cases re-captured from tool_selection.py, and freshness-contracts.json captured over stdio from the Python server. oracle_sha256 records the first capture's raw files, which are not in this repository. Refrozen again on 1 November 2026 at 035847a, after main added validate_abn and validate_acn (24 tools), the returned-contribution qualification on Payday ON_TIME results and packs, Payday 0.2.3 and FBT return dates in the lodgment engine, which the tool does not expose. Every differing path was in a named category of main's changes, reviewed identity leaves were kept, and 143 calls from main's new and changed tests and independent ABN/ACN probes were added from the Python server's own replies. Refrozen again on 3 November 2026 at 03baab7, after main ranked library search by where the query words sit, added in_force_only and version_is_current to search_tax_rates, ranked rulings whose captured page held a withdrawal notice later within a tier, named list_ato_benchmark_industries in the unmatched-industry refusal and stated the SG-charge estimate exclusions. Every differing fixture path was in a named category of those changes. The retrieval cases were recaptured from the Python suite (1,246 tests passed) with the original capture scripts, and 6 calls from main's new benchmark tests and independent probes were added from the Python server's own replies. Refrozen again on 8 November 2026 at d87dac3, after main added get_reviewed_rate (25 tools), the doctor command and its folder census, file notes on worksheet results, the returned_by_fund refusal, dated legislation retrieval (as_at), whole-word rulings matching, dropped_words and partial_hits in corpus search, and changed the synthetic corpus and rulings builders. Every differing fixture path was in a named category of those changes. The retrieval cases were recaptured from the Python suite with the capture hooking the doctor census; 2 memory tests that the capture's snapshots inflate were deselected. 648 calls from main's new and changed tests and probes were added from the Python server's own replies. The native server links the engine crates on main, not the PyPI releases the Python server runs; tests/engine/mod.rs names each engine commit whose effect the native comparison applies.",
+  "previous_refreeze_base": "03baab7"
 }
