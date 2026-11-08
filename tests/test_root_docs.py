@@ -53,4 +53,5 @@ def test_root_docs_do_not_call_the_rust_engines_python() -> None:
     for name in ("README.md", "llms.txt"):
         text = " ".join(_text(name).replace("> ", "").split())
         assert claim in text
-        assert "loads none of the Rust crates yet" in text
+        assert "published Python releases of 6 of them" in text
+        assert "native build in this repository links the Rust crates of all 6 instead" in text

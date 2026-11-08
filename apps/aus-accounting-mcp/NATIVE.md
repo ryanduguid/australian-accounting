@@ -176,9 +176,9 @@ them is a separate release step.
 ## Scope of this candidate
 
 The contract is the Python server at the oracle base recorded in
-`data/catalogue.v1.json`: 24 tools, including `get_data_freshness`, `validate_abn`
-and `validate_acn`, 6 resources
-and 3 prompts. `get_data_freshness` reports the provenance of the linked Rust
+`data/catalogue.v1.json`: 25 tools, including `get_data_freshness`, `validate_abn`,
+`validate_acn` and `get_reviewed_rate`, 6 resources
+and 3 prompts. `aus-accounting-mcp doctor` prints the Python command's report. `get_data_freshness` reports the provenance of the linked Rust
 tables and takes its 31 frozen replies from that server.
 
 The engines also ship the worksheet kinds `fbt_car_statutory` and
@@ -212,10 +212,16 @@ third, at 03baab7, followed main's ranked library search, `in_force_only` and
 withdrawal notice, the unmatched-industry refusal naming
 `list_ato_benchmark_industries` and the stated SG-charge estimate exclusions. It
 recaptured the retrieval cases from the Python suite and added 6 benchmark calls
-from main's new tests and independent probes. Other counts below date from the
-first capture.
+from main's new tests and independent probes. The fourth, at d87dac3, followed
+`get_reviewed_rate`, the `doctor` command and its folder census, file notes on
+worksheet results, the `returned_by_fund` refusal, dated legislation retrieval
+(`as_at`), whole-word rulings matching, `dropped_words` and `partial_hits` in
+corpus search, and the changed synthetic corpus and rulings builders. It
+recaptured the retrieval cases, with the doctor census, and added 648 calls from
+main's new and changed tests and probes. Other counts below date from the first
+capture.
 
-The native comparison covers 935 captured effective SDK calls for all
+The native comparison covers 1,583 captured effective SDK calls for all
 non-retrieval tools and unknown tools, plus 39 independent validation probes and
 22 further original-only money, date, year and large-pack cases and 9 year-zero
 refusal cases. Three large-catalogue cases compare complete original rulings
@@ -226,8 +232,15 @@ responses. Six resource payloads, 34 prompt cases and 1,175 JSON-RPC replies acr
 compact packs, pagination and configured-folder status without disclosing paths.
 Negative schema checks reject misleading money, dates, safety markers and missing
 audit sections whilst retaining engine extension fields. All eight retrieval entry points are
-implemented, with 231 captured core/boundary/helper calls from all 169 original
-retrieval test nodes and 19 further original-only edge cases. Comparisons cover
+implemented, with 823 captured core/boundary/helper/census calls from 409
+original retrieval test nodes and 19 further original-only edge cases. Two nodes,
+`test_a_title_changed_after_validation_cannot_return_uncaptured_text` and
+`test_a_read_failure_while_counting_refusals_stops_the_search`, change the corpus
+or its reader in the middle of the call, which a frozen replay cannot do; native
+unit tests in `src/retrieval/corpus.rs` prove the guards they cover. The 28 cases of
+`test_the_one_word_floor_fails_the_gate_as_recorded` replace corpus search's
+partial-match floor and stop words, a configuration the server never runs, and
+are not replayed. Comparisons cover
 complete returned objects and exact refusals. Windows and isolated WSL Linux fmt, locked Clippy, debug/release tests, release
 builds and copied-binary runs with an empty cwd/PATH pass. Root checks and a fresh
 RustSec audit pass. Independent Sol 6.1 and Calvino reviews found no remaining
@@ -257,6 +270,22 @@ identity and already-reviewed provenance differences are allowed:
   calculation. The frozen Python oracle retains the historical address.
 - Medicare levy worksheet sources retain native engine commit `afa19a4`: the moved
   ATO lump-sum payment in arrears page. No figure depends on the address.
+- The native server links the engine crates on main; the Python server runs
+  their PyPI releases (australian-tax-calculators 0.2.0, div7a-loan-review 0.3.2,
+  payday-super-checker 0.2.3, gst-review 0.1.0). `tests/engine/mod.rs` applies
+  each engine commit to the frozen Python value, as the engine's own
+  `tests/parity.rs` does: `04d493f7` (#542) applies only the unused concessional
+  cap that covers the excess, `b4a70733` (#551) changes the PAYG withholding scope
+  and adds its 2024-26 Schedule 1 source, and `d8f34dc2` (#567) changes the FBT
+  scope, adds the FBT rates source and extends the source passage. The served
+  disclaimer lists the linked engine's worksheet scopes.
+- The input schema fixes or bounds the year of every worksheet whose periods
+  those commits opened, so the scope resource, `get_data_freshness` and `doctor`
+  list only the periods it admits. The 2026-27 periods `fd0b593e` (#543) opened for
+  gst, capital gains and depreciation, the 2024-25 and 2025-26 periods #551 opened
+  and the FBT year ending 31 March 2027 that #567 opened are refused as Python
+  refuses them. The PAYG and FBT scope text still names those periods, as the
+  linked engine states it.
 
 No other provenance changes are normalised. The original Python application,
 published compatibility metadata and external consumer pins are unchanged.
@@ -292,7 +321,31 @@ The Rust JSON boundary cannot represent lone surrogate names. Relevant Markdown
 paths with non-Unicode filesystem names are explicitly refused instead of being
 lossily attributed to another file. Hidden and unrelated non-Markdown files are
 ignored. Incremental UTF-8 reads handle CR, CRLF and LF records; decoder read-ahead
-can differ from Python when invalid bytes occur after a requested row. Rare JSON
+can differ from Python when invalid bytes occur after a requested row. `doctor`
+reports an undecodable line in Python's words; Python counts the position from
+its 8,192-byte read chunk and the native server from the start of the file, so
+the two agree for an error in the first chunk or at the end of the file. Rare JSON
 metadata deeper than serde's default 128 containers uses a bounded larger stack,
 with a refusal above 1,000 containers. These are explicit parser limits, not
 claims of support for every malformed or Python-specific value.
+
+## Release notes for 1.0.0
+
+`RELEASE_NOTES.md` keeps 0.7.1 first until the release, as its release test
+requires; the release moves these notes there. Against the published 0.7.1:
+
+- `search_tax_rates` takes `in_force_only`, which defaults to true, so a rate
+  search now leaves out rows from a compilation the corpus marks as superseded.
+  Set it to false to see them, each with a caveat. `search_tax_legislation` and
+  `define_tax_term` keep their default of true; with `as_at`, the date's status
+  decides instead.
+- `carry_forward_applied` in the `contribution_caps` worksheet is now only the
+  unused concessional cap needed to cover contributions over the year's general
+  cap (ITAA 1997 s 291-20, engine commit `04d493f7`). With $15,000 of eligible
+  unused cap and $40,000 contributed, it is $10,000 for 2024-25 and 2025-26
+  ($30,000 cap) and $7,500 for 2026-27 ($32,500 cap), where 0.7.1 reported
+  $15,000. Available capacity, remaining room and excess are unchanged. No other
+  figure differed in the 1,716-call parity replay against the Python server.
+- The PAYG withholding and FBT worksheets cite an added ATO source and state a
+  wider scope (`b4a70733`, `d8f34dc2`). The input schema still accepts only the
+  2026-27 PAYG year and the FBT year ending 31 March 2026, so no figure changes.

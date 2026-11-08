@@ -4,8 +4,9 @@ Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
 worksheets, a main residence worksheet and a borrowing expenses worksheet that no Python release contains. Python releases through 0.1.9
-contain 10 worksheets. Until the MCP server links this crate,
-it uses the 0.2.0 Python release from PyPI; the
+contain 10 worksheets. The MCP server's published release, 0.7.1, uses the
+0.2.0 Python release from PyPI; its native build in this repository links this
+crate and is not released yet. The
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
 keeps the engine release and MCP integration separate.
 
