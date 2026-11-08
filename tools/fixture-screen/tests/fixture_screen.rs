@@ -11,8 +11,10 @@
 use evatt::{patterns, pytext, redact::Lines};
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::io::{Cursor, Read, Write};
+use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 /// The allowlist, from the repository root. It names the values it allows,
 /// so it is not screened itself.
@@ -296,22 +298,28 @@ fn tracked_files_carry_no_undocumented_identifier() {
         "no tracked files found under {}",
         root.display()
     );
-    // One thread per file: in a debug build the largest recordings take most of a minute each.
+    // Parallel because in a debug build the largest recordings take most of a minute each.
+    // One worker per core pulls the next path; a thread per file outgrows task limits.
+    let next = AtomicUsize::new(0);
+    let threads = std::thread::available_parallelism().map_or(1, NonZeroUsize::get);
     let results = std::thread::scope(|scope| {
-        let workers: Vec<_> = paths
-            .iter()
-            .map(|path| {
-                let root = &root;
-                scope.spawn(move || {
-                    let bytes = std::fs::read(root.join(path))
-                        .map_err(|error| format!("{path}: unreadable: {error}"));
-                    (path.clone(), bytes.and_then(|bytes| findings(path, &bytes)))
+        let workers: Vec<_> = (0..threads)
+            .map(|_| {
+                scope.spawn(|| {
+                    let mut screened = Vec::new();
+                    while let Some(path) = paths.get(next.fetch_add(1, Ordering::Relaxed)) {
+                        let bytes = std::fs::read(root.join(path))
+                            .map_err(|error| format!("{path}: unreadable: {error}"));
+                        screened
+                            .push((path.clone(), bytes.and_then(|bytes| findings(path, &bytes))));
+                    }
+                    screened
                 })
             })
             .collect();
         workers
             .into_iter()
-            .map(|w| w.join().expect("screen thread"))
+            .flat_map(|w| w.join().expect("screen thread"))
             .collect()
     });
     let failures = verdict(results, include_str!("synthetic-identifiers.txt"));
