@@ -832,12 +832,11 @@ fn dated_page(
     result
 }
 
+/// The cited row, if any, with the rows before and after it.
+type Around = (Option<Value>, Vec<Value>, Vec<Value>);
+
 /// The cited row of a title index, if any, and up to `near` rows on each side.
-fn around(
-    path: &Path,
-    id: &str,
-    near: usize,
-) -> Result<(Option<Value>, Vec<Value>, Vec<Value>), String> {
+fn around(path: &Path, id: &str, near: usize) -> Result<Around, String> {
     let needle = if near > 0 || id.contains(['"', '\\']) {
         vec![]
     } else {

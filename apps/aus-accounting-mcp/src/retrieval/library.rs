@@ -154,13 +154,16 @@ pub(super) fn read(
     excerpt(name, &lines, &digest, start, count)
 }
 
+/// A call for one document: its name, lines and digest.
+type Visit<'a> = dyn FnMut(&str, &[String], &str) -> Result<(), String> + 'a;
+
 /// Each readable Markdown file with its lines and digest, within the library's bounds,
 /// in folder and name order. A file that cannot be read is named in `skipped` and left out.
 fn documents(
     context: &Context,
     root: &Path,
     skipped: &mut Vec<String>,
-    visit: &mut dyn FnMut(&str, &[String], &str) -> Result<(), String>,
+    visit: &mut Visit<'_>,
 ) -> Result<(), String> {
     let (mut size, mut count) = (0, 0);
     let mut pending = vec![root.to_path_buf()];
