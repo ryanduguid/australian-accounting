@@ -1799,7 +1799,9 @@ mod tests {
             assert_eq!(*entry, (code, "UNKNOWN", outer, 0, 0, 0));
         }
         assert!(calc["Row_problem"].contains("returned-needs-an-sg-amount"));
-        assert!(calc["Evidence_own"].starts_with("=IF(AND(tblLines[[#This Row],[Flag_ret]]=1"));
+        // The flag, or an event, is a return fact (the events test checks the
+        // event half).
+        assert!(calc["Evidence_own"].starts_with("=IF(AND(OR(tblLines[[#This Row],[Flag_ret]]=1,"));
     }
 
     /// A line an event names is UNKNOWN with the widest outer outcomes ahead
