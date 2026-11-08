@@ -237,8 +237,8 @@ pub fn annotate(result: &mut Assessed) {
             "first-year approach: the ATO says an employer who pays on payday and has \
              received no error for the contribution can assume the fund received it on \
              time (ATO, Getting it right: compliance in the first year of Payday Super, 23 \
-             June 2026). That is the ATO's compliance approach for QE days to 30 June 2027 \
-             (PCG 2026/1 paragraph 13), not evidence of receipt, so this row stays AT_RISK. \
+             June 2026), for the first year it names, 1 July 2026 to 30 June 2027. That is \
+             the ATO's compliance approach, not evidence of receipt, so this row stays AT_RISK. \
              The ATO still applies the law where it has definitive information of a \
              shortfall (PCG 2026/1 paragraph 11)"
                 .to_string(),
@@ -253,8 +253,9 @@ pub fn annotate(result: &mut Assessed) {
 /// day the employer sent the money) on the QE day itself, and
 /// `fund_error_ref=none`. A `remitted_date` that is a clearing house's later
 /// date only withholds the note. Leaving out a line with a failed member
-/// verification or a return is this checker's conservative addition, not an
-/// ATO condition.
+/// verification, a return or any fund receipt date (one after the as-at date
+/// leaves a line `AT_RISK`, and may be late) is this checker's conservative
+/// addition, not an ATO condition.
 fn first_year_assumption(result: &Assessed) -> bool {
     let line = &result.line;
     let evidence = &line.evidence;
@@ -264,6 +265,7 @@ fn first_year_assumption(result: &Assessed) -> bool {
         && evidence.fund_error == Some(FundError::NoneReceived)
         && evidence.mvr != Some(MvrStatus::NotMatched)
         && !carries_return_facts(line)
+        && line.received.is_none()
 }
 
 #[cfg(test)]

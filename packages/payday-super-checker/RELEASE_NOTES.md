@@ -7,10 +7,10 @@ for migration, verification and documented divergences, and
 
 A contribution a fund returned can no longer stay `ON_TIME`: see `returned_by_fund`
 and `--events` in [README.md](README.md). The workbook reads `returned_by_fund`
-and an Events sheet as well, leaving those lines `UNKNOWN`. Optional receipt evidence
-columns record what stands behind a receipt without changing any verdict. The Python
-package reads neither, and the MCP server refuses a contribution
-marked `returned_by_fund`.
+and an Events sheet as well, leaving those lines `UNKNOWN`. The Python package reads
+neither, and the MCP server refuses a contribution marked `returned_by_fund`.
+Optional receipt evidence columns record what stands behind a receipt without
+changing any verdict.
 
 Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
 Apache-2.0 as the future licence). Released versions keep their licence.

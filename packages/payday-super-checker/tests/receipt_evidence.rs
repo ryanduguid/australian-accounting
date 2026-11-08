@@ -301,6 +301,14 @@ fn the_first_year_note_needs_every_fact_and_leaves_at_risk() {
             "2026-08-20",
         ),
         ("a return", returned, "2026-08-20"),
+        (
+            "a receipt after the as-at date, 8 days late",
+            with(
+                &line,
+                &[("received", "2026-08-25"), ("matched_amount", "120.00")],
+            ),
+            "2026-08-20",
+        ),
     ];
     for (why, line, as_at) in missing {
         let result = assess(&line, as_at).unwrap();
@@ -354,6 +362,12 @@ fn the_checker_reads_the_columns_and_the_report_carries_them() {
             "E2,2026-08-06,120.00,2026-08-06,120.00,2026-08-10,120.00",
             "clearing_house,not_matched,CTER-0002",
         ),
+        // Remitted and received after the 17 August deadline: LATE, so both runs
+        // exit 2.
+        (
+            "E3,2026-08-06,120.00,2026-08-18,120.00,2026-08-19,120.00",
+            "fund,matched,none",
+        ),
     ];
     let with_evidence: String = rows.iter().map(|(r, e)| format!("{r},{e}\n")).collect();
     let without: String = rows.iter().map(|(r, _)| format!("{r}\n")).collect();
@@ -361,6 +375,7 @@ fn the_checker_reads_the_columns_and_the_report_carries_them() {
         "{header},receipt_evidence,mvr_status,fund_error_ref\n{with_evidence}"
     ));
     let (plain_code, ..) = check_file(&format!("{header}\n{without}"));
+    assert_eq!(plain_code, Some(2));
     assert_eq!(code, plain_code, "{stderr}");
     assert!(report.contains(FIRST_YEAR), "{report}");
     assert!(

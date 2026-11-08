@@ -34,13 +34,16 @@ fetch; its print view was read instead.
 3. The first-year note needs: verdict `AT_RISK`, QE day on or before 30 June 2027,
    `remitted_date` on the QE day itself and `fund_error_ref=none`. `remitted_date` is
    'the day you sent the money' (README, Input columns). The importers write a vendor
-   date there only once the money has left the employer, and a clearing house's
+   date there only once the money has left the employer (README, 'The supported export
+   profiles do not establish a fund receipt date'; `docs/design.md`, `importers.rs`), and a clearing house's
    onward date (Employment Hero's Beam) can fall after payday, so the equality reads the
    ATO's 'pay on payday' and errs towards withholding the note. `receipt_evidence` is
    not a condition: the ATO scenario turns on paying on payday and finding no error,
    not on a record of sending. The checker also leaves the note off a row with a
-   `not_matched` verification or a return; these are its conservative additions, not
-   ATO conditions.
+   `not_matched` verification, a return or a `fund_received_date`; these are its
+   conservative additions, not ATO conditions. A receipt dated after the as-at date
+   leaves a row `AT_RISK`, and the row's own record may show it late, which is outside
+   the ATO's 'not sure it is received on time'.
 4. The report keeps its 18-column header and the evidence pack its 4 files. Without
    evidence the pack is byte for byte the same; with it the notes
    and caveats travel in the pack's `report.csv` and `exceptions.json`.

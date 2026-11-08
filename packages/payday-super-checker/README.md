@@ -356,7 +356,9 @@ JSON `assess` subcommand takes and returns them on a line.
 - A fund error reference adds a caveat: a fund that rejects a contribution must send
   an error message saying why, and a rejected amount is not a contribution. The
   reference alone does not say an amount came back; if one did, record it with
-  `returned_by_fund` or `--events`.
+  `returned_by_fund` or `--events`. Enter only the message's reference: the
+  caveat copies it into the report and the evidence pack, so a pasted description
+  could carry a member's name or number into them.
 - `mvr_status=not_matched` adds a separate caveat: the fund could not match the member
   or accept a contribution. It is not a fund error and is not refused, even on an
   `ON_TIME` row.
@@ -372,7 +374,8 @@ For QE days to 30 June 2027, an `AT_RISK` row whose `remitted_date` (the day you
 the money) is the QE day itself, with `fund_error_ref=none`, gets a note quoting the
 ATO: if no errors have been received, the employer can assume the fund received the
 contribution on time. The checker also leaves the note off a row with a `not_matched`
-verification or a return; those are its own conservative additions, not ATO
+verification, a return or a `fund_received_date` (one after the as-at date leaves the
+row `AT_RISK` and may be late); those are its own conservative additions, not ATO
 conditions. A `remitted_date` that is a clearing house's later date withholds the
 note. The row stays `AT_RISK`. That is the ATO's first-year compliance approach
 (PCG 2026/1), not evidence of receipt, and the ATO still applies the law where it has
@@ -567,7 +570,7 @@ Required: `employee_id`, `payment_date`, `sg_amount`. Everything else is optiona
 | `returned_by_fund` | `returned_by_fund` | Optional. Yes when a fund returned some or all of this contribution. A file carrying this column, however it is capitalised, spaced or punctuated, is refused when the mapping does not read it. See [A contribution the fund returned](#a-contribution-the-fund-returned) |
 | `receipt_evidence` | `receipt_evidence` | Optional. Where the receipt is known from: `fund` (the fund's own record dates `fund_received_date`), `clearing_house` (a clearing house's record of the fund's receipt dates it) or `sent` (a record shows the contribution sent to the fund, with no receipt confirmed). See [What stands behind a receipt](#what-stands-behind-a-receipt) |
 | `mvr_status` | `mvr_status` | Optional. The fund's answer to a member verification request: `matched`, `not_matched` or `not_sent` |
-| `fund_error_ref` | `fund_error_ref` | Optional. The reference of a fund error message (CTER) for this contribution, or `none` when you checked and none was received |
+| `fund_error_ref` | `fund_error_ref` | Optional. The reference of a fund error message (CTER) for this contribution, or `none` when you checked and none was received. Enter the reference only, not the message's text |
 | `join_caveats` | `join_caveats` | Optional, appended last. The importer writes the join's structural warnings here, joined with `"\|"`, so they travel with the file into the report's caveats column and the evidence pack instead of living only in the console. Blank on a clean join; absent on canonical files from before 0.1.5 |
 | `first_to_fund` | `first_contribution_to_fund` | Yes for the first contribution to that fund (new starter, or a fund switch) |
 | `out_of_cycle` | `out_of_cycle` | Yes only for an allowance, bonus, commission, loading, payment in advance or back payment made outside an established payment timing, pattern or schedule, where the statutory next-standard-payment conditions are met |

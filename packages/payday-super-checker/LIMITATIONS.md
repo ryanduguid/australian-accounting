@@ -206,8 +206,10 @@ funds).
 The first-year note on an `AT_RISK` row rests on the ATO's scenario of paying on
 payday with no error received, read as a `remitted_date` on the QE day. A
 `remitted_date` taken from a clearing house's later date withholds the note, which is
-the safe direction. It is a compliance approach for QE days to 30 June
-2027, not evidence of receipt, so it never changes the verdict, a figure or the exit
+the safe direction. The checker also leaves it off a row with a failed member
+verification, a return or any fund receipt date, including one after the as-at date
+that may be late; these are its own conservative additions. It is a compliance
+approach for QE days to 30 June 2027, not evidence of receipt, so it never changes the verdict, a figure or the exit
 code.
 
 **Unaffected.** Every verdict, figure and exit code: the evidence annotates and never

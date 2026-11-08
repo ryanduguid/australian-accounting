@@ -8,7 +8,8 @@ their flags, help, validation, console output, written files and exit codes.
 The former API functions are JSON stdin subcommands, documented in README.md.
 No deadline, business-day, GIC, notional-earnings, uplift, rounding, refusal or
 message rule is intentionally changed, except the Employment Hero Beam
-status and the returned contributions below.
+status, the returned contributions and the receipt evidence columns below (their
+refusals, and 3 more fields in every 'valid fields are' list).
 
 ### Added
 

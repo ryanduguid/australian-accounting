@@ -71,7 +71,11 @@ specific parity checks, not proof of every input or option. See the
    also `UNKNOWN` with no exposure, between `UNPAID` and `ON_TIME`: the workbook
    does not weigh events, so decide those lines with the command line's
    `--events`. An event that names no Register line, names several or cannot be
-   read is `BLOCKED`; a blank row is ignored.
+   read is `BLOCKED`; a blank row is ignored. The workbook does not run the
+   checker's consistency checks across events (a repeated receipt or allocation,
+   or an allocation before its receipt or above what the fund kept), so a file the
+   checker refuses can read `REVIEW` here, never a pass. Run the checker before
+   relying on an events file.
 5. **Holidays and GIC.** The whole-of-jurisdiction holiday table and the
    quarterly general interest charge rates the engine ships. To review a
    deadline past the holiday coverage, add the official dates and move the
