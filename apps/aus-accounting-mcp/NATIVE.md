@@ -240,7 +240,11 @@ or its reader in the middle of the call, which a frozen replay cannot do; native
 unit tests in `src/retrieval/corpus.rs` prove the guards they cover. The 28 cases of
 `test_the_one_word_floor_fails_the_gate_as_recorded` replace corpus search's
 partial-match floor and stop words, a configuration the server never runs, and
-are not replayed. Comparisons cover
+are not replayed. The capture deselects 2 nodes of `tests/test_as_at.py`,
+`test_withheld_counts_stream_without_retaining_every_result` and
+`test_dated_search_does_not_retain_each_titles_first_text`: they measure the
+Python process's memory, which the capture's own snapshots inflate, so they yield
+no cases. Comparisons cover
 complete returned objects and exact refusals. Windows and isolated WSL Linux fmt, locked Clippy, debug/release tests, release
 builds and copied-binary runs with an empty cwd/PATH pass. Root checks and a fresh
 RustSec audit pass. Independent Sol 6.1 and Calvino reviews found no remaining
@@ -275,17 +279,20 @@ identity and already-reviewed provenance differences are allowed:
   payday-super-checker 0.2.3, gst-review 0.1.0). `tests/engine/mod.rs` applies
   each engine commit to the frozen Python value, as the engine's own
   `tests/parity.rs` does: `04d493f7` (#542) applies only the unused concessional
-  cap that covers the excess, `b4a70733` (#551) changes the PAYG withholding scope
-  and adds its 2024-26 Schedule 1 source, and `d8f34dc2` (#567) changes the FBT
-  scope, adds the FBT rates source and extends the source passage. The served
-  disclaimer lists the linked engine's worksheet scopes.
+  cap that covers the excess, `b4a70733` (#551) adds the PAYG withholding 2024-26
+  Schedule 1 source, and `d8f34dc2` (#567) adds the FBT rates source and extends
+  the source passage. The served disclaimer lists the worksheet scopes as the
+  scope resource serves them.
 - The input schema fixes or bounds the year of every worksheet whose periods
   those commits opened, so the scope resource, `get_data_freshness` and `doctor`
   list only the periods it admits. The 2026-27 periods `fd0b593e` (#543) opened for
   gst, capital gains and depreciation, the 2024-25 and 2025-26 periods #551 opened
   and the FBT year ending 31 March 2027 that #567 opened are refused as Python
-  refuses them. The PAYG and FBT scope text still names those periods, as the
-  linked engine states it.
+  refuses them. #551 and #567 also widen the PAYG and FBT scope text to name those
+  periods; the server serves the 0.2.0 words for the periods its schema admits
+  (`NARROWED_SCOPE` in `src/adapters/tax.rs`), so the scope a caller confirms is
+  the scope it gets. A unit test fails if a served scope names a year outside the
+  worksheet's advertised periods.
 
 No other provenance changes are normalised. The original Python application,
 published compatibility metadata and external consumer pins are unchanged.
@@ -334,18 +341,63 @@ claims of support for every malformed or Python-specific value.
 `RELEASE_NOTES.md` keeps 0.7.1 first until the release, as its release test
 requires; the release moves these notes there. Against the published 0.7.1:
 
+New tools and command:
+
+- `get_reviewed_rate` returns one bundled, reviewed ATO rate or threshold for a
+  date in 2025-26 or 2026-27, with its source page and verbatim quote. Any other
+  date, a date outside the record's period or an unknown id is refused with no
+  figure. `get_data_freshness` lists the reviewed records.
+- `validate_abn` and `validate_acn` test the check digit arithmetic that ABN
+  Lookup and ASIC publish. A valid check digit proves neither ABR nor GST
+  registration.
+- `aus-accounting-mcp doctor` prints the version, data periods and each
+  configured folder, and exits 1 if a folder is broken.
+
+Changed tools:
+
+- `calculate_tax_worksheet` takes `file_note`; true also returns a Markdown note
+  restating the result for a workpaper.
+- `calc_payday_super_deadline`, and each row of
+  `review_payday_super_contributions` and `build_payday_super_evidence_pack`,
+  take `returned_by_fund`; true refuses the review, because the checker cannot
+  assess a returned contribution. Otherwise an `ON_TIME` verdict, or an `UNKNOWN`
+  listing `ON_TIME` in `horizon_verdicts`, carries `verdict_qualification`
+  saying it assumes the fund kept every receipt. The SG-charge estimate fields
+  and the disclaimer say the estimates exclude choice loading, the maximum
+  contributions base and post-assessment penalties.
+- `search_tax_legislation` and `search_tax_rates` take a plain question. Stop
+  words are dropped and listed in `dropped_words`; words of legal force such as
+  'must', 'may' and 'not' stay. Room left on a page goes to `partial_hits`,
+  ranked below every match and labelled with the words each holds and lacks.
+- All 4 searches match whole words only, and read a modal with its 'not', so
+  'must lodge' does not match 'must not lodge'. Library search lists lines whose
+  heading holds the words first, then lines holding them as a phrase. Rulings
+  search puts a paragraph whose captured page held a withdrawal notice after
+  those without, within the same tier.
+- `search_tax_legislation` and `read_tax_legislation_section` take `as_at` and
+  answer for that date from each title's compilation window: text comes back
+  only from a title whose status is captured, and other titles are refused by
+  name with their status and next step.
 - `search_tax_rates` takes `in_force_only`, which defaults to true, so a rate
   search now leaves out rows from a compilation the corpus marks as superseded.
   Set it to false to see them, each with a caveat. `search_tax_legislation` and
   `define_tax_term` keep their default of true; with `as_at`, the date's status
   decides instead.
+- An unknown industry in `get_ato_benchmarks` names
+  `list_ato_benchmark_industries` and the year to search.
+- The server instructions say to state a differing figure beside the tool's,
+  and never substitute either silently.
+
+Worksheet engine changes:
+
 - `carry_forward_applied` in the `contribution_caps` worksheet is now only the
   unused concessional cap needed to cover contributions over the year's general
   cap (ITAA 1997 s 291-20, engine commit `04d493f7`). With $15,000 of eligible
   unused cap and $40,000 contributed, it is $10,000 for 2024-25 and 2025-26
   ($30,000 cap) and $7,500 for 2026-27 ($32,500 cap), where 0.7.1 reported
   $15,000. Available capacity, remaining room and excess are unchanged. No other
-  figure differed in the 1,716-call parity replay against the Python server.
-- The PAYG withholding and FBT worksheets cite an added ATO source and state a
-  wider scope (`b4a70733`, `d8f34dc2`). The input schema still accepts only the
-  2026-27 PAYG year and the FBT year ending 31 March 2026, so no figure changes.
+  figure differed in the 1,716-call parity replay against the Python server,
+  which runs 0.7.1's engine releases.
+- The PAYG withholding and FBT worksheets cite an added ATO source
+  (`b4a70733`, `d8f34dc2`). Their scope and input schema are unchanged: the
+  2026-27 PAYG year and the FBT year ending 31 March 2026.
