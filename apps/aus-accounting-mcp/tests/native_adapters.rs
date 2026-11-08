@@ -5,6 +5,8 @@ use aus_accounting_mcp::handler::AccountingServer;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
+mod engine;
+
 fn difference(left: &Value, right: &Value, path: &str) -> Option<String> {
     match (left, right) {
         (Value::Object(a), Value::Object(b)) => {
@@ -56,7 +58,7 @@ fn difference(left: &Value, right: &Value, path: &str) -> Option<String> {
 fn frozen_effective_adapter_contracts() {
     let mut cases: Vec<Value> =
         serde_json::from_str(include_str!("fixtures/native/adapter-contracts.json")).unwrap();
-    assert_eq!(cases.len(), 935);
+    assert_eq!(cases.len(), 1583);
     let edges: Vec<Value> =
         serde_json::from_str(include_str!("fixtures/native/validation-edges.json")).unwrap();
     assert_eq!(edges.len(), 39);
@@ -74,10 +76,18 @@ fn frozen_effective_adapter_contracts() {
     for (index, case) in cases.iter().enumerate() {
         let name = case["request"]["name"].as_str().unwrap();
         let mut actual = AccountingServer.call(name, &case["request"]["arguments"]);
+        let facts = &case["request"]["arguments"]["facts"];
+        let kind = facts["kind"]
+            .as_str()
+            .filter(|_| name == "calculate_tax_worksheet");
         let expected = if let Some(error) = case.get("error") {
             aus_accounting_mcp::contracts::error(error["message"].as_str().unwrap().into())
         } else {
             let mut expected = case["result"].clone();
+            let before = expected["structuredContent"].clone();
+            if let Some(kind) = kind {
+                engine::worksheet(kind, facts, &mut expected["structuredContent"]);
+            }
             if expected["structuredContent"]
                 .get("engine_version")
                 .is_some()
@@ -85,16 +95,36 @@ fn frozen_effective_adapter_contracts() {
                 expected["structuredContent"]["engine_version"] = json!("1.0.0");
             }
             // Already-reviewed native engine correction, commit 4915b94.
-            if name == "calculate_tax_worksheet"
-                && case["request"]["arguments"]["facts"]["kind"] == "study_loan_repayment"
-            {
+            if kind == Some("study_loan_repayment") {
                 expected["structuredContent"]["sources"][0] = json!(
                     "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates"
                 );
                 expected["structuredContent"]["source_checked"] = json!("2026-10-20");
             }
+            if let (Some(kind), Some(note)) = (kind, before["file_note"].as_str()) {
+                let engine = format!(
+                    "{} {} result",
+                    before["engine"].as_str().unwrap(),
+                    before["engine_version"].as_str().unwrap()
+                );
+                let mut note =
+                    engine::file_note(kind, note, &before, &expected["structuredContent"]).replace(
+                        &engine,
+                        &format!("{} 1.0.0 result", before["engine"].as_str().unwrap()),
+                    );
+                if kind == "study_loan_repayment" {
+                    note = note.replace(
+                        "repayment thresholds and rates",
+                        "minimum repayment income and rates",
+                    );
+                }
+                expected["structuredContent"]["file_note"] = json!(note);
+            }
             if name == "build_payday_super_evidence_pack" {
                 native_pack(&mut expected["structuredContent"]["files"]);
+            }
+            if name == "get_data_freshness" {
+                native_freshness(&mut expected["structuredContent"]);
             }
             native_provenance(&mut expected["structuredContent"]);
             expected
@@ -224,6 +254,9 @@ fn frozen_resource_contracts() {
             }
         }
         if uri == "aus-accounting://scope" {
+            for (kind, entry) in expected["calculation_worksheets"].as_object_mut().unwrap() {
+                engine::catalogue(kind, entry);
+            }
             let study = &mut expected["calculation_worksheets"]["study_loan_repayment"];
             let url = "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates";
             study["source"] = json!(url);
@@ -238,6 +271,9 @@ fn frozen_resource_contracts() {
             study["example_evidence"]["reviewed"] = json!("2026-10-13");
             study["example_evidence"]["checked"] = json!("2026-10-20");
         }
+        if uri == "aus-accounting://disclaimer" {
+            expected = json!(engine::disclaimer(expected.as_str().unwrap()));
+        }
         let expected = moved_lump_sum_page(&expected);
         let actual = aus_accounting_mcp::resources::read(uri).unwrap();
         assert_eq!(difference(&actual, &expected, ""), None, "{uri}");
@@ -249,6 +285,7 @@ fn frozen_resource_contracts() {
 fn native_freshness(result: &mut Value) {
     result["server"]["version"] = json!("1.0.0");
     for row in result["datasets"].as_array_mut().unwrap() {
+        engine::freshness(row);
         row["engine_version"] = json!("1.0.0");
         let provenance = &mut row["provenance"];
         if let Some(tables) = provenance.get_mut("tables") {

@@ -34,6 +34,29 @@ pub fn read(uri: &str) -> Result<Value, String> {
                 value["retrieval_folders_configured"][name] = json!(configured);
             }
         }
+        "aus-accounting://disclaimer" => {
+            // Python lists its installed engine's worksheet scopes; these are the linked engine's.
+            let catalogue =
+                australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({}))?;
+            let heading = "# australian-tax-calculators\n\n";
+            let text = value.as_str().unwrap();
+            let (head, rest) = text.split_once(heading).ok_or("disclaimer")?;
+            let (section, tail) = rest.split_once("\n\n# gst-review").ok_or("disclaimer")?;
+            let scopes = section
+                .split('\n')
+                .map(|line| {
+                    let kind = line.split_once(": ").ok_or("disclaimer scope")?.0;
+                    let scope = catalogue[kind]["scope"]
+                        .as_str()
+                        .ok_or("disclaimer scope")?;
+                    Ok(format!("{kind}: {scope}"))
+                })
+                .collect::<Result<Vec<_>, String>>()?;
+            value = json!(format!(
+                "{head}{heading}{}\n\n# gst-review{tail}",
+                scopes.join("\n")
+            ));
+        }
         "aus-accounting://component-versions" => {
             value["server"]["version"] = json!(crate::VERSION);
             value["engines"] = json!([

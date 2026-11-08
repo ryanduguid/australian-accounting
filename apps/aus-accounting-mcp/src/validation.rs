@@ -49,6 +49,36 @@ fn integer(value: &Value) -> Option<String> {
         _ => None,
     }
 }
+fn strict(rule: &Value, config: &Value) -> bool {
+    rule["strict"].as_bool().unwrap_or(config["strict"] == true)
+}
+/// Pydantic's lax boolean: 0 and 1, and its true and false words in any ASCII case.
+/// The error is pydantic's type for an input it could not read as a boolean.
+fn lax_bool(value: &Value) -> Result<bool, &'static str> {
+    match value {
+        Value::Bool(held) => Ok(*held),
+        Value::String(text) => match text.to_ascii_lowercase().as_str() {
+            "0" | "off" | "f" | "false" | "n" | "no" => Ok(false),
+            "1" | "on" | "t" | "true" | "y" | "yes" => Ok(true),
+            _ => Err("bool_parsing"),
+        },
+        Value::Number(number) => {
+            let whole = number.as_i64().or_else(|| {
+                number
+                    .as_f64()
+                    .filter(|float| float.fract() == 0.0 && float.abs() < 9.2e18)
+                    .map(|float| float as i64)
+            });
+            match whole {
+                Some(0) => Ok(false),
+                Some(1) => Ok(true),
+                Some(_) => Err("bool_parsing"),
+                None => Err("bool_type"),
+            }
+        }
+        _ => Err("bool_type"),
+    }
+}
 fn compare_integer(left: &str, right: &str) -> std::cmp::Ordering {
     let magnitude = |text: &str| {
         text.trim_start_matches('-')
@@ -226,8 +256,20 @@ fn validate(
             }
             Value::String(text.into())
         }
-        "bool" => {
-            if !value.is_boolean() {
+        // A field's own strict setting overrides its model's.
+        "bool" => match lax_bool(value) {
+            Ok(held) if value.is_boolean() || !strict(rule, config) => Value::Bool(held),
+            Err("bool_parsing") if !strict(rule, config) => {
+                issue(
+                    errors,
+                    path,
+                    "bool_parsing",
+                    "Input should be a valid boolean, unable to interpret input",
+                    value,
+                );
+                value.clone()
+            }
+            _ => {
                 issue(
                     errors,
                     path,
@@ -235,9 +277,9 @@ fn validate(
                     "Input should be a valid boolean",
                     value,
                 );
+                value.clone()
             }
-            value.clone()
-        }
+        },
         "int" => {
             let Some(number) = integer(value) else {
                 issue(
@@ -509,4 +551,40 @@ pub fn arguments(name: &str, input: &Value) -> Result<Value, String> {
         );
     }
     Err(message)
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    /// Pydantic 2.13.5's lax bool on each input (B-1 receipts, lax_bool.py).
+    #[test]
+    fn a_lax_boolean_reads_what_pydantic_reads() {
+        for (input, expected) in [
+            (json!(true), Ok(true)),
+            (json!(0), Ok(false)),
+            (json!(1), Ok(true)),
+            (json!(2), Err("bool_parsing")),
+            (json!(-1), Err("bool_parsing")),
+            (json!(0.0), Ok(false)),
+            (json!(1.0), Ok(true)),
+            (json!(2.0), Err("bool_parsing")),
+            (json!(1.5), Err("bool_type")),
+            (json!("True"), Ok(true)),
+            (json!("oN"), Ok(true)),
+            (json!("Y"), Ok(true)),
+            (json!("OFF"), Ok(false)),
+            (json!("0"), Ok(false)),
+            (json!(" true"), Err("bool_parsing")),
+            (json!(""), Err("bool_parsing")),
+            (json!("1.0"), Err("bool_parsing")),
+            (json!(null), Err("bool_type")),
+            (json!([]), Err("bool_type")),
+        ] {
+            assert_eq!(super::lax_bool(&input), expected, "{input}");
+        }
+        let huge: serde_json::Value =
+            serde_json::from_str("1000000000000000000000000000000").unwrap();
+        assert_eq!(super::lax_bool(&huge), Err("bool_type"));
+    }
 }

@@ -6,7 +6,7 @@ use super::Lines;
 use super::{
     Context, POLICY,
     corpus::{self, Ranked},
-    linked, page, terms,
+    linked, page, terms, words,
 };
 use num_bigint::BigInt;
 use payday_super_checker::{py, pyre::Regex};
@@ -352,7 +352,7 @@ fn is_run(path: &Path) -> bool {
     path.join("rulings.jsonl").exists() || path.join("manifest.json").exists()
 }
 fn directories(context: &Context) -> Result<Vec<PathBuf>, String> {
-    let root = context.root("AUS_ACCOUNTING_RULINGS_ROOT", "folder of rulings runs")?;
+    let root = context.root("AUS_ACCOUNTING_RULINGS_ROOT", "folder of rulings runs", "")?;
     if is_run(&root) {
         return Ok(vec![root]);
     }
@@ -632,7 +632,8 @@ fn words(query: &str, field: &str) -> Result<Vec<String>, String> {
     }
 }
 fn search(context: &Context, input: &Value) -> Result<Value, String> {
-    let words = words(input["query"].as_str().unwrap(), "query")?;
+    let terms = self::words(input["query"].as_str().unwrap(), "query")?;
+    let words = words::query_words(&terms);
     let family = input["family"]
         .as_str()
         .filter(|s| !s.is_empty())
@@ -659,7 +660,7 @@ fn search(context: &Context, input: &Value) -> Result<Value, String> {
             let key = canonical(row["docid"].as_str().unwrap_or(""));
             if catalogue.owner.get(&key) != Some(&run.name)
                 || !corpus::holds(&row, &["family"], &family)
-                || !corpus::holds(&row, &["title", "heading", "text"], &words)
+                || !words::holds_all(&words, &corpus::joined(&row, &["title", "heading", "text"]))
             {
                 continue;
             }
@@ -675,7 +676,7 @@ fn search(context: &Context, input: &Value) -> Result<Value, String> {
                 &mut best,
                 Ranked {
                     key: (
-                        corpus::tier(&words, &["title", "heading"], &["text"], &row),
+                        corpus::tier(&words, &terms, &["title", "heading"], &["text"], &row),
                         value["withdrawal_status"] == "NOTICE_PRESENT",
                         family_priority(&row),
                         order,
@@ -824,6 +825,26 @@ fn read(context: &Context, input: &Value) -> Result<Value, String> {
         json!({"paragraph":selected,"start":start,"next_start":(end<total).then_some(end),"before":before.iter().map(build).collect::<Result<Vec<_>,_>>()?,"after":after.iter().map(build).collect::<Result<Vec<_>,_>>()?,"corpus":provenance(&catalogue),"notice":policy("NOTICE")}),
     )
 }
+/// What the configured runs serve, for `aus-accounting-mcp doctor`.
+pub(super) fn census(context: &Context) -> Result<Value, String> {
+    let catalogue = catalogue(context)?;
+    let mut rows = 0;
+    for run in &catalogue.runs {
+        for raw in Lines::open(&run.path).map_err(|e| e.to_string())? {
+            let row = super::parse_json(&raw.map_err(|e| e.to_string())?)?;
+            if !row.is_object() {
+                return Err("a rulings row is not a JSON object.".into());
+            }
+            let key = canonical(row["docid"].as_str().unwrap_or(""));
+            rows += usize::from(catalogue.owner.get(&key) == Some(&run.name));
+        }
+    }
+    Ok(
+        json!({"runs":catalogue.runs.len(),"documents":catalogue.owner.len(),
+        "withheld":catalogue.withheld.len(),"rows":rows}),
+    )
+}
+
 pub(super) fn evaluate(context: &Context, name: &str, input: &Value) -> Result<Value, String> {
     if name == "search_ato_rulings" {
         search(context, input)

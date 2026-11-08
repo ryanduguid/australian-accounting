@@ -14,6 +14,8 @@ use std::{
     thread,
     time::Duration,
 };
+
+mod engine;
 struct SessionDirectory(PathBuf);
 impl SessionDirectory {
     fn new() -> Self {
@@ -46,6 +48,27 @@ impl Drop for Server {
             reader.join().expect("stdio reader joined");
         }
     }
+}
+/// A frozen Python resource reply as the linked engine gives it (tests/engine/mod.rs).
+fn linked(request: &Value, mut expected: Value) -> Value {
+    if request["method"] != "resources/read" {
+        return expected;
+    }
+    if let Some(worksheets) = expected
+        .pointer_mut("/result/contents/0/text/calculation_worksheets")
+        .and_then(Value::as_object_mut)
+    {
+        for (kind, entry) in worksheets {
+            engine::catalogue(kind, entry);
+        }
+    }
+    if request["params"]["uri"] == "aus-accounting://disclaimer"
+        && let Some(text) = expected.pointer_mut("/result/contents/0/text")
+        && let Some(served) = text.as_str()
+    {
+        *text = Value::String(engine::disclaimer(served));
+    }
+    expected
 }
 fn canonical(value: &mut Value) {
     match value {
@@ -177,7 +200,7 @@ fn unknown_arguments_and_expected_input_errors_leave_the_session_usable() {
             Some("misspelled_fact"),
         ));
     }
-    assert_eq!(cases.len(), 24);
+    assert_eq!(cases.len(), 25);
     let mut partial = payday.clone();
     partial["matched_amount"] = json!("50.00");
     cases.push((
@@ -240,7 +263,7 @@ fn unknown_arguments_and_expected_input_errors_leave_the_session_usable() {
         replay(vec![
             json!({"label":"original-boundary-errors-and-recovery","exchanges":exchanges})
         ]),
-        42
+        43
     );
 }
 
@@ -310,8 +333,8 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
         }
         assert!(questions.insert(id, (text("answer"), reference)).is_none());
     }
-    assert_eq!(questions.len(), 39);
-    assert_eq!(calls, 45);
+    assert_eq!(questions.len(), 40);
+    assert_eq!(calls, 46);
     let registered: BTreeSet<_> = aus_accounting_mcp::contracts::CATALOGUE["tools"]
         .as_array()
         .unwrap()
@@ -484,6 +507,10 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
             "data-freshness" => {
                 assert_eq!(r[0]["currency"], "NOT_ESTABLISHED");
                 r[0]["datasets"][0]["as_at_status"].as_str().unwrap().into()
+            }
+            "reviewed-rate-outside-years" => {
+                assert!(r[0]["record"].is_null());
+                r[0]["refusal"].as_str().unwrap().into()
             }
             "abn-check-digit" | "acn-check-digit" => {
                 assert_eq!(r[0]["gst_registration_established"], false);
@@ -742,8 +769,9 @@ fn replay_observed(sessions: Vec<Value>, mut observe: impl FnMut(&Value, &Value)
                 }
                 canonical(&mut actual);
                 if let Some(expected) = exchange.get("expected") {
+                    let expected = linked(&exchange["request"], expected.clone());
                     assert_eq!(
-                        difference(&actual, expected, ""),
+                        difference(&actual, &expected, ""),
                         None,
                         "{} {}",
                         session["label"],

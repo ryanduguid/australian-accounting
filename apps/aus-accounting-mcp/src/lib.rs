@@ -4,6 +4,7 @@
 //! Native candidate. The complete migration acceptance remains in NATIVE.md.
 pub mod adapters;
 pub mod contracts;
+pub mod doctor;
 pub mod handler;
 mod identifiers;
 pub mod prompts;

@@ -4,10 +4,11 @@
 //! Translation only. All statutory calculation and provenance belong to engines.
 mod benchmarks;
 mod div7a;
-mod freshness;
+pub(crate) mod freshness;
 mod gst;
 mod money;
 mod payday;
+mod reviewed_rates;
 mod synthetic;
 pub(crate) mod tax;
 
@@ -25,6 +26,7 @@ pub fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
         "get_ato_benchmarks" => benchmarks::compare(input),
         "calculate_tax_worksheet" => tax::calculate(input),
         "get_data_freshness" => freshness::report(input),
+        "get_reviewed_rate" => reviewed_rates::lookup(input),
         "validate_abn" => Ok(crate::identifiers::check_abn(
             input["abn"].as_str().unwrap(),
         )),

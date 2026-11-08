@@ -13,7 +13,7 @@ fn original_behaviour_record_is_complete_and_bound_to_its_reviewed_sources() {
     let record: Value =
         serde_json::from_str(include_str!("fixtures/native/behaviour-coverage.json")).unwrap();
     let sources = record["original_sources"].as_object().unwrap();
-    assert_eq!(sources.len(), 36);
+    assert_eq!(sources.len(), 43);
     for (relative, expected) in sources {
         let path = std::path::Path::new(relative);
         assert!(
@@ -34,7 +34,7 @@ fn original_behaviour_record_is_complete_and_bound_to_its_reviewed_sources() {
         );
     }
     let functions = record["functions"].as_array().unwrap();
-    assert_eq!(functions.len(), 433);
+    assert_eq!(functions.len(), 590);
     let mut identities = BTreeSet::new();
     let mut counts = std::collections::BTreeMap::new();
     for row in functions {

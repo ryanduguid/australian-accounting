@@ -4,7 +4,7 @@
 use super::{
     Context, POLICY,
     corpus::{self, Ranked},
-    linked, page, splitlines, terms,
+    linked, page, splitlines, terms, words,
 };
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -143,7 +143,7 @@ pub(super) fn read(
     start: usize,
     count: usize,
 ) -> Result<Value, String> {
-    let root = context.root("AUS_ACCOUNTING_LIBRARY_ROOT", "Markdown folder")?;
+    let root = context.root("AUS_ACCOUNTING_LIBRARY_ROOT", "Markdown folder", "")?;
     let raw = context
         .read(
             &path(&root, name)?,
@@ -154,34 +154,16 @@ pub(super) fn read(
     excerpt(name, &lines, &digest, start, count)
 }
 
-pub(super) fn search(
+/// Each readable Markdown file with its lines and digest, within the library's bounds,
+/// in folder and name order. A file that cannot be read is named in `skipped` and left out.
+fn documents(
     context: &Context,
-    query: &str,
-    limit: usize,
-    offset: usize,
-) -> Result<Value, String> {
-    let terms = terms(query);
-    if terms.is_empty() {
-        return Err("Supply at least one word to search for.".into());
-    }
-    let root = context.root("AUS_ACCOUNTING_LIBRARY_ROOT", "Markdown folder")?;
-    // shortcut: ranking scans the whole library on every search, as the Python server
-    // does; add an index if a measured library query set needs one.
-    let cap = offset + limit + 1;
-    let mut best: BinaryHeap<Ranked<(usize, usize)>> = BinaryHeap::new();
-    let (mut skipped, mut size, mut count, mut order) = (0, 0, 0, 0);
-    let mut pending = vec![root.clone()];
-    let finish = |matches, seen, skipped, more| {
-        let mut value = page(
-            matches,
-            seen,
-            more,
-            POLICY["library"]["NOTICE"].as_str().unwrap(),
-            context.limit("MAX_OFFSET", 10000),
-        );
-        value["skipped_files"] = json!(skipped);
-        value
-    };
+    root: &Path,
+    skipped: &mut Vec<String>,
+    visit: &mut dyn FnMut(&str, &[String], &str) -> Result<(), String>,
+) -> Result<(), String> {
+    let (mut size, mut count) = (0, 0);
+    let mut pending = vec![root.to_path_buf()];
     while let Some(directory) = pending.pop() {
         let Ok(entries) = fs::read_dir(&directory) else {
             continue;
@@ -226,13 +208,13 @@ pub(super) fn search(
                 );
             }
             let name = candidate
-                .strip_prefix(&root)
+                .strip_prefix(root)
                 .unwrap()
                 .components()
                 .map(|c| c.as_os_str().to_string_lossy())
                 .collect::<Vec<_>>()
                 .join("/");
-            let raw = path(&root, &name).and_then(|p| {
+            let raw = path(root, &name).and_then(|p| {
                 context
                     .read(
                         &p,
@@ -243,7 +225,7 @@ pub(super) fn search(
                     .map_err(|_| READ_ERROR.into())
             });
             let Ok(raw) = raw else {
-                skipped += 1;
+                skipped.push(name);
                 continue;
             };
             size += raw.len();
@@ -251,37 +233,57 @@ pub(super) fn search(
                 return Err("Library exceeds 64 MB; configure a smaller folder.".into());
             }
             let Ok((lines, digest)) = decode(&raw, context) else {
-                skipped += 1;
+                skipped.push(name);
                 continue;
             };
-            let (mut heading, mut pdf_page) = (None, Value::Null);
-            for (index, line) in lines.iter().enumerate() {
-                advance(line, &mut heading, &mut pdf_page)?;
-                let folded = payday_super_checker::py::casefold(line);
-                if !terms.iter().all(|term| folded.contains(term)) {
-                    continue;
-                }
-                let row = json!({"heading":heading,"line":line});
-                let key = (corpus::tier(&terms, &["heading"], &["line"], &row), order);
-                order += 1;
-                if best.len() < cap || best.peek().is_some_and(|worst| key < worst.key) {
-                    // A line too long to excerpt still takes its rank, as null, so the
-                    // next offset lands after the last one this page consumed.
-                    let value = shape(
-                        &name,
-                        &digest,
-                        &lines,
-                        index + 1,
-                        3,
-                        heading,
-                        pdf_page.clone(),
-                    )
-                    .unwrap_or(Value::Null);
-                    corpus::retain(&mut best, Ranked { key, value }, cap);
-                }
-            }
+            visit(&name, &lines, &digest)?;
         }
     }
+    Ok(())
+}
+
+/// Every line holding all the query words, best first. Each word counts, stop words
+/// too, and is compared whole; a modal and the "not" after it are one word.
+pub(super) fn search(
+    context: &Context,
+    query: &str,
+    limit: usize,
+    offset: usize,
+) -> Result<Value, String> {
+    let terms = terms(query);
+    if terms.is_empty() {
+        return Err("Supply at least one word to search for.".into());
+    }
+    let root = context.root("AUS_ACCOUNTING_LIBRARY_ROOT", "Markdown folder", "")?;
+    let words = words::query_words(&terms);
+    // shortcut: ranking scans the whole library on every search, as the Python server
+    // does; add an index if a measured library query set needs one.
+    let cap = offset + limit + 1;
+    let mut best: BinaryHeap<Ranked<(usize, usize)>> = BinaryHeap::new();
+    let (mut skipped, mut order) = (Vec::new(), 0);
+    documents(context, &root, &mut skipped, &mut |name, lines, digest| {
+        let (mut heading, mut pdf_page) = (None, Value::Null);
+        for (index, line) in lines.iter().enumerate() {
+            advance(line, &mut heading, &mut pdf_page)?;
+            if !words::holds_all(&words, &payday_super_checker::py::casefold(line)) {
+                continue;
+            }
+            let row = json!({"heading":heading,"line":line});
+            let key = (
+                corpus::tier(&words, &terms, &["heading"], &["line"], &row),
+                order,
+            );
+            order += 1;
+            if best.len() < cap || best.peek().is_some_and(|worst| key < worst.key) {
+                // A line too long to excerpt still takes its rank, as null, so the
+                // next offset lands after the last one this page consumed.
+                let value = shape(name, digest, lines, index + 1, 3, heading, pdf_page.clone())
+                    .unwrap_or(Value::Null);
+                corpus::retain(&mut best, Ranked { key, value }, cap);
+            }
+        }
+        Ok(())
+    })?;
     let best = best.into_sorted_vec();
     let more = best.len() > offset + limit;
     let matches = best
@@ -291,5 +293,25 @@ pub(super) fn search(
         .map(|ranked| ranked.value)
         .filter(|value| !value.is_null())
         .collect();
-    Ok(finish(matches, offset + limit, skipped, more))
+    let mut value = page(
+        matches,
+        offset + limit,
+        more,
+        POLICY["library"]["NOTICE"].as_str().unwrap(),
+        context.limit("MAX_OFFSET", 10000),
+    );
+    value["skipped_files"] = json!(skipped.len());
+    Ok(value)
+}
+
+/// What the configured library holds, for `aus-accounting-mcp doctor`.
+pub(super) fn census(context: &Context) -> Result<Value, String> {
+    let root = context.root("AUS_ACCOUNTING_LIBRARY_ROOT", "Markdown folder", "")?;
+    let (mut skipped, mut files, mut rows) = (Vec::new(), 0, 0);
+    documents(context, &root, &mut skipped, &mut |_, lines, _| {
+        files += 1;
+        rows += lines.len();
+        Ok(())
+    })?;
+    Ok(json!({"files":files,"rows":rows,"skipped":skipped}))
 }

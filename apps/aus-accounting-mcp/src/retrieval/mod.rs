@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! Opt-in, bounded reads of operator-configured reference folders.
+mod as_at;
 mod corpus;
 mod library;
 mod rulings;
 #[cfg(test)]
 mod tests;
+mod words;
 
 use serde_json::{Value, json};
 use std::{
@@ -51,14 +53,17 @@ impl Context {
             fault: None,
         }
     }
-    fn root(&self, variable: &str, description: &str) -> Result<PathBuf, String> {
+    /// The configured folder; `hint` says how to make one, before the configuration note.
+    fn root(&self, variable: &str, description: &str, hint: &str) -> Result<PathBuf, String> {
         let configured = self.root.as_ref().ok_or_else(|| {
-            format!("Set {variable} to an authorised {description}. {NOT_CONFIGURED}")
+            format!("Set {variable} to an authorised {description}. {hint}{NOT_CONFIGURED}")
         })?;
         fs::canonicalize(configured)
             .ok()
             .filter(|p| p.is_dir())
-            .ok_or_else(|| format!("{variable} must name an existing folder. {NOT_CONFIGURED}"))
+            .ok_or_else(|| {
+                format!("{variable} must name an existing folder. {hint}{NOT_CONFIGURED}")
+            })
     }
     fn limit(&self, name: &str, default: usize) -> usize {
         #[cfg(test)]
@@ -137,14 +142,49 @@ fn splitlines(text: &str) -> Vec<String> {
 struct Lines {
     reader: BufReader<fs::File>,
     after_cr: bool,
+    /// Bytes consumed before the line being read.
+    offset: usize,
 }
 impl Lines {
     fn open(path: &Path) -> io::Result<Self> {
         Ok(Self {
             reader: BufReader::new(fs::File::open(path)?),
             after_cr: false,
+            offset: 0,
         })
     }
+}
+
+/// A line as text, or Python's UnicodeDecodeError text for it. Python counts positions
+/// from the start of its 8,192-byte read chunk, and from the held tail for one cut off at
+/// the end of the file; this counts from the start of the file, so the two agree on an
+/// error in the first chunk or at the end.
+fn decoded(raw: Vec<u8>, start: usize, at_end: bool) -> io::Result<String> {
+    String::from_utf8(raw).map_err(|e| {
+        let (bytes, error) = (e.as_bytes(), e.utf8_error());
+        let from = error.valid_up_to();
+        let (at, len, reason) = match error.error_len() {
+            Some(1) if !(0xc2..=0xf4).contains(&bytes[from]) => {
+                (start + from, 1, "invalid start byte")
+            }
+            Some(len) => (start + from, len, "invalid continuation byte"),
+            None if at_end => (0, bytes.len() - from, "unexpected end of data"),
+            None => (
+                start + from,
+                bytes.len() - from,
+                "invalid continuation byte",
+            ),
+        };
+        let place = if len == 1 {
+            format!("byte 0x{:02x} in position {at}", bytes[from])
+        } else {
+            format!("bytes in position {at}-{}", at + len - 1)
+        };
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("'utf-8' codec can't decode {place}: {reason}"),
+        )
+    })
 }
 impl Iterator for Lines {
     type Item = io::Result<String>;
@@ -159,16 +199,16 @@ impl Iterator for Lines {
                 return if raw.is_empty() {
                     None
                 } else {
-                    Some(
-                        String::from_utf8(raw)
-                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-                    )
+                    let start = self.offset;
+                    self.offset += raw.len();
+                    Some(decoded(raw, start, true))
                 };
             }
             if self.after_cr {
                 self.after_cr = false;
                 if buffer[0] == b'\n' {
                     self.reader.consume(1);
+                    self.offset += 1;
                     continue;
                 }
             }
@@ -177,10 +217,9 @@ impl Iterator for Lines {
                 raw.extend_from_slice(&buffer[..end]);
                 self.after_cr = buffer[end] == b'\r';
                 self.reader.consume(end + 1);
-                return Some(
-                    String::from_utf8(raw)
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-                );
+                let start = self.offset;
+                self.offset += raw.len() + 1;
+                return Some(decoded(raw, start, false));
             }
             raw.extend_from_slice(buffer);
             let consumed = buffer.len();
@@ -281,5 +320,15 @@ pub(crate) fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
         _ => Err(format!(
             "{name}: native migration is incomplete; use the existing Python server"
         )),
+    }
+}
+
+/// What one configured folder holds, for `aus-accounting-mcp doctor`.
+pub(crate) fn census(variable: &str) -> Result<Value, String> {
+    let context = Context::from_env(variable);
+    match variable {
+        "AUS_ACCOUNTING_LIBRARY_ROOT" => library::census(&context),
+        "AUS_ACCOUNTING_CORPUS_ROOT" => corpus::census(&context),
+        _ => rulings::census(&context),
     }
 }

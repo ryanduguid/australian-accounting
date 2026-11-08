@@ -151,6 +151,16 @@ fn restore(tree: &Path, item: &Value, blobs: &Value) -> Context {
     }
 }
 
+/// Original tests a frozen replay cannot reproduce. The first 2 change the corpus or its
+/// reader in the middle of the call; corpus::tests proves each guard. The third measures
+/// search relevance with corpus.py's partial-match floor and stop words replaced, a
+/// configuration the server never runs.
+const UNREPLAYABLE: [&str; 3] = [
+    "tests/test_as_at.py::test_a_title_changed_after_validation_cannot_return_uncaptured_text",
+    "tests/test_as_at.py::test_a_read_failure_while_counting_refusals_stops_the_search",
+    "tests/test_search_relevance.py::test_the_one_word_floor_fails_the_gate_as_recorded",
+];
+
 #[test]
 fn frozen_corpus_contracts() {
     let fixture = fixture();
@@ -158,12 +168,12 @@ fn frozen_corpus_contracts() {
     assert!(!tree.0.exists());
     fs::create_dir(&tree.0).unwrap();
     let mut count = 0;
-    for item in fixture["cases"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .filter(|i| i["module"] == "corpus" || i["module"] == "boundary")
-    {
+    for item in fixture["cases"].as_array().unwrap().iter().filter(|i| {
+        (i["module"] == "corpus" || i["module"] == "boundary") && i["function"] != "census"
+    }) {
+        if UNREPLAYABLE.contains(&item["test"].as_str().unwrap()) {
+            continue;
+        }
         let args = &item["arguments"];
         let function = item["function"].as_str().unwrap();
         if item["module"] == "boundary" {
@@ -186,13 +196,18 @@ fn frozen_corpus_contracts() {
                     .map(|v| v.as_str().unwrap())
                     .collect::<Vec<_>>()
             };
-            let words = strings("terms")
-                .into_iter()
-                .map(str::to_owned)
-                .collect::<Vec<_>>();
+            let owned = |field: &str| -> Vec<String> {
+                match args[field].as_array() {
+                    Some(_) => strings(field).into_iter().map(str::to_owned).collect(),
+                    None => Vec::new(),
+                }
+            };
+            let words = owned("terms");
+            let phrase = owned("phrase_terms");
             assert_eq!(
                 json!(corpus::tier(
                     &words,
+                    if phrase.is_empty() { &words } else { &phrase },
                     &strings("heading"),
                     &strings("body"),
                     &args["row"]
@@ -220,7 +235,7 @@ fn frozen_corpus_contracts() {
             let result = corpus::evaluate(&context, name, args);
             if item.get("error").is_some() {
                 assert_eq!(
-                    result.unwrap_err(),
+                    result.expect_err(item["test"].as_str().unwrap()),
                     item["error"]["message"],
                     "{}",
                     item["test"]
@@ -233,7 +248,7 @@ fn frozen_corpus_contracts() {
         }
         count += 1;
     }
-    assert_eq!(count, 130);
+    assert_eq!(count, 639);
 }
 
 #[test]
@@ -248,7 +263,7 @@ fn frozen_rulings_contracts() {
         .as_array()
         .unwrap()
         .iter()
-        .filter(|i| i["module"] == "rulings")
+        .filter(|i| i["module"] == "rulings" && i["function"] != "census")
     {
         let context = restore(&tree.0, item, &fixture["blobs"]);
         let name = match item["function"].as_str().unwrap() {
@@ -271,7 +286,7 @@ fn frozen_rulings_contracts() {
         }
         count += 1;
     }
-    assert_eq!(count, 77);
+    assert_eq!(count, 90);
 }
 
 #[test]
@@ -286,7 +301,7 @@ fn frozen_library_contracts() {
         .as_array()
         .unwrap()
         .iter()
-        .filter(|i| i["module"] == "library")
+        .filter(|i| i["module"] == "library" && i["function"] != "census")
     {
         let context = restore(&tree.0, item, &fixture["blobs"]);
         let args = &item["arguments"];
@@ -331,7 +346,74 @@ fn frozen_library_contracts() {
         }
         count += 1;
     }
-    assert_eq!(count, 43);
+    assert_eq!(count, 55);
+}
+
+/// The Python doctor's census of each folder its tests build, and the line it printed.
+#[test]
+fn frozen_census_contracts() {
+    let fixture = fixture();
+    let tree = Tree(std::env::temp_dir().join(format!("native-mcp-census-{}", std::process::id())));
+    assert!(!tree.0.exists());
+    fs::create_dir(&tree.0).unwrap();
+    let mut count = 0;
+    for item in fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|i| i["function"] == "census")
+    {
+        let context = restore(&tree.0, item, &fixture["blobs"]);
+        let (variable, found) = match item["module"].as_str().unwrap() {
+            "library" => ("AUS_ACCOUNTING_LIBRARY_ROOT", library::census(&context)),
+            "corpus" => ("AUS_ACCOUNTING_CORPUS_ROOT", corpus::census(&context)),
+            "rulings" => ("AUS_ACCOUNTING_RULINGS_ROOT", rulings::census(&context)),
+            other => panic!("Unknown census module {other}"),
+        };
+        match item.get("error") {
+            Some(error) => assert_eq!(
+                found.as_ref().unwrap_err(),
+                &error["message"],
+                "{}",
+                item["test"]
+            ),
+            None => assert_eq!(found.as_ref().unwrap(), &item["result"], "{}", item["test"]),
+        }
+        let (ok, line) = crate::doctor::judged(variable, found);
+        assert_eq!(json!([ok, line]), item["check"], "{}", item["test"]);
+        count += 1;
+    }
+    assert_eq!(count, 28);
+}
+
+/// A row nested past any parser's depth is a broken corpus, not a crash. Python's
+/// RecursionError text and serde_json's depth error differ, so only the verdict is compared.
+#[test]
+fn doctor_reports_a_row_nested_past_the_limit_as_broken() {
+    let tree = Tree(std::env::temp_dir().join(format!("native-mcp-nested-{}", std::process::id())));
+    let titles = tree.0.join("markdown/C9999A00001");
+    fs::create_dir_all(&titles).unwrap();
+    fs::create_dir_all(tree.0.join("rates")).unwrap();
+    let row = r#"{"row_id":"C9999A00001:0001:1","text":"Synthetic levy."}"#;
+    fs::write(
+        titles.join("sections.jsonl"),
+        format!("{row}\n{}\n", "[".repeat(1_000_000)),
+    )
+    .unwrap();
+    fs::write(
+        tree.0.join("rates/rates.jsonl"),
+        r#"{"rate_id":"r1","content":"A cap of $6."}"#.to_owned() + "\n",
+    )
+    .unwrap();
+    let context = Context {
+        root: Some(tree.0.clone()),
+        limits: Default::default(),
+        denied: false,
+        principal_acts: None,
+        fault: None,
+    };
+    let (ok, _) = crate::doctor::judged("AUS_ACCOUNTING_CORPUS_ROOT", corpus::census(&context));
+    assert!(!ok);
 }
 
 fn original_case<'a>(fixture: &'a Value, test: &str, function: &str) -> &'a Value {
@@ -540,7 +622,7 @@ fn original_queries_are_tokenised_before_ranking() {
         ),
     ] {
         assert_eq!(
-            corpus::tier(&terms(query), &["heading"], &["text"], &row),
+            corpus::tier(&terms(query), &terms(query), &["heading"], &["text"], &row),
             expected,
             "{query}: {row}"
         );
@@ -587,4 +669,61 @@ fn invalid_filename_bytes_cannot_alias_a_unicode_citation() {
         library::search(&context, "GST", 5, 0).unwrap_err(),
         "Library paths must use Unicode names."
     );
+}
+
+/// CPython 3.15's texts for these lines (B-1 receipts, utf8_messages.py), read from one file.
+#[test]
+fn a_line_that_is_not_utf8_reports_pythons_decode_error() {
+    let tree = Tree(std::env::temp_dir().join(format!("native-mcp-utf8-{}", std::process::id())));
+    fs::create_dir(&tree.0).unwrap();
+    let first = |raw: &[u8]| {
+        let path = tree.0.join("lines.jsonl");
+        fs::write(&path, raw).unwrap();
+        Lines::open(&path)
+            .unwrap()
+            .find_map(Result::err)
+            .unwrap()
+            .to_string()
+    };
+    for (raw, text) in [
+        (
+            &b"\xff\n"[..],
+            "byte 0xff in position 0: invalid start byte",
+        ),
+        (
+            b"ok\xe2\x82A\n",
+            "bytes in position 2-3: invalid continuation byte",
+        ),
+        (
+            b"\xe2A\n",
+            "byte 0xe2 in position 0: invalid continuation byte",
+        ),
+        (
+            b"\xf0\x80\n",
+            "byte 0xf0 in position 0: invalid continuation byte",
+        ),
+        (b"\xc0\n", "byte 0xc0 in position 0: invalid start byte"),
+        (
+            b"\xe2\x82\n",
+            "bytes in position 0-1: invalid continuation byte",
+        ),
+        (
+            b"ab\xe2\x82",
+            "bytes in position 0-1: unexpected end of data",
+        ),
+        (
+            b"\xed\xa0\x80\n",
+            "byte 0xed in position 0: invalid continuation byte",
+        ),
+        (
+            b"a\r\nb\rc\n\xff\n",
+            "byte 0xff in position 7: invalid start byte",
+        ),
+    ] {
+        assert_eq!(
+            first(raw),
+            format!("'utf-8' codec can't decode {text}"),
+            "{raw:?}"
+        );
+    }
 }

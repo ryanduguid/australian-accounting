@@ -318,6 +318,40 @@ fn gst() -> Value {
     )
 }
 
+fn reviewed_rates() -> Result<Value, String> {
+    let held: Vec<&Value> = super::reviewed_rates::RECORDS.values().collect();
+    let periods = super::reviewed_rates::covered_years()
+        .iter()
+        .map(|year| financial_year(year, "income year"))
+        .collect::<Result<Vec<_>, _>>()?;
+    let retrieved: Vec<Value> = held
+        .iter()
+        .map(|record| {
+            json!(
+                record["retrieved_at"]
+                    .as_str()
+                    .unwrap_or_default()
+                    .chars()
+                    .take(10)
+                    .collect::<String>()
+            )
+        })
+        .collect();
+    Ok(row(
+        "reviewed_ato_rates".into(),
+        "Reviewed ATO rates and thresholds, each with its source page and a verbatim quote.".into(),
+        &["get_reviewed_rate"],
+        ("aus-accounting-mcp", crate::VERSION),
+        (
+            json!(periods),
+            urls(held.iter().map(|record| &record["source_url"])),
+            dates(&retrieved),
+            json!(UNKNOWN),
+            json!({"records":held.len()}),
+        ),
+    ))
+}
+
 fn as_at_status(periods: &Value, day: &str) -> &'static str {
     let Some(periods) = periods.as_array() else {
         return UNKNOWN;
@@ -347,7 +381,7 @@ pub fn report(input: &Value) -> Result<Value, String> {
     let mut datasets = benchmarks()?;
     datasets.extend([div7a()?, gic()?, calendar()?, sg_parameters()?]);
     datasets.extend(worksheets()?);
-    datasets.extend([lodgment(), gst()]);
+    datasets.extend([lodgment(), gst(), reviewed_rates()?]);
     if let Some(tool) = tool {
         datasets.retain(|dataset| {
             dataset["tools"]

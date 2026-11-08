@@ -18,9 +18,12 @@ use std::sync::LazyLock;
 
 pub const DISCLAIMER: &str = "Experimental review aid. Not a compliance determination, an ATO assessment or professional advice. payday-super-checker refuses or marks UNKNOWN where the supplied facts do not establish the statutory test (SGAA 1992 s 18C). This MCP does not model clearing-house latency. Fund receipt must be supplied before a contribution can be ON_TIME.";
 const SINGLE: &str = "This review covers one contribution. It does not review related contributions, allocate receipts across QE days or apply s 18C(2) item 4 deadline alignment. Those facts can change the deadline or shortfall. Use payday-super-checker's full contribution review with the related evidence before drawing a conclusion. The supplied sg_amount is not a calculation of SG entitlement.";
-/// Carried by every ON_TIME verdict or horizon candidate, because no tool input
-/// records a contribution the fund returned. It applies no rule of its own.
+/// Carried by every ON_TIME verdict or horizon candidate, because the server's
+/// assessment takes no fund return. It applies no rule of its own.
 const RETURNED: &str = "aus-accounting-mcp: returned contributions were not assessed, so ON_TIME assumes the fund kept every receipt. Check fund records before relying on it.";
+/// A caller that knows of a return gets a refusal rather than a review that reads the
+/// receipt as kept, as the Python server does until the MCP passes returns through.
+const RETURNED_REFUSAL: &str = "the fund returned some or all of this contribution, and the payday-super-checker this server links cannot assess that, so it would read the receipt as kept. Review the row with the native payday-super-check command, using its returned_by_fund column and --events file, or remove the row once the fund's records settle it.";
 static NUMERIC: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^(\d{1,2})[/-](\d{1,2})[/-]\d{2,4}").unwrap());
 
@@ -84,6 +87,9 @@ fn optional_amount(input: &Value, field: &str) -> Result<Option<Decimal>, String
         .transpose()
 }
 fn line(input: &Value, row: i64) -> Result<ContribLine, String> {
+    if input["returned_by_fund"] == true {
+        return Err(format!("row {row}: {RETURNED_REFUSAL}"));
+    }
     let qe_day = required_date(input["qe_day"].as_str().unwrap(), "qe_day")?;
     let sg_amount = amount(input["sg_amount"].as_str().unwrap(), "sg_amount")?;
     let remitted = optional_date(input, "remitted")?;

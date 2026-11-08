@@ -17,6 +17,8 @@ use std::{
     time::{Duration, Instant},
 };
 
+mod engine;
+
 struct Directory(PathBuf);
 impl Directory {
     fn new() -> Self {
@@ -213,8 +215,10 @@ fn installed_binary_exercises_every_advertised_worksheet_period() {
     );
     let mut calls = 0;
     for (kind, entry) in catalogue {
+        let mut linked = original[kind].clone();
+        engine::catalogue(kind, &mut linked);
         assert_eq!(
-            entry["supported_periods"], original[kind]["supported_periods"],
+            entry["supported_periods"], linked["supported_periods"],
             "{kind}"
         );
         assert_eq!(

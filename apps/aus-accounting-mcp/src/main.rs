@@ -1,7 +1,7 @@
 // Copyright 2026 Ryan Duguid
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-use aus_accounting_mcp::{VERSION, handler};
+use aus_accounting_mcp::{VERSION, doctor, handler};
 use rmcp::ServiceExt;
 
 #[tokio::main]
@@ -13,9 +13,15 @@ async fn main() {
     }
     if args.len() == 1 && (args[0] == "--help" || args[0] == "-h") {
         println!(
-            "Run the Aus Accounting MCP server over stdio. An MCP client such as Claude Desktop, Claude Code, Cursor or Codex starts this command itself; run by hand, it waits silently for a client.\n\nUsage: aus-accounting-mcp [--version]\n\nOptional retrieval folders: set AUS_ACCOUNTING_LIBRARY_ROOT to a Markdown library, or AUS_ACCOUNTING_CORPUS_ROOT to a legislation corpus, in the client's server configuration. Setup guide: https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#client-setup"
+            "Run the Aus Accounting MCP server over stdio. An MCP client such as Claude Desktop, Claude Code, Cursor or Codex starts this command itself; run by hand, it waits silently for a client.\n\nUsage: aus-accounting-mcp [--version] [doctor]\n\nCommands:\n  doctor  {}\n\nOptional retrieval folders: set AUS_ACCOUNTING_LIBRARY_ROOT to a Markdown library, or AUS_ACCOUNTING_CORPUS_ROOT to a legislation corpus, in the client's server configuration, then run `aus-accounting-mcp doctor` with the same variables to check them. Setup guide: https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#client-setup",
+            doctor::HELP
         );
         return;
+    }
+    if args.len() == 1 && args[0] == "doctor" {
+        let (report, code) = doctor::report();
+        print!("{report}");
+        std::process::exit(code);
     }
     if !args.is_empty() {
         eprintln!("aus-accounting-mcp: unrecognised arguments");

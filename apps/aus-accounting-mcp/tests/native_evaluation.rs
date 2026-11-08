@@ -10,6 +10,8 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
+mod engine;
+
 fn fixture() -> Value {
     serde_json::from_str(include_str!("fixtures/native/evaluation.json")).unwrap()
 }
@@ -121,6 +123,10 @@ fn questions_and_complete_actual_stdio_context_match_original() {
     // Resource JSON formatting is incidental; every decoded field is compared.
     let actual: Value = serde_json::from_str(scope).unwrap();
     let mut expected: Value = serde_json::from_str(expected_scope).unwrap();
+    // The linked engine's commits, named in tests/engine/mod.rs.
+    for (kind, entry) in expected["calculation_worksheets"].as_object_mut().unwrap() {
+        engine::catalogue(kind, entry);
+    }
     // Existing reviewed native study-loan provenance, as qualified for scope
     // resources and recorded in NATIVE.md. No calculation field is adapted.
     let worksheet = &mut expected["calculation_worksheets"]["study_loan_repayment"];
