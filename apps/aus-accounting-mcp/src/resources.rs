@@ -35,9 +35,9 @@ pub fn read(uri: &str) -> Result<Value, String> {
             }
         }
         "aus-accounting://disclaimer" => {
-            // Python lists its installed engine's worksheet scopes; these are the linked engine's.
-            let catalogue =
-                australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({}))?;
+            // Python lists its installed engine's worksheet scopes; these are the linked
+            // engine's, as the scope resource serves them.
+            let catalogue = crate::adapters::tax::advertised_worksheets()?;
             let heading = "# australian-tax-calculators\n\n";
             let text = value.as_str().unwrap();
             let (head, rest) = text.split_once(heading).ok_or("disclaimer")?;

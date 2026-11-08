@@ -26,6 +26,41 @@ const MONEY: &[&str] = &[
     "low_tax_contributions",
 ];
 
+/// The linked engine's scope words for periods the input schema refuses (b4a70733 and
+/// d8f34dc2), each with the published 0.2.0 words for the periods it admits. Remove an
+/// entry when the schema opens its periods.
+const NARROWED_SCOPE: [(&str, &str, &str); 3] = [
+    (
+        "payg_withholding",
+        "made from 1 July 2024, in the income year given, to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. The year selects the Schedule 1 coefficients for payments made in it.",
+        "made from 1 July 2026 to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations.",
+    ),
+    (
+        "fbt",
+        "for the year ended 31 March 2026 or 2027, both at the 47% FBT rate and the 2.0802 and 1.8868 gross-up rates. Excludes",
+        "for the year ended 31 March 2026. Excludes",
+    ),
+    (
+        "fbt",
+        "before any optional rounding down to 5 cents. For 2027 the items follow the FBT return 2026 instructions until the ATO publishes the 2027 return.",
+        "before any optional rounding down to 5 cents.",
+    ),
+];
+
+/// A worksheet's scope as this server serves it: no wider than the periods its input
+/// schema admits.
+fn served_scope(kind: &str, record: &mut Value) {
+    if let Some(text) = record["scope"].as_str() {
+        let narrowed = NARROWED_SCOPE
+            .iter()
+            .filter(|(narrowed, ..)| *narrowed == kind)
+            .fold(text.to_owned(), |text, (_, wide, admitted)| {
+                text.replace(wide, admitted)
+            });
+        record["scope"] = json!(narrowed);
+    }
+}
+
 /// The engine's worksheets and periods this server's input schema can reach. The
 /// linked engine can hold kinds, and periods outside a year the schema fixes or bounds,
 /// that the published contract does not advertise yet.
@@ -44,6 +79,7 @@ pub fn advertised_worksheets() -> Result<Value, String> {
             .strip_prefix('#')
             .and_then(|pointer| schema.pointer(pointer))
             .ok_or("facts variant")?;
+        served_scope(kind, entry);
         if let Some(periods) = entry["supported_periods"].as_array_mut() {
             periods.retain(|period| {
                 period["arguments"].as_object().is_none_or(|arguments| {
@@ -93,6 +129,7 @@ pub fn calculate(input: &Value) -> Result<Value, String> {
         }
     }
     let mut result = australian_tax_calculators::api::evaluate(&kind, &facts)?;
+    served_scope(&kind.replace('-', "_"), &mut result);
     if input["file_note"] == true {
         result["file_note"] = json!(file_note(&input["facts"], &result)?);
     }
@@ -190,4 +227,60 @@ fn file_note(facts: &Value, result: &Value) -> Result<String, String> {
     );
     lines.push(String::new());
     Ok(lines.join("\n"))
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::{Value, json};
+
+    fn year(date: &Value) -> u32 {
+        date.as_str().unwrap()[..4].parse().unwrap()
+    }
+
+    /// The years from `first` on that a text names. Earlier years name legislation or
+    /// history, such as ITAA 1997 or assets first held from 10 May 2006, not periods.
+    fn named_years(text: &str, first: u32) -> Vec<u32> {
+        text.split(|c: char| !c.is_ascii_alphanumeric())
+            .filter(|word| word.len() == 4)
+            .filter_map(|word| word.parse().ok())
+            .filter(|named| *named >= first)
+            .collect()
+    }
+
+    /// Every year a served worksheet scope names falls in one of the worksheet's
+    /// advertised periods, in the scope resource and in each period's result.
+    #[test]
+    fn every_year_a_scope_names_is_an_advertised_period() {
+        let catalogue = super::advertised_worksheets().unwrap();
+        let catalogue = catalogue.as_object().unwrap();
+        let periods = |entry: &Value| entry["supported_periods"].as_array().unwrap().clone();
+        let first = catalogue
+            .values()
+            .flat_map(periods)
+            .map(|period| year(&period["start"]))
+            .min()
+            .unwrap();
+        for (kind, entry) in catalogue {
+            let periods = periods(entry);
+            let mut scopes = vec![entry["scope"].clone()];
+            for period in &periods {
+                let mut facts = entry["example"]["facts"].clone();
+                let arguments = period["arguments"].as_object().unwrap();
+                facts.as_object_mut().unwrap().extend(arguments.clone());
+                let result = super::calculate(&json!({ "facts": facts })).unwrap();
+                scopes.push(result["scope"].clone());
+            }
+            for scope in &scopes {
+                let scope = scope.as_str().unwrap();
+                for named in named_years(scope, first) {
+                    assert!(
+                        periods.iter().any(|period| {
+                            (year(&period["start"])..=year(&period["end"])).contains(&named)
+                        }),
+                        "{kind} names {named}, outside its advertised periods: {scope}"
+                    );
+                }
+            }
+        }
+    }
 }

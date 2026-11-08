@@ -62,12 +62,6 @@ fn linked(request: &Value, mut expected: Value) -> Value {
             engine::catalogue(kind, entry);
         }
     }
-    if request["params"]["uri"] == "aus-accounting://disclaimer"
-        && let Some(text) = expected.pointer_mut("/result/contents/0/text")
-        && let Some(served) = text.as_str()
-    {
-        *text = Value::String(engine::disclaimer(served));
-    }
     expected
 }
 fn canonical(value: &mut Value) {

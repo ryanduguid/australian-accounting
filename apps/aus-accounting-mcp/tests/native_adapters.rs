@@ -271,9 +271,6 @@ fn frozen_resource_contracts() {
             study["example_evidence"]["reviewed"] = json!("2026-10-13");
             study["example_evidence"]["checked"] = json!("2026-10-20");
         }
-        if uri == "aus-accounting://disclaimer" {
-            expected = json!(engine::disclaimer(expected.as_str().unwrap()));
-        }
         let expected = moved_lump_sum_page(&expected);
         let actual = aus_accounting_mcp::resources::read(uri).unwrap();
         assert_eq!(difference(&actual, &expected, ""), None, "{uri}");
