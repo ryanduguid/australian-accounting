@@ -99,6 +99,9 @@ jobs:
       binary: ${{ matrix.binary }}
       smoke: ${{ matrix.smoke }}
       candidate-test: ${{ matrix.candidate-test }}
+      extra-binaries: ${{ matrix.extra-binaries }}
+      extra-examples: ${{ matrix.extra-examples }}
+      candidate-files: ${{ matrix.candidate-files }}
     permissions:
       contents: read
 
