@@ -88,3 +88,74 @@ packages/the-exchequer-tally/tests/data/python-cli.json tfn 604134057 generated 
 tools/fixture-screen/tests/fixture_screen.rs tfn 123456782 the screen's own planted test value
 tools/glama-badge-server/allowed.txt acn 418716640 digits in a GitHub user name in a listed server path, not an identifier
 tools/glama-badge-server/allowed.txt tfn 188838884 digits in a GitHub user name in a listed server path, not an identifier
+
+# Native MCP copies of the check-digit examples, synthetic fixtures and numeric bounds.
+apps/aus-accounting-mcp/data/catalogue.v1.json tfn 320000000 maximum character offset in a paginated read that also passes the TFN checksum
+apps/aus-accounting-mcp/data/effective-inputs.v1.json tfn 320000000 maximum character offset in a paginated read that also passes the TFN checksum
+apps/aus-accounting-mcp/data/retrieval-policy.v1.json tfn 320000000 configured corpus byte limit that also passes the TFN checksum
+apps/aus-accounting-mcp/src/adapters/synthetic.rs tfn 222333444 last 9 digits of the placeholder ABN 11 222 333 444, which fails the ABN check
+apps/aus-accounting-mcp/src/identifiers.rs abn 00000090000 placeholder in a comment on why the ABN check rejects a leading zero
+apps/aus-accounting-mcp/tests/boundary_contracts.rs abn 51824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/tests/boundary_contracts.rs acn 004085616 ACN of B P Australia Pty Ltd, a company's public register number used as an ACN check digit example; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json abn 00000090000 placeholder in a comment on why the ABN check rejects a leading zero
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json abn 10000000000 formatting or check-digit input from the fabricated Python capture generator
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json abn 51824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json abn 53004085616 formatting or check-digit input from the fabricated Python capture generator
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json abn 83914571673 formatting or check-digit input from the fabricated Python capture generator
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json abn ٥١824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026, with Arabic-Indic digits the validator must reject
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json abn ５１824753556 formatting or check-digit input from the fabricated Python capture generator
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 000250000 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 000500005 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 000750005 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 001000004 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 001250004 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 001500009 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 001749999 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 001999999 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 002249998 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 002499998 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 002749993 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 002999993 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 003249992 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 003499992 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 003749988 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 003999988 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 004085616 ACN of B P Australia Pty Ltd, a company's public register number used as an ACN check digit example; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 004249987 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 004499987 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 004749982 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 004999982 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 005249981 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 005499981 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 005749986 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 005999977 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 006249976 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 006499976 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 006749980 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 006999980 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 007249989 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 007499989 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 007749975 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 007999975 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 008249974 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 008499974 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 008749979 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 008999979 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 009249969 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 009499969 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 009749964 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 009999964 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 010249966 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 010499966 ASIC EDGE Document Messages Specification 5.10, Appendix D, valid check-digit example
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 010749961 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn 123456780 formatting or check-digit input from the fabricated Python capture generator
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json acn ٠٠٤085616 formatting or check-digit input from the fabricated Python capture generator
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json tfn 000000019 public ACN check-digit example that also passes the TFN checksum
+apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json tfn 222333444 last 9 digits of the placeholder ABN 11 222 333 444, which fails the ABN check
+apps/aus-accounting-mcp/tests/fixtures/native/coverage-edges.json tfn 222333444 last 9 digits of the placeholder ABN 11 222 333 444, which fails the ABN check
+apps/aus-accounting-mcp/tests/fixtures/native/evaluation.json acn 004085616 ACN of B P Australia Pty Ltd, a company's public register number used as an ACN check digit example; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/tests/fixtures/native/evaluation.json tfn 320000000 maximum character offset in a paginated read that also passes the TFN checksum
+apps/aus-accounting-mcp/tests/fixtures/native/lifecycle-edges.json tfn 320000000 maximum character offset in a paginated read that also passes the TFN checksum
+apps/aus-accounting-mcp/tests/fixtures/native/retrieval-contracts.json tfn 320000000 configured corpus byte limit that also passes the TFN checksum
+apps/aus-accounting-mcp/tests/fixtures/native/wire-sessions.json tfn 320000000 maximum character offset in a paginated read that also passes the TFN checksum
+apps/aus-accounting-mcp/tests/no_network.rs abn 51824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026
