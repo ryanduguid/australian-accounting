@@ -147,6 +147,8 @@ PLAIN = str.maketrans({"\u2011": "-", "\u00a0": " ", "*": ""})
 MAX_DEFINITIONS = 20
 # Judges one row: its sort key, lower first, and its result, or None to leave it out.
 Assessor = Callable[[dict[str, Any]], tuple[tuple[int, ...], dict[str, Any]] | None]
+# Each title's register_id and its first row's standing on one date.
+_Windows = dict[str | None, dict[str, Any]]
 
 
 def _root() -> Path:
@@ -668,36 +670,39 @@ def _window_error(row: dict[str, Any]) -> InputError:
     )
 
 
-def _first_row(path: Path, on: str) -> dict[str, Any] | None:
-    """The first row, after verifying every row shares its title and compilation window."""
-    first = None
-    window = None
+def _first_row(path: Path, on: str) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    """The register_id and act of an index's first row, and that row's standing on on.
+
+    A title is classified from this row alone, so reading stops there; _agreeing checks
+    each later row a result uses against it.
+    """
     try:
         with path.open(encoding="utf-8") as stream:
             for line in stream:
-                row = _row(line, [])
-                if row is None:
-                    continue
-                found = standing(row, on)
-                if first is None:
-                    first, window = row, found
-                elif found != window or row.get("register_id") != first.get("register_id"):
-                    raise _window_error(row)
+                if (row := _row(line, [])) is not None:
+                    title = {key: row.get(key) for key in ("register_id", "act")}
+                    return title, standing(row, on)
     except (OSError, UnicodeError) as exc:
         raise InputError("Cannot read a UTF-8 JSONL index in the configured corpus.") from exc
-    return first
+    return None
 
 
-def _dated_section(row: dict[str, Any], cap: int, on: str) -> dict[str, Any]:
-    """A row of a title held for on, with its standing.
+def _agreeing(row: dict[str, Any], on: str, windows: _Windows) -> dict[str, Any]:
+    """The row's standing on on, refused unless windows holds it for the row's register_id.
 
-    A title is classified from one row, so a row disagreeing with it is a broken index.
-    Returning it would break the rule that a dated result holds only captured rows.
+    windows maps each title's register_id to its first row's standing. A row a result
+    returns or counts disagreeing with its title is a broken index: using it would break
+    the rule that a dated result holds only rows its title's classification covers.
     """
     found = standing(row, on)
-    if found["status"] != CAPTURED:
+    if windows.get(_string(row, "register_id")) != found:
         raise _window_error(row)
-    return {**_section(row, cap), "as_at": found}
+    return found
+
+
+def _dated_section(row: dict[str, Any], cap: int, on: str, windows: _Windows) -> dict[str, Any]:
+    """A row of a title held for on, with its standing; windows holds only held titles."""
+    return {**_section(row, cap), "as_at": _agreeing(row, on, windows)}
 
 
 def _refusal(
@@ -715,9 +720,17 @@ def _refusal(
 
 
 def _withheld_counts(
-    path: Path, terms: list[str], act_terms: list[str], scope: Callable[[dict[str, Any]], bool]
+    path: Path,
+    terms: list[str],
+    act_terms: list[str],
+    scope: Callable[[dict[str, Any]], bool],
+    on: str,
+    windows: _Windows,
 ) -> tuple[int, int]:
-    """Count the same full and partial matches as _search without retaining their rows."""
+    """Count the same full and partial matches as _search without retaining their rows.
+
+    Each counted row must agree with its title's window in windows, as _agreeing says.
+    """
     words = _words(terms)
     holds_words = _matcher(words)
 
@@ -730,14 +743,16 @@ def _withheld_counts(
     }
     parts = _parts(words)
     try:
-        matching = sum(
-            scope(row) and is_match(row)
-            for row in _rows(path, parts + act_terms, all)
-        )
+        matching = 0
+        for row in _rows(path, parts + act_terms, all):
+            if scope(row) and is_match(row):
+                _agreeing(row, on, windows)
+                matching += 1
         partial = 0
         if len(words) + bool(opposites) > MIN_PARTIAL_WORDS and words[0] not in STOP_WORDS:
             assess = _partial(
-                patterns, opposites, is_match, ("heading",), ("text",), scope, lambda _: {}
+                patterns, opposites, is_match, ("heading",), ("text",), scope,
+                lambda row: {"as_at": _agreeing(row, on, windows)},
             )
             partial = sum(
                 assess(row) is not None
@@ -764,8 +779,10 @@ def _dated_search(
     title in scope that is not captured is refused. An exhausted page keeps the same
     refusals as the first page. An index with no row has no window to withhold, so it is not
     a title here. The status replaces in_force_only: a superseded compilation is the right
-    text for a date inside its window. Window validation streams each title once before
-    searching it; refused-title counts also stream without retaining result rows.
+    text for a date inside its window. Each title is classified from its first row, and
+    _agreeing checks only the rows a page returns or a refusal counts, so a dated search
+    parses no more rows than an undated one; refused-title counts stream without
+    retaining result rows.
     """
 
     def in_act(row: dict[str, Any]) -> bool:
@@ -781,12 +798,17 @@ def _dated_search(
         return _search(indexes, terms, act_terms, in_act, rows, count, start, corpus)
 
     titles = [
-        (path, {key: row.get(key) for key in ("register_id", "act")}, standing(row, on))
-        for path in _within_bounds(files)
-        if (row := _first_row(path, on)) is not None
+        (path, *first) for path in _within_bounds(files) if (first := _first_row(path, on))
     ]
     held = [path for path, _, found in titles if found["status"] == CAPTURED]
-    result = search(held, lambda row: _dated_section(row, SEARCH_TEXT_CHARS, on), limit, offset)
+    windows = {
+        _string(row, "register_id"): found
+        for _, row, found in titles
+        if found["status"] == CAPTURED
+    }
+    result = search(
+        held, lambda row: _dated_section(row, SEARCH_TEXT_CHARS, on, windows), limit, offset
+    )
     no_rows = not result["matches"] and not result["partial_hits"]
     if no_rows and offset:
         first = search(held, lambda _: {}, 1, 0)
@@ -795,7 +817,9 @@ def _dated_search(
     for path, row, found in titles:
         if found["status"] == CAPTURED:
             continue
-        rows = _withheld_counts(path, terms, act_terms, in_act)
+        rows = _withheld_counts(
+            path, terms, act_terms, in_act, on, {_string(row, "register_id"): found}
+        )
         if any(rows) or (in_act(row) and (no_rows or act_terms)):
             refusals.append((_priority(row), _refusal(row, found, *rows)))
     refusals.sort(key=lambda item: item[0])
@@ -940,7 +964,11 @@ def _around(
 def _read_rows(
     row_id: str, neighbours: int, on: str | None = None
 ) -> tuple[Path, dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
-    """The corpus root, the cited row and up to neighbours rows on each side of it."""
+    """The corpus root, the cited row and up to neighbours rows on each side of it.
+
+    With on, each row returned must agree with its title's first row, as _agreeing says:
+    a read returns those rows or counts them as withheld.
+    """
     if not ROW_ID.match(row_id):
         raise InputError("Use a row_id returned by search_tax_legislation.")
     # ROW_ID already holds everything before the first colon to 32 alphanumerics,
@@ -958,11 +986,14 @@ def _read_rows(
         or _linked(path.parent.parent)
     ):
         raise InputError("No title index for that row_id in the configured corpus.")
-    if on is not None:
-        _first_row(path, on)
     found, before, after = _around(path, row_id, neighbours)
     if found is None:
         raise InputError("No section with that row_id in the configured corpus.")
+    if on is not None:
+        first = _first_row(path, on)
+        windows = {} if first is None else {_string(first[0], "register_id"): first[1]}
+        for row in (found, *before, *after):
+            _agreeing(row, on, windows)
     return root, found, before, after
 
 
@@ -1011,7 +1042,8 @@ def read_section(
     def near(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if on is None:
             return [_section(item, SEARCH_TEXT_CHARS) for item in rows]
-        return [_dated_section(item, SEARCH_TEXT_CHARS, on) for item in rows]
+        # _read_rows has checked that each shares the cited row's standing.
+        return [{**_section(item, SEARCH_TEXT_CHARS), "as_at": found} for item in rows]
 
     section, next_start = _part(row, start)
     return {
