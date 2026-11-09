@@ -145,10 +145,11 @@ SUBSECTION_LABEL = re.compile(r"^\(\d+[A-Za-z]*\)")
 # pad labels with U+00A0, a non-breaking space; a caller types the plain characters.
 PLAIN = str.maketrans({"\u2011": "-", "\u00a0": " ", "*": ""})
 MAX_DEFINITIONS = 20
-# Judges one row: its sort key, lower first, and its result, or None to leave it out.
-Assessor = Callable[[dict[str, Any]], tuple[tuple[int, ...], dict[str, Any]] | None]
-# Each title's register_id and its first row's standing on one date.
-_Windows = dict[str | None, dict[str, Any]]
+# Judges one row of the index at a path: its sort key, lower first, and its result, or
+# None to leave it out.
+Assessor = Callable[[Path, dict[str, Any]], tuple[tuple[int, ...], dict[str, Any]] | None]
+# An index's first row's register_id and act, and that row's standing on one date.
+_First = tuple[dict[str, Any], dict[str, Any]]
 
 
 def _root() -> Path:
@@ -507,7 +508,7 @@ def _partial(
     heading: tuple[str, ...],
     body: tuple[str, ...],
     scope: Callable[[dict[str, Any]], bool],
-    build: Callable[[dict[str, Any]], dict[str, Any]],
+    build: Callable[[Path, dict[str, Any]], dict[str, Any]],
 ) -> Assessor:
     """Judge a row whose heading and body hold at least MIN_PARTIAL_WORDS of patterns.
 
@@ -529,7 +530,7 @@ def _partial(
     """
     numbers = {term for term in patterns if re.search(r"\d", term)}
 
-    def assess(row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
+    def assess(path: Path, row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
         text = _joined(row, heading + body)
         found = {term for term, pattern in patterns.items() if _has(term, pattern, text)}
         opposed = sum(
@@ -543,7 +544,7 @@ def _partial(
         title = _joined(row, heading)
         titled = sum(_has(term, pattern, title) for term, pattern in patterns.items())
         return (-len(found), -titled, _priority(row)), {
-            **build(row),
+            **build(path, row),
             "match": "partial",
             "matched_words": [term for term in patterns if term in found],
             "missing_words": [term for term in patterns if term not in found],
@@ -577,7 +578,7 @@ def _scan(
         for path in _within_bounds(files):
             try:
                 for row in _rows(path, prefilter, every):
-                    if (assessed := assess(row)) is not None:
+                    if (assessed := assess(path, row)) is not None:
                         yield assessed[0], order, assessed[1]
                         order += 1
             except (OSError, UnicodeError) as exc:
@@ -595,7 +596,8 @@ class _Rows:
     fields: tuple[str, ...]
     heading: tuple[str, ...]
     body: tuple[str, ...]
-    build: Callable[[dict[str, Any]], dict[str, Any]]
+    # The result for one row, given the index it came from.
+    build: Callable[[Path, dict[str, Any]], dict[str, Any]]
 
 
 def _search(
@@ -629,9 +631,9 @@ def _search(
     def is_match(row: dict[str, Any]) -> bool:
         return holds_words(_joined(row, rows.fields))
 
-    def assess(row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
+    def assess(path: Path, row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
         if scope(row) and is_match(row):
-            return rank(row), rows.build(row)
+            return rank(row), rows.build(path, row)
         return None
 
     end = offset + limit
@@ -670,11 +672,11 @@ def _window_error(row: dict[str, Any]) -> InputError:
     )
 
 
-def _first_row(path: Path, on: str) -> tuple[dict[str, Any], dict[str, Any]] | None:
+def _first_row(path: Path, on: str) -> _First | None:
     """The register_id and act of an index's first row, and that row's standing on on.
 
     A title is classified from this row alone, so reading stops there; _agreeing checks
-    each later row a result uses against it.
+    each later row of the same index that a result uses against it.
     """
     try:
         with path.open(encoding="utf-8") as stream:
@@ -687,22 +689,18 @@ def _first_row(path: Path, on: str) -> tuple[dict[str, Any], dict[str, Any]] | N
     return None
 
 
-def _agreeing(row: dict[str, Any], on: str, windows: _Windows) -> dict[str, Any]:
-    """The row's standing on on, refused unless windows holds it for the row's register_id.
+def _agreeing(row: dict[str, Any], on: str, first: _First) -> dict[str, Any]:
+    """The row's standing on on, refused unless it has first's register_id and standing.
 
-    windows maps each title's register_id to its first row's standing. A row a result
-    returns or counts disagreeing with its title is a broken index: using it would break
-    the rule that a dated result holds only rows its title's classification covers.
+    first is from the index the row came from. A row a result returns or counts that
+    disagrees with it is a broken index: using it would break the rule that a dated
+    result holds only rows its title's classification covers.
     """
+    title, window = first
     found = standing(row, on)
-    if windows.get(_string(row, "register_id")) != found:
+    if row.get("register_id") != title.get("register_id") or found != window:
         raise _window_error(row)
     return found
-
-
-def _dated_section(row: dict[str, Any], cap: int, on: str, windows: _Windows) -> dict[str, Any]:
-    """A row of a title held for on, with its standing; windows holds only held titles."""
-    return {**_section(row, cap), "as_at": _agreeing(row, on, windows)}
 
 
 def _refusal(
@@ -725,11 +723,11 @@ def _withheld_counts(
     act_terms: list[str],
     scope: Callable[[dict[str, Any]], bool],
     on: str,
-    windows: _Windows,
+    first: _First,
 ) -> tuple[int, int]:
     """Count the same full and partial matches as _search without retaining their rows.
 
-    Each counted row must agree with its title's window in windows, as _agreeing says.
+    Each counted row must agree with first, the index's first row, as _agreeing says.
     """
     words = _words(terms)
     holds_words = _matcher(words)
@@ -746,16 +744,16 @@ def _withheld_counts(
         matching = 0
         for row in _rows(path, parts + act_terms, all):
             if scope(row) and is_match(row):
-                _agreeing(row, on, windows)
+                _agreeing(row, on, first)
                 matching += 1
         partial = 0
         if len(words) + bool(opposites) > MIN_PARTIAL_WORDS and words[0] not in STOP_WORDS:
             assess = _partial(
                 patterns, opposites, is_match, ("heading",), ("text",), scope,
-                lambda row: {"as_at": _agreeing(row, on, windows)},
+                lambda _, row: {"as_at": _agreeing(row, on, first)},
             )
             partial = sum(
-                assess(row) is not None
+                assess(path, row) is not None
                 for row in _rows(path, parts, lambda held: sum(held) >= MIN_PARTIAL_WORDS)
             )
     except (OSError, UnicodeError) as exc:
@@ -780,9 +778,9 @@ def _dated_search(
     refusals as the first page. An index with no row has no window to withhold, so it is not
     a title here. The status replaces in_force_only: a superseded compilation is the right
     text for a date inside its window. Each title is classified from its first row, and
-    _agreeing checks only the rows a page returns or a refusal counts, so a dated search
-    parses no more rows than an undated one; refused-title counts stream without
-    retaining result rows.
+    _agreeing checks only the rows a page returns or a refusal counts against the first
+    row of their own index, so a dated search parses at most one more row per title than
+    an undated one; refused-title counts stream without retaining result rows.
     """
 
     def in_act(row: dict[str, Any]) -> bool:
@@ -790,7 +788,7 @@ def _dated_search(
 
     def search(
         indexes: list[Path],
-        build: Callable[[dict[str, Any]], dict[str, Any]],
+        build: Callable[[Path, dict[str, Any]], dict[str, Any]],
         count: int,
         start: int,
     ) -> dict[str, Any]:
@@ -800,26 +798,22 @@ def _dated_search(
     titles = [
         (path, *first) for path in _within_bounds(files) if (first := _first_row(path, on))
     ]
-    held = [path for path, _, found in titles if found["status"] == CAPTURED]
-    windows = {
-        _string(row, "register_id"): found
-        for _, row, found in titles
-        if found["status"] == CAPTURED
-    }
-    result = search(
-        held, lambda row: _dated_section(row, SEARCH_TEXT_CHARS, on, windows), limit, offset
-    )
+    firsts = {path: (row, found) for path, row, found in titles if found["status"] == CAPTURED}
+
+    def section(path: Path, row: dict[str, Any]) -> dict[str, Any]:
+        return {**_section(row, SEARCH_TEXT_CHARS), "as_at": _agreeing(row, on, firsts[path])}
+
+    held = list(firsts)
+    result = search(held, section, limit, offset)
     no_rows = not result["matches"] and not result["partial_hits"]
     if no_rows and offset:
-        first = search(held, lambda _: {}, 1, 0)
+        first = search(held, lambda *_: {}, 1, 0)
         no_rows = not first["matches"] and not first["partial_hits"]
     refusals = []
     for path, row, found in titles:
         if found["status"] == CAPTURED:
             continue
-        rows = _withheld_counts(
-            path, terms, act_terms, in_act, on, {_string(row, "register_id"): found}
-        )
+        rows = _withheld_counts(path, terms, act_terms, in_act, on, (row, found))
         if any(rows) or (in_act(row) and (no_rows or act_terms)):
             refusals.append((_priority(row), _refusal(row, found, *rows)))
     refusals.sort(key=lambda item: item[0])
@@ -895,7 +889,8 @@ def search_sections(
         act_terms,
         scope,
         _Rows(
-            SECTION_FIELDS, ("heading",), ("text",), lambda row: _section(row, SEARCH_TEXT_CHARS)
+            SECTION_FIELDS, ("heading",), ("text",),
+            lambda _, row: _section(row, SEARCH_TEXT_CHARS),
         ),
         limit,
         offset,
@@ -990,10 +985,10 @@ def _read_rows(
     if found is None:
         raise InputError("No section with that row_id in the configured corpus.")
     if on is not None:
-        first = _first_row(path, on)
-        windows = {} if first is None else {_string(first[0], "register_id"): first[1]}
+        # An index emptied since _around read it has no window, so no row agrees.
+        first = _first_row(path, on) or ({}, {})
         for row in (found, *before, *after):
-            _agreeing(row, on, windows)
+            _agreeing(row, on, first)
     return root, found, before, after
 
 
@@ -1194,7 +1189,7 @@ def search_rates(
         terms,
         topic_terms,
         scope,
-        _Rows(RATE_FIELDS, ("heading", "topic"), ("content",), _rate),
+        _Rows(RATE_FIELDS, ("heading", "topic"), ("content",), lambda _, row: _rate(row)),
         limit,
         offset,
         _provenance(root),

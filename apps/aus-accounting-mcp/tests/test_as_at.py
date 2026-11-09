@@ -413,17 +413,54 @@ def test_different_windows_of_one_title_stop_search_and_read(
         call(tool, as_at="2098-08-01", **arguments)
 
 
+@pytest.mark.parametrize("owner_indexed", [False, True])
 @pytest.mark.parametrize("on", ["2098-08-01", "2098-01-01"])
-def test_a_row_of_another_title_in_an_index_stops_a_dated_search_that_uses_it(
-    tmp_path, monkeypatch, on
+def test_a_row_of_another_title_in_an_index_stops_a_dated_call_that_uses_it(
+    tmp_path, monkeypatch, on, owner_indexed
 ):
+    # The title the stray row names can have its own index with the same window: the row
+    # still disagrees with the index it sits in.
     monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
     rows = title(CURRENT, "Synthetic Act 2098", "2098-07-01")
     rows[1]["register_id"] = REPLACED
     write_title(tmp_path, rows)
+    if owner_indexed:
+        write_title(tmp_path, title(REPLACED, "Synthetic Act 2098", "2098-07-01"))
 
     with pytest.raises(ToolError, match="disagree"):
         call(SEARCH, query="return lodged", as_at=on)
+    with pytest.raises(ToolError, match="disagree"):
+        call(READ, row_id=rows[1]["row_id"], as_at="2098-08-01")
+
+
+def test_indexes_whose_first_rows_share_a_register_id_each_keep_their_window(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    write_title(tmp_path, title(CURRENT, "Synthetic Act 2098", "2098-07-01"))
+    synthetic_corpus.write(
+        tmp_path / "markdown" / "C9999A10005" / "sections.jsonl",
+        title(CURRENT, "Synthetic Act 2098", "2098-06-01"),
+    )
+
+    result = call(SEARCH, query="synthetic levy", as_at="2098-08-01")
+
+    assert sorted(hit["as_at"]["compilation_date"] for hit in result["matches"]) == [
+        "2098-06-01", "2098-06-01", "2098-07-01", "2098-07-01",
+    ]
+
+
+@pytest.mark.parametrize("on", ["2098-08-01", "2098-01-01"])
+def test_a_disagreeing_partial_hit_stops_a_dated_search(tmp_path, monkeypatch, on):
+    # No row holds "zebra", so both rows holding "synthetic levy" are partial hits: on a
+    # date the title is held they are returned, on one it is not they are counted.
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    rows = title(CURRENT, "Synthetic Act 2098", "2098-07-01")
+    rows[1]["compilation_date"] = "2098-06-01"
+    write_title(tmp_path, rows)
+
+    with pytest.raises(ToolError, match="disagree"):
+        call(SEARCH, query="synthetic levy zebra", as_at=on)
 
 
 def test_a_disagreeing_row_no_result_uses_leaves_a_dated_call_answering(tmp_path, monkeypatch):
