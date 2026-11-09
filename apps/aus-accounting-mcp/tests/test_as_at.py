@@ -467,6 +467,17 @@ def test_a_dated_call_parses_only_the_rows_it_could_use(tmp_path, monkeypatch, o
     assert len(parsed) - searched < 10, f"a dated read parsed {len(parsed) - searched} rows"
 
 
+def test_an_index_with_no_row_is_not_a_dated_title(dated):
+    empty = dated / "markdown" / "C9999A10004" / "sections.jsonl"
+    empty.parent.mkdir(parents=True)
+    empty.write_text("\n", encoding="utf-8")
+
+    result = call(SEARCH, query="synthetic levy", as_at="2098-08-01")
+
+    assert sum(result["as_at_summary"]["titles"].values()) == 3
+    assert "C9999A10004" not in by_title(result)
+
+
 def test_blank_lines_do_not_hide_a_dated_title(dated):
     path = dated / "markdown" / CURRENT / "sections.jsonl"
     path.write_text("\n" + path.read_text(encoding="utf-8"), encoding="utf-8")
