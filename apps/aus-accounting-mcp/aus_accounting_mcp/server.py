@@ -516,8 +516,8 @@ def calc_payday_super_deadline(
         bool,
         Field(strict=True, description=(
             'Whether this is the first eligible contribution to this fund after employment '
-            'starts or recommences, or after a fund switch. Defaults to false. Establish '
-            'eligibility before setting true.'
+            'starts or recommences, including a worker rehired under a new arrangement, or '
+            'after a fund switch. Defaults to false. Establish eligibility before setting true.'
         )),
     ] = False,
     out_of_cycle: Annotated[
