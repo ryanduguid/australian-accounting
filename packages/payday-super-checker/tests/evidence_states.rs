@@ -7,7 +7,8 @@
 //! tables, apart from `src/assess.rs`, and every combination of the listed facts
 //! is walked, so a changed branch in the engine disagrees with a table for some
 //! state. The walk counts its states and needs every answer to occur, so it
-//! cannot pass by reaching none. All facts are fabricated.
+//! cannot pass by reaching none, and a verdict the engine adds fails it until
+//! the table gives that verdict a row. All facts are fabricated.
 //!
 //! The walk stops at one line in a run, each with the transition allocation
 //! confirmed, and it asserts the verdict alone. Item 4 alignment across lines,
@@ -259,6 +260,8 @@ fn every_row_of_evidence_reaches_the_one_verdict_the_table_gives() {
         .map(|v| v.to_string())
         .collect();
     assert_eq!(reached, every);
+    // A verdict the engine adds fails here until the table gives it a row.
+    assert_eq!(&payday_super_checker::assess::VERDICTS[..], &VERDICTS[..]);
 }
 
 #[test]

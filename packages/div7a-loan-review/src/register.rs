@@ -13,9 +13,9 @@ use crate::Failure;
 use crate::csvread;
 use crate::decimal::{Calc, Decimal};
 use crate::facts::{optional_year_of_income, text_cell};
-use crate::gate::{GateFacts, GateResult, complying_loan_gate};
+use crate::gate::{GateFacts, GateResult, complying_loan_gate, maximum_term};
 use crate::money::{cents_str, d};
-use crate::myr::{GateSummary, MyrFacts, MyrResult, minimum_yearly_repayment};
+use crate::myr::{GateSummary, MyrFacts, MyrResult, repayment_within};
 use crate::py::{self, PyPath};
 use crate::rates::{BenchmarkTable, RateOverride, TableSource, dict_row, frozen_table};
 use crate::raw::Raw;
@@ -300,7 +300,13 @@ pub fn review_register(
         } else {
             let facts = MyrFacts::from_mapping(row, year, Some(GateSummary::from(&gate)), &where_)
                 .map_err(Failure::Value)?;
-            Some(minimum_yearly_repayment(&facts, Some(table), None)?)
+            let maximum = maximum_term(&gate_facts)?.0;
+            Some(repayment_within(
+                &facts,
+                maximum.as_ref(),
+                Some(table),
+                None,
+            )?)
         };
         if !mode.myr_only {
             match gate.verdict {
