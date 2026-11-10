@@ -413,6 +413,108 @@ def test_different_windows_of_one_title_stop_search_and_read(
         call(tool, as_at="2098-08-01", **arguments)
 
 
+@pytest.mark.parametrize("owner_indexed", [False, True])
+@pytest.mark.parametrize("on", ["2098-08-01", "2098-01-01"])
+def test_a_row_of_another_title_in_an_index_stops_a_dated_call_that_uses_it(
+    tmp_path, monkeypatch, on, owner_indexed
+):
+    # The title the stray row names can have its own index with the same window: the row
+    # still disagrees with the index it sits in.
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    rows = title(CURRENT, "Synthetic Act 2098", "2098-07-01")
+    rows[1]["register_id"] = REPLACED
+    write_title(tmp_path, rows)
+    if owner_indexed:
+        write_title(tmp_path, title(REPLACED, "Synthetic Act 2098", "2098-07-01"))
+
+    with pytest.raises(ToolError, match="disagree"):
+        call(SEARCH, query="return lodged", as_at=on)
+    with pytest.raises(ToolError, match="disagree"):
+        call(READ, row_id=rows[1]["row_id"], as_at="2098-08-01")
+
+
+def test_indexes_whose_first_rows_share_a_register_id_each_keep_their_window(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    write_title(tmp_path, title(CURRENT, "Synthetic Act 2098", "2098-07-01"))
+    synthetic_corpus.write(
+        tmp_path / "markdown" / "C9999A10005" / "sections.jsonl",
+        title(CURRENT, "Synthetic Act 2098", "2098-06-01"),
+    )
+
+    result = call(SEARCH, query="synthetic levy", as_at="2098-08-01")
+
+    assert sorted(hit["as_at"]["compilation_date"] for hit in result["matches"]) == [
+        "2098-06-01", "2098-06-01", "2098-07-01", "2098-07-01",
+    ]
+
+
+@pytest.mark.parametrize("on", ["2098-08-01", "2098-01-01"])
+def test_a_disagreeing_partial_hit_stops_a_dated_search(tmp_path, monkeypatch, on):
+    # No row holds "zebra", so both rows holding "synthetic levy" are partial hits: on a
+    # date the title is held they are returned, on one it is not they are counted.
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    rows = title(CURRENT, "Synthetic Act 2098", "2098-07-01")
+    rows[1]["compilation_date"] = "2098-06-01"
+    write_title(tmp_path, rows)
+
+    with pytest.raises(ToolError, match="disagree"):
+        call(SEARCH, query="synthetic levy zebra", as_at=on)
+
+
+def test_a_disagreeing_row_no_result_uses_leaves_a_dated_call_answering(tmp_path, monkeypatch):
+    # A title is classified from its first row; only the rows a result returns or counts
+    # are checked against it, so a dated call never parses a whole title to validate it.
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    rows = title(CURRENT, "Synthetic Act 2098", "2098-07-01")
+    rows[2]["compilation_date"] = "2098-06-01"  # "A dated receipt must be kept."
+    write_title(tmp_path, rows)
+
+    result = call(SEARCH, query="return lodged", as_at="2098-08-01")
+
+    assert [hit["row_id"] for hit in result["matches"]] == [rows[1]["row_id"]]
+    assert call(READ, row_id=rows[0]["row_id"], as_at="2098-08-01")["section"]["text"]
+    with pytest.raises(ToolError, match="disagree"):
+        call(SEARCH, query="receipt kept", as_at="2098-08-01")
+    with pytest.raises(ToolError, match="disagree"):
+        call(READ, row_id=rows[1]["row_id"], as_at="2098-08-01", neighbours=1)
+
+
+@pytest.mark.parametrize("on", ["2098-08-01", "2098-01-01"])
+def test_a_dated_call_parses_only_the_rows_it_could_use(tmp_path, monkeypatch, on):
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    texts = ["The synthetic levy applies."] + ["A filler provision."] * 500
+    rows = title(CURRENT, "Synthetic Act 2098", "2098-07-01", texts=texts)
+    write_title(tmp_path, rows)
+    parsed = []
+    row = corpus._row
+
+    def counted(*args):
+        if (result := row(*args)) is not None:
+            parsed.append(result)
+        return result
+
+    monkeypatch.setattr(corpus, "_row", counted)
+    corpus.search_sections("levy", 5, 0, as_at=on)
+    searched = len(parsed)
+    corpus.read_section(rows[-1]["row_id"], as_at=on)
+
+    assert searched < 10, f"a dated search parsed {searched} of {len(rows)} rows"
+    assert len(parsed) - searched < 10, f"a dated read parsed {len(parsed) - searched} rows"
+
+
+def test_an_index_with_no_row_is_not_a_dated_title(dated):
+    empty = dated / "markdown" / "C9999A10004" / "sections.jsonl"
+    empty.parent.mkdir(parents=True)
+    empty.write_text("\n", encoding="utf-8")
+
+    result = call(SEARCH, query="synthetic levy", as_at="2098-08-01")
+
+    assert sum(result["as_at_summary"]["titles"].values()) == 3
+    assert "C9999A10004" not in by_title(result)
+
+
 def test_blank_lines_do_not_hide_a_dated_title(dated):
     path = dated / "markdown" / CURRENT / "sections.jsonl"
     path.write_text("\n" + path.read_text(encoding="utf-8"), encoding="utf-8")
