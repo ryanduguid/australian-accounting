@@ -69,9 +69,11 @@ cargo run --locked --release -- drift \
   --enable-network --base-url https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app
 ```
 
-`drift` fetches live discovery and reports how it differs from the reviewed
-snapshot. It never edits the snapshot: a contract change is for a person to
-read and accept, and there is no code path that accepts one.
+`drift` checks live discovery and the reviewed input schemas in
+`/openapi.json`. Changes within a pinned schema fail the check even when its
+reference and the API version stay the same. Newly listed calculators outside
+the reviewed subset are reported separately. The snapshot remains a reviewed
+input to this command.
 
 ```bash
 cargo run --locked --release -- invoke \
@@ -177,9 +179,10 @@ complies, a benefit is reportable or that a reviewer should sign anything.
   mismatch, not a match. Type 1 or type 2 is a required reviewed input, never
   the provider's engine-side default. A manual pass also compares the provider's
   taxable value with the local `fbt-car-statutory` worksheet and a separate figure.
-- **Accounting depreciation** (`src/trials/depreciation.rs`): the provider's
-  own movement has to close, or it is refused. It is deliberately not compared
-  with the local Division 40 worksheet, which answers a different question.
+- **Accounting depreciation** (`src/trials/depreciation.rs`): the current
+  range response supplies cost additions and must reconcile exactly. Older
+  responses can use separate caller evidence of additions. Conflicting
+  additions are refused. The trial concerns accounting carrying amounts.
 - **Fano** (`src/trials/fano.rs`): experimental, opt-in, model in the path. It
   produces suggestions and nothing else. `accepted_fact` is the classifier's
   verdict on its own prediction, not an approval, and a LodgeiT chart code needs

@@ -99,6 +99,45 @@ fn live_from(contract: &Contract) -> Vec<Json> {
         .collect()
 }
 
+fn openapi_from(schemas: Json, calculators: &Json) -> Json {
+    let Json::Object(calculators) = calculators else {
+        panic!("calculators is an object");
+    };
+    let paths = calculators
+        .iter()
+        .map(|(_, spec)| {
+            let route = spec.at("route").as_str().unwrap();
+            let schema = Json::obj([("$ref", spec.at("input_schema_ref").clone())]);
+            let schema = if route.contains("{calc_uri}") {
+                Json::obj([("anyOf", Json::Array(vec![schema]))])
+            } else {
+                schema
+            };
+            let body = Json::obj([
+                ("required", Json::Bool(true)),
+                (
+                    "content",
+                    Json::obj([("application/json", Json::obj([("schema", schema)]))]),
+                ),
+            ]);
+            (
+                lodgeit_calculator_adapter::pyjson::PyStr::Text(route.to_owned()),
+                Json::obj([("post", Json::obj([("requestBody", body)]))]),
+            )
+        })
+        .collect();
+    Json::obj([
+        ("components", Json::obj([("schemas", schemas)])),
+        ("paths", Json::Object(paths)),
+    ])
+}
+
+fn reviewed_schemas() -> Json {
+    json(include_str!("../contracts/lodgeit-calculators.json"))
+        .at("openapi_input_schemas")
+        .clone()
+}
+
 fn network(base_url: &str) -> [&str; 4] {
     [
         "--enable-network",
@@ -117,6 +156,7 @@ struct Seen {
 struct StubState {
     status: u16,
     body: Vec<u8>,
+    openapi: Option<Vec<u8>>,
     requests: Vec<Seen>,
 }
 
@@ -134,6 +174,7 @@ impl Stub {
         let state = Arc::new(Mutex::new(StubState {
             status: 200,
             body: b"{}".to_vec(),
+            openapi: None,
             requests: Vec::new(),
         }));
         let shared = Arc::clone(&state);
@@ -157,6 +198,11 @@ impl Stub {
     fn paths(&self) -> Vec<String> {
         let state = self.state.lock().expect("stub state");
         state.requests.iter().map(|r| r.path.clone()).collect()
+    }
+
+    fn respond_openapi(&self, payload: &Json) {
+        self.state.lock().expect("stub state").openapi =
+            Some(pyjson::dumps(payload, Layout::Canonical).into_bytes());
     }
 }
 
@@ -193,8 +239,13 @@ fn serve(stream: TcpStream, state: &Mutex<StubState>) {
     }
     let (status, reply) = {
         let mut state = state.lock().expect("stub state");
+        let response = if path == "/openapi.json" {
+            (200, state.openapi.clone().unwrap_or_default())
+        } else {
+            (state.status, state.body.clone())
+        };
         state.requests.push(Seen { path });
-        (state.status, state.body.clone())
+        response
     };
     let reason = match status {
         200 => "OK",
@@ -380,20 +431,72 @@ fn discover_prints_the_live_listing() {
 fn drift_that_agrees_says_so_and_exits_zero() {
     let contract = the_contract();
     let stub = Stub::start();
-    stub.respond(&Json::Array(live_from(&contract)), 200);
+    let mut listing = live_from(&contract);
+    listing.push(Json::obj([("calc_uri", Json::str("new-outside-scope"))]));
+    stub.respond(&Json::Array(listing), 200);
+    stub.respond_openapi(&openapi_from(reviewed_schemas(), &contract.calculators));
     let mut args = vec!["drift"];
     args.extend(network(&stub.base_url));
     let (code, stdout, _) = run(&args);
     assert_eq!(code, 0);
     let expected = format!(
-        "drift: live discovery agrees with snapshot {}",
+        "drift: the reviewed catalogue entries and OpenAPI input schemas agree with snapshot {}",
         text(&contract.snapshot())
     );
     assert!(stdout.contains(&expected), "{stdout}");
     assert!(
+        stdout.contains("note: live has new-outside-scope"),
+        "{stdout}"
+    );
+    assert!(
         stdout.contains("Nothing here updates a snapshot."),
         "{stdout}"
     );
+}
+
+#[test]
+fn drift_refuses_an_old_event_shape_behind_the_same_reference() {
+    let contract = the_contract();
+    let stub = Stub::start();
+    stub.respond(&Json::Array(live_from(&contract)), 200);
+    let mut schemas = reviewed_schemas();
+    let Json::Object(fields) = &mut schemas else {
+        panic!("schemas is an object");
+    };
+    let (_, event) = fields
+        .iter_mut()
+        .find(|(name, _)| name.as_str() == Some("EventInput"))
+        .unwrap();
+    *event = json(r#"{"type":"object","properties":{"cost_delta":{"type":"number"}}}"#);
+    stub.respond_openapi(&openapi_from(schemas, &contract.calculators));
+    let mut args = vec!["drift"];
+    args.extend(network(&stub.base_url));
+    let (code, stdout, _) = run(&args);
+    assert_eq!(code, 1, "{stdout}");
+    assert!(
+        stdout.contains("live OpenAPI input schema EventInput changed"),
+        "{stdout}"
+    );
+    assert!(!stdout.contains("missing input schema"), "{stdout}");
+    assert_eq!(stub.paths(), ["/v1/calculators", "/openapi.json"]);
+}
+
+#[test]
+fn pinned_components_do_not_replace_the_operations_that_use_them() {
+    let contract = the_contract();
+    let stub = Stub::start();
+    stub.respond(&Json::Array(live_from(&contract)), 200);
+    stub.respond_openapi(&Json::obj([(
+        "components",
+        Json::obj([("schemas", reviewed_schemas())]),
+    )]));
+    let mut args = vec!["drift"];
+    args.extend(network(&stub.base_url));
+    let (code, stdout, _) = run(&args);
+    assert_eq!(code, 1, "{stdout}");
+    assert!(stdout.contains(
+        "live OpenAPI request schema for /v1/calculators/depreciation/range/{period_uri} changed"
+    ));
 }
 
 #[test]

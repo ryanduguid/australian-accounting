@@ -12,19 +12,21 @@
 //! closing_wdv = opening_wdv + cost_additions - range_dep
 //! ```
 //!
-//! Where the window starts before the acquisition date, the provider emits
-//! no `cost_additions` and the figures do not close. An unreconcilable
-//! movement is `CONTRACT_FAILURE`; the addition that would close it is never
-//! invented.
+//! The current provider reports additions. Older responses can be checked
+//! against separate caller evidence. An unreconciled movement is a
+//! `CONTRACT_FAILURE`.
+use std::cmp::Ordering;
+
 use super::{Comparison, Evaluation, Money, dict, get, shown};
 use crate::client::{Client, Outcome, Status};
+use crate::contract::{DEPRECIATION_RANGE, reported_range_gap};
 use crate::decimal::Decimal;
 use crate::p;
 use crate::pydatetime::date_fromisoformat;
 use crate::pyjson::Json;
 use crate::pyops::{Exc, R, S, decimal_signal, pts};
 
-pub const RANGE_CALC_URI: &str = "urn:sbrm:calculator:depreciation:range";
+pub const RANGE_CALC_URI: &str = DEPRECIATION_RANGE;
 pub const PERIOD_URI: &str = "urn:sbrm:period:depreciation:unscoped";
 pub const DAY_COUNTS: [&str; 3] = ["actual/actual", "actual/365", "monthly"];
 
@@ -72,9 +74,8 @@ pub fn range_request(asset: &Asset, from_date: &str, to_date: &str, day_count: &
 }
 
 /// `reconcile(values, supplied_additions=..., tolerance=...)`: does opening
-/// plus additions less depreciation equal closing? A supplied addition is the
-/// caller's own evidence and is named in the reasons; none is derived from
-/// the gap.
+/// plus additions less depreciation equal closing? Prefer the provider's
+/// addition and compare it with caller evidence when both are present.
 pub fn reconcile(
     values: &Money,
     supplied_additions: Option<&Decimal>,
@@ -101,21 +102,53 @@ pub fn reconcile(
         value("range_dep"),
     );
     let nil = Decimal::parse_exact("0.00").expect("a literal");
-    let additions = supplied_additions.unwrap_or(&nil);
-    let expected_closing = opening
-        .add(additions)
-        .and_then(|sum| sum.sub(range_dep))
-        .map_err(decimal_signal)?;
-    let gap = closing.sub(&expected_closing).map_err(decimal_signal)?;
+    let reported = get(values, &pts("cost_additions"));
     let mut reasons = Vec::new();
-    if let Some(supplied) = supplied_additions {
+    if let Some(reported) = reported {
+        if let Some(supplied) = supplied_additions
+            && reported.compare(supplied).map_err(decimal_signal)? != Ordering::Equal
+        {
+            return Ok((
+                false,
+                vec![p!(
+                    "provider and caller cost additions disagree: ",
+                    shown(reported),
+                    " versus ",
+                    shown(supplied)
+                )],
+            ));
+        }
+        reasons.push(p!(
+            "cost additions of ",
+            shown(reported),
+            " were supplied by the provider"
+        ));
+    } else if let Some(supplied) = supplied_additions {
         reasons.push(p!(
             "cost additions of ",
             shown(supplied),
             " were supplied by the caller as separate evidence; the provider did not return them"
         ));
     }
-    if gap.copy_abs().le(tolerance).map_err(decimal_signal)? {
+    let additions = reported.or(supplied_additions).unwrap_or(&nil);
+    let (expected_closing, gap, closes) = if reported.is_some() {
+        match reported_range_gap(opening, additions, range_dep, closing) {
+            Ok((expected, gap)) => {
+                let closes = gap.is_zero();
+                (expected, gap, closes)
+            }
+            Err(finding) => return Ok((false, vec![finding])),
+        }
+    } else {
+        let expected = opening
+            .add(additions)
+            .and_then(|sum| sum.sub(range_dep))
+            .map_err(decimal_signal)?;
+        let gap = closing.sub(&expected).map_err(decimal_signal)?;
+        let closes = gap.copy_abs().le(tolerance).map_err(decimal_signal)?;
+        (expected, gap, closes)
+    };
+    if closes {
         return Ok((true, reasons));
     }
     reasons.push(p!(
@@ -246,12 +279,11 @@ pub fn evaluate_outcome(
             ..common
         });
     }
-    if spans_acquisition(asset, from_date) {
+    if get(&values, &pts("cost_additions")).is_none() && spans_acquisition(asset, from_date) {
         reasons.push(pts(
-            "the window starts before the acquisition date, which is the provider's published \
-             pre-acquisition limitation: the cost enters during the window and no cost_additions \
-             field is emitted. Supply the addition as separate evidence or start the window on or \
-             after the acquisition date.",
+            "this response has the older pre-acquisition limitation: the window includes \
+             initial recognition but has no cost_additions field. Supply separate evidence of the \
+             addition to check the movement.",
         ));
     }
     Ok(Comparison {

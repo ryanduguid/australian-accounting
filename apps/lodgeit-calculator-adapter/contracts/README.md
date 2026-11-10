@@ -11,6 +11,7 @@ A snapshot records what the provider's public service looked like when it was re
 | `source_urls` | Where it was read from |
 | `calculators` | Per calculator: route, supported periods, input schema ref, required and optional decimal fields, scope notes |
 | `response_contract` | Whether a manifest and an advisory are required, and the fields the snapshot knows about |
+| `openapi_input_schemas` | Optional reviewed request schema components, including nested references, with descriptive annotations removed |
 | `notes` | What was odd, unresolved or worth knowing before calling |
 
 ## Changing one
@@ -18,11 +19,11 @@ A snapshot records what the provider's public service looked like when it was re
 A person reads the live surface, decides what changed and edits the file. That
 is the whole process, and it is deliberate.
 
-`lodgeit-adapter drift` reports differences between the live catalogue and a
-snapshot. It prints findings and exits non-zero when there are any. It does not
-write anything, and there is no flag that makes it write anything. A contract
-change that arrived whilst nobody was looking is exactly the change that should
-not be accepted automatically.
+`lodgeit-adapter drift` compares the live catalogue and, where pinned, the
+request schema references and input schema bodies. It exits non-zero for changes within the reviewed
+selection or an unavailable OpenAPI document. Other advertised calculators
+are reported as notes. Select the request schema and its referenced components
+when reviewing a new calculator.
 
 When you do update one, move `read_at` and `read_by` with it. A stale reader
 attribution on a fresh reading is worse than no attribution.

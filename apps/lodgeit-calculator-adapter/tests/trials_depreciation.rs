@@ -137,6 +137,15 @@ fn serve(stream: TcpStream, state: &Mutex<StubState>) {
 /// `LodgeitClient(stub_config, contract)`: enabled, the stub's base URL,
 /// `allow_loopback=True`, `max_attempts=1`, the real dialler.
 fn with_client<T>(stub: &Stub, run: impl FnOnce(&mut Client<'_>) -> T) -> T {
+    let contract = contract::load("lodgeit-calculators", None).expect("the snapshot loads");
+    with_contract(stub, &contract, run)
+}
+
+fn with_contract<T>(
+    stub: &Stub,
+    contract: &contract::Contract,
+    run: impl FnOnce(&mut Client<'_>) -> T,
+) -> T {
     let config = AdapterConfig {
         enabled: true,
         base_url: Some(stub.base_url.clone()),
@@ -146,12 +155,11 @@ fn with_client<T>(stub: &Stub, run: impl FnOnce(&mut Client<'_>) -> T) -> T {
     }
     .checked()
     .expect("a loopback config");
-    let contract = contract::load("lodgeit-calculators", None).expect("the snapshot loads");
     let mut net = Net;
     let mut sleep = dial::sleep;
     let mut client = Client {
         config: &config,
-        contract: &contract,
+        contract,
         dial: &mut net,
         sleep: &mut sleep,
     };
@@ -291,6 +299,72 @@ fn a_closing_movement_is_a_match() {
     let state = stub.state.lock().unwrap();
     assert_eq!(state.requests[0].method, "POST");
     assert!(!state.requests[0].path.is_empty());
+}
+
+#[test]
+fn range_uses_provider_additions_and_refuses_a_conflicting_source() {
+    let stub = Stub::start();
+    let mut response = provider_range("0.00", "108000.00", "12000.00");
+    let Json::Object(fields) = &mut response else {
+        unreachable!()
+    };
+    fields.push((
+        lodgeit_calculator_adapter::pyjson::PyStr::Text("cost_additions".into()),
+        Json::str("120000.00"),
+    ));
+    stub.respond(&response, 200);
+    let comparison = evaluate_range(&stub, "2024-01-01", "2024-12-31", None);
+    assert_eq!(comparison.evaluation, Evaluation::Match);
+    assert!(mentions(&comparison, "supplied by the provider"));
+    assert!(same(
+        money(&comparison.upstream, "cost_additions").unwrap(),
+        "120000.00"
+    ));
+
+    stub.respond(&response, 200);
+    let supplied = dec("119999.99");
+    let comparison = evaluate_range(&stub, "2024-01-01", "2024-12-31", Some(&supplied));
+    assert_eq!(comparison.evaluation, Evaluation::ContractFailure);
+    assert!(mentions(&comparison, "disagree"));
+}
+
+#[test]
+fn range_rejects_a_one_cent_provider_movement_error_before_export() {
+    let stub = Stub::start();
+    let mut response = provider_range("120000.00", "97800.05", "24200.01");
+    let Json::Object(fields) = &mut response else {
+        unreachable!()
+    };
+    fields.push((
+        lodgeit_calculator_adapter::pyjson::PyStr::Text("cost_additions".into()),
+        Json::str("2000.05"),
+    ));
+    stub.respond(&response, 200);
+    let body = trial::range_request(&asset(), "2024-07-01", "2025-06-30", "actual/actual").unwrap();
+    let invoke = |client: &mut Client<'_>| {
+        client
+            .invoke(&pts(trial::RANGE_CALC_URI), &pts(trial::PERIOD_URI), &body)
+            .unwrap()
+    };
+    let current = contract::load("lodgeit-calculators", None).unwrap();
+    let mut legacy = current.clone();
+    legacy.openapi_input_schemas = None;
+    let Json::Object(calculators) = &mut legacy.calculators else {
+        unreachable!()
+    };
+    let (_, Json::Object(range)) = calculators
+        .iter_mut()
+        .find(|(uri, _)| uri.as_str() == Some(trial::RANGE_CALC_URI))
+        .unwrap()
+    else {
+        unreachable!()
+    };
+    range.retain(|(key, _)| key.as_str() != Some("optional_decimal_fields"));
+    for contract in [&current, &legacy] {
+        let outcome = with_contract(&stub, contract, invoke);
+        assert_eq!(outcome.status, Status::ContractFailure);
+        assert!(outcome.values.is_empty());
+    }
 }
 
 #[test]

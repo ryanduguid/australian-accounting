@@ -397,7 +397,7 @@ fn the_record_carries_the_contract_snapshot_it_was_checked_against() {
     let provider = member(member(&record, "calculation"), "provider");
     assert_eq!(
         member(provider, "contract_snapshot").as_str(),
-        Some("lodgeit-calculators-2026-09-18")
+        contract.snapshot_id.as_str()
     );
     assert_eq!(
         member(provider, "contract_sha256").as_str(),

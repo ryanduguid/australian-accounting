@@ -1,25 +1,27 @@
 {
   "provider": "lodgeit-labs",
-  "snapshot_id": "lodgeit-calculators-2026-09-18",
-  "read_at": "2026-09-18",
-  "read_by": "automated retrieval reviewed in session, 18 September 2026; no practitioner review",
+  "snapshot_id": "lodgeit-calculators-2026-11-10",
+  "read_at": "2026-11-10",
+  "read_by": "automated retrieval reviewed in session, 10 November 2026; no practitioner review",
   "source_urls": [
     "https://lodgeit.org/llms.txt",
     "https://lodgeit.org/publish.html",
     "https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app/v1/calculators",
-    "https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app/openapi.json"
+    "https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app/openapi.json",
+    "https://github.com/lodgeit-labs/clawdog-calculator-api/pull/74"
   ],
   "live_openapi_version": "0.1.0a0",
   "notes": [
     "The live discovery response spells calculators urn:sbrm:calculator:..., while publish.html documents urn:sbrm:calc:.... The live spelling is recorded here because it is what the routes accept.",
-    "Request money fields are declared type: number in the live OpenAPI, not decimal strings. Requests therefore carry JSON numbers, serialised exactly by lodgeitadapter.decimals rather than through float.",
+    "Amounts passed as JSON numbers are serialised from exact decimal text. The reviewed OpenAPI components define the accepted input types.",
     "Response 200 bodies are declared as objects with additionalProperties: true and no response schema, so the fields below were read from llms.txt and from the shape of live responses, not from a schema.",
-    "GET /healthz returned 404 on 18 September 2026 while GET /livez returned 200, although both are declared.",
-    "Only the three calculators this repository has a local counterpart for are recorded. The nineteen FBT benefit categories are listed by the provider; one is recorded here because one is what has been reviewed.",
+    "GET /livez returned 200 on 10 November 2026; GET /healthz returned 404 and is absent from the live OpenAPI document.",
+    "Four reviewed calculators are recorded. The gateway listed 23 on 10 November 2026; discovery outside this selection does not extend the adapter’s supported scope.",
     "This snapshot is a reading, not an agreement. Nothing in it is endorsed by LodgeiT Labs.",
     "Decimal fields are split into required and optional. A required field's absence is a contract failure; an optional field appears only in some outcomes, such as a Division 7A deemed dividend where nothing fell short.",
     "Read from a live div7a response on 18 September 2026: the advisory block carries `disclaimer`, not the `notes` array llms.txt and publish.html describe, and the body also echoes `amalgamated_base`, `period_uri` and `rate_uris_consumed`. The manifest entries use `content_hash`, not the `sha256` key the publishing standard's example shows. advisory_any_of records which keys count as an advisory; a response with neither is still a contract failure.",
-    "Live 200 bodies carry more than the standard describes. Depreciation adds `numeric_mode`. The FBT car statutory formula adds counts_towards_fbt_cap, exempt_under, exemption_provenance, gross_taxable_value, rfba_notional_grossed_up_t2, rfba_notional_taxable_value, s8a_inputs and taxable_value_before_reductions. Recorded on 18 September 2026 so they read as known rather than as drift; none is consumed."
+    "Live 200 bodies carry more than the standard describes. Depreciation adds `numeric_mode`. The FBT car statutory formula adds counts_towards_fbt_cap, exempt_under, exemption_provenance, gross_taxable_value, rfba_notional_grossed_up_t2, rfba_notional_taxable_value, s8a_inputs and taxable_value_before_reductions. Recorded on 18 September 2026 so they read as known rather than as drift; none is consumed.",
+    "OpenAPI inputs checked by GET on 10 November 2026. Response compatibility outside the documented depreciation change retains the 18 September observations; no calculator POST was made for the refresh."
   ],
   "response_contract": {
     "requires_manifest": true,
@@ -32,6 +34,7 @@
       "basis",
       "benchmark_rate",
       "closing_wdv",
+      "cost_additions",
       "counts_towards_fbt_cap",
       "day_count",
       "days_in_range",
@@ -59,6 +62,7 @@
       "remaining_term_years",
       "rfba_notional_grossed_up_t2",
       "rfba_notional_taxable_value",
+      "rounding_policy",
       "s8a_inputs",
       "schedule_summary",
       "shortfall",
@@ -76,7 +80,8 @@
       "period",
       "rate_table_uris",
       "engine",
-      "citation"
+      "citation",
+      "rounding_policy"
     ],
     "advisory_fields": [
       "figure_type",
@@ -131,7 +136,8 @@
       ],
       "scope_notes": [
         "Accounting basis only. This is not a Division 40 deduction and the tax figure will not equal it.",
-        "basis accepts only the literal \"accounting\"; a pooled asset returns 400 pool_asset_out_of_t6_scope."
+        "basis accepts only the literal \"accounting\"; a pooled asset returns 400 pool_asset_out_of_t6_scope.",
+        "The reviewed EventInput uses amount for cost additions and opening balances, and new_useful_life_years for reassessments."
       ],
       "required_decimal_fields": [
         "wdv_at",
@@ -153,15 +159,17 @@
       ],
       "scope_notes": [
         "day_count is required on this route and has no default.",
-        "Documented limitation, as published on 18 September 2026: where from_date precedes acquisition_date the cost enters during the window and no cost_additions field is emitted, so closing_wdv = opening_wdv - range_dep does not hold. The provider says range_dep and closing_wdv are correct and the roll-forward is not closable from the response alone.",
-        "Live on 18 September 2026: a window on or after the acquisition date closes exactly (120000.00 opening, 24000.00 charge, 96000.00 closing for a five-year prime-cost asset over its first anniversary year), consecutive windows telescope (12098.63 + 11901.37 = 24000.00 and the closing of one is the opening of the next), and a window starting before the acquisition date reproduces the published limitation: opening 0.00, closing 107901.37, charge 12098.63 and a 120000.00 gap with no cost_additions field."
+        "The current documented response carries cost_additions for initial recognition and cost additions inside the range. The adapter checks the movement before accepting the result and keeps older evidence readable.",
+        "The reviewed EventInput uses amount for cost additions and opening balances, and new_useful_life_years for reassessments."
       ],
       "required_decimal_fields": [
         "range_dep",
         "opening_wdv",
         "closing_wdv"
       ],
-      "optional_decimal_fields": []
+      "optional_decimal_fields": [
+        "cost_additions"
+      ]
     },
     "urn:sbrm:calculator:fbt:car-statutory-formula": {
       "label": "FBT car, statutory formula method",
@@ -189,6 +197,446 @@
         "grossed_up_taxable_value",
         "fbt_payable"
       ]
+    }
+  },
+  "openapi_input_schemas": {
+    "AssetCreatedInput": {
+      "properties": {
+        "cost": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+            }
+          ],
+          "gt": 0,
+          "x-money": true
+        },
+        "acquisition_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "accounting_useful_life_years": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-applies-when": {
+            "basis": [
+              "accounting",
+              "au_aasb116"
+            ]
+          }
+        },
+        "accounting_method": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "prime_cost",
+                "diminishing_value"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-applies-when": {
+            "basis": [
+              "accounting",
+              "au_aasb116"
+            ]
+          }
+        },
+        "tax_asset_class": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-applies-when": {
+            "basis": [
+              "tax",
+              "au_itaa97"
+            ]
+          }
+        },
+        "dv_rate_factor": {
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string",
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-applies-when": {
+            "accounting_method": [
+              "diminishing_value"
+            ]
+          }
+        },
+        "pool_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "cost",
+        "acquisition_date"
+      ]
+    },
+    "DepreciationAtInput": {
+      "properties": {
+        "basis": {
+          "type": "string",
+          "const": "accounting"
+        },
+        "asset": {
+          "$ref": "#/components/schemas/AssetCreatedInput"
+        },
+        "at_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "events": {
+          "items": {
+            "$ref": "#/components/schemas/EventInput"
+          },
+          "type": "array"
+        },
+        "day_count": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "actual/actual",
+                "actual/365",
+                "monthly"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "basis",
+        "asset",
+        "at_date"
+      ],
+      "x-calc-uri": "urn:sbrm:calculator:depreciation:at"
+    },
+    "DepreciationRangeInput": {
+      "properties": {
+        "basis": {
+          "type": "string",
+          "const": "accounting"
+        },
+        "asset": {
+          "$ref": "#/components/schemas/AssetCreatedInput"
+        },
+        "from_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "to_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "day_count": {
+          "type": "string",
+          "enum": [
+            "actual/actual",
+            "actual/365",
+            "monthly"
+          ]
+        },
+        "events": {
+          "items": {
+            "$ref": "#/components/schemas/EventInput"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "basis",
+        "asset",
+        "from_date",
+        "to_date",
+        "day_count"
+      ],
+      "x-calc-uri": "urn:sbrm:calculator:depreciation:range"
+    },
+    "Div7aAtInput": {
+      "properties": {
+        "amalgamated_base": {
+          "oneOf": [
+            {
+              "type": "number",
+              "multipleOf": 0.01
+            },
+            {
+              "type": "string",
+              "pattern": "^[+-]?\\d+(\\.\\d{1,2})?$"
+            }
+          ],
+          "x-money": true
+        },
+        "loan_term_years": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "loan_origination_date": {
+          "type": "string"
+        },
+        "income_year_start_date": {
+          "type": "string"
+        },
+        "is_first_real_myr_year": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "repayments": {
+          "items": {
+            "$ref": "#/components/schemas/Div7aRepaymentIn"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [
+        "amalgamated_base",
+        "loan_term_years",
+        "loan_origination_date",
+        "income_year_start_date"
+      ],
+      "x-calc-uri": "urn:sbrm:calculator:div7a:at"
+    },
+    "Div7aRepaymentIn": {
+      "properties": {
+        "amount": {
+          "oneOf": [
+            {
+              "type": "number",
+              "multipleOf": 0.01
+            },
+            {
+              "type": "string",
+              "pattern": "^[+-]?\\d+(\\.\\d{1,2})?$"
+            }
+          ],
+          "x-money": true
+        },
+        "date": {
+          "type": "string"
+        },
+        "loan_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "default"
+        },
+        "allocation_hint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "unallocated"
+        }
+      },
+      "type": "object",
+      "required": [
+        "amount",
+        "date"
+      ]
+    },
+    "EventInput": {
+      "properties": {
+        "event_type": {
+          "type": "string",
+          "enum": [
+            "cost_addition",
+            "useful_life_reassessment",
+            "opening_balance"
+          ]
+        },
+        "event_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "oneOf": [
+                {
+                  "type": "number",
+                  "multipleOf": 0.01
+                },
+                {
+                  "type": "string",
+                  "pattern": "^[+-]?\\d+(\\.\\d{1,2})?$"
+                }
+              ],
+              "gt": 0,
+              "x-money": true
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "new_useful_life_years": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "event_type",
+        "event_date"
+      ]
+    },
+    "FBTCarStatutoryFormulaInput": {
+      "properties": {
+        "baseValue": {
+          "oneOf": [
+            {
+              "type": "number",
+              "multipleOf": 0.01
+            },
+            {
+              "type": "string",
+              "pattern": "^[+-]?\\d+(\\.\\d{1,2})?$"
+            }
+          ],
+          "x-money": true
+        },
+        "daysAvailable": {
+          "type": "number",
+          "maximum": 366,
+          "minimum": 0
+        },
+        "accessories": {
+          "anyOf": [
+            {
+              "oneOf": [
+                {
+                  "type": "number",
+                  "multipleOf": 0.01
+                },
+                {
+                  "type": "string",
+                  "pattern": "^[+-]?\\d+(\\.\\d{1,2})?$"
+                }
+              ],
+              "ge": 0,
+              "x-money": true
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": 0,
+          "x-money": true
+        },
+        "employeeContribution": {
+          "anyOf": [
+            {
+              "oneOf": [
+                {
+                  "type": "number",
+                  "multipleOf": 0.01
+                },
+                {
+                  "type": "string",
+                  "pattern": "^[+-]?\\d+(\\.\\d{1,2})?$"
+                }
+              ],
+              "ge": 0,
+              "x-money": true
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": 0,
+          "x-money": true
+        },
+        "fbtType": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "Type 1",
+                "Type 2"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "baseValue",
+        "daysAvailable"
+      ],
+      "x-calc-uri": "urn:sbrm:calculator:fbt:car-statutory-formula"
     }
   }
 }
