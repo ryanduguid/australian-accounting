@@ -179,10 +179,12 @@ complies, a benefit is reportable or that a reviewer should sign anything.
   mismatch, not a match. Type 1 or type 2 is a required reviewed input, never
   the provider's engine-side default. A manual pass also compares the provider's
   taxable value with the local `fbt-car-statutory` worksheet and a separate figure.
-- **Accounting depreciation** (`src/trials/depreciation.rs`): the current
-  range response supplies cost additions and must reconcile exactly. Older
-  responses can use separate caller evidence of additions. Conflicting
-  additions are refused. The trial concerns accounting carrying amounts.
+- **Accounting depreciation** (`src/trials/depreciation.rs`): every range
+  movement must reconcile exactly, where Python allowed a one-cent gap. The
+  current range response supplies cost additions. Older responses can use
+  separate caller evidence of additions, and need it when the window includes
+  the acquisition. Negative or conflicting additions are refused. The trial
+  concerns accounting carrying amounts.
 - **Fano** (`src/trials/fano.rs`): experimental, opt-in, model in the path. It
   produces suggestions and nothing else. `accepted_fact` is the classifier's
   verdict on its own prediction, not an approval, and a LodgeiT chart code needs

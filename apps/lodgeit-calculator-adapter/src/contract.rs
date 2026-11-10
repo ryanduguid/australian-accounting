@@ -24,10 +24,10 @@ use crate::wire;
 
 pub(crate) const DEPRECIATION_RANGE: &str = "urn:sbrm:calculator:depreciation:range";
 
-/// Reconcile the provider's complete movement within the adapter's decimal
-/// limits. At most 15 integral and 10 fractional digits per operand leave
-/// enough room for the intermediate sums in the 28-digit decimal context.
-pub(crate) fn reported_range_gap(
+/// Reconcile a depreciation movement within the adapter's decimal limits.
+/// At most 15 integral and 10 fractional digits per operand leave enough
+/// room for the intermediate sums in the 28-digit decimal context.
+pub(crate) fn range_gap(
     opening: &Decimal,
     additions: &Decimal,
     charge: &Decimal,
@@ -45,11 +45,9 @@ pub(crate) fn reported_range_gap(
         .into_iter()
         .any(|value| value.is_negative() && !value.is_zero())
     {
-        return Err(pts(
-            "provider additions and depreciation must be non-negative",
-        ));
+        return Err(pts("cost additions and depreciation must be non-negative"));
     }
-    let error = |_| pts("provider movement exceeds the supported decimal range");
+    let error = |_| pts("the depreciation movement exceeds the supported decimal range");
     let expected = opening
         .add(additions)
         .and_then(|sum| sum.sub(charge))
@@ -322,7 +320,10 @@ fn schema_shape(schema: &Json) -> Json {
             .iter()
             .filter_map(|(key, value)| {
                 let shape = match key.as_str() {
-                    Some("title" | "description" | "examples" | "example") => return None,
+                    Some(
+                        "title" | "description" | "examples" | "example" | "externalDocs"
+                        | "$comment",
+                    ) => return None,
                     Some("properties" | "patternProperties" | "$defs" | "dependentSchemas") => {
                         if let Json::Object(properties) = value {
                             Json::Object(
@@ -673,6 +674,18 @@ mod tests {
             &schema_shape(&read(r#"{"required":["b","a"],"multipleOf":1e-2}"#)),
         ));
         assert!(pyjson::loads_numbers("1e9999999999999999999999999999", Numbers::Exact).is_err());
+    }
+
+    #[test]
+    fn schema_comparison_ignores_documentation_only_changes() {
+        let read = |json| pyjson::loads_numbers(json, Numbers::Exact).unwrap();
+        let reference = schema_shape(&read(r#"{"properties":{"a":{"type":"string"}}}"#));
+        let documented = r#"{"$comment":"x","externalDocs":{"url":"https://example.com"},
+            "properties":{"a":{"type":"string","$comment":"y","description":"z"}}}"#;
+        assert!(same_schema_value(
+            &reference,
+            &schema_shape(&read(documented))
+        ));
     }
 
     #[test]

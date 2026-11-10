@@ -367,7 +367,7 @@ The loopback server is a `std::net::TcpListener` on `127.0.0.1:0` started by eac
 | test_trials_depreciation.py::test_a_closing_movement_is_a_match | a_closing_movement_is_a_match | loopback server |
 | test_trials_depreciation.py::test_a_movement_that_does_not_close_is_refused_and_no_addition_is_invented | a_movement_that_does_not_close_is_refused_and_no_addition_is_invented | loopback server |
 | test_trials_depreciation.py::test_a_separately_evidenced_addition_closes_it_and_is_named | a_separately_evidenced_addition_closes_it_and_is_named | loopback server |
-| test_trials_depreciation.py::test_reconcile_refuses_rather_than_deriving_the_gap | reconcile_refuses_rather_than_deriving_the_gap (Python's default tolerance `Decimal("0.01")` is passed explicitly) | direct call |
+| test_trials_depreciation.py::test_reconcile_refuses_rather_than_deriving_the_gap | reconcile_refuses_rather_than_deriving_the_gap (Rust has no tolerance: every movement must close exactly; see the README) | direct call |
 | test_trials_depreciation.py::test_a_missing_figure_cannot_be_reconciled_around | a_missing_figure_cannot_be_reconciled_around | direct call |
 | test_trials_depreciation.py::test_the_pre_acquisition_window_is_recognised_before_the_call | the_pre_acquisition_window_is_recognised_before_the_call | direct call |
 | test_trials_depreciation.py::test_consecutive_windows_telescope_and_cover_every_day | consecutive_windows_telescope_and_cover_every_day | direct call |

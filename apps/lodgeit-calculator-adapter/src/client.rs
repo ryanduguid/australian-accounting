@@ -643,7 +643,7 @@ impl Client<'_> {
                 value("range_dep"),
                 value("closing_wdv"),
             ) {
-                match contract::reported_range_gap(opening, additions, charge, closing) {
+                match contract::range_gap(opening, additions, charge, closing) {
                     Ok((_, gap)) if gap.is_zero() => {}
                     Ok(_) => findings.push(pts("provider depreciation movement does not close")),
                     Err(finding) => findings.push(finding),

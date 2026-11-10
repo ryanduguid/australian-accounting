@@ -447,20 +447,18 @@ fn reconcile_refuses_rather_than_deriving_the_gap() {
         ("closing_wdv", "108000.00"),
         ("range_dep", "12000.00"),
     ]);
-    let tolerance = dec("0.01");
-    let (closes, found) = trial::reconcile(&figures, None, &tolerance).expect("a reconciliation");
+    let (closes, found) = trial::reconcile(&figures, None).expect("a reconciliation");
     assert!(!closes);
     assert!(mentioned(&found, "No addition has been invented"));
     let supplied = dec("120000.00");
-    let (closes, _) =
-        trial::reconcile(&figures, Some(&supplied), &tolerance).expect("a reconciliation");
+    let (closes, _) = trial::reconcile(&figures, Some(&supplied)).expect("a reconciliation");
     assert!(closes);
 }
 
 #[test]
 fn a_missing_figure_cannot_be_reconciled_around() {
-    let (closes, found) = trial::reconcile(&values(&[("opening_wdv", "1.00")]), None, &dec("0.01"))
-        .expect("a reconciliation");
+    let (closes, found) =
+        trial::reconcile(&values(&[("opening_wdv", "1.00")]), None).expect("a reconciliation");
     assert!(!closes);
     assert!(mentioned(&found, "missing"));
 }
