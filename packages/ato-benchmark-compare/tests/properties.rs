@@ -94,7 +94,7 @@ fn equivalent_accounts(rng: &mut Rng) -> (String, String) {
 /// Removing case folding, trimming or whitespace collapse must break this.
 #[test]
 fn case_and_whitespace_variants_keep_one_logical_identity() {
-    let mut rng = Rng(0xA70);
+    let mut rng = Rng(campaign_seed(0xA70));
     let mut pairs = vec![
         (
             "motor vehicle".to_string(),
@@ -147,7 +147,7 @@ fn row_specs(rng: &mut Rng) -> Vec<(MappingRow, String)> {
 /// Dropping CSV guarding, keyed identity or a reviewed field must break this.
 #[test]
 fn generated_reviewed_mappings_round_trip_without_identity_loss() {
-    let mut rng = Rng(0xA701D);
+    let mut rng = Rng(campaign_seed(0xA701D));
     let dir = std::env::temp_dir().join(format!("ato-properties-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = PyPath::new(&dir.join("mapping.csv").to_string_lossy());
@@ -165,4 +165,18 @@ fn generated_reviewed_mappings_round_trip_without_identity_loss() {
         assert_eq!(actual, expected);
     }
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+// Nightly campaigns vary generated cases whilst ordinary checks retain their frozen seeds.
+fn campaign_seed(default: u64) -> u64 {
+    match std::env::var("LL_PROPERTY_SEED") {
+        Ok(text) => {
+            let seed = text.parse::<u64>().expect("LL_PROPERTY_SEED must be a u64");
+            let effective = (default ^ seed).max(1);
+            eprintln!("LL_PROPERTY_SEED={seed} effective={effective}");
+            effective
+        }
+        Err(std::env::VarError::NotPresent) => default,
+        Err(error) => panic!("invalid LL_PROPERTY_SEED: {error}"),
+    }
 }

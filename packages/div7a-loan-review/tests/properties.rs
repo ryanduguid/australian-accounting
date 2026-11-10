@@ -37,7 +37,7 @@ struct Loan {
 }
 
 fn loans(seed: u64, max_term: i64) -> Vec<Loan> {
-    let mut rng = Rng(seed);
+    let mut rng = Rng(campaign_seed(seed));
     (0..200)
         .map(|_| Loan {
             cents: rng.int(1, 10_000_000_000),
@@ -294,7 +294,7 @@ fn check_sanity(result: &Value, paid_cents: i64) {
 
 #[test]
 fn more_repayment_never_raises_the_shortfall() {
-    let mut rng = Rng(0xD17E);
+    let mut rng = Rng(campaign_seed(0xD17E));
     for loan in loans(0xD17F, 25) {
         let required = cents_of(&reviewed(loan, 0), "myr_required");
         // Either side of the figure, and the figure itself.
@@ -316,7 +316,7 @@ fn more_repayment_never_raises_the_shortfall() {
 
 #[test]
 fn a_larger_balance_or_rate_never_lowers_the_figure() {
-    let mut rng = Rng(0xD180);
+    let mut rng = Rng(campaign_seed(0xD180));
     for loan in loans(0xD181, 25) {
         let larger = Loan {
             cents: rng.int(loan.cents, 10_000_000_000),
@@ -357,4 +357,18 @@ fn a_worked_shortfall_holds_through_the_full_review() {
     assert_eq!(result["myr_required"], "25556.00");
     assert_eq!(result["shortfall"], "5556.00");
     assert_eq!(result["verdict"], "MYR_SHORT");
+}
+
+// Nightly campaigns vary generated cases whilst ordinary checks retain their frozen seeds.
+fn campaign_seed(default: u64) -> u64 {
+    match std::env::var("LL_PROPERTY_SEED") {
+        Ok(text) => {
+            let seed = text.parse::<u64>().expect("LL_PROPERTY_SEED must be a u64");
+            let effective = (default ^ seed).max(1);
+            eprintln!("LL_PROPERTY_SEED={seed} effective={effective}");
+            effective
+        }
+        Err(std::env::VarError::NotPresent) => default,
+        Err(error) => panic!("invalid LL_PROPERTY_SEED: {error}"),
+    }
 }
