@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "scope": "All 590 original test functions in 43 files, including their inspected parameterised assertions. Source-bound reconciliation, not a claim that captured-call counts prove coverage.",
+  "scope": "All 596 original test functions in 43 files, including their inspected parameterised assertions. Source-bound reconciliation, not a claim that captured-call counts prove coverage.",
   "status_meanings": {
     "covered": "Inspected observable assertions have explicit native proof, including complete original payload/refusal equality where appropriate. Cross-source relationships use direct checks. Existing NATIVE.md identity/parser allowances still apply.",
     "adapted": "Explicit native representation, static-link or test-instrumentation difference; see per-function limit. This is not support for substituting Python modules or malformed Python-only values at runtime.",
     "retained-python-distribution": "Protects the still-supported Python distribution, release/Registry process or its documentation/media. Kept active; not retired, ported or an approval to publish/cut over."
   },
   "counts": {
-    "adapted": 62,
-    "covered": 454,
+    "adapted": 63,
+    "covered": 459,
     "retained-python-distribution": 74
   },
   "original_sources": {
-    "tests/test_as_at.py": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+    "tests/test_as_at.py": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
     "tests/test_aus_accounting_mcp.py": "b5d6420a8237d240fa7d4613352e0f341bbde8bb98fb95ce3c5e130ba2cfbc01",
     "tests/test_cli.py": "d4343e179eb3f52dba66f636847ad5cd528c7904dcfb69ba1861d5f1504922bd",
     "tests/test_compatibility.py": "7ed4a162761e98892716ab9f6656a62f085dc8d509399ff50db0b444d15b1467",
@@ -45,7 +45,7 @@
     "tests/test_payday_scope.py": "c8f29f7c5a7652436995d7508e40257fb6188b68e7e87576e4d7ecc3aeb9d704",
     "tests/test_registry_preflight.py": "4ec05b31f82772553672486e4fdd75611b20476955a5fb6cd6b89cd841e023d0",
     "tests/test_repository_guidance.py": "173fbe9db13f73e099efd542c1fb349d8e356494d2d6eef8070abdc52808b86d",
-    "tests/test_resources.py": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+    "tests/test_resources.py": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
     "tests/test_reviewed_rates.py": "b9bc1eb49b942ebc4983a9e50bcd33c5d9fe65a4177282d4306d941fb38bbe76",
     "tests/test_rulings.py": "7f40c75d3d301547d56d77591bf0f1745dbb2a23da2c226708ec16dcf2ecf49c",
     "tests/test_search_relevance.py": "f821f86ea3c1fb4c80d234587fc10862a614e38f5574aa3e805ca6e9361a9036",
@@ -264,6 +264,10 @@
     "NESTED": {
       "test": "src/retrieval/tests.rs::doctor_reports_a_row_nested_past_the_limit_as_broken",
       "evidence": "A corpus row nested past any parser's depth makes the folder BROKEN; the error text differs (Python RecursionError, serde_json depth limit)."
+    },
+    "AGREE": {
+      "test": "src/retrieval/tests.rs::a_dated_call_checks_only_the_rows_it_uses",
+      "evidence": "A fabricated title whose third row's window disagrees with its first: a dated search and read answer from the rows that agree, a read reports a missing row before checking the rows around it, and a row a page returns, a refusal counts or a read returns beside its row is refused."
     }
   },
   "functions": [
@@ -2738,7 +2742,7 @@
     {
       "original": "tests/test_resources.py:54",
       "function": "test_every_boundary_paragraph_is_also_in_the_public_disclaimer",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "RS",
@@ -2748,7 +2752,7 @@
     {
       "original": "tests/test_resources.py:66",
       "function": "test_disclaimer_resource_carries_the_facade_and_every_engine_boundary",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "RS",
@@ -2758,7 +2762,7 @@
     {
       "original": "tests/test_resources.py:82",
       "function": "test_div7a_scope_resource_is_the_refusal_the_tool_returns",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "RS",
@@ -2768,7 +2772,7 @@
     {
       "original": "tests/test_resources.py:100",
       "function": "test_scope_distinguishes_supported_reviews_from_unsupported_tax_calculations",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "RS",
@@ -2778,7 +2782,7 @@
     {
       "original": "tests/test_resources.py:113",
       "function": "test_benchmark_years_resource_reports_the_shipped_years_and_provenance",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "RS",
@@ -2788,7 +2792,7 @@
     {
       "original": "tests/test_resources.py:132",
       "function": "test_component_versions_resource_matches_the_installed_distributions",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "adapted",
       "proofs": [
         "RS",
@@ -2800,7 +2804,7 @@
     {
       "original": "tests/test_resources.py:142",
       "function": "test_payday_coverage_resource_uses_the_loaded_engine_tables",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "adapted",
       "proofs": [
         "RS",
@@ -2811,7 +2815,7 @@
     {
       "original": "tests/test_resources.py:168",
       "function": "test_component_versions_resource_preserves_identity_and_published_pins",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "retained-python-distribution",
       "proofs": [
         "PY",
@@ -2823,7 +2827,7 @@
     {
       "original": "tests/test_resources.py:186",
       "function": "test_a_missing_distribution_reports_null_rather_than_a_guess",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "adapted",
       "proofs": [
         "RS",
@@ -2834,7 +2838,7 @@
     {
       "original": "tests/test_resources.py:200",
       "function": "test_each_prompt_renders_a_workflow_without_inventing_facts",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "P",
@@ -2844,7 +2848,7 @@
     {
       "original": "tests/test_resources.py:216",
       "function": "test_prompt_arguments_are_optional_so_a_host_can_show_them_unfilled",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "P",
@@ -2854,7 +2858,7 @@
     {
       "original": "tests/test_resources.py:227",
       "function": "test_supplied_prompt_arguments_reach_the_rendered_text",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "P",
@@ -2864,7 +2868,7 @@
     {
       "original": "tests/test_resources.py:249",
       "function": "test_prompts_preserve_the_unknown_and_refusal_language",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "P",
@@ -2874,7 +2878,7 @@
     {
       "original": "tests/test_resources.py:312",
       "function": "test_stdio_clients_can_list_and_read_every_prompt_and_resource",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "D",
@@ -2885,7 +2889,7 @@
     {
       "original": "tests/test_resources.py:316",
       "function": "test_the_benchmark_prompt_names_every_input_the_tool_cannot_run_without",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "PROMPT"
@@ -2894,7 +2898,7 @@
     {
       "original": "tests/test_resources.py:340",
       "function": "test_the_instructions_name_the_guardrail_guide_and_its_outcome_classes",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "D",
@@ -2904,7 +2908,7 @@
     {
       "original": "tests/test_resources.py:375",
       "function": "test_scope_reports_which_retrieval_folders_are_configured",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "W",
@@ -4333,7 +4337,7 @@
     {
       "original": "tests/test_as_at.py:117",
       "function": "test_a_current_title_has_a_status_either_side_of_each_edge",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4342,7 +4346,7 @@
     {
       "original": "tests/test_as_at.py:139",
       "function": "test_a_replaced_title_has_a_status_either_side_of_each_edge",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4351,7 +4355,7 @@
     {
       "original": "tests/test_as_at.py:149",
       "function": "test_a_date_before_every_compilation_returns_no_rows_and_says_so",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4360,7 +4364,7 @@
     {
       "original": "tests/test_as_at.py:164",
       "function": "test_a_refusal_carries_the_status_window_and_next_step",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4369,7 +4373,7 @@
     {
       "original": "tests/test_as_at.py:193",
       "function": "test_each_refused_status_names_the_corpus_next_step",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4378,7 +4382,7 @@
     {
       "original": "tests/test_as_at.py:199",
       "function": "test_a_returned_row_reports_its_window_and_a_captured_row_no_next_step",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4387,7 +4391,7 @@
     {
       "original": "tests/test_as_at.py:212",
       "function": "test_the_date_decides_for_a_replaced_title_not_in_force_only",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4396,7 +4400,7 @@
     {
       "original": "tests/test_as_at.py:220",
       "function": "test_a_title_holding_only_partial_hits_is_refused_not_left_out",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4405,7 +4409,7 @@
     {
       "original": "tests/test_as_at.py:232",
       "function": "test_a_named_title_is_refused_even_when_no_row_matches",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4414,7 +4418,7 @@
     {
       "original": "tests/test_as_at.py:250",
       "function": "test_an_empty_answer_names_every_title_in_scope_not_captured",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4423,7 +4427,7 @@
     {
       "original": "tests/test_as_at.py:261",
       "function": "test_an_empty_answer_is_clean_only_when_each_title_in_scope_is_captured",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4432,7 +4436,7 @@
     {
       "original": "tests/test_as_at.py:269",
       "function": "test_a_title_outside_the_answer_is_not_refused_when_rows_came_back",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4441,7 +4445,7 @@
     {
       "original": "tests/test_as_at.py:282",
       "function": "test_a_partial_only_title_is_refused_beside_returned_rows",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4450,7 +4454,7 @@
     {
       "original": "tests/test_as_at.py:295",
       "function": "test_a_title_act_names_is_refused_beside_returned_rows",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4459,7 +4463,7 @@
     {
       "original": "tests/test_as_at.py:307",
       "function": "test_every_page_of_a_dated_search_keeps_its_refusals",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4468,7 +4472,7 @@
     {
       "original": "tests/test_as_at.py:317",
       "function": "test_an_exhausted_page_keeps_the_same_refusals",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4477,7 +4481,7 @@
     {
       "original": "tests/test_as_at.py:328",
       "function": "test_an_exhausted_empty_search_still_refuses_uncaptured_titles",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4486,7 +4490,7 @@
     {
       "original": "tests/test_as_at.py:334",
       "function": "test_a_long_refusal_list_is_cut_with_every_title_counted",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4495,7 +4499,7 @@
     {
       "original": "tests/test_as_at.py:353",
       "function": "test_an_unlisted_refusal_can_be_read_using_its_register_id",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -4504,7 +4508,7 @@
     {
       "original": "tests/test_as_at.py:369",
       "function": "test_withheld_counts_stream_without_retaining_every_result",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "adapted",
       "proofs": [
         "C"
@@ -4514,7 +4518,7 @@
     {
       "original": "tests/test_as_at.py:384",
       "function": "test_dated_search_does_not_retain_each_titles_first_text",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "adapted",
       "proofs": [
         "C"
@@ -4524,151 +4528,151 @@
     {
       "original": "tests/test_as_at.py:403",
       "function": "test_different_windows_of_one_title_stop_search_and_read",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:416",
+      "original": "tests/test_as_at.py:518",
       "function": "test_blank_lines_do_not_hide_a_dated_title",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:425",
+      "original": "tests/test_as_at.py:527",
       "function": "test_a_title_changed_after_validation_cannot_return_uncaptured_text",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:439",
+      "original": "tests/test_as_at.py:541",
       "function": "test_a_read_failure_while_counting_refusals_stops_the_search",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:448",
+      "original": "tests/test_as_at.py:550",
       "function": "test_a_short_refusal_list_leaves_no_unlisted_titles",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:454",
+      "original": "tests/test_as_at.py:556",
       "function": "test_the_byte_bound_covers_both_halves_of_a_dated_search",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:462",
+      "original": "tests/test_as_at.py:564",
       "function": "test_a_read_held_for_the_date_returns_text_status_and_window",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:482",
+      "original": "tests/test_as_at.py:584",
       "function": "test_a_read_refused_for_the_date_keeps_the_citation_and_withholds_the_text",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:499",
+      "original": "tests/test_as_at.py:601",
       "function": "test_a_read_after_retrieval_is_refused_too",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:523",
+      "original": "tests/test_as_at.py:625",
       "function": "test_a_malformed_date_is_an_input_error_never_coerced",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:529",
+      "original": "tests/test_as_at.py:631",
       "function": "test_the_reader_refuses_a_date_the_schema_would_stop",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:537",
+      "original": "tests/test_as_at.py:639",
       "function": "test_a_date_that_is_not_text_is_an_input_error",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:561",
+      "original": "tests/test_as_at.py:663",
       "function": "test_a_row_whose_window_cannot_be_read_stops_a_dated_call",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:575",
+      "original": "tests/test_as_at.py:677",
       "function": "test_an_older_build_without_dates_is_refused_and_says_to_rebuild",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:583",
+      "original": "tests/test_as_at.py:685",
       "function": "test_rows_of_one_title_that_disagree_are_refused_not_returned",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:596",
+      "original": "tests/test_as_at.py:698",
       "function": "test_a_title_index_that_cannot_be_read_stops_a_dated_search",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
       ]
     },
     {
-      "original": "tests/test_as_at.py:606",
+      "original": "tests/test_as_at.py:708",
       "function": "test_results_without_as_at_keep_every_byte",
-      "source_sha256": "890e9ad9277ef481a20d23b57b53f21f69eadaa9e5673f1510c521459045de4d",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
       "status": "covered",
       "proofs": [
         "C"
@@ -5472,7 +5476,7 @@
     {
       "original": "tests/test_resources.py:360",
       "function": "test_the_instructions_keep_a_differing_figure_beside_the_tool_figure",
-      "source_sha256": "da8f8bac278ad8d9cef5390a82cfab0e76c0b2f7a8710c9742cab7a94d738779",
+      "source_sha256": "2cc9d35c64818e909082006465b0707acd6f4eb1d87ef8bead9739ac8d6633b0",
       "status": "covered",
       "proofs": [
         "D"
@@ -5754,6 +5758,63 @@
       "status": "retained-python-distribution",
       "proofs": [
         "PY",
+        "C"
+      ]
+    },
+    {
+      "original": "tests/test_as_at.py:418",
+      "function": "test_a_row_of_another_title_in_an_index_stops_a_dated_call_that_uses_it",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
+      "status": "covered",
+      "proofs": [
+        "C"
+      ]
+    },
+    {
+      "original": "tests/test_as_at.py:436",
+      "function": "test_indexes_whose_first_rows_share_a_register_id_each_keep_their_window",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
+      "status": "covered",
+      "proofs": [
+        "C"
+      ]
+    },
+    {
+      "original": "tests/test_as_at.py:454",
+      "function": "test_a_disagreeing_partial_hit_stops_a_dated_search",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
+      "status": "covered",
+      "proofs": [
+        "C"
+      ]
+    },
+    {
+      "original": "tests/test_as_at.py:466",
+      "function": "test_a_disagreeing_row_no_result_uses_leaves_a_dated_call_answering",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
+      "status": "covered",
+      "proofs": [
+        "AGREE",
+        "C"
+      ]
+    },
+    {
+      "original": "tests/test_as_at.py:485",
+      "function": "test_a_dated_call_parses_only_the_rows_it_could_use",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
+      "status": "adapted",
+      "proofs": [
+        "AGREE",
+        "C"
+      ],
+      "adaptation_or_limit": "Python counts the rows corpus._row parses, a hook the native server does not have. The native dated call reads one row per title to classify it (corpus::first_row) and checks only the rows a result returns or counts (corpus::agreeing, AGREE); the C cases replay this function's search and read results. Native parse counts are not measured."
+    },
+    {
+      "original": "tests/test_as_at.py:507",
+      "function": "test_an_index_with_no_row_is_not_a_dated_title",
+      "source_sha256": "c8c3da6f4ce2b7723bcd64225291368e43350971f55fb42e6a054433cadf89d1",
+      "status": "covered",
+      "proofs": [
         "C"
       ]
     }

@@ -248,7 +248,7 @@ fn frozen_corpus_contracts() {
         }
         count += 1;
     }
-    assert_eq!(count, 639);
+    assert_eq!(count, 659);
 }
 
 #[test]

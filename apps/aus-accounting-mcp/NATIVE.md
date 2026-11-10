@@ -109,13 +109,13 @@ benchmark name/year and engine date format. These complement frozen payload
 comparisons; neither a captured call nor this set proves every original assertion.
 
 The source-bound [behaviour record](tests/fixtures/native/behaviour-coverage.json)
-reconciles all 433 original test functions across 36 files. It records 324 with
-native observable checks, 59 with explicit native adaptations and 50 retained
+reconciles all 596 original test functions across 43 files. It records 459 with
+native observable checks, 63 with explicit native adaptations and 74 retained
 with the supported Python distribution and its release, Registry, documentation
 or media workflow. Retained checks are active and are not retirement approvals.
 The record identifies proof symbols and limitations for each function; a Rust
 test refuses changed original source hashes until the reconciliation is reviewed.
-These are function dispositions, not 433 independent Rust tests or proof of
+These are function dispositions, not 596 independent Rust tests or proof of
 untested inputs, current law or real taxpayer results.
 
 `tests/original_behaviours.rs` tests relationships that frozen payloads cannot
@@ -218,7 +218,12 @@ worksheet results, the `returned_by_fund` refusal, dated legislation retrieval
 (`as_at`), whole-word rulings matching, `dropped_words` and `partial_hits` in
 corpus search, and the changed synthetic corpus and rulings builders. It
 recaptured the retrieval cases, with the doctor census, and added 648 calls from
-main's new and changed tests and probes. Other counts below date from the first
+main's new and changed tests and probes. The fifth, at 56afe0c, followed main's
+classification of a dated title from its first row (#594), the renamed
+PaulGoodman and DrDebits repositories (#598) and the `first_to_fund` description
+(#600). It recaptured the retrieval cases on Linux and kept each committed case
+whose outcome was unchanged, so the Windows capture's CRLF inputs remain, and
+added 20 calls from #594's 6 new tests. Other counts below date from the first
 capture.
 
 The native comparison covers 1,583 captured effective SDK calls for all
@@ -232,7 +237,7 @@ responses. Six resource payloads, 34 prompt cases and 1,175 JSON-RPC replies acr
 compact packs, pagination and configured-folder status without disclosing paths.
 Negative schema checks reject misleading money, dates, safety markers and missing
 audit sections whilst retaining engine extension fields. All eight retrieval entry points are
-implemented, with 823 captured core/boundary/helper/census calls from 409
+implemented, with 843 captured core/boundary/helper/census calls from 420
 original retrieval test nodes and 19 further original-only edge cases. Two nodes,
 `test_a_title_changed_after_validation_cannot_return_uncaptured_text` and
 `test_a_read_failure_while_counting_refusals_stops_the_search`, change the corpus

@@ -30,7 +30,7 @@
     "NOT_CURRENT_CAVEAT": "This title was not the current version when the corpus was built. Check the register page for a later compilation.",
     "TRUNCATED_CAVEAT": "Text is truncated at {kept} of {total} characters. Read the register page for the whole provision.",
     "PART_CAVEAT": "This part holds characters {start} to {end} of {total}. Pass next_start as start to read the next part; the register page has the whole provision.",
-    "QUICK_BUILD": "`python -m fadden quick --out <empty folder>` in au-tax-legislation-corpus builds 9 principal Acts on this machine and prints the setting. ",
+    "QUICK_BUILD": "`python -m fadden quick --out <empty folder>` in PaulGoodman builds 9 principal Acts on this machine and prints the setting. ",
     "WITHHELD_CAVEAT": "Text withheld: this title's status for {date} is {status}. Follow as_at.next_step. A read without as_at returns the compilation the corpus holds, which is not established as text for this date.",
     "OMITTED_REFUSALS": "refusals lists {listed} of {total} refused titles, principal Acts first; as_at_summary.unlisted_titles names the rest under their status. Pass one of those Register IDs as act to see that title's refusal.",
     "NO_MATCH_HINT": "No provision holds every word. Statutes often word a concept differently from ATO guidance or everyday usage, so try fewer or different words, the statutory expression (define_tax_term finds defined ones) or a section number. No match is not evidence that the law is silent.",
@@ -237,6 +237,6 @@
     "COVERS": "captured means the build holds the compilation for that date; it is not a finding that the text was the law then.",
     "AS_AT_NOTICE": "as_at reads each title's compilation window, not the law on that date. captured means the build holds the compilation for that date; it is not a finding that the text was the law then. A compilation does not show application, saving or transitional provisions elsewhere, modification by another law, or an amendment with retrospective effect registered after the build was retrieved, so a date inside a window can still carry text amended without a new compilation. Read the Register's version history and endnotes for any question about a past date.",
     "REFUSED_NOTICE": "refusals names each title withheld for this date, with its status, window and next_step. Empty matches alone do not show whether rows were withheld: check matching_rows and partial_rows in each refusal. A refused title can have zero matching rows. The build holds one compilation of a title, so a refusal is the answer for any earlier date: no earlier text is held.",
-    "UNCLASSIFIABLE": "as_at needs each row's compilation_date, retrieved and version_is_current, and superseded_from when the version is not current, so this corpus cannot answer for a date until au-tax-legislation-corpus rebuilds it: tell the user, and do not retry."
+    "UNCLASSIFIABLE": "as_at needs each row's compilation_date, retrieved and version_is_current, and superseded_from when the version is not current, so this corpus cannot answer for a date until PaulGoodman rebuilds it: tell the user, and do not retry."
   }
 }
