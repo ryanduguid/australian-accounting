@@ -252,7 +252,7 @@ fn the_workbook_never_reads_an_event_line_better_than_the_checker() {
     let excel = frozen["rows"].as_array().unwrap();
     assert_eq!(results.len(), excel.len());
     let mut checker_verdicts = Vec::new();
-    for (r, x) in results.iter().zip(excel) {
+    for (index, (r, x)) in results.iter().zip(excel).enumerate() {
         assert_eq!(x["employee_id"], json!(r.line.employee_id));
         assert_eq!(x["final_due"], json!(r.deadline.due.map(|d| d.isoformat())));
         let between = r
@@ -272,7 +272,10 @@ fn the_workbook_never_reads_an_event_line_better_than_the_checker() {
                 x["unassessable_between"].as_str().unwrap(),
             );
             let (b, w) = outcome_range(&r.verdict, &between);
-            assert!(best <= b && w <= worst, "{}: {between}", r.line.employee_id);
+            // A failure is printed. The employee identifier stays out of that
+            // text; the frozen row's position identifies it.
+            let row = index + 1;
+            assert!(best <= b && w <= worst, "row {row}: {between}");
         }
         checker_verdicts.push(r.verdict.clone());
     }
