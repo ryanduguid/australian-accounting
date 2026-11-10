@@ -9,7 +9,8 @@ The former API functions are JSON stdin subcommands, documented in README.md.
 No deadline, business-day, GIC, notional-earnings, uplift, rounding, refusal or
 message rule is intentionally changed, except the Employment Hero Beam
 status, the returned contributions and the receipt evidence columns below (their
-refusals, and 3 more fields in every printed list of valid fields).
+refusals, and 3 more fields in every printed list of valid fields), and the
+wording of the first-contribution hint on a late line.
 
 ### Added
 
@@ -129,6 +130,20 @@ root.
   other status is still refused. The
   replay applies the changed answers from `tests/data/amendments.json`, leaving
   the frozen Python record unchanged.
+- The hint on a line that is late under 7 business days, but whose payment
+  landed within the 20 a first contribution gets, names recommenced
+  employment. Python 0.2.2 said 'If it is a new starter or a fund
+  switch'. The hint now says 'If it is the first after employment starts or
+  recommences (including rehiring a worker under a new arrangement), or after a
+  fund switch'. SGAA s 18C(2) item 1 covers the first eligible contribution
+  after an employee 'commenced (or recommenced) employment', and the ATO's
+  [Payment deadlines for Payday Super](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super)
+  (last updated 29 September 2026, read 10 November 2026) gives the same 20
+  business days where an employer has 'rehired or recommenced work with someone
+  under a new arrangement'. No deadline, verdict or figure changes. Output
+  that carries the hint differs (the console summary, the report and JSON
+  results), and so does the digest an evidence pack records over its report.
+  The replay's changed answers are in `tests/data/amendments.json`.
 - Python imports, dataclasses, exception classes and package version lookup are
   removed. `--version` reports the Cargo version, 1.0.0; Python 0.2.2 reported
   `0.2.2`. The report CSV's NOTE row records the version too, in a written

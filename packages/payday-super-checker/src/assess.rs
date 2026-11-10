@@ -1075,7 +1075,9 @@ fn apply_exposure(
             };
             result.caveats.push(format!(
                 "this assumes the contribution is not the first to this fund. If \
-                 it is a new starter or a fund switch, set \
+                 it is the first after employment starts or recommences \
+                 (including rehiring a worker under a new arrangement), or \
+                 after a fund switch, set \
                  first_contribution_to_fund=yes and {becomes} \
                  (due {})",
                 extended.isoformat()
@@ -1983,6 +1985,46 @@ pub(crate) mod tests {
             !r.caveats
                 .iter()
                 .any(|c| c.contains("first_contribution_to_fund"))
+        );
+    }
+
+    /// SGAA s 18C(2) item 1 extends the first eligible contribution after an
+    /// employee 'commenced (or recommenced) employment', so the hint on a late
+    /// line names a rehired worker as well as a new starter and a fund switch.
+    #[test]
+    fn the_first_contribution_hint_names_recommenced_employment() {
+        let (cal, gic) = (load_calendar(None).unwrap(), load_gic().unwrap());
+        let mut r = result(day(2027, 7, 20), LATE);
+        let f = Facts {
+            settled: Some(day(2027, 7, 30)),
+            receipt_credit: dec("300"),
+            receipt_covers_all: true,
+            ..facts()
+        };
+        apply_exposure(
+            &mut r,
+            &cal,
+            &gic,
+            day(2027, 9, 1),
+            Options::default(),
+            &f,
+            &zero(),
+            false,
+        )
+        .unwrap();
+        let hints: Vec<&String> = r
+            .caveats
+            .iter()
+            .filter(|c| c.contains("first_contribution_to_fund"))
+            .collect();
+        assert_eq!(
+            hints,
+            [
+                "this assumes the contribution is not the first to this fund. If it is \
+                 the first after employment starts or recommences (including rehiring a \
+                 worker under a new arrangement), or after a fund switch, set \
+                 first_contribution_to_fund=yes and the line becomes on time (due 2027-08-09)"
+            ]
         );
     }
 
