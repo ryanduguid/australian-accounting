@@ -58,7 +58,7 @@ PART_CAVEAT = (
     "to read the next part; the register page has the whole provision."
 )
 QUICK_BUILD = (
-    "`python -m fadden quick --out <empty folder>` in au-tax-legislation-corpus builds 9 "
+    "`python -m fadden quick --out <empty folder>` in PaulGoodman builds 9 "
     "principal Acts on this machine and prints the setting. "
 )
 WITHHELD_CAVEAT = (

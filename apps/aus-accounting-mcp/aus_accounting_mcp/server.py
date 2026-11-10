@@ -105,7 +105,7 @@ from .reviewed_rates import reviewed_rate
 from .rulings import read_ruling, search_rulings
 
 SERVER_INSTRUCTIONS = """Australian accounting review tools operating on operator-supplied facts.
-These instructions follow DrDebits, https://github.com/ryanduguid/llm-tax-guardrails,
+These instructions follow DrDebits, https://github.com/ryanduguid/DrDebits,
 guide version 0.3.3, and its outcome classes PROCEED_DRAFT_ONLY, NEEDS_FACTS,
 ESCALATE and HARD_STOP govern what you may conclude from a result here.
 A verdict string such as LATE, UNPAID or NOT_COMPLYING is a review-aid

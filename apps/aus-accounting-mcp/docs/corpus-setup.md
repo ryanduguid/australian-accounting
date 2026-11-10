@@ -2,7 +2,7 @@
 
 Aus Accounting MCP reads local corpus files. It does not fetch legislation or
 rulings itself. Use the existing
-[corpus builder](https://github.com/ryanduguid/au-tax-legislation-corpus), then
+[corpus builder](https://github.com/ryanduguid/PaulGoodman), then
 point the server at the resulting files. Keep generated material outside every
 source checkout. A successful search establishes retrieval, not current law or
 the applicability of a passage.
@@ -15,8 +15,8 @@ of Legislation onto your machine. Choose an absent or empty folder outside every
 checkout:
 
 ```bash
-git clone https://github.com/ryanduguid/au-tax-legislation-corpus
-cd au-tax-legislation-corpus
+git clone https://github.com/ryanduguid/PaulGoodman
+cd PaulGoodman
 cargo build --locked --release
 python -m fadden quick --out ../tax-law
 ```
@@ -40,13 +40,13 @@ One run on 6 November 2026 took 116 seconds on a Windows 11 desktop PC with an I
 Core i7-12700K, for 9 titles and 9,439 rows, and `search_tax_legislation` returned
 section 8-1 of the ITAA 1997 first. Network speed and the Register's load will change
 the figure, and one run is not a benchmark
-([build evidence](https://github.com/ryanduguid/au-tax-legislation-corpus/blob/main/docs/build-evidence.md#one-command-preset-build)).
+([build evidence](https://github.com/ryanduguid/PaulGoodman/blob/main/docs/build-evidence.md#one-command-preset-build)).
 
 The folder holds these 9 Acts only, so a 'no match' says nothing about any other
 title. It has no rates index: `search_tax_rates` refuses it and, from the release after 0.7.1,
 `aus-accounting-mcp doctor` reports the folder as broken for that reason and exits 1. `define_tax_term` and
 the 2 legislation tools work. The
-[full build](https://github.com/ryanduguid/au-tax-legislation-corpus/blob/main/BUILD.md)
+[full build](https://github.com/ryanduguid/PaulGoodman/blob/main/BUILD.md)
 covers the rest of the corpus and the rates index.
 
 ## First verify the connection with fabricated evidence
@@ -55,7 +55,7 @@ This route tests the rulings tools without building any legislation. Use Python 
 directories. From `australian-accounting/apps/aus-accounting-mcp`, run:
 
 ```bash
-uv run --locked --python 3.14 python scripts/check_corpus_setup.py --builder ../../../au-tax-legislation-corpus --out ../../../../synthetic-corpus-setup
+uv run --locked --python 3.14 python scripts/check_corpus_setup.py --builder ../../../PaulGoodman --out ../../../../synthetic-corpus-setup
 ```
 
 Choose an absent output directory. The script passes one fabricated HTML page
@@ -75,7 +75,7 @@ together. The script refuses to overwrite an earlier destination.
 ## Use an authorised real build
 
 For an expressly selected set of ATO documents, follow the builder's
-[rulings procedure](https://github.com/ryanduguid/au-tax-legislation-corpus/blob/main/docs/rulings.md).
+[rulings procedure](https://github.com/ryanduguid/PaulGoodman/blob/main/docs/rulings.md).
 It accepts a bounded target list and refuses unsupported document families or
 missing reuse notices. This is a separate network operation, not part of the
 fabricated example. Review exclusions before using its output.
@@ -87,7 +87,7 @@ then read the returned `row_ref`. Compare the result with the retained source
 and its current official version before relying on it.
 
 For legislation, follow the builder's
-[discover, resolve, download, extract and finalise stages](https://github.com/ryanduguid/au-tax-legislation-corpus/blob/main/BUILD.md).
+[discover, resolve, download, extract and finalise stages](https://github.com/ryanduguid/PaulGoodman/blob/main/BUILD.md).
 Point `AUS_ACCOUNTING_CORPUS_ROOT` at the finished corpus root containing
 `sources.json` and `markdown/`, rather than at the source repository or one
 individual JSONL file. Use `search_tax_legislation`, then

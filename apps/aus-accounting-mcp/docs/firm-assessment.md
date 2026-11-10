@@ -3,8 +3,8 @@
 A firm that uses AI on client work may need two things from a tool like this:
 supplier information for its AI register and risk assessment, and answers to the
 questions it would put to any tax-research product. Both describe this server, the
-[au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus)
-builder and the [DrDebits](https://github.com/ryanduguid/llm-tax-guardrails) guardrails
+[PaulGoodman](https://github.com/ryanduguid/PaulGoodman)
+builder and the [DrDebits](https://github.com/ryanduguid/DrDebits) guardrails
 as their documentation stood on 29 September 2026. Version and worksheet inventory
 were refreshed on 17 October 2026; response times remain dated 26 September 2026.
 Neither is a certification, an approval of any use or a statement that a firm's

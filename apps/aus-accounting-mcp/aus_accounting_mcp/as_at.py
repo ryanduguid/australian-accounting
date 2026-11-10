@@ -5,7 +5,7 @@
 
 The corpus builder's `as_at` stage classifies its manifest in Rust, and this server reads
 sections.jsonl directly, so the same 4 statuses are worked out here. docs/scope.md in
-au-tax-legislation-corpus is the contract: its status names, field names, next steps and
+PaulGoodman is the contract: its status names, field names, next steps and
 limits are repeated exactly. A status is about a title's compilation window, never about
 the law on that date.
 """
@@ -50,7 +50,7 @@ REFUSED_NOTICE = (
 UNCLASSIFIABLE = (
     "as_at needs each row's compilation_date, retrieved and version_is_current, and "
     "superseded_from when the version is not current, so this corpus cannot answer for a "
-    "date until au-tax-legislation-corpus rebuilds it: tell the user, and do not retry."
+    "date until PaulGoodman rebuilds it: tell the user, and do not retry."
 )
 
 
