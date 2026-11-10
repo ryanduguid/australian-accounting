@@ -16,7 +16,7 @@
     "Amounts passed as JSON numbers are serialised from exact decimal text. The reviewed OpenAPI components define the accepted input types.",
     "Response 200 bodies are declared as objects with additionalProperties: true and no response schema, so the fields below were read from llms.txt and from the shape of live responses, not from a schema.",
     "GET /livez returned 200 on 10 November 2026; GET /healthz returned 404 and is absent from the live OpenAPI document.",
-    "Four reviewed calculators are recorded. The gateway listed 23 on 10 November 2026; discovery outside this selection does not extend the adapter’s supported scope.",
+    "Four reviewed calculators are recorded. The gateway listed 23 on 10 November 2026; discovery outside this selection does not extend the adapter's supported scope.",
     "This snapshot is a reading, not an agreement. Nothing in it is endorsed by LodgeiT Labs.",
     "Decimal fields are split into required and optional. A required field's absence is a contract failure; an optional field appears only in some outcomes, such as a Division 7A deemed dividend where nothing fell short.",
     "Read from a live div7a response on 18 September 2026: the advisory block carries `disclaimer`, not the `notes` array llms.txt and publish.html describe, and the body also echoes `amalgamated_base`, `period_uri` and `rate_uris_consumed`. The manifest entries use `content_hash`, not the `sha256` key the publishing standard's example shows. advisory_any_of records which keys count as an advisory; a response with neither is still a contract failure.",

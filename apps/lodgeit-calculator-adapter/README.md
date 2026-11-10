@@ -279,7 +279,9 @@ compared byte for byte. These differences are deliberate:
   7.6 KB of stack. Text is held as 32-bit code points, so the size at which
   memory runs out differs. A backoff sleep longer than about 292 years sleeps
   on Linux, where CPython refuses it. A lone surrogate in a route reaches the
-  request URL as U+FFFD.
+  request URL as U+FFFD. A body file number beyond the decimal limits, such as
+  `1e9999999999999999999999999999`, is refused with status 2, where Python
+  raised an uncaught `decimal.InvalidOperation`.
 - **Core.** Python clears the token, continuation, request body and response
   from its frame locals so a traceback cannot show them. A Rust `CoreError` holds only the
   category and status, and the token stays the caller's borrowed string.

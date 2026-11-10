@@ -580,3 +580,24 @@ fn invoke_names_a_body_file_it_cannot_read() {
     assert!(stub.paths().is_empty());
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn invoke_refuses_a_body_number_beyond_the_decimal_limits() {
+    let stub = Stub::start();
+    let dir = tmp_dir("invoke-exponent");
+    let body = dir.join("body.json");
+    std::fs::write(&body, r#"{"loan_amount": 1e9999999999999999999999999999}"#)
+        .expect("write the body");
+    let body = path_text(&body);
+    let mut args = vec!["invoke"];
+    args.extend(network(&stub.base_url));
+    args.extend(["--calculator", CALC, "--period", PERIOD, "--body", &body]);
+    let (code, _, stderr) = run(&args);
+    assert_eq!(code, 2);
+    assert_eq!(
+        stderr.trim_end(),
+        format!("lodgeit-adapter: {body} could not be read: JSON number exceeds decimal limits")
+    );
+    assert!(stub.paths().is_empty());
+    let _ = std::fs::remove_dir_all(&dir);
+}
