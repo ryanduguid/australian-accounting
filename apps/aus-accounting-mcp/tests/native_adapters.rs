@@ -123,6 +123,9 @@ fn frozen_effective_adapter_contracts() {
             if name == "build_payday_super_evidence_pack" {
                 native_pack(&mut expected["structuredContent"]["files"]);
             }
+            if name.contains("payday_super") {
+                engine::payday(&mut expected);
+            }
             if name == "get_data_freshness" {
                 native_freshness(&mut expected["structuredContent"]);
             }
@@ -226,7 +229,7 @@ fn native_pack(files: &mut Value) {
                     "\"engine_version\": \"1.0.0\"",
                 );
         }
-        *text = json!(new);
+        *text = json!(engine::payday_hint(&new));
         native_provenance(text);
     }
     let digest = payday_super_checker::rates::hex(&Sha256::digest(

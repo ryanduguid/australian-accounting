@@ -160,3 +160,24 @@ pub fn file_note(kind: &str, note: &str, before: &Value, after: &Value) -> Strin
     }
     note
 }
+
+/// 56afe0c (#602): the payday first-contribution hint names recommenced employment, as
+/// the engine's `tests/data/amendments.json` applies it to the engine's own frozen cases.
+/// Only these words change; no deadline, verdict or figure.
+const HINT_BEFORE: &str = "If it is a new starter or a fund switch, set first_contribution_to_fund=yes";
+const HINT_AFTER: &str = "If it is the first after employment starts or recommences (including rehiring a worker under a new arrangement), or after a fund switch, set first_contribution_to_fund=yes";
+
+/// Frozen payday text, as the linked engine words it.
+pub fn payday_hint(text: &str) -> String {
+    text.replace(HINT_BEFORE, HINT_AFTER)
+}
+
+/// Every string of a frozen payday result, as the linked engine words it.
+pub fn payday(value: &mut Value) {
+    match value {
+        Value::String(text) => *text = payday_hint(text),
+        Value::Array(items) => items.iter_mut().for_each(payday),
+        Value::Object(object) => object.values_mut().for_each(payday),
+        _ => {}
+    }
+}

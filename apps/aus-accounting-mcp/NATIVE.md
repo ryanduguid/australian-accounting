@@ -282,7 +282,10 @@ identity and already-reviewed provenance differences are allowed:
   cap that covers the excess, `b4a70733` (#551) adds the PAYG withholding 2024-26
   Schedule 1 source, and `d8f34dc2` (#567) adds the FBT rates source and extends
   the source passage. The served disclaimer lists the worksheet scopes as the
-  scope resource serves them.
+  scope resource serves them. Payday `56afe0c` (#602) words the first-contribution
+  hint for employment that starts or recommences, including a worker rehired under
+  a new arrangement, or a fund switch; no deadline, verdict or figure changes, and an
+  evidence pack's report SHA-256 follows its changed report.
 - The input schema fixes or bounds the year of every worksheet whose periods
   those commits opened, so the scope resource, `get_data_freshness` and `doctor`
   list only the periods it admits. The 2026-27 periods `fd0b593e` (#543) opened for
