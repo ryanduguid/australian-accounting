@@ -115,6 +115,9 @@ fn line(input: &Value, row: i64) -> Result<ContribLine, String> {
         returned_by_fund: false,
         events: vec![],
         return_not_shown: false,
+        // These tools take no receipt_evidence, mvr_status or fund_error_ref
+        // argument and refuse unknown ones, so the line states no evidence.
+        evidence: Default::default(),
     })
 }
 fn relies_on_kept_receipts(result: &Assessed) -> bool {

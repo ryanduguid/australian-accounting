@@ -13,7 +13,68 @@ use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn corpus() -> Vec<Value> {
-    serde_json::from_str(include_str!("data/python-cases.json")).expect("corpus parses")
+    let mut cases: Vec<Value> =
+        serde_json::from_str(include_str!("data/python-cases.json")).expect("corpus parses");
+    amend(&mut cases);
+    cases
+}
+
+/// Applies `data/amendments.json`: the answers that deliberate changes made
+/// since Python 0.3.2 replace, kept apart so the frozen record never changes.
+/// Each override replaces one command run's `expected`, once. It names the
+/// case's test and, in `was`, the frozen exit code and the FNV-1a hashes of
+/// the frozen stdout and stderr, and it keeps that exit code and stderr, so a
+/// stale index or an override that absorbs another change fails the replay.
+fn amend(cases: &mut [Value]) {
+    let amendments: Value =
+        serde_json::from_str(include_str!("data/amendments.json")).expect("amendments parse");
+    let mut seen = std::collections::HashSet::new();
+    for change in amendments["changes"].as_array().unwrap() {
+        for (index, fields) in change["cases"].as_object().unwrap() {
+            let at = index.parse::<usize>().unwrap();
+            assert!(seen.insert(at), "case {index} amended twice");
+            for key in fields.as_object().unwrap().keys() {
+                assert!(
+                    ["test", "was", "expected"].contains(&key.as_str()),
+                    "case {index}: cannot amend {key}"
+                );
+            }
+            let case = &mut cases[at];
+            assert_eq!(case["test"], fields["test"], "case {index} is another test");
+            assert_eq!(
+                case["kind"], "cli",
+                "case {index}: only command runs are amended"
+            );
+            let frozen = &case["expected"];
+            let was = json!({
+                "code": frozen["code"],
+                "stdout": stored_fnv(&frozen["stdout"]),
+                "stderr": stored_fnv(&frozen["stderr"]),
+            });
+            assert_eq!(
+                fields["was"], was,
+                "case {index}: supersedes another answer"
+            );
+            let new = &fields["expected"];
+            assert_eq!(
+                new["code"], frozen["code"],
+                "case {index}: exit code changed"
+            );
+            assert_eq!(
+                new["stderr"], frozen["stderr"],
+                "case {index}: stderr changed"
+            );
+            case["expected"] = new.clone();
+        }
+    }
+}
+
+/// The FNV-1a hash of a frozen output, stored as its text or as its hash.
+fn stored_fnv(stored: &Value) -> String {
+    match stored {
+        Value::String(text) => fnv(text.as_bytes()),
+        hashed => hashed["fnv"].as_str().expect("a stored output").to_string(),
+    }
 }
 
 /// FNV-1a 64, as the corpus stores outputs over its size limits.
@@ -241,7 +302,7 @@ fn every_command_has_cases() {
 }
 
 /// The published reason-code vocabulary.
-const REASON_CODES: [&str; 23] = [
+const REASON_CODES: [&str; 24] = [
     "REFUSED_GATE_RESULT_MISSING",
     "REFUSED_GATE_NOT_COMPLYING",
     "REFUSED_GATE_UNKNOWN",
@@ -249,6 +310,7 @@ const REASON_CODES: [&str; 23] = [
     "REFUSED_YEAR_IS_YEAR_OF_LOAN",
     "REFUSED_YEAR_BEFORE_LOAN",
     "REFUSED_REMAINING_TERM_NOT_POSITIVE",
+    "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM",
     "REFUSED_BENCHMARK_RATE_NOT_POSITIVE",
     "GATE_NO_BENCHMARK_YEAR",
     "GATE_WRITTEN_AGREEMENT_FAIL",
@@ -320,6 +382,19 @@ fn the_reason_code_vocabulary_is_exactly_what_the_engine_emits() {
     .unwrap();
     let _ = std::fs::remove_dir_all(&dir);
     collect_codes(&nil, &mut emitted);
+    // Added after the corpus froze: an unsecured loan the gate passes with a
+    // remaining term past its 7-year maximum.
+    let past = api::evaluate(
+        "review-register",
+        &json!({"year_of_income": "2025-26", "rows": [{"loan_id": "L",
+            "written_agreement": "true", "terms_in_place_before_lodgment_day": "true",
+            "maximum_term_years": "7", "secured_by_registered_mortgage_over_real_property": "false",
+            "security_coverage_at_first_made": "", "interest_rate_for_years_after_year_loan_made": "0.0877",
+            "year_loan_made": "2024-25", "amalgamated_loan_unpaid_at_end_of_previous_year": "1000.00",
+            "remaining_term_years": "8", "payments_applied_during_the_year": "0.00"}]}),
+    )
+    .unwrap();
+    collect_codes(&past, &mut emitted);
     let published: std::collections::BTreeSet<String> =
         REASON_CODES.iter().map(|c| c.to_string()).collect();
     assert_eq!(emitted, published);

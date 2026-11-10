@@ -14,7 +14,7 @@ use crate::decimal::Decimal;
 use crate::py::Date;
 use crate::rates::GicTable;
 use crate::sgc::{Uplift, exposure_range, notional_earnings, uplift_scenarios};
-use crate::{Failure, Result, returned};
+use crate::{Failure, Result, evidence, returned};
 
 pub const TRANSITION_END: Date = Date {
     year: 2026,
@@ -23,7 +23,7 @@ pub const TRANSITION_END: Date = Date {
 };
 
 /// The last QE day PCG 2026/1 covers.
-const FIRST_YEAR_END: Date = Date {
+pub(crate) const FIRST_YEAR_END: Date = Date {
     year: 2027,
     month: 6,
     day: 30,
@@ -288,6 +288,7 @@ pub fn check_inputs(lines: &[ContribLine]) -> Result<()> {
             problems.push(p);
         }
         problems.extend(returned::event_problems(line)?);
+        problems.extend(evidence::problems(line));
     }
     if problems.is_empty() {
         Ok(())
@@ -367,15 +368,9 @@ pub fn assess(
 
     let mut results = Vec::with_capacity(pairs.len());
     for (i, (line, dl)) in pairs.into_iter().enumerate() {
-        results.push(assess_line(
-            line,
-            dl,
-            cal,
-            gic,
-            as_at,
-            options,
-            transition[i],
-        )?);
+        let mut result = assess_line(line, dl, cal, gic, as_at, options, transition[i])?;
+        evidence::annotate(&mut result);
+        results.push(result);
     }
     Ok(results)
 }
@@ -1790,6 +1785,7 @@ pub(crate) mod tests {
             returned_by_fund: false,
             events: Vec::new(),
             return_not_shown: false,
+            evidence: Default::default(),
         }
     }
 

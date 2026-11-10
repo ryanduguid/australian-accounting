@@ -65,6 +65,8 @@ pub struct ContribLine {
     pub events: Vec<ContribEvent>,
     /// `assess` found a return not shown to be a rejection or a reg 7.07G(3) refund.
     pub return_not_shown: bool,
+    /// What the input says stands behind the receipt; never weighed in a verdict.
+    pub evidence: crate::evidence::Evidence,
 }
 
 /// What happened to some of a line's money.
@@ -502,6 +504,7 @@ mod tests {
             returned_by_fund: false,
             events: Vec::new(),
             return_not_shown: false,
+            evidence: Default::default(),
         }
     }
 

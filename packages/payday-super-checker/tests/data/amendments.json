@@ -1,5 +1,5 @@
 {
- "about": "Deliberate behaviour changes made after the Python 0.2.2 record in python-cases.json was frozen. tests/parity.rs replaces the listed answers by corpus index before comparing, so python-cases.json stays exactly as Python left it. Each change gives its reason and every case it alters.",
+ "about": "Deliberate behaviour changes made after the Python 0.2.2 record in python-cases.json was frozen. tests/parity.rs replaces the listed answers by corpus index before comparing, so python-cases.json stays exactly as Python left it. Each change gives its reason and every case it alters. The optional evidence fields receipt_evidence, mvr_status and fund_error_ref joined the canonical mapping on 8 November 2026. They annotate a line and change no verdict, so they are not a change of their own here: every amended answer that prints the default mapping or a list of the valid fields carries them.",
  "changes": [
   {
    "change": "Employment Hero Beam 'Reconciled' is not sent to the fund (26 October 2026). Beam reports Reconciled once it has cleared the employer's money, before 'Sent to fund' (yourpayroll Super Contributions Report; Reckon's Beam status guide), so a Reconciled row gets no remitted date. The profile then gained every other status the vendor lists (30 October 2026): 'Sent to fund with response' and manual 'Paid' are transmission evidence or the employer's assertion, so sent; 'Sent to fund with refund', 'Cancelled', 'Failed', 'Refunded', 'Not actioned' and 'Payment failed' do not establish remittance, so they get no date.",
@@ -3257,6 +3257,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -3319,6 +3331,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -3381,6 +3405,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -3443,6 +3479,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -3505,6 +3553,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -3567,6 +3627,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -3629,6 +3701,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -3691,6 +3775,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -3753,6 +3849,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -3815,6 +3923,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -3877,6 +3997,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -3939,6 +4071,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4001,6 +4145,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4063,6 +4219,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4125,6 +4293,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4187,6 +4367,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4249,6 +4441,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4311,6 +4515,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4373,6 +4589,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4435,6 +4663,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4497,6 +4737,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4559,6 +4811,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": [
@@ -4625,6 +4889,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": [
@@ -4638,7 +4914,7 @@
     "285": {
      "test": "test_unknown_mapping_field_is_rejected",
      "expected": {
-      "error": "--map field 'payday' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']"
+      "error": "--map field 'payday' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']"
      }
     },
     "287": {
@@ -4697,6 +4973,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4759,6 +5047,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4821,6 +5121,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -4883,6 +5195,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": [
@@ -4947,6 +5271,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5009,6 +5345,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": [
@@ -5076,6 +5424,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5138,6 +5498,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5200,6 +5572,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5262,6 +5646,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5324,6 +5720,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5386,6 +5794,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5448,6 +5868,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5510,6 +5942,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5572,6 +6016,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5634,6 +6090,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5696,6 +6164,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5758,6 +6238,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5820,6 +6312,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5829,7 +6333,7 @@
     "348": {
      "test": "test_a_malformed_mapping_file_is_refused",
      "expected": {
-      "error": "mapping file has unknown fields: ['employee']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']"
+      "error": "mapping file has unknown fields: ['employee']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']"
      }
     },
     "350": {
@@ -5888,6 +6392,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -5950,6 +6466,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6164,6 +6692,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6226,6 +6766,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6288,6 +6840,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6350,6 +6914,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6412,6 +6988,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6474,6 +7062,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6536,6 +7136,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6598,6 +7210,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6660,6 +7284,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6722,6 +7358,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6784,6 +7432,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6846,6 +7506,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6908,6 +7580,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -6970,6 +7654,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -7032,6 +7728,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -7094,6 +7802,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -7156,6 +7876,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -7218,6 +7950,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -7280,6 +8024,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -7342,6 +8098,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -7404,6 +8172,18 @@
         [
          "returned_by_fund",
          "returned_by_fund"
+        ],
+        [
+         "receipt_evidence",
+         "receipt_evidence"
+        ],
+        [
+         "mvr_status",
+         "mvr_status"
+        ],
+        [
+         "fund_error_ref",
+         "fund_error_ref"
         ]
        ],
        "explicit": []
@@ -7431,7 +8211,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "3950": {
@@ -7447,7 +8227,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "3984": {
@@ -7455,7 +8235,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4040": {
@@ -7471,7 +8251,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4069": {
@@ -7527,7 +8307,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4150": {
@@ -7543,7 +8323,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4170": {
@@ -7599,7 +8379,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: mapping file has unknown fields: ['bogus']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: mapping file has unknown fields: ['bogus']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4353": {
@@ -7607,7 +8387,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4429": {
@@ -7639,7 +8419,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: mapping file has unknown fields: ['bogus']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: mapping file has unknown fields: ['bogus']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4480": {
@@ -7671,7 +8451,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: mapping file has unknown fields: ['bogus']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: mapping file has unknown fields: ['bogus']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4549": {
@@ -7687,7 +8467,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4580": {
@@ -7703,7 +8483,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4627": {
@@ -7711,7 +8491,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: mapping file has unknown fields: ['bogus']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: mapping file has unknown fields: ['bogus']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4630": {
@@ -7751,7 +8531,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: mapping file has unknown fields: ['bogus']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: mapping file has unknown fields: ['bogus']; valid fields are ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4750": {
@@ -7767,7 +8547,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "4769": {
@@ -7791,7 +8571,7 @@
      "expected": {
       "code": 1,
       "stdout": "",
-      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'join_caveats', 'matched_amount', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
+      "stderr": "error: --map field 'nope' is not one of ['db_interest', 'employee_id', 'first_to_fund', 'fund_error_ref', 'join_caveats', 'matched_amount', 'mvr_status', 'next_standard_qe_day', 'out_of_cycle', 'qe_day', 'receipt_evidence', 'received', 'remitted', 'remitted_amount', 'returned_by_fund', 'sg_amount']\n"
      }
     },
     "654": {

@@ -24,7 +24,7 @@ async def check(builder_root: Path, destination: Path) -> None:
     if destination.exists():
         raise ValueError("destination exists; use a new directory to preserve earlier evidence")
     if not (builder_root / "fadden/rulings.py").is_file():
-        raise ValueError("builder must name an au-tax-legislation-corpus source checkout")
+        raise ValueError("builder must name a PaulGoodman source checkout")
     sys.path.insert(0, str(builder_root))
     builder = importlib.import_module("fadden.rulings")
     module_path = builder.__file__

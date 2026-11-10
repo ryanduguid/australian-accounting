@@ -15,6 +15,7 @@ use crate::calendar::{self, BusinessCalendar, Holiday};
 use crate::csv_io::{self, Mapping};
 use crate::deadlines::{self, ContribEvent, ContribLine, Deadline, EventKind};
 use crate::decimal::Decimal;
+use crate::evidence::Evidence;
 use crate::evidence_pack::{self, PackFacts};
 use crate::importers;
 use crate::join::{self, Columns, JoinResult, PayrollRow, SuperRow};
@@ -253,6 +254,11 @@ fn line_of(v: &Value) -> Result<ContribLine> {
             Some(_) => return Err("events must be a list of events".into()),
         },
         return_not_shown: false,
+        evidence: Evidence::parse(
+            optional_text(v, "receipt_evidence")?.unwrap_or_default(),
+            optional_text(v, "mvr_status")?.unwrap_or_default(),
+            optional_text(v, "fund_error_ref")?.unwrap_or_default(),
+        )?,
     })
 }
 
@@ -319,6 +325,11 @@ fn line_json(line: &ContribLine) -> Value {
     }
     if !line.events.is_empty() {
         out["events"] = line.events.iter().map(event_json).collect();
+    }
+    for (field, value) in line.evidence.fields() {
+        if let Some(value) = value {
+            out[field] = json!(value);
+        }
     }
     out
 }

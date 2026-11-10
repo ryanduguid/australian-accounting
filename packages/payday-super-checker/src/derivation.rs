@@ -68,6 +68,7 @@ fn line_of(input: &Value) -> Result<ContribLine, String> {
         returned_by_fund: false,
         events: Vec::new(),
         return_not_shown: false,
+        evidence: Default::default(),
     })
 }
 

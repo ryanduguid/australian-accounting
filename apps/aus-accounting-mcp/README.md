@@ -147,7 +147,7 @@ records for returns before relying on `ON_TIME`.
 The research tools need a folder you supply: set `AUS_ACCOUNTING_LIBRARY_ROOT` to an
 authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus or
 `AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by
-[au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus).
+[PaulGoodman](https://github.com/ryanduguid/PaulGoodman).
 [`python -m fadden quick --out <empty folder>`](docs/corpus-setup.md#build-the-principal-acts-with-one-command)
 in that repository builds 9 principal Acts on your machine and prints the setting. The
 [corpus setup walkthrough](docs/corpus-setup.md) also verifies the existing builder
