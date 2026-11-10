@@ -110,8 +110,10 @@ fn xml(bytes: &[u8]) -> Result<roxmltree::Document<'_>, String> {
     // expansion; roxmltree's per-entity guards do not cap total amplification.
     nesting(text)?;
     // The bounded nesting above is still ~1,000 parser frames deep, beyond the
-    // default main stack; parse on the larger stack as the scoring path does.
-    stacker::grow(16 * 1024 * 1024, || {
+    // default main stack. An unoptimised build needs about 15 MiB for them on
+    // x86_64 Linux and more on macOS arm64, where 16 MiB overflowed, so allow 4
+    // times the Linux need; only the pages the parse reaches are touched.
+    stacker::grow(64 * 1024 * 1024, || {
         roxmltree::Document::parse(text).map_err(|e| e.to_string())
     })
 }
