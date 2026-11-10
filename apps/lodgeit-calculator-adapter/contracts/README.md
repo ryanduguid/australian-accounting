@@ -20,8 +20,9 @@ A person reads the live surface, decides what changed and edits the file. That
 is the whole process, and it is deliberate.
 
 `lodgeit-adapter drift` compares the live catalogue and, where pinned, the
-request schema references and input schema bodies. It exits non-zero for changes within the reviewed
-selection or an unavailable OpenAPI document. Other advertised calculators
+request schema references and input schema bodies. It also checks for required
+parameters the adapter does not send. It exits non-zero for changes within the
+reviewed selection or an unavailable OpenAPI document. Other advertised calculators
 are reported as notes. Select the request schema and its referenced components
 when reviewing a new calculator.
 

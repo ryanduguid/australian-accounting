@@ -8,7 +8,7 @@
 //! automatically: `compare` reports drift, and nothing here rewrites a
 //! snapshot. A snapshot's members are whatever JSON it holds, so each use
 //! fails as Python's did on a value of the wrong type.
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 
 use sha2::{Digest, Sha256};
 
@@ -384,6 +384,76 @@ fn same_schema_value(left: &Json, right: &Json) -> bool {
     }
 }
 
+/// Path item parameters apply to its POST unless the operation overrides the
+/// same name and location. Only the two route placeholders are sent today.
+fn check_request_parameters(document: &Json, item: &Json, route: &str) -> Vec<S> {
+    let mut effective = BTreeMap::new();
+    let unreadable = || {
+        vec![pts(&format!(
+            "live OpenAPI parameters for {route} could not be read"
+        ))]
+    };
+    for owner in [item, item.at("post")] {
+        let Some(parameters) = owner.get("parameters") else {
+            continue;
+        };
+        let Json::Array(parameters) = parameters else {
+            return unreadable();
+        };
+        let mut seen = HashSet::new();
+        for parameter in parameters {
+            let parameter = if let Some(reference) = parameter.get("$ref") {
+                let Some(component) = reference
+                    .as_str()
+                    .and_then(|reference| reference.strip_prefix("#/components/parameters/"))
+                    .and_then(|name| document.at("components").at("parameters").get(name))
+                else {
+                    return unreadable();
+                };
+                component
+            } else {
+                parameter
+            };
+            let (Some(location), Some(name)) =
+                (parameter.at("in").as_str(), parameter.at("name").as_str())
+            else {
+                return unreadable();
+            };
+            // OpenAPI ignores parameter declarations for these HTTP headers.
+            if location == "header"
+                && ["Accept", "Content-Type", "Authorization"]
+                    .iter()
+                    .any(|header| name.eq_ignore_ascii_case(header))
+            {
+                continue;
+            }
+            let required = match parameter.get("required") {
+                Some(Json::Bool(required)) => *required,
+                None => false,
+                Some(_) => return unreadable(),
+            };
+            if !seen.insert((location, name)) {
+                return unreadable();
+            }
+            effective.insert((location, name), required);
+        }
+    }
+    effective
+        .into_iter()
+        .filter_map(|((location, name), required)| {
+            let supplied = location == "path"
+                && matches!(name, "calc_uri" | "period_uri")
+                && route.contains(&format!("{{{name}}}"));
+            if !required || supplied {
+                return None;
+            }
+            Some(pts(&format!(
+                "live OpenAPI {route} requires {location} parameter {name}, which the adapter does not send"
+            )))
+        })
+        .collect()
+}
+
 pub(crate) fn compare_openapi(reviewed: &Json, calculators: &Json, document: &Json) -> R<Vec<S>> {
     let Json::Object(schemas) = reviewed else {
         return Err(contract_error(pts(
@@ -416,7 +486,8 @@ pub(crate) fn compare_openapi(reviewed: &Json, calculators: &Json, document: &Js
             return Err(contract_error(pts("reviewed calculator has no route")));
         };
         let expected = Json::obj([("$ref", spec.at("input_schema_ref").clone())]);
-        let body = document.at("paths").at(route).at("post").at("requestBody");
+        let item = document.at("paths").at(route);
+        let body = item.at("post").at("requestBody");
         let shape = schema_shape(body.at("content").at("application/json").at("schema"));
         let matched = if route.contains("{calc_uri}") {
             matches!(&shape, Json::Object(fields) if fields.len() == 1)
@@ -430,6 +501,7 @@ pub(crate) fn compare_openapi(reviewed: &Json, calculators: &Json, document: &Js
                 "live OpenAPI request schema for {route} changed"
             )));
         }
+        findings.extend(check_request_parameters(document, item, route));
     }
     Ok(findings)
 }
@@ -601,6 +673,51 @@ mod tests {
             &schema_shape(&read(r#"{"required":["b","a"],"multipleOf":1e-2}"#)),
         ));
         assert!(pyjson::loads_numbers("1e9999999999999999999999999999", Numbers::Exact).is_err());
+    }
+
+    #[test]
+    fn post_parameters_include_inherited_references_and_allow_operation_overrides() {
+        let document = pyjson::loads_standard(
+            r##"{
+            "components":{"parameters":{"Window":{"name":"window","in":"query","required":true}}}
+        }"##,
+        )
+        .unwrap();
+        let route = "/v1/depreciation/{period_uri}";
+        let check = |item| {
+            check_request_parameters(&document, &pyjson::loads_standard(item).unwrap(), route)
+        };
+        assert_eq!(
+            check(
+                r##"{
+            "parameters":[{"$ref":"#/components/parameters/Window"}]
+        }"##
+            ),
+            [pts(&format!(
+                "live OpenAPI {route} requires query parameter window, which the adapter does not send"
+            ))]
+        );
+        assert!(
+            check(
+                r##"{
+            "parameters":[{"$ref":"#/components/parameters/Window"}],
+                "post":{"parameters":[{"name":"window","in":"query","required":false},
+                                     {"name":"period_uri","in":"path","required":true},
+                                     {"name":"content-type","in":"header","required":true}]}
+        }"##
+            )
+            .is_empty()
+        );
+        assert_eq!(
+            check(
+                r##"{
+            "post":{"parameters":[{"$ref":"#/components/parameters/Missing"}]}
+        }"##
+            ),
+            [pts(&format!(
+                "live OpenAPI parameters for {route} could not be read"
+            ))]
+        );
     }
 
     fn snapshot(calculators: &str) -> Contract {

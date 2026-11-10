@@ -159,17 +159,16 @@
       ],
       "scope_notes": [
         "day_count is required on this route and has no default.",
-        "The current documented response carries cost_additions for initial recognition and cost additions inside the range. The adapter checks the movement before accepting the result and keeps older evidence readable.",
+        "The current response must carry cost_additions for initial recognition and additions inside the range, even when it is zero. The adapter checks the movement before accepting the result. Older evidence remains readable.",
         "The reviewed EventInput uses amount for cost additions and opening balances, and new_useful_life_years for reassessments."
       ],
       "required_decimal_fields": [
         "range_dep",
         "opening_wdv",
-        "closing_wdv"
-      ],
-      "optional_decimal_fields": [
+        "closing_wdv",
         "cost_additions"
-      ]
+      ],
+      "optional_decimal_fields": []
     },
     "urn:sbrm:calculator:fbt:car-statutory-formula": {
       "label": "FBT car, statutory formula method",

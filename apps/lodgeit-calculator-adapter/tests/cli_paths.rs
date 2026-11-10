@@ -17,7 +17,7 @@ use lodgeit_calculator_adapter::contract::{self, Contract};
 use lodgeit_calculator_adapter::decimal::Decimal;
 use lodgeit_calculator_adapter::dial::Net;
 use lodgeit_calculator_adapter::evidence;
-use lodgeit_calculator_adapter::pyjson::{self, Json, Layout};
+use lodgeit_calculator_adapter::pyjson::{self, Json, Layout, PyStr};
 use lodgeit_calculator_adapter::pyops::Exc;
 use lodgeit_calculator_adapter::pypath::PyPath;
 
@@ -130,6 +130,17 @@ fn openapi_from(schemas: Json, calculators: &Json) -> Json {
         ("components", Json::obj([("schemas", schemas)])),
         ("paths", Json::Object(paths)),
     ])
+}
+
+fn member_mut<'a>(value: &'a mut Json, key: &str) -> &'a mut Json {
+    let Json::Object(fields) = value else {
+        panic!("expected an object");
+    };
+    &mut fields
+        .iter_mut()
+        .find(|(name, _)| name.as_str() == Some(key))
+        .unwrap()
+        .1
 }
 
 fn reviewed_schemas() -> Json {
@@ -497,6 +508,32 @@ fn pinned_components_do_not_replace_the_operations_that_use_them() {
     assert!(stdout.contains(
         "live OpenAPI request schema for /v1/calculators/depreciation/range/{period_uri} changed"
     ));
+}
+
+#[test]
+fn drift_reports_a_required_header_on_a_reviewed_post() {
+    let contract = the_contract();
+    let stub = Stub::start();
+    stub.respond(&Json::Array(live_from(&contract)), 200);
+    let mut document = openapi_from(reviewed_schemas(), &contract.calculators);
+    let route = "/v1/calculators/depreciation/range/{period_uri}";
+    let item = member_mut(member_mut(&mut document, "paths"), route);
+    let Json::Object(post) = member_mut(item, "post") else {
+        panic!("expected a POST object");
+    };
+    post.push((
+        PyStr::Text("parameters".into()),
+        json(r#"[{"name":"X-Fabricated-Version","in":"header","required":true,"schema":{"type":"string"}}]"#),
+    ));
+    stub.respond_openapi(&document);
+    let mut args = vec!["drift"];
+    args.extend(network(&stub.base_url));
+    let (code, stdout, _) = run(&args);
+    assert_eq!(code, 1, "{stdout}");
+    assert!(
+        stdout.contains("requires header parameter X-Fabricated-Version"),
+        "{stdout}"
+    );
 }
 
 #[test]
