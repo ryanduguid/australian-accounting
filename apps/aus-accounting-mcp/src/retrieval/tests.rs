@@ -703,7 +703,8 @@ fn a_dated_call_checks_only_the_rows_it_uses() {
     assert_eq!(read("C9999A10001:0002:2", 1).unwrap_err(), broken);
 }
 
-#[cfg(unix)]
+// APFS refuses a file name that is not UTF-8 (EILSEQ), so macOS cannot hold the names.
+#[cfg(all(unix, not(target_os = "macos")))]
 #[test]
 fn invalid_filename_bytes_cannot_alias_a_unicode_citation() {
     use std::os::unix::ffi::OsStringExt;
