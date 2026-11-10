@@ -22,7 +22,7 @@ regex = "=1.13.1"
 num-bigint = "0.4"
 indexmap = "2"
 serde = "1"
-rmcp = { version = "=3.8.0", default-features = false, features = ["server", "client", "transport-io"] }
+rmcp = { version = "=3.9.0", default-features = false, features = ["server", "client", "transport-io"] }
 roxmltree = "=0.21.1"
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision", "unbounded_depth", "raw_value"] }
 stacker = "=0.1.25"
