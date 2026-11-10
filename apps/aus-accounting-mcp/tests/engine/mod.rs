@@ -164,7 +164,8 @@ pub fn file_note(kind: &str, note: &str, before: &Value, after: &Value) -> Strin
 /// 56afe0c (#602): the payday first-contribution hint names recommenced employment, as
 /// the engine's `tests/data/amendments.json` applies it to the engine's own frozen cases.
 /// Only these words change; no deadline, verdict or figure.
-const HINT_BEFORE: &str = "If it is a new starter or a fund switch, set first_contribution_to_fund=yes";
+const HINT_BEFORE: &str =
+    "If it is a new starter or a fund switch, set first_contribution_to_fund=yes";
 const HINT_AFTER: &str = "If it is the first after employment starts or recommences (including rehiring a worker under a new arrangement), or after a fund switch, set first_contribution_to_fund=yes";
 
 /// Frozen payday text, as the linked engine words it.
