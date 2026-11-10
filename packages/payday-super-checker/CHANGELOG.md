@@ -8,7 +8,8 @@ their flags, help, validation, console output, written files and exit codes.
 The former API functions are JSON stdin subcommands, documented in README.md.
 No deadline, business-day, GIC, notional-earnings, uplift, rounding, refusal or
 message rule is intentionally changed, except the Employment Hero Beam
-status and the returned contributions below.
+status, the returned contributions and the receipt evidence columns below (their
+refusals, and 3 more fields in every printed list of valid fields).
 
 ### Added
 
@@ -32,7 +33,18 @@ status and the returned contributions below.
   `docs/primary-source-review-2026-10-31.md`; limits are PSC-3 in `LIMITATIONS.md`.
 - The Excel workbook has a `returned_by_fund` column with the same meaning: the row
   is `UNKNOWN`, with no exposure, between `UNPAID` and `ON_TIME` or `LATE`, and such a
-  row with no SG amount to test is `BLOCKED`. Events stay in the checker.
+  row with no SG amount to test is `BLOCKED`. An Events sheet takes the `--events`
+  columns: a line an event names is `UNKNOWN` between `UNPAID` and `ON_TIME` with no
+  exposure, because the workbook does not weigh events, and an event that names no
+  line, names several or cannot be read is `BLOCKED`.
+- Optional `receipt_evidence`, `mvr_status` and `fund_error_ref` columns, also on
+  the JSON `assess` line, record where a receipt is known from, the fund's member
+  verification answer and any fund error. They change no verdict, figure or exit
+  code: the row's notes list them, a fund error or failed verification adds a caveat,
+  and a row they contradict is refused. An `AT_RISK` row for a QE day to 30 June 2027,
+  remitted on the QE day and with no fund error received, gets a note quoting
+  the ATO's first-year approach and stays `AT_RISK`. Sources are in
+  `docs/primary-source-review-2026-11-08.md`; limits are PSC-4 in `LIMITATIONS.md`.
 - `import` writes `returned_by_fund=yes` for Beam's 'Sent to fund with refund', in
   a column that appears only when a row needs it. It says no supported export
   carries a fund receipt date, because only the shipped profiles were inspected.
