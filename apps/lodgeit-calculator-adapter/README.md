@@ -181,10 +181,11 @@ complies, a benefit is reportable or that a reviewer should sign anything.
   taxable value with the local `fbt-car-statutory` worksheet and a separate figure.
 - **Accounting depreciation** (`src/trials/depreciation.rs`): every range
   movement must reconcile exactly, where Python allowed a one-cent gap. The
-  current range response supplies cost additions. Older responses can use
-  separate caller evidence of additions, and need it when the window includes
-  the acquisition. Negative or conflicting additions are refused. The trial
-  concerns accounting carrying amounts.
+  current snapshot requires cost additions in the range response and refuses
+  one without them. Under an earlier snapshot, which did not, separate caller
+  evidence of additions can be supplied, and is needed when the window starts
+  before the acquisition date. Negative or conflicting additions are refused.
+  The trial concerns accounting carrying amounts.
 - **Fano** (`src/trials/fano.rs`): experimental, opt-in, model in the path. It
   produces suggestions and nothing else. `accepted_fact` is the classifier's
   verdict on its own prediction, not an approval, and a LodgeiT chart code needs
