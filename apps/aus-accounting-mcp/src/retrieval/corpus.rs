@@ -7,7 +7,7 @@ use payday_super_checker::{py, pyre::Regex};
 use serde_json::{Value, json};
 use std::{
     cmp::Ordering,
-    collections::{BinaryHeap, VecDeque},
+    collections::{BinaryHeap, HashMap, VecDeque},
     fs, io,
     path::{Path, PathBuf},
     sync::LazyLock,
@@ -360,21 +360,22 @@ const RATES: Kind = Kind {
 type Key = (usize, usize, usize);
 type Assessed = Result<Option<(Key, Value)>, String>;
 
-/// The best `count` rows `assess` accepts, best first; ties keep corpus order.
+/// The best `count` rows `assess` accepts, best first; ties keep corpus order. `assess`
+/// is given the index each row came from.
 fn scan(
     context: &Context,
     files: &[PathBuf],
     prefilter: &[String],
     least: Option<usize>,
     count: usize,
-    assess: &mut dyn FnMut(&Value) -> Assessed,
+    assess: &mut dyn FnMut(&Path, &Value) -> Assessed,
 ) -> Result<Vec<Value>, String> {
     let (mut best, mut size, mut order) = (BinaryHeap::new(), 0, 0);
     for path in files {
         bounded_size(context, path, &mut size)?;
         for row in Rows::open_some(path, prefilter, least).map_err(|_| READ_ERROR)? {
             let row = row.map_err(|_| READ_ERROR)?;
-            if let Some((key, value)) = assess(&row)? {
+            if let Some((key, value)) = assess(path, &row)? {
                 retain(
                     &mut best,
                     Ranked {
@@ -472,31 +473,32 @@ fn search_rows(
     scope_terms: &[String],
     scope: &dyn Fn(&Value) -> bool,
     kind: &Kind,
-    build: &dyn Fn(&Value) -> Result<Value, String>,
+    // The result for one row, given the index it came from.
+    build: &dyn Fn(&Path, &Value) -> Result<Value, String>,
     limit: usize,
     offset: usize,
     corpus: Value,
 ) -> Result<Value, String> {
     let end = offset + limit;
     let prefilter = [query.parts.clone(), scope_terms.to_vec()].concat();
-    let full = scan(context, files, &prefilter, None, end + 1, &mut |row| {
+    let full = scan(context, files, &prefilter, None, end + 1, &mut |path, row| {
         if !scope(row) || !query.is_match(row, kind) {
             return Ok(None);
         }
         let tier = tier(&query.words, &query.terms, kind.heading, kind.body, row);
-        Ok(Some(((tier, priority(context, row), 0), build(row)?)))
+        Ok(Some(((tier, priority(context, row), 0), build(path, row)?)))
     })?;
     let partial = if full.len() <= end && query.has_partials() {
         let count = end + 1 - full.len();
         let least = Some(MIN_PARTIAL_WORDS);
-        scan(context, files, &query.parts, least, count, &mut |row| {
+        scan(context, files, &query.parts, least, count, &mut |path, row| {
             let Some((key, found)) = query.partial(context, row, kind) else {
                 return Ok(None);
             };
             if query.is_match(row, kind) || !scope(row) {
                 return Ok(None);
             }
-            let mut value = build(row)?;
+            let mut value = build(path, row)?;
             let pick = |held: bool| -> Vec<&String> {
                 query
                     .words
@@ -585,7 +587,7 @@ fn search(context: &Context, input: &Value, rates: bool) -> Result<Value, String
                     })
                 })
         };
-        let build = |row: &Value| Ok(rate(row, cap));
+        let build = |_: &Path, row: &Value| Ok(rate(row, cap));
         let corpus = provenance(&root);
         return search_rows(
             context,
@@ -605,7 +607,7 @@ fn search(context: &Context, input: &Value, rates: bool) -> Result<Value, String
         return dated_search(context, &files, &on, &query, &filter, limit, offset, &root);
     }
     let scope = |row: &Value| in_force(input, row) && holds(row, &["act"], &filter);
-    let build = |row: &Value| Ok(section(row, cap));
+    let build = |_: &Path, row: &Value| Ok(section(row, cap));
     let corpus = provenance(&root);
     let mut result = search_rows(
         context, &files, &query, &filter, &scope, &SECTIONS, &build, limit, offset, corpus,
@@ -627,34 +629,31 @@ fn window_error(row: &Value) -> String {
     )
 }
 
-/// The first row, after verifying every row shares its title and compilation window.
-fn first_row(path: &Path, on: &str) -> Result<Option<Value>, String> {
-    let mut first: Option<(Value, Value)> = None;
-    for row in Rows::open(path, &[]).map_err(|_| READ_ERROR)? {
-        let row = row.map_err(|_| READ_ERROR)?;
-        let found = as_at::standing(&row, on)?;
-        match &first {
-            None => first = Some((row, found)),
-            Some((head, window)) => {
-                if found != *window || row["register_id"] != head["register_id"] {
-                    return Err(window_error(&row));
-                }
-            }
-        }
-    }
-    Ok(first.map(|(row, _)| row))
+/// An index's first row's register_id and act, and that row's standing on one date.
+type First = (Value, Value);
+
+/// The register_id and act of an index's first row, and that row's standing on `on`.
+/// A title is classified from this row alone, so reading stops there; `agreeing`
+/// checks each later row of the same index that a result uses against it.
+fn first_row(path: &Path, on: &str) -> Result<Option<First>, String> {
+    let Some(row) = Rows::open(path, &[]).map_err(|_| READ_ERROR)?.next() else {
+        return Ok(None);
+    };
+    let row = row.map_err(|_| READ_ERROR)?;
+    let head = json!({"register_id":row["register_id"],"act":row["act"]});
+    Ok(Some((head, as_at::standing(&row, on)?)))
 }
 
-/// A row of a title held for `on`, with its standing. A row disagreeing with its title
-/// is a broken index: a dated result holds only captured rows.
-fn dated_section(row: &Value, cap: usize, on: &str) -> Result<Value, String> {
+/// The row's standing on `on`, refused unless it has `first`'s register_id and standing.
+/// `first` is from the index the row came from. A row a result returns or counts that
+/// disagrees with it is a broken index: using it would break the rule that a dated
+/// result holds only rows its title's classification covers.
+fn agreeing(row: &Value, on: &str, (head, window): &First) -> Result<Value, String> {
     let found = as_at::standing(row, on)?;
-    if found["status"] != as_at::CAPTURED {
+    if row["register_id"] != head["register_id"] || found != *window {
         return Err(window_error(row));
     }
-    let mut value = section(row, cap);
-    value["as_at"] = found;
-    Ok(value)
+    Ok(found)
 }
 
 /// What a date withheld from one title, in the corpus builder's field names.
@@ -664,29 +663,37 @@ fn refusal(row: &Value, found: &Value, matching: usize, partial: usize) -> Value
 }
 
 /// Count the same full and partial matches as a search, without retaining their rows.
+/// Each counted row must agree with `first`, the index's first row, as `agreeing` says.
 fn withheld_counts(
     context: &Context,
     path: &Path,
     query: &Query,
     act_terms: &[String],
     scope: &dyn Fn(&Value) -> bool,
+    on: &str,
+    first: &First,
 ) -> Result<(usize, usize), String> {
     let prefilter = [query.parts.clone(), act_terms.to_vec()].concat();
     let mut matching = 0;
     for row in Rows::open(path, &prefilter).map_err(|_| READ_ERROR)? {
         let row = row.map_err(|_| READ_ERROR)?;
-        matching += usize::from(scope(&row) && query.is_match(&row, &SECTIONS));
+        if scope(&row) && query.is_match(&row, &SECTIONS) {
+            agreeing(&row, on, first)?;
+            matching += 1;
+        }
     }
     let mut partial = 0;
     if query.has_partials() {
         let rows = Rows::open_some(path, &query.parts, Some(MIN_PARTIAL_WORDS));
         for row in rows.map_err(|_| READ_ERROR)? {
             let row = row.map_err(|_| READ_ERROR)?;
-            partial += usize::from(
-                query.partial(context, &row, &SECTIONS).is_some()
-                    && !query.is_match(&row, &SECTIONS)
-                    && scope(&row),
-            );
+            if query.partial(context, &row, &SECTIONS).is_some()
+                && !query.is_match(&row, &SECTIONS)
+                && scope(&row)
+            {
+                agreeing(&row, on, first)?;
+                partial += 1;
+            }
         }
     }
     Ok((matching, partial))
@@ -695,7 +702,9 @@ fn withheld_counts(
 /// One page from titles held for `on`, and a refusal for each title that holds no
 /// answer: one holding rows the search would have returned, or one `act` names. If
 /// the whole search has no eligible rows, every title in scope that is not captured
-/// is refused. The status replaces in_force_only.
+/// is refused. The status replaces in_force_only. Each title is classified from its first
+/// row, and `agreeing` checks only the rows a page returns or a refusal counts against the
+/// first row of their own index.
 #[allow(clippy::too_many_arguments)]
 fn dated_search(
     context: &Context,
@@ -713,19 +722,26 @@ fn dated_search(
     let mut size = 0;
     for path in files {
         bounded_size(context, path, &mut size)?;
-        if let Some(row) = first_row(path, on)? {
-            let found = as_at::standing(&row, on)?;
-            let head = json!({"register_id":row["register_id"],"act":row["act"]});
-            titles.push((path.clone(), head, found));
+        if let Some(first) = first_row(path, on)? {
+            titles.push((path.clone(), first));
         }
     }
+    let firsts: HashMap<&Path, &First> = titles
+        .iter()
+        .filter(|(_, (_, found))| found["status"] == as_at::CAPTURED)
+        .map(|(path, first)| (path.as_path(), first))
+        .collect();
     let held: Vec<PathBuf> = titles
         .iter()
-        .filter(|(_, _, found)| found["status"] == as_at::CAPTURED)
-        .map(|(path, _, _)| path.clone())
+        .filter(|(_, (_, found))| found["status"] == as_at::CAPTURED)
+        .map(|(path, _)| path.clone())
         .collect();
     let cap = context.limit("SEARCH_TEXT_CHARS", 1200);
-    let build = |row: &Value| dated_section(row, cap, on);
+    let build = |path: &Path, row: &Value| -> Result<Value, String> {
+        let mut value = section(row, cap);
+        value["as_at"] = agreeing(row, on, firsts[path])?;
+        Ok(value)
+    };
     let corpus = provenance(root);
     let mut result = search_rows(
         context, &held, query, act_terms, &in_act, &SECTIONS, &build, limit, offset, corpus,
@@ -743,7 +759,7 @@ fn dated_search(
             act_terms,
             &in_act,
             &SECTIONS,
-            &|_| Ok(json!({})),
+            &|_, _| Ok(json!({})),
             1,
             0,
             json!({}),
@@ -751,11 +767,13 @@ fn dated_search(
         no_rows = empty(&first);
     }
     let mut refusals = Vec::new();
-    for (path, head, found) in &titles {
+    for (path, first) in &titles {
+        let (head, found) = first;
         if found["status"] == as_at::CAPTURED {
             continue;
         }
-        let (matching, partial) = withheld_counts(context, path, query, act_terms, &in_act)?;
+        let (matching, partial) =
+            withheld_counts(context, path, query, act_terms, &in_act, on, first)?;
         if matching + partial > 0 || (in_act(head) && (no_rows || !act_terms.is_empty())) {
             refusals.push((
                 priority(context, head),
@@ -767,7 +785,7 @@ fn dated_search(
     let refusals: Vec<Value> = refusals.into_iter().map(|(_, r)| r).collect();
     let statuses: Vec<&Value> = titles
         .iter()
-        .map(|(_, _, found)| &found["status"])
+        .map(|(_, (_, found))| &found["status"])
         .collect();
     Ok(dated_page(
         context,
@@ -890,17 +908,24 @@ fn read(context: &Context, input: &Value) -> Result<Value, String> {
     {
         return Err("No title index for that row_id in the configured corpus.".into());
     }
-    if let Some(on) = &on {
-        first_row(&path, on)?;
-    }
     let near = input["neighbours"].as_u64().unwrap() as usize;
     let start = input["start"].as_u64().unwrap() as usize;
     let (found, before, after) = around(&path, id, near)?;
     let mut found = found.ok_or("No section with that row_id in the configured corpus.")?;
-    let standing = on
-        .as_deref()
-        .map(|on| as_at::standing(&found, on))
-        .transpose()?;
+    // With `on`, each row returned must agree with its title's first row, as `agreeing`
+    // says: a read returns those rows or counts them as withheld.
+    let standing = match &on {
+        None => None,
+        Some(on) => {
+            // An index emptied since `around` read it has no window, so no row agrees.
+            let first = first_row(&path, on)?.unwrap_or((json!({}), json!({})));
+            let standing = agreeing(&found, on, &first)?;
+            for row in before.iter().chain(&after) {
+                agreeing(row, on, &first)?;
+            }
+            Some(standing)
+        }
+    };
     let cap = context.limit("READ_TEXT_CHARS", 12000);
     if let Some(standing) = standing.as_ref().filter(|s| s["status"] != as_at::CAPTURED) {
         let withheld = 1 + before.len() + after.len();
@@ -935,21 +960,26 @@ fn read(context: &Context, input: &Value) -> Result<Value, String> {
         );
     }
     let search_cap = context.limit("SEARCH_TEXT_CHARS", 1200);
-    let near = |rows: &[Value]| -> Result<Vec<Value>, String> {
+    // Each neighbour shares the cited row's standing, as checked above.
+    let near = |rows: &[Value]| -> Vec<Value> {
         rows.iter()
-            .map(|r| match &on {
-                None => Ok(section(r, search_cap)),
-                Some(on) => dated_section(r, search_cap, on),
+            .map(|r| {
+                let mut value = section(r, search_cap);
+                if let Some(standing) = &standing {
+                    value["as_at"] = standing.clone();
+                }
+                value
             })
             .collect()
     };
+    let (before, after) = (near(&before), near(&after));
     let mut notice = policy("NOTICE").to_owned();
     if let Some(standing) = standing {
         selected["as_at"] = standing;
         notice = format!("{notice} {}", policy("AS_AT_NOTICE"));
     }
     Ok(
-        json!({"section":selected,"start":start,"next_start":(end<total).then_some(end),"before":near(&before)?,"after":near(&after)?,"corpus":provenance(&root),"notice":notice}),
+        json!({"section":selected,"start":start,"next_start":(end<total).then_some(end),"before":before,"after":after,"corpus":provenance(&root),"notice":notice}),
     )
 }
 
@@ -1157,21 +1187,26 @@ mod tests {
     use serde_json::json;
 
     /// Python's test_a_title_changed_after_validation_cannot_return_uncaptured_text rewrites
-    /// a title between validating it and reading its rows, which a frozen replay cannot do.
-    /// The guard it proves is here: a row read for a date must itself be captured.
+    /// a title between classifying it and reading its rows, which a frozen replay cannot do.
+    /// The guard it proves is here: a row read for a date must agree with the first row its
+    /// title was classified from.
     #[test]
     fn a_row_changed_after_validation_is_refused_not_returned() {
+        let on = "2098-08-01";
         let changed = json!({"register_id": "C9999A10001", "compilation_date": "2098-12-01",
             "retrieved": "2099-01-01", "version_is_current": true, "superseded_from": null,
             "text": "The synthetic levy applies to a dated receipt."});
-        assert_eq!(
-            super::dated_section(&changed, 100, "2098-08-01").unwrap_err(),
-            "Rows of C9999A10001 disagree about their compilation window; the title's index is broken: tell the user, and do not retry."
-        );
         let mut held = changed.clone();
         held["compilation_date"] = json!("2098-07-01");
-        let section = super::dated_section(&held, 100, "2098-08-01").unwrap();
-        assert_eq!(section["as_at"]["status"], "captured");
+        let first = (
+            json!({"register_id": "C9999A10001"}),
+            super::as_at::standing(&held, on).unwrap(),
+        );
+        assert_eq!(
+            super::agreeing(&changed, on, &first).unwrap_err(),
+            "Rows of C9999A10001 disagree about their compilation window; the title's index is broken: tell the user, and do not retry."
+        );
+        assert_eq!(super::agreeing(&held, on, &first).unwrap()["status"], "captured");
     }
 
     /// Python's test_a_read_failure_while_counting_refusals_stops_the_search replaces the
@@ -1191,8 +1226,10 @@ mod tests {
             .join("sections.jsonl");
         assert!(!gone.exists());
         let query = super::Query::new(&["synthetic".into(), "levy".into()]);
+        let first = (json!({}), json!({}));
         assert_eq!(
-            super::withheld_counts(&context, &gone, &query, &[], &|_| true).unwrap_err(),
+            super::withheld_counts(&context, &gone, &query, &[], &|_| true, "2098-01-01", &first)
+                .unwrap_err(),
             super::READ_ERROR
         );
     }

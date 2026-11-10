@@ -629,6 +629,80 @@ fn original_queries_are_tokenised_before_ranking() {
     }
 }
 
+/// Main 139d5ac (#594): a dated call classifies a title from its first row and checks
+/// only the rows it returns or counts, so a disagreeing row no result uses leaves it
+/// answering, and a read looks for its row before checking the rows around it.
+#[test]
+fn a_dated_call_checks_only_the_rows_it_uses() {
+    let tree = Tree(std::env::temp_dir().join(format!("native-mcp-agreeing-{}", std::process::id())));
+    assert!(!tree.0.exists());
+    let index = tree.0.join("markdown/C9999A10001/sections.jsonl");
+    fs::create_dir_all(index.parent().unwrap()).unwrap();
+    let texts = [
+        "The synthetic levy applies to a dated receipt.",
+        "The synthetic levy return must be lodged.",
+        "A dated receipt must be kept.",
+    ];
+    let rows: Vec<String> = texts
+        .iter()
+        .enumerate()
+        .map(|(i, text)| {
+            // The third row's window disagrees with the first row's.
+            let compiled = if i == 2 { "2098-06-01" } else { "2098-07-01" };
+            json!({"register_id":"C9999A10001","act":"Synthetic Act 2098",
+                "row_id":format!("C9999A10001:{:04}:{}", i + 1, i + 1),"section":(i + 1).to_string(),
+                "heading":format!("{} {}", i + 1, text.trim_end_matches('.')),"text":text,
+                "compilation_date":compiled,"retrieved":"2099-01-01","version_is_current":true,
+                "superseded_from":null})
+            .to_string()
+        })
+        .collect();
+    fs::write(&index, rows.join("\n") + "\n").unwrap();
+    let context = Context {
+        root: Some(tree.0.clone()),
+        limits: Default::default(),
+        denied: false,
+        principal_acts: None,
+        fault: None,
+    };
+    let search = |query: &str, on: &str| {
+        corpus::evaluate(
+            &context,
+            "search_tax_legislation",
+            &json!({"query":query,"limit":5,"offset":0,"act":null,"in_force_only":true,"as_at":on}),
+        )
+    };
+    let read = |row_id: &str, neighbours: u64| {
+        corpus::evaluate(
+            &context,
+            "read_tax_legislation_section",
+            &json!({"row_id":row_id,"neighbours":neighbours,"start":0,"as_at":"2098-08-01"}),
+        )
+    };
+    let broken = "Rows of C9999A10001 disagree about their compilation window; the title's index is broken: tell the user, and do not retry.";
+
+    let found = search("return lodged", "2098-08-01").unwrap();
+    let ids: Vec<&Value> = found["matches"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|hit| &hit["row_id"])
+        .collect();
+    assert_eq!(ids, ["C9999A10001:0002:2"]);
+    assert_eq!(
+        read("C9999A10001:0001:1", 0).unwrap()["section"]["as_at"]["status"],
+        "captured"
+    );
+    assert_eq!(
+        read("C9999A10001:0009:9", 0).unwrap_err(),
+        "No section with that row_id in the configured corpus."
+    );
+    // A row a page returns, a refusal counts or a read returns beside its row is checked.
+    assert_eq!(search("receipt kept", "2098-08-01").unwrap_err(), broken);
+    assert_eq!(search("receipt kept", "2098-01-01").unwrap_err(), broken);
+    assert_eq!(read("C9999A10001:0002:2", 1).unwrap_err(), broken);
+}
+
 #[cfg(unix)]
 #[test]
 fn invalid_filename_bytes_cannot_alias_a_unicode_citation() {
