@@ -223,8 +223,10 @@ classification of a dated title from its first row (#594), the renamed
 PaulGoodman and DrDebits repositories (#598) and the `first_to_fund` description
 (#600). It recaptured the retrieval cases on Linux and kept each committed case
 whose outcome was unchanged, so the Windows capture's CRLF inputs remain, and
-added 20 calls from #594's 6 new tests. Other counts below date from the first
-capture.
+added 20 calls from #594's 6 new tests. Of the 54 recaptured cases of calls
+whose outcome changed, 30 name the renamed corpus builder and 24 are library
+searches whose file hashes follow the LF inputs a Linux capture writes. Other
+counts below date from the first capture.
 
 The native comparison covers 1,583 captured effective SDK calls for all
 non-retrieval tools and unknown tools, plus 39 independent validation probes and
@@ -340,7 +342,8 @@ The Rust JSON boundary cannot represent lone surrogate names. Relevant Markdown
 paths with non-Unicode filesystem names are explicitly refused instead of being
 lossily attributed to another file. Hidden and unrelated non-Markdown files are
 ignored. Incremental UTF-8 reads handle CR, CRLF and LF records; decoder read-ahead
-can differ from Python when invalid bytes occur after a requested row. `doctor`
+can differ from Python when invalid bytes occur after a requested row, including
+after the first row a dated call classifies a title from. `doctor`
 reports an undecodable line in Python's words; Python counts the position from
 its 8,192-byte read chunk and the native server from the start of the file, so
 the two agree for an error in the first chunk or at the end of the file. Rare JSON

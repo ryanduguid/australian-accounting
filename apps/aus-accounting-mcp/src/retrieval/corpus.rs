@@ -481,38 +481,52 @@ fn search_rows(
 ) -> Result<Value, String> {
     let end = offset + limit;
     let prefilter = [query.parts.clone(), scope_terms.to_vec()].concat();
-    let full = scan(context, files, &prefilter, None, end + 1, &mut |path, row| {
-        if !scope(row) || !query.is_match(row, kind) {
-            return Ok(None);
-        }
-        let tier = tier(&query.words, &query.terms, kind.heading, kind.body, row);
-        Ok(Some(((tier, priority(context, row), 0), build(path, row)?)))
-    })?;
+    let full = scan(
+        context,
+        files,
+        &prefilter,
+        None,
+        end + 1,
+        &mut |path, row| {
+            if !scope(row) || !query.is_match(row, kind) {
+                return Ok(None);
+            }
+            let tier = tier(&query.words, &query.terms, kind.heading, kind.body, row);
+            Ok(Some(((tier, priority(context, row), 0), build(path, row)?)))
+        },
+    )?;
     let partial = if full.len() <= end && query.has_partials() {
         let count = end + 1 - full.len();
         let least = Some(MIN_PARTIAL_WORDS);
-        scan(context, files, &query.parts, least, count, &mut |path, row| {
-            let Some((key, found)) = query.partial(context, row, kind) else {
-                return Ok(None);
-            };
-            if query.is_match(row, kind) || !scope(row) {
-                return Ok(None);
-            }
-            let mut value = build(path, row)?;
-            let pick = |held: bool| -> Vec<&String> {
-                query
-                    .words
-                    .iter()
-                    .zip(&found)
-                    .filter(|(_, f)| **f == held)
-                    .map(|(w, _)| w)
-                    .collect()
-            };
-            value["match"] = json!("partial");
-            value["matched_words"] = json!(pick(true));
-            value["missing_words"] = json!(pick(false));
-            Ok(Some((key, value)))
-        })?
+        scan(
+            context,
+            files,
+            &query.parts,
+            least,
+            count,
+            &mut |path, row| {
+                let Some((key, found)) = query.partial(context, row, kind) else {
+                    return Ok(None);
+                };
+                if query.is_match(row, kind) || !scope(row) {
+                    return Ok(None);
+                }
+                let mut value = build(path, row)?;
+                let pick = |held: bool| -> Vec<&String> {
+                    query
+                        .words
+                        .iter()
+                        .zip(&found)
+                        .filter(|(_, f)| **f == held)
+                        .map(|(w, _)| w)
+                        .collect()
+                };
+                value["match"] = json!("partial");
+                value["matched_words"] = json!(pick(true));
+                value["missing_words"] = json!(pick(false));
+                Ok(Some((key, value)))
+            },
+        )?
     } else {
         Vec::new()
     };
@@ -1206,7 +1220,10 @@ mod tests {
             super::agreeing(&changed, on, &first).unwrap_err(),
             "Rows of C9999A10001 disagree about their compilation window; the title's index is broken: tell the user, and do not retry."
         );
-        assert_eq!(super::agreeing(&held, on, &first).unwrap()["status"], "captured");
+        assert_eq!(
+            super::agreeing(&held, on, &first).unwrap()["status"],
+            "captured"
+        );
     }
 
     /// Python's test_a_read_failure_while_counting_refusals_stops_the_search replaces the
@@ -1228,8 +1245,16 @@ mod tests {
         let query = super::Query::new(&["synthetic".into(), "levy".into()]);
         let first = (json!({}), json!({}));
         assert_eq!(
-            super::withheld_counts(&context, &gone, &query, &[], &|_| true, "2098-01-01", &first)
-                .unwrap_err(),
+            super::withheld_counts(
+                &context,
+                &gone,
+                &query,
+                &[],
+                &|_| true,
+                "2098-01-01",
+                &first
+            )
+            .unwrap_err(),
             super::READ_ERROR
         );
     }

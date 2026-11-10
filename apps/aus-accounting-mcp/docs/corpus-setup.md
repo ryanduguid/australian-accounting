@@ -55,7 +55,7 @@ For the unpublished Rust candidates, select the corpus builder's native checkout
 explicitly and build its scripted HTTP test variant outside the source tree:
 
 ```bash
-cargo build --locked --manifest-path /absolute/path/to/au-tax-legislation-corpus/Cargo.toml --features fake-http --bin fadden --target-dir /absolute/path/to/disposable-builder-target
+cargo build --locked --manifest-path /absolute/path/to/PaulGoodman/Cargo.toml --features fake-http --bin fadden --target-dir /absolute/path/to/disposable-builder-target
 ```
 
 From this MCP component directory, run the Rust integration check:

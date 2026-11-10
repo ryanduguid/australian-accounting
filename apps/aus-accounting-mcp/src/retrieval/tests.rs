@@ -634,7 +634,8 @@ fn original_queries_are_tokenised_before_ranking() {
 /// answering, and a read looks for its row before checking the rows around it.
 #[test]
 fn a_dated_call_checks_only_the_rows_it_uses() {
-    let tree = Tree(std::env::temp_dir().join(format!("native-mcp-agreeing-{}", std::process::id())));
+    let tree =
+        Tree(std::env::temp_dir().join(format!("native-mcp-agreeing-{}", std::process::id())));
     assert!(!tree.0.exists());
     let index = tree.0.join("markdown/C9999A10001/sections.jsonl");
     fs::create_dir_all(index.parent().unwrap()).unwrap();
