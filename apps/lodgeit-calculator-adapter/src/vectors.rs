@@ -762,6 +762,7 @@ fn depreciation_case(case: &Json) -> Json {
         depreciation::evaluate_outcome(
             &asset,
             &from,
+            &to,
             pts(&text(field("label"))),
             &fabricated_outcome(given),
             supplied.as_ref(),
@@ -771,7 +772,7 @@ fn depreciation_case(case: &Json) -> Json {
         ("request", request),
         (
             "spans",
-            Json::Bool(depreciation::spans_acquisition(&asset, &from)),
+            Json::Bool(depreciation::spans_acquisition(&asset, &from, &to)),
         ),
         ("windows", windows),
         ("result", outcome_json(compared)),

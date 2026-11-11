@@ -17,7 +17,7 @@ use lodgeit_calculator_adapter::config::AdapterConfig;
 use lodgeit_calculator_adapter::contract;
 use lodgeit_calculator_adapter::decimal::Decimal;
 use lodgeit_calculator_adapter::dial::{self, Net};
-use lodgeit_calculator_adapter::pyjson::{self, Json, Layout};
+use lodgeit_calculator_adapter::pyjson::{self, Json, Layout, PyStr};
 use lodgeit_calculator_adapter::pyvalue::points_lossy;
 use lodgeit_calculator_adapter::trials::depreciation::{self as trial, Asset};
 use lodgeit_calculator_adapter::trials::{Comparison, Evaluation, Money};
@@ -137,6 +137,40 @@ fn serve(stream: TcpStream, state: &Mutex<StubState>) {
 /// `LodgeitClient(stub_config, contract)`: enabled, the stub's base URL,
 /// `allow_loopback=True`, `max_attempts=1`, the real dialler.
 fn with_client<T>(stub: &Stub, run: impl FnOnce(&mut Client<'_>) -> T) -> T {
+    let contract = contract::load("lodgeit-calculators", None).expect("the snapshot loads");
+    with_contract(stub, &contract, run)
+}
+
+fn legacy_contract() -> contract::Contract {
+    let mut legacy = contract::load("lodgeit-calculators", None).unwrap();
+    legacy.openapi_input_schemas = None;
+    let Json::Object(calculators) = &mut legacy.calculators else {
+        unreachable!()
+    };
+    let (_, Json::Object(range)) = calculators
+        .iter_mut()
+        .find(|(uri, _)| uri.as_str() == Some(trial::RANGE_CALC_URI))
+        .unwrap()
+    else {
+        unreachable!()
+    };
+    let (_, Json::Array(required)) = range
+        .iter_mut()
+        .find(|(key, _)| key.as_str() == Some("required_decimal_fields"))
+        .unwrap()
+    else {
+        unreachable!()
+    };
+    required.retain(|field| field.as_str() != Some("cost_additions"));
+    range.retain(|(key, _)| key.as_str() != Some("optional_decimal_fields"));
+    legacy
+}
+
+fn with_contract<T>(
+    stub: &Stub,
+    contract: &contract::Contract,
+    run: impl FnOnce(&mut Client<'_>) -> T,
+) -> T {
     let config = AdapterConfig {
         enabled: true,
         base_url: Some(stub.base_url.clone()),
@@ -146,12 +180,11 @@ fn with_client<T>(stub: &Stub, run: impl FnOnce(&mut Client<'_>) -> T) -> T {
     }
     .checked()
     .expect("a loopback config");
-    let contract = contract::load("lodgeit-calculators", None).expect("the snapshot loads");
     let mut net = Net;
     let mut sleep = dial::sleep;
     let mut client = Client {
         config: &config,
-        contract: &contract,
+        contract,
         dial: &mut net,
         sleep: &mut sleep,
     };
@@ -201,9 +234,13 @@ fn asset() -> Asset {
     }
 }
 
-/// `provider_range(opening=..., closing=..., depreciation=...)`.
-fn provider_range(opening: &str, closing: &str, depreciation: &str) -> Json {
-    Json::obj([
+fn provider_range(
+    opening: &str,
+    closing: &str,
+    depreciation: &str,
+    additions: Option<&str>,
+) -> Json {
+    let fields = [
         ("opening_wdv", Json::str(opening)),
         ("closing_wdv", Json::str(closing)),
         ("range_dep", Json::str(depreciation)),
@@ -232,7 +269,14 @@ fn provider_range(opening: &str, closing: &str, depreciation: &str) -> Json {
                 ),
             ]),
         ),
-    ])
+    ];
+    Json::Object(
+        fields
+            .into_iter()
+            .chain(additions.map(|value| ("cost_additions", Json::str(value))))
+            .map(|(name, value)| (PyStr::Text(name.into()), value))
+            .collect(),
+    )
 }
 
 fn values(pairs: &[(&str, &str)]) -> Money {
@@ -261,6 +305,21 @@ fn evaluate_range(
     .expect("a comparison")
 }
 
+fn evaluate_legacy_range(stub: &Stub, supplied_additions: Option<&Decimal>) -> Comparison {
+    with_contract(stub, &legacy_contract(), |client| {
+        trial::evaluate_range(
+            &asset(),
+            "2024-01-01",
+            "2024-12-31",
+            "actual/actual",
+            Some(client),
+            supplied_additions,
+            None,
+        )
+    })
+    .expect("a legacy comparison")
+}
+
 // ---------------------------------------------------------------------------
 // The tests, one per Python test function.
 
@@ -282,7 +341,10 @@ fn the_request_requires_a_day_count_and_rejects_an_unknown_one() {
 #[test]
 fn a_closing_movement_is_a_match() {
     let stub = Stub::start();
-    stub.respond(&provider_range("120000.00", "96000.00", "24000.00"), 200);
+    stub.respond(
+        &provider_range("120000.00", "96000.00", "24000.00", Some("0.00")),
+        200,
+    );
     let comparison = evaluate_range(&stub, "2024-07-01", "2025-06-30", None);
     assert_eq!(comparison.evaluation, Evaluation::Match);
     assert!(mentions(&comparison, "Division 40"));
@@ -294,13 +356,74 @@ fn a_closing_movement_is_a_match() {
 }
 
 #[test]
+fn range_uses_provider_additions_and_refuses_a_conflicting_source() {
+    let stub = Stub::start();
+    let response = provider_range("0.00", "108000.00", "12000.00", Some("120000.00"));
+    stub.respond(&response, 200);
+    let comparison = evaluate_range(&stub, "2024-01-01", "2024-12-31", None);
+    assert_eq!(comparison.evaluation, Evaluation::Match);
+    assert!(mentions(&comparison, "supplied by the provider"));
+    assert!(same(
+        money(&comparison.upstream, "cost_additions").unwrap(),
+        "120000.00"
+    ));
+
+    stub.respond(&response, 200);
+    let supplied = dec("119999.99");
+    let comparison = evaluate_range(&stub, "2024-01-01", "2024-12-31", Some(&supplied));
+    assert_eq!(comparison.evaluation, Evaluation::ContractFailure);
+    assert!(mentions(&comparison, "disagree"));
+}
+
+#[test]
+fn range_rejects_a_one_cent_provider_movement_error_before_export() {
+    let stub = Stub::start();
+    let response = provider_range("120000.00", "97800.05", "24200.01", Some("2000.05"));
+    stub.respond(&response, 200);
+    let body = trial::range_request(&asset(), "2024-07-01", "2025-06-30", "actual/actual").unwrap();
+    let invoke = |client: &mut Client<'_>| {
+        client
+            .invoke(&pts(trial::RANGE_CALC_URI), &pts(trial::PERIOD_URI), &body)
+            .unwrap()
+    };
+    let current = contract::load("lodgeit-calculators", None).unwrap();
+    let legacy = legacy_contract();
+    for contract in [&current, &legacy] {
+        let outcome = with_contract(&stub, contract, invoke);
+        assert_eq!(outcome.status, Status::ContractFailure);
+        assert!(outcome.values.is_empty());
+    }
+}
+
+#[test]
+fn the_current_range_snapshot_requires_cost_additions_before_export() {
+    let stub = Stub::start();
+    stub.respond(
+        &provider_range("120000.00", "96000.00", "24000.00", None),
+        200,
+    );
+    let body = trial::range_request(&asset(), "2024-07-01", "2025-06-30", "actual/actual").unwrap();
+    let outcome = with_client(&stub, |client| {
+        client
+            .invoke(&pts(trial::RANGE_CALC_URI), &pts(trial::PERIOD_URI), &body)
+            .unwrap()
+    });
+    assert_eq!(outcome.status, Status::ContractFailure);
+    assert!(outcome.values.is_empty());
+    assert!(mentioned(
+        &outcome.findings,
+        "required decimal field cost_additions is absent"
+    ));
+}
+
+#[test]
 fn a_movement_that_does_not_close_is_refused_and_no_addition_is_invented() {
     // The provider's published pre-acquisition case: the cost enters inside
     // the window, no cost_additions field is emitted, and the three figures
     // do not reconcile.
     let stub = Stub::start();
-    stub.respond(&provider_range("0.00", "108000.00", "12000.00"), 200);
-    let comparison = evaluate_range(&stub, "2024-01-01", "2024-12-31", None);
+    stub.respond(&provider_range("0.00", "108000.00", "12000.00", None), 200);
+    let comparison = evaluate_legacy_range(&stub, None);
     assert_eq!(comparison.evaluation, Evaluation::ContractFailure);
     assert!(mentions(&comparison, "does not close"));
     assert!(mentions(&comparison, "pre-acquisition limitation"));
@@ -310,9 +433,9 @@ fn a_movement_that_does_not_close_is_refused_and_no_addition_is_invented() {
 #[test]
 fn a_separately_evidenced_addition_closes_it_and_is_named() {
     let stub = Stub::start();
-    stub.respond(&provider_range("0.00", "108000.00", "12000.00"), 200);
+    stub.respond(&provider_range("0.00", "108000.00", "12000.00", None), 200);
     let supplied = dec("120000.00");
-    let comparison = evaluate_range(&stub, "2024-01-01", "2024-12-31", Some(&supplied));
+    let comparison = evaluate_legacy_range(&stub, Some(&supplied));
     assert_eq!(comparison.evaluation, Evaluation::Match);
     assert!(mentions(&comparison, "supplied by the caller"));
 }
@@ -324,29 +447,39 @@ fn reconcile_refuses_rather_than_deriving_the_gap() {
         ("closing_wdv", "108000.00"),
         ("range_dep", "12000.00"),
     ]);
-    let tolerance = dec("0.01");
-    let (closes, found) = trial::reconcile(&figures, None, &tolerance).expect("a reconciliation");
+    let (closes, found) = trial::reconcile(&figures, None).expect("a reconciliation");
     assert!(!closes);
     assert!(mentioned(&found, "No addition has been invented"));
     let supplied = dec("120000.00");
-    let (closes, _) =
-        trial::reconcile(&figures, Some(&supplied), &tolerance).expect("a reconciliation");
+    let (closes, _) = trial::reconcile(&figures, Some(&supplied)).expect("a reconciliation");
     assert!(closes);
 }
 
 #[test]
 fn a_missing_figure_cannot_be_reconciled_around() {
-    let (closes, found) = trial::reconcile(&values(&[("opening_wdv", "1.00")]), None, &dec("0.01"))
-        .expect("a reconciliation");
+    let (closes, found) =
+        trial::reconcile(&values(&[("opening_wdv", "1.00")]), None).expect("a reconciliation");
     assert!(!closes);
     assert!(mentioned(&found, "missing"));
 }
 
 #[test]
 fn the_pre_acquisition_window_is_recognised_before_the_call() {
-    assert!(trial::spans_acquisition(&asset(), "2024-01-01"));
-    assert!(!trial::spans_acquisition(&asset(), "2024-07-01"));
-    assert!(!trial::spans_acquisition(&asset(), "2025-01-01"));
+    assert!(trial::spans_acquisition(
+        &asset(),
+        "2024-01-01",
+        "2025-06-30"
+    ));
+    assert!(!trial::spans_acquisition(
+        &asset(),
+        "2024-07-01",
+        "2025-06-30"
+    ));
+    assert!(!trial::spans_acquisition(
+        &asset(),
+        "2025-01-01",
+        "2025-06-30"
+    ));
 }
 
 #[test]
@@ -378,8 +511,8 @@ fn consecutive_ranges_sum_to_the_whole() {
     // Two halves against the year: the closing of one is the opening of the
     // next.
     let stub = Stub::start();
-    let first = provider_range("120000.00", "107934.43", "12065.57");
-    let second = provider_range("107934.43", "96000.00", "11934.43");
+    let first = provider_range("120000.00", "107934.43", "12065.57", Some("0.00"));
+    let second = provider_range("107934.43", "96000.00", "11934.43", Some("0.00"));
     let windows =
         trial::consecutive_windows("2024-07-01", "2025-06-30", &["2024-12-31".to_owned()])
             .expect("windows");
@@ -421,7 +554,10 @@ fn consecutive_ranges_sum_to_the_whole() {
 #[test]
 fn life_end_leaves_nothing() {
     let stub = Stub::start();
-    stub.respond(&provider_range("24000.00", "0.00", "24000.00"), 200);
+    stub.respond(
+        &provider_range("24000.00", "0.00", "24000.00", Some("0.00")),
+        200,
+    );
     let comparison = evaluate_range(&stub, "2028-07-01", "2029-06-30", None);
     assert_eq!(comparison.evaluation, Evaluation::Match);
     assert!(same(
@@ -495,9 +631,15 @@ fn a_call_that_produced_no_figure_is_named_for_why() {
             contract_sha256: String::new(),
             base_url: None,
         };
-        let comparison =
-            trial::evaluate_outcome(&asset(), "2024-07-01", pts("DEP-1"), &outcome, None)
-                .expect("a comparison");
+        let comparison = trial::evaluate_outcome(
+            &asset(),
+            "2024-07-01",
+            "2025-06-30",
+            pts("DEP-1"),
+            &outcome,
+            None,
+        )
+        .expect("a comparison");
         assert_eq!(comparison.evaluation, expected, "{status:?}");
         assert_eq!(
             reasons(&comparison),
@@ -515,9 +657,72 @@ fn a_call_that_produced_no_figure_is_named_for_why() {
 #[test]
 fn a_movement_after_acquisition_that_does_not_close_names_no_limitation() {
     let stub = Stub::start();
-    stub.respond(&provider_range("120000.00", "90000.00", "24000.00"), 200);
+    stub.respond(
+        &provider_range("120000.00", "90000.00", "24000.00", Some("0.00")),
+        200,
+    );
     let comparison = evaluate_range(&stub, "2024-07-01", "2025-06-30", None);
     assert_eq!(comparison.evaluation, Evaluation::ContractFailure);
     assert!(mentions(&comparison, "does not close"));
     assert!(!mentions(&comparison, "pre-acquisition"));
+}
+
+#[test]
+fn legacy_acquisition_additions_cannot_be_zero() {
+    let stub = Stub::start();
+    stub.respond(&provider_range("0.00", "0.00", "0.00", None), 200);
+    let supplied = dec("0.00");
+    let comparison = evaluate_legacy_range(&stub, Some(&supplied));
+    assert_eq!(comparison.evaluation, Evaluation::ContractFailure);
+}
+
+#[test]
+fn legacy_acquisition_additions_must_equal_the_asset_cost() {
+    let stub = Stub::start();
+    stub.respond(&provider_range("0.00", "1.00", "0.00", None), 200);
+    let supplied = dec("1.00");
+    let comparison = evaluate_legacy_range(&stub, Some(&supplied));
+    assert_eq!(comparison.evaluation, Evaluation::ContractFailure);
+}
+
+#[test]
+fn legacy_zero_movement_before_acquisition_is_a_match() {
+    let zero = dec("0.00");
+    for supplied in [None, Some(&zero)] {
+        let stub = Stub::start();
+        stub.respond(&provider_range("0.00", "0.00", "0.00", None), 200);
+        let comparison = with_contract(&stub, &legacy_contract(), |client| {
+            trial::evaluate_range(
+                &asset(),
+                "2024-01-01",
+                "2024-06-30",
+                "actual/actual",
+                Some(client),
+                supplied,
+                None,
+            )
+        })
+        .expect("a legacy comparison");
+        assert_eq!(comparison.evaluation, Evaluation::Match);
+    }
+}
+
+#[test]
+fn legacy_window_ending_on_acquisition_requires_evidence() {
+    let stub = Stub::start();
+    stub.respond(&provider_range("0.00", "0.00", "0.00", None), 200);
+    let supplied = dec("0.00");
+    let comparison = with_contract(&stub, &legacy_contract(), |client| {
+        trial::evaluate_range(
+            &asset(),
+            "2024-01-01",
+            "2024-07-01",
+            "actual/actual",
+            Some(client),
+            Some(&supplied),
+            None,
+        )
+    })
+    .expect("a legacy comparison");
+    assert_eq!(comparison.evaluation, Evaluation::ContractFailure);
 }
