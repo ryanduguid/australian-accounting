@@ -73,33 +73,10 @@ pub fn range_request(asset: &Asset, from_date: &str, to_date: &str, day_count: &
     ]))
 }
 
-/// `reconcile(values, supplied_additions=...)`: does opening plus additions
-/// less depreciation equal closing exactly? Prefer the provider's addition
-/// and compare it with caller evidence when both are present. Python's
-/// `tolerance` allowed a one-cent gap; there is none here.
-pub fn reconcile(values: &Money, supplied_additions: Option<&Decimal>) -> R<(bool, Vec<S>)> {
-    let values = &dict(values);
-    let missing: Vec<&str> = ["opening_wdv", "closing_wdv", "range_dep"]
-        .into_iter()
-        .filter(|name| get(values, &pts(name)).is_none())
-        .collect();
-    if !missing.is_empty() {
-        return Ok((
-            false,
-            vec![pts(&format!(
-                "the response is missing {}, so the movement cannot be tested",
-                missing.join(", ")
-            ))],
-        ));
-    }
-    let value = |name: &str| get(values, &pts(name)).expect("present");
-    let (opening, closing, range_dep) = (
-        value("opening_wdv"),
-        value("closing_wdv"),
-        value("range_dep"),
-    );
-    let nil = Decimal::parse_exact("0.00").expect("a literal");
-    let reported = get(values, &pts("cost_additions"));
+fn check_additions_evidence(
+    reported: Option<&Decimal>,
+    supplied_additions: Option<&Decimal>,
+) -> R<(bool, Vec<S>)> {
     let mut reasons = Vec::new();
     if let Some(reported) = reported {
         if let Some(supplied) = supplied_additions
@@ -127,6 +104,36 @@ pub fn reconcile(values: &Money, supplied_additions: Option<&Decimal>) -> R<(boo
             " were supplied by the caller as separate evidence; the provider did not return them"
         ));
     }
+    Ok((true, reasons))
+}
+
+/// `reconcile(values, supplied_additions=...)`: does opening plus additions
+/// less depreciation equal closing exactly? Prefer the provider's addition
+/// and compare it with caller evidence when both are present. Python's
+/// `tolerance` allowed a one-cent gap; there is none here.
+pub fn reconcile(values: &Money, supplied_additions: Option<&Decimal>) -> R<(bool, Vec<S>)> {
+    let values = &dict(values);
+    let missing: Vec<&str> = ["opening_wdv", "closing_wdv", "range_dep"]
+        .into_iter()
+        .filter(|name| get(values, &pts(name)).is_none())
+        .collect();
+    if !missing.is_empty() {
+        return Ok((
+            false,
+            vec![pts(&format!(
+                "the response is missing {}, so the movement cannot be tested",
+                missing.join(", ")
+            ))],
+        ));
+    }
+    let value = |name: &str| get(values, &pts(name)).expect("present");
+    let [opening, closing, range_dep] = ["opening_wdv", "closing_wdv", "range_dep"].map(value);
+    let nil = Decimal::parse_exact("0.00").expect("a literal");
+    let reported = get(values, &pts("cost_additions"));
+    let (consistent, mut reasons) = check_additions_evidence(reported, supplied_additions)?;
+    if !consistent {
+        return Ok((false, reasons));
+    }
     let additions = reported.or(supplied_additions).unwrap_or(&nil);
     let (expected_closing, gap) = match range_gap(opening, additions, range_dep, closing) {
         Ok(movement) => movement,
@@ -153,11 +160,19 @@ pub fn reconcile(values: &Money, supplied_additions: Option<&Decimal>) -> R<(boo
     Ok((false, reasons))
 }
 
-/// `spans_acquisition(asset, from_date)`: the window starts before the asset
-/// was acquired, the provider's documented pre-acquisition limitation. The
-/// comparison is of the strings, as Python's is.
-pub fn spans_acquisition(asset: &Asset, from_date: &str) -> bool {
-    from_date < asset.acquisition_date.as_str()
+/// Whether a legacy window starts before and reaches the acquisition date.
+/// A window ending before acquisition has no initial recognition to evidence.
+pub fn spans_acquisition(asset: &Asset, from_date: &str, to_date: &str) -> bool {
+    from_date < asset.acquisition_date.as_str() && asset.acquisition_date.as_str() <= to_date
+}
+
+fn acquisition_evidence_matches(asset: &Asset, supplied: Option<&Decimal>) -> R<bool> {
+    let Some(supplied) = supplied else {
+        return Ok(false);
+    };
+    Ok(!supplied.is_zero()
+        && !supplied.is_negative()
+        && supplied.compare(&asset.cost).map_err(decimal_signal)? == Ordering::Equal)
 }
 
 /// `consecutive_windows(start, end, boundaries)`: split a window at the
@@ -206,14 +221,22 @@ pub fn evaluate_range(
     };
     let body = range_request(asset, from_date, to_date, day_count)?;
     let outcome = client.invoke(&pts(RANGE_CALC_URI), &pts(PERIOD_URI), &body)?;
-    evaluate_outcome(asset, from_date, identifier, &outcome, supplied_additions)
+    evaluate_outcome(
+        asset,
+        from_date,
+        to_date,
+        identifier,
+        &outcome,
+        supplied_additions,
+    )
 }
 
-/// `evaluate_outcome(asset, from_date, case_id, outcome,
+/// `evaluate_outcome(asset, from_date, to_date, case_id, outcome,
 /// supplied_additions=...)`.
 pub fn evaluate_outcome(
     asset: &Asset,
     from_date: &str,
+    to_date: &str,
     case_id: S,
     outcome: &Outcome,
     supplied_additions: Option<&Decimal>,
@@ -251,10 +274,10 @@ pub fn evaluate_outcome(
     let (closes, found) = reconcile(&values, supplied_additions)?;
     let mut reasons = outcome.findings.clone();
     reasons.extend(found);
-    let older_acquisition =
-        get(&values, &pts("cost_additions")).is_none() && spans_acquisition(asset, from_date);
+    let older_acquisition = get(&values, &pts("cost_additions")).is_none()
+        && spans_acquisition(asset, from_date, to_date);
     // Zero additions are no evidence for a window that includes the acquisition.
-    if closes && !(older_acquisition && supplied_additions.is_none()) {
+    if closes && (!older_acquisition || acquisition_evidence_matches(asset, supplied_additions)?) {
         reasons.push(pts(
             "accounting carrying amounts only; this is not a Division 40 deduction and the tax \
              figure will not equal it",
@@ -269,8 +292,8 @@ pub fn evaluate_outcome(
     if older_acquisition {
         reasons.push(pts(
             "this response has the older pre-acquisition limitation: the window includes \
-             initial recognition but has no cost_additions field. Supply separate evidence of the \
-             addition to check the movement.",
+             initial recognition but has no cost_additions field. Supply separate evidence equal to \
+             the asset cost to check the movement.",
         ));
     }
     Ok(Comparison {
@@ -351,8 +374,15 @@ mod tests {
     #[test]
     fn a_closing_movement_is_a_match() {
         let outcome = computed(range("120000.00", "96000.00", "24000.00"));
-        let compared =
-            evaluate_outcome(&asset(), "2024-07-01", pts("DEP-1"), &outcome, None).expect("ok");
+        let compared = evaluate_outcome(
+            &asset(),
+            "2024-07-01",
+            "2025-06-30",
+            pts("DEP-1"),
+            &outcome,
+            None,
+        )
+        .expect("ok");
         assert_eq!(compared.evaluation, Evaluation::Match);
         assert!(mentions(&compared, "Division 40"));
     }
@@ -360,8 +390,15 @@ mod tests {
     #[test]
     fn a_movement_that_does_not_close_is_refused_and_no_addition_is_invented() {
         let outcome = computed(range("0.00", "108000.00", "12000.00"));
-        let compared =
-            evaluate_outcome(&asset(), "2024-01-01", pts("DEP-1"), &outcome, None).expect("ok");
+        let compared = evaluate_outcome(
+            &asset(),
+            "2024-01-01",
+            "2024-12-31",
+            pts("DEP-1"),
+            &outcome,
+            None,
+        )
+        .expect("ok");
         assert_eq!(compared.evaluation, Evaluation::ContractFailure);
         assert!(mentions(&compared, "does not close"));
         assert!(mentions(&compared, "pre-acquisition limitation"));
@@ -371,6 +408,7 @@ mod tests {
         let compared = evaluate_outcome(
             &asset(),
             "2024-01-01",
+            "2024-12-31",
             pts("DEP-1"),
             &outcome,
             Some(&supplied),
@@ -383,8 +421,15 @@ mod tests {
     #[test]
     fn an_older_movement_must_close_to_the_cent() {
         let outcome = computed(range("100.00", "90.01", "10.00"));
-        let compared =
-            evaluate_outcome(&asset(), "2024-07-01", pts("DEP-1"), &outcome, None).expect("ok");
+        let compared = evaluate_outcome(
+            &asset(),
+            "2024-07-01",
+            "2025-06-30",
+            pts("DEP-1"),
+            &outcome,
+            None,
+        )
+        .expect("ok");
         assert_eq!(compared.evaluation, Evaluation::ContractFailure);
         assert!(mentions(&compared, "a gap of 0.01"));
     }
@@ -396,6 +441,7 @@ mod tests {
         let compared = evaluate_outcome(
             &asset(),
             "2024-01-01",
+            "2024-12-31",
             pts("DEP-1"),
             &outcome,
             Some(&supplied),
@@ -408,8 +454,15 @@ mod tests {
     #[test]
     fn an_acquisition_window_without_evidence_of_additions_is_not_a_match() {
         let outcome = computed(range("0.00", "0.00", "0.00"));
-        let compared =
-            evaluate_outcome(&asset(), "2024-01-01", pts("DEP-1"), &outcome, None).expect("ok");
+        let compared = evaluate_outcome(
+            &asset(),
+            "2024-01-01",
+            "2024-12-31",
+            pts("DEP-1"),
+            &outcome,
+            None,
+        )
+        .expect("ok");
         assert_eq!(compared.evaluation, Evaluation::ContractFailure);
         assert!(mentions(&compared, "pre-acquisition limitation"));
     }
@@ -429,9 +482,9 @@ mod tests {
 
     #[test]
     fn the_pre_acquisition_window_is_recognised_before_the_call() {
-        assert!(spans_acquisition(&asset(), "2024-01-01"));
-        assert!(!spans_acquisition(&asset(), "2024-07-01"));
-        assert!(!spans_acquisition(&asset(), "2025-01-01"));
+        assert!(spans_acquisition(&asset(), "2024-01-01", "2025-06-30"));
+        assert!(!spans_acquisition(&asset(), "2024-07-01", "2025-06-30"));
+        assert!(!spans_acquisition(&asset(), "2025-01-01", "2025-06-30"));
     }
 
     #[test]
@@ -461,6 +514,7 @@ mod tests {
         let compared = evaluate_outcome(
             &asset(),
             "2024-07-01",
+            "2025-06-30",
             pts("DEP-1"),
             &computed(values),
             None,
@@ -474,6 +528,7 @@ mod tests {
         let compared = evaluate_outcome(
             &asset(),
             "2024-07-01",
+            "2025-06-30",
             pts("DEP-1"),
             &computed(values),
             None,

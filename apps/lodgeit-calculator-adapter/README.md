@@ -183,8 +183,10 @@ complies, a benefit is reportable or that a reviewer should sign anything.
   movement must reconcile exactly, where Python allowed a one-cent gap. The
   current snapshot requires cost additions in the range response and refuses
   one without them. Under an earlier snapshot, which did not, separate caller
-  evidence of additions can be supplied, and is needed when the window starts
-  before the acquisition date. Negative or conflicting additions are refused.
+  evidence of additions can be supplied. When the window starts before and
+  reaches the acquisition date, that evidence must be positive and equal to the
+  asset cost. A window ending before acquisition may have zero movement without
+  additions evidence. Negative or conflicting additions are refused.
   The trial concerns accounting carrying amounts.
 - **Fano** (`src/trials/fano.rs`): experimental, opt-in, model in the path. It
   produces suggestions and nothing else. `accepted_fact` is the classifier's

@@ -412,3 +412,13 @@ The loopback server is a `std::net::TcpListener` on `127.0.0.1:0` started by eac
 | `test_wire_precision.py::test_the_bytes_the_stub_receives_carry_the_exact_digits` | `the_bytes_the_stub_receives_carry_the_exact_digits` | loopback server (`std::net::TcpListener` stub, `dial::Net`) |
 | `test_wire_precision.py::test_a_provider_json_number_keeps_its_own_digits_on_the_way_in` | `a_provider_json_number_keeps_its_own_digits_on_the_way_in` | loopback server |
 | `test_wire_precision.py::test_a_nan_in_a_response_is_a_contract_failure` | `a_nan_in_a_response_is_a_contract_failure` | loopback server |
+
+## Additional legacy acquisition regressions
+
+The Rust adapter also tests these deliberate differences from the retired Python
+implementation through the loopback client under an earlier snapshot:
+
+- `legacy_acquisition_additions_cannot_be_zero`: zero caller evidence cannot hide a positive-cost acquisition.
+- `legacy_acquisition_additions_must_equal_the_asset_cost`: a nonzero but inconsistent addition is refused.
+- `legacy_zero_movement_before_acquisition_is_a_match`: a wholly earlier window can have zero movement, with absent or zero caller additions.
+- `legacy_window_ending_on_acquisition_requires_evidence`: the end date includes the acquisition.

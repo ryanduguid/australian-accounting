@@ -346,21 +346,23 @@ fn schema_shape(schema: &Json) -> Json {
                     Some("items" | "additionalProperties" | "not" | "if" | "then" | "else") => {
                         schema_shape(value)
                     }
-                    Some("required" | "enum" | "type") => {
-                        let mut value = value.clone();
-                        if let Json::Array(items) = &mut value
-                            && items.iter().all(|item| item.as_str().is_some())
-                        {
-                            items.sort_by(|a, b| a.as_str().cmp(&b.as_str()));
-                        }
-                        value
-                    }
+                    Some("required" | "enum" | "type") => sorted_schema_values(value),
                     _ => value.clone(),
                 };
                 Some((key.clone(), shape))
             })
             .collect(),
     )
+}
+
+fn sorted_schema_values(value: &Json) -> Json {
+    let mut value = value.clone();
+    if let Json::Array(items) = &mut value
+        && items.iter().all(|item| item.as_str().is_some())
+    {
+        items.sort_by(|a, b| a.as_str().cmp(&b.as_str()));
+    }
+    value
 }
 
 fn same_schema_value(left: &Json, right: &Json) -> bool {
@@ -385,40 +387,32 @@ fn same_schema_value(left: &Json, right: &Json) -> bool {
     }
 }
 
-/// Path item parameters apply to its POST unless the operation overrides the
-/// same name and location. Only the two route placeholders are sent today.
-fn check_request_parameters(document: &Json, item: &Json, route: &str) -> Vec<S> {
+fn effective_request_parameters<'a>(
+    document: &'a Json,
+    item: &'a Json,
+) -> Option<BTreeMap<(&'a str, &'a str), bool>> {
     let mut effective = BTreeMap::new();
-    let unreadable = || {
-        vec![pts(&format!(
-            "live OpenAPI parameters for {route} could not be read"
-        ))]
-    };
     for owner in [item, item.at("post")] {
         let Some(parameters) = owner.get("parameters") else {
             continue;
         };
         let Json::Array(parameters) = parameters else {
-            return unreadable();
+            return None;
         };
         let mut seen = HashSet::new();
         for parameter in parameters {
             let parameter = if let Some(reference) = parameter.get("$ref") {
-                let Some(component) = reference
+                reference
                     .as_str()
                     .and_then(|reference| reference.strip_prefix("#/components/parameters/"))
-                    .and_then(|name| document.at("components").at("parameters").get(name))
-                else {
-                    return unreadable();
-                };
-                component
+                    .and_then(|name| document.at("components").at("parameters").get(name))?
             } else {
                 parameter
             };
             let (Some(location), Some(name)) =
                 (parameter.at("in").as_str(), parameter.at("name").as_str())
             else {
-                return unreadable();
+                return None;
             };
             // OpenAPI ignores parameter declarations for these HTTP headers.
             if location == "header"
@@ -431,14 +425,25 @@ fn check_request_parameters(document: &Json, item: &Json, route: &str) -> Vec<S>
             let required = match parameter.get("required") {
                 Some(Json::Bool(required)) => *required,
                 None => false,
-                Some(_) => return unreadable(),
+                Some(_) => return None,
             };
             if !seen.insert((location, name)) {
-                return unreadable();
+                return None;
             }
             effective.insert((location, name), required);
         }
     }
+    Some(effective)
+}
+
+/// Path item parameters apply to its POST unless the operation overrides the
+/// same name and location. Only the two route placeholders are sent today.
+fn check_request_parameters(document: &Json, item: &Json, route: &str) -> Vec<S> {
+    let Some(effective) = effective_request_parameters(document, item) else {
+        return vec![pts(&format!(
+            "live OpenAPI parameters for {route} could not be read"
+        ))];
+    };
     effective
         .into_iter()
         .filter_map(|((location, name), required)| {
@@ -477,11 +482,17 @@ pub(crate) fn compare_openapi(reviewed: &Json, calculators: &Json, document: &Js
             Some(_) => {}
         }
     }
+    findings.extend(check_calculator_routes(calculators, document)?);
+    Ok(findings)
+}
+
+fn check_calculator_routes(calculators: &Json, document: &Json) -> R<Vec<S>> {
     let Json::Object(calculators) = calculators else {
         return Err(contract_error(pts(
             "reviewed calculators must be an object",
         )));
     };
+    let mut findings = Vec::new();
     for (_, spec) in calculators {
         let Some(route) = spec.at("route").as_str() else {
             return Err(contract_error(pts("reviewed calculator has no route")));

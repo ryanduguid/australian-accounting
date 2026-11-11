@@ -465,9 +465,21 @@ fn a_missing_figure_cannot_be_reconciled_around() {
 
 #[test]
 fn the_pre_acquisition_window_is_recognised_before_the_call() {
-    assert!(trial::spans_acquisition(&asset(), "2024-01-01"));
-    assert!(!trial::spans_acquisition(&asset(), "2024-07-01"));
-    assert!(!trial::spans_acquisition(&asset(), "2025-01-01"));
+    assert!(trial::spans_acquisition(
+        &asset(),
+        "2024-01-01",
+        "2025-06-30"
+    ));
+    assert!(!trial::spans_acquisition(
+        &asset(),
+        "2024-07-01",
+        "2025-06-30"
+    ));
+    assert!(!trial::spans_acquisition(
+        &asset(),
+        "2025-01-01",
+        "2025-06-30"
+    ));
 }
 
 #[test]
@@ -619,9 +631,15 @@ fn a_call_that_produced_no_figure_is_named_for_why() {
             contract_sha256: String::new(),
             base_url: None,
         };
-        let comparison =
-            trial::evaluate_outcome(&asset(), "2024-07-01", pts("DEP-1"), &outcome, None)
-                .expect("a comparison");
+        let comparison = trial::evaluate_outcome(
+            &asset(),
+            "2024-07-01",
+            "2025-06-30",
+            pts("DEP-1"),
+            &outcome,
+            None,
+        )
+        .expect("a comparison");
         assert_eq!(comparison.evaluation, expected, "{status:?}");
         assert_eq!(
             reasons(&comparison),
@@ -647,4 +665,64 @@ fn a_movement_after_acquisition_that_does_not_close_names_no_limitation() {
     assert_eq!(comparison.evaluation, Evaluation::ContractFailure);
     assert!(mentions(&comparison, "does not close"));
     assert!(!mentions(&comparison, "pre-acquisition"));
+}
+
+#[test]
+fn legacy_acquisition_additions_cannot_be_zero() {
+    let stub = Stub::start();
+    stub.respond(&provider_range("0.00", "0.00", "0.00", None), 200);
+    let supplied = dec("0.00");
+    let comparison = evaluate_legacy_range(&stub, Some(&supplied));
+    assert_eq!(comparison.evaluation, Evaluation::ContractFailure);
+}
+
+#[test]
+fn legacy_acquisition_additions_must_equal_the_asset_cost() {
+    let stub = Stub::start();
+    stub.respond(&provider_range("0.00", "1.00", "0.00", None), 200);
+    let supplied = dec("1.00");
+    let comparison = evaluate_legacy_range(&stub, Some(&supplied));
+    assert_eq!(comparison.evaluation, Evaluation::ContractFailure);
+}
+
+#[test]
+fn legacy_zero_movement_before_acquisition_is_a_match() {
+    let zero = dec("0.00");
+    for supplied in [None, Some(&zero)] {
+        let stub = Stub::start();
+        stub.respond(&provider_range("0.00", "0.00", "0.00", None), 200);
+        let comparison = with_contract(&stub, &legacy_contract(), |client| {
+            trial::evaluate_range(
+                &asset(),
+                "2024-01-01",
+                "2024-06-30",
+                "actual/actual",
+                Some(client),
+                supplied,
+                None,
+            )
+        })
+        .expect("a legacy comparison");
+        assert_eq!(comparison.evaluation, Evaluation::Match);
+    }
+}
+
+#[test]
+fn legacy_window_ending_on_acquisition_requires_evidence() {
+    let stub = Stub::start();
+    stub.respond(&provider_range("0.00", "0.00", "0.00", None), 200);
+    let supplied = dec("0.00");
+    let comparison = with_contract(&stub, &legacy_contract(), |client| {
+        trial::evaluate_range(
+            &asset(),
+            "2024-01-01",
+            "2024-07-01",
+            "actual/actual",
+            Some(client),
+            Some(&supplied),
+            None,
+        )
+    })
+    .expect("a legacy comparison");
+    assert_eq!(comparison.evaluation, Evaluation::ContractFailure);
 }
