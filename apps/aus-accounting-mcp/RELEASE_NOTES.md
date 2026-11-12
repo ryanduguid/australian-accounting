@@ -18,8 +18,11 @@
 - Breaking: all 4 searches (`search_tax_legislation`, `search_tax_rates`,
   `search_accounting_library` and `search_ato_rulings`) match whole words only, so a word
   inside a longer word no longer matches: 'deduct' does not find 'deductible'. A modal
-  verb and the 'not' after it count as one word, so 'must lodge' does not match text
-  holding only 'must not lodge', and the reverse holds too
+  verb and the 'not' after it count as one word, so 'must lodge' never fully matches
+  text holding only 'must not lodge', and the reverse holds too. In the legislation and
+  rate searches such a row can still appear in `partial_hits`, because a modal's
+  opposite form counts towards their 2-word threshold; the library and rulings searches
+  have no partial list, so there it is simply not a match
   ([#585](https://github.com/ryanduguid/australian-accounting/pull/585)).
 - `search_tax_legislation` and `search_tax_rates` take a plain question. Stop words
   such as 'what' and 'the' are dropped and listed in the new `dropped_words`; words of
@@ -59,8 +62,9 @@
   Markdown note restating the result for a workpaper. Without it the result is
   unchanged, and a refused worksheet returns only its refusal
   ([#568](https://github.com/ryanduguid/australian-accounting/pull/568)).
-- `search_accounting_library` ranks matches: the words in the heading in force at a
-  line first, then the phrase in the line, then the words anywhere in it; ties keep
+- `search_accounting_library` ranks matches: the query phrase in the heading in force
+  at a line first, then every word in that heading, then the phrase in the line, then
+  the words anywhere in it; ties keep
   folder and file order. The order is presentation, not authority. It now reads the
   whole library on every search; 3.0 to 3.8 seconds were measured at the 1,000-file,
   64 MB limit ([#536](https://github.com/ryanduguid/australian-accounting/pull/536)).
