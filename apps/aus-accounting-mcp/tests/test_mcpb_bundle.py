@@ -24,6 +24,7 @@ def test_bundle_pins_the_release_version_licence_and_python() -> None:
     assert manifest["version"] == bundle["version"] == project["version"]
     assert bundle["dependencies"] == [f"{project['name']}=={project['version']}"]
     assert bundle["requires-python"] == project["requires-python"]
+    assert manifest["compatibility"]["runtimes"]["python"] == project["requires-python"]
     assert manifest["license"] == project["license"]
 
 
@@ -42,11 +43,15 @@ def test_every_retrieval_folder_is_an_optional_directory_setting() -> None:
     assert server["type"] == "uv"
     assert server["entry_point"] in server["mcp_config"]["args"]
     assert (BUNDLE / server["entry_point"]).is_file()
+    assert env == {
+        "AUS_ACCOUNTING_LIBRARY_ROOT": "${user_config.library_root}",
+        "AUS_ACCOUNTING_CORPUS_ROOT": "${user_config.corpus_root}",
+        "AUS_ACCOUNTING_RULINGS_ROOT": "${user_config.rulings_root}",
+    }
     assert sorted(env) == sorted(name for name, _, _ in doctor.ROOTS)
     settings = manifest["user_config"]
-    assert sorted(env.values()) == sorted(f"${{user_config.{key}}}" for key in settings)
+    assert sorted(settings) == ["corpus_root", "library_root", "rulings_root"]
     for option in settings.values():
-        # An empty default reaches the server as an unset folder, not a literal placeholder.
         assert option["type"] == "directory"
         assert option["default"] == ""
         assert not option.get("required", False)

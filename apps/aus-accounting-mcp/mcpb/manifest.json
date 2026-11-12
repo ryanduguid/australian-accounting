@@ -56,9 +56,11 @@
     { "name": "generate_synthetic_sbr_fixture", "description": "Generate fabricated CTR/BAS test data." },
     { "name": "get_data_freshness", "description": "Report each bundled dataset's recorded periods, engine version and source dates." }
   ],
-  "prompts_generated": true,
   "keywords": ["australia", "accounting", "tax", "ato", "gst", "bas", "superannuation", "division 7a"],
   "license": "LicenseRef-Duguid-Public-Attribution-1.0",
+  "compatibility": {
+    "runtimes": { "python": ">=3.14" }
+  },
   "user_config": {
     "library_root": {
       "type": "directory",
