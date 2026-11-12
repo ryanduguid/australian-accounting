@@ -302,7 +302,7 @@ fn every_command_has_cases() {
 }
 
 /// The published reason-code vocabulary.
-const REASON_CODES: [&str; 24] = [
+const REASON_CODES: [&str; 25] = [
     "REFUSED_GATE_RESULT_MISSING",
     "REFUSED_GATE_NOT_COMPLYING",
     "REFUSED_GATE_UNKNOWN",
@@ -311,6 +311,7 @@ const REASON_CODES: [&str; 24] = [
     "REFUSED_YEAR_BEFORE_LOAN",
     "REFUSED_REMAINING_TERM_NOT_POSITIVE",
     "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM",
+    "REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM",
     "REFUSED_BENCHMARK_RATE_NOT_POSITIVE",
     "GATE_NO_BENCHMARK_YEAR",
     "GATE_WRITTEN_AGREEMENT_FAIL",
@@ -395,6 +396,18 @@ fn the_reason_code_vocabulary_is_exactly_what_the_engine_emits() {
     )
     .unwrap();
     collect_codes(&past, &mut emitted);
+    // And one whose remaining term is past its own 5-year term.
+    let past_term = api::evaluate(
+        "review-register",
+        &json!({"year_of_income": "2025-26", "rows": [{"loan_id": "L",
+            "written_agreement": "true", "terms_in_place_before_lodgment_day": "true",
+            "maximum_term_years": "5", "secured_by_registered_mortgage_over_real_property": "false",
+            "security_coverage_at_first_made": "", "interest_rate_for_years_after_year_loan_made": "0.0877",
+            "year_loan_made": "2024-25", "amalgamated_loan_unpaid_at_end_of_previous_year": "1000.00",
+            "remaining_term_years": "7", "payments_applied_during_the_year": "0.00"}]}),
+    )
+    .unwrap();
+    collect_codes(&past_term, &mut emitted);
     let published: std::collections::BTreeSet<String> =
         REASON_CODES.iter().map(|c| c.to_string()).collect();
     assert_eq!(emitted, published);

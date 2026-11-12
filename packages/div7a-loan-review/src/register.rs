@@ -304,6 +304,7 @@ pub fn review_register(
             Some(repayment_within(
                 &facts,
                 maximum.as_ref(),
+                gate_facts.maximum_term_years.as_ref(),
                 Some(table),
                 None,
             )?)

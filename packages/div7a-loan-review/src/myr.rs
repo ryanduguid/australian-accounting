@@ -221,15 +221,16 @@ pub fn minimum_yearly_repayment(
     table: Option<&BenchmarkTable>,
     over: Option<&RateOverride>,
 ) -> Result<MyrResult, Failure> {
-    repayment_within(facts, None, table, over)
+    repayment_within(facts, None, None, table, over)
 }
 
 /// `minimum_yearly_repayment`, also refusing a remaining term longer than
-/// `maximum_term`: the s 109N(3) maximum term the same register row's security
-/// facts establish.
+/// `maximum_term`, the s 109N(3) maximum term the same register row's security
+/// facts establish, or than `loan_term`, the row's own `maximum_term_years`.
 pub(crate) fn repayment_within(
     facts: &MyrFacts,
     maximum_term: Option<&Decimal>,
+    loan_term: Option<&Decimal>,
     table: Option<&BenchmarkTable>,
     over: Option<&RateOverride>,
 ) -> Result<MyrResult, Failure> {
@@ -385,8 +386,9 @@ pub(crate) fn repayment_within(
                      words of s 109E(6)."
                 ));
             }
+            let complying = gate.is_some_and(|g| g.verdict == "COMPLYING");
             if let Some(maximum) = maximum_term
-                && gate.is_some_and(|g| g.verdict == "COMPLYING")
+                && complying
                 && used.gt(maximum)?
             {
                 refusals.push((
@@ -404,6 +406,24 @@ pub(crate) fn repayment_within(
                          remaining term or the security facts. Enter a loan secured and \
                          extended under s 109E(3A) as the new amalgamated loan s 109E(3B) \
                          creates, with its 25-year security facts. No MYR figure is emitted."
+                    ),
+                ));
+            } else if let Some(term) = loan_term
+                && complying
+                && used.gt(&statutory_remaining_term(term)?)?
+            {
+                refusals.push((
+                    "REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM",
+                    format!(
+                        "remaining_term_years is {supplied}, a remaining term of {used} under \
+                         s 109E(6), longer than the {term}-year term of the loan in \
+                         maximum_term_years. The remaining term is the longest constituent-loan \
+                         term less the years from the end of the loan year to the end of the \
+                         previous year of income (s 109E(6)), so it cannot be longer than that \
+                         term, and a longer one gives a lower minimum yearly repayment than the \
+                         Act requires. Correct remaining_term_years or, where a constituent loan \
+                         of this amalgamated loan has a longer term, enter that longest term in \
+                         maximum_term_years. No MYR figure is emitted."
                     ),
                 ));
             }
