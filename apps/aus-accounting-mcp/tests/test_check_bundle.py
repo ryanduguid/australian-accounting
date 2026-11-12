@@ -34,7 +34,9 @@ for line in sys.stdin:
 """
 
 
-def bundle(tmp_path: Path, server_version: str) -> tuple[Path, Path]:
+def bundle(
+    tmp_path: Path, server_version: str, tools: tuple[str, ...] = ("get_data_freshness",)
+) -> tuple[Path, Path]:
     source = tmp_path / "source"
     source.mkdir()
     manifest = {
@@ -44,7 +46,7 @@ def bundle(tmp_path: Path, server_version: str) -> tuple[Path, Path]:
             "args": ["${__dirname}/fake.py"],
             "env": {"FAKE_VERSION": server_version},
         }},
-        "tools": [{"name": "get_data_freshness"}],
+        "tools": [{"name": name} for name in tools],
     }
     (source / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
     (source / "fake.py").write_text(FAKE_SERVER, encoding="utf-8")
@@ -65,6 +67,15 @@ def test_a_bundle_matching_its_source_and_manifest_passes(tmp_path: Path) -> Non
 def test_a_server_reporting_another_version_is_refused(tmp_path: Path) -> None:
     with pytest.raises(SystemExit, match="reports 9.9.9, the manifest 1.0.0"):
         check_bundle.check(*bundle(tmp_path, "9.9.9"))
+
+
+def test_a_server_registering_other_tools_is_refused(tmp_path: Path) -> None:
+    with pytest.raises(
+        SystemExit,
+        match=r"FAIL tools differ: registered only \['get_data_freshness'\], "
+        r"declared only \['validate_abn'\]",
+    ):
+        check_bundle.check(*bundle(tmp_path, "1.0.0", tools=("validate_abn",)))
 
 
 def test_an_archive_that_differs_from_its_source_is_refused(tmp_path: Path) -> None:
