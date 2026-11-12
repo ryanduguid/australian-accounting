@@ -1,0 +1,12 @@
+# Accepted findings in earlier commits, one fingerprint each (commit:file:rule:line).
+# Each is in a file no longer in the tree, so only the weekly full-history scan
+# reads it; a new match anywhere else still fails. Checked 12 November 2026:
+# - au-business-number: 7 ABN values in a deleted adapter fixture, 4 of them
+#   checksum-valid.
+# - generic-api-key: a SHA-256 digest asserted in a deleted mapping test.
+
+9833b5fb08c0b50583f6b6bf7c684ed65d9943cc:apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json:au-business-number:1
+a9ff91fb88a85a89547c8d4d7ff3cba93f3a8a83:packages/ato-benchmark-compare/tests/test_mapping.py:generic-api-key:194
+acac1e0aea0599bda885813b19ffc37654b0b4b1:packages/ato-benchmark-compare/tests/test_mapping.py:generic-api-key:194
+f1b0ebffe342a4254c218bed4d844d5e60d3bdbe:apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json:au-business-number:1
+f501f3f37c521e13d61bdc98f54d762dd3d63297:apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json:au-business-number:1
