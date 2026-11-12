@@ -8,7 +8,7 @@
 </p>
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
 ```
 
 That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).

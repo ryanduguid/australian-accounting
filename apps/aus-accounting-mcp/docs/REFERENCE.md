@@ -54,7 +54,7 @@ The example is fabricated, is not a lodgement or Division 7A determination, and 
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.7.1 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.1), [PyPI 0.7.1](https://pypi.org/project/aus-accounting-mcp/0.7.1/), [MCP Registry 0.7.1](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.7.1), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
+Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.8.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.8.0), [PyPI 0.8.0](https://pypi.org/project/aus-accounting-mcp/0.8.0/), [MCP Registry 0.8.0](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.8.0), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
 
 ## Client setup
 
@@ -139,9 +139,10 @@ stay on your machine.
 the command waits silently for an MCP client, which is expected.
 
 `aus-accounting-mcp doctor` prints the version, the periods each bundled dataset
-records and each retrieval folder with its row count. The published 0.7.1 does not have
-it, so `uvx aus-accounting-mcp doctor` fails until the next release; in a checkout, run
-`uv run aus-accounting-mcp doctor` from `apps/aus-accounting-mcp`. A folder that is not
+records and each retrieval folder with its row count. It arrived in 0.8.0, so run
+`uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp doctor`; 0.7.1 and earlier do
+not have it. In a checkout, run `uv run aus-accounting-mcp doctor` from
+`apps/aus-accounting-mcp`. A folder that is not
 set is fine, because all 3 are optional. It exits 1 if a configured folder is broken:
 missing, the wrong shape, empty, or holding a file, folder or row a search would skip,
 such as a title folder with no `sections.jsonl`, a row with no string id or text, or
@@ -647,8 +648,11 @@ A `sections.jsonl` row carries `row_id`, `register_id`, `act`, `collection`,
 `register_page`, `source_url`, `licence`, `attribution` and `text`. A `rates.jsonl` row carries `rate_id`, `topic`, `kind`,
 `amounts`, `years` and `content` alongside the same title and section fields.
 [PaulGoodman](https://github.com/ryanduguid/PaulGoodman)
-builds a corpus in this shape from the Federal Register of Legislation. Its
-`python -m fadden quick --out <empty folder>` builds 9 principal Acts and prints the
+builds a corpus in this shape from the Federal Register of Legislation. The quickest
+corpus is its [published snapshot](corpus-setup.md#download-the-published-snapshot) of 9
+principal Acts, each at its current compilation on 11 November 2026, with a rates index:
+set `AUS_ACCOUNTING_CORPUS_ROOT` to its unpacked `dist` folder. For later compilations,
+its `python -m fadden quick --out <empty folder>` builds the same Acts and prints the
 setting; [the setup guide](corpus-setup.md#build-the-principal-acts-with-one-command) gives
 the steps and what that folder lacks.
 
@@ -794,7 +798,7 @@ unless `in_force_only` is false.
 
 ### Dates
 
-From the release after 0.7.1, `search_tax_legislation` and
+From 0.8.0, `search_tax_legislation` and
 `read_tax_legislation_section` take `as_at`, a `YYYY-MM-DD` date. A malformed date, or
 one that does not exist, is an input error. These are the statuses and field names of
 the corpus builder's own `as_at` stage ([contract](https://github.com/ryanduguid/PaulGoodman/blob/main/docs/scope.md)),
