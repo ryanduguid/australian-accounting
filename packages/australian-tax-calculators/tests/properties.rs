@@ -858,6 +858,40 @@ fn a_worked_quarter_and_asset_hold() {
     assert_eq!(diminishing["amounts"]["decline_in_value"], "4000.00");
 }
 
+/// Division 296 tax never falls as the balance rises with the same earnings,
+/// never exceeds 25% of them (15% plus 10%, each of at most all the earnings),
+/// and is nil when the earnings are nil or less.
+#[test]
+fn division_296_tax_rises_with_the_balance_and_stays_within_a_quarter() {
+    let mut rng = Rng(20_261_113);
+    let tax = |balance: &str, earnings: &str| {
+        let r = run(
+            "division-296",
+            json!({
+                "total_super_balance_end_of_year": balance, "total_super_earnings": earnings,
+                "child_recipient": false, "structured_settlement_contribution": false,
+                "died_in_year": false, "year": "2026-27", "scope_confirmed": true,
+            }),
+        );
+        amount(&r, "division_296_tax")
+    };
+    for _ in 0..RUNS {
+        let (low, high) = sorted_dec(rng.money(), rng.money());
+        let earnings = rng.cents(1_000_000_000);
+        let higher = tax(&high, &earnings);
+        assert!(
+            le(&tax(&low, &earnings), &higher),
+            "{low} {high} {earnings}"
+        );
+        let quarter = d(&earnings).mul(&d("0.25")).unwrap();
+        assert!(
+            le(&higher, &quarter.add(&d("0.005")).unwrap()),
+            "{high} {earnings}"
+        );
+        assert!(eq(&tax(&high, &format!("-{earnings}")), &n(0)), "{high}");
+    }
+}
+
 /// Howard Hinnant's civil_from_days, for generating dates.
 fn civil(day: i64) -> (i64, i64, i64) {
     let z = day + 719_468;

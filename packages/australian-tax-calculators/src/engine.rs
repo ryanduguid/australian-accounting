@@ -1007,6 +1007,134 @@ pub fn division_293(
     )
 }
 
+/// A finite Decimal of at most 2dp and magnitude 1e12 that may be negative:
+/// total superannuation earnings can be (Division 296 regulations, reg 296-65.02 note).
+fn signed_money(value: &Arg) -> Result<Decimal> {
+    let bad = || {
+        refuse(
+            "input.signed_amount_invalid",
+            "Amounts that may be negative must be finite Decimals, at most 2dp and 1e12 either side of nil.",
+        )
+    };
+    let Arg::Decimal(v) = value else {
+        return bad();
+    };
+    if !v.is_finite() || v.lt(&d("-1e12"))? || v.gt(&d("1e12"))? || v.exponent() < -2 {
+        return bad();
+    }
+    Ok(v.clone())
+}
+
+/// The share of `balance` above `threshold` as a percentage rounded to 2 decimal
+/// places, half up (ITAA 1997 ss 296-40(2) and (3), 296-45(2) and (3)); nil when
+/// the balance is not greater than the threshold.
+fn percentage_above(balance: &Decimal, threshold: &Decimal) -> Result<Decimal> {
+    if !balance.gt(threshold)? {
+        return Ok(d("0.00"));
+    }
+    precise(|| {
+        let share = balance.sub(threshold)?.div(balance)?.mul(&int(100))?;
+        Ok(share.quantize(-2, Rounding::HalfUp)?)
+    })
+}
+
+/// Exceptions in order, each with the reason given when it applies.
+const DIVISION_296_EXCEPTIONS: [(&str, &str); 3] = [
+    (
+        "child_recipient",
+        "not liable: a child recipient of a superannuation income stream in the year (s 296-20)",
+    ),
+    (
+        "structured_settlement_contribution",
+        "not liable: a structured settlement contribution was made in respect of the individual in or before the year (s 296-25)",
+    ),
+    (
+        "died_in_year",
+        "not liable: died on or before the last day of the 2026-27 income year (Income Tax (Transitional Provisions) Act 1997 s 296-1(3))",
+    ),
+];
+
+pub fn division_296(
+    total_super_balance_end_of_year: &Arg,
+    total_super_earnings: &Arg,
+    exceptions: [&Arg; 3],
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, "division_296")?;
+    let balance = money(total_super_balance_end_of_year)?;
+    let earnings = signed_money(total_super_earnings)?;
+    let mut excepted = None;
+    for (value, (name, reason)) in exceptions.into_iter().zip(DIVISION_296_EXCEPTIONS) {
+        if flag(value, name)? && excepted.is_none() {
+            excepted = Some(reason);
+        }
+    }
+    let large = d(lookup(&meta::DIVISION_296, "large_threshold"));
+    let very_large = d(lookup(&meta::DIVISION_296, "very_large_threshold"));
+    let rate_ = d(lookup(&meta::DIVISION_296, "rate"));
+    let very_large_rate = d(lookup(&meta::DIVISION_296, "very_large_rate"));
+    // ITTPA s 296-1(2): for 2026-27 the reference amount is the balance at the end of the year.
+    let percentage = percentage_above(&balance, &large)?;
+    let very_large_percentage = percentage_above(&balance, &very_large)?;
+    let (liable, liability) = if let Some(reason) = excepted {
+        (false, reason)
+    } else if !balance.gt(&large)? {
+        (
+            false,
+            "not liable: the total superannuation balance at the end of the year is not greater than the large superannuation balance threshold (s 296-40(1)(a); Income Tax (Transitional Provisions) Act 1997 s 296-1(2))",
+        )
+    } else if !earnings.gt(&int(0))? {
+        (
+            false,
+            "not liable: total superannuation earnings for the year are not greater than nil (s 296-40(1)(b))",
+        )
+    } else if percentage.is_zero() {
+        (
+            true,
+            "liable (s 296-15), but the s 296-40(3) percentage rounds to 0.00, so taxable superannuation earnings are nil",
+        )
+    } else {
+        (true, "liable (s 296-15)")
+    };
+    let amounts = precise(|| {
+        let (taxable, component) = if liable {
+            let hundred = int(100);
+            (
+                earnings.mul(&percentage)?.div(&hundred)?,
+                earnings.mul(&very_large_percentage)?.div(&hundred)?,
+            )
+        } else {
+            (int(0), int(0))
+        };
+        let tax = taxable.mul(&rate_)?;
+        let further = component.mul(&very_large_rate)?;
+        let total = tax.add(&further)?;
+        Ok(vec![
+            ("taxable_superannuation_earnings", taxable),
+            ("very_large_balance_earnings_component", component),
+            ("tax_on_taxable_superannuation_earnings", tax),
+            ("tax_on_very_large_balance_earnings_component", further),
+            ("division_296_tax", total),
+        ])
+    })?;
+    let mut out = result(
+        "division_296",
+        &year,
+        amounts,
+        vec![
+            rate("large_superannuation_balance_threshold", &large),
+            rate("very_large_superannuation_balance_threshold", &very_large),
+            rate("rate", &rate_),
+            rate("very_large_rate", &very_large_rate),
+            rate("taxable_percentage", &percentage),
+            rate("very_large_percentage", &very_large_percentage),
+        ],
+    )?;
+    out["liability"] = json!(liability);
+    Ok(out)
+}
+
 pub fn study_loan_repayment(
     repayment_income: &Arg,
     year: &Arg,
@@ -1872,7 +2000,7 @@ pub fn borrowing_expenses(
     spread(&year, &loan, &expenditure, &share)
 }
 
-const KINDS: [&str; 18] = [
+const KINDS: [&str; 19] = [
     "gst",
     "resident_tax",
     "capital_gains",
@@ -1891,6 +2019,7 @@ const KINDS: [&str; 18] = [
     "medicare_levy",
     "low_income_tax_offset",
     "division_293",
+    "division_296",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -1991,11 +2120,14 @@ pub fn worksheet_catalogue() -> Value {
         entry.insert("example_evidence".into(), Value::Object(evidence));
         entry.insert("supported_periods".into(), supported.clone());
         entry.insert("required_inputs".into(), Value::Object(inputs));
+        let money_format = "Non-negative finite AUD decimal strings, at most 2 decimal places and 1000000000000.00. Resident taxable income must be whole dollars.";
         entry.insert(
             "money_format".into(),
-            json!(
-                "Non-negative finite AUD decimal strings, at most 2 decimal places and 1000000000000.00. Resident taxable income must be whole dollars."
-            ),
+            json!(if kind == "division_296" {
+                format!("{money_format} Total superannuation earnings may be negative, down to -1000000000000.00.")
+            } else {
+                money_format.to_string()
+            }),
         );
         entry.insert(
             "methods".into(),

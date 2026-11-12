@@ -214,6 +214,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "division-296",
+        &[
+            ("total_super_balance_end_of_year", Dec),
+            ("total_super_earnings", Dec),
+            ("child_recipient", Raw),
+            ("structured_settlement_contribution", Raw),
+            ("died_in_year", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "study-loan-repayment",
         &[
             ("repayment_income", Dec),
@@ -446,6 +458,22 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
+    // Division 296 has no Python original whose lenience to keep, so a field it does not
+    // take, such as an opening balance, is refused rather than ignored.
+    if command == "division-296" {
+        let taken = |key: &String| params.iter().any(|(p, _)| p == key);
+        if let Some(key) = v
+            .as_object()
+            .into_iter()
+            .flat_map(|o| o.keys())
+            .find(|k| !taken(k))
+        {
+            return refusal(
+                "input.field_unknown",
+                format!("{key} is not an input of division-296"),
+            );
+        }
+    }
     let a: Vec<Arg> = params
         .iter()
         .map(|(key, kind)| argument(v, key, *kind))
@@ -481,6 +509,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "medicare-levy" => engine::medicare_levy(&a[0], &a[1], &a[2], &a[3]),
         "low-income-tax-offset" => engine::low_income_tax_offset(&a[0], &a[1], &a[2]),
         "division-293" => engine::division_293(&a[0], &a[1], &a[2], &a[3]),
+        "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])

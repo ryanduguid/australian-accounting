@@ -40,7 +40,7 @@ DATASET = PACKAGES / "au-tax-rates-data" / "data"
 
 # How many engine copies of dataset figures _dataset_pairs() compares. An engine
 # table that starts holding a dataset figure needs its own entry there.
-DATASET_PAIRS = 46
+DATASET_PAIRS = 50
 
 
 def _metadata_literal(name: str):
@@ -131,6 +131,7 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
         "MEDICARE_LEVY_RATES": _metadata_literal("MEDICARE_LEVY_RATES"),
         "LOW_INCOME_TAX_OFFSET": _metadata_literal("LOW_INCOME_TAX_OFFSET"),
         "DIVISION_293": _metadata_literal("DIVISION_293"),
+        "DIVISION_296": _metadata_literal("DIVISION_296"),
         "FBT_BENCHMARK_INTEREST_RATES": _metadata_literal("FBT_BENCHMARK_INTEREST_RATES"),
     }
     for name, table, key in (
@@ -148,6 +149,10 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
         ("lito-income-limit", "LOW_INCOME_TAX_OFFSET", "cut_out"),
         ("division-293-threshold", "DIVISION_293", "threshold"),
         ("division-293-tax-rate", "DIVISION_293", "rate"),
+        ("division-296-large-super-balance-threshold-2026-27", "DIVISION_296", "large_threshold"),
+        ("division-296-very-large-super-balance-threshold-2026-27", "DIVISION_296", "very_large_threshold"),
+        ("division-296-tax-rate", "DIVISION_296", "rate"),
+        ("division-296-very-large-balance-tax-rate", "DIVISION_296", "very_large_rate"),
         ("fbt-benchmark-interest-rate-fbt-year-2027", "FBT_BENCHMARK_INTEREST_RATES", "2027"),
     ):
         copy = Decimal(tables[table][key])

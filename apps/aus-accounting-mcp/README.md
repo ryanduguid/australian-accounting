@@ -30,6 +30,9 @@ The listing identifies the distribution; it does not prove a client's installed 
   Division 293 tax, each within a stated period and scope. The Medicare levy worksheet
   refuses a person to whom s 9A (lump sum payments in arrears) applies. The annual
   Medicare worksheet does not apply Medicare adjustments to payroll withholding.
+  Worksheets added to the Rust calculators since 0.2.0, such as the main residence
+  exemption, borrowing expenses and the Division 296 estimate, run through the
+  `au-accounting` command until this server links the Rust crate.
 - **GST and BAS:** give each coded bank line a review state against supplied GST
   registration dates and compare lodged BAS label figures with ledger lines per period.
 - **Lodgment and identifiers:** list ATO 2026-27 lodgment program due dates and test

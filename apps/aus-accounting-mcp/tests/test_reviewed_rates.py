@@ -219,7 +219,7 @@ def test_an_impossible_date_is_an_input_error(as_at):
 def test_every_dated_record_answers_at_the_first_date_it_holds_and_returns_itself():
     held = reviewed_rates.records()
 
-    assert len(held) == 72
+    assert len(held) == 74
     for record_id, record in held.items():
         period = record["period"]
         if "as_at" in period:
@@ -238,7 +238,7 @@ def test_the_freshness_report_lists_the_records():
 
     assert dataset["dataset"] == "reviewed_ato_rates"
     assert [period["id"] for period in dataset["effective_periods"]] == ["2025-26", "2026-27"]
-    assert dataset["provenance"] == {"records": 72}
+    assert dataset["provenance"] == {"records": 74}
     assert all(url.startswith("https://www.ato.gov.au/") for url in dataset["sources"])
 
 

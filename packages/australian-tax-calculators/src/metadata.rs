@@ -256,6 +256,17 @@ pub const LOW_INCOME_TAX_OFFSET_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-
 pub const DIVISION_293: [(&str, &str); 2] = [("threshold", "250000"), ("rate", "0.15")];
 pub const DIVISION_293_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
 
+/// ITAA 1997 ss 296-30 and 296-35 (2026-27 thresholds; later years are indexed)
+/// and the Superannuation (Building a Stronger and Fairer Super System) Imposition
+/// Act 2026 s 5.
+pub const DIVISION_296: [(&str, &str); 4] = [
+    ("large_threshold", "3000000"),
+    ("very_large_threshold", "10000000"),
+    ("rate", "0.15"),
+    ("very_large_rate", "0.10"),
+];
+pub const DIVISION_296_YEARS: [&str; 1] = ["2026-27"];
+
 pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 
 /// Statutory or benchmark interest rate by FBT year ended 31 March, for the
@@ -297,6 +308,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "medicare_levy" => keys(MEDICARE_LOW_INCOME_THRESHOLDS),
         "low_income_tax_offset" => LOW_INCOME_TAX_OFFSET_YEARS.to_vec(),
         "division_293" => DIVISION_293_YEARS.to_vec(),
+        "division_296" => DIVISION_296_YEARS.to_vec(),
         _ => Vec::new(),
     }
 }
@@ -372,6 +384,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "division_293" => (
             "2026-10-15",
             "ITAA 1997 ss 293-15 to 293-25, compilation 266 (1 July 2026); Imposition Act 2013 s 5; ATO Key superannuation rates, table 7",
+        ),
+        "division_296" => (
+            "2026-11-13",
+            "ITAA 1997 ss 296-15 to 296-55, compilation 268 (1 October 2026); Imposition Act 2026 s 5; Income Tax (Transitional Provisions) Act 1997 s 296-1; Explanatory Memorandum examples 1.1 to 1.3; ATO Division 296 tax on large super balances",
         ),
         _ => ("", ""),
     }
@@ -481,6 +497,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "example: Division 293 tax calculation",
             "2026-08-24",
             "2026-10-15",
+        ),
+        "division_296" => (
+            "superannuation-contributions-to-superannuation-funds-and-rsas",
+            "6-495",
+            "2026-06-30",
+            "2026-11-13",
         ),
         _ => ("", "", "", ""),
     };
@@ -697,6 +719,28 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, low tax contributed amounts less excess concessional contributions for the financial year",
             ),
         ],
+        "division_296" => vec![
+            (
+                "total_super_balance_end_of_year",
+                "AUD, the total superannuation balance at the end of 30 June 2027 for Division 296, including reversionary retirement phase interests and Division 296 excluded interests, disregarding any LRBA amount (s 296-260) and foreign superannuation fund interests (s 307-230(1)(a))",
+            ),
+            (
+                "total_super_earnings",
+                "AUD, may be negative: total superannuation earnings for the income year (s 296-55), the relevant superannuation earnings for each interest, including one supporting a retirement phase income stream received because of another person's death (s 296-55(1)(b)), with foreign fund, excluded and prescribed amounts as nil",
+            ),
+            (
+                "child_recipient",
+                "boolean, whether the individual was a child recipient of a superannuation income stream at any time in the year (s 296-20)",
+            ),
+            (
+                "structured_settlement_contribution",
+                "boolean, whether a structured settlement contribution was made in respect of the individual in the year or an earlier income year (s 296-25)",
+            ),
+            (
+                "died_in_year",
+                "boolean, whether the individual died on or before 30 June 2027 (Income Tax (Transitional Provisions) Act 1997 s 296-1(3))",
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -816,6 +860,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "division_293" => vec![
             ("division_293_income", Text("240000.00")),
             ("low_tax_contributions", Text("20000.00")),
+        ],
+        "division_296" => vec![
+            ("total_super_balance_end_of_year", Text("4000000.00")),
+            ("total_super_earnings", Text("100000.00")),
+            ("child_recipient", Flag(false)),
+            ("structured_settlement_contribution", Flag(false)),
+            ("died_in_year", Flag(false)),
         ],
         _ => Vec::new(),
     }
