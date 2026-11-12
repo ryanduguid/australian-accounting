@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "aus-accounting-mcp",
   "display_name": "Aus Accounting MCP",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "Reviews, 14 bounded tax and super worksheets, cited retrieval from your local Markdown. Not advice.",
   "long_description": "Australian accounting tools that run on your machine: ATO small business benchmarks, Payday Super and Division 7A reviews, 14 bounded tax and super worksheets, GST and BAS checks, lodgment due dates, reviewed ATO rates and cited search of folders you choose. The server makes no network calls once installed, but Claude still sends tool arguments and results to its model provider, so use fabricated data.\n\nNot tax, legal or financial advice. Results need human review before consequential accounting action. See the [disclaimer](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).",
   "author": {

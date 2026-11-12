@@ -122,6 +122,12 @@
   this release refuses rows flagged `returned_by_fund` and qualifies every `ON_TIME`
   instead. The checker's `returned_by_fund` column and `--events` file exist only in its
   unreleased 1.0.0 source. Check fund records for returns before relying on `ON_TIME`.
+- Adds an MCP Bundle for Claude Desktop, published as its own release
+  `aus-accounting-mcp-bundle/v0.8.0` once 0.8.0 is on PyPI. It pins
+  `aus-accounting-mcp==0.8.0`, which uv installs on first launch, and offers the 3
+  research folders as optional settings. Its workflow checks the bundle against this
+  release's source and starts it before publishing; no Claude Desktop install has
+  been tested.
 - Bundles the 72 reviewed ATO rate records as package data
   (`aus_accounting_mcp/rate_records/`).
 - Retains `payday-super-checker` 0.2.3, `ato-benchmark-compare` 0.2.2,
