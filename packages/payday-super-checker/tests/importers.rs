@@ -287,7 +287,7 @@ fn a_super_row_outside_the_sg_types_is_named_as_skipped() {
 }
 
 /// Skipped rows are grouped by type as first written, ignoring case, and each
-/// type names up to 20 of its rows.
+/// type names up to 20 of its rows. A blank type is named too.
 #[test]
 fn skipped_super_rows_are_grouped_by_type_with_their_rows() {
     let mut super_csv = format!(
@@ -295,9 +295,18 @@ fn skipped_super_rows_are_grouped_by_type_with_their_rows() {
          Test Employee One,Super Guarantee,01/07/2026,09/07/2026,14/07/2026,612.00,Sent to fund\n\
          Test Employee One,Personal Contribution,01/07/2026,09/07/2026,14/07/2026,50.00,Sent to fund\n"
     );
-    for _ in 0..22 {
-        super_csv += "Test Employee One,salary sacrifice,01/07/2026,09/07/2026,14/07/2026,10.00,Sent to fund\n";
+    for n in 0..22 {
+        // Row 5 differs only in case, so it joins the group first written at row 4.
+        let kind = if n == 1 {
+            "Salary Sacrifice"
+        } else {
+            "salary sacrifice"
+        };
+        super_csv += &format!(
+            "Test Employee One,{kind},01/07/2026,09/07/2026,14/07/2026,10.00,Sent to fund\n"
+        );
     }
+    super_csv += "Test Employee One,,01/07/2026,09/07/2026,14/07/2026,10.00,Sent to fund\n";
     let (report, _) = import_beam(
         "skip-many",
         &format!("{PAYROLL_HEADER}Test Employee One,09/07/2026,09/07/2026,612.00\n"),
@@ -307,9 +316,10 @@ fn skipped_super_rows_are_grouped_by_type_with_their_rows() {
     assert_eq!(
         skip_notices(&report.unwrap()),
         [&skipped_warning(
-            23,
+            24,
             &format!(
-                "'Personal Contribution' at row(s) 3; 'salary sacrifice' at row(s) {} and 2 more",
+                "'Personal Contribution' at row(s) 3; 'salary sacrifice' at row(s) {} and 2 more; \
+                 '' at row(s) 26",
                 rows.join(", ")
             )
         )]

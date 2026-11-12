@@ -657,7 +657,7 @@ import record.
 
 Profiles ship for Xero Payroll, MYOB AccountRight, MYOB Business and Employment Hero / KeyPay, one profile each for the payroll-activity report and the super-payments report. The importer picks a profile per file by scoring column headings against what it knows. Force one with `--vendor xero`, `--vendor myob-ar`, `--vendor myob-business` or `--vendor employment-hero` when detection cannot pick, or to skip detection outright.
 
-Each super profile reads only the contribution types it lists as super guarantee. A super row of any other type, such as salary sacrifice, is skipped, not checked: the import names each skipped type with up to 20 of its row numbers in a warning, which leaves the exit code unchanged, and stops without output when every row is skipped.
+Each super profile reads only the contribution types it lists as super guarantee. A super row of any other type, such as salary sacrifice, is skipped, not checked: the import names each skipped type with up to 20 of its row numbers in a warning, and stops without output when every row is skipped. The warning does not change the exit code.
 
 **Every shipped profile is unverified against a real export.** Each one's column names come from vendor help documentation, and Xero, MYOB and Employment Hero do not publish an actual column list for these reports, so the first real export you try may match no profile at all. When that happens the importer prints the column headings it found in your file next to the headings each candidate profile wanted. Send both lists back and fixing the profile is a one-line edit to its JSON file, not a rewrite.
 
