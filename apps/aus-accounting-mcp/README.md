@@ -161,13 +161,13 @@ The research tools need a folder you supply: set `AUS_ACCOUNTING_LIBRARY_ROOT` t
 authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus or
 `AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by
 [PaulGoodman](https://github.com/ryanduguid/PaulGoodman). Its
-[published snapshot](docs/corpus-setup.md#download-the-published-snapshot) of 9 principal
+[published snapshot](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md#download-the-published-snapshot) of 9 principal
 Acts, each at its current compilation on 11 November 2026 and with a rates index, needs no
 build: unpack it and set `AUS_ACCOUNTING_CORPUS_ROOT` to its `dist` folder.
-[`python -m fadden quick --out <empty folder>`](docs/corpus-setup.md#build-the-principal-acts-with-one-command)
+[`python -m fadden quick --out <empty folder>`](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md#build-the-principal-acts-with-one-command)
 in that repository builds the same Acts at their current compilations on your machine,
 without a rates index, and prints the setting. The
-[corpus setup walkthrough](docs/corpus-setup.md) also verifies the existing builder
+[corpus setup walkthrough](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md) also verifies the existing builder
 and MCP tools together using a fabricated page before any live capture.
 The package ships none of them. From 0.8.0, run
 `aus-accounting-mcp doctor` with the same variables set to see each folder's row count;
@@ -208,23 +208,23 @@ record the expected output, limitations and asset source.
 
 ## Conformance cases
 
-[`conformance/cases.json`](conformance/cases.json) holds 32 calls. Fifteen PAYG
+[`conformance/cases.json`](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/conformance/cases.json) holds 32 calls. Fifteen PAYG
 withholding cases take their expected amounts from the ATO's published Schedule 1
 sample data, and 11 Payday Super and Division 7A cases take theirs from an ATO
 example or a section worked by hand (`basis: authority`). Six cases, including those
 it leaves `UNKNOWN` or refuses, pin this server's own results, each with its reason
 (`basis: self-pinned`). Another implementation can replay them; see
-[conformance/README.md](conformance/README.md).
+[conformance/README.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/conformance/README.md).
 
 ## Licence and releases
 
-Licensed under the [Ryan Duguid Public Attribution Licence 1.0](LICENSE), the FSL-1.1-ALv2 text with a public attribution condition. You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. For versions made available from 4 November 2026, LICENSE's Public Attribution Condition applies to the FSL grant: anyone who makes a copy, port or derivative available outside their organisation must credit Ryan Duguid publicly, with a link to this repository. Internal use is exempt, and the condition does not apply to each version's Apache-2.0 licence. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Created by Ryan Duguid. If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
+Licensed under the [Ryan Duguid Public Attribution Licence 1.0](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE), the FSL-1.1-ALv2 text with a public attribution condition. You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. For versions made available from 4 November 2026, LICENSE's Public Attribution Condition applies to the FSL grant: anyone who makes a copy, port or derivative available outside their organisation must credit Ryan Duguid publicly, with a link to this repository. Internal use is exempt, and the condition does not apply to each version's Apache-2.0 licence. See [LICENSE](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE) and [NOTICE](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/NOTICE). Created by Ryan Duguid. If you redistribute this work or build on it, keep the copyright notices in [NOTICE](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/NOTICE).
 
 Release `aus-accounting-mcp==0.5.0` provides 14 worksheets through
 `australian-tax-calculators==0.2.0`, including Schedule 8 study-loan withholding,
 the bounded annual Medicare levy, LITO and Division 293. The preceding 0.4.0
 release provides 10 through calculators 0.1.8. See the
-[worksheet release verification](docs/worksheet-release.md) for the installed
+[worksheet release verification](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/worksheet-release.md) for the installed
 package checks.
 
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),

@@ -1070,6 +1070,18 @@ def test_active_repository_metadata_uses_canonical_identity() -> None:
     assert "ryanduguid/aus-accounting-mcp" not in about_helper
 
 
+def test_readme_links_resolve_on_pypi() -> None:
+    # The README is the PyPI description, where a relative link resolves against
+    # pypi.org rather than this repository, so every link must be absolute.
+    root = Path(__file__).resolve().parents[1]
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    assert project["readme"] == "README.md"
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    targets = re.findall(r"\]\(([^)\s]+)\)", readme)
+    assert targets
+    assert [target for target in targets if not target.startswith("https://")] == []
+
+
 def test_readme_has_stable_proof_anchor_and_mapping() -> None:
     root = Path(__file__).resolve().parents[1]
     readme = (root / "README.md").read_text(encoding="utf-8")
