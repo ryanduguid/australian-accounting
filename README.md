@@ -7,17 +7,11 @@
   </picture>
 </p>
 
-```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
-```
-
-That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
-
 <div align="center">
 
-[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![Codecov](https://codecov.io/gh/ryanduguid/australian-accounting/graph/badge.svg)](https://codecov.io/gh/ryanduguid/australian-accounting)
-[![CodeQL](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/codeql.yml?branch=main&label=CodeQL&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=ryanduguid_australian-accounting&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ryanduguid_australian-accounting)
 [![Codacy code quality](https://app.codacy.com/project/badge/Grade/657574ca064f48499b4839693bafd4bf)](https://app.codacy.com/gh/ryanduguid/australian-accounting/dashboard)<br>
 [![OpenSSF Scorecard](https://raw.githubusercontent.com/ryanduguid/.github/badges/ryanduguid/australian-accounting.svg)](https://scorecard.dev/viewer/?uri=github.com/ryanduguid/australian-accounting)
@@ -33,6 +27,12 @@ That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh
 [Try one contribution](#try-one-contribution) · [Next examples](#choose-the-next-example) · [MCP server](#use-aus-accounting-mcp) · [Components](#components) · [Licence](#licence)
 
 </div>
+
+```bash
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
+```
+
+That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. For Claude Desktop, download the `.mcpb` file from the [bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true) and open it with Claude Desktop. The server runs on your machine, so ChatGPT connectors and the Claude.ai web app, which accept only remote servers, cannot run it. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
 
 Australian Accounting is a set of local tax and payroll calculation engines and an
 MCP server for Australian accountants and bookkeepers, and the developers who build
@@ -144,7 +144,7 @@ For the MCP server, install Python 3.14+ and [uv](https://docs.astral.sh/uv/), t
 configure your MCP client to run:
 
 ```bash
-uvx aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
 ```
 
 This starts a **local stdio server**; it waits for an MCP client rather than opening
@@ -153,9 +153,9 @@ the tools then use bundled data without network requests or record writes. The
 MCP host you connect it to is a separate boundary: it sends every tool argument
 and result to its model provider, so use fabricated data with a hosted model.
 
-`uvx` keeps using the version it first downloaded, so a new release does not reach
-you on its own. To move to a release, name it in your client configuration, for
-example `aus-accounting-mcp==<version>` from [PyPI](https://pypi.org/project/aus-accounting-mcp/);
+The pin selects the published 0.8.0 release, so a new release does not reach you on
+its own. To move to a later release, replace the version in your client configuration
+with one from [PyPI](https://pypi.org/project/aus-accounting-mcp/);
 uvx downloads it, and later launches reuse the cached copy without a download until
 the uv cache is cleaned.
 
@@ -226,39 +226,53 @@ MCP server uses none of the Rust crates yet.
 ## Alternatives
 
 Australian Accounting calculates from figures you supply, and its research tools use folders
-you configure. As read on 5 November 2026, these projects cover nearby ground:
+you configure. As read on 13 November 2026, these projects cover nearby ground:
 
-- [william-laverty/ato-mcp](https://github.com/william-laverty/ato-mcp): hosted retrieval over ATO
-  documents with point-in-time legislation queries. The repository is AGPL-3.0, and its README calls
-  the hosted platform and corpus proprietary.
+- [william-laverty/ato-mcp](https://github.com/william-laverty/ato-mcp): a hosted MCP connector,
+  for Claude.ai, ChatGPT and other clients after sign-in, over more than 34,500 ATO documents
+  (guidance, legislation and public rulings), with point-in-time legislation queries. Its latest release
+  is v2.3.0 of 22 October 2026. Its [pricing](https://ato-mcp.com.au/pricing) gives 25 lookups a
+  month free and unlimited lookups for $300 a year, and its
+  [privacy page](https://ato-mcp.com.au/privacy), last updated 11 November 2026, names Voyage AI in
+  the United States as turning search queries into vectors and ranking the matching passages. The
+  repository is AGPL-3.0, and its README calls the hosted platform and corpus proprietary.
 - [darrentmorgan/au-accounting](https://github.com/darrentmorgan/au-accounting): MIT-licensed
   Australian calculators with refusal codes in YAML.
 - [PolicyEngine/policyengine-au](https://github.com/PolicyEngine/policyengine-au): microsimulation
   for Australia, a different purpose.
 - [Nagaris](https://nagaris.com/llms.txt): a hosted practice platform for Australian accounting
   firms, with proposals, AML/CTF checks, e-signing, job tracking and an AI assistant on one client
-  file. It publishes browser calculators, including [Division 7A](https://nagaris.com/division-7a-calculator)
-  and [Payday Super due dates](https://nagaris.com/payday-super-due-date-calculator), and the page for
-  the second also states 11 August 2026 for a 30 July 2026 payday. Its
+  file. It publishes browser calculators, including [Division 7A](https://nagaris.com/division-7a-calculator),
+  which with repayments entered also shows interest at the benchmark rate and the closing balance
+  (this repository's Division 7A review computes neither), and
+  [Payday Super due dates](https://nagaris.com/payday-super-due-date-calculator), whose page also
+  states 11 August 2026 for a 30 July 2026 payday. Its
   [AI Accounting Index](https://nagaris.com/ai-accounting-index), which tested third-party AI models
   with each question answered once, reports that none of the 14 setups that answered that question
-  reached 11 August, and says Ask Nagaris adds lookup tables for business days. Read 5 November 2026.
+  got the date right, and says Ask Nagaris adds lookup tables for business days.
 - [Lodgeit](https://lodgeit.net.au/): a hosted platform that
   [prepares and lodges](https://lodgeit.net.au/for-accountants/) returns, BAS and financial reports.
   Its home page calls it an 'Official ATO Standard Business Reporting platform' and states
-  ISO 27001:2022 certification. Read 5 November 2026.
+  ISO 27001:2022 certification.
 - [LodgeiT Labs](https://lodgeit.org/calculators.html): a public HTTP gateway for deterministic
-  calculators with no key or signup, which its page describes as 'Not stable yet'. Its
+  calculators with no key or signup, which its page describes as 'Not stable yet'. The gateway also
+  speaks MCP, and its page says to add it to Claude as a custom connector with no sign-in. Its
   [listing](https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app/v1/calculators) showed 23 calculators,
   with Division 7A periods `fy2025` and `fy2026` and FBT period `fy2026`. Its page also lists a
   Coal LSL calculator that external contributor Ryan Duguid built and hosts, and this repository has
-  an optional adapter for the gateway. Read 5 November 2026. A
+  an optional adapter for the gateway. A
   [differential](apps/lodgeit-calculator-adapter/docs/differential-2026-11-06.md) of 6 November 2026
   ran 12 fabricated Division 7A and FBT car formula cases against the gateway and records each
   outcome, with differences traced to statute.
+- [AusCalc](https://auscalc.com.au/): free browser calculators for individual and sole trader tax,
+  PAYG, GST, super and HECS, which its home page also offers inside ChatGPT and Claude as a plugin.
+- [PayCalculator](https://mcp.paycalculator.com.au/): a remote MCP server in the MCP Registry for
+  Australian pay, income tax, super, HECS, family payments and child care subsidy.
 
-This repository offers none of those hosted services. It is not a registered tax or BAS agent,
-does not lodge and holds no third-party certification such as ISO 27001.
+This repository offers none of those hosted services. It has no connector for ChatGPT or the
+Claude.ai web app, and it ships no ATO guidance or rulings corpus: its rulings tools search a corpus
+you supply. It is not a registered tax or BAS agent, does not lodge and holds no third-party
+certification such as ISO 27001.
 
 <details>
 <summary>Rust engine installation, component development, boundaries and releases</summary>
