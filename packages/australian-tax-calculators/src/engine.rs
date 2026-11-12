@@ -1125,9 +1125,14 @@ pub fn division_296(
             (int(0), int(0))
         };
         let total = tax.add(&further)?;
-        // Results carry no negative amounts, so a negative component is reported as null.
+        // Results carry no negative amounts, so a negative component is reported as null,
+        // and a zero one, which earnings of -0.00 would sign, as 0.00.
         let negative = component.lt(&int(0))?;
-        let shown = if negative { int(0) } else { component };
+        let shown = if negative || component.is_zero() {
+            int(0)
+        } else {
+            component
+        };
         Ok((
             vec![
                 ("taxable_superannuation_earnings", taxable),

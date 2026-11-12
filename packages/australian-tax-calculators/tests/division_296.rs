@@ -203,6 +203,7 @@ fn amounts_round_to_cents_only_for_display() {
 fn nil_or_negative_earnings_give_no_tax() {
     for (earnings, component) in [
         ("0.00", json!("0.00")),
+        ("-0.00", json!("0.00")),
         ("-50000.00", Value::Null),
         ("-1000000000000.00", Value::Null),
     ] {
@@ -269,11 +270,15 @@ fn each_exception_means_no_tax() {
     let result = api::evaluate("division-296", &kelly_died).unwrap();
     assert_eq!(amounts(&result), NIL);
     assert_eq!(percentages(&result), ("0.00", "0.00"));
+    // The first exception gives the reason, and death still makes the balance nil.
     let both = with(json!({"child_recipient": true, "died_in_year": true}));
+    let both = api::evaluate("division-296", &both).unwrap();
     assert_eq!(
-        api::evaluate("division-296", &both).unwrap()["liability"],
+        both["liability"],
         "not liable: a child recipient of a superannuation income stream in the year (s 296-20)"
     );
+    assert_eq!(amounts(&both), NIL);
+    assert_eq!(percentages(&both), ("0.00", "0.00"));
     // An exception does not excuse a malformed input.
     let malformed = with(json!({"child_recipient": true, "died_in_year": "no"}));
     assert_eq!(refusal_code(&malformed), "input.flag_invalid");
