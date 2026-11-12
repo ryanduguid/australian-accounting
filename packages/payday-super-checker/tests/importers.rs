@@ -239,3 +239,123 @@ fn an_unknown_beam_status_stops_the_import() {
         "{message}"
     );
 }
+
+const BEAM_SG_TYPES: &str =
+    "['Super Guarantee', 'Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']";
+
+fn skipped_warning(count: usize, skipped: &str) -> String {
+    format!(
+        "{count} super row(s) were skipped, not checked, because profile \
+         employment-hero-super does not read their contribution type as super \
+         guarantee ({BEAM_SG_TYPES}). Skipped: {skipped}. If any of them is super \
+         guarantee, correct its contribution type, or map the file by hand."
+    )
+}
+
+fn skip_notices(report: &ImportReport) -> Vec<&String> {
+    report
+        .warnings
+        .iter()
+        .filter(|w| w.contains("skipped, not checked"))
+        .collect()
+}
+
+/// A super row outside the profile's super guarantee types is left out of the
+/// check, and the import names it with its row and type rather than dropping it
+/// silently. The notice changes no figure and no exit status.
+#[test]
+fn a_super_row_outside_the_sg_types_is_named_as_skipped() {
+    let (report, remittance) = import_beam(
+        "skip-one",
+        &format!("{PAYROLL_HEADER}Test Employee One,09/07/2026,09/07/2026,612.00\n"),
+        &format!(
+            "{BEAM_HEADER}\
+             Test Employee One,Super Guarantee,01/07/2026,09/07/2026,14/07/2026,612.00,Sent to fund\n\
+             Test Employee One,Salary Sacrifice,01/07/2026,09/07/2026,14/07/2026,200.00,Sent to fund\n"
+        ),
+    );
+    let report = report.unwrap();
+    assert_eq!(
+        skip_notices(&report),
+        [&skipped_warning(1, "'Salary Sacrifice' at row(s) 3")]
+    );
+    assert_eq!(
+        remittance,
+        [["Test Employee One", "2026-07-14", "612.00", "612.00"].map(str::to_string)]
+    );
+    assert!(report.clean());
+}
+
+/// Skipped rows are grouped by type as first written, ignoring case, and each
+/// type names up to 20 of its rows.
+#[test]
+fn skipped_super_rows_are_grouped_by_type_with_their_rows() {
+    let mut super_csv = format!(
+        "{BEAM_HEADER}\
+         Test Employee One,Super Guarantee,01/07/2026,09/07/2026,14/07/2026,612.00,Sent to fund\n\
+         Test Employee One,Personal Contribution,01/07/2026,09/07/2026,14/07/2026,50.00,Sent to fund\n"
+    );
+    for _ in 0..22 {
+        super_csv += "Test Employee One,salary sacrifice,01/07/2026,09/07/2026,14/07/2026,10.00,Sent to fund\n";
+    }
+    let (report, _) = import_beam(
+        "skip-many",
+        &format!("{PAYROLL_HEADER}Test Employee One,09/07/2026,09/07/2026,612.00\n"),
+        &super_csv,
+    );
+    let rows: Vec<String> = (4..24).map(|r| r.to_string()).collect();
+    assert_eq!(
+        skip_notices(&report.unwrap()),
+        [&skipped_warning(
+            23,
+            &format!(
+                "'Personal Contribution' at row(s) 3; 'salary sacrifice' at row(s) {} and 2 more",
+                rows.join(", ")
+            )
+        )]
+    );
+}
+
+#[test]
+fn an_import_with_only_sg_rows_names_nothing_as_skipped() {
+    let (report, _) = import_beam(
+        "skip-none",
+        &format!("{PAYROLL_HEADER}Test Employee One,09/07/2026,09/07/2026,612.00\n"),
+        &format!(
+            "{BEAM_HEADER}\
+             Test Employee One,Super Guarantee,01/07/2026,09/07/2026,14/07/2026,300.00,Sent to fund\n\
+             Test Employee One,SG,01/07/2026,09/07/2026,14/07/2026,312.00,Sent to fund\n"
+        ),
+    );
+    assert!(skip_notices(&report.unwrap()).is_empty());
+}
+
+/// The JSON `read-super` lists each skipped row, and leaves the key out when
+/// there is none.
+#[test]
+fn read_super_lists_the_rows_it_skipped() {
+    let dir = std::env::temp_dir().join(format!("payday-read-super-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = |name: &str| dir.join(name).to_str().unwrap().to_string();
+    let read = |name: &str, rows: &str| {
+        std::fs::write(path(name), format!("{BEAM_HEADER}{rows}")).unwrap();
+        payday_super_checker::api::evaluate("read-super", &serde_json::json!({"path": path(name)}))
+            .unwrap()
+    };
+    let sg =
+        "Test Employee One,Super Guarantee,01/07/2026,09/07/2026,14/07/2026,612.00,Sent to fund\n";
+    let mixed = read(
+        "mixed.csv",
+        &format!(
+            "{sg}Test Employee One,Salary Sacrifice,01/07/2026,09/07/2026,14/07/2026,200.00,Sent to fund\n"
+        ),
+    );
+    let only_sg = read("sg.csv", sg);
+    let _ = std::fs::remove_dir_all(&dir);
+    assert_eq!(
+        mixed["skipped"],
+        serde_json::json!([{"row": 3, "contribution_type": "Salary Sacrifice"}])
+    );
+    assert_eq!(mixed["rows"].as_array().unwrap().len(), 1);
+    assert!(only_sg.get("skipped").is_none(), "{only_sg}");
+}

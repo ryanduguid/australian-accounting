@@ -657,6 +657,8 @@ import record.
 
 Profiles ship for Xero Payroll, MYOB AccountRight, MYOB Business and Employment Hero / KeyPay, one profile each for the payroll-activity report and the super-payments report. The importer picks a profile per file by scoring column headings against what it knows. Force one with `--vendor xero`, `--vendor myob-ar`, `--vendor myob-business` or `--vendor employment-hero` when detection cannot pick, or to skip detection outright.
 
+Each super profile reads only the contribution types it lists as super guarantee. A super row of any other type, such as salary sacrifice, is skipped, not checked: the import names each skipped type with up to 20 of its row numbers in a warning, which leaves the exit code unchanged, and stops without output when every row is skipped.
+
 **Every shipped profile is unverified against a real export.** Each one's column names come from vendor help documentation, and Xero, MYOB and Employment Hero do not publish an actual column list for these reports, so the first real export you try may match no profile at all. When that happens the importer prints the column headings it found in your file next to the headings each candidate profile wanted. Send both lists back and fixing the profile is a one-line edit to its JSON file, not a rewrite.
 
 **The supported export profiles do not establish a fund receipt date.** Xero's report gives the date a payment was sent to the fund. MYOB gives a Paid Date. Employment Hero gives a Beam status (Created through to Sent to fund). None of these is the date the fund received the money. The legal deadline tests receipt by the fund, and time in transit through a clearing house is the employer's risk, not the fund's, so a vendor date is a remittance date and `fund_received_date` is left blank on every row. Fill that column in from your fund or clearing house before treating any verdict from the checker as final. `remitted_date` is the latest known vendor date for the dated subtotal; an entirely undated match leaves it blank. The Beam status also decides whether the date counts at all: a batch still at Created, Submission accepted or Awaiting payment is money that never left the employer, and one at Awaiting clearance or Reconciled is still with Beam, not yet sent to the fund, so its Payment Date is not written as a remittance date and the payday reads as unfunded, with a warning naming the status. Not actioned, Cancelled, Failed, Refunded and Payment failed are treated the same way because they do not establish remittance, which is not proof that no money moved. So is Sent to fund with refund: a fund rejected and refunded some of that batch without the export saying which, so settle each contribution from the batch history before entering its date by hand. Sent to fund with response (a fund replied with warnings or notes) and a manual batch's Paid (the employer's own assertion) keep their date as a remittance date only. A status outside these stops the import rather than being guessed either way.
@@ -723,8 +725,10 @@ table with explicit `from`, `to` and `annual_pct` entries.
 `assess` returns each line's result with its rounded `figures` (null where a
 figure cannot be rounded to cents); `join` returns the outcomes, orphans and the
 canonical CSV text `import` would write; `import-files` returns the whole
-import report. `build-evidence-pack` names no rate table and no GIC provenance
-unless `rate_tables` and `gic_provenance` are given, as Python's defaults did.
+import report. `read-super` adds `skipped`, each row the contribution-type filter
+left out as `row` and `contribution_type`, when there is one.
+`build-evidence-pack` names no rate table and no GIC provenance unless
+`rate_tables` and `gic_provenance` are given, as Python's defaults did.
 
 ```sh
 echo '{"text": "9 Jul 2026"}' | payday-super-check parse-date-text
