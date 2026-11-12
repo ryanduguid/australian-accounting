@@ -89,7 +89,10 @@ def should_run(package: str, changed_paths: list[str]) -> bool:
 def project_version(package: str, root: Path = ROOT) -> str:
     """The static ``version`` in the package's ``[project]`` table."""
     directory = root / PACKAGE_ROOT / package
-    cargo = (directory / "Cargo.toml").is_file()
+    # A staged native candidate can coexist with an unreleased Python engine
+    # whilst its existing MCP consumer still imports it. Release routing remains
+    # with Python until that interface is retired explicitly.
+    cargo = not (directory / "pyproject.toml").is_file() and (directory / "Cargo.toml").is_file()
     section = "package" if cargo else "project"
     text = (directory / ("Cargo.toml" if cargo else "pyproject.toml")).read_text(encoding="utf-8")
     table = re.search(r"(?ms)^\[" + section + r"\]\s*$(.*?)(?=(?:^\[)|\Z)", text)

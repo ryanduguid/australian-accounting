@@ -629,8 +629,10 @@ engine deliberately does not establish.
 - Benchmark rate explainer: <https://duguid.com.au/rates/div7a-benchmark-rate/>
 - Australian tax AI agents: <https://duguid.com.au/tools/australian-tax-ai-agents/>
 
-From an AI coding agent, the same engine runs through `aus-accounting-mcp`,
-which installs the last Python release, 0.3.2, until it links this crate.
+From an AI coding agent, the same engine runs through `aus-accounting-mcp`.
+Its published release, 0.7.1, installs the last Python release of this engine,
+0.3.2; the server's native build in this repository links this crate and is
+not released yet.
 
 ## Author and licence
 

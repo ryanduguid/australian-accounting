@@ -1,0 +1,142 @@
+[
+  {
+    "request": {
+      "obligation": "O'Reilly",
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got \"O'Reilly\""
+  },
+  {
+    "request": {
+      "obligation": "O'Reilly \"quoted\"",
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 'O\\'Reilly \"quoted\"'"
+  },
+  {
+    "request": {
+      "obligation": "NUL\u0000ESC\u001b\b\u000b\f",
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 'NUL\\x00ESC\\x1b\\x08\\x0b\\x0c\\x7f'"
+  },
+  {
+    "request": {
+      "obligation": "‮​󠀁",
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got '\\x85\\u202e\\u200b\\U000e0001'"
+  },
+  {
+    "request": {
+      "obligation": [
+        true,
+        null,
+        "x"
+      ],
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got [True, None, 'x']"
+  },
+  {
+    "request": {
+      "obligation": {
+        "nested": [
+          false,
+          null,
+          1
+        ]
+      },
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got {'nested': [False, None, 1]}"
+  },
+  {
+    "request": {
+      "obligation": 1.0,
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1.0"
+  },
+  {
+    "request": {
+      "obligation": 100000.0,
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 100000.0"
+  },
+  {
+    "request": {
+      "obligation": 1e+16,
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1e+16"
+  },
+  {
+    "request": {
+      "obligation": 1e+20,
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1e+20"
+  },
+  {
+    "request": {
+      "obligation": 1e-07,
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1e-07"
+  },
+  {
+    "request": {
+      "obligation": 1e-05,
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1e-05"
+  },
+  {
+    "request": {
+      "obligation": 1000000000000000000000000000000,
+      "entity_type": "trust",
+      "financial_year": "2026-27",
+      "channel": "self",
+      "reporting_cycle": "monthly"
+    },
+    "error": "obligation must be one of bas, ias, income_tax_return, fbt_return; got 1000000000000000000000000000000"
+  }
+]

@@ -35,9 +35,15 @@ def test_root_docs_state_the_python_floor_the_package_requires() -> None:
 
 
 def test_root_docs_do_not_call_the_rust_engines_python() -> None:
+    # lodgment-calendar keeps its Python source beside its Rust crate until MCP
+    # cutover, so it counts as the Python engine until then. No other package
+    # may have both manifests.
+    packages = list((ROOT / "packages").iterdir())
+    both = {p.name for p in packages if (p / "Cargo.toml").is_file() and (p / "pyproject.toml").is_file()}
+    assert both == {"lodgment-calendar"}
     rust_engines = sum(
-        (path / "Cargo.toml").is_file() and path.name != "au-tax-rates-data"
-        for path in (ROOT / "packages").iterdir()
+        (path / "Cargo.toml").is_file() and path.name not in {"au-tax-rates-data", "lodgment-calendar"}
+        for path in packages
     )
     python_engines = sum(
         (path / "pyproject.toml").is_file() for path in (ROOT / "packages").iterdir()
@@ -47,4 +53,5 @@ def test_root_docs_do_not_call_the_rust_engines_python() -> None:
     for name in ("README.md", "llms.txt"):
         text = " ".join(_text(name).replace("> ", "").split())
         assert claim in text
-        assert "loads none of the Rust crates yet" in text
+        assert "published Python releases of 6 of them" in text
+        assert "native build in this repository links the Rust crates of all 6 instead" in text

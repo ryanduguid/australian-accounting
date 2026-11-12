@@ -1,0 +1,67 @@
+[package]
+name = "aus-accounting-mcp"
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.99"
+description = "Native local Australian accounting MCP server candidate"
+license = "LicenseRef-Duguid-Public-Attribution-1.0"
+repository = "https://github.com/ryanduguid/australian-accounting"
+publish = false
+default-run = "aus-accounting-mcp"
+
+[dependencies]
+div7a-loan-review = { path = "../../packages/div7a-loan-review" }
+ato-benchmark-compare = { path = "../../packages/ato-benchmark-compare" }
+australian-tax-calculators = { path = "../../packages/australian-tax-calculators" }
+gst-review = { path = "../../packages/gst-review" }
+lodgment-calendar = { path = "../../packages/lodgment-calendar" }
+payday-super-checker = { path = "../../packages/payday-super-checker" }
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+jsonschema = { version = "=0.59.0", default-features = false, features = ["arbitrary-precision"] }
+regex = "=1.13.1"
+num-bigint = "0.4"
+indexmap = "2"
+serde = "1"
+rmcp = { version = "=3.9.0", default-features = false, features = ["server", "client", "transport-io"] }
+roxmltree = "=0.21.1"
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision", "unbounded_depth", "raw_value"] }
+stacker = "=0.1.25"
+sha2 = "0.11"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std", "process", "time"] }
+
+[package.metadata.ci]
+binary = "aus-accounting-mcp"
+smoke = "--version"
+candidate-test = "native_candidate"
+extra-binaries = ["aus-accounting-mcp-demo", "aus-accounting-mcp-evaluate"]
+extra-examples = ["group_review"]
+candidate-files = [
+    "apps/aus-accounting-mcp/LICENSE",
+    "apps/aus-accounting-mcp/NOTICE",
+    "apps/aus-accounting-mcp/DISCLAIMER.md",
+    "apps/aus-accounting-mcp/SECURITY.md",
+    "apps/aus-accounting-mcp/NATIVE.md",
+    "apps/aus-accounting-mcp/examples/GROUP-REVIEW.md",
+    "packages/ato-benchmark-compare/LICENSE",
+    "packages/ato-benchmark-compare/NOTICE",
+    "packages/ato-benchmark-compare/DISCLAIMER.md",
+    "packages/australian-tax-calculators/LICENSE",
+    "packages/australian-tax-calculators/NOTICE",
+    "packages/australian-tax-calculators/DISCLAIMER.md",
+    "packages/div7a-loan-review/LICENSE",
+    "packages/div7a-loan-review/NOTICE",
+    "packages/div7a-loan-review/DISCLAIMER.md",
+    "packages/gst-review/LICENSE",
+    "packages/gst-review/NOTICE",
+    "packages/gst-review/DISCLAIMER.md",
+    "packages/lodgment-calendar/LICENSE",
+    "packages/lodgment-calendar/NOTICE",
+    "packages/lodgment-calendar/DISCLAIMER.md",
+    "packages/payday-super-checker/LICENSE",
+    "packages/payday-super-checker/NOTICE",
+    "packages/payday-super-checker/DISCLAIMER.md",
+]
+
+[profile.release]
+lto = true
+codegen-units = 1

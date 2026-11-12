@@ -1,0 +1,3332 @@
+{
+  "list_ato_benchmark_industries": {
+    "type": "model",
+    "name": "list_ato_benchmark_industriesArguments",
+    "config": {
+      "title": "list_ato_benchmark_industriesArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "search": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 120
+              }
+            }
+          }
+        },
+        "year": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 7
+              }
+            }
+          }
+        },
+        "limit": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "int",
+                "strict": true,
+                "ge": 1,
+                "le": 100
+              }
+            }
+          }
+        },
+        "offset": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 0,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "get_ato_benchmarks": {
+    "type": "model",
+    "name": "get_ato_benchmarksArguments",
+    "config": {
+      "title": "get_ato_benchmarksArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "industry": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 120
+          }
+        },
+        "turnover": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 60
+          }
+        },
+        "other_income": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "cost_of_sales": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "cost_of_sales_labour": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "salary_wages": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "contractor_commission": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "associated_persons": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "rent": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "motor_vehicle": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "other_expense": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "w1": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "year": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 7
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "calc_payday_super_deadline": {
+    "type": "model",
+    "name": "calc_payday_super_deadlineArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "qe_day": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 40
+          }
+        },
+        "sg_amount": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 60
+          }
+        },
+        "as_at": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 40
+          }
+        },
+        "remitted": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 40
+              }
+            },
+            "default": null
+          }
+        },
+        "received": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 40
+              }
+            },
+            "default": null
+          }
+        },
+        "employee_id": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "str",
+              "max_length": 120
+            },
+            "default": "mcp-1"
+          }
+        },
+        "first_to_fund": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "bool",
+              "strict": true
+            },
+            "default": false
+          }
+        },
+        "out_of_cycle": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "bool",
+              "strict": true
+            },
+            "default": false
+          }
+        },
+        "next_standard_qe_day": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 40
+              }
+            },
+            "default": null
+          }
+        },
+        "db_interest": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "bool",
+              "strict": true
+            },
+            "default": false
+          }
+        },
+        "remitted_amount": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            },
+            "default": null
+          }
+        },
+        "matched_amount": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            },
+            "default": null
+          }
+        },
+        "returned_by_fund": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "bool"
+            },
+            "default": false
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "calc_payday_super_deadlineArguments"
+    }
+  },
+  "get_div7a_benchmark_rate": {
+    "type": "model",
+    "name": "get_div7a_benchmark_rateArguments",
+    "config": {
+      "title": "get_div7a_benchmark_rateArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "year_of_income": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 7
+          }
+        },
+        "response_detail": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": "summary",
+            "schema": {
+              "type": "literal",
+              "expected": [
+                "summary",
+                "full"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "review_div7a_loan": {
+    "type": "model",
+    "name": "review_div7a_loanArguments",
+    "config": {
+      "title": "review_div7a_loanArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "year_of_income": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 7
+          }
+        },
+        "year_loan_made": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 7
+              }
+            }
+          }
+        },
+        "written_agreement": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "bool",
+                "strict": true
+              }
+            }
+          }
+        },
+        "terms_in_place_before_lodgment_day": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "bool",
+                "strict": true
+              }
+            }
+          }
+        },
+        "maximum_term_years": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 30
+              }
+            }
+          }
+        },
+        "secured_by_registered_mortgage_over_real_property": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "bool",
+                "strict": true
+              }
+            }
+          }
+        },
+        "security_coverage_at_first_made": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 30
+              }
+            }
+          }
+        },
+        "interest_rate_for_years_after_year_loan_made": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 30
+              }
+            }
+          }
+        },
+        "amalgamated_loan_unpaid_at_end_of_previous_year": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "remaining_term_years": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 30
+              }
+            }
+          }
+        },
+        "payments_applied_during_the_year": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 60
+              }
+            }
+          }
+        },
+        "loan_id": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": "mcp-div7a-1",
+            "schema": {
+              "type": "str",
+              "max_length": 120
+            }
+          }
+        },
+        "response_detail": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": "summary",
+            "schema": {
+              "type": "literal",
+              "expected": [
+                "summary",
+                "full"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "refuse_div7a": {
+    "type": "model",
+    "name": "refuse_div7aArguments",
+    "config": {
+      "title": "refuse_div7aArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {}
+    }
+  },
+  "generate_synthetic_sbr_fixture": {
+    "type": "model",
+    "name": "generate_synthetic_sbr_fixtureArguments",
+    "config": {
+      "title": "generate_synthetic_sbr_fixtureArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "form_type": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 20
+          }
+        },
+        "entity_name": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": "Synthetix Pty Ltd",
+            "schema": {
+              "type": "str",
+              "max_length": 120
+            }
+          }
+        },
+        "revenue_or_sales": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": "1000000.00",
+            "schema": {
+              "type": "str",
+              "max_length": 60
+            }
+          }
+        }
+      }
+    }
+  },
+  "review_payday_super_contributions": {
+    "type": "model",
+    "name": "review_payday_super_contributionsArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "contributions": {
+          "type": "model-field",
+          "schema": {
+            "type": "list",
+            "items_schema": {
+              "type": "model",
+              "name": "ContributionInput",
+              "schema": {
+                "type": "model-fields",
+                "fields": {
+                  "employee_id": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "min_length": 1,
+                      "max_length": 120
+                    }
+                  },
+                  "qe_day": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str"
+                    }
+                  },
+                  "sg_amount": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str"
+                    }
+                  },
+                  "first_to_fund": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "bool"
+                    }
+                  },
+                  "out_of_cycle": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "bool"
+                    }
+                  },
+                  "db_interest": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "bool"
+                    }
+                  },
+                  "remitted": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str"
+                        }
+                      },
+                      "default": null
+                    }
+                  },
+                  "received": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str"
+                        }
+                      },
+                      "default": null
+                    }
+                  },
+                  "next_standard_qe_day": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str"
+                        }
+                      },
+                      "default": null
+                    }
+                  },
+                  "remitted_amount": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str"
+                        }
+                      },
+                      "default": null
+                    }
+                  },
+                  "matched_amount": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str"
+                        }
+                      },
+                      "default": null
+                    }
+                  },
+                  "returned_by_fund": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "bool"
+                      },
+                      "default": false
+                    }
+                  }
+                }
+              },
+              "config": {
+                "title": "ContributionInput",
+                "extra_fields_behavior": "forbid",
+                "str_strip_whitespace": true,
+                "strict": true
+              }
+            },
+            "min_length": 1,
+            "max_length": 200
+          }
+        },
+        "as_at": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 40
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "review_payday_super_contributionsArguments"
+    }
+  },
+  "build_payday_super_evidence_pack": {
+    "type": "model",
+    "name": "build_payday_super_evidence_packArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "contributions": {
+          "type": "model-field",
+          "schema": {
+            "type": "list",
+            "items_schema": {
+              "type": "model",
+              "name": "ContributionInput",
+              "schema": {
+                "type": "model-fields",
+                "fields": {
+                  "employee_id": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "min_length": 1,
+                      "max_length": 120
+                    }
+                  },
+                  "qe_day": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str"
+                    }
+                  },
+                  "sg_amount": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str"
+                    }
+                  },
+                  "first_to_fund": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "bool"
+                    }
+                  },
+                  "out_of_cycle": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "bool"
+                    }
+                  },
+                  "db_interest": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "bool"
+                    }
+                  },
+                  "remitted": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str"
+                        }
+                      },
+                      "default": null
+                    }
+                  },
+                  "received": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str"
+                        }
+                      },
+                      "default": null
+                    }
+                  },
+                  "next_standard_qe_day": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str"
+                        }
+                      },
+                      "default": null
+                    }
+                  },
+                  "remitted_amount": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str"
+                        }
+                      },
+                      "default": null
+                    }
+                  },
+                  "matched_amount": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str"
+                        }
+                      },
+                      "default": null
+                    }
+                  },
+                  "returned_by_fund": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "schema": {
+                        "type": "bool"
+                      },
+                      "default": false
+                    }
+                  }
+                }
+              },
+              "config": {
+                "title": "ContributionInput",
+                "extra_fields_behavior": "forbid",
+                "str_strip_whitespace": true,
+                "strict": true
+              }
+            },
+            "min_length": 1,
+            "max_length": 200
+          }
+        },
+        "as_at": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 40
+          }
+        },
+        "response_detail": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "literal",
+              "expected": [
+                "full",
+                "compact"
+              ]
+            },
+            "default": "full"
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "build_payday_super_evidence_packArguments"
+    }
+  },
+  "review_gst_coding": {
+    "type": "model",
+    "name": "review_gst_codingArguments",
+    "config": {
+      "title": "review_gst_codingArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "lines": {
+          "type": "model-field",
+          "schema": {
+            "type": "list",
+            "min_length": 1,
+            "max_length": 1000,
+            "items_schema": {
+              "type": "model",
+              "name": "BankLineInput",
+              "config": {
+                "title": "BankLineInput",
+                "extra_fields_behavior": "forbid",
+                "str_strip_whitespace": true,
+                "strict": true
+              },
+              "schema": {
+                "type": "model-fields",
+                "fields": {
+                  "id": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "min_length": 1,
+                      "max_length": 120
+                    }
+                  },
+                  "entity": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "min_length": 1,
+                      "max_length": 120
+                    }
+                  },
+                  "date": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "max_length": 10,
+                      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                    }
+                  },
+                  "amount": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "max_length": 60
+                    }
+                  },
+                  "account": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "default": null,
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str",
+                          "max_length": 120
+                        }
+                      }
+                    }
+                  },
+                  "gst_code": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "default": null,
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str",
+                          "max_length": 120
+                        }
+                      }
+                    }
+                  },
+                  "confirmed": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "default": false,
+                      "schema": {
+                        "type": "bool"
+                      }
+                    }
+                  },
+                  "suggested_account": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "default": null,
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str",
+                          "max_length": 120
+                        }
+                      }
+                    }
+                  },
+                  "suggested_gst_code": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "default": null,
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str",
+                          "max_length": 120
+                        }
+                      }
+                    }
+                  },
+                  "supplier_registered": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "default": null,
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "bool"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "registrations": {
+          "type": "model-field",
+          "schema": {
+            "type": "list",
+            "min_length": 1,
+            "max_length": 50,
+            "items_schema": {
+              "type": "model",
+              "name": "RegistrationInput",
+              "config": {
+                "title": "RegistrationInput",
+                "extra_fields_behavior": "forbid",
+                "str_strip_whitespace": true,
+                "strict": true
+              },
+              "schema": {
+                "type": "model-fields",
+                "fields": {
+                  "entity": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "min_length": 1,
+                      "max_length": 120
+                    }
+                  },
+                  "registered_from": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "nullable",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 10,
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                      }
+                    }
+                  },
+                  "registered_to": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "default": null,
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str",
+                          "max_length": 10,
+                          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "match_window_days": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 3,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 0,
+              "le": 31
+            }
+          }
+        },
+        "gst_codes": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "dict",
+                "max_length": 200,
+                "keys_schema": {
+                  "type": "str"
+                },
+                "values_schema": {
+                  "type": "literal",
+                  "expected": [
+                    "taxable",
+                    "gst_free",
+                    "input_taxed",
+                    "outside_gst"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "reconcile_bas": {
+    "type": "model",
+    "name": "reconcile_basArguments",
+    "config": {
+      "title": "reconcile_basArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "lines": {
+          "type": "model-field",
+          "schema": {
+            "type": "list",
+            "max_length": 2000,
+            "items_schema": {
+              "type": "model",
+              "name": "LedgerLineInput",
+              "config": {
+                "title": "LedgerLineInput",
+                "extra_fields_behavior": "forbid",
+                "str_strip_whitespace": true,
+                "strict": true
+              },
+              "schema": {
+                "type": "model-fields",
+                "fields": {
+                  "id": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "min_length": 1,
+                      "max_length": 120
+                    }
+                  },
+                  "side": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "literal",
+                      "expected": [
+                        "sale",
+                        "purchase"
+                      ]
+                    }
+                  },
+                  "gross": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "max_length": 60
+                    }
+                  },
+                  "gst": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "max_length": 60
+                    }
+                  },
+                  "gst_code": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "max_length": 120
+                    }
+                  },
+                  "invoice_date": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "max_length": 10,
+                      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                    }
+                  },
+                  "payment_date": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "default": null,
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "str",
+                          "max_length": 10,
+                          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "periods": {
+          "type": "model-field",
+          "schema": {
+            "type": "list",
+            "min_length": 1,
+            "max_length": 24,
+            "items_schema": {
+              "type": "model",
+              "name": "BasPeriodInput",
+              "config": {
+                "title": "BasPeriodInput",
+                "extra_fields_behavior": "forbid",
+                "str_strip_whitespace": true,
+                "strict": true
+              },
+              "schema": {
+                "type": "model-fields",
+                "fields": {
+                  "label": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "min_length": 1,
+                      "max_length": 120
+                    }
+                  },
+                  "start": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "max_length": 10,
+                      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                    }
+                  },
+                  "end": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "str",
+                      "max_length": 10,
+                      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                    }
+                  },
+                  "lodged": {
+                    "type": "model-field",
+                    "schema": {
+                      "type": "default",
+                      "default": null,
+                      "schema": {
+                        "type": "nullable",
+                        "schema": {
+                          "type": "dict",
+                          "keys_schema": {
+                            "type": "literal",
+                            "expected": [
+                              "G1",
+                              "G2",
+                              "G3",
+                              "G10",
+                              "G11",
+                              "1A",
+                              "1B"
+                            ]
+                          },
+                          "values_schema": {
+                            "type": "str",
+                            "max_length": 60
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "basis": {
+          "type": "model-field",
+          "schema": {
+            "type": "literal",
+            "expected": [
+              "cash",
+              "accruals"
+            ]
+          }
+        },
+        "g1_includes_gst": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": true,
+            "schema": {
+              "type": "bool",
+              "strict": true
+            }
+          }
+        },
+        "bas_codes": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "dict",
+                "max_length": 200,
+                "keys_schema": {
+                  "type": "str"
+                },
+                "values_schema": {
+                  "type": "literal",
+                  "expected": [
+                    "taxable",
+                    "capital",
+                    "gst_free",
+                    "capital_gst_free",
+                    "export",
+                    "input_taxed",
+                    "excluded"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "get_lodgment_due_dates": {
+    "type": "model",
+    "name": "get_lodgment_due_datesArguments",
+    "config": {
+      "title": "get_lodgment_due_datesArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "obligation": {
+          "type": "model-field",
+          "schema": {
+            "type": "literal",
+            "expected": [
+              "bas",
+              "ias",
+              "income_tax_return"
+            ]
+          }
+        },
+        "entity_type": {
+          "type": "model-field",
+          "schema": {
+            "type": "literal",
+            "expected": [
+              "individual",
+              "trust",
+              "partnership",
+              "company",
+              "smsf"
+            ]
+          }
+        },
+        "financial_year": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 7,
+            "pattern": "^[0-9]{4}-[0-9]{2}$"
+          }
+        },
+        "channel": {
+          "type": "model-field",
+          "schema": {
+            "type": "literal",
+            "expected": [
+              "self",
+              "tax_agent",
+              "bas_agent"
+            ]
+          }
+        },
+        "reporting_cycle": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "literal",
+                "expected": [
+                  "monthly",
+                  "quarterly"
+                ]
+              }
+            }
+          }
+        },
+        "facts": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "model",
+                "name": "LodgmentFactsInput",
+                "config": {
+                  "title": "LodgmentFactsInput",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                },
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "prior_returns_outstanding": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "overdue_returns_lodged_by_31_october": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "on_agent_client_list_by_cutoff": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "large_or_medium": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "member_large_or_medium": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "new_registrant": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "prior_year_return_taxable": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "current_year_return_taxable": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "latest_tax_liability_20k_or_more": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "total_income_over_2m": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "prior_year_non_taxable_or_refund": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "current_year_non_taxable_or_refund": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "consolidated_head_company": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "first_consolidated_return": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "lodges_electronically": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "previous_statement_lodged_electronically": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "includes_monthly_payg_obligation": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "annual_turnover_up_to_10m": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    },
+                    "deferred_gst_registered": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "default",
+                        "default": null,
+                        "schema": {
+                          "type": "nullable",
+                          "schema": {
+                            "type": "bool"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "extra_holidays": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "list",
+                "max_length": 50,
+                "items_schema": {
+                  "type": "model",
+                  "name": "HolidayInput",
+                  "config": {
+                    "title": "HolidayInput",
+                    "extra_fields_behavior": "forbid",
+                    "str_strip_whitespace": true,
+                    "strict": true
+                  },
+                  "schema": {
+                    "type": "model-fields",
+                    "fields": {
+                      "date": {
+                        "type": "model-field",
+                        "schema": {
+                          "type": "str",
+                          "max_length": 10,
+                          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                        }
+                      },
+                      "name": {
+                        "type": "model-field",
+                        "schema": {
+                          "type": "str",
+                          "min_length": 1,
+                          "max_length": 120
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "holidays_complete_until": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 10,
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "calculate_tax_worksheet": {
+    "type": "model",
+    "name": "calculate_tax_worksheetArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "facts": {
+          "type": "model-field",
+          "schema": {
+            "type": "tagged-union",
+            "choices": {
+              "gst": {
+                "type": "model",
+                "name": "GstFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "gst"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2025-26"
+                        ]
+                      }
+                    },
+                    "amount": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "gst_inclusive": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "GstFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "resident_tax": {
+                "type": "model",
+                "name": "ResidentTaxFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "resident_tax"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2024-25",
+                          "2025-26",
+                          "2026-27"
+                        ]
+                      }
+                    },
+                    "taxable_income": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "ResidentTaxFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "capital_gains": {
+                "type": "model",
+                "name": "CapitalGainsFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "capital_gains"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2025-26"
+                        ]
+                      }
+                    },
+                    "other_gains": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "discount_gains": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "current_losses": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "prior_losses": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "CapitalGainsFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "fbt": {
+                "type": "model",
+                "name": "FbtFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "fbt"
+                        ]
+                      }
+                    },
+                    "year_ended": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "int",
+                        "ge": 2026,
+                        "le": 2026
+                      }
+                    },
+                    "type_one_value": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "type_two_value": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "FbtFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "depreciation": {
+                "type": "model",
+                "name": "DepreciationFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "depreciation"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2025-26"
+                        ]
+                      }
+                    },
+                    "cost": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "effective_life": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 30
+                      }
+                    },
+                    "days": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "int",
+                        "ge": 0,
+                        "le": 365
+                      }
+                    },
+                    "taxable_use": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 30
+                      }
+                    },
+                    "method": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "prime_cost",
+                          "diminishing_value"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "DepreciationFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "quarterly_sg": {
+                "type": "model",
+                "name": "SgFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "quarterly_sg"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2025-26"
+                        ]
+                      }
+                    },
+                    "quarter": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "int",
+                        "ge": 1,
+                        "le": 4
+                      }
+                    },
+                    "ordinary_time_earnings": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "qualifying_contributions": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "SgFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "payg_withholding": {
+                "type": "model",
+                "name": "PaygWithholdingFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "payg_withholding"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2026-27"
+                        ]
+                      }
+                    },
+                    "earnings": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "pay_period": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "weekly",
+                          "fortnightly",
+                          "monthly"
+                        ]
+                      }
+                    },
+                    "scale": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          1,
+                          2,
+                          3,
+                          5,
+                          6
+                        ]
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "PaygWithholdingFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "contribution_caps": {
+                "type": "model",
+                "name": "ContributionCapsFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "contribution_caps"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2024-25",
+                          "2025-26",
+                          "2026-27"
+                        ]
+                      }
+                    },
+                    "total_super_balance": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "concessional_contributions": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "unused_concessional_cap": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "non_concessional_contributions": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "under_75_in_year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "ContributionCapsFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "pension_minimum": {
+                "type": "model",
+                "name": "PensionMinimumFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "pension_minimum"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2024-25",
+                          "2025-26",
+                          "2026-27"
+                        ]
+                      }
+                    },
+                    "account_balance": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "age": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "int",
+                        "ge": 0,
+                        "le": 150
+                      }
+                    },
+                    "days": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "int",
+                        "ge": 1,
+                        "le": 365
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "PensionMinimumFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "study_loan_repayment": {
+                "type": "model",
+                "name": "StudyLoanRepaymentFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "study_loan_repayment"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2025-26",
+                          "2026-27"
+                        ]
+                      }
+                    },
+                    "repayment_income": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "StudyLoanRepaymentFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "study_loan_withholding": {
+                "type": "model",
+                "name": "StudyLoanWithholdingFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "study_loan_withholding"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2026-27"
+                        ]
+                      }
+                    },
+                    "earnings": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "pay_period": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "weekly",
+                          "fortnightly",
+                          "monthly"
+                        ]
+                      }
+                    },
+                    "scale": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          1,
+                          2,
+                          3,
+                          5,
+                          6
+                        ]
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "StudyLoanWithholdingFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "medicare_levy": {
+                "type": "model",
+                "name": "MedicareLevyFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "medicare_levy"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2024-25",
+                          "2025-26"
+                        ]
+                      }
+                    },
+                    "taxable_income": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "section_9a_adjustment_applies": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "MedicareLevyFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "low_income_tax_offset": {
+                "type": "model",
+                "name": "LowIncomeTaxOffsetFacts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "low_income_tax_offset"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2024-25",
+                          "2025-26",
+                          "2026-27"
+                        ]
+                      }
+                    },
+                    "taxable_income": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "LowIncomeTaxOffsetFacts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              },
+              "division_293": {
+                "type": "model",
+                "name": "Division293Facts",
+                "schema": {
+                  "type": "model-fields",
+                  "fields": {
+                    "scope_confirmed": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "bool"
+                      }
+                    },
+                    "kind": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "division_293"
+                        ]
+                      }
+                    },
+                    "year": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "literal",
+                        "expected": [
+                          "2024-25",
+                          "2025-26",
+                          "2026-27"
+                        ]
+                      }
+                    },
+                    "division_293_income": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    },
+                    "low_tax_contributions": {
+                      "type": "model-field",
+                      "schema": {
+                        "type": "str",
+                        "max_length": 60
+                      }
+                    }
+                  }
+                },
+                "config": {
+                  "title": "Division293Facts",
+                  "extra_fields_behavior": "forbid",
+                  "strict": true
+                }
+              }
+            },
+            "discriminator": "kind",
+            "strict": false
+          }
+        },
+        "file_note": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "bool",
+              "strict": true
+            },
+            "default": false
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "calculate_tax_worksheetArguments"
+    }
+  },
+  "get_data_freshness": {
+    "type": "model",
+    "name": "get_data_freshnessArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "as_at": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 10,
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              }
+            },
+            "default": null
+          }
+        },
+        "tool": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "literal",
+                "expected": [
+                  "list_ato_benchmark_industries",
+                  "get_ato_benchmarks",
+                  "get_div7a_benchmark_rate",
+                  "review_div7a_loan",
+                  "calc_payday_super_deadline",
+                  "review_payday_super_contributions",
+                  "build_payday_super_evidence_pack",
+                  "calculate_tax_worksheet",
+                  "get_lodgment_due_dates",
+                  "review_gst_coding",
+                  "reconcile_bas",
+                  "get_reviewed_rate"
+                ]
+              }
+            },
+            "default": null
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "get_data_freshnessArguments"
+    }
+  },
+  "get_reviewed_rate": {
+    "type": "model",
+    "name": "get_reviewed_rateArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "record_id": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "min_length": 1,
+            "max_length": 100
+          }
+        },
+        "as_at": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 10,
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "get_reviewed_rateArguments"
+    }
+  },
+  "validate_abn": {
+    "type": "model",
+    "name": "validate_abnArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "abn": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 40
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "validate_abnArguments"
+    }
+  },
+  "validate_acn": {
+    "type": "model",
+    "name": "validate_acnArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "acn": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "max_length": 40
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "validate_acnArguments"
+    }
+  },
+  "search_accounting_library": {
+    "type": "model",
+    "name": "search_accounting_libraryArguments",
+    "config": {
+      "title": "search_accounting_libraryArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "query": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "min_length": 1,
+            "max_length": 200
+          }
+        },
+        "limit": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 5,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 1,
+              "le": 20
+            }
+          }
+        },
+        "offset": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 0,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 0,
+              "le": 10000
+            }
+          }
+        }
+      }
+    }
+  },
+  "read_accounting_library": {
+    "type": "model",
+    "name": "read_accounting_libraryArguments",
+    "config": {
+      "title": "read_accounting_libraryArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "path": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "min_length": 1,
+            "max_length": 500
+          }
+        },
+        "start_line": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 1,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 1
+            }
+          }
+        },
+        "line_count": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 40,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 1,
+              "le": 100
+            }
+          }
+        }
+      }
+    }
+  },
+  "search_tax_legislation": {
+    "type": "model",
+    "name": "search_tax_legislationArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "query": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "min_length": 1,
+            "max_length": 200
+          }
+        },
+        "act": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 200
+              }
+            },
+            "default": null
+          }
+        },
+        "limit": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 1,
+              "le": 20
+            },
+            "default": 5
+          }
+        },
+        "offset": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 0,
+              "le": 10000
+            },
+            "default": 0
+          }
+        },
+        "in_force_only": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "bool",
+              "strict": true
+            },
+            "default": true
+          }
+        },
+        "as_at": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 10,
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              }
+            },
+            "default": null
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "search_tax_legislationArguments"
+    }
+  },
+  "read_tax_legislation_section": {
+    "type": "model",
+    "name": "read_tax_legislation_sectionArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "row_id": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "min_length": 3,
+            "max_length": 300
+          }
+        },
+        "neighbours": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 0,
+              "le": 5
+            },
+            "default": 0
+          }
+        },
+        "start": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 0,
+              "le": 320000000
+            },
+            "default": 0
+          }
+        },
+        "as_at": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 10,
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              }
+            },
+            "default": null
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "read_tax_legislation_sectionArguments"
+    }
+  },
+  "define_tax_term": {
+    "type": "model",
+    "name": "define_tax_termArguments",
+    "config": {
+      "title": "define_tax_termArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "term": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "min_length": 1,
+            "max_length": 200
+          }
+        },
+        "act": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 200
+              }
+            }
+          }
+        },
+        "limit": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 5,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 1,
+              "le": 20
+            }
+          }
+        },
+        "in_force_only": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": true,
+            "schema": {
+              "type": "bool",
+              "strict": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "search_tax_rates": {
+    "type": "model",
+    "name": "search_tax_ratesArguments",
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "query": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "min_length": 1,
+            "max_length": 200
+          }
+        },
+        "topic": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 100
+              }
+            },
+            "default": null
+          }
+        },
+        "limit": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 1,
+              "le": 20
+            },
+            "default": 5
+          }
+        },
+        "offset": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 0,
+              "le": 10000
+            },
+            "default": 0
+          }
+        },
+        "year": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 20
+              }
+            },
+            "default": null
+          }
+        },
+        "in_force_only": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "schema": {
+              "type": "bool",
+              "strict": true
+            },
+            "default": true
+          }
+        }
+      }
+    },
+    "config": {
+      "title": "search_tax_ratesArguments"
+    }
+  },
+  "search_ato_rulings": {
+    "type": "model",
+    "name": "search_ato_rulingsArguments",
+    "config": {
+      "title": "search_ato_rulingsArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "query": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "min_length": 1,
+            "max_length": 200
+          }
+        },
+        "family": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": null,
+            "schema": {
+              "type": "nullable",
+              "schema": {
+                "type": "str",
+                "max_length": 100
+              }
+            }
+          }
+        },
+        "limit": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 5,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 1,
+              "le": 20
+            }
+          }
+        },
+        "offset": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 0,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 0,
+              "le": 10000
+            }
+          }
+        }
+      }
+    }
+  },
+  "read_ato_ruling": {
+    "type": "model",
+    "name": "read_ato_rulingArguments",
+    "config": {
+      "title": "read_ato_rulingArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "row_ref": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "min_length": 5,
+            "max_length": 300
+          }
+        },
+        "neighbours": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 0,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 0,
+              "le": 5
+            }
+          }
+        },
+        "start": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 0,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 0,
+              "le": 320000000
+            }
+          }
+        }
+      }
+    }
+  }
+}

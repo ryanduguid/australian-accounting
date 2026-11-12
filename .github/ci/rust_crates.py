@@ -8,7 +8,8 @@ usage: python .github/ci/rust_crates.py >> "$GITHUB_OUTPUT"
 Every packages/*/Cargo.toml and apps/*/Cargo.toml is a crate CI checks; the
 manifests are the only list, so adding a crate edits no workflow. Writes:
 
-- ci-matrix: the ci-rust.yml include list (package, root, binary, smoke) of
+- ci-matrix: the ci-rust.yml include list (package, root, binary, smoke and
+  candidate archive inputs) of
   every crate except those whose own workflow calls ci-rust.yml
   ([package.metadata.ci] workflow), for ci.yml;
 - parity: the artefact names, as a brace pattern, of au-accounting and the
@@ -18,7 +19,10 @@ manifests are the only list, so adding a crate edits no workflow. Writes:
 CI smokes one command per crate: its one [[bin]] name, or the crate name from
 src/main.rs. A crate with more commands names the one CI smokes in
 [package.metadata.ci] binary; one with more and no choice, or with none, stops
-the listing. Its smoke arguments are [package.metadata.ci] smoke, or --api-help.
+the listing. Its smoke arguments are [package.metadata.ci] smoke, or --api-help;
+[package.metadata.ci] candidate-test names an ignored test run on its archive.
+The optional extra-binaries, extra-examples and candidate-files lists name what
+the archive includes alongside the primary command.
 """
 
 from __future__ import annotations
@@ -64,6 +68,10 @@ def crates(root: Path = ROOT, ci_yml: bool = False) -> list[dict[str, str]]:
             "root": manifest.parent.parent.name,
             "binary": names[0],
             "smoke": ci.get("smoke", "--api-help"),
+            "candidate-test": ci.get("candidate-test", ""),
+            "extra-binaries": " ".join(ci.get("extra-binaries", [])),
+            "extra-examples": " ".join(ci.get("extra-examples", [])),
+            "candidate-files": " ".join(ci.get("candidate-files", [])),
         })
     if not found:
         sys.exit("No Rust crates found; run from a checkout with packages/ and apps/")

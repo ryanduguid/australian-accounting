@@ -40,8 +40,8 @@ tooling for them.
 
 Nine engines (8 in Rust, 1 in Python) apply Australian tax and payroll rules to figures
 you supply. **Aus Accounting MCP**, a local Model Context Protocol server, gives an AI
-assistant the published Python releases of 6 of them; it loads none of the Rust crates
-yet.
+assistant the published Python releases of 6 of them. Its native build in this
+repository links the Rust crates of all 6 instead and is not released yet.
 
 Each tool returns a calculation, the facts it used and the matters it refuses to
 decide. The engines and the MCP server run locally: they read files you point them at, contact no

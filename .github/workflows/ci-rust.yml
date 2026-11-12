@@ -15,6 +15,22 @@ on:
         description: The command the engine builds, when it differs from the directory name.
         type: string
         default: ""
+      extra-binaries:
+        description: Optional space-separated commands to include in the candidate archive.
+        type: string
+        default: ""
+      extra-examples:
+        description: Optional space-separated Cargo examples to build and archive under examples/.
+        type: string
+        default: ""
+      candidate-files:
+        description: Optional whitespace-separated repository files to include with a content/build record.
+        type: string
+        default: ""
+      candidate-test:
+        description: Optional ignored Rust integration test to run against the extracted archive.
+        type: string
+        default: ""
       smoke:
         description: Arguments that must exit 0 from the built command.
         type: string
@@ -89,6 +105,17 @@ jobs:
           floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
           cargo llvm-cov --locked --fail-under-lines "$floor"
       - run: cargo build --locked --release
+      - name: Build portable examples
+        if: inputs.extra-examples != ''
+        env:
+          EXTRA_EXAMPLES: ${{ inputs.extra-examples }}
+        run: |
+          set -euo pipefail
+          read -r -a examples <<< "$EXTRA_EXAMPLES"
+          for example in "${examples[@]:-}"; do
+            [[ -n "$example" ]] || continue
+            cargo build --locked --release --example "$example"
+          done
       - name: Smoke the native command
         env:
           BINARY: ${{ inputs.binary || inputs.package }}
@@ -104,22 +131,69 @@ jobs:
         env:
           BINARY: ${{ inputs.binary || inputs.package }}
           CRATE: ${{ inputs.package }}
+          EXTRA_BINARIES: ${{ inputs.extra-binaries }}
+          EXTRA_EXAMPLES: ${{ inputs.extra-examples }}
+          CANDIDATE_FILES: ${{ inputs.candidate-files }}
         run: |
           set -euo pipefail
           version="$(cargo metadata --locked --no-deps --format-version 1 | jq -r '.packages[0].version')"
           target="$(rustc -vV | sed -n 's/^host: //p')"
           base="$CRATE-$version-$target"
           mkdir -p "dist/$base"
+          suffix=""
+          if [[ "$RUNNER_OS" == Windows ]]; then suffix=".exe"; fi
+          read -r -a extra_bins <<< "$EXTRA_BINARIES"
+          for extra in "${extra_bins[@]:-}"; do
+            [[ -n "$extra" ]] || continue
+            cp "target/release/$extra$suffix" "dist/$base/"
+          done
+          read -r -a examples <<< "$EXTRA_EXAMPLES"
+          for example in "${examples[@]:-}"; do
+            [[ -n "$example" ]] || continue
+            mkdir -p "dist/$base/examples"
+            cp "target/release/examples/$example$suffix" "dist/$base/examples/"
+          done
+          cp "target/release/$BINARY$suffix" "dist/$base/"
+          if [[ -n "$CANDIDATE_FILES" ]]; then
+            # Paths are repository-relative and retain their layout in the bundle.
+            while IFS= read -r file; do
+              case "$file" in
+                ''|/*|*\\*|*:*) echo "Invalid candidate file: $file" >&2; exit 1 ;;
+              esac
+              case "/$file/" in
+                */../*|*/./*) echo "Invalid candidate file: $file" >&2; exit 1 ;;
+              esac
+              test -f "$GITHUB_WORKSPACE/$file"
+              test ! -L "$GITHUB_WORKSPACE/$file"
+              mkdir -p "dist/$base/$(dirname "$file")"
+              cp "$GITHUB_WORKSPACE/$file" "dist/$base/$file"
+            done < <(printf '%s\n' "$CANDIDATE_FILES" | tr '[:space:]' '\n' | sed '/^$/d')
+            records="$(mktemp)"
+            while IFS= read -r file; do
+              if command -v sha256sum >/dev/null; then
+                digest="$(sha256sum "dist/$base/$file" | cut -d ' ' -f 1)"
+              else
+                digest="$(shasum -a 256 "dist/$base/$file" | cut -d ' ' -f 1)"
+              fi
+              jq -cn --arg path "$file" --arg sha256 "$digest" '{path:$path,sha256:$sha256}' >> "$records"
+            done < <(cd "dist/$base" && find . -type f | sed 's|^./||' | LC_ALL=C sort)
+            jq -s --arg component "$CRATE" --arg version "$version" --arg target "$target" \
+              --arg repository "$GITHUB_REPOSITORY" --arg commit "$GITHUB_SHA" \
+              --arg rustc "$(rustc --version)" \
+              '{schema:"native-ci-candidate.v1",component:$component,version:$version,target:$target,
+                source:{repository:$repository,commit:$commit},rustc:$rustc,files:.}' \
+              "$records" > "dist/$base/BUILD-INFO.json"
+            rm "$records"
+          fi
           if [[ "$RUNNER_OS" == Windows ]]; then
-            cp "target/release/$BINARY.exe" "dist/$base/"
             (cd dist && 7z a -tzip "$base.zip" "$base" >/dev/null)
             archive="$base.zip"
           else
-            cp "target/release/$BINARY" "dist/$base/"
             tar -C dist -czf "dist/$base.tgz" "$base"
             archive="$base.tgz"
           fi
           echo "path=$archive" >> "$GITHUB_OUTPUT"
+          echo "base=$base" >> "$GITHUB_OUTPUT"
       - name: Check the browser engine against the native command
         if: runner.os == 'Linux' && (inputs.package == 'div7a-loan-review' || inputs.package == 'payday-super-checker')
         env:
@@ -133,6 +207,34 @@ jobs:
           cargo clippy --manifest-path wasm/Cargo.toml --locked --target wasm32-unknown-unknown --lib -- -D warnings
           cargo build --manifest-path wasm/Cargo.toml --locked --release --target wasm32-unknown-unknown
           node ../../.github/ci/check_engine_wasm.mjs "$ENGINE" "target/release/$BINARY"
+      - name: Extract the native candidate
+        if: inputs.candidate-test != ''
+        env:
+          CANDIDATE_TEST: ${{ inputs.candidate-test }}
+          ARCHIVE: ${{ steps.archive.outputs.path }}
+          BASE: ${{ steps.archive.outputs.base }}
+        run: |
+          set -euo pipefail
+          # The next step names its ignored test literally, as check_orphan_tests.py reads it.
+          if [[ "$CANDIDATE_TEST" != native_candidate ]]; then
+            echo "::error::No step verifies candidate test $CANDIDATE_TEST."
+            exit 1
+          fi
+          # The runner empties RUNNER_TEMP after the job.
+          unpacked="$(mktemp -d "$RUNNER_TEMP/native-candidate.XXXXXX")"
+          [[ "$unpacked" == "$RUNNER_TEMP"/native-candidate.* && -d "$unpacked" && ! -L "$unpacked" ]]
+          if [[ "$RUNNER_OS" == Windows ]]; then
+            7z x -y "-o$unpacked" "dist/$ARCHIVE" >/dev/null
+            root="$(cygpath -w "$unpacked/$BASE")"
+          else
+            tar -xzf "dist/$ARCHIVE" -C "$unpacked"
+            root="$unpacked/$BASE"
+          fi
+          echo "NATIVE_CANDIDATE_ROOT=$root" >> "$GITHUB_ENV"
+          echo "NATIVE_CANDIDATE_COMMIT=$GITHUB_SHA" >> "$GITHUB_ENV"
+      - name: Verify the extracted native candidate
+        if: inputs.candidate-test == 'native_candidate'
+        run: cargo test --locked --release --test native_candidate -- --ignored --nocapture
       - name: Keep native candidate
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

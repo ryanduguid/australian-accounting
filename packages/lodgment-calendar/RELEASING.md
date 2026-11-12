@@ -1,5 +1,9 @@
 # Releasing
 
+The native 1.0.0 candidate is not published by this Python release procedure.
+Run the checks in [NATIVE.md](NATIVE.md) for it. A native release needs its own
+authorised release-policy change and a fresh review of the recorded ATO sources.
+
 This project is a preparation aid. A release is a tagged source snapshot, not a
 determination, and it does not authorise anyone to skip the current-source check below.
 

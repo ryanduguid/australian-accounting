@@ -6,8 +6,12 @@ registered tax and BAS agents. Each date carries its rule, the ATO page it comes
 the date that page was checked. A date that depends on a fact you did not supply, or that
 the ATO pages leave open, comes back `UNKNOWN` with the missing condition named.
 
-Distribution `lodgment-calendar`, import package `lodgmentcalendar`. Library only: this
-component ships no command.
+The native Rust candidate provides a standalone `lodgment-calendar due-dates` command
+and JSON library API. See [the native interface and checks](NATIVE.md).
+
+The existing Python distribution `lodgment-calendar`, import package `lodgmentcalendar`,
+remains at 0.1.0 whilst the MCP consumer is being ported. The examples below describe
+that compatibility library. The Rust candidate runs independently of Python.
 
 **Package lifecycle:** published. Install `lodgment-calendar` from PyPI with
 `pip install lodgment-calendar`; see [release notes](RELEASE_NOTES.md).
