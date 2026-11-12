@@ -20,6 +20,7 @@ mod pyunicode;
 pub mod rates;
 pub mod raw;
 pub mod register;
+pub mod rollforward;
 mod tables;
 mod termsize;
 mod textwrap;

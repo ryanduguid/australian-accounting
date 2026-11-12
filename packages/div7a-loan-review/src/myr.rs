@@ -203,7 +203,7 @@ pub fn minimum_yearly_repayment_amount(
     Ok(to_cents(&raw)?)
 }
 
-const GENUINE_REPAYMENT_CAVEAT: &str = "s 109R: this engine did not decide whether the \
+pub(crate) const GENUINE_REPAYMENT_CAVEAT: &str = "s 109R: this engine did not decide whether the \
 payments applied are genuine repayments. A payment made where the borrower intended to draw a \
 similar or larger loan is left out of the reckoning by s 109R(2), and that turns on what a \
 reasonable person would conclude. The figure used is the operator's assertion.";

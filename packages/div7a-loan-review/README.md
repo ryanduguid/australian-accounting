@@ -550,6 +550,59 @@ extra position; a metadata difference checks zero steps. The saved engine versio
 is descriptive, untrusted metadata. A different historical version can still
 verify when its identity, working and result agree with this verifier's engine.
 
+## Rollforward: interest and closing balance
+
+`rollforward` reads one year of an amalgamated loan on stdin and works out the
+year's interest and the amount of the loan not repaid at its end, the figure the
+next year's `amalgamated_loan_unpaid_at_end_of_previous_year` takes:
+
+```sh
+echo '{"year_of_income": "2026-27", "year_loan_made": "2025-26",
+  "balance_at_start_of_year": "100000.00",
+  "repayments": [{"date": "2026-10-01", "amount": "20000.00"}]}' \
+  | div7a-loan-review rollforward
+```
+
+s 109E(7) works out how much of the loan is repaid 'on the basis that interest is
+payable on the balance of the loan from time to time in a year of income at a
+rate equal to the benchmark interest rate for the year of income'. It sets no
+day count. This engine takes the ATO's: in the worked example in
+[Loans by private companies](https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/private-company-benefits-division-7a-dividends/in-detail/division-7a-loans)
+(last updated 2 July 2026, read 13 November 2026), interest 'is calculated
+annually in arrears by reference to the daily balance throughout the year', a
+repayment reduces the balance from the day it is made, and each period is
+charged as rate x balance x days / 365. The output lists each period with its
+days, balance and interest, each repayment with the balance after it, the
+year's interest, and how much of the repayments met that interest and how much
+repaid the loan.
+
+Where the ATO's guidance is silent, the engine follows the ATO's
+[Division 7A calculator](https://www.ato.gov.au/calculators-and-tools/division-7a-calculator-and-decision-tool),
+whose interest code was read and run on 13 November 2026, and says so in the
+output's caveats:
+
+- A year of income holding 29 February divides by 366, so a full year's
+  interest is the balance times the benchmark rate. Neither s 109E(7) nor the
+  worked example, a 365-day year, states this.
+- Each period's interest is rounded to cents half up and the periods are added.
+  The Act prescribes no rounding; the worked example rounds its total to the
+  dollar.
+- Once repayments pass the opening balance there is nothing left to charge, so
+  later periods carry a nil balance.
+- Repayments first meet the year's interest. Interest they do not meet is not
+  added to the loan.
+
+It refuses, with exit 2 and one `error:` line: the year the loan was made or an
+earlier one (the ATO treats no interest as payable for the loan year, and
+s 109E(1)(a) reaches only later years); a year with no reviewed benchmark rate
+(it reads only the compiled-in table); a repayment dated outside the year of
+income, which runs from 1 July to 30 June (a substituted accounting period is
+not modelled, and the ATO calculator does not take one either); repayments
+totalling more than the opening balance and the year's interest; and any input
+field it does not read. In the first year after the loan year, enter the balance
+at 1 July, before any repayment made before the lodgment day, as the worked
+example does. Whether a repayment counts at all (s 109R) stays with you.
+
 ## WebAssembly
 
 `wasm/` builds the derivation for `wasm32-unknown-unknown`, for calculators
