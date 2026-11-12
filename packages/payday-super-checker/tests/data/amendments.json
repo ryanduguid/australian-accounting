@@ -60,6 +60,12 @@
          "status",
          "Status"
         ]
+       ],
+       "skipped": [
+        {
+         "row": 3,
+         "contribution_type": "Salary Sacrifice"
+        }
        ]
       }
      }
@@ -245,6 +251,7 @@
        "orphan_reasons": [],
        "key_mode": "name",
        "warnings": [
+        "1 super row(s) were skipped, not checked, because profile employment-hero-super does not read their contribution type as super guarantee (['Super Guarantee', 'Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.",
         "matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.",
         "row 3: matched super rows carry no payment date",
         "super row 4: status 'Reconciled' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used"
@@ -3154,7 +3161,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: employment-hero-payroll -- Employment Hero / KeyPay - Detailed Activity Report (unverified against a real export)\nsuper profile: employment-hero-super -- Employment Hero / KeyPay - Super Contributions (payments) (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (6):\n  - row 4: over: 466.66 against 137.69, check for salary sacrifice in the contribution types; matched super rows carry no payment date\n  - row 5: partial: 210.73 of 259.33 matched; matched super rows carry no payment date\n  - row 2: no super payment found\n  - row 3: no super payment found\n  - super row 3: status 'Created' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n  - super row 4: status 'Reconciled' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n\npaydays: matched 0, no remittance date 0, partial 1, over 1, owes nothing 0, no payment found 2\nwrote contributions.csv\n",
+      "stdout": "payroll profile: employment-hero-payroll -- Employment Hero / KeyPay - Detailed Activity Report (unverified against a real export)\nsuper profile: employment-hero-super -- Employment Hero / KeyPay - Super Contributions (payments) (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (7):\n  - 1 super row(s) were skipped, not checked, because profile employment-hero-super does not read their contribution type as super guarantee (['Super Guarantee', 'Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 2. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - row 4: over: 466.66 against 137.69, check for salary sacrifice in the contribution types; matched super rows carry no payment date\n  - row 5: partial: 210.73 of 259.33 matched; matched super rows carry no payment date\n  - row 2: no super payment found\n  - row 3: no super payment found\n  - super row 3: status 'Created' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n  - super row 4: status 'Reconciled' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n\npaydays: matched 0, no remittance date 0, partial 1, over 1, owes nothing 0, no payment found 2\nwrote contributions.csv\n",
       "stderr": ""
      },
      "written": {
@@ -3197,7 +3204,7 @@
      "test": "test_an_import_without_warnings_prints_no_warning_block",
      "expected": {
       "code": 0,
-      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
+      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (1):\n  - 1 super row(s) were skipped, not checked, because profile xero-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -6504,7 +6511,7 @@
      "test": "test_import_subcommand_writes_the_file",
      "expected": {
       "code": 0,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (1):\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (2):\n  - 1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -6512,7 +6519,7 @@
      "test": "test_import_replaces_an_output_symlink_without_touching_its_target",
      "expected": {
       "code": 0,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (1):\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (2):\n  - 1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -6520,7 +6527,7 @@
      "test": "test_import_returns_two_when_a_payday_has_no_payment",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (3):\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 3: no super payment found\n  - super row 4: matched no payday\n\nsuper payments that were not applied to any payday (1):\n  1  no payday matched\n\npaydays: matched 1, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 1\nwrote out.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (4):\n  - 1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 3: no super payment found\n  - super row 4: matched no payday\n\nsuper payments that were not applied to any payday (1):\n  1  no payday matched\n\npaydays: matched 1, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 1\nwrote out.csv\n",
       "stderr": ""
      }
     },
@@ -6528,7 +6535,7 @@
      "test": "test_import_clean_file_returns_zero",
      "expected": {
       "code": 0,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (1):\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote out.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (2):\n  - 1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote out.csv\n",
       "stderr": ""
      }
     },
@@ -6536,7 +6543,7 @@
      "test": "test_import_catches_arithmetic_error_from_import_files",
      "expected": {
       "code": 0,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (1):\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote out.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (2):\n  - 1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote out.csv\n",
       "stderr": ""
      }
     },
@@ -6592,7 +6599,7 @@
      "test": "test_import_vendor_flag_forces_a_profile",
      "expected": {
       "code": 0,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (1):\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (2):\n  - 1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -6600,7 +6607,7 @@
      "test": "test_the_vendor_advice_is_followable_for_a_two_file_command",
      "expected": {
       "code": 0,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (1):\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (2):\n  - 1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -6608,7 +6615,7 @@
      "test": "test_both_cli_paths_call_the_shared_stdout_reconfigure",
      "expected": {
       "code": 0,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (1):\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (2):\n  - 1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -6624,7 +6631,7 @@
      "test": "test_import_calls_a_failed_write_a_write_even_with_a_relative_output",
      "expected": {
       "code": 0,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (1):\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (2):\n  - 1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n\npaydays: matched 2, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8202,7 +8209,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (6):\n  - operator confirmed the LCR 2026/2 statutory allocation: all relevant paydays, fund receipts and assessments were reconciled, and the export periods plus payment-date/row order reproduce the fund-receipt order and earliest-shortfall application\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 4: partial: 1.10 of 181.79 matched; matched super rows carry no payment date\n  - row 5: matched super rows carry no payment date\n  - row 6: over: 380.16 against 212.17, check for salary sacrifice in the contribution types\n  - row 3: no super payment found\n\npaydays: matched 1, no remittance date 1, partial 1, over 1, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
+      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (7):\n  - operator confirmed the LCR 2026/2 statutory allocation: all relevant paydays, fund receipts and assessments were reconciled, and the export periods plus payment-date/row order reproduce the fund-receipt order and earliest-shortfall application\n  - 1 super row(s) were skipped, not checked, because profile xero-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 4: partial: 1.10 of 181.79 matched; matched super rows carry no payment date\n  - row 5: matched super rows carry no payment date\n  - row 6: over: 380.16 against 212.17, check for salary sacrifice in the contribution types\n  - row 3: no super payment found\n\npaydays: matched 1, no remittance date 1, partial 1, over 1, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8218,7 +8225,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (7):\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 2: partial: 438.84 of 474.19 matched\n  - row 4: over: 511.45 against 404.23, check for salary sacrifice in the contribution types\n  - row 5: partial: 18.95 of 715.34 matched; 18.95 of 715.34 allocated from super row 6 (paid 2026-10-08), one of 2 paydays that payment covered\n  - row 3: 696.39 of 715.34 allocated from super row 6 (paid 2026-10-08), one of 2 paydays that payment covered\n  - row 6: no super payment found\n  - super row 5: matched only paydays that were already settled by other payments, so this payment is on top of what was owed\n\nsuper payments that were not applied to any payday (1):\n  1  paydays already settled\n\npaydays: matched 1, no remittance date 0, partial 2, over 1, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
+      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (8):\n  - 1 super row(s) were skipped, not checked, because profile xero-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 2: partial: 438.84 of 474.19 matched\n  - row 4: over: 511.45 against 404.23, check for salary sacrifice in the contribution types\n  - row 5: partial: 18.95 of 715.34 matched; 18.95 of 715.34 allocated from super row 6 (paid 2026-10-08), one of 2 paydays that payment covered\n  - row 3: 696.39 of 715.34 allocated from super row 6 (paid 2026-10-08), one of 2 paydays that payment covered\n  - row 6: no super payment found\n  - super row 5: matched only paydays that were already settled by other payments, so this payment is on top of what was owed\n\nsuper payments that were not applied to any payday (1):\n  1  paydays already settled\n\npaydays: matched 1, no remittance date 0, partial 2, over 1, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8242,7 +8249,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (1):\n  - row 2: over: 269.31 against 44.14, check for salary sacrifice in the contribution types\n\npaydays: matched 1, no remittance date 0, partial 0, over 1, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
+      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (2):\n  - 1 super row(s) were skipped, not checked, because profile xero-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - row 2: over: 269.31 against 44.14, check for salary sacrifice in the contribution types\n\npaydays: matched 1, no remittance date 0, partial 0, over 1, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8258,7 +8265,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (8):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 3; earliest 2026-06-27), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - the super file has only one of the pay period start/end columns, so a payment's coverage collapses to a single day and could miss the payday it actually settled.\n  - row 2: no super payment found\n  - row 3: no super payment found\n  - row 4: no super payment found\n  - super row 2: matched no payday\n  - super row 3: matched no payday\n\nsuper payments that were not applied to any payday (2):\n  2  no payday matched\n\npaydays: matched 0, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 3\nwrote contributions.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (9):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 3; earliest 2026-06-27), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - 1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 4. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - the super file has only one of the pay period start/end columns, so a payment's coverage collapses to a single day and could miss the payday it actually settled.\n  - row 2: no super payment found\n  - row 3: no super payment found\n  - row 4: no super payment found\n  - super row 2: matched no payday\n  - super row 3: matched no payday\n\nsuper payments that were not applied to any payday (2):\n  2  no payday matched\n\npaydays: matched 0, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 3\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8274,7 +8281,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (6):\n  - operator confirmed the LCR 2026/2 statutory allocation: all relevant paydays, fund receipts and assessments were reconciled, and the export periods plus payment-date/row order reproduce the fund-receipt order and earliest-shortfall application\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 4: partial: 276.94 of 391.97 matched\n  - row 6: matched super rows carry no payment date\n  - row 2: no super payment found\n  - super row 5: matched only paydays that were already settled by other payments, so this payment is on top of what was owed\n\nsuper payments that were not applied to any payday (1):\n  1  paydays already settled\n\npaydays: matched 2, no remittance date 1, partial 1, over 0, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
+      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (7):\n  - operator confirmed the LCR 2026/2 statutory allocation: all relevant paydays, fund receipts and assessments were reconciled, and the export periods plus payment-date/row order reproduce the fund-receipt order and earliest-shortfall application\n  - 1 super row(s) were skipped, not checked, because profile xero-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 2. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 4: partial: 276.94 of 391.97 matched\n  - row 6: matched super rows carry no payment date\n  - row 2: no super payment found\n  - super row 5: matched only paydays that were already settled by other payments, so this payment is on top of what was owed\n\nsuper payments that were not applied to any payday (1):\n  1  paydays already settled\n\npaydays: matched 2, no remittance date 1, partial 1, over 0, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8298,7 +8305,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: employment-hero-payroll -- Employment Hero / KeyPay - Detailed Activity Report (unverified against a real export)\nsuper profile: employment-hero-super -- Employment Hero / KeyPay - Super Contributions (payments) (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (5):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 4; earliest 2026-06-22), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - row 2: partial: 432.45 of 827.15 matched; matched super rows carry no payment date\n  - row 3: no super payment found\n  - row 4: no super payment found\n  - super row 2: status 'Awaiting clearance' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n\npaydays: matched 0, no remittance date 0, partial 1, over 0, owes nothing 0, no payment found 2\nwrote contributions.csv\n",
+      "stdout": "payroll profile: employment-hero-payroll -- Employment Hero / KeyPay - Detailed Activity Report (unverified against a real export)\nsuper profile: employment-hero-super -- Employment Hero / KeyPay - Super Contributions (payments) (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (6):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 4; earliest 2026-06-22), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - 1 super row(s) were skipped, not checked, because profile employment-hero-super does not read their contribution type as super guarantee (['Super Guarantee', 'Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - row 2: partial: 432.45 of 827.15 matched; matched super rows carry no payment date\n  - row 3: no super payment found\n  - row 4: no super payment found\n  - super row 2: status 'Awaiting clearance' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n\npaydays: matched 0, no remittance date 0, partial 1, over 0, owes nothing 0, no payment found 2\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8338,7 +8345,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (5):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 2; earliest 2026-06-29), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - row 2: over: 591.16 against 44.21, check for salary sacrifice in the contribution types\n  - row 5: over: 877.23 against 798.52, check for salary sacrifice in the contribution types; matched super rows carry no payment date\n  - row 3: no super payment found\n  - row 4: 123.00 of 123.00 allocated from super row 5 (paid 2026-08-30), one of 2 paydays that payment covered\n\npaydays: matched 1, no remittance date 0, partial 0, over 2, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (6):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 2; earliest 2026-06-29), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - 2 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3, 4. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - row 2: over: 591.16 against 44.21, check for salary sacrifice in the contribution types\n  - row 5: over: 877.23 against 798.52, check for salary sacrifice in the contribution types; matched super rows carry no payment date\n  - row 3: no super payment found\n  - row 4: 123.00 of 123.00 allocated from super row 5 (paid 2026-08-30), one of 2 paydays that payment covered\n\npaydays: matched 1, no remittance date 0, partial 0, over 2, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8346,7 +8353,7 @@
      "test": "generated",
      "expected": {
       "code": 0,
-      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\npaydays: matched 1, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote o.csv\n",
+      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (1):\n  - 1 super row(s) were skipped, not checked, because profile xero-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n\npaydays: matched 1, no remittance date 0, partial 0, over 0, owes nothing 0, no payment found 0\nwrote o.csv\n",
       "stderr": ""
      }
     },
@@ -8370,7 +8377,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (2):\n  - row 2: matched super rows carry no payment date\n  - row 3: matched super rows carry no payment date\n\npaydays: matched 0, no remittance date 2, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
+      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (3):\n  - 1 super row(s) were skipped, not checked, because profile xero-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - row 2: matched super rows carry no payment date\n  - row 3: matched super rows carry no payment date\n\npaydays: matched 0, no remittance date 2, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8402,7 +8409,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (5):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 4; earliest 2026-06-20), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - the super file has only one of the pay period start/end columns, so a payment's coverage collapses to a single day and could miss the payday it actually settled.\n  - row 4: matched super rows carry no payment date\n  - row 2: no super payment found\n  - row 3: no super payment found\n\npaydays: matched 0, no remittance date 1, partial 0, over 0, owes nothing 0, no payment found 2\nwrote contributions.csv\n",
+      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (6):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 4; earliest 2026-06-20), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - 2 super row(s) were skipped, not checked, because profile xero-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 2, 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - the super file has only one of the pay period start/end columns, so a payment's coverage collapses to a single day and could miss the payday it actually settled.\n  - row 4: matched super rows carry no payment date\n  - row 2: no super payment found\n  - row 3: no super payment found\n\npaydays: matched 0, no remittance date 1, partial 0, over 0, owes nothing 0, no payment found 2\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8442,7 +8449,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (5):\n  - operator confirmed the LCR 2026/2 statutory allocation: all relevant paydays, fund receipts and assessments were reconciled, and the export periods plus payment-date/row order reproduce the fund-receipt order and earliest-shortfall application\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 4; earliest 2026-06-21), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - row 3: partial: 398.91 of 593.59 matched; 398.91 of 738.47 allocated from super row 3 (paid no date on record), one of 2 paydays that payment covered; matched super rows carry no payment date\n  - row 5: 339.56 of 738.47 allocated from super row 3 (paid no date on record), one of 2 paydays that payment covered; 339.56 of 347.03 matched has no payment date on record; latest known payment date 2026-08-05\n  - row 4: no super payment found\n\npaydays: matched 1, no remittance date 0, partial 2, over 0, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
+      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (6):\n  - operator confirmed the LCR 2026/2 statutory allocation: all relevant paydays, fund receipts and assessments were reconciled, and the export periods plus payment-date/row order reproduce the fund-receipt order and earliest-shortfall application\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 4; earliest 2026-06-21), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - 1 super row(s) were skipped, not checked, because profile xero-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 4. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - row 3: partial: 398.91 of 593.59 matched; 398.91 of 738.47 allocated from super row 3 (paid no date on record), one of 2 paydays that payment covered; matched super rows carry no payment date\n  - row 5: 339.56 of 738.47 allocated from super row 3 (paid no date on record), one of 2 paydays that payment covered; 339.56 of 347.03 matched has no payment date on record; latest known payment date 2026-08-05\n  - row 4: no super payment found\n\npaydays: matched 1, no remittance date 0, partial 2, over 0, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8498,7 +8505,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (6):\n  - operator confirmed the LCR 2026/2 statutory allocation: all relevant paydays, fund receipts and assessments were reconciled, and the export periods plus payment-date/row order reproduce the fund-receipt order and earliest-shortfall application\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 3; earliest 2026-06-28), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 4: over: 611.12 against 436.00, check for salary sacrifice in the contribution types\n  - row 2: no super payment found\n  - row 3: no super payment found\n\npaydays: matched 0, no remittance date 0, partial 0, over 1, owes nothing 0, no payment found 2\nwrote contributions.csv\n",
+      "stdout": "payroll profile: myob-ar-payroll -- MYOB AccountRight - Payroll Activity [Detail] (unverified against a real export)\nsuper profile: myob-ar-super -- MYOB AccountRight - Superannuation Payments by Employee (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (7):\n  - operator confirmed the LCR 2026/2 statutory allocation: all relevant paydays, fund receipts and assessments were reconciled, and the export periods plus payment-date/row order reproduce the fund-receipt order and earliest-shortfall application\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 3; earliest 2026-06-28), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - 1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 2. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 4: over: 611.12 against 436.00, check for salary sacrifice in the contribution types\n  - row 2: no super payment found\n  - row 3: no super payment found\n\npaydays: matched 0, no remittance date 0, partial 0, over 1, owes nothing 0, no payment found 2\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8522,7 +8529,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: employment-hero-payroll -- Employment Hero / KeyPay - Detailed Activity Report (unverified against a real export)\nsuper profile: employment-hero-super -- Employment Hero / KeyPay - Super Contributions (payments) (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (6):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 4; earliest 2026-06-22), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 2: matched super rows carry no payment date\n  - row 3: over: 97.58 against 66.28, check for salary sacrifice in the contribution types\n  - row 4: no super payment found\n  - super row 2: status 'Created' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n\npaydays: matched 0, no remittance date 1, partial 0, over 1, owes nothing 0, no payment found 1\nwrote o.csv\n",
+      "stdout": "payroll profile: employment-hero-payroll -- Employment Hero / KeyPay - Detailed Activity Report (unverified against a real export)\nsuper profile: employment-hero-super -- Employment Hero / KeyPay - Super Contributions (payments) (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (7):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 4; earliest 2026-06-22), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - 1 super row(s) were skipped, not checked, because profile employment-hero-super does not read their contribution type as super guarantee (['Super Guarantee', 'Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 2: matched super rows carry no payment date\n  - row 3: over: 97.58 against 66.28, check for salary sacrifice in the contribution types\n  - row 4: no super payment found\n  - super row 2: status 'Created' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n\npaydays: matched 0, no remittance date 1, partial 0, over 1, owes nothing 0, no payment found 1\nwrote o.csv\n",
       "stderr": ""
      }
     },
@@ -8538,7 +8545,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (3):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 3; earliest 2026-06-20), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - row 2: partial: 576.22 of 665.88 matched; matched super rows carry no payment date\n  - row 3: no super payment found\n\npaydays: matched 0, no remittance date 0, partial 1, over 0, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
+      "stdout": "payroll profile: xero-payroll -- Xero Payroll - Payroll Activity Details (unverified against a real export)\nsuper profile: xero-super -- Xero Payroll - Superannuation Payments (unverified against a real export)\nemployee matching: by id\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (4):\n  - 1 payroll row(s) have a payday before 2026-07-01 (row(s) 3; earliest 2026-06-20), and the check refuses any file containing one: those paydays are governed by the old quarterly SG law, which this tool does not model. They are written to the output anyway, because they are real payroll rows -- delete them from it, or re-export from the start of the financial year in which payday super applies, before running the check.\n  - 1 super row(s) were skipped, not checked, because profile xero-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 2. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - row 2: partial: 576.22 of 665.88 matched; matched super rows carry no payment date\n  - row 3: no super payment found\n\npaydays: matched 0, no remittance date 0, partial 1, over 0, owes nothing 0, no payment found 1\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -8554,7 +8561,7 @@
      "test": "generated",
      "expected": {
       "code": 2,
-      "stdout": "payroll profile: employment-hero-payroll -- Employment Hero / KeyPay - Detailed Activity Report (unverified against a real export)\nsuper profile: employment-hero-super -- Employment Hero / KeyPay - Super Contributions (payments) (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (5):\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 2: matched super rows carry no payment date\n  - row 3: matched super rows carry no payment date\n  - super row 2: status 'Awaiting clearance' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n  - super row 3: status 'Awaiting clearance' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n\npaydays: matched 0, no remittance date 2, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
+      "stdout": "payroll profile: employment-hero-payroll -- Employment Hero / KeyPay - Detailed Activity Report (unverified against a real export)\nsuper profile: employment-hero-super -- Employment Hero / KeyPay - Super Contributions (payments) (unverified against a real export)\nemployee matching: by name\n\nNo supported payroll or clearing-house export carries a fund receipt date, so fund_received_date is written blank on every row. The checker's deadline tests receipt by the fund, not remittance -- fill that column in from your fund or clearing house before relying on any verdict it produces.\nA dated part payment writes remitted_date and remitted_amount; sg_amount stays the amount owed. matched_amount separately records the total associated with the payday, even when the vendor supplied no payment date, and caps any fund receipt later added to the row. Where a match contains dated and undated super rows, remitted_date is conservatively the latest known date for the dated subtotal: the checker credits none of the subtotal before that date and only remitted_amount afterwards. An entirely undated match leaves both remittance fields blank but keeps matched_amount. The warning lines below still name every partial: <received> of <owed> matched and every \"... has no payment date on record\" figure.\n\nwarnings (6):\n  - 1 super row(s) were skipped, not checked, because profile employment-hero-super does not read their contribution type as super guarantee (['Super Guarantee', 'Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 4. If any of them is super guarantee, correct its contribution type, or map the file by hand.\n  - matched on employee name because one of the files has no id column. Two employees sharing a name would be merged.\n  - row 2: matched super rows carry no payment date\n  - row 3: matched super rows carry no payment date\n  - super row 2: status 'Awaiting clearance' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n  - super row 3: status 'Awaiting clearance' does not establish remittance to the fund, so its payment date is not evidence of remittance and was not used\n\npaydays: matched 0, no remittance date 2, partial 0, over 0, owes nothing 0, no payment found 0\nwrote contributions.csv\n",
       "stderr": ""
      }
     },
@@ -14905,6 +14912,1368 @@
       "report.csv": {
        "fnv": "441eb0273f0b72c3",
        "len": 7940
+      }
+     }
+    }
+   }
+  },
+  {
+   "change": "The import names the super rows it skips (13 November 2026). A super row whose contribution type the profile does not read as super guarantee was left out of the check silently, and only a file with every row skipped was refused. One structural warning now gives the count and each type with up to 20 of its row numbers: `import` prints it, `import-files` carries it in `warnings`, and `read-super` adds `skipped`, each such row with its contribution type. Which rows are skipped, every figure, written file and exit code are unchanged. Each answer here was accepted only if removing that warning, and the `skipped` key, reproduced the old answer exactly. A case an earlier change also altered keeps its one entry there, updated.",
+   "cases": {
+    "440": {
+     "test": "test_read_super_keeps_only_super_guarantee",
+     "expected": {
+      "ok": {
+       "rows": [
+        {
+         "employee_id": null,
+         "employee_name": "Test Employee One",
+         "period_start": "2026-07-01",
+         "period_end": "2026-07-09",
+         "paid_date": "2026-07-14",
+         "amount": "612.00",
+         "row": 2,
+         "unpaid_status": null
+        },
+        {
+         "employee_id": null,
+         "employee_name": "Test Employee Two",
+         "period_start": "2026-07-01",
+         "period_end": "2026-07-09",
+         "paid_date": "2026-07-30",
+         "amount": "540.00",
+         "row": 4,
+         "unpaid_status": null
+        }
+       ],
+       "profile": "myob-ar-super",
+       "resolved": [
+        [
+         "employee_name",
+         "Employee Name"
+        ],
+        [
+         "period_start",
+         "Period From"
+        ],
+        [
+         "period_end",
+         "Period To"
+        ],
+        [
+         "paid_date",
+         "Paid Date"
+        ],
+        [
+         "amount",
+         "Amount"
+        ],
+        [
+         "contribution_type",
+         "Superannuation Category"
+        ]
+       ],
+       "skipped": [
+        {
+         "row": 3,
+         "contribution_type": "Salary Sacrifice"
+        }
+       ]
+      }
+     }
+    },
+    "441": {
+     "test": "test_read_super_reads_australian_day_first_dates",
+     "expected": {
+      "ok": {
+       "rows": [
+        {
+         "employee_id": null,
+         "employee_name": "Test Employee One",
+         "period_start": "2026-07-01",
+         "period_end": "2026-07-09",
+         "paid_date": "2026-07-14",
+         "amount": "612.00",
+         "row": 2,
+         "unpaid_status": null
+        },
+        {
+         "employee_id": null,
+         "employee_name": "Test Employee Two",
+         "period_start": "2026-07-01",
+         "period_end": "2026-07-09",
+         "paid_date": "2026-07-30",
+         "amount": "540.00",
+         "row": 4,
+         "unpaid_status": null
+        }
+       ],
+       "profile": "myob-ar-super",
+       "resolved": [
+        [
+         "employee_name",
+         "Employee Name"
+        ],
+        [
+         "period_start",
+         "Period From"
+        ],
+        [
+         "period_end",
+         "Period To"
+        ],
+        [
+         "paid_date",
+         "Paid Date"
+        ],
+        [
+         "amount",
+         "Amount"
+        ],
+        [
+         "contribution_type",
+         "Superannuation Category"
+        ]
+       ],
+       "skipped": [
+        {
+         "row": 3,
+         "contribution_type": "Salary Sacrifice"
+        }
+       ]
+      }
+     }
+    },
+    "442": {
+     "test": "test_read_super_surfaces_the_resolved_columns_for_this_file",
+     "expected": {
+      "ok": {
+       "rows": [
+        {
+         "employee_id": null,
+         "employee_name": "Test Employee One",
+         "period_start": "2026-07-01",
+         "period_end": "2026-07-09",
+         "paid_date": "2026-07-14",
+         "amount": "612.00",
+         "row": 2,
+         "unpaid_status": null
+        },
+        {
+         "employee_id": null,
+         "employee_name": "Test Employee Two",
+         "period_start": "2026-07-01",
+         "period_end": "2026-07-09",
+         "paid_date": "2026-07-30",
+         "amount": "540.00",
+         "row": 4,
+         "unpaid_status": null
+        }
+       ],
+       "profile": "myob-ar-super",
+       "resolved": [
+        [
+         "employee_name",
+         "Employee Name"
+        ],
+        [
+         "period_start",
+         "Period From"
+        ],
+        [
+         "period_end",
+         "Period To"
+        ],
+        [
+         "paid_date",
+         "Paid Date"
+        ],
+        [
+         "amount",
+         "Amount"
+        ],
+        [
+         "contribution_type",
+         "Superannuation Category"
+        ]
+       ],
+       "skipped": [
+        {
+         "row": 3,
+         "contribution_type": "Salary Sacrifice"
+        }
+       ]
+      }
+     }
+    },
+    "449": {
+     "test": "test_xero_pair_is_detected_and_imports",
+     "expected": {
+      "ok": {
+       "rows": [
+        {
+         "employee_id": "E1",
+         "employee_name": "Test Employee One",
+         "period_start": "2026-07-01",
+         "period_end": "2026-07-09",
+         "paid_date": "2026-07-14",
+         "amount": "612.00",
+         "row": 2,
+         "unpaid_status": null
+        },
+        {
+         "employee_id": "E2",
+         "employee_name": "Test Employee Two",
+         "period_start": "2026-07-01",
+         "period_end": "2026-07-09",
+         "paid_date": "2026-07-30",
+         "amount": "540.00",
+         "row": 4,
+         "unpaid_status": null
+        }
+       ],
+       "profile": "xero-super",
+       "resolved": [
+        [
+         "employee_name",
+         "Employee"
+        ],
+        [
+         "employee_id",
+         "Employee Number"
+        ],
+        [
+         "period_start",
+         "Period Start"
+        ],
+        [
+         "period_end",
+         "Period End"
+        ],
+        [
+         "paid_date",
+         "Payment Date"
+        ],
+        [
+         "amount",
+         "Amount"
+        ],
+        [
+         "contribution_type",
+         "Contribution Type"
+        ]
+       ],
+       "skipped": [
+        {
+         "row": 3,
+         "contribution_type": "Salary Sacrifice"
+        }
+       ]
+      }
+     }
+    },
+    "450": {
+     "test": "test_xero_pair_is_detected_and_imports",
+     "expected": {
+      "ok": {
+       "payroll_profile": {
+        "key": "xero-payroll",
+        "name": "Xero Payroll - Payroll Activity Details",
+        "role": "payroll",
+        "verified": false,
+        "signature": [
+         "Employee",
+         "Payment Date"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee",
+           "Employee Name"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Employee Number",
+           "Employee Code"
+          ]
+         ],
+         [
+          "payday",
+          [
+           "Payment Date",
+           "Paid Date"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Pay Period End",
+           "Period End"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Superannuation",
+           "Super Guarantee",
+           "Superannuation Guarantee",
+           "Qualifying Earnings Super"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%Y-%m-%d",
+         "%d %b %Y"
+        ],
+        "sg_filter": null,
+        "remitted_status": null,
+        "notes": "Xero Central publishes no column list for this report. The report period is the pay run payment date."
+       },
+       "super_profile": {
+        "key": "xero-super",
+        "name": "Xero Payroll - Superannuation Payments",
+        "role": "super",
+        "verified": false,
+        "signature": [
+         "Employee",
+         "Contribution Type",
+         "Amount"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee",
+           "Employee Name"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Employee Number",
+           "Employee Code"
+          ]
+         ],
+         [
+          "period_start",
+          [
+           "Period Start",
+           "Pay Period Start",
+           "Period From"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Period End",
+           "Pay Period End",
+           "Period To"
+          ]
+         ],
+         [
+          "paid_date",
+          [
+           "Payment Date",
+           "Super Payment Date",
+           "Date Sent To Fund",
+           "Sent To Fund"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Amount",
+           "Super Amount"
+          ]
+         ],
+         [
+          "contribution_type",
+          [
+           "Contribution Type"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%Y-%m-%d",
+         "%d %b %Y"
+        ],
+        "sg_filter": {
+         "column": "contribution_type",
+         "include": [
+          "Superannuation Guarantee",
+          "SGC",
+          "SG",
+          "Employer Contributions"
+         ]
+        },
+        "remitted_status": null,
+        "notes": "Column names inferred from Xero Central, which publishes no column list. Xero groups this report by Contribution Type, so that column exists. The date is when the payment was sent to the fund, never when the fund received it."
+       },
+       "outcome_counts": [
+        [
+         "matched",
+         2
+        ]
+       ],
+       "orphan_reasons": [],
+       "key_mode": "id",
+       "warnings": [
+        "1 super row(s) were skipped, not checked, because profile xero-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG', 'Employer Contributions']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand."
+       ],
+       "clean": true
+      }
+     }
+    },
+    "455": {
+     "test": "test_myob_business_pair_is_detected_and_imports",
+     "expected": {
+      "ok": {
+       "rows": [
+        {
+         "employee_id": "E1",
+         "employee_name": "Test Employee One",
+         "period_start": "2026-07-01",
+         "period_end": "2026-07-09",
+         "paid_date": "2026-07-14",
+         "amount": "612.00",
+         "row": 2,
+         "unpaid_status": null
+        },
+        {
+         "employee_id": "E2",
+         "employee_name": "Test Employee Two",
+         "period_start": "2026-07-01",
+         "period_end": "2026-07-09",
+         "paid_date": "2026-07-30",
+         "amount": "540.00",
+         "row": 4,
+         "unpaid_status": null
+        }
+       ],
+       "profile": "myob-business-super",
+       "resolved": [
+        [
+         "employee_name",
+         "Employee"
+        ],
+        [
+         "employee_id",
+         "Employee ID"
+        ],
+        [
+         "period_start",
+         "Pay period start"
+        ],
+        [
+         "period_end",
+         "Pay period end"
+        ],
+        [
+         "paid_date",
+         "Payment date"
+        ],
+        [
+         "amount",
+         "Amount"
+        ],
+        [
+         "contribution_type",
+         "Super category"
+        ]
+       ],
+       "skipped": [
+        {
+         "row": 3,
+         "contribution_type": "Salary Sacrifice"
+        }
+       ]
+      }
+     }
+    },
+    "456": {
+     "test": "test_myob_business_pair_is_detected_and_imports",
+     "expected": {
+      "ok": {
+       "payroll_profile": {
+        "key": "myob-business-payroll",
+        "name": "MYOB Business - Payroll activity",
+        "role": "payroll",
+        "verified": false,
+        "signature": [
+         "Employee",
+         "Payment date"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee",
+           "Employee name"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Employee ID"
+          ]
+         ],
+         [
+          "payday",
+          [
+           "Payment date",
+           "Date"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Pay period end",
+           "Period to"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Superannuation guarantee",
+           "Superannuation",
+           "Super"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%Y-%m-%d"
+        ],
+        "sg_filter": null,
+        "remitted_status": null,
+        "notes": "MYOB publishes no column list for this report."
+       },
+       "super_profile": {
+        "key": "myob-business-super",
+        "name": "MYOB Business - Superannuation payments",
+        "role": "super",
+        "verified": false,
+        "signature": [
+         "Employee",
+         "Payment date",
+         "Amount"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee",
+           "Employee name"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Employee ID"
+          ]
+         ],
+         [
+          "period_start",
+          [
+           "Pay period start",
+           "Period from"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Pay period end",
+           "Period to"
+          ]
+         ],
+         [
+          "paid_date",
+          [
+           "Payment date",
+           "Paid date"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Amount"
+          ]
+         ],
+         [
+          "contribution_type",
+          [
+           "Super category",
+           "Contribution type"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%Y-%m-%d"
+        ],
+        "sg_filter": {
+         "column": "contribution_type",
+         "include": [
+          "Superannuation Guarantee",
+          "SGC",
+          "SG"
+         ]
+        },
+        "remitted_status": null,
+        "notes": "MYOB Business exports to Excel; column names are inferred, not published."
+       },
+       "outcome_counts": [
+        [
+         "matched",
+         2
+        ]
+       ],
+       "orphan_reasons": [],
+       "key_mode": "id",
+       "warnings": [
+        "1 super row(s) were skipped, not checked, because profile myob-business-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand."
+       ],
+       "clean": true
+      }
+     }
+    },
+    "615": {
+     "test": "test_canonical_output_feeds_the_normal_check",
+     "expected": {
+      "ok": {
+       "payroll_profile": {
+        "key": "myob-ar-payroll",
+        "name": "MYOB AccountRight - Payroll Activity [Detail]",
+        "role": "payroll",
+        "verified": false,
+        "signature": [
+         "Employee Name",
+         "Date"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee Name",
+           "Employee"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Card ID",
+           "Employee ID"
+          ]
+         ],
+         [
+          "payday",
+          [
+           "Date",
+           "Payment Date",
+           "Cheque Date"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Pay Period End",
+           "Period To"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Superannuation Guarantee",
+           "Superannuation",
+           "Amount"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%d/%m/%y"
+        ],
+        "sg_filter": null,
+        "remitted_status": null,
+        "notes": "MYOB publishes no column list for this report."
+       },
+       "super_profile": {
+        "key": "myob-ar-super",
+        "name": "MYOB AccountRight - Superannuation Payments by Employee",
+        "role": "super",
+        "verified": false,
+        "signature": [
+         "Employee Name",
+         "Paid Date",
+         "Amount"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee Name",
+           "Employee"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Card ID",
+           "Employee ID"
+          ]
+         ],
+         [
+          "period_start",
+          [
+           "Period From"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Period To"
+          ]
+         ],
+         [
+          "paid_date",
+          [
+           "Paid Date"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Amount"
+          ]
+         ],
+         [
+          "contribution_type",
+          [
+           "Superannuation Category"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%d/%m/%y"
+        ],
+        "sg_filter": {
+         "column": "contribution_type",
+         "include": [
+          "Superannuation Guarantee",
+          "SGC",
+          "SG"
+         ]
+        },
+        "remitted_status": null,
+        "notes": "Field names come from MYOB help text, not a real export. Paid Date is when MYOB recorded the payment, not when the fund received it."
+       },
+       "outcome_counts": [
+        [
+         "matched",
+         2
+        ]
+       ],
+       "orphan_reasons": [],
+       "key_mode": "name",
+       "warnings": [
+        "1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.",
+        "matched on employee name because one of the files has no id column. Two employees sharing a name would be merged."
+       ],
+       "clean": true
+      }
+     }
+    },
+    "626": {
+     "test": "test_canonical_csv_round_trips_through_parse_rows_and_the_real_cli",
+     "expected": {
+      "ok": {
+       "payroll_profile": {
+        "key": "myob-ar-payroll",
+        "name": "MYOB AccountRight - Payroll Activity [Detail]",
+        "role": "payroll",
+        "verified": false,
+        "signature": [
+         "Employee Name",
+         "Date"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee Name",
+           "Employee"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Card ID",
+           "Employee ID"
+          ]
+         ],
+         [
+          "payday",
+          [
+           "Date",
+           "Payment Date",
+           "Cheque Date"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Pay Period End",
+           "Period To"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Superannuation Guarantee",
+           "Superannuation",
+           "Amount"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%d/%m/%y"
+        ],
+        "sg_filter": null,
+        "remitted_status": null,
+        "notes": "MYOB publishes no column list for this report."
+       },
+       "super_profile": {
+        "key": "myob-ar-super",
+        "name": "MYOB AccountRight - Superannuation Payments by Employee",
+        "role": "super",
+        "verified": false,
+        "signature": [
+         "Employee Name",
+         "Paid Date",
+         "Amount"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee Name",
+           "Employee"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Card ID",
+           "Employee ID"
+          ]
+         ],
+         [
+          "period_start",
+          [
+           "Period From"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Period To"
+          ]
+         ],
+         [
+          "paid_date",
+          [
+           "Paid Date"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Amount"
+          ]
+         ],
+         [
+          "contribution_type",
+          [
+           "Superannuation Category"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%d/%m/%y"
+        ],
+        "sg_filter": {
+         "column": "contribution_type",
+         "include": [
+          "Superannuation Guarantee",
+          "SGC",
+          "SG"
+         ]
+        },
+        "remitted_status": null,
+        "notes": "Field names come from MYOB help text, not a real export. Paid Date is when MYOB recorded the payment, not when the fund received it."
+       },
+       "outcome_counts": [
+        [
+         "matched",
+         2
+        ]
+       ],
+       "orphan_reasons": [],
+       "key_mode": "name",
+       "warnings": [
+        "1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.",
+        "matched on employee name because one of the files has no id column. Two employees sharing a name would be merged."
+       ],
+       "clean": true
+      }
+     }
+    },
+    "635": {
+     "test": "test_import_report_clean_is_true_for_a_wholly_ordinary_file",
+     "expected": {
+      "ok": {
+       "payroll_profile": {
+        "key": "myob-ar-payroll",
+        "name": "MYOB AccountRight - Payroll Activity [Detail]",
+        "role": "payroll",
+        "verified": false,
+        "signature": [
+         "Employee Name",
+         "Date"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee Name",
+           "Employee"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Card ID",
+           "Employee ID"
+          ]
+         ],
+         [
+          "payday",
+          [
+           "Date",
+           "Payment Date",
+           "Cheque Date"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Pay Period End",
+           "Period To"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Superannuation Guarantee",
+           "Superannuation",
+           "Amount"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%d/%m/%y"
+        ],
+        "sg_filter": null,
+        "remitted_status": null,
+        "notes": "MYOB publishes no column list for this report."
+       },
+       "super_profile": {
+        "key": "myob-ar-super",
+        "name": "MYOB AccountRight - Superannuation Payments by Employee",
+        "role": "super",
+        "verified": false,
+        "signature": [
+         "Employee Name",
+         "Paid Date",
+         "Amount"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee Name",
+           "Employee"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Card ID",
+           "Employee ID"
+          ]
+         ],
+         [
+          "period_start",
+          [
+           "Period From"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Period To"
+          ]
+         ],
+         [
+          "paid_date",
+          [
+           "Paid Date"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Amount"
+          ]
+         ],
+         [
+          "contribution_type",
+          [
+           "Superannuation Category"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%d/%m/%y"
+        ],
+        "sg_filter": {
+         "column": "contribution_type",
+         "include": [
+          "Superannuation Guarantee",
+          "SGC",
+          "SG"
+         ]
+        },
+        "remitted_status": null,
+        "notes": "Field names come from MYOB help text, not a real export. Paid Date is when MYOB recorded the payment, not when the fund received it."
+       },
+       "outcome_counts": [
+        [
+         "matched",
+         2
+        ]
+       ],
+       "orphan_reasons": [],
+       "key_mode": "name",
+       "warnings": [
+        "1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.",
+        "matched on employee name because one of the files has no id column. Two employees sharing a name would be merged."
+       ],
+       "clean": true
+      }
+     }
+    },
+    "638": {
+     "test": "test_import_files_does_not_warn_when_both_files_have_full_period_columns",
+     "expected": {
+      "ok": {
+       "payroll_profile": {
+        "key": "myob-ar-payroll",
+        "name": "MYOB AccountRight - Payroll Activity [Detail]",
+        "role": "payroll",
+        "verified": false,
+        "signature": [
+         "Employee Name",
+         "Date"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee Name",
+           "Employee"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Card ID",
+           "Employee ID"
+          ]
+         ],
+         [
+          "payday",
+          [
+           "Date",
+           "Payment Date",
+           "Cheque Date"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Pay Period End",
+           "Period To"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Superannuation Guarantee",
+           "Superannuation",
+           "Amount"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%d/%m/%y"
+        ],
+        "sg_filter": null,
+        "remitted_status": null,
+        "notes": "MYOB publishes no column list for this report."
+       },
+       "super_profile": {
+        "key": "myob-ar-super",
+        "name": "MYOB AccountRight - Superannuation Payments by Employee",
+        "role": "super",
+        "verified": false,
+        "signature": [
+         "Employee Name",
+         "Paid Date",
+         "Amount"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee Name",
+           "Employee"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Card ID",
+           "Employee ID"
+          ]
+         ],
+         [
+          "period_start",
+          [
+           "Period From"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Period To"
+          ]
+         ],
+         [
+          "paid_date",
+          [
+           "Paid Date"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Amount"
+          ]
+         ],
+         [
+          "contribution_type",
+          [
+           "Superannuation Category"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%d/%m/%y"
+        ],
+        "sg_filter": {
+         "column": "contribution_type",
+         "include": [
+          "Superannuation Guarantee",
+          "SGC",
+          "SG"
+         ]
+        },
+        "remitted_status": null,
+        "notes": "Field names come from MYOB help text, not a real export. Paid Date is when MYOB recorded the payment, not when the fund received it."
+       },
+       "outcome_counts": [
+        [
+         "matched",
+         2
+        ]
+       ],
+       "orphan_reasons": [],
+       "key_mode": "name",
+       "warnings": [
+        "1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.",
+        "matched on employee name because one of the files has no id column. Two employees sharing a name would be merged."
+       ],
+       "clean": true
+      }
+     }
+    },
+    "643": {
+     "test": "test_import_refuses_an_output_symlink_to_the_payroll_input",
+     "expected": {
+      "ok": {
+       "payroll_profile": {
+        "key": "myob-ar-payroll",
+        "name": "MYOB AccountRight - Payroll Activity [Detail]",
+        "role": "payroll",
+        "verified": false,
+        "signature": [
+         "Employee Name",
+         "Date"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee Name",
+           "Employee"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Card ID",
+           "Employee ID"
+          ]
+         ],
+         [
+          "payday",
+          [
+           "Date",
+           "Payment Date",
+           "Cheque Date"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Pay Period End",
+           "Period To"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Superannuation Guarantee",
+           "Superannuation",
+           "Amount"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%d/%m/%y"
+        ],
+        "sg_filter": null,
+        "remitted_status": null,
+        "notes": "MYOB publishes no column list for this report."
+       },
+       "super_profile": {
+        "key": "myob-ar-super",
+        "name": "MYOB AccountRight - Superannuation Payments by Employee",
+        "role": "super",
+        "verified": false,
+        "signature": [
+         "Employee Name",
+         "Paid Date",
+         "Amount"
+        ],
+        "columns": [
+         [
+          "employee_name",
+          [
+           "Employee Name",
+           "Employee"
+          ]
+         ],
+         [
+          "employee_id",
+          [
+           "Card ID",
+           "Employee ID"
+          ]
+         ],
+         [
+          "period_start",
+          [
+           "Period From"
+          ]
+         ],
+         [
+          "period_end",
+          [
+           "Period To"
+          ]
+         ],
+         [
+          "paid_date",
+          [
+           "Paid Date"
+          ]
+         ],
+         [
+          "amount",
+          [
+           "Amount"
+          ]
+         ],
+         [
+          "contribution_type",
+          [
+           "Superannuation Category"
+          ]
+         ]
+        ],
+        "date_formats": [
+         "%d/%m/%Y",
+         "%d/%m/%y"
+        ],
+        "sg_filter": {
+         "column": "contribution_type",
+         "include": [
+          "Superannuation Guarantee",
+          "SGC",
+          "SG"
+         ]
+        },
+        "remitted_status": null,
+        "notes": "Field names come from MYOB help text, not a real export. Paid Date is when MYOB recorded the payment, not when the fund received it."
+       },
+       "outcome_counts": [
+        [
+         "matched",
+         2
+        ]
+       ],
+       "orphan_reasons": [],
+       "key_mode": "name",
+       "warnings": [
+        "1 super row(s) were skipped, not checked, because profile myob-ar-super does not read their contribution type as super guarantee (['Superannuation Guarantee', 'SGC', 'SG']). Skipped: 'Salary Sacrifice' at row(s) 3. If any of them is super guarantee, correct its contribution type, or map the file by hand.",
+        "matched on employee name because one of the files has no id column. Two employees sharing a name would be merged."
+       ],
+       "clean": true
       }
      }
     }
