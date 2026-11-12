@@ -1065,21 +1065,28 @@ pub fn division_296(
     let balance = money(total_super_balance_end_of_year)?;
     let earnings = signed_money(total_super_earnings)?;
     let mut excepted = None;
+    let mut died = false;
     for (value, (name, reason)) in exceptions.into_iter().zip(DIVISION_296_EXCEPTIONS) {
-        if flag(value, name)? && excepted.is_none() {
+        let set = flag(value, name)?;
+        if set && excepted.is_none() {
             excepted = Some(reason);
+        }
+        if name == "died_in_year" {
+            died = set;
         }
     }
     let large = d(lookup(&meta::DIVISION_296, "large_threshold"));
     let very_large = d(lookup(&meta::DIVISION_296, "very_large_threshold"));
     let rate_ = d(lookup(&meta::DIVISION_296, "rate"));
     let very_large_rate = d(lookup(&meta::DIVISION_296, "very_large_rate"));
-    // ITTPA s 296-1(2): for 2026-27 the reference amount is the balance at the end of the year.
-    let percentage = percentage_above(&balance, &large)?;
-    let very_large_percentage = percentage_above(&balance, &very_large)?;
+    // ITTPA s 296-1(2): for 2026-27 the reference amount is the balance at the end of the
+    // year, which s 296-50 takes to be nil for someone who has died by then.
+    let reference = if died { int(0) } else { balance.clone() };
+    let percentage = percentage_above(&reference, &large)?;
+    let very_large_percentage = percentage_above(&reference, &very_large)?;
     let (liable, liability) = if let Some(reason) = excepted {
         (false, reason)
-    } else if !balance.gt(&large)? {
+    } else if !reference.gt(&large)? {
         (
             false,
             "not liable: the total superannuation balance at the end of the year is not greater than the large superannuation balance threshold (s 296-40(1)(a); Income Tax (Transitional Provisions) Act 1997 s 296-1(2))",
@@ -1097,26 +1104,40 @@ pub fn division_296(
     } else {
         (true, "liable (s 296-15)")
     };
-    let amounts = precise(|| {
-        let (taxable, component) = if liable {
-            let hundred = int(100);
-            (
-                earnings.mul(&percentage)?.div(&hundred)?,
-                earnings.mul(&very_large_percentage)?.div(&hundred)?,
-            )
+    let (amounts, negative_component) = precise(|| {
+        // ss 296-40 and 296-45 define the earnings amounts whether or not an exception
+        // removes the liability, and s 296-45 has no 'greater than nil' condition, so
+        // the very large component can be negative; only the tax depends on liability.
+        let hundred = int(100);
+        let taxable = if reference.gt(&large)? && earnings.gt(&int(0))? {
+            earnings.mul(&percentage)?.div(&hundred)?
+        } else {
+            int(0)
+        };
+        let component = if !very_large_percentage.is_zero() {
+            earnings.mul(&very_large_percentage)?.div(&hundred)?
+        } else {
+            int(0)
+        };
+        let (tax, further) = if liable {
+            (taxable.mul(&rate_)?, component.mul(&very_large_rate)?)
         } else {
             (int(0), int(0))
         };
-        let tax = taxable.mul(&rate_)?;
-        let further = component.mul(&very_large_rate)?;
         let total = tax.add(&further)?;
-        Ok(vec![
-            ("taxable_superannuation_earnings", taxable),
-            ("very_large_balance_earnings_component", component),
-            ("tax_on_taxable_superannuation_earnings", tax),
-            ("tax_on_very_large_balance_earnings_component", further),
-            ("division_296_tax", total),
-        ])
+        // Results carry no negative amounts, so a negative component is reported as null.
+        let negative = component.lt(&int(0))?;
+        let shown = if negative { int(0) } else { component };
+        Ok((
+            vec![
+                ("taxable_superannuation_earnings", taxable),
+                ("very_large_balance_earnings_component", shown),
+                ("tax_on_taxable_superannuation_earnings", tax),
+                ("tax_on_very_large_balance_earnings_component", further),
+                ("division_296_tax", total),
+            ],
+            negative,
+        ))
     })?;
     let mut out = result(
         "division_296",
@@ -1131,6 +1152,9 @@ pub fn division_296(
             rate("very_large_percentage", &very_large_percentage),
         ],
     )?;
+    if negative_component {
+        out["amounts"]["very_large_balance_earnings_component"] = Value::Null;
+    }
     out["liability"] = json!(liability);
     Ok(out)
 }

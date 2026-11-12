@@ -452,8 +452,12 @@ The Division 296 regulations (F2026L00726) note that earnings attributed to an
 interest may be negative (reg 296-65.02), so the earnings input may be negative;
 earnings of nil or less give no taxable superannuation earnings and so no tax,
 even above $10,000,000, where s 296-45 alone has no 'greater than nil'
-condition. Amounts stay exact until each is rounded half up to cents for
-display, which can leave a displayed tax a cent from its rate applied to the
+condition. Its very large component is then negative, and as results carry no
+negative amounts it is reported as null. An exception under s 296-20 or 296-25
+removes the liability but not the earnings ss 296-40 and 296-45 define, which
+the result still shows; after death the balance is taken to be nil (s 296-50),
+so the percentages and earnings are nil too. Amounts stay exact until each is
+rounded half up to cents for display, which can leave a displayed tax a cent from its rate applied to the
 displayed earnings, and the displayed total a cent from the sum of the displayed
 taxes. The statute sets no rounding for the dollar amounts; the
 Memorandum's examples are whole dollars either way.

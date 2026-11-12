@@ -160,6 +160,24 @@ fn percentage_ties_round_up() {
     );
 }
 
+/// At the largest accepted inputs both shares (99.9997% and 99.999%) round up
+/// to 100.00%, so the tax is 25% of the earnings.
+#[test]
+fn the_largest_inputs_round_both_shares_to_100() {
+    let largest = run("1000000000000.00", "1000000000000.00");
+    assert_eq!(percentages(&largest), ("100.00", "100.00"));
+    assert_eq!(
+        amounts(&largest),
+        [
+            "1000000000000.00",
+            "1000000000000.00",
+            "150000000000.00",
+            "100000000000.00",
+            "250000000000.00",
+        ]
+    );
+}
+
 /// Amounts are exact until displayed: 25% of $0.38 is $0.095, shown as $0.10,
 /// and 15% of it $0.01425, shown as $0.01 (not 15% of $0.10); $12 million and
 /// $0.04 give $0.0045 + $0.000667, so $0.01; 50% of $0.20 taxed is $0.015, so $0.02.
@@ -178,41 +196,79 @@ fn amounts_round_to_cents_only_for_display() {
 }
 
 /// Earnings of nil or less give no tax and never a refund, even above
-/// $10 million, where s 296-45 alone has no 'greater than nil' condition.
+/// $10 million, where s 296-45 alone has no 'greater than nil' condition. The
+/// very large component it then defines is negative, and as results carry no
+/// negative amounts it is reported as null.
 #[test]
 fn nil_or_negative_earnings_give_no_tax() {
-    for earnings in ["0.00", "-50000.00", "-1000000000000.00"] {
+    for (earnings, component) in [
+        ("0.00", json!("0.00")),
+        ("-50000.00", Value::Null),
+        ("-1000000000000.00", Value::Null),
+    ] {
         let result = run("12000000.00", earnings);
-        assert_eq!(amounts(&result), NIL, "{earnings}");
+        let shown = &result["amounts"];
+        assert_eq!(
+            shown["very_large_balance_earnings_component"], component,
+            "{earnings}"
+        );
+        for key in [
+            "taxable_superannuation_earnings",
+            "tax_on_taxable_superannuation_earnings",
+            "tax_on_very_large_balance_earnings_component",
+            "division_296_tax",
+        ] {
+            assert_eq!(shown[key], "0.00", "{earnings} {key}");
+        }
         assert_eq!(percentages(&result), ("75.00", "16.67"), "{earnings}");
         assert_eq!(result["liability"], NO_EARNINGS, "{earnings}");
     }
+    // Just above $10 million the share rounds to 0.00, so the component is nil, not -0.00.
+    let barely = run("10000000.01", "-50000.00");
+    assert_eq!(amounts(&barely), NIL);
 }
 
 /// Each exception means no tax, in the order the Act and the transitional
-/// rule give them, once every input has been read.
+/// rule give them, once every input has been read. ss 296-20 and 296-25 remove
+/// the liability, not the earnings s 296-40 defines; after death the balance is
+/// nil (s 296-50), so the percentages and earnings are nil too.
 #[test]
 fn each_exception_means_no_tax() {
-    for (flag, reason) in [
+    let jordan_untaxed = ["25000.00", "0.00", "0.00", "0.00", "0.00"];
+    for (flag, reason, expected, shares) in [
         (
             "child_recipient",
             "not liable: a child recipient of a superannuation income stream in the year (s 296-20)",
+            jordan_untaxed,
+            ("25.00", "0.00"),
         ),
         (
             "structured_settlement_contribution",
             "not liable: a structured settlement contribution was made in respect of the individual in or before the year (s 296-25)",
+            jordan_untaxed,
+            ("25.00", "0.00"),
         ),
         (
             "died_in_year",
             "not liable: died on or before the last day of the 2026-27 income year (Income Tax (Transitional Provisions) Act 1997 s 296-1(3))",
+            NIL,
+            ("0.00", "0.00"),
         ),
     ] {
         let mut facts = with(json!({}));
         facts[flag] = json!(true);
         let result = api::evaluate("division-296", &facts).unwrap();
-        assert_eq!(amounts(&result), NIL, "{flag}");
+        assert_eq!(amounts(&result), expected, "{flag}");
+        assert_eq!(percentages(&result), shares, "{flag}");
         assert_eq!(result["liability"], reason, "{flag}");
     }
+    let kelly_died = with(json!({
+        "total_super_balance_end_of_year": "12000000.00",
+        "total_super_earnings": "500000.00", "died_in_year": true,
+    }));
+    let result = api::evaluate("division-296", &kelly_died).unwrap();
+    assert_eq!(amounts(&result), NIL);
+    assert_eq!(percentages(&result), ("0.00", "0.00"));
     let both = with(json!({"child_recipient": true, "died_in_year": true}));
     assert_eq!(
         api::evaluate("division-296", &both).unwrap()["liability"],
