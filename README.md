@@ -62,9 +62,9 @@ Missing facts stay unknown: a Payday Super row with a fund-receipt date but no m
   11 August 2026, because NT Picnic Day on 3 August is not a business day. The
   [ATO's worked example](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super)
   gives the same date on the usual 7 business day path. Run and read 5 November 2026.
-- **MCP tools.** Aus Accounting MCP 0.7.1, the published release, listed 22 local tools on
-  5 November 2026. The source on `main` defines 25: `validate_abn`, `validate_acn` and
-  `get_reviewed_rate` are not yet released, and neither is the `doctor` command.
+- **MCP tools.** Aus Accounting MCP 0.8.0, the published release, listed 25 local tools on
+  12 November 2026, including `validate_abn`, `validate_acn` and `get_reviewed_rate`; 0.7.1
+  listed 22. 0.8.0 also adds the `doctor` command.
 
 <details>
 <summary>Commands for the Payday Super date and the tool count</summary>
@@ -80,7 +80,7 @@ uvx --from payday-super-checker==0.2.3 payday-super-check quarterly_remittance_2
 This asks the published server for its tools and prints the count, with `jq` installed:
 
 ```bash
-printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"0"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp | tail -1 | jq '.result.tools | length'
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"0"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp | tail -1 | jq '.result.tools | length'
 ```
 
 </details>
