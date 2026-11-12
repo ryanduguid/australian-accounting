@@ -47,6 +47,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Medicare levy | Not a Library document: Medicare Levy Act 1986 compilation 53 and the ATO's single thresholds | 30 June 2026 (ATO page) | Single person without SAPTO, the 2% rate and the s 7 low-income reduction for 2024-25 and 2025-26 |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
+| Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -408,6 +409,65 @@ build Division 293 income from its components or classify contributions.
 Defined benefit interests and their deferred debt accounts, constitutionally
 protected funds, State higher level office holders and Commonwealth justices
 are outside it.
+
+## Division 296
+
+The Library's ¶6-495 (superannuation collection, 'Contributions to
+Superannuation Funds and RSAs', last reviewed 30 June 2026) says Division 296
+was enacted by the Treasury Laws Amendment (Building a Stronger and Fairer Super
+System) Act 2026 (No. 8, 2026) and applies from 1 July 2026, and reproduces the
+Explanatory Memorandum's examples. Both were checked against primary sources on
+13 November 2026:
+
+- ITAA 1997 ss 296-15 to 296-50, as compiled at 1 October 2026 (compilation
+  268, the current one, read through the Federal Register API), are word for
+  word as enacted, apart from the formula images the text copy omits: liability needs taxable superannuation earnings (s 296-15);
+  they arise when the total superannuation balance just before the start or at
+  the end of the year is greater than the large superannuation balance
+  threshold and total superannuation earnings are greater than nil
+  (s 296-40(1)); the percentage is the reference amount less the threshold,
+  over the reference amount, times 100, rounded to 2 decimal places, rounding
+  up when the third is 5 or more (s 296-40(2) and (3)); s 296-45 is the same
+  with the very large threshold. The thresholds are $3,000,000 and $10,000,000
+  for 2026-27 (ss 296-30 and 296-35).
+- Income Tax (Transitional Provisions) Act 1997 s 296-1, inserted by the same
+  Act, applies s 296-15 from 2026-27, uses only the balance at the end of
+  2026-27 in both tests and formulas, and excuses anyone who dies on or before
+  30 June 2027.
+- The Superannuation (Building a Stronger and Fairer Super System) Imposition
+  Act 2026 (No. 9, 2026) s 5 sets the tax at 15% of taxable superannuation
+  earnings plus 10% of any very large superannuation balance earnings
+  component.
+- The Explanatory Memorandum to the Bill, read on ParlInfo, works examples 1.1
+  (Jordan: $4,000,000 and $100,000 give 25% and tax of $3,750), 1.2 (Kelly:
+  $12,000,000 and $500,000 give 75% and 16.67%, $56,250 and $8,335, $64,585 in
+  all) and 1.3 (Kenny: balances of $150,000 at 30 June 2027 and $170,000 at 30
+  June 2028 give no taxable earnings). `tests/division_296.rs` holds 1.1 and
+  1.2, and holds 1.3, a 2027-28 example, as a 2026-27 balance of $150,000.
+- The ATO's 'Division 296 tax on large super balances' page (last updated 3
+  November 2026) gives the same thresholds and rates, disregards LRBA amounts
+  in the balance (s 296-260) and lists the 3 exceptions.
+
+The Division 296 regulations (F2026L00726) note that earnings attributed to an
+interest may be negative (reg 296-65.02), so the earnings input may be negative;
+earnings of nil or less give no taxable superannuation earnings and so no tax,
+even above $10,000,000, where s 296-45 alone has no 'greater than nil'
+condition. Its very large component is then negative, and as results carry no
+negative amounts it is reported as null. An exception under s 296-20 or 296-25
+removes the liability but not the earnings ss 296-40 and 296-45 define, which
+the result still shows; after death the balance is taken to be nil (s 296-50),
+so the percentages and earnings are nil too. Amounts stay exact until each is
+rounded half up to cents for display, which can leave a displayed tax a cent from its rate applied to the
+displayed earnings, and the displayed total a cent from the sum of the displayed
+taxes. The statute sets no rounding for the dollar amounts; the
+Memorandum's examples are whole dollars either way.
+
+Both inputs are the operator's established figures; the worksheet does not
+work out balances, fund earnings (s 296-60) or their attribution. Defined
+benefit and other interests whose earnings use s 296-70 are outside it, as their
+earnings use a different formula and tax on a defined benefit interest may be
+deferred to a debt account, and so are departing temporary residents
+(ss 296-195 to 296-205). Later income years wait for their indexed thresholds.
 
 ## Study loan withholding
 

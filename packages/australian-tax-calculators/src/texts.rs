@@ -74,6 +74,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "division_293",
         "One individual's Division 293 tax for an income year from established Division 293 income (income for surcharge purposes disregarding reportable super contributions) and low tax contributions for the corresponding financial year (low tax contributed amounts less excess concessional contributions). Taxable contributions are the lesser of the low tax contributions and the excess of the sum over $250,000; the tax is 15% of them. Excludes working out either input, defined benefit interests and deferred debt accounts, constitutionally protected funds, State higher level office holders and Commonwealth justices, releasing money from super, interest and the assessment itself.",
     ),
+    (
+        "division_296",
+        "An estimate of one individual's Division 296 tax (ITAA 1997 Subdivision 296-B; Superannuation (Building a Stronger and Fairer Super System) Imposition Act 2026 s 5) for the 2026-27 income year, its first. The operator establishes the individual's total superannuation balance at the end of 30 June 2027 for Division 296, including reversionary retirement phase interests and Division 296 excluded interests and disregarding any LRBA amount (s 296-260) and interests in foreign superannuation funds (s 307-230(1)(a)); their total superannuation earnings for the year (s 296-55), the total of the relevant superannuation earnings for each of their interests and for each interest supporting a superannuation income stream they receive as a retirement phase recipient because of another person's death (s 296-55(1)), which may be negative, with foreign fund earnings, Division 296 excluded interests and prescribed amounts taken as nil; and whether they were a child recipient of a superannuation income stream at any time in the year (s 296-20), had a structured settlement contribution made in respect of them in that or an earlier year (s 296-25), or died on or before 30 June 2027 (Income Tax (Transitional Provisions) Act 1997 s 296-1(3)), each of which means no tax. For 2026-27 only the balance at the end of the year counts, so the worksheet takes no opening balance (Income Tax (Transitional Provisions) Act 1997 s 296-1(2)). Tax arises only when that balance is greater than the $3,000,000 large superannuation balance threshold and the earnings are greater than nil (s 296-40(1)); otherwise the tax is nil and liability gives the reason. The earnings amounts follow ss 296-40 and 296-45 even when an exception removes the liability, so the very large superannuation balance earnings component can be negative, when it is reported as null, as results carry no negative amounts, and after death by 30 June 2027 the balance is taken to be nil (s 296-50). The shares of the balance above $3,000,000 and above the $10,000,000 very large superannuation balance threshold are each a percentage rounded to 2 decimal places, half up (ss 296-40(3) and 296-45(3)), so a balance just above a threshold can give 0.00. Taxable superannuation earnings are the earnings times the first percentage and the very large superannuation balance earnings component the earnings times the second; the tax is 15% of the first plus 10% of the second (Imposition Act s 5). Excludes working out the balance, fund earnings and their attribution (ss 296-60 to 296-75 and the regulations); defined benefit interests and other interests whose earnings use s 296-70, including income streams with no account balance, and the deferral of tax on a defined benefit interest to a debt account; temporary residents who depart Australia (ss 296-195 to 296-205); assessment, payment, release authorities and interest charges; and income years from 2027-28, whose indexed thresholds are not yet known.",
+    ),
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
@@ -148,6 +152,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "division_293",
         "https://www.legislation.gov.au/C2004A05138/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_6/document_6.html",
+    ),
+    (
+        "division_296",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html",
     ),
 ];
 
@@ -224,6 +232,14 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/division-293-tax-on-concessional-contributions-by-high-income-earners",
         ],
     ),
+    (
+        "division_296",
+        &[
+            "https://www.legislation.gov.au/C2026A00009/asmade",
+            "https://www.legislation.gov.au/C2026A00008/asmade",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/division-296-tax/division-296-tax-on-large-super-balances",
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -235,6 +251,13 @@ const CAR_REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit'
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
     ("fbt_car_operating_cost", &[CAR_REPORTABLE_NOTE]),
+    (
+        "division_296",
+        &[
+            "An estimate, not the tax payable: the Commissioner assesses Division 296 tax from the balances and earnings superannuation funds report, and the notice of assessment sets the amount.",
+            "Each amount is worked out exactly and rounded half up to cents only for display, so a displayed tax can differ by a cent from its rate applied to the displayed earnings, and the displayed total by a cent from the sum of the displayed taxes.",
+        ],
+    ),
 ];
 
 /// Every refusal code and the failure it names. A code stays when a message is
@@ -318,6 +341,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "input.effective_life_invalid",
         "An effective life is outside 0.01 to 1000 years.",
     ),
+    (
+        "input.field_unknown",
+        "A field the worksheet does not take was given (division-296 only).",
+    ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
     (
@@ -333,6 +360,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The pay period is not weekly, fortnightly or monthly.",
     ),
     ("input.quarter_invalid", "A quarter is not 1, 2, 3 or 4."),
+    (
+        "input.signed_amount_invalid",
+        "An amount that may be negative is not a finite decimal of at most 2dp within 1e12 of nil.",
+    ),
     (
         "input.tax_scale_unsupported",
         "The withholding scale is not 1, 2, 3, 5 or 6, or has no table for the period.",

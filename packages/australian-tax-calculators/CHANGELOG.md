@@ -34,6 +34,22 @@ intentionally changed.
   release has it. `tests/parity.rs` drops its catalogue entry before comparing,
   and `tests/borrowing_expenses.rs` holds it to the ATO's Peter and Fiona and
   Max examples and Library ¶4-160 (Ben).
+- `division-296` estimates one individual's Division 296 tax on large super
+  balances for 2026-27 (ITAA 1997 Subdivision 296-B; Superannuation (Building a
+  Stronger and Fairer Super System) Imposition Act 2026 s 5): 15% of the
+  earnings share above the $3 million threshold and a further 10% of the share
+  above $10 million, each share a percentage rounded to 2 decimal places, from
+  the established balance at 30 June 2027 and total superannuation earnings,
+  which may be negative. The 3 exceptions give nil tax with the reason in
+  `liability`, and every result carries a warning that it is an estimate.
+  Defined benefit and other s 296-70 interests, departing temporary residents
+  and years from 2027-28 are outside it. No Python release has it.
+  `tests/parity.rs` drops its catalogue entry before comparing, and
+  `tests/division_296.rs` holds it to the Explanatory Memorandum's examples 1.1
+  to 1.3 and the threshold and rounding boundaries. The new refusal code
+  `input.signed_amount_invalid` covers its earnings input, and
+  `input.field_unknown` refuses a field it does not take, such as an opening
+  balance, which the other worksheets ignore.
 - `tests/verdict_cases.rs` turns the edge cases in a published reviewer verdict,
   under CC BY 4.0, the default in the bounty's terms, into fabricated cases, or
   states why one does not apply.

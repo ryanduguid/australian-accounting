@@ -3,7 +3,7 @@
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets, a main residence worksheet and a borrowing expenses worksheet that no Python release contains. Python releases through 0.1.9
+worksheets, a main residence worksheet, a borrowing expenses worksheet and a Division 296 estimate that no Python release contains. Python releases through 0.1.9
 contain 10 worksheets. Until the MCP server links this crate,
 it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
@@ -17,13 +17,13 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Eighteen calculation worksheets for established facts: ordinary GST, resident basic income
+Nineteen calculation worksheets for established facts: ordinary GST, resident basic income
 tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, first-year depreciation,
 quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
-loan withholding, a single person's Medicare levy, the low income tax offset and
-Division 293 tax. Callers must establish every scope condition before calculating.
+loan withholding, a single person's Medicare levy, the low income tax offset,
+Division 293 tax and an estimate of Division 296 tax on large super balances. Callers must establish every scope condition before calculating.
 
 Each worksheet is a subcommand that reads one JSON object on stdin and writes
 one JSON result on stdout. Results include amounts, scope exclusions, official
@@ -103,14 +103,15 @@ lists the commands.
 | `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed` |
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
 | `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
+| `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
 | `study-loan-repayment` | `repayment_income`, `year`, `scope_confirmed` |
 | `contribution-caps` | `total_super_balance`, `concessional_contributions`, `unused_concessional_cap`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed` |
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 
-The 2 car commands, `main-residence` and `borrowing-expenses` have no Python original; their arguments follow the same
-rules. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
+The 2 car commands, `main-residence`, `borrowing-expenses` and `division-296` have no Python original; their arguments follow the same
+rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
 string and `loan_term_end` and `repaid_on` as dates or `null`. Every argument is required, as the Python functions had no defaults. Input over 8 MiB,
@@ -136,10 +137,11 @@ or a decimal string over 8,192 bytes, is refused.
 | Medicare levy | 2024-25 and 2025-26; full-year resident single without SAPTO, spouse, dependants or exemption; the 2% rate and the low-income reduction |
 | Low income tax offset | 2024-25, 2025-26 and 2026-27; resident individual's established taxable income; the offset amount, not applied against tax |
 | Division 293 | 2024-25, 2025-26 and 2026-27; established Division 293 income and low tax contributions; no defined benefit interests |
+| Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
 
 Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
-liability. SMSF fund tax, Division 296 tax, the transfer balance cap, trusts, payroll
+liability. SMSF fund tax, Division 296 fund earnings and their attribution, the transfer balance cap, trusts, payroll
 tax, the Medicare levy surcharge and Medicare levy reductions other than the single
 low-income reduction remain outside these worksheets.
 
@@ -337,6 +339,25 @@ in the year, a loan first drawn on 29 February, and income years from 2027-28,
 when s 26-155 quarantines residential rental deductions. The tests hold it to
 the ATO's and the Library's worked examples; see
 [calculation evidence](docs/calculation-evidence.md#borrowing-expenses).
+
+## Division 296
+
+`division_296` estimates one individual's Division 296 tax for 2026-27 from
+their established total superannuation balance at 30 June 2027 (disregarding
+LRBA amounts) and their total superannuation earnings for the year, which may be
+negative. When the balance exceeds $3 million and the earnings exceed nil, it
+works out the share of the balance above $3 million and the share above
+$10 million, each as a percentage rounded to 2 decimal places, applies each to
+the earnings, and taxes the first result at 15% and the second at a further 10%
+(ITAA 1997 ss 296-40 and 296-45; Imposition Act 2026 s 5). A child recipient, a
+structured settlement contribution or death by 30 June 2027 means no tax;
+`liability` gives the reason for any nil result. Unlike the other worksheets,
+it refuses a field it does not take, such as an opening balance. Every result
+is labelled an estimate, because the Commissioner assesses the tax from what
+funds report. Working out the balance or the earnings, defined benefit and
+other s 296-70 interests, departing temporary residents and later years are
+outside it. The tests hold it to the Explanatory Memorandum's examples; see
+[calculation evidence](docs/calculation-evidence.md#division-296).
 
 ## Worksheet discovery
 
