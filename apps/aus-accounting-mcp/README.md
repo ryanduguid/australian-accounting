@@ -47,10 +47,10 @@ The listing identifies the distribution; it does not prove a client's installed 
 Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
 ```
 
-This selects the published [0.7.1 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.1).
+This selects the published [0.8.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.8.0).
 The source checkout may be ahead of the published release. The pin selects the
 server version; it does not lock every transitive dependency.
 
@@ -66,6 +66,16 @@ records. It cannot tell you whether a newer release or newer official figures ex
 
 ## Client integration
 
+From 0.8.0, each release also has an MCP Bundle for Claude Desktop: download
+`aus-accounting-mcp-<version>.mcpb` from the
+[bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true)
+and open it with Claude Desktop. The bundle holds no server code. It pins this package
+at that version, which uv installs from PyPI on first launch, resolving the package's
+own dependencies then. `SHA256SUMS` in the same release shows the download is intact;
+it does not prove who published it. The bundle's settings offer the 3 optional research
+folders described under Tools. If Claude Desktop does not start it, use the
+configuration below.
+
 For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio servers:
 
 ```json
@@ -73,18 +83,18 @@ For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio server
   "mcpServers": {
     "aus-accounting": {
       "command": "uvx",
-      "args": ["--from", "aus-accounting-mcp==0.7.1", "aus-accounting-mcp"]
+      "args": ["--from", "aus-accounting-mcp==0.8.0", "aus-accounting-mcp"]
     }
   }
 }
 ```
 
-[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuNy4xIiwiYXVzLWFjY291bnRpbmctbWNwIl19),
+[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuOC4wIiwiYXVzLWFjY291bnRpbmctbWNwIl19),
 or from a terminal:
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
-codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
+codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
 ```
 
 The [client setup guide](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#client-setup)
@@ -147,18 +157,22 @@ records for returns before relying on `ON_TIME`.
 The research tools need a folder you supply: set `AUS_ACCOUNTING_LIBRARY_ROOT` to an
 authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus or
 `AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by
-[PaulGoodman](https://github.com/ryanduguid/PaulGoodman).
+[PaulGoodman](https://github.com/ryanduguid/PaulGoodman). Its
+[published snapshot](docs/corpus-setup.md#download-the-published-snapshot) of 9 principal
+Acts, each at its current compilation on 11 November 2026 and with a rates index, needs no
+build: unpack it and set `AUS_ACCOUNTING_CORPUS_ROOT` to its `dist` folder.
 [`python -m fadden quick --out <empty folder>`](docs/corpus-setup.md#build-the-principal-acts-with-one-command)
-in that repository builds 9 principal Acts on your machine and prints the setting. The
+in that repository builds the same Acts at their current compilations on your machine,
+without a rates index, and prints the setting. The
 [corpus setup walkthrough](docs/corpus-setup.md) also verifies the existing builder
 and MCP tools together using a fabricated page before any live capture.
-The package ships none of them. From the release after 0.7.1, run
+The package ships none of them. From 0.8.0, run
 `aus-accounting-mcp doctor` with the same variables set to see each folder's row count;
 it exits 1 if a configured folder is broken.
 A corpus or rulings row is a point-in-time copy, not
 a live lookup, and an edited version of private advice cannot be relied on by anyone.
 Legislation results preserve a row's capture date and recorded successor date when
-available. From the release after 0.7.1, `as_at` on the legislation search and read
+available. From 0.8.0, `as_at` on the legislation search and read
 tools reports each title's status for a date: `captured` is not a finding that the text
 was the law then, and a date inside a window can still carry text amended without a new
 compilation. Rulings results expose a captured withdrawal notice; `UNKNOWN` means
@@ -211,7 +225,7 @@ release provides 10 through calculators 0.1.8. See the
 package checks.
 
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.7.1 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.1),
+[v0.8.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.8.0),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <sub>Not tax, legal or financial advice. Payday Super and Division 7A reviews are experimental and need human review before consequential accounting action; fixtures are not a lodgement. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).</sub>

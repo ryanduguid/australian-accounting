@@ -8,6 +8,7 @@ graft conformance
 graft docs
 graft evaluation
 graft examples
+graft mcpb
 graft scripts
 graft tests
 global-exclude *.py[cod]

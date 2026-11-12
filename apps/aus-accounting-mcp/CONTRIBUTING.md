@@ -52,6 +52,13 @@ repository settings; the workflow cannot prove they are configured, so check the
 relying on the approval boundary. Run the preflight locally with
 `uv run --locked python scripts/registry_preflight.py`; it makes public reads only.
 
+The release commit also sets the version in `mcpb/manifest.json` and in
+`mcpb/pyproject.toml`, both its own version and its `aus-accounting-mcp==` pin;
+`tests/test_mcpb_bundle.py` refuses a mismatch. Once PyPI holds the release, push
+`aus-accounting-mcp-bundle/vX.Y.Z` on the same commit as `aus-accounting-mcp/vX.Y.Z`.
+The **Bundle aus-accounting-mcp** workflow refuses any other commit, packs the Claude
+Desktop bundle, starts it against the PyPI release and publishes it as its own release.
+
 After publication, run `uv run --locked python scripts/registry_preflight.py --readback`.
 This also requires one exact-name active latest Registry entry matching the package,
 version, repository and stdio transport, plus the published stable namespaced GitHub
