@@ -1,0 +1,8 @@
+# The MCP Bundle's runtime project. The host's uv installs exactly the released
+# aus-accounting-mcp named here from PyPI; the bundle ships no server source.
+# It has no build system, so uv never builds or installs this directory itself.
+[project]
+name = "aus-accounting-mcp-bundle"
+version = "0.7.1"
+requires-python = ">=3.14"
+dependencies = ["aus-accounting-mcp==0.7.1"]

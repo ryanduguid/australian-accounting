@@ -1,0 +1,84 @@
+{
+  "manifest_version": "0.4",
+  "name": "aus-accounting-mcp",
+  "display_name": "Aus Accounting MCP",
+  "version": "0.7.1",
+  "description": "Reviews, 14 bounded tax and super worksheets, cited retrieval from your local Markdown. Not advice.",
+  "long_description": "Australian accounting tools that run on your machine: ATO small business benchmarks, Payday Super and Division 7A reviews, 14 bounded tax and super worksheets, GST and BAS checks, lodgment due dates, reviewed ATO rates and cited search of folders you choose. The server makes no network calls once installed, but Claude still sends tool arguments and results to its model provider, so use fabricated data.\n\nNot tax, legal or financial advice. Results need human review before consequential accounting action. See the [disclaimer](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).",
+  "author": {
+    "name": "Ryan Duguid",
+    "url": "https://github.com/ryanduguid"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ryanduguid/australian-accounting"
+  },
+  "homepage": "https://duguid.com.au/tools/australian-tax-ai-agents/",
+  "documentation": "https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md",
+  "support": "https://github.com/ryanduguid/australian-accounting/issues",
+  "server": {
+    "type": "uv",
+    "entry_point": "src/server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "src/server.py"],
+      "env": {
+        "AUS_ACCOUNTING_LIBRARY_ROOT": "${user_config.library_root}",
+        "AUS_ACCOUNTING_CORPUS_ROOT": "${user_config.corpus_root}",
+        "AUS_ACCOUNTING_RULINGS_ROOT": "${user_config.rulings_root}"
+      }
+    }
+  },
+  "tools": [
+    { "name": "list_ato_benchmark_industries", "description": "Find a business type in the bundled ATO dataset." },
+    { "name": "get_ato_benchmarks", "description": "Compare supplied P&L figures with ATO benchmark ranges." },
+    { "name": "calc_payday_super_deadline", "description": "Review timing for one super contribution." },
+    { "name": "review_payday_super_contributions", "description": "Review related contributions together for one employer." },
+    { "name": "build_payday_super_evidence_pack", "description": "Return 4 review files in memory for a practitioner's workpaper." },
+    { "name": "calculate_tax_worksheet", "description": "Calculate one of 14 worksheets with established scope and period." },
+    { "name": "get_div7a_benchmark_rate", "description": "Get a reviewed Division 7A benchmark rate, or UNKNOWN." },
+    { "name": "review_div7a_loan", "description": "Review s 109N terms and s 109E minimum yearly repayments for one loan." },
+    { "name": "refuse_div7a", "description": "Explain unsupported Division 7A matters." },
+    { "name": "review_gst_coding", "description": "Give each coded bank line a review state against GST registration dates." },
+    { "name": "reconcile_bas", "description": "Compare lodged BAS label figures with ledger lines per period." },
+    { "name": "get_lodgment_due_dates", "description": "List ATO 2026-27 lodgment program due dates." },
+    { "name": "validate_abn", "description": "Test an ABN's check digit. Proves neither ABR nor GST registration." },
+    { "name": "validate_acn", "description": "Test an ACN's check digit. Proves neither ABR nor GST registration." },
+    { "name": "get_reviewed_rate", "description": "Return a reviewed ATO rate or threshold for a date, with its source." },
+    { "name": "search_accounting_library", "description": "Search the configured local Markdown library." },
+    { "name": "read_accounting_library", "description": "Read cited lines from that library." },
+    { "name": "search_tax_legislation", "description": "Find provisions in the configured local legislation corpus." },
+    { "name": "read_tax_legislation_section", "description": "Read one cited provision in full." },
+    { "name": "define_tax_term", "description": "Find an expression's statutory definitions in that corpus." },
+    { "name": "search_tax_rates", "description": "Find legislated rates and thresholds with the provision that sets them." },
+    { "name": "search_ato_rulings", "description": "Find paragraphs in the configured local ATO rulings corpus." },
+    { "name": "read_ato_ruling", "description": "Read one cited ruling paragraph." },
+    { "name": "generate_synthetic_sbr_fixture", "description": "Generate fabricated CTR/BAS test data." },
+    { "name": "get_data_freshness", "description": "Report each bundled dataset's recorded periods, engine version and source dates." }
+  ],
+  "keywords": ["australia", "accounting", "tax", "ato", "gst", "bas", "superannuation", "division 7a"],
+  "license": "LicenseRef-Duguid-Public-Attribution-1.0",
+  "compatibility": {
+    "runtimes": { "python": ">=3.14" }
+  },
+  "user_config": {
+    "library_root": {
+      "type": "directory",
+      "title": "Markdown library folder",
+      "description": "Optional. An authorised folder of Markdown reference material for the library search tools. Never a folder of mixed client files.",
+      "default": ""
+    },
+    "corpus_root": {
+      "type": "directory",
+      "title": "Legislation corpus folder",
+      "description": "Optional. A local federal tax legislation corpus for the legislation tools.",
+      "default": ""
+    },
+    "rulings_root": {
+      "type": "directory",
+      "title": "ATO rulings folder",
+      "description": "Optional. A folder of local ATO rulings runs for the rulings tools.",
+      "default": ""
+    }
+  }
+}
