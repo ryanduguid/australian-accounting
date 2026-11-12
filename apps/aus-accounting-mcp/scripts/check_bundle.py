@@ -69,6 +69,31 @@ def _request(stdin: IO[str], replies: queue.Queue[str], message: dict[str, Any])
             return reply["result"]
 
 
+def _exchange(command: list[str], environment: dict[str, str]) -> tuple[Any, Any]:
+    """Start the server, then return its ``initialize`` and ``tools/list`` results."""
+    with subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                          text=True, encoding="utf-8", env=environment) as process:
+        stdin, stdout = process.stdin, process.stdout
+        if stdin is None or stdout is None:
+            raise SystemExit("FAIL the server's stdio could not be opened")
+        replies: queue.Queue[str] = queue.Queue()
+        threading.Thread(target=_read, args=(stdout, replies), daemon=True).start()
+        try:
+            started = _request(stdin, replies, {
+                "jsonrpc": "2.0", "id": 1, "method": "initialize",
+                "params": {"protocolVersion": PROTOCOL_VERSION, "capabilities": {},
+                           "clientInfo": {"name": "check_bundle", "version": "1"}},
+            })
+            _request(stdin, replies, {"jsonrpc": "2.0", "method": "notifications/initialized"})
+            listed = _request(stdin, replies, {"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
+            stdin.close()
+            process.wait(timeout=30)
+        finally:
+            if process.poll() is None:
+                process.kill()
+    return started, listed
+
+
 def check(bundle: Path, source: Path) -> list[str]:
     with tempfile.TemporaryDirectory() as name:
         folder = Path(name)
@@ -99,26 +124,7 @@ def check(bundle: Path, source: Path) -> list[str]:
             **os.environ,
             **{key: resolve(value) for key, value in config.get("env", {}).items()},
         }
-        with subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                              text=True, encoding="utf-8", env=environment) as process:
-            assert process.stdin is not None and process.stdout is not None
-            replies: queue.Queue[str] = queue.Queue()
-            threading.Thread(target=_read, args=(process.stdout, replies), daemon=True).start()
-            try:
-                started = _request(process.stdin, replies, {
-                    "jsonrpc": "2.0", "id": 1, "method": "initialize",
-                    "params": {"protocolVersion": PROTOCOL_VERSION, "capabilities": {},
-                               "clientInfo": {"name": "check_bundle", "version": "1"}},
-                })
-                _request(process.stdin, replies,
-                         {"jsonrpc": "2.0", "method": "notifications/initialized"})
-                listed = _request(process.stdin, replies,
-                                  {"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
-                process.stdin.close()
-                process.wait(timeout=30)
-            finally:
-                if process.poll() is None:
-                    process.kill()
+        started, listed = _exchange(command, environment)
 
     version = started["serverInfo"]["version"]
     if version != manifest["version"]:
