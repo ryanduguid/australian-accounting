@@ -66,6 +66,13 @@ records. It cannot tell you whether a newer release or newer official figures ex
 
 ## Client integration
 
+From the first release after 0.7.1, Claude Desktop can install the server in one step
+from an MCP Bundle. Download `aus-accounting-mcp-<version>.mcpb` from the
+[bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true),
+check it against that release's `SHA256SUMS` and open it with Claude Desktop. The
+bundle holds no server code: it runs that exact version from PyPI through uv. Its
+settings offer the 3 optional research folders described under Tools.
+
 For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio servers:
 
 ```json
