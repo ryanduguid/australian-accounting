@@ -1054,16 +1054,9 @@ const DIVISION_296_EXCEPTIONS: [(&str, &str); 3] = [
     ),
 ];
 
-pub fn division_296(
-    total_super_balance_end_of_year: &Arg,
-    total_super_earnings: &Arg,
-    exceptions: [&Arg; 3],
-    year: &Arg,
-    scope_confirmed: &Arg,
-) -> Result<Value> {
-    let year = scope(scope_confirmed, year, "division_296")?;
-    let balance = money(total_super_balance_end_of_year)?;
-    let earnings = signed_money(total_super_earnings)?;
+/// The reason of the first exception that applies, if any, and whether the
+/// individual died by the end of the year (s 296-50), once every flag is valid.
+fn division_296_exceptions(exceptions: [&Arg; 3]) -> Result<(Option<&'static str>, bool)> {
     let mut excepted = None;
     let mut died = false;
     for (value, (name, reason)) in exceptions.into_iter().zip(DIVISION_296_EXCEPTIONS) {
@@ -1075,18 +1068,20 @@ pub fn division_296(
             died = set;
         }
     }
-    let large = d(lookup(&meta::DIVISION_296, "large_threshold"));
-    let very_large = d(lookup(&meta::DIVISION_296, "very_large_threshold"));
-    let rate_ = d(lookup(&meta::DIVISION_296, "rate"));
-    let very_large_rate = d(lookup(&meta::DIVISION_296, "very_large_rate"));
-    // ITTPA s 296-1(2): for 2026-27 the reference amount is the balance at the end of the
-    // year, which s 296-50 takes to be nil for someone who has died by then.
-    let reference = if died { int(0) } else { balance.clone() };
-    let percentage = percentage_above(&reference, &large)?;
-    let very_large_percentage = percentage_above(&reference, &very_large)?;
-    let (liable, liability) = if let Some(reason) = excepted {
+    Ok((excepted, died))
+}
+
+/// Whether s 296-15 makes the individual liable, with the reason given.
+fn division_296_liability(
+    excepted: Option<&'static str>,
+    reference: &Decimal,
+    large: &Decimal,
+    earnings: &Decimal,
+    percentage: &Decimal,
+) -> Result<(bool, &'static str)> {
+    Ok(if let Some(reason) = excepted {
         (false, reason)
-    } else if !reference.gt(&large)? {
+    } else if !reference.gt(large)? {
         (
             false,
             "not liable: the total superannuation balance at the end of the year is not greater than the large superannuation balance threshold (s 296-40(1)(a); Income Tax (Transitional Provisions) Act 1997 s 296-1(2))",
@@ -1103,24 +1098,35 @@ pub fn division_296(
         )
     } else {
         (true, "liable (s 296-15)")
-    };
-    let (amounts, negative_component) = precise(|| {
-        // ss 296-40 and 296-45 define the earnings amounts whether or not an exception
-        // removes the liability, and s 296-45 has no 'greater than nil' condition, so
-        // the very large component can be negative; only the tax depends on liability.
+    })
+}
+
+/// The earnings amounts ss 296-40 and 296-45 define, whether or not an exception
+/// removes the liability, and the 2 taxes and their total, which only a liability
+/// gives; also whether the very large component is negative. A share is nil when
+/// the balance is not above its threshold, so taxable superannuation earnings
+/// arise only from a nonzero first share and earnings greater than nil
+/// (s 296-40(1)), and s 296-45 has no 'greater than nil' condition.
+fn division_296_amounts(
+    liable: bool,
+    earnings: &Decimal,
+    [percentage, very_large_percentage]: [&Decimal; 2],
+    [rate_, very_large_rate]: [&Decimal; 2],
+) -> Result<(Vec<(&'static str, Decimal)>, bool)> {
+    precise(|| {
         let hundred = int(100);
-        let taxable = if reference.gt(&large)? && earnings.gt(&int(0))? {
-            earnings.mul(&percentage)?.div(&hundred)?
+        let taxable = if earnings.gt(&int(0))? && !percentage.is_zero() {
+            earnings.mul(percentage)?.div(&hundred)?
         } else {
             int(0)
         };
         let component = if !very_large_percentage.is_zero() {
-            earnings.mul(&very_large_percentage)?.div(&hundred)?
+            earnings.mul(very_large_percentage)?.div(&hundred)?
         } else {
             int(0)
         };
         let (tax, further) = if liable {
-            (taxable.mul(&rate_)?, component.mul(&very_large_rate)?)
+            (taxable.mul(rate_)?, component.mul(very_large_rate)?)
         } else {
             (int(0), int(0))
         };
@@ -1143,7 +1149,40 @@ pub fn division_296(
             ],
             negative,
         ))
-    })?;
+    })
+}
+
+pub fn division_296(
+    total_super_balance_end_of_year: &Arg,
+    total_super_earnings: &Arg,
+    exceptions: [&Arg; 3],
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, "division_296")?;
+    let balance = money(total_super_balance_end_of_year)?;
+    let earnings = signed_money(total_super_earnings)?;
+    let (excepted, died) = division_296_exceptions(exceptions)?;
+    let [large, very_large, rate_, very_large_rate] = [
+        "large_threshold",
+        "very_large_threshold",
+        "rate",
+        "very_large_rate",
+    ]
+    .map(|key| d(lookup(&meta::DIVISION_296, key)));
+    // ITTPA s 296-1(2): for 2026-27 the reference amount is the balance at the end of the
+    // year, which s 296-50 takes to be nil for someone who has died by then.
+    let reference = if died { int(0) } else { balance };
+    let percentage = percentage_above(&reference, &large)?;
+    let very_large_percentage = percentage_above(&reference, &very_large)?;
+    let (liable, liability) =
+        division_296_liability(excepted, &reference, &large, &earnings, &percentage)?;
+    let (amounts, negative_component) = division_296_amounts(
+        liable,
+        &earnings,
+        [&percentage, &very_large_percentage],
+        [&rate_, &very_large_rate],
+    )?;
     let mut out = result(
         "division_296",
         &year,
