@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 
 import pytest
@@ -10,6 +11,7 @@ import pytest
 from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.server import (
     get_div7a_benchmark_rate,
+    mcp,
     refuse_div7a,
     review_div7a_loan,
 )
@@ -351,3 +353,45 @@ def test_a_term_the_years_outrun_leaves_a_remaining_term_of_nil() -> None:
 
     assert myr["reason_codes"] == [ABOVE_TERM_LEFT]
     assert "which leaves a remaining term of 0, so the loan should" in myr["reasons"][0]
+
+
+def test_the_term_left_refusal_says_how_to_enter_an_extended_loan() -> None:
+    myr = _review(**_loan_made("2022-23", "2026-27", remaining_term_years="5"))[
+        "minimum_yearly_repayment"
+    ]
+
+    assert myr["reasons"][0].endswith(
+        "so its year_loan_made is the year before that later year, and its "
+        "maximum_term_years, as the ATO works it, is 25 years less the time the loan had "
+        "already run before the extension. No MYR figure is emitted."
+    )
+
+
+def _description(name: str) -> str:
+    tools = asyncio.run(mcp.list_tools())
+    tool = next(t for t in tools if t.name == "review_div7a_loan")
+    return tool.input_schema["properties"][name]["description"]
+
+
+def test_the_loan_year_description_gives_the_s_109e_3b_entry_rule() -> None:
+    assert (
+        "For a loan secured by a mortgage and extended under s 109E(3A), the year before the "
+        "year of the extension" in _description("year_loan_made")
+    )
+
+
+def test_the_term_description_gives_an_extended_loans_term() -> None:
+    assert (
+        "For a loan extended under s 109E(3A), 25 less the years it had already run before "
+        "the extension" in _description("maximum_term_years")
+    )
+
+
+def test_the_remaining_term_description_gives_its_limit() -> None:
+    description = _description("remaining_term_years")
+
+    assert (
+        "at most maximum_term_years less the whole years from the end of year_loan_made"
+        in description
+    )
+    assert "A longer term, or one above the s 109N(3) maximum, is REFUSED." in description
