@@ -23,8 +23,9 @@ fn corpus() -> Vec<Value> {
 /// since Python 0.3.2 replace, kept apart so the frozen record never changes.
 /// Each override replaces one command run's `expected`, once. It names the
 /// case's test and, in `was`, the frozen exit code and the FNV-1a hashes of
-/// the frozen stdout and stderr, and it keeps that exit code and stderr, so a
-/// stale index or an override that absorbs another change fails the replay.
+/// the frozen stdout and stderr, and it keeps that stderr and, unless it sets
+/// `exit_code_changes` to true, that exit code, so a stale index or an
+/// override that absorbs another change fails the replay.
 fn amend(cases: &mut [Value]) {
     let amendments: Value =
         serde_json::from_str(include_str!("data/amendments.json")).expect("amendments parse");
@@ -35,10 +36,15 @@ fn amend(cases: &mut [Value]) {
             assert!(seen.insert(at), "case {index} amended twice");
             for key in fields.as_object().unwrap().keys() {
                 assert!(
-                    ["test", "was", "expected"].contains(&key.as_str()),
+                    ["test", "was", "expected", "exit_code_changes"].contains(&key.as_str()),
                     "case {index}: cannot amend {key}"
                 );
             }
+            let code_changes = match fields.get("exit_code_changes") {
+                None => false,
+                Some(Value::Bool(true)) => true,
+                Some(other) => panic!("case {index}: exit_code_changes is {other}, not true"),
+            };
             let case = &mut cases[at];
             assert_eq!(case["test"], fields["test"], "case {index} is another test");
             assert_eq!(
@@ -57,8 +63,11 @@ fn amend(cases: &mut [Value]) {
             );
             let new = &fields["expected"];
             assert_eq!(
-                new["code"], frozen["code"],
-                "case {index}: exit code changed"
+                new["code"] != frozen["code"],
+                code_changes,
+                "case {index}: exit code {} to {}, exit_code_changes {code_changes}",
+                frozen["code"],
+                new["code"]
             );
             assert_eq!(
                 new["stderr"], frozen["stderr"],

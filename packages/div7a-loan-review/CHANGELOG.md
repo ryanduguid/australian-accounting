@@ -114,6 +114,10 @@ divergences.
   constituent-loan term. Where the remaining term is also past the maximum term,
   only `REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM` is given. The
   `minimum-yearly-repayment` command, which takes no loan term, is unchanged.
+  The replay applies 26 more changed generated answers and updates 1 from the
+  earlier change. In 2 of them the refused row was the register's only
+  undecided one, so the run now exits 2 instead of 0; those cases set
+  `exit_code_changes`, which the replay now requires for any changed exit code.
 
 ### Verification
 

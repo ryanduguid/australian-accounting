@@ -319,7 +319,8 @@ fn every_row_of_evidence_reaches_the_one_answer_the_tables_give() {
 /// A loan the gate passes on a maximum term its security facts establish
 /// cannot have a remaining term longer than that maximum (s 109E(3)(b) and (c),
 /// s 109N(1)(c) and (3), s 109E(6)). Where the security facts leave the maximum
-/// open, or the gate did not pass, nothing conflicts and nothing more is refused.
+/// open, or the gate did not pass, this refusal does not apply; a row whose own
+/// term is shorter than the remaining term is still refused (next test).
 #[test]
 fn a_remaining_term_past_the_maximum_term_cannot_hold() {
     let conflict = "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM";
@@ -358,7 +359,8 @@ fn a_remaining_term_past_the_maximum_term_cannot_hold() {
         (secured("1.09", 7), "8", &[conflict]),
         (secured("1.10", 25), "25", &[]),
         (secured("1.10", 25), "26", &[conflict]),
-        (unsecured_unknown, "8", &[]),
+        // The maximum is open, but the row's own 7-year term is not.
+        (unsecured_unknown, "8", &["REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM"]),
         (not_complying, "30", &["REFUSED_GATE_NOT_COMPLYING"]),
         (undecided, "8", &["REFUSED_GATE_UNKNOWN"]),
         (base, "0", &["REFUSED_REMAINING_TERM_NOT_POSITIVE"]),
