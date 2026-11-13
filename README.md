@@ -268,6 +268,15 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   PAYG, GST, super and HECS, which its home page also offers inside ChatGPT and Claude as a plugin.
 - [PayCalculator](https://mcp.paycalculator.com.au/): a remote MCP server in the MCP Registry for
   Australian pay, income tax, super, HECS, family payments and child care subsidy.
+- [aftertaxau/au-compliance-kit](https://github.com/aftertaxau/au-compliance-kit), read on
+  14 November 2026: an MIT-licensed JavaScript library with no dependencies, v0.4.0 of
+  13 November 2026, with a local MCP server and a hosted one at `https://aftertaxau.com/mcp` that
+  needs no key. For 2025-26 and 2026-27 it covers PAYG withholding this repository does not:
+  scale 4, quarterly pays, tax offsets, Medicare levy variation adjustments, Schedule 5 bonuses and
+  Schedule 9, plus an annual tax estimate with the Medicare levy surcharge. Its tests compare all
+  432 rows of each year's ATO sample data; this repository's compare the 144 withholding rows. For
+  2026-27 it applies the 2025-26 Medicare levy low-income thresholds with a note; this repository
+  refuses a 2026-27 Medicare levy calculation.
 
 This repository offers none of those hosted services. It has no connector for ChatGPT or the
 Claude.ai web app, and it ships no ATO guidance or rulings corpus: its rulings tools search a corpus
