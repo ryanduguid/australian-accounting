@@ -44,7 +44,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
-| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilation 53 and the ATO's single thresholds | 30 June 2026 (ATO page) | Single person without SAPTO, the 2% rate and the s 7 low-income reduction for 2024-25 and 2025-26 |
+| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilation 53 and the ATO's single thresholds | 30 June 2026 (ATO page) | Single person without SAPTO, the 2% rate and the s 7 low-income reduction for 2024-25 to 2026-27 |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
@@ -355,8 +355,15 @@ table 2 of the ATO's myTax 2025 instructions, which apply to 1 July 2024 to 30
 June 2025. The frozen replay in `tests/parity.rs` holds the worksheet to the ATO page's
 example ($29,000 in 2025-26 gives $98.90), to each threshold and phase-in limit
 and to the dollar either side of them. The 2026-27 thresholds were not
-published when the worksheet was written, so 2026-27 is refused rather than
-given the 2025-26 figures.
+published when the worksheet was written, so it refused 2026-27. On 14 November
+2026 the Treasury Laws Amendment (Delivering an Efficient and Trusted Tax
+System) Act 2026 (No. 58, 2026, assented 30 June 2026) was read: Sch 5 item 14
+applies the $28,011 and $35,013 it put into s 3(1) to the 2025-26 and later
+years of income. Compilation 53 was still the latest that day and still holds
+them, so 2026-27 takes them as enacted law, not as borrowed figures. The ATO
+page still gave 2025-26 figures only, so a 2026-27 result warns that an
+amendment for that year can change it. `tests/tables.rs` checks 2026-27 below,
+at and above the threshold amount and phase-in limit.
 
 Each published phase-in limit is 1.25 times the threshold amount, rounded down
 to the dollar: that is the income at which 10% of the excess reaches 2% of the

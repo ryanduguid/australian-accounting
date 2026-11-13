@@ -160,9 +160,12 @@ fn lito_second_step_amount_and_cut_out_follow_from_the_table() {
 
 #[test]
 fn medicare_thresholds_match_the_published_table_and_phase_in() {
+    // 2026-27: Medicare Levy Act 1986 s 3(1), compilation 53, with Act No. 58,
+    // 2026, Sch 5 item 14 (2025-26 and later years), both read on 14 November 2026.
     let published = [
         ("2024-25", ("27222", "34027")),
         ("2025-26", ("28011", "35013")),
+        ("2026-27", ("28011", "35013")),
     ];
     assert_eq!(MEDICARE_LOW_INCOME_THRESHOLDS, published);
     for (_, (lower, upper)) in published {
@@ -170,6 +173,61 @@ fn medicare_thresholds_match_the_published_table_and_phase_in() {
         let limit = floor(&d(lower).mul(&d("1.25")).unwrap());
         assert!(d(upper).equals(&limit).unwrap());
     }
+}
+
+/// 2026-27 at the enacted threshold amount ($28,011) and phase-in limit
+/// ($35,013): s 7(1) gives nil at or below the threshold, s 7(2) caps the levy
+/// at 10% of the excess up to the limit, and s 6(1) charges 2% of the whole above it.
+#[test]
+fn medicare_levy_2026_27_applies_the_thresholds_enacted_for_later_years() {
+    let run = |income: &str, year: &str| {
+        api::evaluate(
+            "medicare-levy",
+            &json!({"taxable_income": income, "section_9a_adjustment_applies": false,
+                    "year": year, "scope_confirmed": true}),
+        )
+    };
+    // (taxable income, 2% of it, levy); the reduction is their difference.
+    for (income, full, levy) in [
+        ("0", "0.00", "0.00"),
+        ("28010", "560.20", "0.00"),     // below the threshold: nil
+        ("28011", "560.22", "0.00"),     // at the threshold: nil
+        ("28012", "560.24", "0.10"),     // 10% x (28,012 - 28,011)
+        ("29000", "580.00", "98.90"),    // 10% x 989, as in the ATO's 2025-26 Angie example
+        ("35013", "700.26", "700.20"),   // at the limit: 10% x 7,002 < 2% x 35,013
+        ("35014", "700.28", "700.28"),   // above the limit: 2% x 35,014
+        ("50000", "1000.00", "1000.00"), // 2% x 50,000
+    ] {
+        let result = run(income, "2026-27").unwrap();
+        let amounts = &result["amounts"];
+        assert_eq!(result["period"], "2026-27");
+        assert_eq!(amounts["levy_at_full_rate"], full, "{income}");
+        assert_eq!(amounts["medicare_levy"], levy, "{income}");
+        let reduction = d(full).sub(&d(levy)).unwrap();
+        let reduction = reduction.quantize(-2, Rounding::HalfUp).unwrap();
+        assert_eq!(
+            amounts["low_income_reduction"],
+            reduction.to_string(),
+            "{income}"
+        );
+        assert_eq!(result["rates"]["threshold_amount"], "28011");
+        assert_eq!(result["rates"]["phase_in_limit"], "35013");
+        let warnings = result["warnings"].as_array().unwrap();
+        assert!(warnings.last().unwrap().as_str().unwrap().starts_with(
+            "2026-27 uses the threshold amount and phase-in limit Medicare Levy Act 1986 s 3(1) sets"
+        ));
+        let sources = result["sources"].as_array().unwrap();
+        assert!(sources.contains(&json!(
+            "https://www.legislation.gov.au/C2026A00058/asmade/text"
+        )));
+    }
+    // The ATO published the 2025-26 thresholds, so that year carries no such warning.
+    let earlier = run("29000", "2025-26").unwrap();
+    assert_eq!(earlier["warnings"].as_array().unwrap().len(), 2);
+    assert_eq!(
+        run("29000", "2027-28").unwrap_err(),
+        "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27."
+    );
 }
 
 #[test]
