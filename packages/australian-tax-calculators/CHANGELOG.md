@@ -89,6 +89,9 @@ intentionally changed.
   over 8 years by prime cost gave $1,250.13 and $8,750.88, now $8,750.87.
   Carried forward year by year, the old figures wrote off more than cost. No
   frozen result changes.
+- `depreciation` divides once, last, so an exact half cent is not lost: $1,000.50
+  over 14 years by diminishing value at 21% taxable use is exactly $30.015,
+  now $30.02; Python 0.2.0 gave $30.01. No frozen result changes.
 - `depreciation` refuses a field it does not take with `input.field_unknown`,
   as `division-296` does; Python 0.2.0 ignored it. A misspelt
   `opening_adjustable_value` would otherwise give the start year's result for a
