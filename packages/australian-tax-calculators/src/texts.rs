@@ -273,7 +273,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
 /// published when they were read from the Act.
 pub const MEDICARE_YEAR_WARNINGS: &[(&str, &str)] = &[(
     "2026-27",
-    "2026-27 uses the threshold amount and phase-in limit Medicare Levy Act 1986 s 3(1) sets for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14). The ATO had not published 2026-27 thresholds when this was checked on 14 November 2026; an amendment of those figures for 2026-27 can change this result.",
+    "2026-27 uses the threshold amount and phase-in limit Medicare Levy Act 1986 s 3(1) sets for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14). The ATO had not published 2026-27 thresholds when this was checked on 14 November 2026. That Act, assented on 30 June 2026, raised the figures for 2025-26, so a later Act can raise them for 2026-27 and change this result.",
 )];
 
 /// Every refusal code and the failure it names. A code stays when a message is
