@@ -165,3 +165,53 @@ fn the_catalogue_lists_the_opening_value_as_optional() {
     );
     assert!(catalogue["gst"].get("optional_inputs").is_none());
 }
+
+/// A deduction whose exact value is half a cent rounds up. $1,000.50 over 14
+/// years by diminishing value, or 7 by prime cost, is a decline of exactly
+/// $2,001 ÷ 14 = $142.928571…, and at 21% taxable use exactly $30.015, so
+/// $30.02. Dividing before applying the use gave $30.01499… and $30.01.
+#[test]
+fn an_exact_half_cent_deduction_rounds_up() {
+    for overrides in [
+        json!({"cost": "1000.50", "effective_life": "14"}),
+        json!({"cost": "1000.50", "effective_life": "7", "method": "prime_cost"}),
+        json!({"cost": "2000.00", "effective_life": "14", "opening_adjustable_value": "1000.50"}),
+    ] {
+        let mut overrides = overrides;
+        overrides["taxable_use"] = json!("0.21");
+        let year = run(overrides.clone());
+        assert_eq!(amounts(&year), ["142.93", "30.02", "857.57"], "{overrides}");
+    }
+}
+
+/// A decline equal to the opening value, and one above it, both take the
+/// opening value: $1,000.50 by prime cost over 1 year is exactly $1,000.50, and
+/// over half a year $2,001, limited to $1,000.50. At 21% taxable use the
+/// deduction is exactly $210.105, so $210.11, and nothing is left.
+#[test]
+fn a_decline_at_or_above_the_opening_value_takes_the_opening_value() {
+    for life in ["1", "0.5"] {
+        let year = run(json!({
+            "cost": "1000.50", "effective_life": life, "method": "prime_cost",
+            "taxable_use": "0.21",
+        }));
+        assert_eq!(amounts(&year), ["1000.50", "210.11", "0.00"], "{life}");
+    }
+}
+
+/// Pins a known limit, not a correct result. The engine carries 40 significant
+/// digits. With an effective life of 37 significant digits, far outside what
+/// the calculator promises, the exact deduction is $300,629.685 less about
+/// 4e-35, a hair under the half cent, so $300,629.68; the 40-digit quotient
+/// rounds to exactly $300,629.685 and shows $300,629.69. A precision fix that
+/// makes this exact should change the expected deduction to "300629.68".
+#[test]
+fn a_life_beyond_the_working_precision_can_miss_the_exact_cent() {
+    let year = run(json!({
+        "cost": "3962321.67", "opening_adjustable_value": "645298.42",
+        "method": "prime_cost", "days": 153,
+        "effective_life": "2.81212237878865798467922193069022159500",
+        "taxable_use": "0.509",
+    }));
+    assert_eq!(amounts(&year), ["590628.06", "300629.69", "54670.36"]);
+}
