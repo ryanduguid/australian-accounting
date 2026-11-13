@@ -808,6 +808,41 @@ def test_a_file_or_hidden_folder_under_compilations_is_not_a_compilation(two_com
     assert [hit["text"] for hit in result["matches"]] == [EARLIER_TEXT]
 
 
+def test_a_title_held_only_under_compilations_answers_only_a_dated_call(two_compilations):
+    write_compilation(two_compilations, "2098-07-01", title(
+        REPLACED, "Synthetic Replaced Act 2098", "2098-07-01", superseded="2098-10-01"
+    ))
+    row_id = f"{REPLACED}:0001:1"
+
+    result = call(SEARCH, query="synthetic levy", as_at="2098-08-01")
+    later = call(SEARCH, query="synthetic levy", as_at="2098-11-01")
+
+    assert rows_returned(result) == [CURRENT, REPLACED]
+    assert call(READ, row_id=row_id, as_at="2098-08-01")["section"]["text"] == TEXTS[0]
+    assert rows_returned(later) == [CURRENT]
+    assert by_title(later)[REPLACED]["as_at"]["status"] == "superseded"
+    assert "held_compilations" not in by_title(later)[REPLACED]
+    assert REPLACED not in rows_returned(call(SEARCH, query="synthetic levy"))
+    with pytest.raises(ToolError, match="No title index for that row_id"):
+        asyncio.run(mcp.call_tool(READ, {"row_id": row_id}))
+
+
+def test_a_row_only_an_earlier_compilation_holds_is_read_only_inside_its_window(
+    two_compilations,
+):
+    write_compilation(two_compilations, "2098-07-01", title(
+        CURRENT, "Synthetic Current Act 2098", "2098-07-01", superseded="2098-10-01",
+        texts=(EARLIER_TEXT, TEXTS[1]),
+    ))
+    row_id = f"{CURRENT}:0002:2"
+
+    assert call(READ, row_id=row_id, as_at="2098-08-01")["section"]["text"] == TEXTS[1]
+    with pytest.raises(ToolError, match="Search with as_at 2098-11-01 for the row_ids"):
+        asyncio.run(mcp.call_tool(READ, {"row_id": row_id, "as_at": "2098-11-01"}))
+    with pytest.raises(ToolError, match=r"No section with that row_id in the [a-z ]+\.$"):
+        asyncio.run(mcp.call_tool(READ, {"row_id": row_id}))
+
+
 def test_a_compilation_folder_without_markdown_stops_a_dated_call(dated):
     (dated / "compilations" / "2098-07-01").mkdir(parents=True)
 
