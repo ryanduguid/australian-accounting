@@ -126,6 +126,11 @@ fn an_opening_value_above_cost_or_not_money_is_refused() {
         code(json!({"opening_adjustable_value": "12,50"})),
         "input.decimal_unreadable"
     );
+    // A misspelt opening value is refused, not ignored into a start-year result.
+    assert_eq!(
+        code(json!({"opening_value": "48000.00"})),
+        "input.field_unknown"
+    );
 }
 
 /// An opening value equal to cost is the start year's answer.

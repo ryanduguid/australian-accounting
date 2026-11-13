@@ -89,6 +89,10 @@ intentionally changed.
   over 8 years by prime cost gave $1,250.13 and $8,750.88, now $8,750.87.
   Carried forward year by year, the old figures wrote off more than cost. No
   frozen result changes.
+- `depreciation` refuses a field it does not take with `input.field_unknown`,
+  as `division-296` does; Python 0.2.0 ignored it. A misspelt
+  `opening_adjustable_value` would otherwise give the start year's result for a
+  later year. No frozen call passes such a field.
 - Python imports, keyword signatures, the `metadata` dictionaries and package
   version lookup are removed. `engine_version` in every result is the Cargo
   version, 1.0.0; Python 0.2.0 reported `0.2.0`. That field is the only
