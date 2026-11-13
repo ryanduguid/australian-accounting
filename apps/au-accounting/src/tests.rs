@@ -6,6 +6,7 @@ use super::*;
 const DEFAULT_JSON: Json = Json {
     preserve_order: false,
     arbitrary_precision: false,
+    refuse_repeated_keys: false,
 };
 
 fn adapted(text: &str, json: Json) -> Result<String, String> {
@@ -139,4 +140,33 @@ fn every_engine_and_command_name_routes_to_one_engine() {
         }
     }
     assert!(help().lines().all(|line| line.len() <= 80));
+}
+
+#[test]
+fn only_the_tax_engine_refuses_a_repeated_key() {
+    let tax = Json {
+        refuse_repeated_keys: true,
+        ..FULL_JSON
+    };
+    let text = br#"{"a":1e400,"a":2}"#;
+    assert_eq!(parse_json(text, tax).unwrap_err(), r#"duplicate key "a""#);
+    assert!(parse_json(text, FULL_JSON).is_ok());
+    assert!(parse_json(br#"[{"a":1},{"a":2}]"#, tax).is_ok());
+}
+
+#[test]
+fn api_help_lists_each_engines_own_commands() {
+    let help = |run: fn(&[OsString]) -> Outcome, commands: &[&str]| {
+        let (code, out, err) = run(&[OsString::from("--api-help")]);
+        assert_eq!((code, err.as_str()), (0, ""));
+        let first = out.lines().next().unwrap();
+        assert_eq!(
+            first,
+            format!("JSON stdin commands: {}", commands.join(", "))
+        );
+    };
+    help(exchequer, the_exchequer_tally::api::COMMANDS);
+    help(solomons, solomons_sword::api::COMMANDS);
+    help(tax, &australian_tax_calculators::api::commands());
+    help(wip, the_wip_tally::api::COMMANDS);
 }

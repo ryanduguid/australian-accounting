@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 use australian_tax_calculators::api;
-use serde_json::json;
+use serde_json::{Value, json};
 use std::io::{Read, Write};
 
 /// One JSON stdin command: (exit code, stdout, stderr). A refusal always keeps
@@ -18,12 +18,18 @@ fn run(command: &str, refusal_json: bool) -> (i32, String, String) {
             "JSON input exceeds 8 MiB",
         ))
     } else {
-        match serde_json::from_slice(&bytes) {
+        match serde_json::from_slice::<Value>(&bytes) {
             Err(e) => Err(api::Refusal::new(
                 "input.invalid_json",
                 format!("invalid JSON: {e}"),
             )),
-            Ok(v) => api::evaluate_coded(command, &v),
+            Ok(v) => match api::repeated_key(&bytes) {
+                Some(key) => Err(api::Refusal::new(
+                    "input.invalid_json",
+                    format!("invalid JSON: duplicate key {key:?}"),
+                )),
+                None => api::evaluate_coded(command, &v),
+            },
         }
     };
     match result {
