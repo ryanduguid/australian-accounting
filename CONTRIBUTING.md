@@ -43,7 +43,9 @@ uv run --locked --group dev pytest
 Root pyright checks all 9 runtime packages. Root pytest runs the repository checks
 and each component's existing suite in a separate process, from that component's
 directory. This keeps repeated test module names and relative fixture paths
-independent. Component configuration and CI gates remain authoritative.
+independent. It leaves out the crates `ci.yml`'s `rust` job runs, which already
+run the same `cargo test` there. Component configuration and CI gates remain
+authoritative.
 
 Two consequences of the workspace are worth knowing before you run a component's
 own commands:
