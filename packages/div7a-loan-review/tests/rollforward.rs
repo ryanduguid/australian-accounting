@@ -4,7 +4,7 @@
 //! `rollforward` inputs it must refuse or disclose: a key printed raw could
 //! break the one-line error, a nil repayment splits a period and can move the
 //! rounded interest, and a balance floored at nil is an assumption the output
-//! has to state.
+//! has to state. The first-year readings' rounding exception is pinned too.
 
 use div7a_loan_review::rollforward::rollforward;
 use serde_json::{Value, json};
@@ -64,4 +64,25 @@ fn a_balance_floored_at_nil_is_disclosed() {
     ] {
         assert!(floored(&rollforward(&loan(repayments)).unwrap()).is_empty());
     }
+}
+
+/// The worked example's first-year reading (the 2 July repayment, made before
+/// the lodgment day, counted in the year) usually closes higher than the other
+/// reading (it counted in the loan year), but rounding each period to cents
+/// can leave it a cent lower, as the caveat and README say.
+#[test]
+fn the_first_year_readings_differ_by_rounding_alone_here() {
+    let closing = |opening: &str, repayments: Value| {
+        let mut input = loan(repayments);
+        input["balance_at_start_of_year"] = json!(opening);
+        rollforward(&input).unwrap()["amalgamated_loan_unpaid_at_end_of_year"].clone()
+    };
+    let later = json!([
+        {"date": "2026-09-20", "amount": "61.22"},
+        {"date": "2027-01-31", "amount": "178.93"},
+    ]);
+    let mut with_early = later.as_array().unwrap().clone();
+    with_early.insert(0, json!({"date": "2026-07-02", "amount": "8.13"}));
+    assert_eq!(closing("436.48", Value::Array(with_early)), "215.09");
+    assert_eq!(closing("428.35", later), "215.10");
 }

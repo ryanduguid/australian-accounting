@@ -625,10 +625,11 @@ payments made before the lodgment day are taken to have been made in the loan
 year, so the first year opens at the balance immediately before the lodgment
 day. On that reading the example would open at $55,000, count only the
 $8,000 repayment and close at $50,230.77, not $50,430. The guidance does not
-reconcile the two. The engine follows the example, which never gives the lower
+reconcile the two. The engine follows the example, which gives the higher
 closing balance because it charges interest on such a repayment from 1 July to
-its date, and says so in a caveat. Whether a repayment counts at all (s 109R)
-stays with you.
+its date, apart from the rounding of each period's interest to cents, which can
+leave it a cent or so lower. A caveat says so. Whether a repayment counts at all
+(s 109R) stays with you.
 
 ## WebAssembly
 

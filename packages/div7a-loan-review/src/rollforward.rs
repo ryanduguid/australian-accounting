@@ -323,9 +323,10 @@ fn compute(
              before that example says payments made before the lodgment day are taken to have \
              been made in the loan year, so the first year opens at the balance immediately \
              before the lodgment day; the guidance does not reconcile the two. The example's \
-             method never gives the lower closing balance, as it charges interest on such a \
-             repayment from 1 July to its date. That year's minimum yearly repayment can work \
-             on a lower balance (s 109E(3))."
+             method gives the higher closing balance, as it charges interest on such a \
+             repayment from 1 July to its date, apart from the rounding of each period's \
+             interest to cents, which can leave it a cent or so lower. That year's minimum \
+             yearly repayment can work on a lower balance (s 109E(3))."
                 .to_string(),
         );
     }
