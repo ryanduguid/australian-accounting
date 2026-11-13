@@ -1,5 +1,5 @@
 {
- "about": "Deliberate behaviour changes made after the Python 0.3.2 record in python-cases.json was frozen. tests/parity.rs replaces the listed answers by corpus index before comparing, so python-cases.json stays exactly as Python left it. Each change gives its reason and every case it alters. Each case names its test and, in was, the FNV-1a hash of what it replaces: for a command run the frozen exit code and the hashes of the frozen stdout and stderr, for an API call the hash of the frozen answer as stored. The replay checks it before replacing the answer and requires a command run's stderr to stay the same, and its exit code too unless the case sets exit_code_changes to true.",
+ "about": "Deliberate behaviour changes made after the Python 0.3.2 record in python-cases.json was frozen. tests/parity.rs replaces the listed answers by corpus index before comparing, so python-cases.json stays exactly as Python left it. Each change gives its reason and every case it alters. Each case names its test and, in was, the FNV-1a hash of what it replaces: for a command run the frozen exit code and the hashes of the frozen stdout and stderr, for an API call the hash of the frozen answer as stored and, where it is stored as a hash, its status, ok or error. The replay checks it before replacing the answer. It requires a command run's stderr to stay the same, and its exit code too unless the case sets exit_code_changes to true. It requires an amended API answer to be stored as text and to keep its ok or error status unless the case sets status_changes to true.",
  "changes": [
   {
    "change": "A register review refuses the minimum yearly repayment, with REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM, where the gate passed the loan, its security facts establish the s 109N(3) maximum term (7 or 25 years) and remaining_term_years, rounded up, is longer. Each constituent loan's term is within its maximum term (s 109E(3)(b), s 109N(1)(c)), the constituent loans share one maximum term (s 109E(3)(c)) and the s 109E(6) remaining term is at most the longest of their terms, so those facts cannot all hold. Python 0.3.2 worked a repayment from them. Each case below is a generated register holding such a row; the binary without the refusal reproduces its frozen answer exactly.",
@@ -625,7 +625,8 @@
     "682": {
      "test": "test_the_gate_can_be_anchored_to_a_later_year",
      "was": {
-      "answer": "1ff30c64659498e0"
+      "answer": "1ff30c64659498e0",
+      "status": "ok"
      },
      "expected": {
       "ok": {
