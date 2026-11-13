@@ -294,6 +294,21 @@ fn formulas() -> BTreeMap<&'static str, String> {
     let myr_raw = t("MYR_raw");
     let out_of_scope = t("out_of_scope_reason");
     let unknown_made = unknown(&made);
+    // myr.repayment_within's remaining-term refusals, in its order. They apply
+    // only to a COMPLYING gate and a loan made before the year of income; the
+    // verdict and reason test those first. The s 109N(3) maximum term is
+    // Allowed_term_raw, not Max_term_allowed: the engine reads it from the
+    // security facts alone, so unknown security leaves the first one out.
+    // IFERROR: AND evaluates every argument, and ROUNDUP or VALUE on text is
+    // #VALUE!.
+    let above_maximum =
+        format!("AND(ISNUMBER({term_used}),ISNUMBER({allowed}),{term_used}>{allowed})");
+    let above_loan_term = format!(
+        "IFERROR(AND(ISNUMBER({term_used}),ISNUMBER({term}),{term_used}>ROUNDUP({term},0)),FALSE)"
+    );
+    let above_term_left = format!(
+        "IFERROR(AND(ISNUMBER({term_used}),ISNUMBER({term}),{term_used}>0,{term_used}>ROUNDUP({term},0)-({YEAR_START}-{year_start}-1)),FALSE)"
+    );
 
     let mut calc = BTreeMap::new();
     // register._skip_reason skips ANY nonblank out_of_scope_reason before it
@@ -368,13 +383,13 @@ fn formulas() -> BTreeMap<&'static str, String> {
     calc.insert(
         "MYR_verdict",
         format!(
-            "=IF({status}=\"SKIPPED\",\"\",IF(OR({gate}<>\"COMPLYING\",AND(NOT({unknown_made}),{floor_year}<>{made}),{made}={YEAR},IFERROR({year_start}>{YEAR_START},FALSE),AND(ISNUMBER({term_used}),{term_used}<=0),AND(ISNUMBER({YEAR_RATE}),{YEAR_RATE}<=0)),\"REFUSED\",IF(OR({unknown_made},NOT(ISNUMBER({YEAR_RATE})),NOT(ISNUMBER({principal})),NOT(ISNUMBER({payments})),NOT(ISNUMBER({term_used}))),\"UNKNOWN\",IF({myr_raw}-ROUND({payments},2)<=0,\"MYR_MET\",\"MYR_SHORT\"))))"
+            "=IF({status}=\"SKIPPED\",\"\",IF(OR({gate}<>\"COMPLYING\",AND(NOT({unknown_made}),{floor_year}<>{made}),{made}={YEAR},IFERROR({year_start}>{YEAR_START},FALSE),AND(ISNUMBER({term_used}),{term_used}<=0),{above_maximum},{above_loan_term},{above_term_left},AND(ISNUMBER({YEAR_RATE}),{YEAR_RATE}<=0)),\"REFUSED\",IF(OR({unknown_made},NOT(ISNUMBER({YEAR_RATE})),NOT(ISNUMBER({principal})),NOT(ISNUMBER({payments})),NOT(ISNUMBER({term_used}))),\"UNKNOWN\",IF({myr_raw}-ROUND({payments},2)<=0,\"MYR_MET\",\"MYR_SHORT\"))))"
         ),
     );
     calc.insert(
         "MYR_reason",
         format!(
-            "=IF({v}=\"REFUSED\",IF({gate}<>\"COMPLYING\",\"s 109N gate is \"&{gate}&\", so s 109E produces no repayment figure\",IF({floor_year}<>{made},\"gate benchmark year differs from year_loan_made\",IF({made}={YEAR},\"year of income is the year the loan was made (s 109E(1)(a), s 109P)\",IF(IFERROR({year_start}>{YEAR_START},FALSE),\"loan made after the year of income\",IF(AND(ISNUMBER({term_used}),{term_used}<=0),\"nil remaining term under s 109E(6)\",\"nil benchmark rate\"))))),IF({v}=\"UNKNOWN\",IF({unknown_made},\"year_loan_made not established\",IF(NOT(ISNUMBER({YEAR_RATE})),\"no reviewed benchmark rate for the year of income\",IF(NOT(ISNUMBER({principal})),\"unpaid balance at end of previous year not established\",IF(NOT(ISNUMBER({payments})),\"payments applied not established\",\"remaining term not established\")))),\"\"))"
+            "=IF({v}=\"REFUSED\",IF({gate}<>\"COMPLYING\",\"s 109N gate is \"&{gate}&\", so s 109E produces no repayment figure\",IF({floor_year}<>{made},\"gate benchmark year differs from year_loan_made\",IF({made}={YEAR},\"year of income is the year the loan was made (s 109E(1)(a), s 109P)\",IF(IFERROR({year_start}>{YEAR_START},FALSE),\"loan made after the year of income\",IF(AND(ISNUMBER({term_used}),{term_used}<=0),\"nil remaining term under s 109E(6)\",IF({above_maximum},\"remaining term longer than the s 109N(3) maximum term\",IF({above_loan_term},\"remaining term longer than maximum_term_years\",IF({above_term_left},\"remaining term longer than maximum_term_years less the years since the loan year (s 109E(6))\",\"nil benchmark rate\")))))))),IF({v}=\"UNKNOWN\",IF({unknown_made},\"year_loan_made not established\",IF(NOT(ISNUMBER({YEAR_RATE})),\"no reviewed benchmark rate for the year of income\",IF(NOT(ISNUMBER({principal})),\"unpaid balance at end of previous year not established\",IF(NOT(ISNUMBER({payments})),\"payments applied not established\",\"remaining term not established\")))),\"\"))"
         ),
     );
     calc.insert(
@@ -1021,7 +1036,9 @@ mod tests {
 
     #[test]
     fn the_workbook_matches_the_frozen_python_model() {
-        // The model of tools/build_workbook.py --no-excel at 175e64c.
+        // The model of tools/build_workbook.py --no-excel at 175e64c, plus the
+        // remaining-term refusals and their 4 sample rows: after a deliberate
+        // change, regenerate it with `--model` and reverse `accepted`.
         let frozen: Vec<String> = include_str!("../../tests/data/workbook-model.txt")
             .lines()
             .map(accepted)
