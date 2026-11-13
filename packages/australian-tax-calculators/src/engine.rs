@@ -599,6 +599,7 @@ pub fn depreciation(
     method: &Arg,
     scope_confirmed: &Arg,
     year: &Arg,
+    opening_adjustable_value: Option<&Arg>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "depreciation")?;
     let cost = money(cost)?;
@@ -633,17 +634,41 @@ pub fn depreciation(
             );
         }
     };
+    // A later year starts from its opening adjustable value: the diminishing
+    // value base and the limit on either method's decline (ss 40-70(1), 40-72(3)
+    // and 40-75(7)); prime cost still applies its rate to cost (s 40-75(1)).
+    let opening = match opening_adjustable_value {
+        None => cost.clone(),
+        Some(value) => {
+            let opening = money(value)?;
+            if opening.gt(&cost)? {
+                return refuse(
+                    "input.opening_value_above_cost",
+                    "opening_adjustable_value cannot exceed cost.",
+                );
+            }
+            opening
+        }
+    };
+    let base = if method.text() == Some("prime_cost") {
+        &cost
+    } else {
+        &opening
+    };
     let amounts = precise(|| {
-        let raw = cost
+        let raw = base
             .mul(&int(days))?
             .div(&int(365))?
             .mul(&factor)?
             .div(&life)?;
-        let decline = py_min(cost.clone(), raw)?;
+        let decline = py_min(opening.clone(), raw)?;
+        // Less the decline as shown, so a closing value carried forward as the
+        // next opening value never writes off more than cost.
+        let closing = opening.sub(&cents(decline.clone())?)?;
         Ok(vec![
             ("decline_in_value", decline.clone()),
             ("deduction", decline.mul(&use_)?),
-            ("closing_adjustable_value", cost.sub(&decline)?),
+            ("closing_adjustable_value", closing),
         ])
     })?;
     result("depreciation", &year, amounts, Vec::new())
@@ -2209,6 +2234,13 @@ pub fn worksheet_catalogue() -> Value {
             "example".into(),
             json!({ "synthetic": true, "facts": Value::Object(facts) }),
         );
+        let optional: Map<String, Value> = meta::optional_inputs(kind)
+            .into_iter()
+            .map(|(k, v)| (k.into(), json!(v)))
+            .collect();
+        if !optional.is_empty() {
+            entry.insert("optional_inputs".into(), Value::Object(optional));
+        }
         out.insert(kind.into(), Value::Object(entry));
     }
     Value::Object(out)

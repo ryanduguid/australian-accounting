@@ -101,6 +101,7 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     }
     adapt_payg(command, input, &mut expected);
     adapt_fbt(command, input, &mut expected);
+    adapt_depreciation(command, &mut expected);
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
         "worksheet-catalogue" => expected.pointer_mut("/ok/study_loan_repayment"),
@@ -224,6 +225,41 @@ fn adapt_fbt(command: &str, input: &Value, expected: &mut Value) {
             .as_array_mut()
             .unwrap()
             .push(year);
+    }
+}
+
+/// `depreciation` also takes an optional opening adjustable value for a later
+/// year (CHANGELOG.md); without it every result is the first-year one.
+fn adapt_depreciation(command: &str, expected: &mut Value) {
+    let old_scope = "First year only, ordinary tangible Division 40 asset first held on or after 10 May 2006. Established cost, effective life and taxable-use proportion. Days run from first use or installation ready for use. No second-element costs, disposals, changed life, pooling,";
+    let new_scope = "Ordinary tangible Division 40 asset first held on or after 10 May 2006, in the income year its start time occurs or, given its established opening adjustable value for the year, a later year. Established cost, effective life and taxable-use proportion. Days run from first use or installation ready for use. No second-element costs after the start year, disposals, changed life or other s 40-75(2) adjustment, pooling,";
+    let record = match command {
+        "depreciation" => expected.pointer_mut("/ok"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/depreciation"),
+        _ => None,
+    };
+    let Some(record) = record else {
+        return;
+    };
+    let scope = record["scope"].as_str().unwrap();
+    assert!(
+        scope.starts_with(old_scope),
+        "frozen depreciation scope changed"
+    );
+    record["scope"] = json!(scope.replace(old_scope, new_scope));
+    let sections = ["40-70", "40-72", "40-75"].map(|s| {
+        json!(format!(
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/{s}"
+        ))
+    });
+    record["sources"].as_array_mut().unwrap().extend(sections);
+    record["source_checked"] = json!("2026-11-13");
+    if command == "worksheet-catalogue" {
+        record["source_passage"] = json!(
+            "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year"
+        );
+        record["optional_inputs"] = json!({"opening_adjustable_value":
+            "AUD, for a year after the start time only: cost less the decline in value of earlier years, not the deductions; omit in the start year"});
     }
 }
 

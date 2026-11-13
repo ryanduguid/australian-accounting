@@ -36,7 +36,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "depreciation",
-        "First year only, ordinary tangible Division 40 asset first held on or after 10 May 2006. Established cost, effective life and taxable-use proportion. Days run from first use or installation ready for use. No second-element costs, disposals, changed life, pooling, immediate write-offs, special assets or Division 43 capital works. Does not determine an effective life from an asset description.",
+        "Ordinary tangible Division 40 asset first held on or after 10 May 2006, in the income year its start time occurs or, given its established opening adjustable value for the year, a later year. Established cost, effective life and taxable-use proportion. Days run from first use or installation ready for use. No second-element costs after the start year, disposals, changed life or other s 40-75(2) adjustment, pooling, immediate write-offs, special assets or Division 43 capital works. Does not determine an effective life from an asset description.",
     ),
     (
         "quarterly_sg",
@@ -160,6 +160,14 @@ pub const SOURCES: &[(&str, &str)] = &[
 ];
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
+    (
+        "depreciation",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-70",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-72",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-75",
+        ],
+    ),
     (
         "main_residence",
         &[
@@ -343,7 +351,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet does not take was given (division-296 only).",
+        "A field the worksheet does not take was given (division-296 and depreciation only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -355,6 +363,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ("input.kind_invalid", "A worksheet kind is not a string."),
     ("input.missing_field", "A required argument is absent."),
     ("input.not_object", "The JSON input is not an object."),
+    (
+        "input.opening_value_above_cost",
+        "An opening adjustable value is more than the asset's cost.",
+    ),
     (
         "input.pay_period_invalid",
         "The pay period is not weekly, fortnightly or monthly.",

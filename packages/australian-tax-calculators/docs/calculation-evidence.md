@@ -281,7 +281,19 @@ presentation without changing the formula.
 The existing fabricated $3,000, 4-year, 146-day case uses `146 / 365 = 0.4`:
 prime cost decline is $300 and the deduction at 40% use is $120. Diminishing
 value doubles these to $600 and $240. Decline is capped at cost. Second-element
-costs, later years and effective-life decisions in the wider chapter are excluded.
+costs after the start year and effective-life decisions in the wider chapter are
+excluded.
+
+A later year uses the asset's opening adjustable value (ITAA 1997 ss 40-70(1),
+40-72 and 40-75, ATO legal database, read 13 November 2026). The ATO's 'Prime
+cost (straight line) and diminishing value methods' page (last updated 28
+August 2026, read the same day) gives the cases `tests/depreciation.rs` checks:
+an $80,000 asset with a 5-year life declines by diminishing value $32,000, then
+$19,200 on a $48,000 base, $11,520 on $28,800 and $6,912 on $17,280; by prime
+cost it declines $16,000 a year. Prime cost's final year is limited to the
+opening adjustable value (s 40-75(7)(b)). The closing value is the opening
+value less the decline as shown in cents, so carrying it forward never writes
+off more than cost.
 
 ## Quarterly SG
 
