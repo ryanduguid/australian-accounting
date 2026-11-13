@@ -80,12 +80,13 @@ divergences.
   Python's `int` does, up to the 4,300 digits Python's `json.loads` accepted. The
   boundary refuses input over 8 MiB and lone Unicode surrogate escapes; its own
   refusals exit 2.
-- The JSON input of every command and of the WebAssembly build refuses an
-  object that repeats a key, at any depth, as `invalid JSON: duplicate key
-  "<key>"` (exit 2 on the command line). Python's `json.loads`, and earlier
-  1.0.0 builds, kept the last value without a word. Keys are compared as
-  decoded, so an escaped spelling counts as a repeat. `au-accounting div7a`
-  gives the same refusal.
+- The JSON a command reads from standard input or from `verify FILE`, and the
+  input of the WebAssembly build, refuse an object that repeats a key, at any
+  depth, as `invalid JSON: duplicate key "<key>"` (exit 2 on the command
+  line). Python's `json.loads`, and earlier 1.0.0 builds, kept the last value
+  without a word. Keys are compared as decoded, so an escaped spelling counts
+  as a repeat. `au-accounting div7a` gives the same refusal. A rate override
+  file is read as before and still keeps the last value.
 - A reason without its code, and comparing a year of income with a bare
   number, can no longer be written: reasons and codes are built as pairs, and
   years are typed.
