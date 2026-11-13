@@ -47,7 +47,11 @@ these files is vendored here.
   repayments of $20,000 on 31 August 2014 and $8,000 on 30 May 2015. 2014-15 is
   outside this engine's rate table, so the unit test `the_atos_worked_example`
   in `src/rollforward.rs` checks it with the example's own 5.95% rate. The
-  calculator, run on it, gave the same periods, interest and closing balance.
+  calculator, run on the example's balance, repayments and rate, gave the same
+  periods, interest and closing balance. That run gave the calculator a loan
+  year of 2012-13 and a lodgment date of 15 May 2014, so it treated 2014-15 as
+  the second year after the loan year and its first-year handling of
+  repayments before the lodgment day was not exercised.
 - 2,000 fabricated loans: 250 for each year of income from 2019-20 to 2026-27,
   each in the second year after the loan year, so the first-year treatment of
   repayments before the lodgment day does not arise. 8 fixed opening balances
@@ -74,9 +78,11 @@ rounded to the dollar, are reproduced by the unit test.
 - The law on day count and rounding. s 109E(7) prescribes neither; the
   agreement shows only that the engine works as the ATO's example and
   calculator do.
-- The first year after the loan year, which was not compared beyond the worked
-  example; the calculator's treatment of repayments before the lodgment day is
-  in the 7 October record.
+- The first year after the loan year. No case ran the calculator's first-year
+  path, including the worked example (see Cases); its treatment of repayments
+  before the lodgment day for the minimum yearly repayment is in the 7 October
+  record, and the ATO guidance's two readings of the first year's opening
+  balance are set out in the README.
 - A substituted accounting period, which neither the calculator nor this engine
   takes.
 - The calculator's future behaviour. Its scripts are undocumented and can

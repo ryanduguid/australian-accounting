@@ -25,9 +25,11 @@ divergences.
   30 June under s 109E(7), period by period, in the new `rollforward` module.
   The day count is the ATO's worked example's; the 366-day divisor, rounding
   each period to cents and the nil balance once repayments pass the opening
-  balance are the ATO calculator's, and the output says so. It refuses the loan
-  year, a year without a reviewed rate, a repayment outside the year and
-  repayments beyond the balance and the year's interest.
+  balance are the ATO calculator's, and the output says so. In the first year
+  after the loan year it follows the worked example's opening balance and says
+  that the ATO's preceding paragraph points the other way. It refuses the loan
+  year, a year without a reviewed rate, a repayment outside the year, a
+  repayment of nil and repayments beyond the balance and the year's interest.
 - `wasm/` builds the derivation for `wasm32-unknown-unknown`, exporting
   `alloc`, `dealloc`, `derive` and `verify` over JSON.
 - `api::myr_facts` is visible inside the crate for the derivation; the public

@@ -602,7 +602,8 @@ output's caveats:
   The Act prescribes no rounding; the worked example rounds its total to the
   dollar.
 - Once repayments pass the opening balance there is nothing left to charge, so
-  later periods carry a nil balance.
+  later periods carry a nil balance, and a caveat gives the date from which
+  they do.
 - Repayments first meet the year's interest. Interest they do not meet is not
   added to the loan.
 
@@ -612,10 +613,22 @@ s 109E(1)(a) reaches only later years); a year with no reviewed benchmark rate
 (it reads only the compiled-in table); a repayment dated outside the year of
 income, which runs from 1 July to 30 June (a substituted accounting period is
 not modelled, and the ATO calculator does not take one either); repayments
-totalling more than the opening balance and the year's interest; and any input
-field it does not read. In the first year after the loan year, enter the balance
-at 1 July, before any repayment made before the lodgment day, as the worked
-example does. Whether a repayment counts at all (s 109R) stays with you.
+totalling more than the opening balance and the year's interest; a repayment of
+nil, which repays nothing but would split a period and can move the rounded
+interest by a cent; and any input field it does not read.
+
+In the first year after the loan year, enter the balance at 1 July, before any
+repayment made before the lodgment day, and list those repayments, as the
+worked example does: it charges $75,000 from 1 July 2014 and counts the
+31 August 2014 repayment in 2014-15. The paragraph before that example says
+payments made before the lodgment day are taken to have been made in the loan
+year, so the first year opens at the balance immediately before the lodgment
+day. On that reading the example would open at $55,000, count only the
+$8,000 repayment and close at $50,230.77, not $50,430. The guidance does not
+reconcile the two. The engine follows the example, which never gives the lower
+closing balance because it charges interest on such a repayment from 1 July to
+its date, and says so in a caveat. Whether a repayment counts at all (s 109R)
+stays with you.
 
 ## WebAssembly
 

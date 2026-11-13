@@ -114,7 +114,8 @@ pub fn rollforward(v: &Value) -> Result<Value, String> {
     };
     if let Some(key) = input.keys().find(|k| !KEYS.contains(&k.as_str())) {
         return Err(format!(
-            "{key} is not a rollforward input; it takes {}",
+            "{} is not a rollforward input; it takes {}",
+            Raw::text(key).py_repr(),
             KEYS.join(", ")
         ));
     }
@@ -173,6 +174,14 @@ pub fn rollforward(v: &Value) -> Result<Value, String> {
             &Raw::text(text(item, "amount").map_err(|e| format!("{at} {e}"))?),
             &format!("{at}.amount"),
         )?;
+        // A nil repayment repays nothing, but it would split a period and so
+        // can move the rounded interest by a cent.
+        if amount.equals(&d("0")).expect("finite") {
+            return Err(format!(
+                "{at}.amount is {}; a repayment of nil repays nothing, so leave it out",
+                cents_str(&amount).expect("bounded amounts quantise")
+            ));
+        }
         repayments.push((date, amount));
     }
     repayments.sort_by_key(|(date, _)| *date);
@@ -212,8 +221,13 @@ fn compute(
     let mut balance = opening.clone();
     let mut from = start;
     let mut applied: Vec<Value> = Vec::new();
+    // The first day of the first period charged on a balance floored at nil.
+    let mut floored_from: Option<i64> = None;
     for (date, amount) in repayments {
         if *date > from {
+            if floored_from.is_none() && balance.lt(&zero)? {
+                floored_from = Some(from);
+            }
             periods.push(Period {
                 from,
                 days: date - from,
@@ -227,6 +241,9 @@ fn compute(
             "amount": cents_str(amount)?,
             "balance_after": cents_str(&nil(balance.clone())?)?,
         }));
+    }
+    if floored_from.is_none() && balance.lt(&zero)? {
+        floored_from = Some(from);
     }
     periods.push(Period {
         from,
@@ -290,11 +307,25 @@ fn compute(
             year.label()
         ));
     }
+    if let Some(day) = floored_from {
+        caveats.push(format!(
+            "From {} the repayments exceed the balance, so the balance is taken as nil and \
+             charged no interest, as in the ATO calculator. Neither s 109E(7) nor the ATO's \
+             worked example says how a balance below nil is treated.",
+            civil(day)
+        ));
+    }
     if year.start_year == made.start_year + 1 {
         caveats.push(
             "This is the first year after the loan year. Enter the balance at 1 July, before \
-             any repayment made before the lodgment day, as the ATO's worked example does; \
-             that year's minimum yearly repayment can work on a lower balance (s 109E(3))."
+             any repayment made before the lodgment day, and list those repayments here, as \
+             the ATO's worked example in 'Loans by private companies' does. The paragraph \
+             before that example says payments made before the lodgment day are taken to have \
+             been made in the loan year, so the first year opens at the balance immediately \
+             before the lodgment day; the guidance does not reconcile the two. The example's \
+             method never gives the lower closing balance, as it charges interest on such a \
+             repayment from 1 July to its date. That year's minimum yearly repayment can work \
+             on a lower balance (s 109E(3))."
                 .to_string(),
         );
     }
@@ -410,6 +441,18 @@ mod tests {
                 .equals(&d("50430"))
                 .unwrap()
         );
+        // The README's other reading: the 31 August repayment, made before the
+        // 15 May 2015 lodgment day, taken as made in the loan year.
+        let other = compute(
+            year,
+            made,
+            &d("0.0595"),
+            d("55000.00"),
+            &[(date("2015-05-30"), d("8000.00"))],
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(other["amalgamated_loan_unpaid_at_end_of_year"], "50230.77");
     }
 
     #[test]
@@ -436,7 +479,7 @@ mod tests {
             ),
             (
                 with("override", json!("rates.json")),
-                "override is not a rollforward input",
+                "'override' is not a rollforward input",
             ),
             (
                 with("balance_at_start_of_year", json!("-1.00")),
