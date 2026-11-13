@@ -91,7 +91,11 @@ intentionally changed.
   frozen result changes.
 - `depreciation` divides once, last, so an exact half cent is not lost: $1,000.50
   over 14 years by diminishing value at 21% taxable use is exactly $30.015,
-  now $30.02; Python 0.2.0 gave $30.01. No frozen result changes.
+  now $30.02; Python 0.2.0 gave $30.01. No frozen result changes. The result
+  is exact whenever the effective life's digits and the taxable use's decimal
+  places total 22 or fewer, within the 40-digit working precision; an effective
+  life of 37 or more significant digits can still land a cent either side of
+  the exact value, as before.
 - `depreciation` refuses a field it does not take with `input.field_unknown`,
   as `division-296` does; Python 0.2.0 ignored it. A misspelt
   `opening_adjustable_value` would otherwise give the start year's result for a
