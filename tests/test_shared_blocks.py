@@ -83,6 +83,20 @@ RUST_COPIES = {
         "src/derivation.rs": ("first_field", "pick", "difference", "first_difference", "verify"),
         "wasm/src/lib.rs": ("call",),
     },
+    # (payday text, div7a text) pairs in those functions: div7a refuses a
+    # repeated key, which payday's wasm call does not.
+    "engine_function_substitutions": {
+        ("wasm/src/lib.rs", "call"): (
+            (
+                "        serde_json::from_slice(input)\n"
+                '            .map_err(|e| format!("invalid JSON: {e}"))\n'
+                "            .and_then(|v| f(&v))\n",
+                "        div7a_loan_review::api::decode(input).and_then(|v| f(&v))\n",
+            ),
+        ),
+    },
+    # Functions div7a copies from the tax calculators: (calculators path, div7a path).
+    "calculator_functions": {("src/api.rs", "src/jsonkeys.rs"): ("repeated_key",)},
 }
 
 # The CSV reader payday's fuzz target runs, as the div7a and ato-benchmark
@@ -367,6 +381,20 @@ class RustCopyTests(unittest.TestCase):
     def test_the_engines_verify_and_wasm_call_functions_are_identical(self) -> None:
         for name, functions in RUST_COPIES["engine_functions"].items():
             reference = self.read(PACKAGES / "payday-super-checker", name)
+            copy = self.read(PACKAGES / "div7a-loan-review", name)
+            for function in functions:
+                expected = _rust_function(reference, function)
+                pairs = RUST_COPIES["engine_function_substitutions"].get((name, function), ())
+                for old, new in pairs:
+                    with self.subTest(file=name, function=function, text=old):
+                        self.assertIn(old, expected)
+                    expected = expected.replace(old, new)
+                with self.subTest(file=name, function=function):
+                    self.assertEqual(expected, _rust_function(copy, function))
+
+    def test_the_div7a_copies_of_calculator_functions_are_identical(self) -> None:
+        for (original, name), functions in RUST_COPIES["calculator_functions"].items():
+            reference = self.read(PACKAGES / "australian-tax-calculators", original)
             copy = self.read(PACKAGES / "div7a-loan-review", name)
             for function in functions:
                 with self.subTest(file=name, function=function):

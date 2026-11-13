@@ -53,6 +53,16 @@ pub const COMMANDS: [&str; 21] = [
     "require-columns",
 ];
 
+/// Decodes one JSON input, refusing an object that repeats a key, which
+/// decoding into `Value` alone resolves silently by keeping the last value.
+pub fn decode(bytes: &[u8]) -> Result<Value> {
+    let value = serde_json::from_slice(bytes).map_err(|e| format!("invalid JSON: {e}"))?;
+    match crate::jsonkeys::repeated_key(bytes) {
+        Some(key) => Err(format!("invalid JSON: duplicate key {key:?}")),
+        None => Ok(value),
+    }
+}
+
 fn failure(f: Failure) -> String {
     f.to_string()
 }
