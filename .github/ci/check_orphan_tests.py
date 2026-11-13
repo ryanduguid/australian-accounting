@@ -168,7 +168,7 @@ OUTPUT = re.compile(r"(?P<name>needs\.(?P<job>[\w-]+)\.outputs\.[\w-]+) == '(?P<
 CHOICE = re.compile(r"\( ?(.*?) ?\)")
 # A quoted literal, whose spaces count, or whitespace outside one.
 LITERAL_OR_SPACE = re.compile(r"('[^']*')|\s+")
-KEY = re.compile(r"""(?P<key>[\w-][\w.-]*|"[^"]*"|'[^']*'):(?:[ \t]+(?P<rest>.*))?""")
+KEY = re.compile(r"""(?P<key>[\w-][\w.-]*|"[^"]*"|'[^']*'):(?:[ \t]+(?P<rest>[^ \t].*)?)?""")
 QUOTED = re.compile(r"""("(?:[^"\\]|\\.)*"|'(?:[^']|'')*')[ \t]*(?:#.*)?""")
 BLOCK_SCALARS = {"|", "|-", "|+", ">", ">-", ">+"}
 

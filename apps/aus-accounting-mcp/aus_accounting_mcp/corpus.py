@@ -57,9 +57,12 @@ PART_CAVEAT = (
     "This part holds characters {start} to {end} of {total}. Pass next_start as start "
     "to read the next part; the register page has the whole provision."
 )
-QUICK_BUILD = (
-    "`python -m fadden quick --out <empty folder>` in PaulGoodman builds 9 "
-    "principal Acts on this machine and prints the setting. "
+CORPUS_ROUTES = (
+    "PaulGoodman's published snapshot of 9 principal Acts needs no build: download "
+    "https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-11, unpack it "
+    "and set the variable to its dist folder as an absolute path. Otherwise "
+    "`python -m fadden quick --out <empty folder>` in PaulGoodman builds the same Acts on "
+    "this machine and prints the setting. "
 )
 WITHHELD_CAVEAT = (
     "Text withheld: this title's status for {date} is {status}. Follow as_at.next_step. A "
@@ -157,14 +160,14 @@ def _root() -> Path:
     if not configured:
         raise InputError(
             "Set AUS_ACCOUNTING_CORPUS_ROOT to an authorised legislation corpus folder. "
-            + QUICK_BUILD
+            + CORPUS_ROUTES
             + NOT_CONFIGURED
         )
     root = Path(configured).resolve()
     if not root.is_dir():
         raise InputError(
             "AUS_ACCOUNTING_CORPUS_ROOT must name an existing folder. "
-            + QUICK_BUILD
+            + CORPUS_ROUTES
             + NOT_CONFIGURED
         )
     return root
