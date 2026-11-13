@@ -25,14 +25,24 @@ fn corpus() -> Vec<Value> {
 /// test and, in `was`, the FNV-1a hash of what it replaces: for a command run
 /// the frozen exit code and the hashes of the frozen stdout and stderr, and it
 /// keeps that stderr and, unless it sets `exit_code_changes` to true, that exit
-/// code; for an API call the hash of the frozen answer, and it keeps that
-/// answer's ok or error status unless it sets `status_changes` to true. A stale
-/// index or an override that absorbs another change fails the replay.
+/// code; for an API call the hash of the frozen answer and, where a hash hides
+/// it, that answer's ok or error status. An amended API answer is stored as
+/// text and keeps that status unless the override sets `status_changes` to
+/// true. A stale index or an override that absorbs another change fails the
+/// replay.
 fn amend(cases: &mut [Value]) {
     let amendments: Value =
         serde_json::from_str(include_str!("data/amendments.json")).expect("amendments parse");
     amend_with(cases, &amendments);
 }
+
+const KEYS: &[&str] = &[
+    "test",
+    "was",
+    "expected",
+    "exit_code_changes",
+    "status_changes",
+];
 
 fn amend_with(cases: &mut [Value], amendments: &Value) {
     let mut seen = std::collections::HashSet::new();
@@ -67,19 +77,13 @@ fn flag(index: &str, fields: &Value, key: &str) -> bool {
     }
 }
 
-const KEYS: [&str; 5] = [
-    "test",
-    "was",
-    "expected",
-    "exit_code_changes",
-    "status_changes",
-];
-
-/// The status an API answer stored as text shows, or None for one stored as its hash.
+/// The status of an API answer stored as text, `{"ok": ..}` or `{"error": ..}`
+/// alone; None for one stored as its hash or carrying any other key.
 fn api_status(answer: &Value) -> Option<&'static str> {
+    let answer = answer.as_object().filter(|o| o.len() == 1)?;
     ["ok", "error"]
         .into_iter()
-        .find(|key| answer.get(key).is_some())
+        .find(|key| answer.contains_key(*key))
 }
 
 fn amend_api(index: &str, case: &mut Value, fields: &Value) {
@@ -94,7 +98,7 @@ fn amend_api(index: &str, case: &mut Value, fields: &Value) {
     }});
     // A hash hides the frozen answer's status, so the amendment states it.
     let before = match api_status(frozen) {
-        Some(status) => status.to_string(),
+        Some(status) => status,
         None => {
             let stated = fields["was"]["status"]
                 .as_str()
@@ -106,7 +110,7 @@ fn amend_api(index: &str, case: &mut Value, fields: &Value) {
                     )
                 });
             was["status"] = json!(stated);
-            stated.to_string()
+            stated
         }
     };
     assert_eq!(
@@ -544,7 +548,7 @@ fn amended(frozen: Value, mut fields: Value) -> Value {
     cases[0]["expected"].clone()
 }
 
-fn was(answer: &Value) -> Value {
+fn was_of(answer: &Value) -> Value {
     json!({"answer": fnv(answer.to_string().as_bytes())})
 }
 
@@ -554,7 +558,7 @@ fn an_api_amendment_cannot_turn_an_ok_answer_into_an_error_unannounced() {
     let frozen = json!({"ok": {"verdict": "MYR_MET"}});
     amended(
         frozen.clone(),
-        json!({"was": was(&frozen), "expected": {"error": "decimal.InvalidOperation"}}),
+        json!({"was": was_of(&frozen), "expected": {"error": "decimal.InvalidOperation"}}),
     );
 }
 
@@ -564,7 +568,7 @@ fn an_api_amendment_cannot_turn_an_error_into_an_ok_answer_unannounced() {
     let frozen = json!({"error": "facts or mapping is required"});
     amended(
         frozen.clone(),
-        json!({"was": was(&frozen), "expected": {"ok": {"verdict": "UNKNOWN"}}}),
+        json!({"was": was_of(&frozen), "expected": {"ok": {"verdict": "UNKNOWN"}}}),
     );
 }
 
@@ -573,7 +577,7 @@ fn an_announced_status_change_is_applied() {
     let frozen = json!({"ok": {"verdict": "MYR_MET"}});
     let answer = amended(
         frozen.clone(),
-        json!({"was": was(&frozen), "expected": {"error": "e"}, "status_changes": true}),
+        json!({"was": was_of(&frozen), "expected": {"error": "e"}, "status_changes": true}),
     );
     assert_eq!(answer, json!({"error": "e"}));
 }
@@ -584,7 +588,7 @@ fn a_status_change_announced_but_not_made_fails() {
     let frozen = json!({"ok": {"verdict": "MYR_MET"}});
     amended(
         frozen.clone(),
-        json!({"was": was(&frozen), "expected": {"ok": {"verdict": "REFUSED"}},
+        json!({"was": was_of(&frozen), "expected": {"ok": {"verdict": "REFUSED"}},
             "status_changes": true}),
     );
 }
@@ -617,6 +621,29 @@ fn an_amended_answer_must_show_its_status() {
     let frozen = json!({"ok": {}});
     amended(
         frozen.clone(),
-        json!({"was": was(&frozen), "expected": {"fnv": "0123456789abcdef", "len": 5000}}),
+        json!({"was": was_of(&frozen), "expected": {"fnv": "0123456789abcdef", "len": 5000}}),
+    );
+}
+
+#[test]
+#[should_panic(expected = "case 0: the amended answer must be stored as text")]
+fn an_amended_answer_with_a_hash_beside_its_status_fails() {
+    let frozen = json!({"ok": {}});
+    amended(
+        frozen.clone(),
+        json!({"was": was_of(&frozen),
+            "expected": {"ok": {}, "fnv": "0123456789abcdef", "len": 5000}}),
+    );
+}
+
+#[test]
+#[should_panic(expected = "case 0: a command run has an exit code, not an ok or error status")]
+fn a_command_run_cannot_announce_a_status_change() {
+    let mut cases = vec![json!({"kind": "cli", "test": "t",
+        "expected": {"code": 0, "stdout": "", "stderr": ""}})];
+    amend_with(
+        &mut cases,
+        &json!({"changes": [{"change": "c", "cases": {"0": {"test": "t", "status_changes": true,
+            "was": {}, "expected": {}}}}]}),
     );
 }
