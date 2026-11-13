@@ -57,57 +57,10 @@ pub const COMMANDS: [&str; 21] = [
 /// decoding into `Value` alone resolves silently by keeping the last value.
 pub fn decode(bytes: &[u8]) -> Result<Value> {
     let value = serde_json::from_slice(bytes).map_err(|e| format!("invalid JSON: {e}"))?;
-    match repeated_key(bytes) {
+    match crate::jsonkeys::repeated_key(bytes) {
         Some(key) => Err(format!("invalid JSON: duplicate key {key:?}")),
         None => Ok(value),
     }
-}
-
-/// The first key an object in `bytes` repeats. `bytes` must already have
-/// decoded as JSON; each key is compared decoded, so escapes cannot hide a
-/// repeat. The same scan as `australian_tax_calculators::api::repeated_key`,
-/// copied because one engine never depends on another.
-fn repeated_key(bytes: &[u8]) -> Option<String> {
-    // One entry per open container: an object's keys so far, or None for an array.
-    let mut open: Vec<Option<std::collections::HashSet<String>>> = Vec::new();
-    let mut key_next = false;
-    let mut i = 0;
-    while i < bytes.len() {
-        match bytes[i] {
-            b'"' => {
-                let start = i;
-                i += 1;
-                while i < bytes.len() && bytes[i] != b'"' {
-                    i += if bytes[i] == b'\\' { 2 } else { 1 };
-                }
-                if key_next && let Some(Some(keys)) = open.last_mut() {
-                    let literal = bytes.get(start..=i).unwrap_or_default();
-                    if let Ok(key) = serde_json::from_slice::<String>(literal)
-                        && !keys.insert(key.clone())
-                    {
-                        return Some(key);
-                    }
-                }
-                key_next = false;
-            }
-            b'{' => {
-                open.push(Some(std::collections::HashSet::new()));
-                key_next = true;
-            }
-            b'[' => {
-                open.push(None);
-                key_next = false;
-            }
-            b'}' | b']' => {
-                open.pop();
-                key_next = false;
-            }
-            b',' => key_next = matches!(open.last(), Some(Some(_))),
-            _ => {}
-        }
-        i += 1;
-    }
-    None
 }
 
 fn failure(f: Failure) -> String {
