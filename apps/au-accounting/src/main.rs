@@ -139,6 +139,7 @@ fn exchequer(args: &[OsString]) -> Outcome {
     let json = Json {
         preserve_order: false,
         arbitrary_precision: false,
+        refuse_repeated_keys: false,
     };
     dispatch(&args, api::COMMANDS, api::evaluate, json, note, cli::run)
 }
@@ -170,6 +171,7 @@ fn solomons(args: &[OsString]) -> Outcome {
     let json = Json {
         preserve_order: false,
         arbitrary_precision: false,
+        refuse_repeated_keys: false,
     };
     dispatch(&args, api::COMMANDS, api::evaluate, json, note, cli::run)
 }
@@ -190,7 +192,11 @@ fn tax(args: &[OsString]) -> Outcome {
         (2, String::new(), text)
     };
     let note = "Amounts are decimal strings. See README.md for schemas.";
-    dispatch(&args, &commands, api::evaluate, FULL_JSON, note, usage)
+    let json = Json {
+        refuse_repeated_keys: true,
+        ..FULL_JSON
+    };
+    dispatch(&args, &commands, api::evaluate, json, note, usage)
 }
 
 fn wip(args: &[OsString]) -> Outcome {
@@ -200,6 +206,7 @@ fn wip(args: &[OsString]) -> Outcome {
     let json = Json {
         preserve_order: false,
         arbitrary_precision: true,
+        refuse_repeated_keys: false,
     };
     dispatch(&args, api::COMMANDS, api::evaluate, json, note, cli::run)
 }
@@ -213,11 +220,14 @@ fn wip(args: &[OsString]) -> Outcome {
 struct Json {
     preserve_order: bool,
     arbitrary_precision: bool,
+    /// Refuse an object that repeats a key, as the tax engine's own command does.
+    refuse_repeated_keys: bool,
 }
 
 const FULL_JSON: Json = Json {
     preserve_order: true,
     arbitrary_precision: true,
+    refuse_repeated_keys: false,
 };
 
 /// The routing every engine's own `main` applies: one JSON stdin command name,
@@ -279,6 +289,11 @@ fn parse_json(bytes: &[u8], json: Json) -> Result<Value, String> {
         parser.end().map_err(|e| e.to_string())?;
         value
     };
+    if json.refuse_repeated_keys
+        && let Some(key) = australian_tax_calculators::api::repeated_key(bytes)
+    {
+        return Err(format!("duplicate key {key:?}"));
+    }
     Ok(order_keys(value, json.preserve_order))
 }
 

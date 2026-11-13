@@ -9,6 +9,7 @@
 use crate::decimal::Decimal;
 use crate::engine::{self, Arg};
 use serde_json::Value;
+use std::collections::HashSet;
 
 /// A refusal at the JSON boundary: its stable code and the message.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -24,6 +25,54 @@ impl Refusal {
             message: message.into(),
         }
     }
+}
+
+/// The first key an object in `bytes` repeats, which decoding into `Value`
+/// resolves silently by keeping the last value. `bytes` must already have
+/// decoded as JSON; each key is compared decoded, so escapes cannot hide a repeat.
+/// This command and `au-accounting tax` both refuse on it, before the worksheet
+/// sees either value, so a repeat is refused whatever the values are.
+pub fn repeated_key(bytes: &[u8]) -> Option<String> {
+    // One entry per open container: an object's keys so far, or None for an array.
+    let mut open: Vec<Option<HashSet<String>>> = Vec::new();
+    let mut key_next = false;
+    let mut i = 0;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'"' => {
+                let start = i;
+                i += 1;
+                while i < bytes.len() && bytes[i] != b'"' {
+                    i += if bytes[i] == b'\\' { 2 } else { 1 };
+                }
+                if key_next && let Some(Some(keys)) = open.last_mut() {
+                    let literal = bytes.get(start..=i).unwrap_or_default();
+                    if let Ok(key) = serde_json::from_slice::<String>(literal)
+                        && !keys.insert(key.clone())
+                    {
+                        return Some(key);
+                    }
+                }
+                key_next = false;
+            }
+            b'{' => {
+                open.push(Some(HashSet::new()));
+                key_next = true;
+            }
+            b'[' => {
+                open.push(None);
+                key_next = false;
+            }
+            b'}' | b']' => {
+                open.pop();
+                key_next = false;
+            }
+            b',' => key_next = matches!(open.last(), Some(Some(_))),
+            _ => {}
+        }
+        i += 1;
+    }
+    None
 }
 
 /// Every refusal code and the failure it names.
