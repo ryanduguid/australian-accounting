@@ -1232,7 +1232,7 @@ fn read_json(path: Option<&str>) -> Result<Value, String> {
     if bytes.len() > 8 << 20 {
         return Err("JSON input exceeds 8 MiB".into());
     }
-    serde_json::from_slice(&bytes).map_err(|e| format!("invalid JSON: {e}"))
+    api::decode(&bytes)
 }
 
 /// One JSON stdin command: (exit code, stdout, stderr).
