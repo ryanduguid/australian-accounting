@@ -108,6 +108,9 @@ intentionally changed.
 - The JSON boundary refuses input over 8 MiB, a decimal string over 8,192 bytes
   and a missing argument (`<name> is required`; Python raised `TypeError`). JSON
   uses serde_json's nesting limit and refuses lone Unicode surrogate escapes.
+- A JSON object that repeats a key is refused as `input.invalid_json`, with a
+  message naming the key, instead of keeping the last value and dropping the
+  others. Python 0.2.0 took keyword arguments, which cannot repeat.
 - `periods` with a worksheet name it does not know is refused as
   `unknown worksheet '<name>'`, a missing `kind` as `kind is required` and a
   non-string `kind` as `kind must be a string`; Python raised `KeyError` or
@@ -207,6 +210,6 @@ elizabeth-anne-alexander port, Apache-2.0), extended here with a per-thread
 precision for the worksheets' 40-digit `localcontext`, ROUND_DOWN, remainder and
 integral rounding. Rust num-bigint, num-integer and num-traits implement exact
 coefficient arithmetic; serde_json, with insertion order preserved, provides the
-JSON boundary. Scope statements and sources in `src/texts.rs` are generated from
-the base revision. This component owns its copies and depends on no other
-engine.
+JSON boundary, and serde's visitor traits its duplicate key check. Scope
+statements and sources in `src/texts.rs` are generated from the base revision.
+This component owns its copies and depends on no other engine.

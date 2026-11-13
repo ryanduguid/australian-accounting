@@ -2,8 +2,61 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 use australian_tax_calculators::api;
-use serde_json::json;
+use serde::de::{Deserialize, Deserializer, Error, MapAccess, SeqAccess, Visitor};
+use serde_json::{Value, json};
+use std::collections::HashSet;
 use std::io::{Read, Write};
+
+/// Walks a JSON document and fails on an object that repeats a key, which
+/// decoding into `Value` would resolve silently by keeping the last value.
+struct UniqueKeys;
+
+impl<'de> Deserialize<'de> for UniqueKeys {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        deserializer.deserialize_any(UniqueKeys)
+    }
+}
+
+impl<'de> Visitor<'de> for UniqueKeys {
+    type Value = UniqueKeys;
+
+    fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str("a JSON value")
+    }
+    fn visit_bool<E>(self, _: bool) -> Result<Self, E> {
+        Ok(UniqueKeys)
+    }
+    fn visit_i64<E>(self, _: i64) -> Result<Self, E> {
+        Ok(UniqueKeys)
+    }
+    fn visit_u64<E>(self, _: u64) -> Result<Self, E> {
+        Ok(UniqueKeys)
+    }
+    fn visit_f64<E>(self, _: f64) -> Result<Self, E> {
+        Ok(UniqueKeys)
+    }
+    fn visit_str<E>(self, _: &str) -> Result<Self, E> {
+        Ok(UniqueKeys)
+    }
+    fn visit_unit<E>(self) -> Result<Self, E> {
+        Ok(UniqueKeys)
+    }
+    fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self, A::Error> {
+        while seq.next_element::<UniqueKeys>()?.is_some() {}
+        Ok(UniqueKeys)
+    }
+    fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self, A::Error> {
+        let mut seen = HashSet::new();
+        while let Some(key) = map.next_key::<String>()? {
+            if seen.contains(&key) {
+                return Err(A::Error::custom(format!("duplicate key {key:?}")));
+            }
+            map.next_value::<UniqueKeys>()?;
+            seen.insert(key);
+        }
+        Ok(UniqueKeys)
+    }
+}
 
 /// One JSON stdin command: (exit code, stdout, stderr). A refusal always keeps
 /// its `error:` line on stderr; `refusal_json` adds its code on stdout.
@@ -18,7 +71,9 @@ fn run(command: &str, refusal_json: bool) -> (i32, String, String) {
             "JSON input exceeds 8 MiB",
         ))
     } else {
-        match serde_json::from_slice(&bytes) {
+        match serde_json::from_slice::<UniqueKeys>(&bytes)
+            .and_then(|_| serde_json::from_slice::<Value>(&bytes))
+        {
             Err(e) => Err(api::Refusal::new(
                 "input.invalid_json",
                 format!("invalid JSON: {e}"),

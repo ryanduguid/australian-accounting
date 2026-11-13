@@ -191,6 +191,19 @@ fn input_the_engine_never_reaches_is_coded_too() {
 }
 
 #[test]
+fn a_repeated_key_is_refused_by_name_not_resolved_to_its_last_value() {
+    let repeated =
+        br#"{"amount": "1100", "amount": "2200", "gst_inclusive": true, "scope_confirmed": true, "year": "2025-26"}"#;
+    let (exit, out, err) = run(&["gst", "--refusal-json"], repeated);
+    assert_eq!(exit, 2, "{out}");
+    let refusal: Value = serde_json::from_str(&out).unwrap();
+    assert_eq!(refusal["code"], "input.invalid_json");
+    let message = refusal["message"].as_str().unwrap();
+    assert!(message.contains(r#"duplicate key "amount""#), "{message}");
+    assert_eq!(err, format!("error: {message}\n"));
+}
+
+#[test]
 fn the_flag_is_not_a_command() {
     let (code, out, err) = run(&["--refusal-json", "gst"], REFUSED);
     assert_eq!((code, out.as_str()), (2, ""));
