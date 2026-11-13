@@ -292,7 +292,9 @@ fn preservation_age_on_the_last_day_of_the_year_sets_the_rate() {
 
 /// Withholding rounds to the nearest dollar, 50 cents up (Schedule 11):
 /// $50.00 at 17% is $8.50, so $9; $49.99 is $8.4983, so $8; above a nil cap,
-/// $50.00 at 47% is $23.50, so $24.
+/// $50.00 at 47% is $23.50, so $24. Each part rounds on its own, as example 4
+/// does: $50.00 of each at 17% is $9 and $9, so $18, not the $17 that
+/// rounding their $17.00 total once would give.
 #[test]
 fn withholding_rounds_to_the_dollar_with_50_cents_up() {
     let older = |payment: &str| {
@@ -304,6 +306,13 @@ fn withholding_rounds_to_the_dollar_with_50_cents_up() {
         "non_excluded_payment": "50.00", "other_taxable_payments": "180000.00",
     }));
     assert_eq!(amount(&above, "non_excluded_withholding"), "24.00");
+    let both = run(json!({
+        "excluded_payment": "50.00", "non_excluded_payment": "50.00",
+        "date_of_birth": "1967-06-30",
+    }));
+    assert_eq!(amount(&both, "excluded_withholding"), "9.00");
+    assert_eq!(amount(&both, "non_excluded_withholding"), "9.00");
+    assert_eq!(amount(&both, "total_withholding"), "18.00");
 }
 
 #[test]
