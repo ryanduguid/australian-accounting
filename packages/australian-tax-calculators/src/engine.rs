@@ -615,6 +615,20 @@ pub fn depreciation(
             "taxable_use must be a finite Decimal fraction from 0 to 1.",
         );
     };
+    // Exact to the cent only within this bound. For a life of l significant
+    // digits and a use of u decimal places, a deduction that is not exactly a
+    // half cent is at least 1 / (730 * l-digit integer * 10^u) cents from one;
+    // with l + u <= 22 the 40-digit products are exact and the one division errs
+    // by under 1e-25 cents on a cost of at most 1e12, which is closer. (A life
+    // written with a positive exponent widens that denominator by its trailing
+    // zeros, and shrinks the deduction, and so the error, by the same factor.)
+    let life_digits = life.adjusted() - life.exponent() + 1;
+    if life_digits + (-use_.exponent()).max(0) > 22 {
+        return refuse(
+            "depreciation.precision_exceeded",
+            "effective_life's significant digits and taxable_use's decimal places, as written, must total 22 or fewer: beyond that the 40-digit working precision can miss the exact cent.",
+        );
+    }
     let Some(Some(days)) = days
         .int()
         .filter(|n| n.is_some_and(|n| (0..=365).contains(&n)))
