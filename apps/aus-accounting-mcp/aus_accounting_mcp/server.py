@@ -674,7 +674,8 @@ def review_div7a_loan(
         Field(max_length=30, description=(
             'Actual agreed loan term in years as a decimal string, e.g. "7"; not the statutory '
             'maximum. For an amalgamated loan, the longest constituent-loan term. For a loan '
-            'extended under s 109E(3A), 25 less the years it had already run before the '
+            'extended under s 109E(3A), its agreed term counted from when it was first made '
+            '(at most 25, s 109E(3A)(e)) less the years it had already run before the '
             'extension, as the ATO works it. Omit or null if unknown.'
         )),
     ] = None,
@@ -710,11 +711,11 @@ def review_div7a_loan(
         str | None,
         Field(max_length=30, description=(
             'Remaining statutory term for the supplied amalgamated loan, as a decimal string. '
-            'The engine rounds fractional years up. Under s 109E(6) it is at most '
-            'maximum_term_years less the whole years from the end of year_loan_made to the end '
-            'of the previous income year: 7 for a 7-year loan in its first repayment year, 6 in '
-            'its second. A longer term, or one above the s 109N(3) maximum, is REFUSED. Omit or '
-            'null if unknown.'
+            'The engine rounds fractional years up. Under s 109E(6) it is maximum_term_years '
+            'less the whole years from the end of year_loan_made to the end of the previous '
+            'income year: 7 for a 7-year loan in its first repayment year, 6 in its second. The '
+            'engine refuses a longer term, or one above the s 109N(3) maximum. Omit or null if '
+            'unknown.'
         )),
     ] = None,
     payments_applied_during_the_year: Annotated[

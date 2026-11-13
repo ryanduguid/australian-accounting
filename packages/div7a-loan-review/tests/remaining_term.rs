@@ -110,3 +110,27 @@ fn a_derivation_gives_the_commands_answer() {
         assert_eq!(derived["result"], repayment(&input));
     }
 }
+
+#[test]
+fn a_refusal_without_the_loans_term_carries_no_caveat() {
+    let refused = repayment(&facts(None, "2024-25", "7"));
+    assert_eq!(refused["verdict"], "REFUSED");
+    assert!(!not_checked(&refused));
+}
+
+#[test]
+fn a_term_in_facts_that_is_not_a_decimal_is_an_error() {
+    assert!(
+        api::evaluate(
+            "minimum-yearly-repayment",
+            &facts(Some("seven"), "2026-27", "6")
+        )
+        .is_err()
+    );
+}
+
+#[test]
+fn a_derivation_with_the_loans_term_verifies() {
+    let derived = derivation::derive(&facts(Some("7"), "2026-27", "6")).unwrap();
+    assert_eq!(derivation::verify(&derived).unwrap()["verified"], true);
+}

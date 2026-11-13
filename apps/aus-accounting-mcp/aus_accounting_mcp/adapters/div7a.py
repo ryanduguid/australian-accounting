@@ -123,7 +123,8 @@ def _remaining_term_refusal(
             "remaining term or the security facts. Enter a loan secured and "
             "extended under s 109E(3A) as the new amalgamated loan s 109E(3B) "
             "creates, with its 25-year security facts and, in maximum_term_years, "
-            "25 years less the time the loan had already run before the "
+            "its agreed term counted from when the loan was first made (at most "
+            "25 years, s 109E(3A)(e)) less the time it had already run before the "
             "extension, which is how the ATO works the term of such a loan. No "
             "MYR figure is emitted.",
         )
@@ -185,7 +186,8 @@ def _term_left_refusal(
         "s 109E(3A) is the new amalgamated loan s 109E(3B) treats as made just "
         "before the start of the later year of income, so its year_loan_made is the "
         "year before that later year, and its maximum_term_years, as the ATO works "
-        "it, is 25 years less the time the loan had already run before the "
+        "it, is its agreed term counted from when the loan was first made (at most "
+        "25 years, s 109E(3A)(e)) less the time it had already run before the "
         "extension. No MYR figure is emitted.",
     )
 

@@ -109,8 +109,9 @@ Enter it with:
 
 - `year_loan_made`: the year before the later year of income;
 - its 25-year security facts, which give the s 109N(3) maximum term; and
-- `maximum_term_years`: 25 years less the time the loan had already run before
-  the extension, or the agreed term if shorter.
+- `maximum_term_years`: the loan's agreed term counted from when it was first
+  made, which s 109E(3A)(e) caps at 25 years, less the time it had already run
+  before the extension.
 
 The ATO works the term this way: 'The maximum term of the loan becomes 25 years
 less the period of the term already expired when the loan was unsecured'
@@ -118,8 +119,9 @@ less the period of the term already expired when the loan was unsecured'
 last updated 2 July 2026, read 14 November 2026). s 109E(3A)(e) likewise counts
 the period before the extension in the 25 years. A 7-year loan made on 1 July
 2022 and extended on 1 July 2024 has run 2 years, so it is entered with
-`year_loan_made` 2023-24 and a term of 23: at most 23 years remain in 2024-25
-and 22 in 2025-26. Read literally, s 109E(3B) and (6) would allow 25 in 2024-25,
+`year_loan_made` 2023-24 and, where the agreed term is the full 25 years, a term
+of 23: its remaining term is 23 in 2024-25 and 22 in 2025-26; an agreed term of
+20 is entered as 18. On a literal reading, s 109E(3B) and (6) would allow 25 in 2024-25,
 a lower repayment than the ATO's working. The ATO does not say how a part year
 already run is counted; the engine takes the term as entered and rounds it up.
 

@@ -362,7 +362,8 @@ def test_the_term_left_refusal_says_how_to_enter_an_extended_loan() -> None:
 
     assert myr["reasons"][0].endswith(
         "so its year_loan_made is the year before that later year, and its "
-        "maximum_term_years, as the ATO works it, is 25 years less the time the loan had "
+        "maximum_term_years, as the ATO works it, is its agreed term counted from when the "
+        "loan was first made (at most 25 years, s 109E(3A)(e)) less the time it had "
         "already run before the extension. No MYR figure is emitted."
     )
 
@@ -382,7 +383,8 @@ def test_the_loan_year_description_gives_the_s_109e_3b_entry_rule() -> None:
 
 def test_the_term_description_gives_an_extended_loans_term() -> None:
     assert (
-        "For a loan extended under s 109E(3A), 25 less the years it had already run before "
+        "For a loan extended under s 109E(3A), its agreed term counted from when it was "
+        "first made (at most 25, s 109E(3A)(e)) less the years it had already run before "
         "the extension" in _description("maximum_term_years")
     )
 
@@ -391,7 +393,7 @@ def test_the_remaining_term_description_gives_its_limit() -> None:
     description = _description("remaining_term_years")
 
     assert (
-        "at most maximum_term_years less the whole years from the end of year_loan_made"
-        in description
+        "Under s 109E(6) it is maximum_term_years less the whole years from the end of "
+        "year_loan_made" in description
     )
-    assert "A longer term, or one above the s 109N(3) maximum, is REFUSED." in description
+    assert "engine refuses a longer term, or one above the s 109N(3) maximum." in description
