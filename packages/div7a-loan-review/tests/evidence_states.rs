@@ -360,7 +360,11 @@ fn a_remaining_term_past_the_maximum_term_cannot_hold() {
         (secured("1.10", 25), "25", &[]),
         (secured("1.10", 25), "26", &[conflict]),
         // The maximum is open, but the row's own 7-year term is not.
-        (unsecured_unknown, "8", &["REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM"]),
+        (
+            unsecured_unknown,
+            "8",
+            &["REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM"],
+        ),
         (not_complying, "30", &["REFUSED_GATE_NOT_COMPLYING"]),
         (undecided, "8", &["REFUSED_GATE_UNKNOWN"]),
         (base, "0", &["REFUSED_REMAINING_TERM_NOT_POSITIVE"]),
