@@ -385,17 +385,39 @@ mod tests {
         server.join().unwrap();
     }
 
-    /// A reader that takes 4 KiB every 100 ms: CPython 3.15's `sendall` of
+    /// Against a reader that took 4 KiB every 100 ms, CPython 3.15's `sendall` of
     /// 4 MiB times out after the timeout as a whole on Linux (1.01 s for 1 s;
-    /// on Windows the loopback send completes at once).
+    /// on Windows the loopback send completes at once). Here both socket
+    /// buffers are pinned at 16 KiB, as a host that lets them grow to tens of
+    /// MiB holds the whole send, and the reader drains its buffer every
+    /// 100 ms, so every write makes progress well inside the timeout: a
+    /// timeout armed for each write alone runs until the reader stops at 3 s.
     #[cfg(unix)]
     #[test]
     fn a_slow_reader_bounds_a_send_as_a_whole() {
+        use std::os::fd::AsRawFd;
+        fn pin_buffer(socket: &impl AsRawFd, option: libc::c_int) {
+            let size: libc::c_int = 16 << 10;
+            // SAFETY: setsockopt reads size_of::<c_int>() bytes from a live c_int.
+            // nosemgrep: rust.lang.security.unsafe-usage.unsafe-usage
+            let set = unsafe {
+                libc::setsockopt(
+                    socket.as_raw_fd(),
+                    libc::SOL_SOCKET,
+                    option,
+                    (&raw const size).cast(),
+                    std::mem::size_of::<libc::c_int>() as libc::socklen_t,
+                )
+            };
+            assert_eq!(set, 0, "{}", io::Error::last_os_error());
+        }
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        // An accepted socket takes the listener's receive buffer.
+        pin_buffer(&listener, libc::SO_RCVBUF);
         let port = listener.local_addr().unwrap().port();
         let server = std::thread::spawn(move || {
             let (mut peer, _) = listener.accept().unwrap();
-            let mut chunk = [0u8; 4096];
+            let mut chunk = [0u8; 64 << 10];
             for _ in 0..30 {
                 std::thread::sleep(Duration::from_millis(100));
                 if matches!(peer.read(&mut chunk), Ok(0) | Err(_)) {
@@ -403,7 +425,15 @@ mod tests {
                 }
             }
         });
-        let mut connection = Net.dial("127.0.0.1", port, false, 0.5).unwrap();
+        // What `Net.dial` makes for plain HTTP, with the send buffer pinned.
+        let socket = TcpStream::connect(("127.0.0.1", port)).unwrap();
+        pin_buffer(&socket, libc::SO_SNDBUF);
+        socket.set_nodelay(true).unwrap();
+        let mut connection = Plain(Bounded {
+            socket,
+            timeout: socket_timeout(0.5).unwrap(),
+            deadline: None,
+        });
         let start = Instant::now();
         assert!(connection.write_all(&vec![b'x'; 4 << 20]).is_err());
         let elapsed = start.elapsed();
