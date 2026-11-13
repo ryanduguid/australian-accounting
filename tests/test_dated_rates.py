@@ -40,7 +40,7 @@ DATASET = PACKAGES / "au-tax-rates-data" / "data"
 
 # How many engine copies of dataset figures _dataset_pairs() compares. An engine
 # table that starts holding a dataset figure needs its own entry there.
-DATASET_PAIRS = 50
+DATASET_PAIRS = 54
 
 
 def _metadata_literal(name: str):
@@ -132,6 +132,7 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
         "LOW_INCOME_TAX_OFFSET": _metadata_literal("LOW_INCOME_TAX_OFFSET"),
         "DIVISION_293": _metadata_literal("DIVISION_293"),
         "DIVISION_296": _metadata_literal("DIVISION_296"),
+        "TERMINATION_PAYMENT": _metadata_literal("TERMINATION_PAYMENT"),
         "FBT_BENCHMARK_INTEREST_RATES": _metadata_literal("FBT_BENCHMARK_INTEREST_RATES"),
     }
     for name, table, key in (
@@ -153,6 +154,10 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
         ("division-296-very-large-super-balance-threshold-2026-27", "DIVISION_296", "very_large_threshold"),
         ("division-296-tax-rate", "DIVISION_296", "rate"),
         ("division-296-very-large-balance-tax-rate", "DIVISION_296", "very_large_rate"),
+        ("etp-cap-life-benefit-2026-27", "TERMINATION_PAYMENT", "etp_cap"),
+        ("etp-whole-of-income-cap-2026-27", "TERMINATION_PAYMENT", "whole_of_income_cap"),
+        ("genuine-redundancy-base-limit-2026-27", "TERMINATION_PAYMENT", "base_amount"),
+        ("genuine-redundancy-service-amount-2026-27", "TERMINATION_PAYMENT", "service_amount"),
         ("fbt-benchmark-interest-rate-fbt-year-2027", "FBT_BENCHMARK_INTEREST_RATES", "2027"),
     ):
         copy = Decimal(tables[table][key])

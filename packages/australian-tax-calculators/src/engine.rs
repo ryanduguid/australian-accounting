@@ -1247,6 +1247,122 @@ pub fn division_296(
     Ok(out)
 }
 
+/// SISR reg 6.01(2): 55 for a person born before 1 July 1960, one more for
+/// each later year of birth from 1 July, and 60 for one born after 30 June 1964.
+fn preservation_age(born: (i64, i64, i64)) -> i64 {
+    let (year, month, _) = born;
+    let birth_year_from_july = if month >= 7 { year } else { year - 1 };
+    (birth_year_from_july - 1960 + 56).clamp(55, 60)
+}
+
+/// Schedule 11 for one ETP part: the part within its cap, the part above it,
+/// and the amount withheld from both, rounded to the dollar with 50 cents up.
+fn etp_part(
+    component: &Decimal,
+    cap: &Decimal,
+    concessional: &Decimal,
+    top: &Decimal,
+) -> Calc<[Decimal; 3]> {
+    let within = py_min(component.clone(), cap.clone())?;
+    let above = component.sub(&within)?;
+    let withheld = within
+        .mul(concessional)?
+        .add(&above.mul(top)?)?
+        .quantize(0, Rounding::HalfUp)?;
+    Ok([within, above, withheld])
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn termination_payment(
+    redundancy_payment: &Arg,
+    completed_years_of_service: &Arg,
+    excluded_payment: &Arg,
+    non_excluded_payment: &Arg,
+    other_taxable_payments: &Arg,
+    date_of_birth: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, "termination_payment")?;
+    let redundancy = money(redundancy_payment)?;
+    let Some(Some(years)) = completed_years_of_service
+        .int()
+        .filter(|n| n.is_some_and(|n| (0..=150).contains(&n)))
+    else {
+        return refuse(
+            "input.years_of_service_invalid",
+            "completed_years_of_service must be a whole number from 0 to 150.",
+        );
+    };
+    let excluded = money(excluded_payment)?;
+    let non_excluded = money(non_excluded_payment)?;
+    let other = money(other_taxable_payments)?;
+    let born = dates::to_civil(date_arg(date_of_birth, "date_of_birth")?);
+    let [etp_cap, whole_of_income, base, service, older, younger, top] = [
+        "etp_cap",
+        "whole_of_income_cap",
+        "base_amount",
+        "service_amount",
+        "preservation_age_rate",
+        "under_preservation_age_rate",
+        "above_cap_rate",
+    ]
+    .map(|key| d(lookup(&meta::TERMINATION_PAYMENT, key)));
+    // s 82-10(3)(a): preservation age or older on the last day of the income year.
+    let age = preservation_age(born);
+    let year_end: i64 = year[..4].parse::<i64>().expect("income year") + 1;
+    let reached = (born.0 + age, born.1, born.2) <= (year_end, 6, 30);
+    let concessional = if reached { older } else { younger };
+    let amounts = precise(|| {
+        // s 83-170(3): base amount + service amount x years of service.
+        let limit = base.add(&service.mul(&int(years))?)?;
+        let tax_free = py_min(redundancy.clone(), limit.clone())?;
+        // The excluded part (code R) is taken first, under the ETP cap alone; the
+        // non-excluded part (code O) follows, under the smaller of the ETP cap left
+        // and the whole-of-income cap (s 82-10(4), (6) and (7); Schedule 11).
+        let excluded_part = redundancy.sub(&tax_free)?.add(&excluded)?;
+        let [r_within, r_above, r_withheld] =
+            etp_part(&excluded_part, &etp_cap, &concessional, &top)?;
+        let remaining = etp_cap.sub(&r_within)?;
+        let calculated = py_max(int(0), whole_of_income.sub(&other)?)?;
+        let non_excluded_cap = py_min(remaining.clone(), calculated.clone())?;
+        let [o_within, o_above, o_withheld] =
+            etp_part(&non_excluded, &non_excluded_cap, &concessional, &top)?;
+        let total = r_withheld.add(&o_withheld)?;
+        Ok(vec![
+            ("tax_free_limit", limit),
+            ("tax_free_redundancy_amount", tax_free),
+            ("excluded_taxable_component", excluded_part),
+            ("excluded_within_cap", r_within),
+            ("excluded_above_cap", r_above),
+            ("excluded_withholding", r_withheld),
+            ("remaining_etp_cap", remaining),
+            ("whole_of_income_cap", calculated),
+            ("non_excluded_cap", non_excluded_cap),
+            ("non_excluded_taxable_component", non_excluded.clone()),
+            ("non_excluded_within_cap", o_within),
+            ("non_excluded_above_cap", o_above),
+            ("non_excluded_withholding", o_withheld),
+            ("total_withholding", total),
+        ])
+    })?;
+    result(
+        "termination_payment",
+        &year,
+        amounts,
+        vec![
+            rate("etp_cap", &etp_cap),
+            rate("whole_of_income_cap_amount", &whole_of_income),
+            rate("redundancy_base_amount", &base),
+            rate("redundancy_service_amount", &service),
+            rate("preservation_age", age),
+            rate("preservation_age_reached", reached),
+            rate("withholding_rate_within_cap", &concessional),
+            rate("withholding_rate_above_cap", &top),
+        ],
+    )
+}
+
 pub fn study_loan_repayment(
     repayment_income: &Arg,
     year: &Arg,
@@ -2112,7 +2228,7 @@ pub fn borrowing_expenses(
     spread(&year, &loan, &expenditure, &share)
 }
 
-const KINDS: [&str; 19] = [
+const KINDS: [&str; 20] = [
     "gst",
     "resident_tax",
     "capital_gains",
@@ -2132,6 +2248,7 @@ const KINDS: [&str; 19] = [
     "low_income_tax_offset",
     "division_293",
     "division_296",
+    "termination_payment",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
