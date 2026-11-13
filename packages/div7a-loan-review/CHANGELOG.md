@@ -7,7 +7,7 @@ import API. The `rate`, `gate`, `myr` and `review` commands keep their flags,
 help, validation, text and JSON output, and exit codes. The former API
 functions are JSON stdin subcommands, documented in README.md. No benchmark
 rate, statutory test, formula, rounding, refusal, reason code or message is
-intentionally changed, apart from the 2 refusals added under Documented
+intentionally changed, apart from the 3 refusals added under Documented
 divergences.
 
 ### Added
@@ -130,6 +130,29 @@ divergences.
   earlier change. In 2 of them the refused row was the register's only
   undecided one, so the run now exits 2 instead of 0; those cases set
   `exit_code_changes`, which the replay now requires for any changed exit code.
+- A register review also refuses the minimum yearly repayment, with
+  `REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED`, where the gate passed
+  the loan, `year_loan_made` is earlier than the year reviewed, and
+  `remaining_term_years`, rounded up, is longer than `maximum_term_years` less
+  the years from the end of the loan year to the end of the year before the one
+  reviewed, rounded up after the subtraction (s 109E(6) paragraph (b)). Python
+  0.3.2 and earlier 1.0.0 builds worked a lower repayment from such a row, such
+  as a 7-year loan made in 2020-21 entered with 7 years remaining in 2025-26,
+  when at most 3 remain. In the first repayment year nothing has elapsed, so the
+  limit is the loan's term and `REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM` covers
+  it; where either earlier refusal applies, only it is given. A row without
+  `year_loan_made` and the `minimum-yearly-repayment` command are unchanged. The
+  years are counted as 12-month years of income, so the count can be out by part
+  of a year for a company whose accounting period changed in between; a
+  substituted accounting period stays outside v1. The refusal tells the caller
+  that a loan secured and extended under s 109E(3A) has the year before the
+  later year of income as its `year_loan_made`, because s 109E(3B) treats the
+  new amalgamated loan as made just before that year starts. The replay applies
+  5 more changed answers and updates 2 from the earlier changes. One is an API
+  call, which the replay can now amend by the hash of its frozen answer. Another
+  reviews `examples/sample_loans_myr_met.csv`, whose remaining terms are those
+  for 2026-27, for 2027-28: all 3 rows are now refused and the run exits 2
+  instead of 0.
 
 ### Verification
 

@@ -21,10 +21,11 @@ fn corpus() -> Vec<Value> {
 
 /// Applies `data/amendments.json`: the answers that deliberate changes made
 /// since Python 0.3.2 replace, kept apart so the frozen record never changes.
-/// Each override replaces one command run's `expected`, once. It names the
-/// case's test and, in `was`, the frozen exit code and the FNV-1a hashes of
-/// the frozen stdout and stderr, and it keeps that stderr and, unless it sets
-/// `exit_code_changes` to true, that exit code, so a stale index or an
+/// Each override replaces one case's `expected`, once. It names the case's
+/// test and, in `was`, the FNV-1a hash of what it replaces: for a command run
+/// the frozen exit code and the hashes of the frozen stdout and stderr, and it
+/// keeps that stderr and, unless it sets `exit_code_changes` to true, that exit
+/// code; for an API call the hash of the frozen answer. A stale index or an
 /// override that absorbs another change fails the replay.
 fn amend(cases: &mut [Value]) {
     let amendments: Value =
@@ -47,11 +48,22 @@ fn amend(cases: &mut [Value]) {
             };
             let case = &mut cases[at];
             assert_eq!(case["test"], fields["test"], "case {index} is another test");
-            assert_eq!(
-                case["kind"], "cli",
-                "case {index}: only command runs are amended"
-            );
             let frozen = &case["expected"];
+            let new = &fields["expected"];
+            if case["kind"] == "api" {
+                let was = json!({"answer": match frozen.get("fnv") {
+                    Some(_) => stored_fnv(frozen),
+                    None => fnv(frozen.to_string().as_bytes()),
+                }});
+                assert_eq!(
+                    fields["was"], was,
+                    "case {index}: supersedes another answer"
+                );
+                assert!(!code_changes, "case {index}: an API call has no exit code");
+                case["expected"] = new.clone();
+                continue;
+            }
+            assert_eq!(case["kind"], "cli", "case {index}: an unknown kind");
             let was = json!({
                 "code": frozen["code"],
                 "stdout": stored_fnv(&frozen["stdout"]),
@@ -61,7 +73,6 @@ fn amend(cases: &mut [Value]) {
                 fields["was"], was,
                 "case {index}: supersedes another answer"
             );
-            let new = &fields["expected"];
             assert_eq!(
                 new["code"] != frozen["code"],
                 code_changes,
@@ -311,7 +322,7 @@ fn every_command_has_cases() {
 }
 
 /// The published reason-code vocabulary.
-const REASON_CODES: [&str; 25] = [
+const REASON_CODES: [&str; 26] = [
     "REFUSED_GATE_RESULT_MISSING",
     "REFUSED_GATE_NOT_COMPLYING",
     "REFUSED_GATE_UNKNOWN",
@@ -321,6 +332,7 @@ const REASON_CODES: [&str; 25] = [
     "REFUSED_REMAINING_TERM_NOT_POSITIVE",
     "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM",
     "REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM",
+    "REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED",
     "REFUSED_BENCHMARK_RATE_NOT_POSITIVE",
     "GATE_NO_BENCHMARK_YEAR",
     "GATE_WRITTEN_AGREEMENT_FAIL",
@@ -417,6 +429,19 @@ fn the_reason_code_vocabulary_is_exactly_what_the_engine_emits() {
     )
     .unwrap();
     collect_codes(&past_term, &mut emitted);
+    // And a 7-year loan made in 2024-25 with all 7 years still remaining in
+    // 2026-27, when 1 has passed (s 109E(6)(b)).
+    let past_left = api::evaluate(
+        "review-register",
+        &json!({"year_of_income": "2026-27", "rows": [{"loan_id": "L",
+            "written_agreement": "true", "terms_in_place_before_lodgment_day": "true",
+            "maximum_term_years": "7", "secured_by_registered_mortgage_over_real_property": "false",
+            "security_coverage_at_first_made": "", "interest_rate_for_years_after_year_loan_made": "0.0877",
+            "year_loan_made": "2024-25", "amalgamated_loan_unpaid_at_end_of_previous_year": "1000.00",
+            "remaining_term_years": "7", "payments_applied_during_the_year": "0.00"}]}),
+    )
+    .unwrap();
+    collect_codes(&past_left, &mut emitted);
     let published: std::collections::BTreeSet<String> =
         REASON_CODES.iter().map(|c| c.to_string()).collect();
     assert_eq!(emitted, published);
