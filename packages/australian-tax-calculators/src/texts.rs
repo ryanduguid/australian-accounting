@@ -310,6 +310,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A worksheet step exceeded the decimal range.",
     ),
     (
+        "depreciation.precision_exceeded",
+        "An effective life's significant digits and the taxable use's decimal places total more than 22.",
+    ),
+    (
         "fbt_car.cost_basis_conflict",
         "A car has neither or both of a depreciated value and lease charges.",
     ),

@@ -199,19 +199,57 @@ fn a_decline_at_or_above_the_opening_value_takes_the_opening_value() {
     }
 }
 
-/// Pins a known limit, not a correct result. The engine carries 40 significant
-/// digits. With an effective life of 37 significant digits, far outside what
-/// the calculator promises, the exact deduction is $300,629.685 less about
-/// 4e-35, a hair under the half cent, so $300,629.68; the 40-digit quotient
-/// rounds to exactly $300,629.685 and shows $300,629.69. A precision fix that
-/// makes this exact should change the expected deduction to "300629.68".
+/// At the largest accepted size, 22 between the life's significant digits and
+/// the use's decimal places, a hair off an exact half cent still rounds the
+/// exact way. $140,000,000,000.07 over exactly 14 years by prime cost is
+/// $10,000,000,000.005, so $10,000,000,000.01; over 14.00000000000000000001
+/// years (22 digits) it is about 7e-10 cents lower, so $10,000,000,000.00.
+/// At a use of 0.20999999999999999999 (20 places, with a 2-digit life), the
+/// $30.015 above falls about 1e-16 cents short, so $30.01.
 #[test]
-fn a_life_beyond_the_working_precision_can_miss_the_exact_cent() {
-    let year = run(json!({
-        "cost": "3962321.67", "opening_adjustable_value": "645298.42",
-        "method": "prime_cost", "days": 153,
-        "effective_life": "2.81212237878865798467922193069022159500",
-        "taxable_use": "0.509",
+fn the_largest_accepted_inputs_round_a_hair_under_half_a_cent_down() {
+    let whole = run(json!({
+        "cost": "140000000000.07", "effective_life": "14.00000000000000000001",
+        "method": "prime_cost",
     }));
-    assert_eq!(amounts(&year), ["590628.06", "300629.69", "54670.36"]);
+    assert_eq!(
+        amounts(&whole),
+        ["10000000000.00", "10000000000.00", "130000000000.07"]
+    );
+    let year = run(json!({
+        "cost": "1000.50", "effective_life": "14", "taxable_use": "0.20999999999999999999",
+    }));
+    assert_eq!(amounts(&year), ["142.93", "30.01", "857.57"]);
+}
+
+/// One digit or place more is refused, as the 40-digit working precision is
+/// proven exact to the cent only up to 22. The last input is a 37-digit life
+/// (39 as written) whose exact deduction is $300,629.685 less about 4e-35, and
+/// which the 40-digit quotient showed as $300,629.69, a cent too much.
+#[test]
+fn inputs_beyond_the_proven_precision_are_refused() {
+    for overrides in [
+        json!({"effective_life": "14.000000000000000000001"}),
+        json!({"effective_life": "14", "taxable_use": "0.209999999999999999999"}),
+        json!({"effective_life": "1E+3", "taxable_use": "0.2099999999999999999999"}),
+        json!({
+            "cost": "3962321.67", "opening_adjustable_value": "645298.42",
+            "method": "prime_cost", "days": 153,
+            "effective_life": "2.81212237878865798467922193069022159500",
+            "taxable_use": "0.509",
+        }),
+    ] {
+        let refused = code(overrides.clone());
+        assert_eq!(refused, "depreciation.precision_exceeded", "{overrides}");
+    }
+    let refusal = api::evaluate_coded(
+        "depreciation",
+        &input(json!({"effective_life": "14.000000000000000000001"})),
+    )
+    .unwrap_err();
+    assert!(
+        refusal.message.contains("total 22 or fewer"),
+        "{}",
+        refusal.message
+    );
 }
