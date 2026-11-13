@@ -102,6 +102,15 @@ fn diminishing_value_is_limited_to_the_opening_value() {
     assert_eq!(amounts(&year), ["1000.00", "1000.00", "0.00"]);
 }
 
+/// An asset already written off declines no further by either method.
+#[test]
+fn a_written_off_asset_declines_no_further() {
+    for method in ["prime_cost", "diminishing_value"] {
+        let year = run(json!({"method": method, "opening_adjustable_value": "0.00"}));
+        assert_eq!(amounts(&year), ["0.00", "0.00", "0.00"], "{method}");
+    }
+}
+
 #[test]
 fn an_opening_value_above_cost_or_not_money_is_refused() {
     assert_eq!(
