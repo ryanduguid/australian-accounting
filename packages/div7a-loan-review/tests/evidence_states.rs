@@ -232,9 +232,13 @@ fn codes(block: &Value) -> Vec<String> {
 }
 
 fn review(rows: Vec<Value>) -> Value {
+    review_for("2025-26", rows)
+}
+
+fn review_for(year: &str, rows: Vec<Value>) -> Value {
     api::evaluate(
         "review-register",
-        &json!({"rows": rows, "year_of_income": "2025-26"}),
+        &json!({"rows": rows, "year_of_income": year}),
     )
     .unwrap_or_else(|e| panic!("{e}"))
 }
@@ -469,5 +473,113 @@ fn a_remaining_term_past_the_loan_term_cannot_hold() {
             want.is_empty(),
             "{row:?} {term} {remaining}"
         );
+    }
+}
+
+/// s 109E(6) paragraph (b) takes the years from the end of the loan year to the
+/// end of the year before the one worked out, so on a loan the gate passes the
+/// remaining term cannot be longer than the row's own term less those years,
+/// rounded up after the subtraction. A 7-year loan made in 2024-25 has 7 years
+/// remaining in 2025-26 and 6 in 2026-27; 7 in 2026-27 would otherwise get a
+/// lower repayment than the Act requires.
+#[test]
+fn a_remaining_term_past_the_term_left_cannot_hold() {
+    let conflict = "REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED";
+    let base = Row {
+        written: Some(true),
+        in_time: Some(true),
+        made: "2024-25",
+        rate: Some(RATE_2024_25),
+        term: None,
+        secured: Some(false),
+        coverage: None,
+        paid: Some(REQUIRED),
+    };
+    let older = Row {
+        made: "2022-23",
+        ..base
+    };
+    let secured = Row {
+        secured: Some(true),
+        coverage: Some("1.10"),
+        ..base
+    };
+    // A loan secured and extended under s 109E(3A) in 2024-25, entered as the
+    // new amalgamated loan s 109E(3B) treats as made just before 1 July 2024,
+    // with the extended term including the years before the extension.
+    let extended = Row {
+        made: "2023-24",
+        ..secured
+    };
+    // Without year_loan_made nothing places the loan year; the gate reads its
+    // benchmark from year_of_income_being_tested instead.
+    let unplaced = Row { made: "", ..base };
+    let not_complying = Row {
+        written: Some(false),
+        ..base
+    };
+    let cases: [(Row, &str, &str, &str, &[&str]); 18] = [
+        // The first repayment year: nothing has elapsed.
+        (base, "2025-26", "7", "7", &[]),
+        (
+            base,
+            "2025-26",
+            "7",
+            "8",
+            &["REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM"],
+        ),
+        // The second: 1 year has.
+        (base, "2026-27", "7", "6", &[]),
+        (base, "2026-27", "7", "7", &[conflict]),
+        (base, "2026-27", "7", "6.5", &[conflict]),
+        (
+            base,
+            "2026-27",
+            "5",
+            "6",
+            &["REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM"],
+        ),
+        // 2026-27 for a loan made in 2022-23: 3 years have.
+        (older, "2026-27", "7", "4", &[]),
+        (older, "2026-27", "7", "5", &[conflict]),
+        // A fractional term rounds up after the subtraction: 20.5 less 1 is 20.
+        (secured, "2026-27", "20.5", "20", &[]),
+        (secured, "2026-27", "20.5", "20.5", &[conflict]),
+        // A 1-year term has no years left in its second repayment year.
+        (base, "2026-27", "1", "1", &[conflict]),
+        (
+            base,
+            "2026-27",
+            "1",
+            "0",
+            &["REFUSED_REMAINING_TERM_NOT_POSITIVE"],
+        ),
+        (extended, "2024-25", "25", "25", &[]),
+        (extended, "2026-27", "25", "23", &[]),
+        (extended, "2026-27", "25", "24", &[conflict]),
+        (
+            not_complying,
+            "2026-27",
+            "7",
+            "7",
+            &["REFUSED_GATE_NOT_COMPLYING"],
+        ),
+        (base, "2024-25", "7", "7", &["REFUSED_YEAR_IS_YEAR_OF_LOAN"]),
+        (unplaced, "2026-27", "7", "7", &["YEAR_LOAN_MADE_UNKNOWN"]),
+    ];
+    for (i, (row, year, term, remaining, want)) in cases.iter().enumerate() {
+        let mut cell = row.json(&format!("E{i}"));
+        cell["maximum_term_years"] = json!(term);
+        cell["remaining_term_years"] = json!(remaining);
+        if row.made.is_empty() {
+            cell["year_of_income_being_tested"] = json!("2024-25");
+        }
+        let report = review_for(year, vec![cell]);
+        let line = &report["lines"][0];
+        assert_eq!(line["gate"]["verdict"] == "COMPLYING", i != 15, "case {i}");
+        let myr = &line["myr"];
+        let at = format!("case {i}: {row:?} {year} {term} {remaining}");
+        assert_eq!(codes(myr), *want, "{at}");
+        assert_eq!(myr["myr_required"].is_string(), want.is_empty(), "{at}");
     }
 }

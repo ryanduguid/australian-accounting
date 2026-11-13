@@ -226,7 +226,8 @@ pub fn minimum_yearly_repayment(
 
 /// `minimum_yearly_repayment`, also refusing a remaining term longer than
 /// `maximum_term`, the s 109N(3) maximum term the same register row's security
-/// facts establish, or than `loan_term`, the row's own `maximum_term_years`.
+/// facts establish, than `loan_term`, the row's own `maximum_term_years`, or
+/// than that term less the years since the year the loan was made.
 pub(crate) fn repayment_within(
     facts: &MyrFacts,
     maximum_term: Option<&Decimal>,
@@ -363,6 +364,17 @@ pub(crate) fn repayment_within(
     }
     let zero = d("0");
     let mut term_used: Option<Decimal> = None;
+    let complying = gate.is_some_and(|g| g.verdict == "COMPLYING");
+    // s 109E(6)(b): the whole years from the end of the loan year to the end of
+    // the year before this one, and the loan's term less them, rounded up.
+    let term_left = match (loan_term, facts.year_loan_made) {
+        (Some(term), Some(made)) if complying && made < year => {
+            let elapsed = year.start_year - made.start_year - 1;
+            let left = statutory_remaining_term(&term.sub(&d(&elapsed.to_string()))?)?;
+            Some((term, made, elapsed, left))
+        }
+        _ => None,
+    };
     match &facts.remaining_term_years {
         None => unknowns.push((
             "REMAINING_TERM_UNKNOWN",
@@ -386,7 +398,6 @@ pub(crate) fn repayment_within(
                      words of s 109E(6)."
                 ));
             }
-            let complying = gate.is_some_and(|g| g.verdict == "COMPLYING");
             if let Some(maximum) = maximum_term
                 && complying
                 && used.gt(maximum)?
@@ -424,6 +435,46 @@ pub(crate) fn repayment_within(
                          Act requires. Correct remaining_term_years or, where a constituent loan \
                          of this amalgamated loan has a longer term, enter that longest term in \
                          maximum_term_years. No MYR figure is emitted."
+                    ),
+                ));
+            } else if let Some((term, made, elapsed, left)) = &term_left
+                && used.gt(&zero)?
+                && used.gt(left)?
+            {
+                let previous = YearOfIncome {
+                    start_year: year.start_year - 1,
+                };
+                let years = if *elapsed == 1 { "year" } else { "years" };
+                let limit = if left.gt(&zero)? {
+                    format!("so the remaining term is at most {left}")
+                } else {
+                    format!(
+                        "which leaves a remaining term of {left}, so the loan should have \
+                         been repaid in full by the end of the previous year of income"
+                    )
+                };
+                refusals.push((
+                    "REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED",
+                    format!(
+                        "remaining_term_years is {supplied}, a remaining term of {used} under \
+                         s 109E(6), longer than the {term}-year term in maximum_term_years less \
+                         the years since the loan year. s 109E(6) makes the remaining term the \
+                         difference between (a) 'the number of years in the longest term of \
+                         any of the constituent loans that the amalgamated loan takes account \
+                         of' and (b) 'the number of years between the end of the private \
+                         company's year of income in which the loan was made and the end of \
+                         the private company's year of income before the year of income for \
+                         which the minimum yearly repayment is being worked out', rounded up \
+                         if not already a whole number. From the end of {} to the end of {} \
+                         is {elapsed} {years}, {limit}; a longer remaining term gives a lower \
+                         minimum yearly repayment than the Act requires. Correct \
+                         remaining_term_years, year_loan_made or maximum_term_years. A loan \
+                         secured and extended under s 109E(3A) is the new amalgamated loan \
+                         s 109E(3B) treats as made just before the start of the later year of \
+                         income, so its year_loan_made is the year before that later year. No \
+                         MYR figure is emitted.",
+                        made.label(),
+                        previous.label()
                     ),
                 ));
             }

@@ -11,7 +11,6 @@ boundary and adds the remaining-term refusals the pinned release lacks.
 from __future__ import annotations
 
 from dataclasses import replace
-from decimal import Decimal
 from typing import Any, Literal
 
 from div7aloan import (
@@ -23,6 +22,7 @@ from div7aloan import (
     MyrFacts,
     MyrResult,
     MyrVerdict,
+    YearOfIncome,
     __version__ as DIV7A_VERSION,
     benchmark_rate,
     complying_loan_gate,
@@ -97,8 +97,9 @@ def get_benchmark_rate(
 # itself, such as 1.0.0's review-register; its minimum-yearly-repayment takes
 # no loan term and does not. Until then a code the engine gave is not repeated.
 def _remaining_term_refusal(
-    gate: GateResult, gate_facts: GateFacts, supplied: Decimal | None
+    gate: GateResult, gate_facts: GateFacts, myr_facts: MyrFacts
 ) -> tuple[str, str] | None:
+    supplied = myr_facts.remaining_term_years
     if supplied is None or gate.verdict is not GateVerdict.COMPLYING:
         return None
     used = statutory_remaining_term(supplied)
@@ -133,7 +134,42 @@ def _remaining_term_refusal(
             "of this amalgamated loan has a longer term, enter that longest term in "
             "maximum_term_years. No MYR figure is emitted.",
         )
-    return None
+    made, year = myr_facts.year_loan_made, myr_facts.year_of_income
+    if term is None or made is None or year is None or not made < year:
+        return None
+    # s 109E(6)(b): the whole years from the end of the loan year to the end of
+    # the year before this one, and the loan's term less them, rounded up.
+    elapsed = year.start_year - made.start_year - 1
+    left = statutory_remaining_term(term - elapsed)
+    if used <= 0 or used <= left:
+        return None
+    previous = YearOfIncome(year.start_year - 1)
+    years = "year" if elapsed == 1 else "years"
+    limit = (
+        f"so the remaining term is at most {left}"
+        if left > 0
+        else f"which leaves a remaining term of {left}, so the loan should have been "
+        "repaid in full by the end of the previous year of income"
+    )
+    return (
+        "REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED",
+        f"remaining_term_years is {supplied}, a remaining term of {used} under "
+        f"s 109E(6), longer than the {term}-year term in maximum_term_years less "
+        "the years since the loan year. s 109E(6) makes the remaining term the "
+        "difference between (a) 'the number of years in the longest term of any of "
+        "the constituent loans that the amalgamated loan takes account of' and (b) "
+        "'the number of years between the end of the private company's year of "
+        "income in which the loan was made and the end of the private company's "
+        "year of income before the year of income for which the minimum yearly "
+        "repayment is being worked out', rounded up if not already a whole number. "
+        f"From the end of {made.label} to the end of {previous.label} is {elapsed} "
+        f"{years}, {limit}; a longer remaining term gives a lower minimum yearly "
+        "repayment than the Act requires. Correct remaining_term_years, "
+        "year_loan_made or maximum_term_years. A loan secured and extended under "
+        "s 109E(3A) is the new amalgamated loan s 109E(3B) treats as made just "
+        "before the start of the later year of income, so its year_loan_made is the "
+        "year before that later year. No MYR figure is emitted.",
+    )
 
 
 def _refuse(myr: MyrResult, code: str, reason: str) -> MyrResult:
@@ -220,7 +256,7 @@ def review_loan(
         )
     except ValueError as exc:
         raise InputError(str(exc)) from exc
-    refusal = _remaining_term_refusal(gate, gate_facts, parsed_myr.remaining_term_years)
+    refusal = _remaining_term_refusal(gate, gate_facts, parsed_myr)
     if refusal is not None:
         myr = _refuse(myr, *refusal)
 

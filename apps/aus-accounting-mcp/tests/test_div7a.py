@@ -237,3 +237,100 @@ def test_a_term_refusal_the_engine_already_gives_is_not_given_twice(
 
     assert myr["reason_codes"] == [ABOVE_MAXIMUM]
     assert myr["reasons"] == ["the engine's own reason"]
+
+
+ABOVE_TERM_LEFT = "REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED"
+
+
+def _loan_made(year_loan_made: str, year_of_income: str, **overrides: object) -> dict[str, object]:
+    return {
+        "year_loan_made": year_loan_made,
+        "year_of_income": year_of_income,
+        "interest_rate_for_years_after_year_loan_made": "0.0900",
+        **overrides,
+    }
+
+
+@pytest.mark.parametrize(
+    ("overrides", "codes"),
+    [
+        # A 7-year loan made in 2024-25: the first repayment year, nothing elapsed.
+        (_loan_made("2024-25", "2025-26", remaining_term_years="7"), []),
+        (_loan_made("2024-25", "2025-26", remaining_term_years="8"), [ABOVE_MAXIMUM]),
+        # The second: 1 year has, so 6 remain.
+        (_loan_made("2024-25", "2026-27", remaining_term_years="6"), []),
+        (_loan_made("2024-25", "2026-27", remaining_term_years="7"), [ABOVE_TERM_LEFT]),
+        (_loan_made("2024-25", "2026-27", remaining_term_years="6.5"), [ABOVE_TERM_LEFT]),
+        (
+            _loan_made("2024-25", "2026-27", maximum_term_years="5", remaining_term_years="6"),
+            [ABOVE_LOAN_TERM],
+        ),
+        # A loan made in 2022-23: 3 years have.
+        (_loan_made("2022-23", "2026-27", remaining_term_years="4"), []),
+        (_loan_made("2022-23", "2026-27", remaining_term_years="5"), [ABOVE_TERM_LEFT]),
+        # A fractional term rounds up after the subtraction: 20.5 less 1 is 20.
+        (
+            _loan_made("2024-25", "2026-27", **SECURED, maximum_term_years="20.5",
+                       remaining_term_years="20"),
+            [],
+        ),
+        (
+            _loan_made("2024-25", "2026-27", **SECURED, maximum_term_years="20.5",
+                       remaining_term_years="20.5"),
+            [ABOVE_TERM_LEFT],
+        ),
+        # A 1-year term has no years left in its second repayment year.
+        (
+            _loan_made("2024-25", "2026-27", maximum_term_years="1", remaining_term_years="1"),
+            [ABOVE_TERM_LEFT],
+        ),
+        (
+            _loan_made("2024-25", "2026-27", maximum_term_years="1", remaining_term_years="0"),
+            ["REFUSED_REMAINING_TERM_NOT_POSITIVE"],
+        ),
+        # Secured and extended under s 109E(3A) in 2024-25: the new amalgamated
+        # loan s 109E(3B) treats as made just before 1 July 2024.
+        (
+            _loan_made("2023-24", "2024-25", **SECURED, maximum_term_years="25",
+                       remaining_term_years="25"),
+            [],
+        ),
+        (
+            _loan_made("2023-24", "2026-27", **SECURED, maximum_term_years="25",
+                       remaining_term_years="23"),
+            [],
+        ),
+        (
+            _loan_made("2023-24", "2026-27", **SECURED, maximum_term_years="25",
+                       remaining_term_years="24"),
+            [ABOVE_TERM_LEFT],
+        ),
+        (
+            _loan_made("2024-25", "2026-27", written_agreement=False, remaining_term_years="7"),
+            ["REFUSED_GATE_NOT_COMPLYING"],
+        ),
+        (
+            _loan_made("2024-25", "2024-25", remaining_term_years="7"),
+            ["REFUSED_YEAR_IS_YEAR_OF_LOAN"],
+        ),
+    ],
+)
+def test_a_remaining_term_past_the_term_left_gets_no_figure(
+    overrides: dict[str, object], codes: list[str]
+) -> None:
+    for detail in ("summary", "full"):
+        myr = _review(response_detail=detail, **overrides)["minimum_yearly_repayment"]
+
+        assert myr["reason_codes"] == codes, detail
+        assert (myr["myr_required"] is None) == bool(codes), detail
+        assert (myr["shortfall"] is None) == bool(codes), detail
+
+
+def test_the_term_left_refusal_counts_the_years_since_the_loan_year() -> None:
+    myr = _review(**_loan_made("2022-23", "2026-27", remaining_term_years="5"))[
+        "minimum_yearly_repayment"
+    ]
+
+    assert "From the end of 2022-23 to the end of 2025-26 is 3 years, so the remaining " \
+        "term is at most 4;" in myr["reasons"][0]
+    assert myr["reasons"][0].endswith("No MYR figure is emitted.")
