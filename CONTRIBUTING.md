@@ -203,6 +203,12 @@ release callers require that test job; no second pytest run is needed.
   dependency lists against each application's manifest on every change. The aggregate requires a
   successful selection and exactly the corresponding successful or skipped app jobs.
   Every main push and manual run executes all app checks, preserving release evidence.
+- The `crates` job selects the `rust` crate calls and `umbrella-parity` the same way.
+  A change to any crate the `rust` job checks, to shared policy and workspace files,
+  or to an unknown path runs them all. Only the other components' paths, root `tests/`
+  and `tools/` can skip them. Root pytest checks that those crates link only each other
+  by path. `tests-gates` holds each selection to its own jobs, and every main push and
+  manual run executes all of them.
 - `devcontainer.yml`, `glama-badges.yml` and `readme-quick-start.yml` have no pull request
   path filter, so `devcontainer-gates`, `glama-badges-gates` and `readme-quick-start-gates`
   report on every pull request. Each changes job passes its former trigger paths to
