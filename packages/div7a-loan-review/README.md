@@ -194,6 +194,17 @@ it rounds its result half up to cents.
 records the method, the files compared and what the comparison does not
 establish.
 
+On 13 November 2026 the calculator's interest function, from the same
+unchanged files, was run the same way against `rollforward` on 2,000 fabricated
+loans in their second year after the loan year: 250 for each year of income
+from 2019-20 to 2026-27, with up to 6 repayments each, including repayments on
+1 July, 30 June, 29 February and the same day. In 1,997 the interest, each
+period's days and interest, the principal repaid and the closing balance agreed
+to the cent. In the other 3 the repayments passed the opening balance and the
+year's interest; the calculator shows a nil balance and this engine refuses.
+[docs/ato-calculator-interest-comparison-2026-11-13.md](docs/ato-calculator-interest-comparison-2026-11-13.md)
+records the method and its limits.
+
 ## Reviewer edge cases
 
 `tests/verdict_cases.rs` runs the edge cases from a practitioner's published
@@ -550,6 +561,76 @@ Verification compares the saved engine and calculation identity before the worki
 extra position; a metadata difference checks zero steps. The saved engine version
 is descriptive, untrusted metadata. A different historical version can still
 verify when its identity, working and result agree with this verifier's engine.
+
+## Rollforward: interest and closing balance
+
+`rollforward` reads one year of an amalgamated loan on stdin and works out the
+year's interest and the amount of the loan not repaid at its end, the figure the
+next year's `amalgamated_loan_unpaid_at_end_of_previous_year` takes:
+
+```sh
+echo '{"year_of_income": "2026-27", "year_loan_made": "2025-26",
+  "balance_at_start_of_year": "100000.00",
+  "repayments": [{"date": "2026-10-01", "amount": "20000.00"}]}' \
+  | div7a-loan-review rollforward
+```
+
+That gives interest of 7458.10 (2210.52 on 100,000 for 92 days and 5247.58 on
+80,000 for 273 days) and 87458.10 not repaid at the end of 2026-27.
+
+s 109E(7) works out how much of the loan is repaid 'on the basis that interest is
+payable on the balance of the loan from time to time in a year of income at a
+rate equal to the benchmark interest rate for the year of income'. It sets no
+day count. This engine takes the ATO's: in the worked example in
+[Loans by private companies](https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/private-company-benefits-division-7a-dividends/in-detail/division-7a-loans)
+(last updated 2 July 2026, read 13 November 2026), interest 'is calculated
+annually in arrears by reference to the daily balance throughout the year', a
+repayment reduces the balance from the day it is made, and each period is
+charged as rate x balance x days / 365. The output lists each period with its
+days, balance and interest, each repayment with the balance after it, the
+year's interest, and how much of the repayments met that interest and how much
+repaid the loan.
+
+Where the ATO's guidance is silent, the engine follows the ATO's
+[Division 7A calculator](https://www.ato.gov.au/calculators-and-tools/division-7a-calculator-and-decision-tool),
+whose interest code was read and run on 13 November 2026, and says so in the
+output's caveats:
+
+- A year of income holding 29 February divides by 366, so a full year's
+  interest is the balance times the benchmark rate. Neither s 109E(7) nor the
+  worked example, a 365-day year, states this.
+- Each period's interest is rounded to cents half up and the periods are added.
+  The Act prescribes no rounding; the worked example rounds its total to the
+  dollar.
+- Once repayments pass the opening balance there is nothing left to charge, so
+  later periods carry a nil balance, and a caveat gives the date from which
+  they do.
+- Repayments first meet the year's interest. Interest they do not meet is not
+  added to the loan.
+
+It refuses, with exit 2 and one `error:` line: the year the loan was made or an
+earlier one (the ATO treats no interest as payable for the loan year, and
+s 109E(1)(a) reaches only later years); a year with no reviewed benchmark rate
+(it reads only the compiled-in table); a repayment dated outside the year of
+income, which runs from 1 July to 30 June (a substituted accounting period is
+not modelled, and the ATO calculator does not take one either); repayments
+totalling more than the opening balance and the year's interest; a repayment of
+nil, which repays nothing but would split a period and can move the rounded
+interest by a cent; and any input field it does not read.
+
+In the first year after the loan year, enter the balance at 1 July, before any
+repayment made before the lodgment day, and list those repayments, as the
+worked example does: it charges $75,000 from 1 July 2014 and counts the
+31 August 2014 repayment in 2014-15. The paragraph before that example says
+payments made before the lodgment day are taken to have been made in the loan
+year, so the first year opens at the balance immediately before the lodgment
+day. On that reading the example would open at $55,000, count only the
+$8,000 repayment and close at $50,230.77, not $50,430. The guidance does not
+reconcile the two. The engine follows the example, which gives the higher
+closing balance because it charges interest on such a repayment from 1 July to
+its date, apart from the rounding of each period's interest to cents, which can
+leave it a cent or so lower. A caveat says so. Whether a repayment counts at all
+(s 109R) stays with you.
 
 ## WebAssembly
 

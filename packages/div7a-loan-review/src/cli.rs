@@ -1214,7 +1214,7 @@ pub fn output_bytes(text: &str) -> Vec<u8> {
     out
 }
 
-use crate::{api, derivation};
+use crate::{api, derivation, rollforward};
 
 /// One JSON object from stdin or, for `verify FILE`, a file, bounded at
 /// 8 MiB before the complete input is allocated.
@@ -1262,11 +1262,24 @@ fn run_derivation(command: &str, path: Option<&str>) -> (i32, String, String) {
     }
 }
 
+/// `rollforward` writes one year's interest and closing balance.
+fn run_rollforward() -> (i32, String, String) {
+    match read_json(None).and_then(|v| rollforward::rollforward(&v)) {
+        Ok(v) => (
+            0,
+            format!("{}\n", serde_json::to_string_pretty(&v).expect("JSON")),
+            String::new(),
+        ),
+        Err(m) => (2, String::new(), format!("error: {m}\n")),
+    }
+}
+
 /// Shared command routing for the standalone binary and umbrella CLI.
 pub fn dispatch(args: &[String]) -> (i32, String, String) {
     match args {
         [command] if api::COMMANDS.contains(&command.as_str()) => run_api(command),
         [command] if command == "derive" || command == "verify" => run_derivation(command, None),
+        [command] if command == "rollforward" => run_rollforward(),
         [command, path] if command == "verify" => run_derivation(command, Some(path)),
         [flag] if flag == "--api-help" => (
             0,

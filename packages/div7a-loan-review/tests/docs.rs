@@ -6,7 +6,7 @@
 //! checks (table rows, the banner) read the raw text.
 
 use div7a_loan_review::register::{GATE_COLUMNS, MYR_COLUMNS, OPTIONAL_COLUMNS};
-use div7a_loan_review::{LAW_COMPILATION, VERSION, api};
+use div7a_loan_review::{LAW_COMPILATION, VERSION, api, rollforward};
 use serde_json::json;
 
 const README: &str = include_str!("../README.md");
@@ -288,6 +288,29 @@ fn the_ato_calculator_example_is_this_engines_arithmetic() {
             .collect();
         assert_eq!(format!("{grouped}.{frac}"), amount);
         assert_in(&format!("${amount}"), &flat(README), "README");
+    }
+}
+
+#[test]
+fn the_rollforward_example_is_this_engines_arithmetic() {
+    let rolled = rollforward::rollforward(&json!({
+        "year_of_income": "2026-27",
+        "year_loan_made": "2025-26",
+        "balance_at_start_of_year": "100000.00",
+        "repayments": [{"date": "2026-10-01", "amount": "20000.00"}],
+    }))
+    .unwrap();
+    assert_eq!(rolled["periods"][0]["interest"], "2210.52");
+    assert_eq!(rolled["periods"][1]["interest"], "5247.58");
+    assert_eq!(rolled["interest"], "7458.10");
+    assert_eq!(rolled["amalgamated_loan_unpaid_at_end_of_year"], "87458.10");
+    let readme = flat(README);
+    for phrase in [
+        "interest of 7458.10 (2210.52 on 100,000 for 92 days and 5247.58 on 80,000 for 273 days)",
+        "87458.10 not repaid at the end of 2026-27",
+        "docs/ato-calculator-interest-comparison-2026-11-13.md",
+    ] {
+        assert_in(phrase, &readme, "README");
     }
 }
 

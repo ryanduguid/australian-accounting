@@ -19,10 +19,22 @@ divergences.
   `minimum-yearly-repayment` result unchanged. `verify` rederives a saved
   derivation offline and names the first step that differs (exit 1), or
   confirms it (exit 0). Both read only the compiled-in benchmark table.
+- `rollforward` reads one year of an amalgamated loan on stdin (the year, the
+  year the loan was made, the balance at 1 July and dated repayments) and works
+  out the year's interest at the benchmark rate and the amount not repaid at
+  30 June under s 109E(7), period by period, in the new `rollforward` module.
+  The day count is the ATO's worked example's; the 366-day divisor, rounding
+  each period to cents and the nil balance once repayments pass the opening
+  balance are the ATO calculator's, and the output says so. In the first year
+  after the loan year it follows the worked example's opening balance and says
+  that the ATO's preceding paragraph points the other way. It refuses the loan
+  year, a year without a reviewed rate, a repayment outside the year, a
+  repayment of nil and repayments beyond the balance and the year's interest.
 - `wasm/` builds the derivation for `wasm32-unknown-unknown`, exporting
   `alloc`, `dealloc`, `derive` and `verify` over JSON.
 - `api::myr_facts` is visible inside the crate for the derivation; the public
-  library API is unchanged apart from the new `derivation` module.
+  library API is unchanged apart from the new `derivation` and `rollforward`
+  modules.
 
 - `tests/verdict_cases.rs` turns the edge cases in a published reviewer verdict,
   under CC BY 4.0, the default in the bounty's terms, into fabricated cases, or
