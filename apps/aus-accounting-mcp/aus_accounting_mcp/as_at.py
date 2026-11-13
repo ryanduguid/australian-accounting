@@ -7,7 +7,9 @@ The corpus builder's `as_at` stage classifies its manifest in Rust, and this ser
 sections.jsonl directly, so the same 4 statuses are worked out here. docs/scope.md in
 PaulGoodman is the contract: its status names, field names, next steps and
 limits are repeated exactly. A status is about a title's compilation window, never about
-the law on that date.
+the law on that date. A corpus can hold earlier compilations of a title under
+compilations/; corpus.py picks the one whose window covers the date, and each is classified
+here like any other.
 """
 
 from __future__ import annotations
@@ -43,9 +45,9 @@ REFUSED_NOTICE = (
     "refusals names each title withheld for this date, with its status, window and "
     "next_step. Empty matches alone do not show whether rows were withheld: check "
     "matching_rows and partial_rows in each refusal. A refused title can have zero "
-    "matching rows. The build holds "
-    "one compilation of a title, so a refusal is the answer for any earlier date: no "
-    "earlier text is held."
+    "matching rows. A refusal is the answer for that date: the corpus holds no text of "
+    "that title for it. A title the corpus holds in more than one compilation lists each "
+    "window in held_compilations, and its rows and as_at are those of its latest one."
 )
 UNCLASSIFIABLE = (
     "as_at needs each row's compilation_date, retrieved and version_is_current, and "
