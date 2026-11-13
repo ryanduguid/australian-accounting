@@ -6,6 +6,7 @@ use super::*;
 const DEFAULT_JSON: Json = Json {
     preserve_order: false,
     arbitrary_precision: false,
+    refuse_repeated_keys: false,
 };
 
 fn adapted(text: &str, json: Json) -> Result<String, String> {

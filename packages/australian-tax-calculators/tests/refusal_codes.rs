@@ -192,15 +192,37 @@ fn input_the_engine_never_reaches_is_coded_too() {
 
 #[test]
 fn a_repeated_key_is_refused_by_name_not_resolved_to_its_last_value() {
-    let repeated =
-        br#"{"amount": "1100", "amount": "2200", "gst_inclusive": true, "scope_confirmed": true, "year": "2025-26"}"#;
-    let (exit, out, err) = run(&["gst", "--refusal-json"], repeated);
-    assert_eq!(exit, 2, "{out}");
-    let refusal: Value = serde_json::from_str(&out).unwrap();
-    assert_eq!(refusal["code"], "input.invalid_json");
-    let message = refusal["message"].as_str().unwrap();
-    assert!(message.contains(r#"duplicate key "amount""#), "{message}");
-    assert_eq!(err, format!("error: {message}\n"));
+    // gst ignores fields it does not take, so `extra` reaches only the decoder.
+    let gst = |rest: &str| {
+        format!(
+            r#"{{"amount": "1100", "gst_inclusive": true, "scope_confirmed": true, "year": "2025-26", {rest}}}"#
+        )
+    };
+    for (rest, key) in [
+        (r#""amount": "2200""#, "amount"),
+        // "amount" with its m as a JSON Unicode escape; \x5c is the backslash.
+        ("\"a\x5cu006dount\": \"2200\"", "amount"),
+        (r#""extra": {"k": 1, "k": 2}"#, "k"),
+        (r#""extra": [{"k": 1, "k": 2}]"#, "k"),
+    ] {
+        let (exit, out, err) = run(&["gst", "--refusal-json"], gst(rest).as_bytes());
+        assert_eq!(exit, 2, "{rest}: {out}");
+        let refusal: Value = serde_json::from_str(&out).unwrap();
+        assert_eq!(refusal["code"], "input.invalid_json", "{rest}");
+        let message = refusal["message"].as_str().unwrap();
+        assert_eq!(message, format!("invalid JSON: duplicate key {key:?}"));
+        assert_eq!(err, format!("error: {message}\n"));
+    }
+    for rest in [
+        r#""extra": [{"k": 1}, {"k": 2}], "more": {"k": 3}"#,
+        r#""extra": "amount", "note": "\"amount\": \"2200\", {\"k\": 1}""#,
+    ] {
+        assert_eq!(
+            run(&["gst"], gst(rest).as_bytes()),
+            run(&["gst"], ACCEPTED),
+            "{rest}"
+        );
+    }
 }
 
 #[test]

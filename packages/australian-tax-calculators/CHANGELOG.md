@@ -210,6 +210,6 @@ elizabeth-anne-alexander port, Apache-2.0), extended here with a per-thread
 precision for the worksheets' 40-digit `localcontext`, ROUND_DOWN, remainder and
 integral rounding. Rust num-bigint, num-integer and num-traits implement exact
 coefficient arithmetic; serde_json, with insertion order preserved, provides the
-JSON boundary, and serde's visitor traits its duplicate key check. Scope
-statements and sources in `src/texts.rs` are generated from the base revision.
-This component owns its copies and depends on no other engine.
+JSON boundary. Scope statements and sources in `src/texts.rs` are generated from
+the base revision. This component owns its copies and depends on no other
+engine.
