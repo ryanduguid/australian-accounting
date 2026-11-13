@@ -486,7 +486,7 @@ class GateWiringTests(unittest.TestCase):
                 self.assertIn("if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'", upload)
                 self.assertNotIn("matrix.python == '3.13'", test)
 
-    def test_engine_diff_uses_nul_paths_and_root_retains_all_component_suites(self) -> None:
+    def test_engine_diff_uses_nul_paths_and_root_retains_its_component_suites(self) -> None:
         package = (WORKFLOWS / "ci-package.yml").read_text(encoding="utf-8")
         self.assertIn('git diff --name-only --no-renames -z "$BASE" "$HEAD" --', package)
         self.assertEqual(package.count('"${ON_MAIN[@]}"'), 2)
