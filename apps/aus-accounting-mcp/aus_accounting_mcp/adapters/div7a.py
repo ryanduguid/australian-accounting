@@ -11,6 +11,7 @@ boundary and adds the remaining-term refusals the pinned release lacks.
 from __future__ import annotations
 
 from dataclasses import replace
+from decimal import Decimal
 from typing import Any, Literal
 
 from div7aloan import (
@@ -140,6 +141,12 @@ def _remaining_term_refusal(
     made, year = myr_facts.year_loan_made, myr_facts.year_of_income
     if term is None or made is None or year is None or not made < year:
         return None
+    return _term_left_refusal(supplied, used, term, made, year)
+
+
+def _term_left_refusal(
+    supplied: Decimal, used: Decimal, term: Decimal, made: YearOfIncome, year: YearOfIncome
+) -> tuple[str, str] | None:
     # s 109E(6)(b): the whole years from the end of the loan year to the end of
     # the year before this one, and the loan's term less them, rounded up. The
     # term is rounded up first: the same figure, as the years are whole, and
