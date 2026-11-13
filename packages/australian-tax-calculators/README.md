@@ -19,7 +19,7 @@ keeps the engine release and MCP integration separate.
 
 Nineteen calculation worksheets for established facts: ordinary GST, resident basic income
 tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, ordinary employer FBT, car fringe benefit taxable values
-under the statutory formula and operating cost methods, first-year depreciation,
+under the statutory formula and operating cost methods, depreciation in the start year and later years,
 quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, a single person's Medicare levy, the low income tax offset,
@@ -96,7 +96,7 @@ lists the commands.
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
-| `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year` |
+| `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
 | `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
@@ -114,7 +114,7 @@ The 2 car commands, `main-residence`, `borrowing-expenses` and `division-296` ha
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. Every argument is required, as the Python functions had no defaults. Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value. Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Supported periods
@@ -128,7 +128,7 @@ or a decimal string over 8,192 bytes, is refused.
 | Borrowing expenses | 2024-25 to 2026-27, before s 26-155 from 2027-28; one loan's established expenditure, use and dates |
 | FBT | Years ended 31 March 2026 and 2027; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and a deemed depreciation rate of 200% over the established effective life |
-| Depreciation | 2025-26 and 2026-27, first year of an ordinary tangible Division 40 asset; established life and use |
+| Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
 | Pension minimum | 2024-25 to 2026-27; one account-based pension paying under SISR Schedule 7 |

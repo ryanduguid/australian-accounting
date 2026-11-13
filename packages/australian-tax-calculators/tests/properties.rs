@@ -799,6 +799,53 @@ fn holding_an_asset_longer_never_lowers_its_decline_and_its_value_is_conserved()
     }
 }
 
+/// Rolling an asset forward, each closing value opening the next year: every
+/// year's decline and closing value add back to its opening value to the cent,
+/// so the declines never sum to more than cost. $10,001 over 8 years by prime
+/// cost declines $1,250.125 a year, a half cent each time.
+#[test]
+fn rolling_an_asset_forward_never_writes_off_more_than_its_cost() {
+    let mut rng = Rng(0xDEC2);
+    let mut assets = vec![("10001.00".to_string(), "8".to_string(), "prime_cost", true)];
+    for _ in 0..RUNS {
+        let method = *rng.pick(&["prime_cost", "diminishing_value"]);
+        assets.push((
+            rng.cents(100_000_000),
+            rng.int(1, 20).to_string(),
+            method,
+            rng.bool(),
+        ));
+    }
+    for (cost, life, method, whole_years) in assets {
+        let mut opening: Option<String> = None;
+        let mut total = n(0);
+        for _ in 0..25 {
+            let days = if whole_years { 365 } else { rng.int(0, 365) };
+            let mut facts = json!({"cost": cost, "effective_life": life, "days": days,
+                "taxable_use": "1", "method": method, "scope_confirmed": true, "year": "2026-27"});
+            if let Some(value) = &opening {
+                facts["opening_adjustable_value"] = json!(value);
+            }
+            let result = run("depreciation", facts);
+            let taken = amount(&result, "decline_in_value");
+            let kept = amount(&result, "closing_adjustable_value");
+            let start = d(opening.as_deref().unwrap_or(&cost));
+            assert!(
+                eq(&taken.add(&kept).unwrap(), &start),
+                "{cost} {life} {result}"
+            );
+            total = total.add(&taken).unwrap();
+            assert!(le(&total, &d(&cost)), "{cost} {life} {result}");
+            opening = Some(
+                result["amounts"]["closing_adjustable_value"]
+                    .as_str()
+                    .unwrap()
+                    .into(),
+            );
+        }
+    }
+}
+
 fn quarter(earnings: &str, paid: &str) -> Value {
     run(
         "quarterly-sg",

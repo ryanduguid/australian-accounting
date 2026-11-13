@@ -50,6 +50,16 @@ intentionally changed.
   `input.signed_amount_invalid` covers its earnings input, and
   `input.field_unknown` refuses a field it does not take, such as an opening
   balance, which the other worksheets ignore.
+- `depreciation` takes an optional `opening_adjustable_value` for an income
+  year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
+  Diminishing value then applies its rate to that value and prime cost to cost,
+  and either decline is limited to it; it may not exceed cost. Without it the
+  result is the start year's, as before. The worksheet catalogue lists it under
+  a new `optional_inputs` key, and the scope, sources and source passage name
+  the later year, which `tests/parity.rs` applies to the frozen results.
+  `tests/depreciation.rs` holds it to the ATO's diminishing value and prime
+  cost examples. The new refusal code `input.opening_value_above_cost` covers
+  an opening value above cost.
 - `tests/verdict_cases.rs` turns the edge cases in a published reviewer verdict,
   under CC BY 4.0, the default in the bounty's terms, into fabricated cases, or
   states why one does not apply.
@@ -73,6 +83,12 @@ intentionally changed.
 
 ### Documented divergences
 
+- `depreciation`'s closing adjustable value is the opening value less the
+  decline in value as shown in cents. Python 0.2.0 rounded the 2 separately, so
+  a decline ending in exactly half a cent showed a cent too much in both: $10,001
+  over 8 years by prime cost gave $1,250.13 and $8,750.88, now $8,750.87.
+  Carried forward year by year, the old figures wrote off more than cost. No
+  frozen result changes.
 - Python imports, keyword signatures, the `metadata` dictionaries and package
   version lookup are removed. `engine_version` in every result is the Cargo
   version, 1.0.0; Python 0.2.0 reported `0.2.0`. That field is the only

@@ -346,8 +346,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Fringe benefits tax - a guide for employers, 7.9 operating cost method and example 31; FBT return 2026 instructions, item 23B and example 7; FBT rates and thresholds, benchmark interest rate; Electric cars exemption, reportable fringe benefits; Income Tax Assessment (Effective Life of Depreciating Assets) Determination 2025 (LI 2025/20, F2025L01097) and TR 2022/1, Table B, effective lives of cars",
         ),
         "depreciation" => (
-            "2026-09-24",
-            "Decline in value: diminishing value and prime cost methods; taxable use",
+            "2026-11-13",
+            "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year",
         ),
         "quarterly_sg" => (
             "2026-09-10",
@@ -512,6 +512,17 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         ("reviewed", reviewed),
         ("checked", checked),
     ]
+}
+
+/// Inputs a worksheet takes but does not require, with their units.
+pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
+    match kind {
+        "depreciation" => vec![(
+            "opening_adjustable_value",
+            "AUD, for a year after the start time only: cost less the decline in value of earlier years, not the deductions; omit in the start year",
+        )],
+        _ => Vec::new(),
+    }
 }
 
 /// `INPUT_UNITS[kind]`, in the Python dict's order.
