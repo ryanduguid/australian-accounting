@@ -16,7 +16,7 @@ use crate::facts::{
 use crate::gate::{GateFacts, complying_loan_gate};
 use crate::money::{parse_money, parse_rate, parse_ratio};
 use crate::myr::{
-    FormulaError, GateSummary, MyrFacts, minimum_yearly_repayment, minimum_yearly_repayment_amount,
+    FormulaError, GateSummary, MyrFacts, minimum_yearly_repayment_amount, repayment_within,
     statutory_remaining_term,
 };
 use crate::py::PyPath;
@@ -248,6 +248,21 @@ pub(crate) fn myr_facts(v: &Value) -> Result<MyrFacts> {
     })
 }
 
+/// The loan's own term, `maximum_term_years`, beside the repayment facts: a
+/// field of `facts`, or the register row's column in `mapping`.
+pub(crate) fn myr_loan_term(v: &Value) -> Result<Option<Decimal>> {
+    if let Some(mapping) = v.get("mapping") {
+        return optional_years(
+            mapping_of(mapping)?.get("maximum_term_years"),
+            &format!("{} maximum_term_years", where_(v, "row")?),
+        );
+    }
+    decimal(
+        v.get("facts").ok_or("facts or mapping is required")?,
+        "maximum_term_years",
+    )
+}
+
 fn mode(v: &Value) -> Result<Mode> {
     let flag = |key: &str| match v.get(key) {
         None => Ok(false),
@@ -332,10 +347,11 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                 .map_err(failure)
         }
         "minimum-yearly-repayment" => {
-            let facts = myr_facts(v)?;
+            let (facts, term) = (myr_facts(v)?, myr_loan_term(v)?);
             let (table, over) = (table(v)?, over(v)?);
             let result =
-                minimum_yearly_repayment(&facts, table.as_ref(), over.as_ref()).map_err(failure)?;
+                repayment_within(&facts, None, term.as_ref(), table.as_ref(), over.as_ref())
+                    .map_err(failure)?;
             result
                 .to_json()
                 .map_err(|s| format!("decimal.{}", s.name()))

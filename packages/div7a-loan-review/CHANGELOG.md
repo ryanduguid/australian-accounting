@@ -160,6 +160,25 @@ divergences.
   reviews `examples/sample_loans_myr_met.csv`, whose remaining terms are those
   for 2026-27, for 2027-28: all 3 rows are now refused and the run exits 2
   instead of 0.
+- The `minimum-yearly-repayment` command and `derive` take an optional
+  `maximum_term_years`, the loan's own term, in `facts` or in the `mapping`
+  row, and then give `REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM` and
+  `REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED` as a register review
+  does. Without it, a repayment figure carries a caveat that no remaining-term
+  limit was checked, so a derivation saved earlier with a figure no longer
+  verifies. The s 109N(3) maximum-term refusal needs security facts, which the
+  command does not take; a gate that passed the same term has checked it
+  against that maximum.
+- A loan secured and extended under s 109E(3A) is entered with 25 years less
+  the time it had already run before the extension as its
+  `maximum_term_years`, which is how the ATO works its term ('Loans by private
+  companies', ato.gov.au, last updated 2 July 2026: 'The maximum term of the
+  loan becomes 25 years less the period of the term already expired when the
+  loan was unsecured'). Read literally, s 109E(3B) and (6) allow a remaining
+  term of 25 in the later year of income; the ATO's working gives the higher
+  repayment. The reasons for `REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM` and
+  `REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED` say so. The replay
+  applies 33 more changed answers and updates 23 from the earlier changes.
 
 ### Verification
 
