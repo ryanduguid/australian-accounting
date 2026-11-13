@@ -656,18 +656,23 @@ pub fn depreciation(
         &opening
     };
     let amounts = precise(|| {
-        let raw = base
-            .mul(&int(days))?
-            .div(&int(365))?
-            .mul(&factor)?
-            .div(&life)?;
-        let decline = py_min(opening.clone(), raw)?;
+        // Divide once, last: a quotient taken first is rounded to the working
+        // precision, which can move an exact half cent below it.
+        let numerator = base.mul(&int(days))?.mul(&factor)?;
+        let denominator = int(365).mul(&life)?;
+        let raw = numerator.div(&denominator)?;
+        // py_min(opening, raw): the opening value unless raw is lower.
+        let (decline, deduction) = if raw.lt(&opening)? {
+            (raw, numerator.mul(&use_)?.div(&denominator)?)
+        } else {
+            (opening.clone(), opening.mul(&use_)?)
+        };
         // Less the decline as shown, so a closing value carried forward as the
         // next opening value never writes off more than cost.
         let closing = opening.sub(&cents(decline.clone())?)?;
         Ok(vec![
-            ("decline_in_value", decline.clone()),
-            ("deduction", decline.mul(&use_)?),
+            ("decline_in_value", decline),
+            ("deduction", deduction),
             ("closing_adjustable_value", closing),
         ])
     })?;

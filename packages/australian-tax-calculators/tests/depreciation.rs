@@ -165,3 +165,21 @@ fn the_catalogue_lists_the_opening_value_as_optional() {
     );
     assert!(catalogue["gst"].get("optional_inputs").is_none());
 }
+
+/// A deduction whose exact value is half a cent rounds up. $1,000.50 over 14
+/// years by diminishing value, or 7 by prime cost, is a decline of exactly
+/// $2,001 ÷ 14 = $142.928571…, and at 21% taxable use exactly $30.015, so
+/// $30.02. Dividing before applying the use gave $30.01499… and $30.01.
+#[test]
+fn an_exact_half_cent_deduction_rounds_up() {
+    for overrides in [
+        json!({"cost": "1000.50", "effective_life": "14"}),
+        json!({"cost": "1000.50", "effective_life": "7", "method": "prime_cost"}),
+        json!({"cost": "2000.00", "effective_life": "14", "opening_adjustable_value": "1000.50"}),
+    ] {
+        let mut overrides = overrides;
+        overrides["taxable_use"] = json!("0.21");
+        let year = run(overrides.clone());
+        assert_eq!(amounts(&year), ["142.93", "30.02", "857.57"], "{overrides}");
+    }
+}
