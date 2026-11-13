@@ -136,3 +136,104 @@ def test_a_year_label_the_engine_cannot_read_is_an_input_error() -> None:
 
     with pytest.raises(InputError, match="2026-27"):
         get_benchmark_rate("2026-2027")
+
+
+ABOVE_MAXIMUM = "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM"
+ABOVE_LOAN_TERM = "REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM"
+SECURED = {
+    "secured_by_registered_mortgage_over_real_property": True,
+    "security_coverage_at_first_made": "1.10",
+}
+
+
+@pytest.mark.parametrize(
+    ("overrides", "codes"),
+    [
+        ({"remaining_term_years": "7"}, []),
+        ({"remaining_term_years": "8"}, [ABOVE_MAXIMUM]),
+        ({"maximum_term_years": "5", "remaining_term_years": "5"}, []),
+        ({"maximum_term_years": "5", "remaining_term_years": "6"}, [ABOVE_LOAN_TERM]),
+        ({"maximum_term_years": "5", "remaining_term_years": "5.5"}, [ABOVE_LOAN_TERM]),
+        ({"maximum_term_years": "5.5", "remaining_term_years": "6"}, []),
+        ({"maximum_term_years": "5", "remaining_term_years": "8"}, [ABOVE_MAXIMUM]),
+        ({**SECURED, "maximum_term_years": "25", "remaining_term_years": "25"}, []),
+        ({**SECURED, "maximum_term_years": "25", "remaining_term_years": "26"}, [ABOVE_MAXIMUM]),
+        ({**SECURED, "maximum_term_years": "20", "remaining_term_years": "21"}, [ABOVE_LOAN_TERM]),
+        (
+            {
+                "secured_by_registered_mortgage_over_real_property": None,
+                "remaining_term_years": "8",
+            },
+            [ABOVE_LOAN_TERM],
+        ),
+        ({"written_agreement": False, "remaining_term_years": "8"}, ["REFUSED_GATE_NOT_COMPLYING"]),
+        ({"year_loan_made": None, "remaining_term_years": "8"}, ["REFUSED_GATE_UNKNOWN"]),
+        (
+            {"payments_applied_during_the_year": None, "remaining_term_years": "8"},
+            [ABOVE_MAXIMUM],
+        ),
+        (
+            {
+                "year_loan_made": "2026-27",
+                "interest_rate_for_years_after_year_loan_made": "0.0900",
+                "remaining_term_years": "8",
+            },
+            ["REFUSED_YEAR_IS_YEAR_OF_LOAN", ABOVE_MAXIMUM],
+        ),
+    ],
+)
+def test_a_remaining_term_past_the_maximum_or_loan_term_gets_no_figure(
+    overrides: dict[str, object], codes: list[str]
+) -> None:
+    for detail in ("summary", "full"):
+        myr = _review(response_detail=detail, **overrides)["minimum_yearly_repayment"]
+
+        assert myr["reason_codes"] == codes, detail
+        assert len(myr["reasons"]) == len(codes), detail
+        assert (myr["verdict"] == "REFUSED") == bool(codes), detail
+        assert (myr["myr_required"] is None) == bool(codes), detail
+        assert (myr["shortfall"] is None) == bool(codes), detail
+        assert myr["experimental_deemed_dividend_exposure"] is None, detail
+
+
+def test_a_term_refusal_keeps_the_engines_refused_shape() -> None:
+    myr = _review(response_detail="full", remaining_term_years="8")["minimum_yearly_repayment"]
+
+    assert myr["reasons"][0].startswith(
+        "remaining_term_years is 8, a remaining term of 8 under s 109E(6), longer than the "
+        "7-year maximum term this row's security facts give under s 109N(3)"
+    )
+    assert myr["reasons"][0].endswith("No MYR figure is emitted.")
+    assert myr["remaining_term_years_used"] == "8"
+    assert myr["benchmark_rate"] == "0.0877"
+    assert myr["payments_applied"] == "108770.00"
+    assert len(myr["statutory_trace"]) == 2
+
+
+def test_a_term_refusal_the_engine_already_gives_is_not_given_twice(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from dataclasses import replace
+
+    from div7aloan import MyrVerdict
+
+    from aus_accounting_mcp.adapters import div7a
+
+    engine = div7a.minimum_yearly_repayment
+
+    def refusing(facts):  # an engine release that refuses by itself
+        return replace(
+            engine(facts),
+            verdict=MyrVerdict.REFUSED,
+            myr_required=None,
+            shortfall=None,
+            experimental_deemed_dividend_exposure=None,
+            reasons=("the engine's own reason",),
+            reason_codes=(ABOVE_MAXIMUM,),
+        )
+
+    monkeypatch.setattr(div7a, "minimum_yearly_repayment", refusing)
+    myr = _review(remaining_term_years="8")["minimum_yearly_repayment"]
+
+    assert myr["reason_codes"] == [ABOVE_MAXIMUM]
+    assert myr["reasons"] == ["the engine's own reason"]

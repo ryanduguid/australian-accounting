@@ -4,25 +4,33 @@
 """Thin adapter over div7a-loan-review.
 
 The delegated engine owns the statutory tests, rates, arithmetic, refusals and
-serialisation. This module only translates MCP arguments and applies the
-facade's money boundary.
+serialisation. This module translates MCP arguments, applies the facade's money
+boundary and adds the remaining-term refusals the pinned release lacks.
 """
 
 from __future__ import annotations
 
+from dataclasses import replace
+from decimal import Decimal
 from typing import Any, Literal
 
 from div7aloan import (
     LAW_COMPILATION,
     LAW_CONTENT_DATE,
     GateFacts,
+    GateResult,
+    GateVerdict,
     MyrFacts,
+    MyrResult,
+    MyrVerdict,
     __version__ as DIV7A_VERSION,
     benchmark_rate,
     complying_loan_gate,
     minimum_yearly_repayment,
     parse_year,
 )
+from div7aloan.gate import _maximum_term
+from div7aloan.myr import statutory_remaining_term
 
 from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.money import parse_optional_amount
@@ -80,6 +88,70 @@ def get_benchmark_rate(
             "rate_table_uris": payload["manifest"]["rate_table_uris"],
         },
     }
+
+
+# Division 7A Loan Review 1.0.0 refuses a remaining term that cannot hold on a
+# loan the gate passed (src/myr.rs, repayment_within); the pinned 0.3.2 works a
+# lower repayment from it. These copy its conditions, codes and wording. Remove
+# them once review_loan calls an engine release that gives these refusals
+# itself, such as 1.0.0's review-register; its minimum-yearly-repayment takes
+# no loan term and does not. Until then a code the engine gave is not repeated.
+def _remaining_term_refusal(
+    gate: GateResult, gate_facts: GateFacts, supplied: Decimal | None
+) -> tuple[str, str] | None:
+    if supplied is None or gate.verdict is not GateVerdict.COMPLYING:
+        return None
+    used = statutory_remaining_term(supplied)
+    maximum = _maximum_term(gate_facts)[0]
+    if maximum is not None and used > maximum:
+        return (
+            "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM",
+            f"remaining_term_years is {supplied}, a remaining term of {used} under "
+            f"s 109E(6), longer than the {maximum}-year maximum term this row's "
+            "security facts give under s 109N(3) before any s 109N(3A) to (3D) "
+            "reduction, which can only shorten it, yet the gate found the loan on "
+            "s 109N terms. Both cannot hold: each constituent loan is one s 109N "
+            "saves (s 109E(3)(b)), so its term is within its maximum term "
+            "(s 109N(1)(c)); the constituent loans share one maximum term "
+            "(s 109E(3)(c)); and the remaining term is the longest constituent "
+            "term less the years since the loan year (s 109E(6)). Correct the "
+            "remaining term or the security facts. Enter a loan secured and "
+            "extended under s 109E(3A) as the new amalgamated loan s 109E(3B) "
+            "creates, with its 25-year security facts. No MYR figure is emitted.",
+        )
+    term = gate_facts.maximum_term_years
+    if term is not None and used > statutory_remaining_term(term):
+        return (
+            "REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM",
+            f"remaining_term_years is {supplied}, a remaining term of {used} under "
+            f"s 109E(6), longer than the {term}-year term of the loan in "
+            "maximum_term_years. The remaining term is the longest constituent-loan "
+            "term less the years from the end of the loan year to the end of the "
+            "previous year of income (s 109E(6)), so it cannot be longer than that "
+            "term, and a longer one gives a lower minimum yearly repayment than the "
+            "Act requires. Correct remaining_term_years or, where a constituent loan "
+            "of this amalgamated loan has a longer term, enter that longest term in "
+            "maximum_term_years. No MYR figure is emitted.",
+        )
+    return None
+
+
+def _refuse(myr: MyrResult, code: str, reason: str) -> MyrResult:
+    if code in myr.reason_codes:
+        return myr
+    # A refusal joins the engine's refusals and replaces its unknowns.
+    earlier = myr.verdict is MyrVerdict.REFUSED
+    return replace(
+        myr,
+        verdict=MyrVerdict.REFUSED,
+        myr_required=None,
+        shortfall=None,
+        experimental_deemed_dividend_exposure=None,
+        reasons=(*myr.reasons, reason) if earlier else (reason,),
+        reason_codes=(*myr.reason_codes, code) if earlier else (code,),
+        # The engine's refused result keeps only its s 109E(1) and (5) lines.
+        statutory_trace=myr.statutory_trace[:2],
+    )
 
 
 def review_loan(
@@ -148,6 +220,9 @@ def review_loan(
         )
     except ValueError as exc:
         raise InputError(str(exc)) from exc
+    refusal = _remaining_term_refusal(gate, gate_facts, parsed_myr.remaining_term_years)
+    if refusal is not None:
+        myr = _refuse(myr, *refusal)
 
     gate_payload: dict[str, Any] = gate.to_json_dict()
     repayment_payload: dict[str, Any] = myr.to_json_dict()
