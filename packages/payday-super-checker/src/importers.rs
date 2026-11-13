@@ -174,8 +174,16 @@ fn optional(text: String) -> Option<String> {
 
 pub type Resolved = Vec<(String, String)>;
 
-/// Read a super payments export: its rows, profile and resolved columns.
-pub fn read_super(path: &str, vendor: Option<&str>) -> Result<(Vec<SuperRow>, Profile, Resolved)> {
+/// The super rows a profile's contribution-type filter left out: each row
+/// number with its contribution type as written.
+pub type Skipped = Vec<(i64, String)>;
+
+/// Read a super payments export: its rows, profile, resolved columns and the
+/// rows skipped as not super guarantee.
+pub fn read_super(
+    path: &str,
+    vendor: Option<&str>,
+) -> Result<(Vec<SuperRow>, Profile, Resolved, Skipped)> {
     let (headers, raw_rows) = read_dicts(path)?;
     let profile = profiles::detect(&headers, "super", vendor)?;
     let resolved = profiles::resolve_columns(&profile, &headers);
@@ -225,11 +233,13 @@ pub fn read_super(path: &str, vendor: Option<&str>) -> Result<(Vec<SuperRow>, Pr
         .flat_map(|r| r.refund_unreconciled.iter().map(|v| normalise_header(v)))
         .collect();
     let mut rows = Vec::new();
+    let mut skipped = Vec::new();
     for (i, raw) in raw_rows.iter().enumerate() {
         let i = i as i64 + 2;
         if let Some(filter) = &profile.sg_filter {
-            let kind = normalise_header(&cell(raw, &resolved, &filter.column));
-            if !wanted.contains(&kind) {
+            let kind = cell(raw, &resolved, &filter.column);
+            if !wanted.contains(&normalise_header(&kind)) {
+                skipped.push((i, kind));
                 continue;
             }
         }
@@ -300,7 +310,7 @@ pub fn read_super(path: &str, vendor: Option<&str>) -> Result<(Vec<SuperRow>, Pr
             None => format!("{path} has no usable rows"),
         }));
     }
-    Ok((rows, profile, resolved))
+    Ok((rows, profile, resolved, skipped))
 }
 
 /// Read a payroll export: its rows, profile and resolved columns.
@@ -597,6 +607,46 @@ fn pre_regime_warnings(payroll_rows: &[PayrollRow]) -> Vec<String> {
     )]
 }
 
+/// Name every super row the contribution-type filter skipped, so none leaves
+/// the check silently: each type as first written, with up to 20 of its rows.
+fn skipped_warning(skipped: &[(i64, String)], profile: &Profile) -> Option<String> {
+    let filter = profile.sg_filter.as_ref()?;
+    if skipped.is_empty() {
+        return None;
+    }
+    let mut groups: crate::Groups<&(i64, String)> = crate::Groups::default();
+    for entry in skipped {
+        groups.push(normalise_header(&entry.1), entry);
+    }
+    let detail: Vec<String> = groups
+        .entries
+        .iter()
+        .map(|(_, rows)| {
+            let shown: Vec<String> = rows.iter().take(20).map(|r| r.0.to_string()).collect();
+            let more = if rows.len() > 20 {
+                format!(" and {} more", rows.len() - 20)
+            } else {
+                String::new()
+            };
+            format!(
+                "{} at row(s) {}{more}",
+                pytext::repr(&rows[0].1),
+                shown.join(", ")
+            )
+        })
+        .collect();
+    Some(format!(
+        "{} super row(s) were skipped, not checked, because profile {} does not \
+         read their contribution type as super guarantee ({}). Skipped: {}. If any \
+         of them is super guarantee, correct its contribution type, or map the file \
+         by hand.",
+        skipped.len(),
+        profile.key,
+        repr_list(&filter.include),
+        detail.join("; ")
+    ))
+}
+
 /// What did and did not join, from one import run.
 #[derive(Clone, Debug)]
 pub struct ImportReport {
@@ -667,7 +717,7 @@ pub fn import_files(
 ) -> Result<ImportReport> {
     check_output(payroll_path, super_path, out_path)?;
     let (payroll_rows, payroll_profile, payroll_resolved) = read_payroll(payroll_path, vendor)?;
-    let (super_rows, super_profile, super_resolved) = read_super(super_path, vendor)?;
+    let (super_rows, super_profile, super_resolved, skipped) = read_super(super_path, vendor)?;
 
     let key_mode = if join::both_have_ids(&payroll_rows, &super_rows) {
         "id"
@@ -727,7 +777,8 @@ pub fn import_files(
         )));
     }
     let confirmed = !allocation_groups.is_empty();
-    let warnings_head = pre_regime_warnings(&payroll_rows);
+    let mut warnings_head = pre_regime_warnings(&payroll_rows);
+    warnings_head.extend(skipped_warning(&skipped, &super_profile));
     let columns = Columns {
         payroll_has_period_end: resolved_get(&payroll_resolved, "period_end").is_some(),
         super_has_period_start: resolved_get(&super_resolved, "period_start").is_some(),
