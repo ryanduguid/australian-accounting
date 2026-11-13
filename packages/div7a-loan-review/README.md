@@ -193,6 +193,17 @@ it rounds its result half up to cents.
 records the method, the files compared and what the comparison does not
 establish.
 
+On 13 November 2026 the calculator's interest function, from the same
+unchanged files, was run the same way against `rollforward` on 2,000 fabricated
+loans in their second year after the loan year: 250 for each year of income
+from 2019-20 to 2026-27, with up to 6 repayments each, including repayments on
+1 July, 30 June, 29 February and the same day. In 1,997 the interest, each
+period's days and interest, the principal repaid and the closing balance agreed
+to the cent. In the other 3 the repayments passed the opening balance and the
+year's interest; the calculator shows a nil balance and this engine refuses.
+[docs/ato-calculator-interest-comparison-2026-11-13.md](docs/ato-calculator-interest-comparison-2026-11-13.md)
+records the method and its limits.
+
 ## Reviewer edge cases
 
 `tests/verdict_cases.rs` runs the edge cases from a practitioner's published
@@ -562,6 +573,9 @@ echo '{"year_of_income": "2026-27", "year_loan_made": "2025-26",
   "repayments": [{"date": "2026-10-01", "amount": "20000.00"}]}' \
   | div7a-loan-review rollforward
 ```
+
+That gives interest of 7458.10 (2210.52 on 100,000 for 92 days and 5247.58 on
+80,000 for 273 days) and 87458.10 not repaid at the end of 2026-27.
 
 s 109E(7) works out how much of the loan is repaid 'on the basis that interest is
 payable on the balance of the loan from time to time in a year of income at a

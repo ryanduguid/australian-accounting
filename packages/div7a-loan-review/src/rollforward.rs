@@ -468,13 +468,14 @@ mod tests {
                 ),
                 "repayments[0] must be an object",
             ),
-            // 1,000.00 plus 92 days' interest of 22.10, then nothing left to charge.
+            // 1,000.00 plus 92 days' interest of 22.11 (1,000 x 0.0877 x 92 / 365
+            // = 22.1052), then nothing left to charge.
             (
                 with(
                     "repayments",
-                    json!([{"date": "2026-10-01", "amount": "1022.11"}]),
+                    json!([{"date": "2026-10-01", "amount": "1022.12"}]),
                 ),
-                "repayments total 1022.11, more than",
+                "repayments total 1022.12, more than",
             ),
         ];
         for (input, start) in cases {
@@ -483,10 +484,18 @@ mod tests {
         }
         let paid_off = rollforward(&with(
             "repayments",
-            json!([{"date": "2026-10-01", "amount": "1022.10"}]),
+            json!([{"date": "2026-10-01", "amount": "1022.11"}]),
         ))
         .unwrap();
         assert_eq!(paid_off["amalgamated_loan_unpaid_at_end_of_year"], "0.00");
+        // A cent short: the daily balance is nil from 1 October, but 1 cent of
+        // the year's interest is not covered, so the loan keeps 0.01.
+        let short = rollforward(&with(
+            "repayments",
+            json!([{"date": "2026-10-01", "amount": "1022.10"}]),
+        ))
+        .unwrap();
+        assert_eq!(short["amalgamated_loan_unpaid_at_end_of_year"], "0.01");
         assert_eq!(paid_off["periods"][1]["balance"], "0.00");
         assert_eq!(rollforward(&base).unwrap()["interest"], "87.70");
     }
