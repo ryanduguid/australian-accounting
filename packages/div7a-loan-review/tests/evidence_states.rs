@@ -319,7 +319,8 @@ fn every_row_of_evidence_reaches_the_one_answer_the_tables_give() {
 /// A loan the gate passes on a maximum term its security facts establish
 /// cannot have a remaining term longer than that maximum (s 109E(3)(b) and (c),
 /// s 109N(1)(c) and (3), s 109E(6)). Where the security facts leave the maximum
-/// open, or the gate did not pass, nothing conflicts and nothing more is refused.
+/// open, or the gate did not pass, this refusal does not apply; a row whose own
+/// term is shorter than the remaining term is still refused (next test).
 #[test]
 fn a_remaining_term_past_the_maximum_term_cannot_hold() {
     let conflict = "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM";
@@ -358,7 +359,12 @@ fn a_remaining_term_past_the_maximum_term_cannot_hold() {
         (secured("1.09", 7), "8", &[conflict]),
         (secured("1.10", 25), "25", &[]),
         (secured("1.10", 25), "26", &[conflict]),
-        (unsecured_unknown, "8", &[]),
+        // The maximum is open, but the row's own 7-year term is not.
+        (
+            unsecured_unknown,
+            "8",
+            &["REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM"],
+        ),
         (not_complying, "30", &["REFUSED_GATE_NOT_COMPLYING"]),
         (undecided, "8", &["REFUSED_GATE_UNKNOWN"]),
         (base, "0", &["REFUSED_REMAINING_TERM_NOT_POSITIVE"]),
@@ -388,5 +394,80 @@ fn a_remaining_term_past_the_maximum_term_cannot_hold() {
                 "{row:?} {remaining}"
             );
         }
+    }
+}
+
+/// The s 109E(6) remaining term is the longest constituent-loan term less the
+/// years since the loan year, so on a loan the gate passes it cannot be longer
+/// than the row's own term, both rounded up. A 5-year loan entered with 7 years
+/// remaining would otherwise get a lower repayment than the Act requires.
+#[test]
+fn a_remaining_term_past_the_loan_term_cannot_hold() {
+    let conflict = "REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM";
+    let base = Row {
+        written: Some(true),
+        in_time: Some(true),
+        made: "2024-25",
+        rate: Some(RATE_2024_25),
+        term: None,
+        secured: Some(false),
+        coverage: None,
+        paid: Some(REQUIRED),
+    };
+    let secured = Row {
+        secured: Some(true),
+        coverage: Some("1.10"),
+        ..base
+    };
+    let unsecured_unknown = Row {
+        secured: None,
+        ..base
+    };
+    let not_complying = Row {
+        written: Some(false),
+        ..base
+    };
+    let cases: [(Row, &str, &str, &[&str]); 9] = [
+        (base, "5", "7", &[conflict]),
+        (base, "5", "5", &[]),
+        (base, "5", "5.5", &[conflict]),
+        (base, "5.5", "6", &[]),
+        (
+            base,
+            "5",
+            "8",
+            &["REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM"],
+        ),
+        (secured, "20", "21", &[conflict]),
+        (secured, "20", "20", &[]),
+        (unsecured_unknown, "5", "7", &[conflict]),
+        (not_complying, "5", "7", &["REFUSED_GATE_NOT_COMPLYING"]),
+    ];
+    let cells: Vec<Value> = cases
+        .iter()
+        .enumerate()
+        .map(|(i, (row, term, remaining, _))| {
+            let mut cell = row.json(&format!("T{i}"));
+            cell["maximum_term_years"] = json!(term);
+            cell["remaining_term_years"] = json!(remaining);
+            cell
+        })
+        .collect();
+    let report = review(cells);
+    for (i, (row, term, remaining, want)) in cases.iter().enumerate() {
+        let id = format!("T{i}");
+        let line = report["lines"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|l| l["loan_id"] == id.as_str())
+            .unwrap();
+        let myr = &line["myr"];
+        assert_eq!(codes(myr), *want, "{row:?} {term} {remaining}");
+        assert_eq!(
+            myr["myr_required"].is_string(),
+            want.is_empty(),
+            "{row:?} {term} {remaining}"
+        );
     }
 }

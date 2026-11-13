@@ -7,7 +7,7 @@ import API. The `rate`, `gate`, `myr` and `review` commands keep their flags,
 help, validation, text and JSON output, and exit codes. The former API
 functions are JSON stdin subcommands, documented in README.md. No benchmark
 rate, statutory test, formula, rounding, refusal, reason code or message is
-intentionally changed, apart from the one refusal added under Documented
+intentionally changed, apart from the 2 refusals added under Documented
 divergences.
 
 ### Added
@@ -103,6 +103,21 @@ divergences.
   `minimum-yearly-repayment` command are unchanged. The replay applies the 17
   changed generated answers from `tests/data/amendments.json`, leaving the
   frozen Python record unchanged.
+- A register review also refuses the minimum yearly repayment, with
+  `REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM`, where the gate passed the loan and
+  `remaining_term_years`, rounded up, is longer than the row's own
+  `maximum_term_years`, rounded up. The s 109E(6) remaining term is the longest
+  constituent-loan term less the years since the loan year, so it cannot be
+  longer than that term. Python 0.3.2 and earlier 1.0.0 builds worked a lower
+  repayment from such a row, such as a 5-year unsecured loan entered with 7
+  years remaining. For an amalgamated loan, `maximum_term_years` is the longest
+  constituent-loan term. Where the remaining term is also past the maximum term,
+  only `REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM` is given. The
+  `minimum-yearly-repayment` command, which takes no loan term, is unchanged.
+  The replay applies 26 more changed generated answers and updates 1 from the
+  earlier change. In 2 of them the refused row was the register's only
+  undecided one, so the run now exits 2 instead of 0; those cases set
+  `exit_code_changes`, which the replay now requires for any changed exit code.
 
 ### Verification
 

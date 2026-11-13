@@ -78,6 +78,7 @@ rather than a number it cannot stand behind.
 | --- | --- |
 | Forming the amalgamated loan from constituent loans | s 109E(3). v1 takes the unpaid balance at the end of the previous year from the operator. A list of component loans gets `UNKNOWN`. |
 | A remaining term longer than the maximum term, on a loan the gate passed | In a register review, the row's security facts give the s 109N(3) maximum term, before any s 109N(3A) to (3D) reduction, which can only shorten it. Each constituent loan is one s 109N saves (s 109E(3)(b)), so its term is within that maximum (s 109N(1)(c)), and the constituent loans share one maximum term (s 109E(3)(c)). The s 109E(6) remaining term, the longest constituent term less the years since the loan year, cannot be longer. Where the security facts are unknown, nothing is refused. Enter a loan secured and extended under s 109E(3A) as the new amalgamated loan s 109E(3B) creates, with its 25-year security facts. |
+| A remaining term longer than the loan's own term, on a loan the gate passed | The s 109E(6) remaining term is the longest constituent-loan term less the years since the loan year, so it cannot be longer than that term, and a longer one gives a lower repayment than the Act requires. A register review refuses a row whose remaining term, rounded up, is longer than its `maximum_term_years` rounded up. The `minimum-yearly-repayment` JSON command takes no loan term or security facts, so it checks neither this nor the maximum term. |
 | A minimum yearly repayment for the year the loan was made | s 109E(1)(a) reaches a loan made 'in an earlier year of income'; s 109P puts an amalgamated loan outside s 109D in the year it is made. |
 | A repayment figure for a loan that is not on s 109N terms | A constituent loan is one that would be a s 109D dividend apart from s 109N (s 109E(3)(b)), so a loan that fails s 109N is not one. Absent another Subdivision D exclusion, s 109D(1) treats it as a dividend in the year it was made (s 109D(1AA)). A schedule does not save it. |
 | Whether a payment is a genuine repayment | s 109R turns on what a reasonable person would conclude about intention. The operator asserts the amount applied. Bank credits are not a substitute. |
@@ -319,7 +320,7 @@ a message naming the first invalid byte; re-save it from Excel as CSV UTF-8
 | `year_loan_made` | The year of income the loan was made in |
 | `written_agreement` | s 109N(1)(a): the agreement is in writing |
 | `terms_in_place_before_lodgment_day` | s 109N(1) chapeau, with s 109D(6). You assert this; the engine does not compute the lodgment day |
-| `maximum_term_years` | The **term of the loan** under the written agreement, in years. It is tested against the maximum term worked out under s 109N(3). The column name follows the published API surface, not the Act's use of 'maximum term' for the statutory cap |
+| `maximum_term_years` | The **term of the loan** under the written agreement, in years; for an amalgamated loan, the longest term of its constituent loans (s 109E(6)). It is tested against the maximum term worked out under s 109N(3). The column name follows the published API surface, not the Act's use of 'maximum term' for the statutory cap |
 | `secured_by_registered_mortgage_over_real_property` | s 109N(3)(a)(i) |
 | `security_coverage_at_first_made` | s 109N(3)(a)(ii): the property's market value less liabilities secured over it in priority to the loan, as a ratio to the loan, at the time the loan is first made. `1.10` is the 110% the paragraph requires |
 | `interest_rate_for_years_after_year_loan_made` | s 109N(1)(b), as a decimal fraction |
@@ -329,7 +330,7 @@ a message naming the first invalid byte; re-save it from Excel as CSV UTF-8
 | Column | What it asserts |
 | --- | --- |
 | `amalgamated_loan_unpaid_at_end_of_previous_year` | The balance the s 109E(6) formula works on |
-| `remaining_term_years` | s 109E(6): the longest constituent-loan term, less the years from the end of the loan year to the end of the year before the one being reviewed. Rounded up by the engine if it is not whole. Refused where it is longer than the maximum term the row's security facts give |
+| `remaining_term_years` | s 109E(6): the longest constituent-loan term, less the years from the end of the loan year to the end of the year before the one being reviewed. Rounded up by the engine if it is not whole. Refused where it is longer than the maximum term the row's security facts give or than `maximum_term_years` |
 | `payments_applied_during_the_year` | The amount **you** are treating as applied. The engine does not apply s 109R. If you cannot assert it, leave it `unknown` |
 
 **Optional:**

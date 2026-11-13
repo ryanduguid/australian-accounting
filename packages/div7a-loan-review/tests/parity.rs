@@ -23,8 +23,9 @@ fn corpus() -> Vec<Value> {
 /// since Python 0.3.2 replace, kept apart so the frozen record never changes.
 /// Each override replaces one command run's `expected`, once. It names the
 /// case's test and, in `was`, the frozen exit code and the FNV-1a hashes of
-/// the frozen stdout and stderr, and it keeps that exit code and stderr, so a
-/// stale index or an override that absorbs another change fails the replay.
+/// the frozen stdout and stderr, and it keeps that stderr and, unless it sets
+/// `exit_code_changes` to true, that exit code, so a stale index or an
+/// override that absorbs another change fails the replay.
 fn amend(cases: &mut [Value]) {
     let amendments: Value =
         serde_json::from_str(include_str!("data/amendments.json")).expect("amendments parse");
@@ -35,10 +36,15 @@ fn amend(cases: &mut [Value]) {
             assert!(seen.insert(at), "case {index} amended twice");
             for key in fields.as_object().unwrap().keys() {
                 assert!(
-                    ["test", "was", "expected"].contains(&key.as_str()),
+                    ["test", "was", "expected", "exit_code_changes"].contains(&key.as_str()),
                     "case {index}: cannot amend {key}"
                 );
             }
+            let code_changes = match fields.get("exit_code_changes") {
+                None => false,
+                Some(Value::Bool(true)) => true,
+                Some(other) => panic!("case {index}: exit_code_changes is {other}, not true"),
+            };
             let case = &mut cases[at];
             assert_eq!(case["test"], fields["test"], "case {index} is another test");
             assert_eq!(
@@ -57,8 +63,11 @@ fn amend(cases: &mut [Value]) {
             );
             let new = &fields["expected"];
             assert_eq!(
-                new["code"], frozen["code"],
-                "case {index}: exit code changed"
+                new["code"] != frozen["code"],
+                code_changes,
+                "case {index}: exit code {} to {}, exit_code_changes {code_changes}",
+                frozen["code"],
+                new["code"]
             );
             assert_eq!(
                 new["stderr"], frozen["stderr"],
@@ -302,7 +311,7 @@ fn every_command_has_cases() {
 }
 
 /// The published reason-code vocabulary.
-const REASON_CODES: [&str; 24] = [
+const REASON_CODES: [&str; 25] = [
     "REFUSED_GATE_RESULT_MISSING",
     "REFUSED_GATE_NOT_COMPLYING",
     "REFUSED_GATE_UNKNOWN",
@@ -311,6 +320,7 @@ const REASON_CODES: [&str; 24] = [
     "REFUSED_YEAR_BEFORE_LOAN",
     "REFUSED_REMAINING_TERM_NOT_POSITIVE",
     "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM",
+    "REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM",
     "REFUSED_BENCHMARK_RATE_NOT_POSITIVE",
     "GATE_NO_BENCHMARK_YEAR",
     "GATE_WRITTEN_AGREEMENT_FAIL",
@@ -395,6 +405,18 @@ fn the_reason_code_vocabulary_is_exactly_what_the_engine_emits() {
     )
     .unwrap();
     collect_codes(&past, &mut emitted);
+    // And one whose remaining term is past its own 5-year term.
+    let past_term = api::evaluate(
+        "review-register",
+        &json!({"year_of_income": "2025-26", "rows": [{"loan_id": "L",
+            "written_agreement": "true", "terms_in_place_before_lodgment_day": "true",
+            "maximum_term_years": "5", "secured_by_registered_mortgage_over_real_property": "false",
+            "security_coverage_at_first_made": "", "interest_rate_for_years_after_year_loan_made": "0.0877",
+            "year_loan_made": "2024-25", "amalgamated_loan_unpaid_at_end_of_previous_year": "1000.00",
+            "remaining_term_years": "7", "payments_applied_during_the_year": "0.00"}]}),
+    )
+    .unwrap();
+    collect_codes(&past_term, &mut emitted);
     let published: std::collections::BTreeSet<String> =
         REASON_CODES.iter().map(|c| c.to_string()).collect();
     assert_eq!(emitted, published);
