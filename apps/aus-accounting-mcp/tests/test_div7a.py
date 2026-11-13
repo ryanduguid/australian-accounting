@@ -279,6 +279,13 @@ def _loan_made(year_loan_made: str, year_of_income: str, **overrides: object) ->
                        remaining_term_years="20.5"),
             [ABOVE_TERM_LEFT],
         ),
+        # The term rounds up before the years come off, so a term a hair over 6
+        # keeps 7 years in the first repayment year, however many digits it has.
+        (
+            _loan_made("2024-25", "2025-26", maximum_term_years="6." + "0" * 27 + "1",
+                       remaining_term_years="7"),
+            [],
+        ),
         # A 1-year term has no years left in its second repayment year.
         (
             _loan_made("2024-25", "2026-27", maximum_term_years="1", remaining_term_years="1"),
@@ -334,3 +341,13 @@ def test_the_term_left_refusal_counts_the_years_since_the_loan_year() -> None:
     assert "From the end of 2022-23 to the end of 2025-26 is 3 years, so the remaining " \
         "term is at most 4;" in myr["reasons"][0]
     assert myr["reasons"][0].endswith("No MYR figure is emitted.")
+
+
+def test_a_term_the_years_outrun_leaves_a_remaining_term_of_nil() -> None:
+    # 2.5 years less 3: the limit is 0, not the -0 a ceiling of -0.5 prints.
+    myr = _review(
+        **_loan_made("2022-23", "2026-27", maximum_term_years="2.5", remaining_term_years="1")
+    )["minimum_yearly_repayment"]
+
+    assert myr["reason_codes"] == [ABOVE_TERM_LEFT]
+    assert "which leaves a remaining term of 0, so the loan should" in myr["reasons"][0]

@@ -366,11 +366,14 @@ pub(crate) fn repayment_within(
     let mut term_used: Option<Decimal> = None;
     let complying = gate.is_some_and(|g| g.verdict == "COMPLYING");
     // s 109E(6)(b): the whole years from the end of the loan year to the end of
-    // the year before this one, and the loan's term less them, rounded up.
+    // the year before this one, and the loan's term less them, rounded up. The
+    // term is rounded up first: the same figure, as the years are whole, and
+    // exact, where subtracting first would round a long term to the context
+    // precision.
     let term_left = match (loan_term, facts.year_loan_made) {
         (Some(term), Some(made)) if complying && made < year => {
             let elapsed = year.start_year - made.start_year - 1;
-            let left = statutory_remaining_term(&term.sub(&d(&elapsed.to_string()))?)?;
+            let left = statutory_remaining_term(term)?.sub(&d(&elapsed.to_string()))?;
             Some((term, made, elapsed, left))
         }
         _ => None,

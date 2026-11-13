@@ -103,6 +103,9 @@ def _remaining_term_refusal(
     if supplied is None or gate.verdict is not GateVerdict.COMPLYING:
         return None
     used = statutory_remaining_term(supplied)
+    # Not gate.maximum_term_years_allowed: with the security unknown the gate
+    # still allows 7 years, where the security facts give no maximum and the
+    # Rust engine does not give this refusal.
     maximum = _maximum_term(gate_facts)[0]
     if maximum is not None and used > maximum:
         return (
@@ -138,9 +141,12 @@ def _remaining_term_refusal(
     if term is None or made is None or year is None or not made < year:
         return None
     # s 109E(6)(b): the whole years from the end of the loan year to the end of
-    # the year before this one, and the loan's term less them, rounded up.
+    # the year before this one, and the loan's term less them, rounded up. The
+    # term is rounded up first: the same figure, as the years are whole, and
+    # exact, where subtracting first would round a long term to the context
+    # precision.
     elapsed = year.start_year - made.start_year - 1
-    left = statutory_remaining_term(term - elapsed)
+    left = statutory_remaining_term(term) - elapsed
     if used <= 0 or used <= left:
         return None
     previous = YearOfIncome(year.start_year - 1)

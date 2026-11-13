@@ -142,14 +142,17 @@ divergences.
   limit is the loan's term and `REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM` covers
   it; where either earlier refusal applies, only it is given. A row without
   `year_loan_made` and the `minimum-yearly-repayment` command are unchanged. The
-  refusal tells the caller that a loan secured and extended under s 109E(3A)
-  has the year before the later year of income as its `year_loan_made`, because
-  s 109E(3B) treats the new amalgamated loan as made just before that year
-  starts. The replay applies 5 more changed answers and updates 2 from the
-  earlier changes. One is an API call, which the replay can now amend by the
-  hash of its frozen answer. Another reviews `examples/sample_loans_myr_met.csv`,
-  whose remaining terms are those for 2026-27, for 2027-28: all 3 rows are now
-  refused and the run exits 2 instead of 0.
+  years are counted as 12-month years of income, so the count can be out by part
+  of a year for a company whose accounting period changed in between; a
+  substituted accounting period stays outside v1. The refusal tells the caller
+  that a loan secured and extended under s 109E(3A) has the year before the
+  later year of income as its `year_loan_made`, because s 109E(3B) treats the
+  new amalgamated loan as made just before that year starts. The replay applies
+  5 more changed answers and updates 2 from the earlier changes. One is an API
+  call, which the replay can now amend by the hash of its frozen answer. Another
+  reviews `examples/sample_loans_myr_met.csv`, whose remaining terms are those
+  for 2026-27, for 2027-28: all 3 rows are now refused and the run exits 2
+  instead of 0.
 
 ### Verification
 

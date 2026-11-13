@@ -518,7 +518,7 @@ fn a_remaining_term_past_the_term_left_cannot_hold() {
         written: Some(false),
         ..base
     };
-    let cases: [(Row, &str, &str, &str, &[&str]); 18] = [
+    let cases: [(Row, &str, &str, &str, &[&str]); 19] = [
         // The first repayment year: nothing has elapsed.
         (base, "2025-26", "7", "7", &[]),
         (
@@ -566,6 +566,10 @@ fn a_remaining_term_past_the_term_left_cannot_hold() {
         ),
         (base, "2024-25", "7", "7", &["REFUSED_YEAR_IS_YEAR_OF_LOAN"]),
         (unplaced, "2026-27", "7", "7", &["YEAR_LOAN_MADE_UNKNOWN"]),
+        // The term rounds up before the years come off, so a term a hair over
+        // 6 keeps 7 years in the first repayment year, however many digits it
+        // has.
+        (base, "2025-26", "6.0000000000000000000000000001", "7", &[]),
     ];
     for (i, (row, year, term, remaining, want)) in cases.iter().enumerate() {
         let mut cell = row.json(&format!("E{i}"));
@@ -582,4 +586,31 @@ fn a_remaining_term_past_the_term_left_cannot_hold() {
         assert_eq!(codes(myr), *want, "{at}");
         assert_eq!(myr["myr_required"].is_string(), want.is_empty(), "{at}");
     }
+}
+
+/// 2.5 years less 3: the limit is 0, not the -0 a ceiling of -0.5 prints.
+#[test]
+fn a_term_the_years_outrun_leaves_a_remaining_term_of_nil() {
+    let conflict = "REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED";
+    let row = Row {
+        written: Some(true),
+        in_time: Some(true),
+        made: "2022-23",
+        rate: Some(RATE_2024_25),
+        term: None,
+        secured: Some(false),
+        coverage: None,
+        paid: Some(REQUIRED),
+    };
+    let mut cell = row.json("N0");
+    cell["maximum_term_years"] = json!("2.5");
+    cell["remaining_term_years"] = json!("1");
+    let report = review_for("2026-27", vec![cell]);
+    let myr = &report["lines"][0]["myr"];
+    assert_eq!(codes(myr), [conflict]);
+    let reason = myr["reasons"][0].as_str().expect("a reason");
+    assert!(
+        reason.contains("which leaves a remaining term of 0, so the loan should"),
+        "{reason}"
+    );
 }
