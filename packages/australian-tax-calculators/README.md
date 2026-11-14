@@ -117,7 +117,7 @@ lists the commands.
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory` and `fbt-car-operating-cost`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293` and `pension-minimum`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset` and `medicare-levy-surcharge` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -128,7 +128,8 @@ or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
 
-`derive` shows how each amount of an FBT worksheet was worked out. It takes
+`derive` shows how each amount of an FBT, Division 293 or pension minimum
+worksheet was worked out. It takes
 `{"command": "fbt", "input": {...}}`, runs the command on that input and returns
 `{"format": "australian-tax-calculators/derivation/1", "engine", "engine_version",
 "calculation", "input", "steps", "result"}`. `result` is the command's own output,
@@ -138,12 +139,14 @@ byte for byte. `steps` holds one step per amount, in the amounts' order:
 {"id":"return_item_16","authority":"FBT return 2026 instructions, item 16","working":"return_item_15 x fbt_rate = 45644 x 0.47 = 21452.68","value":"21452.68"}
 ```
 
-`authority` is the section of the Fringe Benefits Tax Assessment Act 1986
-(FBTAA) or the ATO page that sets the amount. `working` is the formula, the same
-formula on the values it used and its unrounded result. Each name in a formula
-is an input, a rate in `result.rates` or an earlier step, whose unrounded result
-it carries; `x` multiplies, `min` takes the lower, and `cents` and `dollars`
-round half up. `value` is the amount, the result rounded half up to cents. The
+`authority` is the provision or ATO page that sets the amount: a section of the
+Fringe Benefits Tax Assessment Act 1986 (FBTAA), of the Income Tax Assessment
+Act 1997 (ITAA 1997) or of the Division 293 Imposition Act 2013, or a clause of
+Schedule 7 to the Superannuation Industry (Supervision) Regulations 1994 (SISR).
+`working` is the formula, the same formula on the values it used and its
+unrounded result. Each name in a formula is an input, a rate in `result.rates`
+or an earlier step, whose unrounded result it carries; `x` multiplies, `min`
+takes the lower, `max` the higher, and `cents` and `dollars` round half up. `value` is the amount, the result rounded half up to cents. The
 worksheet records each step beside its arithmetic and renders its amounts from
 the steps, so a step cannot differ from its amount; `tests/derivation.rs`
 recomputes every amount from its working alone. A refused input gets the
