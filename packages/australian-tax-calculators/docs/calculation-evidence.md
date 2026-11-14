@@ -99,12 +99,14 @@ $0, so there is no tax-free threshold. `tests/tables.rs` derives the scale
 from the resident scale for each year.
 
 Part II applies to a prescribed non-resident: a person who was a non-resident
-at all times in the year, other than one paid compensation or a pension,
-allowance or benefit under the Veterans' Entitlements Act 1986, subsection
-4(6) of the Veterans' Entitlements (Transitional Provisions and Consequential
-Amendments) Act 1986, the Military Rehabilitation and Compensation Act 2004 or
-the Social Security Act 1991 that is taxed in Australia (s 3(1)). A part-year resident is a resident taxpayer
-there. The worksheet takes both as scope conditions.
+at all times in the year, other than one to whom, at any time in the year,
+compensation or a pension, allowance or benefit is payable under the Veterans'
+Entitlements Act 1986, subsection 4(6) of the Veterans' Entitlements
+(Transitional Provisions and Consequential Amendments) Act 1986, the Military
+Rehabilitation and Compensation Act 2004 or the Social Security Act 1991 on
+which the person is liable to pay income tax in Australia (s 3(1)). A part-year
+resident is a resident taxpayer there. The worksheet takes both as scope
+conditions.
 
 The ATO page "Tax rates - foreign resident" (last updated 1 June 2026, read on
 14 November 2026) gives the same table for 2024-25 and 2025-26: 30c for each

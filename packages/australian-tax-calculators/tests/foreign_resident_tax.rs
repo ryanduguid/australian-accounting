@@ -125,10 +125,13 @@ fn the_result_holds_basic_tax_only_and_says_why() {
         "pays no Medicare levy, which ITAA 1936 s 251S(1) charges on a person resident",
         "ITAA 1997 s 61-110(1) gives only to a resident",
         "Excludes part-year residents, who are taxed as residents",
-        // Each payment that makes a non-resident pay resident rates (s 3(1)).
-        "Veterans' Entitlements Act 1986, subsection 4(6) of the Veterans' Entitlements \
-         (Transitional Provisions and Consequential Amendments) Act 1986, the Military \
-         Rehabilitation and Compensation Act 2004 or the Social Security Act 1991",
+        // Each payment that makes a non-resident pay resident rates, on the
+        // conditions s 3(1) sets: payable at any time in the year and taxed.
+        "not one to whom, at any time in the year, compensation or a pension, allowance or \
+         benefit is payable under the Veterans' Entitlements Act 1986, subsection 4(6) of the \
+         Veterans' Entitlements (Transitional Provisions and Consequential Amendments) Act 1986, \
+         the Military Rehabilitation and Compensation Act 2004 or the Social Security Act 1991 \
+         on which the person is liable to pay income tax in Australia",
     ] {
         assert!(scope.contains(needle), "{needle}");
     }
@@ -183,8 +186,7 @@ fn the_catalogue_lists_it() {
                "scope_confirmed": "boolean true; establish every scope condition",
                "year": "income-year string", "taxable_income": "AUD, whole dollars"})
     );
-    let facts = entry["example"]["facts"].clone();
-    let mut example = facts.clone();
+    let mut example = entry["example"]["facts"].clone();
     example.as_object_mut().unwrap().remove("kind");
     let result = api::evaluate(COMMAND, &example).unwrap();
     assert_eq!(result["amounts"]["basic_income_tax"], "13500.00");
