@@ -218,6 +218,21 @@ intentionally changed.
   the total of all their reportable benefits at the type 2 gross-up rate when it
   exceeds $2,000, a pooled or shared car is not reportable, and the worksheet
   determines neither. Every other amount and warning is unchanged.
+- `payg-gross-up` finds the gross pay whose Schedule 1 withholding leaves a
+  stated net pay, for one regular pay on the scale, pay period and income year
+  `payg-withholding` takes, with `foreign_resident` for scale 4. It searches
+  `payg-withholding`'s own results rather than inverting the formulas, and
+  refuses with the new code `payg.gross_up_not_unique`, listing every gross,
+  where more than one leaves the net: Schedule 1 withholds whole dollars, so a
+  gross a dollar higher can withhold a dollar more and leave the same net. A
+  net above $499,999,999,974.00 is refused with `payg.gross_up_net_too_large`.
+  No Python release has it. `tests/payg_gross_up.rs` grosses up the net of
+  every row of the ATO's Schedule 1 sample data for both schedules to the
+  row's earnings or a tie that names them, and `tests/properties.rs` checks
+  that withholding on each answer leaves the net and that no other gross
+  within $60 of withholding does. `tests/refusal_codes.rs` now also reads the
+  engine's modules under `src/engine/`, and `payg-withholding` and
+  `study-loan-withholding` share one argument list.
 
 ### Documented divergences
 

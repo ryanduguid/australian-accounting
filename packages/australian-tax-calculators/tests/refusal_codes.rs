@@ -30,13 +30,22 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
     let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let read = |name: &str| std::fs::read_to_string(src.join(name)).unwrap();
     let mut used = BTreeSet::new();
+    // The engine's worksheets in their own modules refuse as engine.rs does.
+    let modules = std::fs::read_dir(src.join("engine")).unwrap().map(|entry| {
+        let name = entry.unwrap().file_name().into_string().unwrap();
+        (format!("engine/{name}"), &["refuse(", "bad("][..])
+    });
     for (file, openers) in [
         ("engine.rs", &["refuse(", "bad("][..]),
         ("api.rs", &["refusal("][..]),
         ("main.rs", &["Refusal::new("][..]),
         ("decimal.rs", &["=> "][..]),
-    ] {
-        let text = read(file);
+    ]
+    .map(|(file, openers)| (file.to_string(), openers))
+    .into_iter()
+    .chain(modules)
+    {
+        let text = read(&file);
         for opener in openers {
             used.extend(
                 codes_after(&text, opener)

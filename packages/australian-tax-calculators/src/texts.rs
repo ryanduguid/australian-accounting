@@ -51,6 +51,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 1 July 2024, in the income year given, on the scale the operator established from the payee's declarations: 1, 2, 3, 5 or 6 for a payee who gave a TFN, or 4 for one who did not, as a resident or foreign resident. The year selects the Schedule 1 coefficients and rules for payments made in it. Earnings include allowances subject to withholding. When given, the yearly tax offsets claimed on a Withholding declaration reduce scales 2, 5 and 6, the Medicare levy adjustment claimed on a Medicare levy variation declaration for a spouse or dependent children reduces scales 2 and 6, and the additional amount a payee asks for in a year of 53 weekly or 27 fortnightly pays is added. Reductions that exceed the amount withheld before them are refused. Excludes a Medicare levy variation that increases withholding, study and training support loans, bi-monthly, daily and casual pays, back payments, bonuses, termination and other schedules.",
     ),
     (
+        "payg_gross_up",
+        "The gross pay for one regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 1 July 2024, in the income year given, whose Schedule 1 withholding on the scale the operator established leaves the net pay given, as for pay agreed net of tax. It searches payg-withholding's own results, so payg-withholding's scope applies, with scale 4 taking foreign_resident as it does there. Excludes tax offsets, the Medicare levy adjustment, the additional amount for 53 or 27 pays, study and training support loans, super and other deductions from pay. Refused where more than one gross leaves the net, as Schedule 1 withholds whole dollars.",
+    ),
+    (
         "contribution_caps",
         "One individual's contributions received by all their funds in the income year, already classified by the operator as concessional or non-concessional, with no bring-forward period started in either of the 2 previous years. Total super balance is at the 30 June before the year; unused concessional cap is the established total of unexpired amounts from the previous 5 years. Excludes classification, fund acceptance and work-test rules, deductibility, the CGT cap, downsizer and other excluded contributions, excess concessional amounts counting as non-concessional, determinations, release elections, Division 293 tax and the transfer balance cap.",
     ),
@@ -163,6 +167,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     ),
     (
         "payg_withholding",
+        "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
+    ),
+    (
+        "payg_gross_up",
         "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
     ),
     (
@@ -284,6 +292,12 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
     ),
     (
         "payg_withholding",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
+        ],
+    ),
+    (
+        "payg_gross_up",
         &[
             "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
         ],
@@ -536,7 +550,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset and derive only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset and derive only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -670,6 +684,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payg.foreign_resident_not_scale_4",
         "Residency was given for a scale other than 4, which settles it itself.",
+    ),
+    (
+        "payg.gross_up_net_too_large",
+        "A net pay to gross up is so large that a gross leaving it could exceed the largest amount payg-withholding takes.",
+    ),
+    (
+        "payg.gross_up_not_unique",
+        "More than one gross pay leaves the net pay given; the refusal lists them.",
     ),
     (
         "payg.medicare_adjustment_not_allowed",

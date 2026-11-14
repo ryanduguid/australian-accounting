@@ -55,6 +55,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
 | Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
+| PAYG gross-up | Not a Library document: ATO Schedule 1 (NAT 1004) sample data for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, through the PAYG withholding worksheet | 17 June 2026 (published); 17 June 2024 (last updated) | The gross of one regular pay whose Schedule 1 withholding leaves an established net; refused where more than one gross does |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -427,6 +428,34 @@ transcription; it does not establish that a payee's scale, allowances or
 declarations are right. Bi-monthly, daily and casual pays, a Medicare levy
 variation that increases withholding, study and training support loans and the
 other schedules are outside this worksheet.
+
+## PAYG gross-up
+
+Schedule 1 states how much to withhold from a gross pay, not which gross leaves
+a given net, so this worksheet has no rule of its own to cite: it takes every
+amount from the PAYG withholding worksheet above, whose evidence applies. A
+gross `g` leaves a net `n` when `g - withholding(g) = n`. Withholding is a whole
+number of dollars, so `g` is `n` plus a whole-dollar `w` with
+`withholding(n + w) = w`. As pay rises a cent, withholding never falls
+(`tests/properties.rs` checks every bracket edge), so the net rises by at most a
+cent and every net from $0 has a gross; but it can rise by a dollar, and then
+2 grosses leave the same net. The search repeats `w = withholding(n + w)` from
+0 up to the least such `w` and from a bound down to the greatest, then tests
+each `w` between. The bound is `n + 52`: every Schedule 1 coefficient `a` is at
+most 0.47 and every `b` at least -1 (the lowest is -0.6702, scale 1 for 2024-25
+and 2025-26), and scale 4 withholds at most 47%, so a week's amount is at most
+`0.47 x + 1.50` after rounding and withholding on a gross `g` at most
+`g / 2 + 26`, the 26 covering a quarter's 13 weeks of that $1.50 and of 47% of
+the 99 cents added to weekly earnings; `tests/payg_gross_up.rs` checks those
+coefficients.
+
+For each row of the ATO's sample data used above (48 earnings points for each
+of 3 pay periods on scales 1, 2, 3, 5 and 6, for both schedules), the tests
+take the row's earnings less its withholding as the net and require the
+worksheet to return the row's earnings or to refuse a tie whose list names
+them. `tests/properties.rs` grosses up random nets on every scale, pay period
+and year, and requires each gross listed to leave the net and no other within
+$60 of withholding either side of them to.
 
 ## Medicare levy
 

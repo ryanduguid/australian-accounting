@@ -96,6 +96,15 @@ enum Kind {
 }
 use Kind::{Dec, Json, Raw};
 
+/// The parameters of the worksheets that take one pay's earnings on a scale.
+const PAY_ARGS: &[(&str, Kind)] = &[
+    ("earnings", Dec),
+    ("pay_period", Raw),
+    ("scale", Raw),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+];
+
 /// The parameters of the worksheets that take taxable income alone.
 const TAXABLE_INCOME_ARGS: &[(&str, Kind)] = &[
     ("taxable_income", Dec),
@@ -217,26 +226,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("payg-withholding", PAY_ARGS),
     (
-        "payg-withholding",
+        "payg-gross-up",
         &[
-            ("earnings", Dec),
+            ("net_pay", Dec),
             ("pay_period", Raw),
             ("scale", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "study-loan-withholding",
-        &[
-            ("earnings", Dec),
-            ("pay_period", Raw),
-            ("scale", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("study-loan-withholding", PAY_ARGS),
     (
         "medicare-levy",
         &[
@@ -657,6 +658,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "medicare-levy"
             | "medicare-levy-surcharge"
             | "payg-withholding"
+            | "payg-gross-up"
             | "termination-payment"
             | "schedule-5-method-a"
             | "schedule-5-method-b-i"
@@ -750,6 +752,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 extra_pay_withholding: extra.as_ref(),
             };
             engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
+        }
+        "payg-gross-up" => {
+            // Optional: scale 4's residency, as payg-withholding takes it.
+            let foreign = v.get("foreign_resident").map(arg);
+            engine::payg_gross_up(&a[0], &a[1], &a[2], &a[3], &a[4], foreign.as_ref())
         }
         "study-loan-withholding" => {
             engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())
