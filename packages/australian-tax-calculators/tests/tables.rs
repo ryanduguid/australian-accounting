@@ -6,9 +6,10 @@
 use australian_tax_calculators::api;
 use australian_tax_calculators::decimal::{Decimal, Rounding};
 use australian_tax_calculators::metadata::{
-    CoefficientRow, LOW_INCOME_TAX_OFFSET, MEDICARE_LOW_INCOME_THRESHOLDS,
-    PAYG_WITHHOLDING_COEFFICIENTS, RESIDENT_TAX_SCALES, STUDY_LOAN_REPAYMENT_THRESHOLDS,
-    STUDY_LOAN_WITHHOLDING_COEFFICIENTS, supported_periods,
+    CoefficientRow, LOW_INCOME_TAX_OFFSET, MEDICARE_FAMILY_THRESHOLDS,
+    MEDICARE_LOW_INCOME_THRESHOLDS, MEDICARE_SAPTO_THRESHOLDS, PAYG_WITHHOLDING_COEFFICIENTS,
+    RESIDENT_TAX_SCALES, STUDY_LOAN_REPAYMENT_THRESHOLDS, STUDY_LOAN_WITHHOLDING_COEFFICIENTS,
+    STUDY_LOAN_WITHHOLDING_FROM, supported_periods,
 };
 use serde_json::json;
 
@@ -175,6 +176,40 @@ fn medicare_thresholds_match_the_published_table_and_phase_in() {
     }
 }
 
+#[test]
+fn medicare_sapto_and_family_thresholds_match_the_acts() {
+    // Medicare Levy Act 1986 s 3(1) and s 8(5) and (7): compilation 52 (Act No.
+    // 28, 2025, Sch 2, 2024-25 and later years) and compilation 53 (Act No. 58,
+    // 2026, Sch 5, 2025-26 and later years), read on 14 November 2026. The ATO's
+    // 2025-26 family page and myTax 2025 table 2 and worksheet 2 give the same.
+    let sapto = [
+        ("2024-25", ("43020", "53775")),
+        ("2025-26", ("44268", "55335")),
+        ("2026-27", ("44268", "55335")),
+    ];
+    assert_eq!(MEDICARE_SAPTO_THRESHOLDS, sapto);
+    for (_, (lower, upper)) in sapto {
+        let limit = floor(&d(lower).mul(&d("1.25")).unwrap());
+        assert!(d(upper).equals(&limit).unwrap());
+    }
+    let family = [
+        ("2024-25", ("45907", "59886", "4216")),
+        ("2025-26", ("47238", "61623", "4338")),
+        ("2026-27", ("47238", "61623", "4338")),
+    ];
+    assert_eq!(MEDICARE_FAMILY_THRESHOLDS, family);
+    for table in [
+        keys(MEDICARE_SAPTO_THRESHOLDS),
+        keys(MEDICARE_FAMILY_THRESHOLDS),
+    ] {
+        assert_eq!(table, supported_periods("medicare_levy"));
+    }
+}
+
+fn keys<T>(table: &[(&'static str, T)]) -> Vec<&'static str> {
+    table.iter().map(|(k, _)| *k).collect()
+}
+
 /// 2026-27 at the enacted threshold amount ($28,011) and phase-in limit
 /// ($35,013): s 7(1) gives nil at or below the threshold, s 7(2) caps the levy
 /// at 10% of the excess up to the limit, and s 6(1) charges 2% of the whole above it.
@@ -216,8 +251,9 @@ fn medicare_levy_2026_27_applies_the_thresholds_enacted_for_later_years() {
         assert_eq!(warnings.len(), 3, "{income}");
         assert_eq!(
             warnings[2],
-            "2026-27 uses the threshold amount and phase-in limit Medicare Levy Act 1986 s 3(1) \
-             sets for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14). The ATO had not \
+            "2026-27 uses the threshold amounts, phase-in limits and family income thresholds \
+             Medicare Levy Act 1986 ss 3(1) and 8 set for 2025-26 and later years (Act No. 58, \
+             2026, Sch 5 item 14). The ATO had not \
              published 2026-27 thresholds when this was checked on 14 November 2026. That Act, \
              assented on 30 June 2026, raised the figures for 2025-26, so a later Act can raise \
              them for 2026-27 and change this result."
@@ -273,10 +309,10 @@ fn pick(rows: &[CoefficientRow], x: &Decimal) -> (Decimal, Decimal) {
 
 #[test]
 fn combined_rows_are_schedule_1_plus_the_component_rows() {
-    // The schedule's combined coefficients for scales 1 and 2, to 4 decimal places.
-    let schedule_1 = get(PAYG_WITHHOLDING_COEFFICIENTS, "2026-27");
-    let component = get(STUDY_LOAN_WITHHOLDING_COEFFICIENTS, "2026-27");
-    for (scale, table, rows) in common::COMBINED {
+    // Each year's combined coefficients for scales 1 and 2, to 4 decimal places.
+    for (year, scale, table, rows) in common::COMBINED {
+        let schedule_1 = get(PAYG_WITHHOLDING_COEFFICIENTS, year);
+        let component = get(STUDY_LOAN_WITHHOLDING_COEFFICIENTS, year);
         for (limit, a, b) in rows {
             let x = limit.map_or(n(5000), |l| n(l - 1));
             let s1_rows = schedule_1.iter().find(|(s, _)| *s == scale).unwrap().1;
@@ -284,7 +320,7 @@ fn combined_rows_are_schedule_1_plus_the_component_rows() {
             let c = pick(get(component, table), &x);
             assert!(
                 s1.0.add(&c.0).unwrap().equals(&d(a)).unwrap(),
-                "{scale} {limit:?}"
+                "{year} {scale} {limit:?}"
             );
             let gap = s1.1.add(&c.1).unwrap().sub(&d(b)).unwrap();
             assert!(gap.le(&d("0.0001")).unwrap() && d("-0.0001").le(&gap).unwrap());
@@ -300,6 +336,19 @@ fn every_component_year_has_schedule_1_coefficients() {
             "{year}"
         );
     }
+}
+
+#[test]
+fn every_component_year_has_its_first_pay_date() {
+    let first_pay_years: Vec<&str> = STUDY_LOAN_WITHHOLDING_FROM
+        .iter()
+        .map(|(y, _)| *y)
+        .collect();
+    let coefficient_years: Vec<&str> = STUDY_LOAN_WITHHOLDING_COEFFICIENTS
+        .iter()
+        .map(|(y, _)| *y)
+        .collect();
+    assert_eq!(first_pay_years, coefficient_years);
 }
 
 /// Every amount in one ATO Schedule 1 sample data file, worked out for `year`:
