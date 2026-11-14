@@ -375,11 +375,51 @@ negative b coefficient (-0.6702), which the schedule says is intentional.
 `every_scale_matches_the_ato_sample_for_payments_from_july_2024_to_june_2026`
 requires the worksheet to reproduce each one for both years.
 
+Each schedule also publishes Medicare levy adjustment sample data: scale 2 for
+a spouse only and for 1 to 5 children, and scale 6 (the half-levy) for 1 to 5
+children, at 48 earnings points for each of the 3 pay periods, 1,584
+adjustments a schedule. The 4 files
+`tests/data/medicare_levy_adjustment_scale_2_sample_2026_27.csv`,
+`medicare_half_levy_adjustment_scale_6_sample_2026_27.csv` and their `_2024_26`
+counterparts were transcribed from the ATO's sample data pages (2026: published
+17 June 2026; 2024: last updated 17 June 2024), read on 14 November 2026, and
+compared value by value with the same tables in the legislative instruments:
+LI 2026/18 on the ATO legal database for 2026, and the Taxation Administration
+(Withholding Schedules) Instrument 2025 (F2025L00647) for 2024. All 576 rows
+matched. `tests/payg_withholding.rs` requires the worksheet to reproduce every
+adjustment through `payg-withholding`, and the withholding to be the amount
+before it less the adjustment, for 2026-27 and for both 2024-26 years.
+
+The Medicare levy adjustment parameters (the weekly earnings and shade-in
+thresholds, the formula 1 amount, the family threshold of $47,238, or $43,846
+in 2024, and $4,338, or $4,027, for each child), the scale 4 rates, the tax
+offset percentages and the additional amounts for 53 weekly or 27 fortnightly
+pays were transcribed from each schedule's "Medicare levy adjustment", "Using a
+formula", "Working out the weekly earnings" and coefficients pages, read on 14
+November 2026; the 2026 figures were checked against LI 2026/18 the same day.
+The tests hold the worksheet to each schedule's worked examples: Zail, Abe,
+Wendy, Kareem, Scott and Stevi on the Medicare page, and Jabe, Prue and Tan on
+the "Examples of calculating the withholding amounts" page. The Taxation
+Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016),
+which replaced F2025L00647 from 24 September 2025, has the same Schedule 1 word
+for word, so 2025-26 uses one schedule throughout.
+
+The schedules publish no quarterly sample data or worked example. The tests
+apply the quarterly rules (a thirteenth of the quarter's earnings as the weekly
+equivalent; 13 times the weekly amount and adjustment; 25% of the offsets) to
+13 times each weekly sample point, which must withhold 13 times the ATO's weekly
+amount on every scale. Scale 4 follows note 3 to the coefficients: the rate is
+applied to the pay's earnings, cents ignored in the earnings and the result. The
+additional amount for 53 or 27 pays is the table's last band whose lower
+limit the pay's earnings reach; each band edge has a test on each side. Schedule 1 does not say what happens when offsets and
+the adjustment exceed the amount withheld before them, so the worksheet refuses
+that case.
+
 The sample data checks the
 transcription; it does not establish that a payee's scale, allowances or
-declarations are right. Scale 4, tax offsets, Medicare levy adjustments, study
-and training support loans, 53 and 27 pay years, quarterly pays and the other
-schedules are outside this worksheet.
+declarations are right. Bi-monthly, daily and casual pays, a Medicare levy
+variation that increases withholding, study and training support loans and the
+other schedules are outside this worksheet.
 
 ## Medicare levy
 

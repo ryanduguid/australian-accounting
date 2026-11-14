@@ -48,7 +48,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "payg_withholding",
-        "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July 2024, in the income year given, to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. The year selects the Schedule 1 coefficients for payments made in it. Earnings include allowances subject to withholding. Excludes scale 4, tax offsets, Medicare levy adjustments, study and training support loans, extra amounts for 53 or 27 pays, quarterly and bi-monthly pays, back payments, bonuses, termination and other schedules.",
+        "One regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 1 July 2024, in the income year given, on the scale the operator established from the payee's declarations: 1, 2, 3, 5 or 6 for a payee who gave a TFN, or 4 for one who did not, as a resident or foreign resident. The year selects the Schedule 1 coefficients and rules for payments made in it. Earnings include allowances subject to withholding. When given, the yearly tax offsets claimed on a Withholding declaration reduce scales 2, 5 and 6, the Medicare levy adjustment claimed on a Medicare levy variation declaration for a spouse or dependent children reduces scales 2 and 6, and the additional amount a payee asks for in a year of 53 weekly or 27 fortnightly pays is added. Reductions that exceed the amount withheld before them are refused. Excludes a Medicare levy variation that increases withholding, study and training support loans, bi-monthly, daily and casual pays, back payments, bonuses, termination and other schedules.",
     ),
     (
         "contribution_caps",
@@ -431,6 +431,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "Back payment periods are not a list of 1 to the most earlier pays a year holds, each with exactly earnings, back_payment and withheld as decimal strings.",
     ),
     (
+        "input.children_invalid",
+        "A number of dependent children is not a JSON integer from 0.",
+    ),
+    (
         "input.date_invalid",
         "A date is not YYYY-MM-DD from 1900 to 2100.",
     ),
@@ -456,7 +460,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet does not take was given (division-296, depreciation and termination-payment only).",
+        "A field the worksheet does not take was given (division-296, depreciation, payg-withholding, termination-payment, the Schedule 5 methods and working-holiday-maker-withholding only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -474,7 +478,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.pay_period_invalid",
-        "The pay period is not weekly, fortnightly or monthly.",
+        "The pay period is not weekly, fortnightly or monthly (or quarterly, for payg-withholding).",
     ),
     (
         "input.pay_periods_invalid",
@@ -487,7 +491,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.tax_scale_unsupported",
-        "The withholding scale is not 1, 2, 3, 5 or 6, or has no table for the period.",
+        "The withholding scale is not 1, 2, 3, 5 or 6 (or 4, for payg-withholding), or has no table for the period.",
     ),
     ("input.too_large", "The JSON input exceeds 8 MiB."),
     ("input.unreadable", "Standard input could not be read."),
@@ -574,6 +578,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "medicare.s9a_adjustment_out_of_scope",
         "Medicare Levy Act 1986 s 9A applies, and the worksheet does not make that adjustment.",
+    ),
+    (
+        "payg.extra_pays_not_weekly_or_fortnightly",
+        "Additional withholding for 53 or 27 pays was asked for on a pay that is not weekly or fortnightly.",
+    ),
+    (
+        "payg.foreign_resident_not_scale_4",
+        "Residency was given for a scale other than 4, which settles it itself.",
+    ),
+    (
+        "payg.medicare_adjustment_not_allowed",
+        "A Medicare levy adjustment was claimed on a scale other than 2 or 6.",
+    ),
+    (
+        "payg.reductions_exceed_withholding",
+        "Tax offsets and the Medicare levy adjustment exceed the amount withheld before them.",
+    ),
+    (
+        "payg.tax_offsets_not_allowed",
+        "Tax offsets were claimed on a scale other than 2, 5 or 6.",
     ),
     (
         "period.unsupported",

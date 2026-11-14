@@ -569,13 +569,15 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     };
     // Division 296, the termination payment, Schedule 5 and Schedule 15
     // worksheets have no Python original whose lenience to keep, and a misspelt
-    // optional depreciation input would silently give the start year's result,
-    // so a field one does not take, such as an opening balance, another
-    // method's input or a TFN exemption, is refused rather than ignored.
+    // optional depreciation or PAYG withholding input would silently give the
+    // result without it, so a field one does not take, such as an opening
+    // balance, another method's input or a TFN exemption, is refused rather
+    // than ignored.
     if matches!(
         command,
         "division-296"
             | "depreciation"
+            | "payg-withholding"
             | "termination-payment"
             | "schedule-5-method-a"
             | "schedule-5-method-b-i"
@@ -583,7 +585,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "working-holiday-maker-withholding"
             | "foreign-resident-tax"
     ) {
-        let optional = crate::metadata::optional_inputs(command);
+        let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
         let taken = |key: &String| {
             params.iter().any(|(p, _)| p == key) || optional.iter().any(|(o, _)| o == key)
         };
@@ -645,7 +647,26 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             )
         }
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
-        "payg-withholding" => engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "payg-withholding" => {
+            // Optional: each is absent unless the payee's declarations call for it.
+            let offsets = match v.get("tax_offsets") {
+                None => None,
+                Some(_) => Some(argument(v, "tax_offsets", Dec)?),
+            };
+            let [foreign, children, extra] = [
+                "foreign_resident",
+                "medicare_adjustment_children",
+                "extra_pay_withholding",
+            ]
+            .map(|key| v.get(key).map(arg));
+            let options = engine::PaygOptions {
+                foreign_resident: foreign.as_ref(),
+                tax_offsets: offsets.as_ref(),
+                medicare_adjustment_children: children.as_ref(),
+                extra_pay_withholding: extra.as_ref(),
+            };
+            engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
+        }
         "study-loan-withholding" => {
             engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4])
         }
