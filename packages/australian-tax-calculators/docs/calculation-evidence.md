@@ -435,8 +435,9 @@ reduction or exemption".
 
 The ATO's 2025-26 pages and myTax 2025 table 2 and worksheet 2 give the same
 lower figures. Section 8 then applies to a person who had a spouse on the last
-day of the year (s 3(3): not one living separately and apart; a spouse who died
-in the year counts), or who is entitled to the invalid and invalid carer tax
+day of the year (s 3(3): not one living separately and apart, though the ATO's
+Ashton example counts a spouse living apart because of illness; a spouse who
+died in the year counts), or who is entitled to the invalid and invalid carer tax
 offset for their child (ITAA 1997 Subdivision 61-A) or the sole parent
 notional tax offset (Subdivision 961-B). Family income is the person's taxable
 income plus the spouse's. At or below the family income threshold no levy is
