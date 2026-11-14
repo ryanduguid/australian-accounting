@@ -1,12 +1,13 @@
 # Copyright 2026 Ryan Duguid
 # SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-"""ABN and ACN check digits. Arithmetic only: no lookup, and nothing about registration.
+"""ABN and ACN check digits and the BSB format. Arithmetic and format only: no lookup,
+and nothing about registration.
 
 These live in the facade because the engines it can reach are the published
 distributions, and none of them holds these rules. They are the published format
-tests of 2 registers, with no rate, date or dataset to go stale, so no engine's
-review scope is copied here.
+tests of 2 registers and of AusPayNet's BSB, with no rate, date or dataset to go
+stale, so no engine's review scope is copied here. There is no BSB directory here.
 """
 
 from __future__ import annotations
@@ -25,6 +26,14 @@ ACN_PROVISION = ("ASIC EDGE Document Messages Specification version 5.10 (1 Dece
                  "Appendix D, Australian Company Number (ACN) Check Digit")
 SOURCE_CHECKED = "2026-10-31"
 
+BSB_SOURCE = ("https://auspaynet.com.au/sites/default/files/2026-10/"
+              "BECS%20Procedures%20-%20Version%20E072%20-%20Effective%201%20October%202026"
+              "%20-%20public_0.pdf")
+BSB_PROVISION = ("AusPayNet BECS Procedures version 072 (effective 1 October 2026), DE file user "
+                 "item specifications, Record Type 1, BSB Number: 'Must be numeric with a hyphen "
+                 "in character position 5'")
+BSB_SOURCE_CHECKED = "2026-11-15"
+
 ABN_NOT_ESTABLISHED = (
     "A valid check digit shows only that the digits pass the arithmetic ABN Lookup publishes. "
     "It proves neither that the number was issued to anyone or is active, nor that an entity "
@@ -38,6 +47,12 @@ ACN_NOT_ESTABLISHED = (
     "an entity is registered in the Australian Business Register or registered for GST. Search "
     "ASIC's registers for the company and ABN Lookup (https://abr.business.gov.au) for ABN and "
     "GST status."
+)
+BSB_NOT_ESTABLISHED = (
+    "A BSB in the published format shows only that it is 6 digits written XXX-XXX. It proves "
+    "neither that its first 2 or 3 digits are an Institution Identifier AusPayNet issued, nor "
+    "that the BSB exists, is open or accepts payments, nor anything about an account. "
+    "AusPayNet's BSB Lookup (https://bsb.auspaynet.com.au) shows a BSB's institution and branch."
 )
 
 
@@ -111,3 +126,29 @@ def check_acn(value: str) -> dict[str, Any]:
     digits = _digits(value, 9)
     return _result("ACN", digits, digits is not None and _acn_passes(digits), (3, 3, 3),
                    ACN_NOT_ESTABLISHED, ACN_SOURCE, ACN_PROVISION)
+
+
+def check_bsb(value: str) -> dict[str, Any]:
+    text = value.replace(" ", "")
+    if len(text) == 7 and text[3] == "-":
+        text = text[:3] + text[4:]
+    digits = _digits(text, 6)
+    if digits is None:
+        result, formatted = "MALFORMED", None
+        reason = "A BSB is 6 ASCII digits, written XXX-XXX or without the hyphen."
+    else:
+        result, formatted = "FORMAT_VALID", f"{text[:3]}-{text[3:]}"
+        reason = ("The digits match AusPayNet's published BSB format. No institution or branch "
+                  "was looked up.")
+    return {
+        "ok": True,
+        "identifier": "BSB",
+        "result": result,
+        "formatted": formatted,
+        "reason": reason,
+        "institution_established": False,
+        "not_established": BSB_NOT_ESTABLISHED,
+        "source_url": BSB_SOURCE,
+        "source_provision": BSB_PROVISION,
+        "source_checked": BSB_SOURCE_CHECKED,
+    }

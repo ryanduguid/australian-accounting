@@ -1,10 +1,11 @@
 # Copyright 2026 Ryan Duguid
 # SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-"""ABN and ACN check digits through the MCP boundary.
+"""ABN and ACN check digits and the BSB format through the MCP boundary.
 
-The numbers are the ones ABR and ASIC publish as worked examples and valid
-vectors, or deliberately broken copies of them. None is client data.
+The ABNs and ACNs are the ones ABR and ASIC publish as worked examples and valid
+vectors, or deliberately broken copies of them. The BSBs are made up: a format test
+needs no real one. None is client data.
 """
 
 import asyncio
@@ -13,7 +14,11 @@ import pytest
 from jsonschema import Draft202012Validator
 
 from aus_accounting_mcp import server
-from aus_accounting_mcp.identifiers import ABN_NOT_ESTABLISHED, ACN_NOT_ESTABLISHED
+from aus_accounting_mcp.identifiers import (
+    ABN_NOT_ESTABLISHED,
+    ACN_NOT_ESTABLISHED,
+    BSB_NOT_ESTABLISHED,
+)
 
 TOOLS = {tool.name: tool for tool in asyncio.run(server.mcp.list_tools())}
 
@@ -39,7 +44,7 @@ NOT_SPACES = ["\t{}", "{}\n", "{}\r", " {}", " {}", " {}", "{}-", "{}A"]
 
 
 def call(name, value):
-    argument = {"validate_abn": "abn", "validate_acn": "acn"}[name]
+    argument = {"validate_abn": "abn", "validate_acn": "acn", "validate_bsb": "bsb"}[name]
     result = asyncio.run(server.mcp.call_tool(name, {argument: value}))
     assert not result.is_error, result.content
     Draft202012Validator(TOOLS[name].output_schema).validate(result.structured_content)
@@ -165,3 +170,53 @@ def test_the_schema_refuses_a_result_claiming_registration(marker, bad):
     payload[marker] = bad
 
     assert list(Draft202012Validator(TOOLS["validate_abn"].output_schema).iter_errors(payload))
+
+
+@pytest.mark.parametrize("value", ["123-456", "123456", "123 456", " 123 - 456 "])
+def test_a_bsb_in_the_published_format_is_valid_however_it_is_spaced(value):
+    result = call("validate_bsb", value)
+
+    assert result["result"] == "FORMAT_VALID"
+    assert result["formatted"] == "123-456"
+
+
+@pytest.mark.parametrize(
+    "value",
+    [template.format("123456") for template in NOT_SPACES]
+    + ["12-3456", "1234-56", "123--456", "-123456", "12345", "1234567", "123-4567", "12A-456",
+       "123–456", "١٢٣-456", "", "   ", "-"],
+)
+def test_a_malformed_bsb_is_reported_and_never_cleaned_up(value):
+    result = call("validate_bsb", value)
+
+    assert result["result"] == "MALFORMED"
+    assert result["formatted"] is None
+
+
+@pytest.mark.parametrize("value", ["123-456", "nonsense"])
+def test_every_bsb_result_says_the_format_proves_no_institution_or_branch(value):
+    result = call("validate_bsb", value)
+
+    assert result["identifier"] == "BSB"
+    assert result["institution_established"] is False
+    assert result["not_established"] == BSB_NOT_ESTABLISHED
+    assert "bsb.auspaynet.com.au" in result["not_established"]
+    assert result["source_url"].startswith("https://auspaynet.com.au/")
+    assert "character position 5" in result["source_provision"]
+    assert result["source_checked"] == "2026-11-15"
+
+
+def test_the_bsb_description_states_the_limit():
+    description = " ".join(TOOLS["validate_bsb"].description.split())
+
+    assert "format" in description and "proves neither" in description
+    assert "BSB Lookup" in description
+
+
+@pytest.mark.parametrize("marker,bad", [("institution_established", True),
+                                        ("result", "CHECK_DIGIT_VALID")])
+def test_the_schema_refuses_a_bsb_result_claiming_more_than_its_format(marker, bad):
+    payload = dict(server.validate_bsb("123-456"))
+    payload[marker] = bad
+
+    assert list(Draft202012Validator(TOOLS["validate_bsb"].output_schema).iter_errors(payload))

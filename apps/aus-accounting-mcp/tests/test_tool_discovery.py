@@ -148,6 +148,7 @@ BOUNDED_STRING_INPUTS = {
     ("get_reviewed_rate", "as_at"): 10,
     ("validate_abn", "abn"): 40,
     ("validate_acn", "acn"): 40,
+    ("validate_bsb", "bsb"): 40,
 }
 
 

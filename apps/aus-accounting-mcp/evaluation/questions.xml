@@ -287,4 +287,10 @@
     <calls>[{"name": "validate_acn", "arguments": {"acn": "004 085 616"}}]</calls>
     <tools><tool>validate_acn</tool></tools>
   </qa_pair>
+  <qa_pair id="bsb-format">
+    <question>A fabricated supplier's bank details quote BSB 123 4567. Is that in the published BSB format? Return only the result the server reports.</question>
+    <answer>MALFORMED</answer>
+    <calls>[{"name": "validate_bsb", "arguments": {"bsb": "123 4567"}}]</calls>
+    <tools><tool>validate_bsb</tool></tools>
+  </qa_pair>
 </evaluation>

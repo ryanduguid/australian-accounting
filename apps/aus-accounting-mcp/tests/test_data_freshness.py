@@ -23,7 +23,7 @@ from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.server import mcp
 
 # Tools that read no bundled dated data: operator-configured folders, a fabricated
-# fixture, a fixed refusal, check-digit arithmetic, and this report itself.
+# fixture, a fixed refusal, check-digit and format arithmetic, and this report itself.
 NO_BUNDLED_DATA = {
     "search_accounting_library",
     "read_accounting_library",
@@ -37,6 +37,7 @@ NO_BUNDLED_DATA = {
     "refuse_div7a",
     "validate_abn",
     "validate_acn",
+    "validate_bsb",
     "get_data_freshness",
 }
 

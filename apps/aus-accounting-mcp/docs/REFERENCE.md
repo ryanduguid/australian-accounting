@@ -180,6 +180,7 @@ copy without a download until the uv cache is cleaned.
 | `generate_synthetic_sbr_fixture` | Synthetic CTR/BAS for agent tests (`synthetic: true`) | local fixture |
 | `validate_abn` | Test an ABN's check digit; proves neither ABR nor GST registration | local arithmetic |
 | `validate_acn` | Test an ACN's check digit; proves neither ABR nor GST registration | local arithmetic |
+| `validate_bsb` | Test a BSB's 6 digit format; proves no institution, branch or account | local format test |
 | `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote, or refuse | bundled reviewed records |
 | `get_data_freshness` | Report each bundled dataset's recorded periods, engine version, source URLs and retrieval and review dates, or `UNKNOWN` | every engine above |
 
@@ -193,6 +194,19 @@ both read on 31 October 2026. They contact neither register. Every result carrie
 a leading zero fails, because ABR's first step of subtracting 1 from the first digit cannot
 give an 11 digit number. The arithmetic sits in this facade because no published engine
 holds it, and it has no rate, date or dataset to go stale.
+
+`validate_bsb` returns `FORMAT_VALID` or `MALFORMED`. It tests the BSB format in AusPayNet's
+[BECS Procedures version 072](https://auspaynet.com.au/sites/default/files/2026-10/BECS%20Procedures%20-%20Version%20E072%20-%20Effective%201%20October%202026%20-%20public_0.pdf),
+read on 15 November 2026: 6 digits with a hyphen after the third. Spaces and that one
+hyphen are removed from the input. A BSB has no check digit, and the same procedures
+require its first 2 or 3 digits to be an Institution Identifier AusPayNet issued; this
+server bundles no BSB directory, so every result carries `institution_established: false`
+and a `not_established` statement pointing to AusPayNet's
+[BSB Lookup](https://bsb.auspaynet.com.au).
+
+There is no TFN check. The ATO supplies its TFN algorithm only on request to software
+developers ([Obtaining member TFNs](https://www.ato.gov.au/tax-and-super-professionals/for-superannuation-professionals/apra-regulated-funds/managing-member-benefits/taxation-of-member-super-benefits/tax-file-numbers-and-super-contributions/obtaining-member-tfns),
+read on 15 November 2026) and publishes no weights to build it from.
 
 `get_reviewed_rate` takes a `record_id`, such as `concessional-cap-2026-27`, and an
 `as_at` date, and needs no folder. It reads a bundled copy of the records in
@@ -407,11 +421,11 @@ Their rules and sources come from `australian-tax-calculators`. Broader classifi
 exemptions, BAS/returns, trusts, partnerships, SMSF fund tax and audit, the transfer
 balance cap and payroll tax remain unsupported. Reference text cannot establish calculation support.
 
-The evaluation includes 40 cases: 10 original workflows, 10 unsupported-topic
+The evaluation includes 41 cases: 10 original workflows, 10 unsupported-topic
 questions, grouped Payday, a tax worksheet, synthetic library retrieval, the
 Payday evidence pack, which needs checker evidence-pack support, a synthetic ruling
 paragraph, GST coding, BAS reconciliation, a lodgment due date, data freshness, a refused
-rate lookup, 2 identifier check digits and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
+rate lookup, 2 identifier check digits, a BSB format and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
 parts, rates, definitions, an injected instruction, an undefined term and a
 stored rate's date.
 The unsupported-topic answers require no tool calls. The

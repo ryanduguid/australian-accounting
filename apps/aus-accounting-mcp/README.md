@@ -133,6 +133,7 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `get_lodgment_due_dates` | List ATO 2026-27 lodgment program due dates for BAS, IAS and income tax returns, self-lodged or through an agent, with `UNKNOWN` where a fact is missing. |
 | `validate_abn` | Test an ABN against ABN Lookup's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
 | `validate_acn` | Test an ACN against ASIC's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
+| `validate_bsb` | Test a BSB against AusPayNet's published 6 digit format, XXX-XXX. It holds no BSB directory, so a valid format proves no institution, branch or account. |
 | `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote. Records cover 2025-26 and 2026-27 only; any other date is refused. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
