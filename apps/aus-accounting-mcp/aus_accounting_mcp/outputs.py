@@ -581,6 +581,17 @@ class AsAtStanding(ResultObject):
     ]
 
 
+class CompilationWindow(ResultObject):
+    """One compilation of a title the corpus holds, in the corpus builder's field names."""
+
+    compilation_date: DateText
+    superseded_from: Annotated[
+        DateText | None, Field(description="When the next version started, or null if the "
+                                           "version was current when the corpus was built."),
+    ]
+    retrieved: DateText
+
+
 class AsAtRefusal(ResultObject):
     """One title a date withheld, so that no row is left out silently."""
 
@@ -596,6 +607,11 @@ class AsAtRefusal(ResultObject):
                                      "partial hits.")
     ]
     as_at: AsAtStanding
+    held_compilations: NotRequired[Annotated[
+        list[CompilationWindow],
+        Field(description="Only for a title the corpus holds in more than one compilation: "
+                          "each window it holds, earliest first. None covers the date."),
+    ]]
 
 
 class AsAtSummary(ResultObject):
