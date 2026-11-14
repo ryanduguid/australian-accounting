@@ -79,19 +79,11 @@ of the GIC table's last quarter and the business-day calendar's
 `verified_until`. The release, its commit and that date are in the
 `x-connector-release` header of every reply and in `serverInfo`.
 
-## Releases
-
-[The release workflow](../../.github/workflows/release-aus-accounting-connector.yml)
-runs only on a tag `aus-accounting-connector/vX.Y.Z`. It builds both bundles
-from the tagged commit, runs `npm test` on them, packs the bundle with
-`wrangler.toml`, records a build provenance attestation for the archive and
-keeps it as a workflow artefact for 90 days. It does not deploy, and it
-references no secret or token.
-
 ## Deployment status
 
-Undeployed. Deploying needs a separate approval and Ryan's own Cloudflare
-sign-in; [SECURITY.md](SECURITY.md) lists what must hold first.
+Undeployed and unreleased: no workflow tags, attests, publishes or deploys it.
+Deploying needs a separate approval and Ryan's own Cloudflare sign-in;
+[SECURITY.md](SECURITY.md) lists what must hold first.
 [`live-check.mjs`](live-check.mjs) checks a running endpoint with the
 conformance cases; its tests run it only against the local Worker.
 
