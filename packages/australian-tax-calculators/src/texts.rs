@@ -99,6 +99,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Withholding under Schedule 15 from one payment to a working holiday maker, made from 1 July 2024 in the income year given: an individual who holds a working holiday visa (subclass 417), a work and holiday visa (subclass 462) or a bridging visa that Schedule 15 covers, as the operator established. The payment is the total for the pay period, including allowances, back payments, commissions, bonuses and other payments Schedule 15 covers; for an employment termination payment, only its taxable component. The operator establishes the payments made to the payee in the income year before this one, whether the employer is registered with the ATO to withhold at working holiday maker rates, and whether the payee quoted a TFN or, within the last 28 days, advised that they applied for one or made an enquiry with the ATO. A registered employer withholds the payment, cents ignored, times the Table A rate for the column the payments before it select: 15% for less than $45,001, 30% from $45,001 to $135,000, 37% from $135,001 to $190,000 and 45% for more than $190,000, rounded to the dollar with 50 cents up, or with cents ignored at 45%; payments before of $135,000.01 to $135,000.99, which no column covers, are refused. Without a TFN any employer withholds 45% of the payment, cents ignored. An unregistered employer withholds at foreign resident rates, the Schedule 1 scale 3 amount for a weekly, fortnightly or monthly pay, as payg-withholding gives it. Every payment needs a weekly, fortnightly or monthly pay period. Excludes a payee who claimed an exemption from quoting a TFN, Medicare levy adjustments and tax offsets, which do not reduce this withholding, the Seasonal Worker Programme, Pacific Labour Scheme and Pacific Australia Labour Mobility scheme, withholding variations, the employer's registration and the payee's visa, residency and annual return.",
     ),
     (
+        "medicare_levy_surcharge",
+        "Australian resident individual for the full income year who was not in a Medicare levy exemption category at any time in it, and who was either not married and without dependants for the whole year (Medicare Levy Act 1986 s 8B) or married for the whole year as s 3(3) and (3A) read it (s 8D: a spouse living separately and apart does not count; one who died in the year does). The operator establishes the person's whole-dollar taxable income, including any amount on which family trust distribution tax was paid (s 3(2A)); their reportable fringe benefits total; their income for surcharge purposes; the days in the year on which the person or, for a married person, the person, the spouse or a dependent child had no appropriate level of private patient hospital cover; and for a married person, the spouse's income for surcharge purposes and the number of MLS dependent children. The tier is set by income for surcharge purposes, combined with the spouse's for a married person, against the year's singles thresholds or the family thresholds, which are double them and rise by $1,500 for each dependent child after the first: above the tier 1 threshold the rate is 1%, for a tier 2 earner 1.25% and for a tier 3 earner 1.5%. A married person is liable only if their own income for surcharge purposes also exceeds the s 3(1) threshold amount ($27,222 for 2024-25, $28,011 from 2025-26). The rate applies to taxable income plus reportable fringe benefits only, not to the other parts of income for surcharge purposes, for the days without cover as a share of the year's days (ss 8B and 8D, and A New Tax System (Medicare Levy Surcharge - Fringe Benefits) Act 1999 ss 12, 15 and 16). Excludes a person with dependants but no spouse (s 8C), a change of marital or dependant status during the year, a person in an exemption category, trustees (ss 8E to 8G), part-year residence, the tax offset for the surcharge on lump sums in arrears (ITAA 1997 Subdivision 61-L) and the private health insurance rebate.",
+    ),
+    (
         "seniors_pensioners_withholding",
         "Withholding under Schedule 9 (NAT 4466), the tax table for seniors and pensioners, from one regular weekly, fortnightly or monthly payment made from 1 July 2024 in the income year given, to a payee the operator established it applies to: a senior or pensioner 67 or older at the end of the financial year, or a veteran with a service pension or a war widow or widower with an income support supplement from the Department of Veterans' Affairs who is at least 60, who gave a Withholding declaration, or its short version for seniors and pensioners, saying they are an Australian resident for tax purposes and answering yes to the questions the schedule names. The year selects the coefficients: 2024-25 and 2025-26 use the schedule for payments from 1 July 2024 to 30 June 2026, and 2026-27 the one for payments from 1 July 2026. Earnings include allowances and irregular payments subject to withholding. The payee's status (single, a member of an illness-separated couple or a member of a couple) and any full or half Medicare levy exemption claimed on a Medicare levy variation declaration select scales 1 to 9. The weekly amount is a x weekly earnings - b, on the weekly earnings in whole dollars plus 99 cents, rounded to the dollar with 50 cents up; a fortnightly pay uses half its earnings and twice the weekly amount, and a monthly pay 3/13 of its earnings, after adding a cent to an amount ending in 33 cents, and 13/3 of the weekly amount, rounded to the dollar. Excludes other tax offsets, which the schedule values only by combining its ready reckoner's weekly amounts, the Medicare levy adjustment, which it leaves to the Medicare levy adjustment weekly tax table, quarterly pays, for which it has no rule, payees who gave no TFN, study and training support loans, lump sum leave loading (Schedule 5), super income streams (also Schedule 13), withholding variations and other schedules.",
     ),
@@ -168,6 +172,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "medicare_levy",
         "https://www.legislation.gov.au/C2004A03351/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "medicare_levy_surcharge",
+        "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy-surcharge/medicare-levy-surcharge-income-thresholds-and-rates",
     ),
     (
         "low_income_tax_offset",
@@ -282,6 +290,17 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-exemption/not-entitled-to-medicare-benefits",
             "https://www.ato.gov.au/law/view/document?docid=PAC/19360027/251U",
             "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/medicare-levy-questions-m1-m2-individual-tax-return-2026/m1-medicare-levy-reduction-or-exemption-2026",
+        ],
+    ),
+    (
+        "medicare_levy_surcharge",
+        &[
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/medicare-levy-questions-m1-m2-individual-tax-return-2026/m2-medicare-levy-surcharge-2026",
+            "https://www.legislation.gov.au/C2004A03351/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A00412/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A03351/2025-03-28/2025-03-28/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A00412/2025-03-28/2025-03-28/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2026A00058/asmade/text",
         ],
     ),
     (
@@ -472,7 +491,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet does not take, or does not take beside the other inputs given, was given (division-296, depreciation, medicare-levy, payg-withholding, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding and seniors-pensioners-withholding only).",
+        "A field the worksheet does not take, or does not take beside the other inputs given, was given (division-296, depreciation, medicare-levy, medicare-levy-surcharge, payg-withholding, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding and seniors-pensioners-withholding only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

@@ -359,6 +359,22 @@ intentionally changed.
   results. `tests/medicare_exemptions.rs` holds the worksheet to the ATO's
   Priya example and hand-worked days after each reduction, and
   `tests/properties.rs` checks that more exemption days never raise the levy.
+- `medicare-levy-surcharge` works out the Medicare levy surcharge for
+  2024-25 to 2026-27 (Medicare Levy Act 1986 ss 8B and 8D and the A New Tax
+  System (Medicare Levy Surcharge - Fringe Benefits) Act 1999 ss 12, 15 and
+  16) for a full-year resident in no exemption category who was single without
+  dependants or married for the whole year. Income for surcharge purposes,
+  combined with the spouse's for a married person, sets the tier against the
+  ATO's singles or family thresholds, which rise by $1,500 for each dependent
+  child after the first; the 1%, 1.25% or 1.5% rate applies to taxable income
+  plus reportable fringe benefits only, for the days without appropriate
+  private patient hospital cover as a share of the year. A married person
+  whose own income for surcharge purposes is at or below the s 3(1) threshold
+  amount pays none. Children without a spouse (s 8C) are refused
+  (`input.field_unknown`), as, like `division-296`, is a field it does not
+  take. No Python release has it. `tests/parity.rs` drops its catalogue entry
+  before comparing, and `tests/medicare_surcharge.rs` holds it to the ATO's
+  Tom, Josh, Jacinta and Jill and Kevin examples and every tier boundary.
 
 ### Verification
 

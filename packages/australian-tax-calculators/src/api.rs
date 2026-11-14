@@ -246,6 +246,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "medicare-levy-surcharge",
+        &[
+            ("taxable_income", Dec),
+            ("reportable_fringe_benefits", Dec),
+            ("income_for_surcharge_purposes", Dec),
+            ("days_without_cover", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "low-income-tax-offset",
         &[
             ("taxable_income", Dec),
@@ -624,7 +635,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
-    // Division 296, the termination payment, Schedule 5, 9 and 15
+    // Division 296, the termination payment, Medicare levy surcharge, Schedule 5, 9 and 15
     // worksheets have no Python original whose lenience to keep, and a misspelt
     // optional depreciation, Medicare levy or PAYG withholding input would
     // silently give the start year's, a single person's or the result without
@@ -635,6 +646,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "division-296"
             | "depreciation"
             | "medicare-levy"
+            | "medicare-levy-surcharge"
             | "payg-withholding"
             | "termination-payment"
             | "schedule-5-method-a"
@@ -755,6 +767,20 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 half_days: o[6].as_ref(),
             };
             engine::medicare_levy(&a[0], &a[1], &a[2], &a[3], family, exemption)
+        }
+        "medicare-levy-surcharge" => {
+            // Optional: absent for a person without a spouse or dependants all year.
+            let spouse = "spouse_income_for_surcharge_purposes";
+            let spouse = v
+                .get(spouse)
+                .map(|_| argument(v, spouse, Dec))
+                .transpose()?;
+            let children = v.get("dependent_children").map(arg);
+            let family = engine::SurchargeFamily {
+                spouse_income: spouse.as_ref(),
+                dependent_children: children.as_ref(),
+            };
+            engine::medicare_levy_surcharge(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], family)
         }
         "low-income-tax-offset" => engine::low_income_tax_offset(&a[0], &a[1], &a[2]),
         "division-293" => engine::division_293(&a[0], &a[1], &a[2], &a[3]),

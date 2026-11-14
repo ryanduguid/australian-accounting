@@ -568,6 +568,43 @@ fn medicare_levy_never_rises_with_exemption_days() {
     }
 }
 
+/// Medicare levy surcharge: with income for surcharge purposes, and so the
+/// tier, held, the surcharge never falls as taxable income, reportable fringe
+/// benefits or the days without cover rise.
+#[test]
+fn medicare_levy_surcharge_never_falls_as_its_base_or_days_rise() {
+    let mut rng = Rng(0x3B5C);
+    for _ in 0..400 {
+        let year = *rng.pick(&["2024-25", "2025-26", "2026-27"]);
+        let income = rng.int(0, 400_000);
+        let mut facts = json!({"income_for_surcharge_purposes": income.to_string(),
+                               "year": year, "scope_confirmed": true});
+        if rng.bool() {
+            facts["spouse_income_for_surcharge_purposes"] = json!(rng.int(0, 300_000).to_string());
+            facts["dependent_children"] = json!(rng.int(0, 5));
+        }
+        let surcharge = |taxable: i64, fringe: i64, days: i64| {
+            let mut input = facts.clone();
+            input["taxable_income"] = json!(taxable.to_string());
+            input["reportable_fringe_benefits"] = json!(fringe.to_string());
+            input["days_without_cover"] = json!(days);
+            amount(
+                &run("medicare-levy-surcharge", input),
+                "medicare_levy_surcharge",
+            )
+        };
+        let (taxable, fringe, days) = (rng.int(0, income), rng.int(0, 50_000), rng.int(0, 364));
+        let now = surcharge(taxable, fringe, days);
+        for later in [
+            surcharge(taxable + 1, fringe, days),
+            surcharge(taxable, fringe + 1, days),
+            surcharge(taxable, fringe, days + 1),
+        ] {
+            assert!(le(&now, &later), "{facts} {taxable} {fringe} {days}");
+        }
+    }
+}
+
 #[test]
 fn study_loan_components_agree_with_the_combined_coefficients_to_a_dollar() {
     // The ATO says the two methods can differ slightly through rounding and accepts

@@ -12,8 +12,9 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
 /// `tests/borrowing_expenses.rs`, `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/schedule_5.rs`,
-/// `tests/working_holiday_maker.rs` and `tests/seniors_pensioners.rs` cover them.
-const NEW_KINDS: [(&str, &str); 11] = [
+/// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs` and
+/// `tests/medicare_surcharge.rs` cover them.
+const NEW_KINDS: [(&str, &str); 12] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("main-residence", "main_residence"),
@@ -31,6 +32,7 @@ const NEW_KINDS: [(&str, &str); 11] = [
         "seniors-pensioners-withholding",
         "seniors_pensioners_withholding",
     ),
+    ("medicare-levy-surcharge", "medicare_levy_surcharge"),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.
