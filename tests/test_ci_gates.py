@@ -303,6 +303,7 @@ class ApplicationSelectionTests(unittest.TestCase):
             "aus-accounting-connector": ("apps/aus-accounting-mcp/core/src/lib.rs",
                                          "apps/aus-accounting-mcp/conformance/cases.json",
                                          "packages/div7a-loan-review/src/api.rs",
+                                         "tools/aus-accounting-connector/src/lib.rs",
                                          ".github/workflows/aus-accounting-connector.yml"),
             "devcontainer": (".devcontainer/devcontainer.json", ".github/workflows/devcontainer.yml",
                              "uv.lock"),
