@@ -235,7 +235,7 @@ pub fn minimum_yearly_repayment(
 /// `maximum_term`, the s 109N(3) maximum term the same register row's security
 /// facts establish, than `loan_term`, the row's own `maximum_term_years`, or
 /// than that term less the years since the year the loan was made.
-pub(crate) fn repayment_within(
+pub fn repayment_within(
     facts: &MyrFacts,
     maximum_term: Option<&Decimal>,
     loan_term: Option<&Decimal>,
