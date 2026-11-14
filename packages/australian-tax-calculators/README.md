@@ -178,8 +178,10 @@ pay period, with the coefficients applied.
 
 When any of the last 3 is given, the result also shows the amount before
 them and each adjustment. The schedule does not say what happens when offsets
-and the adjustment exceed the amount withheld, so that is refused, as is an
-optional input on a scale or pay period the schedule does not allow it for.
+and the adjustment exceed the amount withheld, so that is refused with a
+request to check the payee's declarations and the inputs and, if they are
+right, to ask the ATO how much to withhold. An optional input on a scale or
+pay period the schedule does not allow it for is refused too.
 Bi-monthly, daily and casual pays, a Medicare levy variation that increases
 withholding, study and training support loans and the other schedules are
 outside it. The tests reproduce every amount and Medicare levy adjustment in

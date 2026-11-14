@@ -111,7 +111,8 @@ intentionally changed.
   `optional_inputs`; a result gains the new amount keys only when one is given.
   An option on a scale or period it does not apply to is refused, as are
   reductions that exceed the amount withheld before them, which Schedule 1 does
-  not provide for. `tests/payg_withholding.rs` reproduces all 1,584 Medicare
+  not provide for; that refusal asks for the declarations and inputs to be
+  checked and, if they are right, for the ATO to be asked. `tests/payg_withholding.rs` reproduces all 1,584 Medicare
   adjustments in each schedule's scale 2 and scale 6 sample data, transcribed
   into `tests/data` and checked against the legislative instruments, and every
   worked example on the schedules' Medicare and examples pages, with each

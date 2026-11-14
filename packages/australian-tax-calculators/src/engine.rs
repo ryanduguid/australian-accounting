@@ -1067,7 +1067,7 @@ impl SchedulePay {
             return refuse(
                 "payg.reductions_exceed_withholding",
                 format!(
-                    "The tax offsets and Medicare levy adjustment (${}) exceed the amount withheld before them (${}); Schedule 1 does not say how to treat the excess.",
+                    "The tax offsets and Medicare levy adjustment (${}) exceed the amount withheld before them (${}); Schedule 1 does not say how to treat the excess. Check the payee's declarations and these inputs; if they are right, ask the ATO how much to withhold before making the payment.",
                     cents(reductions)?,
                     cents(before)?
                 ),
