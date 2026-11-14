@@ -1,7 +1,8 @@
 // Copyright 2026 Ryan Duguid
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-//! `derive` explains each FBT amount in a step a reader can check alone: every
+//! `derive` explains each amount of the worksheets it covers (FBT, Division 293
+//! and the pension minimum) in a step a reader can check alone: every
 //! name in a step's formula is an input, a rate or an earlier step, its operands
 //! are those values, and they recompute the amount. These tests recompute every
 //! amount that way, independently of the engine's arithmetic.
@@ -11,9 +12,30 @@ use serde_json::{Value, json};
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-/// (command, input) for each FBT kind: the catalogue examples, the ATO's
-/// published examples and the branches each worksheet takes.
+/// The commands `derive` explains.
+const DERIVED: [&str; 5] = [
+    "fbt",
+    "fbt-car-statutory",
+    "fbt-car-operating-cost",
+    "division-293",
+    "pension-minimum",
+];
+
+/// (command, input) for each derived kind: the ATO's published examples and
+/// the branches each worksheet takes.
 fn cases() -> Vec<(&'static str, Value)> {
+    let division_293 = |income: &str, contributions: &str| {
+        (
+            "division-293",
+            json!({"division_293_income": income, "low_tax_contributions": contributions, "year": "2025-26", "scope_confirmed": true}),
+        )
+    };
+    let pension = |balance: &str, age: i64, days: i64| {
+        (
+            "pension-minimum",
+            json!({"account_balance": balance, "age": age, "days": days, "year": "2024-25", "scope_confirmed": true}),
+        )
+    };
     let fbt = |one: &str, two: &str, year: i64| json!({"type_one_value": one, "type_two_value": two, "year_ended": year, "scope_confirmed": true});
     let statutory = |overrides: Value| {
         let mut input = json!({
@@ -70,6 +92,19 @@ fn cases() -> Vec<(&'static str, Value)> {
                          "effective_life_years": "0", "electric_car_exempt": true}),
         ),
         operating(json!({"effective_life_years": "3", "employee_contribution": "90000.00"})),
+        // The ATO's Division 293 example (Jan): taxable contributions of $5,000.
+        division_293("240000.00", "15000.00"),
+        division_293("200000.00", "20000.00"),
+        division_293("300000.00", "25000.00"),
+        division_293("400000.00", "0.00"),
+        // A full year, then the evidence's adaptation of the ATO's Thavi example:
+        // from 1 January, 181 of 365 days.
+        pension("600000.00", 67, 365),
+        pension("250000.00", 66, 181),
+        // Started on 1 June: cl 4 requires nothing.
+        pension("250000.00", 66, 30),
+        // $4,005.00 ends in an exact $5, so cl 5 rounds it up.
+        pension("100125.00", 60, 365),
     ]
 }
 
@@ -92,7 +127,9 @@ enum Token {
 }
 
 /// A formula or its operands as tokens: numbers, names, functions (a name
-/// before `(`), the operators `+`, `-`, `x` and `/`, brackets and commas.
+/// before `(`), the operators `+`, `-`, `x` and `/`, brackets and commas. A
+/// minus written against digits is a number's sign, as in the -0.00 that an
+/// input of "-0.00" keeps; subtraction is written with spaces.
 fn tokens(text: &str) -> Vec<Token> {
     let chars: Vec<char> = text.chars().collect();
     let mut out = Vec::new();
@@ -102,7 +139,10 @@ fn tokens(text: &str) -> Vec<Token> {
         let start = i;
         if c == ' ' {
             i += 1;
-        } else if c.is_ascii_digit() {
+        } else if c.is_ascii_digit()
+            || (c == '-' && chars.get(i + 1).is_some_and(char::is_ascii_digit))
+        {
+            i += 1;
             while i < chars.len()
                 && (chars[i].is_ascii_digit()
                     || chars[i] == '.'
@@ -201,6 +241,7 @@ impl Evaluator<'_> {
                 assert_eq!(self.next(), Some(&Token::Symbol(')')));
                 match (name.as_str(), &args[..]) {
                     ("min", [a, b]) => if b.lt(a).unwrap() { b } else { a }.clone(),
+                    ("max", [a, b]) => if b.gt(a).unwrap() { b } else { a }.clone(),
                     ("cents", [a]) => a.quantize(-2, Rounding::HalfUp).unwrap(),
                     ("dollars", [a]) => a.quantize(0, Rounding::HalfUp).unwrap(),
                     other => panic!("unknown function {other:?}"),
@@ -275,7 +316,13 @@ fn problems(doc: &Value) -> Vec<String> {
             match (name, operand) {
                 (Token::Name(name), Token::Number(number)) => {
                     let value = named(name, &earlier, doc);
-                    if value.as_deref() != Some(number) {
+                    // The same number, though an input may be written as 1e2
+                    // where the working shows 1E+2.
+                    let same = value
+                        .as_deref()
+                        .and_then(|value| Decimal::parse(value).ok())
+                        .is_some_and(|value| value.equals(&dec(number)).unwrap());
+                    if !same {
                         found.push(format!("{id}: {name} is {value:?}, not {number}"));
                     }
                 }
@@ -311,15 +358,11 @@ fn problems(doc: &Value) -> Vec<String> {
 }
 
 #[test]
-fn every_fbt_amount_is_recomputed_from_its_working() {
+fn every_derived_amount_is_recomputed_from_its_working() {
     let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
     let mut cases = cases();
-    for (kind, command) in [
-        ("fbt", "fbt"),
-        ("fbt_car_statutory", "fbt-car-statutory"),
-        ("fbt_car_operating_cost", "fbt-car-operating-cost"),
-    ] {
-        let mut facts = catalogue[kind]["example"]["facts"].clone();
+    for command in DERIVED {
+        let mut facts = catalogue[command.replace('-', "_")]["example"]["facts"].clone();
         facts.as_object_mut().unwrap().remove("kind");
         cases.push((command, facts));
     }
@@ -351,6 +394,34 @@ fn derive_and_the_plain_command_agree_on_every_amount() {
             );
         }
     }
+}
+
+/// Every case the Python corpus holds for a derived command: derive returns the
+/// plain command's result with a working for each amount, or its refusal.
+#[test]
+fn every_corpus_case_of_a_derived_command_is_explained_or_refused_alike() {
+    let corpus: Vec<Value> =
+        serde_json::from_str(include_str!("data/python-api.json")).expect("corpus parses");
+    let mut explained = 0;
+    for case in &corpus {
+        let command = case["command"].as_str().unwrap();
+        if !DERIVED.contains(&command) {
+            continue;
+        }
+        let (input, label) = (&case["input"], &case["test"]);
+        let derived = api::evaluate_coded("derive", &json!({"command": command, "input": input}));
+        match api::evaluate_coded(command, input) {
+            Ok(plain) => {
+                let doc = derived.unwrap();
+                assert_eq!(doc["result"].to_string(), plain.to_string(), "{label}");
+                let found = problems(&doc);
+                assert!(found.is_empty(), "{label} {input}: {found:#?}");
+                explained += 1;
+            }
+            Err(plain) => assert_eq!(derived.unwrap_err(), plain, "{label}"),
+        }
+    }
+    assert!(explained > 500, "only {explained} corpus cases explained");
 }
 
 #[test]
@@ -432,6 +503,56 @@ fn the_ato_examples_show_their_operands() {
          = min(12507.16, 8500.00) = 8500.00"
     );
     assert_eq!(doc["steps"][8]["authority"], "FBTAA s 10(5)");
+    // Division 293, Jan: $240,000 and $15,000 give $5,000 taxed at 15%.
+    let doc = derive("division-293", &cases()[15].1);
+    assert_eq!(
+        working(&doc, 1),
+        "max(0, combined_income_and_contributions - threshold) \
+         = max(0, 255000.00 - 250000) = 5000.00"
+    );
+    assert_eq!(
+        working(&doc, 3),
+        "taxable_contributions x rate = 5000.00 x 0.15 = 750.0000"
+    );
+    // Thavi a year on: $250,000 at 5% for 181 of 365 days, rounded to $6,200.
+    let doc = derive("pension-minimum", &cases()[20].1);
+    assert!(
+        working(&doc, 1).starts_with(
+            "account_balance_used x percentage_factor x days / days_in_year \
+             = 250000.00 x 0.05 x 181 / 365 = 6198.630136"
+        ),
+        "{}",
+        working(&doc, 1)
+    );
+    assert_eq!(
+        [&doc["steps"][1]["value"], &doc["steps"][2]["value"]],
+        ["6198.63", "6200.00"]
+    );
+    // A full year is cl 1(1)'s formula alone: account balance x percentage factor.
+    let doc = derive("pension-minimum", &cases()[19].1);
+    assert_eq!(
+        working(&doc, 1),
+        "account_balance_used x percentage_factor = 600000.00 x 0.05 = 30000.0000"
+    );
+}
+
+/// Each branch's final amount, as its provision sets it.
+#[test]
+fn each_branch_gives_the_amount_its_source_sets() {
+    let amount = |case: usize, id: &str| {
+        let (command, input) = &cases()[case];
+        derive(command, input)["result"]["amounts"][id].clone()
+    };
+    // s 293-20(1): $220,000 does not exceed $250,000; $325,000 exceeds it by
+    // $75,000, so the lesser is the $25,000 of contributions, taxed at 15%.
+    assert_eq!(amount(16, "division_293_tax"), "0.00");
+    assert_eq!(amount(17, "division_293_tax"), "3750.00");
+    // s 293-20(2): nil low tax contributions, so no taxable contributions.
+    assert_eq!(amount(18, "taxable_contributions"), "0.00");
+    // cl 4: started on 1 June, so nothing is required.
+    assert_eq!(amount(21, "minimum_payment"), "0.00");
+    // cl 5: $4,005 ends in an exact $5, so it rounds up to $4,010.
+    assert_eq!(amount(22, "minimum_payment"), "4010.00");
 }
 
 #[test]
@@ -462,6 +583,19 @@ fn each_step_cites_the_provision_its_branch_applies() {
     assert_eq!(authority(11, "deemed_depreciation"), owned);
     assert_eq!(authority(13, "deemed_depreciation"), leased);
     assert_eq!(authority(13, "deemed_interest"), leased);
+    // SISR Schedule 7 cl 3 pro-rates only a part year, and cl 4 removes the
+    // minimum for a pension started in the year's last 30 days.
+    let before_rounding = "minimum_before_rounding";
+    assert_eq!(authority(19, before_rounding), "SISR Schedule 7 cl 1(1)");
+    assert_eq!(
+        authority(20, before_rounding),
+        "SISR Schedule 7 cl 1(1) and cl 3"
+    );
+    assert_eq!(authority(21, before_rounding), "SISR Schedule 7 cl 4");
+    assert_eq!(
+        authority(15, "division_293_tax"),
+        "Superannuation (Sustaining the Superannuation Contribution Concession) Imposition Act 2013 s 5"
+    );
 }
 
 #[test]
@@ -500,6 +634,12 @@ fn a_refused_input_gets_the_commands_own_refusal() {
         "fbt_car.cost_basis_conflict"
     );
     assert_eq!(refused("fbt", json!([])), "input.not_object");
+    let mut input = cases()[15].1.clone();
+    input["low_tax_contributions"] = json!("0.001");
+    assert_eq!(refused("division-293", input), "input.amount_invalid");
+    let mut input = cases()[19].1.clone();
+    input["days"] = json!(0);
+    assert_eq!(refused("pension-minimum", input), "input.day_count_invalid");
 }
 
 #[test]
@@ -519,7 +659,13 @@ fn derive_refuses_what_it_does_not_explain() {
         "derivation.unsupported"
     );
     assert_eq!(code(json!({"input": {}})), "input.missing_field");
-    assert_eq!(code(json!({"command": "fbt"})), "input.missing_field");
+    for command in DERIVED {
+        assert_eq!(
+            code(json!({"command": command})),
+            "input.missing_field",
+            "{command}"
+        );
+    }
     // A key derive does not take is refused, not ignored.
     let (command, input) = &cases()[0];
     let extra = json!({"command": command, "input": input, "steps": false});
@@ -527,7 +673,8 @@ fn derive_refuses_what_it_does_not_explain() {
     let message = api::evaluate("derive", &json!({"command": "gst", "input": {}})).unwrap_err();
     assert_eq!(
         message,
-        "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, not \"gst\""
+        "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, division-293, \
+         pension-minimum, not \"gst\""
     );
 }
 
