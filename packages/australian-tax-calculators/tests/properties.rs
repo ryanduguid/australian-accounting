@@ -939,6 +939,50 @@ fn division_296_tax_rises_with_the_balance_and_stays_within_a_quarter() {
     }
 }
 
+/// Schedule 5 Methods A and B(ii): the withholding from an additional payment
+/// is never negative or more than 47% of it, and the total is that plus the
+/// withholding from the normal earnings.
+#[test]
+fn schedule_5_withholding_stays_within_the_47_percent_limit() {
+    let mut rng = Rng(20_261_114);
+    for _ in 0..RUNS {
+        let pay = *rng.pick(&["weekly", "fortnightly", "monthly"]);
+        let scale = *rng.pick(&[1, 2, 3, 5, 6]);
+        let earnings = rng.pay();
+        let additional = rng.cents(100_000_000);
+        let common = json!({
+            "earnings": earnings, "additional_payment": additional, "pay_period": pay,
+            "scale": scale, "study_loan": rng.bool(), "year": "2026-27", "scope_confirmed": true,
+        });
+        let most = match pay {
+            "weekly" => 52,
+            "fortnightly" => 26,
+            _ => 12,
+        };
+        let mut method_a = common.clone();
+        method_a["pay_periods"] = json!(rng.int(2, most));
+        let mut method_b_ii = common;
+        method_b_ii["year_to_date_earnings"] = json!(rng.money());
+        method_b_ii["pay_periods_to_date"] = json!(rng.int(1, most));
+        method_b_ii["earlier_additional_payments"] = json!(rng.pay());
+        method_b_ii["earlier_additional_withholding"] = json!(rng.pay());
+        let limit = d(&additional).mul(&d("0.47")).unwrap();
+        for (command, facts) in [
+            ("schedule-5-method-a", method_a),
+            ("schedule-5-method-b-ii", method_b_ii),
+        ] {
+            let result = run(command, facts.clone());
+            let extra = amount(&result, "withholding_on_additional_payment");
+            assert!(le(&extra, &limit), "{command} {facts}");
+            let total = amount(&result, "withholding_on_earnings").add(&extra).unwrap();
+            assert!(
+                eq(&amount(&result, "withholding"), &total),
+                "{command} {facts}"
+            );
+        }
+    }
+}
+
 /// Howard Hinnant's civil_from_days, for generating dates.
 fn civil(day: i64) -> (i64, i64, i64) {
     let z = day + 719_468;
