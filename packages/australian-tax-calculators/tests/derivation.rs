@@ -634,7 +634,13 @@ fn derive_refuses_what_it_does_not_explain() {
         "derivation.unsupported"
     );
     assert_eq!(code(json!({"input": {}})), "input.missing_field");
-    assert_eq!(code(json!({"command": "fbt"})), "input.missing_field");
+    for command in DERIVED {
+        assert_eq!(
+            code(json!({"command": command})),
+            "input.missing_field",
+            "{command}"
+        );
+    }
     // A key derive does not take is refused, not ignored.
     let (command, input) = &cases()[0];
     let extra = json!({"command": command, "input": input, "steps": false});
