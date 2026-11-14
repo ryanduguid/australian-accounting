@@ -341,6 +341,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "seniors-pensioners-withholding",
+        &[
+            ("earnings", Dec),
+            ("pay_period", Raw),
+            ("status", Raw),
+            ("medicare_levy_exemption", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "study-loan-repayment",
         &[
             ("repayment_income", Dec),
@@ -573,7 +584,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
-    // Division 296, the termination payment, Schedule 5 and Schedule 15
+    // Division 296, the termination payment, Schedule 5, 9 and 15
     // worksheets have no Python original whose lenience to keep, and a misspelt
     // optional depreciation or PAYG withholding input would silently give the
     // result without it, so a field one does not take, such as an opening
@@ -590,6 +601,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "schedule-5-method-b-ii"
             | "working-holiday-maker-withholding"
             | "study-loan-withholding"
+            | "seniors-pensioners-withholding"
     ) {
         let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
         let taken = |key: &String| {
@@ -702,6 +714,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "working-holiday-maker-withholding" => engine::working_holiday_maker_withholding(
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6],
         ),
+        "seniors-pensioners-withholding" => {
+            engine::seniors_pensioners_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5])
+        }
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
