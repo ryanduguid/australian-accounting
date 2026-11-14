@@ -575,20 +575,22 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     };
     // Division 296, the termination payment, Schedule 5 and Schedule 15
     // worksheets have no Python original whose lenience to keep, and a misspelt
-    // optional depreciation input would silently give the start year's result,
-    // so a field one does not take, such as an opening balance, another
-    // method's input or a TFN exemption, is refused rather than ignored.
+    // optional depreciation or Medicare levy input would silently give the start
+    // year's or a single person's result, so a field one does not take, such as
+    // an opening balance, another method's input or a TFN exemption, is refused
+    // rather than ignored.
     if matches!(
         command,
         "division-296"
             | "depreciation"
+            | "medicare-levy"
             | "termination-payment"
             | "schedule-5-method-a"
             | "schedule-5-method-b-i"
             | "schedule-5-method-b-ii"
             | "working-holiday-maker-withholding"
     ) {
-        let optional = crate::metadata::optional_inputs(command);
+        let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
         let taken = |key: &String| {
             params.iter().any(|(p, _)| p == key) || optional.iter().any(|(o, _)| o == key)
         };
@@ -653,7 +655,26 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "study-loan-withholding" => {
             engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4])
         }
-        "medicare-levy" => engine::medicare_levy(&a[0], &a[1], &a[2], &a[3]),
+        "medicare-levy" => {
+            // Optional: each absent for a person without SAPTO, spouse or dependants.
+            let optional =
+                |key: &str, kind: Kind| v.get(key).map(|_| argument(v, key, kind)).transpose();
+            let o = [
+                optional("sapto_entitled", Raw)?,
+                optional("spouse_taxable_income", Dec)?,
+                optional("spouse_sapto_entitled", Raw)?,
+                optional("dependant_offset_entitled", Raw)?,
+                optional("dependent_children", Raw)?,
+            ];
+            let family = engine::MedicareFamily {
+                sapto_entitled: o[0].as_ref(),
+                spouse_taxable_income: o[1].as_ref(),
+                spouse_sapto_entitled: o[2].as_ref(),
+                dependant_offset_entitled: o[3].as_ref(),
+                dependent_children: o[4].as_ref(),
+            };
+            engine::medicare_levy(&a[0], &a[1], &a[2], &a[3], family)
+        }
         "low-income-tax-offset" => engine::low_income_tax_offset(&a[0], &a[1], &a[2]),
         "division-293" => engine::division_293(&a[0], &a[1], &a[2], &a[3]),
         "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),

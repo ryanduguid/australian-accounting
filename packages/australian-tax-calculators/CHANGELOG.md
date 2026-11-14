@@ -252,6 +252,26 @@ intentionally changed.
   periods. It skips the 1 frozen call that expected 2026-27 to be refused;
   `tests/tables.rs` checks 2026-27 at each threshold and that 2027-28 is
   refused. The catalogue example stays at 2024-25.
+- `medicare-levy` takes 5 optional inputs: `sapto_entitled`, which applies the
+  seniors and pensioners thresholds in s 3(1); and `spouse_taxable_income`
+  with `spouse_sapto_entitled`, or `dependant_offset_entitled` for a person
+  without a spouse, with `dependent_children`, which apply the s 8 family
+  reduction for 2024-25 to 2026-27. A spouse whose taxable income is above the
+  spouse's threshold amount shares the reduction by taxable income, and the
+  part of either share above that spouse's levy reduces the other's (s 8(3)
+  and (4)); the result then adds a warning that its amounts are rounded only
+  for display. Without the optional inputs every result is as before, except
+  that its scope now describes them and its sources add the ATO's family
+  income page, compilation 52 and Act No. 28, 2025. Like `depreciation`, it
+  now refuses a field it does not take, and it refuses a spouse input without
+  a spouse, `dependant_offset_entitled` with one and dependent children
+  without either (`input.field_unknown`), and a child count that is not a
+  non-negative integer (`input.dependants_invalid`). The worksheet catalogue
+  lists the inputs under `optional_inputs` and names the family page and its
+  Ashton example. `tests/parity.rs` applies the new scope, sources, passage
+  and evidence to the 162 frozen `medicare-levy` results and 10
+  `worksheet-catalogue` results, and `tests/medicare_family.rs` holds the
+  worksheet to the Ashton example and every threshold.
 
 ### Verification
 

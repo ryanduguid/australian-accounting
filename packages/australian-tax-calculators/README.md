@@ -22,7 +22,7 @@ tax, CGT losses and discount, the main residence exemption's taxable share of a 
 under the statutory formula and operating cost methods, depreciation in the start year and later years,
 quarterly super guarantee, Schedule 1 PAYG withholding, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
-loan withholding, a single person's Medicare levy, the low income tax offset,
+loan withholding, the Medicare levy with its low-income, SAPTO and family reductions, the low income tax offset,
 Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment. Callers must establish every scope condition before calculating.
 
 Each worksheet is a subcommand that reads one JSON object on stdin and writes
@@ -100,7 +100,7 @@ lists the commands.
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
 | `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
-| `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed` |
+| `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed`; optional `sapto_entitled`, `spouse_taxable_income`, `spouse_sapto_entitled`, `dependant_offset_entitled`, `dependent_children` |
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
 | `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
 | `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
@@ -119,7 +119,7 @@ The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `ter
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value. Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take. Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Supported periods
@@ -139,7 +139,7 @@ or a decimal string over 8,192 bytes, is refused.
 | Pension minimum | 2024-25 to 2026-27; one account-based pension paying under SISR Schedule 7 |
 | Study loan repayment | 2025-26 and 2026-27; one individual's established repayment income at the marginal rates; the formula amount before the loan-balance limit |
 | Study loan withholding | Regular weekly, fortnightly or monthly pays from 1 July 2026 on scale 1, 2, 3, 5 or 6; the Schedule 1 amount plus the Schedule 8 component |
-| Medicare levy | 2024-25, 2025-26 and 2026-27; full-year resident single without SAPTO, spouse, dependants or exemption; the 2% rate and the low-income reduction |
+| Medicare levy | 2024-25, 2025-26 and 2026-27; full-year resident without exemption; the 2% rate, the low-income reduction at the single or SAPTO thresholds, and the family reduction from established spouse, offset and dependent child facts |
 | Low income tax offset | 2024-25, 2025-26 and 2026-27; resident individual's established taxable income; the offset amount, not applied against tax |
 | Division 293 | 2024-25, 2025-26 and 2026-27; established Division 293 income and low tax contributions; no defined benefit interests |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
@@ -150,8 +150,8 @@ or a decimal string over 8,192 bytes, is refused.
 Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
 liability. SMSF fund tax, Division 296 fund earnings and their attribution, the transfer balance cap, trusts, payroll
-tax, the Medicare levy surcharge and Medicare levy reductions other than the single
-low-income reduction remain outside these worksheets.
+tax, the Medicare levy surcharge and Medicare levy exemptions remain outside these
+worksheets.
 
 ## PAYG withholding
 
@@ -227,13 +227,23 @@ of them for scales 1 and 2, and to the schedule's 3 worked examples. See
 ## Medicare levy and low income tax offset
 
 `medicare_levy` applies the 2% rate and the low-income reduction in s 7 of the
-Medicare Levy Act 1986 to a full-year resident single who is not entitled to
-the seniors and pensioners tax offset and has no exemption: nil at or below the
-threshold amount, and no more than 10% of the excess up to the phase-in limit.
-The caller states whether s 9A (lump sum payments in arrears) applies, and the
-worksheet refuses when it does. It covers 2024-25 to 2026-27; 2026-27 uses the
-2025-26 thresholds, which the law applies to later years until amended, and its
-result says so. `low_income_tax_offset` gives the ITAA 1997 s 61-115 offset from
+Medicare Levy Act 1986 to a full-year resident with no exemption: nil at or
+below the threshold amount, and no more than 10% of the excess up to the
+phase-in limit, at the higher thresholds for a person entitled to the seniors
+and pensioners tax offset (`sapto_entitled`). For a person with a spouse on the
+last day of the year (`spouse_taxable_income` and `spouse_sapto_entitled`), or
+one entitled to the invalid and invalid carer tax offset for their child or the
+sole parent notional tax offset (`dependant_offset_entitled`), it then applies the s 8 family reduction: no levy at or below the family income
+threshold, which rises for each dependent child (`dependent_children`), and
+above it a reduction that shades out by 8% of the excess, shared between
+spouses who are both liable, with any excess of one spouse's share passing to
+the other. The caller establishes each of those facts; omitting them means a
+person without SAPTO, spouse or dependants. The caller also states whether s 9A
+(lump sum payments in arrears) applies, and the worksheet refuses when it does.
+It covers 2024-25 to 2026-27; 2026-27 uses the 2025-26 thresholds, which the
+law applies to later years until amended, and its result says so. The tests
+hold it to the ATO's Ashton example and every threshold.
+`low_income_tax_offset` gives the ITAA 1997 s 61-115 offset from
 established taxable income for 2024-25 to 2026-27. Neither applies the result
 against tax payable. See
 [calculation evidence](docs/calculation-evidence.md#medicare-levy).
