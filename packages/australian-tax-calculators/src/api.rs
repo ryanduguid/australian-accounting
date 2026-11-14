@@ -254,6 +254,15 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "seniors-pensioners-tax-offset",
+        &[
+            ("rebate_income", Dec),
+            ("status", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "division-293",
         &[
             ("division_293_income", Dec),
@@ -565,6 +574,11 @@ fn argument(v: &Value, key: &str, kind: Kind) -> Result<Arg> {
     }
 }
 
+/// An optional argument: `None` when `key` is absent.
+fn optional(v: &Value, key: &str, kind: Kind) -> Result<Option<Arg>> {
+    v.get(key).map(|_| argument(v, key, kind)).transpose()
+}
+
 /// `json.loads` refuses an integer token of more than 4,300 digits, as
 /// `int(text)` does under Python's default limit.
 fn int_limit(value: &Value) -> Result<()> {
@@ -624,12 +638,13 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
-    // Division 296, the termination payment, Schedule 5, 9 and 15
-    // worksheets have no Python original whose lenience to keep, and a misspelt
-    // optional depreciation, Medicare levy or PAYG withholding input would
-    // silently give the start year's, a single person's or the result without
-    // it, so a field one does not take, such as an opening balance, another
-    // method's input or a TFN exemption, is refused rather than ignored.
+    // Division 296, the termination payment, Schedule 5, 9 and 15 and the
+    // seniors and pensioners tax offset worksheets have no Python original
+    // whose lenience to keep, and a misspelt optional depreciation, Medicare
+    // levy or PAYG withholding input would silently give the start year's, a
+    // single person's or the result without it, so a field one does not take,
+    // such as an opening balance, another method's input or a TFN exemption,
+    // is refused rather than ignored.
     if matches!(
         command,
         "division-296"
@@ -643,6 +658,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "working-holiday-maker-withholding"
             | "study-loan-withholding"
             | "seniors-pensioners-withholding"
+            | "seniors-pensioners-tax-offset"
     ) {
         let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
         let taken = |key: &String| {
@@ -732,14 +748,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         }
         "medicare-levy" => {
             // Optional: each absent for a person without SAPTO, spouse or dependants.
-            let optional =
-                |key: &str, kind: Kind| v.get(key).map(|_| argument(v, key, kind)).transpose();
             let o = [
-                optional("sapto_entitled", Raw)?,
-                optional("spouse_taxable_income", Dec)?,
-                optional("spouse_sapto_entitled", Raw)?,
-                optional("dependant_offset_entitled", Raw)?,
-                optional("dependent_children", Raw)?,
+                optional(v, "sapto_entitled", Raw)?,
+                optional(v, "spouse_taxable_income", Dec)?,
+                optional(v, "spouse_sapto_entitled", Raw)?,
+                optional(v, "dependant_offset_entitled", Raw)?,
+                optional(v, "dependent_children", Raw)?,
             ];
             let family = engine::MedicareFamily {
                 sapto_entitled: o[0].as_ref(),
@@ -751,6 +765,18 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::medicare_levy(&a[0], &a[1], &a[2], &a[3], family)
         }
         "low-income-tax-offset" => engine::low_income_tax_offset(&a[0], &a[1], &a[2]),
+        "seniors-pensioners-tax-offset" => {
+            // Optional: absent for a single person, and the transfer without a spouse's.
+            let o = [
+                optional(v, "spouse_rebate_income", Dec)?,
+                optional(v, "spouse_taxable_income", Dec)?,
+            ];
+            let spouse = engine::SaptoSpouse {
+                rebate_income: o[0].as_ref(),
+                taxable_income: o[1].as_ref(),
+            };
+            engine::seniors_pensioners_tax_offset(&a[0], &a[1], &a[2], &a[3], spouse)
+        }
         "division-293" => engine::division_293(&a[0], &a[1], &a[2], &a[3]),
         "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),
         "termination-payment" => {

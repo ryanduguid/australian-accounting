@@ -3671,21 +3671,30 @@ fn weekly_fortnightly_or_monthly(pay_period: &Arg) -> Result<String> {
 
 const SENIORS_PENSIONERS: &str = "seniors_pensioners_withholding";
 
+/// The index of `value` in `names`, when it is one of them.
+fn position(value: &Arg, names: [&str; 3]) -> Option<usize> {
+    value
+        .text()
+        .and_then(|text| names.iter().position(|name| *name == text))
+}
+
+/// A senior's or pensioner's status, as Schedule 9 and the offset take it: 0
+/// single, 1 a member of an illness-separated couple, 2 a member of a couple.
+fn seniors_status(status: &Arg) -> Result<usize> {
+    match position(status, ["single", "illness_separated", "couple"]) {
+        Some(index) => Ok(index),
+        None => refuse(
+            "input.status_invalid",
+            "status must be single, illness_separated or couple.",
+        ),
+    }
+}
+
 /// Schedule 9's scale for the payee's status and Medicare levy exemption:
 /// 1 to 3 (single, illness-separated couple, couple) with the levy, 3 more
 /// with a full exemption and 6 more with a half exemption.
 fn schedule_9_scale(status: &Arg, exemption: &Arg) -> Result<usize> {
-    let position = |value: &Arg, names: [&str; 3]| {
-        value
-            .text()
-            .and_then(|text| names.iter().position(|name| *name == text))
-    };
-    let Some(status) = position(status, ["single", "illness_separated", "couple"]) else {
-        return refuse(
-            "input.status_invalid",
-            "status must be single, illness_separated or couple.",
-        );
-    };
+    let status = seniors_status(status)?;
     let Some(exemption) = position(exemption, ["none", "full", "half"]) else {
         return refuse(
             "input.medicare_levy_exemption_invalid",
@@ -3732,7 +3741,222 @@ pub fn seniors_pensioners_withholding(
     )
 }
 
-const KINDS: [&str; 25] = [
+const SAPTO: &str = "seniors_pensioners_tax_offset";
+
+/// The optional `seniors-pensioners-tax-offset` inputs about the spouse, each
+/// `None` when not given.
+pub struct SaptoSpouse<'a> {
+    pub rebate_income: Option<&'a Arg>,
+    pub taxable_income: Option<&'a Arg>,
+}
+
+fn whole_dollar_money(value: &Arg, what: &str) -> Result<Decimal> {
+    let amount = money(value)?;
+    whole_dollars(&amount, what)?;
+    Ok(amount)
+}
+
+/// The spouse's rebate income, which s 160AAAA(4) needs for a spouse and which
+/// a single person cannot have, and the spouse's taxable income for a transfer.
+fn sapto_spouse(spouse: &SaptoSpouse, status: usize) -> Result<(Option<Decimal>, Option<Decimal>)> {
+    let given = [
+        ("spouse_rebate_income", spouse.rebate_income),
+        ("spouse_taxable_income", spouse.taxable_income),
+    ];
+    if status == 0 {
+        return match given.iter().find(|(_, value)| value.is_some()) {
+            Some((name, _)) => refuse(
+                "input.field_unknown",
+                format!(
+                    "{name} is not an input of seniors-pensioners-tax-offset for a single person"
+                ),
+            ),
+            None => Ok((None, None)),
+        };
+    }
+    let Some(rebate_income) = spouse.rebate_income else {
+        return refuse(
+            "input.missing_field",
+            "spouse_rebate_income is required unless status is single",
+        );
+    };
+    let rebate_income = whole_dollar_money(rebate_income, "spouse rebate income")?;
+    let taxable_income = spouse
+        .taxable_income
+        .map(|value| whole_dollar_money(value, "spouse taxable income"))
+        .transpose()?;
+    Ok((Some(rebate_income), taxable_income))
+}
+
+fn sapto_rule(key: &str) -> Decimal {
+    d(lookup(&meta::SAPTO_RULES, key))
+}
+
+/// A non-negative amount rounded up to the whole dollar.
+fn dollars_up(value: &Decimal) -> Calc<Decimal> {
+    let down = value.quantize(0, Rounding::Down)?;
+    if down.lt(value)? {
+        down.add(&int(1))
+    } else {
+        Ok(down)
+    }
+}
+
+/// The year's tax-free threshold and lowest and second lowest marginal tax
+/// rates, from Income Tax Rates Act 1986 Sch 7 Part I (regulations s 4).
+fn rates_act_terms(year: &str) -> (Decimal, Decimal, Decimal) {
+    let scale = lookup(meta::RESIDENT_TAX_SCALES, year);
+    (int(scale[0].0), d(scale[0].2), d(scale[1].2))
+}
+
+/// Regulations s 9(4) to (8): the rebate threshold for a base rebate amount.
+fn rebate_threshold(base: &Decimal, year: &str) -> Calc<Decimal> {
+    let (free, lowest, second) = rates_act_terms(year);
+    let maximum = sapto_rule("rebate_maximum_amount");
+    let reduction_rate = sapto_rule("rebate_reduction_rate");
+    let reduction_threshold = sapto_rule("rebate_reduction_threshold");
+    let amount = maximum.add(base)?.div(&lowest)?.add(&free)?;
+    let amount = if amount.gt(&reduction_threshold)? {
+        // s 9(6), with s 9(7) as its last term.
+        let rates = reduction_rate.add(&second)?;
+        let last = reduction_threshold.mul(&rates.sub(&lowest)?)?;
+        lowest
+            .mul(&free)?
+            .add(&maximum)?
+            .add(base)?
+            .add(&last)?
+            .div(&rates)?
+    } else {
+        amount
+    };
+    dollars_up(&amount)
+}
+
+/// Regulations s 11(2): the base amount less 12.5 cents for each dollar of
+/// rebate income above the threshold, and nil once that reaches the base.
+fn rebate_amount(base: &Decimal, threshold: &Decimal, income: &Decimal) -> Calc<Decimal> {
+    let excess = py_max(int(0), income.sub(threshold)?)?;
+    py_max(
+        int(0),
+        base.sub(&excess.mul(&sapto_rule("shade_out_rate"))?)?,
+    )
+}
+
+/// Regulations s 12(3)(b): the spouse's unused base rebate amount. At or below
+/// $6,000 of taxable income, below the tax-free threshold, the resident spouse
+/// pays no tax and the whole base amount is unused (s 12(3)(b)(i)); above it
+/// s 12(3)(b)(ii) takes 15% of the excess.
+fn unused_from_spouse(base: &Decimal, spouse_taxable_income: &Decimal) -> Calc<Decimal> {
+    let floor = sapto_rule("transfer_income_floor");
+    if spouse_taxable_income.le(&floor)? {
+        return Ok(base.clone());
+    }
+    let reduction = spouse_taxable_income
+        .sub(&floor)?
+        .mul(&sapto_rule("transfer_rate"))?;
+    py_max(int(0), base.sub(&reduction)?)
+}
+
+/// The amounts and rates for one person's offset.
+type SaptoWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>);
+
+fn sapto_working(
+    income: &Decimal,
+    year: &str,
+    base: &Decimal,
+    spouse_rebate_income: Option<&Decimal>,
+    spouse_taxable_income: Option<&Decimal>,
+) -> Calc<SaptoWorking> {
+    let threshold = rebate_threshold(base, year)?;
+    let cut_out = dollars_up(&base.div(&sapto_rule("shade_out_rate"))?.add(&threshold)?)?;
+    // s 160AAAA(4): a spouse is tested on half the couple's rebate income.
+    let tested = match spouse_rebate_income {
+        Some(spouse) => income.add(spouse)?.div(&int(2))?,
+        None => income.clone(),
+    };
+    let entitled = tested.lt(&cut_out)?;
+    let mut amounts = vec![
+        ("rebate_income_used", income.clone()),
+        ("rebate_income_tested", tested),
+        ("base_rebate_amount", base.clone()),
+    ];
+    let mut working = (threshold.clone(), rebate_amount(base, &threshold, income)?);
+    if let Some(spouse) = spouse_taxable_income {
+        // s 12(1)(d) and (e): only an entitled person whose offset is below
+        // its base amount takes the spouse's unused amount.
+        let unused = if entitled && working.1.lt(base)? {
+            unused_from_spouse(base, spouse)?
+        } else {
+            int(0)
+        };
+        amounts.push(("spouse_unused_amount_transferred", unused.clone()));
+        if unused.gt(&int(0))? {
+            // s 12(3) adds the unused amount to the base for s 11, not s 10.
+            let raised = base.add(&unused)?;
+            let raised_threshold = rebate_threshold(&raised, year)?;
+            working = (
+                raised_threshold.clone(),
+                rebate_amount(&raised, &raised_threshold, income)?,
+            );
+        }
+    }
+    let (threshold, offset) = working;
+    // The ATO rounds the offset up to the whole dollar.
+    let offset = if entitled {
+        dollars_up(&offset)?
+    } else {
+        int(0)
+    };
+    amounts.push(("rebate_threshold", threshold));
+    amounts.push(("cut_out_threshold", cut_out));
+    amounts.push(("seniors_pensioners_tax_offset", offset));
+    Ok((amounts, sapto_rates(year)))
+}
+
+/// The year's Schedule 7 terms and the regulations' constants.
+fn sapto_rates(year: &str) -> Vec<(String, String)> {
+    let (free, lowest, second) = rates_act_terms(year);
+    let mut rates = vec![
+        rate("tax_free_threshold", free),
+        rate("lowest_marginal_tax_rate", lowest),
+        rate("second_lowest_marginal_tax_rate", second),
+    ];
+    rates.extend(meta::SAPTO_RULES.iter().map(|(k, v)| rate(k, v)));
+    rates
+}
+
+/// The seniors and pensioners tax offset (ITAA 1936 s 160AAAA and the
+/// regulations' ss 9 to 12) for one person, before it is applied against tax.
+pub fn seniors_pensioners_tax_offset(
+    rebate_income: &Arg,
+    status: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+    spouse: SaptoSpouse,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, SAPTO)?;
+    let income = whole_dollar_money(rebate_income, "rebate income")?;
+    let status = seniors_status(status)?;
+    let (spouse_rebate_income, spouse_taxable_income) = sapto_spouse(&spouse, status)?;
+    let base = d(meta::SAPTO_BASE_REBATE_AMOUNTS[status]);
+    let (amounts, rates) = precise(|| {
+        Ok(sapto_working(
+            &income,
+            &year,
+            &base,
+            spouse_rebate_income.as_ref(),
+            spouse_taxable_income.as_ref(),
+        )?)
+    })?;
+    let mut out = result(SAPTO, &year, amounts, rates)?;
+    if year == "2026-27" {
+        let warnings = out["warnings"].as_array_mut().expect("warnings");
+        warnings.push(json!(texts::SAPTO_2026_27_NOTE));
+    }
+    Ok(out)
+}
+
+const KINDS: [&str; 26] = [
     "gst",
     "resident_tax",
     "capital_gains",
@@ -3758,6 +3982,7 @@ const KINDS: [&str; 25] = [
     "schedule_5_method_b_ii",
     "working_holiday_maker_withholding",
     "seniors_pensioners_withholding",
+    "seniors_pensioners_tax_offset",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

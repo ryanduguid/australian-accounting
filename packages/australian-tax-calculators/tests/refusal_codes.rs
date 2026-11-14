@@ -63,6 +63,28 @@ fn the_catalogue_is_sorted_unique_and_semantic() {
     }
 }
 
+/// `input.field_unknown`'s meaning names every command that refuses a field
+/// it does not take, the Schedule 5 methods together.
+#[test]
+fn field_unknown_names_every_command_that_refuses_an_unknown_field() {
+    let meaning = api::refusal_codes()
+        .iter()
+        .find(|(code, _)| *code == "input.field_unknown")
+        .unwrap()
+        .1;
+    for command in api::commands() {
+        let refused = api::evaluate_coded(command, &json!({"not_an_input": true}));
+        if refused.is_err_and(|r| r.code == "input.field_unknown") {
+            let named = if command.starts_with("schedule-5-") {
+                "the Schedule 5 methods"
+            } else {
+                command
+            };
+            assert!(meaning.contains(named), "{command}");
+        }
+    }
+}
+
 /// Every frozen call gives the same answer through either entry point, and
 /// each frozen refusal now has a catalogued code.
 #[test]
