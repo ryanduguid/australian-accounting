@@ -235,7 +235,8 @@ fn result(
 
 /// One amount and how it was worked out: the provision or ATO page that sets
 /// it, its formula, the formula on the operands the arithmetic used, and the
-/// unrounded value the amount is rendered from.
+/// unrounded value the amount is rendered from. The FBT steps cite the FBTAA as
+/// compiled on 1 July 2026 (C2004A03280) and ATO pages, read on 14 November 2026.
 struct Step {
     id: &'static str,
     authority: &'static str,
