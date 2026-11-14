@@ -27,29 +27,20 @@ The engines are linked by path, so results follow `packages/` at this commit.
 One change from the draft: `review_div7a_loan` refuses a remaining term that
 cannot hold on a loan the gate passed, as the Python server on `main` does
 (`_remaining_term_refusal`, `_term_left_refusal` and `_refuse` in
-`aus_accounting_mcp/adapters/div7a.py`). The engine's public
+`aus_accounting_mcp/adapters/div7a.py`). The engine's
 `minimum_yearly_repayment` takes no loan term and checks no remaining-term
 limit, so the draft's adapter worked out a lower repayment for, say, a remaining
-term of 8 years on a loan whose maximum term is 7. `adapters/div7a.rs` now adds
+term of 8 years on a loan whose maximum term is 7. `adapters/div7a.rs` now calls
+the engine's `repayment_within` with the maximum term the security facts give
+and `maximum_term_years`, so the engine refuses with
 `REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM`,
-`REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM` and
-`REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED` with the same conditions
-and wording. [`tests/div7a_python.rs`](tests/div7a_python.rs) compares the
-verdicts, codes, reasons and figures with the Python server's results, recorded
-in `tests/fixtures/python-div7a.json`. The draft server needs this adapter, or
+`REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM` or
+`REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED` and leaves out its caveat
+that `maximum_term_years` was not supplied.
+[`tests/div7a_python.rs`](tests/div7a_python.rs) compares the verdicts, codes,
+reasons and figures with the Python server's results, recorded in
+`tests/fixtures/python-div7a.json`. The draft server needs this adapter, or
 these refusals, before it replaces the Python server.
-
-The engine's output is otherwise left as it is, including one caveat that is
-now untrue: the figure path of `minimum_yearly_repayment` always adds
-'maximum_term_years was not supplied, so this engine has not checked the
-remaining term against the loan's term or that term less the years since the
-loan year (s 109E(6))', even when `maximum_term_years` was supplied and the
-adapter made those checks, and a refusal the adapter adds to a figure the
-engine worked out keeps it. The public API cannot be told the term:
-`repayment_within`, which takes it and drops the caveat, is crate-private, and
-the JSON `minimum-yearly-repayment` command takes the loan's term but not the
-security facts' maximum term. The fix belongs in the engine's public API; the
-draft server gives the same caveat.
 
 `main` at 149f98ad widened the engine's PAYG withholding scope to quarterly
 pays, scale 4, tax offsets, the Medicare levy adjustment and 53 or 27 pays. The
@@ -63,7 +54,9 @@ not admit, so that scope is narrowed to the engine's words before that change.
 `main` at 17188fa6 added quarterly pays to it, which the schema's pay periods do
 not admit; the same entry narrows that text too. `main` at 87a3f76d added
 Medicare levy exemption days, which the published Medicare levy facts cannot
-give, so that scope keeps the engine's words before that change.
+give. Those facts also take no SAPTO, spouse or dependant inputs, so that scope
+describes only the single full-year resident without SAPTO, offsets or exemption
+that they state.
 
 ## Check
 
