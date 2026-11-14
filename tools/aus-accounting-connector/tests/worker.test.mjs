@@ -165,12 +165,13 @@ test('Origin: listed origins are allowed, others get 403', async () => {
 test('a body over 16 KiB gets 413 before it is parsed; 16 KiB is read', async () => {
   const body = JSON.stringify(message(MODERN, 1, 'server/discover'));
   const exact = body.padEnd(16 * 1024, ' ');
-  const sent = headers({ method: 'server/discover' }, MODERN);
+  const sent = headers({ method: 'server/discover' }, MODERN, { origin: 'https://claude.ai' });
   assert.equal((await post(exact, sent)).response.status, 200);
   // Not JSON past the limit, so a 413 shows the body was never parsed.
   const over = await post(exact + '!', sent);
   assert.equal(over.response.status, 413);
   assert.equal(over.body, '');
+  assert.equal(over.response.headers.get('access-control-allow-origin'), 'https://claude.ai');
   const stream = new ReadableStream({
     start(controller) {
       for (let i = 0; i < 5; i += 1) controller.enqueue(new Uint8Array(4096).fill(32));
@@ -179,6 +180,7 @@ test('a body over 16 KiB gets 413 before it is parsed; 16 KiB is read', async ()
   });
   const streamed = await worker.mf.dispatchFetch(new URL('/mcp', worker.url), { method: 'POST', body: stream, duplex: 'half', headers: { ...sent, 'cf-connecting-ip': caller() } });
   assert.equal(streamed.status, 413);
+  assert.equal(streamed.headers.get('access-control-allow-origin'), 'https://claude.ai');
   assert.equal(streamed.headers.get('content-length') ?? '0', '0');
   await streamed.text();
 });
@@ -259,18 +261,19 @@ test('responses, batches and malformed JSON are refused with 400', async () => {
   }
 });
 
-test('the rate limiter answers 429 with Retry-After: 60, and its absence fails closed', async () => {
+test('the rate limiter answers 429 with Retry-After: 60, and its absence fails closed; an allowed origin can read both', async () => {
   const limited = await start();
   const unbound = await start({ limit: false });
   try {
     const { simple } = await limiter();
     const body = message(MODERN, 1, 'server/discover');
-    const sent = { ...headers(body, MODERN), 'cf-connecting-ip': '198.51.100.7' };
+    const sent = { ...headers(body, MODERN, { origin: 'https://chatgpt.com' }), 'cf-connecting-ip': '198.51.100.7' };
     const statuses = [];
     for (let i = 0; i <= simple.limit; i += 1) {
       const response = await limited.mf.dispatchFetch(new URL('/mcp', limited.url), { method: 'POST', body: JSON.stringify(body), headers: sent });
       statuses.push(response.status);
       if (response.status === 429) assert.equal(response.headers.get('retry-after'), '60');
+      assert.equal(response.headers.get('access-control-allow-origin'), 'https://chatgpt.com');
       await response.text();
     }
     assert.deepEqual(statuses, [...Array(simple.limit).fill(200), 429]);
@@ -279,6 +282,7 @@ test('the rate limiter answers 429 with Retry-After: 60, and its absence fails c
     await other.text();
     const response = await unbound.mf.dispatchFetch(new URL('/mcp', unbound.url), { method: 'POST', body: JSON.stringify(body), headers: sent });
     assert.equal(response.status, 503);
+    assert.equal(response.headers.get('access-control-allow-origin'), 'https://chatgpt.com');
     await response.text();
   } finally {
     await limited.mf.dispose();
