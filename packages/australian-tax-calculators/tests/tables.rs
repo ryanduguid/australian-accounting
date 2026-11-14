@@ -213,9 +213,15 @@ fn medicare_levy_2026_27_applies_the_thresholds_enacted_for_later_years() {
         assert_eq!(result["rates"]["threshold_amount"], "28011");
         assert_eq!(result["rates"]["phase_in_limit"], "35013");
         let warnings = result["warnings"].as_array().unwrap();
-        assert!(warnings.last().unwrap().as_str().unwrap().starts_with(
-            "2026-27 uses the threshold amount and phase-in limit Medicare Levy Act 1986 s 3(1) sets"
-        ));
+        assert_eq!(warnings.len(), 3, "{income}");
+        assert_eq!(
+            warnings[2],
+            "2026-27 uses the threshold amount and phase-in limit Medicare Levy Act 1986 s 3(1) \
+             sets for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14). The ATO had not \
+             published 2026-27 thresholds when this was checked on 14 November 2026. That Act, \
+             assented on 30 June 2026, raised the figures for 2025-26, so a later Act can raise \
+             them for 2026-27 and change this result."
+        );
         let sources = result["sources"].as_array().unwrap();
         assert!(sources.contains(&json!(
             "https://www.legislation.gov.au/C2026A00058/asmade/text"
