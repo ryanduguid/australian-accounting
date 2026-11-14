@@ -102,6 +102,7 @@ lists the commands.
 | `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; `pay_date`, required for 2025-26 |
 | `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed`; optional `sapto_entitled`, `spouse_taxable_income`, `spouse_sapto_entitled`, `dependant_offset_entitled`, `dependent_children` |
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
+| `seniors-pensioners-tax-offset` | `rebate_income`, `status`, `year`, `scope_confirmed`; `spouse_rebate_income`, required unless `status` is `single`; optional `spouse_taxable_income` |
 | `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
 | `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
 | `termination-payment` | `redundancy_payment`, `completed_years_of_service`, `excluded_payment`, `non_excluded_payment`, `other_taxable_payments`, `date_of_birth`, `year`, `scope_confirmed` |
@@ -117,11 +118,11 @@ lists the commands.
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory` and `fbt-car-operating-cost`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding` and `seniors-pensioners-withholding` have no Python original; their arguments follow the same
+The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding` and `seniors-pensioners-tax-offset` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take. `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), and `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding). Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take. `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), and `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
@@ -169,6 +170,7 @@ The plain commands' output does not change.
 | Study loan withholding | Regular weekly, fortnightly, monthly or quarterly pays from 24 September 2025 on scale 1, 2, 3, 5 or 6; the Schedule 1 amount plus the Schedule 8 component |
 | Medicare levy | 2024-25, 2025-26 and 2026-27; full-year resident without exemption; the 2% rate, the low-income reduction at the single or SAPTO thresholds, and the family reduction from established spouse, offset and dependent child facts |
 | Low income tax offset | 2024-25, 2025-26 and 2026-27; resident individual's established taxable income; the offset amount, not applied against tax |
+| Seniors and pensioners tax offset | 2024-25, 2025-26 and 2026-27; an established eligible individual's rebate income and whole-year status, and a spouse's rebate income; the offset amount with any transfer from a resident spouse, not applied against tax |
 | Division 293 | 2024-25, 2025-26 and 2026-27; established Division 293 income and low tax contributions; no defined benefit interests |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
 | Termination payment | 2026-27; one life benefit ETP to a resident employee who gave a TFN, paid within 12 months; established genuine redundancy and classified ETP parts; Schedule 11 withholding, not the tax assessed |
@@ -537,6 +539,31 @@ super income streams (Schedule 13 too) and lump sum leave loading (Schedule 5)
 are outside it. The tests reproduce the worked example and all 6,360 amounts in
 the weekly tax table of each schedule, and check the exemption scales by hand;
 see [calculation evidence](docs/calculation-evidence.md#seniors-and-pensioners).
+
+## Seniors and pensioners tax offset
+
+`seniors_pensioners_tax_offset` works out the seniors and pensioners tax offset
+(ITAA 1936 s 160AAAA) for 2024-25 to 2026-27 from the regulations' formulas,
+for a person the caller has established meets the pension or age condition.
+`rebate_income` is the person's whole-dollar rebate income and `status`
+(`single`, `illness_separated` or `couple`) gives the base amount: $2,230,
+$2,040 or $1,602. The shading-out threshold and cut-out follow from the base
+amount and the year's lowest marginal tax rate, so 2026-27, at 15%, has higher
+thresholds than the ATO has yet published, and its result says so. A member of
+a couple also gives `spouse_rebate_income`: entitlement then tests half the
+couple's rebate income, and the amount the person's own. The offset falls by
+12.5 cents a dollar above the threshold and is rounded up to the dollar, as the
+ATO rounds it. With `spouse_taxable_income`, a spouse entitled to the offset
+whose whole taxable income is ordinary taxable income at the resident scale
+passes their unused amount (regulations s 12),
+which raises this person's base amount and threshold once their own offset is
+below its base amount (s 12(1)(e)). A person whose spouse status changed in
+the year, trustees, a person also entitled to the beneficiary tax offset and
+applying the non-refundable offset against tax are outside it, and like `division-296` it refuses a field it does
+not take. An offset of at least $1 is the SAPTO entitlement `medicare-levy`
+takes as `sapto_entitled`. The tests hold it to the ATO's 9 examples, its
+thresholds and every cut-out; see
+[calculation evidence](docs/calculation-evidence.md#seniors-and-pensioners-tax-offset).
 
 ## Worksheet discovery
 

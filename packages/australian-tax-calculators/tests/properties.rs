@@ -1193,6 +1193,34 @@ fn seniors_pensioners_withholding_rises_and_exemptions_never_raise_it() {
     }
 }
 
+/// The seniors and pensioners tax offset never rises as rebate income rises,
+/// for each status, with the spouse's rebate income held fixed and no
+/// transfer, starting from the base rebate amount and reaching nil.
+#[test]
+fn seniors_pensioners_tax_offset_never_rises_with_rebate_income() {
+    for year in ["2024-25", "2025-26", "2026-27"] {
+        for (status, base) in [
+            ("single", 2230),
+            ("illness_separated", 2040),
+            ("couple", 1602),
+        ] {
+            let mut previous = n(base);
+            for income in (20_000..62_000).step_by(7) {
+                let mut facts = json!({"rebate_income": income.to_string(), "status": status,
+                                       "year": year, "scope_confirmed": true});
+                if status != "single" {
+                    facts["spouse_rebate_income"] = json!("40000");
+                }
+                let result = run("seniors-pensioners-tax-offset", facts);
+                let offset = amount(&result, "seniors_pensioners_tax_offset");
+                assert!(le(&offset, &previous), "{year} {status} {income}");
+                previous = offset;
+            }
+            assert!(eq(&previous, &n(0)), "{year} {status} reaches nil");
+        }
+    }
+}
+
 /// Howard Hinnant's civil_from_days, for generating dates.
 fn civil(day: i64) -> (i64, i64, i64) {
     let z = day + 719_468;
