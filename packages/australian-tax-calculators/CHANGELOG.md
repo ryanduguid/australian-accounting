@@ -50,6 +50,47 @@ intentionally changed.
   `input.signed_amount_invalid` covers its earnings input, and
   `input.field_unknown` refuses a field it does not take, such as an opening
   balance, which the other worksheets ignore.
+- `termination-payment` works out the tax-free part of a genuine redundancy or
+  early retirement scheme payment ($13,598 plus $6,801 for each completed year
+  of service, ITAA 1997 s 83-170) and the Schedule 11 withholding from one life
+  benefit employment termination payment made in 2026-27: the excluded part
+  within the $270,000 ETP cap, then the non-excluded part within the smaller of
+  the ETP cap left and the $180,000 whole-of-income cap less other taxable
+  payments (s 82-10(4) and (7)), at 17% from preservation age at 30 June 2027,
+  32% below it and 47% above the cap, each part rounded to the dollar. Death
+  benefit ETPs, ETPs with a tax-free component, earlier ETPs and the tax
+  assessed on the ETP are outside it. No Python release has it.
+  `tests/parity.rs` drops its catalogue entry before comparing,
+  `tests/termination_payment.rs` holds it to the ATO's Schedule 11 examples 1
+  to 4 and each cap, limit, preservation age and rounding boundary, and
+  the repository's root `tests/test_dated_rates.py` keeps its 4 dollar figures
+  equal to the rate records. The new refusal code `input.years_of_service_invalid` covers its
+  years of service, and `input.field_unknown` refuses a field it does not take.
+- `schedule-5-method-a`, `schedule-5-method-b-i` and `schedule-5-method-b-ii`
+  work out withholding from a weekly, fortnightly or monthly pay that includes
+  back payments, commissions, bonuses or similar payments by Schedule 5 (NAT
+  3348) Methods A, B(i) and B(ii), for payments made in 2024-25 to 2026-27,
+  using the year's Schedule 1 amounts from `payg-withholding` and, for a payee
+  with a study and training support loan, the Schedule 8 component from
+  `study-loan-withholding` (from 1 July 2026 only). Methods A and B(ii) apply
+  the 47% limit. Like `division-296`, each refuses a field it does not take.
+  No Python release has them. `tests/parity.rs` drops their
+  catalogue entries before comparing, and `tests/schedule_5.rs` holds them to
+  the ATO's examples 1 to 4 in the 2024, 2025 and 2026 schedules and to each
+  rule's boundary. New refusal codes: `input.pay_periods_invalid` and
+  `input.back_payment_periods_invalid`.
+- `working-holiday-maker-withholding` applies Schedule 15 to one weekly,
+  fortnightly or monthly payment to a working holiday maker, for 2024-25 to
+  2026-27: a registered employer's Table A rate (15%, 30%, 37% or 45%, by the
+  column the payments made before it in the income year select), an
+  unregistered employer's foreign resident rates through Schedule 1 scale 3,
+  and 45% from any employer whose payee gave no TFN. It refuses payments before of
+  $135,000.01 to $135,000.99, which no column covers
+  (`working_holiday_maker.band_unsettled`), and, like `division-296`, a field
+  it does not take. No Python release has it. `tests/parity.rs` drops its
+  catalogue entry before comparing, and `tests/working_holiday_maker.rs` holds
+  it to the ATO's lookup tool example and examples 1 and 2, each column
+  boundary and the rounding rules.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,
@@ -195,6 +236,22 @@ intentionally changed.
   refusals that list the supported periods. It skips the 1 frozen call that
   expected 2027 to be refused; `tests/tables.rs` checks 2027 against the ATO's
   MantCo example and that 2028 is refused. The catalogue example stays at 2026.
+- `medicare-levy` also accepts 2026-27; Python 0.2.0 refused it because the
+  ATO had published no thresholds for it. Treasury Laws Amendment (Delivering
+  an Efficient and Trusted Tax System) Act 2026 (No. 58, 2026, assented 30 June
+  2026) Sch 5 item 14 applies the s 3(1) threshold amount and phase-in limit it
+  set, $28,011 and $35,013, to the 2025-26 and later years of income, and the
+  Medicare Levy Act 1986 as compiled at 1 July 2026 (compilation 53, the latest
+  on 14 November 2026) still holds them. Both were read on 14 November 2026,
+  when the ATO's low-income page still gave 2025-26 figures only. A 2026-27
+  result adds a warning saying so and that a later Act can raise them for
+  2026-27, as Act No. 58 did for 2025-26. The sources add Act No. 58, 2026
+  and the source check date is 14 November 2026. `tests/parity.rs` applies
+  this to the 162 frozen `medicare-levy` results, 6 `periods` results, 10
+  `worksheet-catalogue` results and the 7 refusals that list the supported
+  periods. It skips the 1 frozen call that expected 2026-27 to be refused;
+  `tests/tables.rs` checks 2026-27 at each threshold and that 2027-28 is
+  refused. The catalogue example stays at 2024-25.
 
 ### Verification
 
