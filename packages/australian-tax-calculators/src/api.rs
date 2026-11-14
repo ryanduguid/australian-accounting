@@ -246,6 +246,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "medicare-levy-surcharge",
+        &[
+            ("taxable_income", Dec),
+            ("reportable_fringe_benefits", Dec),
+            ("income_for_surcharge_purposes", Dec),
+            ("days_without_cover", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "low-income-tax-offset",
         &[
             ("taxable_income", Dec),
@@ -638,18 +649,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
-    // Division 296, the termination payment, Schedule 5, 9 and 15 and the
-    // seniors and pensioners tax offset worksheets have no Python original
-    // whose lenience to keep, and a misspelt optional depreciation, Medicare
-    // levy or PAYG withholding input would silently give the start year's, a
-    // single person's or the result without it, so a field one does not take,
-    // such as an opening balance, another method's input or a TFN exemption,
-    // is refused rather than ignored.
+    // Division 296, the termination payment, Medicare levy surcharge, Schedule
+    // 5, 9 and 15 and the seniors and pensioners tax offset worksheets have no
+    // Python original whose lenience to keep, and a misspelt optional
+    // depreciation, Medicare levy or PAYG withholding input would silently give
+    // the start year's, a single person's or the result without it, so a field
+    // one does not take, such as an opening balance, another method's input or
+    // a TFN exemption, is refused rather than ignored.
     if matches!(
         command,
         "division-296"
             | "depreciation"
             | "medicare-levy"
+            | "medicare-levy-surcharge"
             | "payg-withholding"
             | "termination-payment"
             | "schedule-5-method-a"
@@ -747,13 +759,16 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())
         }
         "medicare-levy" => {
-            // Optional: each absent for a person without SAPTO, spouse or dependants.
+            // Optional: each absent for a person without SAPTO, spouse,
+            // dependants or exemption.
             let o = [
                 optional(v, "sapto_entitled", Raw)?,
                 optional(v, "spouse_taxable_income", Dec)?,
                 optional(v, "spouse_sapto_entitled", Raw)?,
                 optional(v, "dependant_offset_entitled", Raw)?,
                 optional(v, "dependent_children", Raw)?,
+                optional(v, "medicare_levy_exemption_full_days", Raw)?,
+                optional(v, "medicare_levy_exemption_half_days", Raw)?,
             ];
             let family = engine::MedicareFamily {
                 sapto_entitled: o[0].as_ref(),
@@ -762,7 +777,23 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 dependant_offset_entitled: o[3].as_ref(),
                 dependent_children: o[4].as_ref(),
             };
-            engine::medicare_levy(&a[0], &a[1], &a[2], &a[3], family)
+            let exemption = engine::MedicareExemption {
+                full_days: o[5].as_ref(),
+                half_days: o[6].as_ref(),
+            };
+            engine::medicare_levy(&a[0], &a[1], &a[2], &a[3], family, exemption)
+        }
+        "medicare-levy-surcharge" => {
+            // Optional: absent for a person without a spouse or dependants all year.
+            let o = [
+                optional(v, "spouse_income_for_surcharge_purposes", Dec)?,
+                optional(v, "dependent_children", Raw)?,
+            ];
+            let family = engine::SurchargeFamily {
+                spouse_income: o[0].as_ref(),
+                dependent_children: o[1].as_ref(),
+            };
+            engine::medicare_levy_surcharge(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], family)
         }
         "low-income-tax-offset" => engine::low_income_tax_offset(&a[0], &a[1], &a[2]),
         "seniors-pensioners-tax-offset" => {

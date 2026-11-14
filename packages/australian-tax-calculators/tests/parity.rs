@@ -12,9 +12,10 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
 /// `tests/borrowing_expenses.rs`, `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/schedule_5.rs`,
-/// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs` and
-/// `tests/seniors_pensioners_offset.rs` cover them.
-const NEW_KINDS: [(&str, &str); 12] = [
+/// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
+/// `tests/seniors_pensioners_offset.rs` and `tests/medicare_surcharge.rs`
+/// cover them.
+const NEW_KINDS: [(&str, &str); 13] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("main-residence", "main_residence"),
@@ -36,6 +37,7 @@ const NEW_KINDS: [(&str, &str); 12] = [
         "seniors-pensioners-tax-offset",
         "seniors_pensioners_tax_offset",
     ),
+    ("medicare-levy-surcharge", "medicare_levy_surcharge"),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.
@@ -348,8 +350,12 @@ fn adapt_medicare(command: &str, input: &Value, expected: &mut Value) {
         "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-family-income",
         "https://www.legislation.gov.au/C2004A03351/2025-03-28/2025-03-28/text/original/epub/OEBPS/document_1/document_1.html",
         "https://www.legislation.gov.au/C2025A00028/asmade/text",
+        "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-exemption/medical-exemption-from-medicare-levy",
+        "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-exemption/not-entitled-to-medicare-benefits",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19360027/251U",
+        "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/medicare-levy-questions-m1-m2-individual-tax-return-2026/m1-medicare-levy-reduction-or-exemption-2026",
     ];
-    let passage = "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25)";
+    let passage = "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B";
     let year = json!({"id": "2026-27", "basis": "income year", "start": "2026-07-01",
         "end": "2027-06-30", "arguments": {"year": "2026-27"}});
     if command == "medicare-levy"
@@ -390,10 +396,10 @@ fn adapt_medicare(command: &str, input: &Value, expected: &mut Value) {
         record["source_passage"] = json!(passage);
         let evidence = &mut record["example_evidence"];
         evidence["document"] = json!(
-            "ATO Medicare levy reduction for low-income earners; Medicare levy reduction - family income"
+            "ATO Medicare levy reduction for low-income earners; Medicare levy reduction - family income; Not entitled to Medicare benefits"
         );
         evidence["paragraphs"] = json!(
-            "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton)"
+            "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton); claiming an exemption, example (Priya)"
         );
         evidence["checked"] = json!("2026-11-14");
         record["supported_periods"]

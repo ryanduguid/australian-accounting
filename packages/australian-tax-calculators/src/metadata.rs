@@ -411,6 +411,22 @@ pub const MEDICARE_LEVY_RATES: [(&str, &str); 3] = [
     ("family_shade_out", "0.08"),
 ];
 
+/// The Medicare levy surcharge singles tier 1, 2 and 3 thresholds (Private
+/// Health Insurance Act 2007 s 22-35, indexed under s 22-45), from the ATO's
+/// 'Medicare levy surcharge income, thresholds and rates' (last updated 22 June
+/// 2026), read on 14 November 2026. Its family thresholds are double these.
+pub const SURCHARGE_THRESHOLDS: &[(&str, [&str; 3])] = &[
+    ("2024-25", ["97000", "113000", "151000"]),
+    ("2025-26", ["101000", "118000", "158000"]),
+    ("2026-27", ["105000", "123000", "164000"]),
+];
+/// Tiers 1 to 3: 1% (Medicare Levy Act s 8B(2)), raised by 0.25 and 0.5 of a
+/// percentage point for tier 2 and tier 3 earners (s 8B(3) and (4)).
+pub const SURCHARGE_RATES: [&str; 3] = ["0.01", "0.0125", "0.015"];
+/// The increase in each family threshold for each dependent child after the
+/// first, on the same ATO page for each year.
+pub const SURCHARGE_CHILD_INCREASE: &str = "1500";
+
 /// ITAA 1997 s 61-115(1) table, in the Python dict's order.
 pub const LOW_INCOME_TAX_OFFSET: [(&str, &str); 7] = [
     ("maximum", "700"),
@@ -793,6 +809,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "study_loan_repayment" => keys(STUDY_LOAN_REPAYMENT_THRESHOLDS),
         "study_loan_withholding" => keys(STUDY_LOAN_WITHHOLDING_COEFFICIENTS),
         "medicare_levy" => keys(MEDICARE_LOW_INCOME_THRESHOLDS),
+        "medicare_levy_surcharge" => keys(SURCHARGE_THRESHOLDS),
         "low_income_tax_offset" => LOW_INCOME_TAX_OFFSET_YEARS.to_vec(),
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
@@ -871,7 +888,11 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "medicare_levy" => (
             "2026-11-14",
-            "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25)",
+            "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B",
+        ),
+        "medicare_levy_surcharge" => (
+            "2026-11-14",
+            "Medicare Levy Act 1986 ss 3(1), (3) and (3A), 3A, 8B and 8D, compilations 52 (2024-25) and 53; A New Tax System (Medicare Levy Surcharge - Fringe Benefits) Act 1999 ss 3, 6, 7, 12, 15 and 16, compilations 41 (2024-25) and 42; ATO Medicare levy surcharge income, thresholds and rates, with the Tom example (2026-27); M2 Medicare levy surcharge 2026, with the Josh, Jacinta and Jill and Kevin examples (2025-26)",
         ),
         "low_income_tax_offset" => (
             "2026-10-15",
@@ -997,9 +1018,15 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-11-14",
         ),
         "medicare_levy" => (
-            "ATO Medicare levy reduction for low-income earners; Medicare levy reduction - family income",
-            "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton)",
+            "ATO Medicare levy reduction for low-income earners; Medicare levy reduction - family income; Not entitled to Medicare benefits",
+            "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton); claiming an exemption, example (Priya)",
             "2026-06-30",
+            "2026-11-14",
+        ),
+        "medicare_levy_surcharge" => (
+            "ATO Medicare levy surcharge income, thresholds and rates; M2 Medicare levy surcharge 2026",
+            "thresholds and rates for 2024-25 to 2026-27, example (Tom); examples (Josh, Jacinta, Jill and Kevin)",
+            "2026-06-22",
             "2026-11-14",
         ),
         "low_income_tax_offset" => (
@@ -1087,6 +1114,24 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "dependent_children",
                 "integer, the dependent children and students (ITAA 1997 s 961-5(1)(c)) for whom the person or their spouse is entitled to the Subdivision 961-A notional tax offset; without a spouse, only those for whom family tax benefit was payable to the person (s 8(5) and (6)), and only with dependant_offset_entitled true; omit for none",
+            ),
+            (
+                "medicare_levy_exemption_full_days",
+                "integer from 0 to the days in the year, the days the person qualified for a full exemption (myTax 'Full 2% levy exemption - number of days', return label M1 V): a prescribed person under ITAA 1936 s 251U(1) in the medical category or as one not entitled to Medicare benefits, not as a foreign resident; omit for none",
+            ),
+            (
+                "medicare_levy_exemption_half_days",
+                "integer from 0 to the days in the year, the days the person qualified for a half exemption (label M1 W): in the medical category, but with a dependant outside the exemption categories (s 251U(3)); a day in both counts once, as a full day; omit for none",
+            ),
+        ],
+        "medicare_levy_surcharge" => vec![
+            (
+                "spouse_income_for_surcharge_purposes",
+                "AUD, the income for surcharge purposes of the person's spouse, for a person married for the whole year (s 3(3): not one living separately and apart; one who died in the year counts, s 3(3A)), including the spouse's share of trust net income on which the trustee is assessed under ITAA 1936 s 98 (s 8D(5)); omit for a person without a spouse or dependants all year",
+            ),
+            (
+                "dependent_children",
+                "integer, the MLS dependent children (Australian residents the person maintained: under 21, or 21 to 24 and studying full time), only with spouse_income_for_surcharge_purposes; each after the first raises the family thresholds; omit for none",
             ),
         ],
         "payg_withholding" => vec![
@@ -1341,6 +1386,24 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "section_9a_adjustment_applies",
                 "boolean, whether Medicare Levy Act 1986 s 9A removes lump sums in arrears; true is refused",
+            ),
+        ],
+        "medicare_levy_surcharge" => vec![
+            (
+                "taxable_income",
+                "AUD, whole dollars, including any amount on which family trust distribution tax was paid (s 3(2A))",
+            ),
+            (
+                "reportable_fringe_benefits",
+                "AUD, the reportable fringe benefits total",
+            ),
+            (
+                "income_for_surcharge_purposes",
+                "AUD, the person's income for surcharge purposes, as the ATO's thresholds page lists it: taxable income without any assessable first home super saver released amount, plus reportable fringe benefits, total net investment loss, reportable super contributions, any amount on which family trust distribution tax was paid and, if taxable income is $1 or more, any exempt foreign employment income",
+            ),
+            (
+                "days_without_cover",
+                "integer from 0 to the days in the year, the days on which the person or, for a person with a spouse, the person, the spouse or a dependent child had no appropriate private patient hospital cover (s 3(5)), not counting a spouse or child who was then a prescribed person, or would have been but for ITAA 1936 s 251U(2) (s 8D(1)(b)); the days in the year for none",
             ),
         ],
         "low_income_tax_offset" => vec![("taxable_income", "AUD, whole dollars")],
@@ -1623,6 +1686,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "medicare_levy" => vec![
             ("taxable_income", Text("30000")),
             ("section_9a_adjustment_applies", Flag(false)),
+        ],
+        // The ATO's Tom example, 2026-27.
+        "medicare_levy_surcharge" => vec![
+            ("year", Text("2026-27")),
+            ("taxable_income", Text("90000")),
+            ("reportable_fringe_benefits", Text("27000.00")),
+            ("income_for_surcharge_purposes", Text("117000.00")),
+            ("days_without_cover", Whole(365)),
         ],
         "low_income_tax_offset" => vec![("taxable_income", Text("40000"))],
         "division_293" => vec![
