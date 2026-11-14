@@ -98,7 +98,7 @@ lists the commands.
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
-| `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
+| `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |
 | `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
 | `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed` |
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
@@ -114,7 +114,7 @@ The 2 car commands, `main-residence`, `borrowing-expenses` and `division-296` ha
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value. Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value. `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding). Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Supported periods
@@ -148,18 +148,38 @@ low-income reduction remain outside these worksheets.
 ## PAYG withholding
 
 `payg_withholding` applies the Schedule 1 (NAT 1004) formulas to one regular
-weekly, fortnightly or monthly pay made from 1 July 2024, on scale 1, 2, 3, 5
-or 6 as the operator established from the payee's declarations. The income year
-selects the coefficients: 2024-25 and 2025-26 use those for payments from 1 July
-2024 to 30 June 2026, and 2026-27 those for payments from 1 July 2026. Earnings
-include allowances subject to withholding. The result gives the weekly
-earnings used, the weekly amount and the amount for the pay period, with the
-coefficients applied. Scale 4, tax offsets, Medicare levy adjustments, study
-and training support loans, extra amounts for 53 or 27 pays, quarterly pays
-and the other schedules are outside it. The tests reproduce every amount in
-the ATO's published sample data for both schedules; see
-[calculation evidence](docs/calculation-evidence.md#payg-withholding).
-This worksheet is published in the 0.1.5 wheel.
+weekly, fortnightly, monthly or quarterly pay made from 1 July 2024, on the
+scale the operator established from the payee's declarations. The income year
+selects the coefficients and rules: 2024-25 and 2025-26 use the schedule for
+payments from 1 July 2024 to 30 June 2026, and 2026-27 the one for payments
+from 1 July 2026. Earnings include allowances subject to withholding. The
+result gives the weekly earnings used, the weekly amount and the amount for the
+pay period, with the coefficients applied.
+
+- Scale 4, for a payee who gave no TFN, needs `foreign_resident` and applies
+  47% (resident) or 45% (foreign resident) to the pay's earnings, ignoring the
+  cents in the earnings and in the result.
+- `tax_offsets`, the yearly total claimed on the payee's Withholding
+  declaration, reduces scales 2, 5 and 6 by 1.9% a week, 3.8% a fortnight,
+  8.3% a month or 25% a quarter, rounded to the dollar.
+- `medicare_adjustment_children` gives the Medicare levy adjustment on scales 2
+  and 6 for a payee whose Medicare levy variation declaration claims it: the
+  dependent children shown at question 12, or 0 for a spouse and no children.
+- `extra_pay_withholding: true` adds the schedule's additional amount for a
+  year of 53 weekly or 27 fortnightly pays, when the payee has asked for it.
+
+When any of the last 3 is given, the result also shows the amount before
+them and each adjustment. The schedule does not say what happens when offsets
+and the adjustment exceed the amount withheld, so that is refused, as is an
+optional input on a scale or pay period the schedule does not allow it for.
+Bi-monthly, daily and casual pays, a Medicare levy variation that increases
+withholding, study and training support loans and the other schedules are
+outside it. The tests reproduce every amount and Medicare levy adjustment in
+the ATO's published sample data for both schedules, and each schedule's worked
+examples; see [calculation evidence](docs/calculation-evidence.md#payg-withholding).
+This worksheet was first published in the 0.1.5 wheel. The 0.2.0 wheel, which
+the MCP server uses, covers weekly, fortnightly and monthly 2026-27 pays on
+scales 1, 2, 3, 5 and 6 only; no release publishes the rest yet.
 
 ## Super contribution caps and pension minimums
 

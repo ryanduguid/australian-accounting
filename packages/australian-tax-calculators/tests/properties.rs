@@ -222,46 +222,69 @@ fn resident_tax_never_falls_and_its_marginal_rate_never_falls() {
     }
 }
 
-fn withheld(earnings: &str, period: &str, scale: i64, year: &str) -> Decimal {
-    let result = run(
-        "payg-withholding",
-        json!({"earnings": earnings, "pay_period": period, "scale": scale,
-               "year": year, "scope_confirmed": true}),
-    );
-    amount(&result, "withholding")
+/// `foreign` is scale 4's residency, `None` on the other scales.
+fn withheld(
+    earnings: &str,
+    period: &str,
+    scale: i64,
+    year: &str,
+    foreign: Option<bool>,
+) -> Decimal {
+    let mut input = json!({"earnings": earnings, "pay_period": period, "scale": scale,
+                           "year": year, "scope_confirmed": true});
+    if let Some(foreign) = foreign {
+        input["foreign_resident"] = json!(foreign);
+    }
+    amount(&run("payg-withholding", input), "withholding")
 }
 
-fn payg_scales() -> Vec<(&'static str, i64)> {
+/// Every year's scales, with scale 4 for a resident and a foreign resident.
+fn payg_scales() -> Vec<(&'static str, i64, Option<bool>)> {
     PAYG_WITHHOLDING_COEFFICIENTS
         .iter()
-        .flat_map(|(year, scales)| scales.iter().map(move |(scale, _)| (*year, *scale)))
+        .flat_map(|(year, scales)| {
+            let no_tfn = [false, true].map(|foreign| (*year, 4, Some(foreign)));
+            scales
+                .iter()
+                .map(move |(scale, _)| (*year, *scale, None))
+                .chain(no_tfn)
+        })
         .collect()
 }
 
 #[test]
 fn payg_withholding_never_falls_as_earnings_rise() {
-    let check = |(year, scale): (&str, i64), period: &str, low: String, high: String| {
+    let check = |(year, scale, foreign): (&str, i64, Option<bool>),
+                 period: &str,
+                 low: String,
+                 high: String| {
         let (low, high) = sorted_dec(low, high);
         let (a, b) = (
-            withheld(&low, period, scale, year),
-            withheld(&high, period, scale, year),
+            withheld(&low, period, scale, year, foreign),
+            withheld(&high, period, scale, year, foreign),
         );
         assert!(
             le(&n(0), &a) && le(&a, &b),
-            "{year} {scale} {period} {low} {high}"
+            "{year} {scale} {foreign:?} {period} {low} {high}"
         );
     };
     check(
-        ("2026-27", 2),
+        ("2026-27", 2, None),
         "monthly",
         "3000.32".into(),
         "3000.33".into(),
+    );
+    check(
+        ("2026-27", 4, Some(false)),
+        "weekly",
+        "2.99".into(),
+        "3.00".into(),
     );
     let scales = payg_scales();
     let mut rng = Rng(0x9A76);
     for _ in 0..RUNS {
         let year_scale = *rng.pick(&scales);
-        let period = *rng.pick(&["weekly", "fortnightly", "monthly"]);
+        let period = *rng.pick(&["weekly", "fortnightly", "monthly", "quarterly"]);
         let (low, high) = (rng.pay(), rng.pay());
         check(year_scale, period, low, high);
     }
@@ -278,7 +301,7 @@ fn payg_withholding_never_falls_across_any_bracket_boundary() {
             for (period, weeks) in [("weekly", 1), ("fortnightly", 2), ("monthly", 5)] {
                 let mut previous = n(0);
                 for dollars in 0..(last_limit + 50) * weeks {
-                    let amount = withheld(&dollars.to_string(), period, *scale, year);
+                    let amount = withheld(&dollars.to_string(), period, *scale, year, None);
                     assert!(le(&previous, &amount), "{year} {scale} {period} {dollars}");
                     previous = amount;
                 }

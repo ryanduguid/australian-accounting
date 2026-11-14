@@ -508,11 +508,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
     // Division 296 has no Python original whose lenience to keep, and a misspelt
-    // optional depreciation input would silently give the start year's result, so
-    // a field either does not take, such as an opening balance, is refused rather
-    // than ignored.
-    if matches!(command, "division-296" | "depreciation") {
-        let optional = crate::metadata::optional_inputs(command);
+    // optional depreciation or PAYG withholding input would silently give the
+    // result without it, so a field these do not take, such as an opening
+    // balance, is refused rather than ignored.
+    if matches!(
+        command,
+        "division-296" | "depreciation" | "payg-withholding"
+    ) {
+        let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
         let taken = |key: &String| {
             params.iter().any(|(p, _)| p == key) || optional.iter().any(|(o, _)| o == key)
         };
@@ -573,7 +576,26 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             )
         }
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
-        "payg-withholding" => engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "payg-withholding" => {
+            // Optional: each is absent unless the payee's declarations call for it.
+            let offsets = match v.get("tax_offsets") {
+                None => None,
+                Some(_) => Some(argument(v, "tax_offsets", Dec)?),
+            };
+            let [foreign, children, extra] = [
+                "foreign_resident",
+                "medicare_adjustment_children",
+                "extra_pay_withholding",
+            ]
+            .map(|key| v.get(key).map(arg));
+            let options = engine::PaygOptions {
+                foreign_resident: foreign.as_ref(),
+                tax_offsets: offsets.as_ref(),
+                medicare_adjustment_children: children.as_ref(),
+                extra_pay_withholding: extra.as_ref(),
+            };
+            engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
+        }
         "study-loan-withholding" => {
             engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4])
         }

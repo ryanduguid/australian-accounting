@@ -742,7 +742,8 @@ fn payg_rows(year: &str, scale: i64) -> Option<&'static [CoefficientRow]> {
         .map(|(_, rows)| *rows)
 }
 
-/// `_payg_checks`: scope, earnings, pay period and scale, in that order.
+/// `_payg_checks`: scope, earnings, pay period and scale, in that order. Only
+/// `payg_withholding` takes quarterly pays and scale 4.
 fn payg_checks(
     kind: &str,
     earnings: &Arg,
@@ -753,26 +754,36 @@ fn payg_checks(
 ) -> Result<(String, Decimal, String, i64)> {
     let year = scope(scope_confirmed, year, kind)?;
     let earnings = money(earnings)?;
+    let schedule_1 = kind == "payg_withholding";
     let period = match pay_period.text() {
         Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
+        Some("quarterly") if schedule_1 => "quarterly".to_string(),
         _ => {
             return refuse(
                 "input.pay_period_invalid",
-                "pay_period must be weekly, fortnightly or monthly.",
+                if schedule_1 {
+                    "pay_period must be weekly, fortnightly, monthly or quarterly."
+                } else {
+                    "pay_period must be weekly, fortnightly or monthly."
+                },
             );
         }
     };
-    let Some(Some(scale)) = scale.int() else {
-        return refuse(
+    let unsupported = || {
+        refuse(
             "input.tax_scale_unsupported",
-            "scale must be 1, 2, 3, 5 or 6; scale 4 is not supported.",
-        );
+            if schedule_1 {
+                "scale must be 1, 2, 3, 4, 5 or 6."
+            } else {
+                "scale must be 1, 2, 3, 5 or 6; scale 4 is not supported."
+            },
+        )
     };
-    if payg_rows(&year, scale).is_none() {
-        return refuse(
-            "input.tax_scale_unsupported",
-            "scale must be 1, 2, 3, 5 or 6; scale 4 is not supported.",
-        );
+    let Some(Some(scale)) = scale.int() else {
+        return unsupported();
+    };
+    if payg_rows(&year, scale).is_none() && !(schedule_1 && scale == 4) {
+        return unsupported();
     }
     Ok((year, earnings, period, scale))
 }
@@ -782,6 +793,7 @@ fn weekly_earnings(earnings: &Decimal, pay_period: &str) -> Calc<Decimal> {
     let weekly = match pay_period {
         "weekly" => earnings.clone(),
         "fortnightly" => earnings.div(&int(2))?,
+        "quarterly" => earnings.div(&int(13))?,
         _ => {
             // Schedule 1: a monthly amount ending in 33 cents gains a cent first.
             let mut earnings = earnings.clone();
@@ -812,15 +824,156 @@ fn weekly_formula(x: &Decimal, rows: &[CoefficientRow]) -> Calc<(Decimal, Decima
     Ok((a, b, amount))
 }
 
+/// A rounded weekly amount for the pay period: the withholding amount and the
+/// Medicare levy adjustment convert the same way.
 fn for_pay_period(weekly_amount: &Decimal, pay_period: &str) -> Calc<Decimal> {
     match pay_period {
         "weekly" => Ok(weekly_amount.clone()),
         "fortnightly" => weekly_amount.mul(&int(2)),
+        "quarterly" => weekly_amount.mul(&int(13)),
         _ => weekly_amount
             .mul(&int(13))?
             .div(&int(3))?
             .quantize(0, Rounding::HalfUp),
     }
+}
+
+/// `payg_withholding`'s optional inputs, each `None` when not given.
+pub struct PaygOptions<'a> {
+    pub foreign_resident: Option<&'a Arg>,
+    pub tax_offsets: Option<&'a Arg>,
+    pub medicare_adjustment_children: Option<&'a Arg>,
+    pub extra_pay_withholding: Option<&'a Arg>,
+}
+
+/// The optional inputs once checked against the scale and pay period.
+struct PaygChoices {
+    foreign: Option<bool>,
+    offsets: Option<Decimal>,
+    children: Option<i64>,
+    extra: bool,
+}
+
+/// The optional inputs checked against the scale and pay period: residency
+/// (scale 4), offsets, Medicare levy adjustment children, the 53 or 27 pay ask.
+fn payg_options(options: &PaygOptions, scale: i64, period: &str) -> Result<PaygChoices> {
+    let foreign = match options.foreign_resident {
+        None if scale == 4 => {
+            return refuse(
+                "input.missing_field",
+                "foreign_resident is required for scale 4.",
+            );
+        }
+        None => None,
+        Some(_) if scale != 4 => {
+            return refuse(
+                "payg.foreign_resident_not_scale_4",
+                "foreign_resident applies to scale 4 only; scale 3 is for a foreign resident who gave a TFN.",
+            );
+        }
+        Some(value) => Some(flag(value, "foreign_resident")?),
+    };
+    let offsets = match options.tax_offsets {
+        None => None,
+        Some(_) if ![2, 5, 6].contains(&scale) => {
+            return refuse(
+                "payg.tax_offsets_not_allowed",
+                "Tax offsets reduce withholding on scales 2, 5 and 6 only.",
+            );
+        }
+        Some(value) => Some(money(value)?),
+    };
+    let children = match options.medicare_adjustment_children {
+        None => None,
+        Some(_) if ![2, 6].contains(&scale) => {
+            return refuse(
+                "payg.medicare_adjustment_not_allowed",
+                "A Medicare levy adjustment applies on scales 2 and 6 only.",
+            );
+        }
+        Some(value) => match value.int() {
+            Some(Some(n)) if n >= 0 => Some(n),
+            _ => {
+                return refuse(
+                    "input.children_invalid",
+                    "medicare_adjustment_children must be a whole number from 0.",
+                );
+            }
+        },
+    };
+    let extra = match options.extra_pay_withholding {
+        None => false,
+        Some(value) => flag(value, "extra_pay_withholding")?,
+    };
+    if extra && !matches!(period, "weekly" | "fortnightly") {
+        return refuse(
+            "payg.extra_pays_not_weekly_or_fortnightly",
+            "Schedule 1 has additional amounts for 53 weekly or 27 fortnightly pays only.",
+        );
+    }
+    Ok(PaygChoices {
+        foreign,
+        offsets,
+        children,
+        extra,
+    })
+}
+
+/// Schedule 1 'Medicare levy adjustment' for scale 2 or 6: the weekly family
+/// threshold, the shading out point and the weekly levy adjustment, rounded
+/// straight to the dollar.
+fn weekly_levy_adjustment(
+    x: &Decimal,
+    rules: &meta::Schedule1Rules,
+    scale: i64,
+    children: i64,
+) -> Calc<(Decimal, Decimal, Decimal)> {
+    let (_, m) = rules
+        .medicare_scales
+        .iter()
+        .find(|(s, _)| *s == scale)
+        .expect("scale 2 or 6");
+    let per_child = int(rules.family_threshold_per_child).mul(&int(children))?;
+    let wft = int(rules.family_threshold)
+        .add(&per_child)?
+        .div(&int(52))?
+        .quantize(-2, Rounding::HalfUp)?;
+    let sop = wft
+        .mul(&d("0.1"))?
+        .div(&d("0.0800"))?
+        .quantize(0, Rounding::Down)?;
+    let wla = if x.lt(&int(m.threshold))? || !x.lt(&sop)? {
+        int(0)
+    } else if x.lt(&int(m.shade_in))? {
+        x.sub(&d(m.formula_1_less))?.mul(&d(m.shade_in_rate))?
+    } else if x.lt(&wft)? {
+        x.mul(&d(m.levy_rate))?
+    } else {
+        let shading = x.sub(&wft)?.mul(&d(m.shade_out_rate))?;
+        wft.mul(&d(m.levy_rate))?.sub(&shading)?
+    };
+    Ok((wft, sop, wla.quantize(0, Rounding::HalfUp)?))
+}
+
+/// The additional amount for a year of 53 weekly or 27 fortnightly pays: the
+/// last band whose whole-dollar lower limit the pay's earnings reach.
+fn extra_pay_amount(
+    earnings: &Decimal,
+    period: &str,
+    rules: &meta::Schedule1Rules,
+) -> Calc<Decimal> {
+    let bands = if period == "weekly" {
+        &rules.extra_weekly
+    } else {
+        &rules.extra_fortnightly
+    };
+    let mut amount = 0;
+    for (from, extra) in bands {
+        if !earnings.lt(&int(*from))? {
+            amount = *extra;
+        }
+    }
+    Ok(int(amount))
 }
 
 pub fn payg_withholding(
@@ -829,6 +982,7 @@ pub fn payg_withholding(
     scale: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
+    options: &PaygOptions,
 ) -> Result<Value> {
     let (year, earnings, period, scale) = payg_checks(
         "payg_withholding",
@@ -838,26 +992,89 @@ pub fn payg_withholding(
         year,
         scope_confirmed,
     )?;
-    let rows = payg_rows(&year, scale).expect("checked scale");
-    let (amounts, a, b) = precise(|| {
-        let x = weekly_earnings(&earnings, &period)?;
-        let (a, b, weekly) = weekly_formula(&x, rows)?;
-        let withholding = for_pay_period(&weekly, &period)?;
-        Ok((
-            vec![
-                ("weekly_earnings_used", x),
-                ("weekly_withholding", weekly),
-                ("withholding", withholding),
-            ],
-            a,
-            b,
-        ))
+    let PaygChoices {
+        foreign,
+        offsets,
+        children,
+        extra,
+    } = payg_options(options, scale, &period)?;
+    let rules = *lookup(meta::PAYG_WITHHOLDING_RULES, &year);
+    let (amounts, rates) = precise(|| {
+        let mut amounts = Vec::new();
+        let mut rates = vec![rate("scale", scale)];
+        let before = if scale == 4 {
+            // Note 3 to the coefficients: the rate applies to the pay's earnings,
+            // ignoring cents in the earnings and in the result.
+            let (resident, foreign_rate) = rules.no_tfn_rates;
+            let tax_rate = if foreign == Some(true) {
+                foreign_rate
+            } else {
+                resident
+            };
+            rates.push(rate("tax_rate", tax_rate));
+            let used = earnings.quantize(0, Rounding::Down)?;
+            let withheld = used.mul(&d(tax_rate))?.quantize(0, Rounding::Down)?;
+            amounts.push(("earnings_used", used));
+            withheld
+        } else {
+            let rows = payg_rows(&year, scale).expect("checked scale");
+            let x = weekly_earnings(&earnings, &period)?;
+            let (a, b, weekly) = weekly_formula(&x, rows)?;
+            rates.push(rate("a", a));
+            rates.push(rate("b", b));
+            amounts.push(("weekly_earnings_used", x));
+            amounts.push(("weekly_withholding", weekly.clone()));
+            for_pay_period(&weekly, &period)?
+        };
+        let adjusted = offsets.is_some() || children.is_some() || extra;
+        if adjusted {
+            amounts.push(("withholding_before_adjustments", before.clone()));
+        }
+        let mut reductions = int(0);
+        if let Some(offsets) = &offsets {
+            let share = *lookup(&rules.tax_offset_rates, &period);
+            let reduction = offsets.mul(&d(share))?.quantize(0, Rounding::HalfUp)?;
+            rates.push(rate("tax_offset_rate", share));
+            reductions = reductions.add(&reduction)?;
+            amounts.push(("tax_offset_reduction", reduction));
+        }
+        if let Some(children) = children {
+            let x = weekly_earnings(&earnings, &period)?;
+            let (wft, sop, weekly) = weekly_levy_adjustment(&x, rules, scale, children)?;
+            let adjustment = for_pay_period(&weekly, &period)?;
+            rates.push(rate("medicare_adjustment_children", children));
+            rates.push(rate("weekly_family_threshold", wft));
+            rates.push(rate("shading_out_point", sop));
+            reductions = reductions.add(&adjustment)?;
+            amounts.push(("weekly_medicare_levy_adjustment", weekly));
+            amounts.push(("medicare_levy_adjustment", adjustment));
+        }
+        // Schedule 1 says these reduce the amount withheld, not what an excess
+        // means, so an excess is refused rather than taken as nil.
+        if before.lt(&reductions)? {
+            return refuse(
+                "payg.reductions_exceed_withholding",
+                format!(
+                    "The tax offsets and Medicare levy adjustment (${}) exceed the amount withheld before them (${}); Schedule 1 does not say how to treat the excess.",
+                    cents(reductions)?,
+                    cents(before)?
+                ),
+            );
+        }
+        let mut withholding = before.sub(&reductions)?;
+        if extra {
+            let additional = extra_pay_amount(&earnings, &period, rules)?;
+            withholding = withholding.add(&additional)?;
+            amounts.push(("additional_withholding", additional));
+        }
+        amounts.push(("withholding", withholding));
+        Ok((amounts, rates))
     })?;
     result(
         "payg_withholding",
         &format!("{year} {period}"),
         amounts,
-        vec![rate("scale", scale), rate("a", a), rate("b", b)],
+        rates,
     )
 }
 
