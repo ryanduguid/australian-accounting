@@ -46,6 +46,27 @@ fn a_remaining_term_longer_than_the_maximum_term_is_refused() {
 }
 
 #[test]
+fn a_checked_remaining_term_is_not_reported_as_unchecked() {
+    let mut figures = 0;
+    for (name, arguments, _) in runs() {
+        assert!(arguments["maximum_term_years"].is_string(), "{name}");
+        let repayment = &core(&arguments)["minimum_yearly_repayment"];
+        if repayment["myr_required"].is_string() {
+            figures += 1;
+        }
+        let caveats = repayment["caveats"].as_array().unwrap();
+        assert!(
+            !caveats.iter().any(|c| c
+                .as_str()
+                .unwrap()
+                .starts_with("maximum_term_years was not supplied")),
+            "{name}: {caveats:?}"
+        );
+    }
+    assert!(figures > 0);
+}
+
+#[test]
 fn the_gate_and_repayment_verdicts_codes_and_reasons_match_the_python_server() {
     let runs = runs();
     assert_eq!(runs.len(), 21);
