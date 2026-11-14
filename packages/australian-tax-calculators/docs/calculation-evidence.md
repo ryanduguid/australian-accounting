@@ -48,6 +48,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
+| Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component from 1 July 2026 only |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
@@ -481,6 +482,67 @@ benefit and other interests whose earnings use s 296-70 are outside it, as their
 earnings use a different formula and tax on a defined benefit interest may be
 deferred to a debt account, and so are departing temporary residents
 (ss 296-195 to 296-205). Later income years wait for their indexed thresholds.
+
+## Termination payment
+
+This worksheet's evidence is the ATO's Schedule 11, 'Tax table for employment
+termination payments' (for payments made from 1 July 2026, last updated 17 June
+2026), checked with the primary sources on 14 November 2026:
+
+- Schedule 11 sets the 2026-27 ETP cap at $270,000 and the whole-of-income cap
+  at $180,000, reduced by the payer's other taxable payments to the employee in
+  the year (its steps 1 to 4); applies the ETP cap alone to genuine redundancy,
+  early retirement scheme, invalidity and compensation payments and the smaller
+  cap to the rest; and withholds, from a life benefit ETP's taxable component,
+  17% within the cap from preservation age, 32% below it and 47% above the cap,
+  rounding to the nearest dollar with 50 cents up. Its examples 1 to 4 (Lloyd
+  $14,400; Jane $3,200; Chris $25,600 and $18,800, $44,400; Alec $127 and
+  $5,657, with the $397 excluded part reducing the gratuity's ETP cap to
+  $269,603) are in `tests/termination_payment.rs`. Example 1 gives only the ETP,
+  so the test holds it as a genuine redundancy payment with no completed year of
+  service.
+- The ATO's 'Employment termination payments' rates page (last updated 17 April
+  2026) gives the same ETP cap (table 17) and the 2026-27 genuine redundancy and
+  early retirement scheme limits, $13,598 and $6,801 for each complete year of
+  service (table 20). These 4 figures are the rate records
+  `etp-cap-life-benefit-2026-27`, `etp-whole-of-income-cap-2026-27`,
+  `genuine-redundancy-base-limit-2026-27` and
+  `genuine-redundancy-service-amount-2026-27`, which the root
+  `tests/test_dated_rates.py` keeps equal to `TERMINATION_PAYMENT`.
+- ITAA 1997, compilation 268 (1 October 2026, the current one, read through
+  the Federal Register API): s 83-170 makes a genuine redundancy or early
+  retirement scheme payment tax-free up to the base amount plus the service
+  amount for each whole year of service, and s 82-135(e) takes that part out of
+  the ETP; s 82-10(3) and (4) limit the rate on the taxable component within
+  the cap to 15% from preservation age on the last day of the income year and
+  30% otherwise, and set the caps; s 82-10(6) lists the excluded payments the
+  whole-of-income cap does not apply to; and s 82-10(7) treats a partly
+  excluded payment as its excluded part first and then the rest. The indexed
+  amounts are not in the Act; s 82-160 and s 83-170(3) give the 2007-08 and
+  2006-07 bases.
+- Preservation age is 55 for a person born before 1 July 1960, rising a year for
+  each year of birth from 1 July to 60 for a person born after 30 June 1964
+  (Superannuation Industry (Supervision) Regulations 1994 reg 6.01(2),
+  compilation 159, applied by ITAA 1997 s 995-1), as Schedule 11's table shows.
+  So in 2026-27 the 17% rate applies to anyone born on or before 30 June 1967.
+
+The Library's ¶1-420 (tax examples, 'Assessable Income', last reviewed 30 June
+2026) works a 2025-26 genuine redundancy: $70,000 after 15 years, wholly within
+the $111,380 limit. The test holds it as 2026-27, when the limit is $115,613.
+
+The worksheet computes withholding, not the tax assessed. Two ATO texts differ
+on whether the whole-of-income cap for the non-excluded part of a single ETP
+counts its excluded part: Schedule 11's example 4 and step 6 of the Alec example
+on the ATO's 'Working out the whole-of-income cap amount' page (last updated
+24 July 2025) do not, while the Robyn example on the same page and ITAA 1997
+s 82-10(5) and (7)(b) count the excluded part's taxable component in taxable
+income. The worksheet follows Schedule 11 for withholding, and every result
+warns that on assessment the cap uses the year's taxable income, so the tax can
+differ from the amount withheld. Classifying payments, death benefit ETPs, a
+tax-free component (an invalidity segment or a pre-July 83 segment, s 82-140),
+earlier ETPs in the year or for the same termination (which reduce the caps,
+s 82-10(4)(a) and (b)), delayed termination payments, payees without a TFN,
+foreign residents and working holiday makers are outside it.
 
 ## Schedule 5
 

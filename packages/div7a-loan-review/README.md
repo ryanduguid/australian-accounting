@@ -384,7 +384,9 @@ Two samples ship with the repository:
   3 complying loans that run to a verdict with no confirmation flags.
 - [`examples/sample_loans_mixed.csv`](examples/sample_loans_mixed.csv) -
   `UNKNOWN` rows, a loan whose rate is below the benchmark, a 25-year loan
-  with 109% cover, a nil remaining term and 2 skipped rows.
+  with 109% cover, a nil remaining term, 4 remaining terms longer than the
+  loan allows (one with no loan year and a nominated benchmark year), 2 at
+  that limit and 2 skipped rows.
 
 Both are fabricated. Every identifier is synthetic.
 

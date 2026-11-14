@@ -939,6 +939,71 @@ fn division_296_tax_rises_with_the_balance_and_stays_within_a_quarter() {
     }
 }
 
+/// A termination payment's parts add back to what was paid, each part stays
+/// within its cap and the 2 within the ETP cap, the withholding lies between
+/// 17% and 47% of the taxable components but for a dollar of rounding, and
+/// more other taxable payments never lower it.
+#[test]
+fn termination_payment_parts_add_up_and_withholding_rises_with_other_income() {
+    let mut rng = Rng(20_261_114);
+    let add = |a: &Decimal, b: &Decimal| a.add(b).unwrap();
+    for _ in 0..RUNS {
+        let (redundancy, excluded) = (rng.cents(50_000_000), rng.cents(40_000_000));
+        let mut facts = json!({
+            "redundancy_payment": redundancy, "completed_years_of_service": rng.int(0, 45),
+            "excluded_payment": excluded, "non_excluded_payment": rng.cents(40_000_000),
+            "other_taxable_payments": rng.cents(30_000_000),
+            "date_of_birth": *rng.pick(&["1955-03-01", "1967-06-30", "1967-07-01", "1990-01-15"]),
+            "year": "2026-27", "scope_confirmed": true,
+        });
+        let r = run("termination-payment", facts.clone());
+        let a = |key: &str| amount(&r, key);
+        assert!(
+            eq(
+                &add(
+                    &a("tax_free_redundancy_amount"),
+                    &a("excluded_taxable_component")
+                ),
+                &add(&d(&redundancy), &d(&excluded))
+            ),
+            "{facts}"
+        );
+        for part in ["excluded", "non_excluded"] {
+            let split = add(
+                &a(&format!("{part}_within_cap")),
+                &a(&format!("{part}_above_cap")),
+            );
+            assert!(
+                eq(&split, &a(&format!("{part}_taxable_component"))),
+                "{facts}"
+            );
+        }
+        let cap = a("non_excluded_cap");
+        assert!(le(&a("non_excluded_within_cap"), &cap), "{facts}");
+        assert!(le(&cap, &a("remaining_etp_cap")) && le(&cap, &a("whole_of_income_cap")));
+        let within = add(&a("excluded_within_cap"), &a("non_excluded_within_cap"));
+        assert!(le(&within, &n(270_000)), "{facts}");
+        let taxable = add(
+            &a("excluded_taxable_component"),
+            &a("non_excluded_taxable_component"),
+        );
+        let withheld = a("total_withholding");
+        let lowest = taxable.mul(&d("0.17")).unwrap().sub(&n(1)).unwrap();
+        let highest = add(&taxable.mul(&d("0.47")).unwrap(), &n(1));
+        assert!(le(&lowest, &withheld) && le(&withheld, &highest), "{facts}");
+        let more = add(
+            &d(facts["other_taxable_payments"].as_str().unwrap()),
+            &d(&rng.cents(10_000_000)),
+        );
+        facts["other_taxable_payments"] = json!(more.to_string());
+        let after = run("termination-payment", facts.clone());
+        assert!(
+            le(&withheld, &amount(&after, "total_withholding")),
+            "{facts}"
+        );
+    }
+}
+
 /// Schedule 5 Methods A and B(ii): the withholding from an additional payment
 /// is never negative or more than 47% of it, and the total is that plus the
 /// withholding from the normal earnings.

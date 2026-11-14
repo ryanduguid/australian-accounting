@@ -267,6 +267,22 @@ pub const DIVISION_296: [(&str, &str); 4] = [
 ];
 pub const DIVISION_296_YEARS: [&str; 1] = ["2026-27"];
 
+/// 2026-27 life benefit termination payment figures: the ETP cap amount (ITAA
+/// 1997 s 82-160, indexed), the whole-of-income cap (s 82-10(4)(c)), the
+/// genuine redundancy and early retirement scheme base and service amounts
+/// (s 83-170(3), indexed), all as the ATO publishes them, and Schedule 11
+/// Table A's withholding rates, which include the 2% Medicare levy.
+pub const TERMINATION_PAYMENT: [(&str, &str); 7] = [
+    ("etp_cap", "270000"),
+    ("whole_of_income_cap", "180000"),
+    ("base_amount", "13598"),
+    ("service_amount", "6801"),
+    ("preservation_age_rate", "0.17"),
+    ("under_preservation_age_rate", "0.32"),
+    ("above_cap_rate", "0.47"),
+];
+pub const TERMINATION_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
+
 /// Schedule 5 (NAT 3348): the schedules for payments from 1 July 2024, 1 July
 /// 2025 and 1 July 2026 state the same methods and limit.
 pub const SCHEDULE_5_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
@@ -315,6 +331,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "low_income_tax_offset" => LOW_INCOME_TAX_OFFSET_YEARS.to_vec(),
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
+        "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
             SCHEDULE_5_YEARS.to_vec()
         }
@@ -397,6 +414,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "division_296" => (
             "2026-11-13",
             "ITAA 1997 ss 296-15 to 296-55, compilation 268 (1 October 2026); Imposition Act 2026 s 5; Income Tax (Transitional Provisions) Act 1997 s 296-1; Explanatory Memorandum examples 1.1 to 1.3; ATO Division 296 tax on large super balances",
+        ),
+        "termination_payment" => (
+            "2026-11-14",
+            "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
         ),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
             "2026-11-14",
@@ -516,6 +537,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "6-495",
             "2026-06-30",
             "2026-11-13",
+        ),
+        "termination_payment" => (
+            "ATO Schedule 11 tax table for employment termination payments",
+            "examples 1 to 4",
+            "2026-06-17",
+            "2026-11-14",
         ),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
             "ATO Schedule 5 (NAT 3348) withholding amounts examples",
@@ -779,6 +806,32 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, whether the individual died on or before 30 June 2027 (Income Tax (Transitional Provisions) Act 1997 s 296-1(3))",
             ),
         ],
+        "termination_payment" => vec![
+            (
+                "redundancy_payment",
+                "AUD, the genuine redundancy payment (s 83-175) or early retirement scheme payment (s 83-180): the part of the termination payment above what voluntary termination would have paid, excluding salary, wages, unused annual and long service leave and payments in lieu of superannuation; 0.00 for none",
+            ),
+            (
+                "completed_years_of_service",
+                "integer from 0 to 150, the whole years in the period of employment the redundancy payment relates to (s 83-170(3))",
+            ),
+            (
+                "excluded_payment",
+                "AUD, the taxable component of any other excluded payment in the termination payment: one that would be a genuine redundancy payment but for the pension age condition, or compensation in a genuine dispute for personal injury, unfair dismissal, harassment or discrimination (s 82-10(6)); not an invalidity payment",
+            ),
+            (
+                "non_excluded_payment",
+                "AUD, the taxable component of the rest of the termination payment, such as a golden handshake, gratuity, payment in lieu of notice, unused sick leave or rostered days off, or a non-genuine redundancy payment",
+            ),
+            (
+                "other_taxable_payments",
+                "AUD, the taxable payments the payer made to the employee in the income year, excluding this termination payment, such as salary, wages and unused leave paid on termination (Schedule 11 step 1)",
+            ),
+            (
+                "date_of_birth",
+                "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
+            ),
+        ],
         "schedule_5_method_a" => [
             vec![
                 (
@@ -967,6 +1020,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("child_recipient", Flag(false)),
             ("structured_settlement_contribution", Flag(false)),
             ("died_in_year", Flag(false)),
+        ],
+        "termination_payment" => vec![
+            ("redundancy_payment", Text("48000.00")),
+            ("completed_years_of_service", Whole(5)),
+            ("excluded_payment", Text("0.00")),
+            ("non_excluded_payment", Text("17678.00")),
+            ("other_taxable_payments", Text("140000.00")),
+            ("date_of_birth", Text("1996-09-01")),
         ],
         // Schedule 5's examples 1 to 3 (Jarrod, Robyn and Laura), for payments from 1 July 2026.
         "schedule_5_method_a" => vec![

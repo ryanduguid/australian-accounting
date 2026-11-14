@@ -50,6 +50,22 @@ intentionally changed.
   `input.signed_amount_invalid` covers its earnings input, and
   `input.field_unknown` refuses a field it does not take, such as an opening
   balance, which the other worksheets ignore.
+- `termination-payment` works out the tax-free part of a genuine redundancy or
+  early retirement scheme payment ($13,598 plus $6,801 for each completed year
+  of service, ITAA 1997 s 83-170) and the Schedule 11 withholding from one life
+  benefit employment termination payment made in 2026-27: the excluded part
+  within the $270,000 ETP cap, then the non-excluded part within the smaller of
+  the ETP cap left and the $180,000 whole-of-income cap less other taxable
+  payments (s 82-10(4) and (7)), at 17% from preservation age at 30 June 2027,
+  32% below it and 47% above the cap, each part rounded to the dollar. Death
+  benefit ETPs, ETPs with a tax-free component, earlier ETPs and the tax
+  assessed on the ETP are outside it. No Python release has it.
+  `tests/parity.rs` drops its catalogue entry before comparing,
+  `tests/termination_payment.rs` holds it to the ATO's Schedule 11 examples 1
+  to 4 and each cap, limit, preservation age and rounding boundary, and
+  the repository's root `tests/test_dated_rates.py` keeps its 4 dollar figures
+  equal to the rate records. The new refusal code `input.years_of_service_invalid` covers its
+  years of service, and `input.field_unknown` refuses a field it does not take.
 - `schedule-5-method-a`, `schedule-5-method-b-i` and `schedule-5-method-b-ii`
   work out withholding from a weekly, fortnightly or monthly pay that includes
   back payments, commissions, bonuses or similar payments by Schedule 5 (NAT
