@@ -376,7 +376,46 @@ pub fn commands() -> Vec<&'static str> {
     let mut out: Vec<&'static str> = COMMAND_ARGS.iter().map(|(c, _)| *c).collect();
     out.push("worksheet-catalogue");
     out.push("periods");
+    out.push("derive");
     out
+}
+
+/// The commands `derive` explains: each of their amounts is worked out in a step.
+const DERIVED: [&str; 3] = ["fbt", "fbt-car-statutory", "fbt-car-operating-cost"];
+
+/// `derive`: `{"command", "input"}` gives the command's result with the step
+/// behind each amount. A refused input gives the command's own refusal.
+fn derive(v: &Value) -> Result<Value> {
+    let mut keys = v.as_object().into_iter().flat_map(|o| o.keys());
+    if let Some(key) = keys.find(|k| !matches!(k.as_str(), "command" | "input")) {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of derive"),
+        );
+    }
+    let Some(command) = v.get("command") else {
+        return refusal("input.missing_field", "command is required");
+    };
+    let Some(command) = command.as_str().filter(|c| DERIVED.contains(c)) else {
+        return refusal(
+            "derivation.unsupported",
+            format!("derive explains {}, not {command}", DERIVED.join(", ")),
+        );
+    };
+    let Some(input) = v.get("input") else {
+        return refusal("input.missing_field", "input is required");
+    };
+    let (result, steps) = engine::with_steps(|| evaluate_coded(command, input));
+    let result = result?;
+    Ok(serde_json::json!({
+        "format": "australian-tax-calculators/derivation/1",
+        "engine": result["engine"],
+        "engine_version": result["engine_version"],
+        "calculation": result["calculation"],
+        "input": input,
+        "steps": steps,
+        "result": result,
+    }))
 }
 
 /// A JSON value as the Python object the original received.
@@ -553,6 +592,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     int_limit(v)?;
     match command {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
+        "derive" => return derive(v),
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),

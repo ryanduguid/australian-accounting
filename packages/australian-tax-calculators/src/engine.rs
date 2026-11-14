@@ -233,6 +233,116 @@ fn result(
     Ok(Value::Object(out))
 }
 
+/// One amount and how it was worked out: the provision or ATO page that sets
+/// it, its formula, the formula on the operands the arithmetic used, and the
+/// unrounded value the amount is rendered from. The FBT steps cite the FBTAA as
+/// compiled on 1 July 2026 (C2004A03280) and ATO pages, read on 14 November 2026.
+struct Step {
+    id: &'static str,
+    authority: &'static str,
+    formula: String,
+    operands: String,
+    value: Decimal,
+}
+
+/// A step whose operands are `formula` with each name in turn replaced by the
+/// next of `operands`. Numbers, operators (`x` multiplies) and the functions
+/// `min`, `cents` and `dollars` stay as written.
+fn step(
+    id: &'static str,
+    authority: &'static str,
+    formula: &str,
+    operands: &[&Decimal],
+    value: Decimal,
+) -> Step {
+    let mut values = operands.iter();
+    let (mut filled, mut rest) = (String::new(), formula);
+    while let Some(start) = rest.find(|c: char| c.is_ascii_lowercase()) {
+        let end = rest[start..]
+            .find(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+            .map_or(rest.len(), |n| start + n);
+        let (name, tail) = (&rest[start..end], &rest[end..]);
+        filled.push_str(&rest[..start]);
+        if name == "x" || tail.starts_with('(') {
+            filled.push_str(name);
+        } else {
+            filled.push_str(&values.next().expect("an operand for each name").to_string());
+        }
+        rest = tail;
+    }
+    filled.push_str(rest);
+    assert!(values.next().is_none(), "a name for each operand");
+    let formula = formula.to_string();
+    Step {
+        id,
+        authority,
+        formula,
+        operands: filled,
+        value,
+    }
+}
+
+/// `table`'s (id, authority, formula) rows as steps, with each row's operands
+/// and value.
+fn steps_from<const N: usize>(
+    table: &[(&'static str, &'static str, &str); N],
+    rows: [(&[&Decimal], Decimal); N],
+) -> Vec<Step> {
+    table
+        .iter()
+        .zip(rows)
+        .map(|((id, authority, formula), (operands, value))| {
+            step(id, authority, formula, operands, value)
+        })
+        .collect()
+}
+
+thread_local! {
+    /// The steps `derive` collects from the worksheet it runs; `None` for a
+    /// plain command, which keeps nothing.
+    static STEPS: std::cell::RefCell<Option<Vec<Value>>> = const { std::cell::RefCell::new(None) };
+}
+
+/// Run `f`, one command, and return its outcome with the step behind each of
+/// its amounts: none for a worksheet that does not derive them. The steps
+/// travel beside the result, as the decimal precision does, so the worksheets'
+/// public signatures and plain output stay as they were.
+pub(crate) fn with_steps<T>(f: impl FnOnce() -> T) -> (T, Vec<Value>) {
+    let previous = STEPS.replace(Some(Vec::new()));
+    let outcome = f();
+    let steps = STEPS.replace(previous).unwrap_or_default();
+    (outcome, steps)
+}
+
+/// [`result`] for a worksheet that works out each amount in a step. The
+/// amounts are the steps' values, and each step's value is its rendered
+/// amount, so a derivation cannot differ from the result it explains.
+fn derived_result(
+    kind: &str,
+    period: &str,
+    steps: Vec<Step>,
+    rates: Vec<(String, String)>,
+) -> Result<Value> {
+    let amounts = steps.iter().map(|s| (s.id, s.value.clone())).collect();
+    let out = result(kind, period, amounts, rates)?;
+    STEPS.with_borrow_mut(|recorded| {
+        if let Some(recorded) = recorded {
+            *recorded = steps
+                .iter()
+                .map(|s| {
+                    json!({
+                        "id": s.id,
+                        "authority": s.authority,
+                        "working": format!("{} = {} = {}", s.formula, s.operands, s.value),
+                        "value": out["amounts"][s.id],
+                    })
+                })
+                .collect();
+        }
+    });
+    Ok(out)
+}
+
 fn rate(key: &str, value: impl ToString) -> (String, String) {
     (key.to_string(), value.to_string())
 }
@@ -332,6 +442,46 @@ pub fn capital_gains(
     )
 }
 
+/// `fbt`'s amounts: (id, authority, formula). The ATO's MantCo example rounds
+/// each gross-up to the nearest dollar for items 14A and 14B.
+const FBT_STEPS: [(&str, &str, &str); 7] = [
+    (
+        "type_one_grossed_up",
+        "FBTAA s 5B(1B); Calculating your FBT, step 3",
+        "type_one_value x type_one",
+    ),
+    (
+        "type_two_grossed_up",
+        "FBTAA s 5B(1C); Calculating your FBT, step 5",
+        "type_two_value x type_two",
+    ),
+    (
+        "fbt_estimate",
+        "FBTAA s 5B(1A) and s 66; Calculating your FBT, steps 6 and 7",
+        "(type_one_grossed_up + type_two_grossed_up) x fbt_rate",
+    ),
+    (
+        "return_item_14a",
+        "FBT return 2026 instructions, item 14A; Calculating your FBT, MantCo example",
+        "dollars(type_one_grossed_up)",
+    ),
+    (
+        "return_item_14b",
+        "FBT return 2026 instructions, item 14B; Calculating your FBT, MantCo example",
+        "dollars(type_two_grossed_up)",
+    ),
+    (
+        "return_item_15",
+        "FBT return 2026 instructions, item 15",
+        "return_item_14a + return_item_14b",
+    ),
+    (
+        "return_item_16",
+        "FBT return 2026 instructions, item 16",
+        "return_item_15 x fbt_rate",
+    ),
+];
+
 pub fn fbt(
     type_one_value: &Arg,
     type_two_value: &Arg,
@@ -340,32 +490,37 @@ pub fn fbt(
 ) -> Result<Value> {
     // `_scope` reports the period as the original's `str(year_ended)`.
     let year = scope(scope_confirmed, &Arg::Text(year_ended.py_str()), "fbt")?;
-    let amounts = precise(|| {
-        let first = money(type_one_value)?.mul(&d("2.0802"))?;
-        let second = money(type_two_value)?.mul(&d("1.8868"))?;
+    let rates = vec![
+        rate("type_one", "2.0802"),
+        rate("type_two", "1.8868"),
+        rate("fbt_rate", "0.47"),
+    ];
+    // The steps use the rates the result reports.
+    let [type_one, type_two, fbt_rate] = [0, 1, 2].map(|i| d(&rates[i].1));
+    let steps = precise(|| {
+        let one = money(type_one_value)?;
+        let first = one.mul(&type_one)?;
+        let two = money(type_two_value)?;
+        let second = two.mul(&type_two)?;
         let item_14a = first.quantize(0, Rounding::HalfUp)?;
         let item_14b = second.quantize(0, Rounding::HalfUp)?;
         let item_15 = item_14a.add(&item_14b)?;
-        Ok(vec![
-            ("type_one_grossed_up", first.clone()),
-            ("type_two_grossed_up", second.clone()),
-            ("fbt_estimate", first.add(&second)?.mul(&d("0.47"))?),
-            ("return_item_14a", item_14a),
-            ("return_item_14b", item_14b),
-            ("return_item_15", item_15.clone()),
-            ("return_item_16", item_15.mul(&d("0.47"))?),
-        ])
+        let estimate = first.add(&second)?.mul(&fbt_rate)?;
+        let item_16 = item_15.mul(&fbt_rate)?;
+        Ok(steps_from(
+            &FBT_STEPS,
+            [
+                (&[&one, &type_one], first.clone()),
+                (&[&two, &type_two], second.clone()),
+                (&[&first, &second, &fbt_rate], estimate),
+                (&[&first], item_14a.clone()),
+                (&[&second], item_14b.clone()),
+                (&[&item_14a, &item_14b], item_15.clone()),
+                (&[&item_15, &fbt_rate], item_16),
+            ],
+        ))
     })?;
-    result(
-        "fbt",
-        &format!("year ended 31 March {year}"),
-        amounts,
-        vec![
-            rate("type_one", "2.0802"),
-            rate("type_two", "1.8868"),
-            rate("fbt_rate", "0.47"),
-        ],
-    )
+    derived_result("fbt", &format!("year ended 31 March {year}"), steps, rates)
 }
 
 /// A car worksheet's FBT year: `year_ended` must be an integer. Returns the
@@ -409,34 +564,145 @@ fn cents(value: Decimal) -> Calc<Decimal> {
 /// cents first: the recipient's payment is in cents, so this moves no taxable
 /// value and keeps the applied and excess parts adding up. The payment cannot
 /// take the value below nil. Under the operating cost method, s 10(5) then
-/// substitutes the statutory formula value when it is lower. An exempt electric
-/// car's taxable value is nil; the value before the exemption is the notional
-/// value its reportable fringe benefits amount is worked out from, so it is
-/// also the car's reportable taxable value, before the employee's $2,000
-/// threshold and the type 2 gross-up, which apply to all their benefits.
+/// substitutes the statutory formula value when it is lower.
 fn car_taxable_values(
-    gross: Decimal,
+    gross: Step,
     contribution: &Decimal,
     statutory: Option<&Decimal>,
     exempt: bool,
-) -> Calc<Vec<(&'static str, Decimal)>> {
-    let gross = cents(gross)?;
-    let applied = py_min(contribution.clone(), gross.clone())?;
-    let mut value = gross.sub(&applied)?;
-    let mut out = vec![
-        ("gross_taxable_value", gross),
-        ("employee_contribution_applied", applied.clone()),
-        ("excess_employee_contribution", contribution.sub(&applied)?),
+) -> Calc<Vec<Step>> {
+    let value = cents(gross.value.clone())?;
+    let applied = py_min(contribution.clone(), value.clone())?;
+    let net = value.sub(&applied)?;
+    let payment: [(&[&Decimal], Decimal); 3] = [
+        (&[contribution, &value], applied.clone()),
+        (&[contribution, &applied], contribution.sub(&applied)?),
+        (&[&value, &applied], net.clone()),
     ];
-    if let Some(statutory) = statutory {
-        out.push(("operating_cost_taxable_value", value.clone()));
-        out.push(("statutory_formula_taxable_value", statutory.clone()));
-        value = py_min(value, statutory.clone())?;
-    }
-    out.push(("taxable_value_before_exemption", value.clone()));
-    out.push(("taxable_value", if exempt { int(0) } else { value.clone() }));
-    out.push(("reportable_taxable_value", value));
+    let mut out = vec![Step {
+        formula: format!("cents({})", gross.formula),
+        operands: format!("cents({})", gross.operands),
+        value: value.clone(),
+        ..gross
+    }];
+    let (before, valuation) = match statutory {
+        None => {
+            out.extend(steps_from(&S9_PAYMENT_STEPS, payment));
+            (net, "FBTAA s 9(1)")
+        }
+        Some(statutory) => {
+            out.extend(steps_from(&S10_PAYMENT_STEPS, payment));
+            let lower = py_min(net.clone(), statutory.clone())?;
+            let comparison: [(&[&Decimal], Decimal); 2] = [
+                (&[statutory], statutory.clone()),
+                (&[&net, statutory], lower.clone()),
+            ];
+            out.extend(steps_from(&S10_5_STEPS, comparison));
+            (lower, "FBTAA s 10(2) and (5)")
+        }
+    };
+    out.extend(exemption_steps(&before, exempt, valuation));
     Ok(out)
+}
+
+/// An exempt electric car's taxable value is nil under s 8A; another car keeps
+/// its value under `valuation`. The value before the exemption is the notional
+/// value its reportable fringe benefits amount is worked out from, so it is
+/// also the car's reportable taxable value, before the employee's $2,000
+/// threshold and the type 2 gross-up, which apply to all their benefits.
+fn exemption_steps(before: &Decimal, exempt: bool, valuation: &'static str) -> Vec<Step> {
+    let before_exemption = "taxable_value_before_exemption";
+    let (authority, formula, operands, taxable): (_, _, &[&Decimal], _) = if exempt {
+        ("FBTAA s 8A", "0", &[], int(0))
+    } else {
+        (valuation, before_exemption, &[before], before.clone())
+    };
+    let reportable = "Reportable fringe benefits (ATO)";
+    vec![
+        step("taxable_value", authority, formula, operands, taxable),
+        step(
+            "reportable_taxable_value",
+            reportable,
+            before_exemption,
+            &[before],
+            before.clone(),
+        ),
+    ]
+}
+
+/// The recipient's payment applied, its excess and the value after it.
+const APPLIED: &str = "min(employee_contribution, gross_taxable_value)";
+const EXCESS: &str = "employee_contribution - employee_contribution_applied";
+const NET: &str = "gross_taxable_value - employee_contribution_applied";
+const S9_PAYMENT: &str = "FBTAA s 9(1) and s 9(2)(e)";
+const S10_PAYMENT: &str = "FBTAA s 10(2) and s 10(3)(c)";
+
+/// The steps from a car's recipient's payment under the statutory formula and
+/// under the operating cost method, which then makes the s 10(5) comparison.
+const S9_PAYMENT_STEPS: [(&str, &str, &str); 3] = [
+    ("employee_contribution_applied", S9_PAYMENT, APPLIED),
+    ("excess_employee_contribution", S9_PAYMENT, EXCESS),
+    ("taxable_value_before_exemption", "FBTAA s 9(1)", NET),
+];
+const S10_PAYMENT_STEPS: [(&str, &str, &str); 3] = [
+    ("employee_contribution_applied", S10_PAYMENT, APPLIED),
+    ("excess_employee_contribution", S10_PAYMENT, EXCESS),
+    ("operating_cost_taxable_value", "FBTAA s 10(2)", NET),
+];
+const S10_5_STEPS: [(&str, &str, &str); 2] = [
+    (
+        "statutory_formula_taxable_value",
+        "FBTAA s 9(1) and s 10(5)",
+        "statutory_formula_taxable_value",
+    ),
+    (
+        "taxable_value_before_exemption",
+        "FBTAA s 10(5)",
+        "min(operating_cost_taxable_value, statutory_formula_taxable_value)",
+    ),
+];
+
+/// The operating cost method's steps before its gross taxable value.
+const S10_COST_STEPS: [(&str, &str, &str); 3] = [
+    (
+        "deemed_depreciation",
+        "FBTAA s 11(1), (1AA) and (1A)",
+        "depreciated_value x depreciation_rate x days_held / days_in_year",
+    ),
+    (
+        "deemed_interest",
+        "FBTAA s 11(2) and (1B); FBT rates and thresholds, statutory or benchmark interest rate",
+        "depreciated_value x benchmark_interest_rate x days_held / days_in_year",
+    ),
+    (
+        "operating_costs",
+        "FBTAA s 10(3)(a)",
+        "running_costs + lease_charges + deemed_depreciation + deemed_interest",
+    ),
+];
+
+/// s 9(2)(a): the one-third reduction never reaches accessories added after
+/// acquisition.
+fn base_value(cost: &Decimal, accessories: &Decimal, reduce: bool) -> Calc<Step> {
+    let (reduced, formula, operands): (_, _, &[&Decimal]) = if reduce {
+        let formula = "cost_price - cost_price / 3 + later_accessories";
+        (
+            cost.sub(&cost.div(&int(3))?)?,
+            formula,
+            &[cost, cost, accessories],
+        )
+    } else {
+        let formula = "cost_price + later_accessories";
+        (cost.clone(), formula, &[cost, accessories])
+    };
+    let base = reduced.add(accessories)?;
+    Ok(step(
+        "base_value",
+        "FBTAA s 9(2)(a)",
+        formula,
+        operands,
+        base,
+    ))
 }
 
 /// FBTAA s 9: `(A x B x C) / D - E` on the operator's established base value.
@@ -459,32 +725,67 @@ pub fn fbt_car_statutory(
     let days = day_count(days_available, days_in_year, "days_available")?;
     let contribution = money(employee_contribution)?;
     let exempt = flag(electric_car_exempt, "electric_car_exempt")?;
-    let amounts = precise(|| {
-        // The one-third reduction never reaches accessories added after acquisition.
-        let reduced = if reduce {
-            cost.sub(&cost.div(&int(3))?)?
-        } else {
-            cost.clone()
-        };
-        let base = reduced.add(&accessories)?;
-        let gross = base
-            .mul(&d("0.20"))?
-            .mul(&int(days))?
-            .div(&int(days_in_year))?;
-        let mut out = vec![("base_value", base)];
+    let percentage = d("0.20");
+    let steps = precise(|| {
+        let base = base_value(&cost, &accessories, reduce)?;
+        let (held, year) = (int(days), int(days_in_year));
+        let gross = base.value.mul(&percentage)?.mul(&held)?.div(&year)?;
+        let formula = "base_value x statutory_percentage x days_available / days_in_year";
+        let operands = [&base.value, &percentage, &held, &year];
+        let gross = step(
+            "gross_taxable_value",
+            "FBTAA s 9(1)",
+            formula,
+            &operands,
+            gross,
+        );
+        let mut out = vec![base];
         out.extend(car_taxable_values(gross, &contribution, None, exempt)?);
         Ok(out)
     })?;
-    result(
+    derived_result(
         kind,
         &period,
-        amounts,
+        steps,
         vec![
-            rate("statutory_percentage", "0.20"),
+            rate("statutory_percentage", &percentage),
             rate("days_available", days),
             rate("days_in_year", days_in_year),
         ],
     )
+}
+
+/// s 10(3)(a): an owned car's deemed depreciation and interest at `rates` on
+/// its depreciated value for `days` held of the days in the year, then its
+/// operating costs.
+fn operating_costs(
+    running: &Decimal,
+    lease: &Decimal,
+    value: &Decimal,
+    rates: [&Decimal; 2],
+    days: [i64; 2],
+) -> Calc<Vec<Step>> {
+    let ([depreciation_rate, interest_rate], [held, year]) = (rates, days.map(int));
+    let deemed = |rate: &Decimal| value.mul(rate)?.mul(&held)?.div(&year);
+    let depreciation = deemed(depreciation_rate)?;
+    let interest = deemed(interest_rate)?;
+    let costs = running.add(lease)?.add(&depreciation)?.add(&interest)?;
+    let rows: [(&[&Decimal], Decimal); 3] = [
+        (
+            &[value, depreciation_rate, &held, &year],
+            depreciation.clone(),
+        ),
+        (&[value, interest_rate, &held, &year], interest.clone()),
+        (&[running, lease, &depreciation, &interest], costs),
+    ];
+    let mut steps = steps_from(&S10_COST_STEPS, rows);
+    // A leased car has no depreciated value, so both deemed amounts are nil.
+    if lease.gt(&int(0))? {
+        for deemed in &mut steps[..2] {
+            deemed.authority = "FBTAA s 10(3)(a)(iii): owned cars only, so nil for a leased car";
+        }
+    }
+    Ok(steps)
 }
 
 /// FBTAA s 10: `C x (100% - BP) - R`, with deemed depreciation and interest on
@@ -547,17 +848,18 @@ pub fn fbt_car_operating_cost(
             int(0)
         })
     })?;
-    let amounts = precise(|| {
-        let deemed = |rate: &Decimal| value.mul(rate)?.mul(&int(days))?.div(&int(days_in_year));
-        let depreciation = deemed(&depreciation_rate)?;
-        let interest = deemed(&interest_rate)?;
-        let costs = running.add(&lease)?.add(&depreciation)?.add(&interest)?;
+    let steps = precise(|| {
+        let rates = [&depreciation_rate, &interest_rate];
+        let mut out = operating_costs(&running, &lease, &value, rates, [days, days_in_year])?;
+        let (costs, formula) = (&out[2].value, "operating_costs x private_use");
         let gross = costs.mul(&private)?;
-        let mut out = vec![
-            ("deemed_depreciation", depreciation),
-            ("deemed_interest", interest),
-            ("operating_costs", costs),
-        ];
+        let gross = step(
+            "gross_taxable_value",
+            "FBTAA s 10(2)",
+            formula,
+            &[costs, &private],
+            gross,
+        );
         out.extend(car_taxable_values(
             gross,
             &contribution,
@@ -566,10 +868,10 @@ pub fn fbt_car_operating_cost(
         )?);
         Ok(out)
     })?;
-    result(
+    derived_result(
         kind,
         &period,
-        amounts,
+        steps,
         vec![
             rate("depreciation_rate", &depreciation_rate),
             rate("benchmark_interest_rate", &interest_rate),
