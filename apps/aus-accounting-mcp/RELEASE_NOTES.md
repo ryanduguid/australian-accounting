@@ -45,6 +45,7 @@
   counted from when the loan was first made, at most 25 years, less the time it had
   already run. A loan made on 1 July 2022 and extended on 1 July 2024 is entered with 23,
   not 25 ([#636](https://github.com/ryanduguid/australian-accounting/pull/636)).
+- Aligns citation, compatibility, bundle and MCP Registry metadata with 0.9.0.
 
 ## Added
 
@@ -67,7 +68,6 @@
 - Retains `payday-super-checker` 0.2.3, `ato-benchmark-compare` 0.2.2,
   `div7a-loan-review` 0.3.2, `australian-tax-calculators` 0.2.0, `gst-review` 0.1.0 and
   `lodgment-calendar` 0.1.0 unchanged.
-- Aligns citation, compatibility, bundle and MCP Registry metadata with 0.9.0.
 
 ## Known issues
 
