@@ -44,10 +44,13 @@ example evidence; it does not claim a fresh review of every supported period.
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
-| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilation 53 and the ATO's single thresholds | 30 June 2026 (ATO page) | Single person without SAPTO, the 2% rate and the s 7 low-income reduction for 2024-25 and 2025-26 |
+| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilation 53 and the ATO's single thresholds | 30 June 2026 (ATO page) | Single person without SAPTO, the 2% rate and the s 7 low-income reduction for 2024-25 to 2026-27 |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
+| Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
+| Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component from 1 July 2026 only |
+| Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -355,8 +358,15 @@ table 2 of the ATO's myTax 2025 instructions, which apply to 1 July 2024 to 30
 June 2025. The frozen replay in `tests/parity.rs` holds the worksheet to the ATO page's
 example ($29,000 in 2025-26 gives $98.90), to each threshold and phase-in limit
 and to the dollar either side of them. The 2026-27 thresholds were not
-published when the worksheet was written, so 2026-27 is refused rather than
-given the 2025-26 figures.
+published when the worksheet was written, so it refused 2026-27. On 14 November
+2026 the Treasury Laws Amendment (Delivering an Efficient and Trusted Tax
+System) Act 2026 (No. 58, 2026, assented 30 June 2026) was read: Sch 5 item 14
+applies the $28,011 and $35,013 it put into s 3(1) to the 2025-26 and later
+years of income. Compilation 53 was still the latest that day and still holds
+them, so 2026-27 takes them as enacted law, not as borrowed figures. The ATO
+page still gave 2025-26 figures only, so a 2026-27 result warns that an
+amendment for that year can change it. `tests/tables.rs` checks 2026-27 below,
+at and above the threshold amount and phase-in limit.
 
 Each published phase-in limit is 1.25 times the threshold amount, rounded down
 to the dollar: that is the income at which 10% of the excess reaches 2% of the
@@ -480,6 +490,184 @@ benefit and other interests whose earnings use s 296-70 are outside it, as their
 earnings use a different formula and tax on a defined benefit interest may be
 deferred to a debt account, and so are departing temporary residents
 (ss 296-195 to 296-205). Later income years wait for their indexed thresholds.
+
+## Termination payment
+
+This worksheet's evidence is the ATO's Schedule 11, 'Tax table for employment
+termination payments' (for payments made from 1 July 2026, last updated 17 June
+2026), checked with the primary sources on 14 November 2026:
+
+- Schedule 11 sets the 2026-27 ETP cap at $270,000 and the whole-of-income cap
+  at $180,000, reduced by the payer's other taxable payments to the employee in
+  the year (its steps 1 to 4); applies the ETP cap alone to genuine redundancy,
+  early retirement scheme, invalidity and compensation payments and the smaller
+  cap to the rest; and withholds, from a life benefit ETP's taxable component,
+  17% within the cap from preservation age, 32% below it and 47% above the cap,
+  rounding to the nearest dollar with 50 cents up. Its examples 1 to 4 (Lloyd
+  $14,400; Jane $3,200; Chris $25,600 and $18,800, $44,400; Alec $127 and
+  $5,657, with the $397 excluded part reducing the gratuity's ETP cap to
+  $269,603) are in `tests/termination_payment.rs`. Example 1 gives only the ETP,
+  so the test holds it as a genuine redundancy payment with no completed year of
+  service.
+- The ATO's 'Employment termination payments' rates page (last updated 17 April
+  2026) gives the same ETP cap (table 17) and the 2026-27 genuine redundancy and
+  early retirement scheme limits, $13,598 and $6,801 for each complete year of
+  service (table 20). These 4 figures are the rate records
+  `etp-cap-life-benefit-2026-27`, `etp-whole-of-income-cap-2026-27`,
+  `genuine-redundancy-base-limit-2026-27` and
+  `genuine-redundancy-service-amount-2026-27`, which the root
+  `tests/test_dated_rates.py` keeps equal to `TERMINATION_PAYMENT`.
+- ITAA 1997, compilation 268 (1 October 2026, the current one, read through
+  the Federal Register API): s 83-170 makes a genuine redundancy or early
+  retirement scheme payment tax-free up to the base amount plus the service
+  amount for each whole year of service, and s 82-135(e) takes that part out of
+  the ETP; s 82-10(3) and (4) limit the rate on the taxable component within
+  the cap to 15% from preservation age on the last day of the income year and
+  30% otherwise, and set the caps; s 82-10(6) lists the excluded payments the
+  whole-of-income cap does not apply to; and s 82-10(7) treats a partly
+  excluded payment as its excluded part first and then the rest. The indexed
+  amounts are not in the Act; s 82-160 and s 83-170(3) give the 2007-08 and
+  2006-07 bases.
+- Preservation age is 55 for a person born before 1 July 1960, rising a year for
+  each year of birth from 1 July to 60 for a person born after 30 June 1964
+  (Superannuation Industry (Supervision) Regulations 1994 reg 6.01(2),
+  compilation 159, applied by ITAA 1997 s 995-1), as Schedule 11's table shows.
+  So in 2026-27 the 17% rate applies to anyone born on or before 30 June 1967.
+
+The Library's ¶1-420 (tax examples, 'Assessable Income', last reviewed 30 June
+2026) works a 2025-26 genuine redundancy: $70,000 after 15 years, wholly within
+the $111,380 limit. The test holds it as 2026-27, when the limit is $115,613.
+
+The worksheet computes withholding, not the tax assessed. Two ATO texts differ
+on whether the whole-of-income cap for the non-excluded part of a single ETP
+counts its excluded part: Schedule 11's example 4 and step 6 of the Alec example
+on the ATO's 'Working out the whole-of-income cap amount' page (last updated
+24 July 2025) do not, while the Robyn example on the same page and ITAA 1997
+s 82-10(5) and (7)(b) count the excluded part's taxable component in taxable
+income. The worksheet follows Schedule 11 for withholding, and every result
+warns that on assessment the cap uses the year's taxable income, so the tax can
+differ from the amount withheld. Classifying payments, death benefit ETPs, a
+tax-free component (an invalidity segment or a pre-July 83 segment, s 82-140),
+earlier ETPs in the year or for the same termination (which reduce the caps,
+s 82-10(4)(a) and (b)), delayed termination payments, payees without a TFN,
+foreign residents and working holiday makers are outside it.
+
+## Schedule 5
+
+These worksheets' evidence is not a Library document. Schedule 5 (NAT 3348),
+'Tax table for back payments, commissions, bonuses and similar payments', was
+read on 14 November 2026 on the ATO's pages for payments from 1 July 2026
+(published 17 June 2026), from 1 July 2025 to 30 June 2026 (published 10 June
+2025) and from 1 July 2024 to 30 June 2025 (last updated 17 June 2024): 'About
+this schedule', 'Working out the withholding amount' and 'Withholding amounts
+examples'. Apart from wording ('payee' for 'employee'), the 3 schedules state
+the same Methods A, B(i) and B(ii), the same 47% limit for Methods A and B(ii),
+the same rule that a negative result is nil, the same 52, 26 or 12 pay periods
+with no adjustment for 53 or 27 pays, and the same choice, for a commission,
+bonus or similar payment for a defined period of less than 12 months, to divide
+by the pay periods it relates to. The same rules (each step's cents, the 47%
+limit, the nil result and the pay periods in a year) and examples are in
+Schedule 5 of the Taxation Administration (Withholding Schedules) Instrument
+2026 (F2026L00716), of the 2025 instrument (F2025L00647) and of the
+Instrument (No. 2) 2025 (F2025L01016), which replaced it from 24 September 2025
+with the same Schedule 5, and of the 2024 instrument (F2024L00664), read on
+legislation.gov.au the same day.
+
+Each schedule works 4 examples on scale 2, which `tests/schedule_5.rs` holds:
+
+| Example | 2026 schedule | 2024 and 2025 schedules |
+| --- | --- | --- |
+| 1, Jarrod, Method A: $900 bonus on $1,400 a week, HELP debt | PAYG $267, $272, $260; HELP $10, $12, $104; limit $423; $364 on the bonus, $641 in all | PAYG $272, $277, $260; HELP $42, $43, $52; $312 on the bonus, $626 in all |
+| 2, Robyn, Method B(i): $800 back pay over 8 weeks, HELP debt | PAYG $363 less $331, $256; HELP $55 less $40, $120; $794 in all | $1,100 then $1,200 a week: PAYG $208 less $175, $264; HELP $12 less $11, $8; $492 in all |
+| 3, Laura, Method B(ii): $2,480 of arrears, $1,800 a fortnight | $212, $95, $242, $780; $992 in all | $222, $95, $252, $780; $1,002 in all |
+| 4, Bradley, Methods B(i) and B(ii): $1,600 this year and $8,800 last year, monthly, FS debt | PAYG $512 and $2,808, FS $242 and $1,296, earnings $1,452 and $182; $6,492 in all | $4,600 then $5,400 a month: PAYG $512 and $2,856, FS $120 and $888, earnings $962 and $108; $5,446 in all |
+
+The examples work the study loan component from the separate study and
+training support loan tax tables; the worksheets add the Schedule 8 component
+to each Schedule 1 amount, as `study-loan-withholding` does, which Schedule 5
+accepts in place of separate calculations and which gives the same amounts in
+every 2026 example. This crate has no Schedule 8 coefficients before 1 July
+2026, so the tests hold the 2024 and 2025 examples' PAYG components only and
+require a study loan in those years to be refused. Example 4 combines the 2
+methods in one pay: the tests run each method and count the earnings' amount
+once, as the example does.
+
+The steps are the schedule's own. Method A ignores the cents of the earnings
+before the table, so a monthly amount ending in 33 cents does not gain the cent
+Schedule 1 adds ($4,346.33 a month is worked as $4,346, $598, not $602); it
+ignores the cents of the share and of the result after the limit. Method B(i)
+takes the amount withheld from each earlier period as the operator's figure,
+nets the periods and has no limit. Method B(ii) ignores the cents of the
+average and of the share, and subtracts what earlier Method B(ii) payments in
+the year had withheld before the limit. The schedule leaves the choice of
+method, whether a payment is a back payment, commission or bonus, the periods
+it relates to and the normal earnings to the payer, and so do the worksheets.
+Working holiday makers, who must use Schedule 15, payees who gave no TFN, who
+have 47% or 45% withheld from the whole payment, withholding variations and
+superannuation income streams are outside them.
+
+## Working holiday makers
+
+This worksheet's evidence is not a Library document. On 14 November 2026 the
+ATO's Schedule 15 for payments from 1 July 2026 (published 17 June 2026) and
+the one for 1 July 2024 to 30 June 2026 (last updated 17 June 2024) were read in
+full. Their columns, Table A rates, formula, rounding rules and examples are the
+same apart from the income year in Table A's heading and the examples' dates:
+
+- A registered employer whose payee has given a TFN uses column 2 while the
+  total payments made to them in the income year before this payment are less
+  than $45,001, column 3 from $45,001 to $135,000, column 4 from $135,001 to
+  $190,000 and column 5 above $190,000; Table A's rates are 0.15, 0.30, 0.37
+  and 0.45. A registered employer whose payee has not given a TFN uses
+  column 6, 45%.
+- y = a × x, where x is the payment for the pay period ignoring any cents. The
+  result is rounded to the nearest dollar, 50 cents up, without a preliminary
+  rounding to cents; at the top marginal rate and without a TFN, cents in the
+  result are ignored.
+- An unregistered employer withholds at the foreign resident rates in the
+  weekly, fortnightly or monthly tax tables, which the worksheet takes from
+  Schedule 1 scale 3 through `payg-withholding`. Without a TFN it withholds
+  45%, cents ignored: the schedule's 45% rule for a payee without a TFN does
+  not depend on registration, and Schedule 1 scale 4 gives the same rate for
+  a foreign resident.
+- 45% applies without a TFN only if the payee has also not claimed an
+  exemption from quoting it and not advised that they applied for one or made
+  an enquiry with the ATO; a payee who so advised has 28 days to provide it.
+  The worksheet takes `tfn_quoted` as established on that basis and leaves
+  exemption claimants out of scope.
+- The schedule does not apply to workers employed under the Seasonal Worker
+  Programme, Pacific Labour Scheme or Pacific Australia Labour Mobility scheme.
+
+`tests/working_holiday_maker.rs` holds the schedule's examples for each year:
+
+| Example | Payment | Paid before | Rate | Withholding |
+| --- | --- | --- | --- | --- |
+| Withholding lookup tool, weekly | $680.70 | Not over $45,000 | 0.15 | $102 |
+| 1, monthly | $2,825.75 | Not over $45,000 | 0.15 | 0.15 × 2,825 = 423.75, $424 |
+| 2, monthly | $8,173.20 | $47,000 | 0.30 | 0.30 × 8,173 = 2,451.90, $2,452 |
+
+The columns follow the schedule's words, so $45,000.50 paid before is column 2
+('less than $45,001') and $190,000.50 column 5 ('more than $190,000'), which
+Table A's rate column ('45% on each $1 over $190,000') agrees with. For
+$45,000.01 to $45,000.99 the formula reads differently: payments that 'exceed
+$45,000' go to Table A, whose rate column gives '30% on each $1 over $45,000';
+the worksheet follows column 2, as the schedule accepts either the lookup tool
+or the formula. Column 3 ends at $135,000 and column 4 starts at $135,001, and
+Table A's income bands leave the same gap, which only its rate column ('37% on
+each $1 over $135,000') reaches, so payments before of $135,000.01 to
+$135,000.99 are refused rather than placed in either column, and the refusal
+names the 37% for the payer to confirm with the ATO.
+
+The schedule says results from its formulas may differ slightly from the
+withholding lookup tool and that either is accepted. The tool's workbook for
+each schedule version, opened on 14 November 2026, works out columns 2 to 4 as
+the rate times the payment with cents ignored, rounded to the dollar, and
+columns 5 and 6 as 45% of it with cents ignored again, at the same rates; the
+worksheet does the same. The workbook's column headings ('$0 - $45,000' to
+'$190,001 and over') do not choose a column for payments before of
+$45,000.01 to $45,000.99, $135,000.01 to $135,000.99 or $190,000.01 to
+$190,000.99. The payee's visa and residency and the employer's registration
+are the operator's to establish.
 
 ## Study loan withholding
 

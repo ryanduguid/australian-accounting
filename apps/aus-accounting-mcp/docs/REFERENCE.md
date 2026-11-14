@@ -640,6 +640,8 @@ control, in this layout:
   markdown/<register id>/sections.jsonl   one JSON row per provision
   rates/rates.jsonl                       rate and threshold rows; search_tax_rates needs it
   sources.json                            optional licence and retrieval manifest
+  compilations/<name>/markdown/<register id>/sections.jsonl
+                                          optional earlier compilations; only as_at reads them
 ```
 
 A `sections.jsonl` row carries `row_id`, `register_id`, `act`, `collection`,
@@ -835,16 +837,38 @@ refusal. With `as_at`, `act` accepts title words or a Register ID.
 A read of a `captured` title returns its text, with `as_at` on the section and each
 neighbour. Any other status keeps the citation and window, returns empty `text` with the
 stored `total_chars`, no neighbours and null `next_start`, and names the status in
-`refusals`. A read without `as_at` still returns the compilation the corpus holds, which
-is not established as text for that date.
+`refusals`. A read without `as_at` still returns the latest compilation the corpus holds,
+which is not established as text for that date.
 
 A status reads the compilation window, not the law on that date. A compilation does not
 show application, saving or transitional provisions elsewhere, modification by another
 law, or an amendment with retrospective effect registered after the build was retrieved,
 so a date inside a window can still carry text amended without a new compilation, and a
 provision's text can differ from what applied to that date. Read the Register's version
-history and endnotes for any question about a past date. The corpus holds one compilation
-of a title, so a refusal is the answer for any earlier date: no earlier text is held.
+history and endnotes for any question about a past date. A refusal is the answer for that
+date: the corpus holds no text of that title for it.
+
+#### Earlier compilations
+
+A corpus can hold more than one compilation of a title. Each folder under
+`compilations/` has the root's `markdown/<register id>/sections.jsonl` layout, holding
+other compilations of the same titles in the same row format. A title is its folder name,
+which its `row_id`s start with. Each row records its own window: an earlier compilation has
+`version_is_current` false and `superseded_from` the start of the version after it. The
+windows of one title must not overlap, so at most one covers a date; a corpus whose windows
+overlap stops a dated call with an input error. A dated search also checks the matching
+rows of the compilations it does not answer from, so a row whose window disagrees with its
+index stops the search there too.
+
+With `as_at`, a search and a read answer from the compilation whose window covers the date,
+and a read takes the `row_id` a dated search returned with the same date: `row_id`s repeat
+across compilations of a title. A title no compilation covers is refused as above, with its
+latest compilation's `as_at` and row counts, and `held_compilations` lists each window held
+(`compilation_date`, `superseded_from`, `retrieved`), earliest first; a read refused this
+way cites its row from the latest compilation that holds it, with that one's `as_at`. A
+title with one compilation answers as before, without `held_compilations`. Calls without
+`as_at`, `define_tax_term` and `search_tax_rates` read only `markdown/`; a read without
+`as_at` of a title `compilations/` also holds carries a caveat saying so.
 
 `as_at` needs every row's window, so a row without its dates, as in an older build, or
 with dates that cannot all be true, or a title whose rows disagree, stops a dated call

@@ -489,7 +489,11 @@ fn low_income_tax_offset_never_rises_with_income() {
 
 #[test]
 fn medicare_levy_never_falls_as_income_rises() {
-    for (year, lower, upper) in [("2024-25", 27222, 34027), ("2025-26", 28011, 35013)] {
+    for (year, lower, upper) in [
+        ("2024-25", 27222, 34027),
+        ("2025-26", 28011, 35013),
+        ("2026-27", 28011, 35013),
+    ] {
         let mut previous = n(0);
         for income in lower - 2..upper + 3 {
             let result = run(
@@ -936,6 +940,150 @@ fn division_296_tax_rises_with_the_balance_and_stays_within_a_quarter() {
             "{high} {earnings}"
         );
         assert!(eq(&tax(&high, &format!("-{earnings}")), &n(0)), "{high}");
+    }
+}
+
+/// A termination payment's parts add back to what was paid, each part stays
+/// within its cap and the 2 within the ETP cap, the withholding lies between
+/// 17% and 47% of the taxable components but for a dollar of rounding, and
+/// more other taxable payments never lower it.
+#[test]
+fn termination_payment_parts_add_up_and_withholding_rises_with_other_income() {
+    let mut rng = Rng(20_261_114);
+    let add = |a: &Decimal, b: &Decimal| a.add(b).unwrap();
+    for _ in 0..RUNS {
+        let (redundancy, excluded) = (rng.cents(50_000_000), rng.cents(40_000_000));
+        let mut facts = json!({
+            "redundancy_payment": redundancy, "completed_years_of_service": rng.int(0, 45),
+            "excluded_payment": excluded, "non_excluded_payment": rng.cents(40_000_000),
+            "other_taxable_payments": rng.cents(30_000_000),
+            "date_of_birth": *rng.pick(&["1955-03-01", "1967-06-30", "1967-07-01", "1990-01-15"]),
+            "year": "2026-27", "scope_confirmed": true,
+        });
+        let r = run("termination-payment", facts.clone());
+        let a = |key: &str| amount(&r, key);
+        assert!(
+            eq(
+                &add(
+                    &a("tax_free_redundancy_amount"),
+                    &a("excluded_taxable_component")
+                ),
+                &add(&d(&redundancy), &d(&excluded))
+            ),
+            "{facts}"
+        );
+        for part in ["excluded", "non_excluded"] {
+            let split = add(
+                &a(&format!("{part}_within_cap")),
+                &a(&format!("{part}_above_cap")),
+            );
+            assert!(
+                eq(&split, &a(&format!("{part}_taxable_component"))),
+                "{facts}"
+            );
+        }
+        let cap = a("non_excluded_cap");
+        assert!(le(&a("non_excluded_within_cap"), &cap), "{facts}");
+        assert!(le(&cap, &a("remaining_etp_cap")) && le(&cap, &a("whole_of_income_cap")));
+        let within = add(&a("excluded_within_cap"), &a("non_excluded_within_cap"));
+        assert!(le(&within, &n(270_000)), "{facts}");
+        let taxable = add(
+            &a("excluded_taxable_component"),
+            &a("non_excluded_taxable_component"),
+        );
+        let withheld = a("total_withholding");
+        let lowest = taxable.mul(&d("0.17")).unwrap().sub(&n(1)).unwrap();
+        let highest = add(&taxable.mul(&d("0.47")).unwrap(), &n(1));
+        assert!(le(&lowest, &withheld) && le(&withheld, &highest), "{facts}");
+        let more = add(
+            &d(facts["other_taxable_payments"].as_str().unwrap()),
+            &d(&rng.cents(10_000_000)),
+        );
+        facts["other_taxable_payments"] = json!(more.to_string());
+        let after = run("termination-payment", facts.clone());
+        assert!(
+            le(&withheld, &amount(&after, "total_withholding")),
+            "{facts}"
+        );
+    }
+}
+
+/// Schedule 5 Methods A and B(ii): the withholding from an additional payment
+/// is never negative or more than 47% of it, and the total is that plus the
+/// withholding from the normal earnings.
+#[test]
+fn schedule_5_withholding_stays_within_the_47_percent_limit() {
+    let mut rng = Rng(20_261_114);
+    for _ in 0..RUNS {
+        let pay = *rng.pick(&["weekly", "fortnightly", "monthly"]);
+        let scale = *rng.pick(&[1, 2, 3, 5, 6]);
+        let earnings = rng.pay();
+        let additional = rng.cents(100_000_000);
+        let common = json!({
+            "earnings": earnings, "additional_payment": additional, "pay_period": pay,
+            "scale": scale, "study_loan": rng.bool(), "year": "2026-27", "scope_confirmed": true,
+        });
+        let most = match pay {
+            "weekly" => 52,
+            "fortnightly" => 26,
+            _ => 12,
+        };
+        let mut method_a = common.clone();
+        method_a["pay_periods"] = json!(rng.int(2, most));
+        let mut method_b_ii = common;
+        method_b_ii["year_to_date_earnings"] = json!(rng.money());
+        method_b_ii["pay_periods_to_date"] = json!(rng.int(1, most));
+        method_b_ii["earlier_additional_payments"] = json!(rng.pay());
+        method_b_ii["earlier_additional_withholding"] = json!(rng.pay());
+        let limit = d(&additional).mul(&d("0.47")).unwrap();
+        for (command, facts) in [
+            ("schedule-5-method-a", method_a),
+            ("schedule-5-method-b-ii", method_b_ii),
+        ] {
+            let result = run(command, facts.clone());
+            let extra = amount(&result, "withholding_on_additional_payment");
+            assert!(le(&extra, &limit), "{command} {facts}");
+            let total = amount(&result, "withholding_on_earnings")
+                .add(&extra)
+                .unwrap();
+            assert!(
+                eq(&amount(&result, "withholding"), &total),
+                "{command} {facts}"
+            );
+        }
+    }
+}
+
+/// Schedule 15: a registered employer's withholding from a working holiday
+/// maker who gave a TFN never falls as the payment rises, nor as the payments
+/// before it rise for a payment over $19, and never exceeds 45% of the
+/// payment. Up to $19, column 5's ignored cents can withhold a dollar less than
+/// column 4's rounding ($2: $1 at 37%, $0 at 45%).
+#[test]
+fn working_holiday_maker_withholding_rises_and_stays_within_45_percent() {
+    let mut rng = Rng(20_261_114);
+    let withholding = |payment: &str, before: i64| {
+        let r = run(
+            "working-holiday-maker-withholding",
+            json!({
+                "payment": payment, "payments_before": format!("{before}.00"),
+                "employer_registered": true, "tfn_quoted": true,
+                "pay_period": "fortnightly", "year": "2026-27", "scope_confirmed": true,
+            }),
+        );
+        amount(&r, "withholding")
+    };
+    for _ in 0..RUNS {
+        let (low, high) = sorted_dec(rng.pay(), rng.pay());
+        let (fewer, more) = sorted(rng.dollars(), rng.dollars());
+        let top = withholding(&high, more);
+        assert!(le(&withholding(&low, more), &top), "{low} {high} {more}");
+        assert!(
+            le(&d(&high), &n(19)) || le(&withholding(&high, fewer), &top),
+            "{high} {fewer} {more}"
+        );
+        let limit = d(&high).mul(&d("0.45")).unwrap().add(&d("0.5")).unwrap();
+        assert!(le(&top, &limit), "{high} {more}");
     }
 }
 
