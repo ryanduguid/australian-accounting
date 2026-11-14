@@ -6,14 +6,14 @@
   "law_compilation": "C1936A00027, compilation in force 1 July 2026",
   "disclaimer": "Experimental review aid. Not a Division 7A determination, not an ATO assessment, and not tax, legal or financial advice.",
   "year_of_income": "2026-27",
-  "rows_reviewed": 10,
+  "rows_reviewed": 12,
   "summary": {
-    "COMPLYING": 7,
+    "COMPLYING": 9,
     "NOT_COMPLYING": 2,
-    "MYR_MET": 1,
+    "MYR_MET": 2,
     "MYR_SHORT": 1,
     "UNKNOWN": 2,
-    "REFUSED": 7,
+    "REFUSED": 8,
     "SKIPPED": 2
   },
   "experimental_total_exposure": "2212.37",
@@ -1225,6 +1225,138 @@
       }
     },
     {
+      "row_number": 13,
+      "loan_id": "L-113",
+      "borrower_reference": "SYN-SHAREHOLDER-M",
+      "status": "REVIEWED",
+      "skipped_reason": null,
+      "gate": {
+        "verdict": "COMPLYING",
+        "loan_id": "L-113",
+        "benchmark_year_used": "2024-25",
+        "benchmark_rate": "0.0877",
+        "benchmark_provenance": {
+          "origin": "frozen table",
+          "rba_table": "F5",
+          "rba_series": "FILRHLBVS",
+          "rba_month": "2024-05",
+          "source": "RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2024; cross-checked against the published Division 7A benchmark rate table. Automated comparison 23 September 2026: xl/worksheets/sheet1.xml!D796, series identifier D11.",
+          "verify_at": "https://duguid.com.au/rates/div7a-benchmark-rate/",
+          "primary_url": "https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx",
+          "retrieved_on": "2026-09-20",
+          "snapshot_sha256": "40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0",
+          "entry_seen": "2026-08-28",
+          "table_reviewed_until": "2026-27",
+          "table_reviewed_on": "2026-08-28"
+        },
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "uri": "data/benchmark_rates.csv",
+              "sha256": "73d5014cd77bca935de528a540c2b90e69869aaab0dad8e6d104681e646d970a",
+              "primary_url": "https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx",
+              "retrieved_on": "2026-09-20",
+              "snapshot_sha256": "40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0"
+            }
+          ]
+        },
+        "maximum_term_years_allowed": "7",
+        "limbs": [
+          {
+            "cite": "s 109N(1)(a)",
+            "requirement": "the agreement that the loan was made under is in writing",
+            "state": "PASS",
+            "finding": "Operator asserts a written agreement."
+          },
+          {
+            "cite": "s 109N(1) chapeau, with s 109D(6)",
+            "requirement": "the criteria were met before the lodgment day for the year of income",
+            "state": "PASS",
+            "finding": "Operator asserts the terms were in place before the lodgment day."
+          },
+          {
+            "cite": "s 109N(1)(b)",
+            "requirement": "the rate of interest payable for years of income after the year the loan was made equals or exceeds the benchmark interest rate",
+            "state": "PASS",
+            "finding": "Supplied rate 0.0877 is at or above the 2024-25 benchmark 0.0877."
+          },
+          {
+            "cite": "s 109N(1)(c)",
+            "requirement": "the term of the loan does not exceed the maximum term under s 109N(3)",
+            "state": "PASS",
+            "finding": "Term 7 years is within 7 (s 109N(3)(b): 7 years for a loan that is not secured)."
+          }
+        ],
+        "reasons": [],
+        "reason_codes": [],
+        "caveats": [
+          "Interest-floor interpretation unresolved: ATO guidance requires the benchmark interest rate for each year of the loan. This model compares the supplied rate with one selected year's benchmark and defaults to year_loan_made. COMPLYING does not establish that the agreement meets the annual interest requirement. Review the agreement and relevant years before relying on this result. See docs/primary-source-review-2026-08-31.md.",
+          "COMPLYING here means the four model comparisons passed on the facts supplied, subject to the interest-floor limitation. It is not a finding that no dividend arises: Subdivision D holds other exclusions, s 109T to s 109X reach interposed entities, and s 109XA reaches unpaid present entitlements. None of those is modelled."
+        ],
+        "statutory_trace": [
+          "ITAA 1936 s 109N(1): a loan is not taken under s 109D to be a dividend if, before the lodgment day for the year of income, the agreement is in writing, the interest rate meets the benchmark, and the term is within the s 109N(3) maximum.",
+          "Benchmark interest rate read for 2024-25 (s 109N(2)): 0.0877.",
+          "s 109D(6): lodgment day is the earlier of the due date for the company's return and the day it was lodged; asserted by the operator, not computed here."
+        ]
+      },
+      "myr": {
+        "verdict": "REFUSED",
+        "loan_id": "L-113",
+        "year_of_income": "2026-27",
+        "gate_verdict": "COMPLYING",
+        "benchmark_rate": "0.0877",
+        "benchmark_provenance": {
+          "origin": "frozen table",
+          "rba_table": "F5",
+          "rba_series": "FILRHLBVS",
+          "rba_month": "2026-05",
+          "source": "RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2026; cross-checked against the published Division 7A benchmark rate table. Automated comparison 23 September 2026: xl/worksheets/sheet1.xml!D820, series identifier D11.",
+          "verify_at": "https://duguid.com.au/rates/div7a-benchmark-rate/",
+          "primary_url": "https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx",
+          "retrieved_on": "2026-09-20",
+          "snapshot_sha256": "40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0",
+          "entry_seen": "2026-08-28",
+          "table_reviewed_until": "2026-27",
+          "table_reviewed_on": "2026-08-28"
+        },
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "uri": "data/benchmark_rates.csv",
+              "sha256": "73d5014cd77bca935de528a540c2b90e69869aaab0dad8e6d104681e646d970a",
+              "primary_url": "https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx",
+              "retrieved_on": "2026-09-20",
+              "snapshot_sha256": "40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0"
+            }
+          ]
+        },
+        "amalgamated_loan_unpaid_at_end_of_previous_year": "50000.00",
+        "remaining_term_years_used": "8",
+        "myr_required": null,
+        "payments_applied": "10000.00",
+        "shortfall": null,
+        "experimental_deemed_dividend_exposure": null,
+        "rounding": "ROUND_HALF_UP",
+        "reasons": [
+          "remaining_term_years is 8, a remaining term of 8 under s 109E(6), longer than the 7-year maximum term this row's security facts give under s 109N(3) before any s 109N(3A) to (3D) reduction, which can only shorten it, yet the gate found the loan on s 109N terms. Both cannot hold: each constituent loan is one s 109N saves (s 109E(3)(b)), so its term is within its maximum term (s 109N(1)(c)); the constituent loans share one maximum term (s 109E(3)(c)); and the remaining term is the longest constituent term less the years since the loan year (s 109E(6)). Correct the remaining term or the security facts. Enter a loan secured and extended under s 109E(3A) as the new amalgamated loan s 109E(3B) creates, with its 25-year security facts and, in maximum_term_years, its agreed term counted from when the loan was first made (at most 25 years, s 109E(3A)(e)) less the time it had already run before the extension, which is how the ATO works the term of such a loan. No MYR figure is emitted."
+        ],
+        "reason_codes": [
+          "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM"
+        ],
+        "caveats": [
+          "s 109R: this engine did not decide whether the payments applied are genuine repayments. A payment made where the borrower intended to draw a similar or larger loan is left out of the reckoning by s 109R(2), and that turns on what a reasonable person would conclude. The figure used is the operator's assertion.",
+          "Any shortfall shown is an experimental review aid, not an ATO assessment and not a s 109E(1) determination. s 109E(2) makes the dividend the shortfall subject to s 109Y, which caps Division 7A dividends at the company's distributable surplus, and s 109E(1)(d) removes the dividend where s 109Q applies. Neither is modelled here, and neither is s 109RB.",
+          "Interest-floor interpretation unresolved: ATO guidance requires the benchmark interest rate for each year of the loan. This model compares the supplied rate with one selected year's benchmark and defaults to year_loan_made. COMPLYING does not establish that the agreement meets the annual interest requirement. Review the agreement and relevant years before relying on this result. See docs/primary-source-review-2026-08-31.md.",
+          "COMPLYING here means the four model comparisons passed on the facts supplied, subject to the interest-floor limitation. It is not a finding that no dividend arises: Subdivision D holds other exclusions, s 109T to s 109X reach interposed entities, and s 109XA reaches unpaid present entitlements. None of those is modelled.",
+          "year_loan_made was not supplied, so this engine has not established that the amalgamated loan was made in an earlier year of income as s 109E(1)(a) requires. The supplied balance unpaid at the end of the previous year implies it; nothing here verifies it."
+        ],
+        "statutory_trace": [
+          "ITAA 1936 s 109E(1): a private company is taken to pay a dividend at the end of the current year where an amalgamated loan made in an earlier year is not repaid and payments fall short of the minimum yearly repayment.",
+          "s 109E(5): the minimum yearly repayment is worked out using the formula in s 109E(6)."
+        ]
+      }
+    },
+    {
       "row_number": 12,
       "loan_id": "L-112",
       "borrower_reference": "SYN-ASSOCIATE-L",
@@ -1355,6 +1487,140 @@
           "MYR = (60000.00 x 0.0877) / (1 - (1 / (1 + 0.0877)) ^ 6) = 13283.60 (quantised to cents, ROUND_HALF_UP; the Act prescribes no rounding).",
           "Payments applied during the year (operator assertion, s 109R not applied) = 15000.00.",
           "Shortfall (s 109E(1)(c)) = max(0, 13283.60 - 15000.00) = 0.00."
+        ]
+      }
+    },
+    {
+      "row_number": 14,
+      "loan_id": "L-114",
+      "borrower_reference": "SYN-ASSOCIATE-N",
+      "status": "REVIEWED",
+      "skipped_reason": null,
+      "gate": {
+        "verdict": "COMPLYING",
+        "loan_id": "L-114",
+        "benchmark_year_used": "2025-26",
+        "benchmark_rate": "0.0837",
+        "benchmark_provenance": {
+          "origin": "frozen table",
+          "rba_table": "F5",
+          "rba_series": "FILRHLBVS",
+          "rba_month": "2025-05",
+          "source": "RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2025 (8.37 per cent). June 2025 was 8.27 per cent and is not the benchmark rate: it was published after the year of income began. Automated comparison 23 September 2026: xl/worksheets/sheet1.xml!D808, series identifier D11.",
+          "verify_at": "https://duguid.com.au/rates/div7a-benchmark-rate/",
+          "primary_url": "https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx",
+          "retrieved_on": "2026-09-20",
+          "snapshot_sha256": "40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0",
+          "entry_seen": "2026-08-28",
+          "table_reviewed_until": "2026-27",
+          "table_reviewed_on": "2026-08-28"
+        },
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "uri": "data/benchmark_rates.csv",
+              "sha256": "73d5014cd77bca935de528a540c2b90e69869aaab0dad8e6d104681e646d970a",
+              "primary_url": "https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx",
+              "retrieved_on": "2026-09-20",
+              "snapshot_sha256": "40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0"
+            }
+          ]
+        },
+        "maximum_term_years_allowed": "7",
+        "limbs": [
+          {
+            "cite": "s 109N(1)(a)",
+            "requirement": "the agreement that the loan was made under is in writing",
+            "state": "PASS",
+            "finding": "Operator asserts a written agreement."
+          },
+          {
+            "cite": "s 109N(1) chapeau, with s 109D(6)",
+            "requirement": "the criteria were met before the lodgment day for the year of income",
+            "state": "PASS",
+            "finding": "Operator asserts the terms were in place before the lodgment day."
+          },
+          {
+            "cite": "s 109N(1)(b)",
+            "requirement": "the rate of interest payable for years of income after the year the loan was made equals or exceeds the benchmark interest rate",
+            "state": "PASS",
+            "finding": "Supplied rate 0.0837 is at or above the 2025-26 benchmark 0.0837."
+          },
+          {
+            "cite": "s 109N(1)(c)",
+            "requirement": "the term of the loan does not exceed the maximum term under s 109N(3)",
+            "state": "PASS",
+            "finding": "Term 6.5 years is within 7 (s 109N(3)(b): 7 years for a loan that is not secured)."
+          }
+        ],
+        "reasons": [],
+        "reason_codes": [],
+        "caveats": [
+          "Interest-floor interpretation unresolved: ATO guidance requires the benchmark interest rate for each year of the loan. This model compares the supplied rate with one selected year's benchmark and defaults to year_loan_made. COMPLYING does not establish that the agreement meets the annual interest requirement. Review the agreement and relevant years before relying on this result. See docs/primary-source-review-2026-08-31.md.",
+          "COMPLYING here means the four model comparisons passed on the facts supplied, subject to the interest-floor limitation. It is not a finding that no dividend arises: Subdivision D holds other exclusions, s 109T to s 109X reach interposed entities, and s 109XA reaches unpaid present entitlements. None of those is modelled."
+        ],
+        "statutory_trace": [
+          "ITAA 1936 s 109N(1): a loan is not taken under s 109D to be a dividend if, before the lodgment day for the year of income, the agreement is in writing, the interest rate meets the benchmark, and the term is within the s 109N(3) maximum.",
+          "Benchmark interest rate read for 2025-26 (s 109N(2)): 0.0837.",
+          "s 109D(6): lodgment day is the earlier of the due date for the company's return and the day it was lodged; asserted by the operator, not computed here."
+        ]
+      },
+      "myr": {
+        "verdict": "MYR_MET",
+        "loan_id": "L-114",
+        "year_of_income": "2026-27",
+        "gate_verdict": "COMPLYING",
+        "benchmark_rate": "0.0877",
+        "benchmark_provenance": {
+          "origin": "frozen table",
+          "rba_table": "F5",
+          "rba_series": "FILRHLBVS",
+          "rba_month": "2026-05",
+          "source": "RBA statistical table F5 Indicator Lending Rates, series FILRHLBVS (Housing loans; Banks; Variable; Standard; Owner-occupier), figure for May 2026; cross-checked against the published Division 7A benchmark rate table. Automated comparison 23 September 2026: xl/worksheets/sheet1.xml!D820, series identifier D11.",
+          "verify_at": "https://duguid.com.au/rates/div7a-benchmark-rate/",
+          "primary_url": "https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx",
+          "retrieved_on": "2026-09-20",
+          "snapshot_sha256": "40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0",
+          "entry_seen": "2026-08-28",
+          "table_reviewed_until": "2026-27",
+          "table_reviewed_on": "2026-08-28"
+        },
+        "manifest": {
+          "rate_table_uris": [
+            {
+              "uri": "data/benchmark_rates.csv",
+              "sha256": "73d5014cd77bca935de528a540c2b90e69869aaab0dad8e6d104681e646d970a",
+              "primary_url": "https://www.rba.gov.au/statistics/tables/xls/f05hist.xlsx",
+              "retrieved_on": "2026-09-20",
+              "snapshot_sha256": "40da2e5b7b74ca5d96a32688a6aea133c7e722c32701f13d25a32fef77e077b0"
+            }
+          ]
+        },
+        "amalgamated_loan_unpaid_at_end_of_previous_year": "20000.00",
+        "remaining_term_years_used": "7",
+        "myr_required": "3943.19",
+        "payments_applied": "5000.00",
+        "shortfall": "0.00",
+        "experimental_deemed_dividend_exposure": null,
+        "rounding": "ROUND_HALF_UP",
+        "reasons": [],
+        "reason_codes": [],
+        "caveats": [
+          "s 109R: this engine did not decide whether the payments applied are genuine repayments. A payment made where the borrower intended to draw a similar or larger loan is left out of the reckoning by s 109R(2), and that turns on what a reasonable person would conclude. The figure used is the operator's assertion.",
+          "Any shortfall shown is an experimental review aid, not an ATO assessment and not a s 109E(1) determination. s 109E(2) makes the dividend the shortfall subject to s 109Y, which caps Division 7A dividends at the company's distributable surplus, and s 109E(1)(d) removes the dividend where s 109Q applies. Neither is modelled here, and neither is s 109RB.",
+          "Interest-floor interpretation unresolved: ATO guidance requires the benchmark interest rate for each year of the loan. This model compares the supplied rate with one selected year's benchmark and defaults to year_loan_made. COMPLYING does not establish that the agreement meets the annual interest requirement. Review the agreement and relevant years before relying on this result. See docs/primary-source-review-2026-08-31.md.",
+          "COMPLYING here means the four model comparisons passed on the facts supplied, subject to the interest-floor limitation. It is not a finding that no dividend arises: Subdivision D holds other exclusions, s 109T to s 109X reach interposed entities, and s 109XA reaches unpaid present entitlements. None of those is modelled."
+        ],
+        "statutory_trace": [
+          "ITAA 1936 s 109E(1): a private company is taken to pay a dividend at the end of the current year where an amalgamated loan made in an earlier year is not repaid and payments fall short of the minimum yearly repayment.",
+          "s 109E(5): the minimum yearly repayment is worked out using the formula in s 109E(6).",
+          "s 109E(6) formula: MYR = (amount of the loan not repaid by the end of the previous year of income x current year's benchmark interest rate) / (1 - (1 / (1 + current year's benchmark interest rate)) ^ remaining term).",
+          "Amount of the loan not repaid by the end of the previous year of income = 20000.00.",
+          "Current year's benchmark interest rate (2026-27, s 109N(2)) = 0.0877, from RBA table F5 series FILRHLBVS, 2026-05 figure.",
+          "Remaining term (s 109E(6), rounded up to a whole number) = 7.",
+          "MYR = (20000.00 x 0.0877) / (1 - (1 / (1 + 0.0877)) ^ 7) = 3943.19 (quantised to cents, ROUND_HALF_UP; the Act prescribes no rounding).",
+          "Payments applied during the year (operator assertion, s 109R not applied) = 5000.00.",
+          "Shortfall (s 109E(1)(c)) = max(0, 3943.19 - 5000.00) = 0.00."
         ]
       }
     },
