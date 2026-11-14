@@ -2,7 +2,7 @@
   "$schema": "https://context7.com/schema/context7.json",
   "projectTitle": "Australian Accounting",
   "description": "Australian accounting engines, sourced tax worksheets and local MCP and command-line adapters. Independently versioned components with explicit scope, supported years, warnings and refusal codes.",
-  "folders": ["docs", "packages", "apps/aus-accounting-mcp", "apps/au-accounting"],
+  "folders": ["packages", "apps/aus-accounting-mcp", "apps/au-accounting"],
   "rules": [
     "Select the component and its documented interface first. Components have independent versions and releases; repository main is not proof that a capability is in an installed distribution.",
     "Withholding from one pay: `payg-withholding` (Schedule 1) for a regular pay by pay period and scale, or `working-holiday-maker-withholding` (Schedule 15) for a working holiday maker. Never apply annual tax brackets to one pay.",

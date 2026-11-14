@@ -1,7 +1,7 @@
 # Copyright 2026 Ryan Duguid
 # SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-"""context7.json must name the calculator's withholding worksheets as they are at this commit."""
+"""context7.json must index component documentation and name the calculator's withholding worksheets."""
 
 import json
 import re
@@ -26,3 +26,9 @@ def test_rules_name_every_withholding_worksheet() -> None:
     withholding = {command for command in COMMANDS if command.endswith("-withholding")}
     assert withholding
     assert {command for command in withholding if f"`{command}`" not in rules} == set()
+
+
+def test_folders_hold_component_documentation_not_the_discovery_note() -> None:
+    folders = [ROOT / folder for folder in CONFIG["folders"]]
+    assert all(folder.is_dir() for folder in folders)
+    assert not any((ROOT / "docs/discovery.md").is_relative_to(folder) for folder in folders)
