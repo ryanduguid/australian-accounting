@@ -57,7 +57,9 @@ published input schema still admits none of them, so `adapters/tax.rs` now
 narrows the whole new scope to the published 0.2.0 words; without that,
 `every_year_a_scope_names_is_an_advertised_period` fails. The draft's
 `NARROWED_SCOPE` holds the same entry with the old wording, so it needs the
-same change.
+same change. `main` at 0be34fb0 likewise widened study loan withholding to
+2025-26 pays from 24 September 2025, which the schema's fixed 2026-27 year does
+not admit, so that scope is narrowed to the engine's words before that change.
 
 ## Check
 
