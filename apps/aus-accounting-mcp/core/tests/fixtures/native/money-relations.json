@@ -1,0 +1,151 @@
+{
+  "source": "tests/test_server_money.py",
+  "source_sha256": "1e45fcffbbed08c03fb999ec0306d60c270c52d38e1809be752029bca492bcfc",
+  "money_paths": [
+    "build_payday_super_evidence_pack.contributions.matched_amount",
+    "build_payday_super_evidence_pack.contributions.remitted_amount",
+    "build_payday_super_evidence_pack.contributions.sg_amount",
+    "calc_payday_super_deadline.matched_amount",
+    "calc_payday_super_deadline.remitted_amount",
+    "calc_payday_super_deadline.sg_amount",
+    "calculate_tax_worksheet.facts.account_balance",
+    "calculate_tax_worksheet.facts.amount",
+    "calculate_tax_worksheet.facts.concessional_contributions",
+    "calculate_tax_worksheet.facts.cost",
+    "calculate_tax_worksheet.facts.current_losses",
+    "calculate_tax_worksheet.facts.discount_gains",
+    "calculate_tax_worksheet.facts.division_293_income",
+    "calculate_tax_worksheet.facts.earnings",
+    "calculate_tax_worksheet.facts.low_tax_contributions",
+    "calculate_tax_worksheet.facts.non_concessional_contributions",
+    "calculate_tax_worksheet.facts.ordinary_time_earnings",
+    "calculate_tax_worksheet.facts.other_gains",
+    "calculate_tax_worksheet.facts.prior_losses",
+    "calculate_tax_worksheet.facts.qualifying_contributions",
+    "calculate_tax_worksheet.facts.repayment_income",
+    "calculate_tax_worksheet.facts.taxable_income",
+    "calculate_tax_worksheet.facts.total_super_balance",
+    "calculate_tax_worksheet.facts.type_one_value",
+    "calculate_tax_worksheet.facts.type_two_value",
+    "calculate_tax_worksheet.facts.unused_concessional_cap",
+    "generate_synthetic_sbr_fixture.revenue_or_sales",
+    "get_ato_benchmarks.associated_persons",
+    "get_ato_benchmarks.contractor_commission",
+    "get_ato_benchmarks.cost_of_sales",
+    "get_ato_benchmarks.cost_of_sales_labour",
+    "get_ato_benchmarks.motor_vehicle",
+    "get_ato_benchmarks.other_expense",
+    "get_ato_benchmarks.other_income",
+    "get_ato_benchmarks.rent",
+    "get_ato_benchmarks.salary_wages",
+    "get_ato_benchmarks.turnover",
+    "get_ato_benchmarks.w1",
+    "reconcile_bas.lines.gross",
+    "reconcile_bas.lines.gst",
+    "review_div7a_loan.amalgamated_loan_unpaid_at_end_of_previous_year",
+    "review_div7a_loan.payments_applied_during_the_year",
+    "review_gst_coding.lines.amount",
+    "review_payday_super_contributions.contributions.matched_amount",
+    "review_payday_super_contributions.contributions.remitted_amount",
+    "review_payday_super_contributions.contributions.sg_amount"
+  ],
+  "test_parse_amount_accepts_plain_notation": [
+    "0",
+    "0.00",
+    "12",
+    "12.3",
+    "12.34",
+    "-12.34",
+    "0012.5",
+    "-0",
+    " 12.30 ",
+    "1000000000000.00",
+    "-1000000000000.00"
+  ],
+  "test_parse_amount_keeps_one_message_per_failure": [
+    [
+      "1e3",
+      "is not a decimal amount"
+    ],
+    [
+      "1E+3",
+      "is not a decimal amount"
+    ],
+    [
+      "1.2e6",
+      "is not a decimal amount"
+    ],
+    [
+      "1e30",
+      "is not a decimal amount"
+    ],
+    [
+      "1_000.50",
+      "is not a decimal amount"
+    ],
+    [
+      "+12",
+      "is not a decimal amount"
+    ],
+    [
+      ".5",
+      "is not a decimal amount"
+    ],
+    [
+      "12.",
+      "is not a decimal amount"
+    ],
+    [
+      "$12.00",
+      "is not a decimal amount"
+    ],
+    [
+      "١٢",
+      "is not a decimal amount"
+    ],
+    [
+      "NaN",
+      "is not a finite amount"
+    ],
+    [
+      "Infinity",
+      "is not a finite amount"
+    ],
+    [
+      "-Infinity",
+      "is not a finite amount"
+    ],
+    [
+      "+Infinity",
+      "is not a finite amount"
+    ],
+    [
+      "+NaN",
+      "is not a finite amount"
+    ],
+    [
+      "-NaN",
+      "is not a finite amount"
+    ],
+    [
+      "sNaN",
+      "is not a finite amount"
+    ],
+    [
+      "0.001",
+      "must have no more than 2 decimal places"
+    ],
+    [
+      "1000000000000.01",
+      "must not exceed"
+    ],
+    [
+      "",
+      "amount is required"
+    ],
+    [
+      "   ",
+      "amount is required"
+    ]
+  ]
+}

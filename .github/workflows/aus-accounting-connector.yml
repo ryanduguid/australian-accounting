@@ -1,0 +1,117 @@
+name: Hosted connector
+
+# Every pull request runs the workflow so aus-accounting-connector-gates always
+# reports; the changes job skips the other jobs when none of its paths changed.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - apps/aus-accounting-mcp/core/**
+      - apps/aus-accounting-mcp/conformance/**
+      - packages/australian-tax-calculators/**
+      - packages/div7a-loan-review/**
+      - packages/payday-super-checker/**
+      - .github/workflows/aus-accounting-connector.yml
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      run: ${{ steps.select.outputs.run }}
+    steps:
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - id: select
+        env:
+          # The push trigger's paths.
+          CI_PATHS: |
+            apps/aus-accounting-mcp/core/**
+            apps/aus-accounting-mcp/conformance/**
+            packages/australian-tax-calculators/**
+            packages/div7a-loan-review/**
+            packages/payday-super-checker/**
+            .github/workflows/aus-accounting-connector.yml
+        run: python3 .github/ci/app_ci.py select aus-accounting-connector >> "$GITHUB_OUTPUT"
+
+  core:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/aus-accounting-mcp/core
+    env:
+      CARGO_BUILD_JOBS: '2'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install 1.99 --profile minimal --component rustfmt,clippy --target wasm32-unknown-unknown
+      - run: cargo +1.99 fmt --check
+      - run: cargo +1.99 clippy --locked --all-targets -- -D warnings
+      - run: cargo +1.99 clippy --locked --target wasm32-unknown-unknown --lib -- -D warnings
+      - run: cargo +1.99 test --locked
+      - run: cargo +1.99 build --locked --release --target wasm32-unknown-unknown
+
+  dependency-audit:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2.90.1
+        with:
+          tool: cargo-audit@0.22.2
+          fallback: none
+      - name: Audit Cargo lock
+        working-directory: apps/aus-accounting-mcp/core
+        run: cargo audit --deny warnings
+
+  aus-accounting-connector-gates:
+    needs: [changes, core, dependency-audit]
+    if: always()
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The merge commit's first parent holds the base branch's workflow.
+          fetch-depth: 2
+          sparse-checkout: .github
+      - name: Require selected checks to succeed and unselected checks to skip
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: python3 .github/ci/app_ci.py gate aus-accounting-connector
+      - name: Require every job to be listed and kept
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: python3 .github/ci/check_gates.py .github/workflows/aus-accounting-connector.yml aus-accounting-connector-gates --no-results
