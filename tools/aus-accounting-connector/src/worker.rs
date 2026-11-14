@@ -3,7 +3,7 @@
 
 //! The Workers glue: no storage, no outbound request and no logging.
 
-use crate::{BODY_LIMIT, Reply, admit, respond, today};
+use crate::{BODY_LIMIT, Reply, admit, allow_origin, respond, today};
 use futures_util::StreamExt;
 use worker::{Context, Date, Env, Request, Response, Result, event};
 
@@ -44,13 +44,18 @@ async fn bounded(request: &mut Request) -> Result<Option<Vec<u8>>> {
 
 #[event(fetch)]
 async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<Response> {
+    let reply = handle(&mut request, &env).await?;
+    send(allow_origin(reply, &Incoming(request.headers())))
+}
+
+async fn handle(request: &mut Request, env: &Env) -> Result<Reply> {
     let url = request.url()?;
     if let Err(reply) = admit(
         request.method().as_ref(),
         url.path(),
         &Incoming(request.headers()),
     ) {
-        return send(reply);
+        return Ok(reply);
     }
     // Fails closed: a missing or failing limiter refuses the request.
     let address = request
@@ -63,12 +68,12 @@ async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<Resp
     };
     match admitted {
         Ok(true) => {}
-        Ok(false) => return send(Reply::new(429, None).header("retry-after", "60")),
-        Err(_) => return send(Reply::new(503, None)),
+        Ok(false) => return Ok(Reply::new(429, None).header("retry-after", "60")),
+        Err(_) => return Ok(Reply::new(503, None)),
     }
-    let Some(body) = bounded(&mut request).await? else {
-        return send(Reply::new(413, None));
+    let Some(body) = bounded(request).await? else {
+        return Ok(Reply::new(413, None));
     };
     let today = today(Date::now().as_millis());
-    send(respond(&body, &Incoming(request.headers()), &today))
+    Ok(respond(&body, &Incoming(request.headers()), &today))
 }

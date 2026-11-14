@@ -144,8 +144,7 @@ pub fn admit(method: &str, path: &str, headers: &impl Headers) -> Result<(), Rep
     let allowed = origin.as_deref().is_none_or(|o| ORIGINS.contains(&o));
     if method == "OPTIONS" {
         return Err(match origin {
-            Some(origin) if allowed => Reply::new(204, None)
-                .header("access-control-allow-origin", &origin)
+            Some(_) if allowed => Reply::new(204, None)
                 .header("access-control-allow-methods", "POST")
                 .header(
                     "access-control-allow-headers",
@@ -172,17 +171,19 @@ pub fn admit(method: &str, path: &str, headers: &impl Headers) -> Result<(), Rep
     Ok(())
 }
 
-/// The reply to an admitted body of at most `BODY_LIMIT` bytes, on `today`
-/// (UTC, YYYY-MM-DD).
-pub fn respond(body: &[u8], headers: &impl Headers, today: &str) -> Reply {
-    let reply = rpc(body, headers, today);
+/// Every reply but a 403, which refuses the origin, readable by an allowed browser origin.
+pub fn allow_origin(reply: Reply, headers: &impl Headers) -> Reply {
     match headers.get("origin") {
-        Some(origin) if reply.status != 403 => reply.header("access-control-allow-origin", &origin),
+        Some(origin) if reply.status != 403 && ORIGINS.contains(&origin.as_str()) => {
+            reply.header("access-control-allow-origin", &origin)
+        }
         _ => reply,
     }
 }
 
-fn rpc(body: &[u8], headers: &impl Headers, today: &str) -> Reply {
+/// The reply to an admitted body of at most `BODY_LIMIT` bytes, on `today`
+/// (UTC, YYYY-MM-DD).
+pub fn respond(body: &[u8], headers: &impl Headers, today: &str) -> Reply {
     let null = Value::Null;
     let Ok(message) = serde_json::from_slice::<Value>(body) else {
         return Reply::error(400, &null, -32700, "Parse error", None);

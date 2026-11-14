@@ -157,6 +157,7 @@ test('Origin: listed origins are allowed, others get 403', async () => {
   }
   const preflight = await worker.mf.dispatchFetch(new URL('/mcp', worker.url), { method: 'OPTIONS', headers: { origin: 'https://claude.ai', 'cf-connecting-ip': caller() } });
   assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('access-control-allow-origin'), 'https://claude.ai');
   assert.equal(preflight.headers.get('access-control-allow-methods'), 'POST');
   const refused = await worker.mf.dispatchFetch(new URL('/mcp', worker.url), { method: 'OPTIONS', headers: { origin: 'https://attacker.example', 'cf-connecting-ip': caller() } });
   assert.equal(refused.status, 403);

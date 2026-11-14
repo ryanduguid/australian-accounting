@@ -134,9 +134,9 @@ commands:
 The undeployed hosted connector in `tools/aus-accounting-connector/` and its core in
 `apps/aus-accounting-mcp/core/` link the tax calculator, Division 7A and Payday Super
 engines by path; their checks are in each README and run from
-`.github/workflows/aus-accounting-connector.yml`. A change to a result those tools serve
-fails the connector's `cargo test` until its reference is recorded again: from
-`tools/aus-accounting-connector/`, run `RECORD_REFERENCE=1 cargo test --locked --test reference`
+`.github/workflows/aus-accounting-connector.yml`. A change to a reply its reference
+records (the calls in `tests/reference.rs`) fails the connector's `cargo test` until the
+reference is recorded again: from `tools/aus-accounting-connector/`, run `RECORD_REFERENCE=1 cargo test --locked --test reference`
 and commit `tests/fixtures/reference.json` with the change.
 
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,

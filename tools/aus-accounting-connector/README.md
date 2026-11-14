@@ -40,7 +40,8 @@ each case; they are not Cloudflare's CPU accounting.
 
 [`tests/reference.rs`](tests/reference.rs) fails `cargo test` when the fixture
 differs from this commit's replies, as it does after an engine change to a
-served result. Record it again from this directory with:
+reply it records; replies it does not record, such as a file note, are not
+compared. Record it again from this directory with:
 
 ```sh
 RECORD_REFERENCE=1 cargo test --locked --test reference
@@ -84,7 +85,8 @@ Each release refuses every tool call from its `serve_until` date, fixed by
 [`build.rs`](build.rs) as the earliest of the day before the next 1 July, the end
 of the GIC table's last quarter and the business-day calendar's
 `verified_until`. The release, its commit and that date are in the
-`x-connector-release` header of every reply and in `serverInfo`.
+`x-connector-release` header of every reply; `serverInfo` gives the version and
+commit.
 
 ## Deployment status
 
