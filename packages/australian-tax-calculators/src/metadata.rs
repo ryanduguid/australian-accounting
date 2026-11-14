@@ -940,7 +940,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "tfn_quoted",
-                "boolean, true when the payee quoted a TFN, or advised on their TFN declaration that they applied for one and 28 days have not passed; false when they did neither, or 28 days passed without a TFN",
+                "boolean, true when the payee quoted a TFN, or advised on their TFN declaration that they applied for one or made an enquiry with the ATO and 28 days have not passed; false when they did neither, or 28 days passed without a TFN",
             ),
             (
                 "pay_period",

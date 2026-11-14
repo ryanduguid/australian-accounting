@@ -82,10 +82,9 @@ intentionally changed.
 - `working-holiday-maker-withholding` applies Schedule 15 to one weekly,
   fortnightly or monthly payment to a working holiday maker, for 2024-25 to
   2026-27: a registered employer's Table A rate (15%, 30%, 37% or 45%, by the
-  column the payments made before it in the income year select) or 45% without
-  a TFN, and an unregistered employer's foreign resident rates through
-  Schedule 1 scale 3. It refuses an unregistered employer's payee without a TFN
-  (`working_holiday_maker.unregistered_no_tfn`), payments before of
+  column the payments made before it in the income year select), an
+  unregistered employer's foreign resident rates through Schedule 1 scale 3,
+  and 45% from any employer whose payee gave no TFN. It refuses payments before of
   $135,000.01 to $135,000.99, which no column covers
   (`working_holiday_maker.band_unsettled`), and, like `division-296`, a field
   it does not take. No Python release has it. `tests/parity.rs` drops its

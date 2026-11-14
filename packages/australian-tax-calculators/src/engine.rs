@@ -2655,20 +2655,14 @@ fn working_holiday_maker_rate(before: &Decimal) -> Result<(usize, &'static str)>
 
 const WORKING_HOLIDAY_MAKER: &str = "working_holiday_maker_withholding";
 
-/// Schedule 15 for an unregistered employer, who withholds at the foreign
-/// resident rates: the Schedule 1 scale 3 amount for the pay period.
+/// Schedule 15 for an unregistered employer whose payee gave a TFN, who
+/// withholds at the foreign resident rates: the Schedule 1 scale 3 amount for
+/// the pay period.
 fn unregistered_working_holiday_maker(
     payment: Decimal,
     period: String,
     year: String,
-    tfn: bool,
 ) -> Result<Value> {
-    if !tfn {
-        return refuse(
-            "working_holiday_maker.unregistered_no_tfn",
-            "An unregistered employer withholds at foreign resident rates, and this worksheet does not take their rate for a payee who gave no TFN.",
-        );
-    }
     let label = format!("{year} {period}");
     let foreign = payg_withholding(
         &Arg::Decimal(payment.clone()),
@@ -2692,11 +2686,13 @@ fn unregistered_working_holiday_maker(
     Ok(out)
 }
 
-/// Schedule 15 for a registered employer: the column's Table A rate, or 45%
-/// without a TFN, times the payment with cents ignored.
-fn registered_working_holiday_maker(
+/// Schedule 15 at a flat rate: a registered employer's Table A rate for the
+/// column, or 45% for any employer without a TFN (for an unregistered one, the
+/// Schedule 1 scale 4 foreign resident rate), times the payment with cents ignored.
+fn flat_rate_working_holiday_maker(
     payment: &Decimal,
     before: &Decimal,
+    registered: bool,
     tfn: bool,
     label: &str,
 ) -> Result<Value> {
@@ -2724,10 +2720,16 @@ fn registered_working_holiday_maker(
         vec![("payment_used", x), ("withholding", withholding)],
         vec![rate("rate", &a)],
     )?;
-    out["withholding_basis"] = json!(format!(
-        "registered employer, {}: column {column}, rate {a} on the payment with cents ignored",
-        if tfn { "TFN quoted" } else { "no TFN" }
-    ));
+    out["withholding_basis"] = json!(if registered {
+        format!(
+            "registered employer, {}: column {column}, rate {a} on the payment with cents ignored",
+            if tfn { "TFN quoted" } else { "no TFN" }
+        )
+    } else {
+        format!(
+            "unregistered employer, no TFN: the foreign resident rate without a TFN (Schedule 1 scale 4), {a} on the payment with cents ignored"
+        )
+    });
     Ok(out)
 }
 
@@ -2755,10 +2757,11 @@ pub fn working_holiday_maker_withholding(
             );
         }
     };
-    if !registered {
-        return unregistered_working_holiday_maker(payment, period, year, tfn);
+    if !registered && tfn {
+        return unregistered_working_holiday_maker(payment, period, year);
     }
-    registered_working_holiday_maker(&payment, &before, tfn, &format!("{year} {period}"))
+    let label = format!("{year} {period}");
+    flat_rate_working_holiday_maker(&payment, &before, registered, tfn, &label)
 }
 
 const KINDS: [&str; 24] = [

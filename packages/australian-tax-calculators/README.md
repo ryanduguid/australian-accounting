@@ -423,10 +423,10 @@ payment, cents ignored, times the Table A rate for the column that the payments
 made before it in the income year select: 15% below $45,001, 30% from $45,001
 to $135,000, 37% from $135,001 to $190,000 and 45% above $190,000. The result
 is rounded to the dollar, 50 cents up, except at 45%, where cents are ignored.
-Without a TFN a registered employer withholds 45%, cents ignored. An
-unregistered employer withholds at foreign resident rates, the Schedule 1
-scale 3 amount `payg-withholding` gives; with no TFN it is refused, as are
-payments before of $135,000.01 to $135,000.99, which no column covers.
+Without a TFN any employer withholds 45%, cents ignored. An unregistered
+employer withholds at foreign resident rates, the Schedule 1 scale 3 amount
+`payg-withholding` gives. Payments before of $135,000.01 to $135,000.99, which
+no column covers, are refused.
 `withholding_basis` names the column or scale used. Like `division-296`, it
 refuses a field it does not take. A payee who claimed an exemption from
 quoting a TFN, labour mobility schemes, withholding variations and checking

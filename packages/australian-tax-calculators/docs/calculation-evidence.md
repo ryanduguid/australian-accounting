@@ -626,11 +626,15 @@ same apart from the income year in Table A's heading and the examples' dates:
   result are ignored.
 - An unregistered employer withholds at the foreign resident rates in the
   weekly, fortnightly or monthly tax tables, which the worksheet takes from
-  Schedule 1 scale 3 through `payg-withholding`.
+  Schedule 1 scale 3 through `payg-withholding`. Without a TFN it withholds
+  45%, cents ignored: the schedule's 45% rule for a payee without a TFN does
+  not depend on registration, and Schedule 1 scale 4 gives the same rate for
+  a foreign resident.
 - 45% applies without a TFN only if the payee has also not claimed an
-  exemption from quoting it and not advised that they applied for one; a payee
-  who so advised has 28 days to provide it. The worksheet takes `tfn_quoted`
-  as established on that basis and leaves exemption claimants out of scope.
+  exemption from quoting it and not advised that they applied for one or made
+  an enquiry with the ATO; a payee who so advised has 28 days to provide it.
+  The worksheet takes `tfn_quoted` as established on that basis and leaves
+  exemption claimants out of scope.
 - The schedule does not apply to workers employed under the Seasonal Worker
   Programme, Pacific Labour Scheme or Pacific Australia Labour Mobility scheme.
 

@@ -150,27 +150,44 @@ fn rounding() {
         // 0.45 x 10 = 4.50, cents ignored at the top rate.
         ("10.00", "190001.00", "4.00"),
         ("0.99", "0.00", "0.00"),
+        // So a small payment can withhold less once column 5 applies:
+        // 0.37 x 2 = 0.74, rounded up, against 0.45 x 2 = 0.90, cents ignored.
+        ("2.00", "190000.00", "1.00"),
+        ("2.00", "190000.01", "0.00"),
     ] {
         assert_eq!(withholding(payment, before), y, "{payment} {before}");
     }
 }
 
-/// Without a TFN a registered employer withholds 45%, cents ignored, whatever
-/// was paid before.
+/// Without a TFN any employer withholds 45%, cents ignored, whatever was paid
+/// before: column 6 for a registered employer, and for an unregistered one the
+/// foreign resident rate without a TFN, which Schedule 1 scale 4 also gives.
 #[test]
 fn no_tfn_is_45_percent_with_cents_ignored() {
-    for (payment, before, x, y) in [
-        ("10.00", "0.00", "10.00", "4.00"),
-        ("1000.99", "0.00", "1000.00", "450.00"),
-        ("2825.75", "135000.50", "2825.00", "1271.00"),
+    for (registered, basis) in [
+        (
+            true,
+            "registered employer, no TFN: column 6, rate 0.45 on the payment with cents ignored",
+        ),
+        (
+            false,
+            "unregistered employer, no TFN: the foreign resident rate without a TFN (Schedule 1 scale 4), 0.45 on the payment with cents ignored",
+        ),
     ] {
-        let facts = with(json!({"payment": payment, "payments_before": before,
-                                "tfn_quoted": false}));
-        assert_eq!(run(&facts), triple(x, y, "0.45"), "{payment}");
-        assert_eq!(
-            evaluate(&facts)["withholding_basis"],
-            "registered employer, no TFN: column 6, rate 0.45 on the payment with cents ignored"
-        );
+        for (payment, before, x, y) in [
+            ("10.00", "0.00", "10.00", "4.00"),
+            ("10.99", "0.00", "10.00", "4.00"),
+            ("1000.99", "0.00", "1000.00", "450.00"),
+            ("2825.75", "135000.50", "2825.00", "1271.00"),
+        ] {
+            for year in ["2024-25", "2025-26", "2026-27"] {
+                let facts = with(json!({"payment": payment, "payments_before": before,
+                                        "tfn_quoted": false, "employer_registered": registered,
+                                        "year": year}));
+                assert_eq!(run(&facts), triple(x, y, "0.45"), "{payment} {registered}");
+                assert_eq!(evaluate(&facts)["withholding_basis"], basis);
+            }
+        }
     }
 }
 
@@ -206,11 +223,6 @@ fn an_unregistered_employer_uses_foreign_resident_rates() {
     assert_eq!(
         evaluate(&with(json!({"employer_registered": false})))["amounts"]["withholding"],
         "204.00"
-    );
-    let no_tfn = with(json!({"employer_registered": false, "tfn_quoted": false}));
-    assert_eq!(
-        refusal_code(&no_tfn),
-        "working_holiday_maker.unregistered_no_tfn"
     );
 }
 

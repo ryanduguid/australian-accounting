@@ -1055,8 +1055,10 @@ fn schedule_5_withholding_stays_within_the_47_percent_limit() {
 }
 
 /// Schedule 15: a registered employer's withholding from a working holiday
-/// maker who gave a TFN never falls as the payment or the payments before it
-/// rise, and never exceeds 45% of the payment.
+/// maker who gave a TFN never falls as the payment rises, nor as the payments
+/// before it rise for a payment over $19, and never exceeds 45% of the
+/// payment. Up to $19, column 5's ignored cents can withhold a dollar less than
+/// column 4's rounding ($2: $1 at 37%, $0 at 45%).
 #[test]
 fn working_holiday_maker_withholding_rises_and_stays_within_45_percent() {
     let mut rng = Rng(20_261_114);
@@ -1077,7 +1079,7 @@ fn working_holiday_maker_withholding_rises_and_stays_within_45_percent() {
         let top = withholding(&high, more);
         assert!(le(&withholding(&low, more), &top), "{low} {high} {more}");
         assert!(
-            le(&withholding(&high, fewer), &top),
+            le(&d(&high), &n(19)) || le(&withholding(&high, fewer), &top),
             "{high} {fewer} {more}"
         );
         let limit = d(&high).mul(&d("0.45")).unwrap().add(&d("0.5")).unwrap();
