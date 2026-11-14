@@ -143,7 +143,7 @@ fn every_engine_and_command_name_routes_to_one_engine() {
 }
 
 #[test]
-fn only_the_tax_engine_refuses_a_repeated_key() {
+fn refuse_repeated_keys_refuses_a_key_repeated_within_one_object() {
     let tax = Json {
         refuse_repeated_keys: true,
         ..FULL_JSON
