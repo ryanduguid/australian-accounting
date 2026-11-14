@@ -1332,6 +1332,34 @@ fn estimate_input(rng: &mut Rng, year: &str) -> Value {
     facts
 }
 
+/// A part's amount when called alone with the inputs `out`, the estimate for
+/// `facts`, gave it, checking the estimate kept that part's result unchanged;
+/// nil for an optional part not given.
+fn part_alone(facts: &Value, out: &Value, command: &str, key: &str) -> Decimal {
+    let shared_only = matches!(command, "resident-tax" | "low-income-tax-offset");
+    if facts.get(command).is_none() && !shared_only {
+        assert!(
+            out["components"].get(command).is_none(),
+            "{command} {facts}"
+        );
+        return n(0);
+    }
+    let mut input = facts.get(command).cloned().unwrap_or_else(|| json!({}));
+    input["year"] = facts["year"].clone();
+    input["scope_confirmed"] = json!(true);
+    if shared_only || command.starts_with("medicare") {
+        input["taxable_income"] = facts["taxable_income"].clone();
+    }
+    let sapto = &out["components"]["seniors-pensioners-tax-offset"];
+    if command == "medicare-levy" && !sapto.is_null() {
+        let offset = amount(sapto, "seniors_pensioners_tax_offset");
+        input["sapto_entitled"] = json!(!eq(&offset, &n(0)));
+    }
+    let result = run(command, input);
+    assert_eq!(out["components"][command], result, "{command} {facts}");
+    amount(&result, key)
+}
+
 /// `personal-tax-estimate` keeps each part's result exactly as the part gives
 /// it alone, and its total is the parts' sum: basic tax less SAPTO and then
 /// LITO, each up to the tax left (ITAA 1997 s 63-10(1)), plus the levy, the
@@ -1343,31 +1371,7 @@ fn the_composed_estimate_is_the_sum_of_its_parts_called_alone() {
         let year = *rng.pick(&["2025-26", "2026-27"]);
         let facts = estimate_input(&mut rng, year);
         let out = run("personal-tax-estimate", facts.clone());
-        // A part's amount when called alone with the inputs the estimate gave it.
-        let alone = |command: &str, key: &str| {
-            let shared_only = matches!(command, "resident-tax" | "low-income-tax-offset");
-            if facts.get(command).is_none() && !shared_only {
-                assert!(
-                    out["components"].get(command).is_none(),
-                    "{command} {facts}"
-                );
-                return n(0);
-            }
-            let mut input = facts.get(command).cloned().unwrap_or_else(|| json!({}));
-            input["year"] = json!(year);
-            input["scope_confirmed"] = json!(true);
-            if shared_only || command.starts_with("medicare") {
-                input["taxable_income"] = facts["taxable_income"].clone();
-            }
-            let sapto = &out["components"]["seniors-pensioners-tax-offset"];
-            if command == "medicare-levy" && !sapto.is_null() {
-                let offset = amount(sapto, "seniors_pensioners_tax_offset");
-                input["sapto_entitled"] = json!(!eq(&offset, &n(0)));
-            }
-            let result = run(command, input);
-            assert_eq!(out["components"][command], result, "{command} {facts}");
-            amount(&result, key)
-        };
+        let alone = |command: &str, key: &str| part_alone(&facts, &out, command, key);
         let basic = alone("resident-tax", "basic_income_tax");
         let sapto = alone(
             "seniors-pensioners-tax-offset",

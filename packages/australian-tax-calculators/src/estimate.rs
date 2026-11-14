@@ -144,6 +144,12 @@ fn check_fields(v: &Value) -> Result<(), Refusal> {
             ));
         }
     }
+    Ok(())
+}
+
+/// The surcharge worksheet's scope excludes anyone in a Medicare levy
+/// exemption category at any time in the year.
+fn check_exemption(v: &Value) -> Result<(), Refusal> {
     let exempt = [
         "medicare_levy_exemption_full_days",
         "medicare_levy_exemption_half_days",
@@ -252,6 +258,7 @@ fn compose_amounts(results: &Map<String, Value>) -> Result<[Decimal; 9], Refusal
 /// every part's own result.
 pub fn compose(v: &Value) -> Result<Value, Refusal> {
     check_fields(v)?;
+    check_exemption(v)?;
     check_residency(v)?;
     let results = run_parts(v)?;
     let mut amounts = Map::new();
