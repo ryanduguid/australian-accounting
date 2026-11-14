@@ -17,6 +17,10 @@ tools, its retrieval modules and its stdio server are not here. Its
 `get_data_freshness` also reports engines this core does not link (benchmarks,
 lodgment program, GST rules and reviewed rates), so here it reports only the
 datasets of the tools above; `freshness::report_on` takes the extra rows.
+The draft's `validate`, `file_note` and freshness `row` are restructured here
+without a change in behaviour, so that no function passes 50 lines or 8
+parameters: `validate` is split across `validation.rs` and
+`validation/scalars.rs`.
 
 The engines are linked by path, so results follow `packages/` at this commit.
 
