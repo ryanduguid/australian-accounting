@@ -109,7 +109,10 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
             }
             let mut without = facts.clone();
             without.as_object_mut().unwrap().remove(name);
-            assert!(api::evaluate(command, &without).is_err(), "{command} {name}");
+            assert!(
+                api::evaluate(command, &without).is_err(),
+                "{command} {name}"
+            );
         }
         checked += 1;
     }
