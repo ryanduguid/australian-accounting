@@ -488,7 +488,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "estimate.residency_unsupported",
-        "personal-tax-estimate was given a residency other than a full-year resident.",
+        "personal-tax-estimate was given a part-year resident or a working holiday maker, or a foreign resident with a part it composes for a resident only.",
     ),
     (
         "estimate.surcharge_with_exemption",

@@ -279,8 +279,9 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   deductions, approximates repayment income and income for surcharge purposes by taxable income,
   and compares the result with tax withheld, which this repository does not. This repository's
   `personal-tax-estimate` takes those incomes as established, names the worksheet behind each line
-  and keeps its sources and refusals, shows Division 293 tax, and refuses part-year residents,
-  working holiday makers and foreign residents. Both apply full and half Medicare levy exemptions and the Medicare levy
+  and keeps its sources and refusals, shows Division 293 tax, and refuses part-year residents and
+  working holiday makers; both compose a full-year foreign resident's tax without the Medicare
+  levy. Both apply full and half Medicare levy exemptions and the Medicare levy
   surcharge; the library takes a whole-year exemption and cover status only and applies the
   surcharge rate to all income for surcharge purposes, where this repository apportions both by
   days and applies the rate to taxable income and reportable fringe benefits only, as the ATO's

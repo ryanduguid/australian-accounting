@@ -1266,6 +1266,27 @@ taxable income too, a fabricated assumption, the offset comes off $3,328 tax
 first, the low income tax offset of `700 - 0.05 × 1500 = 625` next, and his
 levy is nil at the SAPTO thresholds, where it would be $780 without them.
 
+For a full-year foreign resident the estimate runs `foreign-resident-tax`.
+Read on 15 November 2026: ITAA 1997 s 61-110(1)(a) gives the low income tax
+offset only to an individual resident at any time in the year; ITAA 1936
+s 251S(1)(a) levies the Medicare levy only on the taxable income of a person
+resident at any time in the year, and the surcharge is an increase in that
+levy (Medicare Levy Act 1986 ss 8B to 8D); and the ATO's "2026 Non-resident
+foreign income" instructions say a foreign resident's study loan repayment may
+be a compulsory repayment, an overseas levy or both, depending on worldwide
+income. `study-loan-repayment` excludes the overseas levy, so the estimate
+refuses a study loan for a foreign resident. ITAA 1936 s 160AAAA sets no
+residence condition and the ATO's SAPTO page works out a foreign resident
+spouse's unused offset, but a foreign resident with a pension assessable here
+is not a prescribed non-resident and pays resident rates, which
+`foreign-resident-tax` excludes; the estimate composes SAPTO for a resident
+only. ITAA 1997 ss 293-15 and 293-20 set no residence condition, so Division
+293 tax is composed as for a resident. On the ATO's "Tax rates - foreign
+resident" (last updated 1 June 2026), $60,000 in 2025-26 gives $18,000, the
+$19,830 of the guide's example 16 gives $5,949 in 2024-25 where a resident pays
+$260.80 and then nothing after the low income tax offset, and $250,000 gives
+$87,850, with Division 293 tax of 15% of $30,000, $4,500, outside the total.
+
 ## Rechecking the evidence
 
 Resolve the numbered paragraph with the Library helper, read the extract's

@@ -182,7 +182,7 @@ The plain commands' output does not change.
 | Schedule 5 withholding | Weekly, fortnightly or monthly pays made from 1 July 2024 to 30 June 2027 that include back payments, commissions or bonuses, on scale 1, 2, 3, 5 or 6; the study and training support loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established working holiday maker; no TFN exemption claimants or labour mobility schemes |
 | Seniors and pensioners | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established senior or pensioner who gave a TFN, by status and Medicare levy exemption; no other tax offsets or Medicare levy adjustment |
-| Personal tax estimate | Each part's own periods: 2024-25 to 2026-27, or 2025-26 and 2026-27 with a study loan; a full-year resident's tax and levies before credits |
+| Personal tax estimate | Each part's own periods: 2024-25 to 2026-27, or 2025-26 and 2026-27 with a study loan; a full-year resident's or full-year foreign resident's tax and levies before credits |
 
 Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
@@ -611,8 +611,8 @@ thresholds and every cut-out; see
 
 ## Personal tax estimate
 
-`personal-tax-estimate` composes one full-year resident's income tax and levies
-for a year from the worksheets above, without working any part out itself. It
+`personal-tax-estimate` composes one full-year resident's or full-year foreign
+resident's income tax and levies for a year from the worksheets above, without working any part out itself. It
 takes `year`, `scope_confirmed`, `residency` and whole-dollar `taxable_income`
 once, and one object of each part's own inputs under the part's command name:
 `medicare-levy` and `medicare-levy-surcharge` always, and
@@ -621,6 +621,16 @@ they apply. It adds the shared inputs to each part, runs `resident-tax` and
 `low-income-tax-offset` on them alone, and gives `medicare-levy` the SAPTO
 entitlement the offset worked out (at least $1). Confirming scope confirms the
 scope each part states.
+
+With `"residency": "foreign_resident"` it runs `foreign-resident-tax` in place
+of `resident-tax`, and `division-293` when given. A foreign resident has no low
+income tax offset (ITAA 1997 s 61-110(1)(a)) and pays no Medicare levy or
+surcharge, which ITAA 1936 s 251S(1)(a) levies only on a person resident at
+some time in the year, so those lines are nil and their inputs are refused as
+`input.field_unknown`. It refuses `seniors-pensioners-tax-offset` for a foreign
+resident, and `study-loan-repayment`, because a foreign resident's repayment
+includes the overseas levy on worldwide income, which that worksheet excludes;
+both as `estimate.residency_unsupported`.
 
 ```json
 {"year": "2025-26", "scope_confirmed": true, "residency": "full_year_resident",
@@ -638,17 +648,16 @@ offset and then the low income tax offset each applied up to the tax left
 because the ATO assesses it on its own notice. Neither offset reduces the levy
 or the surcharge. `working` names the worksheet and amount behind each line,
 `components` holds each part's own result unchanged, with its scope, sources
-and warnings, and `not_composed` lists the optional parts not given, each nil.
+and warnings, and `not_composed` lists the parts not given or not applying, each nil.
 The total is before PAYG withholding and other credits, refundable and other
 offsets, the transfer of unused SAPTO to a spouse and any refund.
 
 A refusal from a part keeps the part's code, and its message starts with the
 part's command, such as a sole parent's `medicare-levy-surcharge:
 dependent_children is not an input ...`: there is no partial total. The
-estimate itself refuses a residency other than `full_year_resident` as
-`estimate.residency_unsupported` (a part-year resident, a working holiday maker
-and a foreign resident, whose rates and apportionment no worksheet here works
-out), an unknown residency as `input.residency_invalid`, Medicare levy
+estimate itself refuses a part-year resident and a working holiday maker, whose
+rates and apportionment no worksheet here works out, as
+`estimate.residency_unsupported`, an unknown residency as `input.residency_invalid`, Medicare levy
 exemption days beside the surcharge, whose scope excludes them, as
 `estimate.surcharge_with_exemption`, parts that describe different families
 (a spouse in one part but not another, 2 spouse taxable incomes, or dependants
@@ -656,8 +665,8 @@ without a spouse, whom the surcharge worksheet excludes) as
 `estimate.family_mismatch`, and a shared input or `sapto_entitled` given inside
 a part as `input.field_unknown`. It does not compare the counts of dependent
 children the levy and the surcharge each take. `derive` does not explain it.
-The tests hold it to the ATO's figures for tax with the levy, the surcharge and
-SAPTO, and to the sum of its parts called alone; see
+The tests hold it to the ATO's figures for tax with the levy, the surcharge,
+SAPTO and the foreign resident rates, and to the sum of its parts called alone; see
 [calculation evidence](docs/calculation-evidence.md#personal-tax-estimate).
 
 ## Worksheet discovery

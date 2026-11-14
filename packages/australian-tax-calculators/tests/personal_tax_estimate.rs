@@ -169,12 +169,8 @@ fn division_293_is_shown_outside_the_total() {
 }
 
 #[test]
-fn residency_other_than_a_full_year_resident_is_refused() {
-    for residency in [
-        "part_year_resident",
-        "working_holiday_maker",
-        "foreign_resident",
-    ] {
+fn a_part_year_resident_or_working_holiday_maker_is_refused() {
+    for residency in ["part_year_resident", "working_holiday_maker"] {
         let r = refusal(input("2025-26", "50000", json!({"residency": residency})));
         assert_eq!(r.code, "estimate.residency_unsupported", "{residency}");
     }
@@ -183,6 +179,93 @@ fn residency_other_than_a_full_year_resident_is_refused() {
     let mut facts = input("2025-26", "50000", json!({}));
     facts.as_object_mut().unwrap().remove("residency");
     assert_eq!(refusal(facts).code, "input.missing_field");
+}
+
+/// A full-year foreign resident's inputs: the shared ones, with `extra` added.
+fn foreign(year: &str, taxable: &str, extra: Value) -> Value {
+    let mut facts = json!({"year": year, "scope_confirmed": true,
+        "residency": "foreign_resident", "taxable_income": taxable});
+    for (k, v) in extra.as_object().unwrap() {
+        facts[k] = v.clone();
+    }
+    facts
+}
+
+/// A foreign resident for the full year (ATO, Tax rates - foreign resident,
+/// last updated 1 June 2026, read on 15 November 2026: 30c for each $1 to
+/// $135,000, $60,850 plus 45c for each $1 over $190,000 for 2024-25 and
+/// 2025-26) pays basic tax on the foreign resident scale, has no low income
+/// tax offset (ITAA 1997 s 61-110(1)(a)) and pays no Medicare levy or
+/// surcharge (ITAA 1936 s 251S(1)(a)). Division 293 tax still applies, outside
+/// the total: 15% of the lesser of $30,000 and the $30,000 over $250,000.
+#[test]
+fn a_foreign_resident_pays_the_foreign_resident_scale_without_lito_or_levies() {
+    for (year, income, tax) in [
+        ("2025-26", "60000", "18000.00"),
+        ("2024-25", "19830", "5949.00"),
+        ("2025-26", "250000", "87850.00"),
+    ] {
+        let out = api::evaluate(COMMAND, &foreign(year, income, json!({}))).unwrap();
+        let a = &out["amounts"];
+        assert_eq!(a["basic_income_tax"], tax, "{year} {income}");
+        for key in [
+            "low_income_tax_offset_applied",
+            "medicare_levy",
+            "medicare_levy_surcharge",
+        ] {
+            assert_eq!(a[key], "0.00", "{key}");
+        }
+        assert_eq!(a["total_before_credits"], tax, "{year} {income}");
+        assert_eq!(out["residency"], "foreign_resident");
+        let alone = json!({"taxable_income": income, "year": year, "scope_confirmed": true});
+        assert_eq!(
+            out["components"]["foreign-resident-tax"],
+            api::evaluate("foreign-resident-tax", &alone).unwrap()
+        );
+        assert_eq!(
+            out["working"]["basic_income_tax"],
+            "foreign-resident-tax: basic_income_tax"
+        );
+    }
+    let div293 = json!({"division-293": {"division_293_income": "250000",
+        "low_tax_contributions": "30000"}});
+    let a = &api::evaluate(COMMAND, &foreign("2025-26", "250000", div293)).unwrap()["amounts"];
+    assert_eq!(a["division_293_tax"], "4500.00");
+    assert_eq!(a["total_before_credits"], "87850.00");
+}
+
+/// A foreign resident gives no Medicare levy or surcharge input, which do not
+/// apply, and no SAPTO or study loan, which the estimate composes for a
+/// resident only: a foreign resident's study loan repayment includes the
+/// overseas levy on worldwide income, which study-loan-repayment excludes.
+#[test]
+fn a_foreign_resident_part_that_does_not_apply_is_refused() {
+    let surcharge = json!({"reportable_fringe_benefits": "0",
+        "income_for_surcharge_purposes": "60000", "days_without_cover": 0});
+    for (part, given, code) in [
+        (
+            "medicare-levy",
+            json!({"section_9a_adjustment_applies": false}),
+            "input.field_unknown",
+        ),
+        ("medicare-levy-surcharge", surcharge, "input.field_unknown"),
+        (
+            "seniors-pensioners-tax-offset",
+            json!({"rebate_income": "60000", "status": "single"}),
+            "estimate.residency_unsupported",
+        ),
+        (
+            "study-loan-repayment",
+            json!({"repayment_income": "60000"}),
+            "estimate.residency_unsupported",
+        ),
+    ] {
+        let mut facts = foreign("2025-26", "60000", json!({}));
+        facts[part] = given;
+        let r = refusal(facts);
+        assert_eq!(r.code, code, "{part}");
+        assert!(r.message.starts_with(part), "{}", r.message);
+    }
 }
 
 /// A part's refusal is the part's own code under its name, never a partial total.

@@ -17,7 +17,8 @@ const SHARED: [&str; 3] = ["year", "scope_confirmed", "taxable_income"];
 
 /// The parts in the order they are worked out: command, whether its input is
 /// required, whether it takes `taxable_income`, and the amount it contributes.
-/// `resident-tax` and `low-income-tax-offset` take only the shared inputs.
+/// `resident-tax` and `low-income-tax-offset` take only the shared inputs;
+/// [`part_for`] gives the part that runs for a foreign resident.
 const PARTS: [(&str, bool, bool, &str); 7] = [
     ("resident-tax", true, true, "basic_income_tax"),
     (SAPTO, false, false, "seniors_pensioners_tax_offset"),
@@ -35,15 +36,63 @@ const PARTS: [(&str, bool, bool, &str); 7] = [
 
 const SAPTO: &str = "seniors-pensioners-tax-offset";
 
-/// The parts a caller gives an object of inputs for.
-fn takes_object(command: &str) -> bool {
-    !matches!(command, "resident-tax" | "low-income-tax-offset")
+/// A foreign resident's basic tax, in place of `resident-tax`.
+const FOREIGN_TAX: &str = "foreign-resident-tax";
+
+/// The parts not composed for a foreign resident: command, the code a caller
+/// who gives its input gets, and why.
+const NOT_FOR_FOREIGN: [(&str, &str, &str); 5] = [
+    (
+        "low-income-tax-offset",
+        "input.field_unknown",
+        "ITAA 1997 s 61-110(1)(a) gives the offset only to a person resident at some time in the year",
+    ),
+    (
+        "medicare-levy",
+        "input.field_unknown",
+        "ITAA 1936 s 251S(1)(a) levies the Medicare levy only on a person resident at some time in the year",
+    ),
+    (
+        "medicare-levy-surcharge",
+        "input.field_unknown",
+        "the surcharge increases the Medicare levy, which ITAA 1936 s 251S(1)(a) levies only on a person resident at some time in the year",
+    ),
+    (
+        SAPTO,
+        "estimate.residency_unsupported",
+        "a foreign resident with a pension assessable in Australia pays resident rates, which foreign-resident-tax excludes, so the estimate composes the offset for a full-year resident only",
+    ),
+    (
+        "study-loan-repayment",
+        "estimate.residency_unsupported",
+        "a foreign resident's repayment includes the overseas levy on worldwide income, which study-loan-repayment excludes",
+    ),
+];
+
+/// The part that runs for `command` (a [`PARTS`] entry), or `None` when it is
+/// not composed for this residency.
+fn part_for(command: &'static str, foreign: bool) -> Option<&'static str> {
+    match command {
+        "resident-tax" if foreign => Some(FOREIGN_TAX),
+        _ if foreign && NOT_FOR_FOREIGN.iter().any(|(c, ..)| *c == command) => None,
+        _ => Some(command),
+    }
 }
 
-const SCOPE: &str = "One individual who was an Australian resident for the full income year and not a working holiday maker, with established whole-dollar taxable income. Composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment and division-293 when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. The total is before PAYG withholding and other credits, refundable offsets, every other tax offset (such as the private health insurance, franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. Takes taxable income as established; does not work it out from income and deductions. Refuses part-year residents, working holiday makers and foreign residents, and parts that describe different families: a spouse in one part but not another, 2 spouse taxable incomes, or dependants without a spouse, whom the surcharge worksheet excludes.";
+/// The parts a caller gives an object of inputs for.
+fn takes_object(command: &str) -> bool {
+    !matches!(
+        command,
+        "resident-tax" | FOREIGN_TAX | "low-income-tax-offset"
+    )
+}
 
-const SOURCES: [&str; 3] = [
+const SCOPE: &str = "One individual who was an Australian resident for the full income year and not a working holiday maker, or a foreign resident for the full year, with established whole-dollar taxable income. For a resident, composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment and division-293 when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. For a foreign resident, composes foreign-resident-tax and, when its inputs are given, division-293: a foreign resident has no low income tax offset (ITAA 1997 s 61-110(1)(a)) and pays no Medicare levy or surcharge (ITAA 1936 s 251S(1)(a)); the estimate refuses the seniors and pensioners tax offset for one, and a study loan repayment, which for a foreign resident includes the overseas levy on worldwide income that no worksheet here works out. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. The total is before PAYG withholding and other credits, refundable offsets, every other tax offset (such as the private health insurance, franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. Takes taxable income as established; does not work it out from income and deductions. Refuses part-year residents and working holiday makers, and parts that describe different families: a spouse in one part but not another, 2 spouse taxable incomes, or dependants without a spouse, whom the surcharge worksheet excludes.";
+
+const SOURCES: [&str; 5] = [
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/63-10",
+    "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/61-110",
+    "https://www.ato.gov.au/law/view/document?docid=PAC/19360027/251S",
     "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset",
     "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/division-293-tax-on-concessional-contributions-by-high-income-earners",
 ];
@@ -82,22 +131,49 @@ const WORKING: [(&str, &str); 9] = [
     ),
 ];
 
+/// A foreign resident's lines that differ from [`WORKING`].
+const FOREIGN_WORKING: [(&str, &str); 4] = [
+    ("basic_income_tax", "foreign-resident-tax: basic_income_tax"),
+    (
+        "low_income_tax_offset_applied",
+        "nil: ITAA 1997 s 61-110(1)(a) gives the offset only to a person resident at some time in the year",
+    ),
+    (
+        "medicare_levy",
+        "nil: ITAA 1936 s 251S(1)(a) levies the Medicare levy only on a person resident at some time in the year",
+    ),
+    (
+        "medicare_levy_surcharge",
+        "nil: the surcharge increases the Medicare levy, which a foreign resident does not pay",
+    ),
+];
+
 fn signal(signal: Signal) -> Refusal {
     Refusal::new(signal.code(), format!("decimal.{}", signal.name()))
 }
 
-/// `residency`: only a full-year resident is composed.
-fn check_residency(v: &Value) -> Result<(), Refusal> {
+/// `residency`: whether the person is a foreign resident, who gives no input
+/// for a part not composed for one; part-year residents and working holiday
+/// makers are refused.
+fn check_residency(v: &Value) -> Result<bool, Refusal> {
     let reason = match v.get("residency").map(|r| r.as_str()) {
         None => return Err(Refusal::new("input.missing_field", "residency is required")),
-        Some(Some("full_year_resident")) => return Ok(()),
+        Some(Some("full_year_resident")) => return Ok(false),
+        Some(Some("foreign_resident")) => {
+            return match NOT_FOR_FOREIGN.iter().find(|(c, ..)| v.get(*c).is_some()) {
+                Some((command, code, why)) => Err(Refusal::new(
+                    *code,
+                    format!("{command} is not composed for a foreign resident: {why}"),
+                )),
+                None => Ok(true),
+            };
+        }
         Some(Some("part_year_resident")) => {
             "a part-year resident's tax-free threshold and offsets are apportioned, which no worksheet here does"
         }
         Some(Some("working_holiday_maker")) => {
             "a working holiday maker's income is taxed at the working holiday maker rates, which no worksheet here works out"
         }
-        Some(Some("foreign_resident")) => "no worksheet here works out a foreign resident's tax",
         Some(_) => {
             return Err(Refusal::new(
                 "input.residency_invalid",
@@ -107,7 +183,9 @@ fn check_residency(v: &Value) -> Result<(), Refusal> {
     };
     Err(Refusal::new(
         "estimate.residency_unsupported",
-        format!("{COMMAND} composes a full-year resident only: {reason}"),
+        format!(
+            "{COMMAND} composes a full-year resident or a full-year foreign resident only: {reason}"
+        ),
     ))
 }
 
@@ -241,9 +319,12 @@ fn part_input(v: &Value, command: &str, with_income: bool) -> Value {
 }
 
 /// Run each part in turn: its result, or the part's own refusal under its name.
-fn run_parts(v: &Value) -> Result<Map<String, Value>, Refusal> {
+fn run_parts(v: &Value, foreign: bool) -> Result<Map<String, Value>, Refusal> {
     let mut results = Map::new();
     for (command, required, with_income, _) in PARTS {
+        let Some(command) = part_for(command, foreign) else {
+            continue;
+        };
         if !required && v.get(command).is_none() {
             continue;
         }
@@ -286,8 +367,11 @@ fn lesser(a: Decimal, b: Decimal) -> Result<Decimal, Refusal> {
 }
 
 /// The composed amounts, in [`WORKING`]'s order.
-fn compose_amounts(results: &Map<String, Value>) -> Result<[Decimal; 9], Refusal> {
-    let part = |i: usize| amount(results, PARTS[i].0, PARTS[i].3);
+fn compose_amounts(results: &Map<String, Value>, foreign: bool) -> Result<[Decimal; 9], Refusal> {
+    let part = |i: usize| match part_for(PARTS[i].0, foreign) {
+        Some(command) => amount(results, command, PARTS[i].3),
+        None => Ok(Decimal::from_int(0)),
+    };
     let calc = |r: Result<Decimal, Signal>| r.map_err(signal);
     let basic = part(0)?;
     let sapto = lesser(part(1)?, basic.clone())?;
@@ -312,32 +396,37 @@ fn compose_amounts(results: &Map<String, Value>) -> Result<[Decimal; 9], Refusal
 /// every part's own result.
 pub fn compose(v: &Value) -> Result<Value, Refusal> {
     check_fields(v)?;
+    let foreign = check_residency(v)?;
     check_family(v)?;
     check_exemption(v)?;
-    check_residency(v)?;
-    let results = run_parts(v)?;
+    let results = run_parts(v, foreign)?;
     let mut amounts = Map::new();
-    for ((key, _), value) in WORKING.iter().zip(compose_amounts(&results)?) {
+    for ((key, _), value) in WORKING.iter().zip(compose_amounts(&results, foreign)?) {
         let cents = value.quantize(-2, Rounding::HalfUp).map_err(signal)?;
         amounts.insert((*key).into(), json!(cents.to_string()));
     }
     let not_composed: Vec<&str> = PARTS
         .iter()
-        .map(|(c, ..)| *c)
+        .map(|&(c, ..)| part_for(c, foreign).unwrap_or(c))
         .filter(|c| !results.contains_key(*c))
         .collect();
-    let working: Map<String, Value> = WORKING
+    let mut working: Map<String, Value> = WORKING
         .iter()
         .map(|(k, w)| ((*k).into(), json!(w)))
         .collect();
-    let resident_tax = &results["resident-tax"];
+    if foreign {
+        for (key, line) in FOREIGN_WORKING {
+            working[key] = json!(line);
+        }
+    }
+    let basic = &results[part_for("resident-tax", foreign).expect("basic tax")];
     Ok(json!({
         "ok": true,
-        "engine": resident_tax["engine"],
-        "engine_version": resident_tax["engine_version"],
+        "engine": basic["engine"],
+        "engine_version": basic["engine_version"],
         "calculation": "personal_tax_estimate",
-        "period": resident_tax["period"],
-        "residency": "full_year_resident",
+        "period": basic["period"],
+        "residency": v["residency"],
         "amounts": amounts,
         "working": working,
         "not_composed": not_composed,
