@@ -388,6 +388,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An effective life's significant digits and the taxable use's decimal places total more than 22.",
     ),
     (
+        "derivation.unsupported",
+        "derive was asked to explain a command whose amounts it does not derive.",
+    ),
+    (
         "fbt_car.cost_basis_conflict",
         "A car has neither or both of a depreciated value and lease charges.",
     ),
