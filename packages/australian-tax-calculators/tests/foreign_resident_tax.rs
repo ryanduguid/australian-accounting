@@ -125,6 +125,10 @@ fn the_result_holds_basic_tax_only_and_says_why() {
         "pays no Medicare levy, which ITAA 1936 s 251S(1) charges on a person resident",
         "ITAA 1997 s 61-110(1) gives only to a resident",
         "Excludes part-year residents, who are taxed as residents",
+        // Each payment that makes a non-resident pay resident rates (s 3(1)).
+        "Veterans' Entitlements Act 1986, subsection 4(6) of the Veterans' Entitlements \
+         (Transitional Provisions and Consequential Amendments) Act 1986, the Military \
+         Rehabilitation and Compensation Act 2004 or the Social Security Act 1991",
     ] {
         assert!(scope.contains(needle), "{needle}");
     }
@@ -137,7 +141,7 @@ fn the_result_holds_basic_tax_only_and_says_why() {
 #[test]
 fn unsupported_and_invalid_inputs_are_refused() {
     let refused = |facts: &Value| api::evaluate_coded(COMMAND, facts).unwrap_err();
-    // The 2027-28 scale stays refused until the ATO publishes rates for that year.
+    // 2027-28 is refused, as resident-tax refuses it.
     let later = refused(&input("100000", "2027-28"));
     assert_eq!(later.code, "period.unsupported");
     assert_eq!(

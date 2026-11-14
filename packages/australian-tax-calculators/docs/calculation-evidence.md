@@ -100,9 +100,10 @@ from the resident scale for each year.
 
 Part II applies to a prescribed non-resident: a person who was a non-resident
 at all times in the year, other than one paid compensation or a pension,
-allowance or benefit under the Veterans' Entitlements Act 1986, the Military
-Rehabilitation and Compensation Act 2004 or the Social Security Act 1991 that
-is taxed in Australia (s 3(1)). A part-year resident is a resident taxpayer
+allowance or benefit under the Veterans' Entitlements Act 1986, subsection
+4(6) of the Veterans' Entitlements (Transitional Provisions and Consequential
+Amendments) Act 1986, the Military Rehabilitation and Compensation Act 2004 or
+the Social Security Act 1991 that is taxed in Australia (s 3(1)). A part-year resident is a resident taxpayer
 there. The worksheet takes both as scope conditions.
 
 The ATO page "Tax rates - foreign resident" (last updated 1 June 2026, read on
@@ -118,7 +119,8 @@ therefore gives basic tax only, and its scope says that `medicare-levy` and
 `low-income-tax-offset` do not apply. `tests/foreign_resident_tax.rs` holds it
 to the ATO's table at every bracket boundary, a dollar either side and above
 the top threshold for 2024-25 and 2025-26, and to the Act's rates for 2026-27.
-The 2027-28 scale is refused until the ATO publishes rates for that year.
+2027-28 is refused, as `resident-tax` refuses it; `tests/tables.rs` keeps the
+2 worksheets' years the same.
 
 ## Capital gains
 

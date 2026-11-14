@@ -190,10 +190,10 @@ $135,000, 37% to $190,000 and 45% above, with no tax-free threshold. It covers
 2024-25 to 2026-27. The ATO publishes the 2024-25 and 2025-26 tables; 2026-27
 takes the same rates from the Act, which ties them to that year's second and
 third resident rates, and its result says the ATO had not yet published them.
-2027-28 is refused until the ATO publishes rates for it. A foreign resident
+2027-28 is refused, as `resident-tax` refuses it. A foreign resident
 pays no Medicare levy and is not entitled to the low income tax offset, so the
-result is basic tax only and its scope says why. Like the other worksheets
-without a Python original, it refuses a field it does not take. See
+result is basic tax only and its scope says why. Like `division-296`, it
+refuses a field it does not take. See
 [calculation evidence](docs/calculation-evidence.md#foreign-resident-tax).
 
 ## PAYG withholding
