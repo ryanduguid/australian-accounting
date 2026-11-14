@@ -75,6 +75,7 @@ fn matches_the_weekly_table(table: &str, year: &str) {
     let rows: Vec<Vec<&str>> = lines.map(|l| l.split(',').collect()).collect();
     assert_eq!(rows.len(), 2120);
     for row in &rows {
+        assert_eq!(row.len(), 4, "{row:?}");
         for (status, expected) in STATUSES.iter().zip(&row[1..]) {
             let amount = withholding(row[0], "weekly", status, "none", year);
             assert_eq!(&amount, expected, "{year} {row:?} {status}");
@@ -139,6 +140,11 @@ fn medicare_levy_exemptions_select_scales_4_to_9() {
             }
         }
     }
+}
+
+/// The result names the scale and the coefficients it applied.
+#[test]
+fn the_result_names_the_scale_and_its_coefficients() {
     // Scale 4 (single, full exemption) for 2026-27 at $1,300.99:
     // 0.3000 x 1,300.99 - 181.7308 = 208.5662, $209.
     let result = api::evaluate(
@@ -219,14 +225,15 @@ fn below_the_first_step_nothing_is_withheld() {
     );
 }
 
+/// The worked example's facts with one field replaced.
+fn with(key: &str, value: Value) -> Value {
+    let mut facts = input("662.95", "weekly", "single", "none", "2026-27");
+    facts[key] = value;
+    facts
+}
+
 #[test]
 fn what_the_schedule_does_not_settle_is_refused() {
-    let base = input("662.95", "weekly", "single", "none", "2026-27");
-    let with = |key: &str, value: Value| {
-        let mut facts = base.clone();
-        facts[key] = value;
-        facts
-    };
     // No quarterly rule in Schedule 9.
     assert_eq!(
         refusal(&with("pay_period", json!("quarterly"))),
@@ -234,17 +241,6 @@ fn what_the_schedule_does_not_settle_is_refused() {
             "input.pay_period_invalid",
             "pay_period must be weekly, fortnightly or monthly.".into()
         )
-    );
-    assert_eq!(
-        refusal(&with("status", json!("married"))),
-        (
-            "input.status_invalid",
-            "status must be single, illness_separated or couple.".into()
-        )
-    );
-    assert_eq!(
-        refusal(&with("medicare_levy_exemption", json!(true))).0,
-        "input.medicare_levy_exemption_invalid"
     );
     // Tax offsets, the Medicare levy adjustment and a Schedule 1 scale are not inputs.
     for (key, value) in [
@@ -261,7 +257,23 @@ fn what_the_schedule_does_not_settle_is_refused() {
             )
         );
     }
-    let mut missing = base.clone();
+}
+
+#[test]
+fn malformed_input_is_refused() {
+    assert_eq!(
+        refusal(&with("status", json!("married"))),
+        (
+            "input.status_invalid",
+            "status must be single, illness_separated or couple.".into()
+        )
+    );
+    assert_eq!(refusal(&with("status", json!(1))).0, "input.status_invalid");
+    assert_eq!(
+        refusal(&with("medicare_levy_exemption", json!(true))).0,
+        "input.medicare_levy_exemption_invalid"
+    );
+    let mut missing = with("year", json!("2026-27"));
     missing
         .as_object_mut()
         .unwrap()
@@ -278,10 +290,12 @@ fn what_the_schedule_does_not_settle_is_refused() {
         refusal(&with("scope_confirmed", json!(false))).0,
         "scope.not_confirmed"
     );
-    assert_eq!(
-        refusal(&with("earnings", json!("1.005"))).0,
-        "input.amount_invalid"
-    );
+    for earnings in [json!("1.005"), json!(662.95), json!("-1.00")] {
+        assert_eq!(
+            refusal(&with("earnings", earnings)).0,
+            "input.amount_invalid"
+        );
+    }
 }
 
 #[test]
