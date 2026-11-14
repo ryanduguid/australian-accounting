@@ -803,7 +803,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "borrowing_expenses" => vec!["2024-25", "2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" => keys(FBT_BENCHMARK_INTEREST_RATES),
-        "payg_withholding" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
+        "payg_withholding" | "payg_gross_up" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
         "contribution_caps" => keys(CONTRIBUTION_CAPS),
         "pension_minimum" => vec!["2024-25", "2025-26", "2026-27"],
         "study_loan_repayment" => keys(STUDY_LOAN_REPAYMENT_THRESHOLDS),
@@ -866,7 +866,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-09-10",
             "Super guarantee, tables 21 and 24, 2025-26 rows",
         ),
-        "payg_withholding" => (
+        "payg_withholding" | "payg_gross_up" => (
             "2026-11-14",
             "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients and scale 4, using a formula (rounding and the 53 and 27 pay tables), working out the weekly earnings (quarterly pays and tax offsets), Medicare levy adjustment, examples of calculating the withholding amounts, sample data",
         ),
@@ -992,6 +992,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "withholding amounts, Medicare levy adjustment scale 2 and Medicare half-levy adjustment scale 6: weekly, fortnightly and monthly tables",
             "2026-06-17",
             "2026-11-14",
+        ),
+        "payg_gross_up" => (
+            "ATO Schedule 1 sample data",
+            "withholding amounts: weekly, fortnightly and monthly tables, each row's net pay grossed up",
+            "2026-06-17",
+            "2026-11-15",
         ),
         "contribution_caps" => (
             "tax-examples-individuals",
@@ -1152,6 +1158,8 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, weekly and fortnightly pays only: true when the financial year has 53 weekly or 27 fortnightly pays and the payee asked for the additional amount",
             ),
         ],
+        // Scale 4's residency, which payg_withholding lists first.
+        "payg_gross_up" => optional_inputs("payg_withholding")[..1].to_vec(),
         "study_loan_withholding" => vec![(
             "pay_date",
             "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
@@ -1342,6 +1350,14 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer 1 to 6; scale 4 also needs foreign_resident",
             ),
         ],
+        "payg_gross_up" => {
+            let mut units = input_units("payg_withholding");
+            units[0] = (
+                "net_pay",
+                "AUD, the pay for the pay period after Schedule 1 withholding",
+            );
+            units
+        }
         "study_loan_withholding" => vec![
             payg[0],
             ("pay_period", "weekly, fortnightly, monthly or quarterly"),
@@ -1661,6 +1677,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "payg_withholding" => vec![
             ("year", Text("2026-27")),
             ("earnings", Text("1000.00")),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+        ],
+        // The net of the payg_withholding example, whose gross is its only one.
+        "payg_gross_up" => vec![
+            ("year", Text("2026-27")),
+            ("net_pay", Text("862.00")),
             ("pay_period", Text("weekly")),
             ("scale", Whole(2)),
         ],

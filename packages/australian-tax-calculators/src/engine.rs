@@ -1521,6 +1521,9 @@ pub fn study_loan_withholding(
     )
 }
 
+mod payg_gross_up;
+pub use payg_gross_up::payg_gross_up;
+
 /// The optional `medicare-levy` inputs, each `None` when not given.
 pub struct MedicareFamily<'a> {
     pub sapto_entitled: Option<&'a Arg>,
@@ -4184,7 +4187,7 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 27] = [
+const KINDS: [&str; 28] = [
     "gst",
     "resident_tax",
     "capital_gains",
@@ -4196,6 +4199,7 @@ const KINDS: [&str; 27] = [
     "depreciation",
     "quarterly_sg",
     "payg_withholding",
+    "payg_gross_up",
     "contribution_caps",
     "pension_minimum",
     "study_loan_repayment",

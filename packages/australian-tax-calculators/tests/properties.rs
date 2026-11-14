@@ -311,6 +311,70 @@ fn payg_withholding_never_falls_across_any_bracket_boundary() {
     }
 }
 
+/// The grosses `payg-gross-up` gives for `net`: the one it returns, or those
+/// its refusal of a tie lists.
+fn grossed_up(
+    net: &str,
+    period: &str,
+    scale: i64,
+    year: &str,
+    foreign: Option<bool>,
+) -> Vec<Decimal> {
+    let mut facts = json!({"net_pay": net, "pay_period": period, "scale": scale,
+                           "year": year, "scope_confirmed": true});
+    if let Some(foreign) = foreign {
+        facts["foreign_resident"] = json!(foreign);
+    }
+    match api::evaluate_coded("payg-gross-up", &facts) {
+        Ok(result) => {
+            check_sanity("payg-gross-up", &result);
+            vec![amount(&result, "gross_pay")]
+        }
+        Err(refusal) => {
+            assert_eq!(refusal.code, "payg.gross_up_not_unique", "{facts}");
+            let (_, listed) = refusal.message.split_once(": ").unwrap();
+            let (listed, _) = listed.split_once(". ").unwrap();
+            listed
+                .split([',', ' '])
+                .filter_map(|word| word.strip_prefix('$'))
+                .map(d)
+                .collect()
+        }
+    }
+}
+
+#[test]
+fn withholding_on_the_grossed_up_pay_leaves_the_net() {
+    // Every gross whose withholding leaves the net is listed, and no other
+    // within $60 of withholding either side of them leaves it.
+    let scales = payg_scales();
+    let mut rng = Rng(0x6055);
+    for _ in 0..RUNS {
+        let (year, scale, foreign) = *rng.pick(&scales);
+        let period = *rng.pick(&["weekly", "fortnightly", "monthly", "quarterly"]);
+        let net = d(&rng.pay());
+        let case = format!("{year} {scale} {foreign:?} {period} net {net}");
+        let leaves = |gross: &Decimal| {
+            let withholding = withheld(&gross.fixed(2, false), period, scale, year, foreign);
+            eq(&gross.sub(&withholding).unwrap(), &net)
+        };
+        let grosses = grossed_up(&net.fixed(2, false), period, scale, year, foreign);
+        assert!(!grosses.is_empty() && grosses.iter().all(leaves), "{case}");
+        let low = grosses[0].sub(&n(60)).unwrap();
+        let mut gross = if low.lt(&net).unwrap() {
+            net.clone()
+        } else {
+            low
+        };
+        let high = grosses[grosses.len() - 1].add(&n(60)).unwrap();
+        while le(&gross, &high) {
+            let listed = grosses.iter().any(|g| eq(g, &gross));
+            assert_eq!(leaves(&gross), listed, "{case}: gross {gross}");
+            gross = gross.add(&n(1)).unwrap();
+        }
+    }
+}
+
 fn check_study_loan(year: &str, low: i64, high: i64) {
     let (low, high) = sorted(low, high);
     let repayment = |income: i64| {
