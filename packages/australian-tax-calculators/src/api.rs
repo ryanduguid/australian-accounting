@@ -105,6 +105,13 @@ const PAY_ARGS: &[(&str, Kind)] = &[
     ("scope_confirmed", Raw),
 ];
 
+/// The parameters of the worksheets that take taxable income alone.
+const TAXABLE_INCOME_ARGS: &[(&str, Kind)] = &[
+    ("taxable_income", Dec),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+];
+
 /// Command, the worksheet's parameters in the original order.
 const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
@@ -116,14 +123,8 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("year", Raw),
         ],
     ),
-    (
-        "resident-tax",
-        &[
-            ("taxable_income", Dec),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("resident-tax", TAXABLE_INCOME_ARGS),
+    ("foreign-resident-tax", TAXABLE_INCOME_ARGS),
     (
         "capital-gains",
         &[
@@ -257,14 +258,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "low-income-tax-offset",
-        &[
-            ("taxable_income", Dec),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("low-income-tax-offset", TAXABLE_INCOME_ARGS),
     (
         "seniors-pensioners-tax-offset",
         &[
@@ -671,6 +665,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "schedule-5-method-b-ii"
             | "working-holiday-maker-withholding"
             | "study-loan-withholding"
+            | "foreign-resident-tax"
             | "seniors-pensioners-withholding"
             | "seniors-pensioners-tax-offset"
     ) {
@@ -699,6 +694,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let result = match command {
         "gst" => engine::gst(&a[0], &a[1], &a[2], &a[3]),
         "resident-tax" => engine::resident_tax(&a[0], &a[1], &a[2]),
+        "foreign-resident-tax" => engine::foreign_resident_tax(&a[0], &a[1], &a[2]),
         "capital-gains" => engine::capital_gains(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5]),
         "main-residence" => engine::main_residence(
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
