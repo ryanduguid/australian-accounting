@@ -590,6 +590,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "schedule-5-method-b-i"
             | "schedule-5-method-b-ii"
             | "working-holiday-maker-withholding"
+            | "study-loan-withholding"
     ) {
         let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
         let taken = |key: &String| {
@@ -673,7 +674,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
         }
         "study-loan-withholding" => {
-            engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4])
+            let pay_date = v.get("pay_date").map(arg);
+            engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())
         }
         "medicare-levy" => {
             // Optional: each absent for a person without SAPTO, spouse or dependants.

@@ -51,7 +51,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component from 1 July 2026 only |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
-| Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
+| Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
@@ -799,6 +799,26 @@ rows from $1,337 to below $2,596 omit the 30 cent constant of the Schedule 1
 scale 3 row; the worksheet follows the component method and does not use them. Quarterly
 pays, scale 4 and a Medicare levy variation for a spouse or dependants are
 outside the worksheet.
+
+For 2025-26 the component rates were transcribed from Schedule 8 of the
+Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025
+(F2025L01016), as made, on the Federal Register of Legislation, read on 14
+November 2026. It commenced on 24 September 2025 and repealed the
+Taxation Administration (Withholding Schedules) Instrument 2025 (F2025L00647),
+whose Schedule 8 worked the component as a percentage of weekly earnings.
+F2025L01016's Schedule 1 is F2025L00647's word for word, and the ATO
+publishes it as the schedule for payments from 1 July 2024 to 30 June 2026. The
+worksheet therefore takes the Schedule 1 amount for 2025-26 from that
+schedule and requires the pay date, refusing a 2025-26 pay before 24 September
+2025 and any date outside the income year; `periods` starts 2025-26 on that
+date. `tests/study_loan_withholding.rs` holds the worksheet to the
+instrument's examples 1 to 3 ($2,608.36 weekly gives $202, $4,409.75
+fortnightly gives $274 and $10,627.88 monthly without the tax-free threshold
+gives $1,018), to its starting earnings for each pay period ($1,288, $2,576
+and $5,581.33 with the threshold; $938, $1,876 and $4,064.67 without it), to
+each row edge, and to pays on 23 and 24 September 2025. `tests/common/mod.rs`
+types in the instrument's combined scale 1 and 2 coefficients, held to the
+same checks as 2026-27's.
 
 ## Study loan repayment
 

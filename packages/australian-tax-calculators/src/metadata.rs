@@ -292,30 +292,62 @@ pub const PAYG_WITHHOLDING_RULES: &[(&str, &Schedule1Rules)] = &[
     ("2026-27", &SCHEDULE_1_RULES_FROM_JULY_2026),
 ];
 
-/// Schedule 8 (NAT 3539) study and training support loan component coefficients.
-pub const STUDY_LOAN_WITHHOLDING_COEFFICIENTS: &[(&str, &[(&str, &[CoefficientRow])])] = &[(
-    "2026-27",
-    &[
-        (
-            "threshold_or_foreign",
-            &[
-                (Some(1337), "0", "0"),
-                (Some(2494), "0.15", "200.5615"),
-                (Some(3577), "0.17", "250.4527"),
-                (None, "0.10", "0"),
-            ],
-        ),
-        (
-            "no_threshold",
-            &[
-                (Some(987), "0", "0"),
-                (Some(2144), "0.15", "148.0615"),
-                (Some(2727), "0.17", "190.9527"),
-                (None, "0.10", "0"),
-            ],
-        ),
-    ],
-)];
+/// Schedule 8 (NAT 3539) study and training support loan component coefficients:
+/// for 2025-26, those of F2025L01016, which commenced on 24 September 2025.
+pub const STUDY_LOAN_WITHHOLDING_COEFFICIENTS: &[(&str, &[(&str, &[CoefficientRow])])] = &[
+    (
+        "2025-26",
+        &[
+            (
+                "threshold_or_foreign",
+                &[
+                    (Some(1288), "0", "0"),
+                    (Some(2403), "0.15", "193.2692"),
+                    (Some(3447), "0.17", "241.3462"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+            (
+                "no_threshold",
+                &[
+                    (Some(938), "0", "0"),
+                    (Some(2053), "0.15", "140.7692"),
+                    (Some(2597), "0.17", "181.8462"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+        ],
+    ),
+    (
+        "2026-27",
+        &[
+            (
+                "threshold_or_foreign",
+                &[
+                    (Some(1337), "0", "0"),
+                    (Some(2494), "0.15", "200.5615"),
+                    (Some(3577), "0.17", "250.4527"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+            (
+                "no_threshold",
+                &[
+                    (Some(987), "0", "0"),
+                    (Some(2144), "0.15", "148.0615"),
+                    (Some(2727), "0.17", "190.9527"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+        ],
+    ),
+];
+
+/// The first pay date each year's Schedule 8 coefficients apply to. Before 24
+/// September 2025, F2025L00647's Schedule 8 used a percentage of weekly
+/// earnings, which this worksheet does not hold.
+pub const STUDY_LOAN_WITHHOLDING_FROM: &[(&str, &str)] =
+    &[("2025-26", "2025-09-24"), ("2026-27", "2026-07-01")];
 
 /// (general concessional cap, general transfer balance cap) per income year.
 pub const CONTRIBUTION_CAPS: &[(&str, (&str, &str))] = &[
@@ -552,8 +584,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Study and training loan minimum repayment income and rates: tables 1 and 2, repayment income, examples 1 to 3; Gazette C2026G00249 for the 2026-27 minimum repayment income and replacement indexable amount",
         ),
         "study_loan_withholding" => (
-            "2026-10-15",
-            "Schedule 8 (NAT 3539) for payments from 1 July 2026: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding",
+            "2026-11-14",
+            "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding",
         ),
         "medicare_levy" => (
             "2026-11-14",
@@ -669,10 +701,10 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-10-20",
         ),
         "study_loan_withholding" => (
-            "ATO Schedule 8 statement of formulas for STSL components",
-            "component rates, examples 1 to 3",
+            "ATO Schedule 8 statement of formulas for STSL components, and F2025L01016 Schedule 8 for 2025-26",
+            "component rates, examples 1 to 3 in each",
             "2026-06-17",
-            "2026-10-15",
+            "2026-11-14",
         ),
         "medicare_levy" => (
             "ATO Medicare levy reduction for low-income earners; Medicare levy reduction - family income",
@@ -773,6 +805,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, weekly and fortnightly pays only: true when the financial year has 53 weekly or 27 fortnightly pays and the payee asked for the additional amount",
             ),
         ],
+        "study_loan_withholding" => vec![(
+            "pay_date",
+            "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
+        )],
         _ => Vec::new(),
     }
 }
@@ -792,7 +828,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ("scale", "integer 1, 2, 3, 5 or 6"),
         (
             "study_loan",
-            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component to each table amount, for years study-loan-withholding supports",
+            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component to each table amount, for a year whose Schedule 8 coefficients apply from 1 July (Schedule 5 takes no pay date)",
         ),
     ];
     match kind {
@@ -1237,6 +1273,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         "study_loan_repayment" => vec![("repayment_income", Text("86380"))],
         "study_loan_withholding" => vec![
+            ("year", Text("2026-27")),
             ("earnings", Text("2000.00")),
             ("pay_period", Text("weekly")),
             ("scale", Whole(2)),
