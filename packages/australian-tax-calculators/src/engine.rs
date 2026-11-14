@@ -1519,15 +1519,252 @@ pub fn study_loan_withholding(
     )
 }
 
-pub fn medicare_levy(
-    taxable_income: &Arg,
-    section_9a_adjustment_applies: &Arg,
-    year: &Arg,
-    scope_confirmed: &Arg,
-) -> Result<Value> {
-    let year = scope(scope_confirmed, year, "medicare_levy")?;
-    let income = money(taxable_income)?;
-    whole_dollars(&income, "taxable income")?;
+/// The optional `medicare-levy` inputs, each `None` when not given.
+pub struct MedicareFamily<'a> {
+    pub sapto_entitled: Option<&'a Arg>,
+    pub spouse_taxable_income: Option<&'a Arg>,
+    pub spouse_sapto_entitled: Option<&'a Arg>,
+    pub dependant_offset_entitled: Option<&'a Arg>,
+    pub dependent_children: Option<&'a Arg>,
+}
+
+/// A spouse on the last day of the year: taxable income and SAPTO entitlement.
+struct Spouse {
+    income: Decimal,
+    sapto: bool,
+}
+
+/// The facts that select the thresholds and whether s 8 applies.
+struct Family {
+    sapto: bool,
+    spouse: Option<Spouse>,
+    /// s 8(1)(b) or (c), for a person without a spouse.
+    dependant_offset: bool,
+    children: i64,
+}
+
+impl Family {
+    /// s 8(1) and (2) apply to a person with a spouse or one of those offsets.
+    fn reduces(&self) -> bool {
+        self.spouse.is_some() || self.dependant_offset
+    }
+}
+
+fn optional_flag(value: Option<&Arg>, name: &str) -> Result<bool> {
+    value.map_or(Ok(false), |v| flag(v, name))
+}
+
+fn not_taken<T>(name: &str, when: &str) -> Result<T> {
+    refuse(
+        "input.field_unknown",
+        format!("{name} is not an input of medicare-levy {when}"),
+    )
+}
+
+fn medicare_spouse(family: &MedicareFamily) -> Result<Option<Spouse>> {
+    let Some(income) = family.spouse_taxable_income else {
+        if family.spouse_sapto_entitled.is_some() {
+            return not_taken("spouse_sapto_entitled", "without spouse_taxable_income");
+        }
+        return Ok(None);
+    };
+    let income = money(income)?;
+    whole_dollars(&income, "spouse taxable income")?;
+    if family.dependant_offset_entitled.is_some() {
+        return not_taken("dependant_offset_entitled", "with spouse_taxable_income");
+    }
+    let Some(sapto) = family.spouse_sapto_entitled else {
+        return refuse(
+            "input.missing_field",
+            "spouse_sapto_entitled is required with spouse_taxable_income",
+        );
+    };
+    let sapto = flag(sapto, "spouse_sapto_entitled")?;
+    Ok(Some(Spouse { income, sapto }))
+}
+
+fn medicare_family(family: &MedicareFamily) -> Result<Family> {
+    let sapto = optional_flag(family.sapto_entitled, "sapto_entitled")?;
+    let spouse = medicare_spouse(family)?;
+    let dependant_offset = optional_flag(
+        family.dependant_offset_entitled,
+        "dependant_offset_entitled",
+    )?;
+    let children = match family.dependent_children.map(Arg::int) {
+        None => 0,
+        Some(Some(Some(n))) if n >= 0 => n,
+        Some(_) => {
+            return refuse(
+                "input.dependants_invalid",
+                "dependent_children must be a non-negative integer.",
+            );
+        }
+    };
+    // Without a spouse the children raise a threshold only s 8(1)(b) or (c) brings in.
+    if children > 0 && spouse.is_none() && !dependant_offset {
+        return not_taken(
+            "dependent_children",
+            "without a spouse unless dependant_offset_entitled is true",
+        );
+    }
+    Ok(Family {
+        sapto,
+        spouse,
+        dependant_offset,
+        children,
+    })
+}
+
+fn medicare_rate(key: &str) -> Decimal {
+    d(lookup(&meta::MEDICARE_LEVY_RATES, key))
+}
+
+/// s 3(1): the threshold amount and phase-in limit.
+fn medicare_thresholds(year: &str, sapto: bool) -> (Decimal, Decimal) {
+    let table = if sapto {
+        meta::MEDICARE_SAPTO_THRESHOLDS
+    } else {
+        meta::MEDICARE_LOW_INCOME_THRESHOLDS
+    };
+    let (threshold, limit) = lookup(table, year);
+    (d(threshold), d(limit))
+}
+
+/// ss 6(1) and 7: the levy on `income` but for ss 8 and 9.
+fn low_income_levy(income: &Decimal, year: &str, sapto: bool) -> Calc<Decimal> {
+    let (threshold, limit) = medicare_thresholds(year, sapto);
+    let full = income.mul(&medicare_rate("levy"))?;
+    if income.le(&threshold)? {
+        Ok(int(0))
+    } else if income.le(&limit)? {
+        py_min(
+            full,
+            income.sub(&threshold)?.mul(&medicare_rate("shade_in"))?,
+        )
+    } else {
+        Ok(full)
+    }
+}
+
+/// s 8(5) to (7): the family income threshold.
+fn family_threshold(year: &str, sapto: bool, children: i64) -> Calc<Decimal> {
+    let (base, sapto_base, per_child) = lookup(meta::MEDICARE_FAMILY_THRESHOLDS, year);
+    d(if sapto { sapto_base } else { base }).add(&int(children).mul(&d(per_child))?)
+}
+
+/// The s 8(2) formula, nil where it is not positive.
+fn family_formula(threshold: &Decimal, family_income: &Decimal) -> Calc<Decimal> {
+    let start = medicare_rate("levy").mul(threshold)?;
+    let excess = family_income.sub(threshold)?;
+    py_max(
+        int(0),
+        start.sub(&medicare_rate("family_shade_out").mul(&excess)?)?,
+    )
+}
+
+/// s 8(2) and (3): this person's reduction, times family income when s 8(3)
+/// shares it by taxable income (see `family_reductions`).
+fn own_reduction_scaled(
+    threshold: &Decimal,
+    family_income: &Decimal,
+    income: &Decimal,
+    shared: bool,
+) -> Calc<Decimal> {
+    let reduction = family_formula(threshold, family_income)?;
+    if shared {
+        reduction.mul(income)
+    } else {
+        Ok(reduction)
+    }
+}
+
+/// s 8(4): the part of the spouse's shared reduction above the spouse's levy,
+/// which reduces this person's levy, times family income (see
+/// `family_reductions`). Only a spouse liable to the levy has one, and s 8(3)
+/// shares it only when this person is liable too; otherwise this person's own
+/// reduction was not shared, and nothing passes to them.
+fn spouse_excess_scaled(
+    spouse: &Spouse,
+    year: &str,
+    children: i64,
+    family_income: &Decimal,
+) -> Calc<Decimal> {
+    let threshold = family_threshold(year, spouse.sapto, children)?;
+    if family_income.le(&threshold)? {
+        return Ok(int(0));
+    }
+    let share = family_formula(&threshold, family_income)?.mul(&spouse.income)?;
+    let levy = low_income_levy(&spouse.income, year, spouse.sapto)?;
+    py_max(int(0), share.sub(&levy.mul(family_income)?)?)
+}
+
+/// The s 8 working for one person.
+struct FamilyWorking {
+    family_income: Decimal,
+    threshold: Decimal,
+    /// The reduction from this person's own s 8 entitlement, no more than the levy.
+    own: Decimal,
+    /// The s 8(4) reduction from the spouse's entitlement, no more than the levy left.
+    from_spouse: Decimal,
+    /// The levy after s 8.
+    levy: Decimal,
+    /// Whether s 8(3) shared this person's reduction.
+    shared: bool,
+}
+
+/// s 8 on `levy`, the levy on `income` but for ss 8 and 9.
+fn family_reductions(
+    income: &Decimal,
+    levy: &Decimal,
+    year: &str,
+    family: &Family,
+) -> Calc<FamilyWorking> {
+    let spouse_income = family.spouse.as_ref().map_or(int(0), |s| s.income.clone());
+    let family_income = income.add(&spouse_income)?;
+    let threshold = family_threshold(year, family.sapto, family.children)?;
+    let liable = |amount: &Decimal, sapto: bool| amount.gt(&medicare_thresholds(year, sapto).0);
+    let spouse_liable = match &family.spouse {
+        Some(spouse) => liable(&spouse.income, spouse.sapto)?,
+        None => false,
+    };
+    // When s 8(3) shares the reduction, every amount is worked times family
+    // income, so each share is a product, and divided once at the end: the
+    // levy is then exact wherever it terminates, and a half cent rounds up.
+    let scale = if spouse_liable {
+        family_income.clone()
+    } else {
+        int(1)
+    };
+    let levy = levy.mul(&scale)?;
+    // s 8(1): no levy at or below the threshold.
+    let above = family_income.gt(&threshold)?;
+    let own = if above {
+        py_min(
+            levy.clone(),
+            own_reduction_scaled(&threshold, &family_income, income, spouse_liable)?,
+        )?
+    } else {
+        levy.clone()
+    };
+    let from_spouse = match &family.spouse {
+        Some(spouse) if spouse_liable && liable(income, family.sapto)? => {
+            let excess = spouse_excess_scaled(spouse, year, family.children, &family_income)?;
+            py_min(levy.sub(&own)?, excess)?
+        }
+        _ => int(0),
+    };
+    Ok(FamilyWorking {
+        family_income,
+        threshold,
+        levy: levy.sub(&own)?.sub(&from_spouse)?.div(&scale)?,
+        own: own.div(&scale)?,
+        from_spouse: from_spouse.div(&scale)?,
+        shared: spouse_liable && above,
+    })
+}
+
+/// s 9A: the worksheet does not adjust for lump sums in arrears.
+fn refuse_section_9a(section_9a_adjustment_applies: &Arg) -> Result<()> {
     let Arg::Bool(adjusted) = section_9a_adjustment_applies else {
         return refuse(
             "input.flag_invalid",
@@ -1548,45 +1785,70 @@ pub fn medicare_levy(
             ),
         );
     }
-    let (threshold, limit) = lookup(meta::MEDICARE_LOW_INCOME_THRESHOLDS, &year);
-    let (threshold, limit) = (d(threshold), d(limit));
-    let levy_rate = d(lookup(&meta::MEDICARE_LEVY_RATES, "levy"));
-    let shade_in = d(lookup(&meta::MEDICARE_LEVY_RATES, "shade_in"));
-    let amounts = precise(|| {
-        let full = income.mul(&levy_rate)?;
-        let levy = if income.le(&threshold)? {
-            int(0)
-        } else if income.le(&limit)? {
-            py_min(full.clone(), income.sub(&threshold)?.mul(&shade_in)?)?
-        } else {
-            full.clone()
-        };
-        Ok(vec![
-            ("taxable_income_used", income.clone()),
-            ("levy_at_full_rate", full.clone()),
-            ("low_income_reduction", full.sub(&levy)?),
-            ("medicare_levy", levy),
-        ])
-    })?;
-    let mut out = result(
-        "medicare_levy",
-        &year,
-        amounts,
-        vec![
-            rate("levy_rate", &levy_rate),
-            rate("shade_in_rate", &shade_in),
-            rate("threshold_amount", &threshold),
-            rate("phase_in_limit", &limit),
-        ],
-    )?;
+    Ok(())
+}
+
+/// The amounts, the rates and whether s 8(3) shared the family reduction.
+type MedicareWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>, bool);
+
+fn medicare_working(income: &Decimal, year: &str, family: &Family) -> Calc<MedicareWorking> {
+    let (threshold, limit) = medicare_thresholds(year, family.sapto);
+    let mut rates = vec![
+        rate("levy_rate", medicare_rate("levy")),
+        rate("shade_in_rate", medicare_rate("shade_in")),
+        rate("threshold_amount", &threshold),
+        rate("phase_in_limit", &limit),
+    ];
+    let full = income.mul(&medicare_rate("levy"))?;
+    let mut levy = low_income_levy(income, year, family.sapto)?;
+    let mut amounts = vec![
+        ("taxable_income_used", income.clone()),
+        ("levy_at_full_rate", full.clone()),
+        ("low_income_reduction", full.sub(&levy)?),
+    ];
+    let mut shared = false;
+    if family.reduces() {
+        let working = family_reductions(income, &levy, year, family)?;
+        levy = working.levy;
+        amounts.push(("family_income", working.family_income));
+        amounts.push(("family_reduction", working.own));
+        if family.spouse.is_some() {
+            amounts.push(("spouse_excess_reduction", working.from_spouse));
+        }
+        rates.push(rate("family_income_threshold", working.threshold));
+        rates.push(rate(
+            "family_shade_out_rate",
+            medicare_rate("family_shade_out"),
+        ));
+        shared = working.shared;
+    }
+    amounts.push(("medicare_levy", levy));
+    Ok((amounts, rates, shared))
+}
+
+pub fn medicare_levy(
+    taxable_income: &Arg,
+    section_9a_adjustment_applies: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+    family: MedicareFamily,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, "medicare_levy")?;
+    let income = money(taxable_income)?;
+    whole_dollars(&income, "taxable income")?;
+    refuse_section_9a(section_9a_adjustment_applies)?;
+    let family = medicare_family(&family)?;
+    let (amounts, rates, shared) = precise(|| Ok(medicare_working(&income, &year, &family)?))?;
+    let mut out = result("medicare_levy", &year, amounts, rates)?;
+    let warnings = out["warnings"].as_array_mut().expect("warnings");
     if let Some((_, note)) = texts::MEDICARE_YEAR_WARNINGS
         .iter()
         .find(|(y, _)| *y == year)
     {
-        out["warnings"]
-            .as_array_mut()
-            .expect("warnings")
-            .push(json!(note));
+        warnings.push(json!(note));
+    }
+    if shared {
+        warnings.push(json!(texts::MEDICARE_SHARED_REDUCTION_NOTE));
     }
     Ok(out)
 }

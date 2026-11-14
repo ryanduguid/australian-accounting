@@ -388,7 +388,28 @@ pub const MEDICARE_LOW_INCOME_THRESHOLDS: &[(&str, (&str, &str))] = &[
     ("2025-26", ("28011", "35013")),
     ("2026-27", ("28011", "35013")),
 ];
-pub const MEDICARE_LEVY_RATES: [(&str, &str); 2] = [("levy", "0.02"), ("shade_in", "0.10")];
+/// The same for a person entitled to the seniors and pensioners tax offset:
+/// s 3(1) as Act No. 28, 2025, Sch 2 (2024-25 and later years) and Act No. 58,
+/// 2026, Sch 5 (2025-26 and later years) set it.
+pub const MEDICARE_SAPTO_THRESHOLDS: &[(&str, (&str, &str))] = &[
+    ("2024-25", ("43020", "53775")),
+    ("2025-26", ("44268", "55335")),
+    ("2026-27", ("44268", "55335")),
+];
+/// s 8(5) and (7), from the same Acts: the family income threshold, the
+/// threshold for a person entitled to the seniors and pensioners tax offset,
+/// and the increase for each dependent child or student.
+pub const MEDICARE_FAMILY_THRESHOLDS: &[(&str, (&str, &str, &str))] = &[
+    ("2024-25", ("45907", "59886", "4216")),
+    ("2025-26", ("47238", "61623", "4338")),
+    ("2026-27", ("47238", "61623", "4338")),
+];
+/// s 6(1), s 7(2) and the 0.08 in the s 8(2) formula.
+pub const MEDICARE_LEVY_RATES: [(&str, &str); 3] = [
+    ("levy", "0.02"),
+    ("shade_in", "0.10"),
+    ("family_shade_out", "0.08"),
+];
 
 /// ITAA 1997 s 61-115(1) table, in the Python dict's order.
 pub const LOW_INCOME_TAX_OFFSET: [(&str, &str); 7] = [
@@ -829,7 +850,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "medicare_levy" => (
             "2026-11-14",
-            "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners (2025-26) and myTax 2025 table 2 (2024-25)",
+            "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25)",
         ),
         "low_income_tax_offset" => (
             "2026-10-15",
@@ -951,10 +972,10 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-11-14",
         ),
         "medicare_levy" => (
-            "ATO Medicare levy reduction for low-income earners",
-            "table of single thresholds, example (Angie)",
+            "ATO Medicare levy reduction for low-income earners; Medicare levy reduction - family income",
+            "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton)",
             "2026-06-30",
-            "2026-10-15",
+            "2026-11-14",
         ),
         "low_income_tax_offset" => (
             "ATO low and middle income earner tax offsets",
@@ -1015,6 +1036,28 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "opening_adjustable_value",
             "AUD, for a year after the start time only: cost less the decline in value of earlier years, not the deductions; omit in the start year",
         )],
+        "medicare_levy" => vec![
+            (
+                "sapto_entitled",
+                "boolean, whether the person is entitled to the seniors and pensioners tax offset for the year at more than nil; true applies the s 3(1) and s 8(7) thresholds; omit for false",
+            ),
+            (
+                "spouse_taxable_income",
+                "AUD, whole dollars, the taxable income of the person's spouse on the last day of the year as s 3(3) reads it (not one living separately and apart, but one living apart only because of illness counts, as does one who died in the year); omit for no spouse",
+            ),
+            (
+                "spouse_sapto_entitled",
+                "boolean, required with spouse_taxable_income and taken only with it: whether the spouse is entitled to the seniors and pensioners tax offset at more than nil",
+            ),
+            (
+                "dependant_offset_entitled",
+                "boolean, for a person without a spouse only: whether they are entitled to the invalid and invalid carer tax offset for their child (ITAA 1997 Subdivision 61-A) or the sole parent notional tax offset (Subdivision 961-B), without which s 8 does not apply to them; omit for false",
+            ),
+            (
+                "dependent_children",
+                "integer, the dependent children and students (ITAA 1997 s 961-5(1)(c)) for whom the person or their spouse is entitled to the Subdivision 961-A notional tax offset; without a spouse, only those for whom family tax benefit was payable to the person (s 8(5) and (6)), and only with dependant_offset_entitled true; omit for none",
+            ),
+        ],
         "payg_withholding" => vec![
             (
                 "foreign_resident",

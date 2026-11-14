@@ -44,7 +44,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
-| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilation 53 and the ATO's single thresholds | 30 June 2026 (ATO page) | Single person without SAPTO, the 2% rate and the s 7 low-income reduction for 2024-25 to 2026-27 |
+| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, the ATO's single and family thresholds and its Ashton example | 30 June 2026 (ATO pages) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds and the s 8 family reduction for 2024-25 to 2026-27, on established SAPTO, spouse and dependant facts |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
@@ -411,8 +411,77 @@ at and above the threshold amount and phase-in limit.
 
 Each published phase-in limit is 1.25 times the threshold amount, rounded down
 to the dollar: that is the income at which 10% of the excess reaches 2% of the
-whole, and the tests derive it. The family income reduction (s 8), exemptions,
-the surcharge, trustees and part-year residence are outside the worksheet.
+whole, and the tests derive it. Exemptions, the surcharge, trustees and
+part-year residence are outside the worksheet.
+
+### SAPTO thresholds and the family reduction
+
+Read on 14 November 2026: the Medicare Levy Act 1986 as compiled at 28 March
+2025 (compilation 52, in force for 2024-25 assessments until 1 July 2026) and
+at 1 July 2026 (compilation 53); the Treasury Laws Amendment (More Cost of
+Living Relief) Act 2025 (No. 28, 2025), whose Sch 2 item 14 applies its
+figures to 2024-25 and later years; Act No. 58, 2026, Sch 5, whose item 14
+applies its figures to 2025-26 and later years; the ATO pages "Medicare levy
+reduction - family income" and "Medicare levy reduction for low-income
+earners" (both last updated 30 June 2026); and myTax 2025 "Medicare levy
+reduction or exemption".
+
+| Figure | 2024-25 | 2025-26 and 2026-27 | Provision |
+| --- | --- | --- | --- |
+| SAPTO threshold amount | $43,020 | $44,268 | s 3(1), threshold amount (a) |
+| SAPTO phase-in limit | $53,775 | $55,335 | s 3(1), phase-in limit (a) |
+| Family income threshold | $45,907 | $47,238 | s 8(5) |
+| With SAPTO | $59,886 | $61,623 | s 8(7) |
+| Each dependent child or student | $4,216 | $4,338 | s 8(5) |
+
+The ATO's 2025-26 pages and myTax 2025 table 2 and worksheet 2 give the same
+lower figures. Section 8 then applies to a person who had a spouse on the last
+day of the year (s 3(3): not one living separately and apart, though the ATO's
+Ashton example counts a spouse living apart because of illness; a spouse who
+died in the year counts), or who is entitled to the invalid and invalid carer tax
+offset for their child (ITAA 1997 Subdivision 61-A) or the sole parent
+notional tax offset (Subdivision 961-B). Family income is the person's taxable
+income plus the spouse's. At or below the family income threshold no levy is
+payable (s 8(1)). Above it the levy after s 7 is reduced by 2% of the
+threshold less 0.08 of the excess (s 8(2)), so the reduction reaches nil where
+family income passes 1.25 times the threshold. When the spouse would also be
+liable, the reduction is shared in proportion to taxable income (s 8(3)), and
+the part of either spouse's share above their own levy reduces the other's
+(s 8(4)).
+
+The worksheet takes SAPTO entitlement, the spouse, the s 8(1)(b) or (c)
+offsets and the number of dependent children as established facts. It does not
+work them out. SAPTO entitlement means an offset above nil: the family page
+says being eligible for SAPTO without receiving it does not bring in the SAPTO
+thresholds. Without a spouse, a child counts only if family tax benefit was
+payable to the person for that child (s 8(6)).
+
+The ATO's example on the family page holds the worksheet: Ashton, entitled
+to SAPTO, has taxable income of $49,700 in 2025-26 and his spouse, also
+entitled, $21,700. His levy after s 7 is 10% of $5,432, $543.20; the family
+reduction is 2% of $61,623 less 0.08 of $9,777, $450.30; his levy is
+**$92.90**, as the ATO's calculator gives. His spouse is below the spouse's
+own threshold amount and pays nothing, so the reduction is not shared. Read
+literally, s 8(3) would also give the spouse a share of the reduction, which
+s 8(4) would then pass back to him, cutting his levy below $92.90. The ATO's result
+shows that only a spouse liable to the levy has a share, and the worksheet
+follows it: s 8(4) passes back the excess of a liable spouse only.
+
+The ATO's upper thresholds are the threshold times 1.25: $59,047 and $77,028
+for 2025-26, and $57,383 and $74,857 in myTax 2025 worksheet 2, each rounded
+down. Its increase in the upper threshold for each child, $5,423 for 2025-26,
+is $5,422.50 rounded up, so each child moves it 50 cents further than the
+family income at which the s 8(2) reduction reaches nil, 1.25 times the family
+income threshold. From 2 children the published 2025-26 upper threshold lies
+past that income, and the gap grows with each child: with 2 children $69,893
+has a reduction of minus 4 cents, and with 3 children $75,316 has minus 8
+cents. Between the 2 points the formula gives no reduction, so the levy is the
+levy after s 7. The worksheet applies the formula, and
+`tests/medicare_family.rs` holds both cases to the full levy. The
+same tests check each SAPTO and family threshold and the top of each shade-in
+for all 3 years, the sharing, the excess passed back between spouses and every
+refusal. No ATO example covers 2024-25 or 2026-27; those cases are worked from
+the Act.
 
 Section 9A, read in the same compilation on 15 October 2026, takes the total
 arrears amount out of taxable income for ss 6(1) and 7 when a person's
