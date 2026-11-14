@@ -961,7 +961,10 @@ fn working_holiday_maker_withholding_rises_and_stays_within_45_percent() {
         let (fewer, more) = sorted(rng.dollars(), rng.dollars());
         let top = withholding(&high, more);
         assert!(le(&withholding(&low, more), &top), "{low} {high} {more}");
-        assert!(le(&withholding(&high, fewer), &top), "{high} {fewer} {more}");
+        assert!(
+            le(&withholding(&high, fewer), &top),
+            "{high} {fewer} {more}"
+        );
         let limit = d(&high).mul(&d("0.45")).unwrap().add(&d("0.5")).unwrap();
         assert!(le(&top, &limit), "{high} {more}");
     }

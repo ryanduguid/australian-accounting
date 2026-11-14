@@ -177,8 +177,10 @@ fn an_unregistered_employer_uses_foreign_resident_rates() {
         ("2825.75", "monthly", "2025-26"),
         ("8173.20", "fortnightly", "2024-25"),
     ] {
-        let facts = with(json!({"payment": payment, "pay_period": period, "year": year,
-                                "employer_registered": false, "payments_before": "47000.00"}));
+        let facts = with(
+            json!({"payment": payment, "pay_period": period, "year": year,
+                                "employer_registered": false, "payments_before": "47000.00"}),
+        );
         let result = evaluate(&facts);
         let payg = api::evaluate(
             "payg-withholding",
@@ -212,7 +214,10 @@ fn out_of_scope_and_malformed_input_is_refused() {
         (json!({"year": "2027-28"}), "period.unsupported"),
         (json!({"year": "2023-24"}), "period.unsupported"),
         (json!({"scope_confirmed": false}), "scope.not_confirmed"),
-        (json!({"pay_period": "quarterly"}), "input.pay_period_invalid"),
+        (
+            json!({"pay_period": "quarterly"}),
+            "input.pay_period_invalid",
+        ),
         (json!({"pay_period": "annual"}), "input.pay_period_invalid"),
         (json!({"pay_period": 7}), "input.pay_period_invalid"),
         (
@@ -226,7 +231,10 @@ fn out_of_scope_and_malformed_input_is_refused() {
         (json!({"employer_registered": "yes"}), "input.flag_invalid"),
         (json!({"tfn_quoted": null}), "input.flag_invalid"),
         // A field the worksheet does not take is refused, never ignored.
-        (json!({"tfn_exemption_claimed": true}), "input.field_unknown"),
+        (
+            json!({"tfn_exemption_claimed": true}),
+            "input.field_unknown",
+        ),
         (json!({"study_loan": true}), "input.field_unknown"),
     ] {
         assert_eq!(refusal_code(&with(overrides.clone())), code, "{overrides}");

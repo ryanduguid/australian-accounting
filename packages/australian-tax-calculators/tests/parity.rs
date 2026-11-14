@@ -17,7 +17,10 @@ const NEW_KINDS: [(&str, &str); 6] = [
     ("main-residence", "main_residence"),
     ("borrowing-expenses", "borrowing_expenses"),
     ("division-296", "division_296"),
-    ("working-holiday-maker-withholding", "working_holiday_maker_withholding"),
+    (
+        "working-holiday-maker-withholding",
+        "working_holiday_maker_withholding",
+    ),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.
