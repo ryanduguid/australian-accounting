@@ -315,3 +315,13 @@ fn an_invalid_supplier_abn_ranks_below_registration_conflicts_and_above_the_rest
         ]
     );
 }
+
+#[test]
+fn an_unknown_gst_code_outranks_an_invalid_supplier_abn_on_the_same_line() {
+    let input = json!({"registrations":{"A":{"registered_from":"2024-07-01"}},"lines":[
+        {"id":"both","entity":"A","date":"2026-08-04","amount":"-110.00","gst_code":"XYZ","supplier_abn":"51 824 753 557"}]});
+    let result = api::evaluate("review-coding", &input).unwrap();
+    assert_eq!(result["lines"][0]["state"], "unknown_gst_code");
+    assert_eq!(result["counts"]["unknown_gst_code"], 1);
+    assert_eq!(result["counts"]["supplier_abn_invalid"], 0);
+}
