@@ -588,10 +588,10 @@ fn car_taxable_values(
         value: value.clone(),
         ..gross
     }];
-    let before = match statutory {
+    let (before, valuation) = match statutory {
         None => {
             out.extend(steps_from(&S9_PAYMENT_STEPS, payment));
-            net
+            (net, "FBTAA s 9(1)")
         }
         Some(statutory) => {
             out.extend(steps_from(&S10_PAYMENT_STEPS, payment));
@@ -601,28 +601,28 @@ fn car_taxable_values(
                 (&[&net, statutory], lower.clone()),
             ];
             out.extend(steps_from(&S10_5_STEPS, comparison));
-            lower
+            (lower, "FBTAA s 10(2) and (5)")
         }
     };
-    out.extend(exemption_steps(&before, exempt));
+    out.extend(exemption_steps(&before, exempt, valuation));
     Ok(out)
 }
 
-/// An exempt electric car's taxable value is nil; the value before the
-/// exemption is the notional value its reportable fringe benefits amount is
-/// worked out from, so it is also the car's reportable taxable value, before
-/// the employee's $2,000 threshold and the type 2 gross-up, which apply to all
-/// their benefits.
-fn exemption_steps(before: &Decimal, exempt: bool) -> Vec<Step> {
+/// An exempt electric car's taxable value is nil under s 8A; another car keeps
+/// its value under `valuation`. The value before the exemption is the notional
+/// value its reportable fringe benefits amount is worked out from, so it is
+/// also the car's reportable taxable value, before the employee's $2,000
+/// threshold and the type 2 gross-up, which apply to all their benefits.
+fn exemption_steps(before: &Decimal, exempt: bool, valuation: &'static str) -> Vec<Step> {
     let before_exemption = "taxable_value_before_exemption";
-    let (formula, operands, taxable): (_, &[&Decimal], _) = if exempt {
-        ("0", &[], int(0))
+    let (authority, formula, operands, taxable): (_, _, &[&Decimal], _) = if exempt {
+        ("FBTAA s 8A", "0", &[], int(0))
     } else {
-        (before_exemption, &[before], before.clone())
+        (valuation, before_exemption, &[before], before.clone())
     };
     let reportable = "Reportable fringe benefits (ATO)";
     vec![
-        step("taxable_value", "FBTAA s 8A", formula, operands, taxable),
+        step("taxable_value", authority, formula, operands, taxable),
         step(
             "reportable_taxable_value",
             reportable,
@@ -655,7 +655,7 @@ const S10_PAYMENT_STEPS: [(&str, &str, &str); 3] = [
 const S10_5_STEPS: [(&str, &str, &str); 2] = [
     (
         "statutory_formula_taxable_value",
-        "FBTAA s 10(5)",
+        "FBTAA s 9(1) and s 10(5)",
         "statutory_formula_taxable_value",
     ),
     (
@@ -781,7 +781,14 @@ fn operating_costs(
         (&[value, interest_rate, &held, &year], interest.clone()),
         (&[running, lease, &depreciation, &interest], costs),
     ];
-    Ok(steps_from(&S10_COST_STEPS, rows))
+    let mut steps = steps_from(&S10_COST_STEPS, rows);
+    // A leased car has no depreciated value, so both deemed amounts are nil.
+    if lease.gt(&int(0))? {
+        for deemed in &mut steps[..2] {
+            deemed.authority = "FBTAA s 10(3)(a)(iii): owned cars only, so nil for a leased car";
+        }
+    }
+    Ok(steps)
 }
 
 /// FBTAA s 10: `C x (100% - BP) - R`, with deemed depreciation and interest on

@@ -435,6 +435,46 @@ fn the_ato_examples_show_their_operands() {
 }
 
 #[test]
+fn each_step_cites_the_provision_its_branch_applies() {
+    let authority = |case: usize, id: &str| {
+        let (command, input) = &cases()[case];
+        let doc = derive(command, input);
+        let steps = doc["steps"].as_array().unwrap().clone();
+        let step = steps.into_iter().find(|s| s["id"] == id).unwrap();
+        step["authority"].as_str().unwrap().to_string()
+    };
+    // s 8A exempts an electric car; a car it does not exempt keeps its s 9 or
+    // s 10 value.
+    assert_eq!(authority(5, "taxable_value"), "FBTAA s 9(1)");
+    assert_eq!(authority(9, "taxable_value"), "FBTAA s 8A");
+    assert_eq!(authority(10, "taxable_value"), "FBTAA s 10(2) and (5)");
+    assert_eq!(authority(13, "taxable_value"), "FBTAA s 8A");
+    // s 9(1) gives the statutory formula value that s 10(5) compares.
+    assert_eq!(
+        authority(10, "statutory_formula_taxable_value"),
+        "FBTAA s 9(1) and s 10(5)"
+    );
+    // s 10(3)(a)(iii) deems depreciation and interest for an owned car only.
+    let owned = "FBTAA s 11(1), (1AA) and (1A)";
+    let leased = "FBTAA s 10(3)(a)(iii): owned cars only, so nil for a leased car";
+    assert_eq!(authority(10, "deemed_depreciation"), owned);
+    assert_eq!(authority(13, "deemed_depreciation"), leased);
+    assert_eq!(authority(13, "deemed_interest"), leased);
+}
+
+#[test]
+fn a_refused_derive_leaves_no_steps_for_the_next() {
+    let refused = json!({"command": "fbt-car-statutory", "input": {"days_available": 366}});
+    for (command, input) in cases() {
+        assert!(api::evaluate("derive", &refused).is_err());
+        assert!(
+            problems(&derive(command, &input)).is_empty(),
+            "{command} {input}"
+        );
+    }
+}
+
+#[test]
 fn a_refused_input_gets_the_commands_own_refusal() {
     let refused = |command: &str, input: Value| {
         let plain = api::evaluate_coded(command, &input).unwrap_err();
