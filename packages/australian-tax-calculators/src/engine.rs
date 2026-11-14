@@ -2112,7 +2112,112 @@ pub fn borrowing_expenses(
     spread(&year, &loan, &expenditure, &share)
 }
 
-const KINDS: [&str; 19] = [
+/// Schedule 15's lookup tool column for a registered employer's payment to a
+/// working holiday maker who gave a TFN, and its Table A rate, from the
+/// payments made before it in the income year. Neither the columns nor
+/// Table A place payments before of $135,000.01 to $135,000.99, so they are
+/// refused.
+fn working_holiday_maker_rate(before: &Decimal) -> Result<(usize, &'static str)> {
+    for (index, (low, high, rate_)) in meta::WORKING_HOLIDAY_MAKER_COLUMNS.iter().enumerate() {
+        let above = low.map_or(Ok(true), |low| d(low).le(before))?;
+        let below = high.map_or(Ok(true), |high| before.le(&d(high)))?;
+        if above && below {
+            return Ok((index + 2, *rate_));
+        }
+    }
+    refuse(
+        "working_holiday_maker.band_unsettled",
+        "payments_before between $135,000 and $135,001 falls between Schedule 15's columns 3 and 4 and Table A's bands, which do not settle its rate.",
+    )
+}
+
+/// Schedule 15: withholding from one payment to a working holiday maker.
+pub fn working_holiday_maker_withholding(
+    payment: &Arg,
+    payments_before: &Arg,
+    employer_registered: &Arg,
+    tfn_quoted: &Arg,
+    pay_period: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let kind = "working_holiday_maker_withholding";
+    let year = scope(scope_confirmed, year, kind)?;
+    let payment = money(payment)?;
+    let before = money(payments_before)?;
+    let registered = flag(employer_registered, "employer_registered")?;
+    let tfn = flag(tfn_quoted, "tfn_quoted")?;
+    let period = match pay_period.text() {
+        Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
+        _ => {
+            return refuse(
+                "input.pay_period_invalid",
+                "pay_period must be weekly, fortnightly or monthly.",
+            );
+        }
+    };
+    let label = format!("{year} {period}");
+    if !registered {
+        if !tfn {
+            return refuse(
+                "working_holiday_maker.unregistered_no_tfn",
+                "An unregistered employer withholds at foreign resident rates, and this worksheet does not take their rate for a payee who gave no TFN.",
+            );
+        }
+        // An unregistered employer withholds at the foreign resident rates: Schedule 1 scale 3.
+        let foreign = payg_withholding(
+            &Arg::Decimal(payment.clone()),
+            &Arg::Text(period),
+            &Arg::Int(3),
+            &Arg::Text(year),
+            &Arg::Bool(true),
+        )?;
+        let withholding = d(foreign["amounts"]["withholding"]
+            .as_str()
+            .expect("withholding amount"));
+        let mut out = result(
+            kind,
+            &label,
+            vec![("payment_used", payment), ("withholding", withholding)],
+            vec![rate("scale", 3)],
+        )?;
+        out["withholding_basis"] = json!(
+            "unregistered employer: foreign resident rates, the Schedule 1 scale 3 amount for the pay period"
+        );
+        return Ok(out);
+    }
+    let (column, rate_) = if tfn {
+        working_holiday_maker_rate(&before)?
+    } else {
+        (6, meta::WORKING_HOLIDAY_MAKER_NO_TFN_RATE)
+    };
+    // Cents are ignored in the result at the top rate (column 5) and without a
+    // TFN (column 6); otherwise it is rounded straight to the dollar, 50 cents up.
+    let rounding = if column >= 5 {
+        Rounding::Down
+    } else {
+        Rounding::HalfUp
+    };
+    let a = d(rate_);
+    let (x, withholding) = precise(|| {
+        let x = payment.quantize(0, Rounding::Down)?;
+        let y = a.mul(&x)?.quantize(0, rounding)?;
+        Ok((x, y))
+    })?;
+    let mut out = result(
+        kind,
+        &label,
+        vec![("payment_used", x), ("withholding", withholding)],
+        vec![rate("rate", &a)],
+    )?;
+    out["withholding_basis"] = json!(format!(
+        "registered employer, {}: column {column}, rate {a} on the payment with cents ignored",
+        if tfn { "TFN quoted" } else { "no TFN" }
+    ));
+    Ok(out)
+}
+
+const KINDS: [&str; 20] = [
     "gst",
     "resident_tax",
     "capital_gains",
@@ -2132,6 +2237,7 @@ const KINDS: [&str; 19] = [
     "low_income_tax_offset",
     "division_293",
     "division_296",
+    "working_holiday_maker_withholding",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

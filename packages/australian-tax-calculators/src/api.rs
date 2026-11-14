@@ -275,6 +275,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "working-holiday-maker-withholding",
+        &[
+            ("payment", Dec),
+            ("payments_before", Dec),
+            ("employer_registered", Raw),
+            ("tfn_quoted", Raw),
+            ("pay_period", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "study-loan-repayment",
         &[
             ("repayment_income", Dec),
@@ -581,6 +593,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "low-income-tax-offset" => engine::low_income_tax_offset(&a[0], &a[1], &a[2]),
         "division-293" => engine::division_293(&a[0], &a[1], &a[2], &a[3]),
         "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),
+        "working-holiday-maker-withholding" => engine::working_holiday_maker_withholding(
+            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6],
+        ),
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])

@@ -939,6 +939,34 @@ fn division_296_tax_rises_with_the_balance_and_stays_within_a_quarter() {
     }
 }
 
+/// Schedule 15: a registered employer's withholding from a working holiday
+/// maker who gave a TFN never falls as the payment or the payments before it
+/// rise, and never exceeds 45% of the payment.
+#[test]
+fn working_holiday_maker_withholding_rises_and_stays_within_45_percent() {
+    let mut rng = Rng(20_261_114);
+    let withholding = |payment: &str, before: i64| {
+        let r = run(
+            "working-holiday-maker-withholding",
+            json!({
+                "payment": payment, "payments_before": format!("{before}.00"),
+                "employer_registered": true, "tfn_quoted": true,
+                "pay_period": "fortnightly", "year": "2026-27", "scope_confirmed": true,
+            }),
+        );
+        amount(&r, "withholding")
+    };
+    for _ in 0..RUNS {
+        let (low, high) = sorted_dec(rng.pay(), rng.pay());
+        let (fewer, more) = sorted(rng.dollars(), rng.dollars());
+        let top = withholding(&high, more);
+        assert!(le(&withholding(&low, more), &top), "{low} {high} {more}");
+        assert!(le(&withholding(&high, fewer), &top), "{high} {fewer} {more}");
+        let limit = d(&high).mul(&d("0.45")).unwrap().add(&d("0.5")).unwrap();
+        assert!(le(&top, &limit), "{high} {more}");
+    }
+}
+
 /// Howard Hinnant's civil_from_days, for generating dates.
 fn civil(day: i64) -> (i64, i64, i64) {
     let z = day + 719_468;

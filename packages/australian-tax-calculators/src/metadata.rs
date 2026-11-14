@@ -267,6 +267,23 @@ pub const DIVISION_296: [(&str, &str); 4] = [
 ];
 pub const DIVISION_296_YEARS: [&str; 1] = ["2026-27"];
 
+/// Schedule 15 (working holiday makers), columns 2 to 5, for a registered
+/// employer's payment to a payee who gave a TFN: the payments made to them in
+/// the income year before it that each column covers, lowest and highest
+/// inclusive in cents ('less than $45,001', 'from $45,001 to $135,000', 'from
+/// $135,001 to $190,000' and 'more than $190,000'), with Table A's rate. No
+/// column covers $135,000.01 to $135,000.99. The schedules for payments from
+/// 1 July 2024 and from 1 July 2026 give the same columns and rates.
+pub const WORKING_HOLIDAY_MAKER_COLUMNS: [(Option<&str>, Option<&str>, &str); 4] = [
+    (None, Some("45000.99"), "0.15"),
+    (Some("45001"), Some("135000"), "0.30"),
+    (Some("135001"), Some("190000"), "0.37"),
+    (Some("190000.01"), None, "0.45"),
+];
+/// Schedule 15: 45% of payments to a working holiday maker who gave no TFN.
+pub const WORKING_HOLIDAY_MAKER_NO_TFN_RATE: &str = "0.45";
+pub const WORKING_HOLIDAY_MAKER_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
+
 pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 
 /// Statutory or benchmark interest rate by FBT year ended 31 March, for the
@@ -309,6 +326,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "low_income_tax_offset" => LOW_INCOME_TAX_OFFSET_YEARS.to_vec(),
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
+        "working_holiday_maker_withholding" => WORKING_HOLIDAY_MAKER_YEARS.to_vec(),
         _ => Vec::new(),
     }
 }
@@ -388,6 +406,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "division_296" => (
             "2026-11-13",
             "ITAA 1997 ss 296-15 to 296-55, compilation 268 (1 October 2026); Imposition Act 2026 s 5; Income Tax (Transitional Provisions) Act 1997 s 296-1; Explanatory Memorandum examples 1.1 to 1.3; ATO Division 296 tax on large super balances",
+        ),
+        "working_holiday_maker_withholding" => (
+            "2026-11-14",
+            "Schedule 15 (working holiday makers) for payments from 1 July 2026 and for payments from 1 July 2024 to 30 June 2026: using this schedule, working out the withholding amount, registered and unregistered employers, using a formula, Table A, examples 1 and 2, rounding and TFN declarations",
         ),
         _ => ("", ""),
     }
@@ -503,6 +525,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "6-495",
             "2026-06-30",
             "2026-11-13",
+        ),
+        "working_holiday_maker_withholding" => (
+            "ATO Schedule 15 tax table for working holiday makers",
+            "withholding lookup tool example, examples 1 and 2",
+            "2026-06-17",
+            "2026-11-14",
         ),
         _ => ("", "", "", ""),
     };
@@ -752,6 +780,28 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, whether the individual died on or before 30 June 2027 (Income Tax (Transitional Provisions) Act 1997 s 296-1(3))",
             ),
         ],
+        "working_holiday_maker_withholding" => vec![
+            (
+                "payment",
+                "AUD, the total payments to the working holiday maker for the pay period: salary, wages, allowances, back payments, bonuses and other payments Schedule 15 covers",
+            ),
+            (
+                "payments_before",
+                "AUD, the total payments made to them in the income year before this payment",
+            ),
+            (
+                "employer_registered",
+                "boolean, whether the employer is registered with the ATO to withhold at working holiday maker rates",
+            ),
+            (
+                "tfn_quoted",
+                "boolean, true when the payee quoted a TFN, or advised on their TFN declaration that they applied for one and 28 days have not passed; false when they did neither, or 28 days passed without a TFN",
+            ),
+            (
+                "pay_period",
+                "weekly, fortnightly or monthly; for an unregistered employer it selects the Schedule 1 foreign resident amounts",
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -878,6 +928,15 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("child_recipient", Flag(false)),
             ("structured_settlement_contribution", Flag(false)),
             ("died_in_year", Flag(false)),
+        ],
+        // Schedule 15's example 2, for payments from 1 July 2026.
+        "working_holiday_maker_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("payment", Text("8173.20")),
+            ("payments_before", Text("47000.00")),
+            ("employer_registered", Flag(true)),
+            ("tfn_quoted", Flag(true)),
+            ("pay_period", Text("monthly")),
         ],
         _ => Vec::new(),
     }

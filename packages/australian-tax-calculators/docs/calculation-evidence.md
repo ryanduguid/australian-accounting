@@ -48,6 +48,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
+| Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -480,6 +481,53 @@ benefit and other interests whose earnings use s 296-70 are outside it, as their
 earnings use a different formula and tax on a defined benefit interest may be
 deferred to a debt account, and so are departing temporary residents
 (ss 296-195 to 296-205). Later income years wait for their indexed thresholds.
+
+## Working holiday makers
+
+This worksheet's evidence is not a Library document. On 14 November 2026 the
+ATO's Schedule 15 for payments from 1 July 2026 (published 17 June 2026) and
+the one for 1 July 2024 to 30 June 2026 (last updated 17 June 2024) were read in
+full. Their columns, Table A rates, formula, rounding rules and examples are the
+same apart from the income year in Table A's heading and the examples' dates:
+
+- A registered employer whose payee has given a TFN uses column 2 while the
+  total payments made to them in the income year before this payment are less
+  than $45,001, column 3 from $45,001 to $135,000, column 4 from $135,001 to
+  $190,000 and column 5 above $190,000; Table A's rates are 0.15, 0.30, 0.37
+  and 0.45. A registered employer whose payee has not given a TFN uses
+  column 6, 45%.
+- y = a × x, where x is the payment for the pay period ignoring any cents. The
+  result is rounded to the nearest dollar, 50 cents up, without a preliminary
+  rounding to cents; at the top marginal rate and without a TFN, cents in the
+  result are ignored.
+- An unregistered employer withholds at the foreign resident rates in the
+  weekly, fortnightly or monthly tax tables, which the worksheet takes from
+  Schedule 1 scale 3 through `payg-withholding`.
+- 45% applies without a TFN only if the payee has also not claimed an
+  exemption from quoting it and not advised that they applied for one; a payee
+  who so advised has 28 days to provide it. The worksheet takes `tfn_quoted`
+  as established on that basis and leaves exemption claimants out of scope.
+- The schedule does not apply to workers employed under the Seasonal Worker
+  Programme, Pacific Labour Scheme or Pacific Australia Labour Mobility scheme.
+
+`tests/working_holiday_maker.rs` holds the schedule's examples for each year:
+
+| Example | Payment | Paid before | Rate | Withholding |
+| --- | --- | --- | --- | --- |
+| Withholding lookup tool, weekly | $680.70 | Not over $45,000 | 0.15 | $102 |
+| 1, monthly | $2,825.75 | Not over $45,000 | 0.15 | 0.15 × 2,825 = 423.75, $424 |
+| 2, monthly | $8,173.20 | $47,000 | 0.30 | 0.30 × 8,173 = 2,451.90, $2,452 |
+
+The columns follow the schedule's words, so $45,000.50 paid before is column 2
+('less than $45,001') and $190,000.50 column 5 ('more than $190,000'). Column 3
+ends at $135,000 and column 4 starts at $135,001, and Table A's bands leave the
+same gap, so payments before of $135,000.01 to $135,000.99 are refused rather
+than placed in either. The schedule does not say what an unregistered employer
+withholds when no TFN is given, so that case is refused. It says results from
+its formulas may differ slightly from the withholding lookup tool and that
+either is accepted; the tool's spreadsheet was not downloaded, and the
+worksheet follows the formulas. The payee's visa and residency and the
+employer's registration are the operator's to establish.
 
 ## Study loan withholding
 

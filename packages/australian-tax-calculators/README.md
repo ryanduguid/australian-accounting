@@ -3,7 +3,7 @@
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets, a main residence worksheet, a borrowing expenses worksheet and a Division 296 estimate that no Python release contains. Python releases through 0.1.9
+worksheets, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate and a Schedule 15 working holiday maker worksheet that no Python release contains. Python releases through 0.1.9
 contain 10 worksheets. Until the MCP server links this crate,
 it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
@@ -17,10 +17,10 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Nineteen calculation worksheets for established facts: ordinary GST, resident basic income
+Twenty calculation worksheets for established facts: ordinary GST, resident basic income
 tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, depreciation in the start year and later years,
-quarterly super guarantee, Schedule 1 PAYG withholding, super contribution caps,
+quarterly super guarantee, Schedule 1 PAYG withholding, Schedule 15 withholding for working holiday makers, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, a single person's Medicare levy, the low income tax offset,
 Division 293 tax and an estimate of Division 296 tax on large super balances. Callers must establish every scope condition before calculating.
@@ -104,13 +104,14 @@ lists the commands.
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
 | `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
 | `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
+| `working-holiday-maker-withholding` | `payment`, `payments_before`, `employer_registered`, `tfn_quoted`, `pay_period`, `year`, `scope_confirmed` |
 | `study-loan-repayment` | `repayment_income`, `year`, `scope_confirmed` |
 | `contribution-caps` | `total_super_balance`, `concessional_contributions`, `unused_concessional_cap`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed` |
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 
-The 2 car commands, `main-residence`, `borrowing-expenses` and `division-296` have no Python original; their arguments follow the same
+The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296` and `working-holiday-maker-withholding` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -138,6 +139,7 @@ or a decimal string over 8,192 bytes, is refused.
 | Low income tax offset | 2024-25, 2025-26 and 2026-27; resident individual's established taxable income; the offset amount, not applied against tax |
 | Division 293 | 2024-25, 2025-26 and 2026-27; established Division 293 income and low tax contributions; no defined benefit interests |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
+| Working holiday makers | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established working holiday maker; no TFN exemption claimants or labour mobility schemes |
 
 Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
@@ -358,6 +360,27 @@ funds report. Working out the balance or the earnings, defined benefit and
 other s 296-70 interests, departing temporary residents and later years are
 outside it. The tests hold it to the Explanatory Memorandum's examples; see
 [calculation evidence](docs/calculation-evidence.md#division-296).
+
+## Working holiday makers
+
+`working_holiday_maker_withholding` applies Schedule 15 to one weekly,
+fortnightly or monthly payment made from 1 July 2024 to a working holiday
+maker the operator has established (subclass 417 or 462, or a bridging visa the
+schedule covers). A registered employer whose payee gave a TFN withholds the
+payment, cents ignored, times the Table A rate for the column that the payments
+made before it in the income year select: 15% below $45,001, 30% from $45,001
+to $135,000, 37% from $135,001 to $190,000 and 45% above $190,000. The result
+is rounded to the dollar, 50 cents up, except at 45%, where cents are ignored.
+Without a TFN a registered employer withholds 45%, cents ignored. An
+unregistered employer withholds at foreign resident rates, the Schedule 1
+scale 3 amount `payg-withholding` gives; with no TFN it is refused, as are
+payments before of $135,000.01 to $135,000.99, which no column covers.
+`withholding_basis` names the column or scale used. Like `division-296`, it
+refuses a field it does not take. A payee who claimed an exemption from
+quoting a TFN, labour mobility schemes, withholding variations and checking
+the visa or registration are outside it. The tests hold it to the ATO's lookup
+tool example and examples 1 and 2; see
+[calculation evidence](docs/calculation-evidence.md#working-holiday-makers).
 
 ## Worksheet discovery
 
