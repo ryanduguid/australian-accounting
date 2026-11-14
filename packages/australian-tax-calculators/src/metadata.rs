@@ -1341,7 +1341,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("instalments", "integer 1 to 360, monthly"),
             (
                 "balloon",
-                "AUD, paid at the end of the term with the last instalment; 0.00 for none",
+                "AUD, paid at the end of the term (with the last instalment in arrears, a month after it in advance) and shown in the last month's payment; 0.00 for none",
             ),
             (
                 "timing",

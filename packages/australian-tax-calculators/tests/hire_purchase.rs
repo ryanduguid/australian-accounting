@@ -6,6 +6,7 @@
 //! checked against an independent calculation, with the worksheet's refusals
 //! (docs/calculation-evidence.md#hire-purchase-schedule).
 use australian_tax_calculators::api;
+use australian_tax_calculators::decimal::{Decimal, Rounding};
 use serde_json::{Value, json};
 
 fn run(overrides: Value) -> Result<Value, String> {
@@ -123,6 +124,89 @@ fn a_2_year_agreement_without_a_balloon() {
     );
     assert_eq!(row(&r, 24), ["492.55", "7.45", "500.00", "492.55", "0.00"]);
     assert_eq!(r["amounts"]["total_interest"], "2000.00");
+}
+
+/// The shortest term, worked by hand at 5% a month: $1,050 in arrears repays
+/// $1,000 with $50 interest; in advance, ($1,000 - $100) x 5% = $45, and
+/// $900 + $45 = $945 is the balloon at the month's end.
+#[test]
+fn a_1_month_agreement_in_arrears_and_in_advance() {
+    let r = run(json!({"amount_financed": "1000.00", "instalment": "1050.00", "instalments": 1, "balloon": "0.00"})).unwrap();
+    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.050000000000");
+    assert_eq!(
+        row(&r, 1),
+        ["1000.00", "50.00", "1050.00", "1000.00", "0.00"]
+    );
+    let r = run(json!({"amount_financed": "1000.00", "instalment": "100.00", "instalments": 1, "balloon": "945.00", "timing": "in_advance"})).unwrap();
+    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.050000000000");
+    assert_eq!(
+        row(&r, 1),
+        ["1000.00", "45.00", "1045.00", "1000.00", "0.00"]
+    );
+    assert_eq!(dates(&r, 1)[2], "2026-07-15");
+    assert_eq!(r["balloon_date"], "2026-08-15");
+}
+
+/// LodgeiT Labs publishes, in its public repository, schedules from LodgeiT's
+/// printed hire purchase reports at a stated nominal rate, each leaving a
+/// residual instead of closing at nil (`tests/fixtures/hp/anchors_v1_4.json`
+/// of `lodgeit-labs/clawdog-calculator-api` at e00f6f87, read on
+/// 15 November 2026). On the same payments the implicit rate rounds to the
+/// stated rate, the first and last months' interest are within 2 cents of the
+/// report's, and the total interest is the report's less its residual: the
+/// payments less the amount financed. The start dates are moved into a year
+/// the worksheet takes; dates do not change the amounts.
+#[test]
+fn lodgeit_s_published_stated_rate_schedules_close_at_nil_here() {
+    let dec = |v: &Value| Decimal::parse(v.as_str().unwrap()).unwrap();
+    let text = |s: &str| Decimal::parse(s).unwrap();
+    // hp/235 pays a $53,893.16 balloon in place of its 60th $3,893.76
+    // instalment: here a 60th instalment and a $49,999.40 balloon.
+    for (financed, instalment, count, balloon, stated, first, last, total, residual) in [
+        (
+            "180630.00",
+            "3346.99",
+            60,
+            "0.00",
+            "0.0425",
+            "639.73",
+            "11.81",
+            "20189.64",
+            "0.24",
+        ),
+        (
+            "252450.00",
+            "3893.76",
+            60,
+            "49999.40",
+            "0.0399",
+            "839.40",
+            "178.60",
+            "31175.69",
+            "0.69",
+        ),
+    ] {
+        let r = run(json!({"amount_financed": financed, "instalment": instalment, "instalments": count, "balloon": balloon, "start_date": "2024-07-26", "year": "2024-25"})).unwrap();
+        let case = format!("{financed} at {stated}");
+        let rate = dec(&r["rates"]["nominal_annual_rate"]);
+        let rounded = rate.quantize(-4, Rounding::HalfUp).unwrap();
+        assert!(rounded.equals(&text(stated)).unwrap(), "{case}: {rate}");
+        for (month, report) in [(1, first), (count as usize, last)] {
+            let gap = text(row(&r, month)[1]).sub(&text(report)).unwrap();
+            assert!(
+                text("-0.02").le(&gap).unwrap() && gap.le(&text("0.02")).unwrap(),
+                "{case} month {month}: {gap}"
+            );
+        }
+        let expected = text(total).sub(&text(residual)).unwrap();
+        assert!(
+            dec(&r["amounts"]["total_interest"])
+                .equals(&expected)
+                .unwrap(),
+            "{case}"
+        );
+        assert_eq!(row(&r, count as usize)[4], "0.00", "{case}");
+    }
 }
 
 #[test]

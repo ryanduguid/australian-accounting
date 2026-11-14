@@ -245,8 +245,9 @@ intentionally changed.
   `hire_purchase.rate_imprecise`, `hire_purchase.rate_unsupported`,
   `hire_purchase.start_outside_year` and `input.timing_invalid`. No Python
   release has it. `tests/hire_purchase.rs` holds it to agreements at exactly
-  10% a month worked by hand and to fabricated agreements worked
-  independently, and `tests/properties.rs` checks that the months add up and
+  10% and 5% a month worked by hand, to fabricated agreements worked
+  independently and to 2 schedules LodgeiT Labs publishes at a stated rate,
+  where it closes at nil as they do not, and `tests/properties.rs` checks that the months add up and
   that each month's interest is within a cent of the rate on its balance.
   `tests/refusal_codes.rs` now also reads the engine's modules under
   `src/engine/`.

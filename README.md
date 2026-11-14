@@ -263,7 +263,11 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   an optional adapter for the gateway. A
   [differential](apps/lodgeit-calculator-adapter/docs/differential-2026-11-06.md) of 6 November 2026
   ran 12 fabricated Division 7A and FBT car formula cases against the gateway and records each
-  outcome, with differences traced to statute.
+  outcome, with differences traced to statute. Its `hp:schedule` calculator, as its OpenAPI document
+  read on 15 November 2026 describes it, amortises a hire purchase agreement at a stated nominal
+  rate, reports any residual and totals interest by financial year; `hire-purchase-schedule`
+  instead works out the implicit rate from the payments, as ITAA 1997 s 240-60 does, and closes at
+  nil, but leaves the caller to split a month that spans 30 June.
 - [AusCalc](https://auscalc.com.au/): free browser calculators for individual and sole trader tax,
   PAYG, GST, super and HECS, which its home page also offers inside ChatGPT and Claude as a plugin.
 - [PayCalculator](https://mcp.paycalculator.com.au/): a remote MCP server in the MCP Registry for
@@ -280,6 +284,10 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   surcharge rate to all income for surcharge purposes, where this repository apportions both by
   days and applies the rate to taxable income and reportable fringe benefits only, as the ATO's
   examples do. The library also covers a sole parent's surcharge, which this repository refuses.
+  Both work back from take-home pay to gross: v0.4.0's `salary_for_take_home`, read on
+  15 November 2026, gives the lowest whole-dollar annual salary whose take-home reaches a target,
+  with any study loan component, and `payg-gross-up` gives the gross of one pay whose withholding
+  leaves the net exactly, without one, listing every gross where more than one does.
   This repository covers 2024-25
   withholding, Schedule 9's Medicare levy exemption scales, Schedule 5 Method B, Schedule 15 for
   working holiday makers and Schedule 11 for termination payments, which the library does not. For

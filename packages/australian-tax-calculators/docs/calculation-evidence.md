@@ -41,7 +41,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020 and ¶3-045 (reportable value), with the ATO's FBT return 2026 instructions (item 23), employer's guide (7.8 and 7.9) and reportable fringe benefits page | 30 June 2026; 1 April 2026 (item 23); 12 January 2023 (reportable fringe benefits) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027; the reportable taxable value before the employee's $2,000 threshold and type 2 gross-up |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
-| Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
+| Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
@@ -320,7 +320,8 @@ income year, so later years are refused.
 ## Hire purchase schedule
 
 This worksheet was added on 15 November 2026. ITAA 1997 ss 240-17, 240-55 and
-240-60 were read on the ATO's legal database that day. Section 240-60(1)'s
+240-60 were read that day on the ATO's legal database and in compilation 268
+(1 October 2026) on the Federal Register of Legislation. Section 240-60(1)'s
 method statement adds earlier notional interest to the notional loan
 principal (step 1), subtracts arrangement payments made or due (step 2), works
 out the implicit interest rate for the period from the payments and any
@@ -332,10 +333,13 @@ and comes off before the month's interest. It finds the rate by halving 0 to
 which is nil at the implicit rate, negative below it and positive above it,
 and refuses where that balance does not then round to nil.
 
-`tests/hire_purchase.rs` holds these cases. None is a published example: the
-ATO's pages and the Library give no worked hire purchase schedule, and the
-public pages of the LodgeiT Labs `hp:schedule` calculator, read on
-15 November 2026, give none either.
+`tests/hire_purchase.rs` holds these cases. The ATO's pages and the Library
+give no worked hire purchase schedule. LodgeiT Labs' public repository
+(`lodgeit-labs/clawdog-calculator-api`, `tests/fixtures/hp/anchors_v1_4.json`
+at e00f6f87, read on 15 November 2026) publishes 4 schedules from LodgeiT's
+printed hire purchase reports, each at a stated nominal rate and leaving a
+residual; its `hp:schedule` OpenAPI document and `llms.txt` give no example.
+The last 2 rows below take 2 of those agreements' payments.
 
 | Case | Source | Worksheet |
 | --- | --- | --- |
@@ -344,6 +348,9 @@ public pages of the LodgeiT Labs `hp:schedule` calculator, read on
 | $45,000 financed, $850 a month in arrears for 60 months, $5,000 balloon | Fabricated; an independent calculation from the payments' present value to 60 digits | 0.006866976696 a month; first month $309.01, last $39.90; $11,000.00 in all |
 | The same, in advance | As above | 0.007081241014 a month; first month $312.64, last $35.16 |
 | $10,000 financed, $500 a month in arrears for 24 months | As above | 0.015130843902 a month; first month $151.31, last $7.45; $2,000.00 in all |
+| $1,000 financed, one $1,050 instalment in arrears; and $100 in advance with a $945 balloon | Worked by hand: 5% of $1,000 is $50; ($1,000 - $100) × 5% = $45 | 5% a month; $50.00 and $45.00 |
+| LodgeiT hp/290: $180,630.00 financed, $3,346.99 a month in arrears for 60 months, stated 4.25% a year | LodgeiT's report: first month $639.73, last $11.81, $20,189.64 in all and $0.24 left | 4.25% a year to 2 places; first month within 2 cents, last $11.81; $20,189.40 in all, nil left |
+| LodgeiT hp/235: $252,450.00 financed, 59 instalments of $3,893.76 and a $53,893.16 balloon, stated 3.99% a year | LodgeiT's report: first month $839.40, last $178.60, $31,175.69 in all and $0.69 left | 3.99% a year to 2 places; first month within 2 cents, last $178.60; $31,175.00 in all, nil left |
 
 ## Depreciation
 

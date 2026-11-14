@@ -512,7 +512,9 @@ The result gives the amount financed, the total payments and the total
 interest, the implicit monthly rate and 12 times it as `nominal_annual_rate`,
 `balloon_date` (the end of the term) and `schedule`, one row a month with its
 `period_start`, `period_end`, `payment_date`, `opening`, `interest`,
-`payment`, `principal` and `closing`. A month runs to the same day of the next
+`payment`, `principal` and `closing`. The last month's `payment` includes the
+balloon, which falls due on `balloon_date`: with the last instalment in
+arrears, a month after it in advance. A month runs to the same day of the next
 month, or that month's last day when it is shorter. Each month shows the
 notional interest to date rounded half up to cents, less what the months
 before show, so a cent of rounding never compounds: the months' interest adds
