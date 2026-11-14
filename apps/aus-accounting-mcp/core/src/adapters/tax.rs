@@ -333,7 +333,9 @@ mod tests {
         let catalogue = super::advertised_worksheets().unwrap();
         let entry = &catalogue["medicare_levy"];
         let mut facts = entry["example"]["facts"].clone();
-        let first = entry["supported_periods"][0]["arguments"].as_object().unwrap();
+        let first = entry["supported_periods"][0]["arguments"]
+            .as_object()
+            .unwrap();
         facts.as_object_mut().unwrap().extend(first.clone());
         let result = super::calculate(&json!({ "facts": facts })).unwrap();
         for scope in [&entry["scope"], &result["scope"]] {
