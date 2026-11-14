@@ -677,18 +677,16 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "foreign-resident-tax"
             | "seniors-pensioners-withholding"
             | "seniors-pensioners-tax-offset"
-    ) {
-        if let Some(key) = v
-            .as_object()
-            .into_iter()
-            .flat_map(|o| o.keys())
-            .find(|k| !takes(command, k))
-        {
-            return refusal(
-                "input.field_unknown",
-                format!("{key} is not an input of {command}"),
-            );
-        }
+    ) && let Some(key) = v
+        .as_object()
+        .into_iter()
+        .flat_map(|o| o.keys())
+        .find(|k| !takes(command, k))
+    {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of {command}"),
+        );
     }
     let a: Vec<Arg> = params
         .iter()
