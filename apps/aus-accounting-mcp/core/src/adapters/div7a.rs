@@ -229,20 +229,53 @@ pub fn loan(input: &Value) -> Result<Value, String> {
     let m = myr.to_json().map_err(|e| format!("decimal.{}", e.name()))?;
     let mut payload = json!({"gate":g,"minimum_yearly_repayment":m});
     metadata(&mut payload);
-    if !concise {
-        return Ok(payload);
-    }
-    let mut result = selected(
-        &payload,
-        &[
-            "ok",
-            "engine",
-            "engine_version",
-            "law_content_date",
-            "law_compilation",
-            "disclaimer",
-        ],
-    );
+    Ok(if concise {
+        loan_summary(&payload)
+    } else {
+        payload
+    })
+}
+
+const LOAN_SUMMARY: [&str; 6] = [
+    "ok",
+    "engine",
+    "engine_version",
+    "law_content_date",
+    "law_compilation",
+    "disclaimer",
+];
+const GATE_SUMMARY: [&str; 8] = [
+    "verdict",
+    "loan_id",
+    "benchmark_year_used",
+    "benchmark_rate",
+    "maximum_term_years_allowed",
+    "reasons",
+    "reason_codes",
+    "caveats",
+];
+const REPAYMENT_SUMMARY: [&str; 15] = [
+    "verdict",
+    "loan_id",
+    "year_of_income",
+    "gate_verdict",
+    "benchmark_rate",
+    "amalgamated_loan_unpaid_at_end_of_previous_year",
+    "remaining_term_years_used",
+    "myr_required",
+    "payments_applied",
+    "shortfall",
+    "experimental_deemed_dividend_exposure",
+    "rounding",
+    "reasons",
+    "reason_codes",
+    "caveats",
+];
+
+/// The `summary` detail of a full `review_div7a_loan` payload.
+fn loan_summary(payload: &Value) -> Value {
+    let (g, m) = (&payload["gate"], &payload["minimum_yearly_repayment"]);
+    let mut result = selected(payload, &LOAN_SUMMARY);
     result["response_detail"] = json!("summary");
     let provenance = if g["benchmark_provenance"].is_null() {
         &m["benchmark_provenance"]
@@ -258,38 +291,7 @@ pub fn loan(input: &Value) -> Result<Value, String> {
         &g["manifest"]["rate_table_uris"]
     };
     result["source"] = json!({"verify_at":provenance.get("verify_at"),"rate_table_uris":uris});
-    result["gate"] = selected(
-        &g,
-        &[
-            "verdict",
-            "loan_id",
-            "benchmark_year_used",
-            "benchmark_rate",
-            "maximum_term_years_allowed",
-            "reasons",
-            "reason_codes",
-            "caveats",
-        ],
-    );
-    result["minimum_yearly_repayment"] = selected(
-        &m,
-        &[
-            "verdict",
-            "loan_id",
-            "year_of_income",
-            "gate_verdict",
-            "benchmark_rate",
-            "amalgamated_loan_unpaid_at_end_of_previous_year",
-            "remaining_term_years_used",
-            "myr_required",
-            "payments_applied",
-            "shortfall",
-            "experimental_deemed_dividend_exposure",
-            "rounding",
-            "reasons",
-            "reason_codes",
-            "caveats",
-        ],
-    );
-    Ok(result)
+    result["gate"] = selected(g, &GATE_SUMMARY);
+    result["minimum_yearly_repayment"] = selected(m, &REPAYMENT_SUMMARY);
+    result
 }
