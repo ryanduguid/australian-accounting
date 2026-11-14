@@ -743,8 +743,10 @@ coefficients for both years.
   offsets reduce the weekly amount by a value from its ready reckoner, which
   lists weekly values for some amounts claimed and says to add the values 'for
   an appropriate combination' otherwise. Different combinations can give
-  different values for the same amount, so the worksheet does not take tax
-  offsets. The schedule gives Medicare levy parameters for an adjustment but
+  different values for the same amount ($230 is $5 as $200 and $30, or $4 as
+  $200, $20 and $10), so the worksheet does not take tax offsets. Each of the
+  46 listed values is Schedule 1's weekly rule, 1.9% of the amount claimed
+  rounded to the dollar, but Schedule 9 does not state that rule. The schedule gives Medicare levy parameters for an adjustment but
   says to work it out from the Medicare levy adjustment weekly tax table
   (NAT 1010), whose figures are Schedule 1's, so the worksheet does not take
   that either.
@@ -761,8 +763,9 @@ example and to every row of the weekly tax table in each schedule's PDF:
 | From 1 July 2026 | $2, $6, $21 | $566 to $2,685, 2,120 rows, 6,360 amounts |
 | 1 July 2024 to 30 June 2026 | $5, $11, $26 | $553 to $2,672, 2,120 rows, 6,360 amounts |
 
-The tax tables cover scales 1 to 3 only, and the schedules publish no amounts
-for the exemption scales, so the tests check those against amounts worked by
+The tax tables cover scales 1 to 3 only. Each schedule's Withholding lookup
+tool works out the exemption scales' amounts from the same coefficients but
+publishes no table of them, so the tests check those against amounts worked by
 hand from the coefficients, as they do the fortnightly and monthly conversions.
 `tests/properties.rs` sweeps every whole-dollar weekly amount to $3,699 for each
 year and status: withholding never falls as earnings rise, and a full exemption

@@ -271,12 +271,16 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
 - [aftertaxau/au-compliance-kit](https://github.com/aftertaxau/au-compliance-kit), read on
   14 November 2026: an MIT-licensed JavaScript library with no dependencies, v0.4.0 of
   13 November 2026, with a local MCP server and a hosted one at `https://aftertaxau.com/mcp` that
-  needs no key. For 2025-26 and 2026-27 it covers PAYG withholding this repository does not:
-  scale 4, quarterly pays, tax offsets, Medicare levy variation adjustments, Schedule 5 bonuses and
-  Schedule 9, plus an annual tax estimate with the Medicare levy surcharge. Its tests compare all
-  432 rows of each year's ATO sample data; this repository's compare the 144 withholding rows. For
-  2026-27 it applies the 2025-26 Medicare levy low-income thresholds with a note; this repository
-  refuses a 2026-27 Medicare levy calculation.
+  needs no key. Both it and this repository cover Schedule 1 withholding with scale 4, quarterly
+  pays, tax offsets and the Medicare levy adjustment, and both test all 432 rows of each year's ATO
+  sample data. It also covers the seniors and pensioners tax offset with its income tests, quarterly
+  pays and study loan components under Schedule 9, overtime and an annual tax estimate with the
+  Medicare levy surcharge, which this repository does not. This repository covers 2024-25
+  withholding, Schedule 9's Medicare levy exemption scales, Schedule 5 Method B, Schedule 15 for
+  working holiday makers and Schedule 11 for termination payments, which the library does not. For
+  2026-27 both apply the 2025-26 Medicare levy low-income thresholds: the library notes that
+  2026-27's are not yet legislated, and this repository applies them as Act No. 58 of 2026 enacts
+  them for 2025-26 and later years.
 
 This repository offers none of those hosted services. It has no connector for ChatGPT or the
 Claude.ai web app, and it ships no ATO guidance or rulings corpus: its rulings tools search a corpus
