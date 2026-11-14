@@ -100,6 +100,7 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
         _ => {}
     }
     adapt_payg(command, input, &mut expected);
+    adapt_study_loan_withholding(command, input, &mut expected);
     adapt_fbt(command, input, &mut expected);
     adapt_depreciation(command, &mut expected);
     let study = match command {
@@ -200,6 +201,59 @@ fn adapt_payg(command: &str, input: &Value, expected: &mut Value) {
             "tax_offsets": "AUD, scales 2, 5 and 6 only: the yearly total the payee claimed at the tax offsets questions on their Withholding declaration",
             "medicare_adjustment_children": "integer from 0, scales 2 and 6 only, when the payee's Medicare levy variation declaration claims the adjustment (yes at question 10, and yes at question 9 or 12): the dependent children shown at question 12, or 0 for a spouse and no children",
             "extra_pay_withholding": "boolean, weekly and fortnightly pays only: true when the financial year has 53 weekly or 27 fortnightly pays and the payee asked for the additional amount"
+        });
+    }
+}
+
+/// `study-loan-withholding` also accepts 2025-26 pays from 24 September 2025,
+/// with the Schedule 8 coefficients of F2025L01016 (CHANGELOG.md).
+fn adapt_study_loan_withholding(command: &str, input: &Value, expected: &mut Value) {
+    let old_scope = "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July 2026 to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back payments, bonuses and other schedules.";
+    let new_scope = "One regular weekly, fortnightly or monthly payment of salary or wages made from 24 September 2025, in the income year given, to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. The year selects the Schedule 1 coefficients and the Schedule 8 component coefficients for payments made in it; a 2025-26 payment needs its pay date, because the Schedule 8 coefficients of F2025L01016 apply from 24 September 2025. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes 2025-26 payments made before 24 September 2025, scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back payments, bonuses and other schedules.";
+    let added_sources = [
+        "https://www.legislation.gov.au/F2025L01016/asmade/text",
+        "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
+    ];
+    let passage = "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding";
+    let year = json!({"id": "2025-26", "basis": "income year", "start": "2025-09-24",
+        "end": "2026-06-30", "arguments": {"year": "2025-26"}});
+    if command == "study-loan-withholding"
+        && let Some(Value::String(error)) = expected.get_mut("error")
+    {
+        *error = error.replace("; supported: 2026-27.", "; supported: 2025-26, 2026-27.");
+    }
+    let record = match command {
+        "study-loan-withholding" => expected.pointer_mut("/ok"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/study_loan_withholding"),
+        "periods" if input["kind"] == "study_loan_withholding" => {
+            expected["ok"].as_array_mut().unwrap().insert(0, year);
+            return;
+        }
+        _ => None,
+    };
+    let Some(record) = record else {
+        return;
+    };
+    assert_eq!(
+        record["scope"], old_scope,
+        "frozen study loan scope changed"
+    );
+    record["scope"] = json!(new_scope);
+    let sources = record["sources"].as_array_mut().unwrap();
+    sources.extend(added_sources.map(|source| json!(source)));
+    record["source_checked"] = json!("2026-11-14");
+    if command == "worksheet-catalogue" {
+        record["source_passage"] = json!(passage);
+        let periods = record["supported_periods"].as_array_mut().unwrap();
+        periods.insert(0, year);
+        let evidence = &mut record["example_evidence"];
+        evidence["document"] = json!(
+            "ATO Schedule 8 statement of formulas for STSL components, and F2025L01016 Schedule 8 for 2025-26"
+        );
+        evidence["paragraphs"] = json!("component rates, examples 1 to 3 in each");
+        evidence["checked"] = json!("2026-11-14");
+        record["optional_inputs"] = json!({
+            "pay_date": "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025"
         });
     }
 }

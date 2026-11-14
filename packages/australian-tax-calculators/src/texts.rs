@@ -60,7 +60,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "study_loan_withholding",
-        "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July 2026 to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back payments, bonuses and other schedules.",
+        "One regular weekly, fortnightly or monthly payment of salary or wages made from 24 September 2025, in the income year given, to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. The year selects the Schedule 1 coefficients and the Schedule 8 component coefficients for payments made in it; a 2025-26 payment needs its pay date, because the Schedule 8 coefficients of F2025L01016 apply from 24 September 2025. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes 2025-26 payments made before 24 September 2025, scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back payments, bonuses and other schedules.",
     ),
     (
         "medicare_levy",
@@ -216,6 +216,8 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "study_loan_withholding",
         &[
             "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
+            "https://www.legislation.gov.au/F2025L01016/asmade/text",
+            "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
         ],
     ),
     (
@@ -359,7 +361,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet does not take was given (division-296, depreciation and payg-withholding only).",
+        "A field the worksheet does not take was given (division-296, depreciation, payg-withholding and study-loan-withholding only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -481,6 +483,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payg.medicare_adjustment_not_allowed",
         "A Medicare levy adjustment was claimed on a scale other than 2 or 6.",
+    ),
+    (
+        "payg.pay_date_before_schedule",
+        "The pay date is before the first payment the year's Schedule 8 coefficients apply to.",
+    ),
+    (
+        "payg.pay_date_outside_year",
+        "The pay date is outside the income year given.",
     ),
     (
         "payg.reductions_exceed_withholding",

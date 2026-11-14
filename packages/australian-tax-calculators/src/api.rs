@@ -513,7 +513,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     // balance, is refused rather than ignored.
     if matches!(
         command,
-        "division-296" | "depreciation" | "payg-withholding"
+        "division-296" | "depreciation" | "payg-withholding" | "study-loan-withholding"
     ) {
         let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
         let taken = |key: &String| {
@@ -597,7 +597,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
         }
         "study-loan-withholding" => {
-            engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4])
+            let pay_date = v.get("pay_date").map(arg);
+            engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())
         }
         "medicare-levy" => engine::medicare_levy(&a[0], &a[1], &a[2], &a[3]),
         "low-income-tax-offset" => engine::low_income_tax_offset(&a[0], &a[1], &a[2]),

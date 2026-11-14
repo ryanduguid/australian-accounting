@@ -1078,12 +1078,54 @@ pub fn payg_withholding(
     )
 }
 
+/// The pay date checked against the income year and the first payment the
+/// year's Schedule 8 coefficients apply to. It is required when they start
+/// after 1 July, as 2025-26's do.
+fn schedule_8_pay_date(pay_date: Option<&Arg>, year: &str) -> Result<()> {
+    let start: i64 = year[..4].parse().expect("income year");
+    let first = dates::parse(&format!("{start}-07-01")).expect("income year");
+    let last = dates::parse(&format!("{}-06-30", start + 1)).expect("income year");
+    let from = *lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year);
+    let applies_from = dates::parse(from).expect("schedule start");
+    let day = match pay_date {
+        Some(value) => date_arg(value, "pay_date")?,
+        None if applies_from == first => return Ok(()),
+        None => {
+            return refuse(
+                "input.missing_field",
+                format!(
+                    "pay_date is required for {year}: its Schedule 8 coefficients apply to payments made on or after {from}."
+                ),
+            );
+        }
+    };
+    if day < first || day > last {
+        return refuse(
+            "payg.pay_date_outside_year",
+            format!(
+                "pay_date {} is outside the {year} income year.",
+                dates::format(day)
+            ),
+        );
+    }
+    if day < applies_from {
+        return refuse(
+            "payg.pay_date_before_schedule",
+            format!(
+                "Schedule 8's component coefficients for {year} apply to payments made on or after {from}; earlier payments used a percentage of weekly earnings, which this worksheet does not hold."
+            ),
+        );
+    }
+    Ok(())
+}
+
 pub fn study_loan_withholding(
     earnings: &Arg,
     pay_period: &Arg,
     scale: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
+    pay_date: Option<&Arg>,
 ) -> Result<Value> {
     let (year, earnings, period, scale) = payg_checks(
         "study_loan_withholding",
@@ -1093,6 +1135,7 @@ pub fn study_loan_withholding(
         year,
         scope_confirmed,
     )?;
+    schedule_8_pay_date(pay_date, &year)?;
     let table = if scale == 1 {
         "no_threshold"
     } else {
@@ -2370,6 +2413,10 @@ pub fn periods(kind: &str) -> Value {
             period.insert("start".into(), json!(format!("{start}-07-01")));
             period.insert("end".into(), json!(format!("{}-06-30", start + 1)));
             period.insert("arguments".into(), json!({ "year": year }));
+            if kind == "study_loan_withholding" {
+                let from = lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year);
+                period.insert("start".into(), json!(from));
+            }
             if kind == "quarterly_sg" {
                 period.insert("basis".into(), json!("complete quarter within income year"));
                 let next = start + 1;
