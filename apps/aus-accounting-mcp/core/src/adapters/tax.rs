@@ -315,6 +315,23 @@ mod tests {
         }
     }
 
+    /// The published Medicare levy facts take no exemption days, so the served scope
+    /// still excludes exemptions, in the catalogue and in a result.
+    #[test]
+    fn the_medicare_levy_scope_excludes_the_exemptions_its_facts_cannot_give() {
+        let catalogue = super::advertised_worksheets().unwrap();
+        let entry = &catalogue["medicare_levy"];
+        let mut facts = entry["example"]["facts"].clone();
+        let first = entry["supported_periods"][0]["arguments"].as_object().unwrap();
+        facts.as_object_mut().unwrap().extend(first.clone());
+        let result = super::calculate(&json!({ "facts": facts })).unwrap();
+        for scope in [&entry["scope"], &result["scope"]] {
+            let scope = scope.as_str().unwrap();
+            assert!(scope.contains("not entitled to any full or half Medicare levy exemption"));
+            assert!(scope.contains("Excludes exemptions,"), "{scope}");
+        }
+    }
+
     const GST: &str = r#"{"kind":"gst","scope_confirmed":true,"year":"2025-26","amount":"1100","gst_inclusive":true}"#;
     const HEADINGS: [&str; 5] = [
         "## Facts relied on",
