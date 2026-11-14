@@ -408,6 +408,7 @@ pub fn commands() -> Vec<&'static str> {
     out.push("worksheet-catalogue");
     out.push("periods");
     out.push("derive");
+    out.push("personal-tax-estimate");
     out
 }
 
@@ -629,6 +630,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     match command {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
         "derive" => return derive(v),
+        "personal-tax-estimate" => return crate::estimate::compose(v),
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),

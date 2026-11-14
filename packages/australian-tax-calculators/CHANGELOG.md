@@ -10,6 +10,18 @@ intentionally changed.
 
 ### Added
 
+- `personal-tax-estimate` composes one full-year resident's income tax and
+  levies for a year from `resident-tax`, `low-income-tax-offset`,
+  `medicare-levy`, `medicare-levy-surcharge` and, when given,
+  `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`,
+  each called as it is alone. It applies SAPTO and then LITO against basic tax
+  only (ITAA 1997 s 63-10(1)), names the worksheet behind each line, keeps
+  every part's result, and shows Division 293 tax outside the total. A part's
+  refusal keeps its code and names the part. New codes:
+  `estimate.residency_unsupported` (part-year residents, working holiday
+  makers and foreign residents), `estimate.surcharge_with_exemption` and
+  `input.residency_invalid`. `tests/personal_tax_estimate.rs` holds it to the
+  ATO's figures, and `tests/properties.rs` to the sum of its parts.
 - `derive` returns an FBT worksheet's result with one step per amount: the
   FBTAA section or ATO page that sets it, its formula on the values it used,
   and the amount. It covers `fbt`, `fbt-car-statutory` and

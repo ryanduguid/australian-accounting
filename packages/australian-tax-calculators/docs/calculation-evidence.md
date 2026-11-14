@@ -1191,6 +1191,40 @@ an exact $5 rounding up (cl 5). Because cl 3 pro-rates the factor, the engine
 rounds once, after pro-rating. The transition to retirement 10% maximum and the
 other pension schedules are outside this worksheet.
 
+## Personal tax estimate
+
+`personal-tax-estimate` adds no rate or threshold: each amount is a
+worksheet's own, and the tests check the composition. Read on 15 November
+2026: ITAA 1997 s 63-10 on the ATO legal database, whose table applies the
+seniors and pensioners tax offset (item 5) before any offset not covered by
+another item (item 20, the low income tax offset) against basic income tax
+liability; the ATO's "Low income tax offset" (last updated 8 June 2026), which
+says the offset "can only reduce your tax payable to $0"; and its "Division 293
+tax on concessional contributions by high-income earners" (last updated
+24 August 2026), under which the ATO sends a separate Division 293 notice.
+
+The foreign income tax offset rules guides for 2025 (2024-25, last updated 29
+May 2025) and 2026 (2025-26, last updated 30 May 2026) give, at step 1 of
+examples 16 and 17, the tax on a taxable income including the Medicare levy
+and disregarding offsets: $16,388 on $80,000, $9,988 on $60,000 and $260.80 on
+$19,830 in both years. The estimate's basic tax and levy give the same, and its
+total then takes off the low income tax offset: $100 at $60,000
+(`325 - 0.015 × 15000`) and all $260.80 at $19,830, where the $700 offset
+leaves nil. Anna's $31,130 is the exception. The 2026 guide gives $2,459.60:
+$2,068.80 tax and a levy of 10% of the excess over $27,222, the 2024-25
+threshold. For 2025-26 the threshold is $28,011, so the estimate gives a
+$311.90 levy and $2,380.70. The 2025 guide's $2,581.80 for 2024-25 likewise
+applies 2023-24's $26,000.
+
+Tom ("Medicare levy surcharge income, thresholds and rates", 2026-27) pays a
+$1,170 surcharge on $90,000 taxable income and $27,000 reportable fringe
+benefits; the estimate adds it to $17,520 tax and a $1,800 levy, $20,490 in
+all. José ("Seniors and pensioners tax offset", last updated 2 October 2026,
+2025-26) has a $1,720 offset on $39,000 rebate income. Taking that as his
+taxable income too, a fabricated assumption, the offset comes off $3,328 tax
+first, the low income tax offset of `700 - 0.05 × 1500 = 625` next, and his
+levy is nil at the SAPTO thresholds, where it would be $780 without them.
+
 ## Rechecking the evidence
 
 Resolve the numbered paragraph with the Library helper, read the extract's
