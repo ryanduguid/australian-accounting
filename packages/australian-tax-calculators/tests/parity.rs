@@ -142,12 +142,14 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
 }
 
 /// `payg-withholding` also accepts 2024-25 and 2025-26 with the Schedule 1
-/// coefficients for payments from 1 July 2024 to 30 June 2026 (CHANGELOG.md).
+/// coefficients for payments from 1 July 2024 to 30 June 2026, and quarterly
+/// pays, scale 4, tax offsets, the Medicare levy adjustment and the additional
+/// amounts for 53 or 27 pays (CHANGELOG.md).
 fn adapt_payg(command: &str, input: &Value, expected: &mut Value) {
-    let old_scope = "made from 1 July 2026 to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations.";
-    let new_scope = "made from 1 July 2024, in the income year given, to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. The year selects the Schedule 1 coefficients for payments made in it.";
+    let old_scope = "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July 2026 to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. Earnings include allowances subject to withholding. Excludes scale 4, tax offsets, Medicare levy adjustments, study and training support loans, extra amounts for 53 or 27 pays, quarterly and bi-monthly pays, back payments, bonuses, termination and other schedules.";
+    let new_scope = "One regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 1 July 2024, in the income year given, on the scale the operator established from the payee's declarations: 1, 2, 3, 5 or 6 for a payee who gave a TFN, or 4 for one who did not, as a resident or foreign resident. The year selects the Schedule 1 coefficients and rules for payments made in it. Earnings include allowances subject to withholding. When given, the yearly tax offsets claimed on a Withholding declaration reduce scales 2, 5 and 6, the Medicare levy adjustment claimed on a Medicare levy variation declaration for a spouse or dependent children reduces scales 2 and 6, and the additional amount a payee asks for in a year of 53 weekly or 27 fortnightly pays is added. Reductions that exceed the amount withheld before them are refused. Excludes a Medicare levy variation that increases withholding, study and training support loans, bi-monthly, daily and casual pays, back payments, bonuses, termination and other schedules.";
     let page = "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026";
-    let passage = "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients, using a formula, working out the weekly earnings";
+    let passage = "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients and scale 4, using a formula (rounding and the 53 and 27 pay tables), working out the weekly earnings (quarterly pays and tax offsets), Medicare levy adjustment, examples of calculating the withholding amounts, sample data";
     let years = ["2024-25", "2025-26"].map(|year| {
         let start = format!("{}-07-01", &year[..4]);
         let end = format!("20{}-06-30", &year[5..]);
@@ -157,10 +159,22 @@ fn adapt_payg(command: &str, input: &Value, expected: &mut Value) {
     if command == "payg-withholding"
         && let Some(Value::String(error)) = expected.get_mut("error")
     {
-        *error = error.replace(
-            "; supported: 2026-27.",
-            "; supported: 2024-25, 2025-26, 2026-27.",
-        );
+        let scale_4 = input["scale"] == 4;
+        *error = match error.as_str() {
+            "pay_period must be weekly, fortnightly or monthly." => {
+                "pay_period must be weekly, fortnightly, monthly or quarterly.".into()
+            }
+            "scale must be 1, 2, 3, 5 or 6; scale 4 is not supported." if scale_4 => {
+                "foreign_resident is required for scale 4.".into()
+            }
+            "scale must be 1, 2, 3, 5 or 6; scale 4 is not supported." => {
+                "scale must be 1, 2, 3, 4, 5 or 6.".into()
+            }
+            other => other.replace(
+                "; supported: 2026-27.",
+                "; supported: 2024-25, 2025-26, 2026-27.",
+            ),
+        };
     }
     let record = match command {
         "payg-withholding" => expected.pointer_mut("/ok"),
@@ -175,15 +189,29 @@ fn adapt_payg(command: &str, input: &Value, expected: &mut Value) {
     let Some(record) = record else {
         return;
     };
-    let scope = record["scope"].as_str().unwrap();
-    assert!(scope.contains(old_scope), "frozen PAYG scope changed");
-    record["scope"] = json!(scope.replace(old_scope, new_scope));
+    assert_eq!(record["scope"], old_scope, "frozen PAYG scope changed");
+    record["scope"] = json!(new_scope);
     record["sources"].as_array_mut().unwrap().push(json!(page));
-    record["source_checked"] = json!("2026-11-04");
+    record["source_checked"] = json!("2026-11-14");
     if command == "worksheet-catalogue" {
         record["source_passage"] = json!(passage);
         let periods = record["supported_periods"].as_array_mut().unwrap();
         periods.splice(0..0, years);
+        let evidence = &mut record["example_evidence"];
+        evidence["document"] = json!("ATO Schedule 1 sample data");
+        evidence["paragraphs"] = json!(
+            "withholding amounts, Medicare levy adjustment scale 2 and Medicare half-levy adjustment scale 6: weekly, fortnightly and monthly tables"
+        );
+        evidence["checked"] = json!("2026-11-14");
+        let inputs = &mut record["required_inputs"];
+        inputs["pay_period"] = json!("weekly, fortnightly, monthly or quarterly");
+        inputs["scale"] = json!("integer 1 to 6; scale 4 also needs foreign_resident");
+        record["optional_inputs"] = json!({
+            "foreign_resident": "boolean, scale 4 only and required there: true for a payee who is a foreign resident, false for a resident",
+            "tax_offsets": "AUD, scales 2, 5 and 6 only: the yearly total the payee claimed at the tax offsets questions on their Withholding declaration",
+            "medicare_adjustment_children": "integer from 0, scales 2 and 6 only, when the payee's Medicare levy variation declaration claims the adjustment (yes at question 10, and yes at question 9 or 12): the dependent children shown at question 12, or 0 for a spouse and no children",
+            "extra_pay_withholding": "boolean, weekly and fortnightly pays only: true when the financial year has 53 weekly or 27 fortnightly pays and the payee asked for the additional amount"
+        });
     }
 }
 
@@ -329,13 +357,20 @@ fn python_api_corpus_matches() {
         );
     }
     let mut failures = Vec::new();
-    let (mut reopened, mut reopened_fbt, mut reopened_medicare) = (0, 0, 0);
+    let (mut reopened, mut reopened_fbt, mut reopened_quarterly, mut reopened_medicare) =
+        (0, 0, 0, 0);
     for row in &corpus {
         let command = row["command"].as_str().unwrap();
         // Python 0.2.0 refused 2025-26 PAYG withholding, which now has its own
         // coefficients; tests/tables.rs checks that year against the ATO sample.
         if command == "payg-withholding" && row["input"]["year"] == "2025-26" {
             reopened += 1;
+            continue;
+        }
+        // It refused quarterly pays too; tests/payg_withholding.rs checks them
+        // against 13 times the ATO's weekly sample.
+        if command == "payg-withholding" && row["input"]["pay_period"] == "quarterly" {
+            reopened_quarterly += 1;
             continue;
         }
         // It refused the FBT year ending 31 March 2027 too; tests/tables.rs
@@ -362,6 +397,7 @@ fn python_api_corpus_matches() {
     }
     assert_eq!(reopened, 1, "frozen 2025-26 PAYG refusals");
     assert_eq!(reopened_fbt, 1, "frozen 2027 FBT refusals");
+    assert_eq!(reopened_quarterly, 1, "frozen quarterly PAYG refusals");
     assert_eq!(
         reopened_medicare, 1,
         "frozen 2026-27 Medicare levy refusals"
