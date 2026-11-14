@@ -248,6 +248,15 @@ fn method_b_i_refuses_a_2025_26_study_loan() {
         run(B_I, &with(robyn("2026-27"), dated_study_loan("2026-07-01"))),
         run(B_I, &with(robyn("2026-27"), study_loan()))
     );
+    // A year with no Schedule 8 names only the years Method B(i) takes.
+    let refused = api::evaluate_coded(B_I, &with(robyn("2024-25"), study_loan())).unwrap_err();
+    assert_eq!(
+        (refused.code, refused.message.as_str()),
+        (
+            "period.unsupported",
+            "study_loan is supported for 2026-27 only: there is no Schedule 8 study and training support loan component for 2024-25."
+        )
+    );
 }
 
 /// The pay date follows study-loan-withholding's rules, and is refused
@@ -287,6 +296,10 @@ fn schedule_5_refuses_a_pay_date_it_cannot_use() {
                 json!({"study_loan": true, "pay_date": ["2025-09-24"]}),
                 "input.date_invalid",
             ),
+            (
+                json!({"study_loan": true, "pay_date": true}),
+                "input.date_invalid",
+            ),
             (study_loan(), "input.missing_field"),
             (
                 json!({"study_loan": false, "pay_date": "2025-09-24"}),
@@ -305,8 +318,20 @@ fn schedule_5_refuses_a_pay_date_it_cannot_use() {
     let jarrod = method_a("2026-27", "1400.00", "900.00", 52, "weekly");
     assert_eq!(
         run(A, &with(jarrod.clone(), dated_study_loan("2026-07-01"))),
-        run(A, &with(jarrod, study_loan()))
+        run(A, &with(jarrod.clone(), study_loan()))
     );
+    // An optional date is still checked.
+    for (pay_date, code) in [
+        (json!("2026-7-01"), "input.date_invalid"),
+        (json!(false), "input.date_invalid"),
+        (json!("2026-06-30"), "payg.pay_date_outside_year"),
+    ] {
+        let facts = with(
+            jarrod.clone(),
+            json!({"study_loan": true, "pay_date": pay_date}),
+        );
+        assert_eq!(refusal(A, &facts), code, "{pay_date}");
+    }
 }
 
 /// Example 2 (Robyn, 2026): $1,600 a week for pay periods 1 to 8, then $1,700;

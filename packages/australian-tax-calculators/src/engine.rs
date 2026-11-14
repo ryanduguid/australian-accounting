@@ -3153,8 +3153,11 @@ struct AdditionalPay {
 /// periods, and Schedule 5 does not say with which coefficients when they
 /// change during the year, so it takes only a year whose apply from 1 July.
 fn schedule_5_study_loan(kind: &str, year: &str, pay_date: Option<&Arg>) -> Result<()> {
-    let years = meta::supported_periods("study_loan_withholding");
+    let from = |year: &str| *lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year);
+    let b_i = kind == "schedule_5_method_b_i";
+    let mut years = meta::supported_periods("study_loan_withholding");
     if !years.contains(&year) {
+        years.retain(|y| !b_i || from(y).ends_with("-07-01"));
         return refuse(
             "period.unsupported",
             format!(
@@ -3163,12 +3166,12 @@ fn schedule_5_study_loan(kind: &str, year: &str, pay_date: Option<&Arg>) -> Resu
             ),
         );
     }
-    let from = *lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year);
-    if kind == "schedule_5_method_b_i" && !from.ends_with("-07-01") {
+    if b_i && !from(year).ends_with("-07-01") {
         return refuse(
             "period.unsupported",
             format!(
-                "Method B(i) does not take study_loan for {year}: its Schedule 8 coefficients changed on {from}, and Schedule 5 does not say which recalculate the earlier periods. Method A takes it with the pay date."
+                "Method B(i) does not take study_loan for {year}: its Schedule 8 coefficients changed on {}, and Schedule 5 does not say which recalculate the earlier periods. Method A takes it with the pay date.",
+                from(year)
             ),
         );
     }
