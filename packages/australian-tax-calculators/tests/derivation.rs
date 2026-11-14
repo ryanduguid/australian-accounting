@@ -478,6 +478,10 @@ fn derive_refuses_what_it_does_not_explain() {
     );
     assert_eq!(code(json!({"input": {}})), "input.missing_field");
     assert_eq!(code(json!({"command": "fbt"})), "input.missing_field");
+    // A key derive does not take is refused, not ignored.
+    let (command, input) = &cases()[0];
+    let extra = json!({"command": command, "input": input, "steps": false});
+    assert_eq!(code(extra), "input.field_unknown");
     let message = api::evaluate("derive", &json!({"command": "gst", "input": {}})).unwrap_err();
     assert_eq!(
         message,

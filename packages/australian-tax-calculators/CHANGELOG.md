@@ -15,7 +15,8 @@ intentionally changed.
   and the amount. It covers `fbt`, `fbt-car-statutory` and
   `fbt-car-operating-cost`; the worksheets render their amounts from these
   steps, and `tests/derivation.rs` recomputes each amount from its working.
-  Another command is refused with the new code `derivation.unsupported`. The
+  Another command is refused with the new code `derivation.unsupported`, and
+  a key other than `command` and `input` with `input.field_unknown`. The
   plain commands' output is unchanged, and `tests/parity.rs` skips `derive`,
   which has no Python original.
 - `--refusal-json`, after a command, adds a stable refusal code on stdout as

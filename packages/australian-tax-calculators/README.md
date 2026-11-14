@@ -144,8 +144,9 @@ round half up. `value` is the amount, the result rounded half up to cents. The
 worksheet records each step beside its arithmetic and renders its amounts from
 the steps, so a step cannot differ from its amount; `tests/derivation.rs`
 recomputes every amount from its working alone. A refused input gets the
-command's own refusal, and any other command is refused as
-`derivation.unsupported`. The other worksheets' amounts are not derived yet.
+command's own refusal, any other command is refused as
+`derivation.unsupported`, and a key other than `command` and `input` as
+`input.field_unknown`. The other worksheets' amounts are not derived yet.
 The plain commands' output does not change.
 
 ## Supported periods

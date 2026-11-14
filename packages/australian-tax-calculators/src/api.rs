@@ -386,6 +386,13 @@ const DERIVED: [&str; 3] = ["fbt", "fbt-car-statutory", "fbt-car-operating-cost"
 /// `derive`: `{"command", "input"}` gives the command's result with the step
 /// behind each amount. A refused input gives the command's own refusal.
 fn derive(v: &Value) -> Result<Value> {
+    let mut keys = v.as_object().into_iter().flat_map(|o| o.keys());
+    if let Some(key) = keys.find(|k| !matches!(k.as_str(), "command" | "input")) {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of derive"),
+        );
+    }
     let Some(command) = v.get("command") else {
         return refusal("input.missing_field", "command is required");
     };
