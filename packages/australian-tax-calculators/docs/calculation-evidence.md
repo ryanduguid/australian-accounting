@@ -41,6 +41,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020 and ¶3-045 (reportable value), with the ATO's FBT return 2026 instructions (item 23), employer's guide (7.8 and 7.9) and reportable fringe benefits page | 30 June 2026; 1 April 2026 (item 23); 12 January 2023 (reportable fringe benefits) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027; the reportable taxable value before the employee's $2,000 threshold and type 2 gross-up |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
+| Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
@@ -315,6 +316,34 @@ deducted (s 25-25(3), note). No source settles when 5 years from 29 February
 end, so a loan first drawn that day is refused. Treasury Laws Amendment (Tax
 Reform No. 1) Act 2026, Schedule 2 item 5, applies s 26-155 from the 2027-28
 income year, so later years are refused.
+
+## Hire purchase schedule
+
+This worksheet was added on 15 November 2026. ITAA 1997 ss 240-17, 240-55 and
+240-60 were read on the ATO's legal database that day. Section 240-60(1)'s
+method statement adds earlier notional interest to the notional loan
+principal (step 1), subtracts arrangement payments made or due (step 2), works
+out the implicit interest rate for the period from the payments and any
+termination amounts (step 3, as substituted by No 79 of 2010 from 1 July 2010)
+and multiplies (step 4). The worksheet takes each month as an arrangement
+payment period, so an instalment in advance is due at the start of its month
+and comes off before the month's interest. It finds the rate by halving 0 to
+100% a month 64 times on the sign of the balance left after the last payment,
+which is nil at the implicit rate, negative below it and positive above it,
+and refuses where that balance does not then round to nil.
+
+`tests/hire_purchase.rs` holds these cases. None is a published example: the
+ATO's pages and the Library give no worked hire purchase schedule, and the
+public pages of the LodgeiT Labs `hp:schedule` calculator, read on
+15 November 2026, give none either.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,000 financed, $100 a month in arrears for 2 months, $1,000 balloon | Worked by hand: 10% of $1,000 is each $100 instalment | 10% a month; $100.00 interest each month |
+| $1,000 financed, $100 a month in advance for 2 months, $979 balloon | Worked by hand: ($1,000 - $100) × 10% = $90; ($990 - $100) × 10% = $89 | 10% a month; $90.00 and $89.00 |
+| $45,000 financed, $850 a month in arrears for 60 months, $5,000 balloon | Fabricated; an independent calculation from the payments' present value to 60 digits | 0.006866976696 a month; first month $309.01, last $39.90; $11,000.00 in all |
+| The same, in advance | As above | 0.007081241014 a month; first month $312.64, last $35.16 |
+| $10,000 financed, $500 a month in arrears for 24 months | As above | 0.015130843902 a month; first month $151.31, last $7.45; $2,000.00 in all |
 
 ## Depreciation
 

@@ -233,6 +233,23 @@ intentionally changed.
   within $60 of withholding does. `tests/refusal_codes.rs` now also reads the
   engine's modules under `src/engine/`, and `payg-withholding` and
   `study-loan-withholding` share one argument list.
+- `hire-purchase-schedule` sets out a hire purchase agreement month by month
+  for the hirer, the notional buyer under ITAA 1997 s 240-17(2), for
+  agreements starting in 2024-25 to 2026-27: level monthly instalments in
+  arrears or in advance and any balloon at the end of the term. It works out
+  the implicit interest rate from the payments, as s 240-60(1) step 3 does,
+  rather than taking a stated rate, and shows each month's notional interest
+  as the interest to date rounded to cents less what earlier months show, so
+  the months add up to the total charges and the last balance is nil. New
+  codes: `hire_purchase.amount_nil`, `hire_purchase.instalments_unsupported`,
+  `hire_purchase.rate_imprecise`, `hire_purchase.rate_unsupported`,
+  `hire_purchase.start_outside_year` and `input.timing_invalid`. No Python
+  release has it. `tests/hire_purchase.rs` holds it to agreements at exactly
+  10% a month worked by hand and to fabricated agreements worked
+  independently, and `tests/properties.rs` checks that the months add up and
+  that each month's interest is within a cent of the rate on its balance.
+  `tests/refusal_codes.rs` now also reads the engine's modules under
+  `src/engine/`.
 
 ### Documented divergences
 

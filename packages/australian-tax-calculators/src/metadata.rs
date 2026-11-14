@@ -832,7 +832,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         // s 26-155 quarantines residential rental deductions from 2027-28.
-        "borrowing_expenses" => vec!["2024-25", "2025-26", "2026-27"],
+        "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" => keys(FBT_BENCHMARK_INTEREST_RATES),
         "payg_withholding" | "payg_gross_up" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
@@ -885,6 +885,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "borrowing_expenses" => (
             "2026-11-04",
             "ITAA 1997 s 25-25 and s 26-50, compilation 268 (1 October 2026); Borrowing expenses: the Peter and the Fiona and Max examples",
+        ),
+        "hire_purchase_schedule" => (
+            "2026-11-15",
+            "ITAA 1997 s 240-17 (the hirer under a hire purchase agreement is the notional buyer), s 240-55 (arrangement payments) and s 240-60 (notional interest: the method statement and the apportionment of a period spanning income years)",
         ),
         "fbt_car_statutory" => (
             "2026-10-29",
@@ -1010,6 +1014,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "4-160",
             "2026-06-30",
             "2026-11-04",
+        ),
+        "hire_purchase_schedule" => (
+            "ATO Legal database, ITAA 1997 Division 240",
+            "s 240-60(1) steps 1 to 4, with s 240-60 as amended by No 79 of 2010",
+            "2026-11-15",
+            "2026-11-15",
         ),
         "fbt_car_statutory" | "fbt_car_operating_cost" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -1317,6 +1327,29 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "section_26_50_applies",
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
+            ),
+        ],
+        "hire_purchase_schedule" => vec![
+            (
+                "amount_financed",
+                "AUD, the notional loan principal: the price of the goods less any deposit or trade-in",
+            ),
+            (
+                "instalment",
+                "AUD, the level monthly instalment",
+            ),
+            ("instalments", "integer 1 to 360, monthly"),
+            (
+                "balloon",
+                "AUD, paid at the end of the term with the last instalment; 0.00 for none",
+            ),
+            (
+                "timing",
+                "in_arrears (each instalment at its month's end) or in_advance (at its start)",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD, the day the agreement starts, within the income year",
             ),
         ],
         "fbt" => vec![("type_one_value", "AUD"), ("type_two_value", "AUD")],
@@ -1679,6 +1712,15 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("loan_term_end", Text("2049-07-02")),
             ("repaid_on", Json("null")),
             ("section_26_50_applies", Flag(false)),
+        ],
+        "hire_purchase_schedule" => vec![
+            ("year", Text("2026-27")),
+            ("amount_financed", Text("45000.00")),
+            ("instalment", Text("850.00")),
+            ("instalments", Whole(60)),
+            ("balloon", Text("5000.00")),
+            ("timing", Text("in_arrears")),
+            ("start_date", Text("2026-07-15")),
         ],
         "fbt" => vec![
             ("type_one_value", Text("1000.00")),
