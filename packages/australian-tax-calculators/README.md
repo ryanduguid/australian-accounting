@@ -566,6 +566,19 @@ are outside it. The tests reproduce the worked example and all 6,360 amounts in
 the weekly tax table of each schedule, and check the exemption scales by hand;
 see [calculation evidence](docs/calculation-evidence.md#seniors-and-pensioners).
 
+Study and training support loans stay outside it because no published rule
+says how to withhold for one from a Schedule 9 pay. Schedule 9 of the Taxation
+Administration (Withholding Schedules) Instrument 2026 (F2026L00716, registered
+12 June 2026) says only that for a payee with a HELP, VSL, FS, SSL or AASL debt
+'you may need to withhold additional amounts from their payments', with no
+formula, table or example, and its Schedule 8 says its component coefficients
+'should be used together with Schedule 1'. The ATO's Schedule 9 page (published
+17 June 2026) refers to its study and training support loans weekly tax table,
+which covers weekly payments only and works the component out beside the weekly
+tax table, not Schedule 9. All 3 were read on 15 November 2026. Adding the
+Schedule 8 component to a Schedule 9 amount would be this worksheet's guess, so
+it does not.
+
 ## Seniors and pensioners tax offset
 
 `seniors_pensioners_tax_offset` works out the seniors and pensioners tax offset
