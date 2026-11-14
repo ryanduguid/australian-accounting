@@ -99,7 +99,7 @@ lists the commands.
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |
-| `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed` |
+| `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; `pay_date`, required for 2025-26 |
 | `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed` |
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
 | `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
@@ -120,7 +120,7 @@ The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `ter
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value. `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding). Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value. `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), and `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding). Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
@@ -164,7 +164,7 @@ The plain commands' output does not change.
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
 | Pension minimum | 2024-25 to 2026-27; one account-based pension paying under SISR Schedule 7 |
 | Study loan repayment | 2025-26 and 2026-27; one individual's established repayment income at the marginal rates; the formula amount before the loan-balance limit |
-| Study loan withholding | Regular weekly, fortnightly or monthly pays from 1 July 2026 on scale 1, 2, 3, 5 or 6; the Schedule 1 amount plus the Schedule 8 component |
+| Study loan withholding | Regular weekly, fortnightly or monthly pays from 24 September 2025 on scale 1, 2, 3, 5 or 6; the Schedule 1 amount plus the Schedule 8 component |
 | Medicare levy | 2024-25, 2025-26 and 2026-27; full-year resident single without SAPTO, spouse, dependants or exemption; the 2% rate and the low-income reduction |
 | Low income tax offset | 2024-25, 2025-26 and 2026-27; resident individual's established taxable income; the offset amount, not applied against tax |
 | Division 293 | 2024-25, 2025-26 and 2026-27; established Division 293 income and low tax contributions; no defined benefit interests |
@@ -263,14 +263,22 @@ boundary; see [calculation evidence](docs/calculation-evidence.md#study-loan-rep
 
 `study_loan_withholding` adds the Schedule 8 (NAT 3539) study and training
 support loan component to the Schedule 1 amount for one regular weekly,
-fortnightly or monthly pay made from 1 July 2026 to a payee who declared a
-study and training support loan debt. Scale 1 takes the component for a payee
+fortnightly or monthly pay made from 24 September 2025 to a payee who declared
+a study and training support loan debt. The year selects both schedules'
+coefficients. A 2025-26 pay needs `pay_date` (`YYYY-MM-DD`): that year's
+component coefficients are those of the Taxation Administration (Withholding
+Schedules) Instrument (No. 2) 2025 (F2025L01016), which apply from 24 September
+2025, so an earlier 2025-26 pay, whose component was a percentage of weekly
+earnings, is refused. A pay date outside the income year is refused, and `pay_date` may be
+given for 2026-27. Scale 1 takes the component for a payee
 who did not claim the tax-free threshold; scales 2, 3, 5 and 6 take the one for
 a payee who claimed it or is a foreign resident. The result gives the Schedule
 1 amount, the component and their total. The ATO also publishes combined
 coefficients and accepts either method; the tests hold the worksheet within $1
-of them for scales 1 and 2, and to the schedule's 3 worked examples. See
+of them for scales 1 and 2, and to each schedule's 3 worked examples. See
 [calculation evidence](docs/calculation-evidence.md#study-loan-withholding).
+The 0.2.0 wheel, which the MCP server uses, covers 2026-27 only; no release
+publishes 2025-26 yet.
 
 ## Medicare levy and low income tax offset
 
@@ -452,8 +460,8 @@ B(ii) applies the year's additional payments to the average earnings to date,
 for back payments for an earlier year and payments that relate to no single
 pay period. Methods A and B(ii) limit the withholding from the additional
 payment to 47% of it. With `study_loan`, each table amount includes the
-Schedule 8 component, which this crate has for payments from 1 July 2026 only,
-so earlier years refuse it. The result gives each step of the method, the
+Schedule 8 component for 2026-27 only: 2025-26's applies from 24 September
+2025, and these commands take no pay date, so earlier years refuse it. The result gives each step of the method, the
 withholding on the additional payment and the pay's total. Like
 `division-296`, each command refuses a field it does not take. Working holiday
 makers (Schedule 15), payees without a TFN, withholding variations and a bonus
