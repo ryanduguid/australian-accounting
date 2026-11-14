@@ -39,7 +39,10 @@ compared after dropping the datasets of engines this Worker does not link.
 Cloudflare's CPU accounting.
 
 To record the fixture again, build the native server's `aus-accounting-mcp`
-binary and run `node tests/record-reference.mjs <binary> <its commit>`.
+binary and run `node tests/record-reference.mjs <binary> <its commit>`. Draft
+PR 599 needs the core's PAYG withholding entry in `NARROWED_SCOPE` first (see
+[the core README](../../apps/aus-accounting-mcp/core/README.md)); the fixture
+here was recorded with it.
 
 `worker` and `worker-build` stay at 0.8.7, as in the badge Worker: the 0.9.0
 build imports its WebAssembly in a form the stable Miniflare 4.20260730.0

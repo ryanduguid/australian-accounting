@@ -39,7 +39,7 @@ function result(line, id) {
 
 const cases = JSON.parse(await readFile(new URL('../../../apps/aus-accounting-mcp/conformance/cases.json', import.meta.url), 'utf8')).cases;
 const meta = { 'io.modelcontextprotocol/protocolVersion': '2026-07-28', 'io.modelcontextprotocol/clientCapabilities': {} };
-const fixture = { source: { server: 'aus-accounting-mcp native stdio server (draft PR 599)', commit, engines: 'packages/ at the core branch base' } };
+const fixture = { source: { server: 'aus-accounting-mcp native stdio server (draft PR 599)', commit, engines: 'packages/ at the core branch base', patch: "the core's PAYG withholding entry in NARROWED_SCOPE" } };
 for (const era of ['2026-07-28', '2025-11-25']) {
   const list = requests(cases);
   const lines = era === '2025-11-25'
