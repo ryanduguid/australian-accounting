@@ -46,6 +46,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
 | Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, the ATO's single and family thresholds and its Ashton example | 30 June 2026 (ATO pages) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds and the s 8 family reduction for 2024-25 to 2026-27, on established SAPTO, spouse and dependant facts |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
+| Seniors and pensioners tax offset | Not a Library document: ITAA 1936 s 160AAAA (compilation 193, 1 October 2026), the Income Tax Assessment (1936 Act) Regulations 2025 and Regulation 2015 (compilation 8) ss 9 to 12, and the ATO's examples and thresholds | 2 October 2026 (ATO page) | One eligible individual's offset amount for 2024-25 to 2026-27 from established rebate income, status and spouse facts; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
@@ -518,6 +519,84 @@ can leave half a cent, which the worksheet rounds half up like its other
 amounts. At $66,667 the third item gives minus half a cent and the worksheet
 returns nil. The cap for minors in s 61-115(2), trustees under s 61-110(2) and
 applying the offset against tax payable are outside the worksheet.
+
+## Seniors and pensioners tax offset
+
+This worksheet's evidence is not a Library document. Read on 14 November 2026:
+ITAA 1936 ss 6(1) (rebate income) and 160AAAA as compiled at 1 October 2026
+(compilation 193); the Income Tax Assessment (1936 Act) Regulations 2025
+(F2025L01060, as made), whose s 23 applies them to years of income starting on
+or after 1 October 2025, so from 2026-27, and keeps the Income Tax Assessment
+(1936 Act) Regulation 2015 (compilation 8, in force 9 December 2022 to 30
+September 2025) for earlier years; the ATO page "Seniors and pensioners tax
+offset" (last updated 2 October 2026); and "Do you need to lodge a tax return?
+2025". The 2 instruments' ss 4 and 9 to 12 state the same rules and figures;
+the 2015 Regulation calls the 3 constants '159N' amounts.
+
+| Rule | Provision |
+| --- | --- |
+| Base rebate amount: $2,230 not a spouse at any time in the year, $1,602 a spouse, $2,040 a member of an illness-separated couple; the greatest where more than one applies | regs s 9(2) and (3) |
+| Rebate threshold: ($445 + base) / lowest marginal rate + tax-free threshold; above $37,000, (lowest rate x tax-free threshold + $445 + base + $37,000 x (0.015 + second lowest rate - lowest rate)) / (0.015 + second lowest rate); rounded up to the dollar | regs s 9(4) to (8) |
+| Cut-out: base / 0.125 + rebate threshold, rounded up to the dollar | regs s 10 |
+| Entitled when rebate income is below the cut-out; for a spouse, half the couple's rebate income | ITAA 1936 s 160AAAA(3) and (4) |
+| Offset: base less 12.5 cents for each dollar of own rebate income above the threshold | regs s 11(2) |
+| Unused base amount of an entitled spouse: all of it, or above $6,000 of taxable income base - 0.15 x (taxable income - $6,000), not below nil; added to the base for s 11, not s 10, when the person's offset is below its base | regs s 12 |
+
+The lowest and second lowest marginal rates and the tax-free threshold are the
+year's Income Tax Rates Act 1986 Sch 7 Part I figures, which the worksheet
+reads from `RESIDENT_TAX_SCALES`: 16% and 30% with $18,200 for 2024-25 and
+2025-26, and 15% and 30% for 2026-27. No threshold is stored; each follows from
+the formulas.
+
+| Status | Base | Threshold 2024-25 and 2025-26 | Cut-out | Threshold 2026-27 | Cut-out |
+| --- | --- | --- | --- | --- | --- |
+| Single | $2,230 | $34,919 | $52,759 | $36,034 | $53,874 |
+| Illness-separated couple, each | $2,040 | $33,732 | $50,052 | $34,767 | $51,087 |
+| Couple, each | $1,602 | $30,994 | $43,810 | $31,847 | $44,663 |
+
+The ATO page gives the 2025-26 thresholds and cut-outs in this table, and "Do
+you need to lodge a tax return? 2025" (reason 2) the 2024-25 thresholds. The
+2026-27 figures are worked from the formulas: the ATO had not published them,
+and a 2026-27 result warns so. As a check of the formula at another rate, 19%
+gives the ATO's 2022-23 figures from its withholding declaration page: $32,279
+and $50,119, $31,279 and $47,599, and $28,974 and $41,790.
+
+The regulations state no rounding of the offset. The ATO page says it rounds
+the offset up to the whole dollar, and its José and Vanh examples ($1,719.875
+to $1,720 and $1,402.50 to $1,403) do so; the worksheet follows it. The
+cut-out is the income at which the offset reaches nil, so a dollar below it
+the offset is 12.5 cents, rounded up to $1. The ATO page requires at least $1
+of offset for the Medicare levy SAPTO thresholds, so a result above nil is the
+`sapto_entitled` fact `medicare-levy` takes.
+
+`tests/seniors_pensioners_offset.rs` holds the worksheet to the page's 9
+examples: Clare and Roy, Deb and Ivan, Ying and Li Jun, Marko, Simon, José
+($1,720), Keith ($1,270), Vanh ($1,403) and example 9. Example 9 transfers the
+$1,440 unused by a spouse with taxable income of $10,000 to a member of an
+illness-separated couple with rebate income of $48,000; the raised base,
+$3,480, brings in s 9(6), giving a threshold of $39,912 and an offset of
+$2,469. The example gives no rebate income for the spouse, which the test
+takes as the $10,000 taxable income. The same tests check every threshold and
+cut-out above for all 3 years, the offset a dollar below and at each cut-out,
+the transfer at $6,000, $6,001 and $16,680 of the spouse's taxable income, and
+each refusal; `tests/properties.rs` checks that the offset never rises as
+rebate income rises without a transfer.
+
+Section 12(1)(e) lets the spouse's unused amount pass only when the person's
+own offset is below its base amount. A person exactly at the threshold
+therefore receives nothing and a person a dollar above receives the whole
+unused amount: for a couple in 2025-26 with a spouse on nil income, the offset
+is $1,602 at $30,994 and $3,204 at $30,995. The worksheet applies the
+regulation as written; at those incomes the base amount and the low income tax
+offset already cover the tax. Up to $6,000 of the spouse's taxable income the
+worksheet passes the whole base amount under s 12(3)(b)(i), as a resident
+spouse with income below the tax-free threshold has no tax payable. Above it
+s 12(3)(b)(ii)'s formula reaches nil before the spouse's tax, at the 15% or 16%
+lowest rate, reaches the base amount, so the worksheet never needs the
+spouse's tax. A foreign resident spouse, whose unused amount uses their
+marginal rate, is outside it, as are trustees (s 160AAAB), a person whose
+spouse status changed in the year, the transfer of this person's own unused
+amount and applying the offset against tax payable.
 
 ## Division 293
 
