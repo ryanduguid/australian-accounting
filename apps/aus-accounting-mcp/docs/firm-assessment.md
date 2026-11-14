@@ -31,7 +31,7 @@ conformance counts move without this page.
 
 | Field | Entry |
 | --- | --- |
-| Name and version | Aus Accounting MCP (`aus-accounting-mcp`) 0.8.0, a local MCP server of Australian accounting tools |
+| Name and version | Aus Accounting MCP (`aus-accounting-mcp`) 0.9.0, a local MCP server of Australian accounting tools |
 | Source and updates | Ryan Duguid, the sole maintainer, with no warranty or support agreement. Releases from 0.8.0 carry the [Ryan Duguid Public Attribution Licence 1.0](../LICENSE) (the FSL-1.1-ALv2 text with a public attribution condition); 0.7.0 and 0.7.1 keep FSL-1.1-ALv2. Each release has [release notes](../RELEASE_NOTES.md). `uvx` keeps the version it first downloaded, so name the release in the client configuration (`aus-accounting-mcp==<version>`) to control which version runs. |
 | Intended use cases | Gives an assistant bounded calculations and reviews (ATO benchmarks, Payday Super timing, Division 7A s 109N and s 109E, 14 worksheets), cited retrieval from folders the firm configures, and synthetic test data |
 | Known limitations and prohibited use | Not tax advice, and not for use without human review; Payday Super and Division 7A reviews are experimental; Payday Super does not assess contributions the fund returned, so `ON_TIME` assumes the fund kept every receipt; each worksheet holds only within its stated period and scope; retrieval returns point-in-time copies, and no match does not mean no rule; library search does not rank by authority |

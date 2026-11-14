@@ -51,7 +51,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component from 1 July 2026 only |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
-| Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
+| Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
@@ -338,11 +338,51 @@ negative b coefficient (-0.6702), which the schedule says is intentional.
 `every_scale_matches_the_ato_sample_for_payments_from_july_2024_to_june_2026`
 requires the worksheet to reproduce each one for both years.
 
+Each schedule also publishes Medicare levy adjustment sample data: scale 2 for
+a spouse only and for 1 to 5 children, and scale 6 (the half-levy) for 1 to 5
+children, at 48 earnings points for each of the 3 pay periods, 1,584
+adjustments a schedule. The 4 files
+`tests/data/medicare_levy_adjustment_scale_2_sample_2026_27.csv`,
+`medicare_half_levy_adjustment_scale_6_sample_2026_27.csv` and their `_2024_26`
+counterparts were transcribed from the ATO's sample data pages (2026: published
+17 June 2026; 2024: last updated 17 June 2024), read on 14 November 2026, and
+compared value by value with the same tables in the legislative instruments:
+LI 2026/18 on the ATO legal database for 2026, and the Taxation Administration
+(Withholding Schedules) Instrument 2025 (F2025L00647) for 2024. All 576 rows
+matched. `tests/payg_withholding.rs` requires the worksheet to reproduce every
+adjustment through `payg-withholding`, and the withholding to be the amount
+before it less the adjustment, for 2026-27 and for both 2024-26 years.
+
+The Medicare levy adjustment parameters (the weekly earnings and shade-in
+thresholds, the formula 1 amount, the family threshold of $47,238, or $43,846
+in 2024, and $4,338, or $4,027, for each child), the scale 4 rates, the tax
+offset percentages and the additional amounts for 53 weekly or 27 fortnightly
+pays were transcribed from each schedule's "Medicare levy adjustment", "Using a
+formula", "Working out the weekly earnings" and coefficients pages, read on 14
+November 2026; the 2026 figures were checked against LI 2026/18 the same day.
+The tests hold the worksheet to each schedule's worked examples: Zail, Abe,
+Wendy, Kareem, Scott and Stevi on the Medicare page, and Jabe, Prue and Tan on
+the "Examples of calculating the withholding amounts" page. The Taxation
+Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016),
+which replaced F2025L00647 from 24 September 2025, has the same Schedule 1 word
+for word, so 2025-26 uses one schedule throughout.
+
+The schedules publish no quarterly sample data or worked example. The tests
+apply the quarterly rules (a thirteenth of the quarter's earnings as the weekly
+equivalent; 13 times the weekly amount and adjustment; 25% of the offsets) to
+13 times each weekly sample point, which must withhold 13 times the ATO's weekly
+amount on every scale. Scale 4 follows note 3 to the coefficients: the rate is
+applied to the pay's earnings, cents ignored in the earnings and the result. The
+additional amount for 53 or 27 pays is the table's last band whose lower
+limit the pay's earnings reach; each band edge has a test on each side. Schedule 1 does not say what happens when offsets and
+the adjustment exceed the amount withheld before them, so the worksheet refuses
+that case.
+
 The sample data checks the
 transcription; it does not establish that a payee's scale, allowances or
-declarations are right. Scale 4, tax offsets, Medicare levy adjustments, study
-and training support loans, 53 and 27 pay years, quarterly pays and the other
-schedules are outside this worksheet.
+declarations are right. Bi-monthly, daily and casual pays, a Medicare levy
+variation that increases withholding, study and training support loans and the
+other schedules are outside this worksheet.
 
 ## Medicare levy
 
@@ -695,6 +735,26 @@ rows from $1,337 to below $2,596 omit the 30 cent constant of the Schedule 1
 scale 3 row; the worksheet follows the component method and does not use them. Quarterly
 pays, scale 4 and a Medicare levy variation for a spouse or dependants are
 outside the worksheet.
+
+For 2025-26 the component rates were transcribed from Schedule 8 of the
+Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025
+(F2025L01016), as made, on the Federal Register of Legislation, read on 14
+November 2026. It commenced on 24 September 2025 and repealed the
+Taxation Administration (Withholding Schedules) Instrument 2025 (F2025L00647),
+whose Schedule 8 worked the component as a percentage of weekly earnings.
+F2025L01016's Schedule 1 is F2025L00647's word for word, and the ATO
+publishes it as the schedule for payments from 1 July 2024 to 30 June 2026. The
+worksheet therefore takes the Schedule 1 amount for 2025-26 from that
+schedule and requires the pay date, refusing a 2025-26 pay before 24 September
+2025 and any date outside the income year; `periods` starts 2025-26 on that
+date. `tests/study_loan_withholding.rs` holds the worksheet to the
+instrument's examples 1 to 3 ($2,608.36 weekly gives $202, $4,409.75
+fortnightly gives $274 and $10,627.88 monthly without the tax-free threshold
+gives $1,018), to its starting earnings for each pay period ($1,288, $2,576
+and $5,581.33 with the threshold; $938, $1,876 and $4,064.67 without it), to
+each row edge, and to pays on 23 and 24 September 2025. `tests/common/mod.rs`
+types in the instrument's combined scale 1 and 2 coefficients, held to the
+same checks as 2026-27's.
 
 ## Study loan repayment
 

@@ -178,30 +178,176 @@ pub const PAYG_WITHHOLDING_COEFFICIENTS: &[(&str, &[(i64, &[CoefficientRow])])] 
     ("2026-27", SCHEDULE_1_FROM_JULY_2026),
 ];
 
-/// Schedule 8 (NAT 3539) study and training support loan component coefficients.
-pub const STUDY_LOAN_WITHHOLDING_COEFFICIENTS: &[(&str, &[(&str, &[CoefficientRow])])] = &[(
-    "2026-27",
-    &[
+/// One scale's Medicare levy adjustment: from `threshold` whole dollars of
+/// weekly earnings, formula 1 is (x - `formula_1_less`) x `shade_in_rate` below
+/// `shade_in`, formula 2 is x x `levy_rate` below the weekly family threshold
+/// (WFT), and formula 3 is WFT x `levy_rate` - (x - WFT) x `shade_out_rate`
+/// below the shading out point.
+pub struct MedicareScale {
+    pub threshold: i64,
+    pub formula_1_less: &'static str,
+    pub shade_in: i64,
+    pub shade_in_rate: &'static str,
+    pub levy_rate: &'static str,
+    pub shade_out_rate: &'static str,
+}
+
+/// The rules of one Schedule 1 beside its coefficients.
+pub struct Schedule1Rules {
+    /// Scale 4 tax rates: (resident, foreign resident).
+    pub no_tfn_rates: (&'static str, &'static str),
+    /// Share of the yearly tax offsets claimed that each pay is reduced by.
+    pub tax_offset_rates: [(&'static str, &'static str); 4],
+    /// WFT = (family threshold + per child x children) / 52, to the cent; the
+    /// shading out point is WFT x 0.1 / 0.08 in whole dollars.
+    pub family_threshold: i64,
+    pub family_threshold_per_child: i64,
+    pub medicare_scales: [(i64, MedicareScale); 2],
+    /// Additional withholding when a payee asks for it in a year of 53 weekly
+    /// or 27 fortnightly pays: (lowest whole-dollar earnings, amount), lowest first.
+    pub extra_weekly: [(i64, i64); 3],
+    pub extra_fortnightly: [(i64, i64); 3],
+}
+
+const TAX_OFFSET_RATES: [(&str, &str); 4] = [
+    ("weekly", "0.019"),
+    ("fortnightly", "0.038"),
+    ("monthly", "0.083"),
+    ("quarterly", "0.25"),
+];
+
+/// Schedule 1 for payments from 1 July 2024 to 30 June 2026: 'Medicare levy
+/// adjustment', 'Using a formula' and 'Working out the weekly earnings'.
+const SCHEDULE_1_RULES_FROM_JULY_2024: Schedule1Rules = Schedule1Rules {
+    no_tfn_rates: ("0.47", "0.45"),
+    tax_offset_rates: TAX_OFFSET_RATES,
+    family_threshold: 43846,
+    family_threshold_per_child: 4027,
+    medicare_scales: [
         (
-            "threshold_or_foreign",
-            &[
-                (Some(1337), "0", "0"),
-                (Some(2494), "0.15", "200.5615"),
-                (Some(3577), "0.17", "250.4527"),
-                (None, "0.10", "0"),
-            ],
+            2,
+            MedicareScale {
+                threshold: 500,
+                formula_1_less: "500",
+                shade_in: 625,
+                shade_in_rate: "0.1",
+                levy_rate: "0.0200",
+                shade_out_rate: "0.0800",
+            },
         ),
         (
-            "no_threshold",
-            &[
-                (Some(987), "0", "0"),
-                (Some(2144), "0.15", "148.0615"),
-                (Some(2727), "0.17", "190.9527"),
-                (None, "0.10", "0"),
-            ],
+            6,
+            MedicareScale {
+                threshold: 843,
+                formula_1_less: "843.19",
+                shade_in: 1053,
+                shade_in_rate: "0.05",
+                levy_rate: "0.0100",
+                shade_out_rate: "0.0400",
+            },
         ),
     ],
-)];
+    extra_weekly: [(875, 3), (2575, 6), (3650, 12)],
+    extra_fortnightly: [(1750, 12), (5150, 26), (7250, 47)],
+};
+
+/// Schedule 1 for payments from 1 July 2026 (LI 2026/18), the same pages.
+const SCHEDULE_1_RULES_FROM_JULY_2026: Schedule1Rules = Schedule1Rules {
+    no_tfn_rates: ("0.47", "0.45"),
+    tax_offset_rates: TAX_OFFSET_RATES,
+    family_threshold: 47238,
+    family_threshold_per_child: 4338,
+    medicare_scales: [
+        (
+            2,
+            MedicareScale {
+                threshold: 538,
+                formula_1_less: "538.67",
+                shade_in: 673,
+                shade_in_rate: "0.1",
+                levy_rate: "0.0200",
+                shade_out_rate: "0.0800",
+            },
+        ),
+        (
+            6,
+            MedicareScale {
+                threshold: 908,
+                formula_1_less: "908.42",
+                shade_in: 1135,
+                shade_in_rate: "0.05",
+                levy_rate: "0.0100",
+                shade_out_rate: "0.0400",
+            },
+        ),
+    ],
+    extra_weekly: [(875, 3), (2575, 7), (3650, 12)],
+    extra_fortnightly: [(1700, 12), (5200, 27), (7250, 48)],
+};
+
+/// Schedule 1 rules for payments made in each income year, keyed as the coefficients.
+pub const PAYG_WITHHOLDING_RULES: &[(&str, &Schedule1Rules)] = &[
+    ("2024-25", &SCHEDULE_1_RULES_FROM_JULY_2024),
+    ("2025-26", &SCHEDULE_1_RULES_FROM_JULY_2024),
+    ("2026-27", &SCHEDULE_1_RULES_FROM_JULY_2026),
+];
+
+/// Schedule 8 (NAT 3539) study and training support loan component coefficients:
+/// for 2025-26, those of F2025L01016, which commenced on 24 September 2025.
+pub const STUDY_LOAN_WITHHOLDING_COEFFICIENTS: &[(&str, &[(&str, &[CoefficientRow])])] = &[
+    (
+        "2025-26",
+        &[
+            (
+                "threshold_or_foreign",
+                &[
+                    (Some(1288), "0", "0"),
+                    (Some(2403), "0.15", "193.2692"),
+                    (Some(3447), "0.17", "241.3462"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+            (
+                "no_threshold",
+                &[
+                    (Some(938), "0", "0"),
+                    (Some(2053), "0.15", "140.7692"),
+                    (Some(2597), "0.17", "181.8462"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+        ],
+    ),
+    (
+        "2026-27",
+        &[
+            (
+                "threshold_or_foreign",
+                &[
+                    (Some(1337), "0", "0"),
+                    (Some(2494), "0.15", "200.5615"),
+                    (Some(3577), "0.17", "250.4527"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+            (
+                "no_threshold",
+                &[
+                    (Some(987), "0", "0"),
+                    (Some(2144), "0.15", "148.0615"),
+                    (Some(2727), "0.17", "190.9527"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+        ],
+    ),
+];
+
+/// The first pay date each year's Schedule 8 coefficients apply to. Before 24
+/// September 2025, F2025L00647's Schedule 8 used a percentage of weekly
+/// earnings, which this worksheet does not hold.
+pub const STUDY_LOAN_WITHHOLDING_FROM: &[(&str, &str)] =
+    &[("2025-26", "2025-09-24"), ("2026-27", "2026-07-01")];
 
 /// (general concessional cap, general transfer balance cap) per income year.
 pub const CONTRIBUTION_CAPS: &[(&str, (&str, &str))] = &[
@@ -401,8 +547,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Super guarantee, tables 21 and 24, 2025-26 rows",
         ),
         "payg_withholding" => (
-            "2026-11-04",
-            "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients, using a formula, working out the weekly earnings",
+            "2026-11-14",
+            "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients and scale 4, using a formula (rounding and the 53 and 27 pay tables), working out the weekly earnings (quarterly pays and tax offsets), Medicare levy adjustment, examples of calculating the withholding amounts, sample data",
         ),
         "contribution_caps" => (
             "2026-09-24",
@@ -417,8 +563,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Study and training loan minimum repayment income and rates: tables 1 and 2, repayment income, examples 1 to 3; Gazette C2026G00249 for the 2026-27 minimum repayment income and replacement indexable amount",
         ),
         "study_loan_withholding" => (
-            "2026-10-15",
-            "Schedule 8 (NAT 3539) for payments from 1 July 2026: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding",
+            "2026-11-14",
+            "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding",
         ),
         "medicare_levy" => (
             "2026-11-14",
@@ -510,10 +656,10 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-09-15",
         ),
         "payg_withholding" => (
-            "ATO Schedule 1 withholding amounts sample data",
-            "weekly, fortnightly and monthly tables",
+            "ATO Schedule 1 sample data",
+            "withholding amounts, Medicare levy adjustment scale 2 and Medicare half-levy adjustment scale 6: weekly, fortnightly and monthly tables",
             "2026-06-17",
-            "2026-09-24",
+            "2026-11-14",
         ),
         "contribution_caps" => (
             "tax-examples-individuals",
@@ -534,10 +680,10 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-10-20",
         ),
         "study_loan_withholding" => (
-            "ATO Schedule 8 statement of formulas for STSL components",
-            "component rates, examples 1 to 3",
+            "ATO Schedule 8 statement of formulas for STSL components, and F2025L01016 Schedule 8 for 2025-26",
+            "component rates, examples 1 to 3 in each",
             "2026-06-17",
-            "2026-10-15",
+            "2026-11-14",
         ),
         "medicare_levy" => (
             "ATO Medicare levy reduction for low-income earners",
@@ -598,6 +744,28 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "opening_adjustable_value",
             "AUD, for a year after the start time only: cost less the decline in value of earlier years, not the deductions; omit in the start year",
         )],
+        "payg_withholding" => vec![
+            (
+                "foreign_resident",
+                "boolean, scale 4 only and required there: true for a payee who is a foreign resident, false for a resident",
+            ),
+            (
+                "tax_offsets",
+                "AUD, scales 2, 5 and 6 only: the yearly total the payee claimed at the tax offsets questions on their Withholding declaration",
+            ),
+            (
+                "medicare_adjustment_children",
+                "integer from 0, scales 2 and 6 only, when the payee's Medicare levy variation declaration claims the adjustment (yes at question 10, and yes at question 9 or 12): the dependent children shown at question 12, or 0 for a spouse and no children",
+            ),
+            (
+                "extra_pay_withholding",
+                "boolean, weekly and fortnightly pays only: true when the financial year has 53 weekly or 27 fortnightly pays and the payee asked for the additional amount",
+            ),
+        ],
+        "study_loan_withholding" => vec![(
+            "pay_date",
+            "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
+        )],
         _ => Vec::new(),
     }
 }
@@ -617,7 +785,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ("scale", "integer 1, 2, 3, 5 or 6"),
         (
             "study_loan",
-            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component to each table amount, for years study-loan-withholding supports",
+            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component to each table amount, for a year whose Schedule 8 coefficients apply from 1 July (Schedule 5 takes no pay date)",
         ),
     ];
     match kind {
@@ -762,7 +930,15 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("qualifying_contributions", "AUD"),
             ("quarter", "integer from 1 to 4"),
         ],
-        "payg_withholding" | "study_loan_withholding" => payg,
+        "payg_withholding" => vec![
+            payg[0],
+            ("pay_period", "weekly, fortnightly, monthly or quarterly"),
+            (
+                "scale",
+                "integer 1 to 6; scale 4 also needs foreign_resident",
+            ),
+        ],
+        "study_loan_withholding" => payg,
         "contribution_caps" => vec![
             (
                 "total_super_balance",
@@ -1054,6 +1230,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         "study_loan_repayment" => vec![("repayment_income", Text("86380"))],
         "study_loan_withholding" => vec![
+            ("year", Text("2026-27")),
             ("earnings", Text("2000.00")),
             ("pay_period", Text("weekly")),
             ("scale", Whole(2)),
