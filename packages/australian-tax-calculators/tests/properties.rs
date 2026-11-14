@@ -534,6 +534,40 @@ fn medicare_levy_never_falls_as_income_rises() {
     }
 }
 
+/// Medicare Levy Act s 9(1): whatever the income and family facts, another
+/// exemption day never raises the levy, and a full day never leaves more than
+/// a half one.
+#[test]
+fn medicare_levy_never_rises_with_exemption_days() {
+    let mut rng = Rng(0x9E1D);
+    for _ in 0..400 {
+        let year = *rng.pick(&["2024-25", "2025-26", "2026-27"]);
+        let mut facts = json!({"taxable_income": rng.int(0, 150_000).to_string(),
+                               "section_9a_adjustment_applies": false,
+                               "sapto_entitled": rng.bool(),
+                               "year": year, "scope_confirmed": true});
+        if rng.bool() {
+            facts["spouse_taxable_income"] = json!(rng.int(0, 90_000).to_string());
+            facts["spouse_sapto_entitled"] = json!(rng.bool());
+            facts["dependent_children"] = json!(rng.int(0, 4));
+        }
+        let levy = |full: i64, half: i64| {
+            let mut input = facts.clone();
+            input["medicare_levy_exemption_full_days"] = json!(full);
+            input["medicare_levy_exemption_half_days"] = json!(half);
+            amount(&run("medicare-levy", input), "medicare_levy")
+        };
+        let full = rng.int(0, 364);
+        let half = rng.int(0, 364 - full);
+        let (now, more_full, more_half) =
+            (levy(full, half), levy(full + 1, half), levy(full, half + 1));
+        assert!(
+            le(&more_half, &now) && le(&more_full, &more_half),
+            "{facts} {full} {half}"
+        );
+    }
+}
+
 #[test]
 fn study_loan_components_agree_with_the_combined_coefficients_to_a_dollar() {
     // The ATO says the two methods can differ slightly through rounding and accepts

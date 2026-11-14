@@ -44,7 +44,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
-| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, the ATO's single and family thresholds and its Ashton example | 30 June 2026 (ATO pages) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds and the s 8 family reduction for 2024-25 to 2026-27, on established SAPTO, spouse and dependant facts |
+| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, ITAA 1936 ss 251T and 251U, the ATO's single and family thresholds, its Ashton example and its Priya exemption example | 30 June 2026 (threshold pages); 22 June 2026 (exemption pages) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds, the s 8 family reduction and the s 9 exemption days for 2024-25 to 2026-27, on established SAPTO, spouse, dependant and exemption facts |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
@@ -411,8 +411,9 @@ at and above the threshold amount and phase-in limit.
 
 Each published phase-in limit is 1.25 times the threshold amount, rounded down
 to the dollar: that is the income at which 10% of the excess reaches 2% of the
-whole, and the tests derive it. Exemptions, the surcharge, trustees and
-part-year residence are outside the worksheet.
+whole, and the tests derive it. Exemptions follow under
+[Exemptions](#exemptions); the surcharge, trustees and part-year residence are
+outside the worksheet.
 
 ### SAPTO thresholds and the family reduction
 
@@ -497,6 +498,54 @@ fact and refuses when it is true rather than estimate the adjustment. In the
 tests, $40,000 for 2025-26 that includes $12,000 of arrears from two earlier
 years is refused, because s 9A would leave $28,000, below the threshold, and
 nil levy; the same income without s 9A gives $800.
+
+### Exemptions
+
+Read on 14 November 2026: ITAA 1936 ss 251T and 251U on the ATO's Legal
+Database; Medicare Levy Act 1986 s 9 as compiled at 1 July 2026; and the ATO
+pages "Medical exemption from Medicare levy" and "Not entitled to Medicare
+benefits" (both last updated 22 June 2026) and "M1 Medicare levy reduction or
+exemption 2026" (last updated 30 May 2026), part B.
+
+A prescribed person for a period (s 251U(1)) is, among others, a person
+entitled to free medical treatment for every condition through the Defence
+Force or under the Veterans' Entitlements and related Acts, a blind pensioner,
+a non-resident, a diplomat or consular official who is not an Australian
+citizen and not ordinarily resident, or a person the Health Minister certifies
+is not entitled to Medicare benefits. Under s 251U(2) nobody is a prescribed
+person while a dependant is not. Under s 251U(3) a person who would be a
+prescribed person in one of the medical categories but for a dependant is a
+prescribed person for half of the period. Medicare levy (other than the
+surcharge) is not payable by a person who was a prescribed person for the whole
+year (s 251T), and for part of the year s 9(1) reduces the levy 'payable but for
+this section' by the share of the year's days for which the person was a
+prescribed person. The ATO's return asks for the full exemption days (label V)
+and the half exemption days (label W), at most 365 together, a day in both
+counted once as a full day; the worksheet takes the same 2 counts.
+
+Sections 7(2) and 8(2) each work out the levy 'but for' s 9, so the exemption
+reduces the levy after the low-income and family reductions:
+
+```text
+levy after s 9 = levy after s 8 x (2 x days in year - 2 x full days - half days)
+                 / (2 x days in year)
+```
+
+When s 8(3) shares the family reduction, that levy is worked times family
+income, as above, and divided once with the s 9 share. The ATO's Priya example
+(a full year without Medicare entitlement and no dependants, 365 full days)
+holds a full-year exemption to nil, and its Paul example (a Gold Card holder
+whose spouse is below the low-income threshold) is a half exemption. No ATO
+example gives an amount for a half or part-year exemption, or for one combined
+with the low-income or family reduction; those cases in
+`tests/medicare_exemptions.rs` are worked from the Act. The worksheet takes
+the days as established facts and does not test entitlement: the categories,
+the dependants and any family agreement are the operator's. Foreign residents,
+whom s 251U(1)(d) also exempts, are outside a worksheet for full-year
+residents, and a spouse must still not be entitled to any exemption, since
+s 8(3) then turns on the spouse's own exemption. `tests/properties.rs` checks
+that another exemption day never raises the levy and that a full day never
+leaves more than a half one.
 
 ## Low income tax offset
 

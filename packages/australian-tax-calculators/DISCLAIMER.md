@@ -29,8 +29,8 @@ figure calculated on an unmet scope condition is arithmetic, not an answer.
 The worksheets are deliberately narrow. Unsupported periods fail rather than
 extrapolate. The super guarantee worksheet does not implement the post-June
 2026 Payday entitlement rules; the separate Payday engine reviews timing on a
-supplied liability. SMSF tax, trusts, payroll tax, the Medicare levy surcharge
-and the exemption rules of the Medicare levy remain outside these
+supplied liability. SMSF tax, trusts, payroll tax and the Medicare levy
+surcharge remain outside these
 worksheets.
 
 Nothing here lodges a return or any other official form, posts journals, pays

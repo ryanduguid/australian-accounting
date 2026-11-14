@@ -419,7 +419,7 @@ fn every_catalogued_optional_input_is_read() {
     let optional = catalogue["medicare_levy"]["optional_inputs"]
         .as_object()
         .unwrap();
-    assert_eq!(optional.len(), 5);
+    assert_eq!(optional.len(), 7);
     for key in optional.keys() {
         let mut family = json!({});
         family[key] = json!([]);

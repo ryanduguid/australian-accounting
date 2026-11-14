@@ -1550,6 +1550,59 @@ impl Family {
     }
 }
 
+/// The optional `medicare-levy` exemption days, each `None` when not given.
+pub struct MedicareExemption<'a> {
+    pub full_days: Option<&'a Arg>,
+    pub half_days: Option<&'a Arg>,
+}
+
+/// The days in the year a person was in a Medicare levy exemption category.
+struct Exemption {
+    full: i64,
+    half: i64,
+    days_in_year: i64,
+}
+
+/// The days in an income year such as "2025-26": 366 when it holds 29 February.
+fn income_year_days(year: &str) -> i64 {
+    let start: i64 = year[..4].parse().expect("income year");
+    if is_leap(start + 1) { 366 } else { 365 }
+}
+
+/// The exemption days, or `None` for none. A day can be counted once: the ATO's
+/// M1 instructions count a day in both a full and a half period as a full day.
+fn medicare_exemption(exemption: &MedicareExemption, year: &str) -> Result<Option<Exemption>> {
+    let days_in_year = income_year_days(year);
+    let count =
+        |value: Option<&Arg>, name| value.map_or(Ok(0), |v| day_count(v, days_in_year, name));
+    let full = count(exemption.full_days, "medicare_levy_exemption_full_days")?;
+    let half = count(exemption.half_days, "medicare_levy_exemption_half_days")?;
+    if full + half > days_in_year {
+        return refuse(
+            "input.day_count_invalid",
+            format!(
+                "medicare_levy_exemption_full_days and medicare_levy_exemption_half_days together \
+                 must be no more than {days_in_year}; count a day in both as a full exemption day."
+            ),
+        );
+    }
+    Ok((full + half > 0).then_some(Exemption {
+        full,
+        half,
+        days_in_year,
+    }))
+}
+
+/// s 9(1): `levy` (times `scale`, see `family_reductions`) less the share of it
+/// for the days the person was a prescribed person: each full exemption day,
+/// and half of each half exemption day (ITAA 1936 s 251U(3)). It applies to the
+/// levy after ss 7 and 8, which each work out the levy 'but for' s 9.
+fn levy_after_exemption(levy: &Decimal, scale: &Decimal, exemption: &Exemption) -> Calc<Decimal> {
+    let halves = int(2 * exemption.days_in_year);
+    let kept = halves.sub(&int(2 * exemption.full + exemption.half))?;
+    levy.mul(&kept)?.div(&scale.mul(&halves)?)
+}
+
 fn optional_flag(value: Option<&Arg>, name: &str) -> Result<bool> {
     value.map_or(Ok(false), |v| flag(v, name))
 }
@@ -1706,8 +1759,10 @@ struct FamilyWorking {
     own: Decimal,
     /// The s 8(4) reduction from the spouse's entitlement, no more than the levy left.
     from_spouse: Decimal,
-    /// The levy after s 8.
+    /// The levy after s 8, times `scale`.
     levy: Decimal,
+    /// Family income when s 8(3) shares the reduction, otherwise 1.
+    scale: Decimal,
     /// Whether s 8(3) shared this person's reduction.
     shared: bool,
 }
@@ -1756,9 +1811,10 @@ fn family_reductions(
     Ok(FamilyWorking {
         family_income,
         threshold,
-        levy: levy.sub(&own)?.sub(&from_spouse)?.div(&scale)?,
+        levy: levy.sub(&own)?.sub(&from_spouse)?,
         own: own.div(&scale)?,
         from_spouse: from_spouse.div(&scale)?,
+        scale,
         shared: spouse_liable && above,
     })
 }
@@ -1791,7 +1847,12 @@ fn refuse_section_9a(section_9a_adjustment_applies: &Arg) -> Result<()> {
 /// The amounts, the rates and whether s 8(3) shared the family reduction.
 type MedicareWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>, bool);
 
-fn medicare_working(income: &Decimal, year: &str, family: &Family) -> Calc<MedicareWorking> {
+fn medicare_working(
+    income: &Decimal,
+    year: &str,
+    family: &Family,
+    exemption: Option<&Exemption>,
+) -> Calc<MedicareWorking> {
     let (threshold, limit) = medicare_thresholds(year, family.sapto);
     let mut rates = vec![
         rate("levy_rate", medicare_rate("levy")),
@@ -1806,10 +1867,10 @@ fn medicare_working(income: &Decimal, year: &str, family: &Family) -> Calc<Medic
         ("levy_at_full_rate", full.clone()),
         ("low_income_reduction", full.sub(&levy)?),
     ];
-    let mut shared = false;
+    let (mut shared, mut scale) = (false, int(1));
     if family.reduces() {
         let working = family_reductions(income, &levy, year, family)?;
-        levy = working.levy;
+        (levy, scale) = (working.levy, working.scale);
         amounts.push(("family_income", working.family_income));
         amounts.push(("family_reduction", working.own));
         if family.spouse.is_some() {
@@ -1822,7 +1883,15 @@ fn medicare_working(income: &Decimal, year: &str, family: &Family) -> Calc<Medic
         ));
         shared = working.shared;
     }
-    amounts.push(("medicare_levy", levy));
+    if let Some(exemption) = exemption {
+        let after = levy_after_exemption(&levy, &scale, exemption)?;
+        amounts.push(("exemption_reduction", levy.div(&scale)?.sub(&after)?));
+        rates.push(rate("exemption_full_days", exemption.full));
+        rates.push(rate("exemption_half_days", exemption.half));
+        rates.push(rate("days_in_year", exemption.days_in_year));
+        (levy, scale) = (after, int(1));
+    }
+    amounts.push(("medicare_levy", levy.div(&scale)?));
     Ok((amounts, rates, shared))
 }
 
@@ -1832,13 +1901,22 @@ pub fn medicare_levy(
     year: &Arg,
     scope_confirmed: &Arg,
     family: MedicareFamily,
+    exemption: MedicareExemption,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "medicare_levy")?;
     let income = money(taxable_income)?;
     whole_dollars(&income, "taxable income")?;
     refuse_section_9a(section_9a_adjustment_applies)?;
     let family = medicare_family(&family)?;
-    let (amounts, rates, shared) = precise(|| Ok(medicare_working(&income, &year, &family)?))?;
+    let exemption = medicare_exemption(&exemption, &year)?;
+    let (amounts, rates, shared) = precise(|| {
+        Ok(medicare_working(
+            &income,
+            &year,
+            &family,
+            exemption.as_ref(),
+        )?)
+    })?;
     let mut out = result("medicare_levy", &year, amounts, rates)?;
     let warnings = out["warnings"].as_array_mut().expect("warnings");
     if let Some((_, note)) = texts::MEDICARE_YEAR_WARNINGS
