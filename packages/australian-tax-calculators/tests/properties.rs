@@ -1147,7 +1147,7 @@ fn working_holiday_maker_withholding_rises_and_stays_within_45_percent() {
 /// than none.
 #[test]
 fn seniors_pensioners_withholding_rises_and_exemptions_never_raise_it() {
-    for year in supported_periods("seniors_pensioners_withholding") {
+    for year in ["2024-25", "2025-26", "2026-27"] {
         for status in ["single", "illness_separated", "couple"] {
             let mut previous = [n(0), n(0), n(0)];
             for dollars in 0..3_700 {
