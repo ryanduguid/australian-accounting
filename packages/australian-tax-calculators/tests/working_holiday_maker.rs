@@ -186,6 +186,13 @@ fn no_tfn_is_45_percent_with_cents_ignored() {
                                         "year": year}));
                 assert_eq!(run(&facts), triple(x, y, "0.45"), "{payment} {registered}");
                 assert_eq!(evaluate(&facts)["withholding_basis"], basis);
+                let scale_4 = api::evaluate(
+                    "payg-withholding",
+                    &json!({"earnings": payment, "pay_period": "weekly", "scale": 4,
+                            "foreign_resident": true, "year": year, "scope_confirmed": true}),
+                )
+                .unwrap();
+                assert_eq!(scale_4["amounts"]["withholding"], y, "{payment} {year}");
             }
         }
     }

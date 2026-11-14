@@ -1,3 +1,46 @@
+# v0.2.0
+
+## Added
+
+- FBT return dates: `due_dates("fbt_return", ...)` for the FBT year ending 31 March 2027
+  (`financial_year` `2026-27`, the 2027 return). A return is due on 21 May 2027, or
+  generally on 25 June 2027 when a tax agent lodges it electronically for a client on
+  the agent's FBT client list by 21 May, the new `on_fbt_client_list_by_21_may` fact.
+  A `bas_agent` row is `UNKNOWN`, because the ATO's FBT pages name only tax agents. Each
+  rule cites the ATO page read on 31 October 2026
+  ([#523](https://github.com/ryanduguid/australian-accounting/pull/523)).
+- `to_ics(result, *, uid_scope="")` writes a `due_dates` result as an iCalendar file
+  (RFC 5545) using only the standard library, with one all-day event per `DETERMINED` row
+  and the `UNKNOWN` rows returned apart. `uid_scope` keeps 2 clients on the same terms
+  from sharing event UIDs. Whether a re-imported event replaces the earlier one depends
+  on the calendar program
+  ([#515](https://github.com/ryanduguid/australian-accounting/pull/515)).
+- Tests run real calculations under an audit hook that fails on a network attempt
+  ([#522](https://github.com/ryanduguid/australian-accounting/pull/522)).
+
+## Changed
+
+- Licence: the Ryan Duguid Public Attribution Licence 1.0
+  (`LicenseRef-Duguid-Public-Attribution-1.0`) replaces FSL-1.1-ALv2. It is the
+  FSL-1.1-ALv2 text unchanged plus a Public Attribution Condition on the FSL grant: a
+  copy, port or derivative made available outside your organisation must credit Ryan
+  Duguid publicly, with a link to the repository. Internal use is exempt. 0.1.0 keeps
+  FSL-1.1-ALv2. Source files carry copyright and SPDX headers
+  ([#569](https://github.com/ryanduguid/australian-accounting/pull/569),
+  [#564](https://github.com/ryanduguid/australian-accounting/pull/564)).
+- `source_checked` on every row moves from 28 October to 31 October 2026
+  ([#523](https://github.com/ryanduguid/australian-accounting/pull/523)).
+- The README states its disclaimer once, at its end
+  ([#557](https://github.com/ryanduguid/australian-accounting/pull/557)).
+- The release workflow uses Release Policy at ca5492b
+  ([#580](https://github.com/ryanduguid/australian-accounting/pull/580)).
+
+## Known issues
+
+- No ASIC dates: annual review fees and statements are not covered.
+- `aus-accounting-mcp` 0.9.0 pins `lodgment-calendar` 0.1.0, so its
+  `get_lodgment_due_dates` tool does not offer FBT returns yet.
+
 # v0.1.0
 
 This is the first PyPI release of `lodgment-calendar`, published through
