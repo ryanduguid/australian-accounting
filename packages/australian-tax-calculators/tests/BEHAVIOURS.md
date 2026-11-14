@@ -114,7 +114,7 @@ a local SplitMix64 replaces fast-check's generator, so the random cases differ.
 | `test_study_loan_withholding.py::test_combined_rows_are_schedule_1_plus_the_component_rows` | `tables.rs`: `combined_rows_are_schedule_1_plus_the_component_rows` |
 | `test_study_loan_withholding.py::test_every_component_year_has_schedule_1_coefficients` | `tables.rs`: `every_component_year_has_schedule_1_coefficients` |
 | `test_study_loan_withholding.py::test_unsupported_scales_are_refused` | Frozen replay in `parity.rs` |
-| `test_study_loan_withholding.py::test_unsupported_pay_periods_are_refused` | Frozen replay in `parity.rs` |
+| `test_study_loan_withholding.py::test_unsupported_pay_periods_are_refused` | Frozen replay in `parity.rs`, which applies the new message and skips the frozen quarterly call, as quarterly pays are now accepted (`study_loan_withholding.rs`) |
 | `test_super_worksheets.py::test_first_year_cap_matches_the_published_table_at_every_boundary` | Frozen replay in `parity.rs` |
 | `test_super_worksheets.py::test_75_or_older_all_year_keeps_only_the_annual_cap` | Frozen replay in `parity.rs` |
 | `test_super_worksheets.py::test_bring_forward_triggers_only_above_the_annual_cap` | Frozen replay in `parity.rs` |

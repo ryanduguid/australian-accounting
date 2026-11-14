@@ -111,6 +111,38 @@ intentionally changed.
   catalogue entry before comparing, and `tests/working_holiday_maker.rs` holds
   it to the ATO's lookup tool example and examples 1 and 2, each column
   boundary and the rounding rules.
+- `seniors-pensioners-withholding` applies Schedule 9 (NAT 4466), the tax
+  table for seniors and pensioners, to one weekly, fortnightly or monthly
+  payment for 2024-25 to 2026-27, by the payee's status (single, a member of an
+  illness-separated couple or a member of a couple) and any full or half
+  Medicare levy exemption: the schedule's 9 scales, with Schedule 1's weekly
+  earnings, formula, rounding and pay period conversions. Other tax offsets and
+  the Medicare levy adjustment are not inputs, and quarterly pays, for which the
+  schedule has no rule, are refused, as, like `division-296`, is a field it does
+  not take. New refusal codes: `input.status_invalid` and
+  `input.medicare_levy_exemption_invalid`. No Python release has it.
+  `tests/parity.rs` drops its catalogue entry before comparing, and
+  `tests/seniors_pensioners.rs` holds it to each schedule's worked example
+  ($662.95 a week), every amount in each schedule's weekly tax table (2,120
+  earnings in 3 columns) and hand-worked amounts on the exemption scales and
+  for fortnightly and monthly pays.
+- `seniors-pensioners-tax-offset` works out the seniors and pensioners tax
+  offset (ITAA 1936 s 160AAAA) for 2024-25 to 2026-27 by the Income Tax
+  Assessment (1936 Act) Regulations 2025 and the 2015 Regulation they replaced
+  (ss 9 to 12): the base amount for the person's `status`, the rebate threshold
+  and cut-out from the year's Schedule 7 rates, entitlement on the person's
+  rebate income or, for a member of a couple, half the couple's
+  (`spouse_rebate_income`), 12.5 cents a dollar off above the threshold, and
+  the ATO's rounding up to the dollar. With `spouse_taxable_income` it adds a
+  resident spouse's unused amount (s 12). 2026-27 thresholds, which the ATO
+  has not published, are worked at that year's 15% rate, with a warning. Like
+  `division-296`, it refuses a field it does not take. No Python release has
+  it. `tests/parity.rs` drops its catalogue entry before comparing, and
+  `tests/seniors_pensioners_offset.rs` holds it to the ATO's 9 examples,
+  including the transfer in example 9, its 2024-25 and 2025-26 thresholds and
+  every cut-out; `tests/properties.rs` checks that it never rises with rebate
+  income without a transfer. Schedule 9 and this command share the `status` values and the
+  `input.status_invalid` refusal.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,
@@ -150,9 +182,22 @@ intentionally changed.
   2025. `tests/study_loan_withholding.rs` holds it to the instrument's examples
   1 to 3, its starting earnings and pays on 23 and 24 September 2025; the
   combined coefficient checks in `tests/tables.rs` and `tests/properties.rs`
-  cover both years. The Schedule 5 commands take no pay date, so their
-  `study_loan` stays 2026-27 only and names the 24 September 2025 start when
-  given 2025-26. The 0.2.0 wheel the MCP server pins covers 2026-27 only.
+  cover both years. The 0.2.0 wheel the MCP server pins covers 2026-27 only.
+- `study-loan-withholding` accepts quarterly pays under Schedule 8's rule: the
+  weekly equivalent is a thirteenth of the earnings, and 13 times the weekly
+  amounts is withheld. Python 0.2.0 refused them; `tests/parity.rs` skips and
+  counts the 1 frozen quarterly refusal, and the 2026 schedule and F2025L01016
+  have no quarterly example, so `tests/study_loan_withholding.rs` checks
+  hand-worked amounts and the quarterly starting earnings.
+- The 3 Schedule 5 commands take an optional `pay_date` with `study_loan`, so
+  the study loan part of Methods A and B(ii) covers 2025-26 pays made from 24
+  September 2025 with F2025L01016's coefficients. A 2025-26 study loan pay
+  without its date, or dated before 24 September 2025 or outside the year, is
+  refused as by `study-loan-withholding`; 2024-25 still refuses `study_loan`.
+  Method B(i) still refuses a 2025-26 study loan, now saying why: Schedule 5
+  does not say which coefficients recalculate an earlier period from before 24
+  September 2025. A pay date without `study_loan` is refused with the new code
+  `payg.pay_date_without_study_loan`.
 - `tests/verdict_cases.rs` turns the edge cases in a published reviewer verdict,
   under CC BY 4.0, the default in the bounty's terms, into fabricated cases, or
   states why one does not apply.
@@ -319,6 +364,58 @@ intentionally changed.
   periods. It skips the 1 frozen call that expected 2026-27 to be refused;
   `tests/tables.rs` checks 2026-27 at each threshold and that 2027-28 is
   refused. The catalogue example stays at 2024-25.
+- `medicare-levy` takes 5 optional inputs: `sapto_entitled`, which applies the
+  seniors and pensioners thresholds in s 3(1); and `spouse_taxable_income`
+  with `spouse_sapto_entitled`, or `dependant_offset_entitled` for a person
+  without a spouse, with `dependent_children`, which apply the s 8 family
+  reduction for 2024-25 to 2026-27. A spouse whose taxable income is above the
+  spouse's threshold amount shares the reduction by taxable income, and the
+  part of either share above that spouse's levy reduces the other's (s 8(3)
+  and (4)); the result then adds a warning that its amounts are rounded only
+  for display. Without the optional inputs every result is as before, except
+  that its scope now describes them and its sources add the ATO's family
+  income page, compilation 52 and Act No. 28, 2025. Like `depreciation`, it
+  now refuses a field it does not take, and it refuses a spouse input without
+  a spouse, `dependant_offset_entitled` with one and dependent children
+  without either (`input.field_unknown`), and a child count that is not a
+  non-negative integer (`input.dependants_invalid`). The worksheet catalogue
+  lists the inputs under `optional_inputs` and names the family page and its
+  Ashton example. `tests/parity.rs` applies the new scope, sources, passage
+  and evidence to the 162 frozen `medicare-levy` results and 10
+  `worksheet-catalogue` results, and `tests/medicare_family.rs` holds the
+  worksheet to the Ashton example and every threshold.
+- `medicare-levy` takes 2 more optional inputs, the days a full-year resident
+  qualified for a full or a half Medicare levy exemption
+  (`medicare_levy_exemption_full_days` and `medicare_levy_exemption_half_days`,
+  return labels M1 V and W), as the operator establishes them. Medicare Levy
+  Act 1986 s 9(1) then reduces the levy after the low-income and family
+  reductions by the share of the year's days for which the person was a
+  prescribed person, a half exemption day counting as half (ITAA 1936
+  s 251U(3)); the result adds `exemption_reduction` and the day counts. Days
+  outside 0 to the year's days, or more than the year together, are refused
+  (`input.day_count_invalid`). Without the inputs every result is as before,
+  except that the scope now describes exemptions and excludes foreign
+  residents, and the sources, passage and evidence add ITAA 1936 s 251U and
+  the ATO's exemption pages, which `tests/parity.rs` applies to the frozen
+  results. `tests/medicare_exemptions.rs` holds the worksheet to the ATO's
+  Priya example and hand-worked days after each reduction, and
+  `tests/properties.rs` checks that more exemption days never raise the levy.
+- `medicare-levy-surcharge` works out the Medicare levy surcharge for
+  2024-25 to 2026-27 (Medicare Levy Act 1986 ss 8B and 8D and the A New Tax
+  System (Medicare Levy Surcharge - Fringe Benefits) Act 1999 ss 12, 15 and
+  16) for a full-year resident in no exemption category who was single without
+  dependants or married for the whole year. Income for surcharge purposes,
+  combined with the spouse's for a married person, sets the tier against the
+  ATO's singles or family thresholds, which rise by $1,500 for each dependent
+  child after the first; the 1%, 1.25% or 1.5% rate applies to taxable income
+  plus reportable fringe benefits only, for the days without appropriate
+  private patient hospital cover as a share of the year. A married person
+  whose own income for surcharge purposes is at or below the s 3(1) threshold
+  amount pays none. Children without a spouse (s 8C) are refused
+  (`input.field_unknown`), as, like `division-296`, is a field it does not
+  take. No Python release has it. `tests/parity.rs` drops its catalogue entry
+  before comparing, and `tests/medicare_surcharge.rs` holds it to the ATO's
+  Tom, Josh, Jacinta and Jill and Kevin examples and every tier boundary.
 
 ### Verification
 

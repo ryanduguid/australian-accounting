@@ -1,0 +1,20 @@
+[package]
+name = "aus-accounting-mcp-core"
+# Versioned with the native aus-accounting-mcp server whose tool results it
+# reproduces: get_data_freshness reports this as that server's version.
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.99"
+description = "Transport-free tool calls of the native Aus Accounting MCP server for its 6 hosted tools"
+license = "LicenseRef-Duguid-Public-Attribution-1.0"
+repository = "https://github.com/ryanduguid/australian-accounting"
+publish = false
+
+[dependencies]
+div7a-loan-review = { path = "../../../packages/div7a-loan-review" }
+australian-tax-calculators = { path = "../../../packages/australian-tax-calculators" }
+payday-super-checker = { path = "../../../packages/payday-super-checker" }
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+jsonschema = { version = "=0.59.0", default-features = false, features = ["arbitrary-precision"] }
+regex = "=1.13.1"
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }

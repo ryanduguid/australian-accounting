@@ -1,0 +1,981 @@
+{
+ "source": {
+  "server": "aus-accounting-mcp Python server on main, MCPServer.call_tool",
+  "commit": "149f98adb5a098d498177df36423c60c69b96f5c",
+  "recorded": "2026-11-14",
+  "inputs": "the hosted tools' refusals in draft PR 599's tests/fixtures/native at caff9b7, then inputs for the checks those do not reach"
+ },
+ "cases": [
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_div7a.py::test_response_detail_rejects_values_other_than_summary_or_full",
+   "name": "get_div7a_benchmark_rate",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "response_detail": "brief"
+   },
+   "isError": true,
+   "text": "Error executing tool get_div7a_benchmark_rate: 1 validation error for get_div7a_benchmark_rateArguments\nresponse_detail\n  Input should be 'summary' or 'full' [type=literal_error, input_value='brief', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_expansion.py::test_calculators_refuse_unestablished_or_malformed_facts[change0]",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "gst",
+     "amount": "1100",
+     "gst_inclusive": true,
+     "scope_confirmed": "true",
+     "year": "2025-26"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.gst.scope_confirmed\n  Input should be a valid boolean [type=bool_type, input_value='true', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_expansion.py::test_calculators_refuse_unestablished_or_malformed_facts[change1]",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "gst",
+     "amount": "1100",
+     "gst_inclusive": true,
+     "scope_confirmed": 1,
+     "year": "2025-26"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.gst.scope_confirmed\n  Input should be a valid boolean [type=bool_type, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_expansion.py::test_calculators_refuse_unestablished_or_malformed_facts[change3]",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "gst",
+     "amount": 1100,
+     "gst_inclusive": true,
+     "scope_confirmed": true,
+     "year": "2025-26"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.gst.amount\n  Input should be a valid string [type=string_type, input_value=1100, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_expansion.py::test_calculators_refuse_unestablished_or_malformed_facts[change4]",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "gst",
+     "amount": "1100",
+     "gst_inclusive": true,
+     "scope_confirmed": true,
+     "year": "2027-28"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.gst.year\n  Input should be '2025-26' [type=literal_error, input_value='2027-28', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_expansion.py::test_calculators_refuse_unestablished_or_malformed_facts[change5]",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "gst",
+     "amount": "1100",
+     "gst_inclusive": true,
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "extra": true
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.gst.extra\n  Extra inputs are not permitted [type=extra_forbidden, input_value=True, input_type=bool]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[yes-calc_payday_super_deadline-first_to_fund]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "first_to_fund": "yes"
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nfirst_to_fund\n  Input should be a valid boolean [type=bool_type, input_value='yes', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[yes-calc_payday_super_deadline-out_of_cycle]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "out_of_cycle": "yes"
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nout_of_cycle\n  Input should be a valid boolean [type=bool_type, input_value='yes', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[yes-calc_payday_super_deadline-db_interest]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "db_interest": "yes"
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\ndb_interest\n  Input should be a valid boolean [type=bool_type, input_value='yes', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[yes-review_div7a_loan-written_agreement]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "written_agreement": "yes"
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nwritten_agreement\n  Input should be a valid boolean [type=bool_type, input_value='yes', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[yes-review_div7a_loan-terms_in_place_before_lodgment_day]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "terms_in_place_before_lodgment_day": "yes"
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nterms_in_place_before_lodgment_day\n  Input should be a valid boolean [type=bool_type, input_value='yes', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[yes-review_div7a_loan-secured_by_registered_mortgage_over_real_property]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "secured_by_registered_mortgage_over_real_property": "yes"
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nsecured_by_registered_mortgage_over_real_property\n  Input should be a valid boolean [type=bool_type, input_value='yes', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[false-calc_payday_super_deadline-first_to_fund]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "first_to_fund": "false"
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nfirst_to_fund\n  Input should be a valid boolean [type=bool_type, input_value='false', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[false-calc_payday_super_deadline-out_of_cycle]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "out_of_cycle": "false"
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nout_of_cycle\n  Input should be a valid boolean [type=bool_type, input_value='false', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[false-calc_payday_super_deadline-db_interest]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "db_interest": "false"
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\ndb_interest\n  Input should be a valid boolean [type=bool_type, input_value='false', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[false-review_div7a_loan-written_agreement]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "written_agreement": "false"
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nwritten_agreement\n  Input should be a valid boolean [type=bool_type, input_value='false', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[false-review_div7a_loan-terms_in_place_before_lodgment_day]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "terms_in_place_before_lodgment_day": "false"
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nterms_in_place_before_lodgment_day\n  Input should be a valid boolean [type=bool_type, input_value='false', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[false-review_div7a_loan-secured_by_registered_mortgage_over_real_property]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "secured_by_registered_mortgage_over_real_property": "false"
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nsecured_by_registered_mortgage_over_real_property\n  Input should be a valid boolean [type=bool_type, input_value='false', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[1-calc_payday_super_deadline-first_to_fund]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "first_to_fund": 1
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nfirst_to_fund\n  Input should be a valid boolean [type=bool_type, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[1-calc_payday_super_deadline-out_of_cycle]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "out_of_cycle": 1
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nout_of_cycle\n  Input should be a valid boolean [type=bool_type, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[1-calc_payday_super_deadline-db_interest]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "db_interest": 1
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\ndb_interest\n  Input should be a valid boolean [type=bool_type, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[1-review_div7a_loan-written_agreement]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "written_agreement": 1
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nwritten_agreement\n  Input should be a valid boolean [type=bool_type, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[1-review_div7a_loan-terms_in_place_before_lodgment_day]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "terms_in_place_before_lodgment_day": 1
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nterms_in_place_before_lodgment_day\n  Input should be a valid boolean [type=bool_type, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[1-review_div7a_loan-secured_by_registered_mortgage_over_real_property]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "secured_by_registered_mortgage_over_real_property": 1
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nsecured_by_registered_mortgage_over_real_property\n  Input should be a valid boolean [type=bool_type, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[0-calc_payday_super_deadline-first_to_fund]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "first_to_fund": 0
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nfirst_to_fund\n  Input should be a valid boolean [type=bool_type, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[0-calc_payday_super_deadline-out_of_cycle]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "out_of_cycle": 0
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nout_of_cycle\n  Input should be a valid boolean [type=bool_type, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[0-calc_payday_super_deadline-db_interest]",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2027-07-08",
+    "sg_amount": "120.00",
+    "as_at": "2027-08-01",
+    "next_standard_qe_day": "2027-07-15",
+    "db_interest": 0
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\ndb_interest\n  Input should be a valid boolean [type=bool_type, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[0-review_div7a_loan-written_agreement]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "written_agreement": 0
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nwritten_agreement\n  Input should be a valid boolean [type=bool_type, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[0-review_div7a_loan-terms_in_place_before_lodgment_day]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "terms_in_place_before_lodgment_day": 0
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nterms_in_place_before_lodgment_day\n  Input should be a valid boolean [type=bool_type, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_server_money.py::test_statutory_facts_reject_non_boolean_json_values[0-review_div7a_loan-secured_by_registered_mortgage_over_real_property]",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2025-26",
+    "secured_by_registered_mortgage_over_real_property": 0
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nsecured_by_registered_mortgage_over_real_property\n  Input should be a valid boolean [type=bool_type, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_worksheet_catalogue.py::test_medicare_levy_refuses_section_9a_and_requires_the_flag",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "medicare_levy",
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "taxable_income": "40000"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.medicare_levy.section_9a_adjustment_applies\n  Field required [type=missing, input_value={'kind': 'medicare_levy',...axable_income': '40000'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/adapter-contracts.json tests/test_file_note.py::test_the_option_takes_a_json_boolean_only",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "gst",
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "amount": "1100",
+     "gst_inclusive": true
+    },
+    "file_note": "true"
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfile_note\n  Input should be a valid boolean [type=bool_type, input_value='true', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/coverage-edges.json tests/test_div7a.py::test_a_year_label_the_engine_cannot_read_is_an_input_error",
+   "name": "get_div7a_benchmark_rate",
+   "arguments": {
+    "year_of_income": "2026-2027"
+   },
+   "isError": true,
+   "text": "Error executing tool get_div7a_benchmark_rate: 1 validation error for get_div7a_benchmark_rateArguments\nyear_of_income\n  String should have at most 7 characters [type=string_too_long, input_value='2026-2027', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_too_long"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/coverage-edges.json tests/test_worksheet_catalogue.py::test_medicare_levy_refuses_a_year_without_published_thresholds",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "medicare_levy",
+     "scope_confirmed": true,
+     "year": "2026-27",
+     "taxable_income": "50000",
+     "section_9a_adjustment_applies": false
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.medicare_levy.year\n  Input should be '2024-25' or '2025-26' [type=literal_error, input_value='2026-27', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/freshness-contracts.json",
+   "name": "get_data_freshness",
+   "arguments": {
+    "as_at": "26-10-28"
+   },
+   "isError": true,
+   "text": "Error executing tool get_data_freshness: 1 validation error for get_data_freshnessArguments\nas_at\n  String should match pattern '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' [type=string_pattern_mismatch, input_value='26-10-28', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/freshness-contracts.json",
+   "name": "get_data_freshness",
+   "arguments": {
+    "as_at": 20261028
+   },
+   "isError": true,
+   "text": "Error executing tool get_data_freshness: 1 validation error for get_data_freshnessArguments\nas_at\n  Input should be a valid string [type=string_type, input_value=20261028, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/freshness-contracts.json",
+   "name": "get_data_freshness",
+   "arguments": {
+    "tool": "search_tax_rates"
+   },
+   "isError": true,
+   "text": "Error executing tool get_data_freshness: 1 validation error for get_data_freshnessArguments\ntool\n  Input should be 'list_ato_benchmark_industries', 'get_ato_benchmarks', 'get_div7a_benchmark_rate', 'review_div7a_loan', 'calc_payday_super_deadline', 'review_payday_super_contributions', 'build_payday_super_evidence_pack', 'calculate_tax_worksheet', 'get_lodgment_due_dates', 'review_gst_coding', 'reconcile_bas' or 'get_reviewed_rate' [type=literal_error, input_value='search_tax_rates', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/freshness-contracts.json",
+   "name": "get_data_freshness",
+   "arguments": {
+    "tool": "nope"
+   },
+   "isError": true,
+   "text": "Error executing tool get_data_freshness: 1 validation error for get_data_freshnessArguments\ntool\n  Input should be 'list_ato_benchmark_industries', 'get_ato_benchmarks', 'get_div7a_benchmark_rate', 'review_div7a_loan', 'calc_payday_super_deadline', 'review_payday_super_contributions', 'build_payday_super_evidence_pack', 'calculate_tax_worksheet', 'get_lodgment_due_dates', 'review_gst_coding', 'reconcile_bas' or 'get_reviewed_rate' [type=literal_error, input_value='nope', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:union-shape",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": null
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input should be a valid dictionary or object to extract fields from [type=model_attributes_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/model_attributes_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:union-shape",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": []
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input should be a valid dictionary or object to extract fields from [type=model_attributes_type, input_value=[], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/model_attributes_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:union-shape",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": 1
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input should be a valid dictionary or object to extract fields from [type=model_attributes_type, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/model_attributes_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:union-shape",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": "gst"
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input should be a valid dictionary or object to extract fields from [type=model_attributes_type, input_value='gst', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/model_attributes_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:union-shape",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": true
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input should be a valid dictionary or object to extract fields from [type=model_attributes_type, input_value=True, input_type=bool]\n    For further information visit https://errors.pydantic.dev/2.13/v/model_attributes_type"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:union-tag",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": 1
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input tag '1' found using 'kind' does not match any of the expected tags: 'gst', 'resident_tax', 'capital_gains', 'fbt', 'depreciation', 'quarterly_sg', 'payg_withholding', 'contribution_caps', 'pension_minimum', 'study_loan_repayment', 'study_loan_withholding', 'medicare_levy', 'low_income_tax_offset', 'division_293' [type=union_tag_invalid, input_value={'kind': 1}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:union-tag",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": true
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input tag 'True' found using 'kind' does not match any of the expected tags: 'gst', 'resident_tax', 'capital_gains', 'fbt', 'depreciation', 'quarterly_sg', 'payg_withholding', 'contribution_caps', 'pension_minimum', 'study_loan_repayment', 'study_loan_withholding', 'medicare_levy', 'low_income_tax_offset', 'division_293' [type=union_tag_invalid, input_value={'kind': True}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:union-tag",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": null
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input tag 'None' found using 'kind' does not match any of the expected tags: 'gst', 'resident_tax', 'capital_gains', 'fbt', 'depreciation', 'quarterly_sg', 'payg_withholding', 'contribution_caps', 'pension_minimum', 'study_loan_repayment', 'study_loan_withholding', 'medicare_levy', 'low_income_tax_offset', 'division_293' [type=union_tag_invalid, input_value={'kind': None}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:union-tag",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": {}
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input tag '{}' found using 'kind' does not match any of the expected tags: 'gst', 'resident_tax', 'capital_gains', 'fbt', 'depreciation', 'quarterly_sg', 'payg_withholding', 'contribution_caps', 'pension_minimum', 'study_loan_repayment', 'study_loan_withholding', 'medicare_levy', 'low_income_tax_offset', 'division_293' [type=union_tag_invalid, input_value={'kind': {}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:union-tag",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": []
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input tag '[]' found using 'kind' does not match any of the expected tags: 'gst', 'resident_tax', 'capital_gains', 'fbt', 'depreciation', 'quarterly_sg', 'payg_withholding', 'contribution_caps', 'pension_minimum', 'study_loan_repayment', 'study_loan_withholding', 'medicare_levy', 'low_income_tax_offset', 'division_293' [type=union_tag_invalid, input_value={'kind': []}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:union-tag",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "a'b"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input tag 'a'b' found using 'kind' does not match any of the expected tags: 'gst', 'resident_tax', 'capital_gains', 'fbt', 'depreciation', 'quarterly_sg', 'payg_withholding', 'contribution_caps', 'pension_minimum', 'study_loan_repayment', 'study_loan_withholding', 'medicare_levy', 'low_income_tax_offset', 'division_293' [type=union_tag_invalid, input_value={'kind': \"a'b\"}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:literal-scale",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "payg_withholding",
+     "scope_confirmed": true,
+     "year": "2026-27",
+     "earnings": "100",
+     "pay_period": "weekly",
+     "scale": false
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.payg_withholding.scale\n  Input should be 1, 2, 3, 5 or 6 [type=literal_error, input_value=False, input_type=bool]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error"
+  },
+  {
+   "origin": "PR 599 tests/fixtures/native/validation-edges.json independent-validation:literal-scale",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "payg_withholding",
+     "scope_confirmed": true,
+     "year": "2026-27",
+     "earnings": "100",
+     "pay_period": "weekly",
+     "scale": 1.5
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.payg_withholding.scale\n  Input should be 1, 2, 3, 5 or 6 [type=literal_error, input_value=1.5, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error"
+  },
+  {
+   "origin": "review:int-le",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "quarterly_sg",
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "quarter": 5,
+     "ordinary_time_earnings": "10000.00",
+     "qualifying_contributions": "1200.00"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.quarterly_sg.quarter\n  Input should be less than or equal to 4 [type=less_than_equal, input_value=5, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/less_than_equal"
+  },
+  {
+   "origin": "review:int-ge",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "quarterly_sg",
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "quarter": 0,
+     "ordinary_time_earnings": "10000.00",
+     "qualifying_contributions": "1200.00"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.quarterly_sg.quarter\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/greater_than_equal"
+  },
+  {
+   "origin": "review:int-ge-zero-bound",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "depreciation",
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "cost": "1000.00",
+     "effective_life": "5",
+     "days": -1,
+     "taxable_use": "1",
+     "method": "prime_cost"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.depreciation.days\n  Input should be greater than or equal to 0 [type=greater_than_equal, input_value=-1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/greater_than_equal"
+  },
+  {
+   "origin": "review:int-le-huge",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "depreciation",
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "cost": "1000.00",
+     "effective_life": "5",
+     "days": 1000000000000000000000000000000000000000000000000000000000000,
+     "taxable_use": "1",
+     "method": "prime_cost"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.depreciation.days\n  Input should be less than or equal to 365 [type=less_than_equal, input_value=1000000000000000000000000...000000000000000000000000, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/less_than_equal"
+  },
+  {
+   "origin": "review:int-type-string",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "pension_minimum",
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "account_balance": "500000.00",
+     "age": "65",
+     "days": 365
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.pension_minimum.age\n  Input should be a valid integer [type=int_type, input_value='65', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/int_type"
+  },
+  {
+   "origin": "review:int-type-float",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "quarterly_sg",
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "quarter": 1.0,
+     "ordinary_time_earnings": "10000.00",
+     "qualifying_contributions": "1200.00"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.quarterly_sg.quarter\n  Input should be a valid integer [type=int_type, input_value=1.0, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.13/v/int_type"
+  },
+  {
+   "origin": "review:int-type-bool",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "quarterly_sg",
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "quarter": true,
+     "ordinary_time_earnings": "10000.00",
+     "qualifying_contributions": "1200.00"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.quarterly_sg.quarter\n  Input should be a valid integer [type=int_type, input_value=True, input_type=bool]\n    For further information visit https://errors.pydantic.dev/2.13/v/int_type"
+  },
+  {
+   "origin": "review:bool-parsing-word",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2026-07-10",
+    "sg_amount": "1000.00",
+    "as_at": "2026-08-01",
+    "returned_by_fund": "maybe"
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nreturned_by_fund\n  Input should be a valid boolean, unable to interpret input [type=bool_parsing, input_value='maybe', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_parsing"
+  },
+  {
+   "origin": "review:bool-parsing-integer",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2026-07-10",
+    "sg_amount": "1000.00",
+    "as_at": "2026-08-01",
+    "returned_by_fund": 2
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nreturned_by_fund\n  Input should be a valid boolean, unable to interpret input [type=bool_parsing, input_value=2, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_parsing"
+  },
+  {
+   "origin": "review:bool-type-fraction",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2026-07-10",
+    "sg_amount": "1000.00",
+    "as_at": "2026-08-01",
+    "returned_by_fund": 1.5
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nreturned_by_fund\n  Input should be a valid boolean [type=bool_type, input_value=1.5, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "review:bool-type-null",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2026-07-10",
+    "sg_amount": "1000.00",
+    "as_at": "2026-08-01",
+    "returned_by_fund": null
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nreturned_by_fund\n  Input should be a valid boolean [type=bool_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "review:bool-lax-word-accepted",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2026-07-10",
+    "sg_amount": "1000.00",
+    "as_at": "2026-08-01",
+    "returned_by_fund": "Yes"
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: row 1: the fund returned some or all of this contribution, and the payday-super-checker this server links cannot assess that, so it would read the receipt as kept. Settle the row from the fund's records and remove it, or review it with the native payday-super-check command built from the repository source, using its returned_by_fund column and --events file; no release carries them yet."
+  },
+  {
+   "origin": "review:bool-lax-integer-accepted",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2026-07-10",
+    "sg_amount": "1000.00",
+    "as_at": "2026-08-01",
+    "returned_by_fund": 1
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: row 1: the fund returned some or all of this contribution, and the payday-super-checker this server links cannot assess that, so it would read the receipt as kept. Settle the row from the fund's records and remove it, or review it with the native payday-super-check command built from the repository source, using its returned_by_fund column and --events file; no release carries them yet."
+  },
+  {
+   "origin": "review:bool-strict-word",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2026-07-10",
+    "sg_amount": "1000.00",
+    "as_at": "2026-08-01",
+    "first_to_fund": "true"
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nfirst_to_fund\n  Input should be a valid boolean [type=bool_type, input_value='true', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "review:bool-strict-integer",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "gst",
+     "scope_confirmed": 1,
+     "year": "2025-26",
+     "amount": "110.00",
+     "gst_inclusive": true
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.gst.scope_confirmed\n  Input should be a valid boolean [type=bool_type, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "review:union-tag-not-found",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "year": "2025-26",
+     "amount": "110.00"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Unable to extract tag using discriminator 'kind' [type=union_tag_not_found, input_value={'year': '2025-26', 'amount': '110.00'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/union_tag_not_found"
+  },
+  {
+   "origin": "review:union-tag-not-a-string",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": 5
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input tag '5' found using 'kind' does not match any of the expected tags: 'gst', 'resident_tax', 'capital_gains', 'fbt', 'depreciation', 'quarterly_sg', 'payg_withholding', 'contribution_caps', 'pension_minimum', 'study_loan_repayment', 'study_loan_withholding', 'medicare_levy', 'low_income_tax_offset', 'division_293' [type=union_tag_invalid, input_value={'kind': 5}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid"
+  },
+  {
+   "origin": "review:union-not-an-object",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": [
+     "gst"
+    ]
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts\n  Input should be a valid dictionary or object to extract fields from [type=model_attributes_type, input_value=['gst'], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/model_attributes_type"
+  },
+  {
+   "origin": "review:missing-several",
+   "name": "calc_payday_super_deadline",
+   "arguments": {},
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 3 validation errors for calc_payday_super_deadlineArguments\nqe_day\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\nsg_amount\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\nas_at\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing"
+  },
+  {
+   "origin": "review:missing-nested",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "gst",
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "gst_inclusive": true
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.gst.amount\n  Field required [type=missing, input_value={'kind': 'gst', 'scope_co..., 'gst_inclusive': True}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing"
+  },
+  {
+   "origin": "review:extra-nested",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "gst",
+     "scope_confirmed": true,
+     "year": "2025-26",
+     "amount": "110.00",
+     "gst_inclusive": true,
+     "rate": "0.1"
+    }
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 1 validation error for calculate_tax_worksheetArguments\nfacts.gst.rate\n  Extra inputs are not permitted [type=extra_forbidden, input_value='0.1', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+  },
+  {
+   "origin": "review:several-kinds",
+   "name": "calculate_tax_worksheet",
+   "arguments": {
+    "facts": {
+     "kind": "depreciation",
+     "scope_confirmed": "yes",
+     "year": "2024-25",
+     "cost": 1000,
+     "effective_life": "5",
+     "days": 400,
+     "taxable_use": "1",
+     "method": "straight_line",
+     "extra": 1
+    },
+    "file_note": "no"
+   },
+   "isError": true,
+   "text": "Error executing tool calculate_tax_worksheet: 7 validation errors for calculate_tax_worksheetArguments\nfacts.depreciation.scope_confirmed\n  Input should be a valid boolean [type=bool_type, input_value='yes', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type\nfacts.depreciation.year\n  Input should be '2025-26' [type=literal_error, input_value='2024-25', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error\nfacts.depreciation.cost\n  Input should be a valid string [type=string_type, input_value=1000, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type\nfacts.depreciation.days\n  Input should be less than or equal to 365 [type=less_than_equal, input_value=400, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/less_than_equal\nfacts.depreciation.method\n  Input should be 'prime_cost' or 'diminishing_value' [type=literal_error, input_value='straight_line', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error\nfacts.depreciation.extra\n  Extra inputs are not permitted [type=extra_forbidden, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden\nfile_note\n  Input should be a valid boolean [type=bool_type, input_value='no', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/bool_type"
+  },
+  {
+   "origin": "review:string-type",
+   "name": "get_div7a_benchmark_rate",
+   "arguments": {
+    "year_of_income": 2026
+   },
+   "isError": true,
+   "text": "Error executing tool get_div7a_benchmark_rate: 1 validation error for get_div7a_benchmark_rateArguments\nyear_of_income\n  Input should be a valid string [type=string_type, input_value=2026, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_type"
+  },
+  {
+   "origin": "review:string-too-long",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2026-07-10",
+    "sg_amount": "1000.00",
+    "as_at": "2026-08-01",
+    "employee_id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+   },
+   "isError": true,
+   "text": "Error executing tool calc_payday_super_deadline: 1 validation error for calc_payday_super_deadlineArguments\nemployee_id\n  String should have at most 120 characters [type=string_too_long, input_value='eeeeeeeeeeeeeeeeeeeeeeee...eeeeeeeeeeeeeeeeeeeeeee', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_too_long"
+  },
+  {
+   "origin": "review:string-at-max-length",
+   "name": "calc_payday_super_deadline",
+   "arguments": {
+    "qe_day": "2026-07-10",
+    "sg_amount": "1000.00",
+    "as_at": "2026-08-01",
+    "employee_id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+   },
+   "isError": false
+  },
+  {
+   "origin": "review:pattern",
+   "name": "get_data_freshness",
+   "arguments": {
+    "as_at": "2026/11/14"
+   },
+   "isError": true,
+   "text": "Error executing tool get_data_freshness: 1 validation error for get_data_freshnessArguments\nas_at\n  String should match pattern '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' [type=string_pattern_mismatch, input_value='2026/11/14', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch"
+  },
+  {
+   "origin": "review:literal",
+   "name": "get_div7a_benchmark_rate",
+   "arguments": {
+    "year_of_income": "2026-27",
+    "response_detail": "brief"
+   },
+   "isError": true,
+   "text": "Error executing tool get_div7a_benchmark_rate: 1 validation error for get_div7a_benchmark_rateArguments\nresponse_detail\n  Input should be 'summary' or 'full' [type=literal_error, input_value='brief', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error"
+  },
+  {
+   "origin": "review:literal-in-nested",
+   "name": "review_div7a_loan",
+   "arguments": {
+    "year_of_income": "2026-27",
+    "response_detail": "Summary"
+   },
+   "isError": true,
+   "text": "Error executing tool review_div7a_loan: 1 validation error for review_div7a_loanArguments\nresponse_detail\n  Input should be 'summary' or 'full' [type=literal_error, input_value='Summary', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/literal_error"
+  },
+  {
+   "origin": "review:nullable-null-accepted",
+   "name": "get_data_freshness",
+   "arguments": {
+    "as_at": null,
+    "tool": "review_div7a_loan"
+   },
+   "isError": false
+  }
+ ]
+}

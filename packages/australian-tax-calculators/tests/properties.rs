@@ -534,6 +534,77 @@ fn medicare_levy_never_falls_as_income_rises() {
     }
 }
 
+/// Medicare Levy Act s 9(1): whatever the income and family facts, another
+/// exemption day never raises the levy, and a full day never leaves more than
+/// a half one.
+#[test]
+fn medicare_levy_never_rises_with_exemption_days() {
+    let mut rng = Rng(0x9E1D);
+    for _ in 0..400 {
+        let year = *rng.pick(&["2024-25", "2025-26", "2026-27"]);
+        let mut facts = json!({"taxable_income": rng.int(0, 150_000).to_string(),
+                               "section_9a_adjustment_applies": false,
+                               "sapto_entitled": rng.bool(),
+                               "year": year, "scope_confirmed": true});
+        if rng.bool() {
+            facts["spouse_taxable_income"] = json!(rng.int(0, 90_000).to_string());
+            facts["spouse_sapto_entitled"] = json!(rng.bool());
+            facts["dependent_children"] = json!(rng.int(0, 4));
+        }
+        let levy = |full: i64, half: i64| {
+            let mut input = facts.clone();
+            input["medicare_levy_exemption_full_days"] = json!(full);
+            input["medicare_levy_exemption_half_days"] = json!(half);
+            amount(&run("medicare-levy", input), "medicare_levy")
+        };
+        let full = rng.int(0, 364);
+        let half = rng.int(0, 364 - full);
+        let (now, more_full, more_half) =
+            (levy(full, half), levy(full + 1, half), levy(full, half + 1));
+        assert!(
+            le(&more_half, &now) && le(&more_full, &more_half),
+            "{facts} {full} {half}"
+        );
+    }
+}
+
+/// Medicare levy surcharge: with income for surcharge purposes, and so the
+/// tier, held, the surcharge never falls as taxable income, reportable fringe
+/// benefits or the days without cover rise.
+#[test]
+fn medicare_levy_surcharge_never_falls_as_its_base_or_days_rise() {
+    let mut rng = Rng(0x3B5C);
+    for _ in 0..400 {
+        let year = *rng.pick(&["2024-25", "2025-26", "2026-27"]);
+        let income = rng.int(0, 400_000);
+        let mut facts = json!({"income_for_surcharge_purposes": income.to_string(),
+                               "year": year, "scope_confirmed": true});
+        if rng.bool() {
+            facts["spouse_income_for_surcharge_purposes"] = json!(rng.int(0, 300_000).to_string());
+            facts["dependent_children"] = json!(rng.int(0, 5));
+        }
+        let surcharge = |taxable: i64, fringe: i64, days: i64| {
+            let mut input = facts.clone();
+            input["taxable_income"] = json!(taxable.to_string());
+            input["reportable_fringe_benefits"] = json!(fringe.to_string());
+            input["days_without_cover"] = json!(days);
+            amount(
+                &run("medicare-levy-surcharge", input),
+                "medicare_levy_surcharge",
+            )
+        };
+        let (taxable, fringe, days) = (rng.int(0, income), rng.int(0, 50_000), rng.int(0, 364));
+        let now = surcharge(taxable, fringe, days);
+        for later in [
+            surcharge(taxable + 1, fringe, days),
+            surcharge(taxable, fringe + 1, days),
+            surcharge(taxable, fringe, days + 1),
+        ] {
+            assert!(le(&now, &later), "{facts} {taxable} {fringe} {days}");
+        }
+    }
+}
+
 #[test]
 fn study_loan_components_agree_with_the_combined_coefficients_to_a_dollar() {
     // The ATO says the two methods can differ slightly through rounding and accepts
@@ -593,6 +664,25 @@ fn study_loan_withholding_never_falls_as_weekly_earnings_rise() {
                 let withheld = amount(&result, "withholding");
                 assert!(le(&previous, &withheld), "{year} {scale} {dollars}");
                 previous = withheld;
+            }
+        }
+    }
+}
+
+#[test]
+fn quarterly_study_loan_withholding_is_13_weekly_amounts() {
+    for (year, first_pay_date) in STUDY_LOAN_WITHHOLDING_FROM {
+        for scale in [1, 2, 3, 5, 6] {
+            for dollars in (0..=4000).step_by(7) {
+                let pay = |earnings: i64, period| {
+                    let input = json!({"earnings": earnings.to_string(), "pay_period": period,
+                                       "scale": scale, "year": year, "scope_confirmed": true,
+                                       "pay_date": first_pay_date});
+                    amount(&run("study-loan-withholding", input), "withholding")
+                };
+                let weekly = pay(dollars, "weekly").mul(&n(13)).unwrap();
+                let gap = pay(dollars * 13, "quarterly").sub(&weekly).unwrap();
+                assert!(gap.is_zero(), "{year} {scale} {dollars}");
             }
         }
     }
@@ -1138,6 +1228,67 @@ fn working_holiday_maker_withholding_rises_and_stays_within_45_percent() {
         );
         let limit = d(&high).mul(&d("0.45")).unwrap().add(&d("0.5")).unwrap();
         assert!(le(&top, &limit), "{high} {more}");
+    }
+}
+
+/// Schedule 9: for each status, withholding never falls as whole-dollar weekly
+/// earnings rise past the last coefficient step ($3,653), and a full Medicare
+/// levy exemption never withholds more than a half one, nor a half one more
+/// than none.
+#[test]
+fn seniors_pensioners_withholding_rises_and_exemptions_never_raise_it() {
+    for year in ["2024-25", "2025-26", "2026-27"] {
+        for status in ["single", "illness_separated", "couple"] {
+            let mut previous = [n(0), n(0), n(0)];
+            for dollars in 0..3_700 {
+                let withholding = ["full", "half", "none"].map(|exemption| {
+                    let r = run(
+                        "seniors-pensioners-withholding",
+                        json!({"earnings": dollars.to_string(), "pay_period": "weekly",
+                               "status": status, "medicare_levy_exemption": exemption,
+                               "year": year, "scope_confirmed": true}),
+                    );
+                    amount(&r, "withholding")
+                });
+                let [full, half, none] = &withholding;
+                assert!(
+                    le(full, half) && le(half, none),
+                    "{year} {status} {dollars}"
+                );
+                for (before, now) in previous.iter().zip(&withholding) {
+                    assert!(le(before, now), "{year} {status} {dollars}");
+                }
+                previous = withholding;
+            }
+        }
+    }
+}
+
+/// The seniors and pensioners tax offset never rises as rebate income rises,
+/// for each status, with the spouse's rebate income held fixed and no
+/// transfer, starting from the base rebate amount and reaching nil.
+#[test]
+fn seniors_pensioners_tax_offset_never_rises_with_rebate_income() {
+    for year in ["2024-25", "2025-26", "2026-27"] {
+        for (status, base) in [
+            ("single", 2230),
+            ("illness_separated", 2040),
+            ("couple", 1602),
+        ] {
+            let mut previous = n(base);
+            for income in (20_000..62_000).step_by(7) {
+                let mut facts = json!({"rebate_income": income.to_string(), "status": status,
+                                       "year": year, "scope_confirmed": true});
+                if status != "single" {
+                    facts["spouse_rebate_income"] = json!("40000");
+                }
+                let result = run("seniors-pensioners-tax-offset", facts);
+                let offset = amount(&result, "seniors_pensioners_tax_offset");
+                assert!(le(&offset, &previous), "{year} {status} {income}");
+                previous = offset;
+            }
+            assert!(eq(&previous, &n(0)), "{year} {status} reaches nil");
+        }
     }
 }
 
