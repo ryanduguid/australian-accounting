@@ -326,6 +326,29 @@ fn a_missing_or_repeated_input_is_refused() {
         let r = refusal(input("2025-26", "50000", json!({"medicare-levy": levy})));
         assert_eq!(r.code, "input.field_unknown", "{key}");
     }
+    // A field a part does not take is refused, also by a part that alone
+    // ignores one, so a contradictory residency cannot hide inside a part.
+    for (part, given) in [
+        (
+            "study-loan-repayment",
+            json!({"repayment_income": "50000", "residency": "foreign_resident"}),
+        ),
+        (
+            "division-293",
+            json!({"division_293_income": "50000", "low_tax_contributions": "0",
+                "low_tax_contribution": "9000"}),
+        ),
+    ] {
+        let mut facts = input("2025-26", "50000", json!({}));
+        facts[part] = given;
+        let r = refusal(facts);
+        assert_eq!(r.code, "input.field_unknown", "{part}");
+        assert!(
+            r.message.ends_with(&format!("is not an input of {part}")),
+            "{}",
+            r.message
+        );
+    }
 }
 
 /// The parts describe one family: a spouse in each or in none, one spouse

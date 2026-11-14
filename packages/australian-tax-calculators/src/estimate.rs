@@ -6,7 +6,7 @@
 //! its own command through [`evaluate_coded`], unchanged, with its own scope,
 //! sources and warnings; this module only applies the offsets against basic
 //! income tax and adds the parts up.
-use crate::api::{Refusal, evaluate_coded};
+use crate::api::{Refusal, evaluate_coded, takes};
 use crate::decimal::{Decimal, Rounding, Signal};
 use serde_json::{Map, Value, json};
 
@@ -60,7 +60,7 @@ const NOT_FOR_FOREIGN: [(&str, &str, &str); 5] = [
     (
         SAPTO,
         "estimate.residency_unsupported",
-        "a foreign resident with a pension assessable in Australia pays resident rates, which foreign-resident-tax excludes, so the estimate composes the offset for a full-year resident only",
+        "a foreign resident with a pension assessable in Australia is not a prescribed non-resident (Income Tax Rates Act 1986 s 3(1)) and pays resident rates, which foreign-resident-tax excludes, so the estimate composes the offset for a full-year resident only",
     ),
     (
         "study-loan-repayment",
@@ -189,8 +189,9 @@ fn check_residency(v: &Value) -> Result<bool, Refusal> {
     ))
 }
 
-/// Refuse a field the composition does not take, and a shared input given
-/// again inside a part, before any part runs.
+/// Refuse a field the composition does not take, a shared input given again
+/// inside a part, and a field a part does not take, before any part runs:
+/// `study-loan-repayment` and `division-293` alone ignore an unknown field.
 fn check_fields(v: &Value) -> Result<(), Refusal> {
     let taken = |key: &str| {
         key == "residency"
@@ -219,6 +220,17 @@ fn check_fields(v: &Value) -> Result<(), Refusal> {
                 format!(
                     "{key} is not an input of {command} within {COMMAND}: it is given once, for every part"
                 ),
+            ));
+        }
+        if let Some(key) = input
+            .as_object()
+            .into_iter()
+            .flat_map(|o| o.keys())
+            .find(|k| !takes(command, k))
+        {
+            return Err(Refusal::new(
+                "input.field_unknown",
+                format!("{key} is not an input of {command}"),
             ));
         }
     }
@@ -355,10 +367,12 @@ fn run_parts(v: &Value, foreign: bool) -> Result<Map<String, Value>, Refusal> {
 
 /// A part's amount, or nil when the part was not composed.
 fn amount(results: &Map<String, Value>, command: &str, key: &str) -> Result<Decimal, Refusal> {
-    let text = results
-        .get(command)
-        .and_then(|r| r["amounts"][key].as_str())
-        .unwrap_or("0.00");
+    let Some(result) = results.get(command) else {
+        return Ok(Decimal::from_int(0));
+    };
+    let text = result["amounts"][key]
+        .as_str()
+        .expect("a composed part gives its amount");
     Decimal::parse(text).map_err(signal)
 }
 

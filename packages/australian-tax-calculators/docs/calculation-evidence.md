@@ -1278,7 +1278,8 @@ income. `study-loan-repayment` excludes the overseas levy, so the estimate
 refuses a study loan for a foreign resident. ITAA 1936 s 160AAAA sets no
 residence condition and the ATO's SAPTO page works out a foreign resident
 spouse's unused offset, but a foreign resident with a pension assessable here
-is not a prescribed non-resident and pays resident rates, which
+is not a prescribed non-resident (Income Tax Rates Act 1986 s 3(1)) and pays
+resident rates, which
 `foreign-resident-tax` excludes; the estimate composes SAPTO for a resident
 only. ITAA 1997 ss 293-15 and 293-20 set no residence condition, so Division
 293 tax is composed as for a resident. On the ATO's "Tax rates - foreign

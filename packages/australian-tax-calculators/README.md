@@ -663,8 +663,10 @@ exemption days beside the surcharge, whose scope excludes them, as
 (a spouse in one part but not another, 2 spouse taxable incomes, or dependants
 without a spouse, whom the surcharge worksheet excludes) as
 `estimate.family_mismatch`, and a shared input or `sapto_entitled` given inside
-a part as `input.field_unknown`. It does not compare the counts of dependent
-children the levy and the surcharge each take. `derive` does not explain it.
+a part, or a field the part does not take, as `input.field_unknown`. It does
+not compare the counts of dependent children the levy and the surcharge each
+take, which the law defines differently: the levy counts those covered by ITAA
+1997 s 961-5(1)(c), and the surcharge a person's dependants. `derive` does not explain it.
 The tests hold it to the ATO's figures for tax with the levy, the surcharge,
 SAPTO and the foreign resident rates, and to the sum of its parts called alone; see
 [calculation evidence](docs/calculation-evidence.md#personal-tax-estimate).

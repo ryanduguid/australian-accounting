@@ -611,6 +611,15 @@ fn int_limit(value: &Value) -> Result<()> {
 }
 
 /// Run one JSON stdin command: the result value, or the refusal message.
+/// Whether `command` takes the input `key`, required or optional.
+pub(crate) fn takes(command: &str, key: &str) -> bool {
+    let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
+    COMMAND_ARGS
+        .iter()
+        .any(|(c, params)| *c == command && params.iter().any(|(p, _)| *p == key))
+        || optional.iter().any(|(o, _)| *o == key)
+}
+
 pub fn evaluate(command: &str, v: &Value) -> std::result::Result<Value, String> {
     evaluate_coded(command, v).map_err(|refusal| refusal.message)
 }
@@ -669,15 +678,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "seniors-pensioners-withholding"
             | "seniors-pensioners-tax-offset"
     ) {
-        let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
-        let taken = |key: &String| {
-            params.iter().any(|(p, _)| p == key) || optional.iter().any(|(o, _)| o == key)
-        };
         if let Some(key) = v
             .as_object()
             .into_iter()
             .flat_map(|o| o.keys())
-            .find(|k| !taken(k))
+            .find(|k| !takes(command, k))
         {
             return refusal(
                 "input.field_unknown",
