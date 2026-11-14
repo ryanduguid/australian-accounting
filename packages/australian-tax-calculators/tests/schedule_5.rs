@@ -127,9 +127,8 @@ fn jarrod_method_a_gives_the_ato_example_1() {
 }
 
 /// The 2024 and 2025 schedules work Jarrod on the 1 July 2024 Schedule 1:
-/// $272, $17, $277, $5 x 52 = $260. The HELP part is refused rather than
-/// worked: this crate has no Schedule 8 for 2024-25, and 2025-26's applies from
-/// 24 September 2025 only, a date Schedule 5's methods do not take.
+/// $272, $17, $277, $5 x 52 = $260. The HELP part is refused for 2024-25, which
+/// has no Schedule 8 in this crate, and for a 2025-26 pay without its date.
 #[test]
 fn jarrod_method_a_gives_the_earlier_schedules_payg_figures() {
     for year in ["2024-25", "2025-26"] {
@@ -142,18 +141,138 @@ fn jarrod_method_a_gives_the_earlier_schedules_payg_figures() {
             "{year}"
         );
         let refused = api::evaluate_coded(A, &with(jarrod, study_loan())).unwrap_err();
-        assert_eq!(refused.code, "period.unsupported");
         // The year is one the worksheet supports, so the message names the study loan.
-        let reason = if year == "2025-26" {
-            "2025-26's Schedule 8 component applies to payments made on or after 2025-09-24, and these methods take no pay date".to_string()
+        let (code, message) = if year == "2025-26" {
+            (
+                "input.missing_field",
+                "pay_date is required for 2025-26: its Schedule 8 coefficients apply to payments made on or after 2025-09-24.",
+            )
         } else {
-            format!("there is no Schedule 8 study and training support loan component for {year}")
+            (
+                "period.unsupported",
+                "study_loan is supported for 2025-26, 2026-27 only: there is no Schedule 8 study and training support loan component for 2024-25.",
+            )
         };
-        assert_eq!(
-            refused.message,
-            format!("study_loan is supported for 2026-27 only: {reason}.")
-        );
+        assert_eq!((refused.code, refused.message.as_str()), (code, message));
     }
+}
+
+fn dated_study_loan(pay_date: &str) -> Value {
+    json!({"study_loan": true, "pay_date": pay_date})
+}
+
+/// Each method's study loan part for a 2025-26 pay, worked by hand from the
+/// 1 July 2024 Schedule 1 and F2025L01016's Schedule 8, as the 2025 schedule
+/// has no study loan example on its Schedule 1. Jarrod: $1,400 gives $272 + $17
+/// = $289; $1,417 gives $277 + $19 = $296; $7 x 52 = $364 under the $423 limit.
+#[test]
+fn method_a_works_a_2025_26_study_loan_with_its_pay_date() {
+    let jarrod = method_a("2025-26", "1400.00", "900.00", 52, "weekly");
+    for pay_date in ["2025-09-24", "2026-06-30"] {
+        let pay = run(A, &with(jarrod.clone(), dated_study_loan(pay_date)));
+        assert_eq!(
+            amounts(&pay, A_KEYS),
+            [
+                "1400.00", "289.00", "17.00", "296.00", "364.00", "423.00", "364.00", "653.00"
+            ],
+            "{pay_date}"
+        );
+        assert_eq!(pay["rates"]["study_loan"], "true");
+    }
+}
+
+/// Worked by hand, as for Jarrod, on pays above the 2025-26 component's start.
+/// B(i): $1,600 a week for 8 periods with $383 withheld each, then $1,700, and
+/// $100 back pay for each period. Each period recalculated at $1,700 is $430,
+/// so $47 x 8 = $376; $430 on the current pay. B(ii): $3,000 a fortnight,
+/// $30,000 over 10 pays, $2,480 of arrears. $3,000 gives $672, $3,095 gives
+/// $716, so $44 x 26 = $1,144 under the $1,165.60 limit.
+#[test]
+fn methods_b_i_and_b_ii_work_a_2025_26_study_loan_with_its_pay_date() {
+    let robyn = method_b_i(
+        "2025-26",
+        "1700.00",
+        ["1600.00", "100.00", "383.00"],
+        8,
+        "weekly",
+    );
+    let robyn = run(B_I, &with(robyn, dated_study_loan("2025-09-24")));
+    assert_eq!(
+        amounts(&robyn, B_I_KEYS),
+        ["800.00", "376.00", "430.00", "806.00"]
+    );
+    let laura = method_b_ii(
+        "2025-26",
+        "3000.00",
+        "2480.00",
+        ("30000.00", 10),
+        "fortnightly",
+    );
+    let laura = run(B_II, &with(laura, dated_study_loan("2026-01-15")));
+    assert_eq!(
+        amounts(&laura, B_II_KEYS),
+        [
+            "3000.00", "672.00", "95.00", "716.00", "1144.00", "1165.60", "1144.00", "672.00",
+            "1816.00"
+        ]
+    );
+}
+
+/// The pay date follows study-loan-withholding's rules, and is refused
+/// without a study loan, where it selects nothing.
+#[test]
+fn schedule_5_refuses_a_pay_date_it_cannot_use() {
+    let facts = [
+        (A, method_a("2025-26", "1400.00", "900.00", 52, "weekly")),
+        (
+            B_I,
+            method_b_i(
+                "2025-26",
+                "1700.00",
+                ["1600.00", "100.00", "383.00"],
+                8,
+                "weekly",
+            ),
+        ),
+        (
+            B_II,
+            method_b_ii(
+                "2025-26",
+                "3000.00",
+                "2480.00",
+                ("30000.00", 10),
+                "fortnightly",
+            ),
+        ),
+    ];
+    for (command, facts) in facts {
+        for (overrides, code) in [
+            (
+                dated_study_loan("2025-09-23"),
+                "payg.pay_date_before_schedule",
+            ),
+            (dated_study_loan("2026-07-01"), "payg.pay_date_outside_year"),
+            (dated_study_loan("2025-9-24"), "input.date_invalid"),
+            (study_loan(), "input.missing_field"),
+            (
+                json!({"study_loan": false, "pay_date": "2025-09-24"}),
+                "payg.pay_date_without_study_loan",
+            ),
+        ] {
+            assert_eq!(
+                refusal(command, &with(facts.clone(), overrides.clone())),
+                code,
+                "{command} {overrides}"
+            );
+        }
+        run(command, &facts);
+    }
+    // 2026-27's coefficients apply from 1 July, so its pay date stays optional.
+    let jarrod = method_a("2026-27", "1400.00", "900.00", 52, "weekly");
+    assert_eq!(
+        run(A, &with(jarrod.clone(), dated_study_loan("2026-07-01"))),
+        run(A, &with(jarrod, study_loan()))
+    );
 }
 
 /// Example 2 (Robyn, 2026): $1,600 a week for pay periods 1 to 8, then $1,700;
@@ -654,8 +773,12 @@ fn every_method_refuses_what_it_does_not_cover() {
             (json!({"study_loan": "yes"}), "input.flag_invalid"),
             (json!({"earnings": "1400.001"}), "input.amount_invalid"),
             (
-                json!({"study_loan": true, "year": "2025-26"}),
+                json!({"study_loan": true, "year": "2024-25"}),
                 "period.unsupported",
+            ),
+            (
+                json!({"study_loan": true, "year": "2025-26"}),
+                "input.missing_field",
             ),
             // A field the method does not take is refused, never ignored.
             (json!({"back_payment": "100.00"}), "input.field_unknown"),

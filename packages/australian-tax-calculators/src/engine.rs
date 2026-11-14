@@ -743,7 +743,8 @@ fn payg_rows(year: &str, scale: i64) -> Option<&'static [CoefficientRow]> {
 }
 
 /// `_payg_checks`: scope, earnings, pay period and scale, in that order. Only
-/// `payg_withholding` takes quarterly pays and scale 4.
+/// `payg_withholding` takes scale 4, and only it and `study_loan_withholding`
+/// quarterly pays, which Schedules 1 and 8 cover and Schedule 5 does not.
 fn payg_checks(
     kind: &str,
     earnings: &Arg,
@@ -755,13 +756,14 @@ fn payg_checks(
     let year = scope(scope_confirmed, year, kind)?;
     let earnings = money(earnings)?;
     let schedule_1 = kind == "payg_withholding";
+    let quarterly = schedule_1 || kind == "study_loan_withholding";
     let period = match pay_period.text() {
         Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
-        Some("quarterly") if schedule_1 => "quarterly".to_string(),
+        Some("quarterly") if quarterly => "quarterly".to_string(),
         _ => {
             return refuse(
                 "input.pay_period_invalid",
-                if schedule_1 {
+                if quarterly {
                     "pay_period must be weekly, fortnightly, monthly or quarterly."
                 } else {
                     "pay_period must be weekly, fortnightly or monthly."
@@ -2572,6 +2574,8 @@ struct AdditionalPay {
     period: String,
     scale: i64,
     study_loan: bool,
+    /// The pay date, given only with a study loan, for its Schedule 8 component.
+    pay_date: Option<Arg>,
     /// Pay periods in a financial year: 52, 26 or 12, with no adjustment for a
     /// year of 53 weekly or 27 fortnightly pays.
     per_year: i64,
@@ -2579,41 +2583,32 @@ struct AdditionalPay {
     most_pays: i64,
 }
 
-/// Schedule 5's methods take no pay date, so the study loan component is
-/// available only for a year whose Schedule 8 coefficients apply from 1 July.
-fn schedule_5_study_loan_year(year: &str) -> Result<()> {
-    let from = meta::STUDY_LOAN_WITHHOLDING_FROM;
-    let whole_years: Vec<&str> = from
-        .iter()
-        .filter(|(y, start)| *start == format!("{}-07-01", &y[..4]))
-        .map(|(y, _)| *y)
-        .collect();
-    if whole_years.contains(&year) {
-        return Ok(());
+/// A study loan component needs a year with Schedule 8 coefficients and the
+/// pay date `study_loan_withholding` requires for it: 2025-26's apply to
+/// payments made from 24 September 2025.
+fn schedule_5_study_loan(year: &str, pay_date: Option<&Arg>) -> Result<()> {
+    let years = meta::supported_periods("study_loan_withholding");
+    if !years.contains(&year) {
+        return refuse(
+            "period.unsupported",
+            format!(
+                "study_loan is supported for {} only: there is no Schedule 8 study and training support loan component for {year}.",
+                years.join(", ")
+            ),
+        );
     }
-    let reason = match from.iter().find(|(y, _)| *y == year) {
-        Some((_, start)) => format!(
-            "{year}'s Schedule 8 component applies to payments made on or after {start}, and these methods take no pay date"
-        ),
-        None => {
-            format!("there is no Schedule 8 study and training support loan component for {year}")
-        }
-    };
-    refuse(
-        "period.unsupported",
-        format!(
-            "study_loan is supported for {} only: {reason}.",
-            whole_years.join(", ")
-        ),
-    )
+    schedule_8_pay_date(pay_date, year)
 }
+
+/// The study loan flag and the pay date, which is given only with it.
+pub type StudyLoan<'a> = (&'a Arg, Option<&'a Arg>);
 
 fn additional_pay(
     kind: &'static str,
     earnings: &Arg,
     pay_period: &Arg,
     scale: &Arg,
-    study_loan: &Arg,
+    (study_loan, pay_date): StudyLoan,
     year: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<AdditionalPay> {
@@ -2621,7 +2616,12 @@ fn additional_pay(
         payg_checks(kind, earnings, pay_period, scale, year, scope_confirmed)?;
     let study_loan = flag(study_loan, "study_loan")?;
     if study_loan {
-        schedule_5_study_loan_year(&year)?;
+        schedule_5_study_loan(&year, pay_date)?;
+    } else if pay_date.is_some() {
+        return refuse(
+            "payg.pay_date_without_study_loan",
+            "pay_date selects the Schedule 8 study and training support loan component; give it only with study_loan true.",
+        );
     }
     let (per_year, most_pays) = match period.as_str() {
         "weekly" => (52, 53),
@@ -2635,6 +2635,7 @@ fn additional_pay(
         period,
         scale,
         study_loan,
+        pay_date: pay_date.cloned(),
         per_year,
         most_pays,
     })
@@ -2655,7 +2656,7 @@ impl AdditionalPay {
         ];
         let [e, p, s, y, c] = &args;
         let out = if self.study_loan {
-            study_loan_withholding(e, p, s, y, c, None)?
+            study_loan_withholding(e, p, s, y, c, self.pay_date.as_ref())?
         } else {
             payg_withholding(e, p, s, y, c, &PaygOptions::default())?
         };
@@ -2745,7 +2746,7 @@ pub fn schedule_5_method_a(
     pay_periods: &Arg,
     pay_period: &Arg,
     scale: &Arg,
-    study_loan: &Arg,
+    study_loan: StudyLoan,
     year: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<Value> {
@@ -2852,7 +2853,7 @@ pub fn schedule_5_method_b_i(
     back_payments: &Arg,
     pay_period: &Arg,
     scale: &Arg,
-    study_loan: &Arg,
+    study_loan: StudyLoan,
     year: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<Value> {
@@ -2924,7 +2925,7 @@ pub fn schedule_5_method_b_ii(
     to_date: [&Arg; 4],
     pay_period: &Arg,
     scale: &Arg,
-    study_loan: &Arg,
+    study_loan: StudyLoan,
     year: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<Value> {
