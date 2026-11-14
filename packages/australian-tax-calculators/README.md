@@ -3,7 +3,7 @@
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet and a Medicare levy surcharge worksheet that no Python release contains. Python releases through 0.1.9
+worksheets, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet and a foreign resident tax worksheet that no Python release contains. Python releases through 0.1.9
 contain 10 worksheets. Until the MCP server links this crate,
 it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
@@ -17,8 +17,8 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Twenty-seven calculation worksheets for established facts: ordinary GST, resident basic income
-tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, ordinary employer FBT, car fringe benefit taxable values
+Twenty-eight calculation worksheets for established facts: ordinary GST, resident and foreign
+resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, depreciation in the start year and later years,
 quarterly super guarantee, Schedule 1 PAYG withholding, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
@@ -90,6 +90,7 @@ lists the commands.
 | --- | --- |
 | `gst` | `amount`, `gst_inclusive`, `scope_confirmed`, `year` |
 | `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
+| `foreign-resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
 | `main-residence` | `capital_gain`, `capital_loss`, `market_value_basis`, `ownership_start`, `ownership_end`, `lived_periods`, `income_use_periods`, `absence_choice_periods`, `new_home_acquired`, `year`, `scope_confirmed` |
 | `borrowing-expenses` | `borrowing_expenses`, `other_borrowing_expenses_in_year`, `income_use`, `loan_start`, `loan_term_end`, `repaid_on`, `section_26_50_applies`, `year`, `scope_confirmed` |
@@ -120,7 +121,7 @@ lists the commands.
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income`, `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory` and `fbt-car-operating-cost`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset` and `medicare-levy-surcharge` have no Python original; their arguments follow the same
+The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge` and `foreign-resident-tax` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -159,6 +160,7 @@ The plain commands' output does not change.
 | --- | --- |
 | GST | 2025-26 and 2026-27, one ordinary taxable supply at 10%; no classification or BAS |
 | Resident tax | 2024-25, 2025-26 and 2026-27; full-year resident ordinary income, before offsets and levies |
+| Foreign resident tax | 2024-25, 2025-26 and 2026-27; full-year foreign resident ordinary income, no tax-free threshold; no Medicare levy or low income tax offset applies |
 | CGT | 2025-26 and 2026-27, resident individual's established gains and losses; losses before the 50% discount |
 | Main residence | CGT events in 2024-25 to 2026-27; one dwelling disposed of by a resident individual, before the discount |
 | Borrowing expenses | 2024-25 to 2026-27, before s 26-155 from 2027-28; one loan's established expenditure, use and dates |
@@ -186,6 +188,20 @@ Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
 liability. SMSF fund tax, Division 296 fund earnings and their attribution, the transfer balance cap, trusts and payroll
 tax remain outside these worksheets.
+
+## Foreign resident tax
+
+`foreign_resident_tax` applies Schedule 7 Part II of the Income Tax Rates Act
+1986 to a person who was a foreign resident for the whole income year: 30% to
+$135,000, 37% to $190,000 and 45% above, with no tax-free threshold. It covers
+2024-25 to 2026-27. The ATO publishes the 2024-25 and 2025-26 tables; 2026-27
+takes the same rates from the Act, which ties them to that year's second and
+third resident rates, and its result says the ATO had not yet published them.
+2027-28 is refused, as `resident-tax` refuses it. A foreign resident
+pays no Medicare levy and is not entitled to the low income tax offset, so the
+result is basic tax only and its scope says why. Like `division-296`, it
+refuses a field it does not take. See
+[calculation evidence](docs/calculation-evidence.md#foreign-resident-tax).
 
 ## PAYG withholding
 
