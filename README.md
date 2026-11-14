@@ -29,7 +29,7 @@
 </div>
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
 ```
 
 That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. For Claude Desktop, download the `.mcpb` file from the [bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true) and open it with Claude Desktop. The server runs on your machine, so ChatGPT connectors and the Claude.ai web app, which accept only remote servers, cannot run it. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
@@ -62,7 +62,7 @@ Missing facts stay unknown: a Payday Super row with a fund-receipt date but no m
   11 August 2026, because NT Picnic Day on 3 August is not a business day. The
   [ATO's worked example](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super)
   gives the same date on the usual 7 business day path. Run and read 5 November 2026.
-- **MCP tools.** Aus Accounting MCP 0.8.0, the published release, listed 25 local tools on
+- **MCP tools.** Aus Accounting MCP 0.8.0 listed 25 local tools on
   12 November 2026, including `validate_abn`, `validate_acn` and `get_reviewed_rate`; 0.7.1
   listed 22. 0.8.0 also adds the `doctor` command.
 
@@ -144,7 +144,7 @@ For the MCP server, install Python 3.14+ and [uv](https://docs.astral.sh/uv/), t
 configure your MCP client to run:
 
 ```bash
-uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
 ```
 
 This starts a **local stdio server**; it waits for an MCP client rather than opening
@@ -153,7 +153,7 @@ the tools then use bundled data without network requests or record writes. The
 MCP host you connect it to is a separate boundary: it sends every tool argument
 and result to its model provider, so use fabricated data with a hosted model.
 
-The pin selects the published 0.8.0 release, so a new release does not reach you on
+The pin selects the published 0.9.0 release, so a new release does not reach you on
 its own. To move to a later release, replace the version in your client configuration
 with one from [PyPI](https://pypi.org/project/aus-accounting-mcp/);
 uvx downloads it, and later launches reuse the cached copy without a download until
