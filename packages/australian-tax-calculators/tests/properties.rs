@@ -974,7 +974,9 @@ fn schedule_5_withholding_stays_within_the_47_percent_limit() {
             let result = run(command, facts.clone());
             let extra = amount(&result, "withholding_on_additional_payment");
             assert!(le(&extra, &limit), "{command} {facts}");
-            let total = amount(&result, "withholding_on_earnings").add(&extra).unwrap();
+            let total = amount(&result, "withholding_on_earnings")
+                .add(&extra)
+                .unwrap();
             assert!(
                 eq(&amount(&result, "withholding"), &total),
                 "{command} {facts}"

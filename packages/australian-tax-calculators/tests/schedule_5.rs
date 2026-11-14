@@ -22,7 +22,8 @@ fn method_a(year: &str, earnings: &str, additional: &str, periods: i64, pay: &st
 /// `count` earlier pay periods, each with the same earnings, back payment and amount withheld.
 fn method_b_i(year: &str, earnings: &str, period: [&str; 3], count: usize, pay: &str) -> Value {
     let [paid, back, withheld] = period;
-    let periods = vec![json!({"earnings": paid, "back_payment": back, "withheld": withheld}); count];
+    let periods =
+        vec![json!({"earnings": paid, "back_payment": back, "withheld": withheld}); count];
     json!({
         "earnings": earnings, "back_payment_periods": periods, "pay_period": pay, "scale": 2,
         "study_loan": false, "year": year, "scope_confirmed": true,
@@ -31,7 +32,13 @@ fn method_b_i(year: &str, earnings: &str, period: [&str; 3], count: usize, pay: 
 
 /// Earnings, the additional payment, earnings to date and pay periods to date,
 /// with no earlier Method B(ii) payments.
-fn method_b_ii(year: &str, earnings: &str, additional: &str, to_date: (&str, i64), pay: &str) -> Value {
+fn method_b_ii(
+    year: &str,
+    earnings: &str,
+    additional: &str,
+    to_date: (&str, i64),
+    pay: &str,
+) -> Value {
     json!({
         "earnings": earnings, "additional_payment": additional,
         "year_to_date_earnings": to_date.0, "pay_periods_to_date": to_date.1,
@@ -103,12 +110,16 @@ fn jarrod_method_a_gives_the_ato_example_1() {
     let jarrod = method_a("2026-27", "1400.00", "900.00", 52, "weekly");
     assert_eq!(
         amounts(&run(A, &jarrod), A_KEYS),
-        ["1400.00", "267.00", "17.00", "272.00", "260.00", "423.00", "260.00", "527.00"]
+        [
+            "1400.00", "267.00", "17.00", "272.00", "260.00", "423.00", "260.00", "527.00"
+        ]
     );
     let with_help = run(A, &with(jarrod, study_loan()));
     assert_eq!(
         amounts(&with_help, A_KEYS),
-        ["1400.00", "277.00", "17.00", "284.00", "364.00", "423.00", "364.00", "641.00"]
+        [
+            "1400.00", "277.00", "17.00", "284.00", "364.00", "423.00", "364.00", "641.00"
+        ]
     );
     assert_eq!(with_help["period"], "2026-27 weekly");
     assert_eq!(with_help["rates"]["limit_rate"], "0.47");
@@ -124,10 +135,15 @@ fn jarrod_method_a_gives_the_earlier_schedules_payg_figures() {
         let jarrod = method_a(year, "1400.00", "900.00", 52, "weekly");
         assert_eq!(
             amounts(&run(A, &jarrod), A_KEYS),
-            ["1400.00", "272.00", "17.00", "277.00", "260.00", "423.00", "260.00", "532.00"],
+            [
+                "1400.00", "272.00", "17.00", "277.00", "260.00", "423.00", "260.00", "532.00"
+            ],
             "{year}"
         );
-        assert_eq!(refusal(A, &with(jarrod, study_loan())), "period.unsupported");
+        assert_eq!(
+            refusal(A, &with(jarrod, study_loan())),
+            "period.unsupported"
+        );
     }
 }
 
@@ -136,13 +152,25 @@ fn jarrod_method_a_gives_the_earlier_schedules_payg_figures() {
 /// $363 on the current pay, $619. HELP: $55 less $40 = $15 x 8 = $120; $794 in all.
 #[test]
 fn robyn_method_b_i_gives_the_ato_example_2() {
-    let payg = method_b_i("2026-27", "1700.00", ["1600.00", "100.00", "331.00"], 8, "weekly");
+    let payg = method_b_i(
+        "2026-27",
+        "1700.00",
+        ["1600.00", "100.00", "331.00"],
+        8,
+        "weekly",
+    );
     assert_eq!(
         amounts(&run(B_I, &payg), B_I_KEYS),
         ["800.00", "256.00", "363.00", "619.00"]
     );
     // With HELP, each period had $331 + $40 withheld.
-    let help = method_b_i("2026-27", "1700.00", ["1600.00", "100.00", "371.00"], 8, "weekly");
+    let help = method_b_i(
+        "2026-27",
+        "1700.00",
+        ["1600.00", "100.00", "371.00"],
+        8,
+        "weekly",
+    );
     let help = run(B_I, &with(help, study_loan()));
     assert_eq!(
         amounts(&help, B_I_KEYS),
@@ -156,7 +184,13 @@ fn robyn_method_b_i_gives_the_ato_example_2() {
 #[test]
 fn robyn_method_b_i_gives_the_earlier_schedules_payg_figures() {
     for year in ["2024-25", "2025-26"] {
-        let robyn = method_b_i(year, "1200.00", ["1100.00", "100.00", "175.00"], 8, "weekly");
+        let robyn = method_b_i(
+            year,
+            "1200.00",
+            ["1100.00", "100.00", "175.00"],
+            8,
+            "weekly",
+        );
         assert_eq!(
             amounts(&run(B_I, &robyn), B_I_KEYS),
             ["800.00", "264.00", "208.00", "472.00"],
@@ -199,7 +233,13 @@ fn laura_method_b_ii_gives_the_ato_example_3() {
 /// Limit $4,136; earnings $1,452 + $182; $6,492 in all.
 #[test]
 fn bradley_methods_b_i_and_b_ii_give_the_ato_example_4() {
-    let back = method_b_i("2026-27", "7000.00", ["6200.00", "800.00", "1196.00"], 2, "monthly");
+    let back = method_b_i(
+        "2026-27",
+        "7000.00",
+        ["6200.00", "800.00", "1196.00"],
+        2,
+        "monthly",
+    );
     let prior = method_b_ii("2026-27", "7000.00", "8800.00", ("21000.00", 3), "monthly");
     assert_eq!(
         amounts(&run(B_I, &back), B_I_KEYS),
@@ -207,11 +247,20 @@ fn bradley_methods_b_i_and_b_ii_give_the_ato_example_4() {
     );
     let payg = run(B_II, &prior);
     assert_eq!(payg["amounts"]["withholding_for_the_year"], "2808.00");
-    assert_eq!(payg["amounts"]["withholding_on_additional_payment"], "2808.00");
+    assert_eq!(
+        payg["amounts"]["withholding_on_additional_payment"],
+        "2808.00"
+    );
 
     // With FS, each earlier period had $1,196 + $61 withheld.
     let back = with(
-        method_b_i("2026-27", "7000.00", ["6200.00", "800.00", "1257.00"], 2, "monthly"),
+        method_b_i(
+            "2026-27",
+            "7000.00",
+            ["6200.00", "800.00", "1257.00"],
+            2,
+            "monthly",
+        ),
         study_loan(),
     );
     let back = run(B_I, &back);
@@ -228,8 +277,14 @@ fn bradley_methods_b_i_and_b_ii_give_the_ato_example_4() {
         ]
     );
     // Both methods in one pay count the earnings' amount once.
-    let [earnings, on_back] = ["withholding_on_earnings", "withholding_on_back_payment"]
-        .map(|key| back["amounts"][key].as_str().unwrap().parse::<f64>().unwrap());
+    let [earnings, on_back] =
+        ["withholding_on_earnings", "withholding_on_back_payment"].map(|key| {
+            back["amounts"][key]
+                .as_str()
+                .unwrap()
+                .parse::<f64>()
+                .unwrap()
+        });
     let on_prior = prior["amounts"]["withholding_on_additional_payment"]
         .as_str()
         .unwrap()
@@ -244,7 +299,13 @@ fn bradley_methods_b_i_and_b_ii_give_the_ato_example_4() {
 #[test]
 fn bradley_gives_the_earlier_schedules_payg_figures() {
     for year in ["2024-25", "2025-26"] {
-        let back = method_b_i(year, "5400.00", ["4600.00", "800.00", "706.00"], 2, "monthly");
+        let back = method_b_i(
+            year,
+            "5400.00",
+            ["4600.00", "800.00", "706.00"],
+            2,
+            "monthly",
+        );
         assert_eq!(
             amounts(&run(B_I, &back), B_I_KEYS),
             ["1600.00", "512.00", "962.00", "1474.00"],
@@ -253,7 +314,13 @@ fn bradley_gives_the_earlier_schedules_payg_figures() {
         let prior = method_b_ii(year, "5400.00", "8800.00", ("16200.00", 3), "monthly");
         let prior = run(B_II, &prior);
         assert_eq!(
-            amounts(&prior, ["withholding_on_average_and_share", "withholding_for_the_year"]),
+            amounts(
+                &prior,
+                [
+                    "withholding_on_average_and_share",
+                    "withholding_for_the_year"
+                ]
+            ),
             ["1200.00", "2856.00"],
             "{year}"
         );
@@ -299,7 +366,9 @@ fn method_a_spreads_over_the_pay_periods_given_from_2_to_a_year() {
     let pay = run(A, &method_a("2026-27", "1400.00", "400.00", 4, "weekly"));
     assert_eq!(
         amounts(&pay, A_KEYS),
-        ["1400.00", "267.00", "100.00", "299.00", "128.00", "188.00", "128.00", "395.00"]
+        [
+            "1400.00", "267.00", "100.00", "299.00", "128.00", "188.00", "128.00", "395.00"
+        ]
     );
     assert_eq!(pay["rates"]["pay_periods"], "4");
     for (periods, pay, accepted) in [
@@ -321,7 +390,11 @@ fn method_a_spreads_over_the_pay_periods_given_from_2_to_a_year() {
         if accepted {
             run(A, &facts);
         } else {
-            assert_eq!(refusal(A, &facts), "input.pay_periods_invalid", "{periods} {pay}");
+            assert_eq!(
+                refusal(A, &facts),
+                "input.pay_periods_invalid",
+                "{periods} {pay}"
+            );
         }
     }
 }
@@ -337,7 +410,9 @@ fn the_47_percent_limit_binds_with_cents_ignored() {
     );
     assert_eq!(
         amounts(&run(A, &pay), A_KEYS),
-        ["4000.00", "1625.00", "100.00", "1682.00", "2964.00", "2444.47", "2444.00", "4069.00"]
+        [
+            "4000.00", "1625.00", "100.00", "1682.00", "2964.00", "2444.47", "2444.00", "4069.00"
+        ]
     );
     let average = with(
         method_b_ii("2026-27", "4000.00", "5200.99", ("40000.00", 10), "weekly"),
@@ -346,7 +421,11 @@ fn the_47_percent_limit_binds_with_cents_ignored() {
     assert_eq!(
         amounts(
             &run(B_II, &average),
-            ["withholding_for_the_year", "withholding_limit", "withholding_on_additional_payment"]
+            [
+                "withholding_for_the_year",
+                "withholding_limit",
+                "withholding_on_additional_payment"
+            ]
         ),
         ["2964.00", "2444.47", "2444.00"]
     );
@@ -357,13 +436,25 @@ fn the_47_percent_limit_binds_with_cents_ignored() {
 #[test]
 fn method_b_i_takes_a_negative_total_as_nil() {
     // $1,600 a week gives $331; $400 was withheld, and the back payment is nil.
-    let over = method_b_i("2026-27", "1700.00", ["1600.00", "0.00", "400.00"], 1, "weekly");
+    let over = method_b_i(
+        "2026-27",
+        "1700.00",
+        ["1600.00", "0.00", "400.00"],
+        1,
+        "weekly",
+    );
     assert_eq!(
         amounts(&run(B_I, &over), B_I_KEYS),
         ["0.00", "0.00", "363.00", "363.00"]
     );
     // Periods net: $32 owed on one, $69 over on the other, so nil.
-    let mut netted = method_b_i("2026-27", "1700.00", ["1600.00", "100.00", "331.00"], 1, "weekly");
+    let mut netted = method_b_i(
+        "2026-27",
+        "1700.00",
+        ["1600.00", "100.00", "331.00"],
+        1,
+        "weekly",
+    );
     netted["back_payment_periods"]
         .as_array_mut()
         .unwrap()
@@ -411,9 +502,19 @@ fn method_b_i_refuses_a_malformed_list_of_periods() {
             method_b_i("2026-27", "1700.00", period, 1, "weekly"),
             json!({"back_payment_periods": periods}),
         );
-        assert_eq!(refusal(B_I, &facts), "input.back_payment_periods_invalid", "{periods}");
+        assert_eq!(
+            refusal(B_I, &facts),
+            "input.back_payment_periods_invalid",
+            "{periods}"
+        );
     }
-    let negative = method_b_i("2026-27", "1700.00", ["1600.00", "-100.00", "331.00"], 1, "weekly");
+    let negative = method_b_i(
+        "2026-27",
+        "1700.00",
+        ["1600.00", "-100.00", "331.00"],
+        1,
+        "weekly",
+    );
     assert_eq!(refusal(B_I, &negative), "input.amount_invalid");
 }
 
@@ -421,7 +522,13 @@ fn method_b_i_refuses_a_malformed_list_of_periods() {
 #[test]
 fn method_b_ii_ignores_the_cents_of_the_average() {
     let average = |to_date| {
-        let pay = method_b_ii("2026-27", "1800.00", "2480.00", (to_date, 10), "fortnightly");
+        let pay = method_b_ii(
+            "2026-27",
+            "1800.00",
+            "2480.00",
+            (to_date, 10),
+            "fortnightly",
+        );
         run(B_II, &pay)["amounts"]["average_total_earnings"].clone()
     };
     assert_eq!(average("18009.99"), "1800.00");
@@ -434,7 +541,13 @@ fn method_b_ii_ignores_the_cents_of_the_average() {
 /// withheld before. More withheld before than that gives nil.
 #[test]
 fn method_b_ii_counts_earlier_payments_and_their_withholding() {
-    let laura = method_b_ii("2026-27", "1800.00", "2480.00", ("18000.00", 10), "fortnightly");
+    let laura = method_b_ii(
+        "2026-27",
+        "1800.00",
+        "2480.00",
+        ("18000.00", 10),
+        "fortnightly",
+    );
     let again = with(
         laura.clone(),
         json!({"earlier_additional_payments": "2480.00", "earlier_additional_withholding": "780.00"}),
@@ -471,7 +584,11 @@ fn method_b_ii_takes_pay_periods_to_date_up_to_a_years_pays() {
         if accepted {
             run(B_II, &facts);
         } else {
-            assert_eq!(refusal(B_II, &facts), "input.pay_periods_invalid", "{pays} {pay}");
+            assert_eq!(
+                refusal(B_II, &facts),
+                "input.pay_periods_invalid",
+                "{pays} {pay}"
+            );
         }
     }
 }
@@ -482,11 +599,23 @@ fn every_method_refuses_what_it_does_not_cover() {
         (A, method_a("2026-27", "1400.00", "900.00", 52, "weekly")),
         (
             B_I,
-            method_b_i("2026-27", "1700.00", ["1600.00", "100.00", "331.00"], 8, "weekly"),
+            method_b_i(
+                "2026-27",
+                "1700.00",
+                ["1600.00", "100.00", "331.00"],
+                8,
+                "weekly",
+            ),
         ),
         (
             B_II,
-            method_b_ii("2026-27", "1800.00", "2480.00", ("18000.00", 10), "fortnightly"),
+            method_b_ii(
+                "2026-27",
+                "1800.00",
+                "2480.00",
+                ("18000.00", 10),
+                "fortnightly",
+            ),
         ),
     ];
     for (command, facts) in cases {
@@ -495,10 +624,16 @@ fn every_method_refuses_what_it_does_not_cover() {
             (json!({"year": "2027-28"}), "period.unsupported"),
             (json!({"year": "2023-24"}), "period.unsupported"),
             (json!({"scale": 4}), "input.tax_scale_unsupported"),
-            (json!({"pay_period": "quarterly"}), "input.pay_period_invalid"),
+            (
+                json!({"pay_period": "quarterly"}),
+                "input.pay_period_invalid",
+            ),
             (json!({"study_loan": "yes"}), "input.flag_invalid"),
             (json!({"earnings": "1400.001"}), "input.amount_invalid"),
-            (json!({"study_loan": true, "year": "2025-26"}), "period.unsupported"),
+            (
+                json!({"study_loan": true, "year": "2025-26"}),
+                "period.unsupported",
+            ),
         ] {
             assert_eq!(
                 refusal(command, &with(facts.clone(), overrides.clone())),
@@ -521,7 +656,11 @@ fn the_catalogue_examples_are_the_ato_examples() {
         let entry = &catalogue[kind];
         let mut facts = entry["example"]["facts"].clone();
         facts.as_object_mut().unwrap().remove("kind");
-        assert_eq!(run(command, &facts)["amounts"]["withholding"], total, "{kind}");
+        assert_eq!(
+            run(command, &facts)["amounts"]["withholding"],
+            total,
+            "{kind}"
+        );
         let periods = entry["supported_periods"].as_array().unwrap();
         let ids: Vec<&str> = periods.iter().map(|p| p["id"].as_str().unwrap()).collect();
         assert_eq!(ids, ["2024-25", "2025-26", "2026-27"], "{kind}");
