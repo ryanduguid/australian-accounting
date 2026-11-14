@@ -1,0 +1,16 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "Australian Accounting",
+  "description": "Australian accounting engines, sourced tax worksheets and local MCP and command-line adapters. Independently versioned components with explicit scope, supported years, warnings and refusal codes.",
+  "folders": ["docs", "packages", "apps/aus-accounting-mcp", "apps/au-accounting"],
+  "rules": [
+    "Select the component and its documented interface first. Components have independent versions and releases; repository main is not proof that a capability is in an installed distribution.",
+    "For a regular pay, use the PAYG withholding worksheet for the employee's pay period and scale. Do not apply annual tax brackets to a single pay or treat annual assessed tax as withholding.",
+    "Supply explicit supported years and all required scope confirmations. When an interface supports pay dates, preserve its date/year consistency checks and within-year rule selection. Never infer support for a future year.",
+    "Use decimal strings for money and ratios at the native JSON boundary. Respect the selected engine's rounding and output units rather than reimplementing tax formulas in an adapter.",
+    "Retain engine version, sources, warnings and refusal codes. A refused or unsupported calculation stays refused; never replace it with a plausible estimate without explicitly changing the task and its stated assumptions.",
+    "Ordinary PAYG, study-loan withholding, special payments, Medicare levy and Medicare levy surcharge have distinct scopes. Use only the inputs and combinations documented for the selected worksheet and version.",
+    "Use fabricated fixtures for examples. Do not send TFNs, client data or other private financial inputs to public calculators, URLs or hosted checkers.",
+    "A worksheet supports human review; it is not an assessment or lodgment. Distinguish a super accrual from evidence of receipt by a fund and distinguish a planning assumption from a statutory calculation."
+  ]
+}
