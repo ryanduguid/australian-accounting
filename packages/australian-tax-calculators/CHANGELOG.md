@@ -100,6 +100,21 @@ intentionally changed.
   catalogue entry before comparing, and `tests/working_holiday_maker.rs` holds
   it to the ATO's lookup tool example and examples 1 and 2, each column
   boundary and the rounding rules.
+- `seniors-pensioners-withholding` applies Schedule 9 (NAT 4466), the tax
+  table for seniors and pensioners, to one weekly, fortnightly or monthly
+  payment for 2024-25 to 2026-27, by the payee's status (single, a member of an
+  illness-separated couple or a member of a couple) and any full or half
+  Medicare levy exemption: the schedule's 9 scales, with Schedule 1's weekly
+  earnings, formula, rounding and pay period conversions. Other tax offsets and
+  the Medicare levy adjustment are not inputs, and quarterly pays, for which the
+  schedule has no rule, are refused, as, like `division-296`, is a field it does
+  not take. New refusal codes: `input.status_invalid` and
+  `input.medicare_levy_exemption_invalid`. No Python release has it.
+  `tests/parity.rs` drops its catalogue entry before comparing, and
+  `tests/seniors_pensioners.rs` holds it to each schedule's worked example
+  ($662.95 a week), every amount in each schedule's weekly tax table (2,120
+  earnings in 3 columns) and hand-worked amounts on the exemption scales and
+  for fortnightly and monthly pays.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,

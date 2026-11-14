@@ -5,7 +5,7 @@
   "folders": ["packages", "apps/aus-accounting-mcp", "apps/au-accounting"],
   "rules": [
     "Select the component and its documented interface first. Components have independent versions and releases; repository main is not proof that a capability is in an installed distribution.",
-    "Withholding from one pay: `payg-withholding` (Schedule 1) for a regular pay by pay period and scale, or `working-holiday-maker-withholding` (Schedule 15) for a working holiday maker. Never apply annual tax brackets to one pay.",
+    "Withholding from one pay: `payg-withholding` (Schedule 1) by pay period and scale, `working-holiday-maker-withholding` (Schedule 15) or `seniors-pensioners-withholding` (Schedule 9). Never apply annual tax brackets to one pay.",
     "Supply explicit supported years and every required scope confirmation. For withholding, give the pay's income year, and its pay date where needed, as `study-loan-withholding` needs in 2025-26. Never infer support for a future year.",
     "Use decimal strings for money and ratios at the native JSON boundary. Respect the selected engine's rounding and output units rather than reimplementing tax formulas in an adapter.",
     "Retain engine version, sources, warnings and refusal codes. A refused or unsupported calculation stays refused; never replace it with a plausible estimate without explicitly changing the task and its stated assumptions.",

@@ -3,7 +3,7 @@
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, 3 Schedule 5 withholding worksheets and a Schedule 15 working holiday maker worksheet that no Python release contains. Python releases through 0.1.9
+worksheets, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet and a Schedule 9 seniors and pensioners worksheet that no Python release contains. Python releases through 0.1.9
 contain 10 worksheets. Until the MCP server links this crate,
 it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
@@ -17,10 +17,10 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Twenty-four calculation worksheets for established facts: ordinary GST, resident basic income
+Twenty-five calculation worksheets for established facts: ordinary GST, resident basic income
 tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, depreciation in the start year and later years,
-quarterly super guarantee, Schedule 1 PAYG withholding, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, super contribution caps,
+quarterly super guarantee, Schedule 1 PAYG withholding, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, the Medicare levy with its low-income, SAPTO and family reductions, the low income tax offset,
 Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment. Callers must establish every scope condition before calculating.
@@ -109,6 +109,7 @@ lists the commands.
 | `schedule-5-method-b-i` | `earnings`, `back_payment_periods`, `pay_period`, `scale`, `study_loan`, `year`, `scope_confirmed` |
 | `schedule-5-method-b-ii` | `earnings`, `additional_payment`, `year_to_date_earnings`, `pay_periods_to_date`, `earlier_additional_payments`, `earlier_additional_withholding`, `pay_period`, `scale`, `study_loan`, `year`, `scope_confirmed` |
 | `working-holiday-maker-withholding` | `payment`, `payments_before`, `employer_registered`, `tfn_quoted`, `pay_period`, `year`, `scope_confirmed` |
+| `seniors-pensioners-withholding` | `earnings`, `pay_period`, `status`, `medicare_levy_exemption`, `year`, `scope_confirmed` |
 | `study-loan-repayment` | `repayment_income`, `year`, `scope_confirmed` |
 | `contribution-caps` | `total_super_balance`, `concessional_contributions`, `unused_concessional_cap`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed` |
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
@@ -116,7 +117,7 @@ lists the commands.
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory` and `fbt-car-operating-cost`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands and `working-holiday-maker-withholding` have no Python original; their arguments follow the same
+The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding` and `seniors-pensioners-withholding` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -173,6 +174,7 @@ The plain commands' output does not change.
 | Termination payment | 2026-27; one life benefit ETP to a resident employee who gave a TFN, paid within 12 months; established genuine redundancy and classified ETP parts; Schedule 11 withholding, not the tax assessed |
 | Schedule 5 withholding | Weekly, fortnightly or monthly pays made from 1 July 2024 to 30 June 2027 that include back payments, commissions or bonuses, on scale 1, 2, 3, 5 or 6; the study and training support loan component only from 1 July 2026 |
 | Working holiday makers | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established working holiday maker; no TFN exemption claimants or labour mobility schemes |
+| Seniors and pensioners | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established senior or pensioner who gave a TFN, by status and Medicare levy exemption; no other tax offsets or Medicare levy adjustment |
 
 Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
@@ -500,6 +502,32 @@ quoting a TFN, labour mobility schemes, withholding variations and checking
 the visa or registration are outside it. The tests hold it to the ATO's lookup
 tool example and examples 1 and 2; see
 [calculation evidence](docs/calculation-evidence.md#working-holiday-makers).
+
+## Seniors and pensioners
+
+`seniors_pensioners_withholding` applies Schedule 9 (NAT 4466), the tax table
+for seniors and pensioners, to one weekly, fortnightly or monthly payment made
+from 1 July 2024 to a payee the operator has established it covers: 67 or
+older at the end of the financial year, or a veteran or war widow or widower
+of at least 60 with a Department of Veterans' Affairs pension or supplement,
+who claimed the seniors and pensioners tax offset on a Withholding declaration
+as an Australian resident. The year selects the schedule: 2024-25 and 2025-26
+use the one for payments from 1 July 2024 to 30 June 2026, and 2026-27 the one
+from 1 July 2026. `status` (`single`, `illness_separated` or `couple`) picks
+column 2, 3 or 4 of the tax table, and `medicare_levy_exemption` (`none`,
+`full` or `half`) the schedule's scales for a payee who claimed an exemption on
+a Medicare levy variation declaration, so the coefficients are scale 1 to 9,
+which the result names. The weekly earnings, formula, rounding and fortnightly
+and monthly conversions are Schedule 1's, as the schedule says. Other tax
+offsets, which the schedule values only by combining its ready reckoner's
+weekly amounts, and the Medicare levy adjustment, which it leaves to another
+table, are not inputs, and quarterly pays, for which it has no rule, are
+refused. Like `division-296`, it refuses a field it does not take. Payees who
+gave no TFN (`payg-withholding` scale 4), study and training support loans,
+super income streams (Schedule 13 too) and lump sum leave loading (Schedule 5)
+are outside it. The tests reproduce the worked example and all 6,360 amounts in
+the weekly tax table of each schedule, and check the exemption scales by hand;
+see [calculation evidence](docs/calculation-evidence.md#seniors-and-pensioners).
 
 ## Worksheet discovery
 
