@@ -61,7 +61,9 @@ same change. `main` at 0be34fb0 likewise widened study loan withholding to
 2025-26 pays from 24 September 2025, which the schema's fixed 2026-27 year does
 not admit, so that scope is narrowed to the engine's words before that change.
 `main` at 17188fa6 added quarterly pays to it, which the schema's pay periods do
-not admit; the same entry narrows that text too.
+not admit; the same entry narrows that text too. `main` at 87a3f76d added
+Medicare levy exemption days, which the published Medicare levy facts cannot
+give, so that scope keeps the engine's words before that change.
 
 ## Check
 
