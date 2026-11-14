@@ -303,6 +303,18 @@ mod tests {
         }
     }
 
+    /// Each narrowing still finds its words in the engine's scope, so an engine change
+    /// that rewords a narrowed scope fails here instead of serving the wider words.
+    #[test]
+    fn every_narrowed_scope_is_in_the_engines_words() {
+        let catalogue =
+            australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+        for (kind, wide, _) in super::NARROWED_SCOPE {
+            let scope = catalogue[kind]["scope"].as_str().unwrap();
+            assert!(scope.contains(wide), "{kind}: {wide}");
+        }
+    }
+
     const GST: &str = r#"{"kind":"gst","scope_confirmed":true,"year":"2025-26","amount":"1100","gst_inclusive":true}"#;
     const HEADINGS: [&str; 5] = [
         "## Facts relied on",
