@@ -162,7 +162,7 @@ fn check_residency(v: &Value) -> Result<bool, Refusal> {
         Some(Some("foreign_resident")) => {
             return match NOT_FOR_FOREIGN.iter().find(|(c, ..)| v.get(*c).is_some()) {
                 Some((command, code, why)) => Err(Refusal::new(
-                    *code,
+                    code,
                     format!("{command} is not composed for a foreign resident: {why}"),
                 )),
                 None => Ok(true),
