@@ -43,9 +43,9 @@ fn the_ato_table_for_2024_25_and_2025_26() {
         if income <= 135_000 {
             income * 30
         } else if income <= 190_000 {
-            40_500_00 + (income - 135_000) * 37
+            4_050_000 + (income - 135_000) * 37
         } else {
-            60_850_00 + (income - 190_000) * 45
+            6_085_000 + (income - 190_000) * 45
         }
     };
     for year in ["2024-25", "2025-26"] {
