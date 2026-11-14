@@ -519,11 +519,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
-    // Division 296 has no Python original whose lenience to keep, and a misspelt
-    // optional depreciation input would silently give the start year's result, so
-    // a field either does not take, such as an opening balance, is refused rather
-    // than ignored.
-    if matches!(command, "division-296" | "depreciation") {
+    // Division 296 and Schedule 15 have no Python original whose lenience to keep,
+    // and a misspelt optional depreciation input would silently give the start
+    // year's result, so a field one does not take, such as an opening balance or
+    // a TFN exemption, is refused rather than ignored.
+    if matches!(
+        command,
+        "division-296" | "depreciation" | "working-holiday-maker-withholding"
+    ) {
         let optional = crate::metadata::optional_inputs(command);
         let taken = |key: &String| {
             params.iter().any(|(p, _)| p == key) || optional.iter().any(|(o, _)| o == key)
