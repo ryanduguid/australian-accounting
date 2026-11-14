@@ -135,7 +135,7 @@ or a decimal string over 8,192 bytes, is refused.
 | Pension minimum | 2024-25 to 2026-27; one account-based pension paying under SISR Schedule 7 |
 | Study loan repayment | 2025-26 and 2026-27; one individual's established repayment income at the marginal rates; the formula amount before the loan-balance limit |
 | Study loan withholding | Regular weekly, fortnightly or monthly pays from 1 July 2026 on scale 1, 2, 3, 5 or 6; the Schedule 1 amount plus the Schedule 8 component |
-| Medicare levy | 2024-25 and 2025-26; full-year resident single without SAPTO, spouse, dependants or exemption; the 2% rate and the low-income reduction |
+| Medicare levy | 2024-25, 2025-26 and 2026-27; full-year resident single without SAPTO, spouse, dependants or exemption; the 2% rate and the low-income reduction |
 | Low income tax offset | 2024-25, 2025-26 and 2026-27; resident individual's established taxable income; the offset amount, not applied against tax |
 | Division 293 | 2024-25, 2025-26 and 2026-27; established Division 293 income and low tax contributions; no defined benefit interests |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
@@ -225,8 +225,9 @@ Medicare Levy Act 1986 to a full-year resident single who is not entitled to
 the seniors and pensioners tax offset and has no exemption: nil at or below the
 threshold amount, and no more than 10% of the excess up to the phase-in limit.
 The caller states whether s 9A (lump sum payments in arrears) applies, and the
-worksheet refuses when it does. It covers 2024-25 and 2025-26; 2026-27 is refused until its thresholds are
-published. `low_income_tax_offset` gives the ITAA 1997 s 61-115 offset from
+worksheet refuses when it does. It covers 2024-25 to 2026-27; 2026-27 uses the
+2025-26 thresholds, which the law applies to later years until amended, and its
+result says so. `low_income_tax_offset` gives the ITAA 1997 s 61-115 offset from
 established taxable income for 2024-25 to 2026-27. Neither applies the result
 against tax payable. See
 [calculation evidence](docs/calculation-evidence.md#medicare-levy).

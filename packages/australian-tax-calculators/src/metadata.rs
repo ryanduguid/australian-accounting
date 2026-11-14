@@ -234,10 +234,13 @@ pub const STUDY_LOAN_REPAYMENT_THRESHOLDS: &[(&str, [(&str, &str); 4])] = &[
 pub const STUDY_LOAN_REPAYMENT_RATES: [(&str, &str); 3] =
     [("lower", "0.15"), ("upper", "0.17"), ("flat", "0.10")];
 
-/// Medicare levy (threshold amount, phase-in limit) for a single person.
+/// Medicare levy (threshold amount, phase-in limit) for a single person. Act
+/// No. 58, 2026, Sch 5 item 14 applies the s 3(1) figures to 2025-26 and later
+/// years, so 2026-27 has the 2025-26 figures until an amendment changes them.
 pub const MEDICARE_LOW_INCOME_THRESHOLDS: &[(&str, (&str, &str))] = &[
     ("2024-25", ("27222", "34027")),
     ("2025-26", ("28011", "35013")),
+    ("2026-27", ("28011", "35013")),
 ];
 pub const MEDICARE_LEVY_RATES: [(&str, &str); 2] = [("levy", "0.02"), ("shade_in", "0.10")];
 
@@ -391,8 +394,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Schedule 8 (NAT 3539) for payments from 1 July 2026: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding",
         ),
         "medicare_levy" => (
-            "2026-10-15",
-            "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; ATO Medicare levy reduction for low-income earners (2025-26) and myTax 2025 table 2 (2024-25)",
+            "2026-11-14",
+            "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners (2025-26) and myTax 2025 table 2 (2024-25)",
         ),
         "low_income_tax_offset" => (
             "2026-10-15",

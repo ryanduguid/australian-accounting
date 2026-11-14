@@ -103,6 +103,7 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     }
     adapt_payg(command, input, &mut expected);
     adapt_fbt(command, input, &mut expected);
+    adapt_medicare(command, input, &mut expected);
     adapt_depreciation(command, &mut expected);
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
@@ -230,6 +231,44 @@ fn adapt_fbt(command: &str, input: &Value, expected: &mut Value) {
     }
 }
 
+/// `medicare-levy` also accepts 2026-27, at the thresholds Act No. 58, 2026
+/// applies to 2025-26 and later years, and cites that Act (CHANGELOG.md).
+fn adapt_medicare(command: &str, input: &Value, expected: &mut Value) {
+    let act = "https://www.legislation.gov.au/C2026A00058/asmade/text";
+    let passage = "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners (2025-26) and myTax 2025 table 2 (2024-25)";
+    let year = json!({"id": "2026-27", "basis": "income year", "start": "2026-07-01",
+        "end": "2027-06-30", "arguments": {"year": "2026-27"}});
+    if command == "medicare-levy"
+        && let Some(Value::String(error)) = expected.get_mut("error")
+    {
+        *error = error.replace(
+            "; supported: 2024-25, 2025-26.",
+            "; supported: 2024-25, 2025-26, 2026-27.",
+        );
+    }
+    let record = match command {
+        "medicare-levy" => expected.pointer_mut("/ok"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/medicare_levy"),
+        "periods" if input["kind"] == "medicare_levy" => {
+            expected["ok"].as_array_mut().unwrap().push(year);
+            return;
+        }
+        _ => None,
+    };
+    let Some(record) = record else {
+        return;
+    };
+    record["sources"].as_array_mut().unwrap().push(json!(act));
+    record["source_checked"] = json!("2026-11-14");
+    if command == "worksheet-catalogue" {
+        record["source_passage"] = json!(passage);
+        record["supported_periods"]
+            .as_array_mut()
+            .unwrap()
+            .push(year);
+    }
+}
+
 /// `depreciation` also takes an optional opening adjustable value for a later
 /// year (CHANGELOG.md); without it every result is the first-year one.
 fn adapt_depreciation(command: &str, expected: &mut Value) {
@@ -282,7 +321,7 @@ fn python_api_corpus_matches() {
         );
     }
     let mut failures = Vec::new();
-    let (mut reopened, mut reopened_fbt) = (0, 0);
+    let (mut reopened, mut reopened_fbt, mut reopened_medicare) = (0, 0, 0);
     for row in &corpus {
         let command = row["command"].as_str().unwrap();
         // Python 0.2.0 refused 2025-26 PAYG withholding, which now has its own
@@ -297,6 +336,13 @@ fn python_api_corpus_matches() {
             reopened_fbt += 1;
             continue;
         }
+        // And the 2026-27 Medicare levy, for want of published thresholds; Act
+        // No. 58, 2026 applies the 2025-26 ones to later years, and
+        // tests/tables.rs checks that year.
+        if command == "medicare-levy" && row["input"]["year"] == "2026-27" {
+            reopened_medicare += 1;
+            continue;
+        }
         let actual = without_new_kinds(command, outcome(command, &row["input"])).to_string();
         let expected = adapt(command, &row["input"], row["expected"].clone()).to_string();
         if actual != expected {
@@ -308,6 +354,10 @@ fn python_api_corpus_matches() {
     }
     assert_eq!(reopened, 1, "frozen 2025-26 PAYG refusals");
     assert_eq!(reopened_fbt, 1, "frozen 2027 FBT refusals");
+    assert_eq!(
+        reopened_medicare, 1,
+        "frozen 2026-27 Medicare levy refusals"
+    );
     assert!(
         failures.is_empty(),
         "{} of {} differ:\n{}",

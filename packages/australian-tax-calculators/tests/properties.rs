@@ -489,7 +489,11 @@ fn low_income_tax_offset_never_rises_with_income() {
 
 #[test]
 fn medicare_levy_never_falls_as_income_rises() {
-    for (year, lower, upper) in [("2024-25", 27222, 34027), ("2025-26", 28011, 35013)] {
+    for (year, lower, upper) in [
+        ("2024-25", 27222, 34027),
+        ("2025-26", 28011, 35013),
+        ("2026-27", 28011, 35013),
+    ] {
         let mut previous = n(0);
         for income in lower - 2..upper + 3 {
             let result = run(
