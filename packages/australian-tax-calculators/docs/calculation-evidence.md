@@ -656,12 +656,18 @@ or the formula. Column 3 ends at $135,000 and column 4 starts at $135,001, and
 Table A's income bands leave the same gap, which only its rate column ('37% on
 each $1 over $135,000') reaches, so payments before of $135,000.01 to
 $135,000.99 are refused rather than placed in either column, and the refusal
-names the 37% for the payer to confirm with the ATO. The schedule does not say what an unregistered employer
-withholds when no TFN is given, so that case is refused. It says results from
-its formulas may differ slightly from the withholding lookup tool and that
-either is accepted; the tool's spreadsheet was not downloaded, and the
-worksheet applies the formula to the column's rate. The payee's visa and residency and the
-employer's registration are the operator's to establish.
+names the 37% for the payer to confirm with the ATO.
+
+The schedule says results from its formulas may differ slightly from the
+withholding lookup tool and that either is accepted. The tool's workbook for
+each schedule version, opened on 14 November 2026, works out columns 2 to 4 as
+the rate times the payment with cents ignored, rounded to the dollar, and
+columns 5 and 6 as 45% of it with cents ignored again, at the same rates; the
+worksheet does the same. The workbook's column headings ('$0 - $45,000' to
+'$190,001 and over') do not choose a column for payments before of
+$45,000.01 to $45,000.99, $135,000.01 to $135,000.99 or $190,000.01 to
+$190,000.99. The payee's visa and residency and the employer's registration
+are the operator's to establish.
 
 ## Study loan withholding
 
