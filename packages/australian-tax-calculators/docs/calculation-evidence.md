@@ -573,7 +573,10 @@ s 12(4) and (5)). Income for surcharge purposes, which also counts net
 investment losses and reportable super contributions, decides only whether
 the surcharge applies and the tier. The ATO's Josh example shows the split:
 $127,000 makes him a tier 2 earner, and 1.25% applies to his $90,000 taxable
-income and $20,000 of fringe benefits, $1,375.
+income and $20,000 of fringe benefits, $1,375. The thresholds page lets a
+person reduce income for surcharge purposes by the taxed element of a super
+lump sum within the low rate cap only for 2023-24 and earlier years, so no such
+reduction applies to the years the worksheet supports.
 
 | Threshold | 2024-25 | 2025-26 | 2026-27 |
 | --- | --- | --- | --- |
