@@ -115,6 +115,23 @@ intentionally changed.
   ($662.95 a week), every amount in each schedule's weekly tax table (2,120
   earnings in 3 columns) and hand-worked amounts on the exemption scales and
   for fortnightly and monthly pays.
+- `seniors-pensioners-tax-offset` works out the seniors and pensioners tax
+  offset (ITAA 1936 s 160AAAA) for 2024-25 to 2026-27 by the Income Tax
+  Assessment (1936 Act) Regulations 2025 and the 2015 Regulation they replaced
+  (ss 9 to 12): the base amount for the person's `status`, the rebate threshold
+  and cut-out from the year's Schedule 7 rates, entitlement on the person's
+  rebate income or, for a member of a couple, half the couple's
+  (`spouse_rebate_income`), 12.5 cents a dollar off above the threshold, and
+  the ATO's rounding up to the dollar. With `spouse_taxable_income` it adds a
+  resident spouse's unused amount (s 12). 2026-27 thresholds, which the ATO
+  has not published, are worked at that year's 15% rate, with a warning. Like
+  `division-296`, it refuses a field it does not take. No Python release has
+  it. `tests/parity.rs` drops its catalogue entry before comparing, and
+  `tests/seniors_pensioners_offset.rs` holds it to the ATO's 9 examples,
+  including the transfer in example 9, its 2024-25 and 2025-26 thresholds and
+  every cut-out; `tests/properties.rs` checks that it never rises with rebate
+  income without a transfer. Schedule 9 and this command share the `status` values and the
+  `input.status_invalid` refusal.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,
