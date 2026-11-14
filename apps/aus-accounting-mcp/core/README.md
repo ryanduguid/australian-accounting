@@ -63,7 +63,9 @@ not admit, so that scope is narrowed to the engine's words before that change.
 `main` at 17188fa6 added quarterly pays to it, which the schema's pay periods do
 not admit; the same entry narrows that text too. `main` at 87a3f76d added
 Medicare levy exemption days, which the published Medicare levy facts cannot
-give, so that scope keeps the engine's words before that change.
+give. Those facts also take no SAPTO, spouse or dependant inputs, so that scope
+describes only the single full-year resident without SAPTO, offsets or exemption
+that they state.
 
 ## Check
 
