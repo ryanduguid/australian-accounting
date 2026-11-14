@@ -37,9 +37,10 @@ Dates are canonical `YYYY-MM-DD` strings in years 0001 to 9999. A date field can
 contain a time. Optional dates may be absent or null. Objects represent the former
 dataclasses; arrays retain input order. Flags are JSON booleans, with null allowed
 only for `supplier_registered`. `supplier_abn` is a string or null. Unknown
-object fields are ignored, like the existing native engine adapters. Code tables map strings to the categories below;
-an explicit empty object replaces all defaults. Null or an omitted table uses the
-defaults in [src/constants.json](src/constants.json).
+object fields are ignored, like the existing native engine adapters. Code tables
+map strings to the categories below; an explicit empty object replaces all
+defaults. Null or an omitted table uses the defaults in
+[src/constants.json](src/constants.json).
 
 This JSON mapping is new. The former library accepted Python `Decimal`, `date`
 and dataclass instances. Python import and packaging identity checks do not apply
@@ -67,8 +68,8 @@ validation messages are preserved.
 and `amount`. Optional fields are `description` (default empty), `account`,
 `gst_code`, `confirmed` (default false), `suggested_account`,
 `suggested_gst_code`, `supplier_registered` and `supplier_abn`. Other optional
-values default to null. Each registration needs `registered_from`, which may be null for never
-registered, and may supply `registered_to`. Both boundaries are inclusive.
+values default to null. Each registration needs `registered_from`, which may be
+null for never registered, and may supply `registered_to`. Both boundaries are inclusive.
 Every line's entity needs registration facts.
 
 Each line receives the first applicable state in this order:
