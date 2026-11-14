@@ -115,6 +115,23 @@ intentionally changed.
   ($662.95 a week), every amount in each schedule's weekly tax table (2,120
   earnings in 3 columns) and hand-worked amounts on the exemption scales and
   for fortnightly and monthly pays.
+- `seniors-pensioners-tax-offset` works out the seniors and pensioners tax
+  offset (ITAA 1936 s 160AAAA) for 2024-25 to 2026-27 by the Income Tax
+  Assessment (1936 Act) Regulations 2025 and the 2015 Regulation they replaced
+  (ss 9 to 12): the base amount for the person's `status`, the rebate threshold
+  and cut-out from the year's Schedule 7 rates, entitlement on the person's
+  rebate income or, for a member of a couple, half the couple's
+  (`spouse_rebate_income`), 12.5 cents a dollar off above the threshold, and
+  the ATO's rounding up to the dollar. With `spouse_taxable_income` it adds a
+  resident spouse's unused amount (s 12). 2026-27 thresholds, which the ATO
+  has not published, are worked at that year's 15% rate, with a warning. Like
+  `division-296`, it refuses a field it does not take. No Python release has
+  it. `tests/parity.rs` drops its catalogue entry before comparing, and
+  `tests/seniors_pensioners_offset.rs` holds it to the ATO's 9 examples,
+  including the transfer in example 9, its 2024-25 and 2025-26 thresholds and
+  every cut-out; `tests/properties.rs` checks that it never rises with rebate
+  income without a transfer. Schedule 9 and this command share the `status` values and the
+  `input.status_invalid` refusal.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,
@@ -154,9 +171,22 @@ intentionally changed.
   2025. `tests/study_loan_withholding.rs` holds it to the instrument's examples
   1 to 3, its starting earnings and pays on 23 and 24 September 2025; the
   combined coefficient checks in `tests/tables.rs` and `tests/properties.rs`
-  cover both years. The Schedule 5 commands take no pay date, so their
-  `study_loan` stays 2026-27 only and names the 24 September 2025 start when
-  given 2025-26. The 0.2.0 wheel the MCP server pins covers 2026-27 only.
+  cover both years. The 0.2.0 wheel the MCP server pins covers 2026-27 only.
+- `study-loan-withholding` accepts quarterly pays under Schedule 8's rule: the
+  weekly equivalent is a thirteenth of the earnings, and 13 times the weekly
+  amounts is withheld. Python 0.2.0 refused them; `tests/parity.rs` skips and
+  counts the 1 frozen quarterly refusal, and the 2026 schedule and F2025L01016
+  have no quarterly example, so `tests/study_loan_withholding.rs` checks
+  hand-worked amounts and the quarterly starting earnings.
+- The 3 Schedule 5 commands take an optional `pay_date` with `study_loan`, so
+  the study loan part of Methods A and B(ii) covers 2025-26 pays made from 24
+  September 2025 with F2025L01016's coefficients. A 2025-26 study loan pay
+  without its date, or dated before 24 September 2025 or outside the year, is
+  refused as by `study-loan-withholding`; 2024-25 still refuses `study_loan`.
+  Method B(i) still refuses a 2025-26 study loan, now saying why: Schedule 5
+  does not say which coefficients recalculate an earlier period from before 24
+  September 2025. A pay date without `study_loan` is refused with the new code
+  `payg.pay_date_without_study_loan`.
 - `tests/verdict_cases.rs` turns the edge cases in a published reviewer verdict,
   under CC BY 4.0, the default in the bounty's terms, into fabricated cases, or
   states why one does not apply.

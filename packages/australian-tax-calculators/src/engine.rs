@@ -1045,7 +1045,8 @@ fn payg_rows(year: &str, scale: i64) -> Option<&'static [CoefficientRow]> {
 }
 
 /// `_payg_checks`: scope, earnings, pay period and scale, in that order. Only
-/// `payg_withholding` takes quarterly pays and scale 4.
+/// `payg_withholding` takes scale 4, and only it and `study_loan_withholding`
+/// quarterly pays, which Schedules 1 and 8 cover and Schedule 5 does not.
 fn payg_checks(
     kind: &str,
     earnings: &Arg,
@@ -1057,13 +1058,14 @@ fn payg_checks(
     let year = scope(scope_confirmed, year, kind)?;
     let earnings = money(earnings)?;
     let schedule_1 = kind == "payg_withholding";
+    let quarterly = schedule_1 || kind == "study_loan_withholding";
     let period = match pay_period.text() {
         Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
-        Some("quarterly") if schedule_1 => "quarterly".to_string(),
+        Some("quarterly") if quarterly => "quarterly".to_string(),
         _ => {
             return refuse(
                 "input.pay_period_invalid",
-                if schedule_1 {
+                if quarterly {
                     "pay_period must be weekly, fortnightly, monthly or quarterly."
                 } else {
                     "pay_period must be weekly, fortnightly or monthly."
@@ -3364,6 +3366,8 @@ struct AdditionalPay {
     period: String,
     scale: i64,
     study_loan: bool,
+    /// The pay date, given only with a study loan, for its Schedule 8 component.
+    pay_date: Option<Arg>,
     /// Pay periods in a financial year: 52, 26 or 12, with no adjustment for a
     /// year of 53 weekly or 27 fortnightly pays.
     per_year: i64,
@@ -3371,41 +3375,46 @@ struct AdditionalPay {
     most_pays: i64,
 }
 
-/// Schedule 5's methods take no pay date, so the study loan component is
-/// available only for a year whose Schedule 8 coefficients apply from 1 July.
-fn schedule_5_study_loan_year(year: &str) -> Result<()> {
-    let from = meta::STUDY_LOAN_WITHHOLDING_FROM;
-    let whole_years: Vec<&str> = from
-        .iter()
-        .filter(|(y, start)| *start == format!("{}-07-01", &y[..4]))
-        .map(|(y, _)| *y)
-        .collect();
-    if whole_years.contains(&year) {
-        return Ok(());
+/// A study loan component needs a year with Schedule 8 coefficients and the
+/// pay date `study_loan_withholding` requires for it: 2025-26's apply to
+/// payments made from 24 September 2025. Method B(i) recalculates earlier
+/// periods, and Schedule 5 does not say with which coefficients when they
+/// change during the year, so it takes only a year whose apply from 1 July.
+fn schedule_5_study_loan(kind: &str, year: &str, pay_date: Option<&Arg>) -> Result<()> {
+    let from = |year: &str| *lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year);
+    let b_i = kind == "schedule_5_method_b_i";
+    let mut years = meta::supported_periods("study_loan_withholding");
+    if !years.contains(&year) {
+        years.retain(|y| !b_i || from(y).ends_with("-07-01"));
+        return refuse(
+            "period.unsupported",
+            format!(
+                "study_loan is supported for {} only: there is no Schedule 8 study and training support loan component for {year}.",
+                years.join(", ")
+            ),
+        );
     }
-    let reason = match from.iter().find(|(y, _)| *y == year) {
-        Some((_, start)) => format!(
-            "{year}'s Schedule 8 component applies to payments made on or after {start}, and these methods take no pay date"
-        ),
-        None => {
-            format!("there is no Schedule 8 study and training support loan component for {year}")
-        }
-    };
-    refuse(
-        "period.unsupported",
-        format!(
-            "study_loan is supported for {} only: {reason}.",
-            whole_years.join(", ")
-        ),
-    )
+    if b_i && !from(year).ends_with("-07-01") {
+        return refuse(
+            "period.unsupported",
+            format!(
+                "Method B(i) does not take study_loan for {year}: its Schedule 8 coefficients changed on {}, and Schedule 5 does not say which recalculate the earlier periods. Method A takes it with the pay date.",
+                from(year)
+            ),
+        );
+    }
+    schedule_8_pay_date(pay_date, year)
 }
+
+/// The study loan flag and the pay date, which is given only with it.
+pub type StudyLoan<'a> = (&'a Arg, Option<&'a Arg>);
 
 fn additional_pay(
     kind: &'static str,
     earnings: &Arg,
     pay_period: &Arg,
     scale: &Arg,
-    study_loan: &Arg,
+    (study_loan, pay_date): StudyLoan,
     year: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<AdditionalPay> {
@@ -3413,7 +3422,12 @@ fn additional_pay(
         payg_checks(kind, earnings, pay_period, scale, year, scope_confirmed)?;
     let study_loan = flag(study_loan, "study_loan")?;
     if study_loan {
-        schedule_5_study_loan_year(&year)?;
+        schedule_5_study_loan(kind, &year, pay_date)?;
+    } else if pay_date.is_some() {
+        return refuse(
+            "payg.pay_date_without_study_loan",
+            "pay_date selects the Schedule 8 study and training support loan component; give it only with study_loan true.",
+        );
     }
     let (per_year, most_pays) = match period.as_str() {
         "weekly" => (52, 53),
@@ -3427,6 +3441,7 @@ fn additional_pay(
         period,
         scale,
         study_loan,
+        pay_date: pay_date.cloned(),
         per_year,
         most_pays,
     })
@@ -3447,7 +3462,7 @@ impl AdditionalPay {
         ];
         let [e, p, s, y, c] = &args;
         let out = if self.study_loan {
-            study_loan_withholding(e, p, s, y, c, None)?
+            study_loan_withholding(e, p, s, y, c, self.pay_date.as_ref())?
         } else {
             payg_withholding(e, p, s, y, c, &PaygOptions::default())?
         };
@@ -3537,7 +3552,7 @@ pub fn schedule_5_method_a(
     pay_periods: &Arg,
     pay_period: &Arg,
     scale: &Arg,
-    study_loan: &Arg,
+    study_loan: StudyLoan,
     year: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<Value> {
@@ -3644,7 +3659,7 @@ pub fn schedule_5_method_b_i(
     back_payments: &Arg,
     pay_period: &Arg,
     scale: &Arg,
-    study_loan: &Arg,
+    study_loan: StudyLoan,
     year: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<Value> {
@@ -3716,7 +3731,7 @@ pub fn schedule_5_method_b_ii(
     to_date: [&Arg; 4],
     pay_period: &Arg,
     scale: &Arg,
-    study_loan: &Arg,
+    study_loan: StudyLoan,
     year: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<Value> {
@@ -3884,21 +3899,30 @@ fn weekly_fortnightly_or_monthly(pay_period: &Arg) -> Result<String> {
 
 const SENIORS_PENSIONERS: &str = "seniors_pensioners_withholding";
 
+/// The index of `value` in `names`, when it is one of them.
+fn position(value: &Arg, names: [&str; 3]) -> Option<usize> {
+    value
+        .text()
+        .and_then(|text| names.iter().position(|name| *name == text))
+}
+
+/// A senior's or pensioner's status, as Schedule 9 and the offset take it: 0
+/// single, 1 a member of an illness-separated couple, 2 a member of a couple.
+fn seniors_status(status: &Arg) -> Result<usize> {
+    match position(status, ["single", "illness_separated", "couple"]) {
+        Some(index) => Ok(index),
+        None => refuse(
+            "input.status_invalid",
+            "status must be single, illness_separated or couple.",
+        ),
+    }
+}
+
 /// Schedule 9's scale for the payee's status and Medicare levy exemption:
 /// 1 to 3 (single, illness-separated couple, couple) with the levy, 3 more
 /// with a full exemption and 6 more with a half exemption.
 fn schedule_9_scale(status: &Arg, exemption: &Arg) -> Result<usize> {
-    let position = |value: &Arg, names: [&str; 3]| {
-        value
-            .text()
-            .and_then(|text| names.iter().position(|name| *name == text))
-    };
-    let Some(status) = position(status, ["single", "illness_separated", "couple"]) else {
-        return refuse(
-            "input.status_invalid",
-            "status must be single, illness_separated or couple.",
-        );
-    };
+    let status = seniors_status(status)?;
     let Some(exemption) = position(exemption, ["none", "full", "half"]) else {
         return refuse(
             "input.medicare_levy_exemption_invalid",
@@ -3945,7 +3969,222 @@ pub fn seniors_pensioners_withholding(
     )
 }
 
-const KINDS: [&str; 26] = [
+const SAPTO: &str = "seniors_pensioners_tax_offset";
+
+/// The optional `seniors-pensioners-tax-offset` inputs about the spouse, each
+/// `None` when not given.
+pub struct SaptoSpouse<'a> {
+    pub rebate_income: Option<&'a Arg>,
+    pub taxable_income: Option<&'a Arg>,
+}
+
+fn whole_dollar_money(value: &Arg, what: &str) -> Result<Decimal> {
+    let amount = money(value)?;
+    whole_dollars(&amount, what)?;
+    Ok(amount)
+}
+
+/// The spouse's rebate income, which s 160AAAA(4) needs for a spouse and which
+/// a single person cannot have, and the spouse's taxable income for a transfer.
+fn sapto_spouse(spouse: &SaptoSpouse, status: usize) -> Result<(Option<Decimal>, Option<Decimal>)> {
+    let given = [
+        ("spouse_rebate_income", spouse.rebate_income),
+        ("spouse_taxable_income", spouse.taxable_income),
+    ];
+    if status == 0 {
+        return match given.iter().find(|(_, value)| value.is_some()) {
+            Some((name, _)) => refuse(
+                "input.field_unknown",
+                format!(
+                    "{name} is not an input of seniors-pensioners-tax-offset for a single person"
+                ),
+            ),
+            None => Ok((None, None)),
+        };
+    }
+    let Some(rebate_income) = spouse.rebate_income else {
+        return refuse(
+            "input.missing_field",
+            "spouse_rebate_income is required unless status is single",
+        );
+    };
+    let rebate_income = whole_dollar_money(rebate_income, "spouse rebate income")?;
+    let taxable_income = spouse
+        .taxable_income
+        .map(|value| whole_dollar_money(value, "spouse taxable income"))
+        .transpose()?;
+    Ok((Some(rebate_income), taxable_income))
+}
+
+fn sapto_rule(key: &str) -> Decimal {
+    d(lookup(&meta::SAPTO_RULES, key))
+}
+
+/// A non-negative amount rounded up to the whole dollar.
+fn dollars_up(value: &Decimal) -> Calc<Decimal> {
+    let down = value.quantize(0, Rounding::Down)?;
+    if down.lt(value)? {
+        down.add(&int(1))
+    } else {
+        Ok(down)
+    }
+}
+
+/// The year's tax-free threshold and lowest and second lowest marginal tax
+/// rates, from Income Tax Rates Act 1986 Sch 7 Part I (regulations s 4).
+fn rates_act_terms(year: &str) -> (Decimal, Decimal, Decimal) {
+    let scale = lookup(meta::RESIDENT_TAX_SCALES, year);
+    (int(scale[0].0), d(scale[0].2), d(scale[1].2))
+}
+
+/// Regulations s 9(4) to (8): the rebate threshold for a base rebate amount.
+fn rebate_threshold(base: &Decimal, year: &str) -> Calc<Decimal> {
+    let (free, lowest, second) = rates_act_terms(year);
+    let maximum = sapto_rule("rebate_maximum_amount");
+    let reduction_rate = sapto_rule("rebate_reduction_rate");
+    let reduction_threshold = sapto_rule("rebate_reduction_threshold");
+    let amount = maximum.add(base)?.div(&lowest)?.add(&free)?;
+    let amount = if amount.gt(&reduction_threshold)? {
+        // s 9(6), with s 9(7) as its last term.
+        let rates = reduction_rate.add(&second)?;
+        let last = reduction_threshold.mul(&rates.sub(&lowest)?)?;
+        lowest
+            .mul(&free)?
+            .add(&maximum)?
+            .add(base)?
+            .add(&last)?
+            .div(&rates)?
+    } else {
+        amount
+    };
+    dollars_up(&amount)
+}
+
+/// Regulations s 11(2): the base amount less 12.5 cents for each dollar of
+/// rebate income above the threshold, and nil once that reaches the base.
+fn rebate_amount(base: &Decimal, threshold: &Decimal, income: &Decimal) -> Calc<Decimal> {
+    let excess = py_max(int(0), income.sub(threshold)?)?;
+    py_max(
+        int(0),
+        base.sub(&excess.mul(&sapto_rule("shade_out_rate"))?)?,
+    )
+}
+
+/// Regulations s 12(3)(b): the spouse's unused base rebate amount. At or below
+/// $6,000 of taxable income, below the tax-free threshold, the resident spouse
+/// pays no tax and the whole base amount is unused (s 12(3)(b)(i)); above it
+/// s 12(3)(b)(ii) takes 15% of the excess.
+fn unused_from_spouse(base: &Decimal, spouse_taxable_income: &Decimal) -> Calc<Decimal> {
+    let floor = sapto_rule("transfer_income_floor");
+    if spouse_taxable_income.le(&floor)? {
+        return Ok(base.clone());
+    }
+    let reduction = spouse_taxable_income
+        .sub(&floor)?
+        .mul(&sapto_rule("transfer_rate"))?;
+    py_max(int(0), base.sub(&reduction)?)
+}
+
+/// The amounts and rates for one person's offset.
+type SaptoWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>);
+
+fn sapto_working(
+    income: &Decimal,
+    year: &str,
+    base: &Decimal,
+    spouse_rebate_income: Option<&Decimal>,
+    spouse_taxable_income: Option<&Decimal>,
+) -> Calc<SaptoWorking> {
+    let threshold = rebate_threshold(base, year)?;
+    let cut_out = dollars_up(&base.div(&sapto_rule("shade_out_rate"))?.add(&threshold)?)?;
+    // s 160AAAA(4): a spouse is tested on half the couple's rebate income.
+    let tested = match spouse_rebate_income {
+        Some(spouse) => income.add(spouse)?.div(&int(2))?,
+        None => income.clone(),
+    };
+    let entitled = tested.lt(&cut_out)?;
+    let mut amounts = vec![
+        ("rebate_income_used", income.clone()),
+        ("rebate_income_tested", tested),
+        ("base_rebate_amount", base.clone()),
+    ];
+    let mut working = (threshold.clone(), rebate_amount(base, &threshold, income)?);
+    if let Some(spouse) = spouse_taxable_income {
+        // s 12(1)(d) and (e): only an entitled person whose offset is below
+        // its base amount takes the spouse's unused amount.
+        let unused = if entitled && working.1.lt(base)? {
+            unused_from_spouse(base, spouse)?
+        } else {
+            int(0)
+        };
+        amounts.push(("spouse_unused_amount_transferred", unused.clone()));
+        if unused.gt(&int(0))? {
+            // s 12(3) adds the unused amount to the base for s 11, not s 10.
+            let raised = base.add(&unused)?;
+            let raised_threshold = rebate_threshold(&raised, year)?;
+            working = (
+                raised_threshold.clone(),
+                rebate_amount(&raised, &raised_threshold, income)?,
+            );
+        }
+    }
+    let (threshold, offset) = working;
+    // The ATO rounds the offset up to the whole dollar.
+    let offset = if entitled {
+        dollars_up(&offset)?
+    } else {
+        int(0)
+    };
+    amounts.push(("rebate_threshold", threshold));
+    amounts.push(("cut_out_threshold", cut_out));
+    amounts.push(("seniors_pensioners_tax_offset", offset));
+    Ok((amounts, sapto_rates(year)))
+}
+
+/// The year's Schedule 7 terms and the regulations' constants.
+fn sapto_rates(year: &str) -> Vec<(String, String)> {
+    let (free, lowest, second) = rates_act_terms(year);
+    let mut rates = vec![
+        rate("tax_free_threshold", free),
+        rate("lowest_marginal_tax_rate", lowest),
+        rate("second_lowest_marginal_tax_rate", second),
+    ];
+    rates.extend(meta::SAPTO_RULES.iter().map(|(k, v)| rate(k, v)));
+    rates
+}
+
+/// The seniors and pensioners tax offset (ITAA 1936 s 160AAAA and the
+/// regulations' ss 9 to 12) for one person, before it is applied against tax.
+pub fn seniors_pensioners_tax_offset(
+    rebate_income: &Arg,
+    status: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+    spouse: SaptoSpouse,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, SAPTO)?;
+    let income = whole_dollar_money(rebate_income, "rebate income")?;
+    let status = seniors_status(status)?;
+    let (spouse_rebate_income, spouse_taxable_income) = sapto_spouse(&spouse, status)?;
+    let base = d(meta::SAPTO_BASE_REBATE_AMOUNTS[status]);
+    let (amounts, rates) = precise(|| {
+        Ok(sapto_working(
+            &income,
+            &year,
+            &base,
+            spouse_rebate_income.as_ref(),
+            spouse_taxable_income.as_ref(),
+        )?)
+    })?;
+    let mut out = result(SAPTO, &year, amounts, rates)?;
+    if year == "2026-27" {
+        let warnings = out["warnings"].as_array_mut().expect("warnings");
+        warnings.push(json!(texts::SAPTO_2026_27_NOTE));
+    }
+    Ok(out)
+}
+
+const KINDS: [&str; 27] = [
     "gst",
     "resident_tax",
     "capital_gains",
@@ -3972,6 +4211,7 @@ const KINDS: [&str; 26] = [
     "schedule_5_method_b_ii",
     "working_holiday_maker_withholding",
     "seniors_pensioners_withholding",
+    "seniors_pensioners_tax_offset",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

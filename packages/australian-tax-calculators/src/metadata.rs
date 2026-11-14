@@ -752,6 +752,24 @@ pub const SENIORS_PENSIONERS_COEFFICIENTS: &[(&str, &[&[CoefficientRow]; 9])] = 
     ("2026-27", &SCHEDULE_9_FROM_JULY_2026),
 ];
 
+/// The seniors and pensioners tax offset's base rebate amounts (Income Tax
+/// Assessment (1936 Act) Regulations 2025 s 9(2), and the 2015 Regulation's
+/// s 9(2) for years starting before 1 October 2025), in the order of the
+/// `status` values: not a spouse, a member of an illness-separated couple, a
+/// spouse.
+pub const SAPTO_BASE_REBATE_AMOUNTS: [&str; 3] = ["2230", "2040", "1602"];
+/// The same instruments' s 4 rebate maximum amount, rebate reduction rate and
+/// rebate reduction threshold, the 12.5 cents a dollar of s 11(2), and the
+/// $6,000 and 0.15 of the s 12(3)(b)(ii) transfer formula.
+pub const SAPTO_RULES: [(&str, &str); 6] = [
+    ("rebate_maximum_amount", "445"),
+    ("rebate_reduction_rate", "0.015"),
+    ("rebate_reduction_threshold", "37000"),
+    ("shade_out_rate", "0.125"),
+    ("transfer_income_floor", "6000"),
+    ("transfer_rate", "0.15"),
+];
+
 pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 
 /// Statutory or benchmark interest rate by FBT year ended 31 March, for the
@@ -801,6 +819,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         }
         "working_holiday_maker_withholding" => WORKING_HOLIDAY_MAKER_YEARS.to_vec(),
         "seniors_pensioners_withholding" => keys(SENIORS_PENSIONERS_COEFFICIENTS),
+        // The years checked against the regulations; the thresholds follow each
+        // year's Schedule 7 rates, but a new year needs its own review.
+        "seniors_pensioners_tax_offset" => vec!["2024-25", "2025-26", "2026-27"],
         _ => Vec::new(),
     }
 }
@@ -863,7 +884,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "study_loan_withholding" => (
             "2026-11-14",
-            "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding",
+            "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly, monthly and quarterly amounts, examples 1 to 3, rounding",
         ),
         "medicare_levy" => (
             "2026-11-14",
@@ -891,7 +912,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
             "2026-11-14",
-            "Schedule 5 (NAT 3348) for payments from 1 July 2026, from 1 July 2025 to 30 June 2026 and from 1 July 2024 to 30 June 2025: about this schedule, working out the withholding amount (Methods A, B(i) and B(ii), the withholding limit, study and training support loans) and withholding amounts examples 1 to 4",
+            "Schedule 5 (NAT 3348) for payments from 1 July 2026, from 1 July 2025 to 30 June 2026 and from 1 July 2024 to 30 June 2025: about this schedule, working out the withholding amount (Methods A, B(i) and B(ii), the withholding limit, study and training support loans) and withholding amounts examples 1 to 4; Schedule 8's coefficients for the pay date",
         ),
         "working_holiday_maker_withholding" => (
             "2026-11-14",
@@ -900,6 +921,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "seniors_pensioners_withholding" => (
             "2026-11-14",
             "Schedule 9 (NAT 4466, seniors and pensioners) for payments from 1 July 2026 and for payments from 1 July 2024 to 30 June 2026: using this schedule, working out the withholding amount and its example, calculating fortnightly or monthly withholding amounts, using a formula and the coefficients for scales 1 to 9, rounding, claiming tax offsets, Medicare levy exemptions and adjustments, and the weekly tax table",
+        ),
+        "seniors_pensioners_tax_offset" => (
+            "2026-11-14",
+            "ITAA 1936 ss 6(1) (rebate income) and 160AAAA, compilation 193 (1 October 2026); Income Tax Assessment (1936 Act) Regulations 2025 ss 4 and 9 to 12 and 23 (F2025L01060), and the Income Tax Assessment (1936 Act) Regulation 2015 ss 4 and 9 to 12, compilation 8; ATO Seniors and pensioners tax offset: income limits, rates and thresholds for 2025-26, tax offset reduction and rounding, examples and transferring unused SAPTO with example 9; Do you need to lodge a tax return? 2025, reason 2",
         ),
         _ => ("", ""),
     }
@@ -1046,6 +1071,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-17",
             "2026-11-14",
         ),
+        "seniors_pensioners_tax_offset" => (
+            "ATO Seniors and pensioners tax offset",
+            "rates and thresholds for 2025-26, the examples (Clare and Roy, Deb and Ivan, Ying and Li Jun, Marko, Simon, José, Keith and Jean, Vanh and Mai) and example 9",
+            "2026-10-02",
+            "2026-11-14",
+        ),
         _ => ("", "", "", ""),
     };
     [
@@ -1125,13 +1156,27 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "pay_date",
             "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
         )],
+        "seniors_pensioners_tax_offset" => vec![
+            (
+                "spouse_rebate_income",
+                "AUD, whole dollars, required unless status is single and taken only then: the spouse's rebate income, less any amount in their assessable income under ITAA 1936 s 100, plus any amount a trustee is assessed on under s 98 for the spouse (s 160AAAA(4))",
+            ),
+            (
+                "spouse_taxable_income",
+                "AUD, whole dollars, not for a single person: to transfer the spouse's unused base rebate amount (regulations s 12), the spouse's taxable income for the year with any exempt disability support, carer, invalidity service or partner service pension added (s 12(5)); give it only for a spouse entitled to the offset whose whole taxable income is ordinary taxable income taxed at the resident scale (Income Tax Rates Act 1986 Sch 7 Part I item table, with no superannuation or employment termination remainder taxed at 45%); omit for no transfer",
+            ),
+        ],
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => vec![(
+            "pay_date",
+            "YYYY-MM-DD date this pay is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025; Method B(i) refuses a 2025-26 study loan",
+        )],
         _ => Vec::new(),
     }
 }
 
 /// `INPUT_UNITS[kind]`, in the Python dict's order.
 pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
-    let payg = vec![
+    let payg = [
         (
             "earnings",
             "AUD, gross earnings and allowances subject to withholding for the pay period",
@@ -1144,7 +1189,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ("scale", "integer 1, 2, 3, 5 or 6"),
         (
             "study_loan",
-            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component to each table amount, for a year whose Schedule 8 coefficients apply from 1 July (Schedule 5 takes no pay date)",
+            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component for the pay date to each table amount, for 2026-27 and, except in Method B(i), 2025-26 pays made from 24 September 2025",
         ),
     ];
     match kind {
@@ -1297,7 +1342,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer 1 to 6; scale 4 also needs foreign_resident",
             ),
         ],
-        "study_loan_withholding" => payg,
+        "study_loan_withholding" => vec![
+            payg[0],
+            ("pay_period", "weekly, fortnightly, monthly or quarterly"),
+            payg[2],
+        ],
         "contribution_caps" => vec![
             (
                 "total_super_balance",
@@ -1512,6 +1561,16 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "none, full or half: the Medicare levy exemption the payee claimed on a Medicare levy variation declaration",
             ),
         ],
+        "seniors_pensioners_tax_offset" => vec![
+            (
+                "rebate_income",
+                "AUD, whole dollars: taxable income (disregarding an assessable FHSS released amount), reportable superannuation contributions, total net investment loss and adjusted fringe benefits total (ITAA 1936 s 6(1))",
+            ),
+            (
+                "status",
+                "single (not a spouse at any time in the year), illness_separated (a member of an illness-separated couple at any time in the year) or couple (a spouse for the whole year, never illness-separated)",
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1707,6 +1766,12 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("pay_period", Text("weekly")),
             ("status", Text("single")),
             ("medicare_levy_exemption", Text("none")),
+        ],
+        // The ATO's José example, for 2025-26.
+        "seniors_pensioners_tax_offset" => vec![
+            ("year", Text("2025-26")),
+            ("rebate_income", Text("39000")),
+            ("status", Text("single")),
         ],
         _ => Vec::new(),
     }

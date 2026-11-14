@@ -12,9 +12,10 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
 /// `tests/borrowing_expenses.rs`, `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/schedule_5.rs`,
-/// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs` and
-/// `tests/medicare_surcharge.rs` cover them.
-const NEW_KINDS: [(&str, &str); 12] = [
+/// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
+/// `tests/seniors_pensioners_offset.rs` and `tests/medicare_surcharge.rs`
+/// cover them.
+const NEW_KINDS: [(&str, &str); 13] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("main-residence", "main_residence"),
@@ -31,6 +32,10 @@ const NEW_KINDS: [(&str, &str); 12] = [
     (
         "seniors-pensioners-withholding",
         "seniors_pensioners_withholding",
+    ),
+    (
+        "seniors-pensioners-tax-offset",
+        "seniors_pensioners_tax_offset",
     ),
     ("medicare-levy-surcharge", "medicare_levy_surcharge"),
 ];
@@ -227,18 +232,23 @@ fn adapt_payg(command: &str, input: &Value, expected: &mut Value) {
 /// with the Schedule 8 coefficients of F2025L01016 (CHANGELOG.md).
 fn adapt_study_loan_withholding(command: &str, input: &Value, expected: &mut Value) {
     let old_scope = "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July 2026 to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back payments, bonuses and other schedules.";
-    let new_scope = "One regular weekly, fortnightly or monthly payment of salary or wages made from 24 September 2025, in the income year given, to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. The year selects the Schedule 1 coefficients and the Schedule 8 component coefficients for payments made in it; a 2025-26 payment needs its pay date, because the Schedule 8 coefficients of F2025L01016 apply from 24 September 2025. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes 2025-26 payments made before 24 September 2025, scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back payments, bonuses and other schedules.";
+    let new_scope = "One regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 24 September 2025, in the income year given, to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. The year selects the Schedule 1 coefficients and the Schedule 8 component coefficients for payments made in it; a 2025-26 payment needs its pay date, because the Schedule 8 coefficients of F2025L01016 apply from 24 September 2025. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes 2025-26 payments made before 24 September 2025, scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, lump sum termination payments, back payments, bonuses and other schedules.";
     let added_sources = [
         "https://www.legislation.gov.au/F2025L01016/asmade/text",
         "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
     ];
-    let passage = "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding";
+    let passage = "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly, monthly and quarterly amounts, examples 1 to 3, rounding";
     let year = json!({"id": "2025-26", "basis": "income year", "start": "2025-09-24",
         "end": "2026-06-30", "arguments": {"year": "2025-26"}});
     if command == "study-loan-withholding"
         && let Some(Value::String(error)) = expected.get_mut("error")
     {
-        *error = error.replace("; supported: 2026-27.", "; supported: 2025-26, 2026-27.");
+        *error = error
+            .replace("; supported: 2026-27.", "; supported: 2025-26, 2026-27.")
+            .replace(
+                "pay_period must be weekly, fortnightly or monthly.",
+                "pay_period must be weekly, fortnightly, monthly or quarterly.",
+            );
     }
     let record = match command {
         "study-loan-withholding" => expected.pointer_mut("/ok"),
@@ -270,6 +280,8 @@ fn adapt_study_loan_withholding(command: &str, input: &Value, expected: &mut Val
         );
         evidence["paragraphs"] = json!("component rates, examples 1 to 3 in each");
         evidence["checked"] = json!("2026-11-14");
+        record["required_inputs"]["pay_period"] =
+            json!("weekly, fortnightly, monthly or quarterly");
         record["optional_inputs"] = json!({
             "pay_date": "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025"
         });
@@ -462,8 +474,11 @@ fn python_api_corpus_matches() {
             continue;
         }
         // It refused quarterly pays too; tests/payg_withholding.rs checks them
-        // against 13 times the ATO's weekly sample.
-        if command == "payg-withholding" && row["input"]["pay_period"] == "quarterly" {
+        // against 13 times the ATO's weekly sample, and
+        // tests/study_loan_withholding.rs the study loan ones against Schedule 8.
+        if matches!(command, "payg-withholding" | "study-loan-withholding")
+            && row["input"]["pay_period"] == "quarterly"
+        {
             reopened_quarterly += 1;
             continue;
         }
@@ -491,7 +506,10 @@ fn python_api_corpus_matches() {
     }
     assert_eq!(reopened, 1, "frozen 2025-26 PAYG refusals");
     assert_eq!(reopened_fbt, 1, "frozen 2027 FBT refusals");
-    assert_eq!(reopened_quarterly, 1, "frozen quarterly PAYG refusals");
+    assert_eq!(
+        reopened_quarterly, 2,
+        "frozen quarterly PAYG and study loan refusals"
+    );
     assert_eq!(
         reopened_medicare, 1,
         "frozen 2026-27 Medicare levy refusals"

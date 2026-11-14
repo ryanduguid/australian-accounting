@@ -669,6 +669,25 @@ fn study_loan_withholding_never_falls_as_weekly_earnings_rise() {
     }
 }
 
+#[test]
+fn quarterly_study_loan_withholding_is_13_weekly_amounts() {
+    for (year, first_pay_date) in STUDY_LOAN_WITHHOLDING_FROM {
+        for scale in [1, 2, 3, 5, 6] {
+            for dollars in (0..=4000).step_by(7) {
+                let pay = |earnings: i64, period| {
+                    let input = json!({"earnings": earnings.to_string(), "pay_period": period,
+                                       "scale": scale, "year": year, "scope_confirmed": true,
+                                       "pay_date": first_pay_date});
+                    amount(&run("study-loan-withholding", input), "withholding")
+                };
+                let weekly = pay(dollars, "weekly").mul(&n(13)).unwrap();
+                let gap = pay(dollars * 13, "quarterly").sub(&weekly).unwrap();
+                assert!(gap.is_zero(), "{year} {scale} {dollars}");
+            }
+        }
+    }
+}
+
 /// Every car result reconciles to the cent: the applied and excess
 /// contribution make up the contribution, the applied part and the value
 /// before exemption make up the gross value, that value is also the reportable
@@ -1241,6 +1260,34 @@ fn seniors_pensioners_withholding_rises_and_exemptions_never_raise_it() {
                 }
                 previous = withholding;
             }
+        }
+    }
+}
+
+/// The seniors and pensioners tax offset never rises as rebate income rises,
+/// for each status, with the spouse's rebate income held fixed and no
+/// transfer, starting from the base rebate amount and reaching nil.
+#[test]
+fn seniors_pensioners_tax_offset_never_rises_with_rebate_income() {
+    for year in ["2024-25", "2025-26", "2026-27"] {
+        for (status, base) in [
+            ("single", 2230),
+            ("illness_separated", 2040),
+            ("couple", 1602),
+        ] {
+            let mut previous = n(base);
+            for income in (20_000..62_000).step_by(7) {
+                let mut facts = json!({"rebate_income": income.to_string(), "status": status,
+                                       "year": year, "scope_confirmed": true});
+                if status != "single" {
+                    facts["spouse_rebate_income"] = json!("40000");
+                }
+                let result = run("seniors-pensioners-tax-offset", facts);
+                let offset = amount(&result, "seniors_pensioners_tax_offset");
+                assert!(le(&offset, &previous), "{year} {status} {income}");
+                previous = offset;
+            }
+            assert!(eq(&previous, &n(0)), "{year} {status} reaches nil");
         }
     }
 }
