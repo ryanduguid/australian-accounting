@@ -79,6 +79,18 @@ intentionally changed.
   the ATO's examples 1 to 4 in the 2024, 2025 and 2026 schedules and to each
   rule's boundary. New refusal codes: `input.pay_periods_invalid` and
   `input.back_payment_periods_invalid`.
+- `working-holiday-maker-withholding` applies Schedule 15 to one weekly,
+  fortnightly or monthly payment to a working holiday maker, for 2024-25 to
+  2026-27: a registered employer's Table A rate (15%, 30%, 37% or 45%, by the
+  column the payments made before it in the income year select), an
+  unregistered employer's foreign resident rates through Schedule 1 scale 3,
+  and 45% from any employer whose payee gave no TFN. It refuses payments before of
+  $135,000.01 to $135,000.99, which no column covers
+  (`working_holiday_maker.band_unsettled`), and, like `division-296`, a field
+  it does not take. No Python release has it. `tests/parity.rs` drops its
+  catalogue entry before comparing, and `tests/working_holiday_maker.rs` holds
+  it to the ATO's lookup tool example and examples 1 and 2, each column
+  boundary and the rounding rules.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,

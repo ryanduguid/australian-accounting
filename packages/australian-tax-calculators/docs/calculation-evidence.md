@@ -50,6 +50,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component from 1 July 2026 only |
+| Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -604,6 +605,69 @@ it relates to and the normal earnings to the payer, and so do the worksheets.
 Working holiday makers, who must use Schedule 15, payees who gave no TFN, who
 have 47% or 45% withheld from the whole payment, withholding variations and
 superannuation income streams are outside them.
+
+## Working holiday makers
+
+This worksheet's evidence is not a Library document. On 14 November 2026 the
+ATO's Schedule 15 for payments from 1 July 2026 (published 17 June 2026) and
+the one for 1 July 2024 to 30 June 2026 (last updated 17 June 2024) were read in
+full. Their columns, Table A rates, formula, rounding rules and examples are the
+same apart from the income year in Table A's heading and the examples' dates:
+
+- A registered employer whose payee has given a TFN uses column 2 while the
+  total payments made to them in the income year before this payment are less
+  than $45,001, column 3 from $45,001 to $135,000, column 4 from $135,001 to
+  $190,000 and column 5 above $190,000; Table A's rates are 0.15, 0.30, 0.37
+  and 0.45. A registered employer whose payee has not given a TFN uses
+  column 6, 45%.
+- y = a × x, where x is the payment for the pay period ignoring any cents. The
+  result is rounded to the nearest dollar, 50 cents up, without a preliminary
+  rounding to cents; at the top marginal rate and without a TFN, cents in the
+  result are ignored.
+- An unregistered employer withholds at the foreign resident rates in the
+  weekly, fortnightly or monthly tax tables, which the worksheet takes from
+  Schedule 1 scale 3 through `payg-withholding`. Without a TFN it withholds
+  45%, cents ignored: the schedule's 45% rule for a payee without a TFN does
+  not depend on registration, and Schedule 1 scale 4 gives the same rate for
+  a foreign resident.
+- 45% applies without a TFN only if the payee has also not claimed an
+  exemption from quoting it and not advised that they applied for one or made
+  an enquiry with the ATO; a payee who so advised has 28 days to provide it.
+  The worksheet takes `tfn_quoted` as established on that basis and leaves
+  exemption claimants out of scope.
+- The schedule does not apply to workers employed under the Seasonal Worker
+  Programme, Pacific Labour Scheme or Pacific Australia Labour Mobility scheme.
+
+`tests/working_holiday_maker.rs` holds the schedule's examples for each year:
+
+| Example | Payment | Paid before | Rate | Withholding |
+| --- | --- | --- | --- | --- |
+| Withholding lookup tool, weekly | $680.70 | Not over $45,000 | 0.15 | $102 |
+| 1, monthly | $2,825.75 | Not over $45,000 | 0.15 | 0.15 × 2,825 = 423.75, $424 |
+| 2, monthly | $8,173.20 | $47,000 | 0.30 | 0.30 × 8,173 = 2,451.90, $2,452 |
+
+The columns follow the schedule's words, so $45,000.50 paid before is column 2
+('less than $45,001') and $190,000.50 column 5 ('more than $190,000'), which
+Table A's rate column ('45% on each $1 over $190,000') agrees with. For
+$45,000.01 to $45,000.99 the formula reads differently: payments that 'exceed
+$45,000' go to Table A, whose rate column gives '30% on each $1 over $45,000';
+the worksheet follows column 2, as the schedule accepts either the lookup tool
+or the formula. Column 3 ends at $135,000 and column 4 starts at $135,001, and
+Table A's income bands leave the same gap, which only its rate column ('37% on
+each $1 over $135,000') reaches, so payments before of $135,000.01 to
+$135,000.99 are refused rather than placed in either column, and the refusal
+names the 37% for the payer to confirm with the ATO.
+
+The schedule says results from its formulas may differ slightly from the
+withholding lookup tool and that either is accepted. The tool's workbook for
+each schedule version, opened on 14 November 2026, works out columns 2 to 4 as
+the rate times the payment with cents ignored, rounded to the dollar, and
+columns 5 and 6 as 45% of it with cents ignored again, at the same rates; the
+worksheet does the same. The workbook's column headings ('$0 - $45,000' to
+'$190,001 and over') do not choose a column for payments before of
+$45,000.01 to $45,000.99, $135,000.01 to $135,000.99 or $190,000.01 to
+$190,000.99. The payee's visa and residency and the employer's registration
+are the operator's to establish.
 
 ## Study loan withholding
 

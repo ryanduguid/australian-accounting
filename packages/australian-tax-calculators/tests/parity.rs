@@ -10,8 +10,9 @@ use std::process::{Command, Stdio};
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
 /// `tests/borrowing_expenses.rs`, `tests/division_296.rs`,
-/// `tests/termination_payment.rs` and `tests/schedule_5.rs` cover them.
-const NEW_KINDS: [(&str, &str); 9] = [
+/// `tests/termination_payment.rs`, `tests/schedule_5.rs` and
+/// `tests/working_holiday_maker.rs` cover them.
+const NEW_KINDS: [(&str, &str); 10] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("main-residence", "main_residence"),
@@ -21,6 +22,10 @@ const NEW_KINDS: [(&str, &str); 9] = [
     ("schedule-5-method-a", "schedule_5_method_a"),
     ("schedule-5-method-b-i", "schedule_5_method_b_i"),
     ("schedule-5-method-b-ii", "schedule_5_method_b_ii"),
+    (
+        "working-holiday-maker-withholding",
+        "working_holiday_maker_withholding",
+    ),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.

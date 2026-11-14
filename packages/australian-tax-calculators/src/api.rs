@@ -329,6 +329,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "working-holiday-maker-withholding",
+        &[
+            ("payment", Dec),
+            ("payments_before", Dec),
+            ("employer_registered", Raw),
+            ("tfn_quoted", Raw),
+            ("pay_period", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "study-loan-repayment",
         &[
             ("repayment_income", Dec),
@@ -561,11 +573,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
-    // Division 296, the termination payment and Schedule 5 worksheets have no
-    // Python original whose lenience to keep, and a misspelt optional
-    // depreciation input would silently give the start year's result, so a
-    // field one does not take, such as an opening balance or another method's
-    // input, is refused rather than ignored.
+    // Division 296, the termination payment, Schedule 5 and Schedule 15
+    // worksheets have no Python original whose lenience to keep, and a misspelt
+    // optional depreciation input would silently give the start year's result,
+    // so a field one does not take, such as an opening balance, another
+    // method's input or a TFN exemption, is refused rather than ignored.
     if matches!(
         command,
         "division-296"
@@ -574,6 +586,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "schedule-5-method-a"
             | "schedule-5-method-b-i"
             | "schedule-5-method-b-ii"
+            | "working-holiday-maker-withholding"
     ) {
         let optional = crate::metadata::optional_inputs(command);
         let taken = |key: &String| {
@@ -662,6 +675,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             &a[8],
             &a[9],
             &a[10],
+        ),
+        "working-holiday-maker-withholding" => engine::working_holiday_maker_withholding(
+            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6],
         ),
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {

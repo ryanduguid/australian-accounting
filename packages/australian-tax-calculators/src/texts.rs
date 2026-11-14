@@ -94,6 +94,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "schedule_5_method_b_ii",
         "Withholding under Schedule 5 (NAT 3348) Method B(ii) from one regular weekly, fortnightly or monthly pay of salary or wages that includes a back payment for a prior financial year, or a commission, bonus or similar payment that does not relate to a single pay period, made from 1 July 2024 in the income year given, to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. The year selects the Schedule 1 coefficients, as payg-withholding uses them. The operator establishes the normal earnings paid in the financial year to date, including the current pay, plus current-year back payments for which Method B(i) was used; the pay periods to date, including the current one; the additional payment in this pay; additional payments made earlier in the year for which Method B(ii) was used and the amounts withheld from them; the current pay's gross earnings excluding additional payments; and whether the payee declared a study and training support loan debt, when each table amount includes the Schedule 8 component, as Schedule 5 allows, for the years study-loan-withholding supports, and the earlier amounts withheld include it too. Average total earnings are the earnings to date divided by the pay periods to date, cents ignored. All the year's Method B(ii) additional payments are divided by 52 weekly, 26 fortnightly or 12 monthly pay periods, cents ignored, with no adjustment for 53 or 27 pays; the extra withheld from the average plus that share, times those pay periods, less the earlier amounts withheld, is limited to 47% of this additional payment, with cents ignored and a negative result taken as nil; the pay's withholding adds it to the current earnings' amount. When Method B(i) applies to a back payment in the same pay, count the earnings' amount once. Excludes working holiday makers (Schedule 15), payees who gave no TFN (scale 4), withholding variations, tax offsets, Medicare levy adjustments, superannuation income streams, employment termination and unused leave payments, and other schedules.",
     ),
+    (
+        "working_holiday_maker_withholding",
+        "Withholding under Schedule 15 from one payment to a working holiday maker, made from 1 July 2024 in the income year given: an individual who holds a working holiday visa (subclass 417), a work and holiday visa (subclass 462) or a bridging visa that Schedule 15 covers, as the operator established. The payment is the total for the pay period, including allowances, back payments, commissions, bonuses and other payments Schedule 15 covers; for an employment termination payment, only its taxable component. The operator establishes the payments made to the payee in the income year before this one, whether the employer is registered with the ATO to withhold at working holiday maker rates, and whether the payee quoted a TFN or, within the last 28 days, advised that they applied for one or made an enquiry with the ATO. A registered employer withholds the payment, cents ignored, times the Table A rate for the column the payments before it select: 15% for less than $45,001, 30% from $45,001 to $135,000, 37% from $135,001 to $190,000 and 45% for more than $190,000, rounded to the dollar with 50 cents up, or with cents ignored at 45%; payments before of $135,000.01 to $135,000.99, which no column covers, are refused. Without a TFN any employer withholds 45% of the payment, cents ignored. An unregistered employer withholds at foreign resident rates, the Schedule 1 scale 3 amount for a weekly, fortnightly or monthly pay, as payg-withholding gives it. Every payment needs a weekly, fortnightly or monthly pay period. Excludes a payee who claimed an exemption from quoting a TFN, Medicare levy adjustments and tax offsets, which do not reduce this withholding, the Seasonal Worker Programme, Pacific Labour Scheme and Pacific Australia Labour Mobility scheme, withholding variations, the employer's registration and the payee's visa, residency and annual return.",
+    ),
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
@@ -180,6 +184,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     ("schedule_5_method_a", SCHEDULE_5_METHODS),
     ("schedule_5_method_b_i", SCHEDULE_5_METHODS),
     ("schedule_5_method_b_ii", SCHEDULE_5_METHODS),
+    (
+        "working_holiday_maker_withholding",
+        "https://www.ato.gov.au/tax-rates-and-codes/schedule-15-tax-table-for-working-holiday-makers",
+    ),
 ];
 
 /// Schedule 5 (NAT 3348) for payments from 1 July 2026: its methods, and the
@@ -293,6 +301,14 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
     ("schedule_5_method_a", SCHEDULE_5_EXTRA),
     ("schedule_5_method_b_i", SCHEDULE_5_EXTRA),
     ("schedule_5_method_b_ii", SCHEDULE_5_EXTRA),
+    (
+        "working_holiday_maker_withholding",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/schedule-15-tax-table-for-working-holiday-makers-01-july-2024-to-30-june-2026",
+            "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
+            "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -543,6 +559,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "scope.not_confirmed",
         "The stated scope conditions were not confirmed.",
+    ),
+    (
+        "working_holiday_maker.band_unsettled",
+        "Payments before are from $135,000.01 to $135,000.99, which none of Schedule 15's columns covers.",
     ),
     ("worksheet.unknown", "The worksheet does not exist."),
 ];
