@@ -30,9 +30,5 @@ Each release stops answering tool calls on its `serve_until` date, so a release
 built with one year's tables cannot keep serving after they may have changed.
 An engine refuses periods it holds no table for.
 
-`review_div7a_loan` does not yet give the remaining-term refusals of the Python
-server on `main`; see [the core's README](../../apps/aus-accounting-mcp/core/README.md).
-Do not serve it until that is closed.
-
 Report suspected security issues through the repository's private vulnerability
 reporting process.
