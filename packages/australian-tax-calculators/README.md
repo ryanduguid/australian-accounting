@@ -129,8 +129,8 @@ or a decimal string over 8,192 bytes, is refused.
 ## Derivations
 
 `derive` shows how each amount of an FBT, Division 293 or pension minimum
-worksheet was worked out. It takes
-`{"command": "fbt", "input": {...}}`, runs the command on that input and returns
+worksheet was worked out. It takes `{"command": "fbt", "input": {...}}`, runs
+the command on that input and returns
 `{"format": "australian-tax-calculators/derivation/1", "engine", "engine_version",
 "calculation", "input", "steps", "result"}`. `result` is the command's own output,
 byte for byte. `steps` holds one step per amount, in the amounts' order:
@@ -141,15 +141,17 @@ byte for byte. `steps` holds one step per amount, in the amounts' order:
 
 `authority` is the provision or ATO page that sets the amount: a section of the
 Fringe Benefits Tax Assessment Act 1986 (FBTAA), of the Income Tax Assessment
-Act 1997 (ITAA 1997) or of the Division 293 Imposition Act 2013, or a clause of
-Schedule 7 to the Superannuation Industry (Supervision) Regulations 1994 (SISR).
-`working` is the formula, the same formula on the values it used and its
-unrounded result. Each name in a formula is an input, a rate in `result.rates`
-or an earlier step, whose unrounded result it carries; `x` multiplies, `min`
-takes the lower, `max` the higher, and `cents` and `dollars` round half up. `value` is the amount, the result rounded half up to cents. The
-worksheet records each step beside its arithmetic and renders its amounts from
-the steps, so a step cannot differ from its amount; `tests/derivation.rs`
-recomputes every amount from its working alone. A refused input gets the
+Act 1997 (ITAA 1997) or of the Superannuation (Sustaining the Superannuation
+Contribution Concession) Imposition Act 2013, or a clause of Schedule 7 to the
+Superannuation Industry (Supervision) Regulations 1994 (SISR). `working` is the
+formula, the same formula on the values it used and its unrounded result. Each
+name in a formula is an input, a rate in `result.rates` or an earlier step,
+whose unrounded result it carries; `x` multiplies, `min` takes the lower, `max`
+the higher, and `cents` and `dollars` round half up. `value` is the amount, the
+result rounded half up to cents. The worksheet records each step beside its
+arithmetic and renders its amounts from the steps, so a step cannot differ from
+its amount; `tests/derivation.rs` recomputes every amount from its working
+alone. A refused input gets the
 command's own refusal, any other command is refused as
 `derivation.unsupported`, and a key other than `command` and `input` as
 `input.field_unknown`. The other worksheets' amounts are not derived yet.

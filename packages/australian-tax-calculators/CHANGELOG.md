@@ -11,8 +11,9 @@ intentionally changed.
 ### Added
 
 - `derive` also covers `division-293` and `pension-minimum`. Their steps cite
-  ITAA 1997 s 293-20 and the Division 293 Imposition Act 2013 s 5, and SISR
-  Schedule 7 clauses 1, 3, 4 and 5; a formula may now use `max`.
+  ITAA 1997 s 293-20 and the Superannuation (Sustaining the Superannuation
+  Contribution Concession) Imposition Act 2013 s 5, and SISR Schedule 7
+  clauses 1, 3, 4 and 5; a formula may now use `max`.
   `tests/derivation.rs` also derives every case the Python corpus holds for a
   derived command. Neither command's plain output changes.
 - `derive` returns an FBT worksheet's result with one step per amount: the
