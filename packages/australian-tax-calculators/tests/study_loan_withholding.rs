@@ -227,3 +227,62 @@ fn periods_start_2025_26_on_24_september_2025() {
         ])
     );
 }
+
+/// Schedule 8's quarterly rule, as Schedule 1's: divide by 13, ignore the
+/// cents, add 99 cents, and multiply the weekly component by 13. Neither
+/// schedule has a quarterly example, so these figures are worked by hand from
+/// example 1's $2,608.36 a week, 13 times over. 2026-27: x = $2,608.99, Schedule
+/// 1 $654 x 13 = $8,502, component $193 x 13 = $2,509. 2025-26: $659 x 13 =
+/// $8,567 and $202 x 13 = $2,626.
+#[test]
+fn a_quarterly_pay_withholds_13_times_the_weekly_amounts() {
+    for (year, extra, tax, component) in [
+        ("2026-27", json!({}), 8502, 2509),
+        ("2025-26", json!({"pay_date": "2025-09-24"}), 8567, 2626),
+    ] {
+        let result = run("33908.68", "quarterly", 2, year, extra);
+        assert_eq!(result["amounts"]["weekly_earnings_used"], json!("2608.99"));
+        assert_eq!(dollars(&result, "schedule_1_withholding"), tax, "{year}");
+        assert_eq!(
+            dollars(&result, "study_loan_component"),
+            component,
+            "{year}"
+        );
+        assert_eq!(dollars(&result, "withholding"), tax + component, "{year}");
+        assert_eq!(tax, schedule_1("33908.68", "quarterly", 2, year));
+        assert_eq!(result["period"], json!(format!("{year} quarterly")));
+    }
+}
+
+/// The quarterly starting earnings, 13 times the weekly: $17,381 and $12,831
+/// for 2026-27 (the ATO's Schedule 8 for payments from 1 July 2026 states
+/// them), $16,744 and $12,194 for 2025-26
+/// (F2025L01016). A cent less stays on the nil row.
+#[test]
+fn the_quarterly_component_starts_at_13_times_the_weekly_threshold() {
+    for (year, extra, scale, below, from) in [
+        ("2026-27", json!({}), 2, "17380.99", "17381.00"),
+        ("2026-27", json!({}), 1, "12830.99", "12831.00"),
+        (
+            "2025-26",
+            json!({"pay_date": "2026-06-30"}),
+            2,
+            "16743.99",
+            "16744.00",
+        ),
+        (
+            "2025-26",
+            json!({"pay_date": "2026-06-30"}),
+            1,
+            "12193.99",
+            "12194.00",
+        ),
+    ] {
+        let rate = |earnings| {
+            let result = run(earnings, "quarterly", scale, year, extra.clone());
+            result["rates"]["component_a"].as_str().unwrap().to_string()
+        };
+        assert_eq!(rate(below), "0", "{year} {below}");
+        assert_eq!(rate(from), "0.15", "{year} {from}");
+    }
+}

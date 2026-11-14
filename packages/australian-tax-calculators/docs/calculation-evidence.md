@@ -50,10 +50,10 @@ example evidence; it does not claim a fresh review of every supported period.
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
-| Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component from 1 July 2026 only |
+| Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
 | Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
-| Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
+| Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
@@ -776,9 +776,21 @@ The examples work the study loan component from the separate study and
 training support loan tax tables; the worksheets add the Schedule 8 component
 to each Schedule 1 amount, as `study-loan-withholding` does, which Schedule 5
 accepts in place of separate calculations and which gives the same amounts in
-every 2026 example. This crate has no Schedule 8 coefficients before 1 July
-2026, so the tests hold the 2024 and 2025 examples' PAYG components only and
-require a study loan in those years to be refused. Example 4 combines the 2
+every 2026 example. The 2024 and 2025 examples work the component as the
+earlier percentage of weekly earnings, which F2025L01016 replaced from 24
+September 2025, so the tests hold their PAYG components only. A 2025-26 study
+loan pay by Method A or B(ii) takes F2025L01016's coefficients for its
+`pay_date`, and the tests work Jarrod and a Method B(ii) pay by hand on them
+(Jarrod: $289, $296, $7 x 52 = $364 on the bonus, $653 in all). Method B(i)
+refuses a 2025-26 study loan. It recalculates each earlier period, and step 3
+says only 'the relevant tax table'. F2025L01016 commenced on 24 September 2025
+and repealed the earlier instrument without a transitional rule, yet its own
+Schedule 5 examples use the study loan tables from 1 July 2024, so neither
+instrument settles which coefficients recalculate a period before that date,
+and the worksheet does not know the periods' dates. Method A, which Schedule 5
+accepts for any additional payment, takes the 2025-26 study loan. A 2024-25
+study loan, a 2025-26 one without its date or before 24 September 2025, and a
+pay date without a study loan are also refused. Example 4 combines the 2
 methods in one pay: the tests run each method and count the earnings' amount
 once, as the example does.
 
@@ -943,8 +955,8 @@ through rounding, accepting either. The tests type in the combined scale 1 and
 row to 4 decimal places, and require the worksheet to stay within $1 of them
 for every whole-dollar weekly amount to $4,000. The published scale 3 combined
 rows from $1,337 to below $2,596 omit the 30 cent constant of the Schedule 1
-scale 3 row; the worksheet follows the component method and does not use them. Quarterly
-pays, scale 4 and a Medicare levy variation for a spouse or dependants are
+scale 3 row; the worksheet follows the component method and does not use them.
+Scale 4 and a Medicare levy variation for a spouse or dependants are
 outside the worksheet.
 
 For 2025-26 the component rates were transcribed from Schedule 8 of the
@@ -966,6 +978,16 @@ and $5,581.33 with the threshold; $938, $1,876 and $4,064.67 without it), to
 each row edge, and to pays on 23 and 24 September 2025. `tests/common/mod.rs`
 types in the instrument's combined scale 1 and 2 coefficients, held to the
 same checks as 2026-27's.
+
+Both schedules state the quarterly rule in 'Calculating fortnightly, monthly
+or quarterly withholding amounts': divide the quarter's earnings by 13, ignore
+the cents and add 99 cents, then multiply the rounded weekly amount by 13.
+Neither works a quarterly example, so `tests/study_loan_withholding.rs` holds
+hand-worked figures, example 1's $2,608.36 a week taken 13 times ($33,908.68
+gives $8,502 and $2,509 for 2026-27, $8,567 and $2,626 for 2025-26), and the
+quarterly starting earnings each schedule states ($17,381 and $12,831 for
+2026-27, $16,744 and $12,194 for 2025-26). `tests/properties.rs` requires a
+quarterly pay to withhold 13 times the weekly amount.
 
 ## Study loan repayment
 

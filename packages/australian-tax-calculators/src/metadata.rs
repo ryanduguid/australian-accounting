@@ -867,7 +867,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "study_loan_withholding" => (
             "2026-11-14",
-            "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding",
+            "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly, monthly and quarterly amounts, examples 1 to 3, rounding",
         ),
         "medicare_levy" => (
             "2026-11-14",
@@ -891,7 +891,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
             "2026-11-14",
-            "Schedule 5 (NAT 3348) for payments from 1 July 2026, from 1 July 2025 to 30 June 2026 and from 1 July 2024 to 30 June 2025: about this schedule, working out the withholding amount (Methods A, B(i) and B(ii), the withholding limit, study and training support loans) and withholding amounts examples 1 to 4",
+            "Schedule 5 (NAT 3348) for payments from 1 July 2026, from 1 July 2025 to 30 June 2026 and from 1 July 2024 to 30 June 2025: about this schedule, working out the withholding amount (Methods A, B(i) and B(ii), the withholding limit, study and training support loans) and withholding amounts examples 1 to 4; Schedule 8's coefficients for the pay date",
         ),
         "working_holiday_maker_withholding" => (
             "2026-11-14",
@@ -1121,13 +1121,17 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, whole dollars, not for a single person: to transfer the spouse's unused base rebate amount (regulations s 12), the spouse's taxable income for the year with any exempt disability support, carer, invalidity service or partner service pension added (s 12(5)); give it only for a spouse entitled to the offset and taxed at the resident rates; omit for no transfer",
             ),
         ],
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => vec![(
+            "pay_date",
+            "YYYY-MM-DD date this pay is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025; Method B(i) refuses a 2025-26 study loan",
+        )],
         _ => Vec::new(),
     }
 }
 
 /// `INPUT_UNITS[kind]`, in the Python dict's order.
 pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
-    let payg = vec![
+    let payg = [
         (
             "earnings",
             "AUD, gross earnings and allowances subject to withholding for the pay period",
@@ -1140,7 +1144,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ("scale", "integer 1, 2, 3, 5 or 6"),
         (
             "study_loan",
-            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component to each table amount, for a year whose Schedule 8 coefficients apply from 1 July (Schedule 5 takes no pay date)",
+            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component for the pay date to each table amount, for 2026-27 and, except in Method B(i), 2025-26 pays made from 24 September 2025",
         ),
     ];
     match kind {
@@ -1293,7 +1297,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer 1 to 6; scale 4 also needs foreign_resident",
             ),
         ],
-        "study_loan_withholding" => payg,
+        "study_loan_withholding" => vec![
+            payg[0],
+            ("pay_period", "weekly, fortnightly, monthly or quarterly"),
+            payg[2],
+        ],
         "contribution_caps" => vec![
             (
                 "total_super_balance",
