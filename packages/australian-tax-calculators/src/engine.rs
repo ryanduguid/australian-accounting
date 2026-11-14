@@ -240,6 +240,9 @@ fn result(
 /// it, its formula, the formula on the operands the arithmetic used, and the
 /// unrounded value the amount is rendered from. The FBT steps cite the FBTAA as
 /// compiled on 1 July 2026 (C2004A03280) and ATO pages, read on 14 November 2026.
+/// The Division 293 steps cite ITAA 1997 compilation 266 (1 July 2026) and the
+/// 2013 Imposition Act as made, and the pension minimum steps SISR Schedule 7 as
+/// in force from 1 July 2026, all read on 15 November 2026.
 struct Step {
     id: &'static str,
     authority: &'static str,
@@ -250,7 +253,7 @@ struct Step {
 
 /// A step whose operands are `formula` with each name in turn replaced by the
 /// next of `operands`. Numbers, operators (`x` multiplies) and the functions
-/// `min`, `cents` and `dollars` stay as written.
+/// `min`, `max`, `cents` and `dollars` stay as written.
 fn step(
     id: &'static str,
     authority: &'static str,
@@ -2167,6 +2170,31 @@ pub fn low_income_tax_offset(
     )
 }
 
+/// `division_293`'s amounts: (id, authority, formula). The lesser of the low tax
+/// contributions and the excess is nil when they are, as s 293-20(2) requires.
+const DIVISION_293_STEPS: [(&str, &str, &str); 4] = [
+    (
+        "combined_income_and_contributions",
+        "ITAA 1997 s 293-20(1)(a) and (b)",
+        "division_293_income + low_tax_contributions",
+    ),
+    (
+        "excess_over_threshold",
+        "ITAA 1997 s 293-20(1)",
+        "max(0, combined_income_and_contributions - threshold)",
+    ),
+    (
+        "taxable_contributions",
+        "ITAA 1997 s 293-20(1) and (2)",
+        "min(low_tax_contributions, excess_over_threshold)",
+    ),
+    (
+        "division_293_tax",
+        "Superannuation (Sustaining the Superannuation Contribution Concession) Imposition Act 2013 s 5",
+        "taxable_contributions x rate",
+    ),
+];
+
 pub fn division_293(
     division_293_income: &Arg,
     low_tax_contributions: &Arg,
@@ -2178,21 +2206,25 @@ pub fn division_293(
     let contributions = money(low_tax_contributions)?;
     let threshold = d(lookup(&meta::DIVISION_293, "threshold"));
     let rate_ = d(lookup(&meta::DIVISION_293, "rate"));
-    let amounts = precise(|| {
+    let steps = precise(|| {
         let combined = income.add(&contributions)?;
         let excess = py_max(int(0), combined.sub(&threshold)?)?;
         let taxable = py_min(contributions.clone(), excess.clone())?;
-        Ok(vec![
-            ("combined_income_and_contributions", combined),
-            ("excess_over_threshold", excess),
-            ("taxable_contributions", taxable.clone()),
-            ("division_293_tax", taxable.mul(&rate_)?),
-        ])
+        let tax = taxable.mul(&rate_)?;
+        Ok(steps_from(
+            &DIVISION_293_STEPS,
+            [
+                (&[&income, &contributions], combined.clone()),
+                (&[&combined, &threshold], excess.clone()),
+                (&[&contributions, &excess], taxable.clone()),
+                (&[&taxable, &rate_], tax),
+            ],
+        ))
     })?;
-    result(
+    derived_result(
         "division_293",
         &year,
-        amounts,
+        steps,
         vec![rate("threshold", &threshold), rate("rate", &rate_)],
     )
 }
@@ -2718,31 +2750,61 @@ pub fn pension_minimum(
         .find(|(lowest, _)| age >= *lowest)
         .expect("age 0 band")
         .1);
-    let amounts = precise(|| {
+    let (held, length) = (int(days), int(days_in_year));
+    let steps = precise(|| {
         // cl 4: nothing is required for a pension commencing on or after 1 June,
-        // which is within the last 30 days of the income year.
-        let exact = if days <= 30 {
-            int(0)
+        // which is within the last 30 days of the income year. Otherwise cl 3
+        // pro-rates the factor over a first year that starts after 1 July.
+        let (authority, formula, operands, exact): (_, _, &[&Decimal], _) = if days <= 30 {
+            ("SISR Schedule 7 cl 4", "0", &[], int(0))
+        } else if days < days_in_year {
+            (
+                "SISR Schedule 7 cl 1(1) and cl 3",
+                "account_balance_used x percentage_factor x days / days_in_year",
+                &[&balance, &factor, &held, &length],
+                balance.mul(&factor)?.mul(&held)?.div(&length)?,
+            )
         } else {
-            balance
-                .mul(&factor)?
-                .mul(&int(days))?
-                .div(&int(days_in_year))?
+            (
+                "SISR Schedule 7 cl 1(1)",
+                "account_balance_used x percentage_factor",
+                &[&balance, &factor],
+                balance.mul(&factor)?,
+            )
         };
         let minimum = exact
             .div(&int(10))?
             .quantize(0, Rounding::HalfUp)?
             .mul(&int(10))?;
+        let rounding = "dollars(minimum_before_rounding / 10) x 10";
         Ok(vec![
-            ("account_balance_used", balance.clone()),
-            ("minimum_before_rounding", exact),
-            ("minimum_payment", minimum),
+            step(
+                "account_balance_used",
+                "SISR Schedule 7 cl 1(2)",
+                "account_balance",
+                &[&balance],
+                balance.clone(),
+            ),
+            step(
+                "minimum_before_rounding",
+                authority,
+                formula,
+                operands,
+                exact.clone(),
+            ),
+            step(
+                "minimum_payment",
+                "SISR Schedule 7 cl 5",
+                rounding,
+                &[&exact],
+                minimum,
+            ),
         ])
     })?;
-    result(
+    derived_result(
         "pension_minimum",
         &year,
-        amounts,
+        steps,
         vec![
             rate("percentage_factor", &factor),
             rate("days", days),
