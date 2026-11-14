@@ -10,6 +10,15 @@ intentionally changed.
 
 ### Added
 
+- `derive` returns an FBT worksheet's result with one step per amount: the
+  FBTAA section or ATO page that sets it, its formula on the values it used,
+  and the amount. It covers `fbt`, `fbt-car-statutory` and
+  `fbt-car-operating-cost`; the worksheets render their amounts from these
+  steps, and `tests/derivation.rs` recomputes each amount from its working.
+  Another command is refused with the new code `derivation.unsupported`, and
+  a key other than `command` and `input` with `input.field_unknown`. The
+  plain commands' output is unchanged, and `tests/parity.rs` skips `derive`,
+  which has no Python original.
 - `--refusal-json`, after a command, adds a stable refusal code on stdout as
   `{"ok":false,"code":...,"message":...}`. The `error:` line, the message and
   exit 2 stay as they were, and stdout stays empty on a refusal without the flag.
