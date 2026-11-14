@@ -31,6 +31,23 @@ SAMPLE = ROOT / "examples" / "sample_loans_mixed.csv"
 SHEETS = ("Start Here", "Register", "Rates", "Summary", "Review Checks", "Sources & Version")
 YEAR = "2026-27"
 YEAR_HELPERS = ("Year_made_text", "Year_tested_text")
+# The workbook's reason for each refusal, keyed by the engine's first reason code.
+GATE_REASON = "s 109N gate is {}, so s 109E produces no repayment figure"
+REFUSAL_REASONS = {
+    "REFUSED_GATE_NOT_COMPLYING": GATE_REASON.format("NOT_COMPLYING"),
+    "REFUSED_GATE_UNKNOWN": GATE_REASON.format("UNKNOWN"),
+    "REFUSED_GATE_BENCHMARK_YEAR_MISMATCH": "gate benchmark year differs from year_loan_made",
+    "REFUSED_YEAR_IS_YEAR_OF_LOAN":
+        "year of income is the year the loan was made (s 109E(1)(a), s 109P)",
+    "REFUSED_YEAR_BEFORE_LOAN": "loan made after the year of income",
+    "REFUSED_REMAINING_TERM_NOT_POSITIVE": "nil remaining term under s 109E(6)",
+    "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM":
+        "remaining term longer than the s 109N(3) maximum term",
+    "REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM": "remaining term longer than maximum_term_years",
+    "REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED":
+        "remaining term longer than maximum_term_years less the years since the loan year (s 109E(6))",
+    "REFUSED_BENCHMARK_RATE_NOT_POSITIVE": "nil benchmark rate",
+}
 
 
 @pytest.fixture(scope="module")
@@ -71,7 +88,7 @@ def test_cached_values_were_calculated_by_desktop_excel(cached):
     assert str(sources["B3"].value).startswith("Excel ")
     assert cached["Summary"]["B2"].value == YEAR
     assert cached["Review Checks"]["B9"].value == "REVIEW", "shipped sample loans are flagged"
-    assert cached["Review Checks"]["C9"].value == 8
+    assert cached["Review Checks"]["C9"].value == 14
     assert cached["Review Checks"]["B10"].value == "REVIEW"
     assert cached["Start Here"]["A11"].value == "REVIEW"
     assert "Interest-floor interpretation unresolved" in cached["Review Checks"]["A13"].value
@@ -95,6 +112,9 @@ def test_mixed_sample_matches_the_engine_line_by_line(cached):
         assert (row["MYR_verdict"] or None) == (None if myr is None else myr["verdict"])
         if myr is None:
             continue
+        if myr["verdict"] == "REFUSED":
+            reason = REFUSAL_REASONS[myr["reason_codes"][0]]
+            assert row["MYR_reason"] == reason, line["loan_id"]
         for column, key in (("Term_used", "remaining_term_years_used"), ("MYR_required", "myr_required"),
                             ("Shortfall", "shortfall"), ("Exposure", "experimental_deemed_dividend_exposure")):
             assert as_decimal(row[column]) == as_decimal(myr[key]), (line["loan_id"], column)

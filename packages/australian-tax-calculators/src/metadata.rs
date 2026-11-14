@@ -348,10 +348,13 @@ pub const STUDY_LOAN_REPAYMENT_THRESHOLDS: &[(&str, [(&str, &str); 4])] = &[
 pub const STUDY_LOAN_REPAYMENT_RATES: [(&str, &str); 3] =
     [("lower", "0.15"), ("upper", "0.17"), ("flat", "0.10")];
 
-/// Medicare levy (threshold amount, phase-in limit) for a single person.
+/// Medicare levy (threshold amount, phase-in limit) for a single person. Act
+/// No. 58, 2026, Sch 5 item 14 applies the s 3(1) figures to 2025-26 and later
+/// years, so 2026-27 has the 2025-26 figures until an amendment changes them.
 pub const MEDICARE_LOW_INCOME_THRESHOLDS: &[(&str, (&str, &str))] = &[
     ("2024-25", ("27222", "34027")),
     ("2025-26", ("28011", "35013")),
+    ("2026-27", ("28011", "35013")),
 ];
 pub const MEDICARE_LEVY_RATES: [(&str, &str); 2] = [("levy", "0.02"), ("shade_in", "0.10")];
 
@@ -380,6 +383,45 @@ pub const DIVISION_296: [(&str, &str); 4] = [
     ("very_large_rate", "0.10"),
 ];
 pub const DIVISION_296_YEARS: [&str; 1] = ["2026-27"];
+
+/// 2026-27 life benefit termination payment figures: the ETP cap amount (ITAA
+/// 1997 s 82-160, indexed), the whole-of-income cap (s 82-10(4)(c)), the
+/// genuine redundancy and early retirement scheme base and service amounts
+/// (s 83-170(3), indexed), all as the ATO publishes them, and Schedule 11
+/// Table A's withholding rates, which include the 2% Medicare levy.
+pub const TERMINATION_PAYMENT: [(&str, &str); 7] = [
+    ("etp_cap", "270000"),
+    ("whole_of_income_cap", "180000"),
+    ("base_amount", "13598"),
+    ("service_amount", "6801"),
+    ("preservation_age_rate", "0.17"),
+    ("under_preservation_age_rate", "0.32"),
+    ("above_cap_rate", "0.47"),
+];
+pub const TERMINATION_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
+
+/// Schedule 5 (NAT 3348): the schedules for payments from 1 July 2024, 1 July
+/// 2025 and 1 July 2026 state the same methods and limit.
+pub const SCHEDULE_5_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
+/// Methods A and B(ii) limit withholding from an additional payment to 47% of it.
+pub const SCHEDULE_5_LIMIT_RATE: &str = "0.47";
+
+/// Schedule 15 (working holiday makers), columns 2 to 5, for a registered
+/// employer's payment to a payee who gave a TFN: the payments made to them in
+/// the income year before it that each column covers, lowest and highest
+/// inclusive in cents ('less than $45,001', 'from $45,001 to $135,000', 'from
+/// $135,001 to $190,000' and 'more than $190,000'), with Table A's rate. No
+/// column covers $135,000.01 to $135,000.99. The schedules for payments from
+/// 1 July 2024 and from 1 July 2026 give the same columns and rates.
+pub const WORKING_HOLIDAY_MAKER_COLUMNS: [(Option<&str>, Option<&str>, &str); 4] = [
+    (None, Some("45000.99"), "0.15"),
+    (Some("45001"), Some("135000"), "0.30"),
+    (Some("135001"), Some("190000"), "0.37"),
+    (Some("190000.01"), None, "0.45"),
+];
+/// Schedule 15: 45% of payments to a working holiday maker who gave no TFN.
+pub const WORKING_HOLIDAY_MAKER_NO_TFN_RATE: &str = "0.45";
+pub const WORKING_HOLIDAY_MAKER_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
 
 pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 
@@ -423,6 +465,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "low_income_tax_offset" => LOW_INCOME_TAX_OFFSET_YEARS.to_vec(),
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
+        "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
+            SCHEDULE_5_YEARS.to_vec()
+        }
+        "working_holiday_maker_withholding" => WORKING_HOLIDAY_MAKER_YEARS.to_vec(),
         _ => Vec::new(),
     }
 }
@@ -488,8 +535,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Schedule 8 (NAT 3539) for payments from 1 July 2026: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding",
         ),
         "medicare_levy" => (
-            "2026-10-15",
-            "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; ATO Medicare levy reduction for low-income earners (2025-26) and myTax 2025 table 2 (2024-25)",
+            "2026-11-14",
+            "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners (2025-26) and myTax 2025 table 2 (2024-25)",
         ),
         "low_income_tax_offset" => (
             "2026-10-15",
@@ -502,6 +549,18 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "division_296" => (
             "2026-11-13",
             "ITAA 1997 ss 296-15 to 296-55, compilation 268 (1 October 2026); Imposition Act 2026 s 5; Income Tax (Transitional Provisions) Act 1997 s 296-1; Explanatory Memorandum examples 1.1 to 1.3; ATO Division 296 tax on large super balances",
+        ),
+        "termination_payment" => (
+            "2026-11-14",
+            "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
+        ),
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
+            "2026-11-14",
+            "Schedule 5 (NAT 3348) for payments from 1 July 2026, from 1 July 2025 to 30 June 2026 and from 1 July 2024 to 30 June 2025: about this schedule, working out the withholding amount (Methods A, B(i) and B(ii), the withholding limit, study and training support loans) and withholding amounts examples 1 to 4",
+        ),
+        "working_holiday_maker_withholding" => (
+            "2026-11-14",
+            "Schedule 15 (working holiday makers) for payments from 1 July 2026 and for payments from 1 July 2024 to 30 June 2026: using this schedule, working out the withholding amount, registered and unregistered employers, using a formula, Table A, examples 1 and 2, rounding and TFN declarations",
         ),
         _ => ("", ""),
     }
@@ -618,6 +677,24 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-13",
         ),
+        "termination_payment" => (
+            "ATO Schedule 11 tax table for employment termination payments",
+            "examples 1 to 4",
+            "2026-06-17",
+            "2026-11-14",
+        ),
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
+            "ATO Schedule 5 (NAT 3348) withholding amounts examples",
+            "examples 1 to 4",
+            "2026-06-17",
+            "2026-11-14",
+        ),
+        "working_holiday_maker_withholding" => (
+            "ATO Schedule 15 tax table for working holiday makers",
+            "withholding lookup tool example, examples 1 and 2",
+            "2026-06-17",
+            "2026-11-14",
+        ),
         _ => ("", "", "", ""),
     };
     [
@@ -666,6 +743,14 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ),
         ("pay_period", "weekly, fortnightly or monthly"),
         ("scale", "integer 1, 2, 3, 5 or 6"),
+    ];
+    let schedule_5_pay = vec![
+        ("pay_period", "weekly, fortnightly or monthly"),
+        ("scale", "integer 1, 2, 3, 5 or 6"),
+        (
+            "study_loan",
+            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component to each table amount, for years study-loan-withholding supports",
+        ),
     ];
     match kind {
         "gst" => vec![("amount", "AUD"), ("gst_inclusive", "boolean")],
@@ -892,6 +977,116 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, whether the individual died on or before 30 June 2027 (Income Tax (Transitional Provisions) Act 1997 s 296-1(3))",
             ),
         ],
+        "termination_payment" => vec![
+            (
+                "redundancy_payment",
+                "AUD, the genuine redundancy payment (s 83-175) or early retirement scheme payment (s 83-180): the part of the termination payment above what voluntary termination would have paid, excluding salary, wages, unused annual and long service leave and payments in lieu of superannuation; 0.00 for none",
+            ),
+            (
+                "completed_years_of_service",
+                "integer from 0 to 150, the whole years in the period of employment the redundancy payment relates to (s 83-170(3))",
+            ),
+            (
+                "excluded_payment",
+                "AUD, the taxable component of any other excluded payment in the termination payment: one that would be a genuine redundancy payment but for the pension age condition, or compensation in a genuine dispute for personal injury, unfair dismissal, harassment or discrimination (s 82-10(6)); not an invalidity payment",
+            ),
+            (
+                "non_excluded_payment",
+                "AUD, the taxable component of the rest of the termination payment, such as a golden handshake, gratuity, payment in lieu of notice, unused sick leave or rostered days off, or a non-genuine redundancy payment",
+            ),
+            (
+                "other_taxable_payments",
+                "AUD, the taxable payments the payer made to the employee in the income year, excluding this termination payment, such as salary, wages and unused leave paid on termination (Schedule 11 step 1)",
+            ),
+            (
+                "date_of_birth",
+                "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
+            ),
+        ],
+        "schedule_5_method_a" => [
+            vec![
+                (
+                    "earnings",
+                    "AUD, the pay's gross earnings excluding additional payments; cents are ignored",
+                ),
+                (
+                    "additional_payment",
+                    "AUD, the back payments, commissions, bonuses and similar payments made in this pay",
+                ),
+                (
+                    "pay_periods",
+                    "integer, 52 weekly, 26 fortnightly or 12 monthly pay periods; fewer, from 2, only for a commission, bonus or similar payment for a defined period of less than 12 months: the pay periods it relates to",
+                ),
+            ],
+            schedule_5_pay,
+        ]
+        .concat(),
+        "schedule_5_method_b_i" => [
+            vec![
+                (
+                    "earnings",
+                    "AUD, the current pay's gross earnings excluding additional payments",
+                ),
+                (
+                    "back_payment_periods",
+                    "list of {earnings, back_payment, withheld} decimal strings, one for each earlier pay period in the current financial year the back payment applies to: the normal earnings paid for it, including back payments already applied to it by Method B(i), the part of the back payment for it, and the amount withheld from it, including any study and training support loan component; at most 52 weekly, 26 fortnightly or 11 monthly periods",
+                ),
+            ],
+            schedule_5_pay,
+        ]
+        .concat(),
+        "schedule_5_method_b_ii" => [
+            vec![
+                (
+                    "earnings",
+                    "AUD, the current pay's gross earnings excluding additional payments",
+                ),
+                (
+                    "additional_payment",
+                    "AUD, the additional payment in this pay worked out by Method B(ii)",
+                ),
+                (
+                    "year_to_date_earnings",
+                    "AUD, normal earnings paid in the financial year to date, including the current pay, plus current-year back payments for which Method B(i) was used",
+                ),
+                (
+                    "pay_periods_to_date",
+                    "integer, pay periods in the financial year to date, including the current one: at most 53 weekly, 27 fortnightly or 12 monthly",
+                ),
+                (
+                    "earlier_additional_payments",
+                    "AUD, additional payments made earlier in the financial year for which Method B(ii) was used",
+                ),
+                (
+                    "earlier_additional_withholding",
+                    "AUD, the amounts withheld from those earlier additional payments, including any study and training support loan component",
+                ),
+            ],
+            schedule_5_pay,
+        ]
+        .concat(),
+        "working_holiday_maker_withholding" => vec![
+            (
+                "payment",
+                "AUD, the total payments to the working holiday maker for the pay period: salary, wages, allowances, back payments, bonuses and other payments Schedule 15 covers",
+            ),
+            (
+                "payments_before",
+                "AUD, the total payments made to them in the income year before this payment",
+            ),
+            (
+                "employer_registered",
+                "boolean, whether the employer is registered with the ATO to withhold at working holiday maker rates",
+            ),
+            (
+                "tfn_quoted",
+                "boolean, true when the payee quoted a TFN, or advised on their TFN declaration that they applied for one or made an enquiry with the ATO and 28 days have not passed; false when they did neither, or 28 days passed without a TFN",
+            ),
+            (
+                "pay_period",
+                "weekly, fortnightly or monthly; for an unregistered employer it selects the Schedule 1 foreign resident amounts",
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1018,6 +1213,58 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("child_recipient", Flag(false)),
             ("structured_settlement_contribution", Flag(false)),
             ("died_in_year", Flag(false)),
+        ],
+        "termination_payment" => vec![
+            ("redundancy_payment", Text("48000.00")),
+            ("completed_years_of_service", Whole(5)),
+            ("excluded_payment", Text("0.00")),
+            ("non_excluded_payment", Text("17678.00")),
+            ("other_taxable_payments", Text("140000.00")),
+            ("date_of_birth", Text("1996-09-01")),
+        ],
+        // Schedule 5's examples 1 to 3 (Jarrod, Robyn and Laura), for payments from 1 July 2026.
+        "schedule_5_method_a" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("1400.00")),
+            ("additional_payment", Text("900.00")),
+            ("pay_periods", Whole(52)),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+            ("study_loan", Flag(true)),
+        ],
+        "schedule_5_method_b_i" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("1700.00")),
+            (
+                "back_payment_periods",
+                Json(
+                    r#"[{"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}]"#,
+                ),
+            ),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+            ("study_loan", Flag(true)),
+        ],
+        "schedule_5_method_b_ii" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("1800.00")),
+            ("additional_payment", Text("2480.00")),
+            ("year_to_date_earnings", Text("18000.00")),
+            ("pay_periods_to_date", Whole(10)),
+            ("earlier_additional_payments", Text("0.00")),
+            ("earlier_additional_withholding", Text("0.00")),
+            ("pay_period", Text("fortnightly")),
+            ("scale", Whole(2)),
+            ("study_loan", Flag(false)),
+        ],
+        // Schedule 15's example 2, for payments from 1 July 2026.
+        "working_holiday_maker_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("payment", Text("8173.20")),
+            ("payments_before", Text("47000.00")),
+            ("employer_registered", Flag(true)),
+            ("tfn_quoted", Flag(true)),
+            ("pay_period", Text("monthly")),
         ],
         _ => Vec::new(),
     }

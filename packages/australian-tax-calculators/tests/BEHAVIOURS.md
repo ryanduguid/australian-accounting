@@ -69,7 +69,7 @@ a local SplitMix64 replaces fast-check's generator, so the random cases differ.
 | `test_medicare_levy.py::test_thresholds_match_the_published_table` | `tables.rs`: `medicare_thresholds_match_the_published_table_and_phase_in` |
 | `test_medicare_levy.py::test_phase_in_limit_is_where_ten_percent_of_the_excess_meets_two_percent` | `tables.rs`: `medicare_thresholds_match_the_published_table_and_phase_in` |
 | `test_medicare_levy.py::test_levy_never_falls_as_income_rises` | Frozen replay in `parity.rs` (first 60 calls); `properties.rs`: `medicare_levy_never_falls_as_income_rises` |
-| `test_medicare_levy.py::test_unpublished_year_and_cents_are_refused` | Frozen replay in `parity.rs` |
+| `test_medicare_levy.py::test_unpublished_year_and_cents_are_refused` | Frozen replay in `parity.rs`, which skips the frozen 2026-27 call; `tables.rs`: `medicare_levy_2026_27_applies_the_thresholds_enacted_for_later_years` (2026-27 and the 2027-28 refusal) |
 | `test_medicare_levy.py::test_result_names_the_rates_applied` | Frozen replay in `parity.rs` |
 | `test_medicare_levy.py::test_section_9a_lump_sum_in_arrears_is_refused` | Frozen replay in `parity.rs` |
 | `test_medicare_levy.py::test_without_section_9a_the_standard_levy_applies` | Frozen replay in `parity.rs` |

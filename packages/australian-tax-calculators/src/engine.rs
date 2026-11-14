@@ -839,6 +839,7 @@ fn for_pay_period(weekly_amount: &Decimal, pay_period: &str) -> Calc<Decimal> {
 }
 
 /// `payg_withholding`'s optional inputs, each `None` when not given.
+#[derive(Default)]
 pub struct PaygOptions<'a> {
     pub foreign_resident: Option<&'a Arg>,
     pub tax_offsets: Option<&'a Arg>,
@@ -1183,7 +1184,7 @@ pub fn medicare_levy(
             ("medicare_levy", levy),
         ])
     })?;
-    result(
+    let mut out = result(
         "medicare_levy",
         &year,
         amounts,
@@ -1193,7 +1194,17 @@ pub fn medicare_levy(
             rate("threshold_amount", &threshold),
             rate("phase_in_limit", &limit),
         ],
-    )
+    )?;
+    if let Some((_, note)) = texts::MEDICARE_YEAR_WARNINGS
+        .iter()
+        .find(|(y, _)| *y == year)
+    {
+        out["warnings"]
+            .as_array_mut()
+            .expect("warnings")
+            .push(json!(note));
+    }
+    Ok(out)
 }
 
 pub fn low_income_tax_offset(
@@ -1462,6 +1473,148 @@ pub fn division_296(
     }
     out["liability"] = json!(liability);
     Ok(out)
+}
+
+/// SISR reg 6.01(2): 55 for a person born before 1 July 1960, one more for
+/// each later year of birth from 1 July, and 60 for one born after 30 June 1964.
+fn preservation_age(born: (i64, i64, i64)) -> i64 {
+    let (year, month, _) = born;
+    let birth_year_from_july = if month >= 7 { year } else { year - 1 };
+    (birth_year_from_july - 1960 + 56).clamp(55, 60)
+}
+
+/// Schedule 11 for one ETP part: the part within its cap, the part above it,
+/// and the amount withheld from both, rounded to the dollar with 50 cents up.
+fn etp_part(
+    component: &Decimal,
+    cap: &Decimal,
+    concessional: &Decimal,
+    top: &Decimal,
+) -> Calc<[Decimal; 3]> {
+    let within = py_min(component.clone(), cap.clone())?;
+    let above = component.sub(&within)?;
+    let withheld = within
+        .mul(concessional)?
+        .add(&above.mul(top)?)?
+        .quantize(0, Rounding::HalfUp)?;
+    Ok([within, above, withheld])
+}
+
+/// Schedule 11 for one ETP: the tax-free part of the redundancy payment, then
+/// the excluded part (code R) first, under the ETP cap alone, and the
+/// non-excluded part (code O), under the smaller of the ETP cap left and the
+/// whole-of-income cap (s 82-10(4), (6) and (7); Schedule 11).
+fn etp_amounts(
+    redundancy: &Decimal,
+    years: i64,
+    excluded: &Decimal,
+    non_excluded: &Decimal,
+    other: &Decimal,
+    concessional: &Decimal,
+) -> Result<Vec<(&'static str, Decimal)>> {
+    let [etp_cap, whole_of_income, base, service, top] = [
+        "etp_cap",
+        "whole_of_income_cap",
+        "base_amount",
+        "service_amount",
+        "above_cap_rate",
+    ]
+    .map(|key| d(lookup(&meta::TERMINATION_PAYMENT, key)));
+    precise(|| {
+        // s 83-170(3): base amount + service amount x years of service.
+        let limit = base.add(&service.mul(&int(years))?)?;
+        let tax_free = py_min(redundancy.clone(), limit.clone())?;
+        let excluded_part = redundancy.sub(&tax_free)?.add(excluded)?;
+        let [r_within, r_above, r_withheld] =
+            etp_part(&excluded_part, &etp_cap, concessional, &top)?;
+        let remaining = etp_cap.sub(&r_within)?;
+        let calculated = py_max(int(0), whole_of_income.sub(other)?)?;
+        let non_excluded_cap = py_min(remaining.clone(), calculated.clone())?;
+        let [o_within, o_above, o_withheld] =
+            etp_part(non_excluded, &non_excluded_cap, concessional, &top)?;
+        let total = r_withheld.add(&o_withheld)?;
+        Ok(vec![
+            ("tax_free_limit", limit),
+            ("tax_free_redundancy_amount", tax_free),
+            ("excluded_taxable_component", excluded_part),
+            ("excluded_within_cap", r_within),
+            ("excluded_above_cap", r_above),
+            ("excluded_withholding", r_withheld),
+            ("remaining_etp_cap", remaining),
+            ("whole_of_income_cap", calculated),
+            ("non_excluded_cap", non_excluded_cap),
+            ("non_excluded_taxable_component", non_excluded.clone()),
+            ("non_excluded_within_cap", o_within),
+            ("non_excluded_above_cap", o_above),
+            ("non_excluded_withholding", o_withheld),
+            ("total_withholding", total),
+        ])
+    })
+}
+
+/// The whole years of service, from 0 to 150, that a redundancy payment relates
+/// to (s 83-170(3)).
+fn years_of_service(value: &Arg) -> Result<i64> {
+    let Some(Some(years)) = value
+        .int()
+        .filter(|n| n.is_some_and(|n| (0..=150).contains(&n)))
+    else {
+        return refuse(
+            "input.years_of_service_invalid",
+            "completed_years_of_service must be a whole number from 0 to 150.",
+        );
+    };
+    Ok(years)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn termination_payment(
+    redundancy_payment: &Arg,
+    completed_years_of_service: &Arg,
+    excluded_payment: &Arg,
+    non_excluded_payment: &Arg,
+    other_taxable_payments: &Arg,
+    date_of_birth: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, "termination_payment")?;
+    let redundancy = money(redundancy_payment)?;
+    let years = years_of_service(completed_years_of_service)?;
+    let excluded = money(excluded_payment)?;
+    let non_excluded = money(non_excluded_payment)?;
+    let other = money(other_taxable_payments)?;
+    let born = dates::to_civil(date_arg(date_of_birth, "date_of_birth")?);
+    let figure = |key| lookup(&meta::TERMINATION_PAYMENT, key);
+    // s 82-10(3)(a): preservation age or older on the last day of the income year.
+    let age = preservation_age(born);
+    let year_end: i64 = year[..4].parse::<i64>().expect("income year") + 1;
+    let reached = (born.0 + age, born.1, born.2) <= (year_end, 6, 30);
+    let within_rate = if reached {
+        "preservation_age_rate"
+    } else {
+        "under_preservation_age_rate"
+    };
+    let concessional = d(figure(within_rate));
+    let amounts = etp_amounts(
+        &redundancy,
+        years,
+        &excluded,
+        &non_excluded,
+        &other,
+        &concessional,
+    )?;
+    let rates = vec![
+        rate("etp_cap", figure("etp_cap")),
+        rate("whole_of_income_cap_amount", figure("whole_of_income_cap")),
+        rate("redundancy_base_amount", figure("base_amount")),
+        rate("redundancy_service_amount", figure("service_amount")),
+        rate("preservation_age", age),
+        rate("preservation_age_reached", reached),
+        rate("withholding_rate_within_cap", &concessional),
+        rate("withholding_rate_above_cap", figure("above_cap_rate")),
+    ];
+    result("termination_payment", &year, amounts, rates)
 }
 
 pub fn study_loan_repayment(
@@ -2329,7 +2482,508 @@ pub fn borrowing_expenses(
     spread(&year, &loan, &expenditure, &share)
 }
 
-const KINDS: [&str; 19] = [
+/// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
+struct AdditionalPay {
+    kind: &'static str,
+    year: String,
+    earnings: Decimal,
+    period: String,
+    scale: i64,
+    study_loan: bool,
+    /// Pay periods in a financial year: 52, 26 or 12, with no adjustment for a
+    /// year of 53 weekly or 27 fortnightly pays.
+    per_year: i64,
+    /// The most pays a financial year can hold: 53, 27 or 12.
+    most_pays: i64,
+}
+
+fn additional_pay(
+    kind: &'static str,
+    earnings: &Arg,
+    pay_period: &Arg,
+    scale: &Arg,
+    study_loan: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<AdditionalPay> {
+    let (year, earnings, period, scale) =
+        payg_checks(kind, earnings, pay_period, scale, year, scope_confirmed)?;
+    let study_loan = flag(study_loan, "study_loan")?;
+    let loan_years = meta::supported_periods("study_loan_withholding");
+    if study_loan && !loan_years.contains(&year.as_str()) {
+        return refuse(
+            "period.unsupported",
+            format!(
+                "study_loan is supported for {} only: there is no Schedule 8 study and training support loan component for {year}.",
+                loan_years.join(", ")
+            ),
+        );
+    }
+    let (per_year, most_pays) = match period.as_str() {
+        "weekly" => (52, 53),
+        "fortnightly" => (26, 27),
+        _ => (12, 12),
+    };
+    Ok(AdditionalPay {
+        kind,
+        year,
+        earnings,
+        period,
+        scale,
+        study_loan,
+        per_year,
+        most_pays,
+    })
+}
+
+impl AdditionalPay {
+    /// What the relevant tax table withholds from `earnings` for one pay: the
+    /// Schedule 1 amount, plus the Schedule 8 component for a study and
+    /// training support loan, which Schedule 5 allows in place of separate
+    /// calculations.
+    fn table(&self, earnings: &Decimal) -> Result<Decimal> {
+        let args = [
+            Arg::Decimal(earnings.clone()),
+            Arg::Text(self.period.clone()),
+            Arg::Int(self.scale),
+            Arg::Text(self.year.clone()),
+            Arg::Bool(true),
+        ];
+        let [e, p, s, y, c] = &args;
+        let out = if self.study_loan {
+            study_loan_withholding(e, p, s, y, c)?
+        } else {
+            payg_withholding(e, p, s, y, c, &PaygOptions::default())?
+        };
+        Ok(d(out["amounts"]["withholding"]
+            .as_str()
+            .expect("withholding amount")))
+    }
+
+    fn finish(&self, amounts: Vec<(&str, Decimal)>, extra: Vec<(String, String)>) -> Result<Value> {
+        let mut rates = vec![
+            rate("scale", self.scale),
+            rate("study_loan", self.study_loan),
+        ];
+        rates.extend(extra);
+        let period = format!("{} {}", self.year, self.period);
+        result(self.kind, &period, amounts, rates)
+    }
+}
+
+fn pay_count(value: &Arg, name: &str, low: i64, high: i64) -> Result<i64> {
+    match value.int() {
+        Some(Some(n)) if (low..=high).contains(&n) => Ok(n),
+        _ => refuse(
+            "input.pay_periods_invalid",
+            format!("{name} must be an integer from {low} to {high}."),
+        ),
+    }
+}
+
+/// Methods A and B(ii): 47% of the additional payment, and the lesser of that
+/// and `extra` as the withholding on it, cents ignored and a negative result nil.
+fn within_limit(extra: Decimal, additional: &Decimal) -> Result<(Decimal, Decimal)> {
+    let limit = additional.mul(&d(meta::SCHEDULE_5_LIMIT_RATE))?;
+    let lesser = py_min(extra, limit.clone())?;
+    let on_additional = py_max(int(0), lesser)?.quantize(0, Rounding::Down)?;
+    Ok((limit, on_additional))
+}
+
+/// Method A and B(ii) steps 3 to 7: the additional payments spread over
+/// `periods` pay periods, cents ignored, added to `base`, and the extra the tax
+/// table then withholds for one pay, times `periods`.
+fn spread_withholding(
+    pay: &AdditionalPay,
+    base: &Decimal,
+    base_withholding: &Decimal,
+    additional: &Decimal,
+    periods: i64,
+) -> Result<(Decimal, Decimal, Decimal)> {
+    let share = additional.div(&int(periods))?.quantize(0, Rounding::Down)?;
+    let with_share = pay.table(&base.add(&share)?)?;
+    let extra = with_share.sub(base_withholding)?.mul(&int(periods))?;
+    Ok((share, with_share, extra))
+}
+
+/// Method A steps 1 to 10.
+fn method_a_amounts(
+    pay: &AdditionalPay,
+    additional: &Decimal,
+    periods: i64,
+) -> Result<Vec<(&'static str, Decimal)>> {
+    precise(|| {
+        let earnings = pay.earnings.quantize(0, Rounding::Down)?;
+        let on_earnings = pay.table(&earnings)?;
+        let (share, with_share, extra) =
+            spread_withholding(pay, &earnings, &on_earnings, additional, periods)?;
+        let (limit, on_additional) = within_limit(extra.clone(), additional)?;
+        let total = on_earnings.add(&on_additional)?;
+        Ok(vec![
+            ("earnings_used", earnings),
+            ("withholding_on_earnings", on_earnings),
+            ("additional_payment_per_period", share),
+            ("withholding_on_earnings_and_share", with_share),
+            ("withholding_before_limit", extra),
+            ("withholding_limit", limit),
+            ("withholding_on_additional_payment", on_additional),
+            ("withholding", total),
+        ])
+    })
+}
+
+/// Schedule 5 Method A: withholding from a pay that includes back payments,
+/// commissions, bonuses or similar payments, spread over the pay periods.
+#[allow(clippy::too_many_arguments)]
+pub fn schedule_5_method_a(
+    earnings: &Arg,
+    additional_payment: &Arg,
+    pay_periods: &Arg,
+    pay_period: &Arg,
+    scale: &Arg,
+    study_loan: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let pay = additional_pay(
+        "schedule_5_method_a",
+        earnings,
+        pay_period,
+        scale,
+        study_loan,
+        year,
+        scope_confirmed,
+    )?;
+    let additional = money(additional_payment)?;
+    // A payment for a single pay period is added to that pay under Schedule 1.
+    let periods = pay_count(pay_periods, "pay_periods", 2, pay.per_year)?;
+    let amounts = method_a_amounts(&pay, &additional, periods)?;
+    pay.finish(
+        amounts,
+        vec![
+            rate("pay_periods", periods),
+            rate("limit_rate", meta::SCHEDULE_5_LIMIT_RATE),
+        ],
+    )
+}
+
+/// An earlier pay period a Method B(i) back payment applies to.
+struct BackPaidPeriod {
+    earnings: Decimal,
+    back_payment: Decimal,
+    withheld: Decimal,
+}
+
+fn back_payment_periods_invalid<T>(most: i64) -> Result<T> {
+    refuse(
+        "input.back_payment_periods_invalid",
+        format!(
+            "back_payment_periods must be a list of 1 to {most} objects, each with exactly earnings, back_payment and withheld as decimal strings."
+        ),
+    )
+}
+
+fn back_payment_periods(value: &Arg, most: i64) -> Result<Vec<BackPaidPeriod>> {
+    let Arg::Json(Value::Array(items)) = value else {
+        return back_payment_periods_invalid(most);
+    };
+    if items.is_empty() || items.len() as i64 > most {
+        return back_payment_periods_invalid(most);
+    }
+    items
+        .iter()
+        .map(|item| {
+            let Value::Object(fields) = item else {
+                return back_payment_periods_invalid(most);
+            };
+            if fields.len() != 3 {
+                return back_payment_periods_invalid(most);
+            }
+            let amount = |key: &str| match fields.get(key).and_then(Value::as_str) {
+                Some(text) => match Decimal::parse(text) {
+                    Ok(v) => money(&Arg::Decimal(v)),
+                    Err(_) => back_payment_periods_invalid(most),
+                },
+                None => back_payment_periods_invalid(most),
+            };
+            Ok(BackPaidPeriod {
+                earnings: amount("earnings")?,
+                back_payment: amount("back_payment")?,
+                withheld: amount("withheld")?,
+            })
+        })
+        .collect()
+}
+
+/// Method B(i) steps 2 to 7: each earlier period recalculated, less what was
+/// withheld from it, the total nil if negative, with no 47% limit.
+fn method_b_i_amounts(
+    pay: &AdditionalPay,
+    periods: &[BackPaidPeriod],
+) -> Result<Vec<(&'static str, Decimal)>> {
+    precise(|| {
+        let mut back_payment = int(0);
+        let mut difference = int(0);
+        for period in periods {
+            let recalculated = pay.table(&period.earnings.add(&period.back_payment)?)?;
+            difference = difference.add(&recalculated.sub(&period.withheld)?)?;
+            back_payment = back_payment.add(&period.back_payment)?;
+        }
+        let on_back_payment = py_max(int(0), difference)?;
+        let on_earnings = pay.table(&pay.earnings)?;
+        let total = on_earnings.add(&on_back_payment)?;
+        Ok(vec![
+            ("back_payment", back_payment),
+            ("withholding_on_back_payment", on_back_payment),
+            ("withholding_on_earnings", on_earnings),
+            ("withholding", total),
+        ])
+    })
+}
+
+/// Schedule 5 Method B(i): withholding from a pay that includes a back payment
+/// for earlier pay periods in the same financial year, recalculated period by period.
+pub fn schedule_5_method_b_i(
+    earnings: &Arg,
+    back_payments: &Arg,
+    pay_period: &Arg,
+    scale: &Arg,
+    study_loan: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let pay = additional_pay(
+        "schedule_5_method_b_i",
+        earnings,
+        pay_period,
+        scale,
+        study_loan,
+        year,
+        scope_confirmed,
+    )?;
+    let periods = back_payment_periods(back_payments, pay.most_pays - 1)?;
+    let amounts = method_b_i_amounts(&pay, &periods)?;
+    pay.finish(amounts, vec![rate("back_payment_periods", periods.len())])
+}
+
+/// The year to date a Method B(ii) payment is averaged against.
+struct YearToDate {
+    earnings: Decimal,
+    pays: i64,
+    /// Earlier additional payments in the year worked by Method B(ii), and
+    /// what was withheld from them.
+    earlier: Decimal,
+    earlier_withheld: Decimal,
+}
+
+/// Method B(ii) steps 1 to 12.
+fn method_b_ii_amounts(
+    pay: &AdditionalPay,
+    additional: &Decimal,
+    to_date: &YearToDate,
+) -> Result<Vec<(&'static str, Decimal)>> {
+    precise(|| {
+        let average = to_date.earnings.div(&int(to_date.pays))?;
+        let average = average.quantize(0, Rounding::Down)?;
+        let on_average = pay.table(&average)?;
+        let all_additional = to_date.earlier.add(additional)?;
+        let (share, with_share, extra) =
+            spread_withholding(pay, &average, &on_average, &all_additional, pay.per_year)?;
+        // Step 8 subtracts what earlier Method B(ii) payments had withheld, and
+        // can be negative; results carry no negative amounts, so it is not shown.
+        let less_earlier = extra.sub(&to_date.earlier_withheld)?;
+        let (limit, on_additional) = within_limit(less_earlier, additional)?;
+        let on_earnings = pay.table(&pay.earnings)?;
+        let total = on_earnings.add(&on_additional)?;
+        Ok(vec![
+            ("average_total_earnings", average),
+            ("withholding_on_average_earnings", on_average),
+            ("additional_payments_per_period", share),
+            ("withholding_on_average_and_share", with_share),
+            ("withholding_for_the_year", extra),
+            ("withholding_limit", limit),
+            ("withholding_on_additional_payment", on_additional),
+            ("withholding_on_earnings", on_earnings),
+            ("withholding", total),
+        ])
+    })
+}
+
+/// Schedule 5 Method B(ii): withholding from a pay that includes an additional
+/// payment for a prior financial year or for no single pay period, averaged
+/// over the financial year. `to_date` is the year to date's earnings, pay
+/// periods, earlier Method B(ii) additional payments and their withholding.
+#[allow(clippy::too_many_arguments)]
+pub fn schedule_5_method_b_ii(
+    earnings: &Arg,
+    additional_payment: &Arg,
+    to_date: [&Arg; 4],
+    pay_period: &Arg,
+    scale: &Arg,
+    study_loan: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let pay = additional_pay(
+        "schedule_5_method_b_ii",
+        earnings,
+        pay_period,
+        scale,
+        study_loan,
+        year,
+        scope_confirmed,
+    )?;
+    let additional = money(additional_payment)?;
+    let [to_date_earnings, pays_to_date, earlier, earlier_withheld] = to_date;
+    let to_date = YearToDate {
+        earnings: money(to_date_earnings)?,
+        pays: pay_count(pays_to_date, "pay_periods_to_date", 1, pay.most_pays)?,
+        earlier: money(earlier)?,
+        earlier_withheld: money(earlier_withheld)?,
+    };
+    let amounts = method_b_ii_amounts(&pay, &additional, &to_date)?;
+    pay.finish(
+        amounts,
+        vec![
+            rate("pay_periods_to_date", to_date.pays),
+            rate("pay_periods", pay.per_year),
+            rate("limit_rate", meta::SCHEDULE_5_LIMIT_RATE),
+        ],
+    )
+}
+
+/// Schedule 15's lookup tool column for a registered employer's payment to a
+/// working holiday maker who gave a TFN, and its Table A rate, from the
+/// payments made before it in the income year. No column covers payments
+/// before of $135,000.01 to $135,000.99, so they are refused rather than
+/// placed in column 3 or 4.
+fn working_holiday_maker_rate(before: &Decimal) -> Result<(usize, &'static str)> {
+    for (index, (low, high, rate_)) in meta::WORKING_HOLIDAY_MAKER_COLUMNS.iter().enumerate() {
+        let above = low.map_or(Ok(true), |low| d(low).le(before))?;
+        let below = high.map_or(Ok(true), |high| before.le(&d(high)))?;
+        if above && below {
+            return Ok((index + 2, *rate_));
+        }
+    }
+    refuse(
+        "working_holiday_maker.band_unsettled",
+        "payments_before of $135,000.01 to $135,000.99 is in none of Schedule 15's columns: column 3 (30%) ends at $135,000 and column 4 (37%) starts at $135,001. Table A's rate column gives 37% on each $1 over $135,000, but its income bands leave the same gap, so the worksheet does not choose; confirm the rate with the ATO before withholding.",
+    )
+}
+
+const WORKING_HOLIDAY_MAKER: &str = "working_holiday_maker_withholding";
+
+/// Schedule 15 for an unregistered employer whose payee gave a TFN, who
+/// withholds at the foreign resident rates: the Schedule 1 scale 3 amount for
+/// the pay period.
+fn unregistered_working_holiday_maker(
+    payment: Decimal,
+    period: String,
+    year: String,
+) -> Result<Value> {
+    let label = format!("{year} {period}");
+    let foreign = payg_withholding(
+        &Arg::Decimal(payment.clone()),
+        &Arg::Text(period),
+        &Arg::Int(3),
+        &Arg::Text(year),
+        &Arg::Bool(true),
+        &PaygOptions::default(),
+    )?;
+    let withholding = d(foreign["amounts"]["withholding"]
+        .as_str()
+        .expect("withholding amount"));
+    let mut out = result(
+        WORKING_HOLIDAY_MAKER,
+        &label,
+        vec![("payment_used", payment), ("withholding", withholding)],
+        vec![rate("scale", 3)],
+    )?;
+    out["withholding_basis"] = json!(
+        "unregistered employer: foreign resident rates, the Schedule 1 scale 3 amount for the pay period"
+    );
+    Ok(out)
+}
+
+/// Schedule 15 at a flat rate: a registered employer's Table A rate for the
+/// column, or 45% for any employer without a TFN (for an unregistered one, the
+/// Schedule 1 scale 4 foreign resident rate), times the payment with cents ignored.
+fn flat_rate_working_holiday_maker(
+    payment: &Decimal,
+    before: &Decimal,
+    registered: bool,
+    tfn: bool,
+    label: &str,
+) -> Result<Value> {
+    let (column, rate_) = if tfn {
+        working_holiday_maker_rate(before)?
+    } else {
+        (6, meta::WORKING_HOLIDAY_MAKER_NO_TFN_RATE)
+    };
+    // Cents are ignored in the result at the top rate (column 5) and without a
+    // TFN (column 6); otherwise it is rounded straight to the dollar, 50 cents up.
+    let rounding = if column >= 5 {
+        Rounding::Down
+    } else {
+        Rounding::HalfUp
+    };
+    let a = d(rate_);
+    let (x, withholding) = precise(|| {
+        let x = payment.quantize(0, Rounding::Down)?;
+        let y = a.mul(&x)?.quantize(0, rounding)?;
+        Ok((x, y))
+    })?;
+    let mut out = result(
+        WORKING_HOLIDAY_MAKER,
+        label,
+        vec![("payment_used", x), ("withholding", withholding)],
+        vec![rate("rate", &a)],
+    )?;
+    out["withholding_basis"] = json!(if registered {
+        format!(
+            "registered employer, {}: column {column}, rate {a} on the payment with cents ignored",
+            if tfn { "TFN quoted" } else { "no TFN" }
+        )
+    } else {
+        format!(
+            "unregistered employer, no TFN: the foreign resident rate without a TFN (Schedule 1 scale 4), {a} on the payment with cents ignored"
+        )
+    });
+    Ok(out)
+}
+
+/// Schedule 15: withholding from one payment to a working holiday maker.
+pub fn working_holiday_maker_withholding(
+    payment: &Arg,
+    payments_before: &Arg,
+    employer_registered: &Arg,
+    tfn_quoted: &Arg,
+    pay_period: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, WORKING_HOLIDAY_MAKER)?;
+    let payment = money(payment)?;
+    let before = money(payments_before)?;
+    let registered = flag(employer_registered, "employer_registered")?;
+    let tfn = flag(tfn_quoted, "tfn_quoted")?;
+    let period = match pay_period.text() {
+        Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
+        _ => {
+            return refuse(
+                "input.pay_period_invalid",
+                "pay_period must be weekly, fortnightly or monthly.",
+            );
+        }
+    };
+    if !registered && tfn {
+        return unregistered_working_holiday_maker(payment, period, year);
+    }
+    let label = format!("{year} {period}");
+    flat_rate_working_holiday_maker(&payment, &before, registered, tfn, &label)
+}
+
+const KINDS: [&str; 24] = [
     "gst",
     "resident_tax",
     "capital_gains",
@@ -2349,6 +3003,11 @@ const KINDS: [&str; 19] = [
     "low_income_tax_offset",
     "division_293",
     "division_296",
+    "termination_payment",
+    "schedule_5_method_a",
+    "schedule_5_method_b_i",
+    "schedule_5_method_b_ii",
+    "working_holiday_maker_withholding",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
