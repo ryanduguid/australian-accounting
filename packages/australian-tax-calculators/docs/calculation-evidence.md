@@ -44,7 +44,8 @@ example evidence; it does not claim a fresh review of every supported period.
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
-| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, the ATO's single and family thresholds and its Ashton example | 30 June 2026 (ATO pages) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds and the s 8 family reduction for 2024-25 to 2026-27, on established SAPTO, spouse and dependant facts |
+| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, ITAA 1936 ss 251T and 251U, the ATO's single and family thresholds, its Ashton example and its Priya exemption example | 30 June 2026 (threshold pages); 22 June 2026 (exemption pages) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds, the s 8 family reduction and the s 9 exemption days for 2024-25 to 2026-27, on established SAPTO, spouse, dependant and exemption facts |
+| Medicare levy surcharge | Not a Library document: Medicare Levy Act 1986 ss 8B and 8D (compilations 52 and 53), the Medicare Levy Surcharge - Fringe Benefits Act 1999 (compilations 41 and 42), the ATO's thresholds page with its Tom example and its M2 2026 instructions with the Josh, Jacinta and Jill and Kevin examples | 22 June 2026 (thresholds page); 30 May 2026 (M2) | The tier, rate and share of the year for 2024-25 to 2026-27, for a person single without dependants or married all year, on established income for surcharge purposes, days without cover and spouse's income |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Seniors and pensioners tax offset | Not a Library document: ITAA 1936 s 160AAAA (compilation 193, 1 October 2026), the Income Tax Assessment (1936 Act) Regulations 2025 and Regulation 2015 (compilation 8) ss 9 to 12, and the ATO's examples and thresholds | 2 October 2026 (ATO page) | One eligible individual's offset amount for 2024-25 to 2026-27 from established rebate income, status and spouse facts; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
@@ -412,8 +413,10 @@ at and above the threshold amount and phase-in limit.
 
 Each published phase-in limit is 1.25 times the threshold amount, rounded down
 to the dollar: that is the income at which 10% of the excess reaches 2% of the
-whole, and the tests derive it. Exemptions, the surcharge, trustees and
-part-year residence are outside the worksheet.
+whole, and the tests derive it. Exemptions follow under
+[Exemptions](#exemptions), and the surcharge under
+[Medicare levy surcharge](#medicare-levy-surcharge); trustees and part-year
+residence are outside the worksheet.
 
 ### SAPTO thresholds and the family reduction
 
@@ -498,6 +501,125 @@ fact and refuses when it is true rather than estimate the adjustment. In the
 tests, $40,000 for 2025-26 that includes $12,000 of arrears from two earlier
 years is refused, because s 9A would leave $28,000, below the threshold, and
 nil levy; the same income without s 9A gives $800.
+
+### Exemptions
+
+Read on 14 November 2026: ITAA 1936 ss 251T and 251U on the ATO's Legal
+Database; Medicare Levy Act 1986 s 9 as compiled at 1 July 2026; and the ATO
+pages "Medical exemption from Medicare levy" and "Not entitled to Medicare
+benefits" (both last updated 22 June 2026) and "M1 Medicare levy reduction or
+exemption 2026" (last updated 30 May 2026), part B.
+
+A prescribed person for a period (s 251U(1)) is, among others, a person
+entitled to free medical treatment for every condition through the Defence
+Force or under the Veterans' Entitlements and related Acts, a blind pensioner,
+a non-resident, a diplomat or consular official who is not an Australian
+citizen and not ordinarily resident, or a person the Health Minister certifies
+is not entitled to Medicare benefits. Under s 251U(2) nobody is a prescribed
+person while a dependant is not. Under s 251U(3) a person who would be a
+prescribed person in one of the medical categories but for a dependant is a
+prescribed person for half of the period. Medicare levy (other than the
+surcharge) is not payable by a person who was a prescribed person for the whole
+year (s 251T), and for part of the year s 9(1) reduces the levy 'payable but for
+this section' by the share of the year's days for which the person was a
+prescribed person. The ATO's return asks for the full exemption days (label V)
+and the half exemption days (label W), at most 365 together, a day in both
+counted once as a full day; the worksheet takes the same 2 counts.
+
+Sections 7(2) and 8(2) each work out the levy 'but for' s 9, so the exemption
+reduces the levy after the low-income and family reductions:
+
+```text
+levy after s 9 = levy after s 8 x (2 x days in year - 2 x full days - half days)
+                 / (2 x days in year)
+```
+
+When s 8(3) shares the family reduction, that levy is worked times family
+income, as above, and divided once with the s 9 share. The ATO's Priya example
+(a full year without Medicare entitlement and no dependants, 365 full days)
+holds a full-year exemption to nil, and its Paul example (a Gold Card holder
+whose spouse is below the low-income threshold) is a half exemption. No ATO
+example gives an amount for a half or part-year exemption, or for one combined
+with the low-income or family reduction; those cases in
+`tests/medicare_exemptions.rs` are worked from the Act. The worksheet takes
+the days as established facts and does not test entitlement: the categories,
+the dependants and any family agreement are the operator's. Foreign residents,
+whom s 251U(1)(d) also exempts, are outside a worksheet for full-year
+residents, and a spouse must still not be entitled to any exemption, since
+s 8(3) then turns on the spouse's own exemption. `tests/properties.rs` checks
+that another exemption day never raises the levy and that a full day never
+leaves more than a half one.
+
+## Medicare levy surcharge
+
+Read on 14 November 2026: the Medicare Levy Act 1986 as compiled at 28 March
+2025 (compilation 52) and 1 July 2026 (compilation 53); the A New Tax System
+(Medicare Levy Surcharge - Fringe Benefits) Act 1999 as compiled at the same
+dates (compilations 41 and 42); the ATO pages "Medicare levy surcharge income,
+thresholds and rates" (last updated 22 June 2026) and "M2 Medicare levy
+surcharge 2026" (last updated 30 May 2026). The compiled text omits each Act's
+part-year formula, which is an image; the ATO's M2 examples apply it as the
+rate times the base times the days the section applies over the days in the
+year, and the worksheet does the same.
+
+The surcharge is 2 levies on the one rate. The Medicare Levy Act increases the
+levy by 1% of taxable income (s 8B(2) for a person not married and without
+dependants, s 8D(3) and (4) for a married person), read with s 3(2A) so that
+it includes an amount on which family trust distribution tax was paid; the
+Fringe Benefits Act imposes 1% of the reportable fringe benefits total
+(ss 12, 15 and 16). Each rate rises by 0.25 of a percentage point for a tier 2
+earner and 0.5 for a tier 3 earner (s 8B(3) and (4); Fringe Benefits Act
+s 12(4) and (5)). Income for surcharge purposes, which also counts net
+investment losses and reportable super contributions, decides only whether
+the surcharge applies and the tier. The ATO's Josh example shows the split:
+$127,000 makes him a tier 2 earner, and 1.25% applies to his $90,000 taxable
+income and $20,000 of fringe benefits, $1,375. The thresholds page lets a
+person reduce income for surcharge purposes by the taxed element of a super
+lump sum within the low rate cap only for 2023-24 and earlier years, so no such
+reduction applies to the years the worksheet supports.
+
+| Threshold | 2024-25 | 2025-26 | 2026-27 |
+| --- | --- | --- | --- |
+| Singles tier 1 | $97,000 | $101,000 | $105,000 |
+| Singles tier 2 | $113,000 | $118,000 | $123,000 |
+| Singles tier 3 | $151,000 | $158,000 | $164,000 |
+| Family tier 1 | $194,000 | $202,000 | $210,000 |
+| Family tier 2 | $226,000 | $236,000 | $246,000 |
+| Family tier 3 | $302,000 | $316,000 | $328,000 |
+| Married person's own income floor | $27,222 | $28,011 | $28,011 |
+
+The thresholds are the ATO's for each year; each family threshold is double
+the singles one, as Private Health Insurance Act 2007 s 22-40 sets it, and
+rises by $1,500 for each dependent child after the first. Income must exceed a
+threshold to pass it. Through Medicare Levy Act s 3A and the Private Health
+Insurance Act s 22-30, a person married on the last day of the year takes the
+family thresholds against the couple's combined income. A married person is
+liable only when that combined income exceeds the family tier 1 threshold and
+their own exceeds the floor in s 8D(3)(c) (Fringe Benefits Act s 15(1)(c)),
+the same figure as the s 3(1) threshold amount in each compilation; Act No. 58,
+2026, Sch 5, which set $28,011, amends both Acts.
+
+The ATO's examples hold the worksheet: Tom (2026-27, $117,000, tier 1,
+$1,170), Josh (above), Jacinta (2025-26, 199 days without cover; the ATO gives
+the days, and the test supplies her taxable income) and Jill and Kevin
+(2025-26, married with 3 children, combined $220,000 against a family
+threshold of $205,000, 193 days; the test supplies their split). A further
+test gives Tom $10,000 of reportable super contributions: he becomes a tier 2
+earner, and 1.25% applies to the same $117,000, $1,462.50. Applying the rate to
+income for surcharge purposes instead would give $1,587.50.
+`tests/medicare_surcharge.rs` also checks every tier boundary in each year,
+for a single person and families with 0 to 4 children, the married person's
+floor and every refusal, and `tests/properties.rs` checks that the surcharge
+never falls as its base or the days without cover rise.
+
+Scope limits, each documented in the worksheet's scope: the ATO's Michelle and
+Alice examples, whose marital status changed during the year, apply the single
+and family tests to different periods and are outside it, as is a person with
+dependants but no spouse (s 8C), which no published example works. Days in an
+exemption category, which the 2 Acts treat differently through ITAA 1936
+s 251U(2) and (3), trustees (ss 8E to 8G), part-year residents, the tax offset
+for the surcharge on lump sums in arrears and the private health insurance
+rebate are also outside it.
 
 ## Low income tax offset
 

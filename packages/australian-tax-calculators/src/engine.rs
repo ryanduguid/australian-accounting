@@ -1552,28 +1552,89 @@ impl Family {
     }
 }
 
+/// The optional `medicare-levy` exemption days, each `None` when not given.
+pub struct MedicareExemption<'a> {
+    pub full_days: Option<&'a Arg>,
+    pub half_days: Option<&'a Arg>,
+}
+
+/// The days in the year a person was in a Medicare levy exemption category.
+struct Exemption {
+    full: i64,
+    half: i64,
+    days_in_year: i64,
+}
+
+/// The days in an income year such as "2025-26": 366 when it holds 29 February.
+fn income_year_days(year: &str) -> i64 {
+    let start: i64 = year[..4].parse().expect("income year");
+    if is_leap(start + 1) { 366 } else { 365 }
+}
+
+/// The exemption days, or `None` for none. A day can be counted once: the ATO's
+/// M1 instructions count a day in both a full and a half period as a full day.
+fn medicare_exemption(exemption: &MedicareExemption, year: &str) -> Result<Option<Exemption>> {
+    let days_in_year = income_year_days(year);
+    let count =
+        |value: Option<&Arg>, name| value.map_or(Ok(0), |v| day_count(v, days_in_year, name));
+    let full = count(exemption.full_days, "medicare_levy_exemption_full_days")?;
+    let half = count(exemption.half_days, "medicare_levy_exemption_half_days")?;
+    if full + half > days_in_year {
+        return refuse(
+            "input.day_count_invalid",
+            format!(
+                "medicare_levy_exemption_full_days and medicare_levy_exemption_half_days together \
+                 must be no more than {days_in_year}; count a day in both as a full exemption day."
+            ),
+        );
+    }
+    Ok((full + half > 0).then_some(Exemption {
+        full,
+        half,
+        days_in_year,
+    }))
+}
+
+/// s 9(1): `levy` (times `scale`, see `family_reductions`) less the share of it
+/// for the days the person was a prescribed person: each full exemption day,
+/// and half of each half exemption day (ITAA 1936 s 251U(3)). It applies to the
+/// levy after ss 7 and 8, which each work out the levy 'but for' s 9.
+fn levy_after_exemption(levy: &Decimal, scale: &Decimal, exemption: &Exemption) -> Calc<Decimal> {
+    let halves = int(2 * exemption.days_in_year);
+    let kept = halves.sub(&int(2 * exemption.full + exemption.half))?;
+    levy.mul(&kept)?.div(&scale.mul(&halves)?)
+}
+
 fn optional_flag(value: Option<&Arg>, name: &str) -> Result<bool> {
     value.map_or(Ok(false), |v| flag(v, name))
 }
 
-fn not_taken<T>(name: &str, when: &str) -> Result<T> {
+fn not_taken<T>(command: &str, name: &str, when: &str) -> Result<T> {
     refuse(
         "input.field_unknown",
-        format!("{name} is not an input of medicare-levy {when}"),
+        format!("{name} is not an input of {command} {when}"),
     )
 }
 
 fn medicare_spouse(family: &MedicareFamily) -> Result<Option<Spouse>> {
     let Some(income) = family.spouse_taxable_income else {
         if family.spouse_sapto_entitled.is_some() {
-            return not_taken("spouse_sapto_entitled", "without spouse_taxable_income");
+            return not_taken(
+                "medicare-levy",
+                "spouse_sapto_entitled",
+                "without spouse_taxable_income",
+            );
         }
         return Ok(None);
     };
     let income = money(income)?;
     whole_dollars(&income, "spouse taxable income")?;
     if family.dependant_offset_entitled.is_some() {
-        return not_taken("dependant_offset_entitled", "with spouse_taxable_income");
+        return not_taken(
+            "medicare-levy",
+            "dependant_offset_entitled",
+            "with spouse_taxable_income",
+        );
     }
     let Some(sapto) = family.spouse_sapto_entitled else {
         return refuse(
@@ -1585,6 +1646,18 @@ fn medicare_spouse(family: &MedicareFamily) -> Result<Option<Spouse>> {
     Ok(Some(Spouse { income, sapto }))
 }
 
+/// An optional count of dependent children, 0 when not given.
+fn dependent_children(value: Option<&Arg>) -> Result<i64> {
+    match value.map(Arg::int) {
+        None => Ok(0),
+        Some(Some(Some(n))) if n >= 0 => Ok(n),
+        Some(_) => refuse(
+            "input.dependants_invalid",
+            "dependent_children must be a non-negative integer.",
+        ),
+    }
+}
+
 fn medicare_family(family: &MedicareFamily) -> Result<Family> {
     let sapto = optional_flag(family.sapto_entitled, "sapto_entitled")?;
     let spouse = medicare_spouse(family)?;
@@ -1592,19 +1665,11 @@ fn medicare_family(family: &MedicareFamily) -> Result<Family> {
         family.dependant_offset_entitled,
         "dependant_offset_entitled",
     )?;
-    let children = match family.dependent_children.map(Arg::int) {
-        None => 0,
-        Some(Some(Some(n))) if n >= 0 => n,
-        Some(_) => {
-            return refuse(
-                "input.dependants_invalid",
-                "dependent_children must be a non-negative integer.",
-            );
-        }
-    };
+    let children = dependent_children(family.dependent_children)?;
     // Without a spouse the children raise a threshold only s 8(1)(b) or (c) brings in.
     if children > 0 && spouse.is_none() && !dependant_offset {
         return not_taken(
+            "medicare-levy",
             "dependent_children",
             "without a spouse unless dependant_offset_entitled is true",
         );
@@ -1708,8 +1773,10 @@ struct FamilyWorking {
     own: Decimal,
     /// The s 8(4) reduction from the spouse's entitlement, no more than the levy left.
     from_spouse: Decimal,
-    /// The levy after s 8.
+    /// The levy after s 8, times `scale`.
     levy: Decimal,
+    /// Family income when s 8(3) shares the reduction, otherwise 1.
+    scale: Decimal,
     /// Whether s 8(3) shared this person's reduction.
     shared: bool,
 }
@@ -1758,9 +1825,10 @@ fn family_reductions(
     Ok(FamilyWorking {
         family_income,
         threshold,
-        levy: levy.sub(&own)?.sub(&from_spouse)?.div(&scale)?,
+        levy: levy.sub(&own)?.sub(&from_spouse)?,
         own: own.div(&scale)?,
         from_spouse: from_spouse.div(&scale)?,
+        scale,
         shared: spouse_liable && above,
     })
 }
@@ -1793,7 +1861,12 @@ fn refuse_section_9a(section_9a_adjustment_applies: &Arg) -> Result<()> {
 /// The amounts, the rates and whether s 8(3) shared the family reduction.
 type MedicareWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>, bool);
 
-fn medicare_working(income: &Decimal, year: &str, family: &Family) -> Calc<MedicareWorking> {
+fn medicare_working(
+    income: &Decimal,
+    year: &str,
+    family: &Family,
+    exemption: Option<&Exemption>,
+) -> Calc<MedicareWorking> {
     let (threshold, limit) = medicare_thresholds(year, family.sapto);
     let mut rates = vec![
         rate("levy_rate", medicare_rate("levy")),
@@ -1808,10 +1881,10 @@ fn medicare_working(income: &Decimal, year: &str, family: &Family) -> Calc<Medic
         ("levy_at_full_rate", full.clone()),
         ("low_income_reduction", full.sub(&levy)?),
     ];
-    let mut shared = false;
+    let (mut shared, mut scale) = (false, int(1));
     if family.reduces() {
         let working = family_reductions(income, &levy, year, family)?;
-        levy = working.levy;
+        (levy, scale) = (working.levy, working.scale);
         amounts.push(("family_income", working.family_income));
         amounts.push(("family_reduction", working.own));
         if family.spouse.is_some() {
@@ -1824,7 +1897,15 @@ fn medicare_working(income: &Decimal, year: &str, family: &Family) -> Calc<Medic
         ));
         shared = working.shared;
     }
-    amounts.push(("medicare_levy", levy));
+    if let Some(exemption) = exemption {
+        let after = levy_after_exemption(&levy, &scale, exemption)?;
+        amounts.push(("exemption_reduction", levy.div(&scale)?.sub(&after)?));
+        rates.push(rate("exemption_full_days", exemption.full));
+        rates.push(rate("exemption_half_days", exemption.half));
+        rates.push(rate("days_in_year", exemption.days_in_year));
+        (levy, scale) = (after, int(1));
+    }
+    amounts.push(("medicare_levy", levy.div(&scale)?));
     Ok((amounts, rates, shared))
 }
 
@@ -1834,13 +1915,22 @@ pub fn medicare_levy(
     year: &Arg,
     scope_confirmed: &Arg,
     family: MedicareFamily,
+    exemption: MedicareExemption,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "medicare_levy")?;
     let income = money(taxable_income)?;
     whole_dollars(&income, "taxable income")?;
     refuse_section_9a(section_9a_adjustment_applies)?;
     let family = medicare_family(&family)?;
-    let (amounts, rates, shared) = precise(|| Ok(medicare_working(&income, &year, &family)?))?;
+    let exemption = medicare_exemption(&exemption, &year)?;
+    let (amounts, rates, shared) = precise(|| {
+        Ok(medicare_working(
+            &income,
+            &year,
+            &family,
+            exemption.as_ref(),
+        )?)
+    })?;
     let mut out = result("medicare_levy", &year, amounts, rates)?;
     let warnings = out["warnings"].as_array_mut().expect("warnings");
     if let Some((_, note)) = texts::MEDICARE_YEAR_WARNINGS
@@ -1853,6 +1943,144 @@ pub fn medicare_levy(
         warnings.push(json!(texts::MEDICARE_SHARED_REDUCTION_NOTE));
     }
     Ok(out)
+}
+
+const SURCHARGE: &str = "medicare_levy_surcharge";
+
+/// The optional `medicare-levy-surcharge` inputs, each `None` when not given.
+pub struct SurchargeFamily<'a> {
+    pub spouse_income: Option<&'a Arg>,
+    pub dependent_children: Option<&'a Arg>,
+}
+
+/// The facts a surcharge is worked from.
+struct SurchargeFacts {
+    taxable: Decimal,
+    fringe: Decimal,
+    /// The person's income for surcharge purposes.
+    own: Decimal,
+    days: i64,
+    days_in_year: i64,
+    /// For a person married for the whole year: the spouse's income for
+    /// surcharge purposes and the MLS dependent children.
+    spouse: Option<(Decimal, i64)>,
+}
+
+/// The spouse and children, or `None` for a person without either all year.
+fn surcharge_spouse(family: &SurchargeFamily) -> Result<Option<(Decimal, i64)>> {
+    let children = dependent_children(family.dependent_children)?;
+    let Some(spouse) = family.spouse_income else {
+        // s 8C, a person with dependants but no spouse, has no published example.
+        if children > 0 {
+            return not_taken(
+                "medicare-levy-surcharge",
+                "dependent_children",
+                "without spouse_income_for_surcharge_purposes",
+            );
+        }
+        return Ok(None);
+    };
+    Ok(Some((money(spouse)?, children)))
+}
+
+/// The tier 1, 2 and 3 thresholds: the singles thresholds, or for a family
+/// double them (Private Health Insurance Act 2007 s 22-40), raised for each
+/// dependent child after the first.
+fn surcharge_thresholds(year: &str, family: Option<i64>) -> Calc<Vec<Decimal>> {
+    let singles = lookup(meta::SURCHARGE_THRESHOLDS, year);
+    let raise = |threshold: &&str| match family {
+        None => Ok(d(threshold)),
+        Some(children) => {
+            let extra = int((children - 1).max(0)).mul(&d(meta::SURCHARGE_CHILD_INCREASE))?;
+            d(threshold).mul(&int(2))?.add(&extra)
+        }
+    };
+    singles.iter().map(raise).collect()
+}
+
+type SurchargeWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>);
+
+/// Medicare Levy Act ss 8B and 8D and the Fringe Benefits Act ss 12, 15 and
+/// 16: the tier is set by income for surcharge purposes (combined with a
+/// spouse's), and its rate applies to taxable income and reportable fringe
+/// benefits for the days the section applies.
+fn surcharge_working(facts: &SurchargeFacts, year: &str) -> Calc<SurchargeWorking> {
+    let (income, thresholds) = match &facts.spouse {
+        None => (facts.own.clone(), surcharge_thresholds(year, None)?),
+        Some((spouse, children)) => (
+            facts.own.add(spouse)?,
+            surcharge_thresholds(year, Some(*children))?,
+        ),
+    };
+    let mut tier = 0;
+    for threshold in &thresholds {
+        tier += usize::from(income.gt(threshold)?);
+    }
+    // s 8D(3)(c): a married person's own income must also exceed this amount,
+    // the same figure as the s 3(1) threshold amount (c) in each year.
+    let floor = facts
+        .spouse
+        .as_ref()
+        .map(|_| medicare_thresholds(year, false).0);
+    let liable = tier > 0 && floor.as_ref().map_or(Ok(true), |f| facts.own.gt(f))?;
+    let percentage = if liable {
+        d(meta::SURCHARGE_RATES[tier - 1])
+    } else {
+        int(0)
+    };
+    let base = facts.taxable.add(&facts.fringe)?;
+    let surcharge = base.mul(&percentage)?.mul(&int(facts.days))?;
+    let mut amounts = vec![("income_for_surcharge_purposes", facts.own.clone())];
+    let mut rates = vec![rate("tier", ["base", "1", "2", "3"][tier])];
+    if facts.spouse.is_some() {
+        amounts.push(("family_income_for_surcharge_purposes", income));
+    }
+    amounts.push(("surcharge_base", base));
+    amounts.push((
+        "medicare_levy_surcharge",
+        surcharge.div(&int(facts.days_in_year))?,
+    ));
+    rates.push(rate("surcharge_rate", percentage));
+    for (key, threshold) in ["tier_1_threshold", "tier_2_threshold", "tier_3_threshold"]
+        .iter()
+        .zip(&thresholds)
+    {
+        rates.push(rate(key, threshold));
+    }
+    if let Some(floor) = floor {
+        rates.push(rate("own_income_threshold", floor));
+    }
+    rates.push(rate("days_without_cover", facts.days));
+    rates.push(rate("days_in_year", facts.days_in_year));
+    Ok((amounts, rates))
+}
+
+/// The Medicare levy surcharge on one person's taxable income (Medicare Levy
+/// Act 1986 ss 8B and 8D) and reportable fringe benefits (A New Tax System
+/// (Medicare Levy Surcharge - Fringe Benefits) Act 1999 ss 12, 15 and 16).
+pub fn medicare_levy_surcharge(
+    taxable_income: &Arg,
+    reportable_fringe_benefits: &Arg,
+    income_for_surcharge_purposes: &Arg,
+    days_without_cover: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+    family: SurchargeFamily,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, SURCHARGE)?;
+    let taxable = money(taxable_income)?;
+    whole_dollars(&taxable, "taxable income")?;
+    let days_in_year = income_year_days(&year);
+    let facts = SurchargeFacts {
+        taxable,
+        fringe: money(reportable_fringe_benefits)?,
+        own: money(income_for_surcharge_purposes)?,
+        days: day_count(days_without_cover, days_in_year, "days_without_cover")?,
+        days_in_year,
+        spouse: surcharge_spouse(&family)?,
+    };
+    let (amounts, rates) = precise(|| Ok(surcharge_working(&facts, &year)?))?;
+    result(SURCHARGE, &year, amounts, rates)
 }
 
 pub fn low_income_tax_offset(
@@ -3956,7 +4184,7 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 26] = [
+const KINDS: [&str; 27] = [
     "gst",
     "resident_tax",
     "capital_gains",
@@ -3973,6 +4201,7 @@ const KINDS: [&str; 26] = [
     "study_loan_repayment",
     "study_loan_withholding",
     "medicare_levy",
+    "medicare_levy_surcharge",
     "low_income_tax_offset",
     "division_293",
     "division_296",
